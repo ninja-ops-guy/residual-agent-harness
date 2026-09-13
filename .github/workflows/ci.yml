@@ -27,3 +27,16 @@ jobs:
           residual run examples/incident/task.json --config examples/demo.toml --output runs/ci-task
       - name: Controller ablations
         run: python -m residual benchmark --cases 4 --output runs/ci-benchmark.json
+      - name: Frozen independent evaluation (scripted fixtures)
+        run: |
+          residual study freeze --suite examples/study/suite.json --config examples/study-fixture.toml --repeats 2 --output runs/ci-study.lock.json
+          residual study run --lock runs/ci-study.lock.json --output runs/ci-study
+          residual study report runs/ci-study
+      - name: Preserve controlled-study evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: controlled-study-python-${{ matrix.python }}
+          path: runs/ci-study/
+          if-no-files-found: ignore
+          retention-days: 14

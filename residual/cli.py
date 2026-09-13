@@ -22,6 +22,9 @@ def write_json(path, value):
 
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
+    if argv and argv[0] == "study":
+        from .study import main as study
+        return study(argv[1:])
     if argv and argv[0] == "serve":
         from .station.server import main as serve
         return serve(argv[1:])
@@ -32,6 +35,7 @@ def main(argv=None):
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("serve", help="Open the local web command station (serve --help for options)")
     sub.add_parser("worker", help="Connect a distributed inference runner")
+    sub.add_parser("study", help="Freeze/run independently graded studies (study --help)")
     for name in ("demo", "run"):
         run = sub.add_parser(name)
         if name == "run":

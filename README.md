@@ -37,6 +37,8 @@ The training mission uses scripted proposals with real Git/check execution. It d
 
 ## Documentation
 
+- [Controlled studies, independent grading, and contract stress tests](docs/controlled-evaluation.md)
+
 - [World-class roadmap, first track and delegation boundaries](docs/roadmap/README.md)
 
 - [Goal contracts, quarantine and mission loop controls](docs/station/RUN-CONTROL.md)

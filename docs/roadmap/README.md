@@ -8,6 +8,7 @@ Read [DELEGATION.md](DELEGATION.md) for ownership and deliverables, then [FOUNDA
 
 | Capability | Current status |
 |---|---|
+| Frozen controlled study, independent final grading, contract stress fixtures | Implemented in the study CLI; scripted validation only, live model advantage unmeasured |
 | LDD mission state, isolated candidates, local checks, revision-bound review | Implemented and fixture/browser tested |
 | Provider adapters, budgeted failover, observation bridge and console | Implemented; live inference remains untested |
 | Goal contracts, verifier order, brakes, station loop, provider-call quarantine | Implemented; token/time brakes operate between waves |
