@@ -293,6 +293,29 @@ class FCCStationTests(unittest.TestCase):
         with patch.dict('os.environ', {'FCC_PROXY_API_KEY': 'KEY', 'FCC_ALLOWED_ROUTES': MODEL, 'FCC_STANDBY_CONFIRMED': '1'}):
             self.assertEqual(_default_registry().get('free_claude_code').list_models(), [MODEL])
 
+    def test_freellmapi_primary_outage_uses_fcc_with_combined_reservation(self):
+        from tests.modular.test_freellmapi import profile as free_profile
+        with endpoint(lambda _: (503, {}, {})) as (one, first), endpoint(lambda _: (200, FCC, {})) as (two, second):
+            save_settings(self.s.store, {'cloud': free_profile(one), 'cloud_fallbacks': [profile(two)],
+                'provider_credentials': {'freellmapi': {'api_key': 'FREE-PRIMARY-SECRET'},
+                                         'free_claude_code': {'api_key': 'FCC-PROXY-SECRET'}}})
+            self.assertEqual(self.call()['text'], 'ok')
+            self.assertEqual(len(first), 1); self.assertEqual(len(second), 1)
+            self.assertEqual(self.s.store.project(self.pid)['calls_reserved'], 25)
+            self.assertNotIn('FREE-PRIMARY-SECRET', repr(second))
+            self.assertNotIn('FCC-PROXY-SECRET', repr(first))
+        self.assertEqual(self.s.metrics(self.pid)['gateway_accounting_incomplete'], 2)
+
+    def test_freellmapi_provenance_failure_cannot_be_bypassed_by_fcc(self):
+        from tests.modular.test_freellmapi import profile as free_profile
+        with endpoint(lambda _: (200, OPENAI, {})) as (one, _), endpoint(lambda _: (200, FCC, {})) as (two, second):
+            save_settings(self.s.store, {'cloud': free_profile(one), 'cloud_fallbacks': [profile(two)],
+                'provider_credentials': {'freellmapi': {'api_key': 'FREE-PRIMARY-SECRET'},
+                                         'free_claude_code': {'api_key': 'FCC-PROXY-SECRET'}}})
+            with self.assertRaises(ProviderError) as caught: self.call()
+            self.assertEqual(caught.exception.code, 'invalid_response')
+            self.assertEqual(second, [])
+
     def test_fallback_proposals_still_need_checks_and_independent_review(self):
         self.s.triage(self.pid)
         with self.s.store.transaction() as c:

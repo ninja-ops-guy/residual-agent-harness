@@ -7,10 +7,10 @@
   "status": "offline_verified_live_activation_pending",
   "default_enabled": false,
   "local_evidence": {
-    "python_test_total": 244,
-    "python_test_passed": 243,
+    "python_test_total": 246,
+    "python_test_passed": 245,
     "python_test_skipped": 1,
-    "new_offline_tests": 24,
+    "new_offline_tests": 26,
     "skipped_test": "tests.modular.test_fcc_live.FCCLiveTests.test_synthetic_primary_outage_uses_configured_standby",
     "browser_workflow_checks": 19,
     "browser_viewports": ["1440x1040", "390x844"],
