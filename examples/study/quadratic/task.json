@@ -1,0 +1,24 @@
+{
+  "id": "quadratic",
+  "goal": "Return the square of x.",
+  "artifacts": [
+    {
+      "id": "requirements",
+      "text": "{\"examples\": [[0, 0], [1, 1]]}",
+      "cloud": true
+    }
+  ],
+  "obligations": [
+    {
+      "id": "expression",
+      "instruction": "Return the square of x. Return a string expression using x, integer constants, +, -, *, //, %, and parentheses. Calls and other syntax are forbidden.",
+      "check": "study_expression",
+      "evidence": [
+        "requirements"
+      ],
+      "parameters": {
+        "artifact": "requirements"
+      }
+    }
+  ]
+}

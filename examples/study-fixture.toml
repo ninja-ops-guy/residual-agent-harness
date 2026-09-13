@@ -1,0 +1,21 @@
+plugins = ["residual.study_tasks:register"]
+
+[local]
+kind = "study_fixture"
+role = "local"
+
+[expert]
+kind = "study_fixture"
+role = "expert"
+
+[limits]
+local_rounds = 1
+expert_rounds = 3
+max_calls = 12
+max_expert_calls = 8
+max_remote_input_bytes = 200000
+max_request_bytes = 50000
+max_output_tokens = 1024
+
+[cache]
+enabled = false

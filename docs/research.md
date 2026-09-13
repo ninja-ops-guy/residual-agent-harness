@@ -72,6 +72,13 @@ improvement is development-set evidence, not a held-out confirmatory result.
 
 ## Next experiment before a stronger novelty claim
 
+The [controlled study runner](controlled-evaluation.md) now implements protocol
+freezing, independent final grading, family-separated suites, repeated paired
+trials, ablations, durable call accounting, and partial-result reporting. Its
+bundled contract-stress suite is public development material. External task
+authorship, live model comparisons and a matched external baseline are still
+required; implementing the runner does not establish the hypothesis below.
+
 Freeze this implementation and a provider-independent task suite with domains
 where checking a candidate is substantially easier than generating one. Include
 code-repair tasks graded by hidden tests, bounded planning tasks graded by

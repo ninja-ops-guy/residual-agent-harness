@@ -1,0 +1,30 @@
+{
+  "schema_version": "residual.study-validation.v1",
+  "base_commit": "e9907fe50edb7e89faba2f822d1fd5562cb601e2",
+  "python_tests": {
+    "passed": 228,
+    "new_study_tests": 38,
+    "command": "python -m unittest discover -s tests -v"
+  },
+  "fixture_study": {
+    "scheduled": 144,
+    "recorded": 144,
+    "comparison_complete": true,
+    "simulation": true,
+    "report_sha256": "bf887ec67f594c9587f6472677be34a77c47e0d9b4dabd1a59684ff79347b1e1",
+    "protocol_sha256": "1aa38acaf13d64516a21aa18594c4ab13c320a99c0f6f815c7f579c8b09c5f14"
+  },
+  "checks": {
+    "compileall": "passed",
+    "legacy_four_case_ablations": "passed",
+    "diff_check": "passed",
+    "wheel_build": "passed",
+    "installed_wheel_study_runs": 12
+  },
+  "not_executed": [
+    "Live local or cloud inference: no endpoint/model/key configuration in workspace.",
+    "Independent externally authored held-out benchmark.",
+    "Station browser workflows: no station UI changes."
+  ],
+  "evidence_note": "This report captures local validation. Repository CI will preserve full per-run results, traces and call journals as workflow artifacts. Scripted outputs do not establish model quality, savings, or production readiness."
+}

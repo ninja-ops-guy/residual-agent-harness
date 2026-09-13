@@ -28,7 +28,8 @@ class Limits:
             positive_int(value, key, allow_zero=key in {"local_rounds", "expert_rounds", "max_expert_calls", "max_remote_input_bytes", "seed_lines"})
 
 
-MODES = {"residual", "residual_fixed", "cascade", "full_cloud", "local_only", "no_pull"}
+MODES = {"residual", "residual_fixed", "cascade", "full_cloud", "local_only", "no_pull",
+         "no_feedback", "no_solvers"}
 
 
 class Harness:
@@ -55,6 +56,8 @@ class Harness:
         self.deterministic_accepts = 0
         self.remote_bytes = 0
         self.expert_calls = 0
+        self.verification_ms = 0.0
+        self.solver_ms = 0.0
         for o in task.obligations:
             if o.check not in self.registry.checks or (o.solver and o.solver not in self.registry.solvers):
                 raise ContractError("unregistered verifier or solver")
@@ -73,13 +76,18 @@ class Harness:
                         self.cache_hits += 1
                         continue
                 o = task.by_id[node_id]
-                if o.solver and self.mode != "full_cloud":
+                if o.solver and self.mode not in {"full_cloud", "no_solvers"}:
+                    solver_started = time.monotonic()
                     try:
                         value = self.registry.solvers[o.solver](self._context(node_id))
-                        if self._accept(node_id, value, "deterministic"):
-                            self.deterministic_accepts += 1
                     except Exception:
                         self._failure(node_id, "solver_error", "The local solver failed; use the declared evidence.")
+                    else:
+                        self.solver_ms += (time.monotonic() - solver_started) * 1000
+                        if self._accept(node_id, value, "deterministic"):
+                            self.deterministic_accepts += 1
+                        continue
+                    self.solver_ms += (time.monotonic() - solver_started) * 1000
             if self.mode != "full_cloud" and self.local:
                 self._dispatch(self.local, ready, "local", self.limits.local_rounds)
             if self.mode != "local_only" and self.expert:
@@ -93,7 +101,8 @@ class Harness:
             unresolved[o.id] = ({"code": "dependency_blocked", "dependencies": missing} if missing
                                 else self.failures.get(o.id, {"code": "no_verified_candidate"}))
         remote_calls = [c for c in self.calls if c["placement"] == "remote"]
-        reported = [c for c in remote_calls if c["usage"]["source"] == "reported"]
+        reported = [c for c in remote_calls if c["usage"]["source"] == "reported"
+                    and c["usage"]["input_tokens"] is not None and c["usage"]["output_tokens"] is not None]
         priced = [c["cost_usd"] for c in remote_calls if c["cost_usd"] is not None]
         result = {
             "schema_version": "residual.run.v1", "task_id": task.id, "mode": self.mode,
@@ -109,6 +118,8 @@ class Harness:
                         "remote_cost_known_subtotal_usd": sum(priced),
                         "cache_hits": self.cache_hits, "deterministic_accepts": self.deterministic_accepts,
                         "accepted_obligations": len(self.accepted), "total_obligations": len(task.obligations),
+                        "verification_elapsed_ms": self.verification_ms,
+                        "solver_elapsed_ms": self.solver_ms,
                         "elapsed_ms": (time.monotonic() - start) * 1000},
             "calls": self.calls}
         self.ledger.add("run_finished", result_sha256=digest(result), success=result["success"])
@@ -134,6 +145,7 @@ class Harness:
     def _accept(self, node_id, value, source):
         if node_id in self.accepted:
             raise ContractError("accepted obligation cannot be overwritten")
+        started = time.monotonic()
         try:
             # Defensive copies bind exactly what was checked, excluding NaN and aliases.
             original = canonical(value)
@@ -142,6 +154,8 @@ class Harness:
                 verdict = Verdict("unknown", "invalid_verifier_result")
         except Exception:
             verdict = Verdict("unknown", "verifier_error", "The host verifier could not establish this obligation.")
+        finally:
+            self.verification_ms += (time.monotonic() - started) * 1000
         self.ledger.add("verification", obligation_id=node_id, source=source, status=verdict.status, code=verdict.code)
         if verdict.status != "pass":
             self._failure(node_id, verdict.code, verdict.message)
@@ -193,14 +207,15 @@ class Harness:
                                  "evidence_ids": list(self.task.by_id[n].evidence),
                                  "depends_on": list(self.task.by_id[n].depends_on)} for n in ids],
                 "accepted_dependencies": dependencies,
-                "counterexamples": {n: self.failures[n] for n in ids if n in self.failures},
+                "counterexamples": {} if self.mode == "no_feedback" else {
+                    n: self.failures[n] for n in ids if n in self.failures},
                 "manifest": manifest, "evidence": excerpts,
                 "request_limits": {"max_lines": self.limits.max_requested_lines,
                                    "pull_enabled": self.mode != "no_pull"}}
         # A small complete capsule can cost less than even two framed requests.
         # This is a byte heuristic, not an assertion about tokenization or quality.
         plan = "full_context" if full else "seed_and_pull"
-        if self.mode == "residual" and role == "expert":
+        if self.mode in {"residual", "no_feedback", "no_solvers"} and role == "expert":
             seed_size = provider.wire_size(packet, self.limits.max_output_tokens)
             raw_size = sum(len(self.task.artifacts[a].text.encode()) for a in needed)
             if raw_size <= 2 * seed_size:
