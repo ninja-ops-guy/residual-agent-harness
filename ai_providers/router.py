@@ -43,15 +43,21 @@ class Router:
         if len(candidates)>5 or len(set(candidates))!=len(candidates): raise ProviderError(code='invalid_request')
         return candidates
 
-    def _begin(self,candidate,req,request_id,index,stream=False):
+    def _begin(self,candidate,req,request_id,index,stream=False,previous_error=None):
         ref=ModelRef.parse(candidate)
         name=self.default_provider if ref.provider=='default' else ref.provider
         try: provider=self.registry.get(name)
         except ProviderError as error:
             self._emit('llm.failed', {'request_id':request_id,'attempt':index,'status':'not_dispatched','error':error.to_dict()}, {'provider':name,'model':ref.model,'request_id':request_id})
             raise
+        if getattr(provider, 'fallback_only', False):
+            if index == 1 or previous_error is None:
+                raise ProviderError(provider=name, code='invalid_request')
+            if not previous_error.retryable or previous_error.code not in {'connection','timeout','rate_limit','server_error'}:
+                raise previous_error
         routed=replace(req,model=ref.model)
         meta={'request_id':request_id,'attempt':index,'provider':name,'model':ref.model,'request_bytes':len(provider.wire_bytes(routed,stream)) if hasattr(provider,'wire_bytes') else None}
+        if previous_error: meta['fallback_trigger']=previous_error.code
         if self.before_attempt: self.before_attempt(provider,routed,meta)
         tags={'provider':name,'model':ref.model,'request_id':request_id}
         self._emit('llm.request',{**meta,'n_messages':len(req.messages)},tags)
@@ -60,7 +66,7 @@ class Router:
     def _end(self,meta,tags,start,resp=None,error=None):
         receipt={**meta,'elapsed_ms':round((time.monotonic()-start)*1000),'status':'failed' if error else 'completed',
                  'usage':dict(resp.usage) if resp else {},'finish_reason':resp.finish_reason if resp else None,'error':error.to_dict() if error else None}
-        if resp and meta['provider']=='freellmapi' and 'gateway' in resp.metadata:
+        if resp and meta['provider'] in {'freellmapi','free_claude_code'} and 'gateway' in resp.metadata:
             # Adapter-authored bounded report, never arbitrary upstream metadata.
             from .adapters._http import encode, decode
             receipt['gateway']=decode(encode(resp.metadata['gateway']))
@@ -70,7 +76,7 @@ class Router:
     def chat(self,model,req,failover=None):
         request_id=uuid.uuid4().hex; last=None
         for index,candidate in enumerate(self._candidates(model,failover),1):
-            provider,routed,meta,tags,start=self._begin(candidate,req,request_id,index)
+            provider,routed,meta,tags,start=self._begin(candidate,req,request_id,index,previous_error=last)
             try:
                 resp=provider.chat(routed)
                 if not isinstance(resp,ChatResponse): raise ProviderError(provider=provider.name,code='invalid_response')
@@ -86,7 +92,7 @@ class Router:
     def stream(self,model,req,failover=None):
         request_id=uuid.uuid4().hex; last=None
         for index,candidate in enumerate(self._candidates(model,failover),1):
-            provider,routed,meta,tags,start=self._begin(candidate,req,request_id,index,stream=True)
+            provider,routed,meta,tags,start=self._begin(candidate,req,request_id,index,stream=True,previous_error=last)
             emitted=False; usage={}; reason='unknown'; count=0
             try:
                 for chunk in provider.stream(routed):

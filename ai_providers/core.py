@@ -18,6 +18,7 @@ class ProviderName(str, Enum):
     OPENAI = "openai"
     OPENAI_COMPATIBLE = "openai_compatible"
     FREELLMAPI = "freellmapi"
+    FREE_CLAUDE_CODE = "free_claude_code"
     ANTHROPIC = "anthropic"
     GOOGLE = "google"
     AZURE = "azure"

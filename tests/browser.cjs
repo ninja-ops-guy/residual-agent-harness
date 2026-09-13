@@ -82,6 +82,34 @@ async function main(){
   await page.setViewportSize({width:1440,height:1040});
   checks.push('FreeLLMAPI cloud-only controls, allowlist, explicit auto opt-in, warnings and secret redaction persist on desktop/mobile');
 
+  assert.equal(await page.locator('#cloud-kind option[value="free_claude_code"]').count(),0);
+  assert.equal(await page.locator('#local-kind option[value="free_claude_code"]').count(),0);
+  await page.locator('.route-details summary').filter({hasText:'Cloud failover order'}).click();
+  await page.getByRole('button',{name:'+ Add fallback provider',exact:true}).click();
+  await page.locator('#fallback-1-kind').selectOption('free_claude_code');
+  await page.locator('#fallback-1-fcc-routes').waitFor({state:'visible'});
+  assert.equal(await page.locator('#fallback-1-url').inputValue(),'http://127.0.0.1:8082');
+  await page.locator('#fallback-1-model').fill('groq/test');
+  await page.locator('#fallback-1-fcc-routes').fill('groq/test');
+  await page.locator('#fallback-1-key').fill('FCC-UI-PRIVATE-KEY');
+  await page.getByRole('button',{name:'Save model routes',exact:true}).click();
+  await page.locator('.toast.error').filter({hasText:'FCC requires'}).waitFor();
+  await page.locator('[name="fallback-1-fcc-confirmed"]').check();
+  await page.getByRole('button',{name:'Save model routes',exact:true}).click();
+  await page.waitForFunction(async()=>{const b=await fetch('/api/bootstrap').then(r=>r.json());return b.settings.cloud_fallbacks.some(p=>p.kind==='free_claude_code'&&p.fcc_standby_confirmed);});
+  await page.reload();await page.locator('#fallback-1-kind').waitFor({state:'attached'});
+  await page.locator('.route-details summary').filter({hasText:'Cloud failover order'}).click();
+  assert.equal(await page.locator('[name="fallback-1-fcc-confirmed"]').isChecked(),true);
+  assert.equal(await page.locator('#fallback-1-fcc-routes').inputValue(),'groq/test');
+  assert.equal(await page.locator('#fallback-1-key').inputValue(),'');
+  assert(!(await page.evaluate(()=>fetch('/api/bootstrap').then(r=>r.text()))).includes('FCC-UI-PRIVATE-KEY'));
+  await page.locator('.fallback-profile').last().screenshot({path:path.join(out,'14-fcc-standby.png')});
+  await page.setViewportSize({width:390,height:844});
+  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  await page.locator('.fallback-profile').last().screenshot({path:path.join(out,'15-fcc-standby-mobile.png')});
+  await page.setViewportSize({width:1440,height:1040});
+  checks.push('FCC appears only in fallbacks, requires standby confirmation and preserves redacted settings on desktop/mobile');
+
   await page.locator('[data-view="overview"]').click();await page.getByRole('button',{name:'+ New mission',exact:true}).last().click();await page.getByRole('button',{name:'Load template',exact:true}).click();await page.getByRole('button',{name:'Validate specification',exact:true}).click();await page.locator('#spec-feedback .callout').waitFor();checks.push('Markdown template validates from UI');
   await page.locator('#project-spec').fill('# Invalid specification');await page.getByRole('button',{name:'Validate specification',exact:true}).click();await page.locator('.toast.error').waitFor();checks.push('Invalid Markdown produces actionable feedback');await page.getByRole('button',{name:'Close dialog',exact:true}).click();
   while(await page.locator('.toast button').count()) await page.locator('.toast button').first().click();

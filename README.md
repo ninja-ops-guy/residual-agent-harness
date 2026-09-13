@@ -43,6 +43,7 @@ The training mission uses scripted proposals with real Git/check execution. It d
 - [Goal contracts, quarantine and mission loop controls](docs/station/RUN-CONTROL.md)
 - [Modular providers, observations, and capability limits](docs/station/MODULAR-LAYERS.md)
 - [FreeLLMAPI setup, tests and pre-merge limitations](docs/station/FREELLMAPI.md)
+- [FCC continuity fallback, dedicated-server contract and rollout gate](docs/station/FCC_CONTINUITY.md)
 - [Architecture and invariants](docs/station/ARCHITECTURE.md)
 - [Specification format](docs/station/SPECIFICATION.md)
 - [Distributed workers](docs/station/DISTRIBUTED.md)
