@@ -1,0 +1,4979 @@
+{
+  "schema_version": "residual.benchmark.v1",
+  "simulation": true,
+  "workload": "synthetic_incident_v1",
+  "cases": 8,
+  "noise_lines": 256,
+  "repeats": 1,
+  "limitations": [
+    "Synthetic workloads; task success means declared checks passed.",
+    "Scripted providers measure controller behavior, not LLM accuracy or real token savings.",
+    "Request bytes include protocol framing; provider-reported tokens are recorded separately.",
+    "Local hardware/energy and engineering costs are not measured.",
+    "All modes share checks and limits; caches are disabled; no hidden gold is sent to models."
+  ],
+  "summary": [
+    {
+      "mode": "local_only",
+      "runs": 8,
+      "successful": 2,
+      "success_rate": 0.25,
+      "remote_request_bytes": 0,
+      "remote_bytes_per_success": 0.0,
+      "remote_calls": 0,
+      "input_tokens_reported": 0,
+      "output_tokens_reported": 0,
+      "usage_complete": true,
+      "remote_cost_usd": 0,
+      "remote_cost_per_success_usd": 0.0,
+      "median_elapsed_ms": 0.5299555014062207
+    },
+    {
+      "mode": "full_cloud",
+      "runs": 8,
+      "successful": 8,
+      "success_rate": 1.0,
+      "remote_request_bytes": 1044858,
+      "remote_bytes_per_success": 130607.25,
+      "remote_calls": 24,
+      "input_tokens_reported": 0,
+      "output_tokens_reported": 0,
+      "usage_complete": false,
+      "remote_cost_usd": null,
+      "remote_cost_per_success_usd": null,
+      "median_elapsed_ms": 3.9291364992095623
+    },
+    {
+      "mode": "cascade",
+      "runs": 8,
+      "successful": 8,
+      "success_rate": 1.0,
+      "remote_request_bytes": 262188,
+      "remote_bytes_per_success": 32773.5,
+      "remote_calls": 6,
+      "input_tokens_reported": 0,
+      "output_tokens_reported": 0,
+      "usage_complete": false,
+      "remote_cost_usd": null,
+      "remote_cost_per_success_usd": null,
+      "median_elapsed_ms": 1.697115003480576
+    },
+    {
+      "mode": "residual_fixed",
+      "runs": 8,
+      "successful": 8,
+      "success_rate": 1.0,
+      "remote_request_bytes": 37368,
+      "remote_bytes_per_success": 4671.0,
+      "remote_calls": 12,
+      "input_tokens_reported": 0,
+      "output_tokens_reported": 0,
+      "usage_complete": false,
+      "remote_cost_usd": null,
+      "remote_cost_per_success_usd": null,
+      "median_elapsed_ms": 1.041648501995951
+    },
+    {
+      "mode": "residual",
+      "runs": 8,
+      "successful": 8,
+      "success_rate": 1.0,
+      "remote_request_bytes": 37368,
+      "remote_bytes_per_success": 4671.0,
+      "remote_calls": 12,
+      "input_tokens_reported": 0,
+      "output_tokens_reported": 0,
+      "usage_complete": false,
+      "remote_cost_usd": null,
+      "remote_cost_per_success_usd": null,
+      "median_elapsed_ms": 1.068112498614937
+    },
+    {
+      "mode": "no_pull",
+      "runs": 8,
+      "successful": 2,
+      "success_rate": 0.25,
+      "remote_request_bytes": 68448,
+      "remote_bytes_per_success": 34224.0,
+      "remote_calls": 24,
+      "input_tokens_reported": 0,
+      "output_tokens_reported": 0,
+      "usage_complete": false,
+      "remote_cost_usd": null,
+      "remote_cost_per_success_usd": null,
+      "median_elapsed_ms": 1.247248499566922
+    }
+  ],
+  "runs": [
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-0",
+      "mode": "local_only",
+      "status": "partial",
+      "success": false,
+      "values": {
+        "error_count": 74
+      },
+      "unresolved": {
+        "cause": {
+          "code": "probe_contradiction",
+          "message": "The proposed cause conflicts with the diagnostic PROBE record; inspect it."
+        },
+        "action": {
+          "code": "dependency_blocked",
+          "dependencies": [
+            "cause"
+          ]
+        }
+      },
+      "receipts": {
+        "error_count": {
+          "binding": "800a2b1e38824ceefa27642431e9f4894161edd81e62f25239df72edb69315fb",
+          "value_sha256": "eb624dbe56eb6620ae62080c10a273cab73ae8eca98ab17b731446a31c79393a",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "a0999b3ddf7c45a5bf108b1a60b1d00d184b5dcaadb770e71f672a174aaa90f6"
+        }
+      },
+      "metrics": {
+        "calls": 1,
+        "expert_calls": 0,
+        "remote_calls": 0,
+        "remote_request_bytes": 0,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": true,
+        "remote_cost_usd": 0,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 1,
+        "accepted_obligations": 1,
+        "total_obligations": 3,
+        "elapsed_ms": 0.5388380013755523
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "3439651fce18ba27da7ee0a036daf865364f6efb4dedb0b03b38164fc1bf3992",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "c2d61d8ca881bf6b1303269342868c210c5b1a7a96ee1959d08b316ccc7a7ce6",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-0",
+      "mode": "full_cloud",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 74,
+        "cause": "dns",
+        "action": "Restore the approved DNS configuration and retest name resolution."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "800a2b1e38824ceefa27642431e9f4894161edd81e62f25239df72edb69315fb",
+          "value_sha256": "eb624dbe56eb6620ae62080c10a273cab73ae8eca98ab17b731446a31c79393a",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "a0999b3ddf7c45a5bf108b1a60b1d00d184b5dcaadb770e71f672a174aaa90f6"
+        },
+        "cause": {
+          "binding": "9304ddf057e16f8a18ed4cda5789c02f3958738ab733e83f43532d10adbe452a",
+          "value_sha256": "02f0177364eff0bfd1ff91f7b6867ca1a5864c7d917dacb7ddb8adc1ebb80cdd",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "9a3f4a61641fccc94e29f271b7d01c9df64b2cf852181cb3f63810133ec4dd13"
+        },
+        "action": {
+          "binding": "c2ed8f08a8e756229218f9d8830f0d3d1cbf48e52d346ead80092b7b91aa9531",
+          "value_sha256": "aba2661a4b53614582dccf70606e44222a9854dafb3e6cc74b73cabbc08b5e3a",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "47bd163579d09cf81878f9ee6276ef48c5647beca1989cef5802eb9339b1fd14"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 3,
+        "remote_calls": 3,
+        "remote_request_bytes": 130635,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 0,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 3.757286998734344
+      },
+      "calls": [
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "error_count"
+          ],
+          "request_bytes": 43423,
+          "packet_sha256": "16e3fd9a2a8ab5cd62bc3a1704f8dc86ccd04e745d8a5645729786b87d2c7df6",
+          "usage": {
+            "input_tokens": 10856,
+            "output_tokens": 11,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 43572,
+          "packet_sha256": "a17ce5c3829f2c940188b5da123494204a0c36a4c02f1f0362c4b05b75a07414",
+          "usage": {
+            "input_tokens": 10893,
+            "output_tokens": 11,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "action"
+          ],
+          "request_bytes": 43640,
+          "packet_sha256": "90bc10814575ac82fe7b9d8fc5c9294f7ac2609e6a15a6314069ed1e06d4738e",
+          "usage": {
+            "input_tokens": 10910,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "22817d72147ab9ee64155f5933b02ba87da2597fd61d82eb913e195a4e51970e",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-0",
+      "mode": "cascade",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 74,
+        "cause": "dns",
+        "action": "Restore the approved DNS configuration and retest name resolution."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "800a2b1e38824ceefa27642431e9f4894161edd81e62f25239df72edb69315fb",
+          "value_sha256": "eb624dbe56eb6620ae62080c10a273cab73ae8eca98ab17b731446a31c79393a",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "a0999b3ddf7c45a5bf108b1a60b1d00d184b5dcaadb770e71f672a174aaa90f6"
+        },
+        "cause": {
+          "binding": "9304ddf057e16f8a18ed4cda5789c02f3958738ab733e83f43532d10adbe452a",
+          "value_sha256": "02f0177364eff0bfd1ff91f7b6867ca1a5864c7d917dacb7ddb8adc1ebb80cdd",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "9a3f4a61641fccc94e29f271b7d01c9df64b2cf852181cb3f63810133ec4dd13"
+        },
+        "action": {
+          "binding": "c2ed8f08a8e756229218f9d8830f0d3d1cbf48e52d346ead80092b7b91aa9531",
+          "value_sha256": "aba2661a4b53614582dccf70606e44222a9854dafb3e6cc74b73cabbc08b5e3a",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "47bd163579d09cf81878f9ee6276ef48c5647beca1989cef5802eb9339b1fd14"
+        }
+      },
+      "metrics": {
+        "calls": 2,
+        "expert_calls": 1,
+        "remote_calls": 1,
+        "remote_request_bytes": 43707,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 1.860577001934871
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "3439651fce18ba27da7ee0a036daf865364f6efb4dedb0b03b38164fc1bf3992",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 43707,
+          "packet_sha256": "9178863d735a3c3193c7d4361a7ad49aa93da1fc523888ad3b3d0f78607449c6",
+          "usage": {
+            "input_tokens": 10927,
+            "output_tokens": 11,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "99f345f9a45c5b6297fbabca3d8eee45f35e05fa56c2393c59ade4a32aebc2fc",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-0",
+      "mode": "residual_fixed",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 74,
+        "cause": "dns",
+        "action": "Restore the approved DNS configuration and retest name resolution."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "800a2b1e38824ceefa27642431e9f4894161edd81e62f25239df72edb69315fb",
+          "value_sha256": "eb624dbe56eb6620ae62080c10a273cab73ae8eca98ab17b731446a31c79393a",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "a0999b3ddf7c45a5bf108b1a60b1d00d184b5dcaadb770e71f672a174aaa90f6"
+        },
+        "cause": {
+          "binding": "9304ddf057e16f8a18ed4cda5789c02f3958738ab733e83f43532d10adbe452a",
+          "value_sha256": "02f0177364eff0bfd1ff91f7b6867ca1a5864c7d917dacb7ddb8adc1ebb80cdd",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "9a3f4a61641fccc94e29f271b7d01c9df64b2cf852181cb3f63810133ec4dd13"
+        },
+        "action": {
+          "binding": "c2ed8f08a8e756229218f9d8830f0d3d1cbf48e52d346ead80092b7b91aa9531",
+          "value_sha256": "aba2661a4b53614582dccf70606e44222a9854dafb3e6cc74b73cabbc08b5e3a",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "47bd163579d09cf81878f9ee6276ef48c5647beca1989cef5802eb9339b1fd14"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 2,
+        "remote_calls": 2,
+        "remote_request_bytes": 6228,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 1.2374730067676865
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "3439651fce18ba27da7ee0a036daf865364f6efb4dedb0b03b38164fc1bf3992",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2851,
+          "packet_sha256": "6d2236778ef7283905ad86e2b290b77eea15c44fb93ddef84b2fce691de5abc3",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 3377,
+          "packet_sha256": "2299bb64117ecfe922278a158f17bcb5741a3cfb59e338bd75047ab6a93b022b",
+          "usage": {
+            "input_tokens": 845,
+            "output_tokens": 11,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "d5d8360b89546bde3ecbe8474f2f6b8d2ec35f5390d9ec2a3b5ea14eb3d8af37",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-0",
+      "mode": "residual",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 74,
+        "cause": "dns",
+        "action": "Restore the approved DNS configuration and retest name resolution."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "800a2b1e38824ceefa27642431e9f4894161edd81e62f25239df72edb69315fb",
+          "value_sha256": "eb624dbe56eb6620ae62080c10a273cab73ae8eca98ab17b731446a31c79393a",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "a0999b3ddf7c45a5bf108b1a60b1d00d184b5dcaadb770e71f672a174aaa90f6"
+        },
+        "cause": {
+          "binding": "9304ddf057e16f8a18ed4cda5789c02f3958738ab733e83f43532d10adbe452a",
+          "value_sha256": "02f0177364eff0bfd1ff91f7b6867ca1a5864c7d917dacb7ddb8adc1ebb80cdd",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "9a3f4a61641fccc94e29f271b7d01c9df64b2cf852181cb3f63810133ec4dd13"
+        },
+        "action": {
+          "binding": "c2ed8f08a8e756229218f9d8830f0d3d1cbf48e52d346ead80092b7b91aa9531",
+          "value_sha256": "aba2661a4b53614582dccf70606e44222a9854dafb3e6cc74b73cabbc08b5e3a",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "47bd163579d09cf81878f9ee6276ef48c5647beca1989cef5802eb9339b1fd14"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 2,
+        "remote_calls": 2,
+        "remote_request_bytes": 6228,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 1.5759249945404008
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "3439651fce18ba27da7ee0a036daf865364f6efb4dedb0b03b38164fc1bf3992",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2851,
+          "packet_sha256": "6d2236778ef7283905ad86e2b290b77eea15c44fb93ddef84b2fce691de5abc3",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 3377,
+          "packet_sha256": "2299bb64117ecfe922278a158f17bcb5741a3cfb59e338bd75047ab6a93b022b",
+          "usage": {
+            "input_tokens": 845,
+            "output_tokens": 11,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "d8ba538356bb98b07cfada12707ec6dbda616985f0c2310711e2912053ced5a4",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-0",
+      "mode": "no_pull",
+      "status": "partial",
+      "success": false,
+      "values": {
+        "error_count": 74
+      },
+      "unresolved": {
+        "cause": {
+          "code": "evidence_pull_disabled",
+          "message": "Choose a permitted, unseen evidence interval within the request limits."
+        },
+        "action": {
+          "code": "dependency_blocked",
+          "dependencies": [
+            "cause"
+          ]
+        }
+      },
+      "receipts": {
+        "error_count": {
+          "binding": "800a2b1e38824ceefa27642431e9f4894161edd81e62f25239df72edb69315fb",
+          "value_sha256": "eb624dbe56eb6620ae62080c10a273cab73ae8eca98ab17b731446a31c79393a",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "a0999b3ddf7c45a5bf108b1a60b1d00d184b5dcaadb770e71f672a174aaa90f6"
+        }
+      },
+      "metrics": {
+        "calls": 5,
+        "expert_calls": 4,
+        "remote_calls": 4,
+        "remote_request_bytes": 11408,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 1,
+        "accepted_obligations": 1,
+        "total_obligations": 3,
+        "elapsed_ms": 1.2912140009575523
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2717,
+          "packet_sha256": "132f8ad62e6e6e5e03c88ca5bc11904a861438b340297954c893fa524219d21f",
+          "usage": {
+            "input_tokens": 680,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "c927545e68ac4b6c5b31baa4d1a63f9e5b1ff308dd33121ff70ec5a9f45d44c3",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "a08066c8f744dac66c61453d5e999da08601c4e4ddaab17563b9b7f02c76a08d",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "a08066c8f744dac66c61453d5e999da08601c4e4ddaab17563b9b7f02c76a08d",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "a08066c8f744dac66c61453d5e999da08601c4e4ddaab17563b9b7f02c76a08d",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "15aab4372fe81ff587c73062e84f321de2a8e83475cddfaa8a2da738cbfdc68f",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-1",
+      "mode": "full_cloud",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 64,
+        "cause": "certificate",
+        "action": "Renew the service certificate and retest TLS validation."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "1083c85011ff2efe01dd2c4c51a351c322cd6e4b3de9fa2b76b817ca00eaba2d",
+          "value_sha256": "a68b412c4282555f15546cf6e1fc42893b7e07f271557ceb021821098dd66c1b",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "c3c4c334df4c3f456cb9474be81ddc5984c6fb010f5d52fee91f5b111086bfc5"
+        },
+        "cause": {
+          "binding": "6ecb12c30501bf8a8feeccbd6e24d568274dddca45b8c939a4018039b5b99a78",
+          "value_sha256": "1f4baa7d73eb097db79910c8aea29759265cc5e2da8409b2ea91208d2ec369c1",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "c863308c021d00d7dcc3e631644874d1d55c0e2be287478c8f3f2a8bc4ab1339"
+        },
+        "action": {
+          "binding": "f9ac059622cb23bc2e17cbbe3cf1d13eb571a01ca003e22fb0539feea044638a",
+          "value_sha256": "0e8eece9b83a65b6ef498bec76a425d18f890645484b858ddf9c266d713b36c5",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "c2c8cecaf9c51950ffe06b84f8ab5ea7b321c4c30466b7af451fe2dd7f4e4a18"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 3,
+        "remote_calls": 3,
+        "remote_request_bytes": 130601,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 0,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 4.279320994100999
+      },
+      "calls": [
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "error_count"
+          ],
+          "request_bytes": 43409,
+          "packet_sha256": "f5ba56feda4d00af976e6a478f1dbb24ecd7f8b026d98c8710db71e9c7069c2e",
+          "usage": {
+            "input_tokens": 10853,
+            "output_tokens": 11,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 43558,
+          "packet_sha256": "7eaba09782fc930a124d4c78e5b006d584eca2284bdbb6d30ea5b40ab4ae6b58",
+          "usage": {
+            "input_tokens": 10890,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "action"
+          ],
+          "request_bytes": 43634,
+          "packet_sha256": "f72a0dd9b13c78776694c7be8bf5e03cf8240e4618c2d3de685cd866d8c7d327",
+          "usage": {
+            "input_tokens": 10909,
+            "output_tokens": 24,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "942c152a23cb54644014edc36d02fd899a4fcbf117896b57e6b1963ed5e2c22f",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-1",
+      "mode": "cascade",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 64,
+        "cause": "certificate",
+        "action": "Renew the service certificate and retest TLS validation."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "1083c85011ff2efe01dd2c4c51a351c322cd6e4b3de9fa2b76b817ca00eaba2d",
+          "value_sha256": "a68b412c4282555f15546cf6e1fc42893b7e07f271557ceb021821098dd66c1b",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "c3c4c334df4c3f456cb9474be81ddc5984c6fb010f5d52fee91f5b111086bfc5"
+        },
+        "cause": {
+          "binding": "6ecb12c30501bf8a8feeccbd6e24d568274dddca45b8c939a4018039b5b99a78",
+          "value_sha256": "1f4baa7d73eb097db79910c8aea29759265cc5e2da8409b2ea91208d2ec369c1",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "c863308c021d00d7dcc3e631644874d1d55c0e2be287478c8f3f2a8bc4ab1339"
+        },
+        "action": {
+          "binding": "f9ac059622cb23bc2e17cbbe3cf1d13eb571a01ca003e22fb0539feea044638a",
+          "value_sha256": "0e8eece9b83a65b6ef498bec76a425d18f890645484b858ddf9c266d713b36c5",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "c2c8cecaf9c51950ffe06b84f8ab5ea7b321c4c30466b7af451fe2dd7f4e4a18"
+        }
+      },
+      "metrics": {
+        "calls": 2,
+        "expert_calls": 1,
+        "remote_calls": 1,
+        "remote_request_bytes": 43693,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 1.888569000584539
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "f533fc84bc4b93b40f3c8000d60961882d15e00d2c5bf8e4e6f94fdfc3639223",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 43693,
+          "packet_sha256": "004503e438d4dfbac6405bcfdf67b952ea09b9dc6fc779c9f8ab0c3f53752e22",
+          "usage": {
+            "input_tokens": 10924,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "b6c0cb59ab3d2b5285272926b7e664eb2cf9ab9628b431c75819640b95fea16b",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-1",
+      "mode": "residual_fixed",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 64,
+        "cause": "certificate",
+        "action": "Renew the service certificate and retest TLS validation."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "1083c85011ff2efe01dd2c4c51a351c322cd6e4b3de9fa2b76b817ca00eaba2d",
+          "value_sha256": "a68b412c4282555f15546cf6e1fc42893b7e07f271557ceb021821098dd66c1b",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "c3c4c334df4c3f456cb9474be81ddc5984c6fb010f5d52fee91f5b111086bfc5"
+        },
+        "cause": {
+          "binding": "6ecb12c30501bf8a8feeccbd6e24d568274dddca45b8c939a4018039b5b99a78",
+          "value_sha256": "1f4baa7d73eb097db79910c8aea29759265cc5e2da8409b2ea91208d2ec369c1",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "c863308c021d00d7dcc3e631644874d1d55c0e2be287478c8f3f2a8bc4ab1339"
+        },
+        "action": {
+          "binding": "f9ac059622cb23bc2e17cbbe3cf1d13eb571a01ca003e22fb0539feea044638a",
+          "value_sha256": "0e8eece9b83a65b6ef498bec76a425d18f890645484b858ddf9c266d713b36c5",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "c2c8cecaf9c51950ffe06b84f8ab5ea7b321c4c30466b7af451fe2dd7f4e4a18"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 2,
+        "remote_calls": 2,
+        "remote_request_bytes": 6224,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 1.354906999040395
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "f533fc84bc4b93b40f3c8000d60961882d15e00d2c5bf8e4e6f94fdfc3639223",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2851,
+          "packet_sha256": "6a4c85c73cb2d280932b649bd0ed2aabb54371d2e5cf12e3f1a8b4e482e83a16",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 3373,
+          "packet_sha256": "3c5fe6d72b8ac8290d3b85e3e58fa4c2432b342f99d9f5bfb09f6f032e557523",
+          "usage": {
+            "input_tokens": 844,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "669444f7375f0405808e5dc03a9d2963f109581a8d522869ae5521e512abf914",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-1",
+      "mode": "residual",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 64,
+        "cause": "certificate",
+        "action": "Renew the service certificate and retest TLS validation."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "1083c85011ff2efe01dd2c4c51a351c322cd6e4b3de9fa2b76b817ca00eaba2d",
+          "value_sha256": "a68b412c4282555f15546cf6e1fc42893b7e07f271557ceb021821098dd66c1b",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "c3c4c334df4c3f456cb9474be81ddc5984c6fb010f5d52fee91f5b111086bfc5"
+        },
+        "cause": {
+          "binding": "6ecb12c30501bf8a8feeccbd6e24d568274dddca45b8c939a4018039b5b99a78",
+          "value_sha256": "1f4baa7d73eb097db79910c8aea29759265cc5e2da8409b2ea91208d2ec369c1",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "c863308c021d00d7dcc3e631644874d1d55c0e2be287478c8f3f2a8bc4ab1339"
+        },
+        "action": {
+          "binding": "f9ac059622cb23bc2e17cbbe3cf1d13eb571a01ca003e22fb0539feea044638a",
+          "value_sha256": "0e8eece9b83a65b6ef498bec76a425d18f890645484b858ddf9c266d713b36c5",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "c2c8cecaf9c51950ffe06b84f8ab5ea7b321c4c30466b7af451fe2dd7f4e4a18"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 2,
+        "remote_calls": 2,
+        "remote_request_bytes": 6224,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 1.1700030008796602
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "f533fc84bc4b93b40f3c8000d60961882d15e00d2c5bf8e4e6f94fdfc3639223",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2851,
+          "packet_sha256": "6a4c85c73cb2d280932b649bd0ed2aabb54371d2e5cf12e3f1a8b4e482e83a16",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 3373,
+          "packet_sha256": "3c5fe6d72b8ac8290d3b85e3e58fa4c2432b342f99d9f5bfb09f6f032e557523",
+          "usage": {
+            "input_tokens": 844,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "84515c4db5baf6e6c9e68616462cdfa6301b984ca0ed559135ea4217169ef8b3",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-1",
+      "mode": "no_pull",
+      "status": "partial",
+      "success": false,
+      "values": {
+        "error_count": 64
+      },
+      "unresolved": {
+        "cause": {
+          "code": "evidence_pull_disabled",
+          "message": "Choose a permitted, unseen evidence interval within the request limits."
+        },
+        "action": {
+          "code": "dependency_blocked",
+          "dependencies": [
+            "cause"
+          ]
+        }
+      },
+      "receipts": {
+        "error_count": {
+          "binding": "1083c85011ff2efe01dd2c4c51a351c322cd6e4b3de9fa2b76b817ca00eaba2d",
+          "value_sha256": "a68b412c4282555f15546cf6e1fc42893b7e07f271557ceb021821098dd66c1b",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "c3c4c334df4c3f456cb9474be81ddc5984c6fb010f5d52fee91f5b111086bfc5"
+        }
+      },
+      "metrics": {
+        "calls": 5,
+        "expert_calls": 4,
+        "remote_calls": 4,
+        "remote_request_bytes": 11408,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 1,
+        "accepted_obligations": 1,
+        "total_obligations": 3,
+        "elapsed_ms": 1.1995479944744147
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2717,
+          "packet_sha256": "35618025a8e72db825a16e6648ca19e944a079c1f4fc59713d564aed1e1d3e80",
+          "usage": {
+            "input_tokens": 680,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "bfeea825d232035bceac9ab5e121323f2512adf0e64bd242e113c37917e9637d",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "ee229f97bf2194c341b2a63e2aa5542d3896f89d90a5e4a3504e5f4e00553463",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "ee229f97bf2194c341b2a63e2aa5542d3896f89d90a5e4a3504e5f4e00553463",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "ee229f97bf2194c341b2a63e2aa5542d3896f89d90a5e4a3504e5f4e00553463",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "ae2f6513c38ef77d172aa4a7d2927757150c981709a4738eea116a1ecb892681",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-1",
+      "mode": "local_only",
+      "status": "partial",
+      "success": false,
+      "values": {
+        "error_count": 64
+      },
+      "unresolved": {
+        "cause": {
+          "code": "probe_contradiction",
+          "message": "The proposed cause conflicts with the diagnostic PROBE record; inspect it."
+        },
+        "action": {
+          "code": "dependency_blocked",
+          "dependencies": [
+            "cause"
+          ]
+        }
+      },
+      "receipts": {
+        "error_count": {
+          "binding": "1083c85011ff2efe01dd2c4c51a351c322cd6e4b3de9fa2b76b817ca00eaba2d",
+          "value_sha256": "a68b412c4282555f15546cf6e1fc42893b7e07f271557ceb021821098dd66c1b",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "c3c4c334df4c3f456cb9474be81ddc5984c6fb010f5d52fee91f5b111086bfc5"
+        }
+      },
+      "metrics": {
+        "calls": 1,
+        "expert_calls": 0,
+        "remote_calls": 0,
+        "remote_request_bytes": 0,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": true,
+        "remote_cost_usd": 0,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 1,
+        "accepted_obligations": 1,
+        "total_obligations": 3,
+        "elapsed_ms": 0.6032439996488392
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "f533fc84bc4b93b40f3c8000d60961882d15e00d2c5bf8e4e6f94fdfc3639223",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "e7f866aa291848c7c8e3d70e886d3f74679f8d3ee2e6735d67218e7c4a44adc8",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-2",
+      "mode": "cascade",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 57,
+        "cause": "firewall",
+        "action": "Restore the approved firewall rule and retest the connection."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "10a6e1e9d2671b7368ba2c956dea717aa574b024698edbb7c4e7a35dd6c039bb",
+          "value_sha256": "c837649cce43f2729138e72cc315207057ac82599a59be72765a477f22d14a54",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "c502abd9258aff2abb82f1e1767e1fe057c9568c5b4838810cac493131ce0492"
+        },
+        "cause": {
+          "binding": "ad9d1118a5abca6bf9d2fee24f9b6b630b030a81d03ef01b26e25bdec7248cd1",
+          "value_sha256": "77c7203368f7f938c18233c95a16b5748229d1e8c0e6eb834091705ee924b946",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "789d62bff52cccd181c4390b029985753a5cab7e5ee60436a6f01b9c5513b3ab"
+        },
+        "action": {
+          "binding": "e5d6d65ec96a8311429ea4156b51ba7d49e0ff4fa157234fc1898d0012c180d5",
+          "value_sha256": "c55967ce89eaadd89b7e8edbc2919280030506ca2008ef3b465491cae2f54526",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "b7d1a439b4c4d39bef4d5a4abea7ed28c73a0e3b8fc86c97f59581cfdefd69e4"
+        }
+      },
+      "metrics": {
+        "calls": 2,
+        "expert_calls": 1,
+        "remote_calls": 1,
+        "remote_request_bytes": 43694,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 1.6989680007100105
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "7fda1706dba12e305cb2a6db59979cd45614199246a13a864c573a520228331f",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 43694,
+          "packet_sha256": "ad16c9782764c63bfb59518a677704c5f435df182da79f3912f181b624f5194c",
+          "usage": {
+            "input_tokens": 10924,
+            "output_tokens": 12,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "01823374140fc8cb92b670ff69669c90862914b7051faa4b05d7766795e9a3a2",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-2",
+      "mode": "residual_fixed",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 57,
+        "cause": "firewall",
+        "action": "Restore the approved firewall rule and retest the connection."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "10a6e1e9d2671b7368ba2c956dea717aa574b024698edbb7c4e7a35dd6c039bb",
+          "value_sha256": "c837649cce43f2729138e72cc315207057ac82599a59be72765a477f22d14a54",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "c502abd9258aff2abb82f1e1767e1fe057c9568c5b4838810cac493131ce0492"
+        },
+        "cause": {
+          "binding": "ad9d1118a5abca6bf9d2fee24f9b6b630b030a81d03ef01b26e25bdec7248cd1",
+          "value_sha256": "77c7203368f7f938c18233c95a16b5748229d1e8c0e6eb834091705ee924b946",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "789d62bff52cccd181c4390b029985753a5cab7e5ee60436a6f01b9c5513b3ab"
+        },
+        "action": {
+          "binding": "e5d6d65ec96a8311429ea4156b51ba7d49e0ff4fa157234fc1898d0012c180d5",
+          "value_sha256": "c55967ce89eaadd89b7e8edbc2919280030506ca2008ef3b465491cae2f54526",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "b7d1a439b4c4d39bef4d5a4abea7ed28c73a0e3b8fc86c97f59581cfdefd69e4"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 2,
+        "remote_calls": 2,
+        "remote_request_bytes": 6232,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 1.0068919946206734
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "7fda1706dba12e305cb2a6db59979cd45614199246a13a864c573a520228331f",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2851,
+          "packet_sha256": "5a667804f121bde70306100332d4165709a54c056709b106304f3725bad7b695",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 3381,
+          "packet_sha256": "3d67f21cf90719aa2f651aadc9ef404f9a479abe926eadc67cd34d1c386b7e14",
+          "usage": {
+            "input_tokens": 846,
+            "output_tokens": 12,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "ccd77a217a2e425c78bb5580f623e20d1b7eea710b010912344fc12adf0545e4",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-2",
+      "mode": "residual",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 57,
+        "cause": "firewall",
+        "action": "Restore the approved firewall rule and retest the connection."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "10a6e1e9d2671b7368ba2c956dea717aa574b024698edbb7c4e7a35dd6c039bb",
+          "value_sha256": "c837649cce43f2729138e72cc315207057ac82599a59be72765a477f22d14a54",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "c502abd9258aff2abb82f1e1767e1fe057c9568c5b4838810cac493131ce0492"
+        },
+        "cause": {
+          "binding": "ad9d1118a5abca6bf9d2fee24f9b6b630b030a81d03ef01b26e25bdec7248cd1",
+          "value_sha256": "77c7203368f7f938c18233c95a16b5748229d1e8c0e6eb834091705ee924b946",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "789d62bff52cccd181c4390b029985753a5cab7e5ee60436a6f01b9c5513b3ab"
+        },
+        "action": {
+          "binding": "e5d6d65ec96a8311429ea4156b51ba7d49e0ff4fa157234fc1898d0012c180d5",
+          "value_sha256": "c55967ce89eaadd89b7e8edbc2919280030506ca2008ef3b465491cae2f54526",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "b7d1a439b4c4d39bef4d5a4abea7ed28c73a0e3b8fc86c97f59581cfdefd69e4"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 2,
+        "remote_calls": 2,
+        "remote_request_bytes": 6232,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 1.1757230022340082
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "7fda1706dba12e305cb2a6db59979cd45614199246a13a864c573a520228331f",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2851,
+          "packet_sha256": "5a667804f121bde70306100332d4165709a54c056709b106304f3725bad7b695",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 3381,
+          "packet_sha256": "3d67f21cf90719aa2f651aadc9ef404f9a479abe926eadc67cd34d1c386b7e14",
+          "usage": {
+            "input_tokens": 846,
+            "output_tokens": 12,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "68bc417fac4d6801d6d20c79848d995175e7514f126f7e727fa91534fee57b36",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-2",
+      "mode": "no_pull",
+      "status": "partial",
+      "success": false,
+      "values": {
+        "error_count": 57
+      },
+      "unresolved": {
+        "cause": {
+          "code": "evidence_pull_disabled",
+          "message": "Choose a permitted, unseen evidence interval within the request limits."
+        },
+        "action": {
+          "code": "dependency_blocked",
+          "dependencies": [
+            "cause"
+          ]
+        }
+      },
+      "receipts": {
+        "error_count": {
+          "binding": "10a6e1e9d2671b7368ba2c956dea717aa574b024698edbb7c4e7a35dd6c039bb",
+          "value_sha256": "c837649cce43f2729138e72cc315207057ac82599a59be72765a477f22d14a54",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "c502abd9258aff2abb82f1e1767e1fe057c9568c5b4838810cac493131ce0492"
+        }
+      },
+      "metrics": {
+        "calls": 5,
+        "expert_calls": 4,
+        "remote_calls": 4,
+        "remote_request_bytes": 11408,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 1,
+        "accepted_obligations": 1,
+        "total_obligations": 3,
+        "elapsed_ms": 1.3973609966342337
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2717,
+          "packet_sha256": "a21cedc6efea5e63e82036eeca63fa2ac842a986ca111605f5a0dca0f8be0a58",
+          "usage": {
+            "input_tokens": 680,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "f95ce30db01bce44f7235deea7e504f0ddc52843ffbbce415a4e0c76298d7f85",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "eb9873c720a6ddb0e5bdcdbcd4af8f068e8ad09a1fcb3e5ed505b41621c8768b",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "eb9873c720a6ddb0e5bdcdbcd4af8f068e8ad09a1fcb3e5ed505b41621c8768b",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "eb9873c720a6ddb0e5bdcdbcd4af8f068e8ad09a1fcb3e5ed505b41621c8768b",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "c421201c3f51a2c49734e027965bd0e7c268ad98f633c6fba2a33e39b6f2805c",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-2",
+      "mode": "local_only",
+      "status": "partial",
+      "success": false,
+      "values": {
+        "error_count": 57
+      },
+      "unresolved": {
+        "cause": {
+          "code": "probe_contradiction",
+          "message": "The proposed cause conflicts with the diagnostic PROBE record; inspect it."
+        },
+        "action": {
+          "code": "dependency_blocked",
+          "dependencies": [
+            "cause"
+          ]
+        }
+      },
+      "receipts": {
+        "error_count": {
+          "binding": "10a6e1e9d2671b7368ba2c956dea717aa574b024698edbb7c4e7a35dd6c039bb",
+          "value_sha256": "c837649cce43f2729138e72cc315207057ac82599a59be72765a477f22d14a54",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "c502abd9258aff2abb82f1e1767e1fe057c9568c5b4838810cac493131ce0492"
+        }
+      },
+      "metrics": {
+        "calls": 1,
+        "expert_calls": 0,
+        "remote_calls": 0,
+        "remote_request_bytes": 0,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": true,
+        "remote_cost_usd": 0,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 1,
+        "accepted_obligations": 1,
+        "total_obligations": 3,
+        "elapsed_ms": 0.53717599803349
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "7fda1706dba12e305cb2a6db59979cd45614199246a13a864c573a520228331f",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "a17cbe798e2813b4385773d9f91fb21d9d13fef860cd47efad2829d7f467c490",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-2",
+      "mode": "full_cloud",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 57,
+        "cause": "firewall",
+        "action": "Restore the approved firewall rule and retest the connection."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "10a6e1e9d2671b7368ba2c956dea717aa574b024698edbb7c4e7a35dd6c039bb",
+          "value_sha256": "c837649cce43f2729138e72cc315207057ac82599a59be72765a477f22d14a54",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "c502abd9258aff2abb82f1e1767e1fe057c9568c5b4838810cac493131ce0492"
+        },
+        "cause": {
+          "binding": "ad9d1118a5abca6bf9d2fee24f9b6b630b030a81d03ef01b26e25bdec7248cd1",
+          "value_sha256": "77c7203368f7f938c18233c95a16b5748229d1e8c0e6eb834091705ee924b946",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "789d62bff52cccd181c4390b029985753a5cab7e5ee60436a6f01b9c5513b3ab"
+        },
+        "action": {
+          "binding": "e5d6d65ec96a8311429ea4156b51ba7d49e0ff4fa157234fc1898d0012c180d5",
+          "value_sha256": "c55967ce89eaadd89b7e8edbc2919280030506ca2008ef3b465491cae2f54526",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "b7d1a439b4c4d39bef4d5a4abea7ed28c73a0e3b8fc86c97f59581cfdefd69e4"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 3,
+        "remote_calls": 3,
+        "remote_request_bytes": 130601,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 0,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 4.029281000839546
+      },
+      "calls": [
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "error_count"
+          ],
+          "request_bytes": 43410,
+          "packet_sha256": "5bed9c9231ba9659d78577aada9284241d60bfaeb1a587753f1c796fa54ecba0",
+          "usage": {
+            "input_tokens": 10853,
+            "output_tokens": 11,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 43559,
+          "packet_sha256": "aae0661e94bb74f4a949097c3e4292af0ce6a30a0d50ef465da9a3fc82595db9",
+          "usage": {
+            "input_tokens": 10890,
+            "output_tokens": 12,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "action"
+          ],
+          "request_bytes": 43632,
+          "packet_sha256": "02df1d7deb72557d2a991e2ba882fc63cb93aa8d017ed67d4f6314163e2611bd",
+          "usage": {
+            "input_tokens": 10908,
+            "output_tokens": 25,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "5fc8a8f9e8a668c3d3a8766957032d6d6760c0fbf0b3fd150f7c19376468f0c4",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-3",
+      "mode": "residual_fixed",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 74,
+        "cause": "application",
+        "action": "Restart the failed application service and verify health."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "ca199f0c33cb5449a7c437b209875f921644d5109472f6247a58f65e2698168b",
+          "value_sha256": "eb624dbe56eb6620ae62080c10a273cab73ae8eca98ab17b731446a31c79393a",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "8ee520827749851e3a2ff8ddbf355a220d8ae11f2a08b22f3f08b8e584e582b2"
+        },
+        "cause": {
+          "binding": "e7dad8f41eec325c1285e6c2071d587a7cac6e287e74361711e7ae54dd03b9f5",
+          "value_sha256": "07bfaea5744adaf1fcbe59bbd917ab2c4cdbcba37f12613cf43ed69b2bff6487",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "e728174e9b0977859c85485a0a54c38761464c6262de9bb63ff1d8c265820d50"
+        },
+        "action": {
+          "binding": "29fc7a9dad273bf03b4e9df59818fcdba6d37f3ad75831b12fedad2b87e43e31",
+          "value_sha256": "004e0773021695552700e6a0a6e28a14481f3a2dbbea3e7b33d7753ef3480955",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "68692b4e8779a595d3e91984cb13c292a4b0965f8133ecbee254b514dd602c7d"
+        }
+      },
+      "metrics": {
+        "calls": 1,
+        "expert_calls": 0,
+        "remote_calls": 0,
+        "remote_request_bytes": 0,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": true,
+        "remote_cost_usd": 0,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 0.5655170025420375
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "f85ef955d4bdc1049af38bcfc16782923bd71928d52e8785430635064dc2fcd0",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "9274387bd3af411b65ac1c0f53c016c914fb60167f560bddf78e074fed6c4cd3",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-3",
+      "mode": "residual",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 74,
+        "cause": "application",
+        "action": "Restart the failed application service and verify health."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "ca199f0c33cb5449a7c437b209875f921644d5109472f6247a58f65e2698168b",
+          "value_sha256": "eb624dbe56eb6620ae62080c10a273cab73ae8eca98ab17b731446a31c79393a",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "8ee520827749851e3a2ff8ddbf355a220d8ae11f2a08b22f3f08b8e584e582b2"
+        },
+        "cause": {
+          "binding": "e7dad8f41eec325c1285e6c2071d587a7cac6e287e74361711e7ae54dd03b9f5",
+          "value_sha256": "07bfaea5744adaf1fcbe59bbd917ab2c4cdbcba37f12613cf43ed69b2bff6487",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "e728174e9b0977859c85485a0a54c38761464c6262de9bb63ff1d8c265820d50"
+        },
+        "action": {
+          "binding": "29fc7a9dad273bf03b4e9df59818fcdba6d37f3ad75831b12fedad2b87e43e31",
+          "value_sha256": "004e0773021695552700e6a0a6e28a14481f3a2dbbea3e7b33d7753ef3480955",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "68692b4e8779a595d3e91984cb13c292a4b0965f8133ecbee254b514dd602c7d"
+        }
+      },
+      "metrics": {
+        "calls": 1,
+        "expert_calls": 0,
+        "remote_calls": 0,
+        "remote_request_bytes": 0,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": true,
+        "remote_cost_usd": 0,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 0.5231559989624657
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "f85ef955d4bdc1049af38bcfc16782923bd71928d52e8785430635064dc2fcd0",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "1a3b33aea33ddce734e3d61d570a74ea3c1bbc8039d26b357d1b9148af4a2477",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-3",
+      "mode": "no_pull",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 74,
+        "cause": "application",
+        "action": "Restart the failed application service and verify health."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "ca199f0c33cb5449a7c437b209875f921644d5109472f6247a58f65e2698168b",
+          "value_sha256": "eb624dbe56eb6620ae62080c10a273cab73ae8eca98ab17b731446a31c79393a",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "8ee520827749851e3a2ff8ddbf355a220d8ae11f2a08b22f3f08b8e584e582b2"
+        },
+        "cause": {
+          "binding": "e7dad8f41eec325c1285e6c2071d587a7cac6e287e74361711e7ae54dd03b9f5",
+          "value_sha256": "07bfaea5744adaf1fcbe59bbd917ab2c4cdbcba37f12613cf43ed69b2bff6487",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "e728174e9b0977859c85485a0a54c38761464c6262de9bb63ff1d8c265820d50"
+        },
+        "action": {
+          "binding": "29fc7a9dad273bf03b4e9df59818fcdba6d37f3ad75831b12fedad2b87e43e31",
+          "value_sha256": "004e0773021695552700e6a0a6e28a14481f3a2dbbea3e7b33d7753ef3480955",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "68692b4e8779a595d3e91984cb13c292a4b0965f8133ecbee254b514dd602c7d"
+        }
+      },
+      "metrics": {
+        "calls": 1,
+        "expert_calls": 0,
+        "remote_calls": 0,
+        "remote_request_bytes": 0,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": true,
+        "remote_cost_usd": 0,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 0.502634997246787
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2717,
+          "packet_sha256": "8d739b45f5f4cb021ffea449e477494ca0f66da22319bb634c2c62f2289086f0",
+          "usage": {
+            "input_tokens": 680,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "24863090d2fda3ebb5f488d6d179e76f6cc117ca797e188f8b3b0d27c34f5837",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-3",
+      "mode": "local_only",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 74,
+        "cause": "application",
+        "action": "Restart the failed application service and verify health."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "ca199f0c33cb5449a7c437b209875f921644d5109472f6247a58f65e2698168b",
+          "value_sha256": "eb624dbe56eb6620ae62080c10a273cab73ae8eca98ab17b731446a31c79393a",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "8ee520827749851e3a2ff8ddbf355a220d8ae11f2a08b22f3f08b8e584e582b2"
+        },
+        "cause": {
+          "binding": "e7dad8f41eec325c1285e6c2071d587a7cac6e287e74361711e7ae54dd03b9f5",
+          "value_sha256": "07bfaea5744adaf1fcbe59bbd917ab2c4cdbcba37f12613cf43ed69b2bff6487",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "e728174e9b0977859c85485a0a54c38761464c6262de9bb63ff1d8c265820d50"
+        },
+        "action": {
+          "binding": "29fc7a9dad273bf03b4e9df59818fcdba6d37f3ad75831b12fedad2b87e43e31",
+          "value_sha256": "004e0773021695552700e6a0a6e28a14481f3a2dbbea3e7b33d7753ef3480955",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "68692b4e8779a595d3e91984cb13c292a4b0965f8133ecbee254b514dd602c7d"
+        }
+      },
+      "metrics": {
+        "calls": 1,
+        "expert_calls": 0,
+        "remote_calls": 0,
+        "remote_request_bytes": 0,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": true,
+        "remote_cost_usd": 0,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 0.49447199853602797
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "f85ef955d4bdc1049af38bcfc16782923bd71928d52e8785430635064dc2fcd0",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "d91a8162af50efaa1fadbb8acf34e42034832a24b62fa232a2db815928ff5396",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-3",
+      "mode": "full_cloud",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 74,
+        "cause": "application",
+        "action": "Restart the failed application service and verify health."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "ca199f0c33cb5449a7c437b209875f921644d5109472f6247a58f65e2698168b",
+          "value_sha256": "eb624dbe56eb6620ae62080c10a273cab73ae8eca98ab17b731446a31c79393a",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "8ee520827749851e3a2ff8ddbf355a220d8ae11f2a08b22f3f08b8e584e582b2"
+        },
+        "cause": {
+          "binding": "e7dad8f41eec325c1285e6c2071d587a7cac6e287e74361711e7ae54dd03b9f5",
+          "value_sha256": "07bfaea5744adaf1fcbe59bbd917ab2c4cdbcba37f12613cf43ed69b2bff6487",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "e728174e9b0977859c85485a0a54c38761464c6262de9bb63ff1d8c265820d50"
+        },
+        "action": {
+          "binding": "29fc7a9dad273bf03b4e9df59818fcdba6d37f3ad75831b12fedad2b87e43e31",
+          "value_sha256": "004e0773021695552700e6a0a6e28a14481f3a2dbbea3e7b33d7753ef3480955",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "68692b4e8779a595d3e91984cb13c292a4b0965f8133ecbee254b514dd602c7d"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 3,
+        "remote_calls": 3,
+        "remote_request_bytes": 130607,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 0,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 3.8908649949007668
+      },
+      "calls": [
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "error_count"
+          ],
+          "request_bytes": 43411,
+          "packet_sha256": "d87ad84211e5e6d2d3a428a756670d8f547eff57feba57beb20461cd57a0aa00",
+          "usage": {
+            "input_tokens": 10853,
+            "output_tokens": 11,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 43560,
+          "packet_sha256": "1acc06f888097b2900c060b9a19fd2098dc0118e73fc6f009ef56af22a9d3a0c",
+          "usage": {
+            "input_tokens": 10890,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "action"
+          ],
+          "request_bytes": 43636,
+          "packet_sha256": "a8d011018b415f6b1e85d6436d95f1bb3fe68fcb71e2fa3679c7e4d9be7b1f07",
+          "usage": {
+            "input_tokens": 10909,
+            "output_tokens": 24,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "7c7ff29c823164dd00b965d77b93c2fabb0dad74b3f5b400c2b30720a732348d",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-3",
+      "mode": "cascade",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 74,
+        "cause": "application",
+        "action": "Restart the failed application service and verify health."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "ca199f0c33cb5449a7c437b209875f921644d5109472f6247a58f65e2698168b",
+          "value_sha256": "eb624dbe56eb6620ae62080c10a273cab73ae8eca98ab17b731446a31c79393a",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "8ee520827749851e3a2ff8ddbf355a220d8ae11f2a08b22f3f08b8e584e582b2"
+        },
+        "cause": {
+          "binding": "e7dad8f41eec325c1285e6c2071d587a7cac6e287e74361711e7ae54dd03b9f5",
+          "value_sha256": "07bfaea5744adaf1fcbe59bbd917ab2c4cdbcba37f12613cf43ed69b2bff6487",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "e728174e9b0977859c85485a0a54c38761464c6262de9bb63ff1d8c265820d50"
+        },
+        "action": {
+          "binding": "29fc7a9dad273bf03b4e9df59818fcdba6d37f3ad75831b12fedad2b87e43e31",
+          "value_sha256": "004e0773021695552700e6a0a6e28a14481f3a2dbbea3e7b33d7753ef3480955",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "68692b4e8779a595d3e91984cb13c292a4b0965f8133ecbee254b514dd602c7d"
+        }
+      },
+      "metrics": {
+        "calls": 1,
+        "expert_calls": 0,
+        "remote_calls": 0,
+        "remote_request_bytes": 0,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": true,
+        "remote_cost_usd": 0,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 0.5128400007379241
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "f85ef955d4bdc1049af38bcfc16782923bd71928d52e8785430635064dc2fcd0",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "3378828f4c95b8c81981b01ccf94ff4a86ab767ad698f9a4c60ea7fbb7184723",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-4",
+      "mode": "residual",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 64,
+        "cause": "dns",
+        "action": "Restore the approved DNS configuration and retest name resolution."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "2854b92ed319e3e1f63e307a7be6d32b51934aebc149742687d930f97c702930",
+          "value_sha256": "a68b412c4282555f15546cf6e1fc42893b7e07f271557ceb021821098dd66c1b",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "701981cb466ad08a69769cc09209f7f7f8207c0ef3746d26e1784a6251fd5f4d"
+        },
+        "cause": {
+          "binding": "53a1dc2433ef5c74520b39cdeb7872da434b96e61c803efda2085b6837f3ead5",
+          "value_sha256": "02f0177364eff0bfd1ff91f7b6867ca1a5864c7d917dacb7ddb8adc1ebb80cdd",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "fd614507873100ad5678219951721fd314e65ff0fa0555af0e041c7a9cdfaa9d"
+        },
+        "action": {
+          "binding": "5f5fc98ec2eee553051ae66a9b79429b6a889a48a7d3eead5918fe923f64de57",
+          "value_sha256": "aba2661a4b53614582dccf70606e44222a9854dafb3e6cc74b73cabbc08b5e3a",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "574d35159ce014ec9300f92a388b4409abf63288e352559b0d540f8cb148b018"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 2,
+        "remote_calls": 2,
+        "remote_request_bytes": 6228,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 1.088682998670265
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "6f8d5585c43e7e43cc1a0f3657d8bcc9c017d5402d8d2bc8e66c35c12c9e8b63",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2851,
+          "packet_sha256": "dcc16ae805925e803eb9e1068d39ad359b6f6ca050f1f389a1ffb872fd01b9d2",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 3377,
+          "packet_sha256": "695d9afb562dc26ebc9e3e39ecf4e7f67c10ae6db58e737a65db2847a638bdfa",
+          "usage": {
+            "input_tokens": 845,
+            "output_tokens": 11,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "2cb462956c89587c87f82682e76c0a4062a0c3f5b500ef8d1f2a4877a0b67ff6",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-4",
+      "mode": "no_pull",
+      "status": "partial",
+      "success": false,
+      "values": {
+        "error_count": 64
+      },
+      "unresolved": {
+        "cause": {
+          "code": "evidence_pull_disabled",
+          "message": "Choose a permitted, unseen evidence interval within the request limits."
+        },
+        "action": {
+          "code": "dependency_blocked",
+          "dependencies": [
+            "cause"
+          ]
+        }
+      },
+      "receipts": {
+        "error_count": {
+          "binding": "2854b92ed319e3e1f63e307a7be6d32b51934aebc149742687d930f97c702930",
+          "value_sha256": "a68b412c4282555f15546cf6e1fc42893b7e07f271557ceb021821098dd66c1b",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "701981cb466ad08a69769cc09209f7f7f8207c0ef3746d26e1784a6251fd5f4d"
+        }
+      },
+      "metrics": {
+        "calls": 5,
+        "expert_calls": 4,
+        "remote_calls": 4,
+        "remote_request_bytes": 11408,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 1,
+        "accepted_obligations": 1,
+        "total_obligations": 3,
+        "elapsed_ms": 1.7324569998891093
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2717,
+          "packet_sha256": "0252550758ece89d578a1d99990b1cfee42ebc0d33c495263b51493e5f6f7f72",
+          "usage": {
+            "input_tokens": 680,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "ae9c317ce5be7f1bce0f12e449e968fab3ba7e41d5e1cbfdf68dcd28a606e2c5",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "6ea04e930672a70b9b5b5a3096e4b51f7a5f47f64d65c0f74cd6752797772852",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "6ea04e930672a70b9b5b5a3096e4b51f7a5f47f64d65c0f74cd6752797772852",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "6ea04e930672a70b9b5b5a3096e4b51f7a5f47f64d65c0f74cd6752797772852",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "2b127576ce48bd80ec6cb22f3a696e2052caf9dc32b85e89082dfdbbb3d921fe",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-4",
+      "mode": "local_only",
+      "status": "partial",
+      "success": false,
+      "values": {
+        "error_count": 64
+      },
+      "unresolved": {
+        "cause": {
+          "code": "probe_contradiction",
+          "message": "The proposed cause conflicts with the diagnostic PROBE record; inspect it."
+        },
+        "action": {
+          "code": "dependency_blocked",
+          "dependencies": [
+            "cause"
+          ]
+        }
+      },
+      "receipts": {
+        "error_count": {
+          "binding": "2854b92ed319e3e1f63e307a7be6d32b51934aebc149742687d930f97c702930",
+          "value_sha256": "a68b412c4282555f15546cf6e1fc42893b7e07f271557ceb021821098dd66c1b",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "701981cb466ad08a69769cc09209f7f7f8207c0ef3746d26e1784a6251fd5f4d"
+        }
+      },
+      "metrics": {
+        "calls": 1,
+        "expert_calls": 0,
+        "remote_calls": 0,
+        "remote_request_bytes": 0,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": true,
+        "remote_cost_usd": 0,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 1,
+        "accepted_obligations": 1,
+        "total_obligations": 3,
+        "elapsed_ms": 0.41028800478670746
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "6f8d5585c43e7e43cc1a0f3657d8bcc9c017d5402d8d2bc8e66c35c12c9e8b63",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "5d6078b8b616d52b19194b228ae4185076a68582e926133afb1c76d662646953",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-4",
+      "mode": "full_cloud",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 64,
+        "cause": "dns",
+        "action": "Restore the approved DNS configuration and retest name resolution."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "2854b92ed319e3e1f63e307a7be6d32b51934aebc149742687d930f97c702930",
+          "value_sha256": "a68b412c4282555f15546cf6e1fc42893b7e07f271557ceb021821098dd66c1b",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "701981cb466ad08a69769cc09209f7f7f8207c0ef3746d26e1784a6251fd5f4d"
+        },
+        "cause": {
+          "binding": "53a1dc2433ef5c74520b39cdeb7872da434b96e61c803efda2085b6837f3ead5",
+          "value_sha256": "02f0177364eff0bfd1ff91f7b6867ca1a5864c7d917dacb7ddb8adc1ebb80cdd",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "fd614507873100ad5678219951721fd314e65ff0fa0555af0e041c7a9cdfaa9d"
+        },
+        "action": {
+          "binding": "5f5fc98ec2eee553051ae66a9b79429b6a889a48a7d3eead5918fe923f64de57",
+          "value_sha256": "aba2661a4b53614582dccf70606e44222a9854dafb3e6cc74b73cabbc08b5e3a",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "574d35159ce014ec9300f92a388b4409abf63288e352559b0d540f8cb148b018"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 3,
+        "remote_calls": 3,
+        "remote_request_bytes": 130605,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 0,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 3.967408003518358
+      },
+      "calls": [
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "error_count"
+          ],
+          "request_bytes": 43413,
+          "packet_sha256": "82259577527e2282d2d9e391e5538d914d2a489d083d8b44c8c26844fe7ad672",
+          "usage": {
+            "input_tokens": 10854,
+            "output_tokens": 11,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 43562,
+          "packet_sha256": "9a128160fc987cc22ced2b0053a685bc2fd1beb13895e8ab4d3c70f8b3dbf16d",
+          "usage": {
+            "input_tokens": 10891,
+            "output_tokens": 11,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "action"
+          ],
+          "request_bytes": 43630,
+          "packet_sha256": "75ca068cdd7ddab72967a7d6e8d280e101c8c48e93774671cc03c26392606f86",
+          "usage": {
+            "input_tokens": 10908,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "3fddeb5ec0f157848ccefa5240c43479cdefd799b84468122dfca48b7a7f8f45",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-4",
+      "mode": "cascade",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 64,
+        "cause": "dns",
+        "action": "Restore the approved DNS configuration and retest name resolution."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "2854b92ed319e3e1f63e307a7be6d32b51934aebc149742687d930f97c702930",
+          "value_sha256": "a68b412c4282555f15546cf6e1fc42893b7e07f271557ceb021821098dd66c1b",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "701981cb466ad08a69769cc09209f7f7f8207c0ef3746d26e1784a6251fd5f4d"
+        },
+        "cause": {
+          "binding": "53a1dc2433ef5c74520b39cdeb7872da434b96e61c803efda2085b6837f3ead5",
+          "value_sha256": "02f0177364eff0bfd1ff91f7b6867ca1a5864c7d917dacb7ddb8adc1ebb80cdd",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "fd614507873100ad5678219951721fd314e65ff0fa0555af0e041c7a9cdfaa9d"
+        },
+        "action": {
+          "binding": "5f5fc98ec2eee553051ae66a9b79429b6a889a48a7d3eead5918fe923f64de57",
+          "value_sha256": "aba2661a4b53614582dccf70606e44222a9854dafb3e6cc74b73cabbc08b5e3a",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "574d35159ce014ec9300f92a388b4409abf63288e352559b0d540f8cb148b018"
+        }
+      },
+      "metrics": {
+        "calls": 2,
+        "expert_calls": 1,
+        "remote_calls": 1,
+        "remote_request_bytes": 43697,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 1.695092003501486
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "6f8d5585c43e7e43cc1a0f3657d8bcc9c017d5402d8d2bc8e66c35c12c9e8b63",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 43697,
+          "packet_sha256": "36a606f5107bbc7f981380f3ae148cb8448533fcecbe3384cb94478edf1f8535",
+          "usage": {
+            "input_tokens": 10925,
+            "output_tokens": 11,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "8fa1c78d1c2c872203527a45325c2af129e14907eef31696e3325b9b98df2375",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-4",
+      "mode": "residual_fixed",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 64,
+        "cause": "dns",
+        "action": "Restore the approved DNS configuration and retest name resolution."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "2854b92ed319e3e1f63e307a7be6d32b51934aebc149742687d930f97c702930",
+          "value_sha256": "a68b412c4282555f15546cf6e1fc42893b7e07f271557ceb021821098dd66c1b",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "701981cb466ad08a69769cc09209f7f7f8207c0ef3746d26e1784a6251fd5f4d"
+        },
+        "cause": {
+          "binding": "53a1dc2433ef5c74520b39cdeb7872da434b96e61c803efda2085b6837f3ead5",
+          "value_sha256": "02f0177364eff0bfd1ff91f7b6867ca1a5864c7d917dacb7ddb8adc1ebb80cdd",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "fd614507873100ad5678219951721fd314e65ff0fa0555af0e041c7a9cdfaa9d"
+        },
+        "action": {
+          "binding": "5f5fc98ec2eee553051ae66a9b79429b6a889a48a7d3eead5918fe923f64de57",
+          "value_sha256": "aba2661a4b53614582dccf70606e44222a9854dafb3e6cc74b73cabbc08b5e3a",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "574d35159ce014ec9300f92a388b4409abf63288e352559b0d540f8cb148b018"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 2,
+        "remote_calls": 2,
+        "remote_request_bytes": 6228,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 1.2810379994334653
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "6f8d5585c43e7e43cc1a0f3657d8bcc9c017d5402d8d2bc8e66c35c12c9e8b63",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2851,
+          "packet_sha256": "dcc16ae805925e803eb9e1068d39ad359b6f6ca050f1f389a1ffb872fd01b9d2",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 3377,
+          "packet_sha256": "695d9afb562dc26ebc9e3e39ecf4e7f67c10ae6db58e737a65db2847a638bdfa",
+          "usage": {
+            "input_tokens": 845,
+            "output_tokens": 11,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "bdd66fe37f27b307d4656d821ff3882899c84fc00ca422804fd36954e5ece0f2",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-5",
+      "mode": "no_pull",
+      "status": "partial",
+      "success": false,
+      "values": {
+        "error_count": 57
+      },
+      "unresolved": {
+        "cause": {
+          "code": "evidence_pull_disabled",
+          "message": "Choose a permitted, unseen evidence interval within the request limits."
+        },
+        "action": {
+          "code": "dependency_blocked",
+          "dependencies": [
+            "cause"
+          ]
+        }
+      },
+      "receipts": {
+        "error_count": {
+          "binding": "1de43650b3d723530d0c99f54f68e08d3136776b88ef1a7da1071b1e774e3890",
+          "value_sha256": "c837649cce43f2729138e72cc315207057ac82599a59be72765a477f22d14a54",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "b24d59927a4ad065083963feb749fdabb4566ba96976531011799de555a673a4"
+        }
+      },
+      "metrics": {
+        "calls": 5,
+        "expert_calls": 4,
+        "remote_calls": 4,
+        "remote_request_bytes": 11408,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 1,
+        "accepted_obligations": 1,
+        "total_obligations": 3,
+        "elapsed_ms": 1.2032829981762916
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2717,
+          "packet_sha256": "d9136b2e2d59c5bab190b5210db937d47fbbacff715395508bf4be3751b081f9",
+          "usage": {
+            "input_tokens": 680,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "e88369a03866a9a917e15d99e06ef2832889a429b995d4847b28e4bfae4de6f6",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "a137081f87be2a4ee90640fec2963475dc3f40c3962f2f05390c4d012891211f",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "a137081f87be2a4ee90640fec2963475dc3f40c3962f2f05390c4d012891211f",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "a137081f87be2a4ee90640fec2963475dc3f40c3962f2f05390c4d012891211f",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "4be34f5e9933c6cbd6be5cef0a8b7ac27f1fe33271b7431cd39f48ea179ce3f4",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-5",
+      "mode": "local_only",
+      "status": "partial",
+      "success": false,
+      "values": {
+        "error_count": 57
+      },
+      "unresolved": {
+        "cause": {
+          "code": "probe_contradiction",
+          "message": "The proposed cause conflicts with the diagnostic PROBE record; inspect it."
+        },
+        "action": {
+          "code": "dependency_blocked",
+          "dependencies": [
+            "cause"
+          ]
+        }
+      },
+      "receipts": {
+        "error_count": {
+          "binding": "1de43650b3d723530d0c99f54f68e08d3136776b88ef1a7da1071b1e774e3890",
+          "value_sha256": "c837649cce43f2729138e72cc315207057ac82599a59be72765a477f22d14a54",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "b24d59927a4ad065083963feb749fdabb4566ba96976531011799de555a673a4"
+        }
+      },
+      "metrics": {
+        "calls": 1,
+        "expert_calls": 0,
+        "remote_calls": 0,
+        "remote_request_bytes": 0,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": true,
+        "remote_cost_usd": 0,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 1,
+        "accepted_obligations": 1,
+        "total_obligations": 3,
+        "elapsed_ms": 0.62219200481195
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "a713bb0fe8f2fca04313b668e65c8556df218c83112842551c4c9a14b7bce3be",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "d29e1282ef362047a03fa119f960f606b28a0d6d760825aaa72c4b4791cd9c19",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-5",
+      "mode": "full_cloud",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 57,
+        "cause": "certificate",
+        "action": "Renew the service certificate and retest TLS validation."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "1de43650b3d723530d0c99f54f68e08d3136776b88ef1a7da1071b1e774e3890",
+          "value_sha256": "c837649cce43f2729138e72cc315207057ac82599a59be72765a477f22d14a54",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "b24d59927a4ad065083963feb749fdabb4566ba96976531011799de555a673a4"
+        },
+        "cause": {
+          "binding": "d6c5fcf16b281a05431f6e2e065d92d38899786daaaf28c41dca9e29f0e463d7",
+          "value_sha256": "1f4baa7d73eb097db79910c8aea29759265cc5e2da8409b2ea91208d2ec369c1",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "69bb08dd5171753badd6e5767834fc68c19825b5cc797153b702f78f28bf2267"
+        },
+        "action": {
+          "binding": "104205aa63a24bd35703a8817f94176d53ecd90bfa89141a79cbf85dd0069c56",
+          "value_sha256": "0e8eece9b83a65b6ef498bec76a425d18f890645484b858ddf9c266d713b36c5",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "8acad1f0de66d4a5369b3982dadbf7e093ded577bf99988eb2c840e8f6a82521"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 3,
+        "remote_calls": 3,
+        "remote_request_bytes": 130580,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 0,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 3.6100190045544878
+      },
+      "calls": [
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "error_count"
+          ],
+          "request_bytes": 43402,
+          "packet_sha256": "9488dcd957703e586e737d979a06ef522c5b8890bb747943bd8aa880f07b4551",
+          "usage": {
+            "input_tokens": 10851,
+            "output_tokens": 11,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 43551,
+          "packet_sha256": "123869e6e714c7ff9121f5158253948aa6cf0b15bd1cf65ed664ca1c5f3c2dd1",
+          "usage": {
+            "input_tokens": 10888,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "action"
+          ],
+          "request_bytes": 43627,
+          "packet_sha256": "c718aef981b116b33b5f824d00bc82dc3d7117343ff665260f707cb9cd11fed9",
+          "usage": {
+            "input_tokens": 10907,
+            "output_tokens": 24,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "e7477a48775ce5f3b68af9c9f309c57896544ed3c0c0b3bdfdd180ccae7e7941",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-5",
+      "mode": "cascade",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 57,
+        "cause": "certificate",
+        "action": "Renew the service certificate and retest TLS validation."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "1de43650b3d723530d0c99f54f68e08d3136776b88ef1a7da1071b1e774e3890",
+          "value_sha256": "c837649cce43f2729138e72cc315207057ac82599a59be72765a477f22d14a54",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "b24d59927a4ad065083963feb749fdabb4566ba96976531011799de555a673a4"
+        },
+        "cause": {
+          "binding": "d6c5fcf16b281a05431f6e2e065d92d38899786daaaf28c41dca9e29f0e463d7",
+          "value_sha256": "1f4baa7d73eb097db79910c8aea29759265cc5e2da8409b2ea91208d2ec369c1",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "69bb08dd5171753badd6e5767834fc68c19825b5cc797153b702f78f28bf2267"
+        },
+        "action": {
+          "binding": "104205aa63a24bd35703a8817f94176d53ecd90bfa89141a79cbf85dd0069c56",
+          "value_sha256": "0e8eece9b83a65b6ef498bec76a425d18f890645484b858ddf9c266d713b36c5",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "8acad1f0de66d4a5369b3982dadbf7e093ded577bf99988eb2c840e8f6a82521"
+        }
+      },
+      "metrics": {
+        "calls": 2,
+        "expert_calls": 1,
+        "remote_calls": 1,
+        "remote_request_bytes": 43686,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 1.6952620062511414
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "a713bb0fe8f2fca04313b668e65c8556df218c83112842551c4c9a14b7bce3be",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 43686,
+          "packet_sha256": "eca6655c3ebdb78e17d812cd529994233513eb196c137828b0917f58e6d5f8ad",
+          "usage": {
+            "input_tokens": 10922,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "cef84a4d052b80665ebe7d728ddf8766c2089b73a245a2320493b9d3fc075467",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-5",
+      "mode": "residual_fixed",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 57,
+        "cause": "certificate",
+        "action": "Renew the service certificate and retest TLS validation."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "1de43650b3d723530d0c99f54f68e08d3136776b88ef1a7da1071b1e774e3890",
+          "value_sha256": "c837649cce43f2729138e72cc315207057ac82599a59be72765a477f22d14a54",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "b24d59927a4ad065083963feb749fdabb4566ba96976531011799de555a673a4"
+        },
+        "cause": {
+          "binding": "d6c5fcf16b281a05431f6e2e065d92d38899786daaaf28c41dca9e29f0e463d7",
+          "value_sha256": "1f4baa7d73eb097db79910c8aea29759265cc5e2da8409b2ea91208d2ec369c1",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "69bb08dd5171753badd6e5767834fc68c19825b5cc797153b702f78f28bf2267"
+        },
+        "action": {
+          "binding": "104205aa63a24bd35703a8817f94176d53ecd90bfa89141a79cbf85dd0069c56",
+          "value_sha256": "0e8eece9b83a65b6ef498bec76a425d18f890645484b858ddf9c266d713b36c5",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "8acad1f0de66d4a5369b3982dadbf7e093ded577bf99988eb2c840e8f6a82521"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 2,
+        "remote_calls": 2,
+        "remote_request_bytes": 6224,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 1.0513880042708479
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "a713bb0fe8f2fca04313b668e65c8556df218c83112842551c4c9a14b7bce3be",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2851,
+          "packet_sha256": "356ab83b3caca49219a849b6fdb778526c606e0de16cf6676a1d9c845b10abac",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 3373,
+          "packet_sha256": "e8ab550b27c1dc6353e083639aaf50a138dc7279a551fcc24079a3ebdb1471bd",
+          "usage": {
+            "input_tokens": 844,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "27c36b7d3bd4213f66486f8a8c9ce53d5a6243b8c95f4007f0910aa76dafa0f4",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-5",
+      "mode": "residual",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 57,
+        "cause": "certificate",
+        "action": "Renew the service certificate and retest TLS validation."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "1de43650b3d723530d0c99f54f68e08d3136776b88ef1a7da1071b1e774e3890",
+          "value_sha256": "c837649cce43f2729138e72cc315207057ac82599a59be72765a477f22d14a54",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "b24d59927a4ad065083963feb749fdabb4566ba96976531011799de555a673a4"
+        },
+        "cause": {
+          "binding": "d6c5fcf16b281a05431f6e2e065d92d38899786daaaf28c41dca9e29f0e463d7",
+          "value_sha256": "1f4baa7d73eb097db79910c8aea29759265cc5e2da8409b2ea91208d2ec369c1",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "69bb08dd5171753badd6e5767834fc68c19825b5cc797153b702f78f28bf2267"
+        },
+        "action": {
+          "binding": "104205aa63a24bd35703a8817f94176d53ecd90bfa89141a79cbf85dd0069c56",
+          "value_sha256": "0e8eece9b83a65b6ef498bec76a425d18f890645484b858ddf9c266d713b36c5",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "8acad1f0de66d4a5369b3982dadbf7e093ded577bf99988eb2c840e8f6a82521"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 2,
+        "remote_calls": 2,
+        "remote_request_bytes": 6224,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 1.021502997900825
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "a713bb0fe8f2fca04313b668e65c8556df218c83112842551c4c9a14b7bce3be",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2851,
+          "packet_sha256": "356ab83b3caca49219a849b6fdb778526c606e0de16cf6676a1d9c845b10abac",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 3373,
+          "packet_sha256": "e8ab550b27c1dc6353e083639aaf50a138dc7279a551fcc24079a3ebdb1471bd",
+          "usage": {
+            "input_tokens": 844,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "464ed99e8af787123d25805c8bb9ddcb9ba3ebae8c1c7510736a0a954219ce46",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-6",
+      "mode": "local_only",
+      "status": "partial",
+      "success": false,
+      "values": {
+        "error_count": 74
+      },
+      "unresolved": {
+        "cause": {
+          "code": "probe_contradiction",
+          "message": "The proposed cause conflicts with the diagnostic PROBE record; inspect it."
+        },
+        "action": {
+          "code": "dependency_blocked",
+          "dependencies": [
+            "cause"
+          ]
+        }
+      },
+      "receipts": {
+        "error_count": {
+          "binding": "a7887b8eaaa0271d8791d33c7137f91d6a5d7ed53c664307f34c6fc34bfc27e0",
+          "value_sha256": "eb624dbe56eb6620ae62080c10a273cab73ae8eca98ab17b731446a31c79393a",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "f13a1c640b0fbcccc6868c5d175089aba4c5aae765dd72404b808523a3fd9ec5"
+        }
+      },
+      "metrics": {
+        "calls": 1,
+        "expert_calls": 0,
+        "remote_calls": 0,
+        "remote_request_bytes": 0,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": true,
+        "remote_cost_usd": 0,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 1,
+        "accepted_obligations": 1,
+        "total_obligations": 3,
+        "elapsed_ms": 0.4412639973452315
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "f69854091ccd483dc072f3c750e7dd83c3d6c773eb09f0d1dcbee02886480ad9",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "22a7a7e8497972fd3ef21a8d0709cf57e12ecd9a1d20d8da9ddfc79d641d01dc",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-6",
+      "mode": "full_cloud",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 74,
+        "cause": "firewall",
+        "action": "Restore the approved firewall rule and retest the connection."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "a7887b8eaaa0271d8791d33c7137f91d6a5d7ed53c664307f34c6fc34bfc27e0",
+          "value_sha256": "eb624dbe56eb6620ae62080c10a273cab73ae8eca98ab17b731446a31c79393a",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "f13a1c640b0fbcccc6868c5d175089aba4c5aae765dd72404b808523a3fd9ec5"
+        },
+        "cause": {
+          "binding": "6c07c52a3a88d5a1e732beb88cec827344d98fe86228b40950c4faaf4b819db0",
+          "value_sha256": "77c7203368f7f938c18233c95a16b5748229d1e8c0e6eb834091705ee924b946",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "c764f29c4b1783400e9327de4a139d157b6de9fe4c3c51b955fc33f1eae2983d"
+        },
+        "action": {
+          "binding": "947246798bb926d7038b877f555eb4691fbc15bda895a775dfe90978ab00cf39",
+          "value_sha256": "c55967ce89eaadd89b7e8edbc2919280030506ca2008ef3b465491cae2f54526",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "81ebcc9877ad2065b6e058b7fa0accfebb6770dc5d1546889963ea93d40b0dd7"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 3,
+        "remote_calls": 3,
+        "remote_request_bytes": 130652,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 0,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 3.8861479988554493
+      },
+      "calls": [
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "error_count"
+          ],
+          "request_bytes": 43427,
+          "packet_sha256": "5303a836eacdc3c943ecf8d5e7d44dfd5f01347e34713c70e021cbdf763db340",
+          "usage": {
+            "input_tokens": 10857,
+            "output_tokens": 11,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 43576,
+          "packet_sha256": "5492e533dd35e03c3db0a4fa3dc911c1cd0ce6fdf2ee54d48a363f9f4f7740ee",
+          "usage": {
+            "input_tokens": 10894,
+            "output_tokens": 12,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "action"
+          ],
+          "request_bytes": 43649,
+          "packet_sha256": "b7d272368e8a48076382b8ad8553e49e5ae01d7c1d9d2d8ea2dd3f5d830fef09",
+          "usage": {
+            "input_tokens": 10913,
+            "output_tokens": 25,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "a40222c488e1cdf0466142b282e5952d51fc1566bdba27f76595ac4e270a76dc",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-6",
+      "mode": "cascade",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 74,
+        "cause": "firewall",
+        "action": "Restore the approved firewall rule and retest the connection."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "a7887b8eaaa0271d8791d33c7137f91d6a5d7ed53c664307f34c6fc34bfc27e0",
+          "value_sha256": "eb624dbe56eb6620ae62080c10a273cab73ae8eca98ab17b731446a31c79393a",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "f13a1c640b0fbcccc6868c5d175089aba4c5aae765dd72404b808523a3fd9ec5"
+        },
+        "cause": {
+          "binding": "6c07c52a3a88d5a1e732beb88cec827344d98fe86228b40950c4faaf4b819db0",
+          "value_sha256": "77c7203368f7f938c18233c95a16b5748229d1e8c0e6eb834091705ee924b946",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "c764f29c4b1783400e9327de4a139d157b6de9fe4c3c51b955fc33f1eae2983d"
+        },
+        "action": {
+          "binding": "947246798bb926d7038b877f555eb4691fbc15bda895a775dfe90978ab00cf39",
+          "value_sha256": "c55967ce89eaadd89b7e8edbc2919280030506ca2008ef3b465491cae2f54526",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "81ebcc9877ad2065b6e058b7fa0accfebb6770dc5d1546889963ea93d40b0dd7"
+        }
+      },
+      "metrics": {
+        "calls": 2,
+        "expert_calls": 1,
+        "remote_calls": 1,
+        "remote_request_bytes": 43711,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 1.8152500051655807
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "f69854091ccd483dc072f3c750e7dd83c3d6c773eb09f0d1dcbee02886480ad9",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 43711,
+          "packet_sha256": "2638f96c0b5584d2a68d0b84b415c99362db16152ba921338881a952dc516b82",
+          "usage": {
+            "input_tokens": 10928,
+            "output_tokens": 12,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "1dd2f1257456c902e2fa5958bdb5b8e8f83ed63a0389c347f6bce5ba0b725f02",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-6",
+      "mode": "residual_fixed",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 74,
+        "cause": "firewall",
+        "action": "Restore the approved firewall rule and retest the connection."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "a7887b8eaaa0271d8791d33c7137f91d6a5d7ed53c664307f34c6fc34bfc27e0",
+          "value_sha256": "eb624dbe56eb6620ae62080c10a273cab73ae8eca98ab17b731446a31c79393a",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "f13a1c640b0fbcccc6868c5d175089aba4c5aae765dd72404b808523a3fd9ec5"
+        },
+        "cause": {
+          "binding": "6c07c52a3a88d5a1e732beb88cec827344d98fe86228b40950c4faaf4b819db0",
+          "value_sha256": "77c7203368f7f938c18233c95a16b5748229d1e8c0e6eb834091705ee924b946",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "c764f29c4b1783400e9327de4a139d157b6de9fe4c3c51b955fc33f1eae2983d"
+        },
+        "action": {
+          "binding": "947246798bb926d7038b877f555eb4691fbc15bda895a775dfe90978ab00cf39",
+          "value_sha256": "c55967ce89eaadd89b7e8edbc2919280030506ca2008ef3b465491cae2f54526",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "81ebcc9877ad2065b6e058b7fa0accfebb6770dc5d1546889963ea93d40b0dd7"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 2,
+        "remote_calls": 2,
+        "remote_request_bytes": 6232,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 1.031908999721054
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "f69854091ccd483dc072f3c750e7dd83c3d6c773eb09f0d1dcbee02886480ad9",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2851,
+          "packet_sha256": "a0d8d9d725b771e33406f4ca43ecdecf1a31650f17efa0d434662612fb37fb80",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 3381,
+          "packet_sha256": "9019fd74b774f481def7c9104e35a8f7806492311bfcddf9e7cfe3151b1f5965",
+          "usage": {
+            "input_tokens": 846,
+            "output_tokens": 12,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "981ab84e43e92b969ec492f0733fdec57d766b66d20665ba3fa341d237b85c24",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-6",
+      "mode": "residual",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 74,
+        "cause": "firewall",
+        "action": "Restore the approved firewall rule and retest the connection."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "a7887b8eaaa0271d8791d33c7137f91d6a5d7ed53c664307f34c6fc34bfc27e0",
+          "value_sha256": "eb624dbe56eb6620ae62080c10a273cab73ae8eca98ab17b731446a31c79393a",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "f13a1c640b0fbcccc6868c5d175089aba4c5aae765dd72404b808523a3fd9ec5"
+        },
+        "cause": {
+          "binding": "6c07c52a3a88d5a1e732beb88cec827344d98fe86228b40950c4faaf4b819db0",
+          "value_sha256": "77c7203368f7f938c18233c95a16b5748229d1e8c0e6eb834091705ee924b946",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "c764f29c4b1783400e9327de4a139d157b6de9fe4c3c51b955fc33f1eae2983d"
+        },
+        "action": {
+          "binding": "947246798bb926d7038b877f555eb4691fbc15bda895a775dfe90978ab00cf39",
+          "value_sha256": "c55967ce89eaadd89b7e8edbc2919280030506ca2008ef3b465491cae2f54526",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "81ebcc9877ad2065b6e058b7fa0accfebb6770dc5d1546889963ea93d40b0dd7"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 2,
+        "remote_calls": 2,
+        "remote_request_bytes": 6232,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 1.047541998559609
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "f69854091ccd483dc072f3c750e7dd83c3d6c773eb09f0d1dcbee02886480ad9",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2851,
+          "packet_sha256": "a0d8d9d725b771e33406f4ca43ecdecf1a31650f17efa0d434662612fb37fb80",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 3381,
+          "packet_sha256": "9019fd74b774f481def7c9104e35a8f7806492311bfcddf9e7cfe3151b1f5965",
+          "usage": {
+            "input_tokens": 846,
+            "output_tokens": 12,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "859a5ed71e1e716c46e5932ade5570c3226fb3e3442b96091ae0806f1f5a28c7",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-6",
+      "mode": "no_pull",
+      "status": "partial",
+      "success": false,
+      "values": {
+        "error_count": 74
+      },
+      "unresolved": {
+        "cause": {
+          "code": "evidence_pull_disabled",
+          "message": "Choose a permitted, unseen evidence interval within the request limits."
+        },
+        "action": {
+          "code": "dependency_blocked",
+          "dependencies": [
+            "cause"
+          ]
+        }
+      },
+      "receipts": {
+        "error_count": {
+          "binding": "a7887b8eaaa0271d8791d33c7137f91d6a5d7ed53c664307f34c6fc34bfc27e0",
+          "value_sha256": "eb624dbe56eb6620ae62080c10a273cab73ae8eca98ab17b731446a31c79393a",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "f13a1c640b0fbcccc6868c5d175089aba4c5aae765dd72404b808523a3fd9ec5"
+        }
+      },
+      "metrics": {
+        "calls": 5,
+        "expert_calls": 4,
+        "remote_calls": 4,
+        "remote_request_bytes": 11408,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 1,
+        "accepted_obligations": 1,
+        "total_obligations": 3,
+        "elapsed_ms": 1.514673997007776
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2717,
+          "packet_sha256": "a5e61875e7b198f20b598d1d10410c86a29ef222763890a0449cfa8bc4144393",
+          "usage": {
+            "input_tokens": 680,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "91837c668282f40cb03ea9d943da872c1f19fa72005cc63b7248b7c37d716baf",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "8f4c577a1c5ae83203a3b7c96176d10a1b3210c7b5f4c5aa9d02e0c1d684bf42",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "8f4c577a1c5ae83203a3b7c96176d10a1b3210c7b5f4c5aa9d02e0c1d684bf42",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2852,
+          "packet_sha256": "8f4c577a1c5ae83203a3b7c96176d10a1b3210c7b5f4c5aa9d02e0c1d684bf42",
+          "usage": {
+            "input_tokens": 713,
+            "output_tokens": 27,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "3c9f0474e882aa0df3cde7f84a285435535392f607f8ad1b6f1a8d0c2ea015ad",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-7",
+      "mode": "full_cloud",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 64,
+        "cause": "application",
+        "action": "Restart the failed application service and verify health."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "dd77e95d1fcbc904139a83b3068f2d3bee472a156ff6ba029e86e1c1b356bfd8",
+          "value_sha256": "a68b412c4282555f15546cf6e1fc42893b7e07f271557ceb021821098dd66c1b",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "c306ee5bc548504752b5c7ecd91d0032448b0e251e156998356ddcb4e21ca35d"
+        },
+        "cause": {
+          "binding": "980aba8d2ba65de1a583596480f547b6f7b1c614b0a89088ef5771b6c4b24d28",
+          "value_sha256": "07bfaea5744adaf1fcbe59bbd917ab2c4cdbcba37f12613cf43ed69b2bff6487",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "9673ec7e47cd59f4f2998738da33ff2793fab84155e58185a87e7ec4f683570e"
+        },
+        "action": {
+          "binding": "dc5f3add28b7b4bc9b7453e8cda3a03a77a470e5da1ebce8cd14a42dfc887ce9",
+          "value_sha256": "004e0773021695552700e6a0a6e28a14481f3a2dbbea3e7b33d7753ef3480955",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "51bfeb04fde8783c38ed7fb7dfd47a60c33ab1a48f2442267330f964c475212d"
+        }
+      },
+      "metrics": {
+        "calls": 3,
+        "expert_calls": 3,
+        "remote_calls": 3,
+        "remote_request_bytes": 130577,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": false,
+        "remote_cost_usd": null,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 0,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 4.333591001341119
+      },
+      "calls": [
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "error_count"
+          ],
+          "request_bytes": 43401,
+          "packet_sha256": "10a152be9ac2327098f97bf9c1a57fccd006fbf5e666f19c1139aa99adbb3680",
+          "usage": {
+            "input_tokens": 10851,
+            "output_tokens": 11,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 43550,
+          "packet_sha256": "e28ca0f935f830843f8dd67e20abcd800f29ce6fcafe2c5eede3e093ed55da67",
+          "usage": {
+            "input_tokens": 10888,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        },
+        {
+          "role": "expert",
+          "provider": "scripted-demo-expert",
+          "placement": "remote",
+          "obligation_ids": [
+            "action"
+          ],
+          "request_bytes": 43626,
+          "packet_sha256": "9b80d653634ebc469fec868692bc3296456895b2ee738431ff26facd8bef3e4d",
+          "usage": {
+            "input_tokens": 10907,
+            "output_tokens": 24,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "2a50ff5be6d3b1382fe0d41f14e9a663ad975f960141016073a9a683c25f487d",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-7",
+      "mode": "cascade",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 64,
+        "cause": "application",
+        "action": "Restart the failed application service and verify health."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "dd77e95d1fcbc904139a83b3068f2d3bee472a156ff6ba029e86e1c1b356bfd8",
+          "value_sha256": "a68b412c4282555f15546cf6e1fc42893b7e07f271557ceb021821098dd66c1b",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "c306ee5bc548504752b5c7ecd91d0032448b0e251e156998356ddcb4e21ca35d"
+        },
+        "cause": {
+          "binding": "980aba8d2ba65de1a583596480f547b6f7b1c614b0a89088ef5771b6c4b24d28",
+          "value_sha256": "07bfaea5744adaf1fcbe59bbd917ab2c4cdbcba37f12613cf43ed69b2bff6487",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "9673ec7e47cd59f4f2998738da33ff2793fab84155e58185a87e7ec4f683570e"
+        },
+        "action": {
+          "binding": "dc5f3add28b7b4bc9b7453e8cda3a03a77a470e5da1ebce8cd14a42dfc887ce9",
+          "value_sha256": "004e0773021695552700e6a0a6e28a14481f3a2dbbea3e7b33d7753ef3480955",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "51bfeb04fde8783c38ed7fb7dfd47a60c33ab1a48f2442267330f964c475212d"
+        }
+      },
+      "metrics": {
+        "calls": 1,
+        "expert_calls": 0,
+        "remote_calls": 0,
+        "remote_request_bytes": 0,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": true,
+        "remote_cost_usd": 0,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 0.5722269997932017
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "8c3a4b594b4290ddd42c94b9a4a83213c04b63d82c51a6a02a8804138d4cdaaf",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "09a7e9e2d0c625de7ffb68f31ed65fb329faa0bb818e1cfc3d595c8eb939ec20",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-7",
+      "mode": "residual_fixed",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 64,
+        "cause": "application",
+        "action": "Restart the failed application service and verify health."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "dd77e95d1fcbc904139a83b3068f2d3bee472a156ff6ba029e86e1c1b356bfd8",
+          "value_sha256": "a68b412c4282555f15546cf6e1fc42893b7e07f271557ceb021821098dd66c1b",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "c306ee5bc548504752b5c7ecd91d0032448b0e251e156998356ddcb4e21ca35d"
+        },
+        "cause": {
+          "binding": "980aba8d2ba65de1a583596480f547b6f7b1c614b0a89088ef5771b6c4b24d28",
+          "value_sha256": "07bfaea5744adaf1fcbe59bbd917ab2c4cdbcba37f12613cf43ed69b2bff6487",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "9673ec7e47cd59f4f2998738da33ff2793fab84155e58185a87e7ec4f683570e"
+        },
+        "action": {
+          "binding": "dc5f3add28b7b4bc9b7453e8cda3a03a77a470e5da1ebce8cd14a42dfc887ce9",
+          "value_sha256": "004e0773021695552700e6a0a6e28a14481f3a2dbbea3e7b33d7753ef3480955",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "51bfeb04fde8783c38ed7fb7dfd47a60c33ab1a48f2442267330f964c475212d"
+        }
+      },
+      "metrics": {
+        "calls": 1,
+        "expert_calls": 0,
+        "remote_calls": 0,
+        "remote_request_bytes": 0,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": true,
+        "remote_cost_usd": 0,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 0.49983100325334817
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "8c3a4b594b4290ddd42c94b9a4a83213c04b63d82c51a6a02a8804138d4cdaaf",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "098d5f2af246bd7cb615faedd7439fde7ea5860b06a02358188e861974f7f9e4",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-7",
+      "mode": "residual",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 64,
+        "cause": "application",
+        "action": "Restart the failed application service and verify health."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "dd77e95d1fcbc904139a83b3068f2d3bee472a156ff6ba029e86e1c1b356bfd8",
+          "value_sha256": "a68b412c4282555f15546cf6e1fc42893b7e07f271557ceb021821098dd66c1b",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "c306ee5bc548504752b5c7ecd91d0032448b0e251e156998356ddcb4e21ca35d"
+        },
+        "cause": {
+          "binding": "980aba8d2ba65de1a583596480f547b6f7b1c614b0a89088ef5771b6c4b24d28",
+          "value_sha256": "07bfaea5744adaf1fcbe59bbd917ab2c4cdbcba37f12613cf43ed69b2bff6487",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "9673ec7e47cd59f4f2998738da33ff2793fab84155e58185a87e7ec4f683570e"
+        },
+        "action": {
+          "binding": "dc5f3add28b7b4bc9b7453e8cda3a03a77a470e5da1ebce8cd14a42dfc887ce9",
+          "value_sha256": "004e0773021695552700e6a0a6e28a14481f3a2dbbea3e7b33d7753ef3480955",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "51bfeb04fde8783c38ed7fb7dfd47a60c33ab1a48f2442267330f964c475212d"
+        }
+      },
+      "metrics": {
+        "calls": 1,
+        "expert_calls": 0,
+        "remote_calls": 0,
+        "remote_request_bytes": 0,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": true,
+        "remote_cost_usd": 0,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 0.5024749989388511
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "8c3a4b594b4290ddd42c94b9a4a83213c04b63d82c51a6a02a8804138d4cdaaf",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "8527b3e84d64925baf2e467d9873cb7a72b543356d5f75894554379aeef53356",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-7",
+      "mode": "no_pull",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 64,
+        "cause": "application",
+        "action": "Restart the failed application service and verify health."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "dd77e95d1fcbc904139a83b3068f2d3bee472a156ff6ba029e86e1c1b356bfd8",
+          "value_sha256": "a68b412c4282555f15546cf6e1fc42893b7e07f271557ceb021821098dd66c1b",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "c306ee5bc548504752b5c7ecd91d0032448b0e251e156998356ddcb4e21ca35d"
+        },
+        "cause": {
+          "binding": "980aba8d2ba65de1a583596480f547b6f7b1c614b0a89088ef5771b6c4b24d28",
+          "value_sha256": "07bfaea5744adaf1fcbe59bbd917ab2c4cdbcba37f12613cf43ed69b2bff6487",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "9673ec7e47cd59f4f2998738da33ff2793fab84155e58185a87e7ec4f683570e"
+        },
+        "action": {
+          "binding": "dc5f3add28b7b4bc9b7453e8cda3a03a77a470e5da1ebce8cd14a42dfc887ce9",
+          "value_sha256": "004e0773021695552700e6a0a6e28a14481f3a2dbbea3e7b33d7753ef3480955",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "51bfeb04fde8783c38ed7fb7dfd47a60c33ab1a48f2442267330f964c475212d"
+        }
+      },
+      "metrics": {
+        "calls": 1,
+        "expert_calls": 0,
+        "remote_calls": 0,
+        "remote_request_bytes": 0,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": true,
+        "remote_cost_usd": 0,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 0.587310001719743
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2717,
+          "packet_sha256": "8896749a34d08d8b1e006db3376b03d6b96f342b1f26b5187043d590fc9407da",
+          "usage": {
+            "input_tokens": 680,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "6a99ecc24db885245ba188e530ff57539ba32cb52f808858b3d0efed5e2b576b",
+      "repeat": 0
+    },
+    {
+      "schema_version": "residual.run.v1",
+      "task_id": "incident-7",
+      "mode": "local_only",
+      "status": "passed",
+      "success": true,
+      "values": {
+        "error_count": 64,
+        "cause": "application",
+        "action": "Restart the failed application service and verify health."
+      },
+      "unresolved": {},
+      "receipts": {
+        "error_count": {
+          "binding": "dd77e95d1fcbc904139a83b3068f2d3bee472a156ff6ba029e86e1c1b356bfd8",
+          "value_sha256": "a68b412c4282555f15546cf6e1fc42893b7e07f271557ceb021821098dd66c1b",
+          "verifier": "incident_count",
+          "revision": "1",
+          "sha256": "c306ee5bc548504752b5c7ecd91d0032448b0e251e156998356ddcb4e21ca35d"
+        },
+        "cause": {
+          "binding": "980aba8d2ba65de1a583596480f547b6f7b1c614b0a89088ef5771b6c4b24d28",
+          "value_sha256": "07bfaea5744adaf1fcbe59bbd917ab2c4cdbcba37f12613cf43ed69b2bff6487",
+          "verifier": "incident_cause",
+          "revision": "1",
+          "sha256": "9673ec7e47cd59f4f2998738da33ff2793fab84155e58185a87e7ec4f683570e"
+        },
+        "action": {
+          "binding": "dc5f3add28b7b4bc9b7453e8cda3a03a77a470e5da1ebce8cd14a42dfc887ce9",
+          "value_sha256": "004e0773021695552700e6a0a6e28a14481f3a2dbbea3e7b33d7753ef3480955",
+          "verifier": "incident_action",
+          "revision": "1",
+          "sha256": "51bfeb04fde8783c38ed7fb7dfd47a60c33ab1a48f2442267330f964c475212d"
+        }
+      },
+      "metrics": {
+        "calls": 1,
+        "expert_calls": 0,
+        "remote_calls": 0,
+        "remote_request_bytes": 0,
+        "remote_input_tokens_reported": 0,
+        "remote_output_tokens_reported": 0,
+        "remote_usage_complete": true,
+        "remote_cost_usd": 0,
+        "remote_cost_known_subtotal_usd": 0,
+        "cache_hits": 0,
+        "deterministic_accepts": 2,
+        "accepted_obligations": 3,
+        "total_obligations": 3,
+        "elapsed_ms": 0.5227350047789514
+      },
+      "calls": [
+        {
+          "role": "local",
+          "provider": "scripted-demo-local",
+          "placement": "local",
+          "obligation_ids": [
+            "cause"
+          ],
+          "request_bytes": 2716,
+          "packet_sha256": "8c3a4b594b4290ddd42c94b9a4a83213c04b63d82c51a6a02a8804138d4cdaaf",
+          "usage": {
+            "input_tokens": 679,
+            "output_tokens": 13,
+            "cached_input_tokens": 0,
+            "source": "simulation"
+          },
+          "cost_usd": null,
+          "elapsed_ms": 0,
+          "error": null
+        }
+      ],
+      "trace_root": "23fd7de3841b4472e4c02bb3aa509243ed2ef9e482eb015ba7ad1cd38115d4b4",
+      "repeat": 0
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "initial": {"backup_complete": false, "traffic_drained": false, "service_running": true, "patch_installed": false, "health_verified": false},
+  "goal": {"backup_complete": true, "service_running": true, "patch_installed": true, "health_verified": true},
+  "max_steps": 8,
+  "forbidden": [{"service_running": false, "backup_complete": false}],
+  "actions": {
+    "backup": {"requires": {"service_running": true}, "sets": {"backup_complete": true}},
+    "drain": {"requires": {"service_running": true}, "sets": {"traffic_drained": true}},
+    "stop": {"requires": {"backup_complete": true, "traffic_drained": true}, "sets": {"service_running": false}},
+    "patch": {"requires": {"service_running": false}, "sets": {"patch_installed": true}},
+    "start": {"requires": {"patch_installed": true}, "sets": {"service_running": true}},
+    "health": {"requires": {"service_running": true, "patch_installed": true}, "sets": {"health_verified": true}}
+  }
+}

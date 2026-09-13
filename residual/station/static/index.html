@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1418"><meta name="description" content="Your local-first agent command center. Specs in. Verified work out.">
+  <title>RESIDUAL · Command Station</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to workspace</a>
+  <aside class="sidebar">
+    <a href="#overview" class="brand" aria-label="Residual home"><span class="brand-mark">R<span>▰</span></span><span>RESIDUAL<small>COMMAND STATION / 03</small></span></a>
+    <div class="side-label">YOUR WORKSPACE</div>
+    <label class="sr-only" for="project-select">Active project</label><select id="project-select"><option value="">No project loaded</option></select>
+    <button class="new-project" data-action="new-project">+ New mission</button>
+    <nav aria-label="Main navigation">
+      <a href="#overview" data-view="overview"><span>◈</span> Overview <kbd>1</kbd></a>
+      <a href="#board" data-view="board"><span>▤</span> Mission board <kbd>2</kbd></a>
+      <a href="#comms" data-view="comms"><span>⌁</span> Shared comms <kbd>3</kbd></a>
+      <a href="#models" data-view="models"><span>▦</span> Model workshop <kbd>4</kbd></a>
+      <a href="#diagnostics" data-view="diagnostics"><span>⌘</span> Diagnostics <kbd>5</kbd></a>
+    </nav>
+    <div class="side-footer"><div class="tiny-pixel" aria-hidden="true">▟█▙</div><strong>EVERY SPEC IS A MISSION.</strong><p>Keep the routine local.<br>Call in the heavy compute.</p><button class="text-button" data-action="setup">Run setup checklist ↗</button><span class="build-stamp">LDD WORKFLOW v1 · LOCAL FIRST</span></div>
+  </aside>
+  <div class="main-shell">
+    <header class="topbar"><div class="breadcrumb">WORKSPACE <span>/</span> <b id="page-label">OVERVIEW</b></div><div class="top-status"><span id="connection" class="status-dot">Station online</span><button class="icon-button" data-action="switch-project" aria-label="Switch mission">▤</button><button class="icon-button" data-action="setup" aria-label="Open setup checklist">?</button></div></header>
+    <main id="main" tabindex="-1"><div class="loading"><span class="loader"></span>Booting command station…</div></main>
+    <footer class="bottom-bar"><span id="footer-state">Deterministic coordination. Evidence attached.</span><span>RESIDUAL <b>0.3</b></span></footer>
+  </div>
+  <section id="job-tray" aria-label="Active operations" aria-live="polite"></section>
+  <div id="toasts" role="status" aria-live="polite"></div>
+  <dialog id="dialog" aria-labelledby="dialog-title"><header><div><span class="eyebrow" id="dialog-eyebrow">COMMAND STATION</span><h2 id="dialog-title"></h2></div><button class="icon-button" data-action="close-dialog" aria-label="Close dialog">✕</button></header><div id="dialog-body"></div></dialog>
+</body>
+</html>

@@ -1,0 +1,13 @@
+.git
+.residual
+.venv
+__pycache__
+*.sqlite*
+*.egg-info
+dist
+build
+runs
+projects
+history.bundle
+.env*
+config.local.toml

@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LDD workflow event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "event_type",
+    "timestamp",
+    "project_id",
+    "task_id",
+    "actor",
+    "attempt",
+    "spec_hash",
+    "data"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "event_id": {
+      "type": "string"
+    },
+    "event_type": {
+      "enum": [
+        "checks.completed",
+        "integration.completed",
+        "project.created",
+        "project.note",
+        "project.paused",
+        "project.resumed",
+        "release.exported",
+        "report.generated",
+        "review.completed",
+        "task.claimed",
+        "task.finding",
+        "task.transition",
+        "usage.recorded",
+        "worker.expired",
+        "worker.joined"
+      ]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "task_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "actor": {
+      "type": "string"
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "spec_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "data": {
+      "type": "object"
+    }
+  }
+}

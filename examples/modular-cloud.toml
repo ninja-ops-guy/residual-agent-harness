@@ -1,0 +1,21 @@
+# Existing RESIDUAL benchmark CLI with the new adapter bridge.
+# Enter an installed local model and a model ID available to your cloud account.
+[local]
+kind = "ollama"
+model = "qwen2.5-coder:7b"
+base_url = "http://127.0.0.1:11434"
+placement = "local"
+
+[expert]
+kind = "anthropic"
+model = "YOUR_MODEL_ID"
+base_url = "https://api.anthropic.com"
+placement = "remote"
+api_key_env = "ANTHROPIC_API_KEY"
+timeout_seconds = 180
+
+[limits]
+local_rounds = 1
+
+[cache]
+enabled = false

@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.env
+.env.*
+!.env.example
+.residual/
+runs/
+build/
+dist/
+*.sqlite*
+config.local.toml
+history.bundle
+node_modules/
+projects/*
+!projects/.keep

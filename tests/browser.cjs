@@ -1,0 +1,82 @@
+/* Real browser workflow checks. Dev-only dependency: npm install, then npx playwright install chromium. */
+const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),assert=require('node:assert/strict');
+const {spawn}=require('node:child_process');
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+const root=path.resolve(__dirname,'..'),data=fs.mkdtempSync(path.join(os.tmpdir(),'residual-ui-'));
+const out=process.env.STATION_QA_DIR||path.join(root,'runs','browser');fs.mkdirSync(out,{recursive:true});
+const port=Number(process.env.STATION_QA_PORT||8876),url=`http://127.0.0.1:${port}`;
+const server=spawn(process.env.PYTHON||'python3',['-m','residual.station.server','--port',String(port),'--data',data],{cwd:root,stdio:['ignore','pipe','pipe']});
+const errors=[],checks=[];let browser;
+async function main(){
+  await new Promise((resolve,reject)=>{let text='';const timer=setTimeout(()=>reject(Error('Server startup timeout')),15000);server.stdout.on('data',b=>{text+=b;if(text.includes('Press Ctrl+C')){clearTimeout(timer);resolve();}});server.once('exit',code=>reject(Error('Server exited '+code)));});
+  browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
+  const context=await browser.newContext({viewport:{width:1440,height:1040}}),page=await context.newPage();
+  page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error'&&!m.text().includes('400 (Bad Request)'))errors.push(m.text());});
+  await page.goto(url);await page.getByRole('heading',{name:'Welcome to the night shift.'}).waitFor();
+  await page.screenshot({path:path.join(out,'01-overview-empty.png'),fullPage:true});checks.push('Empty state and onboarding render');
+  await page.getByRole('button',{name:'▶ Run training mission',exact:true}).click();
+  // Observe actual persisted state, rather than relying on animation timing.
+  await page.waitForFunction(async()=>{const b=await fetch('/api/bootstrap').then(r=>r.json());const r=await fetch('/api/projects',{headers:{'X-Station-Token':b.token}}).then(r=>r.json());return r.projects[0]?.tasks.every(t=>t.state==='integrated');},{},{timeout:45000});
+  await page.locator('#main').click({position:{x:5,y:5}});await page.waitForTimeout(2500);
+  while(await page.locator('.toast button').count()) await page.locator('.toast button').first().click();
+  await page.screenshot({path:path.join(out,'02-overview-complete.png'),fullPage:true});checks.push('Training mission implements and integrates all tasks');
+  await page.locator('[data-view="board"]').click();await page.getByRole('heading',{name:'Mission board',exact:true}).waitFor();
+  await page.getByRole('heading',{name:'Run control',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Open run receipt',exact:true}).click();
+  await page.locator('#dialog-body').filter({hasText:'Mission run control'}).waitFor();
+  assert((await page.locator('#dialog-body').innerText()).includes('"outcome": "success"'));
+  await page.getByRole('button',{name:'Close dialog',exact:true}).click();
+  checks.push('Mission board opens the goal contract and verified run receipt');
+  assert.equal(await page.locator('.task-card').count(),3);await page.screenshot({path:path.join(out,'03-mission-board.png'),fullPage:true});
+  await page.locator('.task-card').first().click();await page.locator('#dialog-title').filter({hasText:'Restore the health beacon'}).waitFor();
+  assert(await page.locator('#dialog-body').innerText().then(t=>t.includes('Acceptance checks')));await page.screenshot({path:path.join(out,'04-task-evidence.png'),fullPage:true});await page.getByRole('button',{name:'Close dialog',exact:true}).click();checks.push('Task drawer shows checks and revision evidence');
+  const download=page.waitForEvent('download');await page.getByRole('button',{name:'Export verified release',exact:true}).click();const release=await download;assert(release.suggestedFilename().endsWith('.zip'));checks.push('Verified release downloads from UI');
+  await page.locator('[data-view="comms"]').click();await page.locator('#note-message').fill('<img src=x onerror=alert(1)> operator note');await page.getByRole('button',{name:'Post ↗',exact:true}).click();await page.getByText('<img src=x onerror=alert(1)> operator note',{exact:true}).waitFor();assert.equal(await page.locator('.message img').count(),0);checks.push('Operator notes are escaped, not executable HTML');
+  await page.screenshot({path:path.join(out,'05-shared-comms.png'),fullPage:true});
+  await page.locator('[data-view="models"]').click();await page.getByRole('heading',{name:'Your model workshop.'}).waitFor();await page.waitForTimeout(900);
+  await page.locator('#local-model').fill('fixture-model:latest');await page.getByRole('button',{name:'Save model routes',exact:true}).click();await page.locator('.toast').filter({hasText:'Model routes saved'}).waitFor();await page.reload();await page.locator('#local-model').waitFor();assert.equal(await page.locator('#local-model').inputValue(),'fixture-model:latest');checks.push('Model route settings persist after reload');
+  await page.locator('.route-details summary').filter({hasText:'Mission loop limits'}).click();
+  await page.locator('#batch-passes').fill('8');await page.locator('#batch-tokens').fill('50000');
+  await page.getByRole('button',{name:'Save model routes',exact:true}).click();await page.reload();
+  await page.locator('#batch-passes').waitFor({state:'attached'});
+  assert.equal(await page.locator('#batch-passes').inputValue(),'8');
+  assert.equal(await page.locator('#batch-tokens').inputValue(),'50000');
+  checks.push('Batch pass and token limits persist through the model workshop');
+  await page.screenshot({path:path.join(out,'06-model-workshop.png'),fullPage:true});
+  await page.getByRole('button',{name:'Open setup checklist',exact:true}).click();await page.getByRole('heading',{name:'Ready for your first shift?'}).waitFor();await page.getByRole('button',{name:'Close dialog',exact:true}).click();checks.push('Setup checklist remains accessible');
+  // Exercise the new provider controls without using external accounts.
+  await page.locator('#cloud-kind').selectOption('anthropic');assert.equal(await page.locator('#cloud-url').inputValue(),'https://api.anthropic.com');
+  await page.locator('#cloud-model').fill('test-anthropic');await page.locator('#cloud-key').fill('UI-PRIVATE-KEY');
+  await page.locator('.route-details summary').filter({hasText:'Cloud failover order'}).click();await page.getByRole('button',{name:'+ Add fallback provider',exact:true}).click();
+  await page.locator('#fallback-0-kind').selectOption('google');await page.locator('#fallback-0-model').fill('test-google');
+  await page.getByRole('button',{name:'Save model routes',exact:true}).click();await page.reload();await page.locator('#cloud-kind').waitFor();
+  assert.equal(await page.locator('#cloud-kind').inputValue(),'anthropic');assert.equal(await page.locator('#cloud-key').inputValue(),'');
+  assert.equal(await page.locator('#fallback-0-kind').inputValue(),'google');
+  assert(!(await page.evaluate(()=>fetch('/api/bootstrap').then(r=>r.text()))).includes('UI-PRIVATE-KEY'));
+  checks.push('Provider defaults, fallback order, and credential redaction survive reload');
+  await page.locator('#cloud-kind').selectOption('bedrock');await page.locator('#cloud-access_key').waitFor({state:'visible'});
+  assert(await page.locator('#cloud-key').isHidden());await page.reload();
+  checks.push('Bedrock reveals only its AWS credential controls');
+
+  await page.locator('[data-view="overview"]').click();await page.getByRole('button',{name:'+ New mission',exact:true}).last().click();await page.getByRole('button',{name:'Load template',exact:true}).click();await page.getByRole('button',{name:'Validate specification',exact:true}).click();await page.locator('#spec-feedback .callout').waitFor();checks.push('Markdown template validates from UI');
+  await page.locator('#project-spec').fill('# Invalid specification');await page.getByRole('button',{name:'Validate specification',exact:true}).click();await page.locator('.toast.error').waitFor();checks.push('Invalid Markdown produces actionable feedback');await page.getByRole('button',{name:'Close dialog',exact:true}).click();
+  while(await page.locator('.toast button').count()) await page.locator('.toast button').first().click();
+  await page.setViewportSize({width:390,height:844});await page.goto(url+'/#overview');await page.getByRole('heading',{name:'Welcome to the night shift.'}).waitFor();
+  await page.getByRole('button',{name:'Switch mission',exact:true}).click();await page.getByRole('button',{name:'Open mission',exact:true}).click();
+  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:path.join(out,'07-mobile-overview.png'),fullPage:true});
+  await page.locator('[data-view="board"]').click();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:path.join(out,'08-mobile-board.png'),fullPage:true});checks.push('390px mobile mission switching, navigation and board have no horizontal overflow');
+  await page.locator('[data-view="diagnostics"]').click();await page.getByRole('button',{name:'↻ Inspect',exact:true}).click();await page.getByText('SQLite WAL',{exact:true}).waitFor();checks.push('Diagnostics inspect live runtime');
+  await page.getByRole('button',{name:'Inspect trace',exact:true}).click();await page.locator('#observation-summary').filter({hasText:'CHAIN VERIFIED'}).waitFor();
+  assert(await page.locator('.observation-row').count()>0);await page.locator('.observation-row').first().click();await page.getByRole('heading',{name:'Observation evidence',exact:true}).waitFor();await page.getByRole('button',{name:'Close dialog',exact:true}).click();
+  await page.locator('#observation-kind').selectOption('state.transition');await page.waitForFunction(()=>[...document.querySelectorAll('.observation-row')].every(el=>el.textContent.includes('state.transition')));
+  const traceDownload=page.waitForEvent('download');await page.getByRole('button',{name:'Download JSONL',exact:true}).click();assert.equal((await traceDownload).suggestedFilename(),'observations.jsonl');
+  await page.getByRole('button',{name:'Pause observations',exact:true}).click();await page.getByRole('button',{name:'Resume observations',exact:true}).waitFor();await page.getByRole('button',{name:'Resume observations',exact:true}).click();
+  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:path.join(out,'09-mobile-observations.png'),fullPage:true});
+  checks.push('Mobile trace verification, filtering, evidence, export and pause/resume work');
+  await page.setViewportSize({width:1440,height:1040});await page.locator('#observation-kind').selectOption('');await page.screenshot({path:path.join(out,'10-observation-console.png'),fullPage:true});
+  await page.locator('[data-view="models"]').click();await page.locator('.route-details summary').filter({hasText:'Cloud failover order'}).click();await page.screenshot({path:path.join(out,'11-provider-workshop.png'),fullPage:true});
+
+  assert.deepEqual(errors,[]);checks.push('No unexpected browser console errors');
+  fs.writeFileSync(path.join(out,'browser-results.json'),JSON.stringify({passed:true,checks,errors},null,2));console.log(JSON.stringify({passed:true,checks,output:out},null,2));
+}
+main().catch(e=>{console.error(e);fs.writeFileSync(path.join(out,'browser-results.json'),JSON.stringify({passed:false,checks,error:e.message,errors},null,2));process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();server.kill('SIGTERM');try{fs.rmSync(data,{recursive:true,force:true});}catch{}});

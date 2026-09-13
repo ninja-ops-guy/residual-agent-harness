@@ -1,0 +1,19 @@
+{
+  "prototype_version": "0.1.0",
+  "python_version": "3.12.14",
+  "unit_and_http_contract_tests": {
+    "passed": 59,
+    "failed": 0,
+    "command": "python3 -m unittest discover -s tests -v",
+    "log": "validation-unittest.txt"
+  },
+  "package_build_and_install": "passed with --no-deps --no-build-isolation into an isolated target directory",
+  "file_task_cli": "passed",
+  "result_trace_binding": "passed",
+  "custom_callable_example": "passed",
+  "publish_helper": "private-mode dry run passed; remote creation not executed",
+  "live_ollama_inference": "not run: no installed Ollama runtime/model",
+  "live_cloud_inference": "not run: no configured provider credentials",
+  "github_actions": "workflow included; not run remotely",
+  "novelty": "research hypothesis; bounded primary-source prior-art review included"
+}

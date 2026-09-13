@@ -1,0 +1,39 @@
+# Copy to config.local.toml. Choose any installed Ollama model and an expert API.
+[local]
+kind = "ollama"
+model = "YOUR_INSTALLED_OLLAMA_MODEL"
+base_url = "http://localhost:11434"
+placement = "local"
+timeout_seconds = 120
+
+[expert]
+kind = "openai_compatible"
+model = "YOUR_EXPERT_MODEL"
+base_url = "https://YOUR_PROVIDER_HOST/v1"
+placement = "remote"
+api_key_env = "RESIDUAL_EXPERT_API_KEY"
+timeout_seconds = 120
+json_mode = true
+# Set to "max_tokens" for compatible servers using the older parameter.
+output_token_field = "max_completion_tokens"
+
+# Optional: enter your provider's actual current prices. No prices are assumed.
+# [expert.prices]
+# input_per_million = 0.0
+# output_per_million = 0.0
+# cached_input_per_million = 0.0
+
+[limits]
+local_rounds = 2
+expert_rounds = 4
+max_calls = 24
+max_expert_calls = 12
+max_remote_input_bytes = 500000
+max_request_bytes = 200000
+max_output_tokens = 2048
+max_requested_lines = 100
+seed_lines = 3
+
+[cache]
+enabled = true
+path = ".residual/cache.sqlite"

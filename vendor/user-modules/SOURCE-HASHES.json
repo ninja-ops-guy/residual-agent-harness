@@ -1,0 +1,34 @@
+{
+  "observation_layer": {
+    "hooks.py": "c135af082628a27539fb35d9fd96e6a7661c510457049d6e02ad2e1411ae9e88",
+    "bus.py": "f7c1c993a2e9419edb2e47e8e7c90bdbba6d115385ab2efbb61c735850801204",
+    "core.py": "e863bcaa89359b76935077505a32057d1fd431d859be0b6d284f338cfcb229a2",
+    "__init__.py": "1432319393abee1e2b9c04a3417b43933ac0e19c1af9349793266bbc3b7c4189",
+    "sinks.py": "4cefda997dc675c8932e7d071308aeb34c13eadcfca54874908f11b0cd56de39",
+    "query.py": "3eb17595de54ba6369faf0aa4d59fd063efe8bd3803cc75bae481d77ffb6cb45",
+    "filters.py": "b95ecc2b5d25e36069ac43e5172af469ddb3edf552fab59549599b226480622b"
+  },
+  "ai_providers": {
+    "router.py": "0f3c291d4bcaf410f5f7a64532dd852d02cdc4ca7034dd12f95137c88f8b3c23",
+    "registry.py": "9ae2e0cbbf07d43cbb95d7d042b5c5f302309344df98854d0a6238ee43de69d0",
+    "core.py": "9623a80b791d66d1f98fc26bdfb99a4c9055301c4cce0b640794278ea688f20a",
+    "adapters/openai_adapter.py": "aa04ec235d5983ff1468b3385a81b12853a2305b6845df1e1c9894251df9aeee",
+    "adapters/_http.py": "34b52bec23862a5d3ed546fa915ddf6ead94cfe91d7205aa9fa14d45c8817211",
+    "adapters/bedrock_adapter.py": "b90da17806eb3c166f79c08256a69f11c9fe8e47b604c166967015cc4a030d4c",
+    "adapters/google_adapter.py": "deafb806a6aec68a267666b8b56263cfdf0f63414a3c5797d1d9ff416c84f538",
+    "adapters/__init__.py": "fb3dd1d25a776d48c2956fb6d8089273cefc1872786caef0b19e22b82812c8d9",
+    "adapters/ollama_adapter.py": "e5945c83103a4a2eadd3dc8e049c762daf3d5c08cf96092fe915d8e8c8c0fd07",
+    "adapters/azure_adapter.py": "01c6eb4ea8ca200149a9d6ff2a9db5ae5703bfd80f02c0fa3f4c3afc1aaf4ac0",
+    "adapters/anthropic_adapter.py": "8abada510be522a728536c06968e1d7eeac0fa1ef3bfcf0f76f09cd8028205ae"
+  },
+  "control_layer_update": {
+    "residual/__init__.py": "6bd469bd9e5f74edf5f9a20d49c72632a46ba77cc17b8f21e445c7874f0f84c9",
+    "residual/brakes.py": "6f61a7470c8c46d349dd91c2ba30d0c5d550d1e0f88c25884971ee34bf05f0ed",
+    "residual/goalspec.py": "df3673084383a8ae87af955adf5484e4b9435a68ec683f4128f8dffa0d8c0675",
+    "residual/integration.py": "c774f1aac6cf941802dc8b439444a65c81b794fc3f142db05d451e9c92356a96",
+    "residual/loop.py": "39f02fa6de16e2c6b7be410dc36ab650424e19c721174d4796e6b38c0fd7bd3c",
+    "residual/quarantine.py": "aa551a7e6afbb3c7c39e32d750ef239f369820e16d38d75fa58b78a3d0e45443",
+    "residual/verifier.py": "947633d6dfffabba7feaa0966dc95840ec83c3db80569fcd403dae012a220242",
+    "tests/test_loop_layer.py": "1388de97b399bbd87a6648804bd494c673bc9209d4e8f0d828ffbb3cbc247255"
+  }
+}
