@@ -1,6 +1,9 @@
 """Counterexample-directed residual delegation, with evidence pull and frozen results."""
 from __future__ import annotations
 
+from .receipts import StationReceipt, ReceiptReference, cache_key
+from .verifier import CheckResult
+
 import time
 import uuid
 from dataclasses import asdict, dataclass
@@ -48,6 +51,7 @@ class Harness:
         self.task = task
         self.accepted: dict[str, Any] = {}
         self.receipts: dict[str, dict] = {}
+        self.station_receipts: dict[str, StationReceipt] = {}
         self.failures: dict[str, dict] = {}
         self.windows = {}
         self.calls = []
@@ -72,6 +76,8 @@ class Harness:
             for node_id in ready:
                 if self.cache:
                     hit, value = self.cache.get(self._cache_key(node_id))
+                    if hit and self._identity(node_id) is not None:
+                        hit, value = self._cached_candidate(node_id, value)
                     if hit and self._accept(node_id, value, "cache"):
                         self.cache_hits += 1
                         continue
@@ -109,6 +115,7 @@ class Harness:
             "status": "passed" if not unresolved else ("partial" if self.accepted else "blocked"),
             "success": not unresolved, "values": self.accepted, "unresolved": unresolved,
             "receipts": self.receipts,
+            "station_receipts": {k: r.to_dict() for k, r in self.station_receipts.items()},
             "metrics": {"calls": len(self.calls), "expert_calls": self.expert_calls,
                         "remote_calls": len(remote_calls), "remote_request_bytes": self.remote_bytes,
                         "remote_input_tokens_reported": sum(c["usage"]["input_tokens"] for c in reported),
@@ -136,7 +143,43 @@ class Harness:
                 "dependencies": {d: self.receipts[d]["sha256"] for d in o.depends_on}}
 
     def _cache_key(self, node_id):
+        identity = self._identity(node_id)
+        if identity is not None:
+            name, revision, check_type = identity
+            o = self.task.by_id[node_id]
+            return cache_key(project_id=self.task.id, task_id=node_id,
+                goal_hash=digest({"task_id": self.task.id, "goal": self.task.goal}),
+                contract_hash=digest(asdict(o)), verifier_name=name, verifier_revision=revision,
+                check_type=check_type, artifacts={a: self.task.artifacts[a].sha256 for a in o.evidence},
+                parents=self._parents(node_id))
         return digest(self._binding(node_id))
+
+    def _identity(self, node_id):
+        o = self.task.by_id[node_id]
+        identity = self.registry.identities.get(o.check)
+        # Never relabel legacy prerequisite receipts as v1 station receipts.
+        if identity is None or any(d not in self.station_receipts for d in o.depends_on):
+            return None
+        revision, check_type = identity
+        return (o.check if ":" in o.check else "host:" + o.check,
+                digest({"identity": revision.effective_revision, "label": self.registry.checks[o.check][0],
+                        "check_type": check_type}), check_type)
+
+    def _parents(self, node_id):
+        return tuple(sorted(ReceiptReference(d, self.station_receipts[d].receipt_hash)
+                            for d in self.task.by_id[node_id].depends_on))
+
+    def _cached_candidate(self, node_id, entry):
+        try:
+            if not isinstance(entry, dict) or set(entry) != {"schema_version", "value", "receipt"} or entry["schema_version"] != "residual.station.cache.entry.v1":
+                return False, None
+            receipt = StationReceipt.from_dict(entry["receipt"])
+            name, revision, _ = self._identity(node_id)
+            okay = receipt.task_id == node_id and receipt.matches(value=entry["value"], cache_key=self._cache_key(node_id),
+                verifier_name=name, verifier_revision=revision, parents=self._parents(node_id))
+            return okay, entry["value"] if okay else None
+        except (ValueError, TypeError, KeyError):
+            return False, None
 
     def _failure(self, node_id, code, message=""):
         self.failures[node_id] = {"code": code, "message": message}
@@ -161,6 +204,13 @@ class Harness:
             self._failure(node_id, verdict.code, verdict.message)
             return False
         value = strict_json(original)
+        modern = None
+        identity = self._identity(node_id)
+        if identity is not None:
+            name, revision, _ = identity
+            modern = StationReceipt(node_id, self._cache_key(node_id), digest(value), name, revision,
+                                    CheckResult.PASS, self._parents(node_id))
+            self.station_receipts[node_id] = modern
         receipt = {"binding": self._cache_key(node_id), "value_sha256": digest(value),
                    "verifier": self.task.by_id[node_id].check,
                    "revision": self.registry.checks[self.task.by_id[node_id].check][0]}
@@ -168,8 +218,11 @@ class Harness:
         self.accepted[node_id], self.receipts[node_id] = value, receipt
         self.failures.pop(node_id, None)
         if self.cache and source != "cache":
-            self.cache.put(self._cache_key(node_id), value)
+            self.cache.put(self._cache_key(node_id), {"schema_version": "residual.station.cache.entry.v1",
+                "value": value, "receipt": modern.to_dict()} if modern else value)
         self.ledger.add("obligation_accepted", obligation_id=node_id, source=source, receipt=receipt)
+        if modern:
+            self.ledger.add("station_receipt_issued", obligation_id=node_id, receipt=modern.to_dict())
         return True
 
     def _packet(self, provider, ids, role):

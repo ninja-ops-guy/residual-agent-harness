@@ -92,7 +92,10 @@ class Obligation:
 
     def __post_init__(self):
         identifier(self.id)
-        identifier(self.check)
+        for part in self.check.split(":"):
+            identifier(part)
+        if self.check.count(":") > 1:
+            raise ContractError("invalid verifier name")
         if not isinstance(self.instruction, str) or not self.instruction.strip():
             raise ContractError("obligation requires an instruction")
         if type(self.cloud) is not bool or not isinstance(self.parameters, dict):
@@ -219,13 +222,22 @@ class Registry:
     """Plugins are trusted Python code, never model-supplied functions."""
     def __init__(self):
         self.checks: dict[str, tuple[str, Check]] = {}
+        self.identities: dict = {}
         self.solvers: dict[str, Solver] = {}
         self.providers: dict[str, Callable] = {}
 
-    def check(self, name: str, function: Check, revision: str):
-        identifier(name)
+    def check(self, name: str, function: Check, revision: str, *, identity=None, check_type="mechanical"):
+        for part in name.split(":"):
+            identifier(part)
+        if name.count(":") > 1:
+            raise ContractError("invalid verifier name")
         if name in self.checks or not revision:
             raise ContractError("duplicate check or missing revision")
+        if identity is not None:
+            from .extensions import VerifierRevision
+            if not isinstance(identity, VerifierRevision) or check_type not in {"mechanical", "structural", "judge"}:
+                raise ContractError("invalid verifier identity")
+            self.identities[name] = (identity, check_type)
         self.checks[name] = (revision, function)
 
     def solver(self, name: str, function: Solver):
@@ -253,6 +265,8 @@ def json_pointer(data: Any, pointer: str) -> Any:
 
 
 def register_builtins(registry: Registry):
+    from .extensions import VerifierRevision
+    identity = VerifierRevision.from_artifact(__file__, configuration={}, policy={"declared_evidence_only": True})
     def extract(ctx):
         p = ctx.obligation.parameters
         return json_pointer(strict_json(ctx.evidence(p["artifact"])), p.get("pointer", ""))
@@ -269,8 +283,8 @@ def register_builtins(registry: Registry):
                 "value_mismatch", "Recompute the requested value from the declared evidence.")
         return check
 
-    registry.check("json_value", same_as(extract), "1")
-    registry.check("json_sum", same_as(sum_values), "1")
+    registry.check("json_value", same_as(extract), "1", identity=identity)
+    registry.check("json_sum", same_as(sum_values), "1", identity=identity)
     registry.solver("json_value", extract)
     registry.solver("json_sum", sum_values)
 

@@ -41,7 +41,7 @@ def build(destination):
                     raise SystemExit("Unexpected source symlink: " + name)
                 add(name, p.read_bytes(), p.stat().st_mode)
             add("history.bundle", bundle.read_bytes())
-            add("BUNDLE.json", json.dumps({"version": "0.3.0", "commit": commit, "files": len(files),
+            add("BUNDLE.json", json.dumps({"version": "0.4.0", "commit": commit, "files": len(files),
                 "contains_model_weights": False, "entrypoint": "START-HERE.md"}, indent=2).encode())
             add("SHA256SUMS", ("\n".join(checksums) + "\n").encode())
     value = {"file": str(destination), "commit": commit, "size": destination.stat().st_size,
@@ -52,5 +52,5 @@ def build(destination):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", default="dist/residual-command-station-0.3.0.zip")
+    parser.add_argument("--output", default="dist/residual-command-station-0.4.0.zip")
     build(parser.parse_args().output)

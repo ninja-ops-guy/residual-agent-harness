@@ -206,7 +206,8 @@ class StationTests(unittest.TestCase):
         self.s.store.project_update(self.pid, mode="live", allow_cloud=True)
         self.s.store.settings({"cloud": {"model": "configured"}})
         with patch("residual.station.service.model_call") as call, patch.object(self.s, "cloud_report", return_value={"id": "report"}) as report:
-            def reply(store, pid, role, packet, system, schema, placement, tid):
+            def reply(store, pid, role, packet, system, schema, placement, tid, *, extensions=None):
+                self.assertIsNotNone(extensions)
                 return {"files": DEMO_FILES[tid]} if role == "runner" else {"approved": True, "findings": []}
             call.side_effect = reply
             result = self.s.batch(self.pid)

@@ -18,6 +18,7 @@ from .goalspec import CheckType, GoalSpec
 class CheckResult(str, Enum):
     PASS = "pass"
     FAIL = "fail"
+    UNKNOWN = "unknown"
     SKIPPED = "skipped"
 
 
@@ -58,6 +59,11 @@ class Verifier:
     def __init__(self, evaluators: dict[str, Evaluator]):
         self._evaluators = dict(evaluators)
 
+    @property
+    def evaluators(self):
+        from types import MappingProxyType
+        return MappingProxyType(self._evaluators)
+
     def verify(self, candidate: Any, spec: GoalSpec,
                emit=None) -> VerificationReport:
         """Verify candidate against spec.
@@ -92,7 +98,7 @@ class Verifier:
                 })
             if result != CheckResult.PASS and primary_failure is None:
                 primary_failure = criterion.name
-            if result in (CheckResult.FAIL, CheckResult.SKIPPED):
+            if result != CheckResult.PASS:
                 prior_failed = True
 
         overall = all(r.result == CheckResult.PASS for r in results)
@@ -123,6 +129,6 @@ class Verifier:
             # SPEC-002-R5: mechanical check exceptions return FAIL, not raise.
             return CheckResult.FAIL, "check_error"
 
-        if not isinstance(result, CheckResult) or result not in (CheckResult.PASS, CheckResult.FAIL) or not isinstance(reason, str):
+        if not isinstance(result, CheckResult) or result not in (CheckResult.PASS, CheckResult.FAIL, CheckResult.UNKNOWN) or not isinstance(reason, str):
             return CheckResult.FAIL, "invalid_check_result"
         return result, reason[:1000]

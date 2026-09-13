@@ -47,7 +47,7 @@ def demo_spec():
 
 
 class Station:
-    def __init__(self, root):
+    def __init__(self, root, *, extension_factory=None):
         self.store = Store(root)
         self.store.settings(DEFAULTS, defaults=True)
         self.store.recover(startup=True)
@@ -55,6 +55,39 @@ class Station:
         self.mutex = threading.RLock()
         self.project_locks = {}
         self.active = set()
+        from .extensions import default_registry
+        self._extension_factory = extension_factory or default_registry
+        self._extensions = {}
+
+    def extensions(self, pid):
+        with self.mutex:
+            if pid not in self._extensions:
+                self._extensions[pid] = self._extension_factory(self, pid)
+            return self._extensions[pid]
+
+    def _guard_files(self, pid, task, values):
+        from residual import ProposedAction, QuarantineStore, PolicyDecision
+        gate = QuarantineStore()
+        held = gate.hold(ProposedAction("file_write", "candidate_files", {"files": values}, agent_id="runner"))
+        if gate.evaluate(held, self.extensions(pid).policies()) != PolicyDecision.ALLOW:
+            self.store.event(pid, "task.finding", {"message": "Candidate blocked by extension policy before file write"}, task["id"])
+            raise ContractError("Candidate blocked by extension policy")
+        gate.release(held, lambda action: ws.apply_files(task["candidate_dir"], task, action.arguments["files"]), raise_errors=True)
+
+    def _inspect_candidate(self, pid, task):
+        descriptor = self.extensions(pid).verifiers().get("secops:sast_scan")
+        if descriptor is None:
+            return  # custom host registries explicitly choose their inspection policy
+        from residual import CheckResult
+        paths = [str(ws.safe_file(task["candidate_dir"], name)) for name in task["files"]
+                 if ws.safe_file(task["candidate_dir"], name).is_file()]
+        try:
+            result, reason = descriptor.evaluator({"modified_files": paths}, {})
+            if not isinstance(result, CheckResult) or result != CheckResult.PASS or not isinstance(reason, str):
+                raise ValueError()
+        except Exception:
+            self.store.event(pid, "task.finding", {"message": "SecOps inspection blocked candidate before Git staging"}, task["id"])
+            raise ContractError("SecOps inspection did not pass; inspect candidate files before retrying") from None
 
     def project_lock(self, pid):
         with self.mutex:
@@ -133,6 +166,10 @@ class Station:
             folder = self.store.root / "candidates" / (pid + "-" + t["id"] + "-" + str(t["attempt"]))
             folder.parent.mkdir(exist_ok=True)
             try:
+                from .extensions import validate_task_receipt
+                prerequisites = {prior["id"]: prior for prior in p["tasks"]}
+                parent_receipts = [{"task_id": dep, "receipt_hash": validate_task_receipt(self, p, prerequisites[dep])[0].receipt_hash}
+                                   for dep in sorted(t["depends_on"])]
                 base = ws.candidate(p["repo"], folder)
                 files = ws.context_files(folder, t)
             except Exception as e:
@@ -141,7 +178,8 @@ class Station:
             self.store.update_task(pid, t["id"], base_commit=base, candidate_dir=str(folder), head_commit=None)
             packet = {"project_goal": p["goal"], "task_id": t["id"], "instruction": t["instruction"],
                       "writable_files": t["files"], "files": files, "checks": t["checks"],
-                      "repair_findings": t["findings"], "spec_hash": p["spec_hash"], "base_commit": base}
+                      "repair_findings": t["findings"], "spec_hash": p["spec_hash"], "base_commit": base,
+                      "parent_receipts": parent_receipts}
             return {"task": t, "packet": packet, "lease": t["lease"], "project_id": pid}
 
     def finish(self, work, response, usage=None):
@@ -154,7 +192,8 @@ class Station:
             try:
                 if not isinstance(response, dict) or set(response) != {"files"}:
                     raise ContractError("Runner response must contain exactly the files object")
-                ws.apply_files(folder, t, response["files"])
+                self._guard_files(pid, current, response["files"])
+                self._inspect_candidate(pid, current)
                 head = ws.commit_candidate(folder, t)
                 checks = ws.run_checks(folder, t["checks"], p["commands"])
                 if ws.git(folder, "status", "--porcelain", "--untracked-files=all"):
@@ -190,7 +229,7 @@ class Station:
                 response = {"files": DEMO_FILES[t["id"]]}
             else:
                 response = model_call(self.store, pid, "runner", work["packet"], RUNNER_SYSTEM, FILES_SCHEMA,
-                                      "cloud" if t["route"] == "cloud" else "local", t["id"])
+                                      "cloud" if t["route"] == "cloud" else "local", t["id"], extensions=self.extensions(pid))
             return self.finish(work, response)
         except Exception as e:
             if self.store.task(pid, t["id"])["state"] == "running":
@@ -231,7 +270,7 @@ class Station:
                       "files": ws.context_files(t["candidate_dir"], t), "diff": ws.git(t["candidate_dir"], "diff", t["base_commit"], t["head_commit"]),
                       "checks": [{"id": c["id"], "passed": c["passed"], "kind": c["kind"]} for c in t["checks_result"]]}
             placement = self.store.settings().get("review_placement", "local")
-            result = {"approved": True, "findings": []} if p["mode"] == "demo" else model_call(self.store, pid, "reviewer", packet, REVIEW_SYSTEM, REVIEW_SCHEMA, placement, tid)
+            result = {"approved": True, "findings": []} if p["mode"] == "demo" else model_call(self.store, pid, "reviewer", packet, REVIEW_SYSTEM, REVIEW_SCHEMA, placement, tid, extensions=self.extensions(pid))
             if not isinstance(result, dict) or set(result) != {"approved", "findings"} or type(result["approved"]) is not bool or not isinstance(result["findings"], list) or len(result["findings"]) > 8 or any(not isinstance(x, str) or len(x) > 1000 for x in result["findings"]):
                 raise ContractError("Reviewer returned an invalid verdict")
             receipt = {**result, "base_commit": t["base_commit"], "head_commit": t["head_commit"], "spec_hash": p["spec_hash"],
@@ -267,8 +306,13 @@ class Station:
             if not all(c["passed"] for c in results) or ws.git(t["candidate_dir"], "status", "--porcelain"):
                 self.store.transition(pid, tid, "repair_required", fields={"findings": ["Accumulated integration checks failed; see integration artifact"], "artifacts": t["artifacts"] + [artifact]})
                 raise ContractError("Integration checks failed")
+            self._inspect_candidate(pid, t)
+            from .extensions import issue_task_receipt
+            binding = issue_task_receipt(self, p, t, results)
+            bound_artifact = self.store.add_artifact(pid, f"{tid}-station-receipt.json", canonical(binding), "receipt")
             ws.git(p["repo"], "merge", "--ff-only", t["head_commit"])
-            self.store.transition(pid, tid, "integrated", fields={"artifacts": t["artifacts"] + [artifact]})
+            self.store.transition(pid, tid, "integrated", fields={"artifacts": t["artifacts"] + [artifact, bound_artifact],
+                                                               "verification_receipt": binding})
             self.store.event(pid, "integration.completed", {"head_commit": t["head_commit"], "evidence": artifact["id"]}, tid)
             return {"head_commit": t["head_commit"]}
 
@@ -301,7 +345,7 @@ class Station:
         def run(role, packet):
             progress(f"Cloud {role.replace('_', ' ')} processing scoped report", None)
             reply = model_call(self.store, pid, role, packet,
-                "Interpret this factual project report in your assigned role: " + role + ". Return a concise Markdown assessment with evidence IDs, blockers and next actions. Label unverified explanations as hypotheses. Do not claim execution or approval. Do not repeat the task inventory.", placement="cloud")
+                "Interpret this factual project report in your assigned role: " + role + ". Return a concise Markdown assessment with evidence IDs, blockers and next actions. Label unverified explanations as hypotheses. Do not claim execution or approval. Do not repeat the task inventory.", placement="cloud", extensions=self.extensions(pid))
             return role, reply["text"]
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
             futures = [pool.submit(run, role, packet) for role, packet in roles.items()]
@@ -318,6 +362,9 @@ class Station:
             p = self.store.project(pid)
             if not all(t["state"] == "integrated" for t in p["tasks"]):
                 raise ContractError("Integrate every specification before creating a release bundle")
+            from .extensions import validate_task_receipt
+            for task in p["tasks"]:
+                validate_task_receipt(self, p, task)
             head = ws.git(p["repo"], "rev-parse", "HEAD")
             if ws.git(p["repo"], "status", "--porcelain", "--untracked-files=all"):
                 raise ContractError("Managed project changed after integration. Release export requires a clean revision.")

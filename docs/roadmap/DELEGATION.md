@@ -6,7 +6,7 @@
 
 Reserved branch: `feat/receipt-extension-foundation`.
 
-This track owns `WORLD_CLASS_SPECS.md` Part 1 (VRB-R1..R6), Part 2 (REG-R1..R7), and `NETOPS_SECOPS_SPECS.md` SPEC-MODULE-001. It also owns the small core adaptations required to connect the hooks. Runtime implementation is the next milestone; this handoff publishes the agreed interface direction and test gates first.
+This track owns `WORLD_CLASS_SPECS.md` Part 1 (VRB-R1..R6), Part 2 (REG-R1..R7), and `NETOPS_SECOPS_SPECS.md` SPEC-MODULE-001. It also owns the small core adaptations required to connect the hooks. The foundation implementation and delivered module adapters are now on this branch. See [TRACK-1-IMPLEMENTATION.md](TRACK-1-IMPLEMENTATION.md) for API usage, validation, and remaining work.
 
 Why first: NetOps, SecOps, replay, memory, HITL and mesh all need stable verifier identities, evidence semantics, registration and lifecycle boundaries. Implementing those separately in each module would create incompatible acceptance rules.
 
@@ -15,7 +15,7 @@ Owned files:
 - New `residual/receipts.py`, `residual/extensions.py` and `residual/station/extensions.py`.
 - Receipt/cache integration in `residual/engine.py`, `residual/storage.py` and `residual/station/store.py` where needed, preserving legacy formats through explicit adapters.
 - Shared types and integration changes in `residual/verifier.py`, `residual/loop.py`, `residual/quarantine.py`, `residual/station/control.py`, `residual/station/models.py` and `residual/station/service.py`.
-- New `tests/foundation/` contract tests and reusable fixture builders.
+- New `tests/test_foundation.py` and `tests/test_extension_integration.py` contract tests and reusable fixture builders.
 - Shared dependency/configuration changes, public exports, schemas and core UI registration points.
 
 Other tracks should keep core edits out of their PRs. If a required hook is missing, include a precise integration request and a fixture demonstrating the need. This owner wires it once.
@@ -33,7 +33,7 @@ Required tests: changed verifier code/configuration/revision, changed goal/artif
 ### A2 — extension milestone
 
 1. One validated `StationModule` interface; atomic registration and collision rejection.
-2. Freeze the registry before controller construction; preserve module registration order.
+2. Freeze the registry at controller construction; preserve module registration order.
 3. Runtime validation of policy/evaluator/brake outputs and safe failure codes.
 4. Standard brakes plus extension brakes with global abort priority.
 5. Trusted host events reach extension brakes without granting control authority to worker or optional telemetry claims.

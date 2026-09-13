@@ -48,7 +48,7 @@ def credentials_for(settings, kind, placement="cloud"):
     return values
 
 
-def model_call(store, pid, role, packet, system, schema=None, placement="local", tid=None):
+def model_call(store, pid, role, packet, system, schema=None, placement="local", tid=None, *, extensions=None):
     if placement not in {"local", "cloud"}: raise ContractError("Invalid model placement")
     settings = store.settings()
     primary = normalize_profile(settings.get(placement, DEFAULTS[placement]), "remote" if placement == "cloud" else "local")
@@ -79,14 +79,18 @@ def model_call(store, pid, role, packet, system, schema=None, placement="local",
     bus = store.observation_bus(pid, role=role, placement=placement, task=tid or "")
     quarantine = QuarantineStore(emit=(lambda event, data: bus.emit("custom", {"event": event, **data}, source="residual.quarantine")) if bus else None)
     held = quarantine.hold(ProposedAction("provider_call", primary["kind"],
-        {"packet_sha256": digest(packet), "max_output_tokens": cap, "candidates": candidates}, agent_id=role))
+        {"packet_sha256": digest(packet), "max_output_tokens": cap, "candidates": candidates,
+         "payload": packet}, agent_id=role))
     def sharing_policy(action):
         if pid and placement == "cloud" and not store.project(pid)["allow_cloud"]:
             return "cloud_sharing_disabled"
         return None
-    if quarantine.evaluate(held, (sharing_policy,)) == PolicyDecision.DENY:
-        quarantine.deny(held, "cloud_sharing_disabled", "sharing_policy")
-        raise ContractError("Cloud sharing is disabled for this project")
+    policies = (sharing_policy,) + (extensions.policies() if extensions is not None else ())
+    if quarantine.evaluate(held, policies) == PolicyDecision.DENY:
+        quarantine.deny(held, "provider_policy_denied", "provider_policies")
+        if sharing_policy(held.action) is not None:
+            raise ContractError("Cloud sharing is disabled for this project")
+        raise ContractError("Provider call blocked by sharing or extension policy")
     reply = quarantine.release(held, lambda _: router.chat(candidates[0], req, failover=candidates[1:]), raise_errors=True).result
     if schema:
         if reply.finish_reason == "length": raise ContractError("Model output was truncated. Narrow the task or increase the output limit.")
