@@ -1,0 +1,351 @@
+{
+  "baseline_commit": "ff563f4c8fdd59b3f604a215b1d0c2b66f393f92",
+  "source_tree": "b5d15fa6cf738c2ecfb2e2843ecc3287a8b79b19",
+  "source_files_verified": 142,
+  "jobs": [
+    {
+      "conclusion": "success",
+      "name": "tests (3.12)",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-python@v5"
+        },
+        {
+          "conclusion": "success",
+          "name": "Compile and test without model credentials"
+        },
+        {
+          "conclusion": "success",
+          "name": "Exercise packaged CLI"
+        },
+        {
+          "conclusion": "success",
+          "name": "Controller ablations"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@v5"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job"
+        }
+      ],
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34778037410/job/103779635672"
+    },
+    {
+      "conclusion": "success",
+      "name": "tests (3.13)",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-python@v5"
+        },
+        {
+          "conclusion": "success",
+          "name": "Compile and test without model credentials"
+        },
+        {
+          "conclusion": "success",
+          "name": "Exercise packaged CLI"
+        },
+        {
+          "conclusion": "success",
+          "name": "Controller ablations"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@v5"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job"
+        }
+      ],
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34778037410/job/103779635774"
+    },
+    {
+      "conclusion": "success",
+      "name": "tests (3.11)",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-python@v5"
+        },
+        {
+          "conclusion": "success",
+          "name": "Compile and test without model credentials"
+        },
+        {
+          "conclusion": "success",
+          "name": "Exercise packaged CLI"
+        },
+        {
+          "conclusion": "success",
+          "name": "Controller ablations"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@v5"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job"
+        }
+      ],
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34778037410/job/103779635837"
+    },
+    {
+      "conclusion": "success",
+      "name": "browser",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-python@v5"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v4"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run npm install"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run npx playwright install --with-deps chromium"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run npm run check:ui && npm run test:ui"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@v4"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v4"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@v5"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job"
+        }
+      ],
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34778037483/job/103779636018"
+    },
+    {
+      "conclusion": "success",
+      "name": "python (3.11)",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-python@v5"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run python -m unittest discover -s tests -v"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run python -m pip wheel . --no-deps -w dist"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@v5"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job"
+        }
+      ],
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34778037483/job/103779636088"
+    },
+    {
+      "conclusion": "success",
+      "name": "docker",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run docker compose config --quiet"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run docker build -t residual-station-ci ."
+        },
+        {
+          "conclusion": "success",
+          "name": "Run docker run --rm --entrypoint python3 residual-station-ci -c \"from residual.station.service import Station,demo_spec; import tempfile; s=Station(tempfile.mkdtemp()); p=s.create(demo_spec(),demo=True)['project_id']; assert s.batch(p)['integrated']==3\""
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job"
+        }
+      ],
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34778037483/job/103779636105"
+    },
+    {
+      "conclusion": "success",
+      "name": "python (3.13)",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-python@v5"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run python -m unittest discover -s tests -v"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run python -m pip wheel . --no-deps -w dist"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@v5"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job"
+        }
+      ],
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34778037483/job/103779636123"
+    },
+    {
+      "conclusion": "success",
+      "name": "python (3.12)",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-python@v5"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run python -m unittest discover -s tests -v"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run python -m pip wheel . --no-deps -w dist"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@v5"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job"
+        }
+      ],
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34778037483/job/103779636136"
+    }
+  ]
+}

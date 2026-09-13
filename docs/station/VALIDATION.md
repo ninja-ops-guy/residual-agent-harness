@@ -14,14 +14,23 @@ Browser screenshots and the machine-readable result are in `docs/station/qa/`. T
 
 ## Execution environment and limits
 
-The executed checks used Linux, Python 3.12 and headless Chromium. The Python 3.11/3.13 CI matrix is configured but was not run here. Control token and time limits are cooperative wave boundaries; they do not cancel an in-flight executor.
+The executed checks used Linux, Python 3.12 and headless Chromium. The subsequent GitHub run passed on Python 3.11, 3.12 and 3.13; see the CI evidence below. Control token and time limits are cooperative wave boundaries; they do not cancel an in-flight executor.
 
 ## Not executed here
 
 - No real Ollama model was downloaded or run; native GPU/Metal/CUDA inference and memory capacity require validation on the target hardware.
 - No paid cloud model calls were made. Model reasoning quality, completion rates and real token/cost savings remain unmeasured.
-- Docker is unavailable in this environment, so the included image and CPU/NVIDIA Compose launches were not built/run here. The CI workflow includes a Docker build and in-container demo check for a Docker-capable environment.
+- Docker is unavailable in the local build environment. GitHub CI subsequently validated Compose configuration, built the image and ran the three-task demo inside the container. NVIDIA/GPU model inference and a full deployed Compose session remain untested.
 - macOS and Windows native launcher/runtime installation were inspected but not run on those operating systems.
 - Multi-machine TLS networking, very long soak tests, production deployment, and adversarial OS sandbox evaluation are outside this build's executed evidence.
 
 The scripted training mission is clearly labeled in the UI. Passing tests and model review are evidence of specified checks, not a proof of general correctness or production readiness.
+
+## GitHub baseline validation — September 13, 2026
+
+Both workflows passed for published commit `ff563f4c8fdd59b3f604a215b1d0c2b66f393f92`:
+
+- [Controller/provider contracts](https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34778037410): Python 3.11/3.12/3.13 tests, installed CLI checks and controller ablations.
+- [Command Station checks](https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34778037483): Python matrix, wheel builds, Chromium workflow checks and Docker build/container demo.
+
+Every published Git blob and file mode was compared with the tested release tree (`142` source files). Detailed job results are recorded in `qa/github-baseline-checks.json`. These results apply to the published baseline; roadmap documents and future modules are not evidence of implemented functionality.

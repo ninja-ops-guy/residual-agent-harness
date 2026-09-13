@@ -37,6 +37,8 @@ The training mission uses scripted proposals with real Git/check execution. It d
 
 ## Documentation
 
+- [World-class roadmap, first track and delegation boundaries](docs/roadmap/README.md)
+
 - [Goal contracts, quarantine and mission loop controls](docs/station/RUN-CONTROL.md)
 - [Modular providers, observations, and capability limits](docs/station/MODULAR-LAYERS.md)
 - [Architecture and invariants](docs/station/ARCHITECTURE.md)

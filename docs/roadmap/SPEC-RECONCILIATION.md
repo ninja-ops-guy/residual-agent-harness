@@ -1,0 +1,45 @@
+# Specification reconciliation — 2026-09-13
+
+The uploaded originals are preserved in `source/`. The following are engineering corrections for the next implementation, not claims that the new features are already delivered. The old gap analysis evaluates v0.2.0 and should not direct duplicate work on the now-integrated providers and control loop.
+
+| Source / issue | Integration decision |
+|---|---|
+| VRB-R1..R5 reverse parent/child terminology | Bind prerequisite receipts, then propagate invalidation to dependent tasks. Define a stable order; arrival order cannot alter identities. |
+| VRB-R4 equates module version and verifier revision | Cache correctness follows a verifier's implementation/configuration/policy/proof identity. A module SemVer label alone is insufficient. |
+| REG-R6 says immutable after construction but rejects changes only after `run()` | Freeze before controller construction, consistently with MODULE-R5. Use fresh run state for concurrent jobs. |
+| REG-R2 requires knowing arbitrary policy return values at registration | Validate the declared contract during registration and actual values at every call. Do not execute arbitrary policies to discover their type. |
+| REG-R4 says names must already be prefixed, while MODULE examples return local names | Modules return local names; the registry prefixes once and exposes fully namespaced lookup. Duplicate registration is atomic failure. |
+| SECOPS-R6 references nonexistent `CheckResult.UNKNOWN` | Add an explicit unknown check result through Track A. Unknown blocks acceptance; do not convert it to a passing or falsely conclusive result. |
+| NETOPS/SECOPS say registration requires no core changes | Modules must not patch core. The foundation owner must first supply the missing extension/lifecycle/event and pre-staging hooks. |
+| SPEC-004 says policies cannot mutate state/emit events, while later specs require policies to emit and reserve | Pure decision logic stays side-effect-free. Host wrappers perform observations and atomic reservations. Long-running sandbox/telemetry work runs in separate bounded stages. |
+| SPEC-003 says enforcement subscribes to observations; existing optional observers may be disabled or fail | Keep host control events authoritative and independent of optional telemetry delivery. Worker assertions cannot trip or suppress trusted control counters. |
+| TRJ-R1 mandates raw inputs/outputs, while privacy constraints exclude raw model output from shared records | Keep hashes/references in the structural trace; store required replay witnesses separately with access controls. Missing witnesses make replay unverifiable. |
+| TRJ-R4 compares event sequences while runtime metadata is nondeterministic | Compare logical order, action identities, verifier results, brakes and final outcomes. Normalize UUIDs/time/duration. Do not re-execute side-effecting tools during regression replay. |
+| MEM-R1 uses a 16-hex goal-description hash as identity | Use the full goal contract/content identity plus collision verification. A short prefix may be a display/index hint only. |
+| HITL signs only the station challenge and checks a declared operator role | Authenticate the response/caller too. Bind challenge ID, action fingerprint, run/spec hash, requested amendment, expiry and nonce; consume atomically once. Challenge HMAC alone does not authenticate an operator's approval. |
+| APC-R3 auto-applies parameter changes while GoalSpec and registry are frozen | Calibration is proposal-only initially. Apply an approved versioned policy between runs. A safety-threshold relaxation changes verifier meaning and invalidates receipts even if the metric name is unchanged. |
+| APC-R6 stores rejected proposals in epistemic memory, while MEM-R2 allows only verified solutions | Keep rejected/unverified calibration proposals in an audit/proposal store with status. A memory index cannot promote them to validated knowledge. |
+| PQC-R1..R6 combine hashes, MACs, signatures and KEMs into one interchangeable primitive | Use separate capabilities and a versioned algorithm suite. Signature algorithms do not replace a content hash, and changing a signing key must not silently rewrite historical object identities. |
+| PQC-R2 waits for NIST standardization | ML-KEM, ML-DSA and SLH-DSA already have final standards. Provider/library suitability and algorithm migration still require explicit implementation validation. |
+| PQC migration verifies a hybrid with either signature | Define downgrade resistance explicitly. A profile claiming both guarantees requires both components; an OR rule inherits the weaker accepted path. Preserve legacy verification using the recorded profile rather than automatic fallback. |
+| MESH identity uses X25519 or Dilithium as interchangeable signing keys | Separate signing identity from key agreement/KEM and transport encryption. X25519 is key agreement, not a signature algorithm. |
+| MESH-R18..R20 timestamp-order a global append-only chain and choose longest/most-work forks | Late and concurrent delivery conflicts with that append-only total order. Start with authenticated per-sender chains/causal references, duplicate/fork detection and deterministic display ordering. Do not add an undefined proof-of-work contest. Membership and finality need an explicit threat model. |
+| MESH kind examples omit disputes, denial and revocation messages | Define a closed versioned envelope covering every permitted message kind before implementing the transport. |
+| MESH-R24 uses a majority of 'active' devices without defining membership | Establish authenticated admission, membership epochs, revocation authority and offline/quorum semantics. An attacker cannot acquire votes by minting device IDs. |
+| MESH-R6 forbids executable code appearing in human chat | Treat all chat as inert text. Code snippets may be displayed safely; only validated typed actions can enter execution. Do not parse chat text into commands. |
+| MESH-R11/FED-R2..R4 infer execution correctness from a receipt hash/signature without data | Integrity/authenticity and local semantic verification are separate states. Verification needs authorized witnesses or a specified independently checked proof. A signed claim is not proof that a check ran correctly. |
+| MESH-R22 specifies relay TLS while R3 requires a relay blind to content | TLS to the relay alone is insufficient. Specify end-to-end authenticated encryption, group membership/rekey behavior and metadata exposure separately. |
+| WORLD_CLASS Frontier 4 says `max` is not associative | Component-wise `max` is associative, commutative and idempotent. The unresolved question is what those values mean, how evidence can be revoked, and whether the update/merge rules actually obey a CRDT model. Merging confidence does not establish truth. |
+| TPM frontier says even root cannot forge history | Define fresh nonce-bound signed quotes, PCR selection, boot/reset epochs, key trust, event-log replay and rollback behavior. An unsigned PCR read or software fallback does not establish that claim. |
+| zk frontier offers a task HMAC commitment as transit/correctness evidence | A local HMAC can bind a stored request record. It does not prove a cloud computation or a provider-authenticated response. Keep it labeled a commitment; zk/TEE claims require the corresponding verifier and evidence. |
+| Formal-methods layer says formal verification eliminates verifier bugs | State the property, trusted proof checker, model and assumptions. A proof about a model does not establish unmodeled runtime behavior or arbitrary code correctness. |
+| SPEC-001's exact field list conflicts with amendment metadata | Retain the implemented immutable parent hash, amendment count, role and reason. Version the serialized contract explicitly instead of discarding lineage. |
+| DESIGN §2 is described as a KV-cache implementation | The supplied document describes layer separation. It does not specify executable prefill/decode placement, KV ownership or KV transport. Current savings work concerns task/context routing; do not label it disaggregated model inference. |
+
+## Primary-source checks
+
+NIST published the final standards for [ML-KEM, FIPS 203](https://csrc.nist.gov/pubs/fips/203/final), [ML-DSA, FIPS 204](https://csrc.nist.gov/pubs/fips/204/final), and [SLH-DSA, FIPS 205](https://csrc.nist.gov/pubs/fips/205/final) on August 13, 2024. These specify different cryptographic functions; they are not interchangeable hash providers. The current NIST pages also carry errata notices, which must be considered when selecting implementations.
+
+[RFC 7748](https://www.rfc-editor.org/rfc/rfc7748) specifies X25519/X448 and their use for elliptic-curve Diffie–Hellman key agreement. Message signing needs a separate signature construction and key identity.
+
+The remaining decisions above follow from the supplied contracts and the implemented v0.3.0 behavior. They are architecture judgments, not claims that a published standard mandates this particular station design.
