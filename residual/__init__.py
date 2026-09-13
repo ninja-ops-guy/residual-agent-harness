@@ -13,8 +13,10 @@ from .quarantine import (
 )
 from .loop import HarnessPass, LoopController, RunOutcome, RunResult
 from .integration import QuarantinedProvider, default_policies
+from .receipts import StationReceipt, ReceiptReference, validate_receipt_graph
+from .extensions import StationExtensionRegistry, StationModule, VerifierDescriptor, VerifierRevision
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 __all__ = [
     "AmendmentRule", "CheckType", "GoalSpec", "SuccessCriterion",
@@ -27,4 +29,6 @@ __all__ = [
     "budget_policy", "denylist_policy", "path_traversal_policy",
     "HarnessPass", "LoopController", "RunOutcome", "RunResult",
     "QuarantinedProvider", "default_policies",
+    "StationReceipt", "ReceiptReference", "validate_receipt_graph",
+    "StationExtensionRegistry", "StationModule", "VerifierDescriptor", "VerifierRevision",
 ]

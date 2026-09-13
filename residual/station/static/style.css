@@ -15,3 +15,5 @@ dialog{background:#121f27;color:var(--text);border:1px solid #4b665f;max-width:8
 
 /* Provider routes and observation console */
 [hidden]{display:none!important}.route-details{border:1px solid var(--border);padding:16px;border-radius:8px}.route-details summary{cursor:pointer;font-weight:600;margin-bottom:14px}.fallback-profile{min-width:0;border:1px solid var(--border);padding:16px;margin:18px 0}.fallback-profile legend{padding:0 8px;font-family:monospace}.observation-row{display:flex;width:100%;align-items:center;gap:14px;padding:14px 10px;border:0;border-bottom:1px solid var(--border);background:transparent;text-align:left;color:inherit;cursor:pointer}.observation-row:hover{background:#13272b}.observation-row>span:nth-child(2){flex:1;min-width:0;overflow-wrap:anywhere}.observation-row small{display:block;color:#94a7ac;margin-top:4px}.observation-row code{font-size:11px}.observation-row .tag{white-space:nowrap}#observation-summary .mono{overflow-wrap:anywhere}@media(max-width:600px){.observation-row{gap:8px;flex-wrap:wrap}.observation-row code{display:none}.route-details,.fallback-profile{padding:12px}}
+
+.receipt-hash { overflow-wrap: anywhere; }

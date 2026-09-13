@@ -291,7 +291,9 @@ class Store(ObservationStore):
                    for e in events if e["event_type"] not in {"usage.recorded", "report.generated"}]
         report = {"schema_version": 1, "project": pid, "goal": project["goal"], "spec_hash": project["spec_hash"],
                   "from_seq": after, "through_seq": events[-1]["seq"] if events else after,
-                  "tasks": [{k: t[k] for k in ("id", "title", "state", "depends_on", "head_commit", "findings")} for t in project["tasks"]],
+                  "tasks": [{**{k: t[k] for k in ("id", "title", "state", "depends_on", "head_commit", "findings")},
+                    **({"receipt_hash": t["verification_receipt"]["receipt"]["receipt_hash"]} if t.get("verification_receipt") else {})}
+                    for t in project["tasks"]],
                   "changes": changes}
         if acknowledge:
             self.acknowledge(pid, reader, report["through_seq"])
@@ -304,9 +306,10 @@ class Store(ObservationStore):
     def markdown(self, pid):
         p = self.project(pid)
         lines = [f"# {p['name']}", "", p["goal"], "", f"Spec SHA-256: `{p['spec_hash']}`", "",
-                 "| Task | State | Attempt | Commit |", "|---|---|---:|---|"]
+                 "| Task | State | Attempt | Commit | Receipt |", "|---|---|---:|---|---|"]
         for t in p["tasks"]:
-            lines.append(f"| {t['id']} | {t['state']} | {t['attempt']} | {(t['head_commit'] or '—')[:12]} |")
+            receipt = t.get("verification_receipt", {}).get("receipt", {}).get("receipt_hash", "—")
+            lines.append(f"| {t['id']} | {t['state']} | {t['attempt']} | {(t['head_commit'] or '—')[:12]} | {receipt[:12]} |")
         if p.get("last_run"):
             lines += ["", "## Run control", "", "```json", json.dumps(p["last_run"], indent=2), "```"]
         lines += ["", "## State snapshot", "", "```json", json.dumps(self.report(pid, "markdown"), indent=2), "```", "",

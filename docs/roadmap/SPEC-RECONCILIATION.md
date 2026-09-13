@@ -6,7 +6,7 @@ The uploaded originals are preserved in `source/`. The following are engineering
 |---|---|
 | VRB-R1..R5 reverse parent/child terminology | Bind prerequisite receipts, then propagate invalidation to dependent tasks. Define a stable order; arrival order cannot alter identities. |
 | VRB-R4 equates module version and verifier revision | Cache correctness follows a verifier's implementation/configuration/policy/proof identity. A module SemVer label alone is insufficient. |
-| REG-R6 says immutable after construction but rejects changes only after `run()` | Freeze before controller construction, consistently with MODULE-R5. Use fresh run state for concurrent jobs. |
+| REG-R6 says immutable after construction but rejects changes only after `run()` | Freeze at controller construction, consistently with MODULE-R5. Use fresh run state for concurrent jobs. |
 | REG-R2 requires knowing arbitrary policy return values at registration | Validate the declared contract during registration and actual values at every call. Do not execute arbitrary policies to discover their type. |
 | REG-R4 says names must already be prefixed, while MODULE examples return local names | Modules return local names; the registry prefixes once and exposes fully namespaced lookup. Duplicate registration is atomic failure. |
 | SECOPS-R6 references nonexistent `CheckResult.UNKNOWN` | Add an explicit unknown check result through Track A. Unknown blocks acceptance; do not convert it to a passing or falsely conclusive result. |

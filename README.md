@@ -22,7 +22,10 @@ python3 -m residual.station.server --open
 ## Included
 
 - Markdown import, model-drafted specs, a mission board, local triage and bounded dependency waves.
-- Immutable goal contracts, ordered verification, action quarantine, loop brakes and downloadable run-control receipts.
+- Immutable goal contracts, ordered verification (including UNKNOWN), action quarantine, loop brakes and downloadable run-control receipts.
+- A frozen extension registry, revision-bound task receipts, prerequisite propagation and revalidated receipt-aware caches.
+- SecOps inspection before Git staging, structural trajectory recording, a read-only TUI collector and receipt-indexed local memory.
+- Opt-in NetOps, HITL and mesh lifecycle adapters; device execution, operator authentication and network transport remain host responsibilities.
 - Parallel local/cloud implementation in isolated Git worktrees; automatic residual escalation after two failed local attempts when cloud processing is allowed.
 - Deterministic acceptance checks, revision-bound model review, stale approval rejection, rebase/rechecks, and accumulated integration checks.
 - LDD event validation, transactional SQLite state, leases, restart recovery, shared comms and deterministic report generation.
@@ -34,6 +37,8 @@ python3 -m residual.station.server --open
 - Evidence, patches, project Markdown and verified source release ZIP downloads.
 
 The training mission uses scripted proposals with real Git/check execution. It demonstrates the workflow, not model quality or token savings. Task authors declare scope and tests; the station does not implement unrestricted repository browsing or autonomous shell access. Native project command checks are opt-in and are not an OS sandbox. Export creates a source release, not a production deployment.
+
+Version **0.4.0** integrates the uploaded Tracks 2–8 with the [Track 1 foundation](docs/roadmap/TRACK-1-IMPLEMENTATION.md). Mesh is a single-chain protocol prototype, and HITL requires a host authenticator. No real-model quality or token-savings claim is made.
 
 ## Documentation
 

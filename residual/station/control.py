@@ -86,17 +86,24 @@ def run_controlled_batch(station, pid, progress):
     store = station.store
     p, settings = store.project(pid), store.settings()
     spec = GoalSpec(goal_id=pid, objective=p["goal"], success_criteria=(
-        SuccessCriterion("acceptance", CheckType.MECHANICAL, "Every task has passing local checks", "acceptance"),
-        SuccessCriterion("integration", CheckType.STRUCTURAL, "Original specifications are integrated", "integration",
+        SuccessCriterion("acceptance", CheckType.MECHANICAL, "Every task has passing local checks", "station:acceptance"),
+        SuccessCriterion("integration", CheckType.STRUCTURAL, "Original specifications are integrated", "station:integration",
                          {"spec_hash": p["spec_hash"], "task_ids": sorted(t["id"] for t in p["tasks"])}),
-        SuccessCriterion("review", CheckType.JUDGE, "Reviewer receipts match integrated commits", "review"),
+        SuccessCriterion("review", CheckType.JUDGE, "Reviewer receipts match integrated commits", "station:review"),
     ), max_passes=min(settings["batch_max_passes"], max(1, len(p["tasks"]) * 3)),
        token_budget=settings["batch_token_budget"], wall_clock_budget_s=settings["batch_wall_clock_s"],
        amendment_rule=AmendmentRule(("operator",)))
     bus = store.observation_bus(pid, component="loop_controller")
-    emit = (lambda kind, payload: bus.emit(kind, payload, source="residual.loop")) if bus else None
-    run = LoopController(spec, Verifier({"acceptance": _checks, "integration": _structure, "review": _review}), MissionPass(station, pid, progress), emit=emit).run()
-    receipt = {"schema_version": 1, "goal_spec": spec.to_dict(), "run": asdict(run)}
+    def emit(kind, payload):
+        # Durable host control facts precede lifecycle hooks, even with telemetry off.
+        if kind == "checkpoint" and payload.get("event") in {"run_opened", "run_closed"}:
+            store.event(pid, "project.note", {"message": payload["event"], "control": payload})
+        if bus:
+            bus.emit(kind, payload, source="residual.loop")
+    extensions = station.extensions(pid)
+    run = LoopController(spec, Verifier({}), MissionPass(station, pid, progress), emit=emit, extensions=extensions).run()
+    receipt = {"schema_version": 1, "goal_spec": spec.to_dict(), "run": asdict(run),
+               "extensions": dict(extensions.modules), "extension_diagnostics": list(extensions.diagnostics)}
     body = "# Mission run control\n\nGoal contract and deterministic verification receipt. Token usage is null when unavailable.\n\n```json\n" + json.dumps(receipt, indent=2) + "\n```\n"
     artifact = store.add_artifact(pid, "RUN-CONTROL.md", body, "control")
     summary = {"outcome": run.outcome.value, "passes": run.total_passes, "tokens": run.total_tokens,

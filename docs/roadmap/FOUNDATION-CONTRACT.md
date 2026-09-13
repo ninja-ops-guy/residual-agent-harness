@@ -1,6 +1,6 @@
-# Foundation contract v1 — implementation target
+# Foundation contract v1
 
-**Owner:** Track A, this Codex thread. **Status:** design fixed for the first implementation milestone; no new API below is claimed to exist in v0.3.0. This contract resolves the draft conflicts listed in [SPEC-RECONCILIATION.md](SPEC-RECONCILIATION.md). Version an interface change instead of quietly changing receipt bytes.
+**Owner:** Track A, this Codex thread. **Status:** implemented in the v0.4.0 foundation branch; see [implementation and limits](TRACK-1-IMPLEMENTATION.md) for the supported surfaces and deliberate legacy boundaries. This contract resolves the draft conflicts listed in [SPEC-RECONCILIATION.md](SPEC-RECONCILIATION.md). Version an interface change instead of quietly changing receipt bytes.
 
 ## 1. Receipt identity and acceptance
 
@@ -39,7 +39,7 @@ Use one `StationModule` protocol with `name`, `version`, `quarantine_policies()`
 
 The module returns local evaluator names; the registry prefixes the registered domain exactly once. Public lookup accepts only fully namespaced names. Duplicate domains, duplicate evaluator names, pre-prefixed conflicting names and invalid descriptors reject the entire registration transaction.
 
-Configuration is snapshotted and frozen for a run. Stateful brakes are fresh per-run instances, never shared concurrently across projects. Registration order is deterministic. A registry is frozen **before controller construction** and remains frozen across that run. A module/version change needs a new registry and run.
+Configuration is snapshotted and frozen for a run. Stateful brakes are fresh per-run instances, never shared concurrently across projects. Registration order is deterministic. A registry is frozen **at LoopController construction** and remains frozen across that run. A module/version change needs a new registry and run.
 
 ## 4. Hook contracts and lifecycle
 

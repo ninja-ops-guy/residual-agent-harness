@@ -54,28 +54,47 @@ class LoopController:
     brakes: tuple[Brake, ...] = ()
     emit: Optional[Callable[[str, dict], None]] = None
     no_progress_threshold: int = 3
+    extensions: Any = None
     _running: bool = field(default=False, init=False, repr=False)
+    _base_brakes: tuple = field(default=(), init=False, repr=False)
 
     def __post_init__(self):
         if not self.brakes:
             self.brakes = build_brakes(self.spec, self.no_progress_threshold)
+        self._base_brakes = self.brakes
+        if self.extensions is not None:
+            self.extensions.freeze()
+            self.verifier = self.extensions.compose(self.verifier, self.spec)
 
     def _emit(self, kind: str, payload: dict) -> None:
         # Host callbacks are authoritative. Optional telemetry adapters should
         # catch delivery failures themselves (StationBus does so and counts them).
         if self.emit:
             self.emit(kind, payload)
+        if self.extensions is not None:
+            self.extensions.observe(kind, payload)
 
     def run(self) -> RunResult:
         if self._running:
             raise ContractError("controller is already running")
+        if self.extensions is not None:
+            self.extensions.acquire()
         self._running = True
         try:
+            self._extension_failure = False
+            self.brakes = self._base_brakes
+            if self.extensions is not None:
+                try:
+                    self.brakes += self.extensions.brakes()
+                except Exception:
+                    self._extension_failure = True
             for brake in self.brakes:
                 brake.reset()
             return self._run()
         finally:
             self._running = False
+            if self.extensions is not None:
+                self.extensions.release()
 
     def _run(self) -> RunResult:
         run_id = str(uuid.uuid4())
@@ -106,10 +125,16 @@ class LoopController:
         def force(name, reason, action, event):
             record(BrakeTrip(name, reason, digest(event), action))
 
-        feed({"kind": "checkpoint", "event": "run_opened"})
+        failures = self.extensions.on_run_opened(spec) if self.extensions is not None else ()
+        if failures or self._extension_failure:
+            force("extensions", "extension_initialization_failed", BrakeAction.ABORT, {"run_id": run_id})
+        feed({"kind": "checkpoint", "event": "run_opened", "payload": {"event": "run_opened"}})
+        if any(t.recommended_action == BrakeAction.ABORT for t in trips):
+            return self._finish(RunOutcome.ABORTED, run_id, 0, tokens, t0, report, trips, spec)
         # A literal bounded range protects even hosts using a custom brake set.
         for pass_number in range(1, spec.max_passes + 1):
-            trips.clear()
+            if trips:
+                return self._finish(RunOutcome.ESCALATED, run_id, pass_number - 1, tokens, t0, report, trips, spec)
             if time.monotonic() - t0 >= spec.wall_clock_budget_s:
                 force("budget", "wall_clock_budget_exhausted", BrakeAction.ABORT, {"pass": pass_number})
                 return self._finish(RunOutcome.ABORTED, run_id, pass_number - 1, tokens, t0, report, trips, spec)
@@ -165,6 +190,7 @@ class LoopController:
             outcome = RunOutcome.ABORTED if decision == BrakeAction.ABORT else RunOutcome.ESCALATED if decision == BrakeAction.ESCALATE else RunOutcome.SUCCESS if completed["overall_pass"] else None
             if outcome:
                 return self._finish(outcome, run_id, pass_number, tokens, t0, report, trips, spec)
+            trips.clear()
         raise AssertionError("bounded loop must terminate")
 
     def _decide(self, tripped: list[BrakeTrip], report: Optional[VerificationReport]) -> BrakeAction:
@@ -185,4 +211,6 @@ class LoopController:
             "outcome": outcome.value, "total_passes": passes, "total_tokens": tokens,
             "wall_clock_s": elapsed, "tripped_brakes": list(result.tripped_brakes),
             "trip_reasons": list(result.trip_reasons), "spec_hash": spec.content_hash})
+        if self.extensions is not None:
+            self.extensions.on_run_closed(result)
         return result

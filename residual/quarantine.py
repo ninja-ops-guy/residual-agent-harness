@@ -23,6 +23,7 @@ class ActionType(str, Enum):
     TOOL_CALL = "tool_call"
     FILE_WRITE = "file_write"
     PROVIDER_CALL = "provider_call"
+    CONFIG_CHANGE = "config_change"
 
 
 class PolicyDecision(str, Enum):
