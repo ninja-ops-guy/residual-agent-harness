@@ -11,6 +11,7 @@ PROVIDERS={
  'ollama':{'label':'Ollama','base_url':'http://127.0.0.1:11434'},
  'openai_compatible':{'label':'OpenAI-compatible','base_url':''},
  'freellmapi':{'label':'FreeLLMAPI (experimental cloud)','base_url':'http://127.0.0.1:3001/v1'},
+ 'free_claude_code':{'label':'FCC (continuity fallback only)','base_url':'http://127.0.0.1:8082'},
  'openai':{'label':'OpenAI','base_url':'https://api.openai.com/v1'},
  'anthropic':{'label':'Anthropic','base_url':'https://api.anthropic.com'},
  'google':{'label':'Google Gemini','base_url':'https://generativelanguage.googleapis.com/v1beta'},
@@ -19,6 +20,7 @@ PROVIDERS={
 }
 ENV_KEYS={'openai':'OPENAI_API_KEY','openai_compatible':'LLM_API_KEY','anthropic':'ANTHROPIC_API_KEY','google':'GEMINI_API_KEY','azure':'AZURE_OPENAI_API_KEY','ollama':'OLLAMA_API_KEY'}
 ENV_KEYS['freellmapi']='FREELLMAPI_API_KEY'
+ENV_KEYS['free_claude_code']='FCC_PROXY_API_KEY'
 
 
 def normalize_profile(profile,placement):
@@ -44,9 +46,19 @@ def normalize_profile(profile,placement):
         if (auto and not profile.get('gateway_allow_auto',False)) or (not auto and model not in {r.split('/',1)[1] for r in routes}):
             raise ContractError('FreeLLMAPI model must be allowlisted; auto routing requires explicit opt-in')
         gateway={'gateway_allowed_routes':list(routes),'gateway_allow_auto':profile.get('gateway_allow_auto',False)}
+    elif kind=='free_claude_code':
+        from ai_providers.adapters.free_claude_code_adapter import validate_fcc_config
+        from urllib.parse import urlsplit
+        try: routes=validate_fcc_config(profile.get('gateway_allowed_routes',[]),profile.get('fcc_standby_confirmed',False))
+        except ProviderError: raise ContractError('FCC requires approved direct routes and confirmation of its dedicated standby configuration') from None
+        if model not in routes or urlsplit(base).path or 'gateway_allow_auto' in profile:
+            raise ContractError('FCC requires an allowlisted provider/model ID and server root URL; automatic routing is unsupported')
+        gateway={'gateway_allowed_routes':list(routes),'fcc_standby_confirmed':True}
     elif set(profile)&{'gateway_allowed_routes','gateway_allow_auto'}:
-        raise ContractError('Gateway controls apply only to FreeLLMAPI')
-    cap='max_tokens' if kind=='freellmapi' else profile.get('output_token_field','max_completion_tokens')
+        raise ContractError('Gateway controls apply only to gateway providers')
+    if kind!='free_claude_code' and 'fcc_standby_confirmed' in profile:
+        raise ContractError('FCC confirmation applies only to its standby route')
+    cap='max_tokens' if kind in {'freellmapi','free_claude_code'} else profile.get('output_token_field','max_completion_tokens')
     if cap not in {'max_tokens','max_completion_tokens'}: raise ContractError('Invalid output-limit field')
     return {'kind':kind,'model':model,'base_url':base,'placement':placement,'output_token_field':cap,
             'region':region,'api_version':profile.get('api_version') or '2024-10-21',**gateway}
@@ -59,6 +71,9 @@ def make_adapter(profile,credentials=None):
     if kind=='freellmapi':
         from ai_providers.adapters.freellmapi_adapter import FreeLLMAPIAdapter
         return FreeLLMAPIAdapter(key,p['base_url'],p['gateway_allowed_routes'],p['gateway_allow_auto'])
+    if kind=='free_claude_code':
+        from ai_providers.adapters.free_claude_code_adapter import FreeClaudeCodeAdapter
+        return FreeClaudeCodeAdapter(key,p['base_url'],p['gateway_allowed_routes'],p['fcc_standby_confirmed'])
     if kind in {'openai','openai_compatible'}:
         from ai_providers.adapters.openai_adapter import OpenAIAdapter,OpenAICompatibleAdapter
         return (OpenAIAdapter if kind=='openai' else OpenAICompatibleAdapter)(key,p['base_url'],output_token_field=p['output_token_field'])
@@ -89,6 +104,8 @@ def normalized_usage(usage):
 class ModularProvider(Provider):
     def __init__(self,profile,system=SYSTEM,schema=RESPONSE_SCHEMA,key=None,credentials=None,observation_bus=None):
         self.profile=normalize_profile(profile,profile.get('placement','local'))
+        if self.profile['kind']=='free_claude_code':
+            raise ContractError('FCC is standby-only; configure it in Station cloud_fallbacks or Router failover')
         self.model,self.kind,self.placement=(self.profile[k] for k in ('model','kind','placement'))
         self.name=self.kind+':'+self.model
         self.system,self.schema=system,schema

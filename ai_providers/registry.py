@@ -98,6 +98,14 @@ def _default_registry() -> Registry:
             base_url=os.environ.get("FREELLMAPI_BASE_URL", "http://127.0.0.1:3001/v1"),
             allowed_routes=os.environ.get("FREELLMAPI_ALLOWED_ROUTES", "").split(","))
 
+    def _free_claude_code():
+        from .adapters.free_claude_code_adapter import FreeClaudeCodeAdapter
+        return FreeClaudeCodeAdapter(api_key=os.environ.get("FCC_PROXY_API_KEY"),
+            base_url=os.environ.get("FCC_BASE_URL", "http://127.0.0.1:8082"),
+            allowed_routes=os.environ.get("FCC_ALLOWED_ROUTES", "").split(","),
+            standby_confirmed=os.environ.get("FCC_STANDBY_CONFIRMED") == "1")
+
+    reg.register("free_claude_code", _free_claude_code)
     reg.register("freellmapi", _freellmapi)
     reg.register("openai_compatible", _compatible)
     reg.register("openai", _openai)

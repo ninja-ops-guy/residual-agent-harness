@@ -52,13 +52,16 @@ def model_call(store, pid, role, packet, system, schema=None, placement="local",
     if placement not in {"local", "cloud"}: raise ContractError("Invalid model placement")
     settings = store.settings()
     primary = normalize_profile(settings.get(placement, DEFAULTS[placement]), "remote" if placement == "cloud" else "local")
+    if primary['kind']=='free_claude_code':
+        raise ContractError('FCC is available only as a cloud continuity fallback')
     profiles = [primary]
     if placement == "cloud":
         profiles += [normalize_profile(p, "remote") for p in settings.get("cloud_fallbacks", [])]
     reg = Registry()
     for profile in profiles:
-        adapter = make_adapter(profile, credentials_for(settings, profile["kind"], placement))
-        reg.register(profile["kind"], lambda a=adapter: a)
+        # A missing standby credential must not break a healthy primary. Capture
+        # each profile and instantiate only when the router reaches that lane.
+        reg.register(profile["kind"], lambda p=profile: make_adapter(p, credentials_for(settings, p["kind"], placement)))
     candidates = [p["kind"] + ":" + p["model"] for p in profiles]
     if placement == "local": candidates += [primary["kind"] + ":" + m for m in settings.get("local_failover", [])]
     cap = settings.get("max_output_tokens", 4096)
@@ -66,6 +69,8 @@ def model_call(store, pid, role, packet, system, schema=None, placement="local",
     def reserve(provider, request, meta):
         if provider.name=='freellmapi' and role=='reviewer':
             raise ContractError('FreeLLMAPI is experimental; select a local or direct provider for approval review')
+        if getattr(provider,'supports_approval_review',True) is False and role=='reviewer':
+            raise ContractError('FCC standby cannot perform approval review; use local or direct inference')
         if pid: store.reserve_call(pid, role, primary["placement"], meta["request_bytes"], tid,
                                    call_units=getattr(provider,'attempt_reservation',1))
     def receipt(value):
@@ -74,6 +79,7 @@ def model_call(store, pid, role, packet, system, schema=None, placement="local",
             store.event(pid, "usage.recorded", {"role":role, "placement":placement, "model":value["model"], "provider":value["provider"],
                 **asdict(usage), "request_bytes":value["request_bytes"], "elapsed_ms":value["elapsed_ms"], "status":value["status"],
                 "request_id":value["request_id"], "provider_attempt":value["attempt"], "error":value["error"],
+                **({'fallback_trigger':value['fallback_trigger']} if 'fallback_trigger' in value else {}),
                 **({'gateway':value['gateway']} if 'gateway' in value else {})}, tid)
     router = Router(registry=reg, default_provider=primary["kind"], observation_bus=store.observation_bus(pid, role=role, placement=placement, task=tid or ""),
                     before_attempt=reserve, after_attempt=receipt)
@@ -109,7 +115,7 @@ def save_settings(store, incoming):
     # Bind a legacy key to its original provider before a route is changed.
     oldkind = current.get("cloud", DEFAULTS["cloud"])["kind"]
     if current.get("cloud_key"): secrets[oldkind] = {**secrets.get(oldkind, {}), "api_key":current["cloud_key"]}
-    fields = {"kind", "model", "base_url", "output_token_field", "region", "api_version", "gateway_allowed_routes", "gateway_allow_auto"}
+    fields = {"kind", "model", "base_url", "output_token_field", "region", "api_version", "gateway_allowed_routes", "gateway_allow_auto", "fcc_standby_confirmed"}
     for placement in ("local", "cloud"):
         if placement not in incoming: continue
         p = incoming[placement]
@@ -122,6 +128,8 @@ def save_settings(store, incoming):
         if not isinstance(fallbacks,list) or len(fallbacks)>3 or any(not isinstance(p,dict) or set(p)-fields for p in fallbacks): raise ContractError("Use at most three cloud fallback profiles")
         clean["cloud_fallbacks"]=[normalize_profile(p,"remote") for p in fallbacks]
     combined = {**current, **clean}
+    if combined.get('cloud',DEFAULTS['cloud'])['kind']=='free_claude_code':
+        raise ContractError('FCC is available only in cloud fallbacks, never as the primary route')
     profiles = [combined.get("cloud",DEFAULTS["cloud"])] + combined.get("cloud_fallbacks",[])
     kinds = [p["kind"] for p in profiles]
     if len(kinds)!=len(set(kinds)): raise ContractError("Use one profile per cloud provider; fallback providers must be distinct")

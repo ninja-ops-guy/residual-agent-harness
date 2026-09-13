@@ -1,0 +1,42 @@
+{
+  "integration": "free_claude_code",
+  "branch": "feat/fcc-continuity-fallback",
+  "base_branch": "feat/freellmapi-integration",
+  "upstream_reviewed_commit": "bf59598ccc04b02befa1d649dfbcc569534c365c",
+  "upstream_reviewed_version": "6.2.23",
+  "status": "offline_verified_live_activation_pending",
+  "default_enabled": false,
+  "local_evidence": {
+    "python_test_total": 246,
+    "python_test_passed": 245,
+    "python_test_skipped": 1,
+    "new_offline_tests": 26,
+    "skipped_test": "tests.modular.test_fcc_live.FCCLiveTests.test_synthetic_primary_outage_uses_configured_standby",
+    "browser_workflow_checks": 19,
+    "browser_viewports": ["1440x1040", "390x844"],
+    "browser_console_errors": 0,
+    "javascript_syntax": "passed",
+    "wheel_build": "passed",
+    "git_diff_check": "passed",
+    "existing_warnings": "Unclosed JSONL file ResourceWarnings in pre-existing observation tests"
+  },
+  "verified_offline": [
+    "Messages wire format and proxy-scoped bearer token",
+    "Availability-only failover and next-request primary recovery",
+    "Healthy primary independent of missing standby credential",
+    "Terminal failures do not dispatch standby",
+    "No implicit client retries or credential crossing",
+    "Concurrent inflight and atomic project budget limits",
+    "Cloud approval and independent review boundaries",
+    "Task proposal checks and unknown-usage batch expansion brake",
+    "Request-correlated receipts without invented upstream provenance",
+    "Fallback-only UI and persistent opt-in with secret redaction"
+  ],
+  "not_verified": [
+    "Live FCC runtime or provider call",
+    "Server pin, authentication enforcement, routing and disabled transformations",
+    "Actual upstream attempt count or complete token cost",
+    "Live provider quality, outage independence or measured savings",
+    "Production deployment or activation"
+  ]
+}
