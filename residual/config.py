@@ -53,7 +53,7 @@ def provider_from(spec, registry):
         timeout=spec.pop("timeout_seconds", 90)
         schema=RESPONSE_SCHEMA if spec.pop("json_mode", True) else None
         options=spec.pop("options", {})
-        allowed={"model", "base_url", "placement", "output_token_field", "region", "api_version"}
+        allowed={"model", "base_url", "placement", "output_token_field", "region", "api_version", "gateway_allowed_routes", "gateway_allow_auto"}
         if set(spec)-allowed or options: raise ContractError("Unsupported modular provider option")
         if key_env and not os.environ.get(key_env): raise ContractError("Configured API key environment variable is missing")
         provider=ModularProvider({"kind":kind, **spec}, SYSTEM, schema, os.environ.get(key_env) if key_env else None)

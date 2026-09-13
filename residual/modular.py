@@ -10,6 +10,7 @@ from .providers import Provider, Reply, Usage, SYSTEM, RESPONSE_SCHEMA
 PROVIDERS={
  'ollama':{'label':'Ollama','base_url':'http://127.0.0.1:11434'},
  'openai_compatible':{'label':'OpenAI-compatible','base_url':''},
+ 'freellmapi':{'label':'FreeLLMAPI (experimental cloud)','base_url':'http://127.0.0.1:3001/v1'},
  'openai':{'label':'OpenAI','base_url':'https://api.openai.com/v1'},
  'anthropic':{'label':'Anthropic','base_url':'https://api.anthropic.com'},
  'google':{'label':'Google Gemini','base_url':'https://generativelanguage.googleapis.com/v1beta'},
@@ -17,6 +18,7 @@ PROVIDERS={
  'bedrock':{'label':'AWS Bedrock','base_url':''},
 }
 ENV_KEYS={'openai':'OPENAI_API_KEY','openai_compatible':'LLM_API_KEY','anthropic':'ANTHROPIC_API_KEY','google':'GEMINI_API_KEY','azure':'AZURE_OPENAI_API_KEY','ollama':'OLLAMA_API_KEY'}
+ENV_KEYS['freellmapi']='FREELLMAPI_API_KEY'
 
 
 def normalize_profile(profile,placement):
@@ -33,16 +35,30 @@ def normalize_profile(profile,placement):
     try: base=validate_url(base,kind,local=placement=='local')
     except ProviderError: raise ContractError('Local endpoints must use loopback; network endpoints require HTTPS without credentials or query parameters') from None
     if placement=='local' and kind=='ollama' and (model.endswith(('-cloud',':cloud')) or ':cloud-' in model): raise ContractError('Ollama cloud models belong in a cloud route')
-    cap=profile.get('output_token_field','max_completion_tokens')
+    gateway={}
+    if kind=='freellmapi':
+        from ai_providers.adapters.freellmapi_adapter import validate_gateway_config
+        try: routes=validate_gateway_config(profile.get('gateway_allowed_routes',[]),profile.get('gateway_allow_auto',False))
+        except ProviderError: raise ContractError('Configure explicit FreeLLMAPI provider/model routes and a boolean auto-routing choice') from None
+        auto=model=='auto' or model.startswith('auto:')
+        if (auto and not profile.get('gateway_allow_auto',False)) or (not auto and model not in {r.split('/',1)[1] for r in routes}):
+            raise ContractError('FreeLLMAPI model must be allowlisted; auto routing requires explicit opt-in')
+        gateway={'gateway_allowed_routes':list(routes),'gateway_allow_auto':profile.get('gateway_allow_auto',False)}
+    elif set(profile)&{'gateway_allowed_routes','gateway_allow_auto'}:
+        raise ContractError('Gateway controls apply only to FreeLLMAPI')
+    cap='max_tokens' if kind=='freellmapi' else profile.get('output_token_field','max_completion_tokens')
     if cap not in {'max_tokens','max_completion_tokens'}: raise ContractError('Invalid output-limit field')
     return {'kind':kind,'model':model,'base_url':base,'placement':placement,'output_token_field':cap,
-            'region':region,'api_version':profile.get('api_version') or '2024-10-21'}
+            'region':region,'api_version':profile.get('api_version') or '2024-10-21',**gateway}
 
 
 def make_adapter(profile,credentials=None):
     p=profile; kind=p['kind']; c=credentials or {}
     key=c.get('api_key') or (os.environ.get('RESIDUAL_LOCAL_API_KEY') if p.get('placement')=='local' else os.environ.get(ENV_KEYS.get(kind,'')))
     if kind=='google': key=key or os.environ.get('GOOGLE_API_KEY')
+    if kind=='freellmapi':
+        from ai_providers.adapters.freellmapi_adapter import FreeLLMAPIAdapter
+        return FreeLLMAPIAdapter(key,p['base_url'],p['gateway_allowed_routes'],p['gateway_allow_auto'])
     if kind in {'openai','openai_compatible'}:
         from ai_providers.adapters.openai_adapter import OpenAIAdapter,OpenAICompatibleAdapter
         return (OpenAIAdapter if kind=='openai' else OpenAICompatibleAdapter)(key,p['base_url'],output_token_field=p['output_token_field'])

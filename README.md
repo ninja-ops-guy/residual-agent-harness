@@ -29,6 +29,7 @@ python3 -m residual.station.server --open
 - An automatic, three-role cloud assessment after permitted live batches: planning, diagnosis and integration analysis. Reports are advisory and cannot approve code.
 - In-interface Ollama installation, start/stop, model downloads with progress, selection, unloading, BYO provider routes, connection tests and a playground.
 - Seven provider routes: OpenAI, compatible endpoints, Anthropic, Gemini, Azure, Bedrock and Ollama; provider-scoped keys and budgeted failover.
+- Optional experimental FreeLLMAPI cloud lane, with returned-route checks, conservative attempt reservations and explicit incomplete-usage reporting; not a certified free-tier swarm.
 - An observation console with durable traces, correlation IDs, chain verification, JSONL export and optional recording.
 - An authenticated distributed inference client. The coordinator owns code execution, review and acceptance.
 - Evidence, patches, project Markdown and verified source release ZIP downloads.
@@ -41,6 +42,7 @@ The training mission uses scripted proposals with real Git/check execution. It d
 
 - [Goal contracts, quarantine and mission loop controls](docs/station/RUN-CONTROL.md)
 - [Modular providers, observations, and capability limits](docs/station/MODULAR-LAYERS.md)
+- [FreeLLMAPI setup, tests and pre-merge limitations](docs/station/FREELLMAPI.md)
 - [Architecture and invariants](docs/station/ARCHITECTURE.md)
 - [Specification format](docs/station/SPECIFICATION.md)
 - [Distributed workers](docs/station/DISTRIBUTED.md)

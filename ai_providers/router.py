@@ -60,6 +60,10 @@ class Router:
     def _end(self,meta,tags,start,resp=None,error=None):
         receipt={**meta,'elapsed_ms':round((time.monotonic()-start)*1000),'status':'failed' if error else 'completed',
                  'usage':dict(resp.usage) if resp else {},'finish_reason':resp.finish_reason if resp else None,'error':error.to_dict() if error else None}
+        if resp and meta['provider']=='freellmapi' and 'gateway' in resp.metadata:
+            # Adapter-authored bounded report, never arbitrary upstream metadata.
+            from .adapters._http import encode, decode
+            receipt['gateway']=decode(encode(resp.metadata['gateway']))
         self._emit('llm.failed' if error else 'llm.response',receipt,tags)
         if self.after_attempt: self.after_attempt(receipt)
 

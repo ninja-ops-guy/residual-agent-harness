@@ -92,6 +92,13 @@ def _default_registry() -> Registry:
         from .adapters.openai_adapter import OpenAICompatibleAdapter
         return OpenAICompatibleAdapter(api_key=os.environ.get("LLM_API_KEY"), base_url=os.environ.get("LLM_BASE_URL", "http://localhost:8080/v1"))
 
+    def _freellmapi():
+        from .adapters.freellmapi_adapter import FreeLLMAPIAdapter
+        return FreeLLMAPIAdapter(api_key=os.environ.get("FREELLMAPI_API_KEY"),
+            base_url=os.environ.get("FREELLMAPI_BASE_URL", "http://127.0.0.1:3001/v1"),
+            allowed_routes=os.environ.get("FREELLMAPI_ALLOWED_ROUTES", "").split(","))
+
+    reg.register("freellmapi", _freellmapi)
     reg.register("openai_compatible", _compatible)
     reg.register("openai", _openai)
     reg.register("anthropic", _anthropic)

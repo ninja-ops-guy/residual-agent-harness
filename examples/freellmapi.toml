@@ -1,0 +1,24 @@
+# Experimental lane. Replace the illustrative model and route with values from
+# YOUR gateway catalog. Credentials stay in FREELLMAPI_API_KEY. Do not use
+# confidential data; restrict enabled providers on the gateway itself first.
+[local]
+kind = "ollama"
+model = "qwen2.5-coder:7b"
+placement = "local"
+base_url = "http://127.0.0.1:11434"
+
+[expert]
+kind = "freellmapi"
+model = "your-model-id"
+placement = "remote"
+base_url = "http://127.0.0.1:3001/v1"
+api_key_env = "FREELLMAPI_API_KEY"
+gateway_allowed_routes = ["groq/your-model-id"]
+gateway_allow_auto = false
+timeout_seconds = 45
+
+[limits]
+local_rounds = 1
+
+[cache]
+enabled = false

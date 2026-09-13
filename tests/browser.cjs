@@ -58,6 +58,30 @@ async function main(){
   assert(await page.locator('#cloud-key').isHidden());await page.reload();
   checks.push('Bedrock reveals only its AWS credential controls');
 
+  await page.locator('#cloud-kind').selectOption('freellmapi');
+  await page.locator('#cloud-gateway-routes').waitFor({state:'visible'});
+  assert.equal(await page.locator('#local-kind option[value="freellmapi"]').count(),0);
+  assert.equal(await page.locator('#cloud-url').inputValue(),'http://127.0.0.1:3001/v1');
+  await page.locator('#cloud-model').fill('test');await page.locator('#cloud-gateway-routes').fill('groq/test');
+  await page.locator('#cloud-key').fill('UI-GATEWAY-SECRET');
+  await page.getByRole('button',{name:'Save model routes',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelector('#cloud-key')?.value==='');
+  await page.reload();await page.locator('#cloud-gateway-routes').waitFor({state:'visible'});
+  assert.equal(await page.locator('#cloud-gateway-routes').inputValue(),'groq/test');
+  assert.equal(await page.locator('[name="cloud-gateway-auto"]').isChecked(),false);
+  assert(!(await page.evaluate(()=>fetch('/api/bootstrap').then(r=>r.text()))).includes('UI-GATEWAY-SECRET'));
+  await page.locator('#cloud-model').fill('auto:batch');await page.locator('[name="cloud-gateway-auto"]').check();
+  await page.getByRole('button',{name:'Save model routes',exact:true}).click();
+  await page.waitForFunction(async()=>{const b=await fetch('/api/bootstrap').then(r=>r.json());return b.settings.cloud.model==='auto:batch';});
+  await page.reload();await page.locator('#cloud-gateway-routes').waitFor({state:'visible'});
+  assert.equal(await page.locator('[name="cloud-gateway-auto"]').isChecked(),true);
+  await page.screenshot({path:path.join(out,'12-freellmapi-workshop.png'),fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  await page.screenshot({path:path.join(out,'13-freellmapi-mobile.png'),fullPage:true});
+  await page.setViewportSize({width:1440,height:1040});
+  checks.push('FreeLLMAPI cloud-only controls, allowlist, explicit auto opt-in, warnings and secret redaction persist on desktop/mobile');
+
   await page.locator('[data-view="overview"]').click();await page.getByRole('button',{name:'+ New mission',exact:true}).last().click();await page.getByRole('button',{name:'Load template',exact:true}).click();await page.getByRole('button',{name:'Validate specification',exact:true}).click();await page.locator('#spec-feedback .callout').waitFor();checks.push('Markdown template validates from UI');
   await page.locator('#project-spec').fill('# Invalid specification');await page.getByRole('button',{name:'Validate specification',exact:true}).click();await page.locator('.toast.error').waitFor();checks.push('Invalid Markdown produces actionable feedback');await page.getByRole('button',{name:'Close dialog',exact:true}).click();
   while(await page.locator('.toast button').count()) await page.locator('.toast button').first().click();

@@ -17,6 +17,7 @@ from typing import Any, AsyncIterator, Iterator, Optional, Protocol
 class ProviderName(str, Enum):
     OPENAI = "openai"
     OPENAI_COMPATIBLE = "openai_compatible"
+    FREELLMAPI = "freellmapi"
     ANTHROPIC = "anthropic"
     GOOGLE = "google"
     AZURE = "azure"

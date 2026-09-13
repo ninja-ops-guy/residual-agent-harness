@@ -267,17 +267,19 @@ class Store(ObservationStore):
         with self.connect() as c:
             return [json.loads(r[0]) for r in c.execute("SELECT value FROM jobs ORDER BY rowid DESC LIMIT 40")]
 
-    def reserve_call(self, pid, role, placement, request_bytes, task_id=None):
+    def reserve_call(self, pid, role, placement, request_bytes, task_id=None, *, call_units=1):
+        if type(call_units) is not int or not 1 <= call_units <= 20:
+            raise ContractError("Invalid model-call reservation")
         with self.transaction() as c:
             p = self._project(c, pid)
             calls = p.setdefault("calls_reserved", 0)
             cloud = p.setdefault("cloud_calls_reserved", 0)
             sent = p.setdefault("request_bytes_reserved", 0)
-            if calls >= p["call_limit"] or (placement == "remote" and cloud >= p["cloud_call_limit"]) or sent + request_bytes > p["request_byte_limit"]:
+            if calls + call_units > p["call_limit"] or (placement == "remote" and cloud + call_units > p["cloud_call_limit"]) or sent + request_bytes > p["request_byte_limit"]:
                 raise ContractError("Project model-call budget is exhausted")
             if placement == "remote" and not p["allow_cloud"]:
                 raise ContractError("Cloud sharing is disabled for this project")
-            p.update(calls_reserved=calls + 1, cloud_calls_reserved=cloud + int(placement == "remote"), request_bytes_reserved=sent + request_bytes)
+            p.update(calls_reserved=calls + call_units, cloud_calls_reserved=cloud + call_units * int(placement == "remote"), request_bytes_reserved=sent + request_bytes)
             c.execute("UPDATE projects SET value=? WHERE id=?", (canonical(p), pid))
 
     def report(self, pid, reader="cloud-review", acknowledge=False):

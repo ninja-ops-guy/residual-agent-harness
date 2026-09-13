@@ -332,7 +332,12 @@ class Station:
         events = self.store.events(pid, 0, 100000)
         calls = [e["data"] for e in events if e["event_type"] == "usage.recorded"]
         totals = {"local_input": 0, "local_output": 0, "cloud_input": 0, "cloud_output": 0, "request_bytes": 0, "unreported_calls": 0, "calls": len(calls)}
+        totals.update(gateway_calls=0, gateway_upstream_attempts_reported=0, gateway_accounting_incomplete=0)
         for c in calls:
+            if c.get('provider')=='freellmapi':
+                totals['gateway_calls']+=1
+                totals['gateway_accounting_incomplete']+=1
+                totals['gateway_upstream_attempts_reported']+=c.get('gateway',{}).get('upstream_attempts_reported',0)
             totals["request_bytes"] += c.get("request_bytes", 0)
             placement = "cloud" if c.get("placement") == "cloud" else "local"
             if c.get("source") != "reported" or c.get("input_tokens") is None or c.get("output_tokens") is None:

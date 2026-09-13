@@ -1,0 +1,35 @@
+{
+  "schema": "residual.integration-test-report.v1",
+  "date": "2026-09-13",
+  "branch": "feat/freellmapi-integration",
+  "baseline_commit": "e9907fe50edb7e89faba2f822d1fd5562cb601e2",
+  "upstream_reviewed_commit": "496ec4ef1bd1da48fa7c83fd1094a34c2b204e7d",
+  "runtime": "Python 3.12; headless Chromium desktop and 390px mobile viewport",
+  "baseline_python_tests": 190,
+  "gateway_tests": {"passed": 29, "failed": 0},
+  "full_python_tests": {"passed": 219, "failed": 0},
+  "browser_workflow_checks": {"passed": 18, "failed": 0, "unexpected_console_errors": 0},
+  "other_checks": {
+    "python_compileall": "passed",
+    "javascript_syntax": "passed",
+    "git_diff_check": "passed",
+    "wheel_build_no_dependencies": "passed",
+    "cli_demo_and_trace_binding": "passed",
+    "cli_incident_fixture": "passed",
+    "controller_ablation_simulation": "passed"
+  },
+  "known_baseline_warnings": "ResourceWarning for unclosed observation fixture files also occurs on the unchanged baseline.",
+  "live_gateway_test": {
+    "status": "not_run",
+    "reason": "No configured FreeLLMAPI endpoint/key/route environment in this workspace; offline mock protocol tests do not replace live validation."
+  },
+  "cost_savings": "not_measured",
+  "merge_readiness": "draft; require repository CI, deployed-gateway smoke test and acceptance of experimental incomplete-accounting scope",
+  "limitations": [
+    "Response allowlist does not enforce gateway egress or failed-hop provider scope.",
+    "20-unit reservation assumes inspected gateway attempt bound; it is not remote attestation or a bound on nested providers.",
+    "Per-URL backpressure is process-local, not distributed.",
+    "Unknown token accounting stops additional automatic dependency waves.",
+    "No new universal semantic decomposer, quota optimizer or distributed swarm scheduler is claimed."
+  ]
+}

@@ -64,13 +64,17 @@ def model_call(store, pid, role, packet, system, schema=None, placement="local",
     cap = settings.get("max_output_tokens", 4096)
     req = ChatRequest(primary["model"], (Message(Role.SYSTEM, system), Message(Role.USER, canonical(packet))), max_tokens=cap, response_schema=schema)
     def reserve(provider, request, meta):
-        if pid: store.reserve_call(pid, role, primary["placement"], meta["request_bytes"], tid)
+        if provider.name=='freellmapi' and role=='reviewer':
+            raise ContractError('FreeLLMAPI is experimental; select a local or direct provider for approval review')
+        if pid: store.reserve_call(pid, role, primary["placement"], meta["request_bytes"], tid,
+                                   call_units=getattr(provider,'attempt_reservation',1))
     def receipt(value):
         if pid:
             usage = normalized_usage(value["usage"])
             store.event(pid, "usage.recorded", {"role":role, "placement":placement, "model":value["model"], "provider":value["provider"],
                 **asdict(usage), "request_bytes":value["request_bytes"], "elapsed_ms":value["elapsed_ms"], "status":value["status"],
-                "request_id":value["request_id"], "provider_attempt":value["attempt"], "error":value["error"]}, tid)
+                "request_id":value["request_id"], "provider_attempt":value["attempt"], "error":value["error"],
+                **({'gateway':value['gateway']} if 'gateway' in value else {})}, tid)
     router = Router(registry=reg, default_provider=primary["kind"], observation_bus=store.observation_bus(pid, role=role, placement=placement, task=tid or ""),
                     before_attempt=reserve, after_attempt=receipt)
     start = time.monotonic()
@@ -105,7 +109,7 @@ def save_settings(store, incoming):
     # Bind a legacy key to its original provider before a route is changed.
     oldkind = current.get("cloud", DEFAULTS["cloud"])["kind"]
     if current.get("cloud_key"): secrets[oldkind] = {**secrets.get(oldkind, {}), "api_key":current["cloud_key"]}
-    fields = {"kind", "model", "base_url", "output_token_field", "region", "api_version"}
+    fields = {"kind", "model", "base_url", "output_token_field", "region", "api_version", "gateway_allowed_routes", "gateway_allow_auto"}
     for placement in ("local", "cloud"):
         if placement not in incoming: continue
         p = incoming[placement]
