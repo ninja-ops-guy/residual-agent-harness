@@ -20,6 +20,11 @@ ALLOWED_MODELS = {'auto', 'auto:fast', 'auto:smart'}
 _lock = threading.Lock()
 
 
+def _diag(stage, exc):
+    msg = str(exc).replace('\n', ' ')[:240]
+    print(f'[residual-demo] stage={stage} error={type(exc).__name__} detail={msg}', flush=True)
+
+
 def _db():
     conn = sqlite3.connect(DB_PATH, timeout=10)
     conn.row_factory = sqlite3.Row
@@ -67,8 +72,8 @@ def _freellm_delete_profile(profile_id):
     try:
         token = _freellm_admin_token()
         _json(f'{FREELLM}/api/client-profiles/{profile_id}', 'DELETE', headers={'Authorization': f'Bearer {token}'})
-    except Exception:
-        pass
+    except Exception as e:
+        _diag('freellm_profile_cleanup', e)
 
 
 def _tailscale_auth_key():
@@ -98,17 +103,28 @@ def _new_session():
         raise RuntimeError('gateway is not fully configured')
     _cleanup_expired()
     token = 'rdemo_' + secrets.token_urlsafe(32)
-    profile_id, profile_key = _freellm_create_profile('residual-demo-' + token[-8:])
+    try:
+        profile_id, profile_key = _freellm_create_profile('residual-demo-' + token[-8:])
+    except Exception as e:
+        _diag('freellm_profile_create', e)
+        raise
     try:
         ts_key = _tailscale_auth_key()
-    except Exception:
+    except Exception as e:
+        _diag('tailscale_auth_key', e)
         _freellm_delete_profile(profile_id)
         raise
     now = int(time.time())
-    with _lock:
-        conn = _db(); conn.execute(
-            'INSERT INTO sessions(token,created,expires,requests_left,tokens_left,profile_id,profile_key) VALUES(?,?,?,?,?,?,?)',
-            (token, now, now + TTL, MAX_REQUESTS, MAX_TOKENS, profile_id, profile_key)); conn.commit(); conn.close()
+    try:
+        with _lock:
+            conn = _db(); conn.execute(
+                'INSERT INTO sessions(token,created,expires,requests_left,tokens_left,profile_id,profile_key) VALUES(?,?,?,?,?,?,?)',
+                (token, now, now + TTL, MAX_REQUESTS, MAX_TOKENS, profile_id, profile_key)); conn.commit(); conn.close()
+    except Exception as e:
+        _diag('session_store', e)
+        _freellm_delete_profile(profile_id)
+        raise
+    print('[residual-demo] stage=session_create status=ok', flush=True)
     return {'token': token, 'expiresAt': now + TTL, 'requests': MAX_REQUESTS, 'tokenBudget': MAX_TOKENS, 'tailscaleAuthKey': ts_key, 'model': 'auto:fast'}
 
 
@@ -155,7 +171,9 @@ def _route(method, path, headers, body):
                 return 200, out
             return 404, {'error': 'not found'}
         except PermissionError as e: return 401, {'error': {'message': str(e)}}
-        except Exception as e: return 503, {'error': {'message': 'demo cloud unavailable', 'detail': type(e).__name__}}
+        except Exception as e:
+            _diag('request', e)
+            return 503, {'error': {'message': 'demo cloud unavailable', 'detail': type(e).__name__}}
     if method == 'DELETE':
         if path != '/v1/demo/session': return 404, {'error': 'not found'}
         auth = headers.get('authorization', '')
