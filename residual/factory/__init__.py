@@ -26,6 +26,17 @@ from .m4_integrator import (
     VerificationCommand,
     VerificationResult,
 )
+from .m4_scheduler import (
+    EnginePlacement,
+    M4AdaptiveScheduler,
+    M4SchedulerError,
+    SchedulerAction,
+    SchedulerCapacity,
+    SchedulerMeasurements,
+    SchedulerNode,
+    SchedulerPolicy,
+    StructuralReplanProposal,
+)
 
 __all__ = [
     "CompileResult",
@@ -57,4 +68,13 @@ __all__ = [
     "ProjectVerificationPolicy",
     "VerificationCommand",
     "VerificationResult",
+    "EnginePlacement",
+    "M4AdaptiveScheduler",
+    "M4SchedulerError",
+    "SchedulerAction",
+    "SchedulerCapacity",
+    "SchedulerMeasurements",
+    "SchedulerNode",
+    "SchedulerPolicy",
+    "StructuralReplanProposal",
 ]
