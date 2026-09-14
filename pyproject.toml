@@ -31,4 +31,4 @@ include = ["residual*", "ai_providers*", "observation_layer*"]
 "residual.station" = ["static/*", "schemas/*.json"]
 
 [tool.vercel]
-entrypoint = "demo.cloud_gateway.server:Handler"
+entrypoint = "demo.cloud_gateway.server:app"
