@@ -8,6 +8,14 @@ from .evaluation import (
     VerifierDefect,
     evaluate_verifier_campaign,
 )
+from .external import (
+    ExternalCase,
+    ExternalEvidenceRunner,
+    ExternalSuite,
+    LiveEngineSpec,
+    grade_external,
+    load_external_suite,
+)
 from .market import MarketDecision, MarketProfile, MarketRequest, VerifiedComputeMarket
 from .orchestration import ExecutionStrategy, OrchestrationTaxController, StrategyEstimate, UtilityWeights
 from .quality import AssuranceClass, VerifierQualityProfile, VerifierQualityRegistry
@@ -21,4 +29,6 @@ __all__ = [
     "AdaptiveAssuranceRuntime", "AssuranceExecutionReceipt", "ExecutionPlan", "ExecutionOutcome",
     "AdaptiveEvaluation", "FrozenAssuranceCase", "FrozenAssuranceWorkload", "PolicyResult",
     "VerifierCampaignResult", "VerifierDefect", "evaluate_verifier_campaign",
+    "ExternalCase", "ExternalEvidenceRunner", "ExternalSuite", "LiveEngineSpec",
+    "grade_external", "load_external_suite",
 ]
