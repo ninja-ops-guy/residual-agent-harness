@@ -1,82 +1,85 @@
 # Residual browser demo / GitHub Pages
 
-A dependency-free, responsive teaching demo for the evidence-first control loop.
-It is separate from Command Station and the Python Factory runtime. It does not
-execute models, tools, OS sandboxes, M2 workers, the M3 evidence bus, or M4 integration.
+A responsive teaching demo for the evidence-first control loop. This is separate
+from Command Station and Python Factory. It does not execute models, tools, OS
+sandboxes, M2 workers, the M3 bus, or canonical M4 integration.
 
-## Publish
+## One publishing authority
 
-The proposed default project URL is:
+`.github/workflows/pages.yml` is the sole Pages publisher. It replaces the older
+workflow that published `site/`. The legacy `site/` source is retained for review,
+but no longer has an independent deployment job. There is no parallel
+`pages-demo.yml`: two publishers to the same Pages site can overwrite each other,
+even when their individual CI runs are green.
+
+`tests/test_pages_publisher.py` enforces a single official deploy-pages action,
+read-only build permissions, main-only deployment with successful-build dependency,
+public artifact directory, environment, disabled checkout credentials, pinned
+Actions and trigger coverage. Adversarial tests reject duplicate publishers and
+weakened guards. This is a review-controlled workflow contract, not a claim to
+detect arbitrary malicious deployment hidden in scripts or remote workflows.
+
+The demo workflow validates PRs but never deploys them. Changed workflow files,
+demo files, or the publisher regression test trigger checks; a relevant main
+push or a manual dispatch on main may deploy only after those checks succeed.
+The deployment job alone receives Pages/OIDC permissions, honors github-pages
+environment approvals, and uses a shared Pages concurrency group.
+
+## Activation and verification
+
+The default target is:
 
 ```text
 https://ninja-ops-guy.github.io/residual-agent-harness/
 ```
 
-This URL is a deployment target, **not a claim that publication has completed**.
+That is a target, not evidence that this version is live. In repository Settings
+-> Pages -> Build and deployment -> Source, select GitHub Actions if it is not
+already selected. Review and manually merge this PR after applicable checks pass.
+Then require a successful `Publish reviewed main to Pages` job and inspect the
+returned URL before claiming deployment. A skipped PR deployment is expected.
 
-1. Review and manually merge the demo PR into `main` after its checks pass. No
-   workflow in this change merges a PR or changes another branch.
-2. In repository **Settings → Pages → Build and deployment → Source**, select
-   **GitHub Actions**. This one-time setting requires repository access that can
-   administer Pages; the regular workflow token cannot reliably enable a new site.
-   The setting can be selected before merging to make the first push deploy directly.
-3. Open **Actions → GitHub Pages demo**. After the PR is merged, run the workflow
-   on `main` if the first deployment failed because Pages was not enabled yet.
-   The `Publish reviewed main to Pages` job must succeed before calling the site live.
+When enabling Pages after merging, manually run Actions -> GitHub Pages demo on
+main. Honor any required environment reviewers; do not bypass protection rules.
+No workflow here merges PRs, alters branch protections or changes Pages settings.
 
-With no custom domain, the successful deployment URL should match the project URL
-above. If the `github-pages` environment has required reviewers, approve that
-specific deployment there. Do not disable protection rules to bypass approval.
-
-The workflow builds and tests PRs but **never deploys from a PR**. Pushes to `main`
-that change the demo trigger a deployment; manual dispatch only deploys when the
-selected ref is `main`. Deployment has a hard dependency on successful demo tests.
-No provider credentials, personal tokens, backend endpoints, or custom domain are
-required for the site. This patch does not alter Pages settings through the API.
-
-Official setup references:
+Official documentation:
 - https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
 - https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages
 
-## What visitors can try
+## Interactive scenarios and claim boundary
 
-| Scenario | Check outcomes | Final handoff |
+| Scenario | Checks | Final handoff |
 | --- | --- | --- |
-| Verified acceptance | PASS / PASS / PASS | ACCEPTED; stable, sorted artifacts |
-| Faulty candidate | FAIL / PASS / PASS | BLOCKED; no complete output |
-| Missing evidence | PASS / UNKNOWN / PASS | BLOCKED; uncertainty stays visible |
-| Integration conflict | PASS / PASS / PASS | CONFLICT; different bytes share a path |
+| Verified acceptance | PASS / PASS / PASS | ACCEPTED, sorted artifacts |
+| Faulty candidate | FAIL / PASS / PASS | BLOCKED, no complete output |
+| Missing evidence | PASS / UNKNOWN / PASS | BLOCKED, uncertainty retained |
+| Integration conflict | PASS / PASS / PASS | CONFLICT, differing bytes at a shared path |
 
-The JavaScript verifiers actually check the scripted candidate values, and the
-small composer detects conflicting bytes rather than assigning a metric based on
-worker count. These are **demo-only rules**, not a second implementation of the
-Factory specification. Full candidate records and observations can be downloaded.
-Each export uses a separate `residual.pages-simulation.v1` schema and explicitly
-carries `simulation: true`, `signed: false`, its source revision, and limitations.
-The sequence is illustrative, not a measured execution trace. There are no claims
-of real model quality, reliability improvement, tokens saved, cost, or speedup.
+Small JavaScript checks evaluate scripted values; the composer detects differing
+bytes rather than assigning conflicts from worker count. These are demo-only
+rules, not a second Factory implementation. Downloaded JSON uses the separate
+`residual.pages-simulation.v1` schema with `simulation: true`, `signed: false`,
+source revision and limitations. Observations are illustrative, not measurements.
+No model-quality, containment, token/cost-saving or speedup claim follows from it.
 
 ## Local preview
 
-From the repository root, with Python 3.11+:
+Use a fresh output directory; the builder refuses to overwrite existing output.
 
 ```bash
-python demo/build.py --output /tmp/residual-demo-preview
+python demo/build.py --output /tmp/residual-demo-preview --revision "$(git rev-parse HEAD)"
 python -m http.server 8080 --bind 127.0.0.1 --directory /tmp/residual-demo-preview
-# Open http://127.0.0.1:8080/
 ```
 
-Choose a new output directory on each build. The builder refuses existing
-outputs rather than deleting files. Pass `--revision "$(git rev-parse HEAD)"`
-to bind a preview to a commit; otherwise it is labeled `local-unversioned`.
-Serve over HTTP; directly opening `index.html` as a `file://` URL is not supported
-because the application uses JavaScript modules.
+Open the local HTTP server; file URLs do not support the required module-loading
+behavior. Without a revision argument a build is labeled local-unversioned.
 
-## Verification
-
-Node 22 and Python 3.11+ are used for tests; neither is required by a visitor.
+## Tests
 
 ```bash
+python -m pip install 'PyYAML>=6'
+python -m unittest discover -s tests -p test_pages_publisher.py -v
 node --test demo/tests/model.test.mjs
 python -m unittest discover -s demo/tests -p 'test_*.py' -v
 python demo/build.py --output /tmp/residual-demo-qa
@@ -85,33 +88,25 @@ python -m playwright install --with-deps chromium
 python demo/tests/browser.py --site /tmp/residual-demo-qa --screenshots /tmp/residual-demo-screenshots
 ```
 
-An existing Chromium executable can be selected with `DEMO_CHROMIUM=/path/to/chromium`.
-The browser suite exercises 1440px desktop and 390px/360px touch layouts at both
-`/` and `/residual-agent-harness/`. It checks all scenarios, actual JSON downloads,
-UNKNOWN/conflict states, timer cancellation, no horizontal overflow, asset loading,
-absence of backend/provider requests, and CSP denial of a connection probe.
-Touch emulation is not physical iPhone/Safari validation. CI retains screenshots
-in `demo-browser-screenshots` and the public bundle in `github-pages` artifacts.
+Browser checks cover desktop 1440px and touch-emulated 390px/360px at both root
+and project paths, all scenarios, actual JSON downloads, reset/cancellation,
+overflow, assets, no backend requests, and CSP connection denial. Chromium touch
+emulation is not physical iPhone/Safari validation. CI retains screenshots and
+the built public artifact. Node/Python/QA dependencies are not visitor dependencies.
 
-## Security and ownership boundaries
+## Security and ownership
 
-- `demo/build.py` publishes only six allowlisted files from `demo/site/`. It does
-  not copy the repository, documentation, tests, credentials, or runtime evidence.
-  Symlink assets and unsafe revision strings are rejected.
-- All assets use relative URLs so project-path hosting works without a bundler,
-  router fallback, CDN, remote fonts, analytics, or third-party runtime scripts.
-- The page uses a restrictive meta CSP, including `connect-src 'none'`,
-  `object-src 'none'`, `base-uri 'none'`, and `form-action 'none'`. No API-key entry,
-  file upload, eval, local storage, service worker, or live backend connection is
-  provided. Dynamic DOM content uses `textContent`, not HTML interpolation.
-- Meta CSP cannot supply HTTP-only protections such as `frame-ancestors`.
-  This is a credential-free static demo, not a security boundary for real execution.
-- The workflow grants read-only contents access to the test job, disables persisted
-  checkout credentials, and grants Pages/OIDC write permissions only to deployment.
-  Top-level actions are pinned to full commit SHAs; transitive dependencies still
-  follow those upstream action implementations and pinned QA package metadata.
-- No `residual/factory/*`, M2/M3/M4 files, canonical verifier, existing workflows,
-  package metadata, or generated implementation-status files are changed. There
-  are no dependencies on the active M4/EVAL/FB001/FB002/FB003 PR stack.
-- The root README is intentionally untouched to avoid overlap with concurrent
-  documentation PRs. Add the demo URL there once a deployment has succeeded.
+Only six allowlisted files from `demo/site/` are published. Builder tests reject
+symlink assets, unsafe revisions and existing output directories. No repository
+source, tests, runtime evidence or credentials are copied to the public output.
+Relative assets need no CDN, remote fonts or analytics. The restrictive meta CSP
+includes connect-src 'none', object-src 'none', base-uri 'none', form-action 'none'.
+There is no API-key entry, upload, eval, browser storage or live backend. Dynamic
+text uses textContent. Meta CSP does not implement HTTP-only frame-ancestors;
+this credential-free demo is not a security boundary for real worker execution.
+
+Top-level Actions are pinned to full SHAs. Upstream composite action transitive
+references and QA dependency resolution remain their own supply-chain boundary.
+The only existing deployment workflow modified is pages.yml; runtime, canonical
+verifiers, package metadata, generated status and root README are untouched.
+The demo can be reviewed independently of the M2/M3/M4 research/benchmark stack.

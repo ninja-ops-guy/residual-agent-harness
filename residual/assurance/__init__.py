@@ -23,6 +23,12 @@ from .factory_adapter import (
     FactoryWorkerTemplate,
     candidate_manifest,
 )
+from .factory_admission import FactoryAdmissionResult, FactoryM3Admission
+from .factory_dynamic import (
+    DynamicWaveDecision,
+    FactoryDynamicSwarmExecutor,
+    FactoryDynamicSwarmJob,
+)
 from .market import MarketDecision, MarketProfile, MarketRequest, VerifiedComputeMarket
 from .orchestration import ExecutionStrategy, OrchestrationTaxController, StrategyEstimate, UtilityWeights
 from .quality import AssuranceClass, VerifierQualityProfile, VerifierQualityRegistry
@@ -40,4 +46,6 @@ __all__ = [
     "grade_external", "load_external_suite",
     "FactoryAssuranceError", "FactoryFixedSwarmExecutor", "FactoryFixedSwarmJob",
     "FactoryWorkerTemplate", "candidate_manifest",
+    "DynamicWaveDecision", "FactoryDynamicSwarmExecutor", "FactoryDynamicSwarmJob",
+    "FactoryAdmissionResult", "FactoryM3Admission",
 ]
