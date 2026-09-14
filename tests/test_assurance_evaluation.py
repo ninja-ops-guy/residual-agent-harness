@@ -18,7 +18,7 @@ class AdaptiveAssuranceEvaluationTests(unittest.TestCase):
             seed=7,
             cases=(
                 FrozenAssuranceCase(
-                    case_id="tiny-edit",
+                    case_id="train-small",
                     task_class="small-edit",
                     capability="code",
                     assurance=AssuranceClass.ROUTINE,
@@ -29,6 +29,38 @@ class AdaptiveAssuranceEvaluationTests(unittest.TestCase):
                     swarm_cost=0.20,
                     direct_latency_ms=50,
                     swarm_latency_ms=450,
+                    preferred_engine="cheap@1",
+                    engine_outcomes={"cheap@1": True, "strong@1": True},
+                    split="training",
+                ),
+                FrozenAssuranceCase(
+                    case_id="train-batch",
+                    task_class="batch",
+                    capability="code",
+                    assurance=AssuranceClass.IMPORTANT,
+                    required_pass_rate=0.90,
+                    direct_success=False,
+                    swarm_success=True,
+                    direct_cost=0.04,
+                    swarm_cost=0.16,
+                    direct_latency_ms=120,
+                    swarm_latency_ms=260,
+                    preferred_engine="strong@1",
+                    engine_outcomes={"cheap@1": False, "strong@1": True},
+                    split="training",
+                ),
+                FrozenAssuranceCase(
+                    case_id="tiny-edit",
+                    task_class="small-edit",
+                    capability="code",
+                    assurance=AssuranceClass.ROUTINE,
+                    required_pass_rate=0.90,
+                    direct_success=True,
+                    swarm_success=True,
+                    direct_cost=0.01,
+                    swarm_cost=0.20,
+                    direct_latency_ms=55,
+                    swarm_latency_ms=460,
                     preferred_engine="cheap@1",
                     engine_outcomes={"cheap@1": True, "strong@1": True},
                 ),
@@ -42,8 +74,8 @@ class AdaptiveAssuranceEvaluationTests(unittest.TestCase):
                     swarm_success=True,
                     direct_cost=0.04,
                     swarm_cost=0.16,
-                    direct_latency_ms=120,
-                    swarm_latency_ms=260,
+                    direct_latency_ms=125,
+                    swarm_latency_ms=270,
                     preferred_engine="strong@1",
                     engine_outcomes={"cheap@1": False, "strong@1": True},
                 ),
@@ -95,9 +127,17 @@ class AdaptiveAssuranceEvaluationTests(unittest.TestCase):
         )
         self.assertNotEqual(workload.sha256, changed.sha256)
 
+    def test_evaluation_is_separate_from_training_observations(self):
+        workload = self.workload()
+        self.assertEqual(len(workload.training_cases), 2)
+        self.assertEqual(len(workload.evaluation_cases), 4)
+        self.assertTrue(set(c.case_id for c in workload.training_cases).isdisjoint(c.case_id for c in workload.evaluation_cases))
+
     def test_adaptive_strategy_beats_fixed_direct_on_mixed_workload(self):
         report = AdaptiveEvaluation(self.workload(), self.engines()).run()
         fixed = {row["policy"]: row for row in report["baselines"]}
+        self.assertEqual(report["training_cases"], 2)
+        self.assertEqual(report["evaluation_cases"], 4)
         self.assertGreater(report["adaptive"]["success_rate"], fixed["direct"]["success_rate"])
         self.assertLess(report["adaptive"]["total_cost"], fixed["dynamic_swarm"]["total_cost"])
 
@@ -109,6 +149,15 @@ class AdaptiveAssuranceEvaluationTests(unittest.TestCase):
         case = self.workload().cases[0]
         with self.assertRaises(ValueError):
             FrozenAssuranceWorkload(name="bad", cases=(case, case))
+
+    def test_unseen_evaluation_class_is_rejected(self):
+        training = self.workload().training_cases
+        unseen = FrozenAssuranceCase(
+            "unseen", "new-class", "code", AssuranceClass.ROUTINE, .9,
+            True, True, .01, .02, 10, 20, "cheap@1", {"cheap@1": True},
+        )
+        with self.assertRaises(ValueError):
+            FrozenAssuranceWorkload(name="leaky", cases=training + (unseen,))
 
 
 class VerifierCampaignTests(unittest.TestCase):
@@ -132,6 +181,13 @@ class VerifierCampaignTests(unittest.TestCase):
         result = evaluate_verifier_campaign("host:clean", defects, assurance=AssuranceClass.ROUTINE)
         self.assertGreater(result.posterior_mean, 0.95)
         self.assertEqual(result.false_accepts, 0)
+
+    def test_empty_and_duplicate_campaigns_are_rejected(self):
+        with self.assertRaises(ValueError):
+            evaluate_verifier_campaign("host:empty", [])
+        duplicate = VerifierDefect("same", False, False)
+        with self.assertRaises(ValueError):
+            evaluate_verifier_campaign("host:duplicate", [duplicate, duplicate])
 
 
 if __name__ == "__main__":
