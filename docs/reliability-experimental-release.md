@@ -142,6 +142,46 @@ Every `(case, trial, configuration, degradation_level)` produces one observation
 
 `worker_correct` is nullable because some workflows do not expose a meaningful pre-verification candidate grade. Missing data stays missing.
 
+## Normalize existing Residual evidence
+
+The reliability layer consumes existing run evidence rather than creating a second execution path.
+
+### Frozen Study runs
+
+A Study run already separates controller acceptance from independent grading. The adapter preserves that distinction exactly:
+
+```text
+accepted              := controller_success
+independently_correct := independent grader pass
+```
+
+Convert a completed Study directory with:
+
+```bash
+python scripts/reliability_experiment.py adapt-study runs/study-confirmatory \
+  --map-mode full_cloud=raw \
+  --map-mode residual=covd \
+  --output runs/reliability/observations.jsonl
+```
+
+The adapter requires the complete scheduled run set. Error, blocked, and budget-exhausted rows remain denominator failures rather than disappearing from analysis. Study currently does not expose a separately graded pre-acceptance worker candidate for every policy, so `worker_correct` remains `null` instead of being inferred from controller success.
+
+### External assurance / Verified Compute Market
+
+Market-selected externally graded evaluation rows can be converted with:
+
+```bash
+python scripts/reliability_experiment.py adapt-external runs/external-assurance/evidence.json \
+  --configuration verified_compute_market \
+  --output runs/reliability/market-observations.jsonl
+```
+
+Selection is treated as acceptance because the market runner emits the chosen evaluation result. The adapter does not reconstruct fixed-engine per-case observations from aggregate baseline statistics; upstream evidence must expose those rows before they can be analyzed at task level.
+
+### Factory
+
+`FactoryRuntime` deliberately produces quarantined candidates, not acceptance decisions. Therefore Factory adaptation requires an independently supplied grade and the final integration/acceptance decision. The adapter refuses to equate `RuntimeResult.status == completed` with correctness or acceptance. This preserves the Factory trust boundary rather than weakening it for evaluation convenience.
+
 ## Analyze
 
 ```bash
