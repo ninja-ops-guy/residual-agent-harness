@@ -16,7 +16,7 @@
     <div>
       <div class="ey">RESIDUAL / LIVE SYSTEM</div>
       <h1>The repository is the demo.</h1>
-      <p class="sub">A disposable Linux environment runs entirely in this browser tab with the actual RESIDUAL source preloaded. Explore it, run the harness, inspect evidence, break things, then reset.</p>
+      <p class="sub">A disposable Linux environment runs entirely in this browser tab with the actual RESIDUAL source preloaded. When the demo broker is available, the VM also receives a short-lived bounded cloud session automatically.</p>
     </div>
     <div class="actions">
       <button id="reset" class="btn primary">RESET VM ↻</button>
@@ -28,32 +28,57 @@
   <div class="badgebar">
     <span class="badge"><strong>REAL LINUX</strong> / client-side VM</span>
     <span class="badge"><strong>REAL REPO</strong> / current build source</span>
-    <span class="badge"><strong>NO API KEY</strong> / offline scripted demo</span>
+    <span id="cloudBadge" class="badge"><strong>CLOUD</strong> / provisioning bounded session</span>
     <span class="badge"><strong>DISPOSABLE</strong> / reload to restore</span>
   </div>
 
   <section class="frame" aria-label="RESIDUAL browser VM">
     <div class="framehead">
       <span>residual@demo:/opt/residual</span>
-      <span><span class="lights"><i class="light on"></i><i class="light"></i><i class="light"></i></span></span>
+      <span><span class="lights"><i id="cloudLight" class="light"></i><i class="light on"></i><i class="light"></i></span></span>
     </div>
     <div id="loading" class="loading">
-      <div class="boot"><b>BOOTING RESIDUAL DEMO VM</b><br>Loading the client-side Linux filesystem. First boot can take longer on mobile connections; no server shell is being provisioned.<div class="bar"></div></div>
+      <div class="boot"><b>BOOTING RESIDUAL DEMO VM</b><br>Preparing the client-side Linux filesystem and attempting a short-lived cloud session. If cloud provisioning is unavailable, the real offline demo still boots.<div class="bar"></div></div>
     </div>
-    <iframe id="vm" class="vm" src="../vm/" title="RESIDUAL live Linux VM" allow="clipboard-read; clipboard-write" referrerpolicy="same-origin"></iframe>
+    <iframe id="vm" class="vm" src="about:blank" title="RESIDUAL live Linux VM" allow="clipboard-read; clipboard-write" referrerpolicy="same-origin"></iframe>
   </section>
 
   <div class="note">
-    <span><b>Start here:</b> <code>residual demo --output runs/demo</code> → <code>residual verify-trace runs/demo/trace.jsonl --result runs/demo/result.json</code>. The environment contains no production credentials and uses the repository's offline scripted providers by default.</span>
-    <span id="status" class="fallback">VM LOADING…</span>
+    <span><b>Start here:</b> <code>demo</code> for the guaranteed offline path. If the prompt says <b>CLOUD SESSION: READY</b>, run <code>cloud-demo</code> to execute the same bounded task through a real cloud model and then verify the resulting trace.</span>
+    <span id="status" class="fallback">PROVISIONING…</span>
   </div>
 </main>
 <script>
-const vm=document.getElementById('vm'),loading=document.getElementById('loading'),status=document.getElementById('status');
-let readyTimer=setTimeout(()=>{status.textContent='STILL LOADING — WALKTHROUGH AVAILABLE';status.className='fallback';},18000);
-vm.addEventListener('load',()=>{clearTimeout(readyTimer);setTimeout(()=>loading.classList.add('hidden'),700);status.textContent='VM FRAME READY';status.className='';});
+const vm=document.getElementById('vm'),loading=document.getElementById('loading'),status=document.getElementById('status'),cloudBadge=document.getElementById('cloudBadge'),cloudLight=document.getElementById('cloudLight');
+let session=null,gateway='';
+const vmBase='../vm/';
+function bootOffline(label='OFFLINE VM READY'){
+  cloudBadge.innerHTML='<strong>CLOUD</strong> / unavailable — offline fallback';
+  status.textContent=label; status.className='fallback';
+  vm.src=vmBase+'?boot='+Date.now();
+}
+async function provision(){
+  try{
+    const cfg=await fetch('./cloud.json',{cache:'no-store'}).then(r=>r.ok?r.json():({}));
+    gateway=(cfg.gateway||'').replace(/\/$/,'');
+    if(!gateway) return bootOffline('OFFLINE VM — CLOUD NOT CONFIGURED');
+    const r=await fetch(gateway+'/v1/demo/session',{method:'POST',headers:{'Content-Type':'application/json'}});
+    if(!r.ok) throw new Error('session provisioning failed');
+    session=await r.json();
+    const hash=new URLSearchParams({authKey:session.tailscaleAuthKey,demoToken:session.token,gateway});
+    vm.src=vmBase+'#'+hash.toString();
+    cloudBadge.innerHTML='<strong>CLOUD READY</strong> / '+session.requests+' calls · '+session.tokenBudget+' token budget · '+Math.round((session.expiresAt-Date.now()/1000)/60)+' min';
+    cloudLight.classList.add('on');
+    status.textContent='CLOUD SESSION READY'; status.className='';
+  }catch(e){ bootOffline('OFFLINE VM — CLOUD FALLBACK'); }
+}
+let readyTimer=setTimeout(()=>{status.textContent='STILL LOADING — WALKTHROUGH AVAILABLE';status.className='fallback';},20000);
+vm.addEventListener('load',()=>{if(vm.src==='about:blank')return;clearTimeout(readyTimer);setTimeout(()=>loading.classList.add('hidden'),700);if(!session&&status.textContent.includes('PROVISION')){status.textContent='VM FRAME READY';status.className='';}});
 vm.addEventListener('error',()=>{clearTimeout(readyTimer);loading.querySelector('.boot').innerHTML='<b class="err">VM RUNTIME FAILED TO LOAD</b><br>The static engineer walkthrough remains available above.';status.textContent='FALLBACK AVAILABLE';status.className='err';});
-document.getElementById('reset').addEventListener('click',()=>{loading.classList.remove('hidden');status.textContent='RESETTING…';const src=vm.src;vm.src='about:blank';setTimeout(()=>vm.src=src.split('?')[0]+'?reset='+Date.now(),60);});
+async function revoke(){if(!session||!gateway)return;try{await fetch(gateway+'/v1/demo/session',{method:'DELETE',headers:{Authorization:'Bearer '+session.token},keepalive:true});}catch(e){}session=null;}
+document.getElementById('reset').addEventListener('click',async()=>{loading.classList.remove('hidden');status.textContent='RESETTING…';await revoke();vm.src='about:blank';setTimeout(provision,80);});
+window.addEventListener('pagehide',()=>{revoke();});
+provision();
 </script>
 </body>
 </html>
