@@ -14,6 +14,7 @@ from residual.inspector import (
     PX0_VERSION,
     Px0Inspector,
     _safe_env,
+    _sandbox_command,
     snapshot,
     snapshot_is_current,
     validate_receipt_path,
@@ -73,7 +74,6 @@ class InspectorTests(unittest.TestCase):
         self.assertIn("-no-lsp", command)
         self.assertIn("-no-open", command)
         self.assertIn("-no-color", command)
-        # px0 v0.1.2 does not have a -no-telemetry CLI flag.
         self.assertNotIn("-no-telemetry", command)
 
     def test_wrong_px0_version_is_rejected(self):
@@ -106,6 +106,20 @@ class InspectorTests(unittest.TestCase):
         with patch("residual.inspector.platform.system", return_value="Linux"), patch("residual.inspector.shutil.which", return_value=None):
             with self.assertRaises(ContractError):
                 inspector.build_command(self.root, port=0, sandbox=True)
+
+    def test_secure_sandbox_exposes_minimal_filesystem_not_host_root(self):
+        inner = ["/usr/local/bin/px0", "-no-open", str(self.root.resolve())]
+        with patch("residual.inspector.platform.system", return_value="Linux"), patch(
+            "residual.inspector.shutil.which", return_value="/usr/bin/bwrap"
+        ):
+            command, backend = _sandbox_command(Path("/usr/local/bin/px0"), self.root, inner)
+        self.assertEqual(backend, "bubblewrap")
+        triples = list(zip(command, command[1:], command[2:]))
+        self.assertNotIn(("--ro-bind", "/", "/"), triples)
+        self.assertIn(("--ro-bind", str(self.root.resolve()), str(self.root.resolve())), triples)
+        self.assertIn("--tmpfs", command)
+        self.assertIn("/tmp", command)
+        self.assertIn("--clearenv", command)
 
     def test_launch_receipt_uses_actual_px0_bound_url(self):
         inspector = self.inspector()
