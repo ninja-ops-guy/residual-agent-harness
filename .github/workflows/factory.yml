@@ -1,0 +1,38 @@
+name: Factory runtime evidence
+on:
+  pull_request:
+    paths:
+      - 'residual/factory/**'
+      - 'residual/cli.py'
+      - 'tests/factory/**'
+      - 'docs/factory/**'
+      - 'pyproject.toml'
+      - '.github/workflows/factory.yml'
+permissions:
+  contents: read
+jobs:
+  factory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Preserve exact source
+        run: |
+          mkdir -p runs/factory-evidence
+          git rev-parse HEAD > runs/factory-evidence/commit.txt
+          git rev-parse HEAD^{tree} > runs/factory-evidence/tree.txt
+          git archive --format=zip HEAD -o runs/factory-evidence/source.zip
+      - name: Baseline and Factory contracts
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests -v 2>&1 | tee runs/factory-evidence/tests.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: factory-evidence-${{ github.sha }}
+          path: runs/factory-evidence
