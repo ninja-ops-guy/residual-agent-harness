@@ -1,20 +1,9 @@
-"""Track J — FrozenWorkload evaluation harness.
+"""Evaluation surfaces for Residual research and publication evidence.
 
-Implements SPEC-TEN-001 requirements:
-
-- T10-R1: FrozenWorkload evaluation (single vs fixed vs dynamic swarm)
-  with n >= 10 runs per configuration; results include mean, median,
-  standard deviation, and statistical significance tests (implemented
-  locally on stdlib ``statistics`` — Mann-Whitney U and Welch t-test).
-- T10-R3: FrozenWorkload definition and all raw evaluation data are
-  preserved in the serialized report (raw run records included).
-- T10-R4: Reproducibility — the FrozenWorkload is frozen and
-  content-addressed (hash-locked manifest); all configurations and the
-  harness live in the repo; seeded RNGs make runs deterministic.
-
-The pre-existing ``residual/evaluation.py`` benchmark may be imported
-but is not modified; this package builds under ``residual/eval/`` per
-the swarm contract.
+The package retains the older SPEC-TEN-001/T10 evaluation harness and also exposes
+SPEC-EVAL-001 system-level evidence for the M4 Factory path. The two contracts remain
+separate because T10 requires at least ten simulated repeats while SPEC-EVAL-001
+requires at least three controlled runs and a signed system-level comparison report.
 """
 
 from .workload import FrozenWorkload, WorkloadTask
@@ -31,24 +20,46 @@ from .runner import (
 )
 from .stats import Comparison, mann_whitney_u, summary_stats, welch_t_test
 from .report import EvaluationReport
+from .spec_eval import (
+    CostAnalysis,
+    CostRates,
+    EvaluationRunEvidence,
+    ExecutionControls,
+    RunCounters,
+    SignedComparisonReport,
+    SpecEvalError,
+    SpecEvaluationEvidence,
+    SystemMetrics,
+)
+from .replay import signed_report_from_observations
 
 __all__ = [
     "ABLATIONS",
     "Ablation",
     "Comparison",
+    "CostAnalysis",
+    "CostRates",
     "DynamicSwarmBackend",
     "EvaluationReport",
+    "EvaluationRunEvidence",
     "EvaluationRunner",
+    "ExecutionControls",
     "Fault",
     "FaultInjector",
     "FixedSwarmBackend",
     "FrozenWorkload",
     "RunConfiguration",
+    "RunCounters",
+    "SignedComparisonReport",
     "SingleAgentBackend",
+    "SpecEvalError",
+    "SpecEvaluationEvidence",
     "SwarmBackend",
+    "SystemMetrics",
     "TaskResult",
     "WorkloadTask",
     "mann_whitney_u",
+    "signed_report_from_observations",
     "summary_stats",
     "welch_t_test",
 ]
