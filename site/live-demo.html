@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="description" content="Run the real RESIDUAL repository inside a disposable Linux VM in your browser.">
+<title>RESIDUAL · Live VM</title>
+<style>
+:root{--g:#39ff68;--g2:#86ff9e;--b:#123d1e;--m:#6e9e77;--w:#dcffe3;--r:#ff8585;--a:#ffd166;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#000;color:var(--w);font-family:var(--mono)}body:before{content:"";position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(transparent 0,transparent 3px,#39ff6807 4px);z-index:50}.wrap{width:min(1500px,calc(100% - 28px));margin:auto;padding:18px 0 26px}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}.ey{font-size:10px;letter-spacing:.16em;color:var(--g);font-weight:900}.ey:before{content:"> ";color:#fff}h1{font-size:clamp(26px,5vw,48px);line-height:1.05;margin:8px 0;color:var(--g2);letter-spacing:-.04em}.sub{margin:0;color:#87bd91;font-size:12px;max-width:880px;line-height:1.6}.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.btn{appearance:none;border:1px solid var(--g);background:#031006;color:var(--g);padding:10px 13px;text-decoration:none;font:800 10px var(--mono);cursor:pointer}.btn.primary{background:var(--g);color:#001700}.badgebar{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.badge{border:1px solid #214d29;background:#020702;padding:5px 8px;color:#8ccb98;font-size:9px}.badge strong{color:var(--g)}.frame{position:relative;border:1px solid #285d32;background:#010301;box-shadow:0 0 30px #39ff6810;min-height:72vh;overflow:hidden}.framehead{height:38px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1a4322;padding:0 11px;background:#020602;font-size:9px;color:#74a77e}.lights{display:flex;gap:5px}.light{width:7px;height:7px;border-radius:50%;background:#214d29}.light.on{background:var(--g);box-shadow:0 0 9px #39ff68}.vm{width:100%;height:calc(72vh - 38px);border:0;background:#000;display:block}.loading{position:absolute;inset:38px 0 0;display:grid;place-items:center;background:#000;z-index:5;transition:opacity .25s}.loading.hidden{opacity:0;pointer-events:none}.boot{max-width:620px;padding:28px;color:#86be91;font-size:11px;line-height:1.7}.boot b{color:var(--g)}.boot .bar{height:4px;background:#0a2410;margin-top:15px;overflow:hidden}.boot .bar:after{content:"";display:block;height:100%;width:35%;background:var(--g);animation:scan 1.25s linear infinite}@keyframes scan{from{transform:translateX(-120%)}to{transform:translateX(390%)}}.note{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;margin-top:12px;border:1px solid #15361b;background:#020602;padding:11px;color:#729a7b;font-size:9px;line-height:1.5}.note b{color:#a9dcb2}.fallback{color:var(--a)}.err{color:var(--r)}@media(max-width:760px){.wrap{width:min(100% - 16px,1500px)}.top{display:block}.actions{justify-content:flex-start;margin-top:12px}.frame{min-height:76vh}.vm{height:calc(76vh - 38px)}.note{grid-template-columns:1fr}.sub{font-size:11px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="top">
+    <div>
+      <div class="ey">RESIDUAL / LIVE SYSTEM</div>
+      <h1>The repository is the demo.</h1>
+      <p class="sub">A disposable Linux environment runs entirely in this browser tab with the actual RESIDUAL source preloaded. Explore it, run the harness, inspect evidence, break things, then reset.</p>
+    </div>
+    <div class="actions">
+      <button id="reset" class="btn primary">RESET VM ↻</button>
+      <a class="btn" href="../walkthrough/">ENGINEER WALKTHROUGH</a>
+      <a class="btn" href="https://github.com/ninja-ops-guy/residual-agent-harness" target="_blank" rel="noopener">SOURCE ↗</a>
+    </div>
+  </div>
+
+  <div class="badgebar">
+    <span class="badge"><strong>REAL LINUX</strong> / client-side VM</span>
+    <span class="badge"><strong>REAL REPO</strong> / current build source</span>
+    <span class="badge"><strong>NO API KEY</strong> / offline scripted demo</span>
+    <span class="badge"><strong>DISPOSABLE</strong> / reload to restore</span>
+  </div>
+
+  <section class="frame" aria-label="RESIDUAL browser VM">
+    <div class="framehead">
+      <span>residual@demo:/opt/residual</span>
+      <span><span class="lights"><i class="light on"></i><i class="light"></i><i class="light"></i></span></span>
+    </div>
+    <div id="loading" class="loading">
+      <div class="boot"><b>BOOTING RESIDUAL DEMO VM</b><br>Loading the client-side Linux filesystem. First boot can take longer on mobile connections; no server shell is being provisioned.<div class="bar"></div></div>
+    </div>
+    <iframe id="vm" class="vm" src="../vm/" title="RESIDUAL live Linux VM" allow="clipboard-read; clipboard-write" referrerpolicy="same-origin"></iframe>
+  </section>
+
+  <div class="note">
+    <span><b>Start here:</b> <code>residual demo --output runs/demo</code> → <code>residual verify-trace runs/demo/trace.jsonl --result runs/demo/result.json</code>. The environment contains no production credentials and uses the repository's offline scripted providers by default.</span>
+    <span id="status" class="fallback">VM LOADING…</span>
+  </div>
+</main>
+<script>
+const vm=document.getElementById('vm'),loading=document.getElementById('loading'),status=document.getElementById('status');
+let readyTimer=setTimeout(()=>{status.textContent='STILL LOADING — WALKTHROUGH AVAILABLE';status.className='fallback';},18000);
+vm.addEventListener('load',()=>{clearTimeout(readyTimer);setTimeout(()=>loading.classList.add('hidden'),700);status.textContent='VM FRAME READY';status.className='';});
+vm.addEventListener('error',()=>{clearTimeout(readyTimer);loading.querySelector('.boot').innerHTML='<b class="err">VM RUNTIME FAILED TO LOAD</b><br>The static engineer walkthrough remains available above.';status.textContent='FALLBACK AVAILABLE';status.className='err';});
+document.getElementById('reset').addEventListener('click',()=>{loading.classList.remove('hidden');status.textContent='RESETTING…';const src=vm.src;vm.src='about:blank';setTimeout(()=>vm.src=src.split('?')[0]+'?reset='+Date.now(),60);});
+</script>
+</body>
+</html>
