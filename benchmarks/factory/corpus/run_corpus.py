@@ -4,6 +4,7 @@ import argparse
 import json
 import subprocess
 import sys
+import urllib.request
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -34,6 +35,17 @@ def _require_clean_source() -> str:
 def _write_json(path: Path, value) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def _live_model_digest(base_url: str, model: str) -> str:
+    with urllib.request.urlopen(base_url.rstrip('/') + '/api/tags', timeout=10) as response:
+        payload = json.load(response)
+    for item in payload.get('models', []):
+        if item.get('name') == model or item.get('model') == model:
+            digest = item.get('digest')
+            if isinstance(digest, str) and digest:
+                return digest
+    raise SystemExit(f"model {model!r} is not installed at {base_url}")
 
 
 def _summary(report: dict) -> dict:
@@ -79,7 +91,7 @@ def _load_or_create_identity(output: Path, resume: bool) -> tuple[StationIdentit
     return identity, key_path, public_key
 
 
-def _resume_identity(output: Path, source_commit: str, host: dict, runs: int) -> None:
+def _resume_identity(output: Path, source_commit: str, host: dict, runs: int) -> dict:
     source_path = output / "source-commit.txt"
     host_path = output / "host.json"
     state_path = output / "corpus-state.json"
@@ -93,6 +105,7 @@ def _resume_identity(output: Path, source_commit: str, host: dict, runs: int) ->
         raise SystemExit("resume refused: corpus state identity mismatch")
     if state.get("runs") != runs or tuple(state.get("configs", ())) != CONFIGS:
         raise SystemExit("resume refused: run count/configuration changed")
+    return state
 
 
 def main() -> int:
@@ -119,24 +132,30 @@ def main() -> int:
 
     source_commit = _require_clean_source()
     host = host_evidence()
+    live_digest = _live_model_digest(args.base_url, args.model)
     if args.resume:
-        _resume_identity(output, source_commit, host, args.runs)
+        state = _resume_identity(output, source_commit, host, args.runs)
+        if state.get("model_request") != args.model:
+            raise SystemExit("resume refused: model request changed")
+        if state.get("model_version") and state.get("model_version") != live_digest:
+            raise SystemExit("resume refused: live Ollama model digest changed")
     else:
         _write_json(output / "host.json", host)
         (output / "source-commit.txt").write_text(source_commit + "\n", encoding="utf-8")
-        _write_json(output / "corpus-state.json", {
+        state = {
             "schema_version": "factory-benchmark-corpus-state-v1",
             "source_commit": source_commit,
             "host_fingerprint": host["fingerprint"],
             "runs": args.runs,
             "configs": list(CONFIGS),
             "model_request": args.model,
+            "model_version": live_digest,
             "completed": [],
-        })
+        }
+        _write_json(output / "corpus-state.json", state)
 
     identity, key_path, public_key = _load_or_create_identity(output, args.resume)
     state_path = output / "corpus-state.json"
-    state = strict_json(state_path.read_text(encoding="utf-8"))
     completed = list(state.get("completed", []))
 
     entries = []
@@ -150,6 +169,8 @@ def main() -> int:
             raise SystemExit(f"host fingerprint changed before {benchmark}")
         if _git("rev-parse", "HEAD") != source_commit or _git("status", "--porcelain", "--untracked-files=no"):
             raise SystemExit(f"source revision changed before {benchmark}")
+        if _live_model_digest(args.base_url, args.model) != live_digest:
+            raise SystemExit(f"live Ollama model digest changed before {benchmark}")
 
         bench_dir = ROOT / "benchmarks" / "factory" / benchmark
         bench_out = output / benchmark
@@ -167,6 +188,8 @@ def main() -> int:
         current_name, current_version = str(engine.get("name", "")), str(engine.get("version", ""))
         if not current_name or not current_version:
             raise SystemExit(f"{benchmark} workload lacks frozen engine identity")
+        if current_version != live_digest:
+            raise SystemExit(f"{benchmark} frozen workload digest does not match live Ollama model")
         if model_name is None:
             model_name, model_version = current_name, current_version
         elif (current_name, current_version) != (model_name, model_version):
@@ -185,6 +208,8 @@ def main() -> int:
                   "--workload", str(workload_path), "--configs", ",".join(CONFIGS),
                   "--runs", str(args.runs), "--station-key", str(key_path),
                   "--output", str(results_dir)])
+        if _live_model_digest(args.base_url, args.model) != live_digest:
+            raise SystemExit(f"live Ollama model digest changed during {benchmark}")
         entry = report_entry(benchmark, workload_path, report_path, public_key)
         if entry.simulation:
             raise SystemExit(f"{benchmark} produced simulated evidence; corpus will not be signed as measured")
@@ -220,6 +245,8 @@ def main() -> int:
         raise SystemExit("host fingerprint changed during corpus execution")
     if _git("rev-parse", "HEAD") != source_commit or _git("status", "--porcelain", "--untracked-files=no"):
         raise SystemExit("source revision changed during corpus execution")
+    if _live_model_digest(args.base_url, args.model) != live_digest:
+        raise SystemExit("live Ollama model digest changed during corpus execution")
 
     manifest = CorpusManifest.issue(source_commit=source_commit, model_name=model_name,
                                     model_version=model_version, host=host, runs=args.runs,
