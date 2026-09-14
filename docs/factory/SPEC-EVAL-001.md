@@ -1,93 +1,60 @@
 # SPEC-EVAL-001 comparative evidence
 
-This layer evaluates the completed M4 Factory control path under one frozen workload and three configurations: `single`, `fixed`, and `dynamic`.
+SPEC-EVAL evaluates one frozen workload under `single`, `fixed`, and `dynamic` Factory configurations. The simulator path remains useful for validating the evidence machinery, but simulated runs are never measured production evidence.
 
-## Evidence boundary
+## Measured claim boundary
 
-The repository contains two evaluation contracts and they are intentionally separate.
+`FrozenWorkload` describes experimental work; it is not authorization. A measured run must be preregistered against explicit Factory authority and must preserve that authority through M3, M4, scheduler, and final report issuance.
 
-- The older T10 benchmark requires at least 10 seeded simulator repeats and remains unchanged.
-- SPEC-EVAL-001 requires at least 3 controlled runs per configuration and produces system-level publication evidence.
+The approved measured path is:
 
-The built-in `residual evaluate` driver uses the repository's deterministic simulator backends and marks every resulting run `simulated`. It validates the evaluation machinery but MUST NOT be cited as measured production performance.
+1. `ApprovedFactoryRunBinding` preregisters the FrozenWorkload hash, configuration/run index, approval reference, Factory ExecutionPlan hash, allowed attempt IDs, approved worker bounds, and Station identity. The execution callback is zero-argument so benchmark prompt text cannot synthesize WorkerContracts, filesystem/tool scope, verifier policy, or approval policy.
+2. The callback returns `AuthoritativeFactoryRunEvidence`: runtime counters and signed M3 `WorkerReceipt` values, an M4 `IntegrationReceipt`, and `FactoryTopologyTrace` built from real `ReadyDagSnapshot`, `SchedulerMeasurements`, and optional scheduler actions.
+3. The adapter verifies every measured receipt belongs to the approved ExecutionPlan and attempt set. `accepted_tasks` must equal the passing M3 receipt count.
+4. M4 final acceptance must be Station-signed, bind the exact measured M3 receipt set, contain clean accumulated verification PASS results, and explicitly carry `evidence_level=measured`.
+5. `development_fixture` IntegrationReceipt v2 values are rejected. A receipt executed through `trusted_fixture_unsandboxed` is rejected even if someone tries to relabel its evidence level. Current trusted-fixture M4 therefore cannot manufacture a measured-live result.
+6. Topology is never inferred from attempt or receipt count. `single` must observe one worker, `fixed` must observe its preregistered constant width, and `dynamic` must operate inside a preregistered non-degenerate worker range. Scheduler measurements must bind supplied Ready-DAG snapshot hashes, and scheduler actions must bind supplied measurement hashes.
+7. `ApprovedMeasuredFactoryEvaluationRunner` runs the ordinary measured SPEC-EVAL machinery and then signs a provenance envelope containing the signed base comparison report plus, for every experiment cell, hashes of the approval reference, ExecutionPlan, M4 integration plan, M4 final-acceptance receipt, and scheduler topology trace.
 
-For real experiments, `MeasuredFactoryEvaluationRunner` wraps an approved Factory execution adapter and records runs as `measured`. It does not invent WorkerContracts, approval, verification, or integration policy from a workload prompt.
+This makes the final publication artifact commit cryptographically to the Factory acceptance/topology evidence used to justify the labels `single`, `fixed`, `dynamic`, and `measured`.
 
-## Frozen workload
+## Current M4 limitation
 
-`--workload` accepts the existing hash-locked `FrozenWorkload` JSON format. All runs in one comparison report must bind the same manifest hash.
+The reviewed M4 safety path intentionally emits `evidence_level=development_fixture` for its operator-authored trusted-fixture verifier. That lane is not an OS filesystem/network sandbox. As a result, this approved evaluation adapter is deliberately fail-closed today for live measured final acceptance. It becomes usable for measured claims only when an independently reviewed M4 execution boundary can legitimately issue a signed `evidence_level=measured` receipt.
 
-Example simulator/evidence-pipeline run:
+Issue #63 therefore remains open. Passing simulator tests, M3 receipt checks, package qualification, or the existence of several workers does not close that boundary.
 
-```bash
-residual evaluate \
-  --workload spec.json \
-  --configs single,fixed,dynamic \
-  --runs 3 \
-  --output runs/spec-eval/report.json \
-  --observations runs/spec-eval/observations.jsonl
-```
+## Topology semantics
 
-The configuration set must contain `single`, `fixed`, and `dynamic` exactly once.
+`approved_attempt_ids` are authorization only. They do not encode concurrency or scheduler policy.
 
-## Measured Factory runner
+- `single`: approved worker bounds must be `(1, 1)` and every scheduler measurement must report one total worker.
+- `fixed`: bounds must be `(N, N)` for `N >= 2`; every measurement must report that width and no worker-resize action may occur.
+- `dynamic`: bounds must satisfy `min < max`; observed scheduler worker counts and worker-resize actions must remain inside those bounds. Scheduler/Ready-DAG evidence proves the host scheduler participated; attempt count is irrelevant.
 
-`MeasuredFactoryEvaluationRunner` accepts a `FactoryEvaluationAdapter` callable. For each configuration and run index, the adapter must execute the already-approved real Factory experiment and return `FactoryRunMeasurement` with counters from the runtime, verifier, Evidence Bus, integrator, scheduler and final project tests.
+This fixes the earlier adapter design that treated one attempt as `single` and two-or-more attempts as `fixed`/`dynamic`. A sequential single-worker run may execute many tasks/attempts, and a fixed swarm width does not equal task count.
 
-The outer evaluation runner measures wall clock itself around the adapter invocation. A backend cannot self-report a faster elapsed time. GPU time and coordination time remain runtime instrumentation because they cannot be inferred correctly from outer wall clock alone.
+## Metrics and controls
 
-Every measured run MUST provide M3 `WorkerReceipt` values. Before their engine attribution is used, every receipt is cryptographically verified against the evaluation Station public key. A foreign or forged receipt fails the run. A single run also cannot mix Factory execution-plan hashes or duplicate receipt hashes.
+The underlying `MeasuredFactoryEvaluationRunner` continues to measure wall clock outside the execution adapter and derives engine/revision controls from cryptographically verified M3 receipts. Every run records elapsed time, accepted tasks/hour, tokens, GPU time, coordination overhead, rework, merge conflicts, verifier rejection rate, final test pass rate, and cost analysis. The same FrozenWorkload, engine/model controls, temperature, and seed requirements still apply.
 
-The runner derives engine/revision controls from those verified receipts and report generation still fails closed if engine, revision, temperature, or seed differs between experiment runs.
+SPEC-EVAL requires at least three measured runs for each configuration before producing a comparison report.
 
-The adapter boundary is deliberate. A `FrozenWorkload` describes fixed experimental work, but it is not authorization to derive filesystem scope, tool permissions, resource budgets, acceptance criteria, or HITL policy. Those remain explicit Factory inputs.
+## Evidence products
 
-## Metrics
+The ordinary `SignedComparisonReport` remains the system-metric report. The approved measured runner wraps it in a second Station-signed `residual.eval.approved-factory-comparison.v1` report containing:
 
-Every run records the nine metrics required by SPEC-EVAL-001:
+- the complete signed base comparison report;
+- the FrozenWorkload manifest hash;
+- one provenance record for every configuration/run index;
+- approval-reference hash;
+- Factory ExecutionPlan hash;
+- M4 integration-plan hash;
+- M4 IntegrationReceipt hash;
+- scheduler topology-trace hash.
 
-1. elapsed time in minutes;
-2. accepted tasks per hour;
-3. total LLM token count;
-4. GPU time in minutes;
-5. coordination overhead percentage;
-6. rework rate;
-7. integration conflict count;
-8. verifier rejection rate;
-9. final project test pass rate.
-
-The report gives mean, median, sample standard deviation, minimum, and maximum for every metric and pairwise Mann-Whitney U or Welch t-test comparisons.
-
-## Controls
-
-`ExecutionControls` binds engine IDs, model/engine revisions, temperatures, and seed. `ExecutionControls.from_receipts()` derives engine attribution from signed M3 `WorkerReceipt` values. Report generation fails closed when controls differ across runs.
-
-For adapters whose provider exposes a model revision separately from the engine package revision, encode that revision into the receipt's engine version until the receipt schema gains a dedicated model-revision field.
-
-## Cost analysis
-
-Each run records:
-
-- API cost = tokens / 1,000 × configured API rate;
-- GPU cost = GPU hours × configured GPU rate;
-- infrastructure cost = configured per-run infrastructure cost;
-- total cost;
-- cost per accepted task.
-
-Each configuration also reports aggregate total cost divided by aggregate accepted tasks.
-
-## Observation derivability
-
-Every run is emitted through the hash-chained observation layer with its complete counters, controls, metric values, cost values, and run hash. The final observation contains only the report hash, signature metadata, significance settings, and source run hashes.
-
-The full report is intentionally not copied into the terminal event because the observation schema has a 24 KB per-event ceiling. `signed_report_from_observations()` reconstructs the complete payload from run observations and reattaches the original Station key ID and signature from the terminal event. The original private key is not required for replay; an externally trusted public key is only needed to verify the recovered signature.
-
-## Signature
-
-`ComparisonReport` is signed by the same Ed25519 `StationIdentity` primitive used by Factory evidence. A persistent Station private key can be provided with `--station-key`. If it is omitted, the simulator CLI uses an ephemeral evaluation-only identity and labels that fact in the output. The public key is written into the report wrapper so reviewers can verify the cryptographic signature; trust in the identity itself still requires an externally pinned Station public key.
+For measured Factory performance claims, retain and publish the outer approved report together with the referenced M3/M4/scheduler evidence. The base comparison report by itself does not prove authoritative topology or final acceptance.
 
 ## Claim discipline
 
-A green simulator SPEC-EVAL run demonstrates that the comparative evidence pipeline is reproducible, statistically summarized, observation-backed, and signed. It does not demonstrate that dynamic swarms are faster or cheaper in production.
-
-A report produced through `MeasuredFactoryEvaluationRunner` can support those performance claims only when its adapter actually runs the real Factory configurations, its counters come from those runtime components, and the same workload and controls are preserved across all experiment runs.
+A green simulator run demonstrates the evaluation pipeline, not swarm performance. A green approved-adapter unit test demonstrates fail-closed evidence binding, not that a production OS-isolated M4 verifier exists. Real performance claims require real measured execution, an authoritative measured M4 acceptance receipt, scheduler/runtime topology evidence, unchanged experimental controls, and the signed approved comparison envelope.
