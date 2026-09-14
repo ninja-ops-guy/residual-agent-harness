@@ -11,7 +11,9 @@ A run can show, for the frozen supplied suite and configured engines/models:
 - Verified Compute Market selection using only train evidence before evaluation decisions;
 - market success versus an oracle that asks whether any tested engine could solve each evaluation case;
 - observed latency/token usage from the normalized provider adapters;
-- a content hash binding workload cases and declared provenance.
+- a content hash binding workload cases and declared provenance;
+- a preregistration hash binding hypotheses, suite, engine configuration, stopping rule, budget ceiling, and runner revision before provider execution;
+- an evidence-bundle hash binding the preregistration to the final report.
 
 It does **not** establish universal model superiority, production safety, provider independence, or authorship authenticity.
 `externally_authored` is an attestation supplied by the evaluator. Residual binds that assertion into the suite hash but cannot prove who authored a file.
@@ -55,6 +57,24 @@ Supported declarative graders are `exact_text`, `contains_all`, `json_exact`, an
 
 Both train and evaluation splits are mandatory. Evaluation outcomes are not applied to market profiles until after each corresponding market decision has been recorded.
 
+## Importing a public benchmark
+
+For public JSONL datasets with scalar exact answers, use the deterministic adapter rather than rewriting cases by hand:
+
+```bash
+python scripts/import_external_jsonl.py \
+  --input evaluator-dataset.jsonl \
+  --output external-suite.json \
+  --name evaluator-suite \
+  --author "Independent Evaluator" \
+  --source-uri "https://immutable.example/dataset" \
+  --authored-at "2026-09-01T00:00:00Z" \
+  --split-salt "published-before-execution" \
+  --train-percent 20
+```
+
+The adapter hashes the original source file and appends that digest to `source_uri`. Split assignment is deterministic from `(case_id, split_salt)`, so the same source and salt reproduce the same train/evaluation partition. The adapter is only a format converter; external authorship remains an evaluator-supplied provenance assertion.
+
 ## Engine config
 
 ```json
@@ -83,30 +103,53 @@ Both train and evaluation splits are mandatory. Evaluation outcomes are not appl
 }
 ```
 
-Do not place credentials, bearer tokens, headers, or secret-bearing URLs in this file. The existing `ai_providers` registry resolves credentials from the environment. Supported provider names currently include OpenAI, Anthropic, Google, Azure OpenAI, Bedrock, Ollama, and OpenAI-compatible endpoints.
+Do not place credentials, bearer tokens, headers, endpoints, or secret-bearing URLs in this file. The preregistration loader rejects common secret-bearing fields. The existing `ai_providers` registry resolves credentials and endpoints from the environment. Supported provider names currently include OpenAI, Anthropic, Google, Azure OpenAI, Bedrock, Ollama, and OpenAI-compatible endpoints.
 
-## Precommit, then run
+## Preregister, verify, then run
 
-First compute and record the suite hash before any provider calls:
+The preferred flow freezes the study before any provider call.
+
+First create a manifest:
 
 ```bash
-python scripts/external_assurance_eval.py hash --suite external-suite.json
+python scripts/external_assurance_eval.py preregister \
+  --suite external-suite.json \
+  --engines external-engines.json \
+  --study-id residual-live-001 \
+  --registered-at 2026-09-14T03:30:00-04:00 \
+  --hypothesis "VCM improves evaluation success over a fixed cheapest-engine policy." \
+  --primary-metric market_success_rate \
+  --secondary-metric oracle_gap \
+  --maximum-budget-usd 25 \
+  --runner-revision git:<COMMIT_SHA> \
+  --output preregistration.json
 ```
 
-Then execute with that exact hash:
+Then verify it independently:
+
+```bash
+python scripts/external_assurance_eval.py verify \
+  --manifest preregistration.json \
+  --suite external-suite.json \
+  --engines external-engines.json
+```
+
+Finally execute the live providers:
 
 ```bash
 python scripts/external_assurance_eval.py run \
+  --manifest preregistration.json \
   --suite external-suite.json \
-  --expected-suite-sha256 <RECORDED_HASH> \
   --engines external-engines.json \
-  --output runs/external-assurance/report.json
+  --output runs/external-assurance/evidence-bundle.json
 ```
 
-The run aborts before provider execution if the suite has changed since precommitment.
+The run aborts before provider execution if either the suite or engine configuration differs from the preregistration. For the default fixed-case preregistration, the manifest also binds the exact evaluation-case count. The resulting evidence bundle includes the full preregistration payload, preregistration hash, suite hash, engine-config hash, report, and bundle hash.
+
+The legacy `hash --suite ...` command remains available for inspecting the canonical suite hash, but a bare expected-suite hash is no longer the preferred live-run gate because it does not freeze engines, hypotheses, stopping rules, or budget.
 
 ## Interpretation
 
-Treat this evidence as a scoped experiment. A stronger publication-quality study should additionally use an evaluator-controlled repository or immutable release for the suite, pre-register engine versions and pricing, run repeated trials where provider sampling is nondeterministic, retain raw normalized receipts, and report confidence intervals rather than relying on a single success percentage.
+Treat this evidence as a scoped experiment. For publication-quality claims, use an evaluator-controlled repository or immutable release for the suite, publish the preregistration before execution, record exact engine/model identifiers and pricing, run repeated trials where provider sampling is nondeterministic, retain normalized receipts, and report confidence intervals rather than relying on a single success percentage.
 
 M2 swarm evidence remains separate. Until a concrete `SwarmRuntime`/`WorkerContract` implementation lands on `main`, this external runner evaluates heterogeneous engine selection with direct execution only; it does not pretend to provide live swarm evidence.
