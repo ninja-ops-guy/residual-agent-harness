@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 
 from residual.config import build_harness, load_config
-from residual.core import canonical
+from residual.core import canonical, digest
 from residual.reliability_experiment_report import build_experiment_report
 from residual.reliability_experiments import FAULT_KINDS, FaultSpec, run_fault_trial
 from residual.study import load_suite
@@ -48,14 +48,18 @@ def main(argv=None):
             receipt["case_id"] = entry["id"]
             receipt["family"] = entry["family"]
             receipt["split"] = entry["split"]
+            receipt["sha256"] = digest({k: v for k, v in receipt.items() if k != "sha256"})
             receipts.append(receipt)
 
     (output / "fault-trials.jsonl").write_text("".join(canonical(r) + "\n" for r in receipts), encoding="utf-8")
     report = build_experiment_report(receipts)
-    report["suite_name"] = suite["name"]
-    report["evidence_level"] = suite["evidence_level"]
-    report["split"] = args.split
-    report["development_only"] = suite["evidence_level"] != "independently_authored"
+    report.update(
+        suite_name=suite["name"],
+        evidence_level=suite["evidence_level"],
+        split=args.split,
+        development_only=suite["evidence_level"] != "independently_authored",
+    )
+    report["sha256"] = digest({k: v for k, v in report.items() if k != "sha256"})
     (output / "fault-report.json").write_text(json.dumps(report, indent=2, ensure_ascii=False, allow_nan=False) + "\n", encoding="utf-8")
     print(f"Recorded {len(receipts)} controlled fault trials across {len(selected)} cases")
     return 0
