@@ -66,9 +66,15 @@ class _ProcessControl:
         self.pidfd = os.pidfd_open(process.pid, 0)
         self._lock = threading.Lock()
         self.reason: tuple[str, str, dict] | None = None
+        self.termination_requested = threading.Event()
         self.stopped = threading.Event()
 
     def kill(self, reason: tuple[str, str, dict] | None = None) -> None:
+        # Mark termination intent before waiting on the process. The watchdog uses
+        # this to avoid replacing a primary broker/contract violation with a
+        # secondary lease-read failure while another thread is already terminating
+        # the attempt.
+        self.termination_requested.set()
         with self._lock:
             if reason is not None and self.reason is None:
                 self.reason = reason
@@ -114,7 +120,7 @@ class FactoryRuntime:
                started: float, done: threading.Event) -> None:
         memory_at = lease_at = 0.0
         while not done.wait(0.02):
-            if control.process.poll() is not None:
+            if control.termination_requested.is_set() or control.process.poll() is not None:
                 return
             now = time.monotonic()
             reason = None
@@ -132,6 +138,11 @@ class FactoryRuntime:
                         reason = ('resource', 'memory_limit_mb', {'reason': 'rss_meter_unavailable'})
             if reason is None and now >= lease_at:
                 lease_at = now + 0.2
+                # A broker/guard path may have started killing the worker after the
+                # top-of-loop check. Do not perform a secondary lease read in that
+                # window and accidentally overwrite the primary violation reason.
+                if control.termination_requested.is_set():
+                    return
                 try:
                     current = self.journal.lease_is_current(contract)
                 except Exception:
@@ -394,12 +405,12 @@ class FactoryRuntime:
         return purged
 
 
-def main(argv=None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description='Opt-in M2 brokered worker execution; candidates only')
     parser.add_argument('--repo', required=True)
     parser.add_argument('--runtime-root', required=True)
     parser.add_argument('--journal', required=True)
-    parser.add_argument('--run-id', required=True)
+    parser.add_argument('--run-id', '--trace-id', dest='run_id', required=True)
     parser.add_argument('--plan', required=True)
     parser.add_argument('--approval', required=True)
     parser.add_argument('--contract', required=True)

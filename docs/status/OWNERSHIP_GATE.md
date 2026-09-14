@@ -5,7 +5,7 @@ The gate evaluates committed HEAD against two explicit history baselines:
 | Scope | Baseline | Policy |
 | --- | --- | --- |
 | Original swarm reporting and legacy directories | `98c12f0` (resolved to a full commit in output) | Preserve `residual/swarm`, `residual/evidence`, `residual/scheduler`, and `residual/integrator`. |
-| Canonical Factory M2/M3 and reserved M4 files | `412b66c35f7c0e1ac479fe60a5b7d33d5510e3af` | Preserve the exact `PROTECTED_FILES` set in `verifier/v3/check_swarm.py`. |
+| Canonical Factory M2/M3 and reserved M4 files | `aa7685d165c787a636c4d2e30c132d27b1eabf54` | Preserve the exact `PROTECTED_FILES` set in `verifier/v3/check_swarm.py`. |
 
 Missing commits, non-commit objects, non-ancestor baselines, Git errors, and
 failed diffs are failures. An unavailable comparison is JSON `null`, never a
@@ -14,9 +14,21 @@ NUL-delimited paths and disabled rename detection preserve deleted, renamed,
 and whitespace-bearing paths. Git replacement objects are disabled for these
 comparisons. Original legacy protections remain in addition to Factory paths.
 
-The Factory baseline is not advanced by this repair. Any future authorized M4
-integration must coordinate a baseline update with the canonical Factory owner
-(PR #22), in the same reviewed change. A baseline advance must not hide an
+The proposed Factory baseline transition in this PR depends on reviewing #61,
+which restores the lifecycle guards lost in #58 before admitting its watchdog
+repair. The preceding baseline was `412b66c35f7c0e1ac479fe60a5b7d33d5510e3af`.
+Among the protected paths, the transition changes only `runtime.py` and adds
+`m4_evidence.py`. All other previously protected files are unchanged. The new
+`m4_integrator.py` path from #60 is reserved and protected while absent from this
+baseline: its eventual addition needs a separate reviewed transition. This gate
+change does not approve or qualify #60. No protected paths have been removed.
+
+Review/merge order is #61 -> #59 -> #50. Retarget dependent PRs after their
+parents land and qualify the resulting integration refs again. A squash/rebase
+merge can change ancestry: do not keep a baseline commit that was not retained
+as an ancestor; reconcile it explicitly with the byte-identical reviewed tree.
+Any future authorized M4 integration must coordinate a baseline update with the
+canonical Factory owner (#22/#60), in the same reviewed change. A baseline advance must not hide an
 unrelated trust-boundary modification. The check is a committed-tree guard, not
 an OS sandbox or proof of the correctness of Factory implementations.
 
