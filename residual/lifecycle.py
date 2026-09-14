@@ -8,13 +8,22 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 from threading import RLock
-from typing import Callable, Iterable
+from typing import Callable
 
 
 class ModuleLifecycleBus:
-    def __init__(self):
+    def __init__(self, *, include_metrics: bool = True):
         self._handlers = defaultdict(list)
         self._lock = RLock()
+        self._handler_failures = 0
+        if include_metrics:
+            from .observability import DEFAULT_BRIDGE
+            self.subscribe("*", DEFAULT_BRIDGE)
+
+    @property
+    def handler_failures(self):
+        with self._lock:
+            return self._handler_failures
 
     def subscribe(self, event, handler):
         if not isinstance(event, str) or not event or not callable(handler):
@@ -38,7 +47,8 @@ class ModuleLifecycleBus:
                 handler(event, dict(payload))
             except Exception:
                 # Diagnostics must never become authority over the run.
-                pass
+                with self._lock:
+                    self._handler_failures += 1
 
 
 @dataclass
