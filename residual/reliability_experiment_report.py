@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .core import ContractError, digest, strict_json
+from .reliability_experiments import DEFERRED_FAULT_KINDS, FAULT_KINDS
 
 
 def _ratio(numerator: int, denominator: int) -> float | None:
@@ -31,6 +32,10 @@ def summarize_fault_trials(receipts: Iterable[dict[str, Any]]) -> dict[str, Any]
     for row in rows:
         if row.get("schema_version") != "residual.fault-trial.v1" or row.get("fault_injected") is not True:
             raise ContractError("invalid fault trial receipt")
+        if row.get("injection_observed") is not True:
+            raise ContractError("fault trial did not observe its scheduled injection")
+        if row.get("fault_kind") not in FAULT_KINDS:
+            raise ContractError("fault trial uses unsupported fault kind")
         if not isinstance(row.get("fault_contained"), bool) or not isinstance(row.get("fault_detected"), bool):
             raise ContractError("fault trial missing explicit labels")
 
@@ -93,11 +98,18 @@ def build_experiment_report(fault_receipts: Iterable[dict[str, Any]]) -> dict[st
     rows = list(fault_receipts)
     result = {
         "schema_version": "residual.reliability-experiment-report.v1",
+        "fault_catalog": {
+            "executable": dict(sorted(FAULT_KINDS.items())),
+            "deferred_runtime_required": dict(sorted(DEFERRED_FAULT_KINDS.items())),
+            "executable_count": len(FAULT_KINDS),
+            "deferred_count": len(DEFERRED_FAULT_KINDS),
+        },
         "fault_containment": summarize_fault_trials(rows),
         "orchestration_timing": summarize_timings(rows),
         "claim_scope": [
             "Fault containment applies only to the explicitly injected fault kinds represented in these receipts.",
             "Detection and containment are separate outcomes; detection alone does not establish containment.",
+            "Deferred fault kinds are not counted as trials and require the newer isolated worker/evidence-bus/integrator runtime.",
             "Timing data are direct measurements of instrumented boundaries, not estimates derived from residual wall time.",
             "Planning and context packaging share a boundary in the current harness and are not falsely split.",
         ],
