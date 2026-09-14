@@ -42,18 +42,7 @@ jobs:
           cp site/live-demo.html _site/demo/index.html
           cp site/demo.html _site/walkthrough/index.html
           cp site/walkthrough-persist.js _site/walkthrough/persist.js
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('_site/walkthrough/index.html')
-          text = p.read_text()
-          marker = '</body>'
-          script = '<script src="./persist.js"></script>'
-          if script not in text:
-              if marker not in text:
-                  raise SystemExit('walkthrough body marker missing')
-              text = text.replace(marker, script + marker, 1)
-              p.write_text(text)
-          PY
+          printf '\n<script src="./persist.js"></script>\n' >> _site/walkthrough/index.html
           cat > _site/demo.html <<'EOF'
           <!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=./demo/"><title>RESIDUAL Live Demo</title><body style="background:#000;color:#39ff68;font:16px monospace">Launching <a style="color:#39ff68" href="./demo/">RESIDUAL live VM</a>…</body>
           EOF
