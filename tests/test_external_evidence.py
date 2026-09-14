@@ -95,7 +95,7 @@ class ExternalEvidenceTests(unittest.TestCase):
         self.assertEqual(report["market"]["evaluation_successes"], 0)
         self.assertEqual(report["market"]["oracle_successes"], 3)
         self.assertEqual(report["baselines"]["cheapest_eligible"]["evaluation_successes"], 0)
-        local = next(key for key in report["per_engine"] if key.startswith("ollama"))
+        local = next(key for key in report["per_engine"] if key.startswith("provider:ollama:"))
         self.assertEqual(report["baselines"]["fixed_engine"][local]["success_rate"], 1.0)
         self.assertEqual(report["per_engine"][local]["evaluation_successes"], 3)
         self.assertLess(report["market"]["success_ci95"]["upper"], 1.0)
