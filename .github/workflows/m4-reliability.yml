@@ -1,0 +1,41 @@
+name: Factory M4 reliability evidence
+on:
+  pull_request:
+    paths:
+      - 'residual/factory/integrator.py'
+      - 'residual/factory/reliability_m4.py'
+      - 'tests/test_factory_reliability_m4.py'
+      - 'scripts/run_m4_fault_matrix.py'
+      - '.github/workflows/m4-reliability.yml'
+permissions:
+  contents: read
+jobs:
+  integration-faults:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'cryptography>=43'
+      - name: Preserve exact source identity
+        run: |
+          mkdir -p runs/m4-reliability
+          git rev-parse HEAD > runs/m4-reliability/commit.txt
+          git rev-parse HEAD^{tree} > runs/m4-reliability/tree.txt
+          python --version > runs/m4-reliability/platform.txt
+          python -m pip show cryptography >> runs/m4-reliability/platform.txt
+      - name: Controlled M4 reliability tests
+        run: |
+          set -o pipefail
+          python -m unittest tests.test_factory_reliability_m4 -v 2>&1 | tee runs/m4-reliability/tests.txt
+      - name: Controlled M4 fault matrix
+        run: python -m scripts.run_m4_fault_matrix --output runs/m4-reliability
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: factory-m4-reliability-${{ github.sha }}
+          path: runs/m4-reliability
