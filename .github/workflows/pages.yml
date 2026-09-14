@@ -37,14 +37,17 @@ jobs:
         run: |
           set -euo pipefail
           rm -rf _site
-          mkdir -p _site/demo _site/walkthrough _site/vm
+          mkdir -p _site/demo _site/walkthrough _site/vm _site/site
           cp site/index.html _site/index.html
           cp site/live-demo.html _site/demo/index.html
           cp site/demo.html _site/walkthrough/index.html
           cp site/walkthrough-persist.js _site/walkthrough/persist.js
           printf '\n<script src="./persist.js"></script>\n' >> _site/walkthrough/index.html
           cat > _site/demo.html <<'EOF'
-          <!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=./demo/"><title>RESIDUAL Live Demo</title><body style="background:#000;color:#39ff68;font:16px monospace">Launching <a style="color:#39ff68" href="./demo/">RESIDUAL live VM</a>…</body>
+          <!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=./demo/"><script>location.replace('./demo/')</script><title>RESIDUAL Live Demo</title><body style="background:#000;color:#39ff68;font:16px monospace">Launching <a style="color:#39ff68" href="./demo/">RESIDUAL live VM</a>…</body>
+          EOF
+          cat > _site/site/demo.html <<'EOF'
+          <!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=../demo/"><script>location.replace('../demo/')</script><title>RESIDUAL Live Demo</title><body style="background:#000;color:#39ff68;font:16px monospace">This URL moved. Launching <a style="color:#39ff68" href="../demo/">RESIDUAL live VM</a>…</body>
           EOF
           touch _site/.nojekyll
 
@@ -59,16 +62,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rsync -a \
-            --exclude='.git' \
-            --exclude='_site' \
-            --exclude='_webvm' \
-            ./ _webvm/residual-src/
+          rsync -a --exclude='.git' --exclude='_site' --exclude='_webvm' ./ _webvm/residual-src/
           cp demo/vm/Dockerfile _webvm/dockerfiles/residual_demo
-          docker build _webvm \
-            --tag residual-webvm-demo \
-            --file _webvm/dockerfiles/residual_demo \
-            --platform=linux/386
+          docker build _webvm --tag residual-webvm-demo --file _webvm/dockerfiles/residual_demo --platform=linux/386
 
       - name: Export VM filesystem
         shell: bash
@@ -76,26 +72,20 @@ jobs:
           set -euo pipefail
           CONTAINER_ID="$(docker create residual-webvm-demo)"
           trap 'docker rm -f "$CONTAINER_ID" >/dev/null 2>&1 || true; sudo umount /mnt/residual-webvm >/dev/null 2>&1 || true' EXIT
-
           sudo mkdir -p /mnt/residual-webvm
           sudo fallocate -l 320M residual-demo.ext2
           sudo mkfs.ext2 -q -r 0 residual-demo.ext2
           sudo mount -o loop -t ext2 residual-demo.ext2 /mnt/residual-webvm
           sudo docker cp -a "${CONTAINER_ID}:/" /mnt/residual-webvm/
-
-          # Fail the deployment if the exported guest cannot actually start.
           sudo test -x /mnt/residual-webvm/bin/bash
           sudo test -x /mnt/residual-webvm/usr/local/bin/residual-demo-shell
           sudo test -f /mnt/residual-webvm/home/residual/.bashrc
           sudo test -f /mnt/residual-webvm/opt/residual/pyproject.toml
           sudo grep -q 'RESIDUAL BOOT: guest process attached' /mnt/residual-webvm/usr/local/bin/residual-demo-shell
-
           sudo umount /mnt/residual-webvm
           docker rm "$CONTAINER_ID" >/dev/null
           trap - EXIT
-
-          sudo split residual-demo.ext2 _site/vm/residual-demo.ext2.c \
-            -a 6 -b 128k -x --additional-suffix=.txt
+          sudo split residual-demo.ext2 _site/vm/residual-demo.ext2.c -a 6 -b 128k -x --additional-suffix=.txt
           stat -c%s residual-demo.ext2 | sudo tee _site/vm/residual-demo.ext2.meta >/dev/null
           sudo chmod -R a+rX _site/vm
 
@@ -110,22 +100,7 @@ jobs:
           export const needsDisplay = false;
           export const cmd = "/usr/local/bin/residual-demo-shell";
           export const args = [];
-          export const opts = {
-            env: [
-              "HOME=/home/residual",
-              "TERM=xterm",
-              "USER=residual",
-              "SHELL=/bin/bash",
-              "EDITOR=vi",
-              "LANG=C",
-              "LC_ALL=C",
-              "PYTHONUNBUFFERED=1",
-              "RESIDUAL_DEMO_MODEL=gpt-5.6-luna"
-            ],
-            cwd: "/opt/residual",
-            uid: 1000,
-            gid: 1000
-          };
+          export const opts = {env:["HOME=/home/residual","TERM=xterm","USER=residual","SHELL=/bin/bash","EDITOR=vi","LANG=C","LC_ALL=C","PYTHONUNBUFFERED=1","RESIDUAL_DEMO_MODEL=gpt-5.6-luna"],cwd:"/opt/residual",uid:1000,gid:1000};
           EOF
 
       - name: Add browser inference bridge to WebVM
@@ -137,14 +112,12 @@ jobs:
           path = Path('_webvm/src/lib/WebVM.svelte')
           text = path.read_text()
           old = '''\t\tterm.write(new Uint8Array(buf));'''
-          new = '''\t\tconst bytes = new Uint8Array(buf);\n\t\tterm.write(bytes);\n\t\ttry\n\t\t{\n\t\t\twindow.parent.postMessage({type: "residual-vm-output", data: new TextDecoder().decode(bytes)}, window.location.origin);\n\t\t}\n\t\tcatch(e) {}'''
-          if text.count(old) != 1:
-              raise SystemExit('WebVM writeData hook moved; refusing an unsafe patch')
+          new = '''\t\tconst bytes = new Uint8Array(buf);\n\t\tterm.write(bytes);\n\t\ttry { window.parent.postMessage({type: "residual-vm-output", data: new TextDecoder().decode(bytes)}, window.location.origin); } catch(e) {}'''
+          if text.count(old) != 1: raise SystemExit('WebVM writeData hook moved; refusing an unsafe patch')
           text = text.replace(old, new)
           old_mount = '\tonMount(initTerminal);'
           new_mount = '''\tonMount(() => {\n\t\twindow.addEventListener("message", (event) => {\n\t\t\tif(event.source !== window.parent || event.origin !== window.location.origin) return;\n\t\t\tif(event.data?.type !== "residual-vm-input" || typeof event.data.data !== "string") return;\n\t\t\treadData(event.data.data);\n\t\t});\n\t\tinitTerminal();\n\t});'''
-          if text.count(old_mount) != 1:
-              raise SystemExit('WebVM mount hook moved; refusing an unsafe patch')
+          if text.count(old_mount) != 1: raise SystemExit('WebVM mount hook moved; refusing an unsafe patch')
           path.write_text(text.replace(old_mount, new_mount))
           PY
 
@@ -162,11 +135,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          find _site/vm -type d | while read -r dir; do
-            index_list="$dir/index.list"
-            rm -f "$index_list"
-            ls "$dir" | tee "$index_list" >/dev/null
-          done
+          find _site/vm -type d | while read -r dir; do rm -f "$dir/index.list"; ls "$dir" | tee "$dir/index.list" >/dev/null; done
 
       - name: Validate Pages artifact
         shell: bash
@@ -174,12 +143,15 @@ jobs:
           set -euo pipefail
           test -s _site/index.html
           test -s _site/demo/index.html
+          test -s _site/demo.html
+          test -s _site/site/demo.html
           test -s _site/walkthrough/index.html
           test -s _site/walkthrough/persist.js
           test -s _site/vm/index.html
           test -s _site/vm/residual-demo.ext2.meta
           grep -q "The repository is the demo" _site/demo/index.html
           grep -q "js.puter.com/v2" _site/demo/index.html
+          grep -q "../demo/" _site/site/demo.html
           grep -q "residual-vm-output" _webvm/src/lib/WebVM.svelte
           grep -q "browser_bridge" examples/onboarding/cloud_demo.sh
           grep -q "RESIDUAL" _site/index.html
@@ -191,12 +163,10 @@ jobs:
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
-
       - name: Upload static site
         uses: actions/upload-pages-artifact@v3
         with:
           path: _site
-
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
