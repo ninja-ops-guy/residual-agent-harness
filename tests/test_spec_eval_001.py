@@ -9,6 +9,7 @@ import pytest
 from observation_layer import ObservationBus
 from observation_layer.sinks import InMemorySink
 from residual.cli import main as residual_main
+from residual.eval.replay import signed_report_from_observations
 from residual.eval.spec_eval import (
     CostRates,
     ExecutionControls,
@@ -101,11 +102,10 @@ def test_signed_report_replays_from_observation_log_and_stays_small():
     assert "report" not in terminal[0].payload
     assert len(terminal[0].canonical_bytes()) < 24_000
 
-    replayed = SpecEvaluationEvidence.report_from_observations(
-        workload, identity, sink.events
-    )
+    replayed = signed_report_from_observations(workload, sink.events)
     assert replayed.report_hash == report.report_hash
     assert replayed.station_signature == report.station_signature
+    assert replayed.station_key_id == report.station_key_id
     assert replayed.verify_signature(identity.public_bytes())
 
 
