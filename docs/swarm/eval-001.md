@@ -69,10 +69,12 @@ python3 -m residual.eval --out evidence/eval   # regenerate fixture artifacts
 ```
 
 Retained evidence (generated at code commit `1ee4bcf` on
-`swarm/eval-001-frozen-reliability`, tree
-see artifact `source.tree` (clean worktree)):
+`swarm/eval-001-frozen-reliability`, tree `de3c25e0f9fbc6a4b76202c9c70640b5240888a7` (clean worktree)):
 
-- `evidence/eval/fixture-study.json` — hash-bound report (`residual.eval-report.v1`)
+- `evidence/eval/fixture-study.json` — full hash-bound report (`residual.eval-report.v1`);
+  regenerated on demand by `python3 -m residual.eval` (deterministic) and pinned
+  by `results.report_sha256` inside the evidence artifact
+  (`d9a3b5df9de463df3b08519e7f96e44a72b9b64d40a903ba57cf37c2edca8d5d`).
 - `evidence/eval/fixture-study.csv` — paper-ready per-config/slice metrics
 - `evidence/eval/fixture-study-plot-inputs.json` — plotting inputs bound to the report hash
 - `evidence/eval/fixture-study-evidence.json` — Gate B artifact (`residual.eval-evidence.v1`), evidence sha256 `85908c207e88fbadbdc47cf9610cc0ad0ae77036533299cde73ed74e2beca716`
