@@ -7,7 +7,6 @@ import math
 import re
 import tempfile
 import os
-import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -463,6 +462,16 @@ class DeterministicIntegrator:
     def _passes(results: Sequence[VerificationResult]) -> bool:
         return bool(results) and all(result.status == "pass" for result in results)
 
+    @staticmethod
+    def _verification_available(results: Sequence[VerificationResult]) -> bool:
+        # Only normal verifier exits support candidate attribution. UNKNOWN,
+        # resource termination, signals and incomplete results never do.
+        return bool(results) and all(
+            r.status in {"pass", "fail"} and r.termination_reason == "exit"
+            and type(r.returncode) is int and r.returncode >= 0
+            for r in results
+        )
+
     def _worktree(self, name: str, root_commit: str) -> Path:
         path = self.root / name
         if path.exists() or path.is_symlink():
@@ -476,21 +485,29 @@ class DeterministicIntegrator:
             git(self.repository, "worktree", "remove", "--force", str(path))
 
     def _verify_subset(self, root_commit: str, receipts: Sequence[WorkerReceipt],
-                       policy: ProjectVerificationPolicy, token: str) -> bool:
+                       policy: ProjectVerificationPolicy, token: str) -> bool | None:
+        """PASS/FAIL/UNKNOWN counterfactual; missing dependencies are not FAIL."""
+        supplied = {r.receipt_hash for r in receipts}
+        if any(parent not in supplied for r in receipts for parent in r.parent_receipts):
+            return None
         path = self._worktree(f"bisect-{token}", root_commit)
         try:
             winners, conflicts = self._classify_overlaps(receipts)
             if conflicts:
-                # A subset that becomes ambiguous cannot be treated as a passing
-                # counterfactual. Fail closed instead of silently choosing a side.
-                return False
+                return None
             self._apply_receipts(path, receipts, winners)
-            return self._passes(self._run_verification(path, policy))
+            results = self._run_verification(path, policy)
+            if not self._verification_available(results):
+                return None
+            return self._passes(results)
         finally:
             self._remove_worktree(path)
 
     def _attribute_failure(self, root_commit: str, receipts: Sequence[WorkerReceipt],
                            policy: ProjectVerificationPolicy) -> str | None:
+        # A broken/unavailable baseline verifier cannot establish a regression.
+        if self._verify_subset(root_commit, (), policy, "baseline") is not True:
+            return None
         candidates = list(receipts)
         round_id = 0
         while len(candidates) > 1:
@@ -499,18 +516,26 @@ class DeterministicIntegrator:
             left_passes = self._verify_subset(root_commit, left, policy, f"{round_id}-left")
             self._emit("M4VerificationBisect", round=round_id,
                        candidate_count=len(candidates), tested="left", passes=left_passes)
-            if not left_passes:
+            if left_passes is None:
+                return None
+            if left_passes is False:
                 candidates = left
             else:
                 right_passes = self._verify_subset(root_commit, right, policy, f"{round_id}-right")
                 self._emit("M4VerificationBisect", round=round_id,
                            candidate_count=len(candidates), tested="right", passes=right_passes)
-                if not right_passes:
+                if right_passes is None:
+                    return None
+                if right_passes is False:
                     candidates = right
                 else:
                     return None
             round_id += 1
-        return candidates[0].receipt_hash if candidates else None
+        # Even a single receipt must reproduce a normal-exit failure. This is a
+        # diagnostic, not proof of unique causality for arbitrary interactions.
+        if candidates and self._verify_subset(root_commit, candidates, policy, "confirm") is False:
+            return candidates[0].receipt_hash
+        return None
 
     def integrate(self, plan: EvidenceIntegrationPlan, *, policy: ProjectVerificationPolicy,
                   station_identity: StationIdentity,
@@ -552,7 +577,14 @@ class DeterministicIntegrator:
             self._emit("M4ProjectVerification", integration_plan_hash=plan.plan_hash,
                        passed=passed, checks=[result.to_dict() for result in results])
             if not passed:
-                offender = self._attribute_failure(root_commit, receipts, policy)
+                offender = None
+                if self._verification_available(results):
+                    try:
+                        offender = self._attribute_failure(root_commit, receipts, policy)
+                    except WorkerContractError:
+                        self._emit("M4AttributionUnavailable", reason="counterfactual_evidence_unavailable")
+                else:
+                    self._emit("M4AttributionUnavailable", reason="verification_unavailable_or_resource_limited")
                 if offender is not None:
                     task_id = next(r.task_id for r in receipts if r.receipt_hash == offender)
                     self._emit("M4ReceiptRevisionRequired", receipt_hash=offender,
