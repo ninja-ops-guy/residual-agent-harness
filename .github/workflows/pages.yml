@@ -108,7 +108,7 @@ jobs:
           export const printIntro = false;
           export const needsDisplay = false;
           export const cmd = "/bin/bash";
-          export const args = ["--login"];
+          export const args = ["--noprofile", "--rcfile", "/home/residual/.bashrc", "-i"];
           const cloudEnv = demoToken && gateway ? [
             `LLM_API_KEY=${demoToken}`,
             `LLM_BASE_URL=${gateway}/v1`,
@@ -117,11 +117,12 @@ jobs:
           export const opts = {
             env: [
               "HOME=/home/residual",
-              "TERM=xterm-256color",
+              "TERM=xterm",
               "USER=residual",
               "SHELL=/bin/bash",
               "EDITOR=vi",
-              "LANG=C.UTF-8",
+              "LANG=C",
+              "LC_ALL=C",
               "PYTHONUNBUFFERED=1",
               ...cloudEnv
             ],
@@ -164,6 +165,7 @@ jobs:
           grep -q "The repository is the demo" _site/demo/index.html
           grep -q "RESIDUAL" _site/index.html
           grep -q "Run failure scenario" _site/walkthrough/index.html
+          grep -q -- '--rcfile' _webvm/config_github_terminal.js
           test "$(find _site/vm -name 'residual-demo.ext2.c*.txt' | wc -l)" -gt 0
 
       - name: Configure Pages
