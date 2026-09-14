@@ -6,6 +6,14 @@ from .evidence_bus import (
     ArtifactBinding, EvidenceBus, EvidenceError, FactoryStationIssuer,
     StationIdentity, VerificationDecision, WorkerReceipt,
 )
+from .m4_evidence import (
+    EvidenceIntegrationPlan,
+    IntegrationConflict,
+    M4EvidenceError,
+    PlannedArtifact,
+    ReadyDagSnapshot,
+    ReceiptBackedM4,
+)
 
 __all__ = [
     "CompileResult",
@@ -21,4 +29,10 @@ __all__ = [
     "StationIdentity",
     "VerificationDecision",
     "WorkerReceipt",
+    "EvidenceIntegrationPlan",
+    "IntegrationConflict",
+    "M4EvidenceError",
+    "PlannedArtifact",
+    "ReadyDagSnapshot",
+    "ReceiptBackedM4",
 ]
