@@ -17,7 +17,7 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Compile and test without model credentials
         run: |
-          python -m compileall -q residual
+          python -m compileall -q residual scripts
           python -m unittest discover -s tests -v
       - name: Exercise packaged CLI
         run: |
@@ -32,11 +32,18 @@ jobs:
           residual study freeze --suite examples/study/suite.json --config examples/study-fixture.toml --repeats 2 --output runs/ci-study.lock.json
           residual study run --lock runs/ci-study.lock.json --output runs/ci-study
           residual study report runs/ci-study
+      - name: Controlled reliability fault matrix (scripted fixtures)
+        if: matrix.python == '3.12'
+        run: |
+          python scripts/run_reliability_fault_matrix.py --output runs/ci-fault-matrix
+          python -m residual.reliability_experiment_report runs/ci-fault-matrix/fault-trials.jsonl --output runs/ci-fault-matrix/recomputed-report.json
       - name: Preserve controlled-study evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: controlled-study-python-${{ matrix.python }}
-          path: runs/ci-study/
+          path: |
+            runs/ci-study/
+            runs/ci-fault-matrix/
           if-no-files-found: ignore
           retention-days: 14
