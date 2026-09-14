@@ -425,3 +425,71 @@ def test_report_preserves_failures_in_denominator(report):
     agg = report["report"]["aggregates"]["execution"]["value"]
     assert agg["total"] == 3
     assert agg["by_outcome"]["fail"] == 1
+
+
+# --------------------------------------------------------------------------
+# OBS-R4 hardening: numeric fields must be real, finite numbers — NaN/inf
+# and bool values are rejected (fail closed, no coercion), and canonical
+# JSON can never emit non-finite floats.
+# --------------------------------------------------------------------------
+
+from residual.telemetry.schema import canonical_json, validate_observation
+
+
+def _resource_obs(amount):
+    return {"kind": "resource", "schema_version": OBSERVATION_SCHEMA_VERSION,
+            "resource": "cpu_seconds", "amount": amount}
+
+
+@pytest.mark.parametrize("bad", [float("nan"), float("inf"), float("-inf")])
+def test_non_finite_numeric_fields_rejected(bad):
+    with pytest.raises(EvidenceError):
+        validate_observation(_resource_obs(bad))
+    with pytest.raises(EvidenceError):
+        validate_observation({
+            "kind": "execution", "schema_version": OBSERVATION_SCHEMA_VERSION,
+            "task_class": "code", "outcome": "pass", "worker_seconds": bad})
+    with pytest.raises(EvidenceError):
+        validate_observation({
+            "kind": "orchestration_timing",
+            "schema_version": OBSERVATION_SCHEMA_VERSION,
+            "phase": "planning", "seconds": bad})
+
+
+@pytest.mark.parametrize("bad", [True, False])
+def test_bool_numeric_fields_rejected(bad):
+    # bool is a subclass of int; must not pass the numeric check.
+    with pytest.raises(EvidenceError):
+        validate_observation(_resource_obs(bad))
+    with pytest.raises(EvidenceError):
+        validate_observation({
+            "kind": "execution", "schema_version": OBSERVATION_SCHEMA_VERSION,
+            "task_class": "code", "outcome": "pass", "worker_seconds": bad})
+    with pytest.raises(EvidenceError):
+        validate_observation({
+            "kind": "retry", "schema_version": OBSERVATION_SCHEMA_VERSION,
+            "task_class": "analysis", "attempt": bad})
+
+
+def test_valid_numeric_observation_still_accepted():
+    obs = _resource_obs(1.25)
+    assert validate_observation(obs) is obs
+    obs_int = _resource_obs(810)
+    assert validate_observation(obs_int) is obs_int
+    # zero and negative-but-finite remain valid numeric amounts
+    assert validate_observation(_resource_obs(0.0))
+    assert validate_observation(_resource_obs(-1.0))
+
+
+@pytest.mark.parametrize("bad", [float("nan"), float("inf"), float("-inf")])
+def test_canonical_json_refuses_non_finite_floats(bad):
+    # Defense in depth: even a payload that never went through
+    # validate_observation cannot be serialized to invalid strict JSON.
+    with pytest.raises(EvidenceError):
+        canonical_json({"amount": bad})
+    with pytest.raises(EvidenceError):
+        canonical_json({"nested": {"list": [1.0, bad]}})
+
+
+def test_canonical_json_valid_payload_unchanged():
+    assert canonical_json({"b": 1, "a": [2.5, True]}) == '{"a":[2.5,true],"b":1}'
