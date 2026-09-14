@@ -35,7 +35,7 @@ jobs:
           set -o pipefail
           python -m unittest tests.test_factory_reliability_m3_bus -v 2>&1 | tee runs/m3-bus-reliability/tests.txt
       - name: Controlled M3 fault matrix
-        run: python scripts/run_m3_bus_fault_matrix.py --output runs/m3-bus-reliability
+        run: python -m scripts.run_m3_bus_fault_matrix --output runs/m3-bus-reliability
       - uses: actions/upload-artifact@v4
         if: always()
         with:
