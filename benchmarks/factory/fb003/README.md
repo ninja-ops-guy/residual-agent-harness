@@ -17,8 +17,8 @@ Six bounded changes:
 
 Frozen Git states:
 
-- input commit: `be7c9a644502333a8066460633e3d0bd5fae4b47`
-- known-good output commit: `53c78e92932bb15d2e51e2b668cfadc249ecc41a`
+- input commit: `d68449a9ccb3948ddb1881c35956a179d24cb5bc`
+- known-good output commit: `d137b972a571557fa8a34aa5b6645f0479445d74`
 
 ## Configuration semantics
 
