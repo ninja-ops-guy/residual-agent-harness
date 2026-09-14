@@ -30,7 +30,7 @@ python -m residual doctor \
   --json runs/factory-host-profile.json
 ```
 
-`residual doctor` checks Python/Git, isolated Git worktrees, Factory crypto prerequisites, Linux seccomp availability, PID handles, Ollama reachability/model digest, structured output, token accounting, and optional observed concurrency scaling. Calibration probes widths `1,2,4,6` by default and reports the width with the highest observed aggregate token throughput. It is a host recommendation, not a benchmark result.
+`residual doctor` checks Python/Git, isolated Git worktrees, Station Ed25519 signing/verification, Linux seccomp availability, PID handles, Ollama reachability/model digest, structured output, token accounting, and optional observed concurrency scaling. Calibration probes widths `1,2,4,6` by default and reports the width with the highest observed aggregate token throughput. It is a host recommendation, not a benchmark result.
 
 For a lightweight bootstrap from a clone:
 
@@ -46,14 +46,14 @@ A measured corpus is signed only when all of the following remain true for the e
 
 - one exact Residual source commit;
 - one host hardware fingerprint;
-- one Ollama model name and exact model digest;
+- one Ollama model name and exact live model digest;
 - the same `single,fixed,dynamic` configurations;
 - at least three repetitions per configuration;
 - provider-reported measured provenance (no simulation);
 - valid Station signatures on every child ComparisonReport;
 - exact frozen output commits required by each benchmark.
 
-If the source revision, hardware fingerprint, model digest, child report signature, workload hash, or provenance changes, corpus generation fails closed.
+The live Ollama digest is re-read before and after every child benchmark, including resume. If the source revision, hardware fingerprint, model digest, child report signature, workload hash, or provenance changes, corpus generation fails closed.
 
 ## Dry-run before measurement
 
@@ -92,7 +92,7 @@ python benchmarks/factory/corpus/run_corpus.py \
   --output runs/factory-corpus
 ```
 
-Resume is deliberately strict. It refuses to continue if the source commit, host fingerprint, run count/configurations, Station key, child report signature, workload binding, or frozen model identity changes. The private Station key remains only while an incomplete corpus may need to resume and is removed after successful aggregate signing.
+Resume is deliberately strict. It refuses to continue if the source commit, host fingerprint, run count/configurations, Station key, child report signature, workload binding, requested model, or live model digest changes. The private Station key remains only while an incomplete corpus may need to resume and is removed after successful aggregate signing.
 
 ## Outputs
 
