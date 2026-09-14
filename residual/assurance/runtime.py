@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Iterable, Mapping
 
+from ..core import digest
 from ..engines.protocol import ContextAssembly, EngineResult, ExecutionEngine, TaskSpec
 from .market import MarketDecision, MarketProfile, MarketRequest, VerifiedComputeMarket
 from .orchestration import ExecutionStrategy, OrchestrationTaxController
@@ -25,11 +26,47 @@ class ExecutionPlan:
 
 
 @dataclass(frozen=True)
+class AssuranceExecutionReceipt:
+    task_id: str
+    capability: str
+    strategy: ExecutionStrategy
+    engine_id: str
+    verifier_id: str
+    assurance: AssuranceClass
+    verifier_passed: bool
+    accepted: bool
+    escalation_reason: str | None
+    verifier_quality: Mapping[str, object]
+    market_snapshot: Mapping[str, object]
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "schema_version": "residual.assurance-execution-receipt.v1",
+            "task_id": self.task_id,
+            "capability": self.capability,
+            "strategy": self.strategy.value,
+            "engine_id": self.engine_id,
+            "verifier_id": self.verifier_id,
+            "assurance": self.assurance.value,
+            "verifier_passed": self.verifier_passed,
+            "accepted": self.accepted,
+            "escalation_reason": self.escalation_reason,
+            "verifier_quality": dict(self.verifier_quality),
+            "market_snapshot": dict(self.market_snapshot),
+        }
+
+    @property
+    def receipt_hash(self) -> str:
+        return digest(self.payload())
+
+
+@dataclass(frozen=True)
 class ExecutionOutcome:
     plan: ExecutionPlan
     result: EngineResult
     verifier_passed: bool
     accepted: bool
+    receipt: AssuranceExecutionReceipt
     escalation_reason: str | None = None
 
 
@@ -161,6 +198,7 @@ class AdaptiveAssuranceRuntime:
 
         quality_profile = self.quality.get(verifier_id)
         verifier_reliability = quality_profile.posterior_mean
+        quality_snapshot = quality_profile.receipt_payload()
         self.market.update(
             plan.engine_id,
             verifier_passed=verifier_passed,
@@ -175,6 +213,19 @@ class AdaptiveAssuranceRuntime:
         elif not verifier_passed:
             escalation_reason = "verification_failed"
 
+        receipt = AssuranceExecutionReceipt(
+            task_id=task.task_id,
+            capability=task.capability,
+            strategy=plan.strategy,
+            engine_id=plan.engine_id,
+            verifier_id=verifier_id,
+            assurance=assurance,
+            verifier_passed=verifier_passed,
+            accepted=accepted,
+            escalation_reason=escalation_reason,
+            verifier_quality=quality_snapshot,
+            market_snapshot=plan.market_decision.profile_snapshot,
+        )
         self._observe("assurance_execution", {
             "task_id": task.task_id,
             "strategy": plan.strategy.value,
@@ -184,12 +235,14 @@ class AdaptiveAssuranceRuntime:
             "verifier_reliability": verifier_reliability,
             "accepted": accepted,
             "escalation_reason": escalation_reason,
+            "receipt_hash": receipt.receipt_hash,
         })
         return ExecutionOutcome(
             plan=plan,
             result=result,
             verifier_passed=verifier_passed,
             accepted=accepted,
+            receipt=receipt,
             escalation_reason=escalation_reason,
         )
 
