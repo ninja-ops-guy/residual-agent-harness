@@ -389,6 +389,16 @@ class AttemptGuard:
             self._emit("WorkerCandidateReady", usage=self.usage)
             self._state = "CANDIDATE"  # Not ACCEPTED: only Station may accept.
 
+    def fail(self, boundary: str, field: str, action: Any) -> None:
+        """Executor-detected denial; terminal even if the child has already died.
+
+        The executor may kill the child BEFORE calling this method so that a
+        blocked audit writer cannot postpone OS termination.
+        """
+        with self._lock:
+            self._active()
+            self._violate(boundary, field, action)
+
     def cancel(self) -> None:
         with self._lock:
             if self._state != "RUNNING":
