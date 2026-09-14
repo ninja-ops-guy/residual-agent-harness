@@ -20,6 +20,23 @@ FAULT_KINDS = {
     "truncated_reply": "schema/contract boundary",
     "worker_abstain": "worker/controller boundary",
     "provider_error": "provider/runtime boundary",
+    "worker_termination": "worker/runtime boundary",
+    "invalid_scope_update": "obligation-scope boundary",
+    "undeclared_evidence_request": "evidence-scope boundary",
+    "oversized_evidence_request": "evidence-window boundary",
+    "resource_exhaustion": "resource-budget boundary",
+}
+
+# These preregistered classes require the newer isolated worker / evidence-bus
+# runtime and are intentionally not simulated against the classic Harness path.
+DEFERRED_FAULT_KINDS = {
+    "forbidden_tool_invocation": "M2 worker tool boundary",
+    "forbidden_filesystem_write": "M2 OS-enforced filesystem boundary",
+    "stale_telemetry": "M3 evidence/telemetry boundary",
+    "receipt_tamper": "M3 receipt graph boundary",
+    "verifier_revision_change": "M3 verifier-revision binding boundary",
+    "dependency_fault": "M4 dependency scheduler boundary",
+    "integration_conflict": "M4 deterministic integrator boundary",
 }
 
 
@@ -43,7 +60,7 @@ class FaultSpec:
 
 
 class FaultInjectingProvider(Provider):
-    """Inject one deterministic transport/worker fault into a provider lane."""
+    """Inject one deterministic transport/worker/protocol fault into a provider lane."""
 
     def __init__(self, provider: Provider, spec: FaultSpec):
         self.provider = provider
@@ -54,7 +71,23 @@ class FaultInjectingProvider(Provider):
         self.injected = False
 
     def wire_size(self, packet, max_output_tokens):
+        if self.spec.kind == "resource_exhaustion" and not self.injected:
+            # The classic Harness enforces max_request_bytes before provider I/O.
+            # Returning an impossible framed size deterministically exercises that
+            # real budget boundary without fabricating a provider response.
+            self.injected = True
+            return 1 << 60
         return self.provider.wire_size(packet, max_output_tokens)
+
+    @staticmethod
+    def _first_obligation(packet):
+        obligations = packet.get("obligations") if isinstance(packet, dict) else None
+        if not obligations or not isinstance(obligations[0], dict):
+            raise ProviderError("fault_packet_missing_obligation")
+        node_id = obligations[0].get("id")
+        if not isinstance(node_id, str) or not node_id:
+            raise ProviderError("fault_packet_missing_obligation")
+        return obligations[0], node_id
 
     def generate(self, packet, max_output_tokens):
         if self.injected:
@@ -62,13 +95,37 @@ class FaultInjectingProvider(Provider):
         self.injected = True
         if self.spec.kind == "provider_error":
             raise ProviderError("injected_provider_error")
+        if self.spec.kind == "worker_termination":
+            raise ProviderError("worker_terminated")
         if self.spec.kind == "malformed_reply":
             return Reply("{not-json", Usage(source="simulation"), 0.0, "stop")
         if self.spec.kind == "truncated_reply":
             return Reply('{"updates":{},"requests":[]}', Usage(source="simulation"), 0.0, "length")
         if self.spec.kind == "worker_abstain":
             return Reply('{"updates":{},"requests":[]}', Usage(source="simulation"), 0.0, "stop")
+        obligation, node_id = self._first_obligation(packet)
+        if self.spec.kind == "invalid_scope_update":
+            return Reply('{"updates":{"__outside_scope__":0},"requests":[]}',
+                         Usage(source="simulation"), 0.0, "stop")
+        if self.spec.kind == "undeclared_evidence_request":
+            text = ('{"updates":{},"requests":[{"obligation_id":' + _json_string(node_id) +
+                    ',"artifact_id":"__undeclared_fault_artifact__","start_line":1,"end_line":1}]}')
+            return Reply(text, Usage(source="simulation"), 0.0, "stop")
+        if self.spec.kind == "oversized_evidence_request":
+            evidence_ids = obligation.get("evidence_ids")
+            if not evidence_ids or not isinstance(evidence_ids[0], str):
+                raise ProviderError("fault_packet_missing_evidence")
+            text = ('{"updates":{},"requests":[{"obligation_id":' + _json_string(node_id) +
+                    ',"artifact_id":' + _json_string(evidence_ids[0]) +
+                    ',"start_line":1,"end_line":1000000000}]}')
+            return Reply(text, Usage(source="simulation"), 0.0, "stop")
         raise ContractError("unsupported fault kind")
+
+
+# Avoid importing a second serializer contract just for synthetic protocol text.
+def _json_string(value: str) -> str:
+    import json
+    return json.dumps(value, ensure_ascii=False)
 
 
 class OrchestrationTimingProbe:
@@ -201,6 +258,14 @@ def _fault_detected(harness, kind: str) -> bool:
         "worker_abstain": {("counterexample", "worker_abstained")},
         "provider_error": {("provider_failed", "injected_provider_error"),
                            ("counterexample", "injected_provider_error")},
+        "worker_termination": {("provider_failed", "worker_terminated"),
+                               ("counterexample", "worker_terminated")},
+        "invalid_scope_update": {("counterexample", "invalid_protocol")},
+        "undeclared_evidence_request": {("counterexample", "undeclared_evidence"),
+                                        ("evidence_denied", "undeclared_evidence")},
+        "oversized_evidence_request": {("counterexample", "evidence_window_limit"),
+                                       ("evidence_denied", "evidence_window_limit")},
+        "resource_exhaustion": {("counterexample", "budget_exhausted")},
     }[kind]
     for event in getattr(getattr(harness, "ledger", None), "events", []):
         pair = (event.get("kind"), (event.get("data") or {}).get("code"))
