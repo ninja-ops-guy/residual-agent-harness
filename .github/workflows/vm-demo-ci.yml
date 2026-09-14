@@ -1,0 +1,67 @@
+name: Browser VM Demo CI
+
+on:
+  pull_request:
+    paths:
+      - 'demo/vm/**'
+      - 'site/live-demo.html'
+      - '.github/workflows/pages.yml'
+      - '.github/workflows/vm-demo-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  vm-image-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout RESIDUAL
+        uses: actions/checkout@v4
+
+      - name: Checkout WebVM build context
+        uses: actions/checkout@v4
+        with:
+          repository: leaningtech/webvm
+          ref: main
+          path: _webvm
+
+      - name: Stage repository into image context
+        shell: bash
+        run: |
+          set -euo pipefail
+          rsync -a \
+            --exclude='.git' \
+            --exclude='_webvm' \
+            ./ _webvm/residual-src/
+          cp demo/vm/Dockerfile _webvm/dockerfiles/residual_demo
+
+      - name: Build minimal VM filesystem image
+        run: >-
+          docker build _webvm
+          --tag residual-webvm-demo-ci
+          --file _webvm/dockerfiles/residual_demo
+          --platform=linux/386
+
+      - name: Run real RESIDUAL demo inside image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --platform=linux/386 residual-webvm-demo-ci \
+            /bin/bash -lc '
+              set -euo pipefail
+              cd /opt/residual
+              residual demo --output /tmp/residual-demo
+              test -s /tmp/residual-demo/trace.jsonl
+              test -s /tmp/residual-demo/result.json
+              residual verify-trace /tmp/residual-demo/trace.jsonl --result /tmp/residual-demo/result.json
+              python3 -c "import residual; print(residual.__file__)"
+            '
+
+      - name: Validate embedded demo shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'The repository is the demo' site/live-demo.html
+          grep -q 'src="../vm/"' site/live-demo.html
+          grep -q 'RESET VM' site/live-demo.html
