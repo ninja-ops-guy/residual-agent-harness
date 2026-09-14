@@ -10,7 +10,7 @@ from .core import ContractError, canonical, digest, identifier, strict_json
 from .verifier import CheckResult
 
 
-RECEIPT_SCHEMA = "residual.station.receipt.v1"
+RECEIPT_SCHEMA = "residual.station.receipt.v2"
 CACHE_SCHEMA = "residual.station.cache.v1"
 
 
@@ -51,12 +51,18 @@ class StationReceipt:
     verifier_revision: str
     verdict: CheckResult
     parent_receipts: tuple[ReceiptReference, ...] = ()
+    engine_name: str = "unknown"
+    engine_version: str = "unknown"
 
     def __post_init__(self):
         identifier(self.task_id)
         for value in (self.cache_key, self.value_hash, self.verifier_revision):
             hash_id(value)
         verifier_id(self.verifier_name)
+        if not isinstance(self.engine_name, str) or not self.engine_name.strip():
+            raise ContractError("receipt engine_name is required")
+        if not isinstance(self.engine_version, str) or not self.engine_version.strip():
+            raise ContractError("receipt engine_version is required")
         try:
             verdict = CheckResult(self.verdict)
         except (ValueError, TypeError):
@@ -85,7 +91,7 @@ class StationReceipt:
                 "receipt_hash": self.receipt_hash, "payload": self.payload()}
 
     @classmethod
-    def from_dict(cls, envelope: dict) -> StationReceipt:
+    def from_dict(cls, envelope: dict) -> "StationReceipt":
         try:
             if set(envelope) != {"schema_version", "hash_algorithm", "receipt_hash", "payload"}:
                 raise ValueError()
@@ -95,7 +101,6 @@ class StationReceipt:
             if set(payload) != set(cls.__dataclass_fields__) or not isinstance(payload["parent_receipts"], list):
                 raise ValueError()
             receipt = cls(**{**payload, "parent_receipts": tuple(ReceiptReference(**p) for p in payload["parent_receipts"])})
-            # Also reject noncanonical reference order; do not normalize tampered wire data.
             if receipt.payload() != payload or receipt.receipt_hash != envelope["receipt_hash"]:
                 raise ValueError()
             return receipt
@@ -103,16 +108,19 @@ class StationReceipt:
             raise ContractError("invalid receipt envelope or integrity mismatch") from None
 
     @classmethod
-    def from_json(cls, text: str) -> StationReceipt:
+    def from_json(cls, text: str) -> "StationReceipt":
         return cls.from_dict(strict_json(text))
 
     def matches(self, *, value: Any, cache_key: str, verifier_name: str,
-                verifier_revision: str, parents: tuple[ReceiptReference, ...]) -> bool:
+                verifier_revision: str, parents: tuple[ReceiptReference, ...],
+                engine_name: str | None = None, engine_version: str | None = None) -> bool:
         """Check integrity/context only. The caller MUST still run the host verifier."""
         return (self.verdict == CheckResult.PASS and self.value_hash == digest(value)
                 and self.cache_key == cache_key and self.verifier_name == verifier_name
                 and self.verifier_revision == verifier_revision
-                and self.parent_receipts == tuple(sorted(parents)))
+                and self.parent_receipts == tuple(sorted(parents))
+                and (engine_name is None or self.engine_name == engine_name)
+                and (engine_version is None or self.engine_version == engine_version))
 
 
 def cache_key(*, project_id: str, task_id: str, goal_hash: str, contract_hash: str,
