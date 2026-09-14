@@ -14,6 +14,18 @@ from .m4_evidence import (
     ReadyDagSnapshot,
     ReceiptBackedM4,
 )
+from .m4_integrator import (
+    ConflictResolution,
+    DeterministicIntegrator,
+    IntegrationConflictError,
+    IntegrationOutcome,
+    IntegrationReceipt,
+    M4IntegrationError,
+    ProjectVerificationError,
+    ProjectVerificationPolicy,
+    VerificationCommand,
+    VerificationResult,
+)
 
 __all__ = [
     "CompileResult",
@@ -35,4 +47,14 @@ __all__ = [
     "PlannedArtifact",
     "ReadyDagSnapshot",
     "ReceiptBackedM4",
+    "ConflictResolution",
+    "DeterministicIntegrator",
+    "IntegrationConflictError",
+    "IntegrationOutcome",
+    "IntegrationReceipt",
+    "M4IntegrationError",
+    "ProjectVerificationError",
+    "ProjectVerificationPolicy",
+    "VerificationCommand",
+    "VerificationResult",
 ]
