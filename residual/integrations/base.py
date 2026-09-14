@@ -102,10 +102,10 @@ class IntegrationObservation:
 
 
 @dataclass(frozen=True)
-class IntegrationReceipt:
+class ConnectorReceipt:
     """Receipt proving an integration outcome (verification, gating,
     evidence). Implements ENT6-R2 (pipeline gating waits for an
-    IntegrationReceipt) and ENT6-R7."""
+    ConnectorReceipt) and ENT6-R7."""
 
     integration: str
     action: str
@@ -200,10 +200,10 @@ class IntegrationConnector:
         return resp.body
 
     def receipt(self, action: str, subject_id: str, verdict: str,
-                payload: Any) -> IntegrationReceipt:
-        """Build an IntegrationReceipt carrying the observations made so far.
+                payload: Any) -> ConnectorReceipt:
+        """Build an ConnectorReceipt carrying the observations made so far.
         Implements ENT6-R2 and ENT6-R7."""
-        return IntegrationReceipt(
+        return ConnectorReceipt(
             integration=self.system_name,
             action=action,
             subject_id=subject_id,
@@ -217,7 +217,7 @@ class IntegrationConnector:
     def import_task(self, external_id: str) -> dict:
         raise NotImplementedError
 
-    def post_receipt(self, external_id: str, receipt: IntegrationReceipt) -> TransportResponse:
+    def post_receipt(self, external_id: str, receipt: ConnectorReceipt) -> TransportResponse:
         raise NotImplementedError
 
     def sync_status(self, external_id: str, task_status: str) -> TransportResponse:
