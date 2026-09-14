@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import os
 import stat
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from residual.core import ContractError
 from residual.inspector import PX0_UPSTREAM_COMMIT, PX0_VERSION, Px0Inspector, snapshot, snapshot_is_current
@@ -15,14 +14,16 @@ from residual.inspector import PX0_UPSTREAM_COMMIT, PX0_VERSION, Px0Inspector, s
 class InspectorTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
-        self.root = Path(self.temp.name)
+        self.base = Path(self.temp.name)
+        self.root = self.base / "repo"
+        self.root.mkdir()
         subprocess.run(["git", "init", "-b", "main", str(self.root)], check=True, stdout=subprocess.DEVNULL)
         subprocess.run(["git", "-C", str(self.root), "config", "user.name", "Inspector Test"], check=True)
         subprocess.run(["git", "-C", str(self.root), "config", "user.email", "inspector@example.invalid"], check=True)
         (self.root / "a.py").write_text("x = 1\n", encoding="utf-8")
         subprocess.run(["git", "-C", str(self.root), "add", "a.py"], check=True)
         subprocess.run(["git", "-C", str(self.root), "commit", "-m", "baseline"], check=True, stdout=subprocess.DEVNULL)
-        self.fake_px0 = self.root / "px0-fake"
+        self.fake_px0 = self.base / "px0-fake"
         self.fake_px0.write_text("#!/bin/sh\nif [ \"$1\" = \"-version\" ]; then echo 'px0 0.1.2 (linux/amd64)'; exit 0; fi\nexit 0\n", encoding="utf-8")
         self.fake_px0.chmod(self.fake_px0.stat().st_mode | stat.S_IXUSR)
 
@@ -59,8 +60,8 @@ class InspectorTests(unittest.TestCase):
 
     def test_launch_receipt_binds_binary_and_git_snapshot(self):
         inspector = Px0Inspector(self.fake_px0)
-        fake_process = unittest.mock.Mock()
-        with patch("residual.inspector.subprocess.Popen", return_value=fake_process) as popen:
+        fake_process = Mock()
+        with patch("residual.inspector._spawn", return_value=fake_process) as spawn:
             process, receipt, bound = inspector.launch(self.root, port=7788, lsp=False, open_browser=False)
         self.assertIs(process, fake_process)
         self.assertEqual(receipt.head_commit, bound.head_commit)
@@ -68,9 +69,9 @@ class InspectorTests(unittest.TestCase):
         self.assertEqual(receipt.url, "http://127.0.0.1:7788")
         self.assertFalse(receipt.telemetry_enabled)
         self.assertFalse(receipt.lsp_enabled)
-        argv = popen.call_args.args[0]
+        argv = spawn.call_args.args[0]
         self.assertEqual(argv[-1], str(self.root.resolve()))
-        env = popen.call_args.kwargs["env"]
+        env = spawn.call_args.kwargs["env"]
         self.assertEqual(env["DO_NOT_TRACK"], "1")
         self.assertEqual(env["PX0_TELEMETRY"], "0")
 
