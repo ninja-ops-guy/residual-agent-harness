@@ -386,17 +386,22 @@ class FactoryRuntime:
         workspace.discard()
         self.journal.mark_purged(contract.attempt_id)
 
-    def purge_expired(self, *, retention_s: float = 3600) -> int:
+    def purge_expired(self, *, retention_s: float = 3600,
+                      now_ns: int | None = None) -> list[str]:
         if retention_s < 0:
             raise WorkerContractError('retention_s must be non-negative')
-        cutoff = time.time_ns() - int(retention_s * 1_000_000_000)
-        purged = 0
+        if now_ns is None:
+            now_ns = time.time_ns()
+        if type(now_ns) is not int or now_ns < 0:
+            raise WorkerContractError('now_ns must be a non-negative integer')
+        cutoff = now_ns - int(retention_s * 1_000_000_000)
+        purged: list[str] = []
         for row in self.journal.attempts():
             if row['state'] != 'CANDIDATE' or row['updated_ns'] > cutoff:
                 continue
             contract = WorkerContract.from_dict(strict_json(row['contract_json']))
             self.purge(contract)
-            purged += 1
+            purged.append(contract.attempt_id)
         return purged
 
 
@@ -416,15 +421,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--contract', required=True)
     parser.add_argument('--source', required=True)
     parser.add_argument('--journal', required=True)
-    parser.add_argument('--trace-id', required=True)
+    parser.add_argument('--run-id', '--trace-id', dest='run_id', required=True)
+    parser.add_argument('--allow-local-worker-code', action='store_true')
     args = parser.parse_args(argv)
     plan = ExecutionPlan.from_dict(_load_json(Path(args.plan)))
     approval = FrozenPlan.from_dict(_load_json(Path(args.approval)))
     contract = WorkerContract.from_dict(_load_json(Path(args.contract)))
     source = Path(args.source).read_text()
     runtime = FactoryRuntime(args.repo, args.runtime_root,
-                             RuntimeJournal(args.journal, trace_id=args.trace_id),
-                             allow_local_worker_code=True)
+                             RuntimeJournal(args.journal, trace_id=args.run_id),
+                             allow_local_worker_code=args.allow_local_worker_code)
     result = runtime.run(plan, approval, contract, source)
     print(canonical(result.to_dict()))
     return 0 if result.status == 'CANDIDATE' else 2
