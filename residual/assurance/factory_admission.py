@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Mapping, Sequence
+from typing import Callable, Sequence
 
 from ..factory.evidence_receipts import VerificationDecision, WorkerReceipt
 from ..factory.runtime import FactoryRuntime, RuntimeResult
@@ -23,12 +23,16 @@ class FactoryAdmissionResult:
 
 @dataclass
 class FactoryM3Admission:
-    """Admit verified Factory candidates into the signed Evidence Bus.
+    """Admit independently verified Factory candidates into the signed Evidence Bus.
 
     VerificationDecision is supplied by the trusted Station side. This bridge does
     not infer a pass from the assurance verifier and never manufactures receipts.
-    After successful append, the quarantined worktree may be purged because the
-    Evidence Bus has already stored content-addressed artifact bytes.
+
+    Admission is intentionally per-worker, matching M3's append-only evidence model:
+    if a later worker is rejected, earlier valid receipts remain authoritative and
+    are not rolled back. Worktree purge is stricter: no candidate is purged until the
+    entire requested admission call has completed successfully, so a failed batch
+    remains inspectable/retryable while any already-issued receipts remain valid.
     """
 
     runtime: FactoryRuntime
