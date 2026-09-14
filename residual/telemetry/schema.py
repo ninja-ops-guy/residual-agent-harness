@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 
 OBSERVATION_SCHEMA_VERSION = "obs006.observation.v1"
 REPORT_SCHEMA_VERSION = "obs006.report.v1"
@@ -111,12 +112,20 @@ def validate_observation(obs) -> dict:
     for field in REQUIRED_FIELDS[kind]:
         if field not in obs:
             raise EvidenceError(f"observation kind={kind} missing field {field!r}")
-    # Type checks for numeric fields.
+    # Type checks for numeric fields: reject bools (bool is a subclass of
+    # int) and non-finite floats (NaN/inf poison aggregates and canonical
+    # JSON). Fail closed; no coercion.
     for num_field in ("worker_seconds", "verification_seconds", "integration_seconds",
                       "seconds", "amount"):
-        if num_field in obs and not isinstance(obs[num_field], (int, float)):
-            raise EvidenceError(f"field {num_field!r} must be numeric in kind={kind}")
-    if kind == KIND_RETRY and not isinstance(obs["attempt"], int):
+        if num_field in obs:
+            value = obs[num_field]
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise EvidenceError(f"field {num_field!r} must be numeric in kind={kind}")
+            if isinstance(value, float) and not math.isfinite(value):
+                raise EvidenceError(
+                    f"field {num_field!r} must be finite in kind={kind}: {value!r}")
+    if kind == KIND_RETRY and (isinstance(obs["attempt"], bool)
+                               or not isinstance(obs["attempt"], int)):
         raise EvidenceError("retry attempt must be an integer")
     if kind == KIND_ORCHESTRATION_TIMING and obs["phase"] not in ALL_PHASES:
         raise EvidenceError(f"unknown orchestration phase: {obs['phase']!r}")
@@ -124,8 +133,20 @@ def validate_observation(obs) -> dict:
 
 
 def canonical_json(obj) -> str:
-    """Deterministic JSON serialization used for hashing."""
-    return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    """Deterministic JSON serialization used for hashing.
+
+    Non-finite floats (NaN/inf) are never emitted: ``allow_nan=False`` makes
+    the encoder raise, which is converted to EvidenceError so that a future
+    code path bypassing validate_observation still cannot produce invalid
+    strict JSON in a hashed evidence artifact.
+    """
+    try:
+        return json.dumps(obj, sort_keys=True, separators=(",", ":"),
+                          ensure_ascii=True, allow_nan=False)
+    except ValueError as exc:
+        raise EvidenceError(
+            f"canonical_json refusing to serialize non-finite float: {exc}"
+        ) from exc
 
 
 def hash_object(obj) -> str:
