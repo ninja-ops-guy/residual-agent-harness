@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import os
 import sys
 import tempfile
 import unittest
@@ -170,13 +169,11 @@ class M4IntegratorTests(unittest.TestCase):
 
     def test_subset_overlap_keeps_superset_without_hitl(self):
         smaller = self.issue(
-            "task1", "R1", artifacts={"shared.txt": b"A\nb\nc\""[:-1]}, index=1
+            "task1", "R1", artifacts={"shared.txt": b"A\nb\nc\n"}, index=1
         )
         larger = self.issue(
             "task3", "R3", artifacts={"shared.txt": b"A\nb\nC\n"}, index=3
         )
-        # Correct the intentionally simple smaller fixture to A/b/c with newline.
-        # The bytes expression above avoids editor normalization surprises.
         plan = self.m4.integration_plan((smaller.receipt_hash, larger.receipt_hash))
         outcome = self.integrator.integrate(plan, policy=self.policy(), station_identity=self.identity)
         blob = git(self.repo, "show", f"{outcome.receipt.output_commit}:shared.txt")
