@@ -21,7 +21,7 @@ def main(argv=None):
     parser.add_argument("--output", required=True)
     args = parser.parse_args(argv)
     output = Path(args.output).resolve()
-    output.mkdir(parents=True, exist_ok=False)
+    output.mkdir(parents=True, exist_ok=True)
 
     with tempfile.TemporaryDirectory() as temporary:
         root = Path(temporary)
