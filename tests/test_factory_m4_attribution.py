@@ -101,3 +101,5 @@ class M4AttributionTests(unittest.TestCase):
             outcome = self.f.integrator._verify_subset(self.f.base, (child,), self.f.policy(), 'missing')
         self.assertIsNone(outcome)
         worktree.assert_not_called()
+
+
