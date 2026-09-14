@@ -17,15 +17,21 @@ from residual.assurance import (
 
 def workload() -> FrozenAssuranceWorkload:
     return FrozenAssuranceWorkload(
-        name="path-to-10-mixed-granularity-v1",
+        name="path-to-10-mixed-granularity-v2",
         seed=42,
         cases=(
+            FrozenAssuranceCase("train-small", "small-edit", "code", AssuranceClass.ROUTINE, .90,
+                True, True, .01, .20, 50, 450, "economy@1", {"economy@1": True, "strong@1": True}, "training"),
+            FrozenAssuranceCase("train-batch", "batch", "code", AssuranceClass.IMPORTANT, .95,
+                False, True, .04, .16, 120, 260, "strong@1", {"economy@1": False, "strong@1": True}, "training"),
+            FrozenAssuranceCase("train-security", "security", "code", AssuranceClass.SECURITY_CRITICAL, .98,
+                True, True, .08, .25, 180, 350, "strong@1", {"economy@1": False, "strong@1": True}, "training"),
             FrozenAssuranceCase("small-code-1", "small-edit", "code", AssuranceClass.ROUTINE, .90,
-                True, True, .01, .20, 50, 450, "economy@1", {"economy@1": True, "strong@1": True}),
-            FrozenAssuranceCase("small-code-2", "small-edit", "code", AssuranceClass.ROUTINE, .90,
                 True, True, .01, .18, 45, 410, "economy@1", {"economy@1": True, "strong@1": True}),
+            FrozenAssuranceCase("small-code-2", "small-edit", "code", AssuranceClass.ROUTINE, .90,
+                True, True, .012, .19, 48, 420, "economy@1", {"economy@1": True, "strong@1": True}),
             FrozenAssuranceCase("batch-code-1", "batch", "code", AssuranceClass.IMPORTANT, .95,
-                False, True, .04, .16, 120, 260, "strong@1", {"economy@1": False, "strong@1": True}),
+                False, True, .045, .165, 130, 270, "strong@1", {"economy@1": False, "strong@1": True}),
             FrozenAssuranceCase("batch-code-2", "batch", "code", AssuranceClass.IMPORTANT, .95,
                 False, True, .05, .17, 150, 280, "strong@1", {"economy@1": False, "strong@1": True}),
             FrozenAssuranceCase("security-code-1", "security", "code", AssuranceClass.SECURITY_CRITICAL, .98,
@@ -76,7 +82,7 @@ def main(argv=None):
             "lower_credible_bound": campaign.lower_credible_bound,
             "requires_hitl": campaign.requires_hitl,
         },
-        "claim_scope": "Deterministic synthetic fixture evidence only; does not establish production model superiority.",
+        "claim_scope": "Deterministic synthetic fixture evidence with frozen train/evaluation split only; does not establish production model superiority.",
     }
     path = Path(args.output)
     path.parent.mkdir(parents=True, exist_ok=True)
