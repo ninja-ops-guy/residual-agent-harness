@@ -4,19 +4,31 @@
 
 RESIDUAL is an evidence-first orchestration and verification harness for AI-assisted engineering. It treats model output as an untrusted proposal rather than an answer: workers operate inside explicit contracts, actions are observed, outputs are independently checked, and only accepted artifacts cross a deterministic integration boundary.
 
-The central hypothesis is deliberately stronger than “use better models”:
-
 > **AI reliability does not necessarily require making each individual model reliable. Reliability can emerge from constraining, observing, verifying, and deterministically integrating unreliable computation.**
 
 RESIDUAL is the applied engineering system used to make that hypothesis testable.
 
+## Current status
+
+The package is currently **v0.5.0** and requires Python 3.11+. The repository now spans five connected areas rather than only the original harness/Station prototype:
+
+| Area | Current implementation role |
+| --- | --- |
+| Verification harness | Obligation DAGs, evidence negotiation, independent verification, residual delegation, receipts, budgets and traces |
+| Command Station | Self-hosted operator surface, provider routing, observations, local/cloud execution, HITL hooks and evidence packaging |
+| Factory / Studio | Frozen execution plans, bounded multi-worker execution, isolated worktrees, evidence flow and deterministic integration |
+| Assurance / evaluation | Controlled studies, verifier-quality work, fault-oriented evaluation and provider-backed external evidence |
+| Enterprise layer | IAM, compliance/audit, multi-tenancy, HA/DR, supply-chain security, integration hub, governance and commercial/licensing controls |
+
+The enterprise layer implements **SPEC-ENT-001 through SPEC-ENT-008 (62 requirements)** with requirement-to-implementation/test traceability under [`docs/enterprise/`](docs/enterprise/). Implementation is not the same as independent certification or production validation of every deployment topology.
+
+A governed OpenClaw `ExecutionEngine` integration is currently under review in **PR #10**. It is intentionally described as pending until merged; its authority rule is: **OpenClaw executes; Residual decides whether the execution counts.**
+
 ## Why this exists
 
-Most agent systems concentrate capability inside the worker: give a model more context, more tools, more retries, or more autonomy and hope the resulting trajectory is correct. RESIDUAL moves authority out of the worker and into the surrounding system.
+Most agent systems concentrate capability inside the worker: give a model more context, tools, retries, or autonomy and hope the resulting trajectory is correct. RESIDUAL moves authority out of the worker and into the surrounding system.
 
 A worker may be local or cloud-hosted, weak or strong, deterministic or stochastic. It may fail. What matters is that the harness can bound what it is allowed to do, preserve evidence about what happened, reject unsupported work, escalate only the unresolved residual, and integrate accepted results reproducibly.
-
-That produces a different control loop:
 
 ```text
 Requirement
@@ -34,66 +46,66 @@ PASS ──→ deterministic acceptance / integration ──→ receipt
   └─ FAIL / UNKNOWN ──→ counterexample or residual packet ──→ retry / escalate
 ```
 
-The model is a replaceable compute component. The harness owns authority.
+The model is replaceable compute. The harness owns authority.
 
-## What is implemented
+## Implemented architecture
 
-RESIDUAL currently spans three connected layers.
+### Verification kernel
 
-### Residual Harness — verification kernel
+The original harness provides obligation DAGs, immutable evidence snapshots, verifier-defined acceptance, counterexample-directed repair, residual delegation, evidence negotiation, receipt-bound caching, disclosure controls, budgets, and tamper-evident traces. `FAIL`, `UNKNOWN`, malformed output, verifier exceptions, provider errors, and abstention do not silently become success.
 
-The original harness provides obligation DAGs, immutable evidence snapshots, verifier-defined acceptance, counterexample-directed repair, residual delegation, evidence negotiation, receipt-bound caching, disclosure controls, budgets, and tamper-evident traces.
+### Command Station
 
-Accepted work is monotonic within an evidence snapshot. `FAIL`, `UNKNOWN`, malformed output, verifier exceptions, provider errors, and abstention never silently become success.
+Command Station exposes the system as a self-hosted operations console with mission/spec import, run control, local/cloud execution, provider routing, observation traces, model management, HITL hooks, security inspection, downloadable evidence, and source-release packaging.
 
-### Command Station — operator surface
+The Station provider layer supports OpenAI, OpenAI-compatible endpoints, Anthropic, Gemini, Azure, Bedrock, and Ollama routes through bounded adapters. Local-first execution and residual cloud escalation are explicit policy decisions.
 
-Command Station exposes the harness as a self-hosted operations console with mission/spec import, run control, local/cloud execution, provider routing, observation traces, model management, HITL hooks, security inspection, downloadable evidence, and source-release packaging.
+### Factory / Studio
 
-It supports OpenAI, OpenAI-compatible endpoints, Anthropic, Gemini, Azure, Bedrock, and Ollama routes through bounded adapters. Local-first execution and residual cloud escalation are policy decisions rather than assumptions.
+Factory extends the kernel toward Residual Studio. Requirements are compiled into frozen plans; workers operate under contracts and isolated worktree boundaries; observations and evidence cross explicit interfaces; scheduling and integration are separated from worker discretion.
 
-### Factory / Studio — multi-worker execution platform
+Current work includes deterministic requirement compilation, worker contracts, bounded swarm execution, evidence/receipt plumbing, deterministic scheduling and integration, verifier-quality profiles, orchestration-tax estimation, heterogeneous engine routing, distributed-state boundaries, async I/O, observability, metrics, and exact-source CI evidence.
 
-The newer Factory runtime extends the kernel toward Residual Studio: requirements are compiled into frozen execution plans, bounded workers run in isolated worktrees, observations and evidence are carried across explicit interfaces, and accepted outputs move through deterministic integration rather than free-form agent coordination.
+### Assurance and external evidence
 
-Current platform work includes:
+The evaluation surface now includes controlled scripted studies and provider-backed external assurance runs. [`docs/EXTERNAL_ASSURANCE_EVIDENCE.md`](docs/EXTERNAL_ASSURANCE_EVIDENCE.md) documents the external evidence path. External execution is useful evidence, but results remain scoped to the recorded workload, provider, configuration, verifier, and commit.
 
-- deterministic requirement compilation and plan freezing;
-- worker contracts, bounded swarm runtime, and isolated worktrees;
-- evidence/observation plumbing and deterministic integration primitives;
-- adaptive assurance with verifier-quality profiles;
-- learned orchestration-tax estimates so the system can learn when **not** to swarm;
-- verified compute-market selection across heterogeneous engines;
-- quorum/authoritative-log boundaries for distributed state;
-- engine adapters, async I/O, observability, metrics, and operational integration work;
-- CI evidence that preserves exact source, tree identity, and test output for Factory changes.
+### Enterprise controls
 
-The long-term Studio direction is a self-hosted engineering platform in which heterogeneous workers can be scheduled for useful parallelism without surrendering verification, provenance, policy, or integration authority.
+The enterprise implementation maps eight normative specification families into concrete packages:
+
+- IAM → `residual/iam/`
+- compliance/audit → `residual/compliance/`
+- multi-tenancy → `residual/tenancy/`
+- HA/DR → `residual/hadr/`
+- supply-chain security → `residual/supplychain/`
+- enterprise integrations → `residual/integrations/`
+- governance/commercial controls → `residual/licensing/` plus enterprise governance/commercial documentation
+
+See [`docs/enterprise/README.md`](docs/enterprise/README.md) and [`docs/enterprise/TRACEABILITY.md`](docs/enterprise/TRACEABILITY.md).
 
 ## Design principles
 
 1. **Workers propose; verifiers decide.** Generation and acceptance are separate authorities.
-2. **Unknown is not pass.** Uncertainty remains visible instead of being coerced into success.
-3. **Contracts precede execution.** Scope, tools, resources, dependencies, evidence, and checks should be explicit before a worker starts.
-4. **Evidence survives handoffs.** Receipts bind accepted results to inputs, verifier revisions, dependencies, and artifacts.
+2. **Unknown is not pass.** Uncertainty remains visible.
+3. **Contracts precede execution.** Scope, tools, resources, dependencies, evidence and checks should be explicit before work begins.
+4. **Evidence survives handoffs.** Receipts bind accepted results to inputs, verifier revisions, dependencies and artifacts.
 5. **Escalate the residual, not the whole problem.** Preserve accepted independent work and transfer only unresolved obligations and permitted evidence.
 6. **Integration is deterministic.** Stochastic workers do not get unilateral authority over accepted state.
-7. **Parallelism must earn its cost.** Swarms are evaluated against coordination overhead, latency, rework, rejection, and integration risk—not agent count.
-8. **Verifier reliability is itself measured.** Assurance depends on the quality and coverage of the checks, not merely their existence.
-9. **Local and cloud compute are interchangeable resources subject to policy.** Capability, cost, privacy, latency, and observed quality can all affect routing.
-10. **Claims require evidence.** The repository distinguishes implemented mechanisms, development evidence, hypotheses, and conclusions that still require controlled study.
+7. **Parallelism must earn its cost.** Swarms are evaluated against coordination overhead, latency, rework, rejection and integration risk.
+8. **Verifier reliability is measured.** Assurance depends on check quality and coverage, not merely check existence.
+9. **Compute is policy-governed.** Local, cloud and heterogeneous runtimes are resources selected under capability, cost, privacy, latency and quality constraints.
+10. **Claims require evidence.** Implemented, demonstrated, externally exercised, hypothesized and established are different statuses.
 
 ## Quick start
-
-### Command Station
 
 Windows: **Start-Station.cmd**  
 macOS: **Start-Station.command**  
 Linux: `bash Start-Station.sh`
 
-With Docker running, the launcher builds the Station environment and serves the UI at `http://localhost:8765`. Model weights are downloaded on demand; this repository is not an offline model distribution.
+With Docker running, the launcher builds the Station environment and serves the UI at `http://localhost:8765`.
 
-Native mode requires Python 3.11+ and Git and has no required pip dependencies for the Station path:
+Native mode requires Python 3.11+ and Git:
 
 ```bash
 python3 -m residual.station.server --open
@@ -101,73 +113,43 @@ python3 -m residual.station.server --open
 python3 -m residual serve --open
 ```
 
-See [`START-HERE.md`](START-HERE.md) for installation, GPU options, repositories, storage, and troubleshooting.
-
-### Factory planning
-
-The Factory path is intentionally contract-first. Start with the plan contract and CLI documentation before attaching real workers:
-
-- [`docs/factory/PLAN-CONTRACT.md`](docs/factory/PLAN-CONTRACT.md)
-- [`docs/studio/README.md`](docs/studio/README.md)
-- [`docs/studio/STUDIO_SPECS.md`](docs/studio/STUDIO_SPECS.md)
+See [`START-HERE.md`](START-HERE.md) for setup and [`docs/README.md`](docs/README.md) for the current documentation map.
 
 ## Architecture at a glance
 
 | Layer | Responsibility | Trust boundary |
 | --- | --- | --- |
 | Requirement / plan | Convert intent into explicit obligations and dependencies | Frozen before execution |
-| Router / scheduler | Select direct, verified, swarm, ensemble, local, or remote execution | Policy + observed performance |
+| Router / scheduler | Select direct, verified, swarm, ensemble, local or remote execution | Policy + observed performance |
 | Worker runtime | Produce candidate artifacts under bounded contracts | Untrusted computation |
-| Evidence bus | Preserve observations, artifacts, hashes, provenance, and outcomes | Append-oriented evidence |
-| Verifier layer | Evaluate candidate acceptance and surface counterexamples/UNKNOWN | Independent authority |
-| Integrator | Accept only verified work and resolve ordered state transitions | Deterministic authority |
-| Receipt / audit layer | Bind accepted state to the conditions under which it was accepted | Reproducibility + audit |
-
-For the original obligation-level invariants, see [`docs/architecture.md`](docs/architecture.md). For the platform direction, see [`docs/studio/PLATFORM_VISION.md`](docs/studio/PLATFORM_VISION.md).
+| Evidence bus | Preserve observations, artifacts, hashes, provenance and outcomes | Append-oriented evidence |
+| Verifier layer | Evaluate acceptance and surface counterexamples/UNKNOWN | Independent authority |
+| Integrator | Accept verified work and resolve ordered state transitions | Deterministic authority |
+| Receipt / audit | Bind accepted state to its acceptance conditions | Reproducibility + audit |
+| Enterprise controls | Identity, tenancy, compliance, continuity and integration policy | Deployment/control plane |
 
 ## Research program
 
-RESIDUAL is both software and a research instrument. The current working paper, **“Reliability from Unreliable Computation: An Evidence-First Architecture for Verifiable Multi-Agent AI Systems,”** develops the system-level reliability hypothesis and defines experiments intended to falsify it.
+RESIDUAL is both software and a research instrument. The working paper, **“Reliability from Unreliable Computation: An Evidence-First Architecture for Verifiable Multi-Agent AI Systems,”** develops the system-level reliability hypothesis and experiments intended to falsify it.
 
-The repository does **not** claim that the hypothesis is already proven. The controlled evaluation framework separates controller behavior from model quality and calls for paired trials, ablations, fault injection, model-degradation studies, hidden grading, external task families, and matched baselines.
+The repository does **not** claim the hypothesis is proven. Controlled and external evaluation improve the evidence base without converting bounded results into universal claims.
 
-Start with:
-
-- [`docs/research.md`](docs/research.md) — research claim, prior art, boundaries, and open questions;
-- [`docs/papers/reliability-from-unreliable-computation.md`](docs/papers/reliability-from-unreliable-computation.md) — IEEE-style working manuscript;
-- [`docs/controlled-evaluation.md`](docs/controlled-evaluation.md) — controlled study design;
-- [`docs/evaluation.md`](docs/evaluation.md) — evaluation tooling and metrics.
+Start with [`docs/research.md`](docs/research.md), [`docs/papers/reliability-from-unreliable-computation.md`](docs/papers/reliability-from-unreliable-computation.md), [`docs/controlled-evaluation.md`](docs/controlled-evaluation.md), [`docs/assurance-evaluation.md`](docs/assurance-evaluation.md), and [`docs/EXTERNAL_ASSURANCE_EVIDENCE.md`](docs/EXTERNAL_ASSURANCE_EVIDENCE.md).
 
 ## Documentation map
 
-**Start / operate**
-- [`START-HERE.md`](START-HERE.md) — installation and Station setup
-- [`docs/quickstart.md`](docs/quickstart.md) — harness quick start
-- [`docs/faq.md`](docs/faq.md) — common questions
+**Current index:** [`docs/README.md`](docs/README.md)
 
-**Understand the system**
-- [`docs/architecture.md`](docs/architecture.md) — core harness architecture and invariants
-- [`docs/station/ARCHITECTURE.md`](docs/station/ARCHITECTURE.md) — Command Station architecture
-- [`docs/station/RUN-CONTROL.md`](docs/station/RUN-CONTROL.md) — goal contracts, quarantine, and loop controls
-- [`docs/station/MODULAR-LAYERS.md`](docs/station/MODULAR-LAYERS.md) — providers, observations, and capability boundaries
-- [`docs/factory/PLAN-CONTRACT.md`](docs/factory/PLAN-CONTRACT.md) — frozen Factory execution-plan contract
+**Architecture / operation:** [`docs/architecture.md`](docs/architecture.md), [`docs/station/`](docs/station/), [`docs/factory/`](docs/factory/), [`docs/studio/`](docs/studio/)
 
-**Build / extend**
-- [`docs/extending.md`](docs/extending.md) — extension model
-- [`docs/module-tutorial.md`](docs/module-tutorial.md) — module tutorial
-- [`docs/station/SPECIFICATION.md`](docs/station/SPECIFICATION.md) — Station specification format
-- [`docs/studio/STUDIO_SPECS.md`](docs/studio/STUDIO_SPECS.md) — normative Studio specifications
+**Enterprise:** [`docs/enterprise/README.md`](docs/enterprise/README.md), [`docs/enterprise/ENTERPRISE_SPECS.md`](docs/enterprise/ENTERPRISE_SPECS.md), [`docs/enterprise/TRACEABILITY.md`](docs/enterprise/TRACEABILITY.md)
 
-**Research / validate**
-- [`docs/research.md`](docs/research.md) — thesis and prior art
-- [`docs/controlled-evaluation.md`](docs/controlled-evaluation.md) — controlled studies
-- [`docs/station/VALIDATION.md`](docs/station/VALIDATION.md) — Station validation evidence
-- [`docs/roadmap/README.md`](docs/roadmap/README.md) — implementation roadmap
-- [`vendor/ldd-kit/PROVENANCE.md`](vendor/ldd-kit/PROVENANCE.md) — LDD provenance
+**Research / evidence:** [`docs/research.md`](docs/research.md), [`docs/controlled-evaluation.md`](docs/controlled-evaluation.md), [`docs/assurance-evaluation.md`](docs/assurance-evaluation.md), [`docs/EXTERNAL_ASSURANCE_EVIDENCE.md`](docs/EXTERNAL_ASSURANCE_EVIDENCE.md)
 
 ## Verification
 
 ```bash
+python3 -m compileall -q residual
 python3 -m unittest discover -s tests -v
 node --check residual/station/static/app.js
 
@@ -177,17 +159,13 @@ npx playwright install chromium
 npm run test:ui
 ```
 
-Factory pull requests additionally preserve exact source, Git tree identity, and test output as CI evidence.
+Specialized Factory, enterprise, browser, and external-evidence checks may add prerequisites. Pin the exact commit for reproducible experiments.
 
 ## Scope and non-claims
 
-RESIDUAL is an implemented research and engineering platform, not a universal proof system. A verifier proves only what its contract and evidence allow it to check. Receipts are evidence of checked acceptance under stated inputs, not certificates of arbitrary truth. Plugins and host integrations remain trusted code. Native project commands are opt-in and are not an OS sandbox. Distributed interfaces define consistency boundaries but do not make every deployment production-ready by default.
+RESIDUAL is an implemented research and engineering platform, not a universal proof system. A verifier establishes only what its contract and evidence let it check. Receipts are evidence of checked acceptance under stated conditions, not certificates of arbitrary truth. Plugins, external identity systems, runtime adapters and host integrations introduce their own trust boundaries. Native project commands are opt-in and are not automatically an OS sandbox.
 
-Likewise, the project does not currently claim a universally optimal scheduler, universal verifier, new foundation model, guaranteed token savings, guaranteed model-quality preservation, or first-in-literature status. Those are empirical or scholarly questions and are treated as such.
-
-## Project status
-
-The repository is moving from the v0.4 Command Station foundation into the Factory/Studio execution and adaptive-assurance layers. The implementation is intentionally evolving faster than a conventional stable API. Read the specs and tests as the authoritative contract for experimental modules, and pin a commit when reproducing results.
+The repository does not claim a universal verifier, universally optimal scheduler, guaranteed token savings, guaranteed quality preservation, complete production readiness for every enterprise topology, or first-in-literature status. Those remain empirical, deployment-specific, or scholarly questions.
 
 ---
 
