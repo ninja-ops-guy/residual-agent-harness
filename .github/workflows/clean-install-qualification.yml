@@ -1,0 +1,77 @@
+name: Clean install qualification
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Build the wheel and preserve identity
+        run: |
+          mkdir -p runs/clean-install "$RUNNER_TEMP/residual-wheels"
+          git rev-parse HEAD > runs/clean-install/commit.txt
+          git rev-parse HEAD^{tree} > runs/clean-install/tree.txt
+          python -m pip wheel --no-deps --wheel-dir "$RUNNER_TEMP/residual-wheels" .
+          wheels=("$RUNNER_TEMP/residual-wheels"/*.whl)
+          test "${#wheels[@]}" -eq 1
+          echo "RESIDUAL_WHEEL=${wheels[0]}" >> "$GITHUB_ENV"
+          sha256sum "${wheels[0]}" > runs/clean-install/wheel.sha256
+          cp "${wheels[0]}" runs/clean-install/
+      - name: Install built wheel without test tools in a fresh venv
+        run: |
+          python -m venv "$RUNNER_TEMP/residual-installed"
+          "$RUNNER_TEMP/residual-installed/bin/python" -m pip install "${RESIDUAL_WHEEL}[factory,marketplace]"
+          "$RUNNER_TEMP/residual-installed/bin/python" -m pip check
+          "$RUNNER_TEMP/residual-installed/bin/python" -m pip freeze > runs/clean-install/installed.txt
+      - name: Qualify installed modules, resources and CLI outside checkout
+        run: |
+          set -o pipefail
+          ROOT="$GITHUB_WORKSPACE"
+          SMOKE_DIR="$(mktemp -d "$RUNNER_TEMP/residual-smoke.XXXXXX")"
+          cd "$SMOKE_DIR"
+          env -u PYTHONPATH -u PYTHONHOME "$RUNNER_TEMP/residual-installed/bin/python" -I \
+            "$ROOT/scripts/qualify_installed_package.py" --source-root "$ROOT" \
+            --output "$ROOT/runs/clean-install/installed-smoke.json" \
+            2>&1 | tee "$ROOT/runs/clean-install/installed-smoke.txt"
+      - name: Create separate source qualification environment
+        run: |
+          python -m venv "$RUNNER_TEMP/residual-source-tests"
+          "$RUNNER_TEMP/residual-source-tests/bin/python" -m pip install '.[factory,marketplace,test]'
+          "$RUNNER_TEMP/residual-source-tests/bin/python" -m pip check
+          "$RUNNER_TEMP/residual-source-tests/bin/python" -m pip freeze > runs/clean-install/source-tests.txt
+      - name: Source traceability and executable documentation
+        run: |
+          set -o pipefail
+          . "$RUNNER_TEMP/residual-source-tests/bin/activate"
+          python scripts/status_check.py --quiet 2>&1 | tee runs/clean-install/traceability.txt
+          python examples/onboarding/validate_tutorial.py 2>&1 | tee runs/clean-install/tutorial.txt
+          bash examples/onboarding/demo.sh 2>&1 | tee runs/clean-install/onboarding.txt
+      - name: Full source verifier qualification
+        run: |
+          set -o pipefail
+          . "$RUNNER_TEMP/residual-source-tests/bin/activate"
+          python verifier/v3/check_swarm.py 2>&1 | tee runs/clean-install/verifier-v3.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: clean-install-python-${{ matrix.python-version }}-${{ github.sha }}
+          path: runs/clean-install
+          if-no-files-found: error
+          retention-days: 14
