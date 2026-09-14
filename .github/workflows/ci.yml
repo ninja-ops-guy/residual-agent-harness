@@ -33,6 +33,40 @@ jobs:
           set -euo pipefail
           sudo apt-get update -qq
           sudo apt-get install -y -qq bubblewrap curl
+
+          # Ubuntu 24.04+ can deny unprivileged user namespaces through AppArmor.
+          # bubblewrap needs that kernel primitive to create its sandbox. The hosted
+          # runner is ephemeral, and we restore both knobs after the smoke test.
+          ORIG_APPARMOR_USERNS=$(sysctl -n kernel.apparmor_restrict_unprivileged_userns 2>/dev/null || true)
+          ORIG_UNPRIV_USERNS=$(sysctl -n kernel.unprivileged_userns_clone 2>/dev/null || true)
+          PID=""
+          restore_userns() {
+            if [ -n "$ORIG_APPARMOR_USERNS" ]; then
+              sudo sysctl -q -w kernel.apparmor_restrict_unprivileged_userns="$ORIG_APPARMOR_USERNS" >/dev/null || true
+            fi
+            if [ -n "$ORIG_UNPRIV_USERNS" ]; then
+              sudo sysctl -q -w kernel.unprivileged_userns_clone="$ORIG_UNPRIV_USERNS" >/dev/null || true
+            fi
+          }
+          cleanup() {
+            if [ -n "$PID" ]; then
+              kill "$PID" 2>/dev/null || true
+              wait "$PID" 2>/dev/null || true
+            fi
+            restore_userns
+          }
+          trap cleanup EXIT
+
+          if [ "$ORIG_APPARMOR_USERNS" = "1" ]; then
+            sudo sysctl -q -w kernel.apparmor_restrict_unprivileged_userns=0 >/dev/null
+          fi
+          if [ "$ORIG_UNPRIV_USERNS" = "0" ]; then
+            sudo sysctl -q -w kernel.unprivileged_userns_clone=1 >/dev/null
+          fi
+
+          # Fail early if the runner still cannot create a bubblewrap sandbox.
+          bwrap --ro-bind /usr /usr --proc /proc --dev /dev /usr/bin/true
+
           PX0=/usr/local/bin/px0
           sudo curl -fsSL -o "$PX0" https://github.com/px0-ai/px0/releases/download/v0.1.2/px0-0.1.2-linux-amd64
           printf '%s  %s\n' 'c483293c67a63821712508931588d0495c336be5ace1e253b90624d3f5a06700' "$PX0" | sha256sum -c -
@@ -45,8 +79,6 @@ jobs:
           rm -f "$RECEIPT"
           residual inspector "$WORK" --px0 "$PX0" --no-open --receipt "$RECEIPT" > /tmp/inspector.out 2> /tmp/inspector.err &
           PID=$!
-          cleanup() { kill "$PID" 2>/dev/null || true; wait "$PID" 2>/dev/null || true; }
-          trap cleanup EXIT
           for _ in $(seq 1 50); do
             if [ -s "$RECEIPT" ]; then break; fi
             if ! kill -0 "$PID" 2>/dev/null; then
@@ -55,7 +87,10 @@ jobs:
             fi
             sleep 0.1
           done
-          test -s "$RECEIPT"
+          if [ ! -s "$RECEIPT" ]; then
+            cat /tmp/inspector.out /tmp/inspector.err
+            exit 1
+          fi
           python - <<'PY'
           import json
           import urllib.request
@@ -71,6 +106,7 @@ jobs:
           BEFORE=$(git -C "$WORK" status --porcelain --untracked-files=all)
           test -z "$BEFORE"
           cleanup
+          PID=""
           trap - EXIT
       - name: Controller ablations
         run: python -m residual benchmark --cases 4 --output runs/ci-benchmark.json
