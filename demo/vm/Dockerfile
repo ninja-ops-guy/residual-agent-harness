@@ -19,7 +19,6 @@ RUN python3 -m pip install --break-system-packages --no-deps -e /opt/residual \
       'alias demo="python3 -m residual demo --output runs/demo"' \
       'alias verify-demo="python3 -m residual verify-trace runs/demo/trace.jsonl --result runs/demo/result.json"' \
       'alias cloud-demo="bash examples/onboarding/cloud_demo.sh"' \
-      'clear' \
       'printf "\\033[1;32mRESIDUAL // LIVE SYSTEM\\033[0m\\n"' \
       'printf "Disposable browser VM · Debian · Python 3 · repository preloaded\\n\\n"' \
       'printf "Try:\\n  demo\\n  verify-demo\\n  cloud-demo   # after ENABLE CLOUD above the VM\\n\\n"' \
@@ -27,6 +26,19 @@ RUN python3 -m pip install --break-system-packages --no-deps -e /opt/residual \
       'printf "Inspect the actual repo, traces, receipts, and verifier output.\\n\\n"' \
       >> /home/residual/.bashrc \
     && printf '%s\n' 'if [ -f ~/.bashrc ]; then . ~/.bashrc; fi' > /home/residual/.bash_profile \
+    && printf '%s\n' \
+      '#!/bin/bash' \
+      'export HOME=/home/residual USER=residual SHELL=/bin/bash TERM=xterm LANG=C LC_ALL=C PYTHONUNBUFFERED=1' \
+      'cd /opt/residual || { echo "RESIDUAL BOOT ERROR: /opt/residual missing"; exec /bin/bash -i; }' \
+      'stty sane 2>/dev/null || true' \
+      'stty echo 2>/dev/null || true' \
+      'echo "RESIDUAL BOOT: guest process attached"' \
+      'printf "user="; id -un 2>/dev/null || true' \
+      'printf "cwd="; pwd' \
+      'test -f pyproject.toml && echo "repo=present" || echo "repo=MISSING"' \
+      'exec /bin/bash --noprofile --rcfile /home/residual/.bashrc -i' \
+      > /usr/local/bin/residual-demo-shell \
+    && chmod 0755 /usr/local/bin/residual-demo-shell \
     && chown residual:residual /home/residual/.bashrc /home/residual/.bash_profile
 
 USER residual
@@ -40,4 +52,4 @@ ENV HOME=/home/residual \
     LC_ALL=C \
     PYTHONUNBUFFERED=1
 
-CMD ["/bin/bash", "--noprofile", "--rcfile", "/home/residual/.bashrc", "-i"]
+CMD ["/usr/local/bin/residual-demo-shell"]
