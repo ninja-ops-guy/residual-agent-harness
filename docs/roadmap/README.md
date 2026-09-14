@@ -14,9 +14,9 @@ Read [DELEGATION.md](DELEGATION.md) for ownership and deliverables, then [FOUNDA
 | Goal contracts, verifier order, brakes, station loop, provider-call quarantine | Implemented; token/time brakes operate between waves |
 | Receipt binding and cache identity | Implemented in 0.4.0: versioned envelopes, prerequisite propagation, exact-revision station receipts, modern cache revalidation with explicit legacy boundaries |
 | Station extension registry and host lifecycle dispatch | Implemented in 0.4.0; freeze at controller construction, fresh brakes, isolated diagnostics |
-| Every arbitrary side-effecting action using the same quarantine gateway | Not implemented; current scope is documented in the run-control guide |
+| Every arbitrary side-effecting action using the same quarantine gateway | Partially implemented: the provider-call quarantine gateway is live (see `residual/quarantine.py`); routing every arbitrary side-effecting action through it remains open (track D scope) |
 | NetOps and SecOps modules | Imported and integrated; SecOps runs before staging, NetOps requires a host telemetry client and has no live device executor |
-| Trajectory, TUI, memory and HITL | Components and lifecycle adapters implemented; structural comparison, local indexing and authenticated-host HITL API. Full tool replay and automatic resume remain absent |
+| Trajectory, TUI, memory and HITL | Components and lifecycle adapters implemented; structural comparison, local indexing and authenticated-host HITL API. Full tool replay and automatic resume are still open (track E scope) |
 | Goal-directed context curator and isolated sub-agent pool | Specification only; scoped packet compilation and worker leases already exist |
 | Model-agnostic intention adapters and formal verifier certificates | Specification only |
 | Mesh, federation, crypto migration, calibration | Local mesh protocol and receipt-export adapter implemented; authenticated network transport, fork reconciliation, federation and calibration remain future work |

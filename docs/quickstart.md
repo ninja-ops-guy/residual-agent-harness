@@ -1,28 +1,75 @@
 # Residual 10-minute quickstart
 
+Every command below runs fully offline; the demo providers are scripted and
+make no model calls and no network requests. The commands in the
+`quickstart-verify` block are executed end-to-end by
+`tests/test_onboarding.py`, so this document cannot silently drift.
+
 ## 1. Install
+
+From a source checkout, no installation is needed — run everything as
+`python3 -m residual ...` from the repository root. For an installed
+environment:
 
 ```bash
 pip install residual-agent-harness
 ```
 
-## 2. Start a local model
+## 2. Run a bounded task
 
-Install Ollama, then:
+The sample project in `examples/onboarding/sample_project` declares two
+obligations over a local artifact, each with a mechanical `json_sum` check.
+Residual keeps verification host-owned: provider output is only a candidate,
+and each obligation is recomputed from the declared evidence.
 
 ```bash
-ollama pull qwen2.5:7b
-ollama serve
+python3 -m residual run examples/onboarding/sample_project/task.json \
+  --config examples/onboarding/config.toml --output runs/quickstart
 ```
 
-## 3. Run a bounded task
+The command exits 0 only when every obligation passes verification. The run
+writes `runs/quickstart/result.json` and an evidence trace at
+`runs/quickstart/trace.jsonl`.
 
-Start the station with `residual-station`, open the local station URL, configure the Ollama provider, and submit a GoalSpec with explicit pass, token, and wall-clock budgets. Residual keeps verification and brake decisions host-owned; model output is only a candidate.
+## 3. Verify the evidence trace
 
-## 4. View evidence
+A receipt binds the task, cache key, value hash, verifier identity/revision,
+parent receipts, and execution-engine identity. Receipt integrity does not
+replace re-verification — so verify the trace, then re-check it against the
+expected root and the bound result:
 
-The run result exposes station receipts for verified obligations. A receipt binds the task, cache key, value hash, verifier identity/revision, parent receipts, and execution-engine identity. Receipt integrity does not replace re-verification.
+```bash
+ROOT=$(python3 -m residual verify-trace runs/quickstart/trace.jsonl | python3 -c "import sys, json; print(json.load(sys.stdin)['root'])")
+python3 -m residual verify-trace runs/quickstart/trace.jsonl --expected-root "$ROOT"
+python3 -m residual verify-trace runs/quickstart/trace.jsonl --expected-root "$ROOT" --result runs/quickstart/result.json
+```
 
-## 5. Metrics
+## 4. One-command demo
 
-The async station periphery can expose `/metrics` in Prometheus text format. Slow telemetry refreshes are cached and never block verifier execution.
+`examples/onboarding/demo.sh` performs steps 2–3 in one shot and exits 0 on
+success:
+
+```bash
+bash examples/onboarding/demo.sh
+```
+
+## 5. Metrics (optional)
+
+Start the local command station with `python3 -m residual serve`, open the
+printed URL, and the async station periphery exposes `/metrics` in Prometheus
+text format. Slow telemetry refreshes are cached and never block verifier
+execution. The Studio development surface (stubbed swarm API) launches with
+`python3 -m residual.studio_frontend.stub_server` — see
+`residual/studio_frontend/README.md`.
+
+## 6. Author a module
+
+See `docs/module-tutorial.md` for the `StationModule` contract, then validate
+your module before publication:
+
+```bash
+python3 examples/onboarding/validate_tutorial.py
+```
+
+That script generates a module per the tutorial, checks its quarantine /
+verifier / brake semantics, and runs `residual-module validate` on it.
