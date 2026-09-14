@@ -66,7 +66,7 @@ Each configuration also reports aggregate total cost divided by aggregate accept
 
 Every run is emitted through the hash-chained observation layer with its complete counters, controls, metric values, cost values, and run hash. The final observation contains only the report hash, signature metadata, significance settings, and source run hashes.
 
-The full report is intentionally not copied into the terminal event because the observation schema has a 24 KB per-event ceiling. `SpecEvaluationEvidence.report_from_observations()` rebuilds the report from the run observations and verifies the terminal report hash binding.
+The full report is intentionally not copied into the terminal event because the observation schema has a 24 KB per-event ceiling. `signed_report_from_observations()` reconstructs the complete payload from run observations and reattaches the original Station key ID and signature from the terminal event. The original private key is not required for replay; an externally trusted public key is only needed to verify the recovered signature.
 
 ## Signature
 
