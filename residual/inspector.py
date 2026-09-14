@@ -32,6 +32,10 @@ def _run(argv, *, cwd=None):
     return proc.stdout.strip()
 
 
+def _spawn(argv, *, env):
+    return subprocess.Popen(argv, env=env)
+
+
 def _git(root: Path, *args: str) -> str:
     return _run(["git", "-c", "core.hooksPath=" + os.devnull, "-C", str(root), *args])
 
@@ -124,7 +128,7 @@ class Px0Inspector:
         selected_port = int(port) if port else _free_port()
         command = self.build_command(bound.workspace, port=selected_port, lsp=lsp, open_browser=open_browser)
         env = {**os.environ, "DO_NOT_TRACK": "1", "PX0_TELEMETRY": "0"}
-        process = subprocess.Popen(command, env=env)
+        process = _spawn(command, env=env)
         receipt = InspectionReceipt(
             schema_version=1,
             tool="px0",
