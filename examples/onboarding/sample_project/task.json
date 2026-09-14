@@ -1,0 +1,33 @@
+{
+  "id": "onboarding-0",
+  "goal": "Sum the recorded fan RPMs and temperatures from the site inventory.",
+  "artifacts": [
+    {
+      "id": "inventory",
+      "path": "inventory.json",
+      "cloud": false
+    }
+  ],
+  "obligations": [
+    {
+      "id": "total_fan_rpm",
+      "instruction": "Return the sum of /readings/fan_rpms from the inventory artifact.",
+      "check": "json_sum",
+      "evidence": ["inventory"],
+      "depends_on": [],
+      "parameters": {"artifact": "inventory", "pointer": "/readings/fan_rpms"},
+      "solver": "json_sum",
+      "cloud": false
+    },
+    {
+      "id": "total_temperature",
+      "instruction": "Return the sum of /readings/temperatures_c from the inventory artifact.",
+      "check": "json_sum",
+      "evidence": ["inventory"],
+      "depends_on": [],
+      "parameters": {"artifact": "inventory", "pointer": "/readings/temperatures_c"},
+      "solver": "json_sum",
+      "cloud": false
+    }
+  ]
+}
