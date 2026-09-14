@@ -58,6 +58,29 @@ jobs:
               python3 -c "import residual; print(residual.__file__)"
             '
 
+      - name: Build WebVM browser client
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > _webvm/config_github_terminal.js <<'EOF'
+          export const diskImageUrl = "residual-demo.ext2";
+          export const diskImageType = "github";
+          export const printIntro = false;
+          export const needsDisplay = false;
+          export const cmd = "/bin/bash";
+          export const args = ["--login"];
+          export const opts = {
+            env: ["HOME=/home/residual", "TERM=xterm-256color", "USER=residual", "SHELL=/bin/bash", "LANG=C.UTF-8"],
+            cwd: "/opt/residual",
+            uid: 1000,
+            gid: 1000
+          };
+          EOF
+          cd _webvm
+          npm install
+          WEBVM_MODE=github npm run build
+          test -s build/index.html
+
       - name: Validate embedded demo shell
         shell: bash
         run: |
