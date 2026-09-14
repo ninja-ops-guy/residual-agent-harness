@@ -1,9 +1,6 @@
 # Enterprise Implementation
 
-This directory contains the enterprise-layer implementation of the
-Residual Command Station, covering SPEC-ENT-001 through SPEC-ENT-008
-(62 requirements). The normative spec text is in
-[ENTERPRISE_SPECS.md](ENTERPRISE_SPECS.md).
+This directory documents the enterprise control layer for RESIDUAL, covering **SPEC-ENT-001 through SPEC-ENT-008 (62 requirements)**. The normative specification is [`ENTERPRISE_SPECS.md`](ENTERPRISE_SPECS.md); [`TRACEABILITY.md`](TRACEABILITY.md) maps requirements to implementation and tests.
 
 | Spec | Title | Implementation |
 |---|---|---|
@@ -16,9 +13,20 @@ Residual Command Station, covering SPEC-ENT-001 through SPEC-ENT-008
 | SPEC-ENT-007 | Change Management & Governance | `residual/licensing/` (pilot evaluator) + `docs/enterprise/governance/` |
 | SPEC-ENT-008 | Commercial & Legal | `residual/licensing/` + `docs/enterprise/commercial/` |
 
-Every requirement ID (ENTx-Ry) is referenced verbatim in the
-implementing module or document. See [TRACEABILITY.md](TRACEABILITY.md)
-for the full requirement → implementation → test mapping.
+Every requirement ID (`ENTx-Ry`) should remain traceable to implementation/documentation and test evidence. Use [`TRACEABILITY.md`](TRACEABILITY.md) for the detailed mapping rather than inferring completeness from package names.
 
-Tests live in `tests/enterprise/` and run with the standard suite:
-`python3 -m pytest tests/ -q`.
+## Validation
+
+Enterprise tests live under `tests/enterprise/` and are included in the repository's standard unittest discovery path:
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
+The repository also carries verifier/acceptance material for the enterprise requirement set. When preserving evidence, record the exact commit and do not rely only on a passing aggregate command; inspect requirement coverage and relevant test output.
+
+## Status semantics
+
+“Implemented” here means mechanisms and requirement mappings exist in the repository. It does **not** mean every supported-looking external system has been exercised against a live production tenant, that every HA/DR topology has been failure-tested, or that the project has received independent regulatory/security certification.
+
+Deployment readiness must be evaluated for the actual identity provider, tenancy model, storage/backup topology, compliance obligations, integrations, secrets infrastructure, and operational environment.
