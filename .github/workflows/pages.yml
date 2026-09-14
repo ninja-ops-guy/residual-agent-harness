@@ -119,7 +119,7 @@ jobs:
         run: |
           set -euo pipefail
           cd _webvm
-          npm ci
+          npm install
           WEBVM_MODE=github npm run build
           cd ..
           cp -a _webvm/build/. _site/vm/
