@@ -5,6 +5,7 @@ on:
       - 'residual/factory/**'
       - 'residual/cli.py'
       - 'tests/factory/**'
+      - 'tests/test_factory_*.py'
       - 'docs/factory/**'
       - 'pyproject.toml'
       - '.github/workflows/factory.yml'
@@ -21,6 +22,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install Factory crypto dependency
+        run: python -m pip install 'cryptography>=43'
       - name: Preserve exact source
         run: |
           mkdir -p runs/factory-evidence
