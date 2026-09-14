@@ -3,7 +3,14 @@ from pathlib import Path
 
 from residual.config import build_harness, load_config
 from residual.core import ContractError
-from residual.reliability_experiments import FaultSpec, OrchestrationTimingProbe, run_fault_trial, run_timed
+from residual.reliability_experiments import (
+    DEFERRED_FAULT_KINDS,
+    FAULT_KINDS,
+    FaultSpec,
+    OrchestrationTimingProbe,
+    run_fault_trial,
+    run_timed,
+)
 from residual.study import load_suite
 from residual.study_tasks import grade
 
@@ -27,6 +34,22 @@ class ReliabilityExperimentTests(unittest.TestCase):
     def independent_grade(self, values):
         return bool(grade(values, self.grader)["pass"])
 
+    def trial(self, kind, fault_id=None):
+        return run_fault_trial(
+            self.harness(), self.task,
+            FaultSpec(fault_id or kind + "-001", kind, "expert"),
+            self.independent_grade,
+        )
+
+    def assert_contained_detected(self, receipt, layer):
+        self.assertTrue(receipt["fault_injected"])
+        self.assertTrue(receipt["injection_observed"])
+        self.assertTrue(receipt["fault_detected"])
+        self.assertTrue(receipt["fault_contained"])
+        self.assertFalse(receipt["incorrect_fault_crossed_acceptance_boundary"])
+        self.assertEqual(receipt["expected_containment_layer"], layer)
+        self.assertIn("sha256", receipt)
+
     def test_timing_probe_measures_real_boundaries_without_mutating_result(self):
         result, timing = run_timed(self.harness(), self.task)
         self.assertEqual(result["schema_version"], "residual.run.v1")
@@ -46,36 +69,58 @@ class ReliabilityExperimentTests(unittest.TestCase):
             probe.install()
 
     def test_malformed_reply_is_explicit_detected_contained_fault_trial(self):
-        receipt = run_fault_trial(self.harness(), self.task,
-            FaultSpec("malformed-001", "malformed_reply", "expert"), self.independent_grade)
-        self.assertTrue(receipt["fault_injected"])
-        self.assertTrue(receipt["injection_observed"])
-        self.assertTrue(receipt["fault_detected"])
-        self.assertTrue(receipt["fault_contained"])
-        self.assertFalse(receipt["incorrect_fault_crossed_acceptance_boundary"])
-        self.assertEqual(receipt["expected_containment_layer"], "schema/contract boundary")
-        self.assertIn("sha256", receipt)
+        self.assert_contained_detected(self.trial("malformed_reply", "malformed-001"),
+                                       "schema/contract boundary")
 
     def test_provider_error_is_detected_even_if_retry_recovers(self):
-        receipt = run_fault_trial(self.harness(), self.task,
-            FaultSpec("provider-001", "provider_error", "expert"), self.independent_grade)
-        self.assertTrue(receipt["injection_observed"])
-        self.assertTrue(receipt["fault_detected"])
-        self.assertTrue(receipt["fault_contained"])
-        self.assertFalse(receipt["incorrect_fault_crossed_acceptance_boundary"])
+        self.assert_contained_detected(self.trial("provider_error", "provider-001"),
+                                       "provider/runtime boundary")
 
     def test_worker_abstention_is_labelled_separately_from_containment(self):
-        receipt = run_fault_trial(self.harness(), self.task,
-            FaultSpec("abstain-001", "worker_abstain", "expert"), self.independent_grade)
-        self.assertTrue(receipt["fault_detected"])
-        self.assertTrue(receipt["fault_contained"])
+        receipt = self.trial("worker_abstain", "abstain-001")
+        self.assert_contained_detected(receipt, "worker/controller boundary")
         self.assertEqual(receipt["fault_kind"], "worker_abstain")
+
+    def test_worker_termination_is_detected_and_contained(self):
+        self.assert_contained_detected(self.trial("worker_termination"),
+                                       "worker/runtime boundary")
+
+    def test_out_of_scope_update_is_rejected_by_protocol_boundary(self):
+        self.assert_contained_detected(self.trial("invalid_scope_update"),
+                                       "obligation-scope boundary")
+
+    def test_undeclared_evidence_request_is_denied(self):
+        self.assert_contained_detected(self.trial("undeclared_evidence_request"),
+                                       "evidence-scope boundary")
+
+    def test_oversized_evidence_request_is_denied(self):
+        self.assert_contained_detected(self.trial("oversized_evidence_request"),
+                                       "evidence-window boundary")
+
+    def test_resource_exhaustion_is_blocked_before_provider_io(self):
+        receipt = self.trial("resource_exhaustion")
+        self.assert_contained_detected(receipt, "resource-budget boundary")
+        # This fault is injected in wire_size; the provider should never need to
+        # generate the oversized request in order for the real budget gate to fire.
+        self.assertFalse(receipt["controller_accepted"])
+
+    def test_fault_catalog_separates_executable_and_deferred_runtime_faults(self):
+        self.assertEqual(len(FAULT_KINDS), 9)
+        self.assertIn("forbidden_tool_invocation", DEFERRED_FAULT_KINDS)
+        self.assertIn("receipt_tamper", DEFERRED_FAULT_KINDS)
+        self.assertIn("integration_conflict", DEFERRED_FAULT_KINDS)
+        self.assertTrue(set(FAULT_KINDS).isdisjoint(DEFERRED_FAULT_KINDS))
 
     def test_invalid_fault_spec_rejected(self):
         with self.assertRaises(ContractError):
             FaultSpec("bad", "imaginary")
         with self.assertRaises(ContractError):
             FaultSpec("bad", "provider_error", "other")
+        # Deferred faults are not accepted by the classic Harness experiment
+        # runner; this prevents a paper receipt from claiming an injection that
+        # did not exercise an implemented containment mechanism.
+        with self.assertRaises(ContractError):
+            FaultSpec("bad", "forbidden_filesystem_write")
 
 
 if __name__ == "__main__":
