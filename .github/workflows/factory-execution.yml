@@ -5,6 +5,8 @@ on:
       - 'residual/factory/**'
       - 'tests/test_factory_worker_contract.py'
       - 'tests/test_factory_runtime.py'
+      - 'tests/test_factory_reliability_experiments.py'
+      - 'scripts/run_m2_reliability_fault_matrix.py'
       - 'examples/factory/**'
       - 'docs/factory/**'
       - '.github/workflows/factory-execution.yml'
@@ -39,9 +41,14 @@ jobs:
           RESIDUAL_REQUIRE_SECCOMP: '1'
         run: |
           set -o pipefail
-          python -m unittest tests.test_factory_worker_contract tests.test_factory_runtime -v 2>&1 | tee runs/factory-execution/execution-tests.txt
+          python -m unittest tests.test_factory_worker_contract tests.test_factory_runtime tests.test_factory_reliability_experiments -v 2>&1 | tee runs/factory-execution/execution-tests.txt
           python -m unittest discover -s tests -v 2>&1 | tee runs/factory-execution/full-tests.txt
-          python -m compileall -q residual/factory
+          python -m compileall -q residual/factory scripts/run_m2_reliability_fault_matrix.py
+      - name: Controlled M2 reliability fault matrix
+        env:
+          RESIDUAL_REQUIRE_SECCOMP: '1'
+        run: |
+          python scripts/run_m2_reliability_fault_matrix.py --output runs/factory-execution/m2-reliability
       - name: Scripted end-to-end execution
         run: |
           python examples/factory/brokered_worker_demo.py --output "$RUNNER_TEMP/residual-m2-demo"
