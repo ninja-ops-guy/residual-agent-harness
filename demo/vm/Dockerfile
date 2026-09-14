@@ -22,7 +22,8 @@ RUN python3 -m pip install --break-system-packages --no-deps -e /opt/residual \
       'printf "Try:\\n  residual demo --output runs/demo\\n  ./examples/onboarding/demo.sh\\n  python3 -m unittest discover -s tests -v\\n\\n"' \
       'printf "Inspect the actual repo, traces, receipts, and verifier output.\\n\\n"' \
       >> /home/residual/.bashrc \
-    && chown residual:residual /home/residual/.bashrc
+    && printf '%s\n' 'if [ -f ~/.bashrc ]; then . ~/.bashrc; fi' > /home/residual/.bash_profile \
+    && chown residual:residual /home/residual/.bashrc /home/residual/.bash_profile
 
 USER residual
 WORKDIR /opt/residual
