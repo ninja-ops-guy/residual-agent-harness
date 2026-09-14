@@ -37,10 +37,18 @@ from .measured_factory import (
     FactoryRunMeasurement,
     MeasuredFactoryEvaluationRunner,
 )
+from .approved_factory import (
+    ApprovedFactoryBindingError,
+    ApprovedFactoryEvaluationAdapter,
+    ApprovedFactoryRunBinding,
+)
 
 __all__ = [
     "ABLATIONS",
     "Ablation",
+    "ApprovedFactoryBindingError",
+    "ApprovedFactoryEvaluationAdapter",
+    "ApprovedFactoryRunBinding",
     "Comparison",
     "CostAnalysis",
     "CostRates",
