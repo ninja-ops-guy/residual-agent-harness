@@ -1,0 +1,115 @@
+{
+  "artifact": "otx-003-evidence",
+  "artifact_version": "1.0.0",
+  "identity": {
+    "git_branch": "swarm/otx-003-orchestration-tax",
+    "git_commit": "b131d6b05a619e057be81966f93a11a97bdf518a",
+    "git_tree": "e49b809b2f53b04360460da70a7fccd24a8b0356",
+    "platform": "Linux-5.10.134-18.0.12.lifsea8.x86_64-x86_64-with-glibc2.36",
+    "python_version": "3.12.12"
+  },
+  "study": {
+    "config": {
+      "deployment_tax_threshold": 3.0,
+      "latency_penalty": 0.05,
+      "topologies": [
+        "single",
+        "pair",
+        "swarm"
+      ]
+    },
+    "evaluation": {
+      "granularities": {
+        "atomic": {
+          "decisions": {
+            "single": 3,
+            "swarm": 5
+          },
+          "mean_abs_tax_error": 1.4232770053689716,
+          "tasks": 8
+        },
+        "composite": {
+          "decisions": {
+            "single": 4,
+            "swarm": 4
+          },
+          "mean_abs_tax_error": 0.17762486511860184,
+          "tasks": 8
+        },
+        "project": {
+          "decisions": {
+            "single": 4,
+            "swarm": 4
+          },
+          "mean_abs_tax_error": 0.3286084129108882,
+          "tasks": 8
+        }
+      },
+      "observations": 24,
+      "workload_hash": "e810d9b5a5c6fcab7a500449de805abe7e6bb72fd202a0ee0c238ce6a5dfe174"
+    },
+    "learned_preferences": {
+      "lookup": {
+        "predicted_reliability": {
+          "pair": 0.85,
+          "single": 0.92,
+          "swarm": 0.9440000000000002
+        },
+        "predicted_tax": {
+          "pair": 0.2,
+          "single": 0.05295612515883591,
+          "swarm": 3.429011824696634
+        },
+        "preferred_topology": "single",
+        "samples": {
+          "pair": 0,
+          "single": 11,
+          "swarm": 1
+        }
+      },
+      "synthesis": {
+        "predicted_reliability": {
+          "pair": 0.85,
+          "single": 0.7,
+          "swarm": 0.9825
+        },
+        "predicted_tax": {
+          "pair": 0.2,
+          "single": 0.05,
+          "swarm": 1.8813821857726416
+        },
+        "preferred_topology": "swarm",
+        "samples": {
+          "pair": 0,
+          "single": 0,
+          "swarm": 12
+        }
+      }
+    },
+    "observation_count": 24,
+    "observations_sha256": "5a32f26ffc8b2d882648c39b09da8acc259fea7a270711b0588685d59fba53c9",
+    "replay": {
+      "exact": true,
+      "matched": 24,
+      "mismatches": [],
+      "total": 24
+    },
+    "spec": "SPEC-SWARM-OTX-003",
+    "workload": {
+      "granularities": [
+        "atomic",
+        "composite",
+        "project"
+      ],
+      "name": "otx-dev-fixture",
+      "seed": 20240513,
+      "task_classes": [
+        "lookup",
+        "synthesis"
+      ],
+      "task_count": 24,
+      "version": "1.0.0",
+      "workload_hash": "e810d9b5a5c6fcab7a500449de805abe7e6bb72fd202a0ee0c238ce6a5dfe174"
+    }
+  }
+}

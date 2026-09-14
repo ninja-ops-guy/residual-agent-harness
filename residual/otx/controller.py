@@ -23,6 +23,8 @@ that callers pass to :meth:`record_outcome`.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import random
 from dataclasses import dataclass, asdict
 from typing import Dict, List, Optional, Tuple
@@ -119,6 +121,13 @@ class OrchestrationTaxController:
                 selected, reason = SIMPLEST_TOPOLOGY, "deployment_threshold"
 
         self._seq += 1
+        # Full snapshots are large; a digest keeps the observation compact
+        # while still binding it to the estimator state at decision time
+        # (replay rebuilds state by folding outcomes, so no information
+        # needed for reproduction is lost).
+        snapshot_digest = hashlib.sha256(
+            json.dumps(self.model.snapshot(), sort_keys=True).encode("utf-8")
+        ).hexdigest()
         obs = TopologyObservation(
             observation_id=f"otx-{self._seq:06d}",
             sequence=self._seq,
@@ -135,7 +144,7 @@ class OrchestrationTaxController:
             candidates=candidates,
             selected_topology=selected,
             selection_reason=reason,
-            model_snapshot=self.model.snapshot(),
+            model_snapshot={"sha256": snapshot_digest},
         )
         self.log.append(obs)
         return obs

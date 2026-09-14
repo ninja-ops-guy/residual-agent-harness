@@ -103,6 +103,12 @@ def main(argv: List[str] | None = None) -> int:
 
     study = run_study()
     artifact = build_artifact(study, repo_root)
+    # Raw observations ship in observations.jsonl (hash-linked); keep the
+    # results artifact compact and machine-readable.
+    artifact["study"] = {
+        k: v for k, v in study.items() if k != "observations"
+    }
+    artifact["study"]["observation_count"] = len(study["observations"])
 
     os.makedirs(args.out, exist_ok=True)
     artifact_path = os.path.join(args.out, "results.json")
