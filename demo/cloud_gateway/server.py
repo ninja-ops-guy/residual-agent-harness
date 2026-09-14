@@ -59,7 +59,7 @@ def _freellm_admin_token():
 
 def _freellm_create_profile(name):
     token = _freellm_admin_token()
-    _, _, out = _json(f'{FREELLM}/api/client-profiles', 'POST', {'name': name, 'systemPrompt': 'RESIDUAL public demo session. Follow the user task, return concise text, and do not claim verification authority.'}, {'Authorization': f'Bearer {token}'})
+    _, _, out = _json(f'{FREELLM}/api/client-profiles', 'POST', {'name': name, 'systemPrompt': None}, {'Authorization': f'Bearer {token}'})
     return int(out['id']), out['key']
 
 
