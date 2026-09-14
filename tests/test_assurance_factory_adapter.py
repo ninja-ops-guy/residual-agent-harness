@@ -155,6 +155,15 @@ class FactoryAdapterTests(unittest.TestCase):
             executor(AuthorEngine(), TaskSpec("parent", "code", "make edits"), ContextAssembly())
         self.assertEqual(runtime.calls, [])
 
+    def test_unknown_authoring_usage_fails_closed_before_runtime(self):
+        engine = AuthorEngine(token_usage=None)
+        runtime = FakeFactoryRuntime()
+        job = self.make_job(engine.engine_id)
+        executor = FactoryFixedSwarmExecutor(runtime, lambda _engine, _task, _context: job)
+        with self.assertRaisesRegex(FactoryAssuranceError, "usage is unknown"):
+            executor(engine, TaskSpec("parent", "code", "make edits"), ContextAssembly())
+        self.assertEqual(runtime.calls, [])
+
     def test_fenced_worker_source_is_not_silently_reinterpreted(self):
         class FencedEngine(AuthorEngine):
             def execute(self, task, context):
