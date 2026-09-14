@@ -1,12 +1,11 @@
 """Assurance strategy adapter for Residual Factory's bounded local swarm runtime.
 
-The selected ExecutionEngine authors worker source on the trusted host.  The source
-is then executed only inside FactoryRuntime's preapproved WorkerContracts.  Factory
+The selected ExecutionEngine authors worker source on the trusted host. The source
+is then executed only inside FactoryRuntime's preapproved WorkerContracts. Factory
 candidates remain quarantined; this adapter never merges or issues Station receipts.
 """
 from __future__ import annotations
 
-import re
 import time
 from dataclasses import dataclass
 from typing import Any, Callable, Mapping, Protocol, Sequence
@@ -14,7 +13,7 @@ from typing import Any, Callable, Mapping, Protocol, Sequence
 from ..engines.protocol import ContextAssembly, EngineResult, ExecutionEngine, TaskSpec
 from ..factory.models import ExecutionPlan as FactoryExecutionPlan, FrozenPlan
 from ..factory.runtime import FactoryRuntime, RuntimeResult
-from ..factory.worker_contract import WorkerContract, WorkerContractError
+from ..factory.worker_contract import WorkerContract
 
 
 class FactoryAssuranceError(RuntimeError):
@@ -92,7 +91,7 @@ def _python_source(candidate: Any) -> str:
     if not isinstance(candidate, str):
         raise FactoryAssuranceError("worker author engine must return Python source text")
     source = candidate.strip()
-    # Do not silently reinterpret fenced prose as executable source.  The authoring
+    # Do not silently reinterpret fenced prose as executable source. The authoring
     # contract requires raw Python so the exact engine output is what gets sandboxed.
     if source.startswith("```") or source.endswith("```"):
         raise FactoryAssuranceError("worker author engine returned fenced source")
@@ -115,7 +114,8 @@ def _authoring_task(
         "  read_file(path) -> text\n"
         "  write_file(path, content)\n"
         "  delete_file(path)\n"
-        "Direct filesystem, network, process creation, shell, imports requiring filesystem access, and exec are not available.\n"
+        "Direct filesystem, network, process creation and shell access are unavailable.\n"
+        "Do not use eval, exec, dynamic imports, or unapproved interfaces.\n"
         "Complete the assigned work using only the broker functions and ordinary in-memory Python.\n\n"
         f"Parent task id: {parent.task_id}\n"
         f"Parent task input: {parent.input!r}\n"
@@ -142,9 +142,10 @@ def _authoring_task(
 class FactoryFixedSwarmExecutor:
     """Callable `StrategyExecutor` for `ExecutionStrategy.FIXED_SWARM`.
 
-    The market-selected engine authors every worker.  Contracts must bind that exact
+    The market-selected engine authors every worker. Contracts must bind that exact
     engine id through `engine_hint`; this prevents a Factory swarm from being credited
-    to a model that did not author its worker source.
+    to a model that did not author its worker source. Unknown authoring token usage is
+    rejected because the WorkerContract token budget could not otherwise be enforced.
     """
 
     runtime: FactoryRuntime
@@ -161,7 +162,6 @@ class FactoryFixedSwarmExecutor:
         engine_id = f"{engine.name}@{engine.version}"
         sources: list[tuple[WorkerContract, str]] = []
         token_total = 0
-        token_known = True
         author_traces: list[Mapping[str, Any]] = []
 
         started = time.monotonic()
@@ -174,11 +174,10 @@ class FactoryFixedSwarmExecutor:
             ), context)
             source = _python_source(authored.candidate)
             if authored.token_usage is None:
-                token_known = False
-            else:
-                if authored.token_usage > contract.token_budget:
-                    raise FactoryAssuranceError("worker authoring token usage exceeds WorkerContract budget")
-                token_total += authored.token_usage
+                raise FactoryAssuranceError("worker authoring token usage is unknown")
+            if authored.token_usage > contract.token_budget:
+                raise FactoryAssuranceError("worker authoring token usage exceeds WorkerContract budget")
+            token_total += authored.token_usage
             sources.append((contract, source))
             author_traces.append({
                 "worker_id": contract.worker_id,
@@ -205,7 +204,7 @@ class FactoryFixedSwarmExecutor:
         statuses = {result.attempt_id: result.status for result in results}
         return EngineResult(
             candidate=candidate,
-            token_usage=token_total if token_known else None,
+            token_usage=token_total,
             wall_clock_ms=elapsed_ms,
             engine_trace=tuple(author_traces),
             raw_metadata={
