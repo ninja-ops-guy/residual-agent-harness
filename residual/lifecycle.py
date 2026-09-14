@@ -5,6 +5,7 @@ cannot veto or mutate control flow.
 """
 from __future__ import annotations
 
+import copy
 from collections import defaultdict
 from dataclasses import dataclass
 from threading import RLock
@@ -41,10 +42,10 @@ class ModuleLifecycleBus:
         if not isinstance(payload, dict):
             raise TypeError("lifecycle payload must be a dict")
         with self._lock:
-            handlers = tuple(self._handlers.get(event, ())) + tuple(self._handlers.get("*", ()))
+            handlers = tuple(self._handlers.get(event, ())) + (() if event == "*" else tuple(self._handlers.get("*", ())))
         for handler in handlers:
             try:
-                handler(event, dict(payload))
+                handler(event, copy.deepcopy(payload))
             except Exception:
                 # Diagnostics must never become authority over the run.
                 with self._lock:
@@ -57,9 +58,14 @@ class LifecycleBinding:
     bus: ModuleLifecycleBus
     handlers: tuple[tuple[str, Callable], ...]
 
+    cleanup: Callable | None = None
+
     def close(self):
         for event, handler in self.handlers:
             self.bus.unsubscribe(event, handler)
+        if self.cleanup is not None:
+            cleanup, self.cleanup = self.cleanup, None
+            cleanup()
 
 
 def bind_trajectory(bus: ModuleLifecycleBus, recorder, *, publish=None) -> LifecycleBinding:
@@ -142,4 +148,4 @@ def bind_tui(bus: ModuleLifecycleBus, collector, tui=None) -> LifecycleBinding:
     bus.subscribe("*", on_event)
     if tui is not None:
         tui.start()
-    return LifecycleBinding(bus, (("*", on_event),))
+    return LifecycleBinding(bus, (("*", on_event),), tui.stop if tui is not None else None)

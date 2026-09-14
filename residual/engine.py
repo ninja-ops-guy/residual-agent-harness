@@ -209,7 +209,7 @@ class Harness:
         if identity is not None:
             name, revision, _ = identity
             modern = StationReceipt(node_id, self._cache_key(node_id), digest(value), name, revision,
-                                    CheckResult.PASS, self._parents(node_id))
+                                    CheckResult.PASS, self._parents(node_id), engine_name="residual", engine_version="0.5.0")
             self.station_receipts[node_id] = modern
         receipt = {"binding": self._cache_key(node_id), "value_sha256": digest(value),
                    "verifier": self.task.by_id[node_id].check,

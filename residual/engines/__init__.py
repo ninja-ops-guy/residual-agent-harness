@@ -11,3 +11,6 @@ __all__ = [
     "CapabilityRouter", "LangGraphEngine", "CrewAIEngine", "ClaudeSDKEngine",
     "OpenAIAssistantsEngine",
 ]
+
+from .harness_pass import EngineHarnessPass
+__all__ += ["EngineHarnessPass"]

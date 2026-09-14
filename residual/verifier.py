@@ -120,14 +120,14 @@ class Verifier:
         if evaluator is None:
             # SPEC-002-R7: fail closed when the evaluator is unavailable.
             if criterion.check_type == CheckType.JUDGE:
-                return CheckResult.FAIL, "judge_unavailable"
-            return CheckResult.FAIL, f"evaluator_not_registered:{criterion.evaluator}"
+                return CheckResult.UNKNOWN, "judge_unavailable"
+            return CheckResult.UNKNOWN, f"evaluator_not_registered:{criterion.evaluator}"
 
         try:
             result, reason = evaluator(candidate, criterion.parameters)
         except Exception:
-            # SPEC-002-R5: mechanical check exceptions return FAIL, not raise.
-            return CheckResult.FAIL, "check_error"
+            # SPEC-002-R5: mechanical check exceptions mean could-not-evaluate (binding Conflict 3).
+            return CheckResult.UNKNOWN, "check_error"
 
         if not isinstance(result, CheckResult) or result not in (CheckResult.PASS, CheckResult.FAIL, CheckResult.UNKNOWN) or not isinstance(reason, str):
             return CheckResult.FAIL, "invalid_check_result"
