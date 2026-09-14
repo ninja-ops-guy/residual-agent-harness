@@ -1,0 +1,43 @@
+name: Factory M3 Evidence Bus reliability
+on:
+  pull_request:
+    paths:
+      - 'residual/factory/evidence_bus.py'
+      - 'residual/factory/evidence_receipts.py'
+      - 'residual/factory/station_issuer.py'
+      - 'residual/factory/reliability_m3_bus.py'
+      - 'tests/test_factory_reliability_m3_bus.py'
+      - 'scripts/run_m3_bus_fault_matrix.py'
+      - '.github/workflows/m3-bus-reliability.yml'
+permissions:
+  contents: read
+jobs:
+  evidence-bus:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'cryptography>=43'
+      - name: Preserve source identity
+        run: |
+          mkdir -p runs/m3-bus-reliability
+          git rev-parse HEAD > runs/m3-bus-reliability/commit.txt
+          git rev-parse HEAD^{tree} > runs/m3-bus-reliability/tree.txt
+          python --version > runs/m3-bus-reliability/platform.txt
+          python -m pip show cryptography >> runs/m3-bus-reliability/platform.txt
+      - name: M3 Evidence Bus fault tests
+        run: |
+          set -o pipefail
+          python -m unittest tests.test_factory_reliability_m3_bus -v 2>&1 | tee runs/m3-bus-reliability/tests.txt
+      - name: Controlled M3 fault matrix
+        run: python scripts/run_m3_bus_fault_matrix.py --output runs/m3-bus-reliability
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: factory-m3-bus-reliability-${{ github.sha }}
+          path: runs/m3-bus-reliability
