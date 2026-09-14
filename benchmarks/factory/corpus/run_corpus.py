@@ -83,7 +83,8 @@ def main() -> int:
     key_path = output / "station.pem"
     identity = StationIdentity.generate()
     identity.save_private(key_path)
-    (output / "station-public-key.hex").write_text(identity.public_bytes().hex() + "\n", encoding="ascii")
+    public_key = identity.public_bytes()
+    (output / "station-public-key.hex").write_text(public_key.hex() + "\n", encoding="ascii")
 
     entries = []
     model_name = None
@@ -120,7 +121,7 @@ def main() -> int:
               "--runs", str(args.runs), "--station-key", str(key_path),
               "--output", str(results_dir)])
         report_path = results_dir / "comparison-report.json"
-        entry = report_entry(benchmark, workload_path, report_path)
+        entry = report_entry(benchmark, workload_path, report_path, public_key)
         if entry.simulation:
             raise SystemExit(f"{benchmark} produced simulated evidence; corpus will not be signed as measured")
         entries.append(entry)
