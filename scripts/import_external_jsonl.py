@@ -12,6 +12,9 @@ import json
 from pathlib import Path
 
 
+ASSURANCE_CHOICES = ("routine", "important", "security_critical", "safety_critical")
+
+
 def stable_bucket(case_id: str, salt: str) -> int:
     raw = hashlib.sha256(f"{salt}\0{case_id}".encode("utf-8")).digest()
     return int.from_bytes(raw[:8], "big") % 10000
@@ -46,7 +49,7 @@ def main(argv=None):
     parser.add_argument("--prompt-key", default="prompt")
     parser.add_argument("--answer-key", default="answer")
     parser.add_argument("--capability", default="text")
-    parser.add_argument("--assurance", default="routine", choices=("routine", "sensitive", "critical"))
+    parser.add_argument("--assurance", default="routine", choices=ASSURANCE_CHOICES)
     parser.add_argument("--required-pass-rate", type=float, default=0.5)
     parser.add_argument("--train-percent", type=int, default=20)
     parser.add_argument("--split-salt", required=True)
