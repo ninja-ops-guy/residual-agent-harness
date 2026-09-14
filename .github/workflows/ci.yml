@@ -26,6 +26,53 @@ jobs:
           residual demo --output runs/ci-demo
           residual verify-trace runs/ci-demo/trace.jsonl --result runs/ci-demo/result.json
           residual run examples/incident/task.json --config examples/demo.toml --output runs/ci-task
+      - name: Real px0 read-only sandbox smoke
+        if: matrix.python == '3.13'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq bubblewrap curl
+          PX0=/tmp/px0-0.1.2-linux-amd64
+          curl -fsSL -o "$PX0" https://github.com/px0-ai/px0/releases/download/v0.1.2/px0-0.1.2-linux-amd64
+          printf '%s  %s\n' 'c483293c67a63821712508931588d0495c336be5ace1e253b90624d3f5a06700' "$PX0" | sha256sum -c -
+          chmod 0755 "$PX0"
+          "$PX0" -version | grep -F 'px0 0.1.2'
+          WORK=/tmp/residual-inspector-smoke
+          rm -rf "$WORK"
+          git clone -q "$GITHUB_WORKSPACE" "$WORK"
+          RECEIPT=/tmp/residual-inspector-smoke-receipt.json
+          rm -f "$RECEIPT"
+          residual inspector "$WORK" --px0 "$PX0" --no-open --receipt "$RECEIPT" > /tmp/inspector.out 2> /tmp/inspector.err &
+          PID=$!
+          cleanup() { kill "$PID" 2>/dev/null || true; wait "$PID" 2>/dev/null || true; }
+          trap cleanup EXIT
+          for _ in $(seq 1 50); do
+            if [ -s "$RECEIPT" ]; then break; fi
+            if ! kill -0 "$PID" 2>/dev/null; then
+              cat /tmp/inspector.out /tmp/inspector.err
+              exit 1
+            fi
+            sleep 0.1
+          done
+          test -s "$RECEIPT"
+          python - <<'PY'
+          import json
+          import urllib.request
+          p = json.load(open('/tmp/residual-inspector-smoke-receipt.json'))
+          assert p['binary_qualified'] is True
+          assert p['sandboxed'] is True
+          assert p['sandbox_backend'] == 'bubblewrap'
+          assert p['telemetry_enabled'] is False
+          assert p['url'].startswith('http://127.0.0.1:')
+          with urllib.request.urlopen(p['url'] + '/', timeout=3) as r:
+              assert r.status == 200
+          PY
+          BEFORE=$(git -C "$WORK" status --porcelain --untracked-files=all)
+          test -z "$BEFORE"
+          test ! -e "$WORK/runs/inspection.json"
+          cleanup
+          trap - EXIT
       - name: Controller ablations
         run: python -m residual benchmark --cases 4 --output runs/ci-benchmark.json
       - name: Frozen adaptive assurance evaluation
