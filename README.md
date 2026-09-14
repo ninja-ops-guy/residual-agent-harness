@@ -83,3 +83,7 @@ python3 scripts/publish.py --owner YOUR_GITHUB_USERNAME --name residual-agent-ha
 ```
 
 The script creates a private repository and pushes `main`. Use `--dry-run` to inspect the commands. It refuses to overwrite an existing remote or publish uncommitted source changes.
+
+## Deployment integration follow-up
+
+See [deployment.md](docs/deployment.md) for opt-in TLS mesh transport, advisory LAN discovery, JWT-authenticated operator review, lifecycle/context wiring and the live Ollama receipt-cache benchmark. The guide distinguishes implemented contracts from deployment and real-model validation still required. `observation_layer` ships in the same wheel; optional integrations use the `mesh` and `hitl` extras.

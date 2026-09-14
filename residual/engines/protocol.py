@@ -42,9 +42,9 @@ class EngineResult:
 class EngineExecutionReceipt:
     """Engine provenance bound to an otherwise unchanged StationReceipt.
 
-    StationReceipt v1 is intentionally stable because it is already a persisted
-    verification/cache contract. GAP1-R7 provenance is layered around it instead
-    of silently invalidating historical evidence.
+    Optional outer provenance for historical v1 and current v2 StationReceipts.
+    New v2 station receipts also bind engine identity in their own payload.
+    Neither envelope makes an engine result authoritative.
     """
     station_receipt: StationReceipt
     engine_name: str

@@ -133,6 +133,11 @@ class StationReceipt:
     def from_json(cls, text: str) -> "StationReceipt":
         return cls.from_dict(strict_json(text))
 
+    @staticmethod
+    def compute_cache_key(**bindings) -> str:
+        """Compatibility alias; the standalone function remains canonical."""
+        return cache_key(**bindings)
+
     def matches(self, *, value: Any, cache_key: str, verifier_name: str,
                 verifier_revision: str, parents: tuple[ReceiptReference, ...],
                 engine_name: str | None = None, engine_version: str | None = None) -> bool:

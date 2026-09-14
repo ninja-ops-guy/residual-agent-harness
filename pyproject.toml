@@ -12,12 +12,17 @@ dependencies = []
 
 [project.optional-dependencies]
 marketplace = ["cryptography>=43"]
+mesh = ["websockets>=15,<18", "cryptography>=43", "zeroconf>=0.147,<1"]
+hitl = ["aiohttp>=3.12,<4", "PyJWT[crypto]>=2.10.1,<3"]
 
 [project.scripts]
 residual = "residual.cli:main"
 residual-station = "residual.station.server:main"
 residual-worker = "residual.station.worker:main"
 residual-module = "residual.marketplace.cli:main"
+residual-hitl = "residual.hitl.server:main"
+residual-live-benchmark = "residual.benchmark_live:main"
+residual-mesh-relay = "residual.mesh.relay:main"
 
 [project.entry-points."residual.modules"]
 netops = "residual.modules.netops:NetOpsModule"
@@ -28,3 +33,5 @@ include = ["residual*", "ai_providers*", "observation_layer*"]
 
 [tool.setuptools.package-data]
 "residual.station" = ["static/*", "schemas/*.json"]
+
+"residual.hitl" = ["static/*"]

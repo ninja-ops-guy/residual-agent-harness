@@ -107,5 +107,6 @@ def issue_task_receipt(station, project, task, integration_checks):
     value = {"head_commit": task["head_commit"], "checks_hash": task["checks_hash"],
              "review_hash": digest(task["review"]), "integration_checks_hash": digest(integration_checks)}
     receipt = StationReceipt(task["id"], _binding(project, task, revision, parents), digest(value),
-        "station:integration", revision, CheckResult.PASS, parents)
+        "station:integration", revision, CheckResult.PASS, parents,
+        engine_name="residual-station", engine_version="0.5.0")
     return {"receipt": receipt.to_dict(), "value": value}

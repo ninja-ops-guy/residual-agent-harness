@@ -133,7 +133,7 @@ class StationTUI:
         interval = 1.0 / self._refresh_hz
         while not self._stop.is_set():
             self._render()
-            time.sleep(interval)
+            self._stop.wait(interval)
 
     def _render(self) -> None:
         s = self._collector.snapshot()

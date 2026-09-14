@@ -97,10 +97,10 @@ class TestVerifier(unittest.TestCase):
         report = v.verify({}, make_spec())
         self.assertFalse(report.overall_pass)
         judge_result = [r for r in report.results if r.name == "judge1"][0]
-        self.assertEqual(judge_result.result, CheckResult.FAIL)
+        self.assertEqual(judge_result.result, CheckResult.UNKNOWN)
         self.assertEqual(judge_result.reason, "judge_unavailable")
 
-    def test_evaluator_exception_returns_fail(self):
+    def test_evaluator_exception_returns_unknown(self):
         def bad_eval(c, p):
             raise RuntimeError("boom")
         evaluators = dict(self.evaluators)
@@ -109,7 +109,7 @@ class TestVerifier(unittest.TestCase):
         report = v.verify({}, make_spec())
         self.assertFalse(report.overall_pass)
         mech = [r for r in report.results if r.name == "mech1"][0]
-        self.assertEqual(mech.result, CheckResult.FAIL)
+        self.assertEqual(mech.result, CheckResult.UNKNOWN)
         self.assertEqual(mech.reason, "check_error")
 
     def test_all_checks_evaluated_despite_early_failure(self):

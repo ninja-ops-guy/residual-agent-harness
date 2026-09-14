@@ -91,6 +91,7 @@ class LoopController:
             self.extensions.acquire()
         self._running = True
         try:
+            self._run_state = None
             self._extension_failure = False
             self.brakes = self._base_brakes
             if self.extensions is not None:
@@ -101,6 +102,16 @@ class LoopController:
             for brake in self.brakes:
                 brake.reset()
             return self._run()
+        except BaseException:
+            state = getattr(self, "_run_state", None)
+            if state is not None and not state["closed"]:
+                trip = BrakeTrip("execution", "host_execution_error", digest({"run_id": state["id"]}), BrakeAction.ABORT)
+                try:
+                    self._finish(RunOutcome.ABORTED, state["id"], state["passes"], None,
+                                 state["t0"], None, [trip], self.spec)
+                except Exception:
+                    pass  # Preserve the original host exception, not a delivery error.
+            raise
         finally:
             self._running = False
             if self.extensions is not None:
@@ -110,6 +121,7 @@ class LoopController:
         run_id = str(uuid.uuid4())
         spec = self.spec
         t0 = time.monotonic()
+        self._run_state = {"id": run_id, "t0": t0, "passes": 0, "closed": False}
         tokens: Optional[int] = 0
         report = None
         trips: list[BrakeTrip] = []
@@ -150,6 +162,7 @@ class LoopController:
                 return self._finish(RunOutcome.ABORTED, run_id, pass_number - 1, tokens, t0, report, trips, spec)
             self._emit("state.transition", {"from_state": "pass_pending", "to_state": "pass_running",
                                             "pass_number": pass_number, "run_id": run_id})
+            self._run_state["passes"] = pass_number
             result = self.harness.run_pass(spec, pass_number)
             if not isinstance(result, dict) or "candidate" not in result:
                 raise ContractError("harness pass must return a candidate object")
@@ -225,9 +238,12 @@ class LoopController:
             "trip_reasons": list(result.trip_reasons), "spec_hash": spec.content_hash}
         # Preserve the public observation/checkpoint contract as strict JSON. Rich
         # Python objects are delivered only to internal lifecycle subscribers.
-        self._emit("checkpoint", checkpoint)
-        if self.lifecycle is not None:
-            self.lifecycle.emit("run_closed", {**checkpoint, "result": result, "goal_spec": spec})
-        if self.extensions is not None:
-            self.extensions.on_run_closed(result)
+        self._run_state["closed"] = True
+        try:
+            self._emit("checkpoint", checkpoint)
+        finally:
+            if self.lifecycle is not None:
+                self.lifecycle.emit("run_closed", {**checkpoint, "result": result, "goal_spec": spec})
+            if self.extensions is not None:
+                self.extensions.on_run_closed(result)
         return result

@@ -5,6 +5,7 @@ explicit authenticator, approvals fail closed. This module never resumes a run.
 """
 from __future__ import annotations
 
+from contextlib import closing
 import hashlib
 import hmac
 import math
@@ -60,7 +61,7 @@ class HITLEscalationGateway:
         directory = Path(challenge_dir)
         directory.mkdir(parents=True, exist_ok=True)
         self._path = directory / "challenges.sqlite3"
-        with sqlite3.connect(self._path) as db:
+        with closing(sqlite3.connect(self._path)) as db, db:
             db.execute("CREATE TABLE IF NOT EXISTS challenges (id TEXT PRIMARY KEY, record TEXT NOT NULL)")
 
     def _sign(self, data):
@@ -80,7 +81,7 @@ class HITLEscalationGateway:
                             "reason": reason, "goal_spec_hash": goal_spec.content_hash},
                 "timestamp_ns": time.time_ns(), "validity_window_s": self._validity_s,
                 "authorized_roles": list(goal_spec.amendment_rule.authorized_roles), "status": HITLStatus.PENDING.value}
-        with sqlite3.connect(self._path) as db:
+        with closing(sqlite3.connect(self._path)) as db, db:
             record = self._store(db, data)
         return HITLChallenge(data["challenge_id"], task_id, proposed_action, reason, goal_spec.content_hash,
                              data["timestamp_ns"], self._validity_s, record["signature"])
@@ -102,34 +103,79 @@ class HITLEscalationGateway:
 
     def verify_approval(self, challenge_id: str, operator_response: str,
                         operator_role: str, authorized_roles: tuple[str, ...]) -> HITLStatus:
-        """Atomically consume one authenticated approval. Replays are denied.
+        """Compatibility API: atomically consume one authenticated approval."""
+        return self.submit_decision(challenge_id, operator_response, operator_role,
+                                    authorized_roles, decision="approve")[1]
 
-        The host authenticator must validate its operator/session and bind the
-        response to this exact challenge. A caller-supplied role is not identity.
+    def submit_decision(self, challenge_id: str, operator_response: str,
+                        operator_role: str, authorized_roles: tuple[str, ...], *,
+                        decision: str) -> tuple[bool, HITLStatus]:
+        """Return (consumed, status); denial is distinct from a rejected request.
+
+        Identity comes from the configured authenticator, never a supplied role.
+        The decision is durable but never resumes execution or weakens policy.
         """
-        with sqlite3.connect(self._path, timeout=10) as db:
+        if decision not in {"approve", "deny"}:
+            raise ContractError("decision must be approve or deny")
+        with closing(sqlite3.connect(self._path, timeout=5)) as db, db:
             db.execute("BEGIN IMMEDIATE")
             record = self._read(db, challenge_id)
             if record is None or record["status"] != HITLStatus.PENDING.value:
-                return HITLStatus.DENIED
+                return False, HITLStatus.DENIED
             data = {k: v for k, v in record.items() if k != "signature"}
             age = (time.time_ns() - record["timestamp_ns"]) / 1e9
             if age < 0 or age >= record["validity_window_s"]:
                 data["status"] = HITLStatus.EXPIRED.value
                 self._store(db, data)
-                return HITLStatus.EXPIRED
+                return False, HITLStatus.EXPIRED
             if operator_role not in record["authorized_roles"] or operator_role not in authorized_roles or self._authenticate is None:
-                return HITLStatus.DENIED
+                return False, HITLStatus.DENIED
             try:
-                authenticated = self._authenticate(freeze(record), operator_response, operator_role)
+                authenticated = self._authenticate(freeze({**record, "_requested_decision": decision}),
+                                                   operator_response, operator_role)
+                if authenticated is not True:
+                    return False, HITLStatus.DENIED
+                identify = getattr(self._authenticate, "identity", None)
+                identity = identify(operator_response) if identify else {}
+                if (not isinstance(identity, dict) or set(identity) - {"subject", "issuer"}
+                        or any(not isinstance(v, str) or not 0 < len(v) <= 1024 for v in identity.values())):
+                    return False, HITLStatus.DENIED
             except Exception:
-                return HITLStatus.DENIED
-            if authenticated is not True:
-                return HITLStatus.DENIED
-            data["status"] = HITLStatus.APPROVED.value
+                return False, HITLStatus.DENIED
+            status = HITLStatus.APPROVED if decision == "approve" else HITLStatus.DENIED
+            data["status"] = status.value
+            data["resolution"] = {"decision": decision, "operator_role": operator_role,
+                                  "timestamp_ns": time.time_ns(), **identity}
             self._store(db, data)
-            return HITLStatus.APPROVED
+            return True, status
+
+    def _expire(self, db, record):
+        if record and record["status"] == HITLStatus.PENDING.value:
+            age = (time.time_ns() - record["timestamp_ns"]) / 1e9
+            if age < 0 or age >= record["validity_window_s"]:
+                data = {k: v for k, v in record.items() if k != "signature"}
+                data["status"] = HITLStatus.EXPIRED.value
+                return self._store(db, data)
+        return record
 
     def get_challenge(self, challenge_id: str):
-        with sqlite3.connect(self._path) as db:
-            return self._read(db, challenge_id)
+        with closing(sqlite3.connect(self._path, timeout=5)) as db, db:
+            db.execute("BEGIN IMMEDIATE")
+            return self._expire(db, self._read(db, challenge_id))
+
+    def list_challenges(self, authorized_roles: tuple[str, ...], *, after: str = "", limit: int = 50):
+        """Bounded scan; the host supplies authenticated roles. Follow next_cursor."""
+        if type(limit) is not int or not 1 <= limit <= 100 or not isinstance(after, str):
+            raise ContractError("invalid challenge page")
+        if after and str(uuid.UUID(after)) != after:
+            raise ContractError("invalid challenge cursor")
+        with closing(sqlite3.connect(self._path, timeout=5)) as db, db:
+            db.execute("BEGIN IMMEDIATE")
+            rows = db.execute("SELECT id FROM challenges WHERE id>? ORDER BY id LIMIT ?",
+                              (after, limit + 1)).fetchall()
+            records = []
+            for (cid,) in rows[:limit]:
+                record = self._expire(db, self._read(db, cid))
+                if record and set(record["authorized_roles"]) & set(authorized_roles):
+                    records.append(record)
+            return {"challenges": records, "next_cursor": rows[limit - 1][0] if len(rows) > limit else None}

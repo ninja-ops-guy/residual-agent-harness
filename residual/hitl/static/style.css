@@ -1,0 +1,2 @@
+:root{color-scheme:dark;background:#101820;color:#edf3f7;font:16px system-ui}main{max-width:850px;margin:3rem auto;padding:1rem}input{display:block;width:90%;padding:.8rem;margin:.5rem 0}button,select{font:inherit;padding:.8rem;margin:.4rem;min-height:44px}article{border:1px solid #607080;padding:1rem;margin:1rem 0;border-radius:8px}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#192b38;padding:1rem}#status{min-height:2rem}button:disabled{opacity:.6}
+*{box-sizing:border-box}article,p{overflow-wrap:anywhere}select{max-width:100%}
