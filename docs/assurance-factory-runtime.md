@@ -46,9 +46,9 @@ The `EngineResult.raw_metadata["factory_waves"]` record binds the observed wave 
 
 Quarantined runtime success is still not authoritative evidence. `FactoryM3Admission` provides the explicit bridge to the existing trusted Station path.
 
-For every worker it requires a real `VerificationDecision` from a caller-supplied trusted decision provider. It then calls `FactoryStationIssuer.issue`, which verifies the exact contract/result identity, acceptance criteria and artifact hashes before creating a Station-signed `WorkerReceipt` and atomically appending the artifact bytes to the Evidence Bus.
+For every worker it requires a real `VerificationDecision` from a caller-supplied trusted decision provider. It then calls `FactoryStationIssuer.issue`, which verifies the exact contract/result identity, acceptance criteria and artifact hashes before creating a Station-signed `WorkerReceipt` and atomically appending that worker's artifact bytes to the Evidence Bus.
 
-Only after every requested admission succeeds can the bridge purge the quarantined worktrees. The Evidence Bus then owns the content-addressed artifact bytes and signed receipt chain.
+M3 admission is intentionally append-only per worker, not batch-transactional. If a later worker is rejected, any earlier valid signed receipts remain authoritative and are not rolled back. Worktree purge is stricter: no requested candidate is purged until the entire admission call succeeds, so a partially admitted run remains inspectable and retryable.
 
 When a dynamic executor is configured with M3 admission, its result metadata changes from:
 
