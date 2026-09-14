@@ -27,6 +27,8 @@ jobs:
           residual run examples/incident/task.json --config examples/demo.toml --output runs/ci-task
       - name: Controller ablations
         run: python -m residual benchmark --cases 4 --output runs/ci-benchmark.json
+      - name: Frozen adaptive assurance evaluation
+        run: python scripts/assurance_eval.py --output runs/ci-assurance-evidence.json
       - name: Frozen independent evaluation (scripted fixtures)
         run: |
           residual study freeze --suite examples/study/suite.json --config examples/study-fixture.toml --repeats 2 --output runs/ci-study.lock.json
@@ -37,6 +39,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: controlled-study-python-${{ matrix.python }}
-          path: runs/ci-study/
+          path: |
+            runs/ci-study/
+            runs/ci-assurance-evidence.json
           if-no-files-found: ignore
           retention-days: 14
