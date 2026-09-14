@@ -12,6 +12,7 @@ from typing import Any, Mapping, Protocol, Sequence
 
 from ..engines.protocol import ContextAssembly, EngineResult, ExecutionEngine, TaskSpec
 from ..factory.runtime import FactoryRuntime, RuntimeResult
+from ..factory.worker_contract import WorkerContract
 from .factory_adapter import (
     FactoryAssuranceError,
     FactoryFixedSwarmJob,
@@ -63,10 +64,19 @@ class FactoryDynamicJobBuilder(Protocol):
     ) -> FactoryDynamicSwarmJob: ...
 
 
+class FactoryAdmissionProtocol(Protocol):
+    def admit(
+        self,
+        contracts: Sequence[WorkerContract],
+        results: Sequence[RuntimeResult],
+    ) -> Any: ...
+
+
 @dataclass
 class FactoryDynamicSwarmExecutor:
     runtime: FactoryRuntime
     build_job: FactoryDynamicJobBuilder
+    admission: FactoryAdmissionProtocol | None = None
 
     def __call__(self, engine: ExecutionEngine, task: TaskSpec, context: ContextAssembly) -> EngineResult:
         if not isinstance(self.runtime, FactoryRuntime):
@@ -143,6 +153,18 @@ class FactoryDynamicSwarmExecutor:
                 "statuses": {result.attempt_id: result.status for result in results},
             })
 
+        receipt_hashes: tuple[str, ...] = ()
+        admitted = False
+        if self.admission is not None:
+            admission_result = self.admission.admit(
+                tuple(item.contract for item in base.workers),
+                tuple(completed),
+            )
+            receipt_hashes = tuple(getattr(admission_result, "receipt_hashes", ()))
+            if len(receipt_hashes) != len(base.workers):
+                raise FactoryAssuranceError("M3 admission did not return one receipt per worker")
+            admitted = True
+
         elapsed_ms = int((time.monotonic() - started) * 1000)
         return EngineResult(
             candidate=candidate_manifest(tuple(completed)),
@@ -155,8 +177,9 @@ class FactoryDynamicSwarmExecutor:
                 "factory_plan_hash": base.plan.graph_hash,
                 "factory_waves": waves,
                 "engine_attribution": engine_id,
-                "candidate_state": "quarantined",
+                "candidate_state": "m3-admitted" if admitted else "quarantined",
                 "merge_performed": False,
-                "station_receipt_issued": False,
+                "station_receipt_issued": admitted,
+                "station_receipt_hashes": receipt_hashes,
             },
         )
