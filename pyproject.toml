@@ -29,3 +29,6 @@ include = ["residual*", "ai_providers*", "observation_layer*"]
 
 [tool.setuptools.package-data]
 "residual.station" = ["static/*", "schemas/*.json"]
+
+[tool.vercel]
+entrypoint = "demo.cloud_gateway.server:Handler"
