@@ -1,0 +1,42 @@
+name: Factory M3 receipt reliability evidence
+on:
+  pull_request:
+    paths:
+      - 'residual/factory/evidence_receipts.py'
+      - 'residual/factory/reliability_m3.py'
+      - 'tests/test_factory_reliability_m3.py'
+      - 'scripts/run_m3_fault_matrix.py'
+      - '.github/workflows/m3-reliability.yml'
+permissions:
+  contents: read
+jobs:
+  receipt-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install cryptographic verifier dependency
+        run: python -m pip install 'cryptography>=43'
+      - name: Preserve exact source identity
+        run: |
+          mkdir -p runs/m3-reliability
+          git rev-parse HEAD > runs/m3-reliability/commit.txt
+          git rev-parse HEAD^{tree} > runs/m3-reliability/tree.txt
+          python --version > runs/m3-reliability/platform.txt
+          python -m pip show cryptography >> runs/m3-reliability/platform.txt
+      - name: Signed receipt integrity tests
+        run: |
+          set -o pipefail
+          python -m unittest tests.test_factory_reliability_m3 -v 2>&1 | tee runs/m3-reliability/tests.txt
+      - name: Controlled M3 fault matrix
+        run: python scripts/run_m3_fault_matrix.py --output runs/m3-reliability
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: factory-m3-reliability-${{ github.sha }}
+          path: runs/m3-reliability
