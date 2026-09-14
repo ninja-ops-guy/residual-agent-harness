@@ -76,7 +76,11 @@ def _sha256(path: Path) -> str:
 def _platform_key() -> tuple[str, str]:
     system = platform.system().lower()
     machine = platform.machine().lower()
-    aliases = {"amd64": "x86_64", "x64": "x86_64", "arm64": "arm64" if system in {"darwin", "windows"} else "aarch64"}
+    aliases = {
+        "amd64": "x86_64",
+        "x64": "x86_64",
+        "arm64": "arm64" if system in {"darwin", "windows"} else "aarch64",
+    }
     return system, aliases.get(machine, machine)
 
 
@@ -126,19 +130,58 @@ def _path_is_within(path: Path, root: Path) -> bool:
     return path == root or root in path.parents
 
 
+def _masked_roots() -> list[Path]:
+    roots = [Path("/tmp").resolve()]
+    home = Path.home().resolve()
+    if str(home) != "/" and home not in roots:
+        roots.append(home)
+    return roots
+
+
+def _reexpose_readonly(command: list[str], source: Path, masked_root: Path) -> None:
+    """Recreate a path hidden by tmpfs and bind only that path read-only."""
+    source = source.resolve()
+    if not _path_is_within(source, masked_root):
+        return
+    parents = []
+    parent = source.parent
+    while parent != masked_root and _path_is_within(parent, masked_root):
+        parents.append(parent)
+        parent = parent.parent
+    for directory in reversed(parents):
+        command.extend(["--dir", str(directory)])
+    if source.is_dir():
+        command.extend(["--dir", str(source)])
+    command.extend(["--ro-bind", str(source), str(source)])
+
+
 def _sandbox_command(binary: Path, workspace: Path, inner: list[str]) -> tuple[list[str], str]:
     if platform.system().lower() != "linux":
-        raise ContractError("Secure px0 inspection currently requires Linux bubblewrap; use --unsafe-no-sandbox only for non-authoritative local browsing")
+        raise ContractError(
+            "Secure px0 inspection currently requires Linux bubblewrap; "
+            "use --unsafe-no-sandbox only for non-authoritative local browsing"
+        )
     bwrap = shutil.which("bwrap")
     if not bwrap:
         raise ContractError("Secure px0 inspection requires bubblewrap (bwrap) and refuses to launch without it")
 
-    home = Path.home().resolve()
-    mounts = [workspace, binary]
-    mounts.extend(_git_paths(workspace))
+    binary = binary.resolve()
+    workspace = workspace.resolve()
+    masked = _masked_roots()
+    if any(_path_is_within(binary, root) for root in masked):
+        raise ContractError(
+            "Secure px0 inspection requires the qualified px0 binary to be installed outside "
+            "the operator home and /tmp (for example /usr/local/bin/px0)"
+        )
+
+    mounts = [workspace, *_git_paths(workspace)]
     unique_mounts = []
     for path in mounts:
         path = path.resolve()
+        # Git metadata already inside the reviewed workspace is covered by the
+        # workspace bind; keep only external worktree/common-dir paths.
+        if path != workspace and _path_is_within(path, workspace):
+            continue
         if path not in unique_mounts:
             unique_mounts.append(path)
 
@@ -150,27 +193,16 @@ def _sandbox_command(binary: Path, workspace: Path, inner: list[str]) -> tuple[l
         "--unshare-uts",
         "--unshare-ipc",
         "--ro-bind", "/", "/",
-        "--tmpfs", "/tmp",
     ]
 
-    # Hide the operator home directory entirely, then selectively re-expose only
-    # the reviewed tree, px0 binary (if it lives there), and Git metadata needed
-    # for read-only status/navigation.
-    if str(home) != "/":
-        command.extend(["--tmpfs", str(home)])
-        dirs = set()
+    # Replace common secret-bearing writable locations with private tmpfs views.
+    # Re-expose only the reviewed tree and any external Git metadata needed for
+    # a linked worktree. This keeps /tmp and the operator home private even when
+    # the candidate itself lives beneath one of those paths.
+    for root in masked:
+        command.extend(["--tmpfs", str(root)])
         for path in unique_mounts:
-            if not _path_is_within(path, home):
-                continue
-            parent = path.parent
-            while parent != home and _path_is_within(parent, home):
-                dirs.add(parent)
-                parent = parent.parent
-        for directory in sorted(dirs, key=lambda p: len(p.parts)):
-            command.extend(["--dir", str(directory)])
-        for path in unique_mounts:
-            if _path_is_within(path, home):
-                command.extend(["--ro-bind", str(path), str(path)])
+            _reexpose_readonly(command, path, root)
 
     command.extend(["--clearenv"])
     for key, value in _safe_env().items():
@@ -253,7 +285,10 @@ def validate_receipt_path(target, workspace) -> Path:
     destination = Path(target).expanduser().resolve()
     root = Path(workspace).expanduser().resolve()
     if _path_is_within(destination, root):
-        raise ContractError("Inspection receipts must be written outside the reviewed workspace so they cannot invalidate the bound snapshot")
+        raise ContractError(
+            "Inspection receipts must be written outside the reviewed workspace "
+            "so they cannot invalidate the bound snapshot"
+        )
     return destination
 
 
@@ -327,7 +362,11 @@ def main(argv=None):
     parser.add_argument("--lsp", action="store_true", help="allow local language-server processes (disabled by default)")
     parser.add_argument("--no-open", action="store_true", help="do not open the browser")
     parser.add_argument("--receipt", help="write the launch receipt as JSON; path must be outside the reviewed workspace")
-    parser.add_argument("--unsafe-no-sandbox", action="store_true", help="disable OS sandboxing; resulting receipt is non-authoritative")
+    parser.add_argument(
+        "--unsafe-no-sandbox",
+        action="store_true",
+        help="disable OS sandboxing; resulting receipt is non-authoritative",
+    )
     args = parser.parse_args(argv)
     try:
         bound_root = Path(args.workspace).expanduser().resolve()
