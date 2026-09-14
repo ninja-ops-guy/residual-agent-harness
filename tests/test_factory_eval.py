@@ -1,6 +1,7 @@
 from __future__ import annotations
-import json, tempfile, unittest
+import json, sys, tempfile, unittest
 from pathlib import Path
+from residual.cli import main as residual_main
 from residual.factory.eval_framework import EvaluationError, EvaluationFramework, EvaluationObservationLog, FrozenEvalTask, FrozenWorkload, RunMeasurement, mann_whitney_u
 from residual.factory.evidence_bus import StationIdentity
 
@@ -49,4 +50,12 @@ class EvalTests(unittest.TestCase):
         m=Driver().run(workload(),"single",1,lambda e:None); self.assertEqual(m.metrics()["final_test_pass_rate_pct"],100)
         d={n:getattr(m,n) for n in m.__dataclass_fields__}; d["coordination_time_minutes"]=999
         with self.assertRaises(EvaluationError): RunMeasurement(**d)
+    def test_cli_writes_signed_simulation_report(self):
+        driver=self.root/"driver.py"
+        driver.write_text("""import json,sys\nconfig,run,out=sys.argv[1],int(sys.argv[2]),sys.argv[3]\nd={'config':config,'run_index':run,'elapsed_time_minutes':1.0,'accepted_tasks':1,'token_cost_total':0,'gpu_time_minutes':0.0,'coordination_time_minutes':0.1,'rework_tasks':0,'merge_conflicts':0,'verifier_rejected':0,'verifier_total':1,'final_tests_passed':1,'final_tests_total':1,'api_cost_usd':0.0,'gpu_cost_usd':0.0,'infrastructure_cost_usd':0.0,'engine_name':'engine','engine_version':'v1','output_commit':'c'*40,'observation_digest':format(run,'064x'),'simulation':True}\nopen(out,'w').write(json.dumps(d))\n""")
+        key=self.root/"station.pem"; self.identity.save_private(key)
+        w=workload().to_dict(); w["driver_argv"]=[sys.executable,str(driver),"{config}","{run}","{output}"]
+        wp=self.root/"workload.json"; wp.write_text(json.dumps(w)); out=self.root/"results"
+        rc=residual_main(["evaluate","--workload",str(wp),"--configs","single,fixed,dynamic","--runs","3","--station-key",str(key),"--output",str(out)])
+        self.assertEqual(rc,0); report=json.loads((out/"comparison-report.json").read_text()); self.assertTrue(report["simulation"]); self.assertEqual(len(report["station_signature"]),128)
 if __name__=="__main__": unittest.main()
