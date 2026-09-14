@@ -19,12 +19,12 @@
 | C5 | Controlled evaluation preserves failures and missing evidence in denominators. | A/I | `docs/controlled-evaluation.md`; `runs.jsonl`, `calls.jsonl`, lifecycle accounting | Safe to state for study runner. |
 | C6 | The existing study can detect false acceptance using grading independent of controller checks. | A/I | Separate final grader and controller-success vs independent-success outcomes | Safe to state for supported grader families. |
 | C7 | Residual reduces accepted error rate relative to raw/conventional execution. | H/E | No frozen live-model result yet | **Do not claim yet.** Primary H1 outcome. |
-| C8 | Residual increases failure containment under injected worker faults. | H/E | Mechanisms and tests exist; no complete H1 fault-injection result yet | **Do not claim yet.** |
+| C8 | Residual increases failure containment under injected worker faults. | H/E | Explicit fault-trial instrumentation now exists for malformed replies, truncation, worker abstention and provider/runtime errors; no complete confirmatory matrix yet | **Do not claim yet.** The measurement path exists; the empirical result does not. |
 | C9 | Heterogeneous lower-cost workers can preserve accepted-system quality at lower cost. | H/E | Routing and accounting exist; fixture studies are insufficient | **Do not claim yet.** |
-| C10 | Dynamic swarms improve verified throughput after orchestration tax. | H/E | Requires frozen multi-granularity workload and tax accounting | **Do not claim yet.** |
+| C10 | Dynamic swarms improve verified throughput after orchestration tax. | H/E | Direct timing instrumentation now measures dispatch/scheduling, response integration and a combined context-packaging/packet-planning boundary; confirmatory swarm study still required | **Do not claim yet.** |
 | C11 | Deterministic acceptance/integration can make accepted state more reproducible than worker execution. | H/E | Deterministic control mechanisms exist; comparative reproducibility study required | Phrase as design goal until measured. |
 | C12 | Residual is state of the art or first in literature. | E | No exhaustive literature or matched external baseline | **Do not claim.** |
-| C13 | Reliability can emerge from unreliable computation without improving the underlying model. | H | Formal model + proposed ablation | Central hypothesis, not a result. |
+| C13 | Reliability can emerge from unreliable computation without improving the underlying model. | H | Formal model + proposed ablation + metric instrumentation separating `P(X)`, `P(A)` and `P(X|A)` | Central hypothesis, not a result. |
 
 ## Evidence anchors already present in the repository
 
@@ -38,7 +38,23 @@ Critically, the module states that a valid hash is **never verification authorit
 
 `docs/controlled-evaluation.md` separates controller success from independent final grading. False acceptance is explicitly defined as controller success followed by independent grading failure. Missing/error/not-run outcomes remain in the scheduled denominator.
 
+`residual/reliability_metrics.py` preserves independent candidate correctness separately from acceptance, allowing direct estimation of raw candidate correctness `P(X)`, coverage `P(A)`, accepted correctness `P(X|A)`, AER/FAR, ISR and accepted system success.
+
 The current graders support exact structured values, bounded integer-expression tests, and finite-assignment constraints. They are not a general solution for arbitrary code repair; arbitrary-code experiments require a separately isolated hidden grader.
+
+### Controlled fault evidence
+
+`residual/reliability_experiments.py` provides deterministic injected faults with explicit trial IDs and expected containment layers. Detection is read from the hash-linked execution ledger; containment is recorded separately based on whether the known injected fault produced incorrect accepted state. Retry recovery therefore does not erase the detection event.
+
+`residual/reliability_experiment_report.py` aggregates explicit `residual.fault-trial.v1` receipts into detection rates and FCR overall and by fault kind. Ordinary model failures are never silently added to the FCR denominator.
+
+The implemented fault kinds are a subset of the preregistered matrix, so this is implementation-validation infrastructure, not a general containment result.
+
+### Direct orchestration timing
+
+`OrchestrationTimingProbe` measures dispatch/scheduling overhead exclusive of worker execution, response integration exclusive of verifier time, and the existing combined context-packaging/packet-planning boundary. These are direct instrumented measurements rather than residual wall-time estimates.
+
+Planning and context packaging are not yet separate core phases and therefore must remain one combined reported value. The paper must not manufacture two values from one execution boundary.
 
 ### Accounting and reproducibility
 
@@ -50,22 +66,27 @@ The study runner freezes source/task/config inputs in a lock, refuses silent ove
 
 Run identical frozen task/model pairs through configurations that progressively add controls. Report:
 
-- raw worker correctness;
+- raw worker correctness `P(X)`;
+- coverage `P(A)`;
+- accepted correctness `P(X|A)`;
 - Accepted Error Rate (AER);
 - false acceptance rate;
-- acceptance/abstention rate;
 - independent success rate;
+- accepted system success rate;
 - confidence intervals and paired effect sizes.
 
 ### C8 — fault containment
 
-Inject faults at known locations and report:
+Run the controlled matrix at known locations and report:
 
-- injected faults;
+- injected faults by explicit fault ID and kind;
 - detected faults;
-- faults blocked before state transition;
-- faults incorrectly accepted;
-- UNKNOWN/abstention outcomes.
+- contained faults;
+- faults incorrectly crossing the acceptance boundary;
+- UNKNOWN/abstention outcomes;
+- FCR overall and by fault family.
+
+The development runner `scripts/run_reliability_fault_matrix.py` can exercise the currently implemented deterministic subset. It remains development evidence until independently authored confirmatory workloads and the broader fault matrix are used.
 
 ### C9 — verified cost efficiency
 
@@ -73,7 +94,7 @@ Hold task quality targets constant and report actual provider usage when availab
 
 ### C10 — swarm value
 
-Compare single-worker, fixed-swarm, and dynamic-swarm execution over multi-granularity tasks. Include scheduling/verification/integration overhead in the denominator. A swarm is beneficial only if its verified throughput/cost frontier improves after orchestration tax.
+Compare single-worker, fixed-swarm, and dynamic-swarm execution over multi-granularity tasks. Include directly measured dispatch/scheduling, context-packaging/packet-planning, verification and integration overhead in the denominator. A swarm is beneficial only if its verified throughput/cost frontier improves after orchestration tax.
 
 ## Rule for manuscript edits
 
