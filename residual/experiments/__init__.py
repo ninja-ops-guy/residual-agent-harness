@@ -6,6 +6,7 @@ from .adapters import (
     factory_result_observation,
     study_observations,
 )
+from .degradation import DegradationProfile, DegradingExecutionEngine
 from .reliability import (
     ReliabilityManifest,
     TrialObservation,
@@ -21,6 +22,8 @@ __all__ = [
     "external_market_observations",
     "factory_result_observation",
     "study_observations",
+    "DegradationProfile",
+    "DegradingExecutionEngine",
     "ReliabilityManifest",
     "TrialObservation",
     "analyze_reliability",
