@@ -32,6 +32,8 @@ jobs:
 
       - name: Build static site shell
         shell: bash
+        env:
+          DEMO_GATEWAY_URL: ${{ vars.RESIDUAL_DEMO_GATEWAY_URL }}
         run: |
           set -euo pipefail
           rm -rf _site
@@ -39,6 +41,11 @@ jobs:
           cp site/index.html _site/index.html
           cp site/live-demo.html _site/demo/index.html
           cp site/demo.html _site/walkthrough/index.html
+          python3 - <<'PY'
+          import json, os
+          with open('_site/demo/cloud.json','w') as f:
+              json.dump({'gateway': os.environ.get('DEMO_GATEWAY_URL','').rstrip('/')}, f)
+          PY
           cat > _site/demo.html <<'EOF'
           <!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=./demo/"><title>RESIDUAL Live Demo</title><body style="background:#000;color:#39ff68;font:16px monospace">Launching <a style="color:#39ff68" href="./demo/">RESIDUAL live VM</a>…</body>
           EOF
@@ -92,12 +99,20 @@ jobs:
         run: |
           set -euo pipefail
           cat > _webvm/config_github_terminal.js <<'EOF'
+          const fragment = new URLSearchParams(globalThis.location?.hash?.slice(1) || "");
+          const demoToken = fragment.get("demoToken") || "";
+          const gateway = (fragment.get("gateway") || "").replace(/\/$/, "");
           export const diskImageUrl = "residual-demo.ext2";
           export const diskImageType = "github";
           export const printIntro = false;
           export const needsDisplay = false;
           export const cmd = "/bin/bash";
           export const args = ["--login"];
+          const cloudEnv = demoToken && gateway ? [
+            `LLM_API_KEY=${demoToken}`,
+            `LLM_BASE_URL=${gateway}/v1`,
+            "RESIDUAL_DEMO_MODEL=auto:fast"
+          ] : [];
           export const opts = {
             env: [
               "HOME=/home/residual",
@@ -106,7 +121,8 @@ jobs:
               "SHELL=/bin/bash",
               "EDITOR=vi",
               "LANG=C.UTF-8",
-              "PYTHONUNBUFFERED=1"
+              "PYTHONUNBUFFERED=1",
+              ...cloudEnv
             ],
             cwd: "/opt/residual",
             uid: 1000,
@@ -140,6 +156,7 @@ jobs:
           set -euo pipefail
           test -s _site/index.html
           test -s _site/demo/index.html
+          test -s _site/demo/cloud.json
           test -s _site/walkthrough/index.html
           test -s _site/vm/index.html
           test -s _site/vm/residual-demo.ext2.meta
