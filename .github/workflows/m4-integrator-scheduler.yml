@@ -1,0 +1,45 @@
+name: Factory M4 integrator and scheduler
+on:
+  pull_request:
+    paths:
+      - 'residual/factory/integrator.py'
+      - 'residual/factory/scheduler.py'
+      - 'residual/factory/__init__.py'
+      - 'tests/test_factory_m4_integrator.py'
+      - 'tests/test_factory_m4_scheduler.py'
+      - '.github/workflows/m4-integrator-scheduler.yml'
+permissions:
+  contents: read
+jobs:
+  deterministic-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'cryptography>=43'
+      - name: Preserve exact source identity
+        run: |
+          mkdir -p runs/m4-core
+          git rev-parse HEAD > runs/m4-core/commit.txt
+          git rev-parse HEAD^{tree} > runs/m4-core/tree.txt
+          python --version > runs/m4-core/platform.txt
+      - name: Deterministic integrator tests
+        run: |
+          set -o pipefail
+          python -m unittest tests.test_factory_m4_integrator -v 2>&1 | tee runs/m4-core/integrator-tests.txt
+      - name: Scheduler intelligence tests
+        run: |
+          set -o pipefail
+          python -m unittest tests.test_factory_m4_scheduler -v 2>&1 | tee runs/m4-core/scheduler-tests.txt
+      - name: Compile M4 modules
+        run: python -m compileall -q residual/factory/integrator.py residual/factory/scheduler.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: factory-m4-core-${{ github.sha }}
+          path: runs/m4-core
