@@ -5,23 +5,25 @@ import json
 from pathlib import Path
 
 from residual.assurance.external import ExternalEvidenceRunner, LiveEngineSpec, load_external_suite
+from residual.assurance.preregistered import (
+    build_evidence_bundle,
+    load_engine_config_payload,
+    load_preregistration,
+    preregister_from_files,
+    verify_preregistration,
+    write_preregistration,
+)
 from residual.engines.provider_bridge import ProviderEngineConfig, ProviderExecutionEngine
 
 
 def load_engines(path: str | Path):
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
-    if not isinstance(raw, dict) or set(raw) != {"schema_version", "engines"} or raw["schema_version"] != "residual.external-engines.v1":
-        raise ValueError("invalid engine config")
-    if not isinstance(raw["engines"], list) or len(raw["engines"]) < 2:
-        raise ValueError("at least two engines are required")
+    raw = load_engine_config_payload(path)
     specs = []
     for item in raw["engines"]:
         allowed = {"provider", "model", "capabilities", "locality", "max_tokens", "temperature",
                    "system_prompt", "cost_per_task", "privacy_class", "location"}
-        if not isinstance(item, dict) or set(item) - allowed:
+        if set(item) - allowed:
             raise ValueError("invalid engine entry")
-        # No secrets, tokens, keys, headers or endpoints belong in this file. The
-        # provider registry resolves credentials and endpoints from environment.
         config = ProviderEngineConfig(
             provider=item["provider"],
             model=item["model"],
@@ -41,30 +43,76 @@ def load_engines(path: str | Path):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Run precommitted external assurance evidence")
+    parser = argparse.ArgumentParser(description="Run preregistered external assurance evidence")
     sub = parser.add_subparsers(dest="command", required=True)
 
     h = sub.add_parser("hash", help="print the canonical suite hash before execution")
     h.add_argument("--suite", required=True)
 
-    run = sub.add_parser("run", help="run a frozen external suite against live heterogeneous engines")
+    pre = sub.add_parser("preregister", help="freeze suite, engines, hypotheses and stopping rule")
+    pre.add_argument("--suite", required=True)
+    pre.add_argument("--engines", required=True)
+    pre.add_argument("--study-id", required=True)
+    pre.add_argument("--registered-at", required=True)
+    pre.add_argument("--hypothesis", action="append", required=True)
+    pre.add_argument("--primary-metric", default="market_success_rate")
+    pre.add_argument("--secondary-metric", action="append", default=[])
+    pre.add_argument("--maximum-budget-usd", type=float, required=True)
+    pre.add_argument("--runner-revision", required=True)
+    pre.add_argument("--notes", default="")
+    pre.add_argument("--output", required=True)
+
+    verify = sub.add_parser("verify", help="verify a frozen manifest against suite and engine config")
+    verify.add_argument("--manifest", required=True)
+    verify.add_argument("--suite", required=True)
+    verify.add_argument("--engines", required=True)
+
+    run = sub.add_parser("run", help="run a manifest-gated external suite against live heterogeneous engines")
+    run.add_argument("--manifest", required=True)
     run.add_argument("--suite", required=True)
-    run.add_argument("--expected-suite-sha256", required=True)
     run.add_argument("--engines", required=True)
-    run.add_argument("--output", required=True)
+    run.add_argument("--output", required=True, help="evidence bundle output path")
 
     args = parser.parse_args(argv)
-    suite = load_external_suite(args.suite)
     if args.command == "hash":
-        print(suite.sha256)
+        print(load_external_suite(args.suite).sha256)
         return 0
-    if suite.sha256 != args.expected_suite_sha256:
-        raise SystemExit("suite hash does not match precommitted hash")
+
+    if args.command == "preregister":
+        manifest = preregister_from_files(
+            study_id=args.study_id,
+            registered_at=args.registered_at,
+            suite_path=args.suite,
+            engines_path=args.engines,
+            hypotheses=tuple(args.hypothesis),
+            primary_metric=args.primary_metric,
+            secondary_metrics=tuple(args.secondary_metric),
+            maximum_budget_usd=args.maximum_budget_usd,
+            runner_revision=args.runner_revision,
+            notes=args.notes,
+        )
+        write_preregistration(args.output, manifest)
+        print(json.dumps({"manifest_sha256": manifest.sha256, "output": str(args.output)}, sort_keys=True))
+        return 0
+
+    suite = load_external_suite(args.suite)
+    manifest = load_preregistration(args.manifest)
+    verify_preregistration(manifest, suite, args.engines)
+    if args.command == "verify":
+        print(json.dumps({"verified": True, "manifest_sha256": manifest.sha256}, sort_keys=True))
+        return 0
+
     report = ExternalEvidenceRunner(suite, load_engines(args.engines)).run()
+    bundle = build_evidence_bundle(
+        manifest=manifest,
+        suite=suite,
+        engines_path=args.engines,
+        report=report,
+    )
     path = Path(args.output)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(json.dumps(report, indent=2, sort_keys=True))
+    path.write_text(json.dumps(bundle, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(json.dumps(bundle, indent=2, sort_keys=True))
     return 0
 
 
