@@ -11,9 +11,9 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from typing import Protocol, Sequence
+from typing import Callable, Protocol, Sequence
 
-from residual.factory.evidence_receipts import WorkerReceipt
+from residual.factory.evidence_receipts import StationIdentity, WorkerReceipt
 
 from .spec_eval import (
     CostRates,
@@ -53,15 +53,15 @@ class FactoryRunMeasurement:
     def __post_init__(self) -> None:
         if not self.receipts:
             raise SpecEvalError("measured Factory evaluation requires signed M3 receipts")
-        # Reuse RunCounters validation with a harmless positive elapsed value. The real
-        # measured elapsed duration is supplied by MeasuredFactoryEvaluationRunner.
+        # Reuse RunCounters validation for all count/rate domains. The trusted outer
+        # runner replaces this placeholder elapsed duration before evidence issuance.
         RunCounters(
-            elapsed_seconds=1.0,
+            elapsed_seconds=max(1.0, self.coordination_seconds),
             accepted_tasks=self.accepted_tasks,
             total_tasks=self.total_tasks,
             tokens_used=self.tokens_used,
             gpu_seconds=self.gpu_seconds,
-            coordination_seconds=min(self.coordination_seconds, 1.0),
+            coordination_seconds=self.coordination_seconds,
             rework_tasks=self.rework_tasks,
             merge_conflicts=self.merge_conflicts,
             verifier_rejections=self.verifier_rejections,
@@ -69,8 +69,6 @@ class FactoryRunMeasurement:
             tests_passed=self.tests_passed,
             tests_total=self.tests_total,
         )
-        if self.coordination_seconds < 0:
-            raise SpecEvalError("coordination_seconds must be nonnegative")
 
 
 class FactoryEvaluationAdapter(Protocol):
@@ -97,7 +95,7 @@ class MeasuredFactoryEvaluationRunner:
     temperatures: tuple[float, ...] = (0.0,)
     seed: int = 20260914
     rates: CostRates = CostRates()
-    clock: callable = time.monotonic
+    clock: Callable[[], float] = time.monotonic
 
     def __post_init__(self) -> None:
         if not isinstance(self.workload, FrozenWorkload) or not self.workload.verify():
@@ -111,14 +109,14 @@ class MeasuredFactoryEvaluationRunner:
         if type(self.seed) is not int:
             raise SpecEvalError("seed must be an integer")
 
-    @staticmethod
-    def _validate_receipts(measurement: FactoryRunMeasurement) -> None:
+    def _validate_receipts(self, measurement: FactoryRunMeasurement) -> None:
+        public_key = self.evidence.identity.public_bytes()
+        for receipt in measurement.receipts:
+            if not StationIdentity.verify(receipt, public_key):
+                raise SpecEvalError("measured run contains a forged or foreign M3 receipt")
         plan_hashes = {receipt.execution_plan_hash for receipt in measurement.receipts}
         if len(plan_hashes) != 1:
             raise SpecEvalError("one measured run cannot mix Factory execution plans")
-        verdicts = {receipt.overall_verdict for receipt in measurement.receipts}
-        if verdicts - {"pass", "fail", "unknown"}:
-            raise SpecEvalError("measured run contains invalid receipt verdict")
         hashes = [receipt.receipt_hash for receipt in measurement.receipts]
         if len(hashes) != len(set(hashes)):
             raise SpecEvalError("measured run contains duplicate M3 receipts")
