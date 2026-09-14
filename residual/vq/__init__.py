@@ -11,6 +11,8 @@ from .ensemble import AggregationPolicy, VerifierEnsemble
 from .frozen import FrozenWorkloadFixture, load_frozen_fixture
 from .snapshot import VerifierQualitySnapshot, attach_snapshot_to_receipt
 from .benchmark import VerifierBenchmark, BenchmarkReport
+from .evidence import (EvidenceVerificationError, load_verified_evidence,
+                       verify_artifact_profiles)
 
 __all__ = [
     "VerifierIdentity", "hash_payload",
@@ -21,6 +23,8 @@ __all__ = [
     "FrozenWorkloadFixture", "load_frozen_fixture",
     "VerifierQualitySnapshot", "attach_snapshot_to_receipt",
     "VerifierBenchmark", "BenchmarkReport",
+    "EvidenceVerificationError", "load_verified_evidence",
+    "verify_artifact_profiles",
 ]
 
 VQ_SCHEMA = "residual.vq.v1"
