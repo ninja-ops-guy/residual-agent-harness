@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import os
 import platform
 import subprocess
@@ -11,6 +10,7 @@ from typing import Any
 
 from residual.core import canonical, strict_json
 from residual.factory.evidence_receipts import StationIdentity
+from residual.factory.eval_framework import FrozenWorkload
 
 CORPUS_SCHEMA = "factory-benchmark-corpus-v1"
 CORPUS_DOMAIN = b"residual.factory.benchmark-corpus.v1\n"
@@ -168,15 +168,13 @@ class CorpusManifest:
 
 
 def report_entry(benchmark: str, workload_path: Path, report_path: Path) -> CorpusEntry:
-    workload = strict_json(workload_path.read_text(encoding="utf-8"))
+    workload_raw = strict_json(workload_path.read_text(encoding="utf-8"))
+    workload = FrozenWorkload.from_dict(workload_raw)
     report = strict_json(report_path.read_text(encoding="utf-8"))
-    engine = workload.get("engine") or {}
-    workload_copy = dict(workload); workload_copy.pop("driver_argv", None)
-    workload_hash = _sha(workload_copy)
-    if report.get("workload_hash") != workload_hash:
+    if report.get("workload_hash") != workload.workload_hash:
         raise ValueError(f"{benchmark} report/workload hash mismatch")
-    return CorpusEntry(benchmark=benchmark, workload_hash=workload_hash,
+    return CorpusEntry(benchmark=benchmark, workload_hash=workload.workload_hash,
                        report_hash=_require_hash(report.get("report_hash"), "report hash"),
                        simulation=bool(report.get("simulation")),
-                       engine_name=str(engine.get("name", "")),
-                       engine_version=str(engine.get("version", "")))
+                       engine_name=workload.engine_name,
+                       engine_version=workload.engine_version)
