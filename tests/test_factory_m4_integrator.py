@@ -153,7 +153,7 @@ class M4IntegratorTests(unittest.TestCase):
             VerificationCommand("tests", "full_test_suite", (exe, "-c", test_code)),
             VerificationCommand("types", "type_check", (exe, "-c", "raise SystemExit(0)")),
             VerificationCommand("contracts", "contract_validation", (exe, "-c", "raise SystemExit(0)")),
-        ))
+        ), trusted_fixture_mode=True)  # Explicit reviewed fixtures, never untrusted model code.
 
     def test_deterministic_commit_and_signed_receipt(self):
         r1 = self.issue("task1", "R1", artifacts={"one.txt": b"one" + LF}, index=1)
