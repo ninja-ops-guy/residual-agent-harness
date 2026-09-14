@@ -6,8 +6,8 @@ import subprocess
 from copy import deepcopy
 from pathlib import Path
 
-INPUT_COMMIT = "be7c9a644502333a8066460633e3d0bd5fae4b47"
-EXPECTED_OUTPUT_COMMIT = "53c78e92932bb15d2e51e2b668cfadc249ecc41a"
+INPUT_COMMIT = "d68449a9ccb3948ddb1881c35956a179d24cb5bc"
+EXPECTED_OUTPUT_COMMIT = "d137b972a571557fa8a34aa5b6645f0479445d74"
 
 GIT_ENV = {
     "GIT_AUTHOR_NAME": "Residual Benchmark",
