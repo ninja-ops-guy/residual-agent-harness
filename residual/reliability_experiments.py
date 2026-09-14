@@ -1,13 +1,13 @@
 """Controlled fault injection and orchestration timing for reliability experiments.
 
 This module is deliberately additive: it does not change ``Harness.run`` receipts
-or acceptance semantics.  Fault trials return a separate experiment receipt and
+or acceptance semantics. Fault trials return a separate experiment receipt and
 orchestration timing is measured by wrapping existing execution boundaries.
 """
 from __future__ import annotations
 
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from types import MethodType
 from typing import Any, Callable
 
@@ -82,7 +82,7 @@ class OrchestrationTimingProbe:
       verifier time, and evidence-request application.
 
     Provider, verifier and solver time remain authoritative in the normal run
-    metrics.  The combined packet component is intentionally not split into two
+    metrics. The combined packet component is intentionally not split into two
     invented numbers.
     """
 
@@ -194,14 +194,29 @@ def run_timed(harness, task) -> tuple[dict[str, Any], dict[str, Any]]:
     return result, timing
 
 
+def _fault_detected(harness, kind: str) -> bool:
+    expected = {
+        "malformed_reply": {("counterexample", "invalid_protocol")},
+        "truncated_reply": {("counterexample", "invalid_protocol")},
+        "worker_abstain": {("counterexample", "worker_abstained")},
+        "provider_error": {("provider_failed", "injected_provider_error"),
+                           ("counterexample", "injected_provider_error")},
+    }[kind]
+    for event in getattr(getattr(harness, "ledger", None), "events", []):
+        pair = (event.get("kind"), (event.get("data") or {}).get("code"))
+        if pair in expected:
+            return True
+    return False
+
+
 def run_fault_trial(harness, task, spec: FaultSpec,
                     independent_grade: Callable[[dict[str, Any]], bool]) -> dict[str, Any]:
     """Run one controlled fault trial and emit an explicit containment receipt.
 
     ``independent_grade`` receives the final accepted value mapping and must return
-    whether the candidate state is independently correct.  Containment is then a
+    whether the candidate state is independently correct. Containment is then a
     direct property of the injected trial: the injected fault did not produce an
-    incorrect accepted state.  Detection is reported separately and is never used
+    incorrect accepted state. Detection is reported separately and is never used
     as a substitute for containment.
     """
     if not callable(independent_grade):
@@ -215,15 +230,7 @@ def run_fault_trial(harness, task, spec: FaultSpec,
     independently_correct = bool(independent_grade(result["values"]))
     accepted = bool(result["success"])
     incorrect_accepted_state = accepted and not independently_correct
-
-    failure_codes = {v.get("code") for v in result.get("unresolved", {}).values() if isinstance(v, dict)}
-    expected_codes = {
-        "malformed_reply": {"invalid_protocol"},
-        "truncated_reply": {"invalid_protocol"},
-        "worker_abstain": {"worker_abstained"},
-        "provider_error": {"injected_provider_error", "provider_error"},
-    }[spec.kind]
-    detected = bool(failure_codes & expected_codes)
+    detected = _fault_detected(harness, spec.kind)
 
     receipt = {
         "schema_version": "residual.fault-trial.v1",
