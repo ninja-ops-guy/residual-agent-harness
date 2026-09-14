@@ -1,0 +1,37 @@
+{
+  "schema_version": "residual.reliability-manifest.v1",
+  "study_id": "rer1-example",
+  "suite_sha256": "replace-with-frozen-suite-sha256",
+  "source_revision": "git:replace-with-commit",
+  "preregistered_at": "2026-09-14T08:00:00-04:00",
+  "baseline_configuration": "raw",
+  "configurations": [
+    "raw",
+    "contracted",
+    "cov",
+    "covd",
+    "residual_fixed_swarm"
+  ],
+  "primary_metric": "accepted_error_rate",
+  "model_bindings": {
+    "model_ids": ["replace-with-exact-model-id"],
+    "temperature": "freeze-if-provider-exposes-it",
+    "max_output_tokens": "freeze-exact-value",
+    "tool_surface": "freeze-tool-policy-hash",
+    "environment": "freeze-runtime-or-container-identity"
+  },
+  "verifier_revisions": {
+    "verifier": "replace-with-name-and-revision",
+    "implementation_hash": "replace-with-hash",
+    "policy_hash": "replace-with-hash",
+    "hidden_grader_provenance": "replace-with-independent-source-reference"
+  },
+  "budget": {
+    "trial_count": "freeze-before-run",
+    "max_calls": "freeze-before-run",
+    "max_tokens": "freeze-before-run",
+    "max_cost_usd": "freeze-before-run",
+    "stopping_rule": "fixed-trials-no-optional-stopping",
+    "price_source": "record-provider-price-source-and-date"
+  }
+}

@@ -131,11 +131,14 @@ RESIDUAL is both software and a research instrument. The current working paper, 
 
 The repository does **not** claim that the hypothesis is already proven. The controlled evaluation framework separates controller behavior from model quality and calls for paired trials, ablations, fault injection, model-degradation studies, hidden grading, external task families, and matched baselines.
 
+Experimental Release 1 adds the canonical evidence-analysis layer for that claim: Accepted Error Rate, Failure Containment Rate, degradation curves, cost/latency accounting, hash-bound publication artifacts, and adapters from frozen Study, external assurance, and independently graded Factory evidence. See [`docs/reliability-experimental-release.md`](docs/reliability-experimental-release.md).
+
 Start with:
 
 - [`docs/research.md`](docs/research.md) — research claim, prior art, boundaries, and open questions;
 - [`docs/papers/reliability-from-unreliable-computation.md`](docs/papers/reliability-from-unreliable-computation.md) — IEEE-style working manuscript;
 - [`docs/controlled-evaluation.md`](docs/controlled-evaluation.md) — controlled study design;
+- [`docs/reliability-experimental-release.md`](docs/reliability-experimental-release.md) — confirmatory reliability protocol and evidence pipeline;
 - [`docs/evaluation.md`](docs/evaluation.md) — evaluation tooling and metrics.
 
 ## Documentation map
@@ -161,6 +164,7 @@ Start with:
 **Research / validate**
 - [`docs/research.md`](docs/research.md) — thesis and prior art
 - [`docs/controlled-evaluation.md`](docs/controlled-evaluation.md) — controlled studies
+- [`docs/reliability-experimental-release.md`](docs/reliability-experimental-release.md) — Experimental Release 1 protocol
 - [`docs/station/VALIDATION.md`](docs/station/VALIDATION.md) — Station validation evidence
 - [`docs/roadmap/README.md`](docs/roadmap/README.md) — implementation roadmap
 - [`vendor/ldd-kit/PROVENANCE.md`](vendor/ldd-kit/PROVENANCE.md) — LDD provenance
