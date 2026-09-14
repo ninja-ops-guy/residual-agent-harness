@@ -10,7 +10,7 @@ from typing import Any
 
 from residual.core import canonical, strict_json
 from residual.factory.evidence_receipts import StationIdentity
-from residual.factory.eval_framework import FrozenWorkload
+from residual.factory.eval_framework import EVAL_DOMAIN, FrozenWorkload
 
 CORPUS_SCHEMA = "factory-benchmark-corpus-v1"
 CORPUS_DOMAIN = b"residual.factory.benchmark-corpus.v1\n"
@@ -167,14 +167,21 @@ class CorpusManifest:
         return manifest
 
 
-def report_entry(benchmark: str, workload_path: Path, report_path: Path) -> CorpusEntry:
+def report_entry(benchmark: str, workload_path: Path, report_path: Path,
+                 station_public_key: bytes | None = None) -> CorpusEntry:
     workload_raw = strict_json(workload_path.read_text(encoding="utf-8"))
     workload = FrozenWorkload.from_dict(workload_raw)
     report = strict_json(report_path.read_text(encoding="utf-8"))
     if report.get("workload_hash") != workload.workload_hash:
         raise ValueError(f"{benchmark} report/workload hash mismatch")
+    report_hash = _require_hash(report.get("report_hash"), "report hash")
+    unsigned = {k: v for k, v in report.items() if k not in {"report_hash", "station_signature"}}
+    if _sha(unsigned) != report_hash:
+        raise ValueError(f"{benchmark} comparison report hash mismatch")
+    if station_public_key is not None:
+        if not StationIdentity.verify_hash(report_hash, report.get("station_signature", ""), station_public_key,
+                                           key_id=str(report.get("station_key_id", "")), domain=EVAL_DOMAIN):
+            raise ValueError(f"{benchmark} comparison report signature invalid")
     return CorpusEntry(benchmark=benchmark, workload_hash=workload.workload_hash,
-                       report_hash=_require_hash(report.get("report_hash"), "report hash"),
-                       simulation=bool(report.get("simulation")),
-                       engine_name=workload.engine_name,
-                       engine_version=workload.engine_version)
+                       report_hash=report_hash, simulation=bool(report.get("simulation")),
+                       engine_name=workload.engine_name, engine_version=workload.engine_version)
