@@ -82,6 +82,14 @@ jobs:
           sudo mkfs.ext2 -q -r 0 residual-demo.ext2
           sudo mount -o loop -t ext2 residual-demo.ext2 /mnt/residual-webvm
           sudo docker cp -a "${CONTAINER_ID}:/" /mnt/residual-webvm/
+
+          # Fail the deployment if the exported guest cannot actually start.
+          sudo test -x /mnt/residual-webvm/bin/bash
+          sudo test -x /mnt/residual-webvm/usr/local/bin/residual-demo-shell
+          sudo test -f /mnt/residual-webvm/home/residual/.bashrc
+          sudo test -f /mnt/residual-webvm/opt/residual/pyproject.toml
+          sudo grep -q 'RESIDUAL BOOT: guest process attached' /mnt/residual-webvm/usr/local/bin/residual-demo-shell
+
           sudo umount /mnt/residual-webvm
           docker rm "$CONTAINER_ID" >/dev/null
           trap - EXIT
@@ -100,8 +108,8 @@ jobs:
           export const diskImageType = "github";
           export const printIntro = false;
           export const needsDisplay = false;
-          export const cmd = "/bin/bash";
-          export const args = ["--noprofile", "--rcfile", "/home/residual/.bashrc", "-i"];
+          export const cmd = "/usr/local/bin/residual-demo-shell";
+          export const args = [];
           export const opts = {
             env: [
               "HOME=/home/residual",
@@ -178,7 +186,7 @@ jobs:
           grep -q "Run failure scenario" _site/walkthrough/index.html
           grep -q "persist.js" _site/walkthrough/index.html
           grep -q "residual.walkthrough.v1" _site/walkthrough/persist.js
-          grep -q -- '--rcfile' _webvm/config_github_terminal.js
+          grep -q "residual-demo-shell" _webvm/config_github_terminal.js
           test "$(find _site/vm -name 'residual-demo.ext2.c*.txt' | wc -l)" -gt 0
 
       - name: Configure Pages
