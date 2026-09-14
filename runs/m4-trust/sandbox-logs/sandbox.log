@@ -1,0 +1,27 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /mnt/agents/output/clone
+configfile: pyproject.toml
+plugins: anyio-4.9.0
+collecting ... collected 15 items
+
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_child_surviving_timeout_is_killed PASSED [  6%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_external_filesystem_write_attempt_fails PASSED [ 13%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_fork_descendants_do_not_escape PASSED [ 20%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_host_paths_not_visible PASSED [ 26%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_infinite_loop_hits_deterministic_timeout PASSED [ 33%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_infinite_output_is_bounded_and_killed PASSED [ 40%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_memory_limit_fails_runaway_allocation PASSED [ 46%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_network_attempt_fails PASSED [ 53%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_pass_and_fail_and_hashes PASSED [ 60%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_verifier_crash_is_fail_not_error PASSED [ 66%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_worktree_readable_but_read_only PASSED [ 73%]
+tests/test_factory_m4_sandbox.py::FailClosedTests::test_failed_namespace_probe_fails_closed PASSED [ 80%]
+tests/test_factory_m4_sandbox.py::FailClosedTests::test_invalid_requests_rejected PASSED [ 86%]
+tests/test_factory_m4_sandbox.py::FailClosedTests::test_missing_unshare_binary_fails_closed PASSED [ 93%]
+tests/test_factory_m4_sandbox.py::FailClosedTests::test_non_linux_platform_fails_closed PASSED [100%]
+
+============================== 15 passed in 7.42s ==============================
+
+--- STDERR ---

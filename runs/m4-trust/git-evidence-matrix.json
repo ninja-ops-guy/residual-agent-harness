@@ -1,0 +1,38 @@
+[
+  {
+    "scenario": "valid_base_absent_path",
+    "state": "ABSENT",
+    "detail": "path_not_in_base_tree",
+    "has_data": false
+  },
+  {
+    "scenario": "valid_base_present_path",
+    "state": "PRESENT",
+    "detail": "ok",
+    "has_data": true
+  },
+  {
+    "scenario": "malformed_commit_ref",
+    "state": "ERROR",
+    "detail": "invalid_commit_ref",
+    "has_data": false
+  },
+  {
+    "scenario": "nonexistent_commit",
+    "state": "UNKNOWN",
+    "detail": "base_commit_unresolvable",
+    "has_data": false
+  },
+  {
+    "scenario": "corrupt_missing_object",
+    "state": "ERROR",
+    "detail": "object_unreadable",
+    "has_data": false
+  },
+  {
+    "scenario": "missing_repository_evidence",
+    "state": "UNKNOWN",
+    "detail": "base_commit_unresolvable",
+    "has_data": false
+  }
+]
