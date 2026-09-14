@@ -5,8 +5,10 @@ on:
       - 'residual/factory/**'
       - 'tests/test_factory_worker_contract.py'
       - 'tests/test_factory_runtime.py'
+      - 'tests/test_factory_evidence_bus.py'
       - 'examples/factory/**'
       - 'docs/factory/**'
+      - 'pyproject.toml'
       - '.github/workflows/factory-execution.yml'
 permissions:
   contents: read
@@ -21,8 +23,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install kernel filter library
+      - name: Install Factory dependencies and kernel filter library
         run: |
+          python -m pip install '.[factory]'
           sudo apt-get update -qq
           sudo apt-get install -y libseccomp2
       - name: Preserve exact source
@@ -39,7 +42,7 @@ jobs:
           RESIDUAL_REQUIRE_SECCOMP: '1'
         run: |
           set -o pipefail
-          python -m unittest tests.test_factory_worker_contract tests.test_factory_runtime -v 2>&1 | tee runs/factory-execution/execution-tests.txt
+          python -m unittest tests.test_factory_worker_contract tests.test_factory_runtime tests.test_factory_evidence_bus -v 2>&1 | tee runs/factory-execution/execution-tests.txt
           python -m unittest discover -s tests -v 2>&1 | tee runs/factory-execution/full-tests.txt
           python -m compileall -q residual/factory
       - name: Scripted end-to-end execution
