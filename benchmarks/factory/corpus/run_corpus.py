@@ -149,6 +149,7 @@ def main() -> int:
         "configs": list(CONFIGS),
         "benchmarks": summaries,
     })
+    key_path.unlink(missing_ok=True)
     print(json.dumps({"status": "complete", "manifest_hash": manifest.manifest_hash,
                       "simulation": manifest.simulation, "output": str(output)}, indent=2))
     return 0
