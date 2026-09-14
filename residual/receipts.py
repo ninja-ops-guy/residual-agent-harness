@@ -3,14 +3,15 @@ from __future__ import annotations
 
 import hashlib
 import re
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from .core import ContractError, canonical, digest, identifier, strict_json
 from .verifier import CheckResult
 
 
-RECEIPT_SCHEMA = "residual.station.receipt.v1"
+RECEIPT_SCHEMA = "residual.station.receipt.v2"
+LEGACY_RECEIPT_SCHEMA = "residual.station.receipt.v1"
 CACHE_SCHEMA = "residual.station.cache.v1"
 
 
@@ -51,12 +52,19 @@ class StationReceipt:
     verifier_revision: str
     verdict: CheckResult
     parent_receipts: tuple[ReceiptReference, ...] = ()
+    engine_name: str = "unknown"
+    engine_version: str = "unknown"
+    _schema_version: str = field(default=RECEIPT_SCHEMA, init=False, repr=False, compare=False)
 
     def __post_init__(self):
         identifier(self.task_id)
         for value in (self.cache_key, self.value_hash, self.verifier_revision):
             hash_id(value)
         verifier_id(self.verifier_name)
+        if not isinstance(self.engine_name, str) or not self.engine_name.strip():
+            raise ContractError("receipt engine_name is required")
+        if not isinstance(self.engine_version, str) or not self.engine_version.strip():
+            raise ContractError("receipt engine_version is required")
         try:
             verdict = CheckResult(self.verdict)
         except (ValueError, TypeError):
@@ -73,29 +81,48 @@ class StationReceipt:
         object.__setattr__(self, "parent_receipts", refs)
 
     def payload(self) -> dict:
-        return {**asdict(self), "verdict": self.verdict.value,
-                "parent_receipts": [asdict(r) for r in self.parent_receipts]}
+        payload = {
+            "task_id": self.task_id,
+            "cache_key": self.cache_key,
+            "value_hash": self.value_hash,
+            "verifier_name": self.verifier_name,
+            "verifier_revision": self.verifier_revision,
+            "verdict": self.verdict.value,
+            "parent_receipts": [asdict(r) for r in self.parent_receipts],
+        }
+        if self._schema_version == RECEIPT_SCHEMA:
+            payload.update(engine_name=self.engine_name, engine_version=self.engine_version)
+        return payload
 
     @property
     def receipt_hash(self) -> str:
-        return _domain_hash(RECEIPT_SCHEMA, self.payload())
+        return _domain_hash(self._schema_version, self.payload())
 
     def to_dict(self) -> dict:
-        return {"schema_version": RECEIPT_SCHEMA, "hash_algorithm": "sha256",
+        return {"schema_version": self._schema_version, "hash_algorithm": "sha256",
                 "receipt_hash": self.receipt_hash, "payload": self.payload()}
 
     @classmethod
-    def from_dict(cls, envelope: dict) -> StationReceipt:
+    def from_dict(cls, envelope: dict) -> "StationReceipt":
         try:
             if set(envelope) != {"schema_version", "hash_algorithm", "receipt_hash", "payload"}:
                 raise ValueError()
-            if envelope["schema_version"] != RECEIPT_SCHEMA or envelope["hash_algorithm"] != "sha256":
+            schema = envelope["schema_version"]
+            if schema not in {RECEIPT_SCHEMA, LEGACY_RECEIPT_SCHEMA} or envelope["hash_algorithm"] != "sha256":
                 raise ValueError()
             payload = envelope["payload"]
-            if set(payload) != set(cls.__dataclass_fields__) or not isinstance(payload["parent_receipts"], list):
+            v1_fields = {"task_id", "cache_key", "value_hash", "verifier_name", "verifier_revision", "verdict", "parent_receipts"}
+            expected = v1_fields | ({"engine_name", "engine_version"} if schema == RECEIPT_SCHEMA else set())
+            if set(payload) != expected or not isinstance(payload["parent_receipts"], list):
                 raise ValueError()
-            receipt = cls(**{**payload, "parent_receipts": tuple(ReceiptReference(**p) for p in payload["parent_receipts"])})
-            # Also reject noncanonical reference order; do not normalize tampered wire data.
+            if _domain_hash(schema, payload) != envelope["receipt_hash"]:
+                raise ValueError()
+            kwargs = {**payload, "parent_receipts": tuple(ReceiptReference(**p) for p in payload["parent_receipts"])}
+            if schema == LEGACY_RECEIPT_SCHEMA:
+                kwargs.update(engine_name="unknown", engine_version="unknown")
+            receipt = cls(**kwargs)
+            object.__setattr__(receipt, "_schema_version", schema)
+            # Reject noncanonical parent order or any normalization of wire data.
             if receipt.payload() != payload or receipt.receipt_hash != envelope["receipt_hash"]:
                 raise ValueError()
             return receipt
@@ -103,16 +130,19 @@ class StationReceipt:
             raise ContractError("invalid receipt envelope or integrity mismatch") from None
 
     @classmethod
-    def from_json(cls, text: str) -> StationReceipt:
+    def from_json(cls, text: str) -> "StationReceipt":
         return cls.from_dict(strict_json(text))
 
     def matches(self, *, value: Any, cache_key: str, verifier_name: str,
-                verifier_revision: str, parents: tuple[ReceiptReference, ...]) -> bool:
+                verifier_revision: str, parents: tuple[ReceiptReference, ...],
+                engine_name: str | None = None, engine_version: str | None = None) -> bool:
         """Check integrity/context only. The caller MUST still run the host verifier."""
         return (self.verdict == CheckResult.PASS and self.value_hash == digest(value)
                 and self.cache_key == cache_key and self.verifier_name == verifier_name
                 and self.verifier_revision == verifier_revision
-                and self.parent_receipts == tuple(sorted(parents)))
+                and self.parent_receipts == tuple(sorted(parents))
+                and (engine_name is None or self.engine_name == engine_name)
+                and (engine_version is None or self.engine_version == engine_version))
 
 
 def cache_key(*, project_id: str, task_id: str, goal_hash: str, contract_hash: str,

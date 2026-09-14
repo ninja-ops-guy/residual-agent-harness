@@ -15,6 +15,7 @@ from typing import Any, Callable, Optional, Protocol
 from .brakes import Brake, BrakeAction, BrakeTrip, build_brakes
 from .core import ContractError, digest
 from .goalspec import GoalSpec
+from .lifecycle import ModuleLifecycleBus
 from .verifier import VerificationReport, Verifier
 
 
@@ -55,6 +56,7 @@ class LoopController:
     emit: Optional[Callable[[str, dict], None]] = None
     no_progress_threshold: int = 3
     extensions: Any = None
+    lifecycle: ModuleLifecycleBus | None = None
     _running: bool = field(default=False, init=False, repr=False)
     _base_brakes: tuple = field(default=(), init=False, repr=False)
 
@@ -62,6 +64,8 @@ class LoopController:
         if not self.brakes:
             self.brakes = build_brakes(self.spec, self.no_progress_threshold)
         self._base_brakes = self.brakes
+        if self.lifecycle is None:
+            self.lifecycle = ModuleLifecycleBus()
         if self.extensions is not None:
             self.extensions.freeze()
             self.verifier = self.extensions.compose(self.verifier, self.spec)
@@ -73,6 +77,12 @@ class LoopController:
             self.emit(kind, payload)
         if self.extensions is not None:
             self.extensions.observe(kind, payload)
+        if self.lifecycle is not None:
+            # Every ordinary observation also reaches lifecycle subscribers.
+            self.lifecycle.emit(kind, payload)
+            event = payload.get("event")
+            if event in {"run_opened", "pass_complete"}:
+                self.lifecycle.emit(event, payload)
 
     def run(self) -> RunResult:
         if self._running:
@@ -113,8 +123,8 @@ class LoopController:
             if not any(t.brake_name == trip.brake_name and t.recommended_action == trip.recommended_action for t in trips):
                 trips.append(trip)
                 self._emit("state.transition", {"from_state": "brake_armed", "to_state": "brake_tripped",
-                    "brake_name": trip.brake_name, "trip_reason": trip.trip_reason,
-                    "triggering_obs_hash": trip.triggering_obs_hash, "run_id": run_id})
+                    "brake_name": trip.brake_name, "action": trip.recommended_action.value,
+                    "trip_reason": trip.trip_reason, "triggering_obs_hash": trip.triggering_obs_hash, "run_id": run_id})
 
         def feed(event):
             for brake in self.brakes:
@@ -149,6 +159,8 @@ class LoopController:
                 force("budget", "usage_unknown_or_invalid", BrakeAction.ABORT, {"pass": pass_number})
             else:
                 tokens += used
+                self._emit("llm.response", {"run_id": run_id, "provider": result.get("provider", "unknown"),
+                    "usage": {"total_tokens": used}})
                 feed({"kind": "llm.response", "usage": {"total_tokens": used}})
                 if tokens >= spec.token_budget:
                     force("budget", "token_budget_exhausted", BrakeAction.ABORT, {"tokens": tokens})
@@ -178,7 +190,7 @@ class LoopController:
                 feed({"kind": "custom", "payload": verification})
             if time.monotonic() - t0 >= spec.wall_clock_budget_s:
                 force("budget", "wall_clock_budget_exhausted", BrakeAction.ABORT, {"pass": pass_number})
-            completed = {"from_state": "pass_running", "to_state": "pass_complete",
+            completed = {"event": "pass_complete", "from_state": "pass_running", "to_state": "pass_complete",
                 "pass_number": pass_number, "overall_pass": bool(report and report.overall_pass), "run_id": run_id}
             self._emit("state.transition", completed)
             feed({"kind": "state.transition", **completed})
@@ -207,10 +219,15 @@ class LoopController:
             final_verification=verification, tripped_brakes=tuple(t.brake_name for t in tripped),
             trip_reasons=tuple(t.trip_reason for t in tripped), spec_hash=spec.content_hash,
             amendment_reason=spec.amendment_reason)
-        self._emit("checkpoint", {"event": "run_closed", "run_id": run_id,
-            "outcome": outcome.value, "total_passes": passes, "total_tokens": tokens,
+        checkpoint = {"event": "run_closed", "run_id": run_id,
+            "goal_id": spec.goal_id, "outcome": outcome.value, "total_passes": passes, "total_tokens": tokens,
             "wall_clock_s": elapsed, "tripped_brakes": list(result.tripped_brakes),
-            "trip_reasons": list(result.trip_reasons), "spec_hash": spec.content_hash})
+            "trip_reasons": list(result.trip_reasons), "spec_hash": spec.content_hash}
+        # Preserve the public observation/checkpoint contract as strict JSON. Rich
+        # Python objects are delivered only to internal lifecycle subscribers.
+        self._emit("checkpoint", checkpoint)
+        if self.lifecycle is not None:
+            self.lifecycle.emit("run_closed", {**checkpoint, "result": result, "goal_spec": spec})
         if self.extensions is not None:
             self.extensions.on_run_closed(result)
         return result
