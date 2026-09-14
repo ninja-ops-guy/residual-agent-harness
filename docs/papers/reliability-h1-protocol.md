@@ -65,27 +65,23 @@ For every task record:
 
 ## 4. Primary endpoints
 
-The experiment must keep **candidate correctness** and **controller acceptance** separate. Let `X` mean that the independently graded final candidate is correct, and `A` mean that the controller accepts it.
+Let `X` mean that the final emitted candidate is independently correct and `A` mean that the controller accepts it.
 
-### Raw candidate correctness
+### Candidate correctness
 
 `P(X) = independently correct completed candidates / completed candidates`
 
-Also report the conservative scheduled-denominator form:
-
-`independently correct candidates / all scheduled trials`
-
-This prevents missing or not-run trials from disappearing from the study while preserving the direct worker-quality estimate among candidates that were actually produced.
+Also report independently correct candidates over the full scheduled denominator so missing/not-run work is visible.
 
 ### Coverage
 
-`P(A) = controller-accepted outputs / all scheduled trials`
+`P(A) = controller-accepted outputs / scheduled trials`
 
 ### Accepted correctness
 
 `P(X|A) = independently correct accepted outputs / accepted outputs`
 
-If no output is accepted, this quantity is undefined. Zero coverage must not be converted into perfect reliability.
+Undefined when no output is accepted.
 
 ### Accepted Error Rate
 
@@ -97,29 +93,27 @@ Report an undefined AER if no output is accepted; do not convert abstention into
 
 `FAR = controller-accepted but independently incorrect / controller-accepted`
 
-Under the current binary acceptance model, AER and FAR are numerically identical. Both labels may be retained for comparability, but they must not be presented as independent evidence.
+Under the current binary acceptance model AER and FAR are numerically identical. Keep both labels for traceability but do not present them as independent evidence.
 
 ### Failure Containment Rate
 
-For explicitly labelled fault-injection trials:
+For explicitly controlled fault-injection trials:
 
-`FCR = known injected faults prevented from producing incorrect accepted state / known labelled injected faults`
+`FCR = known injected faults that do not produce incorrect accepted state / known injected faults`
 
-Do not infer fault injection from ordinary model failures. Each fault trial must carry an explicit injection identity and containment outcome.
+Detection is recorded separately. A fault is not counted merely because an ordinary run failed. Every FCR denominator member must have an explicit injection identifier, fault kind, expected containment layer, and containment label derived from the controlled trial.
 
 ### Independent Success Rate
 
 `ISR = independently correct final candidates / all scheduled tasks`
 
-This measures whether useful correct work was produced regardless of whether the controller accepted it.
+This endpoint is independent of controller acceptance and therefore exposes correct-but-rejected candidates.
 
 ### Accepted System Success Rate
 
-`ASSR = independently correct accepted outputs / all scheduled tasks`
+`ASSR = independently correct AND controller-accepted final outputs / all scheduled tasks`
 
-This is the end-to-end system-success quantity represented by the existing study runner's historical `success` field.
-
-Both ISR and ASSR are required. Their difference exposes correct work rejected by the acceptance boundary.
+This is the end-to-end system-success quantity represented by the historical study runner's `success` field.
 
 ## 5. Secondary endpoints
 
@@ -149,7 +143,7 @@ For binary outcomes:
 - report raw counts and Wilson or bootstrap confidence intervals;
 - use paired methods where applicable;
 - bootstrap at the **task-family** level for cross-family summaries so repeated trials do not masquerade as independent families;
-- report absolute risk difference for AER/FAR, ISR, ASSR, and coverage;
+- report absolute risk difference for AER/FAR, ISR and ASSR;
 - never infer equivalence from a nonsignificant difference.
 
 For cost/latency:
@@ -177,7 +171,9 @@ Each fault must have a known injection point and expected containment layer.
 | conflicting parallel edits | deterministic integrator |
 | worker crash/termination | lifecycle + scheduler |
 
-Report both whether the mechanism detected the event and whether incorrect state actually crossed the acceptance boundary.
+The initial deterministic development harness implements malformed replies, truncated replies, worker abstention, and provider/runtime errors. These are a subset of the preregistered matrix and must be reported as such.
+
+Every controlled fault receipt records both whether the mechanism detected the event and whether incorrect state actually crossed the acceptance boundary. Retry/recovery does not erase the earlier detection event.
 
 ## 8. Model-degradation experiment
 
@@ -199,9 +195,9 @@ Use multiple task granularities. For each task estimate:
 
 `tax = planning + scheduling + context packaging + verification + integration overhead`
 
-Compare the tax against saved generation cost/latency and gained parallelism. The dynamic controller is successful only when net verified utility improves. Small tasks for which tax dominates should remain single-worker.
+New controlled runs directly instrument dispatch/scheduling, response integration, and a combined context-packaging/packet-planning boundary. Provider, verifier, and solver times remain separately measured by the normal harness. Planning and context packaging must remain reported as a combined component until the core execution path exposes separate boundaries; do not fabricate a split from residual wall time.
 
-Until each component above has a dedicated timing hook, the existing `other_host_elapsed_ms` field is a **host-overhead proxy only** and must not be published as the exact orchestration tax.
+Compare measured orchestration overhead against saved generation cost/latency and gained parallelism. The dynamic controller is successful only when net verified utility improves. Small tasks for which tax dominates should remain single-worker.
 
 ## 10. Verifier-quality experiment
 
@@ -221,16 +217,14 @@ Do not tune thresholds, prompts, router policy, verifier logic, or task contract
 
 ## 12. H1 support and falsification
 
-H1 is supported for a tested domain if, with model capability fixed, R4 materially increases `P(X|A)` and lowers incorrect accepted state (AER/FAR) relative to R0/R1 while retaining useful coverage and ASSR, and the benefit remains after cost/latency overhead is reported.
-
-The analysis must also show `P(X)` separately so an apparent system improvement cannot be attributed to a hidden improvement in worker quality.
+H1 is supported for a tested domain if, with model capability fixed, R4 materially lowers incorrect accepted state (AER/FAR) relative to R0/R1 while retaining useful coverage, ISR and ASSR, and the benefit remains after cost/latency/orchestration overhead is reported.
 
 H1 is weakened or falsified for that domain if:
 
 - AER/FAR does not improve materially;
 - apparent reliability comes only from rejecting nearly all work;
-- accepted system success falls enough to erase practical benefit;
-- verifier cost approximates or exceeds simply solving the task with the stronger baseline;
+- ISR or ASSR falls enough to erase practical benefit;
+- verifier/orchestration cost approximates or exceeds simply solving the task with the stronger baseline;
 - improvements vanish on held-out families;
 - the result depends on changing model capability rather than architecture.
 
@@ -245,8 +239,10 @@ A publishable run must retain:
 - raw lifecycle/call/run logs;
 - all independent grades;
 - receipt/evidence artifacts needed for audit;
+- controlled fault receipts where FCR is claimed;
+- direct timing receipts where orchestration overhead is claimed;
 - analysis script version;
 - generated result tables and figures;
 - a manifest of missing/unknown fields.
 
-The report must be regenerable from retained artifacts without rerunning model side effects. Paper-facing metric extraction is implemented by [`residual/reliability_metrics.py`](../../residual/reliability_metrics.py) and documented in [`reliability-metrics.md`](reliability-metrics.md).
+The report must be regenerable from retained artifacts without rerunning model side effects.
