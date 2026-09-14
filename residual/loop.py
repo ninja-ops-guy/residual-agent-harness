@@ -15,6 +15,7 @@ from typing import Any, Callable, Optional, Protocol
 from .brakes import Brake, BrakeAction, BrakeTrip, build_brakes
 from .core import ContractError, digest
 from .goalspec import GoalSpec
+from .lifecycle import ModuleLifecycleBus
 from .verifier import VerificationReport, Verifier
 
 
@@ -22,7 +23,7 @@ class RunOutcome(str, Enum):
     SUCCESS = "success"
     ESCALATED = "escalated"
     ABORTED = "aborted"
-    AMENDED = "amended"  # Reserved: amendments are explicit new runs, never automatic.
+    AMENDED = "amended"
 
 
 @dataclass(frozen=True)
@@ -42,7 +43,6 @@ class RunResult:
 
 class HarnessPass(Protocol):
     def run_pass(self, spec: GoalSpec, pass_number: int) -> dict:
-        """Return candidate, tokens_used (host receipt; None if unknown), observations."""
         ...
 
 
@@ -55,6 +55,7 @@ class LoopController:
     emit: Optional[Callable[[str, dict], None]] = None
     no_progress_threshold: int = 3
     extensions: Any = None
+    lifecycle: ModuleLifecycleBus | None = None
     _running: bool = field(default=False, init=False, repr=False)
     _base_brakes: tuple = field(default=(), init=False, repr=False)
 
@@ -62,17 +63,22 @@ class LoopController:
         if not self.brakes:
             self.brakes = build_brakes(self.spec, self.no_progress_threshold)
         self._base_brakes = self.brakes
+        if self.lifecycle is None:
+            self.lifecycle = ModuleLifecycleBus()
         if self.extensions is not None:
             self.extensions.freeze()
             self.verifier = self.extensions.compose(self.verifier, self.spec)
 
     def _emit(self, kind: str, payload: dict) -> None:
-        # Host callbacks are authoritative. Optional telemetry adapters should
-        # catch delivery failures themselves (StationBus does so and counts them).
         if self.emit:
             self.emit(kind, payload)
         if self.extensions is not None:
             self.extensions.observe(kind, payload)
+        if self.lifecycle is not None:
+            self.lifecycle.emit(kind, payload)
+            event = payload.get("event")
+            if event in {"run_opened", "pass_complete", "run_closed"}:
+                self.lifecycle.emit(event, payload)
 
     def run(self) -> RunResult:
         if self._running:
@@ -113,8 +119,8 @@ class LoopController:
             if not any(t.brake_name == trip.brake_name and t.recommended_action == trip.recommended_action for t in trips):
                 trips.append(trip)
                 self._emit("state.transition", {"from_state": "brake_armed", "to_state": "brake_tripped",
-                    "brake_name": trip.brake_name, "trip_reason": trip.trip_reason,
-                    "triggering_obs_hash": trip.triggering_obs_hash, "run_id": run_id})
+                    "brake_name": trip.brake_name, "action": trip.recommended_action.value,
+                    "trip_reason": trip.trip_reason, "triggering_obs_hash": trip.triggering_obs_hash, "run_id": run_id})
 
         def feed(event):
             for brake in self.brakes:
@@ -131,7 +137,6 @@ class LoopController:
         feed({"kind": "checkpoint", "event": "run_opened", "payload": {"event": "run_opened"}})
         if any(t.recommended_action == BrakeAction.ABORT for t in trips):
             return self._finish(RunOutcome.ABORTED, run_id, 0, tokens, t0, report, trips, spec)
-        # A literal bounded range protects even hosts using a custom brake set.
         for pass_number in range(1, spec.max_passes + 1):
             if trips:
                 return self._finish(RunOutcome.ESCALATED, run_id, pass_number - 1, tokens, t0, report, trips, spec)
@@ -149,13 +154,14 @@ class LoopController:
                 force("budget", "usage_unknown_or_invalid", BrakeAction.ABORT, {"pass": pass_number})
             else:
                 tokens += used
+                self._emit("llm.response", {"run_id": run_id, "provider": result.get("provider", "unknown"),
+                    "usage": {"total_tokens": used}})
                 feed({"kind": "llm.response", "usage": {"total_tokens": used}})
                 if tokens >= spec.token_budget:
                     force("budget", "token_budget_exhausted", BrakeAction.ABORT, {"tokens": tokens})
             observations = result.get("observations", [])
             if not isinstance(observations, (list, tuple)) or len(observations) > 10000 or any(not isinstance(o, dict) for o in observations):
                 raise ContractError("harness observations must be a bounded list of objects")
-            # Never feed worker lifecycle/usage/verification claims as control facts.
             for obs in observations:
                 if obs.get("kind") == "tool.invoked":
                     feed(obs)
@@ -165,7 +171,6 @@ class LoopController:
                 force("dispatch", result["halt"], BrakeAction.ESCALATE, {"halt": result["halt"]})
             if time.monotonic() - t0 >= spec.wall_clock_budget_s:
                 force("budget", "wall_clock_budget_exhausted", BrakeAction.ABORT, {"pass": pass_number})
-            # Do not incur a judge call after an abort condition is established.
             if any(t.recommended_action == BrakeAction.ABORT for t in trips):
                 report = None
             else:
@@ -178,7 +183,7 @@ class LoopController:
                 feed({"kind": "custom", "payload": verification})
             if time.monotonic() - t0 >= spec.wall_clock_budget_s:
                 force("budget", "wall_clock_budget_exhausted", BrakeAction.ABORT, {"pass": pass_number})
-            completed = {"from_state": "pass_running", "to_state": "pass_complete",
+            completed = {"event": "pass_complete", "from_state": "pass_running", "to_state": "pass_complete",
                 "pass_number": pass_number, "overall_pass": bool(report and report.overall_pass), "run_id": run_id}
             self._emit("state.transition", completed)
             feed({"kind": "state.transition", **completed})
@@ -208,9 +213,10 @@ class LoopController:
             trip_reasons=tuple(t.trip_reason for t in tripped), spec_hash=spec.content_hash,
             amendment_reason=spec.amendment_reason)
         self._emit("checkpoint", {"event": "run_closed", "run_id": run_id,
-            "outcome": outcome.value, "total_passes": passes, "total_tokens": tokens,
+            "goal_id": spec.goal_id, "outcome": outcome.value, "total_passes": passes, "total_tokens": tokens,
             "wall_clock_s": elapsed, "tripped_brakes": list(result.tripped_brakes),
-            "trip_reasons": list(result.trip_reasons), "spec_hash": spec.content_hash})
+            "trip_reasons": list(result.trip_reasons), "spec_hash": spec.content_hash,
+            "result": result})
         if self.extensions is not None:
             self.extensions.on_run_closed(result)
         return result
