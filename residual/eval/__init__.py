@@ -32,6 +32,11 @@ from .spec_eval import (
     SystemMetrics,
 )
 from .replay import signed_report_from_observations
+from .measured_factory import (
+    FactoryEvaluationAdapter,
+    FactoryRunMeasurement,
+    MeasuredFactoryEvaluationRunner,
+)
 
 __all__ = [
     "ABLATIONS",
@@ -44,10 +49,13 @@ __all__ = [
     "EvaluationRunEvidence",
     "EvaluationRunner",
     "ExecutionControls",
+    "FactoryEvaluationAdapter",
+    "FactoryRunMeasurement",
     "Fault",
     "FaultInjector",
     "FixedSwarmBackend",
     "FrozenWorkload",
+    "MeasuredFactoryEvaluationRunner",
     "RunConfiguration",
     "RunCounters",
     "SignedComparisonReport",
