@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore Residual's evidence-first control loop. An interactive, browser-only simulation of candidate verification and deterministic acceptance.">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>RESIDUAL — Interactive demo</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body data-source-revision="__SOURCE_REVISION__">
+  <a class="skip" href="#playground">Skip to interactive demo</a>
+  <header class="masthead">
+    <a class="brand" href="./" aria-label="Residual demo home"><span class="brand-mark" aria-hidden="true">R</span> RESIDUAL<span class="brand-separator">/</span><span class="muted">CONTROL LAB</span></a>
+    <nav aria-label="Main navigation"><a href="#how-it-works">How it works</a><a href="https://github.com/ninja-ops-guy/residual-agent-harness">Source <span aria-hidden="true">↗</span></a></nav>
+  </header>
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="status-dot"></span> EVIDENCE-FIRST AI ENGINEERING</p>
+        <h1 id="hero-title">Workers propose.<br><span>The system decides.</span></h1>
+        <p class="intro">A model’s answer is a candidate, not permission to change the world. See what happens when work has to cross an explicit verification boundary.</p>
+        <a class="button primary" href="#playground">Explore the control loop <span aria-hidden="true">↓</span></a>
+      </div>
+      <aside class="thesis" aria-label="Architectural principle">
+        <span class="label">THE RESIDUAL PRINCIPLE</span>
+        <p>Unreliable computation.<br>Bounded authority.</p>
+        <div class="trust-line"><span>PROPOSAL</span><b aria-hidden="true">→</b><span>CHECK</span><b aria-hidden="true">→</b><span>ACCEPT</span></div>
+        <small>Reliability is a property to test at the system boundary—not a quality to assume inside a worker.</small>
+      </aside>
+    </section>
+    <div class="notice" role="note"><strong>SIMULATION ONLY</strong><span>Scripted browser fixtures. No live AI, API keys, backend, or OS isolation. This is a teaching demo—not benchmark evidence.</span></div>
+    <section id="playground" class="playground" aria-labelledby="lab-title">
+      <div class="section-heading"><div><p class="eyebrow">01 / TRY THE BOUNDARY</p><h2 id="lab-title">One mission. Four outcomes.</h2></div><span class="chip">LOCAL BROWSER DEMO</span></div>
+      <div class="mission"><span class="label">FROZEN DEMO MISSION</span><p>Configure a service policy with bounded retries, a short timeout, and structured logs.</p><div class="mission-meta"><span>3 required checks</span><span>config/*.json only</span><span>No automatic conflict resolution</span></div></div>
+      <div class="lab-layout">
+        <aside class="scenario-panel" aria-label="Scenario controls">
+          <label for="scenario">Inject a scenario</label>
+          <select id="scenario">
+            <option value="clean">01 — Verified acceptance</option>
+            <option value="rejected">02 — Faulty candidate</option>
+            <option value="unknown">03 — Missing evidence</option>
+            <option value="conflict">04 — Integration conflict</option>
+          </select>
+          <p id="scenario-description"></p>
+          <button class="button primary" id="run" type="button" disabled>Run simulation <span aria-hidden="true">→</span></button>
+          <button class="button secondary" id="reset" type="button" disabled>Reset demo</button>
+          <div class="boundary-note"><span class="label">WHAT TO WATCH</span><p>Passing checks do not automatically mean an accepted final output. Missing evidence and unresolved conflicts still block the handoff.</p></div>
+        </aside>
+        <div class="execution-panel">
+          <ol class="pipeline" aria-label="Control loop stages">
+            <li data-stage="0"><span>01</span>Contract</li><li data-stage="1"><span>02</span>Propose</li><li data-stage="2"><span>03</span>Verify</li><li data-stage="3"><span>04</span>Integrate</li>
+          </ol>
+          <div class="run-header"><h3>Candidate workspace</h3><span id="run-state" class="badge idle" role="status" aria-live="polite">READY</span></div>
+          <div id="workers" class="workers"></div>
+          <div class="gate"><div><span class="label">FINAL HANDOFF</span><h3 id="gate-title">No output accepted yet.</h3><p id="gate-detail">Run a scenario to inspect the checks and the integration decision.</p></div><div class="gate-count"><strong id="passed-count">—</strong><span>checks passed</span></div></div>
+        </div>
+      </div>
+      <div class="evidence-layout">
+        <section class="log-panel" aria-labelledby="events-title"><div class="panel-title"><h3 id="events-title">Observation trail</h3><span class="label">SCRIPTED SEQUENCE</span></div><ol id="events"><li class="empty">The demo records each step here. Nothing has run yet.</li></ol></section>
+        <section class="export-panel" aria-labelledby="export-title"><div class="panel-title"><h3 id="export-title">Inspect the result</h3><span class="label">UNSIGNED DEMO JSON</span></div><pre id="result-preview" tabindex="0">No simulation result.</pre><button class="button secondary" id="download" type="button" disabled>Download simulation JSON <span aria-hidden="true">↓</span></button><p class="small">Exports always include <code>simulation: true</code> and <code>signed: false</code>. They are not Factory or Station receipts.</p></section>
+      </div>
+      <noscript><p class="notice">JavaScript is required for the interactive simulation. The architecture overview and source links remain available.</p></noscript>
+    </section>
+    <section id="how-it-works" class="explanation" aria-labelledby="architecture-title"><p class="eyebrow">02 / THE ARCHITECTURE BEHIND THE DEMO</p><h2 id="architecture-title">Small authority. Inspectable decisions.</h2><div class="principles">
+      <article><span class="principle-number">M2</span><h3>Constrain computation.</h3><p>The Factory design gives workers explicit scope and resource contracts. This page illustrates bounded proposals; it does not execute the OS sandbox.</p></article>
+      <article><span class="principle-number">M3</span><h3>Keep the evidence.</h3><p>Acceptance must be tied to checks and observations. Here you can inspect an unsigned teaching record—not the runtime’s signed receipt format.</p></article>
+      <article><span class="principle-number">M4</span><h3>Own the handoff.</h3><p>Accepted state belongs to the integrator, not the worker. The small JavaScript composer illustrates that boundary; it is not the canonical Factory integrator.</p></article>
+    </div><div class="next-step"><div><h3>Run the actual system locally.</h3><p>Command Station and Factory need a backend. Keep provider credentials in your own environment, never in this public page.</p></div><a class="button secondary" href="https://github.com/ninja-ops-guy/residual-agent-harness/blob/main/START-HERE.md">Open setup guide <span aria-hidden="true">↗</span></a></div></section>
+  </main>
+  <footer><div class="brand">RESIDUAL <span class="muted">/ EVIDENCE BEFORE AUTHORITY</span></div><p>Architectural hypothesis, not a claim of universal reliability. <a href="https://github.com/ninja-ops-guy/residual-agent-harness/blob/main/docs/research.md">Research boundaries ↗</a></p><p class="small">Demo source: <code id="source-revision">__SOURCE_REVISION__</code></p></footer>
+</body>
+</html>

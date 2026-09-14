@@ -1,0 +1,2 @@
+# Browser QA only; the deployed site has no dependencies.
+playwright==1.58.0
