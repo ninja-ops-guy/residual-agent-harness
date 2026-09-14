@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -16,6 +17,10 @@ from .quality import AssuranceClass
 
 _ALLOWED_SPLITS = {"train", "evaluation"}
 _ALLOWED_GRADERS = {"exact_text", "contains_all", "json_exact", "regex"}
+
+
+class EvidenceBudgetExceeded(RuntimeError):
+    """Raised before provider dispatch when the live evidence budget is exhausted."""
 
 
 @dataclass(frozen=True)
@@ -137,9 +142,13 @@ class ExternalEvidenceRunner:
 
     The market is trained from independently graded train outcomes. Evaluation
     decisions never update profiles until after the decision is recorded.
+    When ``maximum_budget_usd`` is supplied, declared per-task cost is reserved
+    immediately before every provider dispatch. A call that would exceed the
+    ceiling is refused before the provider can execute.
     """
 
-    def __init__(self, suite: ExternalSuite, engines: Iterable[LiveEngineSpec]):
+    def __init__(self, suite: ExternalSuite, engines: Iterable[LiveEngineSpec], *,
+                 maximum_budget_usd: float | None = None):
         self.suite = suite
         self.engines = tuple(engines)
         if len(self.engines) < 2:
@@ -147,12 +156,30 @@ class ExternalEvidenceRunner:
         ids = [e.engine.engine_id for e in self.engines]
         if len(ids) != len(set(ids)):
             raise ValueError("duplicate engine id")
+        for spec in self.engines:
+            if not math.isfinite(spec.cost_per_task) or spec.cost_per_task < 0:
+                raise ValueError("cost_per_task must be finite and non-negative")
+        if maximum_budget_usd is not None:
+            if not math.isfinite(maximum_budget_usd) or maximum_budget_usd < 0:
+                raise ValueError("maximum_budget_usd must be finite and non-negative")
+        self.maximum_budget_usd = maximum_budget_usd
+        self._reserved_cost_usd = 0.0
+
+    def _reserve_provider_call(self, spec: LiveEngineSpec) -> None:
+        next_total = self._reserved_cost_usd + spec.cost_per_task
+        if self.maximum_budget_usd is not None and next_total > self.maximum_budget_usd + 1e-12:
+            raise EvidenceBudgetExceeded(
+                f"provider dispatch refused: declared spend {next_total:.12g} exceeds budget "
+                f"{self.maximum_budget_usd:.12g}"
+            )
+        self._reserved_cost_usd = next_total
 
     def run(self) -> dict[str, Any]:
         observations: dict[tuple[str, str], dict[str, Any]] = {}
         for case in self.suite.cases:
             for spec in self.engines:
                 task = TaskSpec(case.case_id, case.capability, case.prompt, {"assurance": case.assurance.value})
+                self._reserve_provider_call(spec)
                 try:
                     result = spec.engine.execute(task, ContextAssembly())
                     passed = grade_external(result.candidate, case.grader)
@@ -162,6 +189,8 @@ class ExternalEvidenceRunner:
                         "token_usage": result.token_usage,
                         "error": None,
                     }
+                except EvidenceBudgetExceeded:
+                    raise
                 except Exception as exc:
                     observations[(case.case_id, spec.engine.engine_id)] = {
                         "passed": False,
@@ -233,6 +262,10 @@ class ExternalEvidenceRunner:
             "suite_sha256": self.suite.sha256,
             "provenance": {"author": self.suite.author, "source_uri": self.suite.source_uri, "authored_at": self.suite.authored_at},
             "engine_count": len(self.engines),
+            "budget": {
+                "maximum_budget_usd": self.maximum_budget_usd,
+                "reserved_declared_cost_usd": self._reserved_cost_usd,
+            },
             "per_engine": per_engine,
             "market": {
                 "evaluation_successes": market_successes,
