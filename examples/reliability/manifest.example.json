@@ -14,12 +14,24 @@
   ],
   "primary_metric": "accepted_error_rate",
   "model_bindings": {
-    "note": "replace with exact model identifiers and inference settings"
+    "model_ids": ["replace-with-exact-model-id"],
+    "temperature": "freeze-if-provider-exposes-it",
+    "max_output_tokens": "freeze-exact-value",
+    "tool_surface": "freeze-tool-policy-hash",
+    "environment": "freeze-runtime-or-container-identity"
   },
   "verifier_revisions": {
-    "note": "replace with exact verifier names, revisions, policy hashes, and hidden-grader provenance"
+    "verifier": "replace-with-name-and-revision",
+    "implementation_hash": "replace-with-hash",
+    "policy_hash": "replace-with-hash",
+    "hidden_grader_provenance": "replace-with-independent-source-reference"
   },
   "budget": {
-    "note": "replace with frozen token/call/cost ceilings and stopping rule"
+    "trial_count": "freeze-before-run",
+    "max_calls": "freeze-before-run",
+    "max_tokens": "freeze-before-run",
+    "max_cost_usd": "freeze-before-run",
+    "stopping_rule": "fixed-trials-no-optional-stopping",
+    "price_source": "record-provider-price-source-and-date"
   }
 }
