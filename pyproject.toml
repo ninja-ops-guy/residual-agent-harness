@@ -4,16 +4,24 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "residual-agent-harness"
-version = "0.4.0"
+version = "0.5.0"
 description = "A hybrid agent harness for counterexample-directed residual delegation"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
 
+[project.optional-dependencies]
+marketplace = ["cryptography>=43"]
+
 [project.scripts]
 residual = "residual.cli:main"
 residual-station = "residual.station.server:main"
 residual-worker = "residual.station.worker:main"
+residual-module = "residual.marketplace.cli:main"
+
+[project.entry-points."residual.modules"]
+netops = "residual.modules.netops:NetOpsModule"
+secops = "residual.modules.secops:SecOpsModule"
 
 [tool.setuptools.packages.find]
 include = ["residual*", "ai_providers*", "observation_layer*"]
