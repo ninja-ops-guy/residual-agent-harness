@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import tempfile
 import unittest
-from dataclasses import replace
 from pathlib import Path
 
 from residual.core import digest
@@ -53,6 +52,7 @@ class M4EvidenceTests(unittest.TestCase):
         workspace.mkdir()
         (workspace / path).parent.mkdir(parents=True, exist_ok=True)
         (workspace / path).write_bytes(data)
+        task = next(value for value in self.plan.tasks if value.id == task_id)
         contract = WorkerContract(
             task_id=task_id,
             worker_id=f"worker{index}",
@@ -68,7 +68,7 @@ class M4EvidenceTests(unittest.TestCase):
             forbidden=(),
             requirements=(requirement,),
             acceptance=("unit",),
-            dependencies=tuple(self.plan.tasks[[t.id for t in self.plan.tasks].index(task_id)].depends_on),
+            dependencies=tuple(task.depends_on),
             allowed_tools=("write_file",),
             forbidden_tools=(),
             token_budget=10,
@@ -125,17 +125,21 @@ class M4EvidenceTests(unittest.TestCase):
         with self.assertRaises(EvidenceError):
             bad.ready_dag((r1.receipt_hash,))
 
-    def test_dependency_order_and_parent_bindings_are_enforced(self):
+    def test_dependency_order_is_deterministic(self):
         r1 = self.issue("task1", "R1", path="one.txt", data=b"one", index=1)
         r2 = self.issue("task2", "R2", path="two.txt", data=b"two", index=2, parents=(r1.receipt_hash,))
-        plan = self.m4.integration_plan((r2.receipt_hash, r1.receipt_hash))
-        self.assertEqual(plan.ordered_task_ids, ("task1", "task2"))
-        self.assertTrue(plan.integration_eligible)
+        a = self.m4.integration_plan((r2.receipt_hash, r1.receipt_hash))
+        b = self.m4.integration_plan((r1.receipt_hash, r2.receipt_hash))
+        self.assertEqual(a.ordered_task_ids, ("task1", "task2"))
+        self.assertEqual(a.plan_hash, b.plan_hash)
+        self.assertTrue(a.integration_eligible)
 
+    def test_wrong_parent_binding_is_rejected(self):
+        r1 = self.issue("task1", "R1", path="one.txt", data=b"one", index=1)
         r3 = self.issue("task3", "R3", path="three.txt", data=b"three", index=3)
+        bad_r2 = self.issue("task2", "R2", path="two.txt", data=b"two", index=2, parents=(r3.receipt_hash,))
         with self.assertRaisesRegex(M4EvidenceError, "parent bindings"):
-            # task2 depends on task1; task3 cannot stand in for that dependency.
-            self.m4.integration_plan((r1.receipt_hash, r3.receipt_hash, r2.receipt_hash))
+            self.m4.integration_plan((r1.receipt_hash, r3.receipt_hash, bad_r2.receipt_hash))
 
     def test_missing_dependency_receipt_is_rejected(self):
         r1 = self.issue("task1", "R1", path="one.txt", data=b"one", index=1)
