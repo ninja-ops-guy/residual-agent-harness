@@ -13,6 +13,7 @@ from residual.assurance.external import (
     LiveEngineSpec,
     grade_external,
     load_external_suite,
+    wilson_interval,
 )
 from residual.assurance.quality import AssuranceClass
 from residual.engines.provider_bridge import ProviderEngineConfig, ProviderExecutionEngine
@@ -85,6 +86,27 @@ class ExternalEvidenceTests(unittest.TestCase):
         self.assertFalse(row["passed"])
         self.assertEqual(report["market"]["evaluation_successes"], 0)
         self.assertEqual(report["market"]["oracle_successes"], 1)
+
+    def test_repeated_trials_are_independent_and_report_fixed_baselines(self):
+        report = ExternalEvidenceRunner(self.suite(), self.engines(), trials=3).run()
+        self.assertEqual(report["trials"], 3)
+        self.assertEqual(report["evaluation_attempts"], 3)
+        self.assertEqual([row["trial"] for row in report["evaluation_rows"]], [1, 2, 3])
+        self.assertEqual(report["market"]["evaluation_successes"], 0)
+        self.assertEqual(report["market"]["oracle_successes"], 3)
+        self.assertEqual(report["baselines"]["cheapest_eligible"]["evaluation_successes"], 0)
+        local = next(key for key in report["per_engine"] if key.startswith("provider:ollama:"))
+        self.assertEqual(report["baselines"]["fixed_engine"][local]["success_rate"], 1.0)
+        self.assertEqual(report["per_engine"][local]["evaluation_successes"], 3)
+        self.assertLess(report["market"]["success_ci95"]["upper"], 1.0)
+        self.assertGreater(report["per_engine"][local]["evaluation_success_ci95"]["lower"], 0.0)
+
+    def test_wilson_interval_validates_counts(self):
+        interval = wilson_interval(8, 10)
+        self.assertLess(interval["lower"], 0.8)
+        self.assertGreater(interval["upper"], 0.8)
+        with self.assertRaises(ValueError):
+            wilson_interval(2, 1)
 
     def test_suite_hash_binds_external_provenance_and_cases(self):
         a = self.suite()

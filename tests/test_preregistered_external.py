@@ -90,7 +90,7 @@ class PreregisteredExternalTests(unittest.TestCase):
             engine_config_sha256="b" * 64, hypotheses=("h",),
             primary_metric="market_success_rate", secondary_metrics=("oracle_gap",),
             stopping_rule={"kind": "fixed_evaluation_cases", "value": 1},
-            maximum_budget_usd=1.0, runner_revision="git:deadbeef", notes="frozen",
+            maximum_budget_usd=1.0, runner_revision="git:deadbeef", trials=3, notes="frozen",
         )
         with tempfile.TemporaryDirectory() as td:
             path = Path(td) / "manifest.json"
@@ -98,6 +98,23 @@ class PreregisteredExternalTests(unittest.TestCase):
             loaded = load_preregistration(path)
             self.assertEqual(loaded, manifest)
             self.assertEqual(loaded.sha256, manifest.sha256)
+            self.assertEqual(loaded.trials, 3)
+
+    def test_v1_manifest_remains_hash_stable_and_defaults_to_one_trial(self):
+        payload = {
+            "schema_version": "residual.external-preregistration.v1",
+            "study_id": "legacy", "registered_at": "t", "suite_sha256": "a" * 64,
+            "engine_config_sha256": "b" * 64, "hypotheses": ["h"],
+            "primary_metric": "market_success_rate", "secondary_metrics": [],
+            "stopping_rule": {"kind": "fixed_evaluation_cases", "value": 1},
+            "maximum_budget_usd": 1.0, "runner_revision": "git:old", "notes": "",
+        }
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "legacy.json"
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            manifest = load_preregistration(path)
+            self.assertEqual(manifest.trials, 1)
+            self.assertEqual(manifest.payload(), payload)
 
     def test_bundle_binds_report_to_manifest(self):
         with tempfile.TemporaryDirectory() as td:
@@ -109,44 +126,63 @@ class PreregisteredExternalTests(unittest.TestCase):
                 study_id="study-2", registered_at="now", suite_path=suite_path,
                 engines_path=engines_path, hypotheses=("h",),
                 primary_metric="market_success_rate", secondary_metrics=(),
-                maximum_budget_usd=2.0, runner_revision="git:abc",
+                maximum_budget_usd=2.0, runner_revision="git:abc", trials=2,
             )
-            report = {"suite_sha256": suite.sha256, "market": {"success_rate": 0.5}, "sha256": "c" * 64}
+            report = {"suite_sha256": suite.sha256, "trials": 2, "market": {"success_rate": 0.5}, "sha256": "c" * 64}
             bundle = build_evidence_bundle(
                 manifest=manifest, suite=suite, engines_path=engines_path, report=report
             )
             self.assertEqual(bundle["preregistration_sha256"], manifest.sha256)
             self.assertEqual(bundle["suite_sha256"], suite.sha256)
-            self.assertAlmostEqual(bundle["projected_declared_cost_usd"], 0.02)
-            self.assertEqual(bundle["projected_provider_calls"], 4)
+            self.assertEqual(bundle["trials"], 2)
+            self.assertAlmostEqual(bundle["projected_declared_cost_usd"], 0.04)
+            self.assertEqual(bundle["projected_provider_calls"], 8)
             self.assertEqual(len(bundle["sha256"]), 64)
 
-    def test_budget_and_call_ceiling_are_enforced_before_execution(self):
+    def test_budget_and_call_ceiling_scale_with_trials(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             suite_path = self.write_suite(root)
             engines_path = self.write_engines(root)
             suite = load_external_suite(suite_path)
-            self.assertAlmostEqual(projected_declared_cost_usd(suite, engines_path), 0.02)
-            self.assertEqual(projected_provider_calls(suite, engines_path), 4)
+            self.assertAlmostEqual(projected_declared_cost_usd(suite, engines_path, 3), 0.06)
+            self.assertEqual(projected_provider_calls(suite, engines_path, 3), 12)
 
             with self.assertRaisesRegex(ValueError, "preregistered budget"):
                 preregister_from_files(
                     study_id="too-cheap", registered_at="now", suite_path=suite_path,
                     engines_path=engines_path, hypotheses=("h",),
                     primary_metric="market_success_rate", secondary_metrics=(),
-                    maximum_budget_usd=0.019, runner_revision="git:abc",
+                    maximum_budget_usd=0.059, runner_revision="git:abc", trials=3,
                 )
 
             manifest = ExternalPreregistration(
                 study_id="calls", registered_at="now", suite_sha256=suite.sha256,
                 engine_config_sha256=engine_config_sha256(engines_path), hypotheses=("h",),
                 primary_metric="market_success_rate", secondary_metrics=(),
-                stopping_rule={"kind": "maximum_provider_calls", "value": 3},
-                maximum_budget_usd=1.0, runner_revision="git:abc",
+                stopping_rule={"kind": "maximum_provider_calls", "value": 11},
+                maximum_budget_usd=1.0, runner_revision="git:abc", trials=3,
             )
             with self.assertRaisesRegex(ValueError, "provider calls"):
                 verify_preregistration(manifest, suite, engines_path)
+
+    def test_bundle_rejects_report_with_wrong_trial_count(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            suite_path = self.write_suite(root)
+            engines_path = self.write_engines(root)
+            suite = load_external_suite(suite_path)
+            manifest = preregister_from_files(
+                study_id="study-trials", registered_at="now", suite_path=suite_path,
+                engines_path=engines_path, hypotheses=("h",),
+                primary_metric="market_success_rate", secondary_metrics=(),
+                maximum_budget_usd=1.0, runner_revision="git:abc", trials=2,
+            )
+            with self.assertRaisesRegex(ValueError, "trial count"):
+                build_evidence_bundle(
+                    manifest=manifest, suite=suite, engines_path=engines_path,
+                    report={"suite_sha256": suite.sha256, "trials": 1},
+                )
 
     def test_engine_config_rejects_secret_and_unknown_fields(self):
         with tempfile.TemporaryDirectory() as td:
