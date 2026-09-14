@@ -34,7 +34,7 @@ for m in ["residual.iam","residual.compliance","residual.tenancy","residual.hadr
 PY
 
 echo "== 4. Tests =="
-python3 -m pytest tests/ -q --tb=no 2>&1 | tail -2 || fail=1
+python3 -m pytest tests/ -q --tb=no > /tmp/verifier_tests.txt 2>&1 || fail=1; tail -2 /tmp/verifier_tests.txt
 
 echo "VERIFIER EXIT: $fail"
 exit $fail

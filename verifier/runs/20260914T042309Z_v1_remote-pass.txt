@@ -1,0 +1,3 @@
+command: fresh clone of github.com/ninja-ops-guy/residual-agent-harness @ 0b731cc, verifier/v1/check.sh + pytest tests/
+exit: 0
+note: all 94 pushed files present on remote (list diff 1:1); fresh checkout 591 passed, 95 subtests (includes 24 tests from concurrent work by other agent). Also fixed check.sh pipe-masking bug in same push.
