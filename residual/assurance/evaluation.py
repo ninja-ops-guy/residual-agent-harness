@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import random
-import statistics
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Iterable, Mapping
 
 from ..core import digest
 from .market import MarketProfile, MarketRequest, VerifiedComputeMarket
 from .orchestration import ExecutionStrategy, OrchestrationTaxController
-from .quality import AssuranceClass, VerifierQualityProfile, VerifierQualityRegistry
+from .quality import AssuranceClass, VerifierQualityRegistry
 
 
 @dataclass(frozen=True)
@@ -26,10 +25,13 @@ class FrozenAssuranceCase:
     swarm_latency_ms: float
     preferred_engine: str
     engine_outcomes: Mapping[str, bool]
+    split: str = "evaluation"
 
     def __post_init__(self) -> None:
         if not self.case_id or not self.task_class or not self.capability:
             raise ValueError("case identity fields are required")
+        if self.split not in {"training", "evaluation"}:
+            raise ValueError("split must be training or evaluation")
         if not 0.0 <= self.required_pass_rate <= 1.0:
             raise ValueError("required_pass_rate must be in [0, 1]")
         for value in (self.direct_cost, self.swarm_cost, self.direct_latency_ms, self.swarm_latency_ms):
@@ -53,6 +55,7 @@ class FrozenAssuranceCase:
             "swarm_latency_ms": self.swarm_latency_ms,
             "preferred_engine": self.preferred_engine,
             "engine_outcomes": dict(sorted(self.engine_outcomes.items())),
+            "split": self.split,
         }
 
 
@@ -68,6 +71,20 @@ class FrozenAssuranceWorkload:
         ids = [case.case_id for case in self.cases]
         if len(ids) != len(set(ids)):
             raise ValueError("duplicate assurance case id")
+        if not self.training_cases or not self.evaluation_cases:
+            raise ValueError("workload requires both training and evaluation cases")
+        training_classes = {case.task_class for case in self.training_cases}
+        evaluation_classes = {case.task_class for case in self.evaluation_cases}
+        if not evaluation_classes <= training_classes:
+            raise ValueError("every evaluation task class requires training observations")
+
+    @property
+    def training_cases(self) -> tuple[FrozenAssuranceCase, ...]:
+        return tuple(case for case in self.cases if case.split == "training")
+
+    @property
+    def evaluation_cases(self) -> tuple[FrozenAssuranceCase, ...]:
+        return tuple(case for case in self.cases if case.split == "evaluation")
 
     @property
     def sha256(self) -> str:
@@ -140,7 +157,7 @@ class AdaptiveEvaluation:
     def _train_controller(self) -> OrchestrationTaxController:
         controller = OrchestrationTaxController(exploration_bonus=0.0)
         for _ in range(max(1, self.warmup_repeats)):
-            for case in self.workload.cases:
+            for case in self.workload.training_cases:
                 features = {"task_class": case.task_class, "capability": case.capability}
                 controller.observe(features, ExecutionStrategy.DIRECT,
                                    success=case.direct_success, cost=case.direct_cost,
@@ -152,7 +169,7 @@ class AdaptiveEvaluation:
 
     def run(self) -> dict[str, object]:
         rng = random.Random(self.workload.seed)
-        cases = list(self.workload.cases)
+        cases = list(self.workload.evaluation_cases)
         rng.shuffle(cases)
         adaptive = self._run_adaptive(cases)
         baselines = [
@@ -164,7 +181,8 @@ class AdaptiveEvaluation:
             "workload_name": self.workload.name,
             "workload_sha256": self.workload.sha256,
             "seed": self.workload.seed,
-            "cases": len(cases),
+            "training_cases": len(self.workload.training_cases),
+            "evaluation_cases": len(cases),
             "adaptive": self._result_payload(adaptive),
             "baselines": [self._result_payload(result) for result in baselines],
             "deltas": {
@@ -178,6 +196,7 @@ class AdaptiveEvaluation:
         }
 
     def _run_fixed(self, cases: Iterable[FrozenAssuranceCase], strategy: ExecutionStrategy) -> PolicyResult:
+        cases = tuple(cases)
         successes = 0
         total_cost = 0.0
         total_latency = 0.0
@@ -190,9 +209,10 @@ class AdaptiveEvaluation:
                 successes += int(case.swarm_success)
                 total_cost += case.swarm_cost
                 total_latency += case.swarm_latency_ms
-        return PolicyResult(strategy.value, successes, len(self.workload.cases), total_cost, total_latency)
+        return PolicyResult(strategy.value, successes, len(cases), total_cost, total_latency)
 
     def _run_adaptive(self, cases: Iterable[FrozenAssuranceCase]) -> PolicyResult:
+        cases = tuple(cases)
         controller = self._train_controller()
         market = self._new_market()
         successes = 0
@@ -220,7 +240,7 @@ class AdaptiveEvaluation:
             success = bool(strategy_ok and engine_ok)
             successes += int(success)
             market.update(decision.engine_id, verifier_passed=success, verifier_reliability=1.0)
-        return PolicyResult("adaptive", successes, len(self.workload.cases), total_cost, total_latency, engine_matches)
+        return PolicyResult("adaptive", successes, len(cases), total_cost, total_latency, engine_matches)
 
     @staticmethod
     def _result_payload(result: PolicyResult) -> dict[str, object]:
@@ -245,6 +265,11 @@ def evaluate_verifier_campaign(
     registry = VerifierQualityRegistry()
     profile = registry.get(verifier_id)
     defects = tuple(defects)
+    if not defects:
+        raise ValueError("verifier campaign requires cases")
+    ids = [defect.defect_id for defect in defects]
+    if len(ids) != len(set(ids)):
+        raise ValueError("duplicate verifier defect id")
     for defect in defects:
         profile.record_outcome(
             verifier_passed=defect.verifier_passed,
