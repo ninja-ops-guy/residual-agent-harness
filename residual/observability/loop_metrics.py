@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from residual.loop.state import MissionStatus, ProgressVector
+from residual.factory.loop_runtime.state import MissionStatus, ProgressVector
 from .metrics import MetricsRegistry
 
 

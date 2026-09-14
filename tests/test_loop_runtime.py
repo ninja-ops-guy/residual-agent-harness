@@ -2,7 +2,7 @@ import unittest
 from decimal import Decimal
 
 from residual.core import Obligation
-from residual.loop import (
+from residual.factory.loop_runtime import (
     AbortCondition, CapabilityFloor, DeduplicationMaterial, FactoryResultSet,
     GoalContract, GoalEvaluator, LoopController, MissionStatus, ObligationState,
     VerificationResultRef, VerificationStatus,

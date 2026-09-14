@@ -40,7 +40,7 @@ class GoalContract:
     no_progress_limit: int = 2
     escalation_cooldown_period: int = 2
     abort_conditions: tuple[AbortCondition, ...] = ()
-    schema_version: str = "residual.loop.goal.v1"
+    schema_version: str = "residual.factory.loop.goal.v1"
 
     def __post_init__(self) -> None:
         identifier(self.goal_id)

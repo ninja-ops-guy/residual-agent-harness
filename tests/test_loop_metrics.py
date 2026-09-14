@@ -1,5 +1,5 @@
 import unittest
-from residual.loop.state import MissionStatus, ProgressVector
+from residual.factory.loop_runtime.state import MissionStatus, ProgressVector
 from residual.observability.metrics import MetricsRegistry
 from residual.observability.loop_metrics import LoopMetrics
 
