@@ -29,6 +29,24 @@ class Histogram:
         with self._lock: return {k:{"count":v["count"],"sum":v["sum"],"buckets":list(v["buckets"])} for k,v in self._data.items()}
 class MetricsRegistry:
     def __init__(self):
-        self.metrics={"residual_tokens_total":(Counter(),("provider",)),"residual_tokens_saved":(Counter(),("cache_hit",)),"residual_brake_trips_total":(Counter(),("brake_name","action")),"residual_verification_duration_seconds":(Histogram(),("check_name",)),"residual_quarantine_denials_total":(Counter(),("policy_name",)),"residual_hitl_challenges_pending":(Gauge(),()),"residual_receipts_issued_total":(Counter(),("verdict",)),"residual_engine_executions_total":(Counter(),("engine_name","outcome"))}
+        self.metrics={
+            "residual_tokens_total":(Counter(),("provider",)),
+            "residual_tokens_saved":(Counter(),("cache_hit",)),
+            "residual_brake_trips_total":(Counter(),("brake_name","action")),
+            "residual_verification_duration_seconds":(Histogram(),("check_name",)),
+            "residual_quarantine_denials_total":(Counter(),("policy_name",)),
+            "residual_hitl_challenges_pending":(Gauge(),()),
+            "residual_receipts_issued_total":(Counter(),("verdict",)),
+            "residual_engine_executions_total":(Counter(),("engine_name","outcome")),
+            "residual_loop_iterations_total":(Counter(),("mode",)),
+            "residual_loop_residual_mass":(Gauge(),("mode",)),
+            "residual_loop_progress_delta":(Gauge(),("mode",)),
+            "residual_loop_stagnation_total":(Counter(),("mode",)),
+            "residual_loop_escalations_total":(Counter(),("mode",)),
+            "residual_loop_completion_total":(Counter(),("mode","status")),
+            "residual_loop_accepted_tree_changes_total":(Counter(),("mode",)),
+            "residual_loop_repeated_failure_total":(Counter(),("mode",)),
+            "residual_loop_churn_total":(Counter(),("mode",)),
+        }
     def __getitem__(self,name): return self.metrics[name][0]
     def label_names(self,name): return self.metrics[name][1]

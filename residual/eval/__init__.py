@@ -37,6 +37,7 @@ from .measured_factory import (
     FactoryRunMeasurement,
     MeasuredFactoryEvaluationRunner,
 )
+from .loop_modes import LoopMode, NaiveFactoryAdapter, NaiveIterationResult, NaiveLoopRunner
 
 __all__ = [
     "ABLATIONS",
@@ -66,6 +67,10 @@ __all__ = [
     "SystemMetrics",
     "TaskResult",
     "WorkloadTask",
+    "LoopMode",
+    "NaiveFactoryAdapter",
+    "NaiveIterationResult",
+    "NaiveLoopRunner",
     "mann_whitney_u",
     "signed_report_from_observations",
     "summary_stats",
