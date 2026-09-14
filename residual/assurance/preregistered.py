@@ -1,6 +1,7 @@
 """Machine-verifiable preregistration and evidence bundles for live external assurance runs."""
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
@@ -16,6 +17,13 @@ _ALLOWED_METRICS = {
     "oracle_success_rate",
     "oracle_gap",
     "per_engine_success_rate",
+}
+_ALLOWED_ENGINE_FIELDS = {
+    "provider", "model", "capabilities", "locality", "max_tokens", "temperature",
+    "system_prompt", "cost_per_task", "privacy_class", "location",
+}
+_FORBIDDEN_ENGINE_FIELDS = {
+    "api_key", "token", "secret", "password", "headers", "endpoint", "base_url",
 }
 
 
@@ -33,20 +41,41 @@ def load_engine_config_payload(path: str | Path) -> dict[str, Any]:
         raise ValueError("invalid engine config schema")
     if not isinstance(raw["engines"], list) or len(raw["engines"]) < 2:
         raise ValueError("at least two engines are required")
-    forbidden = {"api_key", "token", "secret", "password", "headers", "endpoint", "base_url"}
     for item in raw["engines"]:
         if not isinstance(item, dict):
             raise ValueError("invalid engine entry")
-        if forbidden.intersection(item):
+        if _FORBIDDEN_ENGINE_FIELDS.intersection(item):
             raise ValueError("engine config must not contain credentials or endpoints")
+        if set(item) - _ALLOWED_ENGINE_FIELDS:
+            raise ValueError("invalid engine entry")
         for required in ("provider", "model"):
             if not isinstance(item.get(required), str) or not item[required].strip():
                 raise ValueError(f"engine {required} is required")
+        capabilities = item.get("capabilities", ["text"])
+        if not isinstance(capabilities, list) or not capabilities or any(not isinstance(v, str) or not v for v in capabilities):
+            raise ValueError("engine capabilities must be a non-empty string list")
+        cost = item.get("cost_per_task", 0.0)
+        if type(cost) not in (int, float) or not math.isfinite(cost) or cost < 0:
+            raise ValueError("cost_per_task must be a finite non-negative number")
+        privacy = item.get("privacy_class", 0)
+        if type(privacy) is not int or privacy < 0:
+            raise ValueError("privacy_class must be a non-negative integer")
     return raw
 
 
 def engine_config_sha256(path: str | Path) -> str:
     return digest(load_engine_config_payload(path))
+
+
+def projected_declared_cost_usd(suite: ExternalSuite, engines_path: str | Path) -> float:
+    raw = load_engine_config_payload(engines_path)
+    per_case = sum(float(item.get("cost_per_task", 0.0)) for item in raw["engines"])
+    return per_case * len(suite.cases)
+
+
+def projected_provider_calls(suite: ExternalSuite, engines_path: str | Path) -> int:
+    raw = load_engine_config_payload(engines_path)
+    return len(suite.cases) * len(raw["engines"])
 
 
 @dataclass(frozen=True)
@@ -83,8 +112,8 @@ class ExternalPreregistration:
             raise ValueError("unsupported stopping rule")
         if type(self.stopping_rule["value"]) is not int or self.stopping_rule["value"] < 1:
             raise ValueError("stopping rule value must be a positive integer")
-        if type(self.maximum_budget_usd) not in (int, float) or self.maximum_budget_usd < 0:
-            raise ValueError("maximum_budget_usd must be non-negative")
+        if type(self.maximum_budget_usd) not in (int, float) or not math.isfinite(self.maximum_budget_usd) or self.maximum_budget_usd < 0:
+            raise ValueError("maximum_budget_usd must be finite and non-negative")
 
     def payload(self) -> dict[str, Any]:
         return {
@@ -119,6 +148,8 @@ def load_preregistration(path: str | Path) -> ExternalPreregistration:
     }, "preregistration")
     if raw["schema_version"] != _MANIFEST_SCHEMA:
         raise ValueError("invalid preregistration schema")
+    if not isinstance(raw["hypotheses"], list) or not isinstance(raw["secondary_metrics"], list):
+        raise ValueError("invalid preregistration list fields")
     return ExternalPreregistration(
         study_id=raw["study_id"],
         registered_at=raw["registered_at"],
@@ -144,8 +175,14 @@ def verify_preregistration(
     if manifest.engine_config_sha256 != engine_config_sha256(engines_path):
         raise ValueError("engine config hash does not match preregistration")
     evaluation_cases = sum(1 for case in suite.cases if case.split == "evaluation")
-    if manifest.stopping_rule["kind"] == "fixed_evaluation_cases" and manifest.stopping_rule["value"] != evaluation_cases:
-        raise ValueError("fixed evaluation stopping rule does not match suite")
+    if manifest.stopping_rule["kind"] == "fixed_evaluation_cases":
+        if manifest.stopping_rule["value"] != evaluation_cases:
+            raise ValueError("fixed evaluation stopping rule does not match suite")
+    elif projected_provider_calls(suite, engines_path) > manifest.stopping_rule["value"]:
+        raise ValueError("planned provider calls exceed preregistered stopping rule")
+    projected_cost = projected_declared_cost_usd(suite, engines_path)
+    if projected_cost > manifest.maximum_budget_usd + 1e-12:
+        raise ValueError("projected declared cost exceeds preregistered budget")
 
 
 def build_evidence_bundle(
@@ -165,6 +202,8 @@ def build_evidence_bundle(
         "preregistration_sha256": manifest.sha256,
         "suite_sha256": suite.sha256,
         "engine_config_sha256": engine_config_sha256(engines_path),
+        "projected_declared_cost_usd": projected_declared_cost_usd(suite, engines_path),
+        "projected_provider_calls": projected_provider_calls(suite, engines_path),
         "report": dict(report),
     }
     payload["sha256"] = digest(payload)
@@ -192,7 +231,7 @@ def preregister_from_files(
 ) -> ExternalPreregistration:
     suite = load_external_suite(suite_path)
     eval_count = sum(1 for case in suite.cases if case.split == "evaluation")
-    return ExternalPreregistration(
+    manifest = ExternalPreregistration(
         study_id=study_id,
         registered_at=registered_at,
         suite_sha256=suite.sha256,
@@ -205,3 +244,5 @@ def preregister_from_files(
         runner_revision=runner_revision,
         notes=notes,
     )
+    verify_preregistration(manifest, suite, engines_path)
+    return manifest
