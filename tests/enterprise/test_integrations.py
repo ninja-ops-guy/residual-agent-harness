@@ -21,7 +21,7 @@ from residual.integrations import (
     GitHubActionsConnector,
     GitLabConnector,
     IntegrationConnector,
-    IntegrationReceipt,
+    ConnectorReceipt,
     JSMConnector,
     JenkinsConnector,
     JiraConnector,
@@ -92,7 +92,7 @@ def test_itsm_task_creation_from_ticket(cls):
 def test_itsm_receipt_attachment_status_sync_hitl(cls):
     """ENT6-R1: receipt attachment, status sync, HITL via assignment."""
     conn, t = make(cls)
-    receipt = IntegrationReceipt(cls.system_name, "verify", "task-1",
+    receipt = ConnectorReceipt(cls.system_name, "verify", "task-1",
                                  "accepted", digest({"v": 1}))
     conn.post_receipt("INC-2", receipt)
     conn.sync_status("INC-2", "accepted")
@@ -120,13 +120,13 @@ def test_itsm_error_raises_contracterror():
                                  GitHubActionsConnector, AzureDevOpsConnector,
                                  CircleCIConnector])
 def test_cicd_trigger_gate_publish(cls):
-    """ENT6-R2: trigger from pipeline stage, gating on IntegrationReceipt,
+    """ENT6-R2: trigger from pipeline stage, gating on ConnectorReceipt,
     receipt publication as artifact."""
     conn, t = make(cls, [OK, OK, OK, OK])
     run = conn.trigger_pipeline("pipe-1", {"env": "prod"})
     assert "run_id" in run
 
-    receipt = IntegrationReceipt(cls.system_name, "verify", "task-9",
+    receipt = ConnectorReceipt(cls.system_name, "verify", "task-9",
                                  "accepted", digest({"ok": True}))
     conn.gate_pipeline("run-1", receipt)
     gate = t.calls[1]["body"]
@@ -140,7 +140,7 @@ def test_cicd_trigger_gate_publish(cls):
 def test_cicd_gate_holds_on_rejected_receipt():
     """ENT6-R2: pipeline waits/holds when the receipt is not accepted."""
     conn, t = make(JenkinsConnector)
-    receipt = IntegrationReceipt("jenkins", "verify", "task-1", "rejected",
+    receipt = ConnectorReceipt("jenkins", "verify", "task-1", "rejected",
                                  digest({"bad": 1}))
     conn.gate_pipeline("run-2", receipt)
     assert t.calls[0]["body"]["decision"] == "hold"
@@ -197,7 +197,7 @@ def test_comms_hitl_receipt_swarm_alert(cls):
     on-call alert routing."""
     conn, t = make(cls)
     conn.notify_hitl_challenge("#ops", "ch-1", {"question": "approve?"})
-    receipt = IntegrationReceipt(cls.system_name, "verify", "task-1",
+    receipt = ConnectorReceipt(cls.system_name, "verify", "task-1",
                                  "accepted", digest({"x": 1}))
     conn.deliver_receipt("#ops", receipt)
     conn.send_swarm_status("#ops", "swarm-1", {"agents": 3, "state": "running"})
@@ -217,7 +217,7 @@ def test_comms_hitl_receipt_swarm_alert(cls):
 
 def test_comms_receipt_delivery_requires_accepted():
     conn, _ = make(SlackConnector)
-    bad = IntegrationReceipt("slack", "verify", "t", "rejected", digest({}))
+    bad = ConnectorReceipt("slack", "verify", "t", "rejected", digest({}))
     with pytest.raises(ContractError):
         conn.deliver_receipt("#ops", bad)
 
@@ -247,7 +247,7 @@ def test_ticketing_import_status_receipt_autoclose(cls):
     assert spec["goal"] == "Add cache"
 
     conn.sync_status("TKT-1", "running")
-    receipt = IntegrationReceipt(cls.system_name, "verify", "task-1",
+    receipt = ConnectorReceipt(cls.system_name, "verify", "task-1",
                                  "accepted", digest({"y": 2}))
     conn.close_on_acceptance("TKT-1", receipt)
     # evidence posted before closure
@@ -258,7 +258,7 @@ def test_ticketing_import_status_receipt_autoclose(cls):
 
 def test_ticketing_autoclose_requires_accepted():
     conn, _ = make(JiraConnector)
-    bad = IntegrationReceipt("jira", "verify", "t", "pending", digest({}))
+    bad = ConnectorReceipt("jira", "verify", "t", "pending", digest({}))
     with pytest.raises(ContractError):
         conn.close_on_acceptance("TKT-2", bad)
 
@@ -315,7 +315,7 @@ def test_observation_hashes_change_with_payload():
 
 
 def test_receipt_carries_observations():
-    """ENT6-R7: IntegrationReceipt embeds the observations made."""
+    """ENT6-R7: ConnectorReceipt embeds the observations made."""
     conn, _ = make(DatadogConnector, [OK])
     conn.export_metrics([{"m": 1}])
     receipt = conn.receipt("export", "metrics-1", "accepted", {"m": 1})
