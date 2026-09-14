@@ -43,8 +43,9 @@ jobs:
           cp site/demo.html _site/walkthrough/index.html
           python3 - <<'PY'
           import json, os
+          gateway = os.environ.get('DEMO_GATEWAY_URL', '').strip() or 'https://residual-agent-harness.vercel.app'
           with open('_site/demo/cloud.json','w') as f:
-              json.dump({'gateway': os.environ.get('DEMO_GATEWAY_URL','').rstrip('/')}, f)
+              json.dump({'gateway': gateway.rstrip('/')}, f)
           PY
           cat > _site/demo.html <<'EOF'
           <!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=./demo/"><title>RESIDUAL Live Demo</title><body style="background:#000;color:#39ff68;font:16px monospace">Launching <a style="color:#39ff68" href="./demo/">RESIDUAL live VM</a>…</body>
