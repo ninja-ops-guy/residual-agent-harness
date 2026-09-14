@@ -15,6 +15,31 @@ The corpus is intended to answer a narrower question than a general software ben
 | FB003 | Shared-artifact stale-base integration pressure |
 | FB004 | Whole mini-project completion |
 
+## First-run preflight
+
+Before spending GPU time, validate the host and one real Ollama request:
+
+```bash
+pip install -e '.[factory]'
+ollama pull qwen2.5-coder:7b
+
+python -m residual doctor \
+  --model qwen2.5-coder:7b \
+  --canary \
+  --calibrate-concurrency \
+  --json runs/factory-host-profile.json
+```
+
+`residual doctor` checks Python/Git, isolated Git worktrees, Factory crypto prerequisites, Linux seccomp availability, PID handles, Ollama reachability/model digest, structured output, token accounting, and optional observed concurrency scaling. Calibration probes widths `1,2,4,6` by default and reports the width with the highest observed aggregate token throughput. It is a host recommendation, not a benchmark result.
+
+For a lightweight bootstrap from a clone:
+
+```bash
+bash scripts/setup_factory.sh qwen2.5-coder:7b
+```
+
+The bootstrap installs the Factory extra and runs doctor/canary/calibration; it does not install Ollama or silently pull a model.
+
 ## Corpus invariants
 
 A measured corpus is signed only when all of the following remain true for the entire FB001–FB004 run:
@@ -30,14 +55,23 @@ A measured corpus is signed only when all of the following remain true for the e
 
 If the source revision, hardware fingerprint, model digest, child report signature, workload hash, or provenance changes, corpus generation fails closed.
 
-## Run
+## Dry-run before measurement
 
-Install Ollama and the Factory dependencies, pull one model, and run:
+Validate all four fixture generators, frozen Git identities, model digest discovery, signing setup, output paths, and command construction without running the repeated benchmark inference:
 
 ```bash
-pip install -e '.[factory]'
-ollama pull qwen2.5-coder:7b
+python benchmarks/factory/corpus/run_corpus.py \
+  --model qwen2.5-coder:7b \
+  --runs 3 \
+  --dry-run \
+  --output runs/factory-corpus-dry-run
+```
 
+A successful dry-run writes `dry-run.json` and reports the expected 36 benchmark executions for four workloads × three configurations × three repetitions. Dry-run data is setup evidence only and is never represented as measured performance.
+
+## Run
+
+```bash
 python benchmarks/factory/corpus/run_corpus.py \
   --model qwen2.5-coder:7b \
   --runs 3 \
@@ -45,6 +79,20 @@ python benchmarks/factory/corpus/run_corpus.py \
 ```
 
 Use a fresh/empty output directory. A full corpus performs four benchmarks × three configurations × at least three repetitions, so it is intentionally more expensive than the deterministic CI checks.
+
+### Resume an interrupted corpus
+
+If a completed child benchmark already has a valid signed report and the process was interrupted later, resume with:
+
+```bash
+python benchmarks/factory/corpus/run_corpus.py \
+  --model qwen2.5-coder:7b \
+  --runs 3 \
+  --resume \
+  --output runs/factory-corpus
+```
+
+Resume is deliberately strict. It refuses to continue if the source commit, host fingerprint, run count/configurations, Station key, child report signature, workload binding, or frozen model identity changes. The private Station key remains only while an incomplete corpus may need to resume and is removed after successful aggregate signing.
 
 ## Outputs
 
@@ -55,6 +103,7 @@ runs/factory-corpus/
 ├── host.json
 ├── source-commit.txt
 ├── station-public-key.hex
+├── corpus-state.json
 ├── corpus-manifest.json
 ├── corpus-summary.json
 ├── fb001/
