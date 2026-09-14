@@ -8,7 +8,6 @@ run to a concrete Git output commit.
 from __future__ import annotations
 
 import hashlib
-import statistics
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, FIRST_COMPLETED, wait
@@ -168,8 +167,6 @@ class EngineBackedEvaluationDriver:
                         else:
                             verifier_rejected += 1
                             rework += 1
-                            # A rejected task is terminal for reproducible evaluation;
-                            # dependants cannot silently run on an unverified candidate.
                             raise EvaluationError(f"task {tid} rejected during measured evaluation")
                         token_total += record.result.token_usage or 0
                         md = record.result.raw_metadata
@@ -213,5 +210,5 @@ class EngineBackedEvaluationDriver:
             infrastructure_cost_usd=infra_cost,
             engine_name=self.engine.name, engine_version=self.engine.version,
             output_commit=finalized.output_commit, observation_digest=digest,
-            simulation=False,
+            simulation=False, peak_workers=peak_workers,
         )
