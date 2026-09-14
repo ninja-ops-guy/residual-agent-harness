@@ -8,6 +8,8 @@ on:
       - 'index.html'
       - 'demo.html'
       - 'demo/**'
+      - 'residual/browser_bridge.py'
+      - 'examples/onboarding/cloud_demo.sh'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -32,8 +34,6 @@ jobs:
 
       - name: Build static site shell
         shell: bash
-        env:
-          DEMO_GATEWAY_URL: ${{ vars.RESIDUAL_DEMO_GATEWAY_URL }}
         run: |
           set -euo pipefail
           rm -rf _site
@@ -41,12 +41,6 @@ jobs:
           cp site/index.html _site/index.html
           cp site/live-demo.html _site/demo/index.html
           cp site/demo.html _site/walkthrough/index.html
-          python3 - <<'PY'
-          import json, os
-          gateway = os.environ.get('DEMO_GATEWAY_URL', '').strip() or 'https://residual-agent-harness.vercel.app'
-          with open('_site/demo/cloud.json','w') as f:
-              json.dump({'gateway': gateway.rstrip('/')}, f)
-          PY
           cat > _site/demo.html <<'EOF'
           <!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=./demo/"><title>RESIDUAL Live Demo</title><body style="background:#000;color:#39ff68;font:16px monospace">Launching <a style="color:#39ff68" href="./demo/">RESIDUAL live VM</a>…</body>
           EOF
@@ -100,20 +94,12 @@ jobs:
         run: |
           set -euo pipefail
           cat > _webvm/config_github_terminal.js <<'EOF'
-          const fragment = new URLSearchParams(globalThis.location?.hash?.slice(1) || "");
-          const demoToken = fragment.get("demoToken") || "";
-          const gateway = (fragment.get("gateway") || "").replace(/\/$/, "");
           export const diskImageUrl = "residual-demo.ext2";
           export const diskImageType = "github";
           export const printIntro = false;
           export const needsDisplay = false;
           export const cmd = "/bin/bash";
           export const args = ["--noprofile", "--rcfile", "/home/residual/.bashrc", "-i"];
-          const cloudEnv = demoToken && gateway ? [
-            `LLM_API_KEY=${demoToken}`,
-            `LLM_BASE_URL=${gateway}/v1`,
-            "RESIDUAL_DEMO_MODEL=auto:fast"
-          ] : [];
           export const opts = {
             env: [
               "HOME=/home/residual",
@@ -124,13 +110,33 @@ jobs:
               "LANG=C",
               "LC_ALL=C",
               "PYTHONUNBUFFERED=1",
-              ...cloudEnv
+              "RESIDUAL_DEMO_MODEL=gpt-5.6-luna"
             ],
             cwd: "/opt/residual",
             uid: 1000,
             gid: 1000
           };
           EOF
+
+      - name: Add browser inference bridge to WebVM
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('_webvm/src/lib/WebVM.svelte')
+          text = path.read_text()
+          old = '''\t\tterm.write(new Uint8Array(buf));'''
+          new = '''\t\tconst bytes = new Uint8Array(buf);\n\t\tterm.write(bytes);\n\t\ttry\n\t\t{\n\t\t\twindow.parent.postMessage({type: "residual-vm-output", data: new TextDecoder().decode(bytes)}, window.location.origin);\n\t\t}\n\t\tcatch(e) {}'''
+          if text.count(old) != 1:
+              raise SystemExit('WebVM writeData hook moved; refusing an unsafe patch')
+          text = text.replace(old, new)
+          old_mount = '\tonMount(initTerminal);'
+          new_mount = '''\tonMount(() => {\n\t\twindow.addEventListener("message", (event) => {\n\t\t\tif(event.source !== window.parent || event.origin !== window.location.origin) return;\n\t\t\tif(event.data?.type !== "residual-vm-input" || typeof event.data.data !== "string") return;\n\t\t\treadData(event.data.data);\n\t\t});\n\t\tinitTerminal();\n\t});'''
+          if text.count(old_mount) != 1:
+              raise SystemExit('WebVM mount hook moved; refusing an unsafe patch')
+          path.write_text(text.replace(old_mount, new_mount))
+          PY
 
       - name: Build WebVM client
         shell: bash
@@ -158,11 +164,13 @@ jobs:
           set -euo pipefail
           test -s _site/index.html
           test -s _site/demo/index.html
-          test -s _site/demo/cloud.json
           test -s _site/walkthrough/index.html
           test -s _site/vm/index.html
           test -s _site/vm/residual-demo.ext2.meta
           grep -q "The repository is the demo" _site/demo/index.html
+          grep -q "js.puter.com/v2" _site/demo/index.html
+          grep -q "residual-vm-output" _webvm/src/lib/WebVM.svelte
+          grep -q "browser_bridge" examples/onboarding/cloud_demo.sh
           grep -q "RESIDUAL" _site/index.html
           grep -q "Run failure scenario" _site/walkthrough/index.html
           grep -q -- '--rcfile' _webvm/config_github_terminal.js
