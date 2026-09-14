@@ -13,30 +13,18 @@ from .integrator import (
 from .scheduler import (
     EngineCapability, FactoryScheduler, SchedulerDecision, SchedulerSnapshot,
 )
+from .eval_framework import (
+    ComparisonReport, EvaluationError, EvaluationFramework,
+    EvaluationObservationLog, FrozenEvalTask, FrozenWorkload, RunMeasurement,
+)
 
 __all__ = [
-    "CompileResult",
-    "ExecutionPlan",
-    "FactoryTask",
-    "FrozenPlan",
-    "Requirement",
-    "RequirementCompiler",
-    "ArtifactBinding",
-    "EvidenceBus",
-    "EvidenceError",
-    "FactoryStationIssuer",
-    "StationIdentity",
-    "VerificationDecision",
-    "WorkerReceipt",
-    "DeterministicIntegrator",
-    "HumanResolution",
-    "IntegrationConflict",
-    "IntegrationError",
-    "IntegrationReceipt",
-    "IntegrationResult",
-    "VerificationCommand",
-    "EngineCapability",
-    "FactoryScheduler",
-    "SchedulerDecision",
-    "SchedulerSnapshot",
+    "CompileResult", "ExecutionPlan", "FactoryTask", "FrozenPlan", "Requirement",
+    "RequirementCompiler", "ArtifactBinding", "EvidenceBus", "EvidenceError",
+    "FactoryStationIssuer", "StationIdentity", "VerificationDecision", "WorkerReceipt",
+    "DeterministicIntegrator", "HumanResolution", "IntegrationConflict", "IntegrationError",
+    "IntegrationReceipt", "IntegrationResult", "VerificationCommand", "EngineCapability",
+    "FactoryScheduler", "SchedulerDecision", "SchedulerSnapshot", "ComparisonReport",
+    "EvaluationError", "EvaluationFramework", "EvaluationObservationLog", "FrozenEvalTask",
+    "FrozenWorkload", "RunMeasurement",
 ]

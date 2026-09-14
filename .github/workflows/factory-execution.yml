@@ -7,6 +7,9 @@ on:
       - 'tests/test_factory_runtime.py'
       - 'tests/test_factory_evidence_bus.py'
       - 'tests/test_factory_m4.py'
+      - 'tests/test_factory_eval.py'
+      - 'tests/test_factory_eval_driver.py'
+      - 'residual/engines/**'
       - 'examples/factory/**'
       - 'docs/factory/**'
       - 'pyproject.toml'
@@ -38,14 +41,14 @@ jobs:
           uname -a > runs/factory-execution/platform.txt
           python --version >> runs/factory-execution/platform.txt
           dpkg-query -W libseccomp2 >> runs/factory-execution/platform.txt
-      - name: Real OS-boundary and regression tests
+      - name: Real OS-boundary and Factory regression tests
         env:
           RESIDUAL_REQUIRE_SECCOMP: '1'
         run: |
           set -o pipefail
-          python -m unittest tests.test_factory_worker_contract tests.test_factory_runtime tests.test_factory_evidence_bus tests.test_factory_m4 -v 2>&1 | tee runs/factory-execution/execution-tests.txt
+          python -m unittest tests.test_factory_worker_contract tests.test_factory_runtime tests.test_factory_evidence_bus tests.test_factory_m4 tests.test_factory_eval tests.test_factory_eval_driver -v 2>&1 | tee runs/factory-execution/execution-tests.txt
           python -m unittest discover -s tests -v 2>&1 | tee runs/factory-execution/full-tests.txt
-          python -m compileall -q residual/factory
+          python -m compileall -q residual/factory residual/engines
       - name: Scripted end-to-end execution
         run: |
           python examples/factory/brokered_worker_demo.py --output "$RUNNER_TEMP/residual-m2-demo"

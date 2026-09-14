@@ -16,6 +16,23 @@ class _SDKEngine:
     def normalize(self,raw_output):
         refused=bool(raw_output.get("refused") or raw_output.get("refusal")) if isinstance(raw_output,dict) else False
         candidate=raw_output.get("output",raw_output.get("candidate",raw_output)) if isinstance(raw_output,dict) else raw_output
-        return EngineResult(candidate=candidate,raw_metadata={"adapter":self.name,"sdk_refusal_advisory":refused,"residual_policy_authoritative":True})
+        if not isinstance(raw_output,dict):
+            return EngineResult(candidate=candidate,raw_metadata={"adapter":self.name,"sdk_refusal_advisory":refused,"residual_policy_authoritative":True})
+        token_usage=raw_output.get("token_usage")
+        if token_usage is not None and (type(token_usage) is not int or token_usage < 0):
+            token_usage=None
+        tool_calls=raw_output.get("tool_calls",())
+        if not isinstance(tool_calls,(list,tuple)) or any(not isinstance(x,dict) for x in tool_calls): tool_calls=()
+        trace=raw_output.get("engine_trace",())
+        if not isinstance(trace,(list,tuple)) or any(not isinstance(x,dict) for x in trace): trace=()
+        supplied=raw_output.get("raw_metadata",{})
+        if not isinstance(supplied,dict): supplied={}
+        metadata={**supplied,"adapter":self.name,"sdk_refusal_advisory":refused,"residual_policy_authoritative":True}
+        # Explicit top-level measurement fields are accepted for SDK callbacks so
+        # evaluation can preserve provider-reported usage without parsing text.
+        for key in ("provenance","gpu_time_ms","api_cost_usd","provider","model"):
+            if key in raw_output: metadata[key]=raw_output[key]
+        return EngineResult(candidate=candidate,tool_calls=tuple(tool_calls),token_usage=token_usage,
+                            engine_trace=tuple(trace),raw_metadata=metadata)
 class ClaudeSDKEngine(_SDKEngine): name="claude-sdk"
 class OpenAIAssistantsEngine(_SDKEngine): name="openai-assistants"
