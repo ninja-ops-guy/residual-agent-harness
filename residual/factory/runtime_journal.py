@@ -88,9 +88,18 @@ class RuntimeJournal:
 
     @contextmanager
     def _connect(self) -> Iterator[sqlite3.Connection]:
-        db = sqlite3.connect(self.path, timeout=0.2, isolation_level=None)
+        db = sqlite3.connect(self.path, timeout=2.0, isolation_level=None)
         try:
-            db.execute("PRAGMA synchronous=FULL")
+            db.execute("PRAGMA busy_timeout=2000")
+            deadline = time.monotonic() + 2.0
+            while True:
+                try:
+                    db.execute("PRAGMA synchronous=FULL")
+                    break
+                except sqlite3.OperationalError as exc:
+                    if "locked" not in str(exc).lower() or time.monotonic() >= deadline:
+                        raise
+                    time.sleep(0.01)
             db.execute("PRAGMA foreign_keys=ON")
             yield db
         finally:
