@@ -42,6 +42,20 @@ The runner derives engine/revision controls from those verified receipts and rep
 
 The adapter boundary is deliberate. A `FrozenWorkload` describes fixed experimental work, but it is not authorization to derive filesystem scope, tool permissions, resource budgets, acceptance criteria, or HITL policy. Those remain explicit Factory inputs.
 
+### Explicit approved-run bindings
+
+`ApprovedFactoryEvaluationAdapter` is the fail-closed bridge for production experiments. Each `ApprovedFactoryRunBinding` is created before evaluation and pins:
+
+- the exact `FrozenWorkload.manifest_hash`;
+- configuration and run index;
+- an operator/audit `approval_ref`;
+- the approved Factory execution-plan hash; and
+- the exact set of worker attempt IDs allowed for that run.
+
+The binding's execution callback is intentionally zero-argument. The evaluation layer does not pass benchmark prompt text into it, so prompt content cannot become an implicit source of filesystem scope, tool permissions, WorkerContracts, acceptance criteria, or approvals.
+
+After execution, the adapter validates that task counts match the approved attempt set, every receipt belongs to an approved attempt, every receipt binds the approved execution-plan hash, and the accepted-task count equals the number of passing M3 receipts. `assert_complete()` can require a complete `single`/`fixed`/`dynamic` matrix before an experiment begins.
+
 ## Metrics
 
 Every run records the nine metrics required by SPEC-EVAL-001:
