@@ -45,10 +45,10 @@ class ExternalBudgetTests(unittest.TestCase):
 
     def engines(self):
         registry = Registry()
-        registry.register("p1", lambda: CountingProvider())
-        registry.register("p2", lambda: CountingProvider())
-        one = ProviderExecutionEngine(ProviderEngineConfig("p1", "m1", ("text",)), registry=registry)
-        two = ProviderExecutionEngine(ProviderEngineConfig("p2", "m2", ("text",)), registry=registry)
+        registry.register("openai", lambda: CountingProvider())
+        registry.register("ollama", lambda: CountingProvider())
+        one = ProviderExecutionEngine(ProviderEngineConfig("openai", "m1", ("text",)), registry=registry)
+        two = ProviderExecutionEngine(ProviderEngineConfig("ollama", "m2", ("text",), locality="local"), registry=registry)
         return (LiveEngineSpec(one, 0.01), LiveEngineSpec(two, 0.02))
 
     def test_budget_blocks_before_first_provider_dispatch(self):
