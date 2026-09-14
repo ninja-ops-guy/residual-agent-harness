@@ -102,7 +102,11 @@ def main(argv=None):
         print(json.dumps({"verified": True, "manifest_sha256": manifest.sha256}, sort_keys=True))
         return 0
 
-    report = ExternalEvidenceRunner(suite, load_engines(args.engines)).run()
+    report = ExternalEvidenceRunner(
+        suite,
+        load_engines(args.engines),
+        maximum_budget_usd=manifest.maximum_budget_usd,
+    ).run()
     bundle = build_evidence_bundle(
         manifest=manifest,
         suite=suite,
