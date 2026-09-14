@@ -16,10 +16,12 @@ RUN python3 -m pip install --break-system-packages --no-deps -e /opt/residual \
       'export PS1="\[\033[01;32m\]residual@demo\[\033[00m\]:\[\033[01;34m\]~/residual-agent-harness\[\033[00m\]$ "' \
       'alias demo="python3 -m residual demo --output runs/demo"' \
       'alias verify-demo="python3 -m residual verify-trace runs/demo/trace.jsonl --result runs/demo/result.json"' \
+      'alias cloud-demo="bash examples/onboarding/cloud_demo.sh"' \
       'clear' \
       'printf "\\033[1;32mRESIDUAL // LIVE SYSTEM\\033[0m\\n"' \
       'printf "Disposable browser VM · Debian · Python 3 · repository preloaded\\n\\n"' \
-      'printf "Try:\\n  residual demo --output runs/demo\\n  ./examples/onboarding/demo.sh\\n  python3 -m unittest discover -s tests -v\\n\\n"' \
+      'printf "Try:\\n  demo\\n  verify-demo\\n  cloud-demo   # available when an ephemeral cloud session was provisioned\\n\\n"' \
+      'if [ -n "${LLM_API_KEY:-}" ]; then printf "\\033[1;32mCLOUD SESSION: READY\\033[0m · bounded ephemeral gateway\\n\\n"; else printf "CLOUD SESSION: OFFLINE FALLBACK\\n\\n"; fi' \
       'printf "Inspect the actual repo, traces, receipts, and verifier output.\\n\\n"' \
       >> /home/residual/.bashrc \
     && printf '%s\n' 'if [ -f ~/.bashrc ]; then . ~/.bashrc; fi' > /home/residual/.bash_profile \
