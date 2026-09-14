@@ -60,7 +60,10 @@ class ExternalEvidenceTests(unittest.TestCase):
         strong = ProviderExecutionEngine(ProviderEngineConfig("openai", "strong", ("text",)), registry=reg)
         local = ProviderExecutionEngine(ProviderEngineConfig("ollama", "local", ("text",), locality="local"), registry=reg)
         return (
-            LiveEngineSpec(strong, cost_per_task=0.02, location="cloud"),
+            # Make the train-favored engine also the deterministic lower-cost choice
+            # while profiles are still low-sample. Evaluation truth must not alter
+            # this pre-decision state.
+            LiveEngineSpec(strong, cost_per_task=0.01, location="cloud"),
             LiveEngineSpec(local, cost_per_task=0.02, location="local"),
         )
 
@@ -75,8 +78,9 @@ class ExternalEvidenceTests(unittest.TestCase):
     def test_evaluation_outcomes_do_not_leak_into_initial_market_decision(self):
         report = ExternalEvidenceRunner(self.suite(), self.engines()).run()
         row = report["evaluation_rows"][0]
-        # Training evidence favors strong; eval truth favors local. If eval truth leaked,
-        # the market would pick local and match the oracle instead of failing this case.
+        # Training evidence + predeclared cost favors strong; eval truth favors local.
+        # If eval truth leaked into the profile before the decision, the runner could
+        # select local and match the oracle instead of preserving the frozen choice.
         self.assertIn("openai", row["engine_id"])
         self.assertFalse(row["passed"])
         self.assertEqual(report["market"]["evaluation_successes"], 0)
@@ -88,22 +92,23 @@ class ExternalEvidenceTests(unittest.TestCase):
         self.assertNotEqual(a.sha256, b.sha256)
 
     def test_loader_requires_external_provenance_and_split(self):
+        source = self.suite()
         payload = {
             "schema_version": "residual.external-suite.v1",
-            "name": "external",
+            "name": source.name,
             "provenance": {
                 "evidence_level": "externally_authored",
-                "author": "someone-else",
-                "source_uri": "https://example.invalid/suite",
-                "authored_at": "2026-09-13T00:00:00Z",
+                "author": source.author,
+                "source_uri": source.source_uri,
+                "authored_at": source.authored_at,
             },
-            "cases": [c.payload() for c in self.suite().cases],
+            "cases": [c.payload() for c in source.cases],
         }
         with tempfile.TemporaryDirectory() as td:
             path = Path(td) / "suite.json"
             path.write_text(json.dumps(payload), encoding="utf-8")
             loaded = load_external_suite(path)
-            self.assertEqual(loaded.sha256, self.suite().sha256)
+            self.assertEqual(loaded.sha256, source.sha256)
 
     def test_declarative_graders(self):
         self.assertTrue(grade_external("alpha beta", {"kind": "contains_all", "values": ["alpha", "beta"]}))
