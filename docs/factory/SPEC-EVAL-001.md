@@ -9,13 +9,15 @@ The repository contains two evaluation contracts and they are intentionally sepa
 - The older T10 benchmark requires at least 10 seeded simulator repeats and remains unchanged.
 - SPEC-EVAL-001 requires at least 3 controlled runs per configuration and produces system-level publication evidence.
 
-The built-in `residual evaluate` driver uses the repository's deterministic simulator backends and marks every resulting run `simulated`. It validates the evaluation machinery but MUST NOT be cited as measured production performance. Production orchestration can record real Factory counters through `SpecEvaluationEvidence.record_run(..., evidence_mode="measured")`.
+The built-in `residual evaluate` driver uses the repository's deterministic simulator backends and marks every resulting run `simulated`. It validates the evaluation machinery but MUST NOT be cited as measured production performance.
+
+For real experiments, `MeasuredFactoryEvaluationRunner` wraps an approved Factory execution adapter and records runs as `measured`. It does not invent WorkerContracts, approval, verification, or integration policy from a workload prompt.
 
 ## Frozen workload
 
 `--workload` accepts the existing hash-locked `FrozenWorkload` JSON format. All runs in one comparison report must bind the same manifest hash.
 
-Example:
+Example simulator/evidence-pipeline run:
 
 ```bash
 residual evaluate \
@@ -27,6 +29,18 @@ residual evaluate \
 ```
 
 The configuration set must contain `single`, `fixed`, and `dynamic` exactly once.
+
+## Measured Factory runner
+
+`MeasuredFactoryEvaluationRunner` accepts a `FactoryEvaluationAdapter` callable. For each configuration and run index, the adapter must execute the already-approved real Factory experiment and return `FactoryRunMeasurement` with counters from the runtime, verifier, Evidence Bus, integrator, scheduler and final project tests.
+
+The outer evaluation runner measures wall clock itself around the adapter invocation. A backend cannot self-report a faster elapsed time. GPU time and coordination time remain runtime instrumentation because they cannot be inferred correctly from outer wall clock alone.
+
+Every measured run MUST provide M3 `WorkerReceipt` values. Before their engine attribution is used, every receipt is cryptographically verified against the evaluation Station public key. A foreign or forged receipt fails the run. A single run also cannot mix Factory execution-plan hashes or duplicate receipt hashes.
+
+The runner derives engine/revision controls from those verified receipts and report generation still fails closed if engine, revision, temperature, or seed differs between experiment runs.
+
+The adapter boundary is deliberate. A `FrozenWorkload` describes fixed experimental work, but it is not authorization to derive filesystem scope, tool permissions, resource budgets, acceptance criteria, or HITL policy. Those remain explicit Factory inputs.
 
 ## Metrics
 
@@ -46,7 +60,7 @@ The report gives mean, median, sample standard deviation, minimum, and maximum f
 
 ## Controls
 
-`ExecutionControls` binds engine IDs, model/engine revisions, temperatures, and seed. `ExecutionControls.from_receipts()` can derive engine attribution from signed M3 `WorkerReceipt` values. Report generation fails closed when controls differ across runs.
+`ExecutionControls` binds engine IDs, model/engine revisions, temperatures, and seed. `ExecutionControls.from_receipts()` derives engine attribution from signed M3 `WorkerReceipt` values. Report generation fails closed when controls differ across runs.
 
 For adapters whose provider exposes a model revision separately from the engine package revision, encode that revision into the receipt's engine version until the receipt schema gains a dedicated model-revision field.
 
@@ -70,8 +84,10 @@ The full report is intentionally not copied into the terminal event because the 
 
 ## Signature
 
-`ComparisonReport` is signed by the same Ed25519 `StationIdentity` primitive used by Factory evidence. A persistent Station private key can be provided with `--station-key`. If it is omitted, the CLI uses an ephemeral evaluation-only identity and labels that fact in the output. The public key is written into the report wrapper so reviewers can verify the cryptographic signature; trust in the identity itself still requires an externally pinned Station public key.
+`ComparisonReport` is signed by the same Ed25519 `StationIdentity` primitive used by Factory evidence. A persistent Station private key can be provided with `--station-key`. If it is omitted, the simulator CLI uses an ephemeral evaluation-only identity and labels that fact in the output. The public key is written into the report wrapper so reviewers can verify the cryptographic signature; trust in the identity itself still requires an externally pinned Station public key.
 
 ## Claim discipline
 
-A green SPEC-EVAL run demonstrates that the comparative evidence pipeline is reproducible, statistically summarized, observation-backed, and signed. Simulator results do not demonstrate that dynamic swarms are faster or cheaper in production. Those claims require `measured` runs from the real Factory runtime under the same frozen workload and execution controls.
+A green simulator SPEC-EVAL run demonstrates that the comparative evidence pipeline is reproducible, statistically summarized, observation-backed, and signed. It does not demonstrate that dynamic swarms are faster or cheaper in production.
+
+A report produced through `MeasuredFactoryEvaluationRunner` can support those performance claims only when its adapter actually runs the real Factory configurations, its counters come from those runtime components, and the same workload and controls are preserved across all experiment runs.
