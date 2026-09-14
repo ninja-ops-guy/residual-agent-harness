@@ -2,6 +2,14 @@
 
 Date: 2026-09-13. Status: implemented research prototype; novelty hypothesis.
 
+## Working paper
+
+The broader systems hypothesis is developed in the IEEE-style working manuscript:
+
+**[Reliability from Unreliable Computation: An Evidence-First Architecture for Verifiable Multi-Agent AI Systems](papers/reliability-from-unreliable-computation.md)**
+
+The paper tests the hypothesis that system-level AI reliability can improve without increasing individual model reliability when model actions are constrained, execution is observable, outputs are independently verified, and accepted results are integrated deterministically. The manuscript intentionally separates implemented mechanisms from empirical claims and defines controlled ablations, model-degradation studies, and fault-injection experiments to test the hypothesis.
+
 ## Proposed contribution
 
 **Counterexample-directed residual delegation with evidence negotiation:** compile
