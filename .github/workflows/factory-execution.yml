@@ -48,7 +48,7 @@ jobs:
         env:
           RESIDUAL_REQUIRE_SECCOMP: '1'
         run: |
-          python scripts/run_m2_reliability_fault_matrix.py --output runs/factory-execution/m2-reliability
+          python -m scripts.run_m2_reliability_fault_matrix --output runs/factory-execution/m2-reliability
       - name: Scripted end-to-end execution
         run: |
           python examples/factory/brokered_worker_demo.py --output "$RUNNER_TEMP/residual-m2-demo"
