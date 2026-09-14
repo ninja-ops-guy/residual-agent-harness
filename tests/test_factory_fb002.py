@@ -28,6 +28,10 @@ class FB002Tests(unittest.TestCase):
     def test_disallowed_import_is_rejected(self):
         self.assertFalse(fb.verify_candidate('text', 'import os\ndef slugify(value: str) -> str:\n    return value\n'))
 
+    def test_reflection_and_file_reads_are_rejected(self):
+        self.assertFalse(fb.verify_candidate('retry', 'def retry_delay(attempt: int, base: float=.25, cap: float=8.0) -> float:\n    return getattr(base, "real")\n'))
+        self.assertFalse(fb.verify_candidate('paths', 'from pathlib import Path\ndef safe_join(root: str, child: str) -> str:\n    Path("/etc/passwd").read_text()\n    return str((Path(root)/child).resolve())\n'))
+
     def test_dependency_wave_and_canonical_finalization(self):
         accepted = {task: source for task, (_name, source) in fb.REFERENCE.items()}
         self.assertEqual(set(fb.DEPENDENCIES['summary']), {'text', 'config'})
