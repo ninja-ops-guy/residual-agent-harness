@@ -1,0 +1,57 @@
+name: Clean install qualification
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Build isolated environment
+        run: |
+          python -m venv .clean-venv
+          . .clean-venv/bin/activate
+          python -m pip install --upgrade pip
+          python -m pip install '.[factory,marketplace]'
+      - name: Verify declared runtime dependencies
+        run: |
+          . .clean-venv/bin/activate
+          python - <<'PY'
+          import yaml
+          import residual
+          print('PyYAML', yaml.__version__)
+          print('Residual import OK')
+          PY
+      - name: Traceability and generated-status qualification
+        run: |
+          . .clean-venv/bin/activate
+          python scripts/status_check.py --quiet
+          tmp=$(mktemp -d)
+          cp implementation-status.yaml "$tmp/implementation-status.yaml"
+          mkdir -p "$tmp/docs/status"
+          python scripts/status_check.py --root . --generate --quiet
+          git diff --exit-code -- docs/status/IMPLEMENTATION_STATUS.md
+      - name: Executable documentation qualification
+        run: |
+          . .clean-venv/bin/activate
+          python examples/onboarding/validate_tutorial.py
+          bash examples/onboarding/demo.sh
+      - name: Core verifier qualification
+        run: |
+          . .clean-venv/bin/activate
+          python verifier/v2/check_specs.py
+          python verifier/v3/check_swarm.py
