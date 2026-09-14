@@ -34,12 +34,20 @@ def main(argv=None):
     if argv and argv[0] == "worker":
         from .station.worker import main as worker
         return worker(argv[1:])
+    if argv and argv[0] == "node":
+        from .cluster.cli import node_main
+        return node_main(argv[1:])
+    if argv and argv[0] == "cluster":
+        from .cluster.cli import cluster_main
+        return cluster_main(argv[1:])
     parser = argparse.ArgumentParser(description="RESIDUAL — hybrid agents with verifiable task boundaries")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("factory", help="Plan and approve headless multi-swarm Factory Mode work")
     sub.add_parser("serve", help="Open the local web command station (serve --help for options)")
     sub.add_parser("worker", help="Connect a distributed inference runner")
     sub.add_parser("study", help="Freeze/run independently graded studies (study --help)")
+    sub.add_parser("node", help="Join/leave the distributed cluster (node --help)")
+    sub.add_parser("cluster", help="Show cluster status (cluster --help)")
     for name in ("demo", "run"):
         run = sub.add_parser(name)
         if name == "run":

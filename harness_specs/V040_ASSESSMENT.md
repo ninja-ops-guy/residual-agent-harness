@@ -1,5 +1,10 @@
 # v0.4.0 Repo Assessment — Honest Gap Analysis
 
+> **HISTORICAL SNAPSHOT.** This document is a frozen point-in-time
+> assessment. Its claims describe the repository as of its date and do
+> **not** reflect current code. For the current, machine-checked status
+> see `implementation-status.yaml` and `docs/status/IMPLEMENTATION_STATUS.md`.
+
 **Date:** 2026-09-13
 **Repo:** https://github.com/ninja-ops-guy/residual-agent-harness
 **Analyst:** Independent review against specs
