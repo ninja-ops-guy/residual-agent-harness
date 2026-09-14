@@ -13,6 +13,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from residual.core import strict_json
+from .evidence_receipts import StationIdentity
 
 
 class DoctorError(RuntimeError):
@@ -118,6 +119,16 @@ def _git_probe(repo: Path) -> dict:
     return {"version": git_version, "root": root, "tracked_clean": dirty == "", "worktree": True}
 
 
+def _crypto_probe() -> dict:
+    identity = StationIdentity.generate()
+    payload_hash = "a" * 64
+    domain = b"residual.factory.doctor.v1\n"
+    signature = identity.sign_hash(payload_hash, domain=domain)
+    ok = StationIdentity.verify_hash(payload_hash, signature, identity.public_bytes(),
+                                     key_id=identity.key_id, domain=domain)
+    return {"ok": bool(ok), "algorithm": "Ed25519", "key_id": identity.key_id}
+
+
 def collect_profile(*, model: str | None = None, base_url: str = "http://localhost:11434",
                     canary: bool = False, calibrate: bool = False,
                     widths: tuple[int, ...] = (1, 2, 4, 6)) -> dict:
@@ -125,7 +136,7 @@ def collect_profile(*, model: str | None = None, base_url: str = "http://localho
     checks["python"] = {"ok": True, "version": platform.python_version(),
                         "implementation": platform.python_implementation()}
     checks["git"] = {"ok": True, **_git_probe(Path.cwd())}
-    checks["crypto"] = {"ok": ctypes.util.find_library("crypto") is not None}
+    checks["crypto"] = _crypto_probe()
     checks["seccomp"] = {"ok": ctypes.util.find_library("seccomp") is not None}
     checks["pidfd"] = {"ok": hasattr(os, "pidfd_open")}
     checks["hardware"] = {"ok": True, "system": platform.system(), "release": platform.release(),
