@@ -22,6 +22,9 @@ def write_json(path, value):
 
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
+    if argv and argv[0] == "doctor":
+        from .factory.doctor import main as doctor
+        return doctor(argv[1:])
     if argv and argv[0] == "evaluate":
         from .factory.eval_framework import run_cli as evaluate
         return evaluate(argv[1:])
@@ -39,6 +42,7 @@ def main(argv=None):
         return worker(argv[1:])
     parser = argparse.ArgumentParser(description="RESIDUAL — hybrid agents with verifiable task boundaries")
     sub = parser.add_subparsers(dest="command", required=True)
+    sub.add_parser("doctor", help="Validate Factory host, Ollama and concurrency prerequisites")
     sub.add_parser("factory", help="Plan and approve headless multi-swarm Factory Mode work")
     sub.add_parser("evaluate", help="Run a frozen Factory evaluation (evaluate --help for options)")
     sub.add_parser("serve", help="Open the local web command station (serve --help for options)")

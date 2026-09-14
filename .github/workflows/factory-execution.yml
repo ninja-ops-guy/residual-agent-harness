@@ -13,8 +13,11 @@ on:
       - 'tests/test_factory_fb002.py'
       - 'tests/test_factory_fb003.py'
       - 'tests/test_factory_fb004.py'
+      - 'tests/test_factory_corpus.py'
+      - 'tests/test_factory_doctor.py'
       - 'residual/engines/**'
       - 'benchmarks/factory/**'
+      - 'scripts/setup_factory.sh'
       - 'examples/factory/**'
       - 'docs/factory/**'
       - 'pyproject.toml'
@@ -36,7 +39,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y libseccomp2
-          python -m pip install 'cryptography>=43'
+          python -m pip install 'cryptography>=43' build
       - name: Preserve exact source
         run: |
           mkdir -p runs/factory-execution
@@ -51,9 +54,18 @@ jobs:
           RESIDUAL_REQUIRE_SECCOMP: '1'
         run: |
           set -o pipefail
-          python -m unittest tests.test_factory_worker_contract tests.test_factory_runtime tests.test_factory_evidence_bus tests.test_factory_m4 tests.test_factory_eval tests.test_factory_eval_driver tests.test_factory_fb001 tests.test_factory_fb002 tests.test_factory_fb003 tests.test_factory_fb004 -v 2>&1 | tee runs/factory-execution/execution-tests.txt
+          python -m unittest tests.test_factory_worker_contract tests.test_factory_runtime tests.test_factory_evidence_bus tests.test_factory_m4 tests.test_factory_eval tests.test_factory_eval_driver tests.test_factory_fb001 tests.test_factory_fb002 tests.test_factory_fb003 tests.test_factory_fb004 tests.test_factory_corpus tests.test_factory_doctor -v 2>&1 | tee runs/factory-execution/execution-tests.txt
           python -m unittest discover -s tests -v 2>&1 | tee runs/factory-execution/full-tests.txt
-          python -m compileall -q residual/factory residual/engines benchmarks/factory/fb001 benchmarks/factory/fb002 benchmarks/factory/fb003 benchmarks/factory/fb004
+          python -m compileall -q residual/factory residual/engines benchmarks/factory/fb001 benchmarks/factory/fb002 benchmarks/factory/fb003 benchmarks/factory/fb004 benchmarks/factory/corpus
+      - name: Fresh wheel install and first-run CLI
+        run: |
+          python -m build --wheel
+          python -m venv "$RUNNER_TEMP/residual-wheel"
+          WHEEL=$(ls dist/*.whl | head -1)
+          "$RUNNER_TEMP/residual-wheel/bin/python" -m pip install "$WHEEL[factory]"
+          "$RUNNER_TEMP/residual-wheel/bin/python" -m residual doctor --help
+          "$RUNNER_TEMP/residual-wheel/bin/python" -m residual doctor --json "$RUNNER_TEMP/wheel-host-profile.json"
+          cp "$RUNNER_TEMP/wheel-host-profile.json" runs/factory-execution/wheel-host-profile.json
       - name: Scripted end-to-end execution
         run: |
           python examples/factory/brokered_worker_demo.py --output "$RUNNER_TEMP/residual-m2-demo"
