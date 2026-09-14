@@ -134,6 +134,62 @@ def _revoke(token):
     if row: _freellm_delete_profile(row['profile_id'])
 
 
+def _route(method, path, headers, body):
+    if method == 'OPTIONS': return 204, None
+    if method == 'GET':
+        if path == '/health':
+            return 200, {'ok': True, 'configured': bool(FREELLM and FREELLM_EMAIL and FREELLM_PASSWORD and TS_CLIENT_ID and TS_CLIENT_SECRET)}
+        return 404, {'error': 'not found'}
+    if method == 'POST':
+        try:
+            if path == '/v1/demo/session': return 201, _new_session()
+            if path == '/v1/chat/completions':
+                payload = json.loads(body or b'{}')
+                model = payload.get('model', 'auto:fast')
+                if model not in ALLOWED_MODELS: return 400, {'error': {'message': 'model not allowed'}}
+                auth = headers.get('authorization', '')
+                token = auth[7:] if auth.startswith('Bearer ') else ''
+                key, reserved = _reserve(token, payload.get('max_tokens', payload.get('max_completion_tokens', 256)))
+                payload['model'] = model; payload['max_tokens'] = min(reserved, MAX_OUTPUT); payload.pop('max_completion_tokens', None)
+                _, _, out = _json(f'{FREELLM}/v1/chat/completions', 'POST', payload, {'Authorization': f'Bearer {key}'}, timeout=45)
+                return 200, out
+            return 404, {'error': 'not found'}
+        except PermissionError as e: return 401, {'error': {'message': str(e)}}
+        except Exception as e: return 503, {'error': {'message': 'demo cloud unavailable', 'detail': type(e).__name__}}
+    if method == 'DELETE':
+        if path != '/v1/demo/session': return 404, {'error': 'not found'}
+        auth = headers.get('authorization', '')
+        _revoke(auth[7:] if auth.startswith('Bearer ') else '')
+        return 200, {'revoked': True}
+    return 405, {'error': 'method not allowed'}
+
+
+class ASGIApp:
+    async def __call__(self, scope, receive, send):
+        if scope.get('type') != 'http': return
+        chunks = []
+        while True:
+            event = await receive()
+            if event['type'] != 'http.request': continue
+            chunks.append(event.get('body', b''))
+            if not event.get('more_body'): break
+        headers = {k.decode().lower(): v.decode() for k, v in scope.get('headers', [])}
+        path = scope.get('path') or '/'
+        code, obj = _route(scope.get('method', 'GET').upper(), path, headers, b''.join(chunks))
+        origin = headers.get('origin')
+        out_headers = [(b'content-type', b'application/json'), (b'cache-control', b'no-store'),
+                       (b'access-control-allow-headers', b'Authorization, Content-Type'),
+                       (b'access-control-allow-methods', b'GET, POST, DELETE, OPTIONS')]
+        if origin == ORIGIN:
+            out_headers += [(b'access-control-allow-origin', origin.encode()), (b'vary', b'Origin')]
+        raw = b'' if obj is None else json.dumps(obj, separators=(',', ':')).encode()
+        out_headers.append((b'content-length', str(len(raw)).encode()))
+        await send({'type': 'http.response.start', 'status': code, 'headers': out_headers})
+        await send({'type': 'http.response.body', 'body': raw})
+
+app = ASGIApp()
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = 'ResidualDemoGateway/1.0'
     def _cors(self):
@@ -144,31 +200,17 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
         self.send_header('Cache-Control', 'no-store')
     def _send(self, code, obj):
-        raw = json.dumps(obj, separators=(',', ':')).encode(); self.send_response(code); self._cors(); self.send_header('Content-Type','application/json'); self.send_header('Content-Length',str(len(raw))); self.end_headers(); self.wfile.write(raw)
+        raw = b'' if obj is None else json.dumps(obj, separators=(',', ':')).encode(); self.send_response(code); self._cors(); self.send_header('Content-Type','application/json'); self.send_header('Content-Length',str(len(raw))); self.end_headers(); self.wfile.write(raw)
     def _body(self):
-        n = int(self.headers.get('Content-Length','0')); return json.loads(self.rfile.read(n) or b'{}')
-    def _token(self):
-        auth = self.headers.get('Authorization',''); return auth[7:] if auth.startswith('Bearer ') else ''
-    def do_OPTIONS(self): self.send_response(204); self._cors(); self.end_headers()
-    def do_GET(self):
-        if self.path == '/health': return self._send(200, {'ok': True, 'configured': bool(FREELLM and TS_CLIENT_ID)})
-        return self._send(404, {'error':'not found'})
-    def do_POST(self):
-        try:
-            if self.path == '/v1/demo/session': return self._send(201, _new_session())
-            if self.path == '/v1/chat/completions':
-                body = self._body(); model = body.get('model','auto:fast')
-                if model not in ALLOWED_MODELS: return self._send(400, {'error': {'message':'model not allowed'}})
-                key, reserved = _reserve(self._token(), body.get('max_tokens', body.get('max_completion_tokens', 256)))
-                body['model'] = model; body['max_tokens'] = min(reserved, MAX_OUTPUT); body.pop('max_completion_tokens', None)
-                _, _, out = _json(f'{FREELLM}/v1/chat/completions', 'POST', body, {'Authorization': f'Bearer {key}'}, timeout=45)
-                return self._send(200, out)
-            return self._send(404, {'error':'not found'})
-        except PermissionError as e: return self._send(401, {'error': {'message': str(e)}})
-        except Exception as e: return self._send(503, {'error': {'message':'demo cloud unavailable', 'detail': type(e).__name__}})
-    def do_DELETE(self):
-        if self.path != '/v1/demo/session': return self._send(404, {'error':'not found'})
-        _revoke(self._token()); return self._send(200, {'revoked': True})
+        n = int(self.headers.get('Content-Length','0')); return self.rfile.read(n)
+    def _dispatch(self, method):
+        headers = {k.lower(): v for k, v in self.headers.items()}
+        code, obj = _route(method, urllib.parse.urlsplit(self.path).path, headers, self._body() if method == 'POST' else b'')
+        self._send(code, obj)
+    def do_OPTIONS(self): self._dispatch('OPTIONS')
+    def do_GET(self): self._dispatch('GET')
+    def do_POST(self): self._dispatch('POST')
+    def do_DELETE(self): self._dispatch('DELETE')
     def log_message(self, fmt, *args): pass
 
 
