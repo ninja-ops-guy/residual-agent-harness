@@ -1,87 +1,126 @@
 # RESIDUAL
 
-**Build reliable AI systems from unreliable computation.**
+**Reliable AI systems without assuming reliable AI workers.**
 
-RESIDUAL is an evidence-first orchestration and verification harness for AI-assisted engineering. It treats model output as an untrusted proposal rather than an answer: workers operate inside explicit contracts, actions are observed, outputs are independently checked, and only accepted artifacts cross a deterministic integration boundary.
+RESIDUAL is a verification-first control plane for AI-assisted engineering. Models and agents are treated as **untrusted compute**: they can propose work, but they do not get to define success, approve themselves, or directly own accepted state.
 
-The central hypothesis is deliberately stronger than “use better models”:
+The system around them does that.
 
-> **AI reliability does not necessarily require making each individual model reliable. Reliability can emerge from constraining, observing, verifying, and deterministically integrating unreliable computation.**
+> **Core hypothesis:** reliability can emerge from constraining, observing, verifying, and deterministically integrating unreliable computation.
 
-RESIDUAL is the applied engineering system used to make that hypothesis testable.
+RESIDUAL is the engineering platform and research harness I am using to test that idea.
 
-## Why this exists
+## The problem
 
-Most agent systems concentrate capability inside the worker: give a model more context, more tools, more retries, or more autonomy and hope the resulting trajectory is correct. RESIDUAL moves authority out of the worker and into the surrounding system.
+Most agent frameworks put more capability inside the agent: more context, more tools, more retries, more autonomy. That can improve what a model is able to do, but it does not automatically improve what the system can safely trust.
 
-A worker may be local or cloud-hosted, weak or strong, deterministic or stochastic. It may fail. What matters is that the harness can bound what it is allowed to do, preserve evidence about what happened, reject unsupported work, escalate only the unresolved residual, and integrate accepted results reproducibly.
-
-That produces a different control loop:
+RESIDUAL takes the opposite approach. The worker is replaceable. Authority stays outside it.
 
 ```text
-Requirement
-    ↓
-Frozen contract / execution plan
-    ↓
-Route + schedule bounded workers
-    ↓
-Observe execution and collect evidence
-    ↓
-Independent verification
-    ↓
-PASS ──→ deterministic acceptance / integration ──→ receipt
+intent
+  ↓
+frozen requirements + execution plan
+  ↓
+route / schedule bounded workers
+  ↓
+observe execution + collect evidence
+  ↓
+independent verification
+  ↓
+PASS ──→ deterministic acceptance / integration ──→ signed/auditable receipt
   │
-  └─ FAIL / UNKNOWN ──→ counterexample or residual packet ──→ retry / escalate
+  └─ FAIL / UNKNOWN ──→ counterexample / retry / residual escalation
 ```
 
-The model is a replaceable compute component. The harness owns authority.
+A worker can be wrong without automatically making the accepted system state wrong.
 
-## What is implemented
+## What RESIDUAL is now
 
-RESIDUAL currently spans three connected layers.
+The repository has grown into four connected layers.
 
-### Residual Harness — verification kernel
+### 1. Verification kernel
 
-The original harness provides obligation DAGs, immutable evidence snapshots, verifier-defined acceptance, counterexample-directed repair, residual delegation, evidence negotiation, receipt-bound caching, disclosure controls, budgets, and tamper-evident traces.
+The original harness provides obligation DAGs, immutable evidence snapshots, verifier-owned acceptance, counterexample-directed repair, scoped evidence negotiation, residual delegation, disclosure controls, budgets, receipt-bound caching, and tamper-evident traces.
 
-Accepted work is monotonic within an evidence snapshot. `FAIL`, `UNKNOWN`, malformed output, verifier exceptions, provider errors, and abstention never silently become success.
+`FAIL`, `UNKNOWN`, malformed results, verifier exceptions, provider errors, and abstention never silently become success.
 
-### Command Station — operator surface
+### 2. Command Station
 
-Command Station exposes the harness as a self-hosted operations console with mission/spec import, run control, local/cloud execution, provider routing, observation traces, model management, HITL hooks, security inspection, downloadable evidence, and source-release packaging.
+Command Station is the self-hosted operator surface. It adds mission/spec workflows, run control, local/cloud provider routing, observations, HITL, security inspection, model management, lifecycle hooks, distributed adapters, evidence export, and source-release packaging.
 
-It supports OpenAI, OpenAI-compatible endpoints, Anthropic, Gemini, Azure, Bedrock, and Ollama routes through bounded adapters. Local-first execution and residual cloud escalation are policy decisions rather than assumptions.
+Supported provider paths include OpenAI, OpenAI-compatible endpoints, Anthropic, Gemini, Azure, Bedrock, and Ollama. Provider/framework output remains advisory until RESIDUAL accepts it.
 
-### Factory / Studio — multi-worker execution platform
+### 3. Factory runtime
 
-The newer Factory runtime extends the kernel toward Residual Studio: requirements are compiled into frozen execution plans, bounded workers run in isolated worktrees, observations and evidence are carried across explicit interfaces, and accepted outputs move through deterministic integration rather than free-form agent coordination.
+Factory is the headless execution layer for turning approved plans into bounded worker attempts.
 
-Current platform work includes:
+Current `main` includes:
 
-- deterministic requirement compilation and plan freezing;
-- worker contracts, bounded swarm runtime, and isolated worktrees;
-- evidence/observation plumbing and deterministic integration primitives;
-- adaptive assurance with verifier-quality profiles;
-- learned orchestration-tax estimates so the system can learn when **not** to swarm;
-- verified compute-market selection across heterogeneous engines;
-- quorum/authoritative-log boundaries for distributed state;
-- engine adapters, async I/O, observability, metrics, and operational integration work;
-- CI evidence that preserves exact source, tree identity, and test output for Factory changes.
+- deterministic requirement compilation and graph hashing;
+- exact plan approval binding;
+- immutable worker contracts;
+- Linux fail-closed worker isolation with libseccomp enforcement;
+- per-attempt worktrees and private candidate object stores;
+- bounded file brokering and resource controls;
+- durable attempt journals, leases, cancellation, watchdogs, and restart-visible state;
+- Station-issued Ed25519 worker receipts;
+- content-addressed accepted artifacts;
+- receipt-only dependency admission;
+- append-oriented evidence storage and provenance queries.
 
-The long-term Studio direction is a self-hosted engineering platform in which heterogeneous workers can be scheduled for useful parallelism without surrendering verification, provenance, policy, or integration authority.
+The important boundary is simple: **worker exit success still does not mean accepted work.** Candidate output remains quarantined until trusted Station-side verification and receipt issuance succeed.
 
-## Design principles
+See [`docs/factory/M2-EXECUTION.md`](docs/factory/M2-EXECUTION.md) and [`docs/factory/M3-EVIDENCE-BUS.md`](docs/factory/M3-EVIDENCE-BUS.md).
 
-1. **Workers propose; verifiers decide.** Generation and acceptance are separate authorities.
-2. **Unknown is not pass.** Uncertainty remains visible instead of being coerced into success.
-3. **Contracts precede execution.** Scope, tools, resources, dependencies, evidence, and checks should be explicit before a worker starts.
-4. **Evidence survives handoffs.** Receipts bind accepted results to inputs, verifier revisions, dependencies, and artifacts.
-5. **Escalate the residual, not the whole problem.** Preserve accepted independent work and transfer only unresolved obligations and permitted evidence.
-6. **Integration is deterministic.** Stochastic workers do not get unilateral authority over accepted state.
-7. **Parallelism must earn its cost.** Swarms are evaluated against coordination overhead, latency, rework, rejection, and integration risk—not agent count.
-8. **Verifier reliability is itself measured.** Assurance depends on the quality and coverage of the checks, not merely their existence.
-9. **Local and cloud compute are interchangeable resources subject to policy.** Capability, cost, privacy, latency, and observed quality can all affect routing.
-10. **Claims require evidence.** The repository distinguishes implemented mechanisms, development evidence, hypotheses, and conclusions that still require controlled study.
+### 4. Studio / swarm platform
+
+The newest platform work expands Factory into a broader multi-worker control plane. Current `main` now includes implementation paths for:
+
+- sandbox hardening and red-team testing;
+- cluster and orchestration primitives;
+- evaluation and soak infrastructure;
+- gateway and lifecycle glue;
+- cryptographic abstraction work;
+- connector conformance;
+- Studio frontend development surfaces;
+- onboarding examples;
+- source-of-truth implementation-status tooling;
+- swarm-specific acceptance verification.
+
+A repository-level v3 swarm acceptance check now validates required deliverable paths, protects the Factory-owned runtime/evidence/integration boundaries from accidental overlap, runs the full test suite, and re-checks the earlier spec verifier. The latest retained merged-tree evidence reports **1,033 pytest tests + 166 subtests passing** with the v2 verifier still green.
+
+This is not the same thing as claiming every Studio spec is production-complete. It does mean the project has moved well past a paper architecture or UI mockup.
+
+## Adaptive assurance
+
+RESIDUAL also measures the reliability of the control plane itself instead of assuming all verification and orchestration decisions are equally good.
+
+Implemented primitives include:
+
+- **Verifier quality profiles** — precision, recall, false-accept behavior, calibration, coverage, posterior confidence, and assurance-class gating.
+- **Orchestration tax learning** — observed success, cost, and latency by execution strategy so swarms have to justify their overhead.
+- **Verified compute selection** — engine choice based on capability, privacy, cost, latency, observed quality, and uncertainty.
+- **Quorum-aware authority boundaries** — authoritative writes can fail closed when the required consistency boundary is unavailable.
+- **Assurance receipts** — execution strategy, engine choice, verifier state, quality snapshot, and outcome are all inspectable.
+
+The goal is not "always swarm." The goal is to learn when direct execution, stronger verification, a small swarm, a larger swarm, or escalation provides the best verified result for the cost and risk.
+
+## What makes this different
+
+RESIDUAL is not primarily an agent personality layer, prompt framework, or tool router.
+
+Its core design choices are:
+
+- **Workers propose. Verifiers decide.**
+- **UNKNOWN is a real state, not a soft PASS.**
+- **Contracts exist before execution.**
+- **Evidence survives every handoff.**
+- **Accepted state belongs to the harness, not the agent.**
+- **Residual escalation preserves work that already passed.**
+- **Parallelism is measured by useful speedup and verified output, not agent count.**
+- **Verifier quality is part of the assurance model.**
+- **Local and cloud models are compute resources, not trust anchors.**
+- **Research claims stay narrower than implementation ambition.**
 
 ## Quick start
 
@@ -91,104 +130,100 @@ Windows: **Start-Station.cmd**
 macOS: **Start-Station.command**  
 Linux: `bash Start-Station.sh`
 
-With Docker running, the launcher builds the Station environment and serves the UI at `http://localhost:8765`. Model weights are downloaded on demand; this repository is not an offline model distribution.
-
-Native mode requires Python 3.11+ and Git and has no required pip dependencies for the Station path:
+Or run natively with Python 3.11+ and Git:
 
 ```bash
-python3 -m residual.station.server --open
-# or
 python3 -m residual serve --open
 ```
 
-See [`START-HERE.md`](START-HERE.md) for installation, GPU options, repositories, storage, and troubleshooting.
+See [`START-HERE.md`](START-HERE.md).
 
-### Factory planning
+### Factory
 
-The Factory path is intentionally contract-first. Start with the plan contract and CLI documentation before attaching real workers:
+Start with the execution-plan contract, then the worker/evidence layers:
 
 - [`docs/factory/PLAN-CONTRACT.md`](docs/factory/PLAN-CONTRACT.md)
-- [`docs/studio/README.md`](docs/studio/README.md)
-- [`docs/studio/STUDIO_SPECS.md`](docs/studio/STUDIO_SPECS.md)
+- [`docs/factory/M2-EXECUTION.md`](docs/factory/M2-EXECUTION.md)
+- [`docs/factory/M2-IMPLEMENTATION-STATUS.md`](docs/factory/M2-IMPLEMENTATION-STATUS.md)
+- [`docs/factory/M3-EVIDENCE-BUS.md`](docs/factory/M3-EVIDENCE-BUS.md)
 
-## Architecture at a glance
+### Studio development surface
 
-| Layer | Responsibility | Trust boundary |
+A development-only Studio frontend stub exists for plan, contract, swarm, receipt, worker-timeline, and approval views. It uses local fixtures and in-memory approval state; it is **not** presented as the authoritative production swarm API.
+
+```bash
+python3 -m residual.studio_frontend.stub_server --port 8787
+```
+
+## Architecture
+
+| Layer | Owns | Does not trust |
 | --- | --- | --- |
-| Requirement / plan | Convert intent into explicit obligations and dependencies | Frozen before execution |
-| Router / scheduler | Select direct, verified, swarm, ensemble, local, or remote execution | Policy + observed performance |
-| Worker runtime | Produce candidate artifacts under bounded contracts | Untrusted computation |
-| Evidence bus | Preserve observations, artifacts, hashes, provenance, and outcomes | Append-oriented evidence |
-| Verifier layer | Evaluate candidate acceptance and surface counterexamples/UNKNOWN | Independent authority |
-| Integrator | Accept only verified work and resolve ordered state transitions | Deterministic authority |
-| Receipt / audit layer | Bind accepted state to the conditions under which it was accepted | Reproducibility + audit |
+| Requirement compiler | structured intent, DAG, graph hash | free-form execution state |
+| Scheduler / router | placement and execution strategy | model self-assessment |
+| Worker runtime | bounded candidate generation | worker exit code as acceptance |
+| Evidence layer | observations, artifacts, receipts, provenance | unsigned/unbound handoffs |
+| Verifier layer | acceptance decision | candidate claims |
+| Integrator | accepted state transition | stochastic merge authority |
+| Assurance layer | quality, cost, uncertainty, escalation | verifier infallibility |
+| Operator / HITL | explicit high-risk decisions | implicit approval |
 
-For the original obligation-level invariants, see [`docs/architecture.md`](docs/architecture.md). For the platform direction, see [`docs/studio/PLATFORM_VISION.md`](docs/studio/PLATFORM_VISION.md).
+For the original invariants, read [`docs/architecture.md`](docs/architecture.md). For the platform direction, read [`docs/studio/README.md`](docs/studio/README.md).
 
 ## Research program
 
-RESIDUAL is both software and a research instrument. The current working paper, **“Reliability from Unreliable Computation: An Evidence-First Architecture for Verifiable Multi-Agent AI Systems,”** develops the system-level reliability hypothesis and defines experiments intended to falsify it.
+RESIDUAL is also a research instrument for the hypothesis described above.
 
-The repository does **not** claim that the hypothesis is already proven. The controlled evaluation framework separates controller behavior from model quality and calls for paired trials, ablations, fault injection, model-degradation studies, hidden grading, external task families, and matched baselines.
+The working paper is:
 
-Start with:
+**[Reliability from Unreliable Computation: An Evidence-First Architecture for Verifiable Multi-Agent AI Systems](docs/papers/reliability-from-unreliable-computation.md)**
 
-- [`docs/research.md`](docs/research.md) — research claim, prior art, boundaries, and open questions;
-- [`docs/papers/reliability-from-unreliable-computation.md`](docs/papers/reliability-from-unreliable-computation.md) — IEEE-style working manuscript;
-- [`docs/controlled-evaluation.md`](docs/controlled-evaluation.md) — controlled study design;
-- [`docs/evaluation.md`](docs/evaluation.md) — evaluation tooling and metrics.
+The evaluation program now spans scripted controller studies, controlled independent grading, adaptive-assurance fixtures, external/live evidence runners, preregistration support, benchmark infrastructure, and the newer swarm reliability research program.
 
-## Documentation map
+Important distinction:
 
-**Start / operate**
-- [`START-HERE.md`](START-HERE.md) — installation and Station setup
-- [`docs/quickstart.md`](docs/quickstart.md) — harness quick start
-- [`docs/faq.md`](docs/faq.md) — common questions
+| Level | Meaning |
+| --- | --- |
+| **Implemented** | mechanism exists in source |
+| **Demonstrated** | repository fixtures/CI exercise the mechanism |
+| **Hypothesized** | expected system property still under test |
+| **Established** | supported by appropriate external/controlled evidence |
 
-**Understand the system**
-- [`docs/architecture.md`](docs/architecture.md) — core harness architecture and invariants
-- [`docs/station/ARCHITECTURE.md`](docs/station/ARCHITECTURE.md) — Command Station architecture
-- [`docs/station/RUN-CONTROL.md`](docs/station/RUN-CONTROL.md) — goal contracts, quarantine, and loop controls
-- [`docs/station/MODULAR-LAYERS.md`](docs/station/MODULAR-LAYERS.md) — providers, observations, and capability boundaries
-- [`docs/factory/PLAN-CONTRACT.md`](docs/factory/PLAN-CONTRACT.md) — frozen Factory execution-plan contract
+Synthetic fixtures and CI can prove controller behavior. They do **not** by themselves prove real-model superiority, universal cost savings, or production safety.
 
-**Build / extend**
-- [`docs/extending.md`](docs/extending.md) — extension model
-- [`docs/module-tutorial.md`](docs/module-tutorial.md) — module tutorial
-- [`docs/station/SPECIFICATION.md`](docs/station/SPECIFICATION.md) — Station specification format
-- [`docs/studio/STUDIO_SPECS.md`](docs/studio/STUDIO_SPECS.md) — normative Studio specifications
-
-**Research / validate**
-- [`docs/research.md`](docs/research.md) — thesis and prior art
-- [`docs/controlled-evaluation.md`](docs/controlled-evaluation.md) — controlled studies
-- [`docs/station/VALIDATION.md`](docs/station/VALIDATION.md) — Station validation evidence
-- [`docs/roadmap/README.md`](docs/roadmap/README.md) — implementation roadmap
-- [`vendor/ldd-kit/PROVENANCE.md`](vendor/ldd-kit/PROVENANCE.md) — LDD provenance
+Start with [`docs/research.md`](docs/research.md), [`docs/controlled-evaluation.md`](docs/controlled-evaluation.md), and [`docs/README.md`](docs/README.md).
 
 ## Verification
 
+Core checks:
+
 ```bash
 python3 -m unittest discover -s tests -v
+python3 verifier/v2/check_specs.py
+python3 verifier/v3/check_swarm.py
 node --check residual/station/static/app.js
+```
 
-# optional browser QA
+Optional browser QA:
+
+```bash
 npm install
 npx playwright install chromium
 npm run test:ui
 ```
 
-Factory pull requests additionally preserve exact source, Git tree identity, and test output as CI evidence.
+## Current status
 
-## Scope and non-claims
+RESIDUAL is an active research and platform-engineering project. The verification kernel and Command Station are established foundations; Factory M2/M3 execution and evidence paths are now concrete on `main`; broader Studio, cluster, orchestration, evaluation, and assurance work is advancing in parallel.
 
-RESIDUAL is an implemented research and engineering platform, not a universal proof system. A verifier proves only what its contract and evidence allow it to check. Receipts are evidence of checked acceptance under stated inputs, not certificates of arbitrary truth. Plugins and host integrations remain trusted code. Native project commands are opt-in and are not an OS sandbox. Distributed interfaces define consistency boundaries but do not make every deployment production-ready by default.
+Some generated status documentation may temporarily lag the newest merge wave. For exact current behavior, prefer source, tests, Factory-specific implementation docs, and retained verifier evidence over older prose snapshots.
 
-Likewise, the project does not currently claim a universally optimal scheduler, universal verifier, new foundation model, guaranteed token savings, guaranteed model-quality preservation, or first-in-literature status. Those are empirical or scholarly questions and are treated as such.
+## Non-claims
 
-## Project status
+RESIDUAL is not a universal proof system. A verifier can only establish what its contract and evidence let it check. Receipts prove checked acceptance under stated inputs; they do not certify arbitrary truth.
 
-The repository is moving from the v0.4 Command Station foundation into the Factory/Studio execution and adaptive-assurance layers. The implementation is intentionally evolving faster than a conventional stable API. Read the specs and tests as the authoritative contract for experimental modules, and pin a commit when reproducing results.
+The project does not currently claim a universally optimal scheduler, universal verifier, guaranteed token savings, guaranteed model-quality preservation, full multi-tenant production certification, or first-in-literature status.
 
 ---
 
-**RESIDUAL’s thesis is architectural:** do not require stochastic workers to become trustworthy before they can be useful. Make their authority small, their behavior observable, their outputs checkable, and their accepted effects deterministic.
+**RESIDUAL is built around one idea:** stochastic workers do not need unlimited trust to be useful. Keep their authority small, make their behavior observable, verify what matters, and make accepted effects deterministic.
