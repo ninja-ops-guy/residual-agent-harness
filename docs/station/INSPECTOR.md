@@ -15,7 +15,7 @@ An inspection session is bound to an exact clean Git snapshot before px0 starts:
 
 Residual authenticates the local px0 executable against SHA-256 digests published with the upstream `v0.1.2` release. A binary that merely reports the correct version is not accepted.
 
-On Linux, authoritative inspection fails closed unless `bubblewrap` (`bwrap`) is available. The sandbox mounts the host filesystem read-only, replaces the operator home and `/tmp` with private tmpfs views, then selectively re-exposes only the reviewed workspace and any external Git worktree metadata as read-only mounts. The process starts with a sanitized environment rather than inheriting shell credentials or cloud tokens.
+On Linux, authoritative inspection fails closed unless `bubblewrap` (`bwrap`) is available. The sandbox does **not** expose the host root. It builds a minimal filesystem view containing only system runtime paths required by px0/Git, `/proc`, `/dev`, a private writable `/tmp`, the exact reviewed workspace, and any external Git worktree metadata required for that workspace. Candidate/Git mounts are read-only. The process starts with a sanitized environment rather than inheriting shell credentials or cloud tokens.
 
 When px0 exits, RESIDUAL recomputes the snapshot. If HEAD/tree changed or the worktree became dirty, the session exits with status `3` and reports that the review became stale. A stale review must not be treated as approval evidence.
 
@@ -29,7 +29,7 @@ The integration currently pins:
 
 Residual refuses to launch a different version or an executable whose SHA-256 does not match the qualified upstream release artifact for the current platform.
 
-For authoritative Linux review, install the authenticated px0 executable outside the masked operator home and `/tmp`; `/usr/local/bin/px0` is the recommended location. This keeps the executable available while the sandbox hides host home/temp contents.
+For authoritative Linux review, install the authenticated px0 executable under a system runtime path; `/usr/local/bin/px0` is the recommended location. This lets the sandbox expose the executable without exposing the operator home directory.
 
 The qualified `v0.1.2` build does not expose a `-no-telemetry` CLI flag. Residual therefore does not pass that nonexistent option. It launches with `DO_NOT_TRACK=1` / `PX0_TELEMETRY=0` in the sanitized environment, and redirects the build's automatic daily update check to loopback with `PX0_UPDATE_URL=http://127.0.0.1:9` so inspection does not make that outbound request.
 
@@ -59,7 +59,7 @@ The default policy intentionally uses:
 - browser launch from the parent Residual process, while px0 itself always receives `-no-open`;
 - language servers disabled (`-no-lsp`) unless explicitly enabled;
 - a sanitized environment with operator secrets omitted;
-- Linux `bubblewrap` filesystem isolation for authoritative review;
+- Linux `bubblewrap` minimal-filesystem isolation for authoritative review;
 - Git awareness enabled against read-only workspace/Git metadata.
 
 `--unsafe-no-sandbox` exists only for local browsing on systems where the secure backend is unavailable. The resulting receipt records `sandboxed: false` and is **non-authoritative**; it must not satisfy a policy requiring trusted human inspection evidence.
