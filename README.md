@@ -32,6 +32,7 @@ python3 -m residual.station.server --open
 - An automatic, three-role cloud assessment after permitted live batches: planning, diagnosis and integration analysis. Reports are advisory and cannot approve code.
 - In-interface Ollama installation, start/stop, model downloads with progress, selection, unloading, BYO provider routes, connection tests and a playground.
 - Seven provider routes: OpenAI, compatible endpoints, Anthropic, Gemini, Azure, Bedrock and Ollama; provider-scoped keys and budgeted failover.
+- A governed OpenClaw `ExecutionEngine` adapter for heterogeneous agent/runtime execution beneath Residual's existing routing, WorkerContract, verification, evidence, and receipt authority. OpenClaw executes; Residual decides whether the execution counts.
 - An observation console with durable traces, correlation IDs, chain verification, JSONL export and optional recording.
 - An authenticated distributed inference client. The coordinator owns code execution, review and acceptance.
 - Evidence, patches, project Markdown and verified source release ZIP downloads.
@@ -46,12 +47,16 @@ The v1.0+ direction expands Residual from a harness into a self-hosted multi-swa
 
 The design thesis is: **deterministically constrain, verify, schedule, and integrate nondeterministic workers.** Parallelism is planned from requirement dependencies and measured by useful speedup, coordination overhead, rework, and verifier rejection rather than raw agent count.
 
+OpenClaw extends the heterogeneous execution layer without changing that authority model: it is treated as a governed worker/runtime substrate, not as Residual's scheduler, verifier, policy source of truth, or receipt authority. See [OpenClaw integration](docs/integrations/OPENCLAW.md) and [SPEC-OPENCLAW-001](docs/specs/SPEC-OPENCLAW-001.md).
+
 See [Residual Studio platform vision](docs/studio/PLATFORM_VISION.md) and the [normative Studio specifications](docs/studio/STUDIO_SPECS.md).
 
 ## Documentation
 
 - [Residual Studio platform vision](docs/studio/PLATFORM_VISION.md)
 - [Residual Studio normative specifications](docs/studio/STUDIO_SPECS.md)
+- [OpenClaw governed execution integration](docs/integrations/OPENCLAW.md)
+- [OpenClaw normative integration specification](docs/specs/SPEC-OPENCLAW-001.md)
 - [Controlled studies, independent grading, and contract stress tests](docs/controlled-evaluation.md)
 - [World-class roadmap, first track and delegation boundaries](docs/roadmap/README.md)
 - [Goal contracts, quarantine and mission loop controls](docs/station/RUN-CONTROL.md)
