@@ -41,6 +41,19 @@ jobs:
           cp site/index.html _site/index.html
           cp site/live-demo.html _site/demo/index.html
           cp site/demo.html _site/walkthrough/index.html
+          cp site/walkthrough-persist.js _site/walkthrough/persist.js
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('_site/walkthrough/index.html')
+          text = p.read_text()
+          marker = '</body>'
+          script = '<script src="./persist.js"></script>'
+          if script not in text:
+              if marker not in text:
+                  raise SystemExit('walkthrough body marker missing')
+              text = text.replace(marker, script + marker, 1)
+              p.write_text(text)
+          PY
           cat > _site/demo.html <<'EOF'
           <!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=./demo/"><title>RESIDUAL Live Demo</title><body style="background:#000;color:#39ff68;font:16px monospace">Launching <a style="color:#39ff68" href="./demo/">RESIDUAL live VM</a>…</body>
           EOF
@@ -165,6 +178,7 @@ jobs:
           test -s _site/index.html
           test -s _site/demo/index.html
           test -s _site/walkthrough/index.html
+          test -s _site/walkthrough/persist.js
           test -s _site/vm/index.html
           test -s _site/vm/residual-demo.ext2.meta
           grep -q "The repository is the demo" _site/demo/index.html
@@ -173,6 +187,8 @@ jobs:
           grep -q "browser_bridge" examples/onboarding/cloud_demo.sh
           grep -q "RESIDUAL" _site/index.html
           grep -q "Run failure scenario" _site/walkthrough/index.html
+          grep -q "persist.js" _site/walkthrough/index.html
+          grep -q "residual.walkthrough.v1" _site/walkthrough/persist.js
           grep -q -- '--rcfile' _webvm/config_github_terminal.js
           test "$(find _site/vm -name 'residual-demo.ext2.c*.txt' | wc -l)" -gt 0
 
