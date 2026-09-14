@@ -157,7 +157,7 @@ class LoopController:
                 failure_fingerprint_counts=dict(fingerprint_counts),
                 status=None,
             )
-            record = LoopIterationRecord(
+            records.append(LoopIterationRecord(
                 goal_id=contract.goal_id,
                 iteration=iteration,
                 factory_run_id=result.factory_run_id,
@@ -170,8 +170,7 @@ class LoopController:
                 progress=progress,
                 intent=intent,
                 failure_fingerprint=fingerprint,
-            )
-            records.append(record)
+            ))
 
             if evaluation.complete:
                 terminal = replace(state, status=MissionStatus.COMPLETE)
@@ -200,7 +199,12 @@ class LoopController:
 
             current = result.residual_obligations
             next_keys = self._dedup_keys(current)
-            intent, escalated = next_intent(progress, cooldown=state.escalation_cooldown, deduplication_keys=next_keys)
+            if previous_result is None:
+                intent, escalated = ExecutionIntent(deduplication_keys=next_keys), False
+            else:
+                intent, escalated = next_intent(
+                    progress, cooldown=state.escalation_cooldown, deduplication_keys=next_keys
+                )
             if escalated:
                 state = replace(state, escalation_cooldown=contract.escalation_cooldown_period)
             if self.metrics:

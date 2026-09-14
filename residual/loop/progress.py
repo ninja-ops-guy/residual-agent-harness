@@ -34,14 +34,16 @@ def residual_mass(result: FactoryResultSet) -> float:
 
 
 def failure_fingerprint(result: FactoryResultSet) -> str:
-    counterexamples = sorted(
-        (item.verification_id, item.status.value, item.receipt_ref or "")
+    # Receipt ids are intentionally excluded: two equivalent failures should
+    # fingerprint identically even when each attempt emits a new receipt.
+    failures = sorted(
+        (item.verification_id, item.status.value)
         for item in result.verification_results
         if item.status != VerificationStatus.PASS
     )
     return digest({
         "residual_ids": sorted(o.id for o in result.residual_obligations),
-        "verification_failures": counterexamples,
+        "verification_failures": failures,
         "accepted_tree_hash": result.accepted_tree_hash,
     })
 

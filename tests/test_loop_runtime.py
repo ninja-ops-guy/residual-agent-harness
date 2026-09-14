@@ -80,8 +80,8 @@ class LoopRuntimeTests(unittest.TestCase):
         fail=lambda rid: verified(rid,"t1","e1",(b,),{"b":ObligationState.REJECTED},status=VerificationStatus.FAIL)
         f=FakeFactory([fail("r1"),fail("r2"),fail("r3")])
         LoopController(f).run(self.contract(max_iterations=3,no_progress_limit=5,escalation_cooldown_period=2),(b,))
-        self.assertEqual(f.calls[1][1].capability_floor,CapabilityFloor.HIGHER)
-        self.assertNotEqual(f.calls[2][1].capability_floor,CapabilityFloor.HIGHER)
+        self.assertNotEqual(f.calls[1][1].capability_floor,CapabilityFloor.HIGHER)
+        self.assertEqual(f.calls[2][1].capability_floor,CapabilityFloor.HIGHER)
 
     def test_abort_cancels_inflight_and_returns_aborted(self):
         f=FakeFactory([])
@@ -98,6 +98,15 @@ class LoopRuntimeTests(unittest.TestCase):
         result=LoopController(f).run(c,(b,))
         self.assertEqual(result.status,MissionStatus.ABORTED)
         self.assertTrue(f.cancelled)
+
+    def test_prefix_consistency_first_iteration_record_is_stable(self):
+        b=obligation("b")
+        first_a=verified("r1","t1","e1",(b,),{"b":ObligationState.REJECTED},status=VerificationStatus.FAIL)
+        first_b=verified("r1","t1","e1",(b,),{"b":ObligationState.REJECTED},status=VerificationStatus.FAIL)
+        second=verified("r2","t2","e2",(),{"b":ObligationState.ACCEPTED})
+        short=LoopController(FakeFactory([first_a])).run(self.contract(max_iterations=1),(b,))
+        long=LoopController(FakeFactory([first_b,second])).run(self.contract(max_iterations=2),(b,))
+        self.assertEqual(short.iterations[0].record_hash,long.iterations[0].record_hash)
 
     def test_worker_text_has_no_stop_channel(self):
         params=GoalEvaluator.evaluate.__annotations__
