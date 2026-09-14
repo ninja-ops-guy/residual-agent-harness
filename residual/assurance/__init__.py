@@ -16,6 +16,13 @@ from .external import (
     grade_external,
     load_external_suite,
 )
+from .factory_adapter import (
+    FactoryAssuranceError,
+    FactoryFixedSwarmExecutor,
+    FactoryFixedSwarmJob,
+    FactoryWorkerTemplate,
+    candidate_manifest,
+)
 from .market import MarketDecision, MarketProfile, MarketRequest, VerifiedComputeMarket
 from .orchestration import ExecutionStrategy, OrchestrationTaxController, StrategyEstimate, UtilityWeights
 from .quality import AssuranceClass, VerifierQualityProfile, VerifierQualityRegistry
@@ -31,4 +38,6 @@ __all__ = [
     "VerifierCampaignResult", "VerifierDefect", "evaluate_verifier_campaign",
     "ExternalCase", "ExternalEvidenceRunner", "ExternalSuite", "LiveEngineSpec",
     "grade_external", "load_external_suite",
+    "FactoryAssuranceError", "FactoryFixedSwarmExecutor", "FactoryFixedSwarmJob",
+    "FactoryWorkerTemplate", "candidate_manifest",
 ]
