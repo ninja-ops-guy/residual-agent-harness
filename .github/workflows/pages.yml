@@ -27,23 +27,126 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout RESIDUAL
         uses: actions/checkout@v4
 
-      - name: Build authoritative Pages artifact
+      - name: Build static site shell
         shell: bash
         run: |
           set -euo pipefail
           rm -rf _site
-          mkdir -p _site/demo
+          mkdir -p _site/demo _site/walkthrough _site/vm
           cp site/index.html _site/index.html
-          cp site/demo.html _site/demo/index.html
-          cp site/demo.html _site/demo.html
+          cp site/live-demo.html _site/demo/index.html
+          cp site/demo.html _site/walkthrough/index.html
+          cat > _site/demo.html <<'EOF'
+          <!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=./demo/"><title>RESIDUAL Live Demo</title><body style="background:#000;color:#39ff68;font:16px monospace">Launching <a style="color:#39ff68" href="./demo/">RESIDUAL live VM</a>…</body>
+          EOF
           touch _site/.nojekyll
+
+      - name: Checkout WebVM runtime
+        uses: actions/checkout@v4
+        with:
+          repository: leaningtech/webvm
+          ref: main
+          path: _webvm
+
+      - name: Prepare minimal RESIDUAL VM image
+        shell: bash
+        run: |
+          set -euo pipefail
+          rsync -a \
+            --exclude='.git' \
+            --exclude='_site' \
+            --exclude='_webvm' \
+            ./ _webvm/residual-src/
+          cp demo/vm/Dockerfile _webvm/dockerfiles/residual_demo
+          docker build _webvm \
+            --tag residual-webvm-demo \
+            --file _webvm/dockerfiles/residual_demo \
+            --platform=linux/386
+
+      - name: Export VM filesystem
+        shell: bash
+        run: |
+          set -euo pipefail
+          CONTAINER_ID="$(docker create residual-webvm-demo)"
+          trap 'docker rm -f "$CONTAINER_ID" >/dev/null 2>&1 || true; sudo umount /mnt/residual-webvm >/dev/null 2>&1 || true' EXIT
+
+          sudo mkdir -p /mnt/residual-webvm
+          sudo fallocate -l 320M residual-demo.ext2
+          sudo mkfs.ext2 -q -r 0 residual-demo.ext2
+          sudo mount -o loop -t ext2 residual-demo.ext2 /mnt/residual-webvm
+          sudo docker cp -a "${CONTAINER_ID}:/" /mnt/residual-webvm/
+          sudo umount /mnt/residual-webvm
+          docker rm "$CONTAINER_ID" >/dev/null
+          trap - EXIT
+
+          sudo split residual-demo.ext2 _site/vm/residual-demo.ext2.c \
+            -a 6 -b 128k -x --additional-suffix=.txt
+          stat -c%s residual-demo.ext2 | sudo tee _site/vm/residual-demo.ext2.meta >/dev/null
+          sudo chmod -R a+rX _site/vm
+
+      - name: Configure WebVM for RESIDUAL
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > _webvm/config_github_terminal.js <<'EOF'
+          export const diskImageUrl = "residual-demo.ext2";
+          export const diskImageType = "github";
+          export const printIntro = false;
+          export const needsDisplay = false;
+          export const cmd = "/bin/bash";
+          export const args = ["--login"];
+          export const opts = {
+            env: [
+              "HOME=/home/residual",
+              "TERM=xterm-256color",
+              "USER=residual",
+              "SHELL=/bin/bash",
+              "EDITOR=vi",
+              "LANG=C.UTF-8",
+              "PYTHONUNBUFFERED=1"
+            ],
+            cwd: "/opt/residual",
+            uid: 1000,
+            gid: 1000
+          };
+          EOF
+
+      - name: Build WebVM client
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd _webvm
+          npm install
+          WEBVM_MODE=github npm run build
+          cd ..
+          cp -a _webvm/build/. _site/vm/
+
+      - name: Build WebVM index lists
+        shell: bash
+        run: |
+          set -euo pipefail
+          find _site/vm -type d | while read -r dir; do
+            index_list="$dir/index.list"
+            rm -f "$index_list"
+            ls "$dir" | tee "$index_list" >/dev/null
+          done
+
+      - name: Validate Pages artifact
+        shell: bash
+        run: |
+          set -euo pipefail
           test -s _site/index.html
           test -s _site/demo/index.html
+          test -s _site/walkthrough/index.html
+          test -s _site/vm/index.html
+          test -s _site/vm/residual-demo.ext2.meta
+          grep -q "The repository is the demo" _site/demo/index.html
           grep -q "RESIDUAL" _site/index.html
-          grep -q "Run failure scenario" _site/demo/index.html
+          grep -q "Run failure scenario" _site/walkthrough/index.html
+          test "$(find _site/vm -name 'residual-demo.ext2.c*.txt' | wc -l)" -gt 0
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
