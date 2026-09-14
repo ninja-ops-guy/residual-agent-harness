@@ -1,65 +1,92 @@
 # RESIDUAL Documentation
 
-This directory documents three related surfaces of the same project: the original verification harness, the operator-facing Command Station, and the emerging Factory/Studio multi-worker platform.
+This directory covers the full project: the original verification harness, Command Station, Factory, Residual Studio, evaluation tooling, and the research program behind them.
 
-If you are new to the repository, read the documents in the order below rather than treating every spec as equally mature.
+The easiest way to understand the repository is to read it in layers.
 
-## 1. Understand the thesis
+## Start here
 
-Start with [`research.md`](research.md). RESIDUAL's working hypothesis is that useful system-level reliability can emerge from **constraining, observing, verifying, and deterministically integrating** computation that is itself stochastic and imperfect.
+If you only read five documents, use this order:
 
-The longer IEEE-style manuscript is [`papers/reliability-from-unreliable-computation.md`](papers/reliability-from-unreliable-computation.md). It is a working research paper, not a claim that the hypothesis has already been experimentally established.
+1. [`../README.md`](../README.md) — what RESIDUAL is and why it exists.
+2. [`architecture.md`](architecture.md) — the verification kernel and trust model.
+3. [`studio/README.md`](studio/README.md) — how Factory/Studio extend that kernel.
+4. [`research.md`](research.md) — the research claim, prior art, and non-claims.
+5. [`controlled-evaluation.md`](controlled-evaluation.md) — how the hypothesis is meant to be tested.
 
-## 2. Understand the verification kernel
+## By goal
 
-Read [`architecture.md`](architecture.md) for the original obligation-level architecture: ready frontiers, verifier-owned acceptance, evidence negotiation, residual packet compilation, privacy propagation, receipt-bound caching, budgets, and audit limits.
-
-This is the conceptual kernel that the newer platform layers build around.
-
-## 3. Run the system
-
-Use [`quickstart.md`](quickstart.md) for the harness and the repository-level [`../START-HERE.md`](../START-HERE.md) for Command Station installation and operation.
-
-Station-specific documentation lives under [`station/`](station/), including architecture, run control, modular provider/observation layers, distributed workers, validation, research notes, and the specification format.
-
-## 4. Understand Factory and Studio
-
-[`factory/PLAN-CONTRACT.md`](factory/PLAN-CONTRACT.md) describes the concrete frozen execution-plan boundary used by the current Factory implementation.
-
-[`studio/README.md`](studio/README.md) explains how Factory relates to the broader Residual Studio direction. [`studio/PLATFORM_VISION.md`](studio/PLATFORM_VISION.md) is the product/architecture vision, while [`studio/STUDIO_SPECS.md`](studio/STUDIO_SPECS.md) is normative design material.
-
-**Important:** normative specifications can lead implementation. Treat tests and current source as the authority for what is implemented today.
-
-## 5. Evaluate claims
-
-Use [`controlled-evaluation.md`](controlled-evaluation.md) for the controlled study design and [`evaluation.md`](evaluation.md) for evaluation tooling/metrics. Development fixtures demonstrate controller behavior; they do not prove that a real model preserves quality, reduces cost, or makes cloud reasoning necessary.
-
-The project intentionally distinguishes:
-
-| Level | Meaning |
+| I want to... | Read |
 | --- | --- |
-| Implemented | Mechanism exists in source and should be covered by tests/contracts |
-| Demonstrated | Behavior has been exercised by repository fixtures or CI evidence |
-| Hypothesized | Expected system property that still requires controlled evaluation |
-| Established | Reserved for conclusions supported by appropriate experimental evidence |
+| Install and run Command Station | [`../START-HERE.md`](../START-HERE.md) |
+| Understand the core architecture | [`architecture.md`](architecture.md) |
+| Understand Station internals | [`station/ARCHITECTURE.md`](station/ARCHITECTURE.md) |
+| Understand run-control boundaries | [`station/RUN-CONTROL.md`](station/RUN-CONTROL.md) |
+| Understand provider / observation layers | [`station/MODULAR-LAYERS.md`](station/MODULAR-LAYERS.md) |
+| Understand Factory execution plans | [`factory/PLAN-CONTRACT.md`](factory/PLAN-CONTRACT.md) |
+| Understand the Studio direction | [`studio/README.md`](studio/README.md) and [`studio/PLATFORM_VISION.md`](studio/PLATFORM_VISION.md) |
+| Read normative Studio requirements | [`studio/STUDIO_SPECS.md`](studio/STUDIO_SPECS.md) |
+| Extend the harness | [`extending.md`](extending.md) |
+| Build a module | [`module-tutorial.md`](module-tutorial.md) |
+| Review validation evidence | [`station/VALIDATION.md`](station/VALIDATION.md) |
+| Review research claims | [`research.md`](research.md) |
+| Read the working paper | [`papers/reliability-from-unreliable-computation.md`](papers/reliability-from-unreliable-computation.md) |
+| Understand experiments and metrics | [`controlled-evaluation.md`](controlled-evaluation.md) and [`evaluation.md`](evaluation.md) |
+| Follow implementation direction | [`roadmap/README.md`](roadmap/README.md) |
 
-## 6. Extend the system
+## Project layers
 
-Use [`extending.md`](extending.md) for the extension model and [`module-tutorial.md`](module-tutorial.md) for a small module walkthrough. New execution engines, verifiers, integrations, or worker runtimes should preserve the project's authority boundaries: workers propose, verifiers decide, and the harness integrates accepted state.
+### Harness
+
+The verification kernel. This layer defines obligations, evidence boundaries, verifier-owned acceptance, residual escalation, disclosure policy, receipts, caching, budgets, and trace integrity.
+
+### Command Station
+
+The operator-facing surface. It adds mission/spec workflows, local and remote model routing, observation, HITL hooks, run control, evidence export, model management, and operational UX.
+
+### Factory
+
+The current headless implementation path for multi-worker engineering. It introduces frozen execution plans, worker contracts, bounded runtimes, isolated worktrees, evidence flow, and deterministic integration.
+
+### Residual Studio
+
+The broader platform direction. Studio adds orchestration across heterogeneous workers, adaptive assurance, multi-swarm scheduling, compute selection, distributed-state boundaries, and a future engineering workspace around the same verification kernel.
 
 ## Core invariants
 
-Across the repository, the following ideas should remain stable even as individual APIs evolve:
+These ideas should remain true even as individual APIs change:
 
-- `FAIL` and `UNKNOWN` never silently accept work.
-- A worker cannot redefine the verifier that judges its own output.
-- Evidence and dependency provenance survive acceptance through receipts/hashes.
-- Sensitive evidence does not become remotely eligible merely because a downstream value depends on it.
-- Accepted state is an integration-layer decision, not an agent-side effect.
-- Parallelism is justified by measured utility, not by maximizing agent count.
-- Verifier quality is part of the assurance model.
-- Research claims remain narrower than the implementation's ambitions.
+- workers propose; verifiers decide;
+- `FAIL` and `UNKNOWN` do not become success;
+- a worker cannot redefine the check that judges its own output;
+- evidence and dependency provenance survive acceptance;
+- privacy restrictions propagate with the data they protect;
+- accepted state is owned by the integration layer;
+- parallelism is justified by measured utility, not agent count;
+- verifier quality is part of the assurance model;
+- claims stay narrower than the implementation's ambitions.
 
-## Status
+## How to read maturity
 
-RESIDUAL is an active research/engineering project. The Command Station foundation is usable, while Factory/Studio and adaptive-assurance components are evolving rapidly. Pin commits for reproducible experiments and read module tests/specifications before depending on experimental interfaces.
+Some documents describe current implementation while others describe target architecture. Keep the distinction explicit:
+
+| Label | Meaning |
+| --- | --- |
+| **Implemented** | Present in source and expected to be covered by tests/contracts |
+| **Demonstrated** | Exercised by repository fixtures, CI, or controlled development runs |
+| **Hypothesized** | A system property that still requires stronger evaluation |
+| **Established** | Reserved for conclusions supported by appropriate evidence |
+
+A normative specification may intentionally lead implementation. For experimental modules, current source and tests are the best description of what exists in a particular commit.
+
+## Research discipline
+
+RESIDUAL is both software and a research instrument. The repository intentionally separates mechanism from conclusion.
+
+For example, implementing residual delegation demonstrates that the mechanism exists. A scripted benchmark can demonstrate that the controller routes a known case correctly. Neither result proves that the approach reduces cost or preserves quality across real models and workloads.
+
+That distinction is central to the project, not a disclaimer added afterward.
+
+## Reproducibility
+
+The project is moving quickly. Pin a commit when reproducing experiments, keep the relevant verifier/configuration revisions with the run, and prefer preserved CI/source evidence over assumptions about `main` at a later date.
