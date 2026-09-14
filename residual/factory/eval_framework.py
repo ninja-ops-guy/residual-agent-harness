@@ -95,13 +95,16 @@ class RunMeasurement:
     verifier_rejected:int; verifier_total:int; final_tests_passed:int; final_tests_total:int
     api_cost_usd:float; gpu_cost_usd:float; infrastructure_cost_usd:float
     engine_name:str; engine_version:str; output_commit:str; observation_digest:str; simulation:bool=False
+    peak_workers:int=1
     def __post_init__(self):
         if self.config not in CONFIGS: raise EvaluationError("invalid config")
         _integer(self.run_index,"run index",1); elapsed=_finite(self.elapsed_time_minutes,"elapsed")
         if elapsed<=0: raise EvaluationError("elapsed must be positive")
         for n in ("accepted_tasks","token_cost_total","rework_tasks","merge_conflicts","verifier_rejected","verifier_total","final_tests_passed","final_tests_total"): _integer(getattr(self,n),n)
+        _integer(self.peak_workers,"peak workers",1)
         for n in ("gpu_time_minutes","coordination_time_minutes","api_cost_usd","gpu_cost_usd","infrastructure_cost_usd"): _finite(getattr(self,n),n)
         if self.coordination_time_minutes>elapsed or self.verifier_rejected>self.verifier_total or self.final_tests_passed>self.final_tests_total: raise EvaluationError("invalid metric numerator")
+        if self.config == "single" and self.peak_workers != 1: raise EvaluationError("single configuration must use one worker")
         _git_id(self.output_commit,"output commit")
         if not self.engine_name or not self.engine_version or len(self.observation_digest)!=64 or type(self.simulation) is not bool: raise EvaluationError("invalid provenance")
     def metrics(self):
@@ -109,7 +112,9 @@ class RunMeasurement:
         return {"elapsed_time_minutes":self.elapsed_time_minutes,"accepted_tasks_per_hour":self.accepted_tasks/(self.elapsed_time_minutes/60),"token_cost_total":float(self.token_cost_total),"gpu_time_minutes":self.gpu_time_minutes,"coordination_overhead_pct":100*self.coordination_time_minutes/self.elapsed_time_minutes,"rework_rate_pct":100*self.rework_tasks/max(1,self.accepted_tasks+self.rework_tasks),"merge_conflicts":float(self.merge_conflicts),"verifier_rejection_rate_pct":100*self.verifier_rejected/max(1,self.verifier_total),"final_test_pass_rate_pct":100*self.final_tests_passed/max(1,self.final_tests_total),"api_cost_usd":self.api_cost_usd,"gpu_cost_usd":self.gpu_cost_usd,"infrastructure_cost_usd":self.infrastructure_cost_usd,"total_cost_usd":total,"cost_per_accepted_task_usd":total/max(1,self.accepted_tasks)}
     def to_dict(self): return {k:getattr(self,k) for k in self.__dataclass_fields__}
     @classmethod
-    def from_dict(cls,v): return cls(**{k:v[k] for k in cls.__dataclass_fields__})
+    def from_dict(cls,v):
+        data={k:v[k] for k in cls.__dataclass_fields__ if k in v}
+        return cls(**data)
 
 class EvaluationDriver(Protocol):
     def run(self,workload:FrozenWorkload,config:str,run_index:int,observe:Callable[[dict],None])->RunMeasurement:...
@@ -192,8 +197,8 @@ class EvaluationFramework:
         names=list(next(iter(rows.values()))[0].metrics()); base=rows.get("single"); summaries={}
         for c,rr in rows.items():
             metrics={n:_summary([x.metrics()[n] for x in rr]) for n in names}; speed=statistics.median(x.elapsed_time_minutes for x in base)/statistics.median(x.elapsed_time_minutes for x in rr) if base else None
-            workers=1 if c=="single" else (4 if c=="fixed" else max(1,round(speed or 1)))
-            summaries[c]={"metrics":metrics,"speedup_vs_single":speed,"parallel_efficiency":speed/workers if speed is not None else None,"simulation":any(x.simulation for x in rr)}
+            workers=statistics.median(x.peak_workers for x in rr)
+            summaries[c]={"metrics":metrics,"speedup_vs_single":speed,"observed_peak_workers":_summary([float(x.peak_workers) for x in rr]),"parallel_efficiency":speed/workers if speed is not None else None,"simulation":any(x.simulation for x in rr)}
         significance={f"{a}_vs_{b}":{n:mann_whitney_u([x.metrics()[n] for x in rows[a]],[x.metrics()[n] for x in rows[b]]) for n in names} for a,b in itertools.combinations(configs,2)}
         sim=any(x.simulation for rr in rows.values() for x in rr); fields={"workload_hash":workload.workload_hash,"run_count":runs,"configurations":summaries,"significance":significance,"observation_root":self.log.root,"simulation":sim,"generated_at_ns":time.time_ns(),"station_key_id":self.identity.key_id}; unsigned={"schema_version":"factory-comparison-report-v1",**fields}; h=_sha(unsigned); sig=self.identity.sign_hash(h,domain=EVAL_DOMAIN); report=ComparisonReport(**fields,station_signature=sig)
         if report.report_hash!=h: raise EvaluationError("report canonicalization mismatch")
