@@ -7,14 +7,18 @@ comparisons, and a Station-signed ComparisonReport.
 """
 from __future__ import annotations
 
-import hashlib
 import itertools
 from dataclasses import dataclass
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Iterable, Mapping, Sequence
 
 from observation_layer import Observation, ObservationBus, ObservationKind
 from residual.core import digest
-from residual.factory.evidence_receipts import SIGNATURE_DOMAIN, StationIdentity, _sha256
+from residual.factory.evidence_receipts import (
+    SIGNATURE_DOMAIN,
+    StationIdentity,
+    WorkerReceipt,
+    _sha256,
+)
 
 from .stats import compare_samples, summary_stats
 from .workload import FrozenWorkload
@@ -202,7 +206,7 @@ class ExecutionControls:
             raise SpecEvalError("engine/model identities must be nonempty strings")
         if not self.temperatures:
             raise SpecEvalError("temperature controls required")
-        if any(not isinstance(value, (int, float)) for value in self.temperatures):
+        if any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in self.temperatures):
             raise SpecEvalError("temperatures must be numeric")
         if type(self.seed) is not int:
             raise SpecEvalError("seed must be an integer")
@@ -224,6 +228,27 @@ class ExecutionControls:
             seed=int(data["seed"]),
         )
 
+    @classmethod
+    def from_receipts(cls, receipts: Sequence[WorkerReceipt], *,
+                      temperatures: Sequence[float], seed: int) -> "ExecutionControls":
+        """Bind EVAL-R3 engine controls to signed M3 receipt attribution.
+
+        Residual receipts expose engine name/version. The engine version is therefore
+        the strongest receipt-backed model revision available at this boundary; a
+        provider adapter that distinguishes model revision separately can include that
+        revision in its engine version string.
+        """
+        if not receipts:
+            raise SpecEvalError("receipt-backed controls require at least one receipt")
+        engines = tuple(sorted({f"{r.engine_name}@{r.engine_version}" for r in receipts}))
+        revisions = tuple(sorted({r.engine_version for r in receipts}))
+        return cls(
+            engine_ids=engines,
+            model_versions=revisions,
+            temperatures=tuple(float(value) for value in temperatures),
+            seed=seed,
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class EvaluationRunEvidence:
@@ -243,7 +268,7 @@ class EvaluationRunEvidence:
             raise SpecEvalError("run_index must be nonnegative")
         if self.evidence_mode not in {"measured", "simulated"}:
             raise SpecEvalError("evidence_mode must be measured or simulated")
-        if len(self.workload_hash) != 64:
+        if len(self.workload_hash) != 64 or any(c not in "0123456789abcdef" for c in self.workload_hash):
             raise SpecEvalError("invalid workload hash")
 
     def to_dict(self) -> dict[str, object]:
@@ -393,6 +418,8 @@ class SpecEvaluationEvidence:
         summaries: dict[str, object] = {}
         for config in sorted(by_config):
             group = sorted(by_config[config], key=lambda run: run.run_index)
+            accepted_total = sum(run.counters.accepted_tasks for run in group)
+            total_cost = sum(run.costs.total_cost for run in group)
             summaries[config] = {
                 "runs": len(group),
                 "evidence_modes": sorted({run.evidence_mode for run in group}),
@@ -404,6 +431,9 @@ class SpecEvaluationEvidence:
                     metric: summary_stats([float(getattr(run.costs, metric)) for run in group])
                     for metric in ("api_cost", "gpu_cost", "infrastructure_cost", "total_cost")
                 },
+                "aggregate_cost_per_accepted_task": (
+                    total_cost / accepted_total if accepted_total else None
+                ),
             }
 
         comparisons: list[dict[str, object]] = []
@@ -420,6 +450,7 @@ class SpecEvaluationEvidence:
                 )
                 comparisons.append(comparison.to_dict())
 
+        ordered = sorted(records, key=lambda value: (value.configuration, value.run_index))
         payload: dict[str, object] = {
             "schema_version": REPORT_SCHEMA,
             "workload": self.workload.manifest(),
@@ -441,12 +472,10 @@ class SpecEvaluationEvidence:
                         "run_index": run.run_index,
                         **run.costs.to_dict(),
                     }
-                    for run in sorted(records, key=lambda value: (value.configuration, value.run_index))
+                    for run in ordered
                 ],
             },
-            "run_hashes": [
-                run.run_hash for run in sorted(records, key=lambda value: (value.configuration, value.run_index))
-            ],
+            "run_hashes": [run.run_hash for run in ordered],
             "observation_derivable": True,
         }
         report_hash = digest(payload)
@@ -455,9 +484,17 @@ class SpecEvaluationEvidence:
             station_key_id=self.identity.key_id,
             station_signature=self.identity.sign(report_hash),
         )
+        # Do not copy the full report into the observation spine. Nine metrics x all
+        # pairwise comparisons can exceed the Observation 24 KB ceiling. The run
+        # observations are sufficient to rebuild the report; this terminal event only
+        # binds the resulting hash/signature to the same trace.
         self._emit(REPORT_EVENT, {
-            "report": report.to_dict(),
+            "report_hash": report.report_hash,
+            "station_key_id": report.station_key_id,
+            "station_signature": report.station_signature,
             "source_run_hashes": list(payload["run_hashes"]),
+            "significance_test": significance_test,
+            "alpha": alpha,
         })
         return report
 
@@ -468,14 +505,25 @@ class SpecEvaluationEvidence:
                                  minimum_runs: int = 3,
                                  significance_test: str = "mann_whitney_u",
                                  alpha: float = 0.05) -> SignedComparisonReport:
+        events = tuple(observations)
         runs: list[EvaluationRunEvidence] = []
-        for observation in observations:
+        terminal: Mapping[str, object] | None = None
+        for observation in events:
             payload = observation.payload
-            if payload.get("event") != RUN_EVENT:
-                continue
-            run = EvaluationRunEvidence.from_dict(payload["run"])
-            if payload.get("run_hash") != run.run_hash:
-                raise SpecEvalError("observation run hash mismatch")
-            runs.append(run)
+            if payload.get("event") == RUN_EVENT:
+                run = EvaluationRunEvidence.from_dict(payload["run"])
+                if payload.get("run_hash") != run.run_hash:
+                    raise SpecEvalError("observation run hash mismatch")
+                runs.append(run)
+            elif payload.get("event") == REPORT_EVENT:
+                terminal = payload
         builder = cls(workload, station_identity, minimum_runs=minimum_runs)
-        return builder.build_report(runs, significance_test=significance_test, alpha=alpha)
+        rebuilt = builder.build_report(runs, significance_test=significance_test, alpha=alpha)
+        if terminal is not None:
+            expected = terminal.get("report_hash")
+            if expected != rebuilt.report_hash:
+                raise SpecEvalError("terminal observation report hash mismatch")
+            if terminal.get("source_run_hashes") != tuple(rebuilt.payload["run_hashes"]):
+                # Frozen observation arrays deserialize as tuples.
+                raise SpecEvalError("terminal observation run binding mismatch")
+        return rebuilt
