@@ -60,7 +60,7 @@ def generate_evidence(repo_path: str = ".") -> dict:
         },
         "raw_observations": observations,
         "observation_hash": hash_observations(observations),
-        "prometheus_export": render_telemetry_prometheus(collector),
+        "prometheus_export": render_telemetry_prometheus(collector).splitlines(),
         "report": report_a,
         "reproduction": {
             "first_report_hash": report_a["report_hash"],
