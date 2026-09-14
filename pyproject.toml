@@ -13,6 +13,7 @@ dependencies = []
 [project.optional-dependencies]
 marketplace = ["cryptography>=43"]
 factory = ["cryptography>=43"]
+test = ["pytest>=8", "PyYAML>=6"]
 
 [project.scripts]
 residual = "residual.cli:main"
