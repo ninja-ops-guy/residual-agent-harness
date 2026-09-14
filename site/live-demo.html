@@ -73,37 +73,16 @@ function setCloudReady(user){
   cloudBadge.innerHTML='<strong>CLOUD READY</strong> / Puter user-pays'+who;
   status.textContent='VM READY · CLOUD ENABLED';status.className='';
 }
-async function refreshCloudState(){
-  try{if(window.puter?.auth?.isSignedIn?.()){const u=await puter.auth.getUser();setCloudReady(u)}}catch(e){}
-}
+async function refreshCloudState(){try{if(window.puter?.auth?.isSignedIn?.()){const u=await puter.auth.getUser();setCloudReady(u)}}catch(e){}}
 cloudBtn.addEventListener('click',async()=>{
   cloudBtn.disabled=true;cloudBtn.textContent='SIGNING IN…';status.textContent='PUTER SIGN-IN…';status.className='fallback';
-  try{
-    await puter.auth.signIn({attempt_temp_user_creation:true});
-    const user=await puter.auth.getUser();setCloudReady(user);
-  }catch(e){cloudBtn.disabled=false;cloudBtn.textContent='ENABLE CLOUD ✦';status.textContent='CLOUD SIGN-IN CANCELLED';status.className='fallback';}
+  try{await puter.auth.signIn({attempt_temp_user_creation:true});const user=await puter.auth.getUser();setCloudReady(user)}
+  catch(e){cloudBtn.disabled=false;cloudBtn.textContent='ENABLE CLOUD ✦';status.textContent='CLOUD SIGN-IN CANCELLED';status.className='fallback'}
 });
-function decode64url(s){
-  s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';
-  const bin=atob(s),bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));return new TextDecoder().decode(bytes);
-}
-function encode64urlText(text){
-  const bytes=new TextEncoder().encode(text);let bin='';for(const b of bytes)bin+=String.fromCharCode(b);
-  return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-}
-function normalizePuterText(result){
-  if(typeof result==='string')return result;
-  const c=result?.message?.content;
-  if(typeof c==='string')return c;
-  if(Array.isArray(c))return c.map(p=>typeof p==='string'?p:(p?.text||p?.content||'')).join('');
-  if(typeof result?.text==='string')return result.text;
-  if(typeof result?.content==='string')return result.content;
-  throw new Error('puter returned no text content');
-}
-function sendBridgeResponse(id,obj){
-  const encoded=encode64urlText(JSON.stringify(obj));
-  vm.contentWindow?.postMessage({type:'residual-vm-input',data:`__RESIDUAL_BROWSER_RESPONSE__:${id}:${encoded}\n`},location.origin);
-}
+function decode64url(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const bin=atob(s),bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));return new TextDecoder().decode(bytes)}
+function encode64urlText(text){const bytes=new TextEncoder().encode(text);let bin='';for(const b of bytes)bin+=String.fromCharCode(b);return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function normalizePuterText(result){if(typeof result==='string')return result;const c=result?.message?.content;if(typeof c==='string')return c;if(Array.isArray(c))return c.map(p=>typeof p==='string'?p:(p?.text||p?.content||'')).join('');if(typeof result?.text==='string')return result.text;if(typeof result?.content==='string')return result.content;throw new Error('puter returned no text content')}
+function sendBridgeResponse(id,obj){const encoded=encode64urlText(JSON.stringify(obj));vm.contentWindow?.postMessage({type:'residual-vm-input',data:`__RESIDUAL_BROWSER_RESPONSE__:${id}:${encoded}\n`},location.origin)}
 async function handleBridgeRequest(line){
   const m=line.match(/^__RESIDUAL_BROWSER_REQUEST__:([0-9a-f]+):([A-Za-z0-9_-]+)$/);if(!m)return;
   const id=m[1];let req;
@@ -111,19 +90,16 @@ async function handleBridgeRequest(line){
   if(!cloudReady || !window.puter){status.textContent='CLOUD REQUEST WAITING · TAP ENABLE CLOUD';status.className='fallback';return sendBridgeResponse(id,{ok:false,error:'browser_bridge_auth_required'})}
   status.textContent='CLOUD INFERENCE · '+(req.model||'Puter');status.className='';
   try{
-    const result=await puter.ai.chat(req.messages,{model:req.model||'gpt-5.6-luna'});
-    const text=normalizePuterText(result);
-    const usage=result?.usage||{};
-    sendBridgeResponse(id,{ok:true,text,finish_reason:result?.finish_reason||result?.message?.finish_reason||'stop',usage:{input_tokens:Number.isInteger(usage.prompt_tokens)?usage.prompt_tokens:null,output_tokens:Number.isInteger(usage.completion_tokens)?usage.completion_tokens:null}});
+    const maxTokens=Number.isInteger(req.max_output_tokens)?Math.max(1,Math.min(req.max_output_tokens,512)):256;
+    const result=await puter.ai.chat(req.messages,{model:req.model||'gpt-5.6-luna',max_tokens:maxTokens,normalize:true});
+    const text=normalizePuterText(result),usage=result?.usage||{};
+    const inputTokens=Number.isInteger(usage.prompt_tokens)?usage.prompt_tokens:(Number.isInteger(usage.input_tokens)?usage.input_tokens:null);
+    const outputTokens=Number.isInteger(usage.completion_tokens)?usage.completion_tokens:(Number.isInteger(usage.output_tokens)?usage.output_tokens:null);
+    sendBridgeResponse(id,{ok:true,text,finish_reason:result?.finish_reason||result?.message?.finish_reason||'stop',usage:{input_tokens:inputTokens,output_tokens:outputTokens}});
     status.textContent='CLOUD RESPONSE RETURNED TO VM';status.className='';
-  }catch(e){console.warn('Puter inference failed',e);sendBridgeResponse(id,{ok:false,error:'browser_bridge_remote_error'});status.textContent='CLOUD INFERENCE FAILED';status.className='err';}
+  }catch(e){console.warn('Puter inference failed',e);sendBridgeResponse(id,{ok:false,error:'browser_bridge_remote_error'});status.textContent='CLOUD INFERENCE FAILED';status.className='err'}
 }
-window.addEventListener('message',event=>{
-  if(event.source!==vm.contentWindow || event.origin!==location.origin || event.data?.type!=='residual-vm-output')return;
-  outputBuffer+=String(event.data.data||'');
-  const parts=outputBuffer.split(/\r?\n/);outputBuffer=parts.pop()||'';
-  for(const line of parts)handleBridgeRequest(line.trim());
-});
+window.addEventListener('message',event=>{if(event.source!==vm.contentWindow||event.origin!==location.origin||event.data?.type!=='residual-vm-output')return;outputBuffer+=String(event.data.data||'');const parts=outputBuffer.split(/\r?\n/);outputBuffer=parts.pop()||'';for(const line of parts)handleBridgeRequest(line.trim())});
 function terminalTextarea(){try{return vm.contentDocument?.querySelector('textarea.xterm-helper-textarea, .xterm-helper-textarea, textarea[aria-label="Terminal input"]')||null}catch(e){return null}}
 function focusTerminal(){const ta=terminalTextarea();if(!ta){document.getElementById('kbdhint').textContent='Terminal is still booting…';return false}ta.removeAttribute('readonly');ta.removeAttribute('disabled');try{ta.focus({preventScroll:true})}catch(e){ta.focus()}document.getElementById('kbdhint').textContent='Keyboard connected to terminal.';return true}
 function sendKey(key,opts={}){const ta=terminalTextarea();if(!ta)return focusTerminal();ta.focus();const init={key,code:opts.code||key,bubbles:true,cancelable:true,ctrlKey:!!opts.ctrlKey};ta.dispatchEvent(new KeyboardEvent('keydown',init));ta.dispatchEvent(new KeyboardEvent('keypress',init));ta.dispatchEvent(new KeyboardEvent('keyup',init))}
