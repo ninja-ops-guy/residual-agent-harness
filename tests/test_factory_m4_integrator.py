@@ -25,15 +25,18 @@ from residual.factory.station_issuer import FactoryStationIssuer
 from residual.factory.worker_contract import WorkerContract
 
 
+LF = bytes([10])
+
+
 class M4IntegratorTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
         self.repo = self.root / "repo"
         self.repo.mkdir()
+        (self.repo / "shared.txt").write_bytes(b"a" + LF + b"b" + LF + b"c" + LF)
+        (self.repo / "base.txt").write_bytes(b"base" + LF)
         git(self.repo, "init")
-        (self.repo / "shared.txt").write_text("a\nb\nc\")
-        (self.repo / "base.txt").write_text("base\n")
         git(self.repo, "add", ".")
         git(self.repo, "-c", "user.name=test", "-c", "user.email=test@localhost",
             "commit", "-m", "base")
@@ -153,8 +156,8 @@ class M4IntegratorTests(unittest.TestCase):
         ))
 
     def test_deterministic_commit_and_signed_receipt(self):
-        r1 = self.issue("task1", "R1", artifacts={"one.txt": b"one\n"}, index=1)
-        r2 = self.issue("task2", "R2", artifacts={"two.txt": b"two\n"}, index=2)
+        r1 = self.issue("task1", "R1", artifacts={"one.txt": b"one" + LF}, index=1)
+        r2 = self.issue("task2", "R2", artifacts={"two.txt": b"two" + LF}, index=2)
         plan_a = self.m4.integration_plan((r2.receipt_hash, r1.receipt_hash))
         plan_b = self.m4.integration_plan((r1.receipt_hash, r2.receipt_hash))
         self.assertEqual(plan_a.plan_hash, plan_b.plan_hash)
@@ -168,21 +171,25 @@ class M4IntegratorTests(unittest.TestCase):
         self.assertTrue(any(e["event"] == "IntegrationReceiptIssued" for e in self.events))
 
     def test_subset_overlap_keeps_superset_without_hitl(self):
+        smaller_bytes = b"A" + LF + b"b" + LF + b"c" + LF
+        larger_bytes = b"A" + LF + b"b" + LF + b"C" + LF
         smaller = self.issue(
-            "task1", "R1", artifacts={"shared.txt": b"A\nb\nc\n"}, index=1
+            "task1", "R1", artifacts={"shared.txt": smaller_bytes}, index=1
         )
         larger = self.issue(
-            "task3", "R3", artifacts={"shared.txt": b"A\nb\nC\n"}, index=3
+            "task3", "R3", artifacts={"shared.txt": larger_bytes}, index=3
         )
         plan = self.m4.integration_plan((smaller.receipt_hash, larger.receipt_hash))
         outcome = self.integrator.integrate(plan, policy=self.policy(), station_identity=self.identity)
         blob = git(self.repo, "show", f"{outcome.receipt.output_commit}:shared.txt")
-        self.assertEqual(blob, b"A\nb\nC\n")
+        self.assertEqual(blob, larger_bytes)
         self.assertEqual(outcome.receipt.conflict_resolutions, ())
 
     def test_true_conflict_requires_and_binds_hitl_resolution(self):
-        left = self.issue("task1", "R1", artifacts={"shared.txt": b"LEFT\nb\nc\n"}, index=1)
-        right = self.issue("task3", "R3", artifacts={"shared.txt": b"RIGHT\nb\nc\n"}, index=3)
+        left_bytes = b"LEFT" + LF + b"b" + LF + b"c" + LF
+        right_bytes = b"RIGHT" + LF + b"b" + LF + b"c" + LF
+        left = self.issue("task1", "R1", artifacts={"shared.txt": left_bytes}, index=1)
+        right = self.issue("task3", "R3", artifacts={"shared.txt": right_bytes}, index=3)
         plan = self.m4.integration_plan((left.receipt_hash, right.receipt_hash))
         with self.assertRaises(IntegrationConflictError):
             self.integrator.integrate(plan, policy=self.policy(), station_identity=self.identity)
@@ -191,14 +198,13 @@ class M4IntegratorTests(unittest.TestCase):
             plan, policy=self.policy(), station_identity=self.identity, resolutions=(resolution,)
         )
         self.assertEqual(outcome.receipt.conflict_resolutions, (resolution,))
-        self.assertEqual(git(self.repo, "show", f"{outcome.receipt.output_commit}:shared.txt"),
-                         b"RIGHT\nb\nc\n")
+        self.assertEqual(git(self.repo, "show", f"{outcome.receipt.output_commit}:shared.txt"), right_bytes)
         self.assertTrue(any(e["event"] == "M4ConflictResolved" for e in self.events))
 
     def test_failed_project_verification_attributes_receipt_and_replans(self):
-        good1 = self.issue("task1", "R1", artifacts={"one.txt": b"one\n"}, index=1)
-        bad = self.issue("task2", "R2", artifacts={"bad.txt": b"bad\n"}, index=2)
-        good3 = self.issue("task3", "R3", artifacts={"three.txt": b"three\n"}, index=3)
+        good1 = self.issue("task1", "R1", artifacts={"one.txt": b"one" + LF}, index=1)
+        bad = self.issue("task2", "R2", artifacts={"bad.txt": b"bad" + LF}, index=2)
+        good3 = self.issue("task3", "R3", artifacts={"three.txt": b"three" + LF}, index=3)
         plan = self.m4.integration_plan((good1.receipt_hash, bad.receipt_hash, good3.receipt_hash))
         with self.assertRaises(ProjectVerificationError) as caught:
             self.integrator.integrate(plan, policy=self.policy(fail_on_bad=True), station_identity=self.identity)
