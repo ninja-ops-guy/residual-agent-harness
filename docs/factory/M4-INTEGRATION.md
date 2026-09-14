@@ -6,13 +6,13 @@ This stage consumes only `EvidenceIntegrationPlan` values built from locally ver
 
 `DeterministicIntegrator` never reads worker worktrees or raw candidate output. Artifact bytes are fetched through `EvidenceBus.artifact()`, which re-verifies the Station signature, stale status, receipt graph, artifact hash, and content-addressed store before returning bytes.
 
-All root receipts must bind the same exact input commit. Receipts are applied in the deterministic topological order already committed by `EvidenceIntegrationPlan`. The final Git tree is committed with fixed author/committer identity and timestamp, with the integration-plan hash in the commit message. No branch or ref is moved.
+All root receipts must bind the same exact input commit. Receipt/task order is revalidated at execution time and every parent must precede its child. The final Git tree is committed with fixed author/committer identity and timestamp, with the integration-plan hash in the commit message. No branch or ref is moved.
 
 ## Overlap semantics
 
 Overlap is evaluated only between receipts that are incomparable in the dependency graph. Ancestor/descendant edits are sequential evolution; the later receipt owns the final file state.
 
-For incomparable receipts touching the same path, the integrator derives normalized edits from each receipt's frozen input state:
+For incomparable receipts touching the same path, the integrator derives normalized edits from each receipt's frozen input state. File existence is part of that normalization, so an absent file is not silently treated as an empty file.
 
 - identical normalized edits collapse automatically;
 - a strict subset is discarded and the superset is kept;
@@ -31,7 +31,7 @@ True conflicts stop integration. A caller may resume only by providing a `Confli
 
 When `secops_active=True`, a `security_scan` command is mandatory as well. Commands are executed directly without a shell in the isolated integration worktree. The receipt records pass/fail status, return code, and SHA-256 hashes of stdout/stderr rather than copying arbitrary command output into trusted evidence.
 
-If accumulated verification fails, the integrator deterministically bisects the receipt set by replaying subsets from the frozen root commit and re-running the same verification policy. When one receipt can be isolated, `M4ReceiptRevisionRequired` is emitted with `action=replan`, and `ProjectVerificationError.offending_receipt_hash` identifies it. Interaction-only failures where neither half fails independently return no single offending receipt rather than inventing attribution.
+If accumulated verification fails, the integrator deterministically bisects the receipt set by replaying counterfactual subsets from the frozen root commit and re-running the same verification policy. Overlap classification is recomputed for each subset rather than reusing the full-run resolution state. When one receipt can be isolated, `M4ReceiptRevisionRequired` is emitted with `action=replan`, and `ProjectVerificationError.offending_receipt_hash` identifies it. Interaction-only failures where neither half fails independently return no single offending receipt rather than inventing attribution.
 
 ## IntegrationReceipt
 
@@ -50,4 +50,4 @@ The output commit is deterministic for the same accepted evidence, conflict reso
 
 ## Current scope
 
-This closes M4-R1 through M4-R7 at the Factory integration boundary. Scheduler policy beyond the already implemented receipt-backed ready-DAG snapshot remains separate: engine/node selection, continuous bottleneck measurement, automatic swarm resizing, and structural re-planning correspond to M4-R9 through M4-R13.
+This implements deterministic project integration for M4-R1 through M4-R5 and M4-R7, plus deterministic single-receipt attribution for isolatable M4-R6 regressions. Multi-receipt interaction failures remain fail-closed and intentionally unattributed. M4-R8's receipt-backed ready-DAG snapshot was implemented in the preceding stage. Scheduler intelligence remains separate: engine/node selection, continuous bottleneck measurement, automatic swarm resizing, and structural re-planning correspond to M4-R9 through M4-R13.
