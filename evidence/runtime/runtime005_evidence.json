@@ -1,0 +1,214 @@
+{
+  "identity": {
+    "commit": "2091246fcbdb5d2b98d4c65f6e90dbd39f17cb2b",
+    "platform": "Linux-5.10.134-18.0.12.lifsea8.x86_64-x86_64-with-glibc2.36",
+    "python": "3.12.12",
+    "tree": "656096968bdb85cb96fc17d210dfabafe77ca32f"
+  },
+  "scenario_hash": "63613688c17c635e11c31e3295f191a818afc61ac6f3d193c66fac05de590908",
+  "scenarios": {
+    "all_pass": true,
+    "conformance": [
+      {
+        "checks": [
+          [
+            "protocol_surface",
+            true
+          ],
+          [
+            "identity_non_empty",
+            true
+          ],
+          [
+            "locality_declared",
+            true
+          ],
+          [
+            "supports_declared_capability",
+            true
+          ],
+          [
+            "rejects_undeclared_capability",
+            true
+          ],
+          [
+            "health_enum",
+            true
+          ],
+          [
+            "execute_returns_engine_result",
+            true
+          ],
+          [
+            "candidate_present",
+            true
+          ],
+          [
+            "tool_calls_tuple",
+            true
+          ],
+          [
+            "wall_clock_non_negative",
+            true
+          ],
+          [
+            "normalize_roundtrip",
+            true
+          ],
+          [
+            "residual_policy_authoritative_metadata",
+            true
+          ]
+        ],
+        "engine_name": "local-deterministic",
+        "engine_version": "1.0.0",
+        "passed": true
+      },
+      {
+        "checks": [
+          [
+            "protocol_surface",
+            true
+          ],
+          [
+            "identity_non_empty",
+            true
+          ],
+          [
+            "locality_declared",
+            true
+          ],
+          [
+            "supports_declared_capability",
+            true
+          ],
+          [
+            "rejects_undeclared_capability",
+            true
+          ],
+          [
+            "health_enum",
+            true
+          ],
+          [
+            "execute_returns_engine_result",
+            true
+          ],
+          [
+            "candidate_present",
+            true
+          ],
+          [
+            "tool_calls_tuple",
+            true
+          ],
+          [
+            "wall_clock_non_negative",
+            true
+          ],
+          [
+            "normalize_roundtrip",
+            true
+          ],
+          [
+            "residual_policy_authoritative_metadata",
+            true
+          ]
+        ],
+        "engine_name": "claude-sdk",
+        "engine_version": "fixture-1",
+        "passed": true
+      }
+    ],
+    "fault_scenarios": [
+      {
+        "expected": "unknown_when_stale",
+        "observations": [
+          {
+            "reason": "ok",
+            "status": "current"
+          },
+          {
+            "reason": "telemetry_stale",
+            "status": "unknown",
+            "value_suppressed": true
+          }
+        ],
+        "pass": true,
+        "scenario": "stale_telemetry_returns_unknown"
+      },
+      {
+        "expected": "all_cancelled_within_budget",
+        "observations": [
+          {
+            "outcomes": [
+              [
+                "op-1",
+                "cancelled"
+              ],
+              [
+                "op-2",
+                "cancelled"
+              ]
+            ],
+            "survived": []
+          }
+        ],
+        "pass": true,
+        "scenario": "cancellation_within_budget"
+      },
+      {
+        "expected": "report_not_cancelled_survivor_listed",
+        "observations": [
+          {
+            "cancelled": false,
+            "reason": "cancellation_budget_exceeded",
+            "survived": [
+              "stubborn-op"
+            ]
+          }
+        ],
+        "pass": true,
+        "scenario": "cancellation_budget_exceeded_fails_closed"
+      },
+      {
+        "expected": "local_preferred_and_routing_error_on_mismatch",
+        "observations": [
+          {
+            "locality": "local",
+            "selected": "local-deterministic@1.0.0",
+            "unsupported_route_raised": true
+          }
+        ],
+        "pass": true,
+        "scenario": "capability_probe_fail_closed_and_local_preferred"
+      },
+      {
+        "expected": "leak_blocked_and_residual_authoritative",
+        "observations": [
+          {
+            "authority": "residual",
+            "decision": "allow",
+            "leak_blocked": true,
+            "sanitized": {
+              "auto_approve": false,
+              "auto_approved": false,
+              "autonomous": false,
+              "hitl": false,
+              "hitl_satisfied": false,
+              "policy_bypass": false,
+              "provider_approved": false,
+              "residual_policy_authoritative": true,
+              "self_approved": false,
+              "yolo": false
+            }
+          }
+        ],
+        "pass": true,
+        "scenario": "provider_native_authority_never_overrides_residual"
+      }
+    ]
+  },
+  "schema_version": "residual.swarm.runtime005.evidence.v1",
+  "spec": "SPEC-SWARM-RUNTIME-005"
+}
