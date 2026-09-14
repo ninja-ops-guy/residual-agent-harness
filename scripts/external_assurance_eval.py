@@ -20,10 +20,6 @@ def load_engines(path: str | Path):
     raw = load_engine_config_payload(path)
     specs = []
     for item in raw["engines"]:
-        allowed = {"provider", "model", "capabilities", "locality", "max_tokens", "temperature",
-                   "system_prompt", "cost_per_task", "privacy_class", "location"}
-        if set(item) - allowed:
-            raise ValueError("invalid engine entry")
         config = ProviderEngineConfig(
             provider=item["provider"],
             model=item["model"],
@@ -49,7 +45,7 @@ def main(argv=None):
     h = sub.add_parser("hash", help="print the canonical suite hash before execution")
     h.add_argument("--suite", required=True)
 
-    pre = sub.add_parser("preregister", help="freeze suite, engines, hypotheses and stopping rule")
+    pre = sub.add_parser("preregister", help="freeze suite, engines, hypotheses, trials and stopping rule")
     pre.add_argument("--suite", required=True)
     pre.add_argument("--engines", required=True)
     pre.add_argument("--study-id", required=True)
@@ -59,6 +55,7 @@ def main(argv=None):
     pre.add_argument("--secondary-metric", action="append", default=[])
     pre.add_argument("--maximum-budget-usd", type=float, required=True)
     pre.add_argument("--runner-revision", required=True)
+    pre.add_argument("--trials", type=int, default=1)
     pre.add_argument("--notes", default="")
     pre.add_argument("--output", required=True)
 
@@ -89,20 +86,33 @@ def main(argv=None):
             secondary_metrics=tuple(args.secondary_metric),
             maximum_budget_usd=args.maximum_budget_usd,
             runner_revision=args.runner_revision,
+            trials=args.trials,
             notes=args.notes,
         )
         write_preregistration(args.output, manifest)
-        print(json.dumps({"manifest_sha256": manifest.sha256, "output": str(args.output)}, sort_keys=True))
+        print(json.dumps({
+            "manifest_sha256": manifest.sha256,
+            "trials": manifest.trials,
+            "output": str(args.output),
+        }, sort_keys=True))
         return 0
 
     suite = load_external_suite(args.suite)
     manifest = load_preregistration(args.manifest)
     verify_preregistration(manifest, suite, args.engines)
     if args.command == "verify":
-        print(json.dumps({"verified": True, "manifest_sha256": manifest.sha256}, sort_keys=True))
+        print(json.dumps({
+            "verified": True,
+            "manifest_sha256": manifest.sha256,
+            "trials": manifest.trials,
+        }, sort_keys=True))
         return 0
 
-    report = ExternalEvidenceRunner(suite, load_engines(args.engines)).run()
+    report = ExternalEvidenceRunner(
+        suite,
+        load_engines(args.engines),
+        trials=manifest.trials,
+    ).run()
     bundle = build_evidence_bundle(
         manifest=manifest,
         suite=suite,

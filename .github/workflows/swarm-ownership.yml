@@ -1,0 +1,44 @@
+name: Swarm ownership preflight
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ownership:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Preserve exact committed source and history
+        run: |
+          mkdir -p runs/swarm-ownership
+          git rev-parse HEAD > runs/swarm-ownership/commit.txt
+          git rev-parse HEAD^{tree} > runs/swarm-ownership/tree.txt
+          git bundle create runs/swarm-ownership/source.bundle HEAD
+      - name: Ownership regression tests
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests -p test_swarm_ownership_gate.py -v 2>&1 | tee runs/swarm-ownership/tests.txt
+      - name: Fail-closed ownership preflight (not full qualification)
+        run: |
+          set -o pipefail
+          python verifier/v3/check_swarm.py --ownership-only 2>&1 | tee runs/swarm-ownership/preflight.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: swarm-ownership-${{ github.sha }}
+          path: runs/swarm-ownership
+          if-no-files-found: error
+          retention-days: 14

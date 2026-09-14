@@ -1,59 +1,183 @@
 #!/usr/bin/env python3
-"""verifier/v3 — 8-swarm execution acceptance checks.
+"""8-swarm acceptance gate; committed-tree ownership checks fail closed.
 
-Criteria:
- 1. Track deliverable paths exist on merged main.
- 2. No modifications to M2-M4-owned paths (residual/swarm, evidence,
-    scheduler, integrator) relative to baseline commit 98c12f0.
- 3. Full test suite passes.
- 4. harness_specs verifier v2 still green.
+The original swarm baseline still protects the legacy directories. The separate
+Factory baseline protects canonical M2/M3 and reserved M4 files. Advance that
+baseline only in an explicitly reviewed, authorized Factory-owner change.
+
+--ownership-only runs just the ownership preflight, not full qualification.
 """
-import os, subprocess, sys, json
+from __future__ import annotations
 
-ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
+import argparse
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
 BASELINE = "98c12f0"
+OWNERSHIP_BASELINE = "412b66c35f7c0e1ac479fe60a5b7d33d5510e3af"
 REQUIRED_PATHS = [
     "implementation-status.yaml", "scripts/status_check.py",
     "docs/status/IMPLEMENTATION_STATUS.md",
     "residual/sandbox", "tests/redteam",
-    "residual/cluster",
-    "residual/orchestrator",
+    "residual/cluster", "residual/orchestrator",
     "residual/eval", "residual/soak",
     "residual/gateway", "residual/lifecycle_glue",
     "residual/crypto", "residual/connectors/conformance",
     "residual/studio_frontend", "examples/onboarding",
 ]
-PROTECTED = ["residual/swarm", "residual/evidence", "residual/scheduler", "residual/integrator"]
+PROTECTED = (
+    "residual/swarm", "residual/evidence",
+    "residual/scheduler", "residual/integrator",
+)
+PROTECTED_FILES = frozenset({
+    "residual/factory/_sandbox_child.py",
+    "residual/factory/evidence_bus.py",
+    "residual/factory/evidence_receipts.py",
+    "residual/factory/integrator.py",
+    "residual/factory/runtime.py",
+    "residual/factory/runtime_journal.py",
+    "residual/factory/runtime_workspace.py",
+    "residual/factory/scheduler.py",
+    "residual/factory/station_issuer.py",
+    "residual/factory/worker_contract.py",
+})
 
-failures = []
 
-for p in REQUIRED_PATHS:
-    if not os.path.exists(os.path.join(ROOT, p)):
-        failures.append(f"missing deliverable path: {p}")
+class GitEvidenceError(RuntimeError):
+    """History or comparison evidence is unavailable; never means no changes."""
 
-diff = subprocess.run(["git", "-C", ROOT, "diff", "--name-only", BASELINE, "HEAD"],
-                      capture_output=True, text=True)
-changed = diff.stdout.split()
-for p in PROTECTED:
-    hits = [c for c in changed if c.startswith(p + "/")]
-    if hits:
-        failures.append(f"protected path modified: {p} ({len(hits)} files)")
 
-t = subprocess.run([sys.executable, "-m", "pytest", "tests", "-q"],
-                   cwd=ROOT, capture_output=True, text=True)
-if t.returncode != 0:
-    failures.append("pytest failed:\n" + t.stdout[-2000:])
-test_summary = t.stdout.strip().splitlines()[-1] if t.stdout else "no output"
+def _git(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    try:
+        result = subprocess.run(
+            ["git", "--no-replace-objects", "-C", str(root), *args],
+            capture_output=True, text=True, errors="surrogateescape", timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise GitEvidenceError(f"git {args[0]} unavailable: {exc}") from exc
+    if result.returncode:
+        detail = (result.stderr or result.stdout).strip()[-2000:]
+        raise GitEvidenceError(
+            f"git {args[0]} failed (exit {result.returncode}): {detail}"
+        )
+    return result
 
-v2 = subprocess.run([sys.executable, "verifier/v2/check_specs.py"],
-                    cwd=ROOT, capture_output=True, text=True)
-if v2.returncode != 0:
-    failures.append("verifier v2 regressed")
 
-print(json.dumps({"changed_files": len(changed), "pytest": test_summary}, indent=2))
-if failures:
-    print("FAIL:")
-    for x in failures:
-        print(" -", x)
-    sys.exit(1)
-print("PASS: 8-swarm acceptance checks green")
+def _commit(root: Path, ref: str) -> str:
+    return _git(
+        root, "rev-parse", "--verify", "--end-of-options", f"{ref}^{{commit}}"
+    ).stdout.strip()
+
+
+def _changed_paths(root: Path, baseline: str, head: str) -> list[str]:
+    _git(root, "merge-base", "--is-ancestor", baseline, head)
+    # NUL delimiters preserve whitespace in filenames. Disabling renames means
+    # moving a protected file out of its directory still exposes its deletion.
+    result = _git(
+        root, "diff", "--no-ext-diff", "--no-textconv", "--no-renames",
+        "--name-only", "-z", baseline, head, "--",
+    )
+    return [path for path in result.stdout.split("\0") if path]
+
+
+def evaluate_ownership(
+    root: Path, baseline: str = BASELINE,
+    ownership_baseline: str = OWNERSHIP_BASELINE,
+) -> tuple[dict[str, object], list[str]]:
+    """Check committed HEAD; missing evidence yields null counts and failure."""
+    report: dict[str, object] = {
+        "scope": "committed-tree ownership",
+        "head": None,
+        "reporting_baseline": baseline,
+        "ownership_baseline": ownership_baseline,
+        "resolved_reporting_baseline": None,
+        "resolved_ownership_baseline": None,
+        "changed_files": None,
+        "ownership_changed_files": None,
+        "protected_files": len(PROTECTED_FILES),
+    }
+    failures: list[str] = []
+    try:
+        head = _commit(root, "HEAD")
+        report["head"] = head
+    except GitEvidenceError as exc:
+        return report, [f"HEAD evidence unavailable: {exc}"]
+
+    for label, ref, resolved_key, count_key in (
+        ("reporting", baseline, "resolved_reporting_baseline", "changed_files"),
+        ("Factory ownership", ownership_baseline,
+         "resolved_ownership_baseline", "ownership_changed_files"),
+    ):
+        try:
+            resolved = _commit(root, ref)
+            report[resolved_key] = resolved
+            changed = _changed_paths(root, resolved, head)
+            report[count_key] = len(changed)
+        except GitEvidenceError as exc:
+            failures.append(f"{label} evidence unavailable for {ref}: {exc}")
+            continue
+        if label == "reporting":
+            hits = [p for p in changed if any(
+                p == prefix or p.startswith(prefix + "/") for prefix in PROTECTED
+            )]
+        else:
+            hits = sorted(PROTECTED_FILES.intersection(changed))
+        if hits:
+            failures.append(f"{label} protected paths modified: {', '.join(hits)}")
+    return report, failures
+
+
+def _run_check(root: Path, label: str, command: list[str]) -> tuple[str, str | None]:
+    try:
+        result = subprocess.run(
+            command, cwd=root, capture_output=True, text=True, timeout=900,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return "unavailable", f"{label} could not complete: {exc}"
+    output = result.stdout.strip()
+    summary = output.splitlines()[-1] if output else "no stdout"
+    if result.returncode:
+        return summary, (
+            f"{label} failed (exit {result.returncode})\n"
+            f"stdout:\n{result.stdout[-2000:]}\nstderr:\n{result.stderr[-2000:]}"
+        )
+    return summary, None
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--ownership-only", action="store_true")
+    args = parser.parse_args(argv)
+    report, failures = evaluate_ownership(ROOT)
+    report.update({"pytest": "NOT RUN", "verifier_v2": "NOT RUN"})
+    if not args.ownership_only:
+        failures.extend(
+            f"missing deliverable path: {path}" for path in REQUIRED_PATHS
+            if not (ROOT / path).exists()
+        )
+        if not failures:
+            for key, label, command in (
+                ("pytest", "pytest", [sys.executable, "-m", "pytest", "tests", "-q"]),
+                ("verifier_v2", "verifier v2",
+                 [sys.executable, "verifier/v2/check_specs.py"]),
+            ):
+                report[key], failure = _run_check(ROOT, label, command)
+                if failure:
+                    failures.append(failure)
+    report["passed"] = not failures
+    print(json.dumps(report, indent=2))
+    if failures:
+        print("FAIL:\n - " + "\n - ".join(failures))
+        return 1
+    if args.ownership_only:
+        print("PASS: ownership preflight only; full qualification NOT RUN")
+    else:
+        print("PASS: 8-swarm acceptance checks green")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

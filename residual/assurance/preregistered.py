@@ -10,13 +10,16 @@ from ..core import canonical, digest, strict_json
 from .external import ExternalSuite, load_external_suite
 
 
-_MANIFEST_SCHEMA = "residual.external-preregistration.v1"
-_BUNDLE_SCHEMA = "residual.external-evidence-bundle.v1"
+_MANIFEST_SCHEMA_V1 = "residual.external-preregistration.v1"
+_MANIFEST_SCHEMA_V2 = "residual.external-preregistration.v2"
+_BUNDLE_SCHEMA = "residual.external-evidence-bundle.v2"
 _ALLOWED_METRICS = {
     "market_success_rate",
     "oracle_success_rate",
     "oracle_gap",
     "per_engine_success_rate",
+    "cheapest_baseline_success_rate",
+    "market_vs_cheapest_delta",
 }
 _ALLOWED_ENGINE_FIELDS = {
     "provider", "model", "capabilities", "locality", "max_tokens", "temperature",
@@ -67,15 +70,19 @@ def engine_config_sha256(path: str | Path) -> str:
     return digest(load_engine_config_payload(path))
 
 
-def projected_declared_cost_usd(suite: ExternalSuite, engines_path: str | Path) -> float:
+def projected_declared_cost_usd(suite: ExternalSuite, engines_path: str | Path, trials: int = 1) -> float:
+    if type(trials) is not int or trials < 1:
+        raise ValueError("trials must be a positive integer")
     raw = load_engine_config_payload(engines_path)
     per_case = sum(float(item.get("cost_per_task", 0.0)) for item in raw["engines"])
-    return per_case * len(suite.cases)
+    return per_case * len(suite.cases) * trials
 
 
-def projected_provider_calls(suite: ExternalSuite, engines_path: str | Path) -> int:
+def projected_provider_calls(suite: ExternalSuite, engines_path: str | Path, trials: int = 1) -> int:
+    if type(trials) is not int or trials < 1:
+        raise ValueError("trials must be a positive integer")
     raw = load_engine_config_payload(engines_path)
-    return len(suite.cases) * len(raw["engines"])
+    return len(suite.cases) * len(raw["engines"]) * trials
 
 
 @dataclass(frozen=True)
@@ -90,9 +97,13 @@ class ExternalPreregistration:
     stopping_rule: Mapping[str, Any]
     maximum_budget_usd: float
     runner_revision: str
+    trials: int = 1
     notes: str = ""
+    schema_version: str = _MANIFEST_SCHEMA_V2
 
     def __post_init__(self) -> None:
+        if self.schema_version not in {_MANIFEST_SCHEMA_V1, _MANIFEST_SCHEMA_V2}:
+            raise ValueError("unsupported preregistration schema")
         if not self.study_id or not self.registered_at or not self.runner_revision:
             raise ValueError("study_id, registered_at and runner_revision are required")
         for value, label in ((self.suite_sha256, "suite"), (self.engine_config_sha256, "engine config")):
@@ -114,10 +125,14 @@ class ExternalPreregistration:
             raise ValueError("stopping rule value must be a positive integer")
         if type(self.maximum_budget_usd) not in (int, float) or not math.isfinite(self.maximum_budget_usd) or self.maximum_budget_usd < 0:
             raise ValueError("maximum_budget_usd must be finite and non-negative")
+        if type(self.trials) is not int or self.trials < 1:
+            raise ValueError("trials must be a positive integer")
+        if self.schema_version == _MANIFEST_SCHEMA_V1 and self.trials != 1:
+            raise ValueError("v1 preregistration supports exactly one trial")
 
     def payload(self) -> dict[str, Any]:
-        return {
-            "schema_version": _MANIFEST_SCHEMA,
+        payload = {
+            "schema_version": self.schema_version,
             "study_id": self.study_id,
             "registered_at": self.registered_at,
             "suite_sha256": self.suite_sha256,
@@ -130,6 +145,9 @@ class ExternalPreregistration:
             "runner_revision": self.runner_revision,
             "notes": self.notes,
         }
+        if self.schema_version == _MANIFEST_SCHEMA_V2:
+            payload["trials"] = self.trials
+        return payload
 
     @property
     def sha256(self) -> str:
@@ -140,13 +158,20 @@ def load_preregistration(path: str | Path) -> ExternalPreregistration:
     raw = strict_json(Path(path).read_text(encoding="utf-8"))
     if not isinstance(raw, dict):
         raise ValueError("invalid preregistration")
-    _require_keys(raw, {
+    schema = raw.get("schema_version")
+    common = {
         "schema_version", "study_id", "registered_at", "suite_sha256",
         "engine_config_sha256", "hypotheses", "primary_metric",
         "secondary_metrics", "stopping_rule", "maximum_budget_usd",
         "runner_revision", "notes",
-    }, "preregistration")
-    if raw["schema_version"] != _MANIFEST_SCHEMA:
+    }
+    if schema == _MANIFEST_SCHEMA_V1:
+        _require_keys(raw, common, "preregistration")
+        trials = 1
+    elif schema == _MANIFEST_SCHEMA_V2:
+        _require_keys(raw, common | {"trials"}, "preregistration")
+        trials = raw["trials"]
+    else:
         raise ValueError("invalid preregistration schema")
     if not isinstance(raw["hypotheses"], list) or not isinstance(raw["secondary_metrics"], list):
         raise ValueError("invalid preregistration list fields")
@@ -161,7 +186,9 @@ def load_preregistration(path: str | Path) -> ExternalPreregistration:
         stopping_rule=raw["stopping_rule"],
         maximum_budget_usd=raw["maximum_budget_usd"],
         runner_revision=raw["runner_revision"],
+        trials=trials,
         notes=raw["notes"],
+        schema_version=schema,
     )
 
 
@@ -178,9 +205,9 @@ def verify_preregistration(
     if manifest.stopping_rule["kind"] == "fixed_evaluation_cases":
         if manifest.stopping_rule["value"] != evaluation_cases:
             raise ValueError("fixed evaluation stopping rule does not match suite")
-    elif projected_provider_calls(suite, engines_path) > manifest.stopping_rule["value"]:
+    elif projected_provider_calls(suite, engines_path, manifest.trials) > manifest.stopping_rule["value"]:
         raise ValueError("planned provider calls exceed preregistered stopping rule")
-    projected_cost = projected_declared_cost_usd(suite, engines_path)
+    projected_cost = projected_declared_cost_usd(suite, engines_path, manifest.trials)
     if projected_cost > manifest.maximum_budget_usd + 1e-12:
         raise ValueError("projected declared cost exceeds preregistered budget")
 
@@ -195,6 +222,8 @@ def build_evidence_bundle(
     verify_preregistration(manifest, suite, engines_path)
     if report.get("suite_sha256") != suite.sha256:
         raise ValueError("report suite hash does not match preregistered suite")
+    if report.get("trials", 1) != manifest.trials:
+        raise ValueError("report trial count does not match preregistration")
     payload = {
         "schema_version": _BUNDLE_SCHEMA,
         "study_id": manifest.study_id,
@@ -202,8 +231,9 @@ def build_evidence_bundle(
         "preregistration_sha256": manifest.sha256,
         "suite_sha256": suite.sha256,
         "engine_config_sha256": engine_config_sha256(engines_path),
-        "projected_declared_cost_usd": projected_declared_cost_usd(suite, engines_path),
-        "projected_provider_calls": projected_provider_calls(suite, engines_path),
+        "trials": manifest.trials,
+        "projected_declared_cost_usd": projected_declared_cost_usd(suite, engines_path, manifest.trials),
+        "projected_provider_calls": projected_provider_calls(suite, engines_path, manifest.trials),
         "report": dict(report),
     }
     payload["sha256"] = digest(payload)
@@ -227,6 +257,7 @@ def preregister_from_files(
     secondary_metrics: tuple[str, ...],
     maximum_budget_usd: float,
     runner_revision: str,
+    trials: int = 1,
     notes: str = "",
 ) -> ExternalPreregistration:
     suite = load_external_suite(suite_path)
@@ -242,7 +273,9 @@ def preregister_from_files(
         stopping_rule={"kind": "fixed_evaluation_cases", "value": eval_count},
         maximum_budget_usd=maximum_budget_usd,
         runner_revision=runner_revision,
+        trials=trials,
         notes=notes,
+        schema_version=_MANIFEST_SCHEMA_V2,
     )
     verify_preregistration(manifest, suite, engines_path)
     return manifest
