@@ -1,0 +1,39 @@
+name: Deployment integration evidence
+on:
+  push:
+    branches: [feat/deployment-gap-closure]
+  pull_request:
+    paths:
+      - 'residual/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - '.github/workflows/deployment-integration.yml'
+permissions:
+  contents: read
+concurrency:
+  group: deployment-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Preserve exact source snapshot
+        run: |
+          mkdir -p evidence
+          git rev-parse HEAD > evidence/commit.txt
+          git archive --format=zip HEAD -o evidence/source.zip
+      - name: Unit and integration contracts
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests -v 2>&1 | tee evidence/tests.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: deployment-evidence-${{ github.sha }}
+          path: evidence/
+          retention-days: 7
