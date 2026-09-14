@@ -1,65 +1,151 @@
 # RESIDUAL Documentation
 
-This directory documents three related surfaces of the same project: the original verification harness, the operator-facing Command Station, and the emerging Factory/Studio multi-worker platform.
+This repo now spans a verification kernel, an operator-facing Station, a headless Factory runtime, adaptive assurance, and an expanding Studio/swarm platform. The documentation is easier to follow if you read it by **system boundary** instead of by file age.
 
-If you are new to the repository, read the documents in the order below rather than treating every spec as equally mature.
+## Start here
 
-## 1. Understand the thesis
+If you only read five documents, use this order:
 
-Start with [`research.md`](research.md). RESIDUAL's working hypothesis is that useful system-level reliability can emerge from **constraining, observing, verifying, and deterministically integrating** computation that is itself stochastic and imperfect.
+1. [`../README.md`](../README.md) — what RESIDUAL is now.
+2. [`architecture.md`](architecture.md) — original verification kernel and invariants.
+3. [`factory/M2-EXECUTION.md`](factory/M2-EXECUTION.md) — bounded worker execution and quarantine boundary.
+4. [`factory/M3-EVIDENCE-BUS.md`](factory/M3-EVIDENCE-BUS.md) — Station-signed receipts and trusted evidence handoff.
+5. [`research.md`](research.md) — research claims, prior art, limits, and what remains to be proven.
 
-The longer IEEE-style manuscript is [`papers/reliability-from-unreliable-computation.md`](papers/reliability-from-unreliable-computation.md). It is a working research paper, not a claim that the hypothesis has already been experimentally established.
+## System map
 
-## 2. Understand the verification kernel
+### Verification kernel
 
-Read [`architecture.md`](architecture.md) for the original obligation-level architecture: ready frontiers, verifier-owned acceptance, evidence negotiation, residual packet compilation, privacy propagation, receipt-bound caching, budgets, and audit limits.
+Read [`architecture.md`](architecture.md) for obligation DAGs, ready frontiers, residual packet compilation, evidence negotiation, privacy propagation, verifier-owned acceptance, caching, budgets, and audit limits.
 
-This is the conceptual kernel that the newer platform layers build around.
+This is the trust model the rest of the project builds around.
 
-## 3. Run the system
+### Command Station
 
-Use [`quickstart.md`](quickstart.md) for the harness and the repository-level [`../START-HERE.md`](../START-HERE.md) for Command Station installation and operation.
+Use [`../START-HERE.md`](../START-HERE.md) to run it.
 
-Station-specific documentation lives under [`station/`](station/), including architecture, run control, modular provider/observation layers, distributed workers, validation, research notes, and the specification format.
+Station-specific design material lives under [`station/`](station/), including:
 
-## 4. Understand Factory and Studio
+- architecture and lifecycle;
+- run control and quarantine;
+- providers and observations;
+- HITL and distributed adapters;
+- specification format;
+- validation evidence.
 
-[`factory/PLAN-CONTRACT.md`](factory/PLAN-CONTRACT.md) describes the concrete frozen execution-plan boundary used by the current Factory implementation.
+### Factory
 
-[`studio/README.md`](studio/README.md) explains how Factory relates to the broader Residual Studio direction. [`studio/PLATFORM_VISION.md`](studio/PLATFORM_VISION.md) is the product/architecture vision, while [`studio/STUDIO_SPECS.md`](studio/STUDIO_SPECS.md) is normative design material.
+Factory is no longer only a plan compiler. Current `main` contains concrete worker execution and evidence layers.
 
-**Important:** normative specifications can lead implementation. Treat tests and current source as the authority for what is implemented today.
+Read:
 
-## 5. Evaluate claims
+- [`factory/PLAN-CONTRACT.md`](factory/PLAN-CONTRACT.md) — deterministic plan freeze and approval binding;
+- [`factory/M2-EXECUTION.md`](factory/M2-EXECUTION.md) — Linux sandboxed workers, worktrees, resource bounds, journals, cancellation, quarantine;
+- [`factory/M2-IMPLEMENTATION-STATUS.md`](factory/M2-IMPLEMENTATION-STATUS.md) — exact M2 implementation boundary and known limits;
+- [`factory/M3-EVIDENCE-BUS.md`](factory/M3-EVIDENCE-BUS.md) — Station signing, accepted artifacts, receipt chain, dependency admission.
 
-Use [`controlled-evaluation.md`](controlled-evaluation.md) for the controlled study design and [`evaluation.md`](evaluation.md) for evaluation tooling/metrics. Development fixtures demonstrate controller behavior; they do not prove that a real model preserves quality, reduces cost, or makes cloud reasoning necessary.
+The key Factory invariant is that **candidate completion is not acceptance**. Worker output stays untrusted until trusted Station-side checks accept it.
 
-The project intentionally distinguishes:
+### Studio / swarm platform
+
+[`studio/README.md`](studio/README.md) is the best entry point for the current platform direction.
+
+The repository also now contains implementation paths for sandbox hardening, red-team tests, cluster and orchestration primitives, evaluation/soak infrastructure, gateway/lifecycle glue, crypto abstractions, connector conformance, Studio frontend development surfaces, and onboarding examples.
+
+The broader target remains documented in:
+
+- [`studio/PLATFORM_VISION.md`](studio/PLATFORM_VISION.md)
+- [`studio/STUDIO_SPECS.md`](studio/STUDIO_SPECS.md)
+
+Normative specs can lead implementation. Do not infer production completeness from the presence of a spec alone.
+
+### Adaptive assurance
+
+The assurance layer measures parts of the control plane that ordinary agent frameworks often treat as fixed assumptions:
+
+- verifier quality;
+- orchestration overhead;
+- compute-engine quality/cost tradeoffs;
+- uncertainty and escalation;
+- authority/quorum boundaries.
+
+These mechanisms support a system that can learn when **not** to swarm and can fail toward stronger verification or HITL when confidence is insufficient.
+
+## Research and evaluation
+
+Start with [`research.md`](research.md), then use:
+
+- [`papers/reliability-from-unreliable-computation.md`](papers/reliability-from-unreliable-computation.md) — working paper;
+- [`controlled-evaluation.md`](controlled-evaluation.md) — controlled study design;
+- [`evaluation.md`](evaluation.md) — evaluation tooling;
+- swarm/reliability specs and evidence docs under [`swarm/`](swarm/) where present.
+
+The project intentionally separates four claim levels:
 
 | Level | Meaning |
 | --- | --- |
-| Implemented | Mechanism exists in source and should be covered by tests/contracts |
-| Demonstrated | Behavior has been exercised by repository fixtures or CI evidence |
-| Hypothesized | Expected system property that still requires controlled evaluation |
-| Established | Reserved for conclusions supported by appropriate experimental evidence |
+| Implemented | mechanism exists in source |
+| Demonstrated | tests/fixtures/CI exercise it |
+| Hypothesized | system property still under evaluation |
+| Established | supported by suitable controlled/external evidence |
 
-## 6. Extend the system
+A green test suite can establish implementation behavior. It cannot by itself establish universal model quality, cost savings, safety, or scientific novelty.
 
-Use [`extending.md`](extending.md) for the extension model and [`module-tutorial.md`](module-tutorial.md) for a small module walkthrough. New execution engines, verifiers, integrations, or worker runtimes should preserve the project's authority boundaries: workers propose, verifiers decide, and the harness integrates accepted state.
+## Verification evidence
 
-## Core invariants
+The repo now has layered verification:
 
-Across the repository, the following ideas should remain stable even as individual APIs evolve:
+```bash
+python3 -m unittest discover -s tests -v
+python3 verifier/v2/check_specs.py
+python3 verifier/v3/check_swarm.py
+```
+
+The v3 swarm verifier checks required deliverables, protects owned runtime/evidence/integration boundaries against accidental overlap, runs the full pytest suite, and requires the earlier spec verifier to stay green.
+
+The newest retained merged-tree evidence reports **1,033 pytest tests + 166 subtests passing**.
+
+## Implementation status
+
+[`status/IMPLEMENTATION_STATUS.md`](status/IMPLEMENTATION_STATUS.md) is generated from `implementation-status.yaml`, not hand-authored.
+
+Because the project is currently merging large parallel work streams quickly, the generated status view can temporarily lag the newest source tree. When there is a disagreement, prefer:
+
+1. current source;
+2. current tests;
+3. component-specific implementation docs;
+4. retained verifier evidence;
+5. generated status prose.
+
+The manifest/status tooling exists specifically to reduce this drift over time.
+
+## Extend the system
+
+Use [`extending.md`](extending.md) and [`module-tutorial.md`](module-tutorial.md) for extension patterns.
+
+New workers, engines, verifiers, modules, connectors, or UI surfaces should preserve the same authority split:
+
+- workers can generate;
+- providers can advise;
+- verifiers decide acceptance;
+- HITL is explicit;
+- evidence binds handoffs;
+- the harness owns accepted state.
+
+## Stable invariants
+
+Even while APIs are evolving, these should remain true:
 
 - `FAIL` and `UNKNOWN` never silently accept work.
-- A worker cannot redefine the verifier that judges its own output.
-- Evidence and dependency provenance survive acceptance through receipts/hashes.
-- Sensitive evidence does not become remotely eligible merely because a downstream value depends on it.
-- Accepted state is an integration-layer decision, not an agent-side effect.
-- Parallelism is justified by measured utility, not by maximizing agent count.
-- Verifier quality is part of the assurance model.
-- Research claims remain narrower than the implementation's ambitions.
+- A worker cannot redefine its own verifier.
+- Successful process exit is not equivalent to accepted output.
+- Evidence/provenance survives trusted handoffs.
+- Private inputs do not become remotely eligible through derivation alone.
+- Accepted state is controlled outside stochastic workers.
+- Parallelism must justify its coordination tax.
+- Verifier quality is measurable and can affect escalation.
+- Research claims stay narrower than implementation ambition.
 
 ## Status
 
-RESIDUAL is an active research/engineering project. The Command Station foundation is usable, while Factory/Studio and adaptive-assurance components are evolving rapidly. Pin commits for reproducible experiments and read module tests/specifications before depending on experimental interfaces.
+RESIDUAL is moving quickly. Pin commits for reproducible experiments and use exact component docs/tests when depending on experimental interfaces.
