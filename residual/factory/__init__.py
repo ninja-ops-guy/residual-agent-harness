@@ -6,6 +6,13 @@ from .evidence_bus import (
     ArtifactBinding, EvidenceBus, EvidenceError, FactoryStationIssuer,
     StationIdentity, VerificationDecision, WorkerReceipt,
 )
+from .integrator import (
+    DeterministicIntegrator, HumanResolution, IntegrationConflict,
+    IntegrationError, IntegrationReceipt, IntegrationResult, VerificationCommand,
+)
+from .scheduler import (
+    EngineCapability, FactoryScheduler, SchedulerDecision, SchedulerSnapshot,
+)
 
 __all__ = [
     "CompileResult",
@@ -21,4 +28,15 @@ __all__ = [
     "StationIdentity",
     "VerificationDecision",
     "WorkerReceipt",
+    "DeterministicIntegrator",
+    "HumanResolution",
+    "IntegrationConflict",
+    "IntegrationError",
+    "IntegrationReceipt",
+    "IntegrationResult",
+    "VerificationCommand",
+    "EngineCapability",
+    "FactoryScheduler",
+    "SchedulerDecision",
+    "SchedulerSnapshot",
 ]
