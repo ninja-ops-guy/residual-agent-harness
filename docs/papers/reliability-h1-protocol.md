@@ -65,6 +65,28 @@ For every task record:
 
 ## 4. Primary endpoints
 
+The experiment must keep **candidate correctness** and **controller acceptance** separate. Let `X` mean that the independently graded final candidate is correct, and `A` mean that the controller accepts it.
+
+### Raw candidate correctness
+
+`P(X) = independently correct completed candidates / completed candidates`
+
+Also report the conservative scheduled-denominator form:
+
+`independently correct candidates / all scheduled trials`
+
+This prevents missing or not-run trials from disappearing from the study while preserving the direct worker-quality estimate among candidates that were actually produced.
+
+### Coverage
+
+`P(A) = controller-accepted outputs / all scheduled trials`
+
+### Accepted correctness
+
+`P(X|A) = independently correct accepted outputs / accepted outputs`
+
+If no output is accepted, this quantity is undefined. Zero coverage must not be converted into perfect reliability.
+
 ### Accepted Error Rate
 
 `AER = incorrect accepted outputs / accepted outputs`
@@ -75,17 +97,29 @@ Report an undefined AER if no output is accepted; do not convert abstention into
 
 `FAR = controller-accepted but independently incorrect / controller-accepted`
 
+Under the current binary acceptance model, AER and FAR are numerically identical. Both labels may be retained for comparability, but they must not be presented as independent evidence.
+
 ### Failure Containment Rate
 
-For fault-injection trials:
+For explicitly labelled fault-injection trials:
 
-`FCR = known injected faults prevented from producing incorrect accepted state / known injected faults`
+`FCR = known injected faults prevented from producing incorrect accepted state / known labelled injected faults`
+
+Do not infer fault injection from ordinary model failures. Each fault trial must carry an explicit injection identity and containment outcome.
 
 ### Independent Success Rate
 
-`ISR = independently correct completed tasks / all scheduled tasks`
+`ISR = independently correct final candidates / all scheduled tasks`
 
-This denominator includes failed, skipped, missing, and not-run trials unless a preregistered infrastructure exclusion applies.
+This measures whether useful correct work was produced regardless of whether the controller accepted it.
+
+### Accepted System Success Rate
+
+`ASSR = independently correct accepted outputs / all scheduled tasks`
+
+This is the end-to-end system-success quantity represented by the existing study runner's historical `success` field.
+
+Both ISR and ASSR are required. Their difference exposes correct work rejected by the acceptance boundary.
 
 ## 5. Secondary endpoints
 
@@ -115,7 +149,7 @@ For binary outcomes:
 - report raw counts and Wilson or bootstrap confidence intervals;
 - use paired methods where applicable;
 - bootstrap at the **task-family** level for cross-family summaries so repeated trials do not masquerade as independent families;
-- report absolute risk difference for AER/FAR and ISR;
+- report absolute risk difference for AER/FAR, ISR, ASSR, and coverage;
 - never infer equivalence from a nonsignificant difference.
 
 For cost/latency:
@@ -167,6 +201,8 @@ Use multiple task granularities. For each task estimate:
 
 Compare the tax against saved generation cost/latency and gained parallelism. The dynamic controller is successful only when net verified utility improves. Small tasks for which tax dominates should remain single-worker.
 
+Until each component above has a dedicated timing hook, the existing `other_host_elapsed_ms` field is a **host-overhead proxy only** and must not be published as the exact orchestration tax.
+
 ## 10. Verifier-quality experiment
 
 For each verifier record a quality profile against independently labeled outcomes:
@@ -185,13 +221,15 @@ Do not tune thresholds, prompts, router policy, verifier logic, or task contract
 
 ## 12. H1 support and falsification
 
-H1 is supported for a tested domain if, with model capability fixed, R4 materially lowers incorrect accepted state (AER/FAR) relative to R0/R1 while retaining useful ISR/coverage, and the benefit remains after cost/latency overhead is reported.
+H1 is supported for a tested domain if, with model capability fixed, R4 materially increases `P(X|A)` and lowers incorrect accepted state (AER/FAR) relative to R0/R1 while retaining useful coverage and ASSR, and the benefit remains after cost/latency overhead is reported.
+
+The analysis must also show `P(X)` separately so an apparent system improvement cannot be attributed to a hidden improvement in worker quality.
 
 H1 is weakened or falsified for that domain if:
 
 - AER/FAR does not improve materially;
 - apparent reliability comes only from rejecting nearly all work;
-- independent success falls enough to erase practical benefit;
+- accepted system success falls enough to erase practical benefit;
 - verifier cost approximates or exceeds simply solving the task with the stronger baseline;
 - improvements vanish on held-out families;
 - the result depends on changing model capability rather than architecture.
@@ -211,4 +249,4 @@ A publishable run must retain:
 - generated result tables and figures;
 - a manifest of missing/unknown fields.
 
-The report must be regenerable from retained artifacts without rerunning model side effects.
+The report must be regenerable from retained artifacts without rerunning model side effects. Paper-facing metric extraction is implemented by [`residual/reliability_metrics.py`](../../residual/reliability_metrics.py) and documented in [`reliability-metrics.md`](reliability-metrics.md).
