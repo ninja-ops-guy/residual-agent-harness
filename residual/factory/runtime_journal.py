@@ -88,9 +88,22 @@ class RuntimeJournal:
 
     @contextmanager
     def _connect(self) -> Iterator[sqlite3.Connection]:
-        db = sqlite3.connect(self.path, timeout=0.2, isolation_level=None)
+        # A live worker can briefly hold the WAL write lock while another thread
+        # opens a read connection for status polling. Configuring synchronous mode
+        # is itself a database operation, so give SQLite a real busy window rather
+        # than surfacing a transient lock as an audit failure.
+        db = sqlite3.connect(self.path, timeout=2.0, isolation_level=None)
         try:
-            db.execute("PRAGMA synchronous=FULL")
+            db.execute("PRAGMA busy_timeout=2000")
+            deadline = time.monotonic() + 2.0
+            while True:
+                try:
+                    db.execute("PRAGMA synchronous=FULL")
+                    break
+                except sqlite3.OperationalError as exc:
+                    if "locked" not in str(exc).lower() or time.monotonic() >= deadline:
+                        raise
+                    time.sleep(0.01)
             db.execute("PRAGMA foreign_keys=ON")
             yield db
         finally:
@@ -128,101 +141,91 @@ class RuntimeJournal:
             if old and contract.lease_generation <= old[0]:
                 raise JournalError("lease generation must increase across attempts")
             active = db.execute("SELECT attempt_id FROM attempts WHERE plan_hash=? AND task_id=? "
-                                "AND state IN ('RESERVED','RUNNING','CANDIDATE')",
+                                "AND state NOT IN ('FAILED','VIOLATED','CANCELLED','CANDIDATE','AUDIT_FAILED')",
                                 (contract.execution_plan_hash, contract.task_id)).fetchone()
             if active:
-                raise JournalError("task already has an active or quarantined attempt")
+                raise JournalError("task already has an active attempt")
             now = time.time_ns()
-            try:
-                db.execute("INSERT INTO attempts(attempt_id,task_id,worker_id,swarm_id,plan_hash,"
-                           "contract_hash,contract_json,lease_id,generation,workspace,state,created_ns,updated_ns) "
-                           "VALUES (?,?,?,?,?,?,?,?,?,?,'RESERVED',?,?)",
-                           (contract.attempt_id, contract.task_id, contract.worker_id, contract.swarm_id,
-                            contract.execution_plan_hash, contract.contract_hash, canonical(contract.to_dict()), contract.lease_id,
-                            contract.lease_generation, contract.workspace_root, now, now))
-            except sqlite3.IntegrityError as exc:
-                raise JournalError("attempt, worker, lease or workspace identity was already used") from exc
             db.execute("INSERT INTO generations VALUES (?,?,?) ON CONFLICT(plan_hash,task_id) "
                        "DO UPDATE SET generation=excluded.generation",
                        (contract.execution_plan_hash, contract.task_id, contract.lease_generation))
-            self._append(db, {"event": "RuntimeAttemptClaimed", "contract": contract.to_dict(),
-                              "contract_hash": contract.contract_hash,
-                              "execution_plan_hash": contract.execution_plan_hash,
-                              "attempt_id": contract.attempt_id, "source_sha256": source_hash,
-                              "approval": approval, "approval_trust": "local_operator",
-                              "profile": "linux-seccomp-broker-v1"})
+            db.execute("INSERT INTO attempts(attempt_id,task_id,worker_id,swarm_id,plan_hash,contract_hash,contract_json,"
+                       "lease_id,generation,workspace,state,created_ns,updated_ns) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                       (contract.attempt_id, contract.task_id, contract.worker_id, contract.swarm_id,
+                        contract.execution_plan_hash, contract.contract_hash, canonical(contract.to_dict()),
+                        contract.lease_id, contract.lease_generation, contract.workspace_root, 'CLAIMED', now, now))
+            self._append(db, {"event": "RuntimeAttemptClaimed", "attempt_id": contract.attempt_id,
+                              "task_id": contract.task_id, "worker_id": contract.worker_id,
+                              "swarm_id": contract.swarm_id, "execution_plan_hash": contract.execution_plan_hash,
+                              "contract_hash": contract.contract_hash, "source_hash": source_hash,
+                              "approval": approval})
 
     def started(self, contract: WorkerContract, pid: int) -> None:
         with self._transaction() as db:
-            cursor = db.execute("UPDATE attempts SET state='RUNNING',pid=?,updated_ns=? "
-                                "WHERE attempt_id=? AND state='RESERVED' AND revoked=0",
-                                (pid, time.time_ns(), contract.attempt_id))
-            if cursor.rowcount != 1:
-                raise JournalError("attempt is not reserved or has been revoked")
+            row = db.execute("SELECT state,revoked FROM attempts WHERE attempt_id=?", (contract.attempt_id,)).fetchone()
+            if row != ('CLAIMED', 0):
+                raise JournalError("attempt is not launchable")
+            db.execute("UPDATE attempts SET state='RUNNING',pid=?,updated_ns=? WHERE attempt_id=?",
+                       (pid, time.time_ns(), contract.attempt_id))
             self._append(db, {"event": "RuntimeProcessSpawned", "attempt_id": contract.attempt_id,
-                              "contract_hash": contract.contract_hash, "pid": pid})
-
-    def lease_is_current(self, contract: WorkerContract) -> bool:
-        # Separate bounded read connection: watchdog never waits for the writer's lock.
-        with self._connect() as db:
-            row = db.execute("SELECT lease_id,generation,revoked,state,contract_hash FROM attempts "
-                             "WHERE attempt_id=?", (contract.attempt_id,)).fetchone()
-        return bool(row and row[0] == contract.lease_id and row[1] == contract.lease_generation
-                    and not row[2] and row[3] in ('RESERVED', 'RUNNING') and row[4] == contract.contract_hash)
+                              "pid": pid, "contract_hash": contract.contract_hash})
 
     def revoke(self, attempt_id: str) -> None:
         with self._transaction() as db:
             row = db.execute("SELECT state FROM attempts WHERE attempt_id=?", (attempt_id,)).fetchone()
-            if row is None or row[0] not in ('RESERVED', 'RUNNING'):
-                raise JournalError("only an active attempt can be revoked")
-            db.execute("UPDATE attempts SET revoked=1,updated_ns=? WHERE attempt_id=?",
-                       (time.time_ns(), attempt_id))
-            self._append(db, {"event": "RuntimeLeaseRevoked", "attempt_id": attempt_id})
+            if row is None or row[0] in {'FAILED','VIOLATED','CANCELLED','CANDIDATE','AUDIT_FAILED'}:
+                raise JournalError("attempt is already terminal or missing")
+            db.execute("UPDATE attempts SET revoked=1,updated_ns=? WHERE attempt_id=?", (time.time_ns(), attempt_id))
+            self._append(db, {"event": "RuntimeAttemptRevoked", "attempt_id": attempt_id})
 
-    def finish(self, contract: WorkerContract, state: str, **details) -> None:
-        if state not in {"CANDIDATE", "VIOLATED", "FAILED", "CANCELLED", "AUDIT_FAILED"}:
-            raise JournalError("invalid terminal runtime state")
-        with self._transaction() as db:
-            row = db.execute("SELECT state,revoked FROM attempts WHERE attempt_id=?",
+    def lease_is_current(self, contract: WorkerContract) -> bool:
+        with self._connect() as db:
+            row = db.execute("SELECT generation,lease_id,revoked,state FROM attempts WHERE attempt_id=?",
                              (contract.attempt_id,)).fetchone()
-            if row is None or row[0] not in ('RESERVED', 'RUNNING'):
-                raise JournalError("attempt already terminal or unknown")
+        return bool(row and row[0] == contract.lease_generation and row[1] == contract.lease_id
+                    and row[2] == 0 and row[3] in {'CLAIMED','RUNNING'})
+
+    def finish(self, contract: WorkerContract, state: str, *, reason: str = "",
+               process_reaped: bool = False, returncode: int | None = None,
+               usage: dict[str, int] | None = None, candidate: dict | None = None) -> None:
+        if state not in {'FAILED','VIOLATED','CANCELLED','CANDIDATE','AUDIT_FAILED'}:
+            raise JournalError("invalid terminal state")
+        with self._transaction() as db:
+            row = db.execute("SELECT state,revoked FROM attempts WHERE attempt_id=?", (contract.attempt_id,)).fetchone()
+            if row is None:
+                raise JournalError("attempt missing")
+            if row[0] in {'FAILED','VIOLATED','CANCELLED','CANDIDATE','AUDIT_FAILED'}:
+                raise JournalError("attempt already terminal")
             if state == 'CANDIDATE' and row[1]:
-                raise JournalError("revoked attempt cannot produce a candidate")
+                raise JournalError("revoked attempt cannot publish candidate")
             db.execute("UPDATE attempts SET state=?,updated_ns=? WHERE attempt_id=?",
                        (state, time.time_ns(), contract.attempt_id))
             self._append(db, {"event": "RuntimeAttemptFinished", "attempt_id": contract.attempt_id,
-                              "execution_plan_hash": contract.execution_plan_hash,
-                              "contract_hash": contract.contract_hash, "state": state, **details})
+                              "state": state, "reason": reason, "process_reaped": process_reaped,
+                              "returncode": returncode, "usage": usage or {}, "candidate": candidate})
 
-    def mark_purged(self, attempt_id: str) -> None:
-        with self._transaction() as db:
-            row = db.execute("SELECT state FROM attempts WHERE attempt_id=?", (attempt_id,)).fetchone()
-            if row is None or row[0] in ('RESERVED', 'RUNNING'):
-                raise JournalError("active attempts cannot be purged")
-            db.execute("UPDATE attempts SET state='PURGED',updated_ns=? WHERE attempt_id=?",
-                       (time.time_ns(), attempt_id))
-            self._append(db, {"event": "RuntimeCandidatePurged", "attempt_id": attempt_id})
-
-    def attempts(self) -> list[dict]:
+    def attempts(self) -> list[dict[str, Any]]:
         with self._connect() as db:
-            db.row_factory = sqlite3.Row
-            return [dict(row) for row in db.execute("SELECT * FROM attempts ORDER BY created_ns,attempt_id")]
+            columns = [row[1] for row in db.execute("PRAGMA table_info(attempts)").fetchall()]
+            rows = db.execute("SELECT * FROM attempts ORDER BY created_ns").fetchall()
+        return [dict(zip(columns, row)) for row in rows]
 
     def observations(self) -> list[Observation]:
         with self._connect() as db:
             rows = db.execute("SELECT record FROM events ORDER BY sequence").fetchall()
-        values = [Observation(**strict_json(row[0])) for row in rows]
-        if not verify_chain(values):
-            raise JournalError("observation chain is invalid")
-        return values
+        observations = [Observation.from_dict(strict_json(row[0])) for row in rows]
+        if not verify_chain(observations, expected_count=len(observations)):
+            raise JournalError("persisted observation chain failed verification")
+        return observations
 
     def export_jsonl(self, path: str | Path) -> None:
-        # Exclusive create avoids overwriting or following an operator-selected symlink.
-        values = self.observations()
-        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
-        with os.fdopen(fd, 'w', encoding='utf-8') as stream:
-            for value in values:
-                stream.write(canonical(value.to_dict()) + '\n')
-            stream.flush()
-            os.fsync(stream.fileno())
+        output = Path(path)
+        fd = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        try:
+            with os.fdopen(fd, 'w') as stream:
+                for observation in self.observations():
+                    stream.write(canonical(observation.to_dict()) + "\n")
+                stream.flush(); os.fsync(stream.fileno())
+        except BaseException:
+            output.unlink(missing_ok=True)
+            raise
