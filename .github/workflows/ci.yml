@@ -15,13 +15,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+      - name: Install Factory test dependency
+        run: python -m pip install '.[factory]'
       - name: Compile and test without model credentials
         run: |
           python -m compileall -q residual
           python -m unittest discover -s tests -v
       - name: Exercise packaged CLI
         run: |
-          python -m pip install --no-deps .
           residual demo --output runs/ci-demo
           residual verify-trace runs/ci-demo/trace.jsonl --result runs/ci-demo/result.json
           residual run examples/incident/task.json --config examples/demo.toml --output runs/ci-task
