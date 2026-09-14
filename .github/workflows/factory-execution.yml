@@ -13,6 +13,7 @@ on:
       - 'tests/test_factory_fb002.py'
       - 'tests/test_factory_fb003.py'
       - 'tests/test_factory_fb004.py'
+      - 'tests/test_factory_corpus.py'
       - 'residual/engines/**'
       - 'benchmarks/factory/**'
       - 'examples/factory/**'
@@ -51,9 +52,9 @@ jobs:
           RESIDUAL_REQUIRE_SECCOMP: '1'
         run: |
           set -o pipefail
-          python -m unittest tests.test_factory_worker_contract tests.test_factory_runtime tests.test_factory_evidence_bus tests.test_factory_m4 tests.test_factory_eval tests.test_factory_eval_driver tests.test_factory_fb001 tests.test_factory_fb002 tests.test_factory_fb003 tests.test_factory_fb004 -v 2>&1 | tee runs/factory-execution/execution-tests.txt
+          python -m unittest tests.test_factory_worker_contract tests.test_factory_runtime tests.test_factory_evidence_bus tests.test_factory_m4 tests.test_factory_eval tests.test_factory_eval_driver tests.test_factory_fb001 tests.test_factory_fb002 tests.test_factory_fb003 tests.test_factory_fb004 tests.test_factory_corpus -v 2>&1 | tee runs/factory-execution/execution-tests.txt
           python -m unittest discover -s tests -v 2>&1 | tee runs/factory-execution/full-tests.txt
-          python -m compileall -q residual/factory residual/engines benchmarks/factory/fb001 benchmarks/factory/fb002 benchmarks/factory/fb003 benchmarks/factory/fb004
+          python -m compileall -q residual/factory residual/engines benchmarks/factory/fb001 benchmarks/factory/fb002 benchmarks/factory/fb003 benchmarks/factory/fb004 benchmarks/factory/corpus
       - name: Scripted end-to-end execution
         run: |
           python examples/factory/brokered_worker_demo.py --output "$RUNNER_TEMP/residual-m2-demo"
