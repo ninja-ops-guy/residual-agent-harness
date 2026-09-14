@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - 'site/**'
+      - 'index.html'
+      - 'demo.html'
+      - 'demo/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -26,12 +29,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Build authoritative Pages artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf _site
+          mkdir -p _site/demo
+          cp site/index.html _site/index.html
+          cp site/demo.html _site/demo/index.html
+          cp site/demo.html _site/demo.html
+          touch _site/.nojekyll
+          test -s _site/index.html
+          test -s _site/demo/index.html
+          grep -q "RESIDUAL" _site/index.html
+          grep -q "Run mission" _site/demo/index.html
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
+
       - name: Upload static site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: _site
+
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
