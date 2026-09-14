@@ -1,0 +1,54 @@
+name: Factory OS execution evidence
+on:
+  pull_request:
+    paths:
+      - 'residual/factory/**'
+      - 'tests/test_factory_worker_contract.py'
+      - 'tests/test_factory_runtime.py'
+      - 'examples/factory/**'
+      - 'docs/factory/**'
+      - '.github/workflows/factory-execution.yml'
+permissions:
+  contents: read
+jobs:
+  linux-execution:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install kernel filter library
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y libseccomp2
+      - name: Preserve exact source
+        run: |
+          mkdir -p runs/factory-execution
+          git rev-parse HEAD > runs/factory-execution/commit.txt
+          git rev-parse HEAD^{tree} > runs/factory-execution/tree.txt
+          git archive --format=zip HEAD -o runs/factory-execution/source.zip
+          uname -a > runs/factory-execution/platform.txt
+          python --version >> runs/factory-execution/platform.txt
+          dpkg-query -W libseccomp2 >> runs/factory-execution/platform.txt
+      - name: Real OS-boundary and regression tests
+        env:
+          RESIDUAL_REQUIRE_SECCOMP: '1'
+        run: |
+          set -o pipefail
+          python -m unittest tests.test_factory_worker_contract tests.test_factory_runtime -v 2>&1 | tee runs/factory-execution/execution-tests.txt
+          python -m unittest discover -s tests -v 2>&1 | tee runs/factory-execution/full-tests.txt
+          python -m compileall -q residual/factory
+      - name: Scripted end-to-end execution
+        run: |
+          python examples/factory/brokered_worker_demo.py --output "$RUNNER_TEMP/residual-m2-demo"
+          cp "$RUNNER_TEMP/residual-m2-demo/result.json" runs/factory-execution/demo-result.json
+          cp "$RUNNER_TEMP/residual-m2-demo/observations.jsonl" runs/factory-execution/demo-observations.jsonl
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: factory-os-evidence-${{ github.sha }}
+          path: runs/factory-execution
