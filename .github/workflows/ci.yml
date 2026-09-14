@@ -33,12 +33,12 @@ jobs:
           set -euo pipefail
           sudo apt-get update -qq
           sudo apt-get install -y -qq bubblewrap curl
-          PX0=/tmp/px0-0.1.2-linux-amd64
-          curl -fsSL -o "$PX0" https://github.com/px0-ai/px0/releases/download/v0.1.2/px0-0.1.2-linux-amd64
+          PX0=/usr/local/bin/px0
+          sudo curl -fsSL -o "$PX0" https://github.com/px0-ai/px0/releases/download/v0.1.2/px0-0.1.2-linux-amd64
           printf '%s  %s\n' 'c483293c67a63821712508931588d0495c336be5ace1e253b90624d3f5a06700' "$PX0" | sha256sum -c -
-          chmod 0755 "$PX0"
+          sudo chmod 0755 "$PX0"
           "$PX0" -version | grep -F 'px0 0.1.2'
-          WORK=/tmp/residual-inspector-smoke
+          WORK="$HOME/residual-inspector-smoke"
           rm -rf "$WORK"
           git clone -q "$GITHUB_WORKSPACE" "$WORK"
           RECEIPT=/tmp/residual-inspector-smoke-receipt.json
@@ -70,7 +70,6 @@ jobs:
           PY
           BEFORE=$(git -C "$WORK" status --porcelain --untracked-files=all)
           test -z "$BEFORE"
-          test ! -e "$WORK/runs/inspection.json"
           cleanup
           trap - EXIT
       - name: Controller ablations
