@@ -9,6 +9,8 @@ from residual.assurance.preregistered import (
     engine_config_sha256,
     load_preregistration,
     preregister_from_files,
+    projected_declared_cost_usd,
+    projected_provider_calls,
     verify_preregistration,
     write_preregistration,
 )
@@ -115,9 +117,38 @@ class PreregisteredExternalTests(unittest.TestCase):
             )
             self.assertEqual(bundle["preregistration_sha256"], manifest.sha256)
             self.assertEqual(bundle["suite_sha256"], suite.sha256)
+            self.assertAlmostEqual(bundle["projected_declared_cost_usd"], 0.02)
+            self.assertEqual(bundle["projected_provider_calls"], 4)
             self.assertEqual(len(bundle["sha256"]), 64)
 
-    def test_engine_config_rejects_secret_fields(self):
+    def test_budget_and_call_ceiling_are_enforced_before_execution(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            suite_path = self.write_suite(root)
+            engines_path = self.write_engines(root)
+            suite = load_external_suite(suite_path)
+            self.assertAlmostEqual(projected_declared_cost_usd(suite, engines_path), 0.02)
+            self.assertEqual(projected_provider_calls(suite, engines_path), 4)
+
+            with self.assertRaisesRegex(ValueError, "preregistered budget"):
+                preregister_from_files(
+                    study_id="too-cheap", registered_at="now", suite_path=suite_path,
+                    engines_path=engines_path, hypotheses=("h",),
+                    primary_metric="market_success_rate", secondary_metrics=(),
+                    maximum_budget_usd=0.019, runner_revision="git:abc",
+                )
+
+            manifest = ExternalPreregistration(
+                study_id="calls", registered_at="now", suite_sha256=suite.sha256,
+                engine_config_sha256=engine_config_sha256(engines_path), hypotheses=("h",),
+                primary_metric="market_success_rate", secondary_metrics=(),
+                stopping_rule={"kind": "maximum_provider_calls", "value": 3},
+                maximum_budget_usd=1.0, runner_revision="git:abc",
+            )
+            with self.assertRaisesRegex(ValueError, "provider calls"):
+                verify_preregistration(manifest, suite, engines_path)
+
+    def test_engine_config_rejects_secret_and_unknown_fields(self):
         with tempfile.TemporaryDirectory() as td:
             path = Path(td) / "engines.json"
             path.write_text(json.dumps({
@@ -128,6 +159,16 @@ class PreregisteredExternalTests(unittest.TestCase):
                 ],
             }), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "credentials or endpoints"):
+                engine_config_sha256(path)
+
+            path.write_text(json.dumps({
+                "schema_version": "residual.external-engines.v1",
+                "engines": [
+                    {"provider": "openai", "model": "a", "mystery": "value"},
+                    {"provider": "ollama", "model": "b"},
+                ],
+            }), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "invalid engine entry"):
                 engine_config_sha256(path)
 
 
