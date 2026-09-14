@@ -8,6 +8,7 @@ def receipt(fid, kind, detected, contained, escaped, timing):
     return {
         "schema_version": "residual.fault-trial.v1",
         "fault_injected": True,
+        "injection_observed": True,
         "fault_id": fid,
         "fault_kind": kind,
         "fault_detected": detected,
@@ -48,17 +49,28 @@ class ReliabilityExperimentReportTests(unittest.TestCase):
         self.assertEqual(summary["integration_ms"]["median"], 6)
         self.assertFalse(summary["planning_context_split_available"])
 
-    def test_report_is_hash_bound(self):
+    def test_report_is_hash_bound_and_declares_coverage(self):
         report = build_experiment_report(self.rows)
         self.assertEqual(report["schema_version"], "residual.reliability-experiment-report.v1")
         self.assertIn("sha256", report)
         self.assertEqual(report["fault_containment"]["trials"], 3)
+        self.assertEqual(report["fault_catalog"]["executable_count"], 9)
+        self.assertIn("resource_exhaustion", report["fault_catalog"]["executable"])
+        self.assertIn("forbidden_filesystem_write", report["fault_catalog"]["deferred_runtime_required"])
 
     def test_invalid_receipts_fail_closed(self):
         bad = dict(self.rows[0])
         bad.pop("fault_contained")
         with self.assertRaises(ContractError):
             summarize_fault_trials([bad])
+        unobserved = dict(self.rows[0])
+        unobserved["injection_observed"] = False
+        with self.assertRaises(ContractError):
+            summarize_fault_trials([unobserved])
+        unknown = dict(self.rows[0])
+        unknown["fault_kind"] = "imaginary"
+        with self.assertRaises(ContractError):
+            summarize_fault_trials([unknown])
         bad_timing = dict(self.rows[0]["timing"])
         bad_timing["integration_ms"] = float("nan")
         with self.assertRaises(ContractError):
