@@ -33,7 +33,25 @@ Example shape:
 }
 ```
 
-The driver is invoked without a shell. It must write one `RunMeasurement` JSON document to `{output}`. The framework rejects a returned configuration/run identity mismatch, engine/version drift, malformed measurements, and—on real measured runs—an output commit different from the frozen expected commit.
+The command driver is invoked without a shell. It must write one `RunMeasurement` JSON document to `{output}`. The framework rejects a returned configuration/run identity mismatch, engine/version drift, malformed measurements, and—on real measured runs—an output commit different from the frozen expected commit.
+
+## Measured engine-backed driver
+
+`residual.factory.eval_driver.EngineBackedEvaluationDriver` executes the frozen task DAG through a real Residual `ExecutionEngine`.
+
+Configuration semantics are fixed for comparability:
+
+- `single`: exactly one active worker;
+- `fixed`: a configured fixed worker pool;
+- `dynamic`: expands/contracts to the currently ready dependency frontier up to a configured maximum.
+
+A measured engine result must provide an integer `token_usage` and `raw_metadata.provenance == "measured"`. Missing usage or ambiguous provenance fails the run rather than being interpreted as zero. Optional provider-reported `gpu_time_ms` and `api_cost_usd` are consumed directly; explicit configured rates can account for GPU and infrastructure time.
+
+The driver records observed peak concurrent workers in each `RunMeasurement`. `parallel_efficiency` is therefore computed from measured speedup divided by measured worker capacity, not inferred circularly from speedup.
+
+SDK engine adapters preserve explicit usage/provenance metadata returned by their callback, allowing live Claude/OpenAI-style adapters to participate without parsing model text for accounting data.
+
+The finalizer must bind the run to a concrete Git output commit and final-test counts. The evaluation framework then verifies that a non-simulated output commit exactly matches the workload's frozen expected output commit.
 
 ## CLI
 
@@ -61,7 +79,8 @@ Each run records the normative SPEC-EVAL metrics:
 - merge conflicts;
 - verifier rejection rate;
 - final test pass rate;
-- API, GPU, infrastructure, total, and per-accepted-task cost.
+- API, GPU, infrastructure, total, and per-accepted-task cost;
+- observed peak worker concurrency.
 
 The ComparisonReport reports mean, median, and sample standard deviation for every metric. Pairwise differences use Mann-Whitney U: exact permutation for small samples and a tie-corrected normal approximation for larger samples.
 
@@ -83,8 +102,8 @@ Reports are signed with the Station Ed25519 identity under a signature domain di
 
 A driver may set `simulation=true` for framework/CI fixtures. If any run is simulated, the ComparisonReport is marked `simulation=true`.
 
-A simulated report demonstrates that the evaluation machinery works. It does **not** establish model quality, real speedup, token savings, GPU efficiency, or cost reduction. Those claims require measured runs from the actual Factory execution path.
+A simulated report demonstrates that the evaluation machinery works. It does **not** establish model quality, real speedup, token savings, GPU efficiency, or cost reduction. Those claims require measured runs from the actual engine-backed Factory execution path.
 
 ## Current boundary
 
-This slice implements the evaluation contract, statistics, signing, CLI and observation provenance. It does not itself create live model workloads, provision GPUs, or claim benchmark results. Cluster-scale physical testing remains a separate deployment/evaluation activity.
+The repository now contains both the evaluation contract and the measured execution driver. CI validates the measured driver with deterministic fake engines, while real benchmark claims still require an explicitly configured live model engine, frozen Git workload, and repeated runs on declared hardware. Cluster-scale physical testing remains a separate deployment/evaluation activity.
