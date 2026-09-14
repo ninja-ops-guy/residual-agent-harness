@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""verifier/v1 — Spec-set completeness checks for residual-agent-harness.
+"""verifier/v2 — Spec-set completeness checks for residual-agent-harness.
+
+Differs from v1: DESIGN.md reclassified as non-normative
+(design-rationale doc, contains no RFC 2119 requirements).
 
 Acceptance criteria:
  1. All 17 expected files present in harness_specs/ (16 docs + README).
