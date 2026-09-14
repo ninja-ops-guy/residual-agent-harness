@@ -31,6 +31,7 @@ from .spec_eval import (
     SpecEvaluationEvidence,
     SystemMetrics,
 )
+from .replay import signed_report_from_observations
 
 __all__ = [
     "ABLATIONS",
@@ -58,6 +59,7 @@ __all__ = [
     "TaskResult",
     "WorkloadTask",
     "mann_whitney_u",
+    "signed_report_from_observations",
     "summary_stats",
     "welch_t_test",
 ]
