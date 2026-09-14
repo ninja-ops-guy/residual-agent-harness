@@ -1,0 +1,4 @@
+run: python3 verifier/v1/check_specs.py
+time: 2026-09-14T02:26:23Z
+exit: 1
+result: FAIL — DESIGN.md missing RFC 2119 declaration (17/17 files, N9=28, T10=20)
