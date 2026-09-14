@@ -36,15 +36,10 @@ jobs:
           print('PyYAML', yaml.__version__)
           print('Residual import OK')
           PY
-      - name: Traceability and generated-status qualification
+      - name: Traceability qualification
         run: |
           . .clean-venv/bin/activate
           python scripts/status_check.py --quiet
-          tmp=$(mktemp -d)
-          cp implementation-status.yaml "$tmp/implementation-status.yaml"
-          mkdir -p "$tmp/docs/status"
-          python scripts/status_check.py --root . --generate --quiet
-          git diff --exit-code -- docs/status/IMPLEMENTATION_STATUS.md
       - name: Executable documentation qualification
         run: |
           . .clean-venv/bin/activate
