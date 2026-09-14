@@ -1,33 +1,54 @@
-# World-class build: start here
+# RESIDUAL roadmap — current build state
 
-The seven uploaded specifications are preserved verbatim in [source](source/). They describe several generations of the project. Their checkmarks mean **documented**, not implemented or validated. The v0.2 gap analysis is historical; use the current status below when assigning work.
+> **Current-state entry point:** [../CURRENT_STATUS.md](../CURRENT_STATUS.md)
 
-The tested v0.3.0 baseline is on GitHub at `ff563f4c8fdd59b3f604a215b1d0c2b66f393f92`. Its complete source tree matches the previously tested local release `3d80e3ff7ad4ec9c2c406f33824259a6ce27ca49`: 190 Python tests, 17 browser checks, installed-wheel and extracted-bundle verification. See [validation](../station/VALIDATION.md) for what was actually run. Future additions do not inherit those test results.
+The documents under [`source/`](source/) preserve earlier design generations and should be treated as historical input unless a newer reconciliation document says otherwise. Checkmarks in those source documents mean **specified/documented**, not necessarily implemented or qualified on the current tree.
 
-Read [DELEGATION.md](DELEGATION.md) for ownership and deliverables, then [FOUNDATION-CONTRACT.md](FOUNDATION-CONTRACT.md) before coding against shared interfaces. [SPEC-RECONCILIATION.md](SPEC-RECONCILIATION.md) records corrections to the uploaded drafts. Those integration decisions take precedence over conflicting draft snippets. The v0.4.0 [Track 1 implementation](TRACK-1-IMPLEMENTATION.md) now supplies the shared APIs and imported module adapters; [CONFLICT_RESOLUTIONS.md](CONFLICT_RESOLUTIONS.md) records the latest binding decisions.
+The project has moved well beyond the v0.3/v0.4 Command Station baseline. Current `main` contains the core harness, Command Station, Factory M2/M3/M4 implementation, evaluation infrastructure, sandbox/red-team tooling, cluster execution, orchestration, lifecycle/gateway controls, crypto/hardening, observability, connector conformance, Studio/product surfaces and research/reproducibility machinery.
+
+## Current capability map
 
 | Capability | Current status |
-|---|---|
-| Frozen controlled study, independent final grading, contract stress fixtures | Implemented in the study CLI; scripted validation only, live model advantage unmeasured |
-| LDD mission state, isolated candidates, local checks, revision-bound review | Implemented and fixture/browser tested |
-| Provider adapters, budgeted failover, observation bridge and console | Implemented; live inference remains untested |
-| Goal contracts, verifier order, brakes, station loop, provider-call quarantine | Implemented; token/time brakes operate between waves |
-| Receipt binding and cache identity | Implemented in 0.4.0: versioned envelopes, prerequisite propagation, exact-revision station receipts, modern cache revalidation with explicit legacy boundaries |
-| Station extension registry and host lifecycle dispatch | Implemented in 0.4.0; freeze at controller construction, fresh brakes, isolated diagnostics |
-| Every arbitrary side-effecting action using the same quarantine gateway | Partially implemented: the provider-call quarantine gateway is live (see `residual/quarantine.py`); routing every arbitrary side-effecting action through it remains open (track D scope) |
-| NetOps and SecOps modules | Imported and integrated; SecOps runs before staging, NetOps requires a host telemetry client and has no live device executor |
-| Trajectory, TUI, memory and HITL | Components and lifecycle adapters implemented; structural comparison, local indexing and authenticated-host HITL API. Full tool replay and automatic resume are still open (track E scope) |
-| Goal-directed context curator and isolated sub-agent pool | Specification only; scoped packet compilation and worker leases already exist |
-| Model-agnostic intention adapters and formal verifier certificates | Specification only |
-| Mesh, federation, crypto migration, calibration | Local mesh protocol and receipt-export adapter implemented; authenticated network transport, fork reconciliation, federation and calibration remain future work |
-| zk proofs, hardware-rooted attestation, adversarial hypothesis quality, epistemic merging | Research tracks; no production claim |
+| --- | --- |
+| Core harness / verifier / receipts / residual delegation | Implemented and covered by the established test corpus |
+| Command Station | Implemented research/operations surface; deployment-specific production qualification still applies |
+| Factory M2 worker contracts/runtime | Implemented under `residual/factory/`; real OS-boundary development tests exist |
+| Factory M3 evidence bus/Station receipts | Implemented; trusted consumption/admission is the authority boundary |
+| Factory M4 deterministic integration/scheduler | Implemented, but **current live qualification is blocked by issue #63** until accepted-tree binding, filesystem/link safety, verifier isolation and Git-evidence semantics are closed |
+| Frozen evaluation framework | Implemented under `residual/eval/`: hash-locked workload, repeated runs, ablations, stats/reporting, fault injection and Factory measurement hooks |
+| Sandbox / red-team | Implemented development surface; host capability determines whether cgroup-v2 enforcement is available |
+| Cluster / distributed execution | Implemented development surface with authenticated membership, heartbeat/reassignment and local-first routing |
+| Orchestration | Implemented intent schema, requirement DAG, ambiguity detection, partitioning, deterministic plan hash and HITL approval gate |
+| Lifecycle / side-effect gateway | Implemented deny-by-default gateway and deterministic resume/recovery mechanisms |
+| Crypto / conformance / SLO / observability | Implemented development surfaces; deployment evidence remains environment-specific |
+| Studio/product UI | Implemented development surface; some UI contract fixtures remain local stubs around protected runtime APIs |
+| Research paper + evidence program | Active; mechanism evidence exists, but live R0–R5 results are still required for the central reliability hypothesis |
 
-## Build order
+## Important documentation caveat
 
-1. Land and validate the foundation PR: receipt binding, active-verifier revalidation, frozen registration and trusted lifecycle dispatch.
-2. Extend domain adapters with host executors and stronger semantic checks; select golden trajectory fixtures.
-3. Supply operator authentication/resume policy and verified memory retrieval policy, then bounded context curation and isolated specialist execution.
-4. Exercise a two-device authenticated mesh under duplicate delivery, partitions, stale revisions and revoked membership.
-5. Evaluate cryptographic migration, formal proof adapters and the research frontiers with explicit threat models and measured evidence.
+`implementation-status.yaml` and the generated `docs/status/IMPLEMENTATION_STATUS.md` still contain pre-merge `not_started` entries for M2, M3, M4 and EVAL. That drift is tracked by **issue #48**. Until #48 is reconciled, use [`../CURRENT_STATUS.md`](../CURRENT_STATUS.md), the actual code/tests, and exact-commit verifier artifacts for current-state claims.
 
-Crypto interfaces can be designed in parallel. Replacing every historical SHA-256 identifier is not a prerequisite for the first release. Likewise, a new reasoning interface can wrap existing providers without discarding working Ollama and cloud integrations.
+## Current build order
+
+The old build order is complete or superseded. The current sequence is:
+
+1. **Close M4 trust-boundary gaps (#63).** Bind accepted state to the verified tree, harden filesystem writes, isolate candidate-dependent verification, and preserve `UNKNOWN` for missing Git evidence.
+2. **Reconcile traceability (#48).** Update M2/M3/M4/EVAL status, regenerate the generated status document, and add drift prevention.
+3. **Resolve Factory OS timing nondeterminism.** Determine whether the retained retry-only failures represent runtime races or test flakiness.
+4. **Freeze the live evaluation protocol.** Do not tune workloads/metrics after observing model outcomes.
+5. **Run R0–R5 with one fixed live model.** Measure raw correctness, acceptance coverage, accepted correctness, AER/ASSR, cost, latency and throughput.
+6. **Run model-degradation + heterogeneous-routing studies.** Test whether cheaper/weaker workers can contribute safely under the same acceptance boundary.
+7. **Run live fault campaigns and staged soak tests.** 24-hour → 72-hour → 30-day only after shorter gates are clean.
+8. **Promote paper claims only from retained evidence.** Negative, `UNKNOWN`, rejected and failed runs stay in the record.
+
+## Historical implementation material
+
+Useful background remains in:
+
+- [DELEGATION.md](DELEGATION.md) — earlier ownership/delegation model
+- [FOUNDATION-CONTRACT.md](FOUNDATION-CONTRACT.md) — shared interface constraints
+- [SPEC-RECONCILIATION.md](SPEC-RECONCILIATION.md) — corrections to earlier uploaded drafts
+- [TRACK-1-IMPLEMENTATION.md](TRACK-1-IMPLEMENTATION.md) — v0.4 receipt/registry foundation
+- [CONFLICT_RESOLUTIONS.md](CONFLICT_RESOLUTIONS.md) — binding decisions from earlier integration phases
+
+These documents are still useful for lineage, but they do not override current code, exact-commit evidence, open qualification issues, or [`../CURRENT_STATUS.md`](../CURRENT_STATUS.md).
