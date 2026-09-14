@@ -237,20 +237,34 @@ class StationIdentity:
     def public_bytes(self) -> bytes:
         return self._public.public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw)
 
-    def sign(self, payload_hash: str) -> str:
-        _require_hash(payload_hash, "receipt hash")
-        return self._private.sign(SIGNATURE_DOMAIN + payload_hash.encode("ascii")).hex()
+    def sign_hash(self, payload_hash: str, *, domain: bytes) -> str:
+        _require_hash(payload_hash, "payload hash")
+        if not isinstance(domain, bytes) or not domain:
+            raise EvidenceError("signature domain required")
+        return self._private.sign(domain + payload_hash.encode("ascii")).hex()
 
     @staticmethod
-    def verify(receipt: WorkerReceipt, public_key: bytes) -> bool:
-        if Ed25519PublicKey is None or len(public_key) != 32:
+    def verify_hash(payload_hash: str, signature: str, public_key: bytes, *, key_id: str, domain: bytes) -> bool:
+        try:
+            _require_hash(payload_hash, "payload hash")
+        except EvidenceError:
             return False
-        if _sha256(public_key) != receipt.station_key_id:
+        if Ed25519PublicKey is None or len(public_key) != 32 or _sha256(public_key) != key_id:
+            return False
+        if not isinstance(domain, bytes) or not domain:
             return False
         try:
             Ed25519PublicKey.from_public_bytes(public_key).verify(
-                bytes.fromhex(receipt.station_signature),
-                SIGNATURE_DOMAIN + receipt.receipt_hash.encode("ascii"))
+                bytes.fromhex(signature), domain + payload_hash.encode("ascii"))
             return True
-        except (ValueError, InvalidSignature):
+        except (ValueError, TypeError, InvalidSignature):
             return False
+
+    def sign(self, payload_hash: str) -> str:
+        return self.sign_hash(payload_hash, domain=SIGNATURE_DOMAIN)
+
+    @staticmethod
+    def verify(receipt: WorkerReceipt, public_key: bytes) -> bool:
+        return StationIdentity.verify_hash(receipt.receipt_hash, receipt.station_signature,
+                                           public_key, key_id=receipt.station_key_id,
+                                           domain=SIGNATURE_DOMAIN)
