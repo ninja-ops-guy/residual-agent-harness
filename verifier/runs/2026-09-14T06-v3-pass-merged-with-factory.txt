@@ -1,0 +1,4 @@
+run: python3 verifier/v3/check_swarm.py
+time: 2026-09-14T08:26:39Z
+exit: 0
+result: PASS on merged tree (swarm + Factory M2/M3) — changed_files=146 vs 98c12f0, pytest=1033 passed + 166 subtests, protected paths untouched, v2 green
