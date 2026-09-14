@@ -6,10 +6,26 @@
 # generated file by hand.
 #
 # Status values:
-#   implemented  - code paths exist and are covered by the listed tests
-#   partial      - some requirements in the family are implemented; the
-#                  notes field names what remains
-#   not_started  - no production code exists for the family
+#   implemented             - code paths exist and are covered by the
+#                             listed tests
+#   implemented_unverified  - code paths exist and are covered by the
+#                             listed tests, but requirement closure
+#                             (e.g. security/trust boundaries) is NOT
+#                             verified; the closure field names the open
+#                             work. Do not read this as "verified" or
+#                             "complete".
+#   partial                 - some requirements in the family are
+#                             implemented; the notes field names what
+#                             remains
+#   not_started             - no production code exists for the family
+#
+# Optional fields:
+#   closure          - free-text annotation describing open closure work
+#                      for an implemented_unverified family
+#   canonical_paths  - for not_started families, the paths where the
+#                      canonical implementation is expected to live. The
+#                      checker FAILS if any of these paths exists while
+#                      the family is still marked not_started.
 #
 # The stale-doc detector (scripts/status_check.py) scans prose docs for
 # "not implemented"-style claims about families whose status here is
@@ -372,6 +388,9 @@ families:
   status: not_started
   code_paths: []
   test_paths: []
+  canonical_paths:
+  - residual/crypto/pqc.py
+  - residual/pqc
   keywords:
   - post-quantum
   - PQC
@@ -396,6 +415,9 @@ families:
   status: not_started
   code_paths: []
   test_paths: []
+  canonical_paths:
+  - residual/formal
+  - residual/formal_verifier.py
   keywords:
   - formal verifier
   - formal methods
@@ -419,6 +441,9 @@ families:
   status: not_started
   code_paths: []
   test_paths: []
+  canonical_paths:
+  - residual/federation
+  - residual/mesh/federation.py
   keywords:
   - federation
   - federated
@@ -451,49 +476,93 @@ families:
   keywords:
   - Studio
   - factory runtime
-  notes: Requirement compiler (STUDIO-002) and station surfaces exist; swarm runtime (STUDIO-003), evidence
-    bus (STUDIO-004), cluster (STUDIO-006), IDE (STUDIO-007) and deterministic integration (STUDIO-008)
-    are Swarm 2/3/4/8 and M2-M4 scope.
+  notes: Requirement compiler (STUDIO-002) and station surfaces exist. The
+    canonical Factory swarm runtime, evidence bus and deterministic
+    integrator (STUDIO-003/004/008 mechanisms) are merged under
+    residual/factory/ - see families M2/M3/M4 (M4 closure unverified, issue 63).
+    Still partial rather than complete - cluster (STUDIO-006), IDE
+    (STUDIO-007) and the Studio frontend (residual/studio_frontend/) remain
+    stubs/prototypes and must not be conflated with the canonical Factory
+    runtime.
 - family: M2
   title: Worker Contract + Swarm Runtime
   spec: harness_specs/M2_M3_M4_SPECS.md
-  status: not_started
-  code_paths: []
-  test_paths: []
+  status: implemented
+  code_paths:
+  - residual/factory/worker_contract.py
+  - residual/factory/runtime.py
+  - residual/factory/runtime_journal.py
+  - residual/factory/runtime_workspace.py
+  test_paths:
+  - tests/test_factory_worker_contract.py
+  - tests/test_factory_runtime.py
   keywords:
   - swarm runtime
   - worker contract
-  notes: residual/swarm/ does not exist yet; owned by the M2-M4 effort per the swarm execution contract.
+  notes: Canonical Factory swarm runtime merged under residual/factory/
+    (worker contract, runtime, journal, workspace); covered by factory
+    runtime/worker-contract tests. This is the merged M2 mechanism, not
+    the open swarm lanes in PRs 39-44.
 - family: M3
   title: Evidence Bus + Receipts
   spec: harness_specs/M2_M3_M4_SPECS.md
-  status: not_started
-  code_paths: []
-  test_paths: []
+  status: implemented
+  code_paths:
+  - residual/factory/evidence_bus.py
+  - residual/factory/evidence_receipts.py
+  test_paths:
+  - tests/test_factory_evidence_bus.py
   keywords:
   - evidence bus
-  notes: residual/evidence/ does not exist yet; owned by the M2-M4 effort.
+  notes: Canonical Factory evidence bus and evidence receipts merged under
+    residual/factory/ with fixture test coverage. Git evidence semantics
+    for the M4 integrator remain part of the open trust-boundary closure
+    tracked in issue 63 (see family M4).
 - family: M4
   title: Deterministic Integrator + Scheduler Intelligence
   spec: harness_specs/M2_M3_M4_SPECS.md
-  status: not_started
-  code_paths: []
-  test_paths: []
+  status: implemented_unverified
+  closure: implemented, trust-boundary closure in progress (#63)
+  code_paths:
+  - residual/factory/m4_integrator.py
+  - residual/factory/m4_scheduler.py
+  - residual/factory/m4_evidence.py
+  test_paths:
+  - tests/test_factory_m4_integrator.py
+  - tests/test_factory_m4_scheduler.py
+  - tests/test_factory_m4_evidence.py
   keywords:
   - deterministic integrator
   - scheduler intelligence
-  notes: residual/integrator/ and residual/scheduler/ do not exist yet; owned by the M2-M4 effort.
+  notes: Canonical M4 deterministic integrator, scheduler and M4 evidence
+    modules merged under residual/factory/ with fixture test coverage.
+    Requirement closure is NOT verified - issue 63 (accepted-tree binding,
+    filesystem safety, OS-isolated verification, git evidence semantics)
+    remains open and is being worked on branch
+    swarm/m4-trust-boundary-closure. Green fixture tests are not evidence
+    that these security boundaries are closed.
 - family: EVAL
   title: Evaluation Framework
   spec: harness_specs/M2_M3_M4_SPECS.md
-  status: not_started
-  code_paths: []
-  test_paths: []
+  status: implemented
+  code_paths:
+  - residual/eval/runner.py
+  - residual/eval/workload.py
+  - residual/eval/stats.py
+  - residual/eval/report.py
+  - residual/eval/measured_factory.py
+  test_paths:
+  - tests/test_eval_runner.py
+  - tests/test_eval_workload.py
+  - tests/test_eval_stats.py
+  - tests/test_measured_factory_eval.py
   keywords:
   - evaluation framework
   - frozen workload
-  notes: residual/eval/ does not exist yet; Swarm 5 (track J) scope. residual/evaluation.py is the frozen
-    controlled study, a different artifact.
+  notes: residual/eval/ exists (runner, workload, stats, report, measured
+    factory evaluation) with unit coverage. residual/evaluation.py remains
+    the frozen controlled study, a different artifact. Fixture-level green
+    runs are not live empirical closure of research claims.
 - family: CP
   title: Control Plane (Engine Protocol, Routing, Sandbox)
   spec: harness_specs/CONTROL_PLANE_SPECS.md
@@ -537,6 +606,9 @@ families:
   status: not_started
   code_paths: []
   test_paths: []
+  canonical_paths:
+  - residual/research
+  - residual/frontier
   keywords:
   - zk proofs
   - hardware-rooted attestation
