@@ -3,13 +3,13 @@
 
 **Author:** Mike Olivares  
 **Status:** Working IEEE-style manuscript draft  
-**Date:** 2026-09-13
+**Date:** 2026-09-14
 
 > **Research hypothesis:** AI reliability does not necessarily require making individual models reliable. Reliable accepted behavior may emerge when unreliable computation is constrained, observed, independently verified, and deterministically integrated.
 
 ## Abstract
 
-AI reliability is commonly approached as a property to be improved within the model itself. This paper investigates a complementary systems hypothesis: reliable accepted behavior can emerge from unreliable AI computation when execution is constrained, behavior is observable, outputs are independently verified, and accepted changes are integrated deterministically. We present Residual, an evidence-first execution architecture that treats model-driven workers as untrusted computational processes rather than authorities over system state. Workers operate under immutable contracts and bounded capabilities, emit observations and provenance-preserving receipts, and submit candidate results to an independent acceptance boundary. A deterministic integrator controls which verified results become accepted state. We formalize the distinction between raw worker correctness `P(X)` and accepted-system correctness `P(X|A)`, and propose controlled ablations that hold model capability constant while progressively introducing constraints, evidence, verification, and deterministic integration. The architecture is informed by prior work in verified cyber planning, proof-carrying plans, SAT/SMT-based checking, counterexample-guided revision, and evidence-first engineering. Current implementation evidence supports the existence and testability of the control mechanisms, but does not yet establish the central empirical hypothesis. We therefore define a reproducible evaluation protocol for measuring accepted error, failure containment, throughput, cost, rework, conflicts, verifier rejection, and final test quality. The contribution is a falsifiable systems model of AI reliability in which generation authority is separated from acceptance authority.
+AI reliability is commonly approached as a property to be improved within the model itself. This paper investigates a complementary systems hypothesis: reliable accepted behavior can emerge from unreliable AI computation when execution is constrained, behavior is observable, outputs are independently verified, and accepted changes are integrated deterministically. We present Residual, an evidence-first execution architecture that treats model-driven workers as untrusted computational processes rather than authorities over system state. Workers operate under immutable contracts and bounded capabilities, emit observations and provenance-preserving receipts, and submit candidate results to an independent acceptance boundary. A deterministic integrator controls which verified results become accepted state. We formalize the distinction between raw worker correctness `P(X)` and accepted-system correctness `P(X|A)`, and define a controlled evaluation program centered on Accepted Error Rate (AER), Failure Containment Rate (FCR), worker-degradation curves, matched-budget baselines, and independently graded outcomes. The architecture is informed by prior work in verified cyber planning, proof-carrying plans, SAT/SMT-based checking, counterexample-guided revision, and evidence-first engineering. Current implementation evidence supports the existence and testability of the control mechanisms, but does not yet establish the central empirical hypothesis. Experimental Release 1 therefore binds preregistered study conditions, normalized observations, publication artifacts, and upstream evidence hashes so the central claim can be supported or falsified by reproducible data rather than architectural argument alone. The contribution is a falsifiable systems model of AI reliability in which generation authority is separated from acceptance authority.
 
 **Index Terms:** AI reliability, multi-agent systems, runtime verification, deterministic integration, provenance, fault containment, formal verification, agent orchestration.
 
@@ -36,7 +36,7 @@ This paper makes four contributions:
 1. A formal distinction between worker correctness and accepted-system correctness.
 2. An evidence-first architecture for bounded heterogeneous AI execution.
 3. A deterministic acceptance and integration boundary.
-4. A reproducible ablation methodology for testing whether architectural controls can improve accepted reliability while model capability is held constant.
+4. A reproducible ablation methodology and evidence pipeline for testing whether architectural controls can improve accepted reliability while model capability is held constant.
 
 ## II. Research Lineage and Design Motivation
 
@@ -106,7 +106,9 @@ The architecture is model-agnostic. Capability routing can select local or remot
 
 ## V. Implementation Status
 
-The current repository contains an implemented research prototype with controlled evaluation tooling, evidence handling, routing, receipt binding, and multiple verification-oriented controls. The repository's existing research documentation deliberately distinguishes software validation from scientific confirmation.
+The current repository contains an implemented research prototype with controlled evaluation tooling, evidence handling, routing, receipt binding, worker contracts, bounded Factory execution, adaptive assurance, and deterministic integration primitives.
+
+Experimental Release 1 adds a canonical analysis boundary on top of those execution systems. It consumes normalized, independently graded observations and computes Accepted Error Rate, Failure Containment Rate, acceptance rate, accepted correctness, raw worker correctness where observable, latency, cost, family-level results, worker-degradation curves, and baseline deltas. Study, external assurance, and Factory evidence can be translated into the normalized schema without granting the analyzer authority over execution or acceptance.
 
 Several claims remain deliberately unsupported until live controlled experiments are complete. The manuscript does not claim arbitrary-task quality improvement, universal production readiness, distributed consensus, or guaranteed cost/latency gains.
 
@@ -123,13 +125,20 @@ The primary experiment is a controlled ablation in which the underlying model, t
 | C: Contracted | Yes | No | No | No |
 | D: COV | Yes | Yes | No | Optional |
 | E: COVD | Yes | Yes | Yes | Optional |
-| F: Dynamic swarm | Yes | Yes | Yes | Yes |
+| F: Fixed swarm | Yes | Yes | Yes | Yes |
+| G: Market/swarm | Yes | Yes | Yes | Adaptive |
 
-Each configuration must run at least three times against a frozen workload. Evaluation records must be derivable from observation logs and include elapsed time, accepted tasks per hour, token/GPU cost, coordination overhead, rework, merge conflicts, verifier rejection rate, and final test pass rate. Signed comparison reports and CLI-reproducible execution should be retained as experimental artifacts.
+The confirmatory experiment freezes exact model identifiers, inference settings, tool surfaces, task corpus, verifier revisions, budgets, trial counts, stopping rules, and source revision before evaluation. Results are recorded as one normalized observation per `(case, trial, configuration, degradation level)`.
 
-### A. Model-degradation experiment
+Each observation records at minimum whether the result crossed the acceptance boundary and whether an independent grader judged the result correct. Where a meaningful pre-acceptance worker candidate can be independently graded, raw worker correctness is recorded separately rather than inferred from controller outcome.
 
-Repeat the workload with progressively less reliable workers while preserving the acceptance architecture. This tests whether accepted-system reliability degrades more slowly than raw worker reliability.
+### A. Fixed-model ablation
+
+Hold model capability constant while progressively introducing contracts, evidence, independent verification, deterministic integration, and bounded swarm execution. The primary comparison is AER relative to raw/direct and conventional baselines.
+
+### B. Model-degradation experiment
+
+Repeat the workload with progressively less reliable workers while preserving the acceptance architecture. Degradation may be implemented through weaker models, reduced context, constrained inference budgets, or preregistered deterministic corruption, provided the mechanism is fixed before evaluation.
 
 The desired comparison is not whether Residual makes the weaker model smarter. It is whether:
 
@@ -137,7 +146,7 @@ The desired comparison is not whether Residual makes the weaker model smarter. I
 
 remains materially above raw worker correctness as worker quality decreases.
 
-### B. Fault-injection experiment
+### C. Fault-injection experiment
 
 Introduce controlled failures including:
 
@@ -154,27 +163,37 @@ Introduce controlled failures including:
 
 These tests measure whether faults are contained before accepted state rather than merely whether faults occur.
 
+### D. Matched-budget experiment
+
+Compare stronger direct execution with Residual using weaker or heterogeneous workers under frozen equivalent or transparently normalized budgets. Verification and orchestration cost belongs in the Residual budget. An additional control should expose an equivalent verification-compute budget to the conventional baseline without granting that baseline Residual's deterministic acceptance architecture.
+
 ## VII. Metrics and Statistical Analysis
 
 The primary metric is **Accepted Error Rate (AER)**:
 
 `AER = incorrect accepted outputs / all accepted outputs`
 
+AER is undefined when no output is accepted. Such a condition is reported as `UNKNOWN`, not as zero error.
+
 The second primary metric is **Failure Containment Rate (FCR)**:
 
-`FCR = detected or contained faulty executions / all faulty executions`
+`FCR = detected or contained faulty executions / all injected faulty executions`
 
 Secondary measures include:
 
 - accepted-task throughput;
 - acceptance rate;
+- accepted correctness;
+- independent task success;
+- raw worker correctness where independently measurable;
 - false rejection;
 - verifier rejection;
 - rework;
 - conflict rate;
 - final test pass rate;
 - elapsed time;
-- normalized compute cost.
+- normalized compute cost;
+- cost per independently correct accepted result.
 
 For binary correctness outcomes, confidence intervals and paired comparisons should be reported at the task level. Repeated runs should be treated as clustered observations rather than independent task samples. Effect sizes should accompany significance tests. Where workloads differ materially, results should be stratified by task class.
 
@@ -182,13 +201,27 @@ The strongest evidence for H1 would be a statistically and practically meaningfu
 
 A separate efficiency frontier should plot accepted correctness against cost and latency. This prevents a trivially conservative system that rejects nearly everything from being described as superior. The target is not maximum rejection; it is a favorable reliability-throughput-cost frontier.
 
+### Evidence binding
+
+Experimental Release 1 produces create-only publication artifacts:
+
+- `results.json` — machine-readable metrics;
+- `report.md` — human-readable results;
+- `evidence-manifest.json` — hashes binding the preregistration manifest, normalized observations, result, and upstream evidence;
+- `plot-data.csv` — publication plotting data;
+- `figures/degradation-aer.svg` — worker-degradation/AER visualization.
+
+Paper tables and figures should be generated from these artifacts rather than manually transcribed example values.
+
 ## VIII. Expected Results and Falsification Criteria
 
 No empirical result is asserted in this section.
 
-H1 is supported only if controls produce reproducible improvements in accepted-system correctness under fixed model capability. It is weakened if improvements disappear across task classes, are explained primarily by increased compute, or require verifier knowledge that effectively solves the task itself.
+H1 is supported only if controls produce reproducible improvements in accepted-system correctness under fixed model capability. It is weakened if improvements disappear across task classes, are explained primarily by increased compute, require rejecting nearly all work, or require verifier knowledge that effectively solves the task itself.
 
 H1 is falsified for the tested domain if COVD does not materially improve AER or failure containment relative to appropriate baselines.
+
+A stronger economic claim additionally requires a favorable reliability/cost or reliability/latency frontier under matched accounting.
 
 Any example benchmark numbers used in specifications or documentation must remain clearly labeled as examples until reproduced by frozen evaluation artifacts.
 
@@ -206,7 +239,9 @@ Other threats include:
 - verifier overfitting;
 - correlated generator/verifier errors;
 - hidden-test contamination;
-- workload classes where verification is nearly as difficult as generation.
+- workload classes where verification is nearly as difficult as generation;
+- optional stopping or post-hoc trial counts;
+- incomplete accounting of verifier and orchestration compute.
 
 The study should freeze workloads, preserve raw observations, version verifiers and policies, and distinguish `UNKNOWN` from `PASS`.
 
@@ -234,7 +269,7 @@ A future scheduler might model each engine using:
 - failure rate;
 - resource location.
 
-Over time, observed receipts could support empirical estimates of which engines produce acceptable work for which task classes. This creates a path toward a market-like scheduler for verified intelligence, although that extension remains future work.
+Over time, observed receipts could support empirical estimates of which engines produce acceptable work for which task classes. This creates a path toward a market-like scheduler for verified intelligence, although broad superiority remains an empirical question.
 
 The deeper claim is deliberately modest:
 
@@ -248,7 +283,7 @@ This paper proposes that dependable AI execution need not rely exclusively on de
 
 The resulting hypothesis is falsifiable: with model capability held constant, these controls should reduce incorrect accepted computation and improve failure containment at measurable cost.
 
-Current implementation evidence establishes a substantial testable system but does not yet establish the hypothesis. The next phase is therefore experimental rather than rhetorical: freeze workloads, execute ablations, publish raw evidence, and report both successful and negative results.
+Current implementation evidence establishes a substantial testable system and a canonical evidence pipeline but does not yet establish the hypothesis. The next phase is therefore experimental rather than rhetorical: freeze independently authored workloads, execute ablations, degradation and fault-injection studies, publish raw evidence, and report both successful and negative results.
 
 ---
 
@@ -268,11 +303,12 @@ Current implementation evidence establishes a substantial testable system but do
 
 - [ ] Freeze benchmark/task corpus and publish its hash.
 - [ ] Freeze model versions, inference settings, prompts, tool versions, verifier revisions, and policies.
-- [ ] Run every configuration at least three times and preserve complete observation logs and receipts.
+- [ ] Run every preregistered configuration and preserve complete observation logs and receipts.
 - [ ] Label ground truth independently of worker self-reports.
-- [ ] Compute AER, FCR, acceptance rate, throughput, cost, rework, conflicts, rejection, and final test pass rate.
+- [ ] Compute AER, FCR, acceptance rate, accepted correctness, throughput, cost, rework, conflicts, rejection, and final test pass rate.
 - [ ] Run model-degradation and fault-injection studies.
-- [ ] Perform statistical analysis with confidence intervals and effect sizes.
+- [ ] Run matched-budget comparisons with verifier/orchestration cost included.
+- [ ] Perform clustered/paired statistical analysis with confidence intervals and effect sizes.
 - [ ] Publish negative results and `UNKNOWN` outcomes.
 - [ ] Replace working citations with verified IEEE bibliographic entries.
 - [ ] Release reproducibility instructions and artifact hashes.
@@ -281,5 +317,6 @@ Current implementation evidence establishes a substantial testable system but do
 
 - [Research claim and prior art](../research.md)
 - [Controlled evaluation protocol](../controlled-evaluation.md)
+- [Experimental Release 1](../reliability-experimental-release.md)
 - [Evaluation documentation](../evaluation.md)
 - [Architecture](../architecture.md)
