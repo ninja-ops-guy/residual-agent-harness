@@ -29,8 +29,6 @@ PX0_VERSION = "0.1.2"
 PX0_UPSTREAM_COMMIT = "343c14a705b3021bd18ee521c82f7d7227c4ee88"
 PX0_REPOSITORY = "https://github.com/px0-ai/px0"
 
-# SHA-256 digests published on the px0 v0.1.2 GitHub release. The CLI fails
-# closed when the current platform has no qualified digest.
 QUALIFIED_BINARY_SHA256 = {
     ("linux", "x86_64"): "c483293c67a63821712508931588d0495c336be5ace1e253b90624d3f5a06700",
     ("linux", "aarch64"): "55b3ea50813af24736ae641cd401e6cdd7e2e28f42f8d3685292a35b3b6e05a4",
@@ -41,6 +39,7 @@ QUALIFIED_BINARY_SHA256 = {
 }
 
 _URL_RE = re.compile(r"http://127\.0\.0\.1:\d+")
+_SYSTEM_ROOTS = (Path("/usr"), Path("/bin"), Path("/lib"), Path("/lib64"), Path("/etc"))
 
 
 def _run(argv, *, cwd=None):
@@ -93,8 +92,6 @@ def _qualified_digest() -> str:
 
 
 def _safe_env() -> dict[str, str]:
-    # Do not inherit credentials, tokens, cloud configuration, proxy settings,
-    # browser overrides, or arbitrary process state from the operator shell.
     return {
         "PATH": "/usr/local/bin:/usr/bin:/bin",
         "HOME": "/tmp",
@@ -103,8 +100,6 @@ def _safe_env() -> dict[str, str]:
         "LC_ALL": "C.UTF-8",
         "DO_NOT_TRACK": "1",
         "PX0_TELEMETRY": "0",
-        # v0.1.2 performs a daily update check and has no disable flag. Point it
-        # at loopback so the qualified build cannot make that outbound request.
         "PX0_UPDATE_URL": "http://127.0.0.1:9",
         "HTTP_PROXY": "http://127.0.0.1:9",
         "HTTPS_PROXY": "http://127.0.0.1:9",
@@ -130,29 +125,15 @@ def _path_is_within(path: Path, root: Path) -> bool:
     return path == root or root in path.parents
 
 
-def _masked_roots() -> list[Path]:
-    roots = [Path("/tmp").resolve()]
-    home = Path.home().resolve()
-    if str(home) != "/" and home not in roots:
-        roots.append(home)
-    return roots
-
-
-def _reexpose_readonly(command: list[str], source: Path, masked_root: Path) -> None:
-    """Recreate a path hidden by tmpfs and bind only that path read-only."""
-    source = source.resolve()
-    if not _path_is_within(source, masked_root):
-        return
+def _mkdir_chain(command: list[str], destination: Path) -> None:
+    destination = destination.resolve()
     parents = []
-    parent = source.parent
-    while parent != masked_root and _path_is_within(parent, masked_root):
-        parents.append(parent)
-        parent = parent.parent
+    current = destination.parent
+    while current != Path("/"):
+        parents.append(current)
+        current = current.parent
     for directory in reversed(parents):
         command.extend(["--dir", str(directory)])
-    if source.is_dir():
-        command.extend(["--dir", str(source)])
-    command.extend(["--ro-bind", str(source), str(source)])
 
 
 def _sandbox_command(binary: Path, workspace: Path, inner: list[str]) -> tuple[list[str], str]:
@@ -167,19 +148,16 @@ def _sandbox_command(binary: Path, workspace: Path, inner: list[str]) -> tuple[l
 
     binary = binary.resolve()
     workspace = workspace.resolve()
-    masked = _masked_roots()
-    if any(_path_is_within(binary, root) for root in masked):
+    if not any(_path_is_within(binary, root.resolve()) for root in _SYSTEM_ROOTS if root.exists()):
         raise ContractError(
-            "Secure px0 inspection requires the qualified px0 binary to be installed outside "
-            "the operator home and /tmp (for example /usr/local/bin/px0)"
+            "Secure px0 inspection requires the authenticated px0 binary under a system runtime path "
+            "such as /usr/local/bin/px0"
         )
 
     mounts = [workspace, *_git_paths(workspace)]
     unique_mounts = []
     for path in mounts:
         path = path.resolve()
-        # Git metadata already inside the reviewed workspace is covered by the
-        # workspace bind; keep only external worktree/common-dir paths.
         if path != workspace and _path_is_within(path, workspace):
             continue
         if path not in unique_mounts:
@@ -192,17 +170,15 @@ def _sandbox_command(binary: Path, workspace: Path, inner: list[str]) -> tuple[l
         "--unshare-pid",
         "--unshare-uts",
         "--unshare-ipc",
-        "--ro-bind", "/", "/",
     ]
+    for root in _SYSTEM_ROOTS:
+        if root.exists():
+            command.extend(["--ro-bind", str(root), str(root)])
+    command.extend(["--proc", "/proc", "--dev", "/dev", "--tmpfs", "/tmp"])
 
-    # Replace common secret-bearing writable locations with private tmpfs views.
-    # Re-expose only the reviewed tree and any external Git metadata needed for
-    # a linked worktree. This keeps /tmp and the operator home private even when
-    # the candidate itself lives beneath one of those paths.
-    for root in masked:
-        command.extend(["--tmpfs", str(root)])
-        for path in unique_mounts:
-            _reexpose_readonly(command, path, root)
+    for path in unique_mounts:
+        _mkdir_chain(command, path)
+        command.extend(["--ro-bind", str(path), str(path)])
 
     command.extend(["--clearenv"])
     for key, value in _safe_env().items():
@@ -313,8 +289,6 @@ class Px0Inspector:
         if not (0 <= int(port) <= 65535):
             raise ContractError("Inspector port must be between 0 and 65535")
         root = Path(workspace).expanduser().resolve()
-        # Browser launch is intentionally owned by the parent process so px0 does
-        # not need desktop/session environment access inside the sandbox.
         inner = [str(self.binary), "-host", "127.0.0.1", "-port", str(int(port)), "-no-color", "-no-open"]
         if not lsp:
             inner.append("-no-lsp")
