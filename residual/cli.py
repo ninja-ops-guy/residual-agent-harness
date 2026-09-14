@@ -22,6 +22,9 @@ def write_json(path, value):
 
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
+    if argv and argv[0] == "evaluate":
+        from .factory.eval_framework import run_cli as evaluate
+        return evaluate(argv[1:])
     if argv and argv[0] == "factory":
         from .factory.cli import main as factory
         return factory(argv[1:])
@@ -37,6 +40,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="RESIDUAL — hybrid agents with verifiable task boundaries")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("factory", help="Plan and approve headless multi-swarm Factory Mode work")
+    sub.add_parser("evaluate", help="Run a frozen Factory evaluation (evaluate --help for options)")
     sub.add_parser("serve", help="Open the local web command station (serve --help for options)")
     sub.add_parser("worker", help="Connect a distributed inference runner")
     sub.add_parser("study", help="Freeze/run independently graded studies (study --help)")
@@ -110,7 +114,6 @@ def main(argv=None):
                           "simulation": any(c["usage"]["source"] == "simulation" for c in result["calls"])}, indent=2))
         return 0 if result["success"] else 2
     except (ContractError, OSError, ValueError, TypeError, KeyError, ImportError, AttributeError) as exc:
-        # Config exceptions can contain URLs/keys from custom plugins; default CLI avoids echoing them.
         print(f"residual: {type(exc).__name__}: configuration, task, or trace could not be validated", file=sys.stderr)
         return 1
 
