@@ -4,10 +4,11 @@ from .router import CapabilityRouter
 from .langgraph_adapter import LangGraphEngine
 from .crewai_adapter import CrewAIEngine
 from .sdk_adapter import ClaudeSDKEngine, OpenAIAssistantsEngine
+from .openclaw_adapter import OpenClawConfig, OpenClawEngine
 
 __all__ = [
     "ContextAssembly", "EngineExecutionReceipt", "EngineHealth", "EngineResult",
     "ExecutionEngine", "TaskSpec", "CapabilityProbeSuite", "ProbeResult",
     "CapabilityRouter", "LangGraphEngine", "CrewAIEngine", "ClaudeSDKEngine",
-    "OpenAIAssistantsEngine",
+    "OpenAIAssistantsEngine", "OpenClawConfig", "OpenClawEngine",
 ]
