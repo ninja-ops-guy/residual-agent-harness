@@ -42,7 +42,19 @@ jobs:
           cp site/live-demo.html _site/demo/index.html
           cp site/demo.html _site/walkthrough/index.html
           cp site/walkthrough-persist.js _site/walkthrough/persist.js
+          cp site/coi-serviceworker.js _site/coi-serviceworker.js
           printf '\n<script src="./persist.js"></script>\n' >> _site/walkthrough/index.html
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('_site/demo/index.html')
+          text = p.read_text()
+          marker = '<head>'
+          coi = '<head>\n<script>window.coi={coepCredentialless:()=>true,coepDegrade:()=>false};</script>\n<script src="../coi-serviceworker.js"></script>'
+          if marker not in text:
+              raise SystemExit('live demo head marker missing')
+          text = text.replace(marker, coi, 1)
+          p.write_text(text)
+          PY
           cat > _site/demo.html <<'EOF'
           <!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=./demo/"><script>location.replace('./demo/')</script><title>RESIDUAL Live Demo</title><body style="background:#000;color:#39ff68;font:16px monospace">Launching <a style="color:#39ff68" href="./demo/">RESIDUAL live VM</a>…</body>
           EOF
@@ -103,7 +115,7 @@ jobs:
           export const opts = {env:["HOME=/home/residual","TERM=xterm","USER=residual","SHELL=/bin/bash","EDITOR=vi","LANG=C","LC_ALL=C","PYTHONUNBUFFERED=1","RESIDUAL_DEMO_MODEL=gpt-5.6-luna"],cwd:"/opt/residual",uid:1000,gid:1000};
           EOF
 
-      - name: Add browser inference bridge to WebVM
+      - name: Add browser inference and runtime-state bridge to WebVM
         shell: bash
         run: |
           set -euo pipefail
@@ -115,6 +127,18 @@ jobs:
           new = '''\t\tconst bytes = new Uint8Array(buf);\n\t\tterm.write(bytes);\n\t\ttry { window.parent.postMessage({type: "residual-vm-output", data: new TextDecoder().decode(bytes)}, window.location.origin); } catch(e) {}'''
           if text.count(old) != 1: raise SystemExit('WebVM writeData hook moved; refusing an unsafe patch')
           text = text.replace(old, new)
+          old_init = '''\t\ttry\n\t\t{\n\t\t\tawait initCheerpX();\n\t\t}\n\t\tcatch(e)\n\t\t{\n\t\t\tprintMessage(unexpectedErrorMessage);\n\t\t\tprintMessage([e.toString()]);\n\t\t\treturn;\n\t\t}'''
+          new_init = '''\t\ttry\n\t\t{\n\t\t\twindow.parent.postMessage({type: "residual-vm-state", state: "runtime-loading", isolated: window.crossOriginIsolated, sab: typeof SharedArrayBuffer === "function"}, window.location.origin);\n\t\t\tawait initCheerpX();\n\t\t}\n\t\tcatch(e)\n\t\t{\n\t\t\twindow.parent.postMessage({type: "residual-vm-state", state: "runtime-error", error: e.toString(), isolated: window.crossOriginIsolated}, window.location.origin);\n\t\t\tprintMessage(unexpectedErrorMessage);\n\t\t\tprintMessage([e.toString()]);\n\t\t\treturn;\n\t\t}'''
+          if text.count(old_init) != 1: raise SystemExit('WebVM init hook moved; refusing an unsafe patch')
+          text = text.replace(old_init, new_init)
+          console_hook = '''\t\tcxReadFunc = cx.setCustomConsole(writeData, term.cols, term.rows);'''
+          console_new = '''\t\tcxReadFunc = cx.setCustomConsole(writeData, term.cols, term.rows);\n\t\twindow.parent.postMessage({type: "residual-vm-state", state: "console-attached", isolated: window.crossOriginIsolated}, window.location.origin);'''
+          if text.count(console_hook) != 1: raise SystemExit('WebVM console hook moved; refusing an unsafe patch')
+          text = text.replace(console_hook, console_new)
+          run_hook = '''\t\t\tawait cx.run(configObj.cmd, configObj.args, configObj.opts);'''
+          run_new = '''\t\t\twindow.parent.postMessage({type: "residual-vm-state", state: "guest-starting", isolated: window.crossOriginIsolated}, window.location.origin);\n\t\t\tawait cx.run(configObj.cmd, configObj.args, configObj.opts);'''
+          if text.count(run_hook) != 1: raise SystemExit('WebVM run hook moved; refusing an unsafe patch')
+          text = text.replace(run_hook, run_new)
           old_mount = '\tonMount(initTerminal);'
           new_mount = '''\tonMount(() => {\n\t\twindow.addEventListener("message", (event) => {\n\t\t\tif(event.source !== window.parent || event.origin !== window.location.origin) return;\n\t\t\tif(event.data?.type !== "residual-vm-input" || typeof event.data.data !== "string") return;\n\t\t\treadData(event.data.data);\n\t\t});\n\t\tinitTerminal();\n\t});'''
           if text.count(old_mount) != 1: raise SystemExit('WebVM mount hook moved; refusing an unsafe patch')
@@ -130,6 +154,36 @@ jobs:
           WEBVM_MODE=github npm run build
           cd ..
           cp -a _webvm/build/. _site/vm/
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('_site/vm/index.html')
+          text = p.read_text()
+          marker = '<head>'
+          injection = '<head>\n<script>window.coi={coepCredentialless:()=>true,coepDegrade:()=>false};</script>\n<script src="../coi-serviceworker.js"></script>'
+          if marker not in text: raise SystemExit('WebVM built index head marker missing')
+          p.write_text(text.replace(marker, injection, 1))
+          PY
+          cat >> _site/demo/index.html <<'EOF'
+          <script>
+          (()=>{
+            const vm=document.getElementById('vm'),status=document.getElementById('status'),loading=document.getElementById('loading');
+            let guestOutput=false;
+            window.addEventListener('message',event=>{
+              if(event.source!==vm.contentWindow||event.origin!==location.origin)return;
+              if(event.data?.type==='residual-vm-output' && String(event.data.data||'').length){
+                guestOutput=true;loading?.classList.add('hidden');status.textContent='VM READY · GUEST ATTACHED';status.className='';return;
+              }
+              if(event.data?.type!=='residual-vm-state')return;
+              const s=event.data.state;
+              if(s==='runtime-loading'){status.textContent=event.data.isolated?'VM RUNTIME LOADING…':'VM BLOCKED · CROSS-ORIGIN ISOLATION MISSING';status.className=event.data.isolated?'fallback':'err';}
+              else if(s==='console-attached'){status.textContent='VM CONSOLE ATTACHED · STARTING GUEST…';status.className='fallback';}
+              else if(s==='guest-starting'){status.textContent='VM GUEST STARTING…';status.className='fallback';}
+              else if(s==='runtime-error'){status.textContent='VM RUNTIME ERROR · '+String(event.data.error||'unknown').slice(0,120);status.className='err';loading?.classList.remove('hidden');}
+            });
+            setTimeout(()=>{if(!guestOutput&&!window.crossOriginIsolated){status.textContent='VM HOST NOT CROSS-ORIGIN ISOLATED';status.className='err';}},5000);
+          })();
+          </script>
+          EOF
 
       - name: Build WebVM index lists
         shell: bash
@@ -145,12 +199,16 @@ jobs:
           test -s _site/demo/index.html
           test -s _site/demo.html
           test -s _site/site/demo.html
+          test -s _site/coi-serviceworker.js
           test -s _site/walkthrough/index.html
           test -s _site/walkthrough/persist.js
           test -s _site/vm/index.html
           test -s _site/vm/residual-demo.ext2.meta
           grep -q "The repository is the demo" _site/demo/index.html
           grep -q "js.puter.com/v2" _site/demo/index.html
+          grep -q "coi-serviceworker.js" _site/demo/index.html
+          grep -q "coi-serviceworker.js" _site/vm/index.html
+          grep -q "residual-vm-state" _webvm/src/lib/WebVM.svelte
           grep -q "../demo/" _site/site/demo.html
           grep -q "residual-vm-output" _webvm/src/lib/WebVM.svelte
           grep -q "browser_bridge" examples/onboarding/cloud_demo.sh
