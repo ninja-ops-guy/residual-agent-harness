@@ -1,14 +1,14 @@
 """Browser-hosted inference transport for the static WebVM demo.
 
 This provider keeps RESIDUAL execution inside the guest Linux VM while delegating
-only model inference to a same-page browser host.  The transport is deliberately
+only model inference to a same-page browser host. The transport is deliberately
 simple and bounded: one request/response line over the VM's PTY, base64 encoded so
 model text can never be interpreted as terminal control input.
 """
 from __future__ import annotations
 
 import base64
-import json
+import binascii
 import select
 import sys
 import time
@@ -22,14 +22,15 @@ _RESPONSE = "__RESIDUAL_BROWSER_RESPONSE__"
 
 
 def _encode(obj: dict) -> str:
-    return base64.urlsafe_b64encode(canonical(obj).encode("utf-8")).decode("ascii")
+    return base64.urlsafe_b64encode(canonical(obj).encode("utf-8")).decode("ascii").rstrip("=")
 
 
 def _decode(value: str) -> dict:
     try:
-        raw = base64.urlsafe_b64decode(value.encode("ascii")).decode("utf-8")
+        padded = value + "=" * (-len(value) % 4)
+        raw = base64.urlsafe_b64decode(padded.encode("ascii")).decode("utf-8")
         obj = strict_json(raw)
-    except (ValueError, UnicodeError, json.JSONDecodeError) as exc:
+    except (ValueError, UnicodeError, binascii.Error):
         raise ProviderError("browser_bridge_invalid_response") from None
     if not isinstance(obj, dict):
         raise ProviderError("browser_bridge_invalid_response")
@@ -40,7 +41,7 @@ class BrowserBridgeProvider(Provider):
     """Inference provider backed by a browser-side host such as Puter.js.
 
     The provider writes a single base64 JSON request marker to stdout and waits for
-    the host to feed a matching response marker to stdin.  Normal user keystrokes
+    the host to feed a matching response marker to stdin. Normal user keystrokes
     are ignored while a request is outstanding.
     """
 
@@ -108,9 +109,12 @@ class BrowserBridgeProvider(Provider):
             inp = usage.get("input_tokens") if type(usage.get("input_tokens")) is int else None
             out = usage.get("output_tokens") if type(usage.get("output_tokens")) is int else None
             source = "reported" if inp is not None and out is not None else "unavailable"
-            return Reply(text, Usage(inp, out, None, source),
-                         (time.monotonic() - start) * 1000,
-                         response.get("finish_reason") if isinstance(response.get("finish_reason"), str) else None)
+            return Reply(
+                text,
+                Usage(inp, out, None, source),
+                (time.monotonic() - start) * 1000,
+                response.get("finish_reason") if isinstance(response.get("finish_reason"), str) else None,
+            )
 
 
 def register(registry):
