@@ -13,6 +13,8 @@ COPY --chown=residual:residual residual-src/ /opt/residual/
 
 RUN python3 -m pip install --break-system-packages --no-deps -e /opt/residual \
     && printf '%s\n' \
+      'stty sane 2>/dev/null || true' \
+      'stty echo 2>/dev/null || true' \
       'export PS1="\[\033[01;32m\]residual@demo\[\033[00m\]:\[\033[01;34m\]~/residual-agent-harness\[\033[00m\]$ "' \
       'alias demo="python3 -m residual demo --output runs/demo"' \
       'alias verify-demo="python3 -m residual verify-trace runs/demo/trace.jsonl --result runs/demo/result.json"' \
@@ -30,11 +32,12 @@ RUN python3 -m pip install --break-system-packages --no-deps -e /opt/residual \
 USER residual
 WORKDIR /opt/residual
 ENV HOME=/home/residual \
-    TERM=xterm-256color \
+    TERM=xterm \
     USER=residual \
     SHELL=/bin/bash \
     EDITOR=vi \
-    LANG=C.UTF-8 \
+    LANG=C \
+    LC_ALL=C \
     PYTHONUNBUFFERED=1
 
-CMD ["/bin/bash", "--login"]
+CMD ["/bin/bash", "--noprofile", "--rcfile", "/home/residual/.bashrc", "-i"]
