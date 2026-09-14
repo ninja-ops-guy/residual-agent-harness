@@ -2,6 +2,10 @@
 
 from .compiler import CompileResult, RequirementCompiler
 from .models import ExecutionPlan, FactoryTask, FrozenPlan, Requirement
+from .evidence_bus import (
+    ArtifactBinding, EvidenceBus, EvidenceError, FactoryStationIssuer,
+    StationIdentity, VerificationDecision, WorkerReceipt,
+)
 
 __all__ = [
     "CompileResult",
@@ -10,4 +14,11 @@ __all__ = [
     "FrozenPlan",
     "Requirement",
     "RequirementCompiler",
+    "ArtifactBinding",
+    "EvidenceBus",
+    "EvidenceError",
+    "FactoryStationIssuer",
+    "StationIdentity",
+    "VerificationDecision",
+    "WorkerReceipt",
 ]
