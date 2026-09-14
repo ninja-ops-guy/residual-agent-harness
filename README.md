@@ -40,12 +40,20 @@ The training mission uses scripted proposals with real Git/check execution. It d
 
 Version **0.4.0** integrates the uploaded Tracks 2–8 with the [Track 1 foundation](docs/roadmap/TRACK-1-IMPLEMENTATION.md). Mesh is a single-chain protocol prototype, and HITL requires a host authenticator. No real-model quality or token-savings claim is made.
 
+## Platform direction — Residual Studio
+
+The v1.0+ direction expands Residual from a harness into a self-hosted multi-swarm engineering platform. The existing Station remains the verification and safety kernel; new layers add a requirement compiler, orchestrator, bounded swarm runtime, evidence bus, deterministic integration, heterogeneous compute cluster, and a browser IDE.
+
+The design thesis is: **deterministically constrain, verify, schedule, and integrate nondeterministic workers.** Parallelism is planned from requirement dependencies and measured by useful speedup, coordination overhead, rework, and verifier rejection rather than raw agent count.
+
+See [Residual Studio platform vision](docs/studio/PLATFORM_VISION.md) and the [normative Studio specifications](docs/studio/STUDIO_SPECS.md).
+
 ## Documentation
 
+- [Residual Studio platform vision](docs/studio/PLATFORM_VISION.md)
+- [Residual Studio normative specifications](docs/studio/STUDIO_SPECS.md)
 - [Controlled studies, independent grading, and contract stress tests](docs/controlled-evaluation.md)
-
 - [World-class roadmap, first track and delegation boundaries](docs/roadmap/README.md)
-
 - [Goal contracts, quarantine and mission loop controls](docs/station/RUN-CONTROL.md)
 - [Modular providers, observations, and capability limits](docs/station/MODULAR-LAYERS.md)
 - [Architecture and invariants](docs/station/ARCHITECTURE.md)
