@@ -16,7 +16,10 @@ class ReliabilityExperimentTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         _, cases = load_suite(ROOT / "examples/study/suite.json")
-        cls.task, cls.grader = next((task, grader) for entry, task, grader in cases if entry["id"] == "quadratic")
+        # joint-choice is independently successful in the existing study fixtures;
+        # using it here isolates the injected fault from intentional false-accept
+        # cases such as the contract-stress expression fixtures.
+        cls.task, cls.grader = next((task, grader) for entry, task, grader in cases if entry["id"] == "joint-choice")
 
     def harness(self, mode="full_cloud"):
         return build_harness(CONFIG, mode=mode, disable_cache=True)
