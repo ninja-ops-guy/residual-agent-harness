@@ -50,12 +50,17 @@ class ReceiptTests(unittest.TestCase):
                       verdict=CheckResult.PASS, parent_receipts=parents)
         return StationReceipt(**{**values, **kw})
 
-    def test_round_trip_all_seven_fields_and_domains(self):
-        receipt = self.receipt()
-        self.assertEqual(len(receipt.payload()), 7)
+    def test_round_trip_all_nine_fields_and_domains(self):
+        receipt = self.receipt(engine_name='langgraph', engine_version='0.3.1')
+        self.assertEqual(len(receipt.payload()), 9)
+        self.assertEqual(receipt.payload()['engine_name'], 'langgraph')
+        self.assertEqual(receipt.payload()['engine_version'], '0.3.1')
         self.assertEqual(StationReceipt.from_json(json.dumps(receipt.to_dict())), receipt)
         self.assertNotEqual(receipt.receipt_hash, digest(receipt.payload()))
-        self.assertNotEqual(receipt.receipt_hash, self.receipt(verdict=CheckResult.UNKNOWN).receipt_hash)
+        self.assertNotEqual(receipt.receipt_hash, self.receipt(verdict=CheckResult.UNKNOWN,
+            engine_name='langgraph', engine_version='0.3.1').receipt_hash)
+        self.assertNotEqual(receipt.receipt_hash, self.receipt(engine_name='crewai', engine_version='0.3.1').receipt_hash)
+        self.assertNotEqual(receipt.receipt_hash, self.receipt(engine_name='langgraph', engine_version='0.3.2').receipt_hash)
 
     def test_tampering_or_unknown_envelope_profile_rejected(self):
         for field, value in [('schema_version', 'future'), ('hash_algorithm', 'md5'), ('receipt_hash', '0'*64)]:
@@ -63,11 +68,14 @@ class ReceiptTests(unittest.TestCase):
             with self.assertRaises(ContractError): StationReceipt.from_dict(envelope)
         envelope = self.receipt().to_dict(); envelope['payload']['value_hash'] = digest(False)
         with self.assertRaises(ContractError): StationReceipt.from_dict(envelope)
+        envelope = self.receipt(engine_name='langgraph', engine_version='1').to_dict(); envelope['payload']['engine_name'] = 'crewai'
+        with self.assertRaises(ContractError): StationReceipt.from_dict(envelope)
         with self.assertRaises(ContractError): StationReceipt.from_json('{"payload":{},"payload":{}}')
 
     def test_closed_verdicts_hashes_and_namespace(self):
         for key, value in [('value_hash', 'f'*63), ('cache_key', 'Z'*64), ('verdict', 'skipped'),
-                           ('verdict', 'approved'), ('verifier_name', 'anonymous'), ('verifier_revision', 'v1')]:
+                           ('verdict', 'approved'), ('verifier_name', 'anonymous'), ('verifier_revision', 'v1'),
+                           ('engine_name', ''), ('engine_version', '')]:
             with self.subTest(key=key):
                 with self.assertRaises(ContractError): self.receipt(**{key:value})
 
@@ -277,7 +285,6 @@ class EngineReceiptTests(unittest.TestCase):
         r,task=self.setup_graph();cache=Cache()
         try:
             h=Harness(r,None,None,cache=cache);h.run(task)
-            # Even lying about the revision cannot convert an old candidate into authority.
             rev,_=r.checks['json_value']; calls=[]
             r.checks['json_value']=(rev,lambda v,c:(calls.append(v) or Verdict('unknown','unavailable')))
             result=h.run(task)
