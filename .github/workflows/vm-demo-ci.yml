@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - 'demo/vm/**'
+      - 'demo/cloud_gateway/**'
+      - 'examples/onboarding/cloud_demo.sh'
+      - 'tests/test_demo_cloud_gateway.py'
       - 'site/live-demo.html'
       - '.github/workflows/pages.yml'
       - '.github/workflows/vm-demo-ci.yml'
@@ -19,6 +22,12 @@ jobs:
       - name: Checkout RESIDUAL
         uses: actions/checkout@v4
 
+      - name: Test demo gateway budgets and revocation
+        run: python3 -m unittest -v tests.test_demo_cloud_gateway
+
+      - name: Build gateway container
+        run: docker build . -f demo/cloud_gateway/Dockerfile -t residual-demo-gateway-ci
+
       - name: Checkout WebVM build context
         uses: actions/checkout@v4
         with:
@@ -30,10 +39,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rsync -a \
-            --exclude='.git' \
-            --exclude='_webvm' \
-            ./ _webvm/residual-src/
+          rsync -a --exclude='.git' --exclude='_webvm' ./ _webvm/residual-src/
           cp demo/vm/Dockerfile _webvm/dockerfiles/residual_demo
 
       - name: Build minimal VM filesystem image
@@ -55,26 +61,26 @@ jobs:
               test -s /tmp/residual-demo/trace.jsonl
               test -s /tmp/residual-demo/result.json
               residual verify-trace /tmp/residual-demo/trace.jsonl --result /tmp/residual-demo/result.json
+              bash -n examples/onboarding/cloud_demo.sh
               python3 -c "import residual; print(residual.__file__)"
             '
 
-      - name: Build WebVM browser client
+      - name: Build WebVM browser client with session injection
         shell: bash
         run: |
           set -euo pipefail
           cat > _webvm/config_github_terminal.js <<'EOF'
+          const fragment = new URLSearchParams(globalThis.location?.hash?.slice(1) || "");
+          const demoToken = fragment.get("demoToken") || "";
+          const gateway = (fragment.get("gateway") || "").replace(/\/$/, "");
           export const diskImageUrl = "residual-demo.ext2";
           export const diskImageType = "github";
           export const printIntro = false;
           export const needsDisplay = false;
           export const cmd = "/bin/bash";
           export const args = ["--login"];
-          export const opts = {
-            env: ["HOME=/home/residual", "TERM=xterm-256color", "USER=residual", "SHELL=/bin/bash", "LANG=C.UTF-8"],
-            cwd: "/opt/residual",
-            uid: 1000,
-            gid: 1000
-          };
+          const cloudEnv = demoToken && gateway ? [`LLM_API_KEY=${demoToken}`, `LLM_BASE_URL=${gateway}/v1`] : [];
+          export const opts = {env:["HOME=/home/residual","TERM=xterm-256color","USER=residual","SHELL=/bin/bash","LANG=C.UTF-8",...cloudEnv],cwd:"/opt/residual",uid:1000,gid:1000};
           EOF
           cd _webvm
           npm install
@@ -86,5 +92,7 @@ jobs:
         run: |
           set -euo pipefail
           grep -q 'The repository is the demo' site/live-demo.html
-          grep -q 'src="../vm/"' site/live-demo.html
+          grep -q 'v1/demo/session' site/live-demo.html
+          grep -q 'demoToken' site/live-demo.html
+          grep -q 'cloud-demo' demo/vm/Dockerfile
           grep -q 'RESET VM' site/live-demo.html
