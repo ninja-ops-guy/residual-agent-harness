@@ -17,7 +17,9 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 BASELINE = "98c12f0"
-OWNERSHIP_BASELINE = "412b66c35f7c0e1ac479fe60a5b7d33d5510e3af"
+# Proposed transition is part of #59's review and depends on #61's restoration.
+# It must not be moved to an arbitrary newer head just to silence a failure.
+OWNERSHIP_BASELINE = "aa7685d165c787a636c4d2e30c132d27b1eabf54"
 REQUIRED_PATHS = [
     "implementation-status.yaml", "scripts/status_check.py",
     "docs/status/IMPLEMENTATION_STATUS.md",
@@ -37,6 +39,8 @@ PROTECTED_FILES = frozenset({
     "residual/factory/evidence_bus.py",
     "residual/factory/evidence_receipts.py",
     "residual/factory/integrator.py",
+    "residual/factory/m4_evidence.py",
+    "residual/factory/m4_integrator.py",
     "residual/factory/runtime.py",
     "residual/factory/runtime_journal.py",
     "residual/factory/runtime_workspace.py",

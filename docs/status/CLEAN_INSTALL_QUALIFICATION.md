@@ -22,8 +22,10 @@ pytest is test-only. No core runtime dependency is added merely to run a
 repository development script. The smoke is not a live provider, OS-isolation,
 Factory M4/EVAL, benchmark, or production qualification.
 
-This repairs PR #50 and depends on the ownership gate in #59. Issue #48 remains
-open for requirement-by-requirement status reconciliation. At the repair's base
-`beb09ea`, canonical Factory M4/EVAL remain separate from similarly named
-orchestration/evaluation packages; a successful package import does not certify
-the missing requirements.
+This repairs PR #50 and depends on #61's lifecycle restoration followed by the
+ownership gate transition in #59. Neither Factory source nor baseline is changed
+in this packaging diff. Requalify after retargeting each parent to main. Issue
+#48 remains open for requirement-by-requirement status reconciliation. The
+parent source includes #58's receipt-backed M4 planning, not a claim of full M4
+integration or Factory EVAL completion (#22/#60/#26). A successful package import
+does not certify those requirements.
