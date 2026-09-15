@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Exercise real WebVM, not a mocked VM or container-only approximation.
+"""Real WebVM browser acceptance; no guest, SDK, or inference mocks.
 
-Requires Playwright and its browser binaries. Evidence is retained on failure.
-No sign-in or paid inference is attempted by this test.
+The cloud-negative test disconnects the browser before opt-in. No account is
+created, no sign-in is performed, and no paid inference is attempted.
 """
 from __future__ import annotations
 
 import argparse
 import asyncio
+import hashlib
 import json
 import secrets
 import time
@@ -15,7 +16,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from playwright.async_api import async_playwright
-
+from pages_contract import validate_entry_html
 
 BOOT = "RESIDUAL BOOT: guest process attached"
 
@@ -32,7 +33,7 @@ async def main() -> int:
     parser.add_argument("--browser", choices=("chromium", "webkit"), default="chromium")
     parser.add_argument("--mobile", action="store_true")
     parser.add_argument("--boot-timeout", type=int, default=120)
-    parser.add_argument("--expected-sha")
+    parser.add_argument("--expected-sha", required=True)
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     report = {"url": safe_url(args.url), "browser": args.browser,
@@ -42,7 +43,6 @@ async def main() -> int:
               "http_errors": [], "optional_requests": [], "console": [],
               "cloud_inference": "NOT_RUN"}
     started = time.monotonic()
-
     async with async_playwright() as pw:
         browser = await getattr(pw, args.browser).launch()
         context = await browser.new_context(viewport={"width": 390, "height": 844} if args.mobile else {"width": 1280, "height": 800})
@@ -59,35 +59,48 @@ async def main() -> int:
             print(f"WEBVM_STAGE: {name}", flush=True)
 
         async def wait_text(text: str, timeout: int = 120000) -> None:
-            await page.wait_for_function("text => document.body.innerText.includes(text)", arg=text, timeout=timeout)
+            # Accessible xterm rows can wrap on a narrow viewport. Ignore only
+            # whitespace, not punctuation, so echoed split nonces cannot pass.
+            await page.wait_for_function("text => document.body.innerText.replace(/\\s/g,'').includes(text.replace(/\\s/g,''))", arg=text, timeout=timeout)
 
         async def command_proof(command: str) -> None:
-            # The complete nonce is never echoed as part of the command line:
-            # only an executed guest printf can produce the expected marker.
             nonce = secrets.token_hex(8)
             expected = f"RESIDUAL_E2E_{nonce}:0"
+            # The complete nonce is absent from the echoed command. Actual
+            # guest printf execution, with exit status zero, is required.
             wire = command + "; proof_rc=$?; printf '\\nRESIDUAL_E2E_%s%s:%s\\n' '" + nonce[:8] + "' '" + nonce[8:] + "' \"$proof_rc\""
-            terminal = page.locator(".xterm-helper-textarea")
-            await terminal.focus()
+            await page.locator(".xterm-helper-textarea").focus()
             await page.keyboard.press("Control+u")
             await page.keyboard.type(wire, delay=1)
             await page.keyboard.press("Enter")
             await wait_text(expected, timeout=180000)
+            report.setdefault("guest_proofs", []).append({"command": command, "observed_exit_marker": expected})
 
         try:
+            # Check actual served bytes without executing a possible redirect
+            # loop. Identity and entry hashes must agree before browser boot.
+            response = await context.request.get(args.url, timeout=30000)
+            assert response.ok, f"entry HTTP {response.status}"
+            entry = await response.body()
+            (args.output / "served-index.html").write_bytes(entry)
+            validate_entry_html(entry.decode("utf-8"))
+            info = await context.request.get(args.url.rstrip("/") + "/build-info.json", timeout=30000)
+            assert info.ok, f"build identity HTTP {info.status}"
+            identity = await info.json()
+            report["build_identity"] = identity
+            assert identity.get("commit") == args.expected_sha, "served commit differs from expected commit"
+            assert hashlib.sha256(entry).hexdigest() == identity["files"]["index.html"], "served entry hash mismatch"
+            worker = await context.request.get(args.url.rstrip("/") + "/serviceWorker.js", timeout=30000)
+            assert worker.ok, f"service worker HTTP {worker.status}"
+            assert hashlib.sha256(await worker.body()).hexdigest() == identity["files"]["serviceWorker.js"], "served service-worker hash mismatch"
+            await stage("served_artifact_identity_verified")
             await page.goto(args.url, wait_until="domcontentloaded", timeout=60000)
             await stage("document_loaded")
             await wait_text(BOOT, timeout=args.boot_timeout * 1000)
             await stage("guest_attached")
             assert await page.evaluate("window.crossOriginIsolated"), "guest page is not cross-origin isolated"
-            assert await page.evaluate("window.top === window"), "WebVM is embedded instead of top-level"
-            assert not report["optional_requests"], "optional third-party requests occurred before cloud opt-in"
-            if args.expected_sha:
-                response = await context.request.get(args.url.rstrip("/") + "/build-info.json")
-                assert response.ok, "build identity unavailable"
-                identity = await response.json()
-                report["build_identity"] = identity
-                assert identity.get("commit") == args.expected_sha, "deployed commit does not match expected commit"
+            assert await page.evaluate("window.top === window"), "WebVM is not top-level"
+            assert not report["optional_requests"], "optional service initialized before cloud opt-in"
             await command_proof('test "$PWD" = /opt/residual && test -f pyproject.toml && python3 -c "import residual" && demo && verify-demo')
             await stage("real_demo_and_verify_passed")
             await page.screenshot(path=str(args.output / "demo-passed.png"))
@@ -95,12 +108,16 @@ async def main() -> int:
             await wait_text(BOOT, timeout=args.boot_timeout * 1000)
             await command_proof("test -s runs/demo/trace.jsonl && verify-demo")
             await stage("warm_reload_and_verify_passed")
-            assert not report["optional_requests"], "cloud SDK loaded without an explicit click"
-            # A network-denied SDK must not take the offline guest down. This
-            # avoids authenticating, creating an account, or spending money.
+            assert not report["optional_requests"], "cloud SDK loaded without opt-in"
+            cloud = page.get_by_role("button", name="ENABLE CLOUD", exact=False)
+            box = await cloud.bounding_box()
+            viewport = page.viewport_size
+            assert box and viewport and box["x"] >= 0 and box["x"] + box["width"] <= viewport["width"] + 1, "cloud control is outside the viewport"
             await context.set_offline(True)
-            await page.get_by_role("button", name="ENABLE CLOUD", exact=False).click(timeout=10000)
-            await page.get_by_role("button", name="ENABLE CLOUD", exact=False).wait_for(state="visible", timeout=20000)
+            await cloud.click(timeout=10000)
+            await page.wait_for_function("() => !document.body.innerText.includes('LOADING CLOUD')", timeout=20000)
+            await cloud.wait_for(state="visible", timeout=20000)
+            assert report["optional_requests"], "cloud button did not attempt SDK loading"
             await context.set_offline(False)
             await command_proof("true")
             await stage("cloud_network_failure_preserves_guest")
@@ -111,9 +128,12 @@ async def main() -> int:
         finally:
             try:
                 report["page_state"] = await page.evaluate("({url:location.pathname, isolated:window.crossOriginIsolated, controlled:!!navigator.serviceWorker.controller, title:document.title, body:document.body.innerText.slice(-20000)})")
-                await page.screenshot(path=str(args.output / "final.png"))
             except Exception as error:
                 report["capture_error"] = str(error)
+            try:
+                await page.screenshot(path=str(args.output / "final.png"), timeout=5000)
+            except Exception as error:
+                report["screenshot_error"] = str(error)
             try:
                 await context.tracing.stop(path=str(args.output / "trace.zip"))
             finally:
