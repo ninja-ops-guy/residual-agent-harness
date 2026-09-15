@@ -7,7 +7,7 @@ from qualify_webvm import replace_once
 
 
 def patch(text):
-    text = replace_once(text, "<script>\n", "<script>\n\timport { mountMissionControl } from './mission-control.js';\n")
+    text = replace_once(text, "<script>\n", "<script>\n\timport { mountMissionControl } from './mission-control-world.js';\n")
     text = replace_once(text, 'var residualBridgeBuffer = "";',
                         'var residualWorkbench = null;\n\tvar residualDataDevice = null;\n\tvar residualShellTail = "";\n\tvar residualShellReady = false;\n\tvar residualBridgeBuffer = "";')
     text = replace_once(text, 'const out = residualDecoder.decode(bytes, {stream:true});', '''const out = residualDecoder.decode(bytes, {stream:true});
@@ -26,7 +26,7 @@ def patch(text):
                 const name = "/" + request.id + ".json";
                 await residualDataDevice.writeFile(name, JSON.stringify(request));
                 const args = request.mode === "build"
-                    ? ["-m", "residual.workbench.build", "--request", "/data" + name, "--mailbox", "/data", "--root", "/opt/residual", "--output-root", "/opt/residual/runs/missions", "--stream"]
+                    ? ["-m", "residual.workbench.conversation_build", "--request", "/data" + name, "--mailbox", "/data", "--root", "/opt/residual", "--output-root", "/opt/residual/runs/missions", "--stream"]
                     : ["-m", "residual.workbench", "run", "--request", "/data" + name, "--mailbox", "/data", "--root", "/opt/residual", "--output-root", "/opt/residual/runs/missions", "--stream"];
                 return await cx.run("/usr/bin/python3", args, configObj.opts);
             }
@@ -46,7 +46,7 @@ def patch(text):
 def install(source: Path, site: Path):
     source.write_text(patch(source.read_text()))
     here = Path(__file__).resolve().parent
-    for name in ('mission-control.js', 'mission-preview.js', 'provider-session.js'):
+    for name in ('mission-control.js', 'mission-control-world.js', 'mission-preview.js', 'provider-session.js'):
         shutil.copyfile(here / name, source.parent / name)
     provider = site / 'provider'; provider.mkdir(parents=True, exist_ok=True)
     for src, dst in [('provider.html', 'index.html'), ('provider.js', 'provider.js'), ('provider-session.js', 'provider-session.js')]:
