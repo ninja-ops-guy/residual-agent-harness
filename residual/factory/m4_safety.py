@@ -187,6 +187,13 @@ class FixtureProcessResult:
     timed_out: bool = False
 
 
+# Deterministic parent-side wall-clock timeout marker, identical to the
+# isolated lane's SANDBOX_TIMEOUT_EXIT: BOTH lanes return returncode 124 with
+# timed_out=True for a typed timeout — one uniform contract (a real subprocess
+# signal code after kill would leak the mechanism, not the outcome).
+FIXTURE_TIMEOUT_EXIT = 124
+
+
 def run_trusted_fixture(argv: tuple[str, ...], worktree: Path, *,
                         timeout_s: float, output_limit: int) -> FixtureProcessResult:
     """Bound capture and kill the process group, including after leader exit.
@@ -253,9 +260,10 @@ def run_trusted_fixture(argv: tuple[str, ...], worktree: Path, *,
             stream.close()
         process.wait(timeout=5)
     if reason == 'timeout':
-        # Typed parent-side wall-clock timeout, matching the isolated lane.
-        status = 'timeout'
-    else:
-        status = 'pass' if reason == 'exit' and process.returncode == 0 else 'fail'
+        # Typed parent-side wall-clock timeout: deterministic returncode 124,
+        # matching the isolated lane exactly (uniform timeout contract).
+        return FixtureProcessResult('timeout', FIXTURE_TIMEOUT_EXIT, hashes[0].hexdigest(),
+                                    hashes[1].hexdigest(), reason, timed_out=True)
+    status = 'pass' if reason == 'exit' and process.returncode == 0 else 'fail'
     return FixtureProcessResult(status, process.returncode, hashes[0].hexdigest(),
-                                hashes[1].hexdigest(), reason, timed_out=reason == 'timeout')
+                                hashes[1].hexdigest(), reason, timed_out=False)
