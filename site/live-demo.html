@@ -15,23 +15,105 @@
 <main class="wrap">
   <div class="top"><div><div class="ey">RESIDUAL / LIVE SYSTEM</div><h1>The repository is the demo.</h1><p class="sub">A disposable Linux environment runs entirely in this browser tab with the actual RESIDUAL source preloaded. Cloud inference is optional: Puter runs the model under the visitor's own account while RESIDUAL planning, verification, receipts, and traces remain inside this VM.</p></div><div class="actions"><button id="cloudBtn" class="btn primary" type="button">ENABLE CLOUD ✦</button><button id="reset" class="btn" type="button">RESET VM ↻</button><a class="btn" href="../walkthrough/">ENGINEER WALKTHROUGH</a><a class="btn" href="https://github.com/ninja-ops-guy/residual-agent-harness" target="_blank" rel="noopener">SOURCE ↗</a></div></div>
   <div class="badgebar"><span class="badge"><strong>REAL LINUX</strong> / client-side VM</span><span class="badge"><strong>REAL REPO</strong> / current build source</span><span id="cloudBadge" class="badge"><strong>CLOUD</strong> / Puter user-pays · sign in to enable</span><span class="badge"><strong>NO API KEYS</strong> / browser-authenticated inference</span><span class="badge"><strong>DISPOSABLE</strong> / reload to restore</span></div>
-  <section class="frame" aria-label="RESIDUAL browser VM"><div class="framehead"><span>residual@demo:/opt/residual</span><span><span class="lights"><i id="cloudLight" class="light"></i><i class="light on"></i><i class="light"></i></span></span></div><div id="loading" class="loading"><div class="boot"><b>BOOTING RESIDUAL DEMO VM</b><br>Preparing the client-side Linux filesystem. The offline demo always works; cloud inference can be enabled separately with Puter.<div class="bar"></div></div></div><iframe id="vm" class="vm" src="about:blank" title="RESIDUAL live Linux VM" allow="clipboard-read; clipboard-write" referrerpolicy="same-origin"></iframe></section>
+  <section class="frame" aria-label="RESIDUAL browser VM"><div class="framehead"><span>residual@demo:/opt/residual</span><span><span class="lights"><i id="cloudLight" class="light"></i><i class="light on"></i><i class="light"></i></span></span></div><div id="loading" class="loading" role="status" aria-live="polite"><div class="boot"><b id="bootTitle">BOOTING RESIDUAL DEMO VM</b><p id="bootDetail">Preparing the client-side Linux filesystem. Once the VM starts, the offline demo needs no model account. Cloud inference is optional.</p><a class="btn" href="../walkthrough/">OPEN ENGINEER WALKTHROUGH</a><div class="bar"></div></div></div><iframe id="vm" class="vm" src="about:blank" title="RESIDUAL live Linux VM" allow="clipboard-read; clipboard-write" referrerpolicy="same-origin"></iframe></section>
   <div class="mobilekeys" id="mobilekeys"><button id="typeBtn" class="btn primary" type="button">⌨ TYPE</button><button id="enterBtn" class="btn" type="button">ENTER ↵</button><button id="tabBtn" class="btn" type="button">TAB ⇥</button><button id="ctrlcBtn" class="btn" type="button">CTRL-C</button><span id="kbdhint" class="kbdhint">Tap TYPE, then use the iPhone keyboard.</span></div>
-  <div class="note"><span><b>Start here:</b> run <code>demo</code> for the guaranteed offline path. Tap <b>ENABLE CLOUD</b>, complete the Puter sign-in, then run <code>cloud-demo</code> to send only model inference through Puter and mechanically verify the resulting RESIDUAL trace in the VM.</span><span id="status" class="fallback">BOOTING VM…</span></div>
+  <div class="note"><span><b>Start here:</b> after the guest attaches, run <code>demo</code> for the offline path. Tap <b>ENABLE CLOUD</b>, complete the Puter sign-in, then run <code>cloud-demo</code> to send only model inference through Puter and mechanically verify the resulting RESIDUAL trace in the VM.</span><span id="status" class="fallback">BOOTING VM…</span></div>
+  <noscript><p class="err">JavaScript is required for the browser VM. The engineer walkthrough link remains available above.</p></noscript>
 </main>
 <script>
 const vm=document.getElementById('vm'),loading=document.getElementById('loading'),status=document.getElementById('status'),cloudBadge=document.getElementById('cloudBadge'),cloudLight=document.getElementById('cloudLight'),cloudBtn=document.getElementById('cloudBtn');
-const vmBase='../vm/';let cloudReady=false,outputBuffer='';
-function setVH(){document.documentElement.style.setProperty('--vh',((window.visualViewport?.height||window.innerHeight)*.01)+'px')}setVH();window.addEventListener('resize',setVH);window.visualViewport?.addEventListener('resize',setVH);
-function bootVM(){vm.src=vmBase+'?boot='+Date.now()}
-function setCloudReady(user){cloudReady=true;cloudLight.classList.add('on');cloudBtn.textContent='CLOUD READY ✓';cloudBtn.disabled=true;const who=user?.username?(' · '+user.username):'';cloudBadge.innerHTML='<strong>CLOUD READY</strong> / Puter user-pays'+who;status.textContent='VM READY · CLOUD ENABLED';status.className=''}
+const vmBase='../vm/';
+let cloudReady=false,outputBuffer='',vmReady=false,bootFailed=false,readyTimer;
+function setVH(){document.documentElement.style.setProperty('--vh',((window.visualViewport?.height||window.innerHeight)*.01)+'px')}
+setVH();window.addEventListener('resize',setVH);window.visualViewport?.addEventListener('resize',setVH);
+function showBoot(title,detail,kind='fallback'){
+  loading.classList.remove('hidden');
+  document.getElementById('bootTitle').textContent=title;
+  document.getElementById('bootDetail').textContent=detail;
+  status.textContent=title;status.className=kind;
+}
+function failBoot(detail){
+  vmReady=false;bootFailed=true;clearTimeout(readyTimer);
+  showBoot('VM STARTUP BLOCKED',String(detail).slice(0,400),'err');
+}
+function bootVM(){
+  clearTimeout(readyTimer);vmReady=false;bootFailed=false;outputBuffer='';
+  showBoot('BOOTING RESIDUAL DEMO VM','Preparing the client-side Linux filesystem. Cloud sign-in is not required.');
+  readyTimer=setTimeout(()=>{
+    if(!vmReady&&!bootFailed)showBoot('VM STARTUP UNCONFIRMED',
+      window.crossOriginIsolated?'No guest output has arrived. Retry RESET VM or use the engineer walkthrough.':'This browser tab is not cross-origin isolated. Open this page directly in Safari or a desktop browser, then retry. The walkthrough does not require the VM.');
+  },30000);
+  vm.src=vmBase+'?boot='+Date.now();
+}
+function cloudMessage(message){cloudBadge.textContent=message}
+function setCloudReady(user){
+  cloudReady=true;cloudLight.classList.add('on');cloudBtn.textContent='CLOUD READY ✓';cloudBtn.disabled=true;
+  const label=document.createElement('strong');label.textContent='CLOUD READY';
+  cloudBadge.replaceChildren(label,document.createTextNode(' / Puter user-pays'+(user?.username?' · '+user.username:'')));
+  // Cloud authentication is not evidence that the Linux guest has started.
+}
 async function waitForPuter(timeout=8000){const start=Date.now();while(Date.now()-start<timeout){if(window.puter?.auth)return true;await new Promise(r=>setTimeout(r,100))}return false}
-async function refreshCloudState(){try{if(await waitForPuter(1500) && window.puter?.auth?.isSignedIn?.()){const u=await puter.auth.getUser();setCloudReady(u)}}catch(e){}}
-cloudBtn.addEventListener('click',async()=>{cloudBtn.disabled=true;cloudBtn.textContent='LOADING CLOUD…';status.textContent='LOADING PUTER…';status.className='fallback';try{if(!(await waitForPuter()))throw new Error('Puter SDK unavailable');cloudBtn.textContent='SIGNING IN…';status.textContent='PUTER SIGN-IN…';await puter.auth.signIn({attempt_temp_user_creation:true});const user=await puter.auth.getUser();setCloudReady(user)}catch(e){cloudBtn.disabled=false;cloudBtn.textContent='ENABLE CLOUD ✦';status.textContent='CLOUD OPTIONAL · SDK BLOCKED/UNAVAILABLE';status.className='fallback'}});
-function decode64url(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const bin=atob(s),bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));return new TextDecoder().decode(bytes)}function encode64urlText(text){const bytes=new TextEncoder().encode(text);let bin='';for(const b of bytes)bin+=String.fromCharCode(b);return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+async function refreshCloudState(){try{if(await waitForPuter(1500)&&window.puter?.auth?.isSignedIn?.()){const u=await puter.auth.getUser();setCloudReady(u)}}catch(e){}}
+cloudBtn.addEventListener('click',async()=>{
+  cloudBtn.disabled=true;cloudBtn.textContent='LOADING CLOUD…';cloudMessage('CLOUD / loading optional Puter SDK…');
+  try{if(!(await waitForPuter()))throw new Error('Puter SDK unavailable');cloudBtn.textContent='SIGNING IN…';await puter.auth.signIn({attempt_temp_user_creation:true});const user=await puter.auth.getUser();setCloudReady(user)}
+  catch(e){cloudBtn.disabled=false;cloudBtn.textContent='ENABLE CLOUD ✦';cloudMessage('CLOUD OPTIONAL / sign-in cancelled or SDK unavailable. The VM does not require cloud access.')}
+});
+function decode64url(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const bin=atob(s),bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));return new TextDecoder().decode(bytes)}
+function encode64urlText(text){const bytes=new TextEncoder().encode(text);let bin='';for(const b of bytes)bin+=String.fromCharCode(b);return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
 function normalizePuterText(result){if(typeof result==='string')return result;const c=result?.message?.content;if(typeof c==='string')return c;if(Array.isArray(c))return c.map(p=>typeof p==='string'?p:(p?.text||p?.content||'')).join('');if(typeof result?.text==='string')return result.text;if(typeof result?.content==='string')return result.content;throw new Error('puter returned no text content')}
 function sendBridgeResponse(id,obj){const encoded=encode64urlText(JSON.stringify(obj));vm.contentWindow?.postMessage({type:'residual-vm-input',data:`__RESIDUAL_BROWSER_RESPONSE__:${id}:${encoded}\n`},location.origin)}
-async function handleBridgeRequest(line){const m=line.match(/^__RESIDUAL_BROWSER_REQUEST__:([0-9a-f]+):([A-Za-z0-9_-]+)$/);if(!m)return;const id=m[1];let req;try{req=JSON.parse(decode64url(m[2]))}catch(e){return sendBridgeResponse(id,{ok:false,error:'browser_bridge_invalid_request'})}if(!cloudReady||!window.puter){status.textContent='CLOUD REQUEST WAITING · TAP ENABLE CLOUD';status.className='fallback';return sendBridgeResponse(id,{ok:false,error:'browser_bridge_auth_required'})}status.textContent='CLOUD INFERENCE · '+(req.model||'Puter');status.className='';try{const maxTokens=Number.isInteger(req.max_output_tokens)?Math.max(1,Math.min(req.max_output_tokens,512)):256;const result=await puter.ai.chat(req.messages,{model:req.model||'gpt-5.6-luna',max_tokens:maxTokens,normalize:true});const text=normalizePuterText(result),usage=result?.usage||{};const inputTokens=Number.isInteger(usage.prompt_tokens)?usage.prompt_tokens:(Number.isInteger(usage.input_tokens)?usage.input_tokens:null);const outputTokens=Number.isInteger(usage.completion_tokens)?usage.completion_tokens:(Number.isInteger(usage.output_tokens)?usage.output_tokens:null);sendBridgeResponse(id,{ok:true,text,finish_reason:result?.finish_reason||result?.message?.finish_reason||'stop',usage:{input_tokens:inputTokens,output_tokens:outputTokens}});status.textContent='CLOUD RESPONSE RETURNED TO VM';status.className=''}catch(e){console.warn('Puter inference failed',e);sendBridgeResponse(id,{ok:false,error:'browser_bridge_remote_error'});status.textContent='CLOUD INFERENCE FAILED';status.className='err'}}
-window.addEventListener('message',event=>{if(event.source!==vm.contentWindow||event.origin!==location.origin||event.data?.type!=='residual-vm-output')return;outputBuffer+=String(event.data.data||'');const parts=outputBuffer.split(/\r?\n/);outputBuffer=parts.pop()||'';for(const line of parts)handleBridgeRequest(line.trim())});
-function terminalTextarea(){try{return vm.contentDocument?.querySelector('textarea.xterm-helper-textarea, .xterm-helper-textarea, textarea[aria-label="Terminal input"]')||null}catch(e){return null}}function focusTerminal(){const ta=terminalTextarea();if(!ta){document.getElementById('kbdhint').textContent='Terminal is still booting…';return false}ta.removeAttribute('readonly');ta.removeAttribute('disabled');try{ta.focus({preventScroll:true})}catch(e){ta.focus()}document.getElementById('kbdhint').textContent='Keyboard connected to terminal.';return true}function sendKey(key,opts={}){const ta=terminalTextarea();if(!ta)return focusTerminal();ta.focus();const init={key,code:opts.code||key,bubbles:true,cancelable:true,ctrlKey:!!opts.ctrlKey};ta.dispatchEvent(new KeyboardEvent('keydown',init));ta.dispatchEvent(new KeyboardEvent('keypress',init));ta.dispatchEvent(new KeyboardEvent('keyup',init))}function installMobileFocusBridge(){try{const doc=vm.contentDocument;if(!doc)return;const arm=()=>{const ta=terminalTextarea();if(ta){try{ta.focus({preventScroll:true})}catch(e){ta.focus()}}};doc.addEventListener('touchend',arm,{capture:true,passive:true});doc.addEventListener('pointerup',arm,{capture:true,passive:true})}catch(e){}}
-document.getElementById('typeBtn').addEventListener('click',focusTerminal);document.getElementById('enterBtn').addEventListener('click',()=>sendKey('Enter',{code:'Enter'}));document.getElementById('tabBtn').addEventListener('click',()=>sendKey('Tab',{code:'Tab'}));document.getElementById('ctrlcBtn').addEventListener('click',()=>sendKey('c',{code:'KeyC',ctrlKey:true}));let readyTimer=setTimeout(()=>{status.textContent='STILL LOADING — WALKTHROUGH AVAILABLE';status.className='fallback'},20000);vm.addEventListener('load',()=>{if(vm.src==='about:blank')return;clearTimeout(readyTimer);setTimeout(()=>{loading.classList.add('hidden');installMobileFocusBridge()},700);if(!cloudReady){status.textContent='VM READY · CLOUD SIGN-IN OPTIONAL';status.className='fallback'}});vm.addEventListener('error',()=>{clearTimeout(readyTimer);loading.querySelector('.boot').innerHTML='<b class="err">VM RUNTIME FAILED TO LOAD</b><br>The static engineer walkthrough remains available
+async function handleBridgeRequest(line){
+  const m=line.match(/^__RESIDUAL_BROWSER_REQUEST__:([0-9a-f]+):([A-Za-z0-9_-]+)$/);if(!m)return;
+  const id=m[1];let req;
+  try{req=JSON.parse(decode64url(m[2]))}catch(e){return sendBridgeResponse(id,{ok:false,error:'browser_bridge_invalid_request'})}
+  if(!cloudReady||!window.puter){cloudMessage('CLOUD REQUEST WAITING / tap ENABLE CLOUD');return sendBridgeResponse(id,{ok:false,error:'browser_bridge_auth_required'})}
+  cloudMessage('CLOUD INFERENCE / '+(req.model||'Puter'));
+  try{
+    const maxTokens=Number.isInteger(req.max_output_tokens)?Math.max(1,Math.min(req.max_output_tokens,512)):256;
+    const result=await puter.ai.chat(req.messages,{model:req.model||'gpt-5.6-luna',max_tokens:maxTokens,normalize:true});
+    const text=normalizePuterText(result),usage=result?.usage||{};
+    const inputTokens=Number.isInteger(usage.prompt_tokens)?usage.prompt_tokens:(Number.isInteger(usage.input_tokens)?usage.input_tokens:null);
+    const outputTokens=Number.isInteger(usage.completion_tokens)?usage.completion_tokens:(Number.isInteger(usage.output_tokens)?usage.output_tokens:null);
+    sendBridgeResponse(id,{ok:true,text,finish_reason:result?.finish_reason||result?.message?.finish_reason||'stop',usage:{input_tokens:inputTokens,output_tokens:outputTokens}});
+    cloudMessage('CLOUD / response returned to VM');
+  }catch(e){console.warn('Puter inference failed',e);sendBridgeResponse(id,{ok:false,error:'browser_bridge_remote_error'});cloudMessage('CLOUD / inference failed')}
+}
+window.addEventListener('message',event=>{
+  if(event.source!==vm.contentWindow||event.origin!==location.origin||vm.getAttribute('src')==='about:blank')return;
+  const data=event.data;
+  if(data?.type==='residual-vm-output'&&typeof data.data==='string'&&data.data.length){
+    if(!vmReady&&!bootFailed){
+      vmReady=true;clearTimeout(readyTimer);loading.classList.add('hidden');
+      status.textContent='VM READY · GUEST ATTACHED';status.className='';installMobileFocusBridge();
+    }
+    outputBuffer+=data.data;
+    const parts=outputBuffer.split(/\r?\n/);outputBuffer=parts.pop()||'';
+    for(const line of parts)handleBridgeRequest(line.trim());
+    return;
+  }
+  if(data?.type!=='residual-vm-state')return;
+  if(data.state==='runtime-error'){failBoot(data.error||'The VM runtime failed. Use RESET VM or the engineer walkthrough.');return}
+  if(vmReady||bootFailed)return;
+  if(data.state==='runtime-loading'){
+    if(data.isolated===false||data.sab===false)failBoot('The runtime requires cross-origin isolation and SharedArrayBuffer. Open this page directly in Safari or a desktop browser, then retry.');
+    else showBoot('VM RUNTIME LOADING…','Loading the browser runtime. Waiting for the Linux guest, not merely the iframe.');
+  }else if(data.state==='console-attached')showBoot('VM CONSOLE ATTACHED','Starting the Linux guest. No guest output has arrived yet.');
+  else if(data.state==='guest-starting')showBoot('VM GUEST STARTING…','Waiting for output from the guest process.');
+});
+function terminalTextarea(){try{return vm.contentDocument?.querySelector('textarea.xterm-helper-textarea, .xterm-helper-textarea, textarea[aria-label="Terminal input"]')||null}catch(e){return null}}
+function focusTerminal(){const ta=terminalTextarea();if(!ta){document.getElementById('kbdhint').textContent='Terminal is still booting…';return false}ta.removeAttribute('readonly');ta.removeAttribute('disabled');try{ta.focus({preventScroll:true})}catch(e){ta.focus()}document.getElementById('kbdhint').textContent='Keyboard connected to terminal.';return true}
+function sendKey(key,opts={}){const ta=terminalTextarea();if(!ta)return focusTerminal();ta.focus();const init={key,code:opts.code||key,bubbles:true,cancelable:true,ctrlKey:!!opts.ctrlKey};ta.dispatchEvent(new KeyboardEvent('keydown',init));ta.dispatchEvent(new KeyboardEvent('keypress',init));ta.dispatchEvent(new KeyboardEvent('keyup',init))}
+function installMobileFocusBridge(){try{const doc=vm.contentDocument;if(!doc)return;const arm=()=>{const ta=terminalTextarea();if(ta){try{ta.focus({preventScroll:true})}catch(e){ta.focus()}}};doc.addEventListener('touchend',arm,{capture:true,passive:true});doc.addEventListener('pointerup',arm,{capture:true,passive:true})}catch(e){}}
+document.getElementById('typeBtn').addEventListener('click',focusTerminal);
+document.getElementById('enterBtn').addEventListener('click',()=>sendKey('Enter',{code:'Enter'}));
+document.getElementById('tabBtn').addEventListener('click',()=>sendKey('Tab',{code:'Tab'}));
+document.getElementById('ctrlcBtn').addEventListener('click',()=>sendKey('c',{code:'KeyC',ctrlKey:true}));
+// Iframe load proves only that its document loaded, not that WebVM or Linux started.
+vm.addEventListener('load',()=>{if(vm.getAttribute('src')!=='about:blank')installMobileFocusBridge()});
+vm.addEventListener('error',()=>failBoot('The VM document failed to load. Use RESET VM or the engineer walkthrough.'));
+document.getElementById('reset').addEventListener('click',()=>{vm.src='about:blank';bootVM()});
+refreshCloudState();bootVM();
+</script>
+</body>
+</html>

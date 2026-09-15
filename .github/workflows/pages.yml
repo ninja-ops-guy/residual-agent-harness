@@ -10,6 +10,7 @@ on:
       - 'demo/**'
       - 'residual/browser_bridge.py'
       - 'examples/onboarding/cloud_demo.sh'
+      - 'scripts/check_live_demo_browser.py'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -63,6 +64,27 @@ jobs:
           EOF
           touch _site/.nojekyll
 
+      - name: Set up browser test Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate host rendering and readiness contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium
+          python scripts/check_live_demo_browser.py --html _site/demo/index.html
+
+      - name: Retain host browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pages-host-browser-evidence
+          path: artifacts/pages-browser
+          if-no-files-found: warn
+
       - name: Checkout WebVM runtime
         uses: actions/checkout@v4
         with:
@@ -74,7 +96,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rsync -a --exclude='.git' --exclude='_site' --exclude='_webvm' ./ _webvm/residual-src/
+          rsync -a --exclude='.git' --exclude='_site' --exclude='_webvm' --exclude='artifacts' ./ _webvm/residual-src/
           cp demo/vm/Dockerfile _webvm/dockerfiles/residual_demo
           docker build _webvm --tag residual-webvm-demo --file _webvm/dockerfiles/residual_demo --platform=linux/386
 
@@ -163,27 +185,8 @@ jobs:
           if marker not in text: raise SystemExit('WebVM built index head marker missing')
           p.write_text(text.replace(marker, injection, 1))
           PY
-          cat >> _site/demo/index.html <<'EOF'
-          <script>
-          (()=>{
-            const vm=document.getElementById('vm'),status=document.getElementById('status'),loading=document.getElementById('loading');
-            let guestOutput=false;
-            window.addEventListener('message',event=>{
-              if(event.source!==vm.contentWindow||event.origin!==location.origin)return;
-              if(event.data?.type==='residual-vm-output' && String(event.data.data||'').length){
-                guestOutput=true;loading?.classList.add('hidden');status.textContent='VM READY · GUEST ATTACHED';status.className='';return;
-              }
-              if(event.data?.type!=='residual-vm-state')return;
-              const s=event.data.state;
-              if(s==='runtime-loading'){status.textContent=event.data.isolated?'VM RUNTIME LOADING…':'VM BLOCKED · CROSS-ORIGIN ISOLATION MISSING';status.className=event.data.isolated?'fallback':'err';}
-              else if(s==='console-attached'){status.textContent='VM CONSOLE ATTACHED · STARTING GUEST…';status.className='fallback';}
-              else if(s==='guest-starting'){status.textContent='VM GUEST STARTING…';status.className='fallback';}
-              else if(s==='runtime-error'){status.textContent='VM RUNTIME ERROR · '+String(event.data.error||'unknown').slice(0,120);status.className='err';loading?.classList.remove('hidden');}
-            });
-            setTimeout(()=>{if(!guestOutput&&!window.crossOriginIsolated){status.textContent='VM HOST NOT CROSS-ORIGIN ISOLATED';status.className='err';}},5000);
-          })();
-          </script>
-          EOF
+          # The host owns readiness in site/live-demo.html. Do not append a
+          # second state listener that can overwrite errors or survive resets.
 
       - name: Build WebVM index lists
         shell: bash

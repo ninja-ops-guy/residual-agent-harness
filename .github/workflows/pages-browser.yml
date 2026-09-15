@@ -1,0 +1,38 @@
+name: Pages host browser regression
+
+on:
+  pull_request:
+    paths:
+      - 'site/**'
+      - 'scripts/check_live_demo_browser.py'
+      - '.github/workflows/pages*.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  host-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test dependencies
+        run: |
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Check rendering and guest-readiness contract
+        run: python scripts/check_live_demo_browser.py
+      - name: Retain browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pages-host-browser-evidence
+          path: artifacts/pages-browser
+          if-no-files-found: warn
