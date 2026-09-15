@@ -1,0 +1,86 @@
+{
+  "report": "swarm3-sandbox-timing-determinism",
+  "commit": "d750c487d6bebc408b0ba079223c66a7f4478f6f",
+  "tree_sha": "fdbf906a0bbbb2d5d6fe7c11c2f4efd8d39c7130",
+  "base_main": "a8082109e01aff9eda72030b837103c09d1393d3",
+  "python": "3.12.12 (main, Oct  9 2025, 22:40:06) [GCC 12.2.0]",
+  "platform": "Linux-5.10.134-18.0.12.lifsea8.x86_64-x86_64-with-glibc2.36",
+  "environment": {
+    "isolation_probe": [
+      true,
+      "ok"
+    ],
+    "seccomp_backend": "available (ExecutionTests ran, not skipped)"
+  },
+  "fixes": {
+    "H1_lease_tri_state": "RuntimeJournal.lease_state() -> current|revoked|unknown (unknown ONLY on sqlite3.Error; 2s busy-timeout on the lease read path); watchdog and all broker-path lease gates kill only on 'revoked' (lease/lease_generation); 'unknown' retries with bounded backoff to a 2s monotonic deadline then kills with DISTINCT lease/lease_unreadable",
+    "H2_H3_single_deadline_owner": "FactoryRuntime(clock=...) injected monotonic clock shared by AttemptGuard and watchdog; AttemptGuard owns started_at/deadline properties; watchdog takes a plain-float deadline snapshot AFTER guard.start() and never blocks on the guard's lock; watchdog skips wall-clock enforcement once the process exited or exchange_completing is set; PR #96 started_persisted gating preserved (lease polling deferred until durable start acknowledgement; resource enforcement stays live)",
+    "M6_no_wait_under_kill_lock": "ProcessControl.kill (residual/factory/termination_provenance.py, PR #96 component) sets reason + SIGKILL under the state lock and reaps OUTSIDE it; reap TimeoutExpired -> typed reap_timed_out event (+ reap_timeout reason if no primary reason exists); no exception escapes the watchdog thread",
+    "H4_M5_typed_timeout": "Extends the M4 exit-code convention: exit 125 + M4SANDBOX-ERROR: = ERROR and candidate exit codes = FAIL unchanged; NEW parent-side wall-clock timeout -> status 'timeout', deterministic returncode 124 (SANDBOX_TIMEOUT_EXIT), timed_out: true on IsolatedResult and on VerificationResult; fixture lane types timeout as 'timeout'; runtime._exchange wait(timeout) TimeoutExpired -> guard.fail('resource','drain_timeout'); subprocess_backend uniform timeout_seconds + LAUNCHER_ALLOWANCE_S (5s) in both paths; SandboxResult.enforcement (kernel/best_effort); bwrap passes kernel",
+    "M8_margins_only": "test_factory_runtime.wait_active 5s -> 15s condition-based; test_control_integrity deadline test budget 50ms / sleep 200ms, asserts ordering (calls==1, ABORTED) not wall ratio",
+    "M9_typed_git_timeouts": "runtime_workspace.git raises typed GitOperationTimeout (WorkerContractError subclass); m4_integrator git ops inherit it; m4_git_evidence UNKNOWN/ERROR conventions untouched",
+    "cancel_race_fix": "cancel() returns True only when the terminal state is CANCELLED and the recorded primary reason is its own operator_cancel; a published CANDIDATE still returns False; covers the kill-before-revote race where the run thread finishes CANCELLED first"
+  },
+  "n10_determinism_table": {
+    "test": "tests.test_sandbox_timing_determinism.TypedOutcomeDeterminismTests.test_n10_determinism_proof_three_worker_corpus",
+    "iterations": 10,
+    "corpus_tuples": {
+      "worker_ok_write": [
+        "CANDIDATE",
+        "awaiting_station_verification",
+        0
+      ],
+      "worker_spin_wallclock": [
+        "VIOLATED",
+        "wall_clock_budget_s",
+        -9
+      ],
+      "worker_denied_read": [
+        "VIOLATED",
+        "inputs",
+        -9
+      ]
+    },
+    "result": "all 10 iterations produced identical (status, reason, returncode) tuples"
+  },
+  "repeat_run_results": {
+    "tests.test_factory_runtime_x20": {
+      "deterministic": true,
+      "failed_runs": [],
+      "divergences": 0,
+      "tests_per_run": 50,
+      "file": "runs/sandbox-timing/repeat-factory-runtime.json"
+    },
+    "tests.test_sandbox_containment_x20": {
+      "deterministic": true,
+      "failed_runs": [],
+      "divergences": 0,
+      "tests_per_run": 9,
+      "runner": "pytest",
+      "file": "runs/sandbox-timing/repeat-sandbox-containment.json"
+    }
+  },
+  "non_claims": [
+    "no production or live-eval claims",
+    "no determinism claim beyond tested margins",
+    "M4 trust boundary and seccomp profile unchanged",
+    ".github/workflows untouched",
+    "swarm lane packages (vq, dsm, otx, telemetry, runtime005, eval_frozen) untouched"
+  ],
+  "rebase_note": "Branch rebased onto main a8082109e01aff9eda72030b837103c09d1393d3 (which includes the PR #96 termination-provenance merge). PR #96 ProcessControl/termination-provenance semantics and started_persisted gating preserved; M6 reap-outside-lock + typed reap_timeout now lives in PR96's ProcessControl.kill. Suite counts grew from 846 to 912 unittest tests due to PR #96 additions on main.",
+  "suite_counts": {
+    "unittest_discover": {
+      "tests": 912,
+      "result": "OK"
+    },
+    "pytest_full": {
+      "tests": 1611,
+      "subtests": 318,
+      "result": "passed"
+    },
+    "pytest_sandbox_containment": {
+      "tests": 9,
+      "result": "passed"
+    }
+  }
+}
