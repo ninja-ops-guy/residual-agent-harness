@@ -37,6 +37,9 @@ def main(argv=None):
     if argv and argv[0] == "worker":
         from .station.worker import main as worker
         return worker(argv[1:])
+    if argv and argv[0] == "inspector":
+        from .inspector import main as inspector
+        return inspector(argv[1:])
     if argv and argv[0] == "node":
         from .cluster.cli import node_main
         return node_main(argv[1:])
@@ -49,6 +52,7 @@ def main(argv=None):
     sub.add_parser("evaluate", help="Run SPEC-EVAL-001 comparative evidence (evaluate --help)")
     sub.add_parser("serve", help="Open the local web command station (serve --help for options)")
     sub.add_parser("worker", help="Connect a distributed inference runner")
+    sub.add_parser("inspector", help="Launch pinned px0 for read-only review of an exact Git snapshot")
     sub.add_parser("study", help="Freeze/run independently graded studies (study --help)")
     sub.add_parser("node", help="Join/leave the distributed cluster (node --help)")
     sub.add_parser("cluster", help="Show cluster status (cluster --help)")
