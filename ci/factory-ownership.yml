@@ -1,0 +1,48 @@
+# STAGED WORKFLOW - requires one manual step before the gate is enforced.
+#
+# The automation token used to author this PR lacks the `workflow` OAuth
+# scope, so GitHub rejects API writes under `.github/workflows/`. A
+# maintainer with a workflow-scoped token must move this file to
+# `.github/workflows/factory-ownership.yml` (no content changes needed).
+# Until then, run locally:
+#   python verifier/v3/check_factory_ownership.py
+
+name: Factory ownership gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  factory-ownership:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fail-closed Factory ownership check
+        run: |
+          set -o pipefail
+          mkdir -p runs/factory-ownership
+          git rev-parse HEAD | tee runs/factory-ownership/commit.txt
+          python verifier/v3/check_factory_ownership.py 2>&1 | tee runs/factory-ownership/check.txt
+      - name: Ownership gate regression tests
+        run: |
+          set -o pipefail
+          python -m unittest tests/test_factory_ownership_gate.py -v 2>&1 | tee runs/factory-ownership/tests.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: factory-ownership-${{ github.sha }}
+          path: runs/factory-ownership
+          if-no-files-found: error
+          retention-days: 14
