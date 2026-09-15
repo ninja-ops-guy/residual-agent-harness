@@ -24,7 +24,11 @@ window.puter = {
     const packet = JSON.parse(messages[messages.length-1].content), obligation = packet.obligations[0], e = packet.evidence[0];
     let updates;
     if (obligation.id === 'build') {
-      updates = {build:{summary:'Calculator deliverable generated for review.',files:[
+      const revision = packet.evidence.some(item => String(item.artifact_id||'').startsWith('prior-'));
+      updates = {build: revision ? {summary:'Calculator v2 dark mode refinement.',files:[
+        {path:'index.html',content:'<!doctype html><title>Calculator</title><body data-revision="2" style="background:#111;color:#eee"><main><h1>Calculator</h1><label>A <input id="a" type="number"></label><label>B <input id="b" type="number"></label><button id="go">Add</button><output id="result">0</output></main><script>go.onclick=()=>result.textContent=String(Number(a.value)+Number(b.value));</script></body>'},
+        {path:'README.md',content:'Calculator v2\n\nDark mode refinement. Generated review artifact.'}
+      ]}:{summary:'Calculator deliverable generated for review.',files:[
         {path:'index.html',content:'<!doctype html><title>Calculator</title><main><h1>Calculator</h1><label>A <input id="a" type="number"></label><label>B <input id="b" type="number"></label><button id="go">Add</button><output id="result">0</output></main><script>go.onclick=()=>result.textContent=String(Number(a.value)+Number(b.value));</script>'},
         {path:'README.md',content:'Calculator\n\nGenerated review artifact. Not executed by RESIDUAL.'}
       ]}};
@@ -47,6 +51,8 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     assert await page.locator('button[data-tab="activity"]').count() == 1
     assert await page.locator('button[data-tab="evidence"]').count() == 1
     assert await page.locator('button[data-tab="files"]').count() == 1
+    assert await page.locator('#mc-new-chat').count() == 1
+    assert await page.locator('#mc-history').count() == 1
     await page.get_by_text('Run controls', exact=True).click()
     await page.locator('#mc-mode').select_option('audit')
     await page.locator('#mc-prompt').fill('Inspect these actual repository sources ' + secrets.token_hex(4))
@@ -79,7 +85,6 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await command_proof('true')
     await stage('cloud_network_failure_preserves_guest')
 
-    # Deterministic contract test, not a claim of real authentication or model output.
     await provider.unroute('https://js.puter.com/v2/**')
     await provider.route('https://js.puter.com/v2/**', lambda route: route.fulfill(status=200, content_type='text/javascript', body=SDK_FIXTURE))
     await provider.locator('#load').click()
@@ -87,27 +92,30 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await page.wait_for_function("() => document.querySelector('#mc-connect').textContent === 'Provider connected'", timeout=20000)
     assert await provider.evaluate('window.__providerFixture.gesture'), 'sign-in lost user gesture'
 
-    # Prompt-first build: real guest/Harness, bounded generated files, plus an
-    # isolated interactive browser preview. The provider itself remains a test double.
     await page.locator('#mc-mission').click()
+    await page.get_by_text('Run controls', exact=True).click()
     await page.locator('#mc-mode').select_option('build')
     await page.locator('#mc-prompt').fill('Build a calculator')
     await page.locator('#mc-files').fill('')
     await page.locator('#mc-required').fill('Calculator')
     await page.locator('#mc-consent').check()
+    conversation_id = await page.evaluate("localStorage.getItem('residual.chat.current.v2')")
+    assert re.fullmatch(r'c-[a-f0-9]{32}', conversation_id)
     await page.locator('#mc-run').click()
+    assert await page.locator('#mc-new-chat').is_disabled()
+    assert await page.locator('#mc-history').is_disabled()
     await page.wait_for_function("() => document.querySelector('#mc-verdict').textContent.includes('CODE CORRECTNESS: UNKNOWN') && !document.querySelector('#mc-result').hidden", timeout=120000)
+    assert not await page.locator('#mc-new-chat').is_disabled()
     assert 'PASSED' in await page.locator('#mc-verdict').inner_text()
     assert 'index.html' in await page.locator('#mc-artifact-list').inner_text()
     assert 'Calculator deliverable' in await page.locator('#mc-answer').inner_text()
     await page.locator('#mc-inline-preview-frame').wait_for(timeout=20000)
     frame = page.frame_locator('#mc-inline-preview-frame')
-    await frame.locator('#a').fill('2')
-    await frame.locator('#b').fill('3')
-    await frame.locator('#go').click()
+    await frame.locator('#a').fill('2'); await frame.locator('#b').fill('3'); await frame.locator('#go').click()
     assert await frame.locator('#result').inner_text() == '5'
     assert await page.locator('#mc-inline-preview-frame').get_attribute('sandbox') == 'allow-scripts'
     build_path = re.search(r'/opt/residual/runs/missions/m-[a-f0-9]{32}', await page.locator('#mc-path').inner_text()).group()
+    first_mid = build_path.rsplit('/', 1)[-1]
     await page.screenshot(path=str(args.output / 'mission-chat-build-preview.png'))
     await page.locator('#mc-terminal').click()
     await command_proof(f'test -s {build_path}/artifacts/index.html && grep -q Calculator {build_path}/artifacts/index.html && grep -q "\\\"executed\\\":false" {build_path}/artifacts/manifest.json && python3 -m residual verify-trace {build_path}/trace.jsonl --result {build_path}/result.json')
@@ -115,8 +123,34 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     report['workbench_interactive_preview'] = 'PASS_SANDBOXED_CALCULATOR_INTERACTION_WITH_TEST_DOUBLE_ARTIFACT'
     await stage('workbench_generated_artifacts_saved_previewed_and_verified')
 
-    # Existing source-grounded review path remains intact.
     await page.locator('#mc-mission').click()
+    await page.locator('#mc-prompt').fill('Make the calculator dark mode while preserving addition')
+    await page.locator('#mc-run').click()
+    assert await page.locator('#mc-new-chat').is_disabled()
+    assert await page.locator('#mc-history').is_disabled()
+    assert await page.locator('#mc-detach').is_disabled()
+    await page.wait_for_function("() => document.querySelector('#mc-session').textContent.includes('REV 2') && document.querySelector('#mc-answer').textContent.includes('dark mode')", timeout=120000)
+    assert not await page.locator('#mc-new-chat').is_disabled()
+    assert not await page.locator('#mc-history').is_disabled()
+    assert not await page.locator('#mc-detach').is_disabled()
+    assert await page.locator('#mc-inline-preview-frame-r1').count() == 1
+    refined = page.frame_locator('#mc-inline-preview-frame')
+    assert await refined.locator('body').get_attribute('data-revision') == '2'
+    await refined.locator('#a').fill('4'); await refined.locator('#b').fill('6'); await refined.locator('#go').click()
+    assert await refined.locator('#result').inner_text() == '10'
+    second_path = re.search(r'/opt/residual/runs/missions/m-[a-f0-9]{32}', await page.locator('#mc-path').inner_text()).group()
+    assert second_path != build_path
+    await page.locator('button[data-tab="files"]').click()
+    await page.wait_for_function("() => document.querySelector('#mc-preview-status').textContent.includes('RUNTIME SMOKE: PASS')", timeout=20000)
+    await page.locator('#mc-terminal').click()
+    await command_proof(f'grep -q "\\\"conversation_id\\\":\\\"{conversation_id}\\\"" {second_path}/summary.json && grep -q "\\\"parent_mission_id\\\":\\\"{first_mid}\\\"" {second_path}/summary.json && grep -q "\\\"revision\\\":2" {second_path}/summary.json && python3 -m residual verify-trace {second_path}/trace.jsonl --result {second_path}/result.json')
+    report['workbench_conversation_continuity'] = 'PASS_SAME_SESSION_PARENT_BUNDLE_FROZEN_AND_REVISION_BOUND'
+    report['workbench_preview_runtime_smoke'] = 'PASS_NO_STARTUP_JS_ERRORS_SEMANTIC_CORRECTNESS_UNKNOWN'
+    report['workbench_active_mission_navigation_lock'] = 'PASS'
+    await stage('workbench_followup_revision_and_runtime_smoke_passed')
+
+    await page.locator('#mc-mission').click()
+    await page.get_by_text('Run controls', exact=True).click()
     await page.locator('#mc-mode').select_option('live')
     nonce = 'mission-proof-' + secrets.token_hex(4)
     await page.locator('#mc-prompt').fill('Explain the selected source. Include ' + nonce)
@@ -128,7 +162,7 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     assert 'PASSED' in await page.locator('#mc-verdict').inner_text()
     assert nonce in await page.locator('#mc-answer').inner_text()
     assert 'README.md:1-1' in await page.locator('#mc-citations').text_content()
-    assert await provider.evaluate('window.__providerFixture.calls') == 2
+    assert await provider.evaluate('window.__providerFixture.calls') == 3
     path = re.search(r'/opt/residual/runs/missions/m-[a-f0-9]{32}', await page.locator('#mc-path').inner_text()).group()
     await page.screenshot(path=str(args.output / 'mission-chat-provider-contract.png'))
     await page.locator('#mc-terminal').click()
@@ -136,7 +170,6 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     report['workbench_provider_contract'] = 'PASS_WITH_SDK_TEST_DOUBLE'
     await stage('workbench_real_guest_provider_transport_contract_passed')
 
-    # CLI-launched work projects the real ledger back into Mission Control.
     await command_proof('python3 -m residual.workbench audit --stream --files residual/cli.py')
     await page.locator('#mc-mission').click()
     assert 'deterministic source inventory' in await page.locator('#mc-verdict').inner_text()
@@ -146,5 +179,13 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await page.reload(wait_until='domcontentloaded')
     await page.locator('#mc-terminal').click()
     await page.wait_for_function("() => document.body.innerText.replace(/\\s/g,'').includes('residual@demo:~/residual-agent-harness$')", timeout=120000)
-    await command_proof(f'test -s {path}/answer.md && test -s {build_path}/artifacts/index.html && python3 -m residual verify-trace {path}/trace.jsonl --result {path}/result.json && python3 -m residual verify-trace {build_path}/trace.jsonl --result {build_path}/result.json')
-    await stage('workbench_saved_missions_survive_reload')
+    await command_proof(f'test -s {path}/answer.md && test -s {second_path}/artifacts/index.html && python3 -m residual verify-trace {path}/trace.jsonl --result {path}/result.json && python3 -m residual verify-trace {second_path}/trace.jsonl --result {second_path}/result.json')
+    await page.locator('#mc-mission').click()
+    chat_text = await page.locator('#mc-chat').inner_text()
+    assert 'Build a calculator' in chat_text
+    assert 'Make the calculator dark mode while preserving addition' in chat_text
+    assert 'Session transcript restored from this browser' in chat_text
+    assert 'Restored browser-local preview cache' in chat_text
+    assert await page.locator('#mc-restored-preview-frame').count() == 1
+    report['workbench_conversation_reload'] = 'PASS_SANITIZED_BROWSER_CACHE_WITH_AUTHORITY_LABEL'
+    await stage('workbench_saved_conversation_survives_reload')
