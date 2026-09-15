@@ -103,12 +103,12 @@ The project also contains soak infrastructure, but long-duration live qualificat
 
 The protected M4 trust-boundary implementation is present on `main`, including the accepted-tree/filesystem/verifier-isolation/Git-evidence closure and the later deterministic sandbox-timing repair. PR #108 landed as commit `0430f2fa2d107fe48d26ae84a3c1550af029cb52`; namespace-dependent tests were deliberately retained as non-qualification where the host could not provide the required isolation capability.
 
-Current `main` has since advanced through the Mission Control real-provider reliability work in PR #122 and the provenance-only Factory ownership anchor finalization in PR #121. See [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md) for the exact current SHA, current CI state and active qualification blockers.
+Current `main` has since advanced through the Mission Control real-provider reliability work in PR #122, the provenance-only Factory ownership anchor finalization in PR #121, and PR #124's narrowly scoped WebVM delivery recovery for transient same-origin immutable disk-chunk failures. PR #124 does not alter Factory/M4 authority or evidence schemas, and its merge does not by itself prove an acceptable long-run WebVM failure rate. See [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md) for the exact current SHA, current CI state and active qualification blockers.
 
 Before paper-facing live reliability evaluation, the priority gates are now:
 
-1. independently review PR #109's current protected lifecycle-test repair and deliberately advance the ownership baseline only if that review accepts the changed bytes; its fresh Ubuntu 22.04 synthetic candidate again passed all namespace probes, actual isolated execution, and 135 M4 tests plus 78 subtests with zero skips, while Factory ownership, clean-install, and measured-evaluation gates correctly fail closed until the protected test pin is reviewed and advanced;
-2. keep exact-current-main browser/Pages qualification green and retain any recurrence of the intermittent WebVM guest-runtime failure tracked by issue #120;
+1. independently review PR #109's current protected lifecycle-test repair and deliberately advance the ownership baseline only if that review accepts the changed bytes; its Ubuntu 22.04 candidate passed all namespace probes, actual isolated execution, and 135 M4 tests plus 78 subtests with zero skips, but that evidence is bound to its exact pre-#124 synthetic candidate and must not be projected onto a later combined tree without rerunning the required gates;
+2. complete exact-current-main PR #124 Pages/WebVM deployment and post-deploy browser acceptance, keep issue #120 open, retain any recurrence, and quantify reliability rather than treating one hardened path or one green rerun as production proof;
 3. complete downstream release/recovery qualification without weakening security or acceptance gates;
 4. freeze the live evaluation protocol before observing model results;
 5. run one fixed live model across R0–R5 and measure raw correctness, acceptance coverage, accepted correctness, AER/ASSR, latency, throughput and cost;
