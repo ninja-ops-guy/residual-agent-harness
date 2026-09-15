@@ -106,14 +106,26 @@ class RuntimeJournal:
     WRITE_CONNECT_TIMEOUT_S = 0.2
 
     @contextmanager
-    def _connect(self, *, write: bool = False) -> Iterator[sqlite3.Connection]:
+    def _connect(self, *, write: bool = False,
+                 deadline: float | None = None) -> Iterator[sqlite3.Connection]:
         # Lock-sensitive write pragmas (synchronous) run ONLY on writer
         # connections. A reader connection must be able to initialize and
         # serve a consistent WAL snapshot without taking or waiting on the
         # write lock beyond the bounded busy-timeout.
         timeout = self.WRITE_CONNECT_TIMEOUT_S if write else self.READ_CONNECT_TIMEOUT_S
+        if deadline is not None:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise sqlite3.OperationalError('reader deadline exhausted')
+            timeout = min(timeout, remaining)
         db = sqlite3.connect(self.path, timeout=timeout, isolation_level=None)
         try:
+            if deadline is not None:
+                # Opening a connection also consumes the caller's budget.
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise sqlite3.OperationalError('reader deadline exhausted')
+                db.execute(f"PRAGMA busy_timeout={int(min(timeout, remaining) * 1000)}")
             if write:
                 db.execute("PRAGMA synchronous=FULL")
             db.execute("PRAGMA foreign_keys=ON")
@@ -134,13 +146,30 @@ class RuntimeJournal:
         """
         deadline = time.monotonic() + self.READ_CONNECT_TIMEOUT_S
         delay = 0.02
+        last_error = None
         while True:
+            if time.monotonic() >= deadline:
+                if last_error is not None:
+                    raise last_error
+                raise sqlite3.OperationalError('reader deadline exhausted')
             try:
-                with self._connect() as db:
+                with self._connect(deadline=deadline) as db:
                     if row_factory is not None:
                         db.row_factory = row_factory
                     return db.execute(query, params).fetchall()
-            except sqlite3.OperationalError:
+            except sqlite3.OperationalError as exc:
+                code = getattr(exc, 'sqlite_errorcode', None)
+                # SQLite extended result codes carry the primary code in the
+                # low byte. Missing-code errors from connection adapters are
+                # retried only for the exact standard lock messages.
+                locked = ((type(code) is int and (code & 0xff) in
+                           (sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED)) or
+                          (code is None and str(exc) in
+                           ('database is locked', 'database table is locked',
+                            'database schema is locked')))
+                if not locked:
+                    raise
+                last_error = exc
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
                     raise

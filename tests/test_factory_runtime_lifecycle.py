@@ -159,7 +159,7 @@ class WatchdogIntentGuards(Fixture):
     def test_existing_termination_intent_skips_secondary_lease_read(self):
         control = self.control()
         control.termination_requested.set()
-        with patch.object(self.journal, 'lease_state') as lease:
+        with patch.object(self.journal, 'lease_read') as lease:
             self.watch(control, self.contract(), self.FAR)
         lease.assert_not_called()
         control.kill.assert_not_called()
@@ -171,7 +171,7 @@ class WatchdogIntentGuards(Fixture):
             control.termination_requested.set()
             return '1 1'
         with patch.object(Path, 'read_text', side_effect=statm):
-            with patch.object(self.journal, 'lease_state') as lease:
+            with patch.object(self.journal, 'lease_read') as lease:
                 self.watch(control, self.contract(), self.FAR)
         lease.assert_not_called()
         control.kill.assert_not_called()
@@ -180,7 +180,7 @@ class WatchdogIntentGuards(Fixture):
         control = self.control()
         self.runtime._clock = lambda: 100.0
         with patch.object(Path, 'read_text', return_value='1 1'):
-            with patch.object(self.journal, 'lease_state', return_value='revoked'):
+            with patch.object(self.journal, 'lease_read', return_value=LeaseRead('revoked')):
                 self.watch(control, self.contract(), self.FAR)
         control.kill.assert_called_once_with(
             ('lease', 'lease_generation', {'reason': 'revoked_or_unavailable'}),

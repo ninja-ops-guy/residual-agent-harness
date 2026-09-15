@@ -141,7 +141,7 @@ class StartupWatchdogTests(Fixture):
         control = self.control()
         with patch.object(self.runtime, '_clock', return_value=0.0), \
              patch('residual.factory.runtime.Path.read_text', return_value='1 1'), \
-             patch.object(self.journal, 'lease_state') as lease:
+             patch.object(self.journal, 'lease_read') as lease:
             self.runtime._watch(control, self.contract(), float('inf'), OneWatchdogTick(),
                                 threading.Event(), threading.Event())
         lease.assert_not_called()
@@ -151,7 +151,7 @@ class StartupWatchdogTests(Fixture):
         control = self.control()
         with patch.object(self.runtime, '_clock', return_value=0.0), \
              patch('residual.factory.runtime.Path.read_text', return_value='10000000 10000000'), \
-             patch.object(self.journal, 'lease_state') as lease:
+             patch.object(self.journal, 'lease_read') as lease:
             self.runtime._watch(control, self.contract(), float('inf'), OneWatchdogTick(),
                                 threading.Event(), threading.Event())
         lease.assert_not_called()
@@ -164,9 +164,9 @@ class StartupWatchdogTests(Fixture):
         error = sqlite3.OperationalError('this text must not enter the ledger')
         error.sqlite_errorcode = sqlite3.SQLITE_BUSY
         # Fake clock: the first lease read happens inside the 2s window
-        # (ticks 0.0); the retry deadline check then jumps past the absolute
+        # (ticks 0.0); the post-read check then jumps past the absolute
         # deadline (5.0) so the test does not burn real time in backoff.
-        ticks = iter([0.0, 0.0, 0.0, 5.0, 5.0])
+        ticks = iter([0.0, 0.0, 5.0])
         self.runtime._clock = lambda: next(ticks, 5.0)
         with patch('residual.factory.runtime_journal.sqlite3.connect', side_effect=error), \
              patch('residual.factory.runtime.Path.read_text', return_value='1 1'):
