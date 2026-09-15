@@ -4,7 +4,7 @@ Target: Residual 1.0 plus a completed Experimental Release 1 (ER1).
 A credible negative or inconclusive experimental result is acceptable; favorable
 hypothesis results are not a release requirement.
 
-Snapshot: 2026-09-15, main `eefee6ac005c93278f483e002e38a768920f0fae`.
+Snapshot: 2026-09-15, main `1cf4e46c0ace8e3cdc76147ad4c7dc6480a9fb34`.
 This reviewed tracker is delivered in PR #107. Refresh evidence before changing
 a gate to PASS. Merged code, passing branch tests and completed release
 qualification are different states.
@@ -26,14 +26,17 @@ Demo ownership remains in the existing demo thread.
 | Workflow activation | [#101](https://github.com/ninja-ops-guy/residual-agent-harness/pull/101) merged | Complete required-check coverage and independent approval policy |
 | Termination provenance tooling | [#96](https://github.com/ninja-ops-guy/residual-agent-harness/pull/96) merged | Runtime failures and #108 review blockers remain open |
 | Clean-install tooling | [#100](https://github.com/ninja-ops-guy/residual-agent-harness/pull/100) merged | Blank-VM RC qualification still required |
-| Measured acceptance binding | [#103](https://github.com/ninja-ops-guy/residual-agent-harness/pull/103) merged | Workflow activation overlaps #106/#107; real boundary qualification remains |
+| Measured acceptance binding | #103 and activation [#106](https://github.com/ninja-ops-guy/residual-agent-harness/pull/106) merged | #106/#107 activation overlap resolved; require the new check in branch policy and qualify the real boundary |
 | WebVM/browser publication work | [#98](https://github.com/ninja-ops-guy/residual-agent-harness/pull/98) merged | Verify the final canonical demonstration at its deployed revision |
-| Mission Control v1 | [#104](https://github.com/ninja-ops-guy/residual-agent-harness/pull/104) merged | Demo development and final user-journey acceptance remain with owner |
+| Mission Control | #104/#111/#112 merged | #116 and final deployed user-journey acceptance remain with demo owner |
 | Main branch protection | Active ruleset 23436488, 12 required checks, strict up-to-date validation, no bypass | Approving review count is 0; current-status and measured-eval-binding are not required |
 
 Do not queue #101 or #96 for merger again. Older #69/#70/#71 are closed;
 review their replacement work rather than rebasing those closed branches blindly.
-Thirty open PRs remain at this snapshot. No tags were returned by Git's remote
+Thirty-two open PRs remain after this triage window (36 at its start). The
+[full disposition ledger](PR_TRIAGE_2026-09-15.md) assigns seven Class A lanes
+and 25 Class B salvage/deferred proposals, with exact file inventories and
+the five completed merge/closure dispositions. No tags were returned by Git's remote
 tag listing, and the GitHub releases collection was empty.
 
 ## Reviewed 17-step plan
@@ -41,10 +44,10 @@ tag listing, and the GitHub releases collection was empty.
 | ID | Step | Current state | Evidence already present / next acceptance condition | Owner / dependencies |
 | --- | --- | --- | --- | --- |
 | C01 | Freeze scope | POLICY DOCUMENTED; adoption pending | Use the policy above and flag out-of-scope requests; this PR does not globally control other threads | Owner + all lanes; start now |
-| C02 | Converge PR board | AUDIT REPORTED COMPLETE; dispositions pending | Owner reports Priority 2 audit complete; its artifact has not been independently inspected in this tracker update. #101/#96 landed; #97/#94/#93 remain open. Resolve #106/#107 overlap and act on reviewed salvage/supersession decisions | Backlog lane; no need to delay runner/corpus preparation |
-| C03 | Qualify M4 | BLOCKED | #81 code exists; #88 remains open. Execute every mandatory security case on a capable runner with zero capability skips, bound to accepted code/schema | Runner lane + independent reviewer; after relevant #108 repairs |
-| C04 | Finish Swarm 3 | PARTIAL / REPAIR BLOCKED | #96 already merged. #108 has unresolved production review and retained CI failure; see incident ledger below. Retain contention evidence and UNKNOWN attribution | Runtime implementer + separate reviewer |
-| C05 | Qualify distributed/runtime behavior | PREPARATION / BLOCKED | #97 regressions await integration. Execute real-process concurrency, loss/restart/replay/cleanup/network cases, then 24h and 72h soak | Runtime/recovery lane; accepted candidate and isolated infrastructure |
+| C02 | Converge PR board | TRIAGE EXECUTED; integration ongoing | #106 merged; #22 closed; concurrent triage replaced #97 with #117 and closed #88/#114 into #109. 32 open proposals individually dispositioned; #93/#94 and benchmark salvage remain | Coordinator + lane owners; see full ledger |
+| C03 | Qualify M4 | BLOCKED BY RUNNER | #109 at e873dd62 adds actual execution smoke and preserves the owner’s activated zero-skips workflow. Real hosted-runner probe reports BLOCKED/namespace unavailable. Closed #88/#114 are not gates to merge again | Runner lane + independent reviewer; accepted #108 boundary |
+| C04 | Finish Swarm 3 | REPAIR UPDATED; final acceptance pending | #96 merged; #108 owner continues repair and exact-head review/CI. Historical failures below remain evidence, not claims about unchanged current code | Runtime implementer + separate reviewer |
+| C05 | Qualify distributed/runtime behavior | BLOCKED BY THREE LOCAL FAILURES | #117 succeeds closed #97. Required pytest coverage now exposes missing process tracking, fencing through append and collision rejection (3 failed/60 passed locally). Repair and review before real concurrency/recovery and elapsed 24h/72h soak | Runtime/recovery lane; accepted candidate and isolated infrastructure |
 | C06 | Port principal Factory benchmarks | PENDING RECONCILIATION | Salvage #26/#38/#46/#52/#54/#56 onto current Factory. Preserve FB001-FB004 progression and whole-project completion focus | Benchmark owner designated through backlog lane |
 | C07 | Freeze ER1 protocol | RECONCILED SPECIFICATION DELIVERED in #110; execution blocked | #110 reconciles #90/#91 planning, pins the ladder/statistical rules and ledger, and preserves launch gates. Resolve the denominator and power-model review items below; implement/review adapters, analysis and launch enforcement; fill actual model/corpus identities before launch | Science lane + independent protocol review |
 | C08 | Acquire held-out corpus | DEVELOPMENT TIERS PINNED; T3 blocked | #110 pins both 16-item development corpora and a confirmatory generation procedure. Actual T3 tasks/graders/hashes remain BLOCKED-UNTIL-GENERATED. Its proposed design uses 30-200 independent families, three tasks each: 90-600 tasks, replacing the earlier provisional 60-100 planning target if accepted | Corpus/science lane; power design must be resolved before selecting F |
@@ -53,7 +56,7 @@ tag listing, and the GitHub releases collection was empty.
 | C11 | Live fault injection | DEVELOPMENT EVIDENCE ONLY | Existing M4 trust fixtures are not the live campaign. Prove each intended fault was exercised and whether it reached accepted state; report invalid injections and UNKNOWN separately | Fault lane; accepted candidate/protocol, isolated resources |
 | C12 | Matched-budget / heterogeneous experiments | PREPARATION; results not evidenced | #93 contains proposed accounting/observability work. Freeze comparisons, count verifier/retry/control compute, measure reliability-cost-latency frontier | Science/economics lane; shared corpus/protocol and budget authorization |
 | C13 | Canonical demo | PARTIAL; substantial merged work | #98/#104 merged and current Pages/browser evidence passed. Final bad-candidate-to-receipt journey needs owner acceptance on deployed revision; preserve black/green design | Existing demo thread; parallel with science |
-| C14 | Blank-machine RC | TOOLING COMPLETE; qualification not evidenced | #100 and current clean-install CI pass. Create RC1 only after candidate selection; independent installer exercises documented setup, recovery, restart, credentials, upgrade and cleanup on blank VM | Release lane; RC artifact and public docs |
+| C14 | Blank-machine RC | CORE TOOLING MERGED; procedure repairs needed | #100/clean-install CI exists. #115 review found truncation/completion defects in preparation tooling. Repair first, then an independent installer exercises setup, recovery, restart, credentials, upgrade and cleanup on a blank VM at RC1 | Release lane; reviewed procedures, RC artifact and public docs |
 | C15 | Freeze RC and final regression | NOT STARTED | Record RC commit/tree/package and rerun required integration, M4, runtime, benchmark, install, browser and soak gates against it | Integration coordinator; candidate stable |
 | C16 | Paper from evidence | DRAFT/METHODS PRESENT; empirical results pending | Populate/reproduce Results from retained artifacts. Include uncertainty, negative findings, exclusions and UNKNOWNs; independent audit | Science/writing lane; may prepare methods now |
 | C17 | Release 1.0 + ER1 | BLOCKED BY FINAL GATES | Publish only after all six gates below pass; experiment may reject or fail to resolve H1 credibly | Owner acceptance after independent review |
@@ -109,15 +112,16 @@ paths and referenced tests). Integrate and validate these dependencies before
 calling the fixture-promotion and launch rules executable protections. A
 documentation statement alone does not demonstrate structural enforcement.
 
-Owner reports Priority 2 and Priority 4 preparation complete; Swarm A runtime
-repair and Swarm C preflight remain in flight. No other branch was changed,
-closed or approved by this update.
+That protocol-only update changed no other branch. Subsequent authorized triage
+merged #106, closed obsolete #22, repaired #109 and added the required failing
+pytest gate/corrected claims in #117. The detailed actions and concurrent owner
+dispositions are recorded in [PR_TRIAGE_2026-09-15.md](PR_TRIAGE_2026-09-15.md).
 
 ## Six final gates
 
 | Gate | Required result | Snapshot verdict / missing proof |
 | --- | --- | --- |
-| Core architecture | PASS on integrated RC, with independent review and enforced checks | AMBER: mechanisms present; latest main runtime tests fail; required approval count is 0 |
+| Core architecture | PASS on integrated RC, with independent review and enforced checks | AMBER: binding activation merged; #108 review and #117 implementation gaps remain; required approval count is 0 |
 | M4 trust boundary | QUALIFIED with no skipped mandatory security capability tests | RED: capable-runner qualification outstanding; changes proposed in #108 need reviewed compatibility |
 | Runtime/recovery | PASS plus completed 72h soak after clean shorter runs | RED: retained runtime failures, integration and elapsed soak evidence outstanding |
 | Clean installation | PASS from genuinely blank VM on RC | AMBER: tooling and CI pass; independent blank-VM RC execution not evidenced |
@@ -129,7 +133,7 @@ This is a release-gate count, not a claim that engineering progress is zero.
 Earlier percentage estimates were planning judgments, not a measured
 work-breakdown calculation; do not add them to this gate count.
 
-## Retained current blockers
+## Retained failures and outstanding gates
 
 | Revision / run | Observation | Required treatment |
 | --- | --- | --- |
@@ -139,7 +143,7 @@ work-breakdown calculation; do not add them to this gate count.
 | #108 production review | Receipt schema compatibility, bounded lease I/O/resource enforcement, reap-timeout lifecycle, concurrent diagnostic attribution, fixture timeout consistency | Repair owner supplies genuine failing regression/reversion coverage; independent reviewer accepts final changes |
 | Active main protection | No mandatory approving review; new status/binding checks optional | Maintainer requires at least one independent approval and adds the two checks, preserving existing protections |
 
-Current-main ownership run 34958593498 and clean-install run 34958593422 passed.
+Historical main eefee6a ownership run 34958593498 and clean-install run 34958593422 passed.
 Pages run 34958593448 passed; the browser and Docker jobs in Command Station
 also passed. These results qualify their tested scope only.
 Historical external SIGKILL attribution remains UNKNOWN unless its original
@@ -175,7 +179,7 @@ evidence establishes the cause; later instrumentation does not recover it.
 ## Immediate queue
 
 1. Runtime owner repairs #108 plus classifies the fresh main failures; independent reviewer validates.
-2. Backlog owner resolves #106/#107, #97/#94/#93 and benchmark-stack dispositions.
+2. Runtime/DSM owner repairs #117; coordinator integrates independently reviewed #107 and reconciles #94/#93 and benchmark ports.
 3. Maintainer completes review/check enforcement; runner and corpus lanes proceed now.
 4. Coordinator assembles accepted changes, freezes an RC candidate and dispatches
    the parallel qualification lanes in [QUALIFICATION_EXECUTION_PLAN.md](QUALIFICATION_EXECUTION_PLAN.md).

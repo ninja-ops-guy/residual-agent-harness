@@ -5,9 +5,21 @@ Owner: integration coordinator. Preparation only; no qualification or merge appr
 The governing completion target and reviewed 17-step status are recorded in
 [COMPLETION_TRACKER.md](COMPLETION_TRACKER.md): Residual 1.0 plus Experimental Release 1.
 
-## Reviewed snapshot — 2026-09-15
+## Current triage — 2026-09-15
 
-- Current main: eefee6ac005c93278f483e002e38a768920f0fae, including #104.
+Main is `1cf4e46c0ace8e3cdc76147ad4c7dc6480a9fb34`, including merged #106.
+The [convergence ledger](PR_TRIAGE_2026-09-15.md) records 32 open proposals
+(seven Class A and 25 Class B), completed dispositions and exact source identities.
+#109's updated prerequisite gate correctly reports BLOCKED on the hosted runner;
+#117's new required pytest invocation exposes three missing local runtime/DSM
+guarantees. #115 needs evidence-integrity/completion repair. #108 remains with
+its implementation and independent-review lane. Demo #116 remains with the user.
+
+The historical observations below remain tied to their original revisions.
+
+## Historical reviewed snapshot — 2026-09-15
+
+- Main at that read: eefee6ac005c93278f483e002e38a768920f0fae, including #104.
 - #107 source head: ee48ccf29eb069b141aeeb23515c7b1580ad4141.
 - Read-only Git merge-tree check of those revisions: no conflicts;
   prospective tree 36c4a76f5e8f774c5b0a33e81bb13e4c08aa7d46.
@@ -33,19 +45,19 @@ assigned owners. Do not duplicate those implementations.
 
 | Intersection | Integration decision required |
 | --- | --- |
-| #106 and #107 | Both activate measured-binding CI. Compare their final contents and preserve one canonical workflow; the backlog lane proposes disposition. |
+| #106 and #107 | Resolved: #106 merged; #107 retains its exact canonical binding workflow and the distinct diagnostics/status work. |
 | #94 and #107 | Preserve broader family coverage and the supplemental active-summary guard. Resolve shared status prose once; retain ownership restrictions on the pinned checker. |
 | #108 and #107 | Confirm the diagnostic hook still observes the final runtime fixture API; verify emitted termination fields retain their intended meaning. |
-| #108 and #97 | Preserve cross-lane runtime/DSM regressions when integrating the runtime repair. |
-| #90 and #91 | Select one protocol/corpus authority and explicitly account for unique work from each draft. |
-| #88 and #108 | Run actual M4 qualification on the accepted repair revision; results from the old boundary do not qualify a changed one. |
+| #108 and #117 | #117 replaces #97 and has three failing local runtime/DSM regressions. Its modules are distinct from #108's Factory repair; do not assume #108 supplies missing process tracking/fencing/collision checks. |
+| #90, #91, #110 and #113 | Use #110 as the reconciled specification; port unique launch/replay/corpus/checker code and resolve power/denominator review items before freezing execution. |
+| #109 and #108 | #109 succeeds closed #88/#114. Run actual zero-skip M4 qualification on the accepted repair revision; old boundary evidence does not qualify a changed one. |
 | Demo and candidate | Record deployed demo revision separately. If demo changes affect packaged/runtime code, assess their impact on the candidate's qualification. |
 
 This table is a dependency review, not authority to close, merge, or rewrite another PR.
 
 ## Integration entry checklist
 
-- [ ] Select release scope: research preview, Experimental Release 1, or production release.
+- [x] Completion scope selected: Residual 1.0 + Experimental Release 1, under the six-gate definition.
 - [ ] Receive lane deliverables with exact head/base/tree revisions and retained failures.
 - [ ] Resolve every blocking finding through an implementer-independent review.
 - [ ] For #108, cover receipt compatibility, absolute lease-read bounds/resource enforcement,

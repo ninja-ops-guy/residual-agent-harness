@@ -1,6 +1,3 @@
-# Contract/negative tests only: skipped namespace tests are not live M4 qualification.
-# Branch protection is a separate maintainer setting.
-
 name: Measured evaluation acceptance binding
 
 on:
@@ -52,7 +49,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: measured-eval-binding-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+          name: measured-eval-binding-${{ github.sha }}
           path: runs/measured-eval-binding
           if-no-files-found: error
           retention-days: 14

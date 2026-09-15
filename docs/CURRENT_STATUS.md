@@ -1,6 +1,6 @@
 # RESIDUAL current status
 
-_Reviewed baseline: 2026-09-15 at `a8082109e01aff9eda72030b837103c09d1393d3`. This is a dated snapshot, not a claim that later PRs inherit these results._
+_Triage baseline: 2026-09-15 at `1cf4e46c0ace8e3cdc76147ad4c7dc6480a9fb34`, including merged #106. Branch findings are identified separately in the [PR ledger](status/PR_TRIAGE_2026-09-15.md); later revisions do not inherit qualification automatically._
 
 This page is the human-readable current-state summary for RESIDUAL. Historical roadmap documents and generated implementation tables may lag active integration work; when they disagree with this page, follow the code, tests, open qualification issues, and the machine-readable evidence produced by the current tree.
 
@@ -22,7 +22,7 @@ The repository contains substantial implementation and development evidence for 
 | Command Station | Implemented research/operations surface | Self-hosted run control, model/provider management, observations, HITL hooks, evidence download and operational UI are present. Deployment-specific production readiness still depends on the environment. |
 | Factory M2 — worker contract/runtime | Implemented | Real `WorkerContract`, bounded worker runtime, isolated worktrees, journaled observations, host-owned termination and sandbox enforcement exist under `residual/factory/`. Development fault-containment work has exercised real OS boundaries. |
 | Factory M3 — evidence bus/receipts | Implemented | Station-issued receipts, artifact binding, evidence-bus handoff and signature/integrity checks exist. Trust is enforced at the trusted consumption/admission boundary, not merely because bytes were stored. |
-| Factory M4 — deterministic integration/scheduler | Implemented but **not yet fully qualified for live claims** | Hardening from closed issue #63 landed via #81. Live qualification on a namespace-capable runner remains PR #88's gate; a skipped isolation test is not containment evidence. |
+| Factory M4 — deterministic integration/scheduler | Implemented but **not yet fully qualified for live claims** | Hardening from closed issue #63 landed via #81. #109 carries the capable-runner gate after closed #88/#114; its hosted-runner probe is BLOCKED, not containment evidence. |
 | Evaluation | Implemented apparatus, unqualified live experiment | `residual/eval_frozen/` contains the frozen R0–R5 apparatus. PR #103 rebuilt the binding intended by closed PR #71 with negative tests for replay, topology, task mapping and verifier qualification. Passing those tests does not establish live provider/model results or independently authenticate its prerequisite reports. |
 | Sandbox / red team | Implemented development surface | Bubblewrap/namespace/rlimit paths plus live containment tests and a receipted red-team corpus are present. cgroup-v2-specific enforcement depends on host capability. |
 | Cluster / distributed execution | Implemented development surface | Versioned wire schema, authenticated join/leave, heartbeats, task reassignment, local-first routing and cluster CLI exist. Some optional network transports degrade gracefully when optional dependencies are absent. |
@@ -53,23 +53,34 @@ Enforcement is still incomplete: the required approving-review count is **0**, a
 
 ### 2. M4 live qualification
 
-The accepted-tree, filesystem/link, isolation and Git-evidence code-hardening review in closed issue #63 is historical, not an open issue to close again. PR #88 remains the capable-runner qualification lane. Preserve `UNKNOWN`, infrastructure errors and skipped namespace tests as evidence gaps; none may count as a passed trust-boundary qualification.
+The accepted-tree, filesystem/link, isolation and Git-evidence code-hardening review in closed issue #63 is historical. #109 succeeds closed #88/#114 as the M4 prerequisite/zero-skips lane. Its actual execution smoke at `e873dd62` reported UNKNOWN because namespace isolation was unavailable; the prerequisite job correctly failed. Preserve `UNKNOWN`, infrastructure errors and skipped namespace tests as evidence gaps; none may count as a passed trust-boundary qualification.
 
 ### 3. Runtime reproducibility
 
-PR #96 merged termination provenance and a repetition matrix, but the ordinary Command Station Python 3.13 job at this baseline still failed `test_ptrace_is_kernel_killed`: expected SIGSYS (`-31`), observed SIGKILL (`-9`). Run `34927698993`, attempt `1`, job `104249155773` retained 895 tests, one failure and 21 skips. The cause is **unclassified**. A later passing run would not erase this failure. The matrix's raw-file/audit pair does not exercise this ptrace selector.
+PR #96 merged termination provenance and a repetition matrix. The historical Command Station Python 3.13 job on baseline `a8082109` failed `test_ptrace_is_kernel_killed`: expected SIGSYS (`-31`), observed SIGKILL (`-9`). Run `34927698993`, attempt `1`, job `104249155773` retained 895 tests, one failure and 21 skips. The cause remains **unclassified** by that evidence. Later passing runs do not erase this failure. #108's current repair requires independent review at its final head.
+
+#117 replaces closed #97 and exposes three missing local runtime/DSM guarantees:
+process-group tracking, fencing held through authoritative append, and rejection
+of reused event IDs with changed payloads. Its focused suite is **3 failed,
+60 passed, zero skipped** locally. Those pytest functions are now explicitly
+run in its required CI matrix; ordinary unittest discovery did not collect them.
 
 The supplementary diagnostic runner retains per-test outcomes and returned Factory fixture termination records in the ordinary CI runs. It changes neither runtime code nor assertions, performs no retries, and cannot recover records for calls that never return or bypass `Fixture.run_source`. See the handoff for those limits and the retained-run format.
 
 ### 4. Measured binding and experimental qualification
 
-PR #103 replaced the path intended by closed PR #71. Its acceptance-binding workflow now has an active location under `.github/workflows/`; branch enforcement is still a separate setting. These negative/contract tests are not live R0–R5 measurements. Review the [binding's explicit trust limits](measured-eval-binding.md): prerequisite inputs are unauthenticated, timestamps are operator-asserted, and signature-only verification does not establish freshness without the retained chain.
+PR #103 replaced the path intended by closed PR #71. #106 has merged its active acceptance-binding workflow after all required checks and the binding job passed; making that new check mandatory is still a separate setting. These negative/contract tests are not live R0–R5 measurements. Review the [binding's explicit trust limits](measured-eval-binding.md): prerequisite inputs are unauthenticated, timestamps are operator-asserted, and signature-only verification does not establish freshness without the retained chain.
 
 The live protocol and corpus still need freezing and execution under the [live evaluation gate](evaluation.md#live-evaluation-gate). No new empirical reliability, cost or throughput values are claimed here.
 
 ### 5. Release and soak evidence
 
 Clean-install tooling (#100) and the baseline's clean-install workflow are present/passing. That does not establish a blank-VM release-candidate run or completed 24-hour, 72-hour or 30-day live soak. Retain environment, exact revision and every failed attempt for these separate lanes.
+
+#115 adds preparation tooling, but review reproduced accepted truncated evidence
+logs and a capped synthetic schedule incorrectly reported COMPLETE. Repair its
+integrity/completion checks and label simulated days before using those procedures
+as qualification evidence. A synthetic soak rehearsal is not elapsed runtime.
 
 ### Traceability scope
 
@@ -113,7 +124,7 @@ The recommended order is:
 6. Run one fixed live model across R0–R5 configurations to measure `P(X)`, `P(A)`, `P(X|A)`, AER, ASSR, latency, throughput and cost.
 7. Run model-degradation and heterogeneous-routing studies.
 8. Run fault campaigns under live execution.
-9. Progress through 24-hour → 72-hour → 30-day soak only after shorter qualification gates are clean.
+9. Complete the reviewed 24-hour/72-hour elapsed soak ladder. A later 30-day production-maturity run is outside the agreed six-gate 1.0 target.
 10. Update the paper from retained artifacts only.
 
 ## Documentation authority

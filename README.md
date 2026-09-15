@@ -99,11 +99,11 @@ The project also contains soak infrastructure, but long-duration live qualificat
 
 A major integrated milestone at `412b66c35f7c0e1ac479fe60a5b7d33d5510e3af` recorded **1,033 tests plus 166 subtests green** with verifier v2 green and protected-path ownership checks. That evidence applies to that exact tree.
 
-The reviewed baseline is `a8082109e01aff9eda72030b837103c09d1393d3` (2026-09-15). Before starting paper-facing live reliability evaluation, the priority gates are:
+The triage baseline is `1cf4e46c0ace8e3cdc76147ad4c7dc6480a9fb34` (2026-09-15), including merged #106. The [PR convergence ledger](docs/status/PR_TRIAGE_2026-09-15.md) records 32 open proposals and their dispositions. Before starting paper-facing live reliability evaluation, the priority gates are:
 
 1. complete required-check coverage and independent-approval enforcement on the now-protected `main` branch (see the current-status policy update);
-2. qualify the exact M4 tree on a namespace-capable runner (PR #88), retaining failures and skips;
-3. classify the recurring Factory OS signal mismatch; merged termination-provenance tooling alone does not close it;
+2. qualify the exact M4 tree on a namespace-capable runner through #109 (successor to closed #88), retaining failures and skips;
+3. independently accept #108's Factory repair and fix the three local runtime/DSM failures now gated by #117; preserve the historical signal failures;
 4. qualify the merged #103 measured-evidence binding, including its real verifier boundary and retained prerequisite reports;
 5. freeze the live protocol and corpus before observing model results, then run R0–R5 with correctness, coverage, latency, throughput and cost measurements;
 6. complete the blank-VM release-candidate and long-duration soak lanes; neither is established by a unit-test pass.

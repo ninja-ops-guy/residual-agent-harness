@@ -1,5 +1,15 @@
 # Qualification convergence handoff
 
+Current authorized triage and dispositions are recorded in
+[PR_TRIAGE_2026-09-15.md](PR_TRIAGE_2026-09-15.md), based on main
+`1cf4e46c0ace8e3cdc76147ad4c7dc6480a9fb34`. #106 has merged; #107 preserves
+that exact binding workflow and retains its diagnostics/status contribution.
+#109 has a published execution-prerequisite repair; #117 now gates its three
+missing runtime/DSM guarantees in required CI. Both remain blocked on their
+specific acceptance conditions. The older read-only snapshots below are
+retained as history. The owner's subsequent triage/advancement instruction
+authorizes these scoped coordinator actions, not a global unfreeze of other lanes.
+
 Reviewed baseline: `a8082109e01aff9eda72030b837103c09d1393d3`, 2026-09-15.
 This is a dated integration queue, not a live tracker or authorization to merge
 other tracks. The owner's new implementation instruction authorizes this
@@ -12,7 +22,7 @@ non-demo PR; it does not lift issue #79's restrictions for all agents.
 | Enforcement | Active main protection verified; independent approval and two additional required checks still needed | Complete required-check/review policy on `main`, including a rejected failing merge attempt in a safe test PR |
 | Current-status integrity | This PR: repair the active summaries and add a narrow offline guard | Both status guards and their regressions pass on the proposed tree |
 | Runtime reproducibility | #96 merged; retain ordinary-suite provenance; #97 remains its own regression track | Classified original SIGKILL evidence plus a reviewed fix and exact-tree requalification; no retry laundering |
-| Measured binding | #103 merged; this PR activates its staged workflow | Negative/contract tests plus separate real-boundary qualification and retained chain/reports |
+| Measured binding | #103 and #106 merged; this PR preserves main's canonical workflow | Negative/contract tests plus separate real-boundary qualification and retained chain/reports |
 | M4 qualification | #88 stays with its owner; needs a capable runner | Namespace isolation actually executed, no skip/UNKNOWN substituted for pass |
 | Traceability | #94 stays with its owner; rebuild against current main | Reviewed family inventory and regenerated output; reconcile residual M3 note referring to issue #63 as open |
 | Economics / observability | #93 stays with its owner | Rebased, non-conflicting tests and measured-vs-fixture claim boundaries |
