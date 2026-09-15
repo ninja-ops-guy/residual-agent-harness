@@ -27,6 +27,7 @@ from residual.core import canonical, strict_json
 from .models import ExecutionPlan, FrozenPlan
 from .runtime_journal import JournalError, RuntimeJournal
 from .runtime_workspace import CandidateTree, ManagedWorktree, SafeFileBroker
+from .termination_provenance import ProcessControl
 from .worker_contract import AttemptGuard, ContractViolation, WorkerContract, WorkerContractError
 
 PROFILE = 'linux-seccomp-broker-v1'
@@ -50,6 +51,7 @@ class RuntimeResult:
     usage: dict[str, int]
     candidate: CandidateTree | None
     reason: str
+    termination: dict[str, Any] | None = None
     engine_name: str = 'brokered-python'
     engine_version: str = PROFILE
 
@@ -57,87 +59,54 @@ class RuntimeResult:
         return {**vars(self), 'candidate': self.candidate.to_dict() if self.candidate else None}
 
 
-class _ProcessControl:
-    """Kill is independent of guard/journal locks; audit follows OS termination."""
-    def __init__(self, process: subprocess.Popen):
-        self.process = process
-        if not hasattr(os, 'pidfd_open') or not hasattr(signal, 'pidfd_send_signal'):
-            raise RuntimeUnavailable('pidfd-based process ownership is required')
-        self.pidfd = os.pidfd_open(process.pid, 0)
-        self._lock = threading.Lock()
-        self.reason: tuple[str, str, dict] | None = None
-        self.termination_requested = threading.Event()
-        self.stopped = threading.Event()
-
-    def kill(self, reason: tuple[str, str, dict] | None = None) -> None:
-        # Mark termination intent before waiting on the process. The watchdog uses
-        # this to avoid replacing a primary broker/contract violation with a
-        # secondary lease-read failure while another thread is already terminating
-        # the attempt.
-        self.termination_requested.set()
-        with self._lock:
-            if reason is not None and self.reason is None:
-                self.reason = reason
-            if self.process.poll() is None:
-                try:
-                    signal.pidfd_send_signal(self.pidfd, signal.SIGKILL)
-                except ProcessLookupError:
-                    pass
-                self.process.wait(timeout=2)
-            self.stopped.set()
-
-    def close(self) -> None:
-        with self._lock:
-            if self.pidfd >= 0:
-                os.close(self.pidfd)
-                self.pidfd = -1
-
-
 class FactoryRuntime:
     def __init__(self, repository: str | Path, runtime_root: str | Path,
-                 journal: RuntimeJournal, *, allow_local_worker_code: bool = False):
+                 journal: RuntimeJournal, *, allow_local_worker_code: bool = False,
+                 monotonic_ns=time.monotonic_ns):
         if sys.platform != 'linux':
             raise RuntimeUnavailable('the brokered execution backend requires Linux')
         self.repository, self.root = Path(repository).absolute(), Path(runtime_root).absolute()
         self.journal = journal
         self.enabled = allow_local_worker_code is True
+        self._monotonic_ns = monotonic_ns
         self._lock = threading.Lock()
-        self._active: dict[str, _ProcessControl] = {}
+        self._active: dict[str, ProcessControl] = {}
 
     def cancel(self, attempt_id: str) -> bool:
         with self._lock:
             control = self._active.get(attempt_id)
         if control is None:
             return False
-        control.kill(('cancellation', 'operator_cancel', {'reason': 'local_operator'}))
+        control.kill(('cancellation', 'operator_cancel', {'reason': 'local_operator'}), requester='operator')
         try:
             self.journal.revoke(attempt_id)  # serialize cancellation against candidate publication
         except JournalError:
             return False  # already terminal; do not claim a completed candidate was cancelled
         return True
 
-    def _watch(self, control: _ProcessControl, contract: WorkerContract,
-               started: float, done: threading.Event) -> None:
-        memory_at = lease_at = 0.0
+    def _watch(self, control: ProcessControl, contract: WorkerContract,
+               started_ns: int, done: threading.Event) -> None:
+        memory_at_ns = lease_at_ns = 0
         while not done.wait(0.02):
-            if control.termination_requested.is_set() or control.process.poll() is not None:
+            if control.termination_requested.is_set() or control.exited():
                 return
-            now = time.monotonic()
+            now_ns = self._monotonic_ns()
             reason = None
-            if now - started >= contract.wall_clock_budget_s:
-                reason = ('resource', 'wall_clock_budget_s', {'elapsed_s': now - started})
-            elif now >= memory_at:
-                memory_at = now + 1.0
+            elapsed_s = (now_ns - started_ns) / 1_000_000_000
+            if elapsed_s >= contract.wall_clock_budget_s:
+                reason = ('resource', 'wall_clock_budget_s', {'elapsed_s': elapsed_s})
+            elif now_ns >= memory_at_ns:
+                memory_at_ns = now_ns + 1_000_000_000
                 try:
                     fields = Path(f'/proc/{control.process.pid}/statm').read_text().split()
                     resident = int(fields[1]) * os.sysconf('SC_PAGE_SIZE')
                     if resident > contract.memory_limit_mb * 1024 * 1024:
                         reason = ('resource', 'memory_limit_mb', {'resident_bytes': resident})
                 except (OSError, ValueError, IndexError):
-                    if control.process.poll() is None:
+                    if not control.exited():
                         reason = ('resource', 'memory_limit_mb', {'reason': 'rss_meter_unavailable'})
-            if reason is None and now >= lease_at:
-                lease_at = now + 0.2
+            if reason is None and now_ns >= lease_at_ns:
+                lease_at_ns = now_ns + 200_000_000
                 # A broker/guard path may have started killing the worker after the
                 # top-of-loop check. Do not perform a secondary lease read in that
                 # window and accidentally overwrite the primary violation reason.
@@ -150,7 +119,7 @@ class FactoryRuntime:
                 if not current:
                     reason = ('lease', 'lease_generation', {'reason': 'revoked_or_unavailable'})
             if reason is not None:
-                control.kill(reason)
+                control.kill(reason, requester='watchdog')
                 return
 
     def run(self, plan: ExecutionPlan, approval: FrozenPlan,
@@ -182,14 +151,22 @@ class FactoryRuntime:
 
         process = control = broker = watcher = None
         done = threading.Event()
-        guard = AttemptGuard(contract, observe=self.journal.observe,
-                             terminate=lambda: control.kill() if control is not None else None)
+        guard = AttemptGuard(
+            contract,
+            observe=self.journal.observe,
+            terminate=lambda: control.kill(
+                ('guard', 'contract_violation', {'reason': 'guard_stop_hook'}), requester='guard'
+            ) if control is not None else None,
+        )
         state, reason, candidate = 'FAILED', 'launch_failed', None
         reaped = False
+        termination = None
         journal_finished = False
         try:
             workspace.create()
             self.journal.observe({'event': 'RuntimeWorktreeCreated', 'attempt_id': contract.attempt_id,
+                                  'correlation_id': contract.attempt_id,
+                                  'monotonic_ns': self._monotonic_ns(),
                                   'input_commit': contract.input_commit, 'contract_hash': contract.contract_hash})
             guard.start()  # durable contract acknowledgement BEFORE Popen
             def before_io():
@@ -199,7 +176,7 @@ class FactoryRuntime:
                 if not self.journal.lease_is_current(contract):
                     guard.fail('lease', 'lease_generation', {'reason': 'fenced_before_io'})
             broker = SafeFileBroker(workspace, guard, before_io=before_io)
-            started = time.monotonic()
+            started_ns = self._monotonic_ns()
             bootstrap = Path(__file__).with_name('_sandbox_child.py').resolve()
             process = subprocess.Popen(
                 [sys.executable, '-I', '-S', str(bootstrap), str(contract.memory_limit_mb),
@@ -207,15 +184,23 @@ class FactoryRuntime:
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 env={'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8', 'LC_ALL': 'C.UTF-8'},
                 cwd='/', close_fds=True, start_new_session=True, bufsize=0)
-            control = _ProcessControl(process)
+            control = ProcessControl(process, correlation_id=contract.attempt_id,
+                                     clock_ns=self._monotonic_ns)
             # Start the watchdog before persistence/dispatch, not in the worker.
-            watcher = threading.Thread(target=self._watch, args=(control, contract, started, done), daemon=True)
+            watcher = threading.Thread(target=self._watch, args=(control, contract, started_ns, done), daemon=True)
             watcher.start()
             with self._lock:
                 self._active[contract.attempt_id] = control
             self.journal.started(contract, process.pid)
+            self.journal.observe({'event': 'RuntimeProcessIdentity',
+                                  'attempt_id': contract.attempt_id,
+                                  'correlation_id': contract.attempt_id,
+                                  'monotonic_ns': self._monotonic_ns(),
+                                  'identity': control.identity.to_dict()})
             complete = self._exchange(process, control, guard, broker, contract, source)
-            reaped = process.poll() is not None
+            control.reap(timeout=2)
+            reaped = True
+            termination = control.termination_record().to_dict()
             done.set()
             watcher.join(timeout=2)
             if watcher.is_alive():
@@ -242,6 +227,7 @@ class FactoryRuntime:
                 state, reason = 'CANDIDATE', 'awaiting_station_verification'
             self.journal.finish(contract, state, reason=reason, process_reaped=reaped,
                                 returncode=process.returncode, usage=guard.usage,
+                                termination=termination,
                                 candidate=candidate.to_dict() if candidate else None)
             journal_finished = True
         except ContractViolation as exc:
@@ -255,11 +241,16 @@ class FactoryRuntime:
                 state, reason = 'CANCELLED', 'operator_cancel'
         finally:
             if control is not None:
-                control.kill()
-                reaped = process.poll() is not None
+                if not control.reaped:
+                    if control.exited():
+                        control.reap(timeout=2)
+                    else:
+                        control.kill(('runtime', 'finalizer', {'reason': 'ensure_reaped'}), requester='runtime')
+                reaped = control.reaped
+                termination = control.termination_record().to_dict()
             elif process is not None:
-                # Bootstrap failure before a pidfd/control was available. No
-                # worker source has been sent and no other reaper owns this PID.
+                # A failure before ProcessControl ownership is established is the
+                # only fallback path allowed to consume this PID directly.
                 process.kill()
                 process.wait(timeout=2)
                 reaped = True
@@ -274,16 +265,19 @@ class FactoryRuntime:
                 broker.close()
             if process is not None:
                 for stream in (process.stdin, process.stdout, process.stderr):
-                    stream.close()
+                    if stream is not None:
+                        stream.close()
             if state != 'CANDIDATE':
                 workspace.discard()
             if not journal_finished:
                 # If the durable store is unavailable this raises instead of
                 # falsely claiming a persisted terminal record.
                 self.journal.finish(contract, state, reason=reason, process_reaped=reaped,
-                                    returncode=process.returncode if process else None, usage=guard.usage)
+                                    returncode=process.returncode if process else None,
+                                    usage=guard.usage, termination=termination)
         return RuntimeResult(contract.attempt_id, state, contract.contract_hash, plan.graph_hash,
-                             process.returncode if process else None, reaped, guard.usage, candidate, reason)
+                             process.returncode if process else None, reaped, guard.usage,
+                             candidate, reason, termination)
 
     def _exchange(self, process, control, guard, broker, contract, source) -> bool:
         incoming, outgoing = bytearray(), bytearray()
@@ -345,8 +339,12 @@ class FactoryRuntime:
                             if value != {'event': 'SandboxReady', 'profile': PROFILE}:
                                 guard.fail('tool', 'sandbox_handshake', {'reason': 'not_ready'})
                             ready = True
-                            self.journal.observe({'event': 'RuntimeSandboxReady', 'attempt_id': contract.attempt_id,
-                                                  'profile': PROFILE, 'contract_hash': contract.contract_hash})
+                            self.journal.observe({'event': 'RuntimeSandboxReady',
+                                                  'attempt_id': contract.attempt_id,
+                                                  'correlation_id': contract.attempt_id,
+                                                  'monotonic_ns': self._monotonic_ns(),
+                                                  'profile': PROFILE,
+                                                  'contract_hash': contract.contract_hash})
                             queue({'source': source})
                             continue
                         if completed or set(value) != {'sequence', 'operation', 'arguments'} or \
@@ -363,9 +361,8 @@ class FactoryRuntime:
                         else:
                             result = broker.dispatch(value['operation'], value['arguments'])
                         queue({'sequence': value['sequence'], 'ok': True, 'result': result})
-                if process.poll() is not None and all(key.data == 'in' for key in selector.get_map().values()):
+                if control.exited() and all(key.data == 'in' for key in selector.get_map().values()):
                     break
-            process.wait(timeout=2)
         if incoming:
             guard.fail('tool', 'broker_protocol', {'reason': 'unterminated_frame'})
         return ready and completed
@@ -388,7 +385,6 @@ class FactoryRuntime:
         workspace.created = True
         workspace.discard()
         self.journal.mark_purged(contract.attempt_id)
-
 
     def purge_expired(self, *, retention_s: float = 3600, now_ns: int | None = None) -> list[str]:
         if type(retention_s) not in (int, float) or not math.isfinite(retention_s) or retention_s <= 0:
