@@ -2,8 +2,8 @@
   "fixture_id": "obs006-fixture-v1",
   "identity": {
     "branch": "swarm/obs-006-observability",
-    "commit": "c200d2ea96141c1bd3146358fe7f58a4b547e63a",
-    "tree": "14a0a3a3ce3cd412ab9b4709a79b0a742892c9c7"
+    "commit": "058e25b3ca73de4528648b72b1901b2c319fe643",
+    "tree": "8457fe71ff6767e2ddc6f488fbc81781a076058b"
   },
   "observation_hash": "0589de8fed4438a9ceeb019b145e7ebfd24b7ea753fe0de41d7195bcaa93b536",
   "prometheus_export": [
@@ -528,17 +528,17 @@
       "observation_hash": "0589de8fed4438a9ceeb019b145e7ebfd24b7ea753fe0de41d7195bcaa93b536",
       "source_identity": {
         "branch": "swarm/obs-006-observability",
-        "commit": "c200d2ea96141c1bd3146358fe7f58a4b547e63a",
-        "tree": "14a0a3a3ce3cd412ab9b4709a79b0a742892c9c7"
+        "commit": "058e25b3ca73de4528648b72b1901b2c319fe643",
+        "tree": "8457fe71ff6767e2ddc6f488fbc81781a076058b"
       }
     },
-    "report_hash": "19f133630db3fcc0132cb0423db04ffa415acacf08075a4971ecf31766d713c9",
+    "report_hash": "7f65e577821e03cf62d2cd4585a59635131c462018d6a75a5b63c580b0c492a6",
     "schema_version": "obs006.report.v1"
   },
   "reproduction": {
-    "first_report_hash": "19f133630db3fcc0132cb0423db04ffa415acacf08075a4971ecf31766d713c9",
+    "first_report_hash": "7f65e577821e03cf62d2cd4585a59635131c462018d6a75a5b63c580b0c492a6",
     "identical_hash": true,
-    "second_report_hash": "19f133630db3fcc0132cb0423db04ffa415acacf08075a4971ecf31766d713c9"
+    "second_report_hash": "7f65e577821e03cf62d2cd4585a59635131c462018d6a75a5b63c580b0c492a6"
   },
   "runtime": {
     "platform": "Linux-5.10.134-18.0.12.lifsea8.x86_64-x86_64-with-glibc2.36",
