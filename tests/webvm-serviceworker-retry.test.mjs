@@ -52,6 +52,14 @@ test('immutable disk chunk exhausts at three attempts', async () => {
   });
 });
 
+test('same-origin immutable disk chunk 4xx is never retried', async () => {
+  await withRuntime([{status:404},{status:200}], async (calls, fetchWithRetry) => {
+    const result = await fetchWithRetry(request(chunk));
+    assert.equal(result.status, 404);
+    assert.equal(calls(), 1);
+  });
+});
+
 test('non-chunk 503 is never retried', async () => {
   await withRuntime([{status:503},{status:200}], async (calls, fetchWithRetry) => {
     const result = await fetchWithRetry(request('/provider/provider.js'));
