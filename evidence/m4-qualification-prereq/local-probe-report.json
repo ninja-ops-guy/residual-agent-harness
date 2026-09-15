@@ -1,1 +1,118 @@
-__REPORT__
+{
+  "blocked_capabilities": [],
+  "capabilities": [
+    {
+      "detail": "Linux-5.10.134-18.0.12.lifsea8.x86_64-x86_64-with-glibc2.36",
+      "name": "platform_linux",
+      "probe_argv": [],
+      "returncode": null,
+      "status": "pass"
+    },
+    {
+      "detail": "os.chroot present",
+      "name": "chroot_available",
+      "probe_argv": [],
+      "returncode": null,
+      "status": "pass"
+    },
+    {
+      "detail": "/usr/bin/unshare",
+      "name": "unshare_binary",
+      "probe_argv": [],
+      "returncode": null,
+      "status": "pass"
+    },
+    {
+      "detail": "ok",
+      "name": "user_namespace",
+      "probe_argv": ["/usr/bin/unshare", "--user", "--map-root-user", "--", "/usr/bin/env", "-i", "sh", "-c", "true"],
+      "returncode": 0,
+      "status": "pass"
+    },
+    {
+      "detail": "ok",
+      "name": "mount_namespace",
+      "probe_argv": ["/usr/bin/unshare", "--user", "--map-root-user", "--mount", "--", "/usr/bin/env", "-i", "sh", "-c", "true"],
+      "returncode": 0,
+      "status": "pass"
+    },
+    {
+      "detail": "ok",
+      "name": "pid_namespace",
+      "probe_argv": ["/usr/bin/unshare", "--user", "--map-root-user", "--pid", "--fork", "--", "/usr/bin/env", "-i", "sh", "-c", "true"],
+      "returncode": 0,
+      "status": "pass"
+    },
+    {
+      "detail": "ok",
+      "name": "network_namespace",
+      "probe_argv": ["/usr/bin/unshare", "--user", "--map-root-user", "--net", "--", "/usr/bin/env", "-i", "sh", "-c", "true"],
+      "returncode": 0,
+      "status": "pass"
+    },
+    {
+      "detail": "ok",
+      "name": "ipc_namespace",
+      "probe_argv": ["/usr/bin/unshare", "--user", "--map-root-user", "--ipc", "--", "/usr/bin/env", "-i", "sh", "-c", "true"],
+      "returncode": 0,
+      "status": "pass"
+    },
+    {
+      "detail": "ok",
+      "name": "uts_namespace",
+      "probe_argv": ["/usr/bin/unshare", "--user", "--map-root-user", "--uts", "--", "/usr/bin/env", "-i", "sh", "-c", "true"],
+      "returncode": 0,
+      "status": "pass"
+    },
+    {
+      "detail": "ok",
+      "name": "kill_child",
+      "probe_argv": ["/usr/bin/unshare", "--user", "--map-root-user", "--kill-child", "--pid", "--fork", "--", "/usr/bin/env", "-i", "sh", "-c", "sleep 5 & exec true"],
+      "returncode": 0,
+      "status": "pass"
+    },
+    {
+      "detail": "linux-userns-isolated-v1:ok",
+      "name": "composite_sandbox_profile",
+      "probe_argv": ["/usr/bin/unshare", "--user", "--map-root-user", "--mount", "--pid", "--fork", "--net", "--ipc", "--uts", "--kill-child", "--", "/usr/bin/env", "-i", "sh", "-c", "true"],
+      "returncode": null,
+      "status": "pass"
+    }
+  ],
+  "environment_manifest": {
+    "captured_at_unix": 1789469553,
+    "cpu_count": 2,
+    "dependencies": {
+      "cryptography": {"minimum_major": "43", "status": "pass", "version": "44.0.2"},
+      "yaml": {"minimum_major": "6", "status": "pass", "version": "6.0.2"}
+    },
+    "kernel": {
+      "max_user_namespaces": "22829",
+      "unprivileged_userns_apparmor_policy": null,
+      "unprivileged_userns_clone": "1"
+    },
+    "platform": {
+      "machine": "x86_64",
+      "platform": "Linux-5.10.134-18.0.12.lifsea8.x86_64-x86_64-with-glibc2.36",
+      "release": "5.10.134-18.0.12.lifsea8.x86_64",
+      "system": "Linux"
+    },
+    "python": {
+      "executable": "/usr/local/bin/python3",
+      "pinned": ["3.12"],
+      "status": "pass",
+      "version": "3.12.12"
+    },
+    "resource_limits": {
+      "RLIMIT_AS": {"hard": -1, "soft": -1},
+      "RLIMIT_CPU": {"hard": -1, "soft": -1},
+      "RLIMIT_NOFILE": {"hard": 1048576, "soft": 1024},
+      "RLIMIT_NPROC": {"hard": -1, "soft": -1}
+    },
+    "schema": "m4-qualification-env-manifest-v1"
+  },
+  "overall": "PASS",
+  "revision": "eefee6ac005c93278f483e002e38a768920f0fae",
+  "sandbox_profile": "linux-userns-isolated-v1",
+  "schema": "m4-qualification-prereq-report-v1"
+}
