@@ -63,24 +63,24 @@ jobs:
               residual verify-trace /tmp/residual-demo/trace.jsonl --result /tmp/residual-demo/result.json
               bash -n examples/onboarding/cloud_demo.sh
               python3 -c "import residual; print(residual.__file__)"
+              test -x /usr/local/bin/residual-demo-shell
+              grep -q "RESIDUAL BOOT: guest process attached" /usr/local/bin/residual-demo-shell
             '
 
-      - name: Build WebVM browser client with session injection
+      - name: Build WebVM browser client with Pages guest configuration
         shell: bash
         run: |
           set -euo pipefail
+          # Pages uses the browser inference bridge, not a gateway token in a
+          # URL fragment. Gateway budgets/revocation remain tested separately.
           cat > _webvm/config_github_terminal.js <<'EOF'
-          const fragment = new URLSearchParams(globalThis.location?.hash?.slice(1) || "");
-          const demoToken = fragment.get("demoToken") || "";
-          const gateway = (fragment.get("gateway") || "").replace(/\/$/, "");
           export const diskImageUrl = "residual-demo.ext2";
           export const diskImageType = "github";
           export const printIntro = false;
           export const needsDisplay = false;
-          export const cmd = "/bin/bash";
-          export const args = ["--login"];
-          const cloudEnv = demoToken && gateway ? [`LLM_API_KEY=${demoToken}`, `LLM_BASE_URL=${gateway}/v1`] : [];
-          export const opts = {env:["HOME=/home/residual","TERM=xterm-256color","USER=residual","SHELL=/bin/bash","LANG=C.UTF-8",...cloudEnv],cwd:"/opt/residual",uid:1000,gid:1000};
+          export const cmd = "/usr/local/bin/residual-demo-shell";
+          export const args = [];
+          export const opts = {env:["HOME=/home/residual","TERM=xterm","USER=residual","SHELL=/bin/bash","EDITOR=vi","LANG=C","LC_ALL=C","PYTHONUNBUFFERED=1","RESIDUAL_DEMO_MODEL=gpt-5.6-luna"],cwd:"/opt/residual",uid:1000,gid:1000};
           EOF
           cd _webvm
           npm install
@@ -92,7 +92,21 @@ jobs:
         run: |
           set -euo pipefail
           grep -q 'The repository is the demo' site/live-demo.html
-          grep -q 'v1/demo/session' site/live-demo.html
-          grep -q 'demoToken' site/live-demo.html
+          grep -q 'residual-vm-output' site/live-demo.html
+          grep -q 'residual-vm-input' site/live-demo.html
+          grep -q '__RESIDUAL_BROWSER_REQUEST__' site/live-demo.html
+          grep -q 'puter.ai.chat' site/live-demo.html
+          grep -q '<script defer src="https://js.puter.com/v2/"' site/live-demo.html
           grep -q 'cloud-demo' demo/vm/Dockerfile
           grep -q 'RESET VM' site/live-demo.html
+          python3 - <<'PY'
+          import re
+          import subprocess
+          from pathlib import Path
+          html = Path('site/live-demo.html').read_text()
+          assert html.rstrip().endswith('</html>'), 'Live demo HTML is truncated'
+          assert len(re.findall(r'<script\b', html)) == html.count('</script>'), 'Unclosed script'
+          for script in re.findall(r'<script\b[^>]*>(.*?)</script>', html, re.S):
+              subprocess.run(['node', '--check'], input=script, text=True, check=True)
+          print('Live demo document and browser-bridge structure validated; see Pages host browser regression for behavioral checks.')
+          PY
