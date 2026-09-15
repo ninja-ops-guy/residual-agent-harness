@@ -14,6 +14,7 @@ from urllib.parse import urlsplit
 
 from playwright.async_api import async_playwright
 from pages_contract import validate_entry_html
+from mission_smoke import workbench_acceptance
 
 BOOT = "RESIDUAL BOOT: guest process attached"
 PROMPT = "residual@demo:~/residual-agent-harness$"
@@ -43,6 +44,7 @@ async def main() -> int:
     started = time.monotonic()
     async with async_playwright() as pw:
         browser = await getattr(pw, args.browser).launch()
+        report["browser_version"] = browser.version
         context = await browser.new_context(viewport={"width": 390, "height": 844} if args.mobile else {"width": 1280, "height": 800})
         await context.tracing.start(screenshots=True, snapshots=True, sources=True)
         page = await context.new_page()
@@ -101,6 +103,7 @@ async def main() -> int:
             await stage("document_loaded")
             await wait_guest()
             await stage("guest_attached_and_shell_ready")
+            await page.locator("#mc-terminal").click()
             assert await page.evaluate("window.crossOriginIsolated"), "guest page is not cross-origin isolated"
             assert await page.evaluate("window.top === window"), "WebVM is not top-level"
             assert not report["optional_requests"], "optional service initialized before cloud opt-in"
@@ -112,18 +115,7 @@ async def main() -> int:
             await command_proof("test -s runs/demo/trace.jsonl && verify-demo")
             await stage("warm_reload_and_verify_passed")
             assert not report["optional_requests"], "cloud SDK loaded without opt-in"
-            cloud = page.get_by_role("button", name="ENABLE CLOUD", exact=False)
-            box = await cloud.bounding_box()
-            viewport = page.viewport_size
-            assert box and viewport and box["x"] >= 0 and box["x"] + box["width"] <= viewport["width"] + 1, "cloud control is outside the viewport"
-            await context.set_offline(True)
-            await cloud.click(timeout=10000)
-            await page.wait_for_function("() => !document.body.innerText.includes('LOADING CLOUD')", timeout=20000)
-            await cloud.wait_for(state="visible", timeout=20000)
-            assert report["optional_requests"], "cloud button did not attempt SDK loading"
-            await context.set_offline(False)
-            await command_proof("true")
-            await stage("cloud_network_failure_preserves_guest")
+            await workbench_acceptance(page, context, args, report, command_proof, stage)
             assert not report["errors"], "unhandled browser JavaScript error"
             report["status"] = "PASS"
         except Exception as error:
