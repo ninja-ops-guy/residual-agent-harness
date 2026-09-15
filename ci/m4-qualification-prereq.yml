@@ -1,0 +1,70 @@
+# STAGED WORKFLOW - requires one manual step before the gate is enforced.
+#
+# The automation token used to author this PR lacks the `workflow` OAuth
+# scope, so GitHub rejects API writes under `.github/workflows/`. A
+# maintainer with a workflow-scoped token must move this file to
+# `.github/workflows/m4-qualification-prereq.yml` (no content changes needed).
+# Until then, run locally:
+#   python -m residual.factory.m4_qualification_prereq --output runs/m4-qualification-prereq/report.json
+#   python -m pytest tests/test_factory_m4_qualification_prereq.py -v
+
+name: M4 qualification runner prerequisites
+
+on:
+  pull_request:
+    paths:
+      - "residual/factory/m4_sandbox.py"
+      - "residual/factory/m4_qualification_prereq.py"
+      - "residual/factory/_isolated_child.py"
+      - "tests/test_factory_m4*.py"
+      - "ci/m4-qualification-prereq.yml"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  m4-prereq:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12" # pinned; a different version BLOCKs the report
+      - name: Install pinned dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[factory]" pytest
+      - name: Capability probes + environment manifest (fail closed)
+        run: |
+          mkdir -p runs/m4-qualification-prereq
+          # Explicit PASS/BLOCKED JSON. Exit 1 on BLOCKED: no silent skip.
+          python -m residual.factory.m4_qualification_prereq \
+            --output runs/m4-qualification-prereq/report.json \
+            --revision "${{ github.sha }}"
+      - name: Prerequisite probe regression tests
+        run: python -m pytest tests/test_factory_m4_qualification_prereq.py -v
+      - name: M4 sandbox tests (zero skips required to qualify)
+        run: |
+          python -m pytest tests/test_factory_m4_sandbox.py -v \
+            --junitxml=runs/m4-qualification-prereq/m4-sandbox.xml
+          python - <<'PYQUAL'
+          import xml.etree.ElementTree as ET
+          root = ET.parse("runs/m4-qualification-prereq/m4-sandbox.xml").getroot()
+          cases = list(root.iter("testcase"))
+          assert cases, "No M4 sandbox test cases were executed"
+          assert not any(c.find("skipped") is not None for c in cases), \
+              "Skipped M4 tests cannot qualify the boundary"
+          PYQUAL
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m4-qualification-prereq-${{ github.sha }}
+          path: runs/m4-qualification-prereq
+          if-no-files-found: error
+          retention-days: 14
