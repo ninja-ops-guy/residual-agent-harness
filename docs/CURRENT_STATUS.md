@@ -33,7 +33,7 @@ Issue #63 is closed: the accepted-tree, filesystem/link, verifier-isolation and 
 | Mission Control / WebVM | Implemented product/demo surface | Multi-turn artifact conversations, verified parent lineage, isolated preview, browser-local restoration and optional-provider transport exist. PR #122 adds typed provider failures and real-browser acceptance. Issue #120 retains an earlier intermittent guest-runtime import failure; one unchanged rerun passed, so the event is tracked as an operational reliability concern rather than erased. |
 | Factory M2 — worker contract/runtime | Implemented | Real `WorkerContract`, bounded worker runtime, isolated worktrees, journaled observations, host-owned termination and sandbox enforcement exist under `residual/factory/`. |
 | Factory M3 — evidence bus/receipts | Implemented | Station-issued receipts, artifact binding, evidence-bus handoff and signature/integrity checks exist. Trust is enforced at the trusted consumption/admission boundary, not merely because bytes were stored. |
-| Factory M4 — deterministic integration/scheduler | Implemented trust-boundary mechanisms; **capable-runner qualification still pending** | The original #63 implementation gaps are closed and #108's timing/termination repair is merged. Current hosted CI still cannot convert namespace-dependent skips into qualification. PR #109 records hosted-runner namespace capability as `BLOCKED`, with actual isolated execution `UNKNOWN / isolation_unavailable:namespace_probe_failed`. |
+| Factory M4 — deterministic integration/scheduler | Implemented trust-boundary mechanisms; **candidate capable-runner PASS, acceptance pending** | The original #63 implementation gaps are closed and #108's timing/termination repair is merged. PR #109's current-main synthetic candidate completed real namespace probes, actual isolated execution and the selected M4 suite with zero skips on Ubuntu 22.04. That evidence is exact-candidate qualification, not yet accepted-main qualification; independent review and integration remain pending. |
 | Evaluation | Implemented development/research apparatus | Hash-locked workloads, repeated runs, ablations, reporting, statistics, fault injection and measured Factory hooks exist. The measured-evaluation acceptance-binding workflow is a CI mechanism; it is not live research evidence. |
 | Sandbox / red team | Implemented development surface | Namespace/rlimit/bubblewrap paths and adversarial tests exist. Host capability determines whether specific kernel isolation paths can actually be qualified. |
 | Cluster / distributed execution | Implemented development surface | Versioned wire schema, authenticated join/leave, heartbeats, task reassignment, local-first routing and cluster CLI exist. Distributed/host-loss guarantees remain narrower than single-process fixture behavior. |
@@ -73,7 +73,9 @@ PR #108's retained contention work supports its named timing/termination tests u
 
 ### Still not qualified
 
-Namespace-dependent M4 tests that skip because the host cannot provide the required isolation capability remain **UNKNOWN/BLOCKED for qualification**, not PASS. PR #109 is the active runner-prerequisite lane and currently records the hosted runner as blocked by namespace capability. Final qualification requires a genuinely capable environment, successful prerequisite probing and actual isolated M4 execution with zero namespace skips.
+Namespace-dependent M4 tests that skip because the host cannot provide the required isolation capability remain **UNKNOWN/BLOCKED for qualification**, not PASS. The earlier PR #109 Ubuntu 24.04 hosted attempt remains retained BLOCKED evidence. A new Ubuntu 22.04 run on synthetic candidate `dd27daa6672bff975e714d735eb05d1a5d8a2a9a`, tree `3924c1de206789d78296fddfaeb7085d24ef5862`, base `1a52e9a...`, produced `PASS`: all namespace probes passed, actual `linux-userns-isolated-v1` execution exited 0 with retained stdout/stderr hashes, and 135 selected test items plus 78 subtests completed with zero failures/errors/skips. Retained artifact `10412223138` has ZIP SHA-256 `94c9d0afeadc9e7535858118528dd52a5f5d3657d4cf77d905dc83f087b41bee` in [run 35008093028](https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35008093028).
+
+That PASS is bound to the PR synthetic candidate, not automatically to merged `main`. PR #109 still needs independent review, resolution/classification of its remaining exact-head CI failure, completion of Pages, and deliberate integration. Ubuntu 22.04 is a temporary compatibility target and needs a migration path; passing #109 does not complete release, recovery, soak or research gates.
 
 ## Traceability status
 
@@ -105,7 +107,7 @@ The project does not yet claim, for live heterogeneous models, that:
 - the gain remains useful at nontrivial acceptance coverage;
 - the reliability gain is worth the orchestration tax in cost/latency/throughput;
 - lower-cost or weaker workers can be substituted without unacceptable verifier false-acceptance risk;
-- M4 has been requalified with zero namespace skips on a current capable runner;
+- the capable-runner PASS on PR #109's exact synthetic candidate has been independently reviewed and integrated into accepted `main`;
 - 24-hour, 72-hour or 30-day production soak targets have been satisfied.
 
 ## Current blockers and next gates
