@@ -9,7 +9,7 @@ from qualify_webvm import replace_once
 def patch(text):
     text = replace_once(text, "<script>\n", "<script>\n\timport { mountMissionControl } from './mission-control-world.js';\n")
     text = replace_once(text, 'var residualBridgeBuffer = "";',
-                        'var residualWorkbench = null;\n\tvar residualDataDevice = null;\n\tvar residualShellTail = "";\n\tvar residualShellReady = false;\n\tvar residualShellCommandBusy = false;\n\tvar residualShellRun = null;\n\tvar residualBridgeBuffer = "";')
+                        'var residualWorkbench = null;\n\tvar residualDataDevice = null;\n\tvar residualShellTail = "";\n\tvar residualShellReady = false;\n\tvar residualShellCommandBusy = false;\n\tvar residualShellRun = null;\n\tvar residualShellInputBuffer = "";\n\tvar residualBridgeBuffer = "";')
     text = replace_once(text, 'const out = residualDecoder.decode(bytes, {stream:true});', '''const out = residualDecoder.decode(bytes, {stream:true});
         residualShellTail = (residualShellTail + out).slice(-4096).replace(/\\x1b\\[[0-9;?]*[A-Za-z]/g, "");
         if (residualShellTail.includes("residual@demo:~/residual-agent-harness$")) residualShellReady = true;
@@ -23,6 +23,15 @@ def patch(text):
                 const current = residualShellRun;
                 residualShellRun = null;
                 residualShellCommandBusy = false;
+                // Terminal input can arrive after Mission Control has projected
+                // a completion frame but before the shell child has emitted its
+                // exit marker. Queue it rather than dropping it or splicing it
+                // into the running child, then hand it to Bash once the child
+                // has exited. Flush before resolving host.run() so a subsequent
+                // mission cannot overtake queued terminal input.
+                const queuedInput = residualShellInputBuffer;
+                residualShellInputBuffer = "";
+                if (queuedInput) readData(queuedInput);
                 current.finish({status: Number(match[1])});
             }
         }''')
@@ -30,9 +39,14 @@ def patch(text):
                         'var dataDevice = await CheerpX.DataDevice.create();\n\t\tresidualDataDevice = dataDevice;')
     text = replace_once(text, 'term.onData(readData);', '''term.onData(data => {
             // Mission Control launches Python as a child of this one long-lived
-            // shell. Ignore interactive keystrokes while that bounded child is
-            // active so user input cannot splice into the dispatch command.
-            if (!residualShellCommandBusy) readData(data);
+            // shell. User/automation terminal input that arrives while the child
+            // is active is queued and replayed after its exit marker, preventing
+            // command splicing without losing keystrokes.
+            if (residualShellCommandBusy) {
+                residualShellInputBuffer += data;
+                return;
+            }
+            readData(data);
         });
         residualWorkbench = mountMissionControl({
             ready: () => !!cx && !!residualDataDevice && residualShellReady && !residualShellCommandBusy,
@@ -56,14 +70,16 @@ def patch(text):
                     ? "residual.workbench.browser_build"
                     : "residual.workbench.browser_run";
                 const verb = request.mode === "build" ? "" : " run";
-                const command = `python3 -m ${entry}${verb} --request /data${name} --mailbox /data --root /opt/residual --output-root /opt/residual/runs/missions --stream; __residual_rc=$?; printf '\\nRESIDUAL_HOST_RUN_${request.id}:%s\\n' "$__residual_rc"`;
+                const command = `python3 -m ${entry}${verb} --request /data${name} --mailbox /data --root /opt/residual --output-root /opt/residual/runs/missions --stream; __residual_rc=$?; echo RESIDUAL_HOST_RUN_${request.id}:$__residual_rc`;
                 residualShellCommandBusy = true;
                 residualShellTail = "";
+                residualShellInputBuffer = "";
                 return await new Promise((resolve, reject) => {
                     const timeout = setTimeout(() => {
                         if (!residualShellRun || residualShellRun.missionId !== request.id) return;
                         residualShellRun = null;
                         residualShellCommandBusy = false;
+                        residualShellInputBuffer = "";
                         reject(new Error("Guest shell dispatch timed out"));
                     }, 330000);
                     residualShellRun = {
