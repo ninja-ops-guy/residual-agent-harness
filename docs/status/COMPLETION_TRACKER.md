@@ -50,6 +50,22 @@ head explicitly defers independent authorization; it is not approval. No full-su
 release-gate, independent-acceptance or merge PASS is claimed. The historical
 Python 3.13 exception's exact origin remains unproven.
 
+## Queued extension — RESIDUAL Self-Hosting R0
+
+Owner-added **SPEC-SELFHOST-R0**, *Controlled Recursive Development &
+Verifiable Successor Protocol*, is recorded as **Draft for implementation**.
+See the [self-hosting task list](SELF_HOSTING_R0_TASKS.md): 12 dependency-linked
+work packages, SH-I01–SH-I10 invariants, SH-T01–SH-T18 supplied tests, 25
+adversarial scenarios, frozen 20–30-mission benchmark and bounded generation
+experiments. Reconcile existing work before implementation; no completion is
+inferred from this backlog entry. The initial test list truncates after SH-T18;
+the revised acceptance-test wording truncates at SH-T02's expected result.
+
+The first experiment requires a frozen qualified parent and produces only a
+successor candidate, with no merge or deployment. Candidate-produced changes
+cannot establish their own acceptance authority. This extension does not add
+a seventh release gate or silently lift the existing feature freeze.
+
 ## Scope policy for this completion plan
 
 Freeze new planners, agent types, providers, dashboards, swarm types and
