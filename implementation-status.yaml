@@ -479,7 +479,7 @@ families:
   notes: Requirement compiler (STUDIO-002) and station surfaces exist. The
     canonical Factory swarm runtime, evidence bus and deterministic
     integrator (STUDIO-003/004/008 mechanisms) are merged under
-    residual/factory/ - see families M2/M3/M4 (M4 closure unverified, issue 63).
+    residual/factory/ - see families M2/M3/M4 (M4 closure verified; issue 63 closed by PR 81).
     Still partial rather than complete - cluster (STUDIO-006), IDE
     (STUDIO-007) and the Studio frontend (residual/studio_frontend/) remain
     stubs/prototypes and must not be conflated with the canonical Factory
@@ -521,8 +521,9 @@ families:
 - family: M4
   title: Deterministic Integrator + Scheduler Intelligence
   spec: harness_specs/M2_M3_M4_SPECS.md
-  status: implemented_unverified
-  closure: implemented, trust-boundary closure in progress (#63)
+  status: implemented
+  closure: '#63 closed by #81 (de9c9fa): verified-tree binding, NOFOLLOW writes,
+    Linux-userns isolated verifier, typed git evidence - independently reviewed'
   code_paths:
   - residual/factory/m4_integrator.py
   - residual/factory/m4_scheduler.py
@@ -536,11 +537,11 @@ families:
   - scheduler intelligence
   notes: Canonical M4 deterministic integrator, scheduler and M4 evidence
     modules merged under residual/factory/ with fixture test coverage.
-    Requirement closure is NOT verified - issue 63 (accepted-tree binding,
+    Trust-boundary closure verified - issue 63 (accepted-tree binding,
     filesystem safety, OS-isolated verification, git evidence semantics)
-    remains open and is being worked on branch
-    swarm/m4-trust-boundary-closure. Green fixture tests are not evidence
-    that these security boundaries are closed.
+    was closed by PR 81 (de9c9fa) - verified-tree binding, NOFOLLOW writes,
+    Linux-userns isolated verifier, typed git evidence - independently
+    reviewed.
 - family: EVAL
   title: Evaluation Framework
   spec: harness_specs/M2_M3_M4_SPECS.md
