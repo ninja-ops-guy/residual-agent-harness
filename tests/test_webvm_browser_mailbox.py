@@ -94,21 +94,13 @@ class BrowserMailboxProviderTests(unittest.TestCase):
                 'usage': {'input_tokens': 5, 'output_tokens': 7},
             })
         provider = self.provider(respond)
-        good = {
-            'request_id': None,
-            'ok': True,
-            'text': '{"updates":{},"requests":[]}',
-            'usage': {'input_tokens': 5, 'output_tokens': 7},
-        }
         original = __import__('residual.workbench.browser_mailbox', fromlist=['read_json']).read_json
         calls = {'count': 0}
         def flaky_read(path, limit):
             calls['count'] += 1
             if calls['count'] == 1:
                 raise OSError('transient browser-backed read fault')
-            value = original(path, limit)
-            good['request_id'] = observed['request_id']
-            return value
+            return original(path, limit)
         with mock.patch('residual.workbench.browser_mailbox.read_json', side_effect=flaky_read):
             reply = provider.generate({'goal': 'build'}, 256)
         self.assertGreaterEqual(calls['count'], 2)
@@ -118,15 +110,36 @@ class BrowserMailboxProviderTests(unittest.TestCase):
 
 
 class BrowserMailboxPublicationSourceTests(unittest.TestCase):
-    def test_host_publishes_body_before_ready_marker(self):
+    def source(self):
         root = Path(__file__).resolve().parents[1]
-        source = (root / 'demo/vm/install_workbench.py').read_text(encoding='utf-8')
+        return (root / 'demo/vm/install_workbench.py').read_text(encoding='utf-8')
+
+    def test_host_publishes_body_before_ready_marker(self):
+        source = self.source()
         body_write = 'await residualDataDevice.writeFile(path, text);'
         ready_write = 'await residualDataDevice.writeFile(path + ".ready", "1");'
         self.assertIn(body_write, source)
         self.assertIn(ready_write, source)
         self.assertLess(source.index(body_write), source.index(ready_write))
-        self.assertIn('Invalid mailbox response path', source)
+        self.assertIn('Invalid mailbox path', source)
+        self.assertIn('-cancel\\\\.json', source)
+
+    def test_workbench_process_is_shell_child_not_second_host_run(self):
+        source = self.source()
+        self.assertNotIn('cx.run("/usr/bin/python3"', source)
+        self.assertIn('readData(command + "\\\\r");', source)
+        self.assertIn('RESIDUAL_HOST_RUN_${request.id}', source)
+        self.assertIn('residualShellCommandBusy', source)
+        self.assertIn('if (!residualShellCommandBusy) readData(data);', source)
+        self.assertIn('Guest command already active', source)
+
+    def test_completion_frames_are_projected_before_shell_marker_resolution(self):
+        source = self.source()
+        projection = 'residualWorkbench?.onOutput(out);'
+        marker = 'const marker = new RegExp('
+        self.assertIn(projection, source)
+        self.assertIn(marker, source)
+        self.assertLess(source.index(projection), source.index(marker))
 
 
 if __name__ == '__main__':
