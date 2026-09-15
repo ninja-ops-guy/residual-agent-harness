@@ -92,7 +92,7 @@ Clean-install qualification work retained an initial Python 3.11 failure in two 
 
 ### Measured-evidence provenance
 
-The earlier review of PR #71's Factory adapter identified replay to count as independent repetitions, unsigned/run-unbound topology, drift between measured and frozen task populations, and unqualified verifier-boundary labels. These are historical review findings, not a re-audit of its current head. A signature over the resulting report does not repair invalid source evidence.
+The earlier review of PR #71's Factory adapter identified replay counted as independent repetitions, unsigned/run-unbound topology, drift between measured and frozen task populations, and unqualified verifier-boundary labels. These are historical review findings, not a re-audit of its current head. A signature over the resulting report does not repair invalid source evidence.
 
 Before using that adapter for confirmatory results, correct and independently requalify fresh execution/run binding, cross-repetition replay rejection, authenticated scheduler evidence over the run interval, the exact approved workload-to-task mapping, and the qualified verifier policy/execution boundary. Resume must preserve the original run identity rather than count recovered evidence as new execution. These measurement requirements remain separate from closing #63, #48 and the timing issue.
 

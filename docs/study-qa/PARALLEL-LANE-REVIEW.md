@@ -1,7 +1,8 @@
 # Parallel lane review — 2026-09-15
 
-This packet has been reconciled locally onto `31cd2bf` (PR #77), which includes
-M4 merge `de9c9fa` (PR #81). The branches have not yet been pushed by this lane.
+This packet was published in PR #90 at `227aec1`, then reconciled with main
+`bbc6527`, which includes PR #74, PR #77 and M4 merge `de9c9fa` (PR #81).
+The local merge awaits publication by the publishing lane.
 No confirmatory measurements were collected. The historical findings below are
 bound to their recorded commits and are not a fresh audit of merged main.
 
@@ -38,9 +39,12 @@ The immutable live model, operational R0–R5 interventions, executable task/ind
 
 The earlier automatic approval review rejected publication for insufficient
 authorization. The user has now explicitly instructed us to perform the work;
-publication authorization is resolved. This lane has prepared
-`codex/research-preparation-current` from `31cd2bf` for the publishing lane.
+publication authorization is resolved. The publishing lane opened PR #90 on
+`codex/research-preparation-current` at `227aec1`. This reconciliation merges
+current main `bbc6527` into that published parent.
 
+PR #74 has merged its measurement-provenance gates; this reconciliation preserves
+those gates and marks the earlier PR #71 review findings as historical.
 PR #77 already supplied the canonical traceability reconciliation, so its manifest,
 checker and generated document are preserved. M4 remains
 `implemented_unverified`; no fresh containment or merged-main qualification is
@@ -51,7 +55,7 @@ JSON.
 
 ## Current reconciliation validation
 
-On the preparation branch based on `31cd2bf`, the combined protocol, launcher,
+After merging main `bbc6527` into published PR #90, the combined protocol, launcher,
 M5 runtime and traceability suite passed **57 tests and 8 subtests**.
 `python scripts/status_check.py` passed for all 39 families, and
 `git diff --check` passed. These are fixture/development checks; they establish

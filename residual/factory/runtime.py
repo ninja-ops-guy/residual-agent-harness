@@ -372,68 +372,64 @@ class FactoryRuntime:
 
     def run_many(self, plan: ExecutionPlan, approval: FrozenPlan,
                  workers: list[tuple[WorkerContract, str]], *, capacity: int = 2) -> list[RuntimeResult]:
-        if not workers:
-            return []
-        if type(capacity) is not int or capacity < 1 or capacity > 32:
+        if type(capacity) is not int or not 1 <= capacity <= 32:
             raise WorkerContractError('capacity must be between 1 and 32')
-        with ThreadPoolExecutor(max_workers=min(capacity, len(workers))) as pool:
+        self.journal.observe({'event': 'RuntimeCapacitySelected', 'execution_plan_hash': plan.graph_hash,
+                              'capacity': capacity, 'policy': 'fixed-local-root-tasks-v1'})
+        with ThreadPoolExecutor(max_workers=capacity) as pool:
             futures = [pool.submit(self.run, plan, approval, contract, source) for contract, source in workers]
             return [future.result() for future in futures]
 
     def purge(self, contract: WorkerContract) -> None:
+        rows = [row for row in self.journal.attempts() if row['attempt_id'] == contract.attempt_id]
+        if len(rows) != 1 or rows[0]['contract_hash'] != contract.contract_hash or rows[0]['state'] != 'CANDIDATE':
+            raise WorkerContractError('only an exact quarantined candidate can be purged')
         workspace = ManagedWorktree(self.repository, self.root, contract)
-        workspace.created = workspace.path.exists()
+        workspace.created = True
         workspace.discard()
         self.journal.mark_purged(contract.attempt_id)
 
-    def purge_expired(self, *, retention_s: float = 3600,
-                      now_ns: int | None = None) -> list[str]:
-        if retention_s < 0:
-            raise WorkerContractError('retention_s must be non-negative')
-        if now_ns is None:
-            now_ns = time.time_ns()
+
+    def purge_expired(self, *, retention_s: float = 3600, now_ns: int | None = None) -> list[str]:
+        if type(retention_s) not in (int, float) or not math.isfinite(retention_s) or retention_s <= 0:
+            raise WorkerContractError('retention must be positive and finite')
+        now_ns = time.time_ns() if now_ns is None else now_ns
         if type(now_ns) is not int or now_ns < 0:
-            raise WorkerContractError('now_ns must be a non-negative integer')
-        cutoff = now_ns - int(retention_s * 1_000_000_000)
-        purged: list[str] = []
+            raise WorkerContractError('invalid retention clock')
+        purged = []
         for row in self.journal.attempts():
-            if row['state'] != 'CANDIDATE' or row['updated_ns'] > cutoff:
-                continue
-            contract = WorkerContract.from_dict(strict_json(row['contract_json']))
-            self.purge(contract)
-            purged.append(contract.attempt_id)
+            if row['state'] == 'CANDIDATE' and row['updated_ns'] + int(retention_s * 1e9) <= now_ns:
+                contract = WorkerContract.from_dict(strict_json(row['contract_json']))
+                self.purge(contract)
+                purged.append(contract.attempt_id)
         return purged
 
 
-def _load_json(path: Path) -> dict[str, Any]:
-    try:
-        return strict_json(path.read_text())
-    except (OSError, UnicodeError, ValueError) as exc:
-        raise RuntimeUnavailable('unable to load runtime input') from exc
-
-
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description='Run one approved Residual Factory worker')
+    parser = argparse.ArgumentParser(description='Opt-in M2 brokered worker execution; candidates only')
     parser.add_argument('--repo', required=True)
     parser.add_argument('--runtime-root', required=True)
+    parser.add_argument('--journal', required=True)
+    parser.add_argument('--run-id', '--trace-id', dest='run_id', required=True)
     parser.add_argument('--plan', required=True)
     parser.add_argument('--approval', required=True)
     parser.add_argument('--contract', required=True)
     parser.add_argument('--source', required=True)
-    parser.add_argument('--journal', required=True)
-    parser.add_argument('--run-id', '--trace-id', dest='run_id', required=True)
     parser.add_argument('--allow-local-worker-code', action='store_true')
     args = parser.parse_args(argv)
-    plan = ExecutionPlan.from_dict(_load_json(Path(args.plan)))
-    approval = FrozenPlan.from_dict(_load_json(Path(args.approval)))
-    contract = WorkerContract.from_dict(_load_json(Path(args.contract)))
-    source = Path(args.source).read_text()
-    runtime = FactoryRuntime(args.repo, args.runtime_root,
-                             RuntimeJournal(args.journal, trace_id=args.run_id),
-                             allow_local_worker_code=args.allow_local_worker_code)
-    result = runtime.run(plan, approval, contract, source)
-    print(canonical(result.to_dict()))
-    return 0 if result.status == 'CANDIDATE' else 2
+    try:
+        plan = ExecutionPlan.from_dict(strict_json(Path(args.plan).read_text()))
+        approval = FrozenPlan.from_dict(strict_json(Path(args.approval).read_text()))
+        contract = WorkerContract.from_dict(strict_json(Path(args.contract).read_text()))
+        journal = RuntimeJournal(args.journal, trace_id=args.run_id)
+        runtime = FactoryRuntime(args.repo, args.runtime_root, journal,
+                                 allow_local_worker_code=args.allow_local_worker_code)
+        result = runtime.run(plan, approval, contract, Path(args.source).read_text())
+        print(canonical(result.to_dict()))
+        return 0 if result.status == 'CANDIDATE' else 2
+    except (OSError, ValueError, TypeError, KeyError) as exc:
+        print(canonical({'status': 'blocked', 'error_type': type(exc).__name__}), file=sys.stderr)
+        return 1
 
 
 if __name__ == '__main__':

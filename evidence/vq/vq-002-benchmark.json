@@ -1,0 +1,277 @@
+{
+  "benchmark_adequate": {
+    "config": {
+      "gate_threshold": 0.95,
+      "min_samples": 5,
+      "safety_critical": true,
+      "verifier": {
+        "configuration_hash": "c48e574d17e06902c6d1fee2247d42577055e2058fb4e6f7dcd12fef3ead36ad",
+        "implementation_hash": "0216792004c527ccc06371e34d8004b4a7ec8ee0d892e54ca161fb4b4ec95705",
+        "name": "value-match-verifier",
+        "policy_hash": "5359f0a81f1e876e87ffe35cffc12b819a044a962a9c542f5c975ca9c0e72e19",
+        "proof_hash": "da3d2766cda0309c8523b6f4711aa7baac10130b97c6dca9856d3477d10e922f",
+        "revision": "19bd1c0c30db33e2fb3dc677cee3a4dcd3be343e0038c0509f50b54f4a568268"
+      }
+    },
+    "escalations": [],
+    "fixture": {
+      "case_count": 130,
+      "defect_count": 30,
+      "fixture_hash": "3331d1c860a80453d989c960e16647207f2fe8270696ebf5f5c92f0776bd2a23",
+      "name": "vq-002-benchmark-fixture"
+    },
+    "gate": {
+      "decision": "accept",
+      "precision": 1.0,
+      "precision_lower": 0.963005,
+      "reason": "precision_within_threshold",
+      "safety_critical": true,
+      "threshold": 0.95
+    },
+    "identity": {
+      "branch": "swarm/vq-002-verifier-quality",
+      "commit": "d2491addb74d03ab8042071f63b31acef1c542de",
+      "note": "GitHub commit containing the code+tests under test (batches 1-2); this evidence artifact is committed separately on top"
+    },
+    "profile": {
+      "calibration": {
+        "estimate": null,
+        "lower": null,
+        "n": 0,
+        "name": "calibration",
+        "status": "UNKNOWN",
+        "upper": null
+      },
+      "coverage": {
+        "estimate": 1.0,
+        "lower": 0.971297,
+        "n": 130,
+        "name": "coverage",
+        "status": "KNOWN",
+        "upper": 1.0
+      },
+      "false_accept": {
+        "estimate": 0.0,
+        "lower": 0.0,
+        "n": 30,
+        "name": "false_accept",
+        "status": "KNOWN",
+        "upper": 0.113517
+      },
+      "false_reject": {
+        "estimate": 0.0,
+        "lower": 0.0,
+        "n": 100,
+        "name": "false_reject",
+        "status": "KNOWN",
+        "upper": 0.036995
+      },
+      "identity": {
+        "configuration_hash": "c48e574d17e06902c6d1fee2247d42577055e2058fb4e6f7dcd12fef3ead36ad",
+        "implementation_hash": "0216792004c527ccc06371e34d8004b4a7ec8ee0d892e54ca161fb4b4ec95705",
+        "name": "value-match-verifier",
+        "policy_hash": "5359f0a81f1e876e87ffe35cffc12b819a044a962a9c542f5c975ca9c0e72e19",
+        "proof_hash": "da3d2766cda0309c8523b6f4711aa7baac10130b97c6dca9856d3477d10e922f",
+        "revision": "19bd1c0c30db33e2fb3dc677cee3a4dcd3be343e0038c0509f50b54f4a568268"
+      },
+      "min_samples": 5,
+      "precision": {
+        "estimate": 1.0,
+        "lower": 0.963005,
+        "n": 100,
+        "name": "precision",
+        "status": "KNOWN",
+        "upper": 1.0
+      },
+      "recall": {
+        "estimate": 1.0,
+        "lower": 0.963005,
+        "n": 100,
+        "name": "recall",
+        "status": "KNOWN",
+        "upper": 1.0
+      },
+      "sample_count": 130
+    },
+    "report_hash": "01b31b63138b71a7a28af7da6c09c45f83cb719380b7f5c9ba8c19f2de7944c5",
+    "runtime": {
+      "platform": "Linux-5.10.134-18.0.12.lifsea8.x86_64-x86_64-with-glibc2.36",
+      "python": "3.12.12"
+    },
+    "schema": "residual.vq.benchmark.v1"
+  },
+  "benchmark_degraded": {
+    "config": {
+      "gate_threshold": 0.95,
+      "min_samples": 5,
+      "safety_critical": true,
+      "verifier": {
+        "configuration_hash": "c48e574d17e06902c6d1fee2247d42577055e2058fb4e6f7dcd12fef3ead36ad",
+        "implementation_hash": "0216792004c527ccc06371e34d8004b4a7ec8ee0d892e54ca161fb4b4ec95705",
+        "name": "value-match-verifier",
+        "policy_hash": "5359f0a81f1e876e87ffe35cffc12b819a044a962a9c542f5c975ca9c0e72e19",
+        "proof_hash": "da3d2766cda0309c8523b6f4711aa7baac10130b97c6dca9856d3477d10e922f",
+        "revision": "19bd1c0c30db33e2fb3dc677cee3a4dcd3be343e0038c0509f50b54f4a568268"
+      }
+    },
+    "escalations": [
+      {
+        "decision": "escalate_hitl",
+        "precision": 0.909091,
+        "precision_lower": 0.840702,
+        "reason": "precision lower bound 0.840702 < 0.95: degraded verifier; fail-closed HITL escalation",
+        "safety_critical": true,
+        "threshold": 0.95
+      }
+    ],
+    "fixture": {
+      "case_count": 130,
+      "defect_count": 30,
+      "fixture_hash": "3331d1c860a80453d989c960e16647207f2fe8270696ebf5f5c92f0776bd2a23",
+      "name": "vq-002-benchmark-fixture"
+    },
+    "gate": {
+      "decision": "escalate_hitl",
+      "precision": 0.909091,
+      "precision_lower": 0.840702,
+      "reason": "precision lower bound 0.840702 < 0.95: degraded verifier; fail-closed HITL escalation",
+      "safety_critical": true,
+      "threshold": 0.95
+    },
+    "identity": {
+      "branch": "swarm/vq-002-verifier-quality",
+      "commit": "d2491addb74d03ab8042071f63b31acef1c542de",
+      "note": "GitHub commit containing the code+tests under test (batches 1-2); this evidence artifact is committed separately on top"
+    },
+    "profile": {
+      "calibration": {
+        "estimate": null,
+        "lower": null,
+        "n": 0,
+        "name": "calibration",
+        "status": "UNKNOWN",
+        "upper": null
+      },
+      "coverage": {
+        "estimate": 1.0,
+        "lower": 0.971297,
+        "n": 130,
+        "name": "coverage",
+        "status": "KNOWN",
+        "upper": 1.0
+      },
+      "false_accept": {
+        "estimate": 0.333333,
+        "lower": 0.192303,
+        "n": 30,
+        "name": "false_accept",
+        "status": "KNOWN",
+        "upper": 0.512203
+      },
+      "false_reject": {
+        "estimate": 0.0,
+        "lower": 0.0,
+        "n": 100,
+        "name": "false_reject",
+        "status": "KNOWN",
+        "upper": 0.036995
+      },
+      "identity": {
+        "configuration_hash": "c48e574d17e06902c6d1fee2247d42577055e2058fb4e6f7dcd12fef3ead36ad",
+        "implementation_hash": "0216792004c527ccc06371e34d8004b4a7ec8ee0d892e54ca161fb4b4ec95705",
+        "name": "value-match-verifier",
+        "policy_hash": "5359f0a81f1e876e87ffe35cffc12b819a044a962a9c542f5c975ca9c0e72e19",
+        "proof_hash": "da3d2766cda0309c8523b6f4711aa7baac10130b97c6dca9856d3477d10e922f",
+        "revision": "19bd1c0c30db33e2fb3dc677cee3a4dcd3be343e0038c0509f50b54f4a568268"
+      },
+      "min_samples": 5,
+      "precision": {
+        "estimate": 0.909091,
+        "lower": 0.840702,
+        "n": 110,
+        "name": "precision",
+        "status": "KNOWN",
+        "upper": 0.94987
+      },
+      "recall": {
+        "estimate": 1.0,
+        "lower": 0.963005,
+        "n": 100,
+        "name": "recall",
+        "status": "KNOWN",
+        "upper": 1.0
+      },
+      "sample_count": 130
+    },
+    "report_hash": "cab6b74620f89bf8ef3bb7ec888745f8646ed2a99030be1bbeb11bcc79fbd3b7",
+    "runtime": {
+      "platform": "Linux-5.10.134-18.0.12.lifsea8.x86_64-x86_64-with-glibc2.36",
+      "python": "3.12.12"
+    },
+    "schema": "residual.vq.benchmark.v1"
+  },
+  "evidence_hash": "96bcfca65370fadd611381f48072e4a50637686a2b0a2f8664697a95437fa4d9",
+  "findings": {
+    "adequate_decision": "accept",
+    "degraded_escalation": {
+      "decision": "escalate_hitl",
+      "precision": 0.909091,
+      "precision_lower": 0.840702,
+      "reason": "precision lower bound 0.840702 < 0.95: degraded verifier; fail-closed HITL escalation",
+      "safety_critical": true,
+      "threshold": 0.95
+    },
+    "degraded_precision_estimate": 0.909091
+  },
+  "raw_outcome_files": {
+    "adequate": [
+      {
+        "count": 50,
+        "file": "outcomes-adequate.part0.jsonl",
+        "sha256": "6cec7e8d868a6a66004c4904210f1badd1cc356633a567a3f138004192a54720"
+      },
+      {
+        "count": 50,
+        "file": "outcomes-adequate.part1.jsonl",
+        "sha256": "e509601ce3a89cb93cb4bba00ea7fc98f3f94da4ff77f01dcd271838a2ec6106"
+      },
+      {
+        "count": 30,
+        "file": "outcomes-adequate.part2.jsonl",
+        "sha256": "1cd4174b8b7e24249f37df22364adf1c48a153f5df696099c1436c25c96a3c01"
+      }
+    ],
+    "degraded": [
+      {
+        "count": 50,
+        "file": "outcomes-degraded.part0.jsonl",
+        "sha256": "6cec7e8d868a6a66004c4904210f1badd1cc356633a567a3f138004192a54720"
+      },
+      {
+        "count": 50,
+        "file": "outcomes-degraded.part1.jsonl",
+        "sha256": "e509601ce3a89cb93cb4bba00ea7fc98f3f94da4ff77f01dcd271838a2ec6106"
+      },
+      {
+        "count": 30,
+        "file": "outcomes-degraded.part2.jsonl",
+        "sha256": "a41c49c8af14b5f3448e9864e175b8e3f1efc8a8a1b1f8e1a1b1e3e21e6526e0"
+      }
+    ]
+  },
+  "reproduction": {
+    "adequate_report_hash": "01b31b63138b71a7a28af7da6c09c45f83cb719380b7f5c9ba8c19f2de7944c5",
+    "degraded_report_hash": "cab6b74620f89bf8ef3bb7ec888745f8646ed2a99030be1bbeb11bcc79fbd3b7",
+    "recomputed_gate": {
+      "decision": "escalate_hitl",
+      "precision": 0.909091,
+      "precision_lower": 0.840702,
+      "reason": "precision lower bound 0.840702 < 0.95: degraded verifier; fail-closed HITL escalation",
+      "safety_critical": true,
+      "threshold": 0.95
+    },
+    "recomputed_profile_matches": true
+  },
+  "schema": "residual.vq.evidence.v1",
+  "spec": "SPEC-SWARM-VQ-002"
+}
