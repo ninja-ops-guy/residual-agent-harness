@@ -67,12 +67,11 @@ A system that rejects almost everything must not be described as reliable merely
 
 Do **not** start paper-facing live R0–R5 evaluation from current `main` until the following are closed or explicitly scoped out:
 
-1. **Issue #63 — current M4 qualification:** accepted-tree binding, filesystem/link safety, verifier-execution isolation and Git-evidence `UNKNOWN` semantics.
-2. **Issue #48 — traceability reconciliation:** M2/M3/M4/EVAL are implemented in code but still shown as `not_started` in the stale generated implementation-status view.
-3. **Factory OS reproducibility classification:** timing-sensitive tests have exhibited a fail-then-pass-unchanged run and need root-cause classification.
-4. **Measured-evidence integrity — PR #71:** correct and requalify the selected live evidence path before using it for confirmatory claims. The reviewed Factory adapter still permits evidence replay across repetitions, unauthenticated/run-unbound scheduler topology, task-population drift from the frozen workload, and unqualified verifier-boundary labels.
+1. **Traceability reconciliation — issue #48:** merge the reconciled manifest and generated status projection so current-state reporting stays authoritative.
+2. **Factory OS reproducibility classification:** timing-sensitive tests have exhibited a fail-then-pass-unchanged run and need root-cause classification.
+3. **Measured-evidence integrity — PR #71:** correct and requalify the selected live evidence path before using it for confirmatory claims. The reviewed Factory adapter still permits evidence replay across repetitions, unauthenticated/run-unbound scheduler topology, task-population drift from the frozen workload, and unqualified verifier-boundary labels.
 
-For a protocol using the Factory adapter, require fresh execution identities bound to each experiment cell; reject reused evidence as an independent repetition; authenticate scheduler evidence over the complete run interval; validate the exact workload-to-Factory-task mapping; and pin an independently qualified verifier policy and execution boundary. Unknown policies/boundaries fail closed. Resume may recover an existing run, but must not count it as new work. Closing #63 does not by itself validate these measurement guarantees, and green fixture/package checks do not close them either.
+For a protocol using the Factory adapter, require fresh execution identities bound to each experiment cell; reject reused evidence as an independent repetition; authenticate scheduler evidence over the complete run interval; validate the exact workload-to-Factory-task mapping; and pin an independently qualified verifier policy and execution boundary. Unknown policies/boundaries fail closed. Resume may recover an existing run, but must not count it as new work. M4's issue #63 implementation closure does not by itself validate these measurement guarantees, and green fixture/package checks do not close them either.
 
 R0–R5 does not have to use PR #71's Factory adapter. A different evidence path is acceptable only when the protocol explicitly excludes that adapter and independently qualifies the applicable execution-identity, anti-replay, workload-population, acceptance and topology guarantees of its chosen path. Excluding an adapter is not permission to omit evidence validation.
 

@@ -28,7 +28,8 @@ REQUIRED_FAMILIES = {
     "SPEC-007", "SPEC-008", "NETOPS", "SECOPS", "MODULE", "VRB", "REG",
     "HITL", "MEM", "TRJ", "TUI", "GAP1", "GAP2", "GAP3", "GAP4", "GAP5",
     "GAP6", "ECO", "PROD", "PQC", "MAI", "FMV", "APC", "FED", "MESH",
-    "STUDIO", "M2", "M3", "M4", "EVAL", "CP", "N9", "T10",
+    "STUDIO", "M2", "M3", "M4", "EVAL", "SWARM-EVAL", "VQ", "DSM", "M5",
+    "GCP", "CIC", "CP", "N9", "T10",
 }
 
 
@@ -161,6 +162,17 @@ def test_checker_flags_stale_not_implemented_claim(tmp_path):
     root = _make_tree(
         tmp_path,
         "# Demo\n\nThe GoalSpec layer is not implemented yet.\n")
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--root", str(root)],
+        capture_output=True, text=True)
+    assert result.returncode == 1
+    assert "SPEC-001" in result.stderr
+
+
+def test_checker_flags_stale_future_work_claim(tmp_path):
+    root = _make_tree(
+        tmp_path,
+        "# Demo\n\nThe GoalSpec layer remains future work.\n")
     result = subprocess.run(
         [sys.executable, str(SCRIPT), "--root", str(root)],
         capture_output=True, text=True)

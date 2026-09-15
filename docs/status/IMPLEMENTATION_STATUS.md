@@ -3,7 +3,7 @@
 <!-- GENERATED FILE. Source of truth: implementation-status.yaml.
      Regenerate with: python3 scripts/status_check.py --generate -->
 
-Requirement families: 39 total - 22 implemented, 1 implemented (closure unverified), 12 partial, 4 not started.
+Requirement families: 45 total - 27 implemented, 0 implemented (closure unverified), 14 partial, 4 not started.
 
 | Family | Title | Status | Spec | Code | Tests |
 |---|---|---|---|---|---|
@@ -41,10 +41,16 @@ Requirement families: 39 total - 22 implemented, 1 implemented (closure unverifi
 | STUDIO | Residual Studio Platform | partial | `harness_specs/STUDIO_SPECS.md` | `residual/factory/compiler.py`, `residual/factory/models.py`, `residual/station/server.py`, `residual/station/service.py` | `tests/test_factory_compiler.py`, `tests/station/test_station.py` |
 | M2 | Worker Contract + Swarm Runtime | implemented | `harness_specs/M2_M3_M4_SPECS.md` | `residual/factory/worker_contract.py`, `residual/factory/runtime.py`, `residual/factory/runtime_journal.py`, `residual/factory/runtime_workspace.py` | `tests/test_factory_worker_contract.py`, `tests/test_factory_runtime.py` |
 | M3 | Evidence Bus + Receipts | implemented | `harness_specs/M2_M3_M4_SPECS.md` | `residual/factory/evidence_bus.py`, `residual/factory/evidence_receipts.py` | `tests/test_factory_evidence_bus.py` |
-| M4 | Deterministic Integrator + Scheduler Intelligence | implemented_unverified | `harness_specs/M2_M3_M4_SPECS.md` | `residual/factory/m4_integrator.py`, `residual/factory/m4_scheduler.py`, `residual/factory/m4_evidence.py` | `tests/test_factory_m4_integrator.py`, `tests/test_factory_m4_scheduler.py`, `tests/test_factory_m4_evidence.py` |
+| M4 | Deterministic Integrator + Scheduler Intelligence | implemented | `harness_specs/M2_M3_M4_SPECS.md` | `residual/factory/m4_integrator.py`, `residual/factory/m4_scheduler.py`, `residual/factory/m4_evidence.py`, `residual/factory/m4_safety.py`, `residual/factory/m4_sandbox.py`, `residual/factory/m4_git_evidence.py` | `tests/test_factory_m4_integrator.py`, `tests/test_factory_m4_scheduler.py`, `tests/test_factory_m4_evidence.py`, `tests/test_factory_m4_tree_binding.py`, `tests/test_factory_m4_fs_redteam.py`, `tests/test_factory_m4_sandbox.py`, `tests/test_factory_m4_git_evidence.py`, `tests/test_factory_m4_canonical_api.py` |
 | EVAL | Evaluation Framework | implemented | `harness_specs/M2_M3_M4_SPECS.md` | `residual/eval/runner.py`, `residual/eval/workload.py`, `residual/eval/stats.py`, `residual/eval/report.py`, `residual/eval/measured_factory.py` | `tests/test_eval_runner.py`, `tests/test_eval_workload.py`, `tests/test_eval_stats.py`, `tests/test_measured_factory_eval.py` |
+| SWARM-EVAL | Frozen Reliability Evaluation (R0-R5) | implemented | `harness_specs/SWARM_RELIABILITY_PROGRAM.md` | `residual/eval_frozen/workload.py`, `residual/eval_frozen/configs.py`, `residual/eval_frozen/runner.py`, `residual/eval_frozen/metrics.py`, `residual/eval_frozen/report.py`, `residual/eval_frozen/evidence.py` | `tests/swarm/test_eval_frozen.py` |
+| VQ | Verifier Quality Framework | implemented | `harness_specs/SWARM_RELIABILITY_PROGRAM.md` | `residual/vq/profile.py`, `residual/vq/identity.py`, `residual/vq/ensemble.py`, `residual/vq/gate.py`, `residual/vq/evidence.py`, `residual/vq/benchmark.py` | `tests/swarm/test_vq.py` |
+| DSM | Distributed State Maturity | implemented | `harness_specs/SWARM_RELIABILITY_PROGRAM.md` | `residual/dsm/ownership.py`, `residual/dsm/journal.py`, `residual/dsm/lease.py`, `residual/dsm/delivery.py`, `residual/dsm/store.py`, `residual/dsm/faults.py`, `residual/dsm/recovery.py`, `residual/dsm/evidence.py` | `tests/swarm/test_dsm.py` |
+| M5 | Verified Loop Runtime Preview | partial | `docs/loop/M5-VERIFIED-LOOP-RUNTIME.md` | `residual/factory/loop_runtime/controller.py`, `residual/factory/loop_runtime/contract.py`, `residual/factory/loop_runtime/policy.py`, `residual/factory/loop_runtime/progress.py`, `residual/factory/loop_runtime/state.py`, `residual/eval/loop_modes.py`, `residual/observability/loop_metrics.py` | `tests/test_loop_runtime.py`, `tests/test_loop_modes.py`, `tests/test_loop_metrics.py` |
+| GCP | Gateway Control Plane | partial | `docs/specs/SPEC-GATEWAY-CONTROL-PLANE-001.md` | `residual/control_plane/models.py`, `residual/control_plane/amendments.py`, `residual/control_plane/environment.py`, `residual/control_plane/invariants.py`, `residual/control_plane/policy.py`, `residual/control_plane/routing.py`, `residual/control_plane/transactions.py` | `tests/test_control_plane.py`, `tests/test_control_plane_governance.py` |
+| CIC | CIC Structural Constraint Integration | implemented | `docs/cic-integration.md` | `residual/cic.py`, `residual/engine.py`, `residual/study.py`, `scripts/build_cic_suite.py` | `tests/test_cic.py` |
 | CP | Control Plane (Engine Protocol, Routing, Sandbox) | partial | `harness_specs/CONTROL_PLANE_SPECS.md` | `residual/engines/protocol.py`, `residual/engines/router.py`, `residual/engines/_isolated.py`, `residual/engines/probe.py` | `tests/test_gap_closure.py`, `tests/test_control_integrity.py` |
-| N9 | Path to 9.5 (Engines, Soak, Async, Cluster, Docs) | partial | `harness_specs/PATH_TO_10_SPECS.md` | `residual/engines/protocol.py`, `residual/async_io/coordinator.py`, `residual/mesh/node.py`, `docs/quickstart.md`, `docs/module-tutorial.md`, `docs/faq.md` | `tests/test_gap_closure.py`, `tests/test_control_integrity.py` |
+| N9 | Path to 9.5 (Engines, Soak, Async, Cluster, Docs) | partial | `harness_specs/PATH_TO_10_SPECS.md` | `residual/engines/protocol.py`, `residual/async_io/coordinator.py`, `residual/soak/harness.py`, `residual/cluster/schema.py`, `residual/cluster/node.py`, `residual/cluster/cli.py`, `docs/quickstart.md`, `docs/module-tutorial.md`, `docs/faq.md` | `tests/test_gap_closure.py`, `tests/test_soak.py`, `tests/test_cluster.py`, `tests/test_cluster_cli.py`, `tests/test_control_integrity.py` |
 | T10 | Path to 10 (Research Frontiers) | not_started | `harness_specs/PATH_TO_10_SPECS.md` | - | - |
 
 ## Notes
@@ -175,7 +181,7 @@ Local in-memory mesh protocol and receipt-export adapter implemented; authentica
 
 ### STUDIO - Residual Studio Platform (partial)
 
-Requirement compiler (STUDIO-002) and station surfaces exist. The canonical Factory swarm runtime, evidence bus and deterministic integrator (STUDIO-003/004/008 mechanisms) are merged under residual/factory/ - see families M2/M3/M4 (M4 closure unverified, issue 63). Still partial rather than complete - cluster (STUDIO-006), IDE (STUDIO-007) and the Studio frontend (residual/studio_frontend/) remain stubs/prototypes and must not be conflated with the canonical Factory runtime.
+Requirement compiler (STUDIO-002) and station surfaces exist. The canonical Factory swarm runtime, evidence bus and deterministic integrator (STUDIO-003/004/008 mechanisms) are merged under residual/factory/ - see families M2/M3/M4. M4's trust-boundary closure landed in PR #81; deployment-specific qualification still applies. Still partial rather than complete - cluster (STUDIO-006), IDE (STUDIO-007) and the Studio frontend (residual/studio_frontend/) remain stubs/prototypes and must not be conflated with the canonical Factory runtime.
 
 ### M2 - Worker Contract + Swarm Runtime (implemented)
 
@@ -183,17 +189,39 @@ Canonical Factory swarm runtime merged under residual/factory/ (worker contract,
 
 ### M3 - Evidence Bus + Receipts (implemented)
 
-Canonical Factory evidence bus and evidence receipts merged under residual/factory/ with fixture test coverage. Git evidence semantics for the M4 integrator remain part of the open trust-boundary closure tracked in issue 63 (see family M4).
+Canonical Factory evidence bus and evidence receipts merged under residual/factory/ with fixture test coverage. M4-specific Git evidence classification lives in residual/factory/m4_git_evidence.py rather than this receipt schema.
 
-### M4 - Deterministic Integrator + Scheduler Intelligence (implemented_unverified)
+### M4 - Deterministic Integrator + Scheduler Intelligence (implemented)
 
-Closure: implemented, trust-boundary closure in progress (#63)
-
-Canonical M4 deterministic integrator, scheduler and M4 evidence modules merged under residual/factory/ with fixture test coverage. Requirement closure is NOT verified - issue 63 (accepted-tree binding, filesystem safety, OS-isolated verification, git evidence semantics) remains open and is being worked on branch swarm/m4-trust-boundary-closure. Green fixture tests are not evidence that these security boundaries are closed.
+Canonical M4 deterministic integration, scheduling, verified-tree binding, descriptor-relative filesystem safety, fail-closed Linux namespace verifier isolation, and typed Git evidence semantics are merged under residual/factory/ via PR #81. This is implementation and development-test evidence, not deployment qualification or a live-model result.
 
 ### EVAL - Evaluation Framework (implemented)
 
 residual/eval/ exists (runner, workload, stats, report, measured factory evaluation) with unit coverage. residual/evaluation.py remains the frozen controlled study, a different artifact. Fixture-level green runs are not live empirical closure of research claims.
+
+### SWARM-EVAL - Frozen Reliability Evaluation (R0-R5) (implemented)
+
+SPEC-SWARM-EVAL-001 Gates A-C are implemented and exercised by the scripted development fixture, including hash-bound retained artifacts and recomputation from raw records. No live-model result is claimed.
+
+### VQ - Verifier Quality Framework (implemented)
+
+SPEC-SWARM-VQ-002 is implemented with independently labelled quality profiles, identity/revision binding, deterministic ensembles, uncertainty, receipt snapshots, and fail-closed HITL escalation. Retained benchmark artifacts are development fixtures rather than live verifier qualification.
+
+### DSM - Distributed State Maturity (implemented)
+
+SPEC-SWARM-DSM-004 is implemented for the documented single-writer, crash-stop boundary with durable acknowledgements/cursors, idempotence, fencing, deterministic conflicts, recovery provenance and a frozen delivery fault matrix. Split-brain-free leases and active-active linearizability are explicitly non-claims requiring consensus.
+
+### M5 - Verified Loop Runtime Preview (partial)
+
+Host-owned continuation, completion binding, residual-only resubmission, deduplication material, escalation intents, abort semantics, loop metrics and evaluation modes are implemented as a preview. A canonical production Factory adapter and live multi-iteration qualification remain open.
+
+### GCP - Gateway Control Plane (partial)
+
+Immutable mission revisions, scoped capabilities, amendment classes, routing authority checks, certified-state validity, atomic effect DAGs and ambiguity reconciliation are implemented. End-to-end runtime enforcement, quorum approval plumbing and the full append-only Evidence Fabric projection model remain outside this foundational slice.
+
+### CIC - CIC Structural Constraint Integration (implemented)
+
+Opt-in structural/CIC modes implement bounded finite-model validation, atomic constraint grouping, exact joint checks, replayable elimination certificates, receipt/cache binding and paired fixture evaluation. The retained evidence is scripted development evidence, not a live superiority or complexity-theory claim.
 
 ### CP - Control Plane (Engine Protocol, Routing, Sandbox) (partial)
 
@@ -201,7 +229,7 @@ CP-001 adapter protocol, CP-002 capability routing and CP-003 cross-engine verif
 
 ### N9 - Path to 9.5 (Engines, Soak, Async, Cluster, Docs) (partial)
 
-N9-R1..R8 engine adapters, N9-R13..R17 async I/O and N9-R24..R28 docs implemented; N9-R9..R12 soak harness is Swarm 5 (track Q) scope; N9-R18..R23 cluster wire protocol and CLI are Swarm 3 (tracks F/G) scope.
+Engine adapters, async I/O, a development soak harness, cluster wire protocol/CLI and onboarding documentation exist. The required 30-day live soak and its signed production-readiness evidence have not run; the quickstart also does not yet satisfy every original Docker/Ollama/UI detail. Therefore SPEC-NINE remains partial despite broad code coverage.
 
 ### T10 - Path to 10 (Research Frontiers) (not_started)
 

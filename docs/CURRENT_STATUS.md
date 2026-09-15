@@ -1,6 +1,6 @@
 # RESIDUAL current status
 
-_Implementation snapshot: 2026-09-14 at `5b89be1014de5e648f76a2bb8ada920871719f03`; live-evaluation gate correction checked against merged `main` at `90dd2f40bff916e8b50d1777bf35debc511e996f`._
+_Implementation snapshot reconciled against merged `main` at `1dc359731a3b1b3c5163ab3f308257c88f8651c4`._
 
 This page is the human-readable current-state summary for RESIDUAL. Historical roadmap documents and generated implementation tables may lag active integration work; when they disagree with this page, follow the code, tests, open qualification issues, and the machine-readable evidence produced by the current tree.
 
@@ -22,7 +22,7 @@ The repository contains substantial implementation and development evidence for 
 | Command Station | Implemented research/operations surface | Self-hosted run control, model/provider management, observations, HITL hooks, evidence download and operational UI are present. Deployment-specific production readiness still depends on the environment. |
 | Factory M2 — worker contract/runtime | Implemented | Real `WorkerContract`, bounded worker runtime, isolated worktrees, journaled observations, host-owned termination and sandbox enforcement exist under `residual/factory/`. Development fault-containment work has exercised real OS boundaries. |
 | Factory M3 — evidence bus/receipts | Implemented | Station-issued receipts, artifact binding, evidence-bus handoff and signature/integrity checks exist. Trust is enforced at the trusted consumption/admission boundary, not merely because bytes were stored. |
-| Factory M4 — deterministic integration/scheduler | Implemented but **not yet fully qualified for live claims** | Deterministic integration and scheduler code exist. Issue #63 tracks remaining accepted-tree binding, filesystem/link safety, verifier-execution isolation, and missing-Git-evidence semantics that must be closed before treating current M4 as a fully hardened trust boundary. |
+| Factory M4 — deterministic integration/scheduler | Implemented and development-tested | PR #81 added verified-tree/accepted-tree binding, descriptor-relative filesystem safety, fail-closed Linux namespace verifier isolation and typed Git-evidence semantics. This closes issue #63's implementation boundary; production and live-study qualification remain separate claims. |
 | Evaluation | Implemented | `residual/eval/` contains hash-locked `FrozenWorkload`, repeated-run execution, ablations, reporting, statistics, fault injection and measured Factory evaluation hooks. Live provider/model evidence remains the next research gate; the measured-evidence adapter in PR #71 still needs correction and independent requalification. |
 | Sandbox / red team | Implemented development surface | Bubblewrap/namespace/rlimit paths plus live containment tests and a receipted red-team corpus are present. cgroup-v2-specific enforcement depends on host capability. |
 | Cluster / distributed execution | Implemented development surface | Versioned wire schema, authenticated join/leave, heartbeats, task reassignment, local-first routing and cluster CLI exist. Some optional network transports degrade gracefully when optional dependencies are absent. |
@@ -45,28 +45,22 @@ The large swarm integration milestone at commit `412b66c35f7c0e1ac479fe60a5b7d33
 
 ## Current qualification blockers
 
-### 1. M4 trust-boundary hardening — issue #63
+### 1. Traceability reconciliation — issue #48
 
-Before live qualification or paper-facing claims depend on current M4, close the following:
+The machine-readable manifest has been reconciled with the merged M2/M3/M4,
+frozen R0-R5 evaluation, verifier-quality, M5 preview, gateway control-plane and
+CIC surfaces. The generated status document is rebuilt only from that manifest.
+Issue #48 should close when the traceability PR merges.
 
-1. **Accepted-tree binding:** verify and accept the same artifact tree, or explicitly authorize and re-verify any transformation.
-2. **Filesystem/link safety:** use non-following, descriptor-relative access with explicit regular-file/link policies and race-resistant handling.
-3. **Verifier execution isolation:** candidate-dependent project verification must run under a bounded verification execution boundary instead of inheriting unrestricted host authority.
-4. **Git evidence semantics:** distinguish proven absence from unavailable/corrupt/incomparable Git evidence; missing evidence must remain `UNKNOWN`/error, not silently become absence.
-
-### 2. Traceability reconciliation — issue #48
-
-`implementation-status.yaml` and the generated `docs/status/IMPLEMENTATION_STATUS.md` still contain pre-merge entries marking M2, M3, M4 and EVAL as `not_started`. That is stale relative to the current tree. Do not use those four entries as current-state evidence until #48 is reconciled and the generated status document is rebuilt from the corrected manifest.
-
-### 3. Clean-install qualification
+### 2. Clean-install qualification
 
 A hardened clean-install qualification stack was developed with isolated wheel installation, `pip check`, `python -I`, installed CLI smoke tests, asset checks, Python 3.11/3.12/3.13 coverage and retained artifacts. Its branch validation also exposed two timing-sensitive Factory OS tests that failed once and passed unchanged on rerun. Treat that as unresolved reproducibility evidence until the race/flakiness source is classified rather than hiding it behind retries.
 
-### 4. Measured-evidence provenance — PR #71
+### 3. Measured-evidence provenance — PR #71
 
 The reviewed Factory evaluation adapter has four unresolved integrity gaps: replayed evidence can count as independent repetitions; scheduler topology is not authenticated and bound to the run; measured task populations can differ from the frozen workload; and arbitrary verifier-boundary labels can be accepted when signed. Correct and requalify this path before using it for confirmatory data. Require fresh execution identities, replay rejection, authenticated run-bound scheduler evidence, an exact approved task mapping, and an independently qualified verifier policy/boundary. A recovered run is not a new repetition.
 
-This is separate from M4 isolation (#63), traceability (#48), and timing reproducibility. A protocol may instead explicitly exclude PR #71's adapter and qualify a different evidence path under the [live evaluation gate](evaluation.md#live-evaluation-gate); closing the other issues alone does not clear live evaluation.
+This is separate from the closed M4 implementation gap, traceability maintenance, and timing reproducibility. A protocol may instead explicitly exclude PR #71's adapter and qualify a different evidence path under the [live evaluation gate](evaluation.md#live-evaluation-gate); the M4 closure alone does not clear live evaluation.
 
 ## Research status
 
@@ -91,16 +85,15 @@ The project does not yet claim, for live heterogeneous models, that:
 
 The recommended order is:
 
-1. Close #63 and requalify the exact current M4 tree.
-2. Close #48 and regenerate the implementation-status documentation.
-3. Classify and fix the timing-sensitive Factory OS reproducibility failures.
-4. Correct and requalify PR #71's measured-evidence path, or explicitly exclude it and independently qualify the alternative specified by the live protocol.
-5. Freeze the live evaluation protocol, selected evidence path and workload before seeing model results.
-6. Run one fixed live model across R0–R5 configurations to measure `P(X)`, `P(A)`, `P(X|A)`, AER, ASSR, latency, throughput and cost.
-7. Run model-degradation and heterogeneous-routing studies.
-8. Run fault campaigns under live execution.
-9. Progress through 24-hour → 72-hour → 30-day soak only after shorter qualification gates are clean.
-10. Update the paper from retained artifacts only.
+1. Merge #48 and keep the generated implementation-status documentation synchronized.
+2. Classify and fix the timing-sensitive Factory OS reproducibility failures.
+3. Correct and requalify PR #71's measured-evidence path, or explicitly exclude it and independently qualify the alternative specified by the live protocol.
+4. Freeze the live evaluation protocol, selected evidence path and workload before seeing model results.
+5. Run one fixed live model across R0–R5 configurations to measure `P(X)`, `P(A)`, `P(X|A)`, AER, ASSR, latency, throughput and cost.
+6. Run model-degradation and heterogeneous-routing studies.
+7. Run fault campaigns under live execution.
+8. Progress through 24-hour → 72-hour → 30-day soak only after shorter qualification gates are clean.
+9. Update the paper from retained artifacts only.
 
 ## Documentation authority
 

@@ -53,6 +53,7 @@ NEGATION_RE = re.compile(
     r"(not\s+yet\s+implemented|not\s+implemented|unimplemented|"
     r"does\s+not\s+exist|do\s+not\s+exist|no[t]?\s+currently\s+implemented|"
     r"remains?\s+(unimplemented|absent|missing)|is\s+absent|are\s+absent|"
+    r"(?:is|are|remains?)\s+future\s+work|future\s+work[^.]*\b{kw}\b|"
     r"no\s+{kw}\b)",
     re.IGNORECASE,
 )
@@ -212,7 +213,8 @@ def find_stale_claims(data: dict, root: Path) -> list[str]:
                     if pattern.search(line):
                         violations.append(
                             f"{rel}:{lineno}: stale claim - family "
-                            f"{fam['family']} is marked 'implemented' in "
+                            f"{fam['family']} is marked "
+                            f"'{fam['status']}' in "
                             f"implementation-status.yaml but this line says "
                             f"otherwise: {line.strip()[:120]}")
     return violations

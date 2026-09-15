@@ -73,18 +73,12 @@ Controlled development fault experiments against earlier M2/M3/M4 trees demonstr
 
 ## Current blockers before stronger empirical claims
 
-### M4 qualification
-
-Issue #63 tracks four trust-boundary gaps that must be closed before current M4 should support live/paper-facing reliability claims:
-
-1. accepted-tree identity must remain bound to the artifact tree that was actually verified;
-2. filesystem writes must use race-resistant non-following traversal/policies;
-3. candidate-dependent verifier execution needs an explicit bounded verification execution boundary;
-4. unavailable/corrupt/incomparable Git evidence must remain `UNKNOWN`/error instead of being conflated with path absence.
-
 ### Traceability drift
 
-Issue #48 tracks stale `implementation-status.yaml` entries that still mark M2/M3/M4/EVAL `not_started`. The code exists; the generated status view is stale. That documentation inconsistency must be reconciled before using the manifest as paper evidence.
+Issue #48 tracks the manifest/status reconciliation. The current traceability
+change includes PR #81's M4 closure and later frozen-evaluation,
+verifier-quality, M5, gateway control-plane and CIC merges. The issue should
+close when that generated projection is merged.
 
 ### Reproducibility classification
 
@@ -94,7 +88,7 @@ Clean-install qualification work retained an initial Python 3.11 failure in two 
 
 PR #71's reviewed Factory adapter still permits replay to count as independent repetitions, unsigned/run-unbound topology, drift between measured and frozen task populations, and unqualified verifier-boundary labels. A signature over the resulting report does not repair invalid source evidence.
 
-Before using that adapter for confirmatory results, correct and independently requalify fresh execution/run binding, cross-repetition replay rejection, authenticated scheduler evidence over the run interval, the exact approved workload-to-task mapping, and the qualified verifier policy/execution boundary. Resume must preserve the original run identity rather than count recovered evidence as new execution. These measurement requirements remain separate from closing #63, #48 and the timing issue.
+Before using that adapter for confirmatory results, correct and independently requalify fresh execution/run binding, cross-repetition replay rejection, authenticated scheduler evidence over the run interval, the exact approved workload-to-task mapping, and the qualified verifier policy/execution boundary. Resume must preserve the original run identity rather than count recovered evidence as new execution. These measurement requirements remain separate from M4's closed implementation gap, traceability maintenance and the timing issue.
 
 A live R0–R5 protocol can explicitly exclude this Factory adapter and use a different independently qualified evidence path. It must still satisfy the applicable guarantees in the [live evaluation gate](evaluation.md#live-evaluation-gate); a different path must not be assumed sound merely because PR #71 is not used.
 

@@ -66,7 +66,7 @@ The Factory runtime extends RESIDUAL into multi-worker execution:
 - sandbox/red-team, crypto, connector-conformance, SLO/alert and observability layers;
 - Studio/operator surfaces and executable onboarding paths.
 
-M2/M3/M4 are no longer paper-only concepts: the canonical implementations live under `residual/factory/` and related platform packages. However, **current M4 is not yet fully qualified for live/paper-facing claims**; issue #63 tracks accepted-tree binding, filesystem/link safety, verifier execution isolation and Git-evidence semantics that must be closed first.
+M2/M3/M4 are no longer paper-only concepts: the canonical implementations live under `residual/factory/` and related platform packages. PR #81 closed M4's tracked accepted-tree binding, filesystem/link safety, verifier isolation and typed Git-evidence implementation gaps. That closure is development evidence for the mechanism, not blanket production or live-model qualification.
 
 ### Evaluation and soak infrastructure
 
@@ -101,18 +101,18 @@ A major integrated milestone at `412b66c35f7c0e1ac479fe60a5b7d33d5510e3af` recor
 
 Current `main` has advanced beyond that point. Before starting paper-facing live reliability evaluation, the priority gates are:
 
-1. close **#63** — harden/qualify the current M4 trust boundary;
-2. close **#48** — reconcile stale `implementation-status.yaml` and regenerate the generated status document;
-3. classify the retained timing-sensitive Factory OS fail-then-pass behavior;
+1. merge the **#48** traceability reconciliation and use its regenerated status document as the current manifest projection;
+2. classify the retained timing-sensitive Factory OS fail-then-pass behavior;
+3. qualify PR #71's measured-evidence path or an explicitly selected alternative;
 4. freeze the live evaluation protocol before observing model results;
 5. run one fixed live model across R0–R5 and measure raw correctness, acceptance coverage, accepted correctness, AER/ASSR, latency, throughput and cost;
 6. only then progress to model-degradation, heterogeneous-routing and 24h → 72h → 30-day soak studies.
 
 See [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md) for the detailed current-state map and claim boundaries.
 
-## Important traceability note
+## Traceability authority
 
-`implementation-status.yaml` and `docs/status/IMPLEMENTATION_STATUS.md` currently contain stale pre-merge entries that still mark M2, M3, M4 and EVAL as `not_started`. That documentation drift is tracked by issue #48. Until it is reconciled, do **not** use those four generated rows as current-state evidence; use the exact code/tests, open qualification issues and [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md).
+`implementation-status.yaml` is the current machine-readable requirement-family authority, and `docs/status/IMPLEMENTATION_STATUS.md` is its generated projection. Both distinguish implemented mechanisms from partial work and from live or deployment qualification. [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md) preserves the broader claim boundary.
 
 ## Quick start
 
