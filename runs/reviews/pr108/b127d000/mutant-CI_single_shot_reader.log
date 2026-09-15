@@ -1,0 +1,43 @@
+MUTATION CI_single_shot_reader TESTS ['tests/test_sandbox_timing_determinism.py::JournalContentionReadTests::test_observations_retry_transient_lock_then_succeed']
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+cachedir: .pytest_cache
+rootdir: /tmp/residual-lane2-b127
+configfile: pyproject.toml
+collecting ... collected 1 item
+
+tests/test_sandbox_timing_determinism.py::JournalContentionReadTests::test_observations_retry_transient_lock_then_succeed FAILED [100%]
+
+=================================== FAILURES ===================================
+_ JournalContentionReadTests.test_observations_retry_transient_lock_then_succeed _
+tests/test_sandbox_timing_determinism.py:620: in test_observations_retry_transient_lock_then_succeed
+    observations = self.journal.observations()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+residual/factory/runtime_journal.py:311: in observations
+    rows = self._read("SELECT record FROM events ORDER BY sequence")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../residual-lane2-evidence-b127/mutation_probe.py:74: in changed
+    with self._connect() as db:
+         ^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+residual/factory/runtime_journal.py:115: in _connect
+    db = sqlite3.connect(self.path, timeout=timeout, isolation_level=None)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py:1139: in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py:1143: in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py:1204: in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_sandbox_timing_determinism.py:615: in contended
+    raise sqlite3.OperationalError('database is locked')
+E   sqlite3.OperationalError: database is locked
+- generated xml file: /tmp/residual-lane2-evidence-b127/mutant-CI_single_shot_reader.xml -
+=========================== short test summary info ============================
+FAILED tests/test_sandbox_timing_determinism.py::JournalContentionReadTests::test_observations_retry_transient_lock_then_succeed - sqlite3.OperationalError: database is locked
+============================== 1 failed in 0.14s ===============================

@@ -1,0 +1,96 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+cachedir: .pytest_cache
+rootdir: /tmp/residual-lane2-b127
+configfile: pyproject.toml
+collecting ... collected 15 items
+
+tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_receipt_labels_unsandboxed_fixture_and_binds_policy FAILED [  6%]
+tests/test_factory_ownership_gate.py::FactoryOwnershipGateTests::test_repo_manifest_matches_committed_tree FAILED [ 13%]
+tests/test_factory_m4_canonical_api.py::CanonicalApiTests::test_canonical_conflict_resolution_schema PASSED [ 20%]
+tests/test_factory_m4_canonical_api.py::CanonicalApiTests::test_canonical_scheduler_decision_schema PASSED [ 26%]
+tests/test_factory_m4_canonical_api.py::CanonicalApiTests::test_canonical_verifier_result_interface PASSED [ 33%]
+tests/test_factory_m4_canonical_api.py::CanonicalApiTests::test_single_canonical_integration_receipt_schema PASSED [ 40%]
+tests/test_factory_m4_canonical_api.py::CanonicalApiTests::test_v2_signed_payload_bytes_unchanged_by_timed_out PASSED [ 46%]
+tests/test_factory_runtime_lifecycle.py::WatchdogIntentGuards::test_existing_termination_intent_skips_secondary_lease_read PASSED [ 53%]
+tests/test_factory_runtime_lifecycle.py::WatchdogIntentGuards::test_kill_records_intent_before_signal_and_single_reap PASSED [ 60%]
+tests/test_factory_runtime_lifecycle.py::WatchdogIntentGuards::test_lease_read_failure_without_other_owner_still_kills PASSED [ 66%]
+tests/test_factory_runtime_lifecycle.py::WatchdogIntentGuards::test_lease_revocation_kills_with_lease_generation PASSED [ 73%]
+tests/test_factory_runtime_lifecycle.py::WatchdogIntentGuards::test_termination_between_memory_read_and_lease_read_preserves_primary_owner PASSED [ 80%]
+tests/test_factory_runtime_startup.py::StartupWatchdogTests::test_after_ack_unavailable_lease_still_fails_closed_with_diagnostic PASSED [ 86%]
+tests/test_factory_runtime_startup.py::StartupWatchdogTests::test_pending_started_ack_does_not_disable_memory_enforcement PASSED [ 93%]
+tests/test_factory_runtime_startup.py::StartupWatchdogTests::test_pending_started_ack_skips_lease_read_only PASSED [100%]
+
+=================================== FAILURES ===================================
+_ M4AcceptanceSafetyTests.test_receipt_labels_unsandboxed_fixture_and_binds_policy _
+
+self = <tests.test_factory_m4_safety.M4AcceptanceSafetyTests testMethod=test_receipt_labels_unsandboxed_fixture_and_binds_policy>
+
+    def test_receipt_labels_unsandboxed_fixture_and_binds_policy(self):
+        first = self.integrate()
+        second = self.integrate()
+        self.assertEqual(first.output_tree, second.output_tree)
+        receipt = first.receipt
+>       self.assertEqual(receipt.schema_version, 'factory-integration-receipt-v3')
+E       AssertionError: 'factory-integration-receipt-v2' != 'factory-integration-receipt-v3'
+E       - factory-integration-receipt-v2
+E       ?                              ^
+E       + factory-integration-receipt-v3
+E       ?                              ^
+
+tests/test_factory_m4_safety.py:245: AssertionError
+_____ FactoryOwnershipGateTests.test_repo_manifest_matches_committed_tree ______
+
+self = <tests.test_factory_ownership_gate.FactoryOwnershipGateTests testMethod=test_repo_manifest_matches_committed_tree>
+
+    def test_repo_manifest_matches_committed_tree(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        manifest = repo_root / "verifier/v3/factory_ownership_baseline.json"
+        report, failures = gate.evaluate_ownership(repo_root, manifest)
+>       self.assertEqual(failures, [], report)
+E       AssertionError: Lists differ: ['protected path modified without baseline[137 chars]c0)'] != []
+E       
+E       First list contains 1 additional elements.
+E       First extra element 0:
+E       'protected path modified without baseline advance: tests/test_factory_m4_safety.py (pinned b13fdb1af9bfca2eb8b73889a1f89eac6c0498a5, actual 4b2b117a2f3323a73dafaf04c21ab5ed9a1f79c0)'
+E       
+E       + []
+E       - ['protected path modified without baseline advance: '
+E       -  'tests/test_factory_m4_safety.py (pinned '
+E       -  'b13fdb1af9bfca2eb8b73889a1f89eac6c0498a5, actual '
+E       -  '4b2b117a2f3323a73dafaf04c21ab5ed9a1f79c0)'] : {'scope': 'factory-ownership-blob-pin', 'manifest': '/tmp/residual-lane2-b127/verifier/v3/factory_ownership_baseline.json', 'pinned_at': 'b3b2a5a18ce28bd1249725c7529228acca7d498e', 'protected_files': 37, 'checked': 37, 'mismatches': ['tests/test_factory_m4_safety.py']}
+
+tests/test_factory_ownership_gate.py:105: AssertionError
+==================================== PASSES ====================================
+- generated xml file: /tmp/residual-lane2-evidence-b127/focused-regressions.xml -
+=========================== short test summary info ============================
+PASSED tests/test_factory_m4_canonical_api.py::CanonicalApiTests::test_canonical_conflict_resolution_schema
+PASSED tests/test_factory_m4_canonical_api.py::CanonicalApiTests::test_canonical_scheduler_decision_schema
+PASSED tests/test_factory_m4_canonical_api.py::CanonicalApiTests::test_canonical_verifier_result_interface
+PASSED tests/test_factory_m4_canonical_api.py::CanonicalApiTests::test_single_canonical_integration_receipt_schema
+PASSED tests/test_factory_m4_canonical_api.py::CanonicalApiTests::test_v2_signed_payload_bytes_unchanged_by_timed_out
+PASSED tests/test_factory_runtime_lifecycle.py::WatchdogIntentGuards::test_existing_termination_intent_skips_secondary_lease_read
+PASSED tests/test_factory_runtime_lifecycle.py::WatchdogIntentGuards::test_kill_records_intent_before_signal_and_single_reap
+PASSED tests/test_factory_runtime_lifecycle.py::WatchdogIntentGuards::test_lease_read_failure_without_other_owner_still_kills
+PASSED tests/test_factory_runtime_lifecycle.py::WatchdogIntentGuards::test_lease_revocation_kills_with_lease_generation
+PASSED tests/test_factory_runtime_lifecycle.py::WatchdogIntentGuards::test_termination_between_memory_read_and_lease_read_preserves_primary_owner
+PASSED tests/test_factory_runtime_startup.py::StartupWatchdogTests::test_after_ack_unavailable_lease_still_fails_closed_with_diagnostic
+PASSED tests/test_factory_runtime_startup.py::StartupWatchdogTests::test_pending_started_ack_does_not_disable_memory_enforcement
+PASSED tests/test_factory_runtime_startup.py::StartupWatchdogTests::test_pending_started_ack_skips_lease_read_only
+FAILED tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_receipt_labels_unsandboxed_fixture_and_binds_policy - AssertionError: 'factory-integration-receipt-v2' != 'factory-integration-receipt-v3'
+- factory-integration-receipt-v2
+?                              ^
++ factory-integration-receipt-v3
+?                              ^
+FAILED tests/test_factory_ownership_gate.py::FactoryOwnershipGateTests::test_repo_manifest_matches_committed_tree - AssertionError: Lists differ: ['protected path modified without baseline[137 chars]c0)'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'protected path modified without baseline advance: tests/test_factory_m4_safety.py (pinned b13fdb1af9bfca2eb8b73889a1f89eac6c0498a5, actual 4b2b117a2f3323a73dafaf04c21ab5ed9a1f79c0)'
+
++ []
+- ['protected path modified without baseline advance: '
+-  'tests/test_factory_m4_safety.py (pinned '
+-  'b13fdb1af9bfca2eb8b73889a1f89eac6c0498a5, actual '
+-  '4b2b117a2f3323a73dafaf04c21ab5ed9a1f79c0)'] : {'scope': 'factory-ownership-blob-pin', 'manifest': '/tmp/residual-lane2-b127/verifier/v3/factory_ownership_baseline.json', 'pinned_at': 'b3b2a5a18ce28bd1249725c7529228acca7d498e', 'protected_files': 37, 'checked': 37, 'mismatches': ['tests/test_factory_m4_safety.py']}
+========================= 2 failed, 13 passed in 0.78s =========================

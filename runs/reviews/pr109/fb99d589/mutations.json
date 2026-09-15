@@ -1,0 +1,27 @@
+[
+  {
+    "mutant": "subset",
+    "exit": 1,
+    "expected_failure": "RuntimeError not raised",
+    "selected_tests": [
+      "test_each_missing_member_is_rejected",
+      "test_duplicate_member_is_rejected_even_with_all_expected_names"
+    ]
+  },
+  {
+    "mutant": "duplicate",
+    "exit": 1,
+    "expected_failure": "RuntimeError not raised",
+    "selected_tests": [
+      "test_duplicate_member_is_rejected_even_with_all_expected_names"
+    ]
+  },
+  {
+    "mutant": "size",
+    "exit": 1,
+    "expected_failure": "RuntimeError not raised",
+    "selected_tests": [
+      "test_compressible_archive_above_uncompressed_bound_is_rejected"
+    ]
+  }
+]

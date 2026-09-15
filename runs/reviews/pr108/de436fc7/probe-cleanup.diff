@@ -1,0 +1,13 @@
+--- review_probes.py
++++ review_probes_cleanup.py
+@@ -157,6 +157,10 @@
+             self.assertTrue(control.reap_timed_out.is_set(), 'fault not exercised')
+             self.assertTrue(recovered, detail)
+         finally:
++            # The repaired runtime owns asynchronous cleanup after observed reap.
++            # Join that owner before fixture cleanup; all assertions above are unchanged.
++            for recovery in list(getattr(self.runtime, '_pending_reaps', {}).values()):
++                recovery.join(timeout=5)
+             # Cleanup belongs to this probe, never counts as runtime recovery.
+             for control in owned:
+                 if not control.reaped:

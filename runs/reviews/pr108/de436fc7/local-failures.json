@@ -1,0 +1,66 @@
+{
+  "source_head": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+  "comparison": "Same selectors retained previously on this host; not a new causal qualification or waiver.",
+  "pytest_failures": [
+    {
+      "selector": "tests.redteam.test_worker_attacks.TestMaliciousWorkerOutput::test_forged_receipt_in_worker_output",
+      "observed_reason": "namespace_permission"
+    },
+    {
+      "selector": "tests.redteam.test_worker_attacks.TestMaliciousWorkerOutput::test_terminal_escape_output_is_inert_data",
+      "observed_reason": "namespace_permission"
+    },
+    {
+      "selector": "tests.redteam.test_worker_attacks.TestMaliciousWorkerOutput::test_oversized_output_capped",
+      "observed_reason": "namespace_permission"
+    },
+    {
+      "selector": "tests.test_factory_m4_fs_redteam.FilesystemRedTeamTests::test_unix_socket_rejected_by_snapshot",
+      "observed_reason": "AF_UNIX_permission"
+    },
+    {
+      "selector": "tests.test_factory_runtime_startup.StartupOrderingTests::test_resources_still_enforced_while_started_persistence_is_blocked",
+      "observed_reason": "stopped_event_timeout_UNCLASSIFIED"
+    },
+    {
+      "selector": "tests.test_factory_runtime_startup.StartupOrderingTests::test_startup_database_lock_does_not_preempt_durable_start",
+      "observed_reason": "rss_meter_unavailable"
+    },
+    {
+      "selector": "tests.test_factory_runtime_startup.StartupOrderingTests::test_watchdog_tick_before_started_persistence_cannot_fence_reserved_attempt",
+      "observed_reason": "rss_meter_unavailable"
+    },
+    {
+      "selector": "tests.test_sandbox_containment::test_success_path",
+      "observed_reason": "namespace_permission"
+    },
+    {
+      "selector": "tests.test_sandbox_containment::test_nonzero_exit_captured",
+      "observed_reason": "namespace_permission"
+    },
+    {
+      "selector": "tests.test_sandbox_containment::test_timeout_kills",
+      "observed_reason": "namespace_permission"
+    },
+    {
+      "selector": "tests.test_sandbox_containment::test_memory_cap_enforced",
+      "observed_reason": "namespace_permission"
+    },
+    {
+      "selector": "tests.test_sandbox_containment::test_fork_bomb_defused",
+      "observed_reason": "namespace_permission"
+    },
+    {
+      "selector": "tests.test_sandbox_containment::test_fs_allowlist_read_write",
+      "observed_reason": "namespace_permission"
+    },
+    {
+      "selector": "tests.test_sandbox_timing_determinism.LeaseTriStateTests::test_one_shot_locked_read_does_not_kill_or_retype",
+      "observed_reason": "lease_injection_not_reached"
+    },
+    {
+      "selector": "tests.test_sandbox_timing_determinism.JournalContentionReadTests::test_readiness_polling_survives_concurrent_writer",
+      "observed_reason": "worker_exit_122_without_completion"
+    }
+  ]
+}

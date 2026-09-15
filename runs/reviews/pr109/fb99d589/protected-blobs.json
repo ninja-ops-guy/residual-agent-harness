@@ -1,0 +1,32 @@
+{
+  "head": "fb99d5896b23b91e3903965a8c56813412533d48",
+  "tree": "ed2d089f21273ec1e305d5ab432d554092267343",
+  "baseline_blob": "fb24893d19f8851dbf5ac77c5a7a6ef11246f9b8",
+  "baseline_bytes_unchanged": true,
+  "baseline_pinned_at": "0430f2fa2d107fe48d26ae84a3c1550af029cb52",
+  "protected_count": 38,
+  "unchanged_protected_count": 37,
+  "changed": [
+    {
+      "path": "tests/test_factory_runtime_lifecycle.py",
+      "pinned": "d4e00bd290351fa2ccd302ac578ac5dc463eda84",
+      "actual": "85c6bf10a675ea3a74d775906d0bbaa79e411100"
+    }
+  ],
+  "exporter_validation_binding": [
+    {
+      "path": "scripts/export_m4_artifact.py",
+      "git_blob": "d447f0b9683323edcbca8d8daef060740ede5468",
+      "sha256": "b5b5955a075288620bfe4a2ae899760297af650689fa38d1db8a335e30548ae7",
+      "local_validated_bytes_match_current_remote": true
+    },
+    {
+      "path": "tests/test_factory_m4_artifact_export.py",
+      "git_blob": "778d70eb8d56a8532f4565692aaee2c845e2edf4",
+      "sha256": "0a5112cb93edae81542163e3b861512eac973f23aa56ccc4a9f46561bc199726",
+      "local_validated_bytes_match_current_remote": true
+    }
+  ],
+  "pin_advanced": false,
+  "independent_acceptance": "pending"
+}

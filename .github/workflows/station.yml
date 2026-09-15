@@ -8,6 +8,7 @@ jobs:
   python:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python: ['3.11', '3.12', '3.13']
     steps:
@@ -17,7 +18,22 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Install project test dependencies
         run: python -m pip install -e '.[factory]' pytest
-      - run: python -m unittest discover -s tests -v
+      - name: Test once with retained termination diagnostics
+        env:
+          QUALIFICATION_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          QUALIFICATION_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -o pipefail
+          mkdir -p runs/station-unittest
+          python scripts/qualification_test_runner.py --output runs/station-unittest/events.jsonl 2>&1 | tee runs/station-unittest/tests.txt
+      - name: Preserve ordinary-suite diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: station-unittest-${{ github.run_id }}-${{ github.run_attempt }}-python-${{ matrix.python }}
+          path: runs/station-unittest/
+          if-no-files-found: error
+          retention-days: 14
       - run: python -m pip wheel . --no-deps -w dist
   browser:
     runs-on: ubuntu-latest

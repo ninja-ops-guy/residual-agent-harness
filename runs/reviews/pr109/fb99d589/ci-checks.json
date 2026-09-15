@@ -1,0 +1,207 @@
+{
+  "head": "fb99d5896b23b91e3903965a8c56813412533d48",
+  "base": "9d88195a6329151197b53c05c6cbb5a74167f08f",
+  "checks": [
+    {
+      "name": "linux-execution",
+      "status": "completed",
+      "conclusion": "failure",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017167863/job/104543393069",
+      "started_at": "2026-09-15T20:02:11Z",
+      "completed_at": "2026-09-15T20:03:54Z"
+    },
+    {
+      "name": "python (3.12)",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017167763/job/104543392805",
+      "started_at": "2026-09-15T20:02:11Z",
+      "completed_at": "2026-09-15T20:04:21Z"
+    },
+    {
+      "name": "qualify (3.12)",
+      "status": "completed",
+      "conclusion": "failure",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017167707/job/104543392772",
+      "started_at": "2026-09-15T20:02:11Z",
+      "completed_at": "2026-09-15T20:02:28Z"
+    },
+    {
+      "name": "browser",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017167763/job/104543392700",
+      "started_at": "2026-09-15T20:02:11Z",
+      "completed_at": "2026-09-15T20:03:05Z"
+    },
+    {
+      "name": "python (3.13)",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017167763/job/104543392685",
+      "started_at": "2026-09-15T20:02:11Z",
+      "completed_at": "2026-09-15T20:03:44Z"
+    },
+    {
+      "name": "python (3.11)",
+      "status": "completed",
+      "conclusion": "failure",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017167763/job/104543392670",
+      "started_at": "2026-09-15T20:02:11Z",
+      "completed_at": "2026-09-15T20:03:43Z"
+    },
+    {
+      "name": "tests (3.12)",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017167678/job/104543392606",
+      "started_at": "2026-09-15T20:02:11Z",
+      "completed_at": "2026-09-15T20:03:43Z"
+    },
+    {
+      "name": "qualify (3.13)",
+      "status": "completed",
+      "conclusion": "failure",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017167707/job/104543392598",
+      "started_at": "2026-09-15T20:02:12Z",
+      "completed_at": "2026-09-15T20:02:29Z"
+    },
+    {
+      "name": "tests (3.13)",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017167678/job/104543392547",
+      "started_at": "2026-09-15T20:02:11Z",
+      "completed_at": "2026-09-15T20:03:43Z"
+    },
+    {
+      "name": "docker",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017167763/job/104543392455",
+      "started_at": "2026-09-15T20:02:11Z",
+      "completed_at": "2026-09-15T20:03:44Z"
+    },
+    {
+      "name": "test",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017167659/job/104543392415",
+      "started_at": "2026-09-15T20:02:11Z",
+      "completed_at": "2026-09-15T20:02:18Z"
+    },
+    {
+      "name": "tests (3.11)",
+      "status": "completed",
+      "conclusion": "failure",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017167678/job/104543392390",
+      "started_at": "2026-09-15T20:02:11Z",
+      "completed_at": "2026-09-15T20:03:40Z"
+    },
+    {
+      "name": "qualify (3.11)",
+      "status": "completed",
+      "conclusion": "failure",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017167707/job/104543392307",
+      "started_at": "2026-09-15T20:02:11Z",
+      "completed_at": "2026-09-15T20:02:28Z"
+    },
+    {
+      "name": "m4-prereq",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017167706/job/104543392283",
+      "started_at": "2026-09-15T20:02:11Z",
+      "completed_at": "2026-09-15T20:02:47Z"
+    },
+    {
+      "name": "factory",
+      "status": "completed",
+      "conclusion": "failure",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017167734/job/104543392188",
+      "started_at": "2026-09-15T20:02:11Z",
+      "completed_at": "2026-09-15T20:03:41Z"
+    },
+    {
+      "name": "measured-eval-binding",
+      "status": "completed",
+      "conclusion": "failure",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017167584/job/104543392029",
+      "started_at": "2026-09-15T20:02:11Z",
+      "completed_at": "2026-09-15T20:02:24Z"
+    },
+    {
+      "name": "factory-ownership",
+      "status": "completed",
+      "conclusion": "failure",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017167569/job/104543391430",
+      "started_at": "2026-09-15T20:02:11Z",
+      "completed_at": "2026-09-15T20:02:17Z"
+    },
+    {
+      "name": "python (3.13)",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017165669/job/104543387057",
+      "started_at": "2026-09-15T20:02:10Z",
+      "completed_at": "2026-09-15T20:03:53Z"
+    },
+    {
+      "name": "docker",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017165669/job/104543387046",
+      "started_at": "2026-09-15T20:02:10Z",
+      "completed_at": "2026-09-15T20:03:33Z"
+    },
+    {
+      "name": "python (3.11)",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017165669/job/104543387021",
+      "started_at": "2026-09-15T20:02:11Z",
+      "completed_at": "2026-09-15T20:03:45Z"
+    },
+    {
+      "name": "python (3.12)",
+      "status": "completed",
+      "conclusion": "failure",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017165669/job/104543386971",
+      "started_at": "2026-09-15T20:02:10Z",
+      "completed_at": "2026-09-15T20:03:42Z"
+    },
+    {
+      "name": "browser",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017165669/job/104543386745",
+      "started_at": "2026-09-15T20:02:10Z",
+      "completed_at": "2026-09-15T20:02:48Z"
+    },
+    {
+      "name": "tests (3.12)",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017165628/job/104543386457",
+      "started_at": "2026-09-15T20:02:10Z",
+      "completed_at": "2026-09-15T20:03:38Z"
+    },
+    {
+      "name": "tests (3.11)",
+      "status": "completed",
+      "conclusion": "failure",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017165628/job/104543386443",
+      "started_at": "2026-09-15T20:02:10Z",
+      "completed_at": "2026-09-15T20:03:37Z"
+    },
+    {
+      "name": "tests (3.13)",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35017165628/job/104543386368",
+      "started_at": "2026-09-15T20:02:10Z",
+      "completed_at": "2026-09-15T20:03:40Z"
+    }
+  ]
+}
+

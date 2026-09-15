@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-m",
+    "pytest",
+    "/tmp/residual-lane2-evidence-b127/timeout_budget_probe.py",
+    "-vv",
+    "-s",
+    "--tb=short",
+    "--junitxml=/tmp/residual-lane2-evidence-b127/timeout-budget.xml"
+  ],
+  "exit_code": 1,
+  "elapsed_s": 3.2770265440049116,
+  "probe_sha256": "96a92102f8099551176f86feeed3905554e0c1ce2e9e9dd5d98c634e191566d7"
+}

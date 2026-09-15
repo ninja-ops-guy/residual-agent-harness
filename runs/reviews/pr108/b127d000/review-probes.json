@@ -1,0 +1,14 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-m",
+    "pytest",
+    "/tmp/residual-lane2-evidence-b127/review_probes.py",
+    "-vv",
+    "-s",
+    "--tb=short",
+    "--junitxml=/tmp/residual-lane2-evidence-b127/review-probes.xml"
+  ],
+  "exit_code": 1,
+  "elapsed_s": 8.540438047006319
+}

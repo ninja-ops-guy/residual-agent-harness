@@ -1,0 +1,123 @@
+2026-09-15T13:01:43.2892711Z ##[group]Fetching the repository
+2026-09-15T13:01:43.2900048Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +15f9a7a3c7f7abe6332ff4fc2de524bca475dc61:refs/remotes/pull/108/merge
+2026-09-15T13:01:44.2671067Z From https://github.com/ninja-ops-guy/residual-agent-harness
+2026-09-15T13:01:44.2672829Z  * [new ref]         15f9a7a3c7f7abe6332ff4fc2de524bca475dc61 -> pull/108/merge
+2026-09-15T13:01:44.2676109Z ##[endgroup]
+2026-09-15T13:01:44.2677552Z ##[group]Determining the checkout info
+2026-09-15T13:01:44.2678730Z ##[endgroup]
+2026-09-15T13:01:44.2680035Z [command]/usr/bin/git sparse-checkout disable
+2026-09-15T13:01:44.3260250Z 
+2026-09-15T13:01:44.3261448Z HEAD is now at 15f9a7a Merge b127d000dbac7d75723969840491be5f44ec7c4e into 1cf4e46c0ace8e3cdc76147ad4c7dc6480a9fb34
+2026-09-15T13:01:44.3265670Z ##[endgroup]
+2026-09-15T13:01:44.3292444Z [command]/usr/bin/git log -1 --format=%H
+2026-09-15T13:01:44.3312688Z 15f9a7a3c7f7abe6332ff4fc2de524bca475dc61
+2026-09-15T13:01:44.3321307Z ##[group]Removing auth
+2026-09-15T13:01:44.3324133Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-15T13:01:44.3350416Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-15T13:01:44.3539754Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-15T13:02:52.6827982Z test_unsupported_identifiers_cannot_inject_options (test_publish.PublishTests.test_unsupported_identifiers_cannot_inject_options) ... ok
+2026-09-15T13:02:52.6828852Z test_observations_under_write_storm_never_raises_locked (test_sandbox_timing_adversarial.CiLockContentionTests.test_observations_under_write_storm_never_raises_locked)
+2026-09-15T13:03:01.0305901Z Root-cause regression for run 34940491451: the pre-repair _connect() ... ok
+2026-09-15T13:03:01.0307266Z test_candidate_legit_exit_124_not_retyped_timeout (test_sandbox_timing_adversarial.FixtureTimeoutContractTests.test_candidate_legit_exit_124_not_retyped_timeout)
+2026-09-15T13:03:01.0308387Z Mutant-catcher / collision guard: a candidate that EXITS 124 on its ... ok
+2026-09-15T13:03:01.5334414Z test_fixture_timeout_returncode_matches_documented_124 (test_sandbox_timing_adversarial.FixtureTimeoutContractTests.test_fixture_timeout_returncode_matches_documented_124) ... ok
+2026-09-15T13:03:01.5335928Z test_diag_cannot_be_cross_attributed (test_sandbox_timing_adversarial.LeaseDiagAttributionTests.test_diag_cannot_be_cross_attributed)
+2026-09-15T13:03:03.5909286Z Attempt A reads fine; attempt B's read fails. A's caller must not ... ok
+2026-09-15T13:03:03.5910623Z test_diag_cannot_be_erased_by_concurrent_attempt (test_sandbox_timing_adversarial.LeaseDiagAttributionTests.test_diag_cannot_be_erased_by_concurrent_attempt)
+2026-09-15T13:03:05.6077304Z Attempt A's failed read produces a diag; before A's caller consumes ... ok
+2026-09-15T13:03:05.6078204Z test_lease_denial_mutant_shorter_inner_timeout_still_bounded (test_sandbox_timing_adversarial.LeaseUnknownDeadlineTests.test_lease_denial_mutant_shorter_inner_timeout_still_bounded)
+2026-09-15T13:03:07.6528864Z Mutant-catcher: even if an individual read is slow, the retry loop ... ok
+2026-09-15T13:03:07.6529889Z test_lease_denial_total_block_is_bounded (test_sandbox_timing_adversarial.LeaseUnknownDeadlineTests.test_lease_denial_total_block_is_bounded)
+2026-09-15T13:03:09.7358301Z Persistent contention: _lease_denial must return within ~2s total, ... ok
+2026-09-15T13:03:09.7358954Z test_unknown_never_retyped_as_revocation (test_sandbox_timing_adversarial.LeaseUnknownDeadlineTests.test_unknown_never_retyped_as_revocation)
+2026-09-15T13:03:10.1450773Z A store that recovers mid-retry must be re-read: 'unknown' must not ... ok
+2026-09-15T13:03:10.1462715Z test_reap_timeout_does_not_publish_stopped_as_completion (test_sandbox_timing_adversarial.ReapTimeoutSemanticsTests.test_reap_timeout_does_not_publish_stopped_as_completion) ... ok
+2026-09-15T13:03:10.1463707Z test_reap_timeout_reason_is_typed_not_silent (test_sandbox_timing_adversarial.ReapTimeoutSemanticsTests.test_reap_timeout_reason_is_typed_not_silent)
+2026-09-15T13:03:10.1469057Z Mutant-catcher: a reap timeout must surface the typed ... ok
+2026-09-15T13:03:10.1469798Z test_receipt_hash_stable_for_identical_logical_result (test_sandbox_timing_adversarial.ReceiptSchemaStabilityTests.test_receipt_hash_stable_for_identical_logical_result)
+2026-09-15T13:03:10.1470874Z The hash of a receipt for a given logical verification result must ... ok
+2026-09-15T13:03:10.1471956Z test_v2_verification_result_serialization_unchanged (test_sandbox_timing_adversarial.ReceiptSchemaStabilityTests.test_v2_verification_result_serialization_unchanged) ... ok
+2026-09-15T13:03:11.1608026Z test_fixture_timeout_is_typed_timeout (test_sandbox_timing_determinism.FixtureLaneTimeoutTypingTests.test_fixture_timeout_is_typed_timeout) ... ok
+2026-09-15T13:03:12.1963807Z test_verification_timeout_is_timeout_not_fail (test_sandbox_timing_determinism.IntegratorTimeoutTypingTests.test_verification_timeout_is_timeout_not_fail) ... ok
+2026-09-15T13:03:12.1965438Z test_timeout_is_distinct_typed_outcome (test_sandbox_timing_determinism.IsolatedTimeoutTypingTests.test_timeout_is_distinct_typed_outcome) ... skipped 'kernel namespace isolation unavailable on this platform'
+2026-09-15T13:03:17.2150964Z test_observations_bounded_failure_under_persistent_lock (test_sandbox_timing_determinism.JournalContentionReadTests.test_observations_bounded_failure_under_persistent_lock) ... ok
+2026-09-15T13:03:17.3680953Z test_observations_retry_transient_lock_then_succeed (test_sandbox_timing_determinism.JournalContentionReadTests.test_observations_retry_transient_lock_then_succeed) ... ok
+2026-09-15T13:03:17.4324319Z test_observations_under_held_wal_writer_lock (test_sandbox_timing_determinism.JournalContentionReadTests.test_observations_under_held_wal_writer_lock) ... ok
+2026-09-15T13:03:17.5484016Z test_readiness_polling_survives_concurrent_writer (test_sandbox_timing_determinism.JournalContentionReadTests.test_readiness_polling_survives_concurrent_writer) ... ok
+2026-09-15T13:03:18.0258972Z test_lease_read_binds_diag_per_call_not_journal_global (test_sandbox_timing_determinism.LeaseTriStateTests.test_lease_read_binds_diag_per_call_not_journal_global) ... ok
+2026-09-15T13:03:18.0437776Z test_lease_read_deadline_caps_busy_budget (test_sandbox_timing_determinism.LeaseTriStateTests.test_lease_read_deadline_caps_busy_budget) ... ok
+2026-09-15T13:03:18.0740380Z test_lease_state_tri_state_unit (test_sandbox_timing_determinism.LeaseTriStateTests.test_lease_state_tri_state_unit) ... ok
+2026-09-15T13:03:18.1640648Z test_one_shot_locked_read_does_not_kill_or_retype (test_sandbox_timing_determinism.LeaseTriStateTests.test_one_shot_locked_read_does_not_kill_or_retype) ... ok
+2026-09-15T13:03:20.1827402Z test_persistent_contention_bounded_by_single_deadline (test_sandbox_timing_determinism.LeaseUnknownBoundedDeadlineTests.test_persistent_contention_bounded_by_single_deadline) ... ok
+2026-09-15T13:03:20.2643212Z test_retry_recovers_before_deadline_without_kill (test_sandbox_timing_determinism.LeaseUnknownBoundedDeadlineTests.test_retry_recovers_before_deadline_without_kill) ... ok
+2026-09-15T13:03:22.2934930Z test_unknown_diag_is_atomic_per_attempt (test_sandbox_timing_determinism.LeaseUnknownBoundedDeadlineTests.test_unknown_diag_is_atomic_per_attempt) ... ok
+2026-09-15T13:03:22.2950831Z test_reap_timeout_does_not_overwrite_primary_reason (test_sandbox_timing_determinism.ReapTimeoutProvenanceTests.test_reap_timeout_does_not_overwrite_primary_reason) ... ok
+2026-09-15T13:03:22.2961754Z test_reap_timeout_emits_typed_event_and_reason (test_sandbox_timing_determinism.ReapTimeoutProvenanceTests.test_reap_timeout_emits_typed_event_and_reason) ... ok
+2026-09-15T13:03:22.2973016Z test_reap_timeout_then_successful_followup_reap_restores_invariants (test_sandbox_timing_determinism.ReapTimeoutProvenanceTests.test_reap_timeout_then_successful_followup_reap_restores_invariants) ... ok
+2026-09-15T13:03:22.4476084Z test_fake_clock_watchdog_kills_past_deadline_snapshot (test_sandbox_timing_determinism.SingleDeadlineOwnerTests.test_fake_clock_watchdog_kills_past_deadline_snapshot) ... ok
+2026-09-15T13:03:22.4701262Z test_guard_owns_started_and_deadline (test_sandbox_timing_determinism.SingleDeadlineOwnerTests.test_guard_owns_started_and_deadline) ... ok
+2026-09-15T13:03:22.7666539Z test_watchdog_skips_wall_clock_once_exchange_completing (test_sandbox_timing_determinism.SingleDeadlineOwnerTests.test_watchdog_skips_wall_clock_once_exchange_completing) ... ok
+2026-09-15T13:03:22.8455245Z test_git_timeout_is_typed (test_sandbox_timing_determinism.TypedGitTimeoutTests.test_git_timeout_is_typed) ... ok
+2026-09-15T13:03:23.3113697Z test_cancel_after_publication_returns_false (test_sandbox_timing_determinism.TypedOutcomeDeterminismTests.test_cancel_after_publication_returns_false) ... ok
+2026-09-15T13:03:23.3408044Z test_cancel_only_true_for_own_primary_cancellation (test_sandbox_timing_determinism.TypedOutcomeDeterminismTests.test_cancel_only_true_for_own_primary_cancellation) ... ok
+2026-09-15T13:03:23.5494525Z test_cancel_race_published_candidate_with_control_still_false (test_sandbox_timing_determinism.TypedOutcomeDeterminismTests.test_cancel_race_published_candidate_with_control_still_false) ... ok
+2026-09-15T13:03:23.5729044Z test_cancel_race_terminal_cancelled_with_own_reason_is_true (test_sandbox_timing_determinism.TypedOutcomeDeterminismTests.test_cancel_race_terminal_cancelled_with_own_reason_is_true) ... ok
+2026-09-15T13:03:25.5975624Z test_closed_fds_then_spin_single_typed_outcome (test_sandbox_timing_determinism.TypedOutcomeDeterminismTests.test_closed_fds_then_spin_single_typed_outcome) ... ok
+2026-09-15T13:03:32.6282147Z test_n10_determinism_proof_three_worker_corpus (test_sandbox_timing_determinism.TypedOutcomeDeterminismTests.test_n10_determinism_proof_three_worker_corpus) ... ok
+2026-09-15T13:03:32.6696839Z test_watchdog_kills_at_snapshot_not_recomputed_deadline (test_sandbox_timing_determinism.WatchdogDeadlineSnapshotTests.test_watchdog_kills_at_snapshot_not_recomputed_deadline) ... ok
+2026-09-15T13:03:32.6698912Z test_all_failure_has_no_cost_per_success (test_study.StudyAccountingTests.test_all_failure_has_no_cost_per_success) ... ok
+2026-09-15T13:03:32.6701106Z test_failed_runs_costs_are_in_success_denominator (test_study.StudyAccountingTests.test_failed_runs_costs_are_in_success_denominator) ... ok
+2026-09-15T13:03:32.6714953Z test_priced_receipt_uses_provider_reported_usage (test_study.StudyAccountingTests.test_priced_receipt_uses_provider_reported_usage) ... ok
+2026-09-15T13:03:32.6718721Z test_remote_byte_limit_blocks_before_transport (test_study.StudyAccountingTests.test_remote_byte_limit_blocks_before_transport) ... ok
+2026-09-15T13:03:36.4068231Z ======================================================================
+2026-09-15T13:03:36.4069131Z FAIL: test_receipt_labels_unsandboxed_fixture_and_binds_policy (test_factory_m4_safety.M4AcceptanceSafetyTests.test_receipt_labels_unsandboxed_fixture_and_binds_policy)
+2026-09-15T13:03:36.4070138Z ----------------------------------------------------------------------
+2026-09-15T13:03:36.4070568Z Traceback (most recent call last):
+2026-09-15T13:03:36.4078280Z   File "/home/runner/work/residual-agent-harness/residual-agent-harness/tests/test_factory_m4_safety.py", line 245, in test_receipt_labels_unsandboxed_fixture_and_binds_policy
+2026-09-15T13:03:36.4079384Z     self.assertEqual(receipt.schema_version, 'factory-integration-receipt-v3')
+2026-09-15T13:03:36.4080057Z AssertionError: 'factory-integration-receipt-v2' != 'factory-integration-receipt-v3'
+2026-09-15T13:03:36.4080594Z - factory-integration-receipt-v2
+2026-09-15T13:03:36.4080889Z ?                              ^
+2026-09-15T13:03:36.4081152Z + factory-integration-receipt-v3
+2026-09-15T13:03:36.4081434Z ?                              ^
+2026-09-15T13:03:36.4081603Z 
+2026-09-15T13:03:36.4081608Z 
+2026-09-15T13:03:36.4081748Z ======================================================================
+2026-09-15T13:03:36.4082771Z FAIL: test_repo_manifest_matches_committed_tree (test_factory_ownership_gate.FactoryOwnershipGateTests.test_repo_manifest_matches_committed_tree)
+2026-09-15T13:03:36.4083583Z ----------------------------------------------------------------------
+2026-09-15T13:03:36.4083963Z Traceback (most recent call last):
+2026-09-15T13:03:36.4084834Z   File "/home/runner/work/residual-agent-harness/residual-agent-harness/tests/test_factory_ownership_gate.py", line 105, in test_repo_manifest_matches_committed_tree
+2026-09-15T13:03:36.4085656Z     self.assertEqual(failures, [], report)
+2026-09-15T13:03:36.4086163Z AssertionError: Lists differ: ['protected path modified without baseline[137 chars]c0)'] != []
+2026-09-15T13:03:36.4086595Z 
+2026-09-15T13:03:36.4086894Z First list contains 1 additional elements.
+2026-09-15T13:03:36.4087201Z First extra element 0:
+2026-09-15T13:03:36.4088018Z 'protected path modified without baseline advance: tests/test_factory_m4_safety.py (pinned b13fdb1af9bfca2eb8b73889a1f89eac6c0498a5, actual 4b2b117a2f3323a73dafaf04c21ab5ed9a1f79c0)'
+2026-09-15T13:03:36.4088787Z 
+2026-09-15T13:03:36.4088873Z + []
+2026-09-15T13:03:36.4089137Z - ['protected path modified without baseline advance: '
+2026-09-15T13:03:36.4089503Z -  'tests/test_factory_m4_safety.py (pinned '
+2026-09-15T13:03:36.4089860Z -  'b13fdb1af9bfca2eb8b73889a1f89eac6c0498a5, actual '
+2026-09-15T13:03:36.4091452Z -  '4b2b117a2f3323a73dafaf04c21ab5ed9a1f79c0)'] : {'scope': 'factory-ownership-blob-pin', 'manifest': '/home/runner/work/residual-agent-harness/residual-agent-harness/verifier/v3/factory_ownership_baseline.json', 'pinned_at': 'b3b2a5a18ce28bd1249725c7529228acca7d498e', 'protected_files': 37, 'checked': 37, 'mismatches': ['tests/test_factory_m4_safety.py']}
+2026-09-15T13:03:36.4093226Z 
+2026-09-15T13:03:36.4093413Z ----------------------------------------------------------------------
+2026-09-15T13:03:36.4093778Z Ran 967 tests in 104.443s
+2026-09-15T13:03:36.4093950Z 
+2026-09-15T13:03:36.4094202Z FAILED (failures=2, skipped=22)
+2026-09-15T13:03:36.4820504Z ##[error]Process completed with exit code 1.
+2026-09-15T13:03:36.4902121Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-15T13:03:36.4903094Z ##[group]Run actions/upload-artifact@v4
+2026-09-15T13:03:36.4903319Z with:
+2026-09-15T13:03:36.4903569Z   name: factory-evidence-15f9a7a3c7f7abe6332ff4fc2de524bca475dc61
+2026-09-15T13:03:36.4903864Z   path: runs/factory-evidence
+2026-09-15T13:03:36.4904074Z   if-no-files-found: warn
+2026-09-15T13:03:36.4904264Z   compression-level: 6
+2026-09-15T13:03:36.4904448Z   overwrite: false
+2026-09-15T13:03:38.1086205Z Finalizing artifact upload
+2026-09-15T13:03:38.3870709Z Artifact factory-evidence-15f9a7a3c7f7abe6332ff4fc2de524bca475dc61.zip successfully finalized. Artifact ID 10398291157
+2026-09-15T13:03:38.3871867Z Artifact factory-evidence-15f9a7a3c7f7abe6332ff4fc2de524bca475dc61 has been successfully uploaded! Final size is 3866087 bytes. Artifact ID is 10398291157
+2026-09-15T13:03:38.3875971Z Artifact download URL: https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34972037232/artifacts/10398291157
+2026-09-15T13:03:38.4059150Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-15T13:03:38.4060061Z Post job cleanup.
+2026-09-15T13:03:38.4741078Z [command]/usr/bin/git version
+

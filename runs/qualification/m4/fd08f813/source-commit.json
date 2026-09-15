@@ -1,0 +1,40 @@
+{
+  "author": {
+    "date": "2026-09-15T19:58:36Z",
+    "email": "222743524+ninja-ops-guy@users.noreply.github.com",
+    "name": "ninja-ops-guy"
+  },
+  "committer": {
+    "date": "2026-09-15T19:58:36Z",
+    "email": "noreply@github.com",
+    "name": "GitHub"
+  },
+  "html_url": "https://github.com/ninja-ops-guy/residual-agent-harness/commit/7d9438c01edfef6f2db9f19ed8b463bccbc9f373",
+  "message": "Merge fd08f8133ae05cd43a9f4a8bfbe55c7c1bac71b3 into 9d88195a6329151197b53c05c6cbb5a74167f08f",
+  "node_id": "C_kwDOUZYKYtoAKDdkOTQzOGMwMWVkZmVmNmYyZGI5ZjE5ZWQ4YjQ2M2JjY2JjOWYzNzM",
+  "parents": [
+    {
+      "html_url": "https://github.com/ninja-ops-guy/residual-agent-harness/commit/9d88195a6329151197b53c05c6cbb5a74167f08f",
+      "sha": "9d88195a6329151197b53c05c6cbb5a74167f08f",
+      "url": "https://api.github.com/repos/ninja-ops-guy/residual-agent-harness/git/commits/9d88195a6329151197b53c05c6cbb5a74167f08f"
+    },
+    {
+      "html_url": "https://github.com/ninja-ops-guy/residual-agent-harness/commit/fd08f8133ae05cd43a9f4a8bfbe55c7c1bac71b3",
+      "sha": "fd08f8133ae05cd43a9f4a8bfbe55c7c1bac71b3",
+      "url": "https://api.github.com/repos/ninja-ops-guy/residual-agent-harness/git/commits/fd08f8133ae05cd43a9f4a8bfbe55c7c1bac71b3"
+    }
+  ],
+  "sha": "7d9438c01edfef6f2db9f19ed8b463bccbc9f373",
+  "tree": {
+    "sha": "ed2d089f21273ec1e305d5ab432d554092267343",
+    "url": "https://api.github.com/repos/ninja-ops-guy/residual-agent-harness/git/trees/ed2d089f21273ec1e305d5ab432d554092267343"
+  },
+  "url": "https://api.github.com/repos/ninja-ops-guy/residual-agent-harness/git/commits/7d9438c01edfef6f2db9f19ed8b463bccbc9f373",
+  "verification": {
+    "payload": "tree ed2d089f21273ec1e305d5ab432d554092267343\nparent 9d88195a6329151197b53c05c6cbb5a74167f08f\nparent fd08f8133ae05cd43a9f4a8bfbe55c7c1bac71b3\nauthor ninja-ops-guy <222743524+ninja-ops-guy@users.noreply.github.com> 1789502316 +0000\ncommitter GitHub <noreply@github.com> 1789502316 +0000\n\nMerge fd08f8133ae05cd43a9f4a8bfbe55c7c1bac71b3 into 9d88195a6329151197b53c05c6cbb5a74167f08f\n",
+    "reason": "valid",
+    "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJqqaNsCRC1aQ7uu5UhlAAAivkQACWyj27ERp7gd7yWurLkt+O+\nHN9kp0TsgIGLHNJPlMtbQ6Z1lzbwXjQJnP8HPdnYz1vc+i70uMkaHwejwiRhFEPJ\n+rNhP38cbdP33AtcWviYKj8xlnFyh/BUDt7686c1nhr0RxFWDtbv8Tky/mr4s60m\nF+2qWpdvlf2GqTGk6atiIKIs+Io81h/6zifu/SNCrb1EoF4cKzdCHlwFOJhTK8eC\n7A3FOODiITE0J8ltDUSJtn1K9cVNThSBD+ijcDx40eWdqZ6xdphkwWdu3kDZ8WZ4\no27yTgJazdAAiZjciCyJz6ofAhfXVAZpOCDB1QhbnU4sSuU4w4vDOpy8JyWwyCJ/\nhied/LTAOdBToq70jZ1KZyfqUTIHiNgvwKFVjWMjOVUtmFdrZLidvHYsgx9PnlY2\nOlf5elNvu8/XhOJk7f2s+EMldwhJtB2ThEiUIghS+TffoZqVgiJ82YfoJXtdaQgy\nc/pmktYgbUy+3iZr3S684YUIWS4qihphpjeo1lGECt4Ev5MmSuAM8INuRn6WzjUE\n7XPgIem4F81+g5RxgTHXYNtW0Su+YBA9xQT7QXLqFR++bs+0EoFZSG6i+lxQyUb7\n9+I/KpQgq0CN6pBrlkdJaBP3jtna6hxS9C5jV0JRvt2OImU8KNAQYx45G5nu1R+5\n2PV0w+9s1oVkCF7LBhXy\n=nAJ7\n-----END PGP SIGNATURE-----\n",
+    "verified": true,
+    "verified_at": "2026-09-15T19:58:36Z"
+  }
+}

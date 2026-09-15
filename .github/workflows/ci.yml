@@ -8,6 +8,7 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python: ['3.11', '3.12', '3.13']
     steps:
@@ -18,9 +19,22 @@ jobs:
       - name: Install test dependencies
         run: python -m pip install '.[factory]' pytest
       - name: Compile and test without model credentials
+        env:
+          QUALIFICATION_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          QUALIFICATION_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
+          set -o pipefail
           python -m compileall -q residual
-          python -m unittest discover -s tests -v
+          mkdir -p runs/contracts-unittest
+          python scripts/qualification_test_runner.py --output runs/contracts-unittest/events.jsonl 2>&1 | tee runs/contracts-unittest/tests.txt
+      - name: Preserve ordinary-suite diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: contracts-unittest-${{ github.run_id }}-${{ github.run_attempt }}-python-${{ matrix.python }}
+          path: runs/contracts-unittest/
+          if-no-files-found: error
+          retention-days: 14
       - name: Exercise packaged CLI
         run: |
           residual demo --output runs/ci-demo

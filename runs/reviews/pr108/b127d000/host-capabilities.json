@@ -1,0 +1,12 @@
+{
+  "parent_pid": 5,
+  "child_pid": 6,
+  "proc_child_statm_exists": true,
+  "proc_child_statm": "238 75 59 136 0 49 0\n",
+  "isolation_probe": [
+    false,
+    "namespace_probe_failed"
+  ],
+  "ISOLATED": false,
+  "SECCOMP": false
+}

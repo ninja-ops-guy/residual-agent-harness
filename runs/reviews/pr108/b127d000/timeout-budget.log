@@ -1,0 +1,22 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+cachedir: .pytest_cache
+rootdir: /tmp
+collecting ... collected 1 item
+
+../residual-lane2-evidence-b127/timeout_budget_probe.py::test_declared_wall_budget_is_not_extended_for_unwrapped_payload TIMEOUT_CONTRACT {"timeout_seconds": 1, "payload": ["/bin/sleep", "2"], "baseline": {"exit_code": null, "signal": 9, "timed_out": true, "violation": "timeout", "stdout": "", "stderr": "", "duration_seconds": 1.003663661002065, "truncated": false, "enforcement": "best_effort"}, "reviewed": {"exit_code": 0, "signal": null, "timed_out": false, "violation": "none", "stdout": "", "stderr": "", "duration_seconds": 2.0087566770016565, "truncated": false, "enforcement": "best_effort"}}
+FAILED
+
+=================================== FAILURES ===================================
+_______ test_declared_wall_budget_is_not_extended_for_unwrapped_payload ________
+../residual-lane2-evidence-b127/timeout_budget_probe.py:27: in test_declared_wall_budget_is_not_extended_for_unwrapped_payload
+    assert after.timed_out and not after.ok, evidence
+E   AssertionError: {'timeout_seconds': 1, 'payload': ['/bin/sleep', '2'], 'baseline': {'exit_code': None, 'signal': 9, 'timed_out': True, 'violation': <Violation.TIMEOUT: 'timeout'>, ...}, 'reviewed': {'exit_code': 0, 'signal': None, 'timed_out': False, 'violation': <Violation.NONE: 'none'>, ...}}
+E   assert (False)
+E    +  where False = SandboxResult(exit_code=0, signal=None, timed_out=False, violation=<Violation.NONE: 'none'>, stdout='', stderr='', duration_seconds=2.0087566770016565, truncated=False, enforcement='best_effort').timed_out
+--- generated xml file: /tmp/residual-lane2-evidence-b127/timeout-budget.xml ---
+=========================== short test summary info ============================
+FAILED ../residual-lane2-evidence-b127/timeout_budget_probe.py::test_declared_wall_budget_is_not_extended_for_unwrapped_payload - AssertionError: {'timeout_seconds': 1, 'payload': ['/bin/sleep', '2'], 'baseline': {'exit_code': None, 'signal': 9, 'timed_out': True, 'violation': <Violation.TIMEOUT: 'timeout'>, ...}, 'reviewed': {'exit_code': 0, 'signal': None, 'timed_out': False, 'violation': <Violation.NONE: 'none'>, ...}}
+assert (False)
+ +  where False = SandboxResult(exit_code=0, signal=None, timed_out=False, violation=<Violation.NONE: 'none'>, stdout='', stderr='', duration_seconds=2.0087566770016565, truncated=False, enforcement='best_effort').timed_out
+============================== 1 failed in 3.08s ===============================

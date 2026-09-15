@@ -1,0 +1,182 @@
+{
+  "schema": "residual-independent-review-v1",
+  "pr": 108,
+  "lane": "Lane 2",
+  "verdict": "REQUEST_CHANGES",
+  "merge_authorized_by_review": false,
+  "reviewed_head": "b127d000dbac7d75723969840491be5f44ec7c4e",
+  "reviewed_tree": "46c4146e9afcc9bbfd474d3d7b738970a10e0253",
+  "reviewed_checkout_status_after": "",
+  "completed_utc": "2026-09-15T14:26:32.604790+00:00",
+  "local_results": {
+    "battery-and-determinism.xml": {
+      "tests": 40,
+      "passed": 31,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 7
+    },
+    "focused-regressions.xml": {
+      "tests": 15,
+      "passed": 13,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0
+    },
+    "review-probes.xml": {
+      "tests": 4,
+      "passed": 0,
+      "failures": 4,
+      "errors": 0,
+      "skipped": 0
+    },
+    "timeout-budget.xml": {
+      "tests": 1,
+      "passed": 0,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "original_battery": {
+    "passed": 12,
+    "failed": 0,
+    "skipped": 0
+  },
+  "determinism_module": {
+    "passed": 19,
+    "failed": 2,
+    "skipped": 7,
+    "full_local_qualification": "UNKNOWN_HOST_CAPABILITY"
+  },
+  "reversion_attacks": [
+    {
+      "case": "B1_signed_payload_key",
+      "exit_code": 1,
+      "elapsed_s": 0.3652390619972721,
+      "tests": 2,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "caught": true
+    },
+    {
+      "case": "B2_deadline_after_first_read",
+      "exit_code": 1,
+      "elapsed_s": 8.241958696002257,
+      "tests": 3,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "caught": true
+    },
+    {
+      "case": "B3_stopped_before_reap",
+      "exit_code": 1,
+      "elapsed_s": 0.36499208500026725,
+      "tests": 2,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "caught": true
+    },
+    {
+      "case": "B4_shared_diagnostic",
+      "exit_code": 1,
+      "elapsed_s": 4.378996945997642,
+      "tests": 2,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "caught": true
+    },
+    {
+      "case": "B5_signal_exit_for_timeout",
+      "exit_code": 1,
+      "elapsed_s": 0.8667189980042167,
+      "tests": 2,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "caught": true
+    },
+    {
+      "case": "CI_single_shot_reader",
+      "exit_code": 1,
+      "elapsed_s": 0.4653970110011869,
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "caught": true
+    },
+    {
+      "case": "H2_recompute_deadline",
+      "exit_code": 1,
+      "elapsed_s": 0.9166317630006233,
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "caught": true
+    },
+    {
+      "case": "M6_silent_reap_timeout",
+      "exit_code": 1,
+      "elapsed_s": 0.4151870770001551,
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "caught": true
+    }
+  ],
+  "new_findings": [
+    {
+      "id": "R1",
+      "priority": "P1",
+      "summary": "Unwrapped payload receives five extra seconds beyond declared timeout",
+      "test": "timeout_budget_probe.py::test_declared_wall_budget_is_not_extended_for_unwrapped_payload",
+      "status": "REPRODUCED"
+    },
+    {
+      "id": "R2",
+      "priority": "P1",
+      "summary": "Lease read blocks watchdog past worker wall-clock deadline",
+      "test": "review_probes.py::RemainingLeaseAndReadDefects::test_watchdog_wall_deadline_remains_live_during_lease_contention",
+      "status": "REPRODUCED"
+    },
+    {
+      "id": "R3",
+      "priority": "P1",
+      "summary": "Transient reap timeout escapes finalizer; no automatic pending-reap driver",
+      "test": "review_probes.py::ReapRecoveryDefect::test_finalizer_drives_reap_recovery_after_transient_timeout",
+      "status": "REPRODUCED"
+    },
+    {
+      "id": "R4",
+      "priority": "P2",
+      "summary": "Exhausted retry erases last actual SQLite diagnostic",
+      "test": "review_probes.py::RemainingLeaseAndReadDefects::test_retry_keeps_last_actual_sqlite_error_after_budget_exhaustion",
+      "status": "REPRODUCED"
+    },
+    {
+      "id": "R5",
+      "priority": "P2",
+      "summary": "General reader gives every connection a fresh full busy budget",
+      "test": "review_probes.py::RemainingLeaseAndReadDefects::test_general_read_retry_does_not_restart_full_busy_budget",
+      "status": "REPRODUCED"
+    },
+    {
+      "id": "C1",
+      "priority": "P1",
+      "summary": "Stale receipt-v3 test fails compatibility and protected ownership; restore original v2 blob",
+      "status": "REPRODUCED_LOCALLY_AND_CI"
+    }
+  ],
+  "protected_runtime_source_modified": false,
+  "protected_test_or_baseline_modified": false,
+  "independence": "Separate reviewer continuation; mutation attacks only in subprocess memory. GitHub account is the PR author, so publish a COMMENT review carrying REQUEST_CHANGES, not a false formal independent-account approval.",
+  "ci_evidence": "ci-evidence.json",
+  "details": "README.md"
+}

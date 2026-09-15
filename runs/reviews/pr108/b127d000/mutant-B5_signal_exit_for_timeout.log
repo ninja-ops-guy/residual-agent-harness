@@ -1,0 +1,20 @@
+MUTATION B5_signal_exit_for_timeout TESTS ['tests/test_sandbox_timing_adversarial.py::FixtureTimeoutContractTests']
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+cachedir: .pytest_cache
+rootdir: /tmp/residual-lane2-b127
+configfile: pyproject.toml
+collecting ... collected 2 items
+
+tests/test_sandbox_timing_adversarial.py::FixtureTimeoutContractTests::test_candidate_legit_exit_124_not_retyped_timeout PASSED [ 50%]
+tests/test_sandbox_timing_adversarial.py::FixtureTimeoutContractTests::test_fixture_timeout_returncode_matches_documented_124 FAILED [100%]
+
+=================================== FAILURES ===================================
+_ FixtureTimeoutContractTests.test_fixture_timeout_returncode_matches_documented_124 _
+tests/test_sandbox_timing_adversarial.py:307: in test_fixture_timeout_returncode_matches_documented_124
+    self.assertEqual(
+E   AssertionError: -9 != 124 : fixture lane returned -9 (killed-signal code); the PR advertises a uniform deterministic timeout returncode 124 (SANDBOX_TIMEOUT_EXIT) across lanes
+- generated xml file: /tmp/residual-lane2-evidence-b127/mutant-B5_signal_exit_for_timeout.xml -
+=========================== short test summary info ============================
+FAILED tests/test_sandbox_timing_adversarial.py::FixtureTimeoutContractTests::test_fixture_timeout_returncode_matches_documented_124 - AssertionError: -9 != 124 : fixture lane returned -9 (killed-signal code); the PR advertises a uniform deterministic timeout returncode 124 (SANDBOX_TIMEOUT_EXIT) across lanes
+========================= 1 failed, 1 passed in 0.55s ==========================

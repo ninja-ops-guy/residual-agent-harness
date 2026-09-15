@@ -1,0 +1,18 @@
+{
+  "event_head": "fd08f8133ae05cd43a9f4a8bfbe55c7c1bac71b3",
+  "event_head_tree": "e82a8b7b9ebe17a8cc10e10c22966c3a3b111996",
+  "synthetic_merge": "7d9438c01edfef6f2db9f19ed8b463bccbc9f373",
+  "tested_tree": "ed2d089f21273ec1e305d5ab432d554092267343",
+  "actual_merge_base": "9d88195a6329151197b53c05c6cbb5a74167f08f",
+  "event_base_hint": "1a52e9a2dfc9ea9a9d24579bb9b44548c483f0b9",
+  "refreshed_candidate_head": "fb99d5896b23b91e3903965a8c56813412533d48",
+  "refreshed_candidate_tree_matches_tested_tree": true,
+  "sha256": "8397ccd37709efce946ef42fed0e328c9189e50fd0da67b4cc50927fd550503f",
+  "total_uncompressed_bytes": 51809,
+  "cases": 142,
+  "subtests": 84,
+  "skips": 0,
+  "errors": 0,
+  "failures": 0,
+  "independent_acceptance": false
+}

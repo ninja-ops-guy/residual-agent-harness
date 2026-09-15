@@ -1,0 +1,4031 @@
+{
+  "sha": "ed2d089f21273ec1e305d5ab432d554092267343",
+  "files": [
+    {
+      "path": ".dockerignore",
+      "sha": "7b6168c8f5feea9115315d39f25818aee56baf74",
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha": "ef5a335e03d97e1df5764afdc42d951702ac13ee",
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/clean-install-qualification.yml",
+      "sha": "e8cd8ee7d9bd10069a01b777ec4fa80a1a667710",
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/control-plane.yml",
+      "sha": "1280c3b2fbd8583afeadc24788ac9d7335a688aa",
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/factory-execution.yml",
+      "sha": "54fda6adf73c2f77ca42fb9f5608b3f207b2ae96",
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/factory-ownership.yml",
+      "sha": "29992677bae5dda1368ed954d83f7a104628255f",
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/factory.yml",
+      "sha": "b1a639b9323b863e249fc870dacceda4b205cf28",
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/m4-qualification-prereq.yml",
+      "sha": "944ad796764f95dab7fba67e5d7b8f5c19239126",
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/measured-eval-binding.yml",
+      "sha": "bb6c6c03de137d9f733a7cf53738e44be42d3fe1",
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/pages.yml",
+      "sha": "2df856be34c836d4fa688fbefc761f1108edf78a",
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/station.yml",
+      "sha": "471a4451f3af0b23593d0abb401bdb56a6a073db",
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/swarm3-termination-matrix.yml",
+      "sha": "93c31d329ec81d6931fdd644c384b34ba2417780",
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/vm-demo-ci.yml",
+      "sha": "cd750a0d24b7e15461970866b624f143a4f66215",
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/webvm-browser-proof.yml",
+      "sha": "e0701598fe86ed5222c2cf88de71836e1fa3125b",
+      "mode": "100644"
+    },
+    {
+      "path": ".gitignore",
+      "sha": "b3fec7e9407d8fca7ac3747df79168524dc6da51",
+      "mode": "100644"
+    },
+    {
+      "path": "Dockerfile",
+      "sha": "0a6143d8e70fb8d377ea02597ffe5cf2e57177e7",
+      "mode": "100644"
+    },
+    {
+      "path": "HARNESS.md",
+      "sha": "c115daa59c20d4f58036c9eff342d6e823baee70",
+      "mode": "100644"
+    },
+    {
+      "path": "README.md",
+      "sha": "2980ee5fab086518dfa0d200b36bfec618a2a896",
+      "mode": "100644"
+    },
+    {
+      "path": "START-HERE.md",
+      "sha": "67ee962ed6da271442f77b5f7564b9a439780d2e",
+      "mode": "100644"
+    },
+    {
+      "path": "Start-Station.cmd",
+      "sha": "2886c3915fbc834c28b38b11af7120941fc864d0",
+      "mode": "100644"
+    },
+    {
+      "path": "Start-Station.command",
+      "sha": "d2e34e770f98bb8e5ddb279e4610a34d9e701b8d",
+      "mode": "100755"
+    },
+    {
+      "path": "Start-Station.sh",
+      "sha": "a9ab9063bae3617b14df3d80185b1c27b105dfb7",
+      "mode": "100755"
+    },
+    {
+      "path": "ai_providers/__init__.py",
+      "sha": "7544d00ea8c08f9e1c253668183f17b30ab03426",
+      "mode": "100644"
+    },
+    {
+      "path": "ai_providers/adapters/__init__.py",
+      "sha": "7dce1037aa968b2581b785e90cdee61bc902a7e9",
+      "mode": "100644"
+    },
+    {
+      "path": "ai_providers/adapters/_http.py",
+      "sha": "8cb75b7a36f25abc7392d59f4d97bf4214b55927",
+      "mode": "100644"
+    },
+    {
+      "path": "ai_providers/adapters/anthropic_adapter.py",
+      "sha": "54c55f4efa22a7731743e2b463c31c10c2134a80",
+      "mode": "100644"
+    },
+    {
+      "path": "ai_providers/adapters/azure_adapter.py",
+      "sha": "c1c60b1fc712086c93dfa0bc03a0e8bd58bdff99",
+      "mode": "100644"
+    },
+    {
+      "path": "ai_providers/adapters/bedrock_adapter.py",
+      "sha": "3114498757172c09f6b8952212fce9610157a590",
+      "mode": "100644"
+    },
+    {
+      "path": "ai_providers/adapters/google_adapter.py",
+      "sha": "40282b957b2646c347ddbdb82e162302deb449b3",
+      "mode": "100644"
+    },
+    {
+      "path": "ai_providers/adapters/ollama_adapter.py",
+      "sha": "24dbd2eaa8ad8eb1b1d5116ac88e9a38489c6656",
+      "mode": "100644"
+    },
+    {
+      "path": "ai_providers/adapters/openai_adapter.py",
+      "sha": "fdf7daa92b78eff1044a4c86232f3a8837c1e433",
+      "mode": "100644"
+    },
+    {
+      "path": "ai_providers/core.py",
+      "sha": "8d9944242b5dd53e443d7e6166c4e4e96c715671",
+      "mode": "100644"
+    },
+    {
+      "path": "ai_providers/registry.py",
+      "sha": "9a95664a73d0af07c849c27a22bea1425703cbf8",
+      "mode": "100644"
+    },
+    {
+      "path": "ai_providers/router.py",
+      "sha": "23c4d8968634e5a3fd77d709ddff004ae97c55d6",
+      "mode": "100644"
+    },
+    {
+      "path": "compose.nvidia.yaml",
+      "sha": "29733317ccafc5aa1b6c890f1fde10a13be1aee5",
+      "mode": "100644"
+    },
+    {
+      "path": "compose.yaml",
+      "sha": "5d0b40e3eb939a0cc45bcc360aeb4d7384b923e6",
+      "mode": "100644"
+    },
+    {
+      "path": "demo.html",
+      "sha": "53c5a6ba73ab2c5aaadfa6e627f651c13ce45c37",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/cloud_gateway/Dockerfile",
+      "sha": "03af512ed4a9dc3aa18f2b8ea42a8fa577b255d4",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/cloud_gateway/server.py",
+      "sha": "c6ab6c2a6c9002f3335d8bb8bdf75660071378c2",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/index.html",
+      "sha": "59c184814f40cae681ace7f4240196813fc1685b",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/vm/Dockerfile",
+      "sha": "a04da267128983fb25de7ae52365cb1eb853db65",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/vm/browser_smoke.py",
+      "sha": "557831ccf35a0b1c7de57cfc03597669069b33ee",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/vm/guest_result_check.py",
+      "sha": "d6f670ca6b480d7fb8df5d65d928f06d3e4fe0fd",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/vm/harden_serviceworker.py",
+      "sha": "c8a9d247a9e6f896b5407f7b34ae47655be8de82",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/vm/install_workbench.py",
+      "sha": "daac6897290088c1d5d4340619bb91aa042446a8",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/vm/mission-control-engineer.js",
+      "sha": "fda07673a8f1fc7678d1b5e6a034fb6ccc75f90d",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/vm/mission-control-world.js",
+      "sha": "9a664bba97260447f811e4b6a3cea641a0ca1c6c",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/vm/mission-control.js",
+      "sha": "217925cce64f866fcae40ce245167ac858908d1a",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/vm/mission-preview.js",
+      "sha": "39b2e59f3b1355d9f800adb0a78b3e5a72d42b7e",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/vm/mission_smoke.py",
+      "sha": "4605dd82371e016c4a43b9160fa221010b05a5f2",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/vm/pages_contract.py",
+      "sha": "955590ae86c23d46ed9ef079acd3d66695884db8",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/vm/patch_webvm.py",
+      "sha": "abf6daac741fa9692d7474d16460d46179cbc843",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/vm/provider-session.js",
+      "sha": "f3df6cf9ccc809c263f3be40e44e50d8a7463bbb",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/vm/provider.html",
+      "sha": "fbcf7dfad97be96db66243303ffcd28e270f7450",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/vm/provider.js",
+      "sha": "3e283053b3fd5a2e801937b62e365a6e632df2bf",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/vm/provider_failure_smoke.py",
+      "sha": "f55b251d2d86a735e55d32e2d1b411807807ce1a",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/vm/qualify_webvm.py",
+      "sha": "aa111cb770d877f744795ef061763f8a8eabc0db",
+      "mode": "100644"
+    },
+    {
+      "path": "demo/vm/serviceworker_retry_fragment.js",
+      "sha": "e3c22ba91261f0c398732994f78cbe24b9167187",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/CURRENT_STATUS.md",
+      "sha": "2a2fd3404f0db1e5882ea9dea43f829b24ed44d4",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/EXTERNAL_ASSURANCE_EVIDENCE.md",
+      "sha": "967ccc6360b87fc3bdf43629bab8a1fc09920f85",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/README.md",
+      "sha": "1dd16fa9c004c593147c9c01a61d2a3fdcff111c",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/WEBVM_MISSION_CONTROL.md",
+      "sha": "43360358dc8192112ba0567bc10caff08277a860",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/WORLD_CLASS_DEMO.md",
+      "sha": "c7b335bd33974f31ff2a4b06d89c1355bac2fce1",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/architecture.md",
+      "sha": "11e931d47a8a89a587a82384422eb5e52e57fe92",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/architecture/ci-cd.md",
+      "sha": "bce9f3491f29c6eeacde3bba4871a8740cdb76c5",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/architecture/compliance-audit.md",
+      "sha": "e5cb472978e4acecb60fb8622eeafeb889ac5300",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/architecture/incident-response.md",
+      "sha": "bcd163791caefd5216a5c7c9025ccd789ead604b",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/assurance-evaluation.md",
+      "sha": "eb70df0a7168a0a980aedc9c5942a7cb4b09e034",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/assurance-factory-runtime.md",
+      "sha": "e4c57de5f93bb35fbb495a96c4419853dd875ef4",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/benchmark-simulation.json",
+      "sha": "ea90ffab019a8282765c4064e5e27f1ac03d8553",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/benchmark-simulation.md",
+      "sha": "d4f035e36e05c7ab176142a245011506b40af977",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/cic-integration.md",
+      "sha": "4da36499ee84229c158292cce769bb8b1bbbac1c",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/cic-qa/README.md",
+      "sha": "ede93a9d6d3a5718a75669645e0042f2f7aabd3b",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/cic-qa/baseline-pytest.txt",
+      "sha": "2d6b10375adaf6d1121a00b36665b19012dfb07b",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/cic-qa/protocol.json",
+      "sha": "906509e2a6d27b8f60152dafbf5278beb6b47358",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/cic-qa/pytest.txt",
+      "sha": "0786491d97edcdce438c1c1a1761c9828ac56d2b",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/cic-qa/report.json",
+      "sha": "03a2a6f5fe696ed91ee108266d2876dd63ea6a1a",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/cic-qa/report.md",
+      "sha": "44816af023b4101802c6d71dea4651ef6d423cd2",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/cic-qa/study-evidence.tar.gz",
+      "sha": "cfb47b10b4583039a01b3bc7a114a4175eef64f7",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/cic-qa/unittest.txt",
+      "sha": "332be98aade95b901611b62a1542c618b319a63d",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/cic-qa/validation.json",
+      "sha": "f833029c10f1e7d6d117a65d10ad6a6eab6f06c3",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/controlled-evaluation.md",
+      "sha": "b63e432908657ad12a96fa280d42df9e29a6637c",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/demo-cloud-gateway.md",
+      "sha": "cb91758e02d40b62e3de7333494bebdab29f0f24",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/ARCHITECTURE_DIAGRAMS.md",
+      "sha": "2fab6e00dd5f1a1f38573bab5c79959d84113e24",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/ENTERPRISE_SPECS.md",
+      "sha": "1fba2144de2d87ac52dfd401220aa620bba14aea",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/README.md",
+      "sha": "d4a6aafae1fbd2cbac9fd7494a2e73960b552ad9",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/TRACEABILITY.md",
+      "sha": "19b10aad4c364f60636b180adc8f78b52d6529ad",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/commercial/dpa.md",
+      "sha": "7b5f1d0545ac1ee17f92d930764413c41e3d7dee",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/commercial/entity.md",
+      "sha": "aeb75c603de83a71e623c476128d5aa477dfa77b",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/commercial/financial-stability.md",
+      "sha": "b6150cdac07d09bf8c2f3e76de96e939830bbe40",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/commercial/insurance.md",
+      "sha": "56ebbb829e121ddcdcb42cf1e76e787c701aa597",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/commercial/ip-indemnification.md",
+      "sha": "a6b0f5f2db27b9c0a5693178b66ee76d819e9ff4",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/commercial/licensing.md",
+      "sha": "fdfe1283c8b6311f1ec164478d6b131c207228d3",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/commercial/professional-services.md",
+      "sha": "faf728d8c147776e32f722472e8420a91a6db887",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/commercial/support-tiers.md",
+      "sha": "2290a34ca7f712482e91c9e76fa3454f353d8577",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/governance/architecture-review-package.md",
+      "sha": "96c3fd66df3f088492238b3883afe849fa61861b",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/governance/pilot-program.md",
+      "sha": "96cb7b18fb97b92904f7c50744572d81caac5275",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/governance/runbooks/brake-tripped.md",
+      "sha": "9a391d4e29f2d36cfaed01521e3da6860425d1ff",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/governance/runbooks/contract-violation.md",
+      "sha": "1a176bdf11d5d4e1171a38ebddb93e75c055fb0a",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/governance/runbooks/hitl-challenge.md",
+      "sha": "caafc2cdf7522a5921b1d5d9100f72e8b63fa6a4",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/governance/runbooks/module-installation.md",
+      "sha": "bbf1101945d23d4c9414c8d70d53c2c7666d2009",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/governance/runbooks/station-failure.md",
+      "sha": "90426064c9c11f1b2f48f943c29ed1cf3f757516",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/governance/security-review-package.md",
+      "sha": "e26aa4d7c5ec3d9952c98f658c572bb3848f1214",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/governance/training/administrators.md",
+      "sha": "81d583774866f64440cbfd77370249d171b7df34",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/governance/training/auditors.md",
+      "sha": "3b1455414a2c0d0313907aa3d55c8349f812f949",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/governance/training/developers.md",
+      "sha": "9fa7094f92c8e0b0220a34aedc11f841db935b7f",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/governance/training/operators.md",
+      "sha": "f42b1a56cfbbc9a29de2f3a19688bb03f35b1c98",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/enterprise/supplychain/vulnerability-disclosure-policy.md",
+      "sha": "122a7f0597ab383f7751a9162e216c77866016b1",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/evaluation.md",
+      "sha": "f6e2a3e48b050cfa281f45bfd5f7500c62c9afd1",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/extending.md",
+      "sha": "c92751f88483a433b1bc4c2013639af5e550d4b1",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/factory/CLI-QUALIFICATION-REPAIR.md",
+      "sha": "6cd076c274e0fcbf4d228cebfbf7e02d5a238433",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/factory/LIFECYCLE-GUARD-RESTORATION.md",
+      "sha": "bdc1441c147f5f59318111230a8645fd7a2b2621",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/factory/M2-EXECUTION.md",
+      "sha": "eecee394d76f49bad493fed54da7c7702ab43039",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/factory/M2-IMPLEMENTATION-STATUS.md",
+      "sha": "94ce14ac0e2ba24422509396271d1e0c26b0037f",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/factory/M3-EVIDENCE-BUS.md",
+      "sha": "c5a3dc0c90ecf03b10ff84cf7e66c202d47d6b6f",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/factory/M4-ATTRIBUTION.md",
+      "sha": "ac637a6f404cb61c966d5340f5d58eb0d5610d61",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/factory/M4-EVIDENCE-INTEGRATION.md",
+      "sha": "e8b471a06888c37e555e124a1071912cb991c650",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/factory/M4-INTEGRATION.md",
+      "sha": "a7ba74057a0ab89427c3cf889ea4282100268c7c",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/factory/M4-SCHEDULER.md",
+      "sha": "491adf92ba1e8d7ce854ce0765aab5440504c582",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/factory/PLAN-CONTRACT.md",
+      "sha": "2288ee322d34961e4ba9d6e76ac614384660a870",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/factory/SPEC-EVAL-001.md",
+      "sha": "f23c985c971bf26a2aed153c4ef6b8e6f1c79f17",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/factory/SWARM3_TERMINATION_PROVENANCE.md",
+      "sha": "d86e52719b628cd0f3a78767aba8048e2fec8982",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/factory/sandbox-timing-repair-2026-09-15.md",
+      "sha": "332216883e90853cfa936af4bbfedbc2d68c7bbe",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/faq.md",
+      "sha": "6c748903b2cddd7b96a1736c2ff8179bdfebea29",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/grafana/residual-command-station.json",
+      "sha": "b899d8507e1d84d8c6695a6ecca936e9cce2a512",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/loop/M5-VERIFIED-LOOP-RUNTIME.md",
+      "sha": "3c1dc1db7401551118554ead57fb62b692d2bb7c",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/m4-qualification-runner-prereqs.md",
+      "sha": "9b6b6c1602335f29b99bed9490a5eeb905cfd24d",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/measured-eval-binding.md",
+      "sha": "27900c9fd46b3e551d48c35395a66779a5fe8e73",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/module-tutorial.md",
+      "sha": "a96e96b4cd4f07a2bb35d9b9cad70f2371772fb0",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/papers/reliability-from-unreliable-computation.md",
+      "sha": "0c248197ffa33643f3d7d4381e5ec74290909845",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/quickstart.md",
+      "sha": "50cee4579b49754780a5ea5e7f1dcf5ebdd48c0d",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/repeated-live-evidence-design.md",
+      "sha": "eae303a3edd6077380ae293238b96a1c1e053dfc",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/research.md",
+      "sha": "405fd7b23ad5bdcb8b6b912e72a7df1193b44e30",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/roadmap/CONFLICT_RESOLUTIONS.md",
+      "sha": "c200cdae8f5d5606351d58e624a52ab5d7295f24",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/roadmap/DELEGATION.md",
+      "sha": "d50fb6696238bedc83d727520008bfe3f8451e11",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/roadmap/FOUNDATION-CONTRACT.md",
+      "sha": "e41cdefce2751245d57c0a036d6d0df69a2cbfb5",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/roadmap/README.md",
+      "sha": "ec443d37d71153c405dc8fd7a3b68b73d5baee29",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/roadmap/SOURCE.json",
+      "sha": "3f7660de47a666ba69c367c46eada35e8ba53de4",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/roadmap/SPEC-RECONCILIATION.md",
+      "sha": "89058e284781f2b3e2c127922963f39e467a23e4",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/roadmap/TRACK-1-IMPLEMENTATION.md",
+      "sha": "8ba47fdbf22f51a0600c39e6b877ee9baff62b28",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/roadmap/TRACKS-SOURCE.json",
+      "sha": "f4879098a9d064e8a640d7446eda6e3cf068b1c9",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/roadmap/source/DESIGN.md",
+      "sha": "0912355263e8538e81788c4f513b6146c1ed2ad9",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/roadmap/source/GAP_ANALYSIS.md",
+      "sha": "dcdc68e8c82171aa0dd5f14c879f2b3469e6fa05",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/roadmap/source/MESH_SPECS.md",
+      "sha": "3df0ced306e9dc8c3dea6f8121940dadef80917c",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/roadmap/source/NETOPS_SECOPS_SPECS.md",
+      "sha": "a6f8930d6ad333cd773802649308cbb377572aa0",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/roadmap/source/RESILIENCE_SPECS.md",
+      "sha": "ea6a3c9b07d6301bf350e88aab7b7b4de07eab95",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/roadmap/source/SPECS.md",
+      "sha": "88fdc4f0924e7f82b681029fa777817021d1ced5",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/roadmap/source/WORLD_CLASS_SPECS.md",
+      "sha": "453bda655e58997a0164a1e536e8912d84015b00",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/scale-study.json",
+      "sha": "7f5c5e46d5f135bb1edaf2bbfc83bf9aece92e9a",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/scale-study.md",
+      "sha": "0101759a19de19f00ff78ff5c31c0797f711fcc0",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/specs/SPEC-GATEWAY-CONTROL-PLANE-001.md",
+      "sha": "fe7f840f4dd973b226d92da44c4c8e109791547b",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/ARCHITECTURE.md",
+      "sha": "1cba73ad698611254a76aadc8dccdade64622e2d",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/DISTRIBUTED.md",
+      "sha": "ed9c9dd6d30eccc6da54a428a4c3f0111a60153c",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/FOUNDATION-VALIDATION.md",
+      "sha": "2580e5d8c53b94c195d81ec72a4495ba7a363ac7",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/MODULAR-LAYERS.md",
+      "sha": "092b8280c3a2cde050194777b67169c52ecbb777",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/RESEARCH.md",
+      "sha": "1705f07acf99fb465b821a1c45bd058bd1b83f7a",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/RUN-CONTROL.md",
+      "sha": "cec07ce6edca53c9d30cd8b8700727254512212d",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/SPECIFICATION.md",
+      "sha": "dd452571cad1d87eb5f26f6798bcb2d5f08b31f1",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/VALIDATION.md",
+      "sha": "1c5a611c2bd027cebdf42a550745b4b86cbafe83",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/qa/01-overview-empty.png",
+      "sha": "93bb6f24b805db76bc90bf57bb61cf8801c6b84a",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/qa/02-overview-complete.png",
+      "sha": "bbb3a4e4202d2d8d9fe043445ff2e3dd5874afdb",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/qa/03-mission-board.png",
+      "sha": "ba39ce893f715623ceb08db42c889d3d97cd6861",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/qa/04-task-evidence.png",
+      "sha": "862c52ae18ddf33d27924203da8a32432f874b7e",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/qa/05-shared-comms.png",
+      "sha": "688ebf217f939c34f815d0334ccb4e708edf6b16",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/qa/06-model-workshop.png",
+      "sha": "d2734266a9a035307e561f291b9ca3e8b5ccc1df",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/qa/07-mobile-overview.png",
+      "sha": "b08285cf227242404dcf6a5c57ccb213844ef412",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/qa/08-mobile-board.png",
+      "sha": "49b28b0ca8ff5f1990b10a1dcfb4d577daab078d",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/qa/09-mobile-observations.png",
+      "sha": "eb94485f25e1b480424ac05bd66c4ed7d80c9328",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/qa/10-observation-console.png",
+      "sha": "c9931872235ec412724a70dde74278b86f5aab24",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/qa/11-provider-workshop.png",
+      "sha": "193b7e93045583d6f05234477213e12a22f8500e",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/qa/browser-results.json",
+      "sha": "92a13804fbf9fb80aa39702ff14abc792504d0be",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/qa/foundation-browser-results.json",
+      "sha": "e0e2cdbc11f85a40ea6aa1b2ec56ef59663723d9",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/qa/foundation-package-results.json",
+      "sha": "86d82fa7b5446dbf5010729d253bd30dada7dffd",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/qa/foundation-python-tests.log",
+      "sha": "57914014895574fbfd89da69de53e2fd902d782b",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/qa/foundation-task-evidence.png",
+      "sha": "dc9e58b0142f98e4e4a2cc3e135075e9bf469ac3",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/qa/github-baseline-checks.json",
+      "sha": "327e82fac51b656464fdfecac0a693a8126005be",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/qa/package-results.json",
+      "sha": "39e12a00a1225bffe9a9690dbfe95ead35e0adb0",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/station/qa/python-tests.txt",
+      "sha": "a382897b42d9ae6e3589c9a3ac0aee30503cb5f4",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/status/CLEAN_INSTALL_QUALIFICATION.md",
+      "sha": "8bc32af52bae8589f515fd37fb108daeb64b3aa4",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/status/FACTORY_OWNERSHIP_GATE.md",
+      "sha": "d12c9ff4d4d42d74b727ab3200951da1d071535b",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/status/IMPLEMENTATION_STATUS.md",
+      "sha": "6ed386912679f49f00a27dc456e78684bc620638",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/studio/PLATFORM_VISION.md",
+      "sha": "d02a72fa231402ed99089f2b335f9ff7eeef3839",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/studio/README.md",
+      "sha": "b9e76d151f3ce12e224aa024928a90801b103551",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/studio/STUDIO_SPECS.md",
+      "sha": "d302ddc2546106b6ce69b44d6f2ee3b844c15940",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/study-qa/fixture-protocol.json",
+      "sha": "77498f69f623e9abdd4f56d1ccb63978d09e5bf1",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/study-qa/fixture-report.json",
+      "sha": "a05f57a8a89d2236838b12f6d1ae4a4cc2993b72",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/study-qa/fixture-report.md",
+      "sha": "807965f47f60d43e457fb69172bc41777e2a4615",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/study-qa/validation.json",
+      "sha": "142641ef008a65f2bd538be51a68a4718ddb3fba",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/swarm/dsm-004.md",
+      "sha": "ab2482d8278e7ec90e97c6db25e9ddfadd718b82",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/swarm/eval-001.md",
+      "sha": "2a2f3e5303ca3fd4d8b86d833410c3fbf0fc074f",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/swarm/obs-006.md",
+      "sha": "5f6d7f6f99d32c3d38c9094a3c7f534f81137b5e",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/swarm/otx-003.md",
+      "sha": "21b09966af7f37058cf9813c4843ed0066169d39",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/swarm/runtime-005.md",
+      "sha": "b2a9cc2ad56a253303e81ad02e1b42bb8839d91a",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/swarm/vq-002.md",
+      "sha": "7e8671d290fbab181680aea752c0a9960b916e93",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/validation-summary.json",
+      "sha": "2be021ef1d583127f43ed7d084e27a36843a8231",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/validation-unittest.txt",
+      "sha": "c85d96b224b12bd14cfb64426b430bc56fc773c0",
+      "mode": "100644"
+    },
+    {
+      "path": "evidence/dsm/dsm-004-evidence.json",
+      "sha": "20c8e7e4d8ad99dc0b5b0b73085388ab14477620",
+      "mode": "100644"
+    },
+    {
+      "path": "evidence/eval/fixture-study-evidence.json",
+      "sha": "0a2b62ed0838bffcf36e2b3086246304c74ac873",
+      "mode": "100644"
+    },
+    {
+      "path": "evidence/eval/fixture-study-plot-inputs.json",
+      "sha": "5e729ee2089150ff230425ece374ceea636be1ba",
+      "mode": "100644"
+    },
+    {
+      "path": "evidence/eval/fixture-study.csv",
+      "sha": "2ef6fe922d7127318f2b270688fc25164854117f",
+      "mode": "100644"
+    },
+    {
+      "path": "evidence/m4-qualification-prereq/README.md",
+      "sha": "508c4aca8d77675c68a32140060cf6cecff1a487",
+      "mode": "100644"
+    },
+    {
+      "path": "evidence/m4-qualification-prereq/local-probe-report.json",
+      "sha": "e99c15c3fb73e7964ba32add027f6c310332455a",
+      "mode": "100644"
+    },
+    {
+      "path": "evidence/m4-qualification-prereq/local-probe-stdout.txt",
+      "sha": "6b049e588a52734b512cb60014d033e252bc0a3a",
+      "mode": "100644"
+    },
+    {
+      "path": "evidence/m4-qualification-prereq/local-tests.txt",
+      "sha": "aba8b36c113be3080efe0530d008276a5e3398ef",
+      "mode": "100644"
+    },
+    {
+      "path": "evidence/obs/obs006-evidence.json",
+      "sha": "4f140a2266df0c6b6f66f6a88a519b52a1c58182",
+      "mode": "100644"
+    },
+    {
+      "path": "evidence/otx/observations.jsonl",
+      "sha": "9d24ececfe5e52a3732d6f5cc6c571d8af125ca2",
+      "mode": "100644"
+    },
+    {
+      "path": "evidence/otx/results.json",
+      "sha": "f756055e518eaea7537c85c4b5a45a433a4f8f0f",
+      "mode": "100644"
+    },
+    {
+      "path": "evidence/runtime/runtime005_evidence.json",
+      "sha": "76358dd1a1054e596a5e04c167dd84792e809dd0",
+      "mode": "100644"
+    },
+    {
+      "path": "evidence/vq/outcomes-adequate.part0.jsonl",
+      "sha": "e79f2946fd30cc11994a2015f35668fb4e9ab808",
+      "mode": "100644"
+    },
+    {
+      "path": "evidence/vq/outcomes-adequate.part1.jsonl",
+      "sha": "2fdc9b28d8f0814b7e579bc03fddfa18e55148c9",
+      "mode": "100644"
+    },
+    {
+      "path": "evidence/vq/outcomes-adequate.part2.jsonl",
+      "sha": "e14239f88af6718b7423a065f887141f55167654",
+      "mode": "100644"
+    },
+    {
+      "path": "evidence/vq/outcomes-degraded.part0.jsonl",
+      "sha": "e79f2946fd30cc11994a2015f35668fb4e9ab808",
+      "mode": "100644"
+    },
+    {
+      "path": "evidence/vq/outcomes-degraded.part1.jsonl",
+      "sha": "2fdc9b28d8f0814b7e579bc03fddfa18e55148c9",
+      "mode": "100644"
+    },
+    {
+      "path": "evidence/vq/outcomes-degraded.part2.jsonl",
+      "sha": "8d7c4b0ce090d34f22b9896751d0832161816cab",
+      "mode": "100644"
+    },
+    {
+      "path": "evidence/vq/vq-002-benchmark.json",
+      "sha": "27002ad6c3a15f20b638a09dfb914c73fc3ad862",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/cic/frozen-dead-end/grader.json",
+      "sha": "0be72f9cd06e6bbb018c971fb90b4253326d4a6a",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/cic/frozen-dead-end/task.json",
+      "sha": "b8b7ce3d8cb534eb52c89ef96195ed3795fdfedb",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/cic/independent/grader.json",
+      "sha": "1d24a6c6b5ed50231f93d9e3de50b728834991a8",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/cic/independent/task.json",
+      "sha": "ddb3563b23322f4f853f759c203f9b4d1dea2c92",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/cic/stronger-member-check/grader.json",
+      "sha": "a87eecb85bbbd9ed3beb4a1745841951e3208fcf",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/cic/stronger-member-check/task.json",
+      "sha": "188a7bf490dc8fd8d3fed39d273b6a11015c40eb",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/cic/suite.json",
+      "sha": "475619454d9f6fbb9f67650ceecd33f42ffdc46c",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/cic/sum-choice/grader.json",
+      "sha": "31ba715e4c11c4b0ae77e695707d26942a0cca3e",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/cic/sum-choice/task.json",
+      "sha": "b5028f12f0e3e70115b78cfcd55f2cf6ddd523d9",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/cic/unsatisfiable/grader.json",
+      "sha": "a87eecb85bbbd9ed3beb4a1745841951e3208fcf",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/cic/unsatisfiable/task.json",
+      "sha": "5fa2c34f3b9f99a6ca863b75f18dbfaa36275e73",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/cic/weak-composition/grader.json",
+      "sha": "0be72f9cd06e6bbb018c971fb90b4253326d4a6a",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/cic/weak-composition/task.json",
+      "sha": "d71f1abcfeef197eef30dfbe28ca624041e00e5e",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/demo.toml",
+      "sha": "a0cf4e000517bde482479ceed004dee888b54829",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/factory/brokered_worker_demo.py",
+      "sha": "6953831b5f4be3a452c4b9a937dbf77e788647af",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/incident/actions.json",
+      "sha": "19b4fdb5df22eccd1600cb382d4053907a7ed936",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/incident/probe.log",
+      "sha": "cb5314ce99c562b5c7969a579063baeeced81975",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/incident/task.json",
+      "sha": "3d4b20d3e22dfd4b9770ae6985d9ffb0bcca8f64",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/incident/telemetry.log",
+      "sha": "cad0899ff4debd717534287e5ca3157f67a0cf0b",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/maintenance/state-model.json",
+      "sha": "94e378a1abbf71c06efda136a652e6327d7e7f0f",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/maintenance/task.json",
+      "sha": "bfab90dfeea55fdcca9b79431f30339e31dddf58",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/modular-cloud.toml",
+      "sha": "ed6fb5da1b295de32acbc9f641f35c89ba30cdcd",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/ollama-cloud.toml",
+      "sha": "31d7693ab633df8cacc3906b4824484e80f55b12",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/ollama-only.toml",
+      "sha": "9d7ec386982978179179ee5b43e920dcb35fd9a9",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/onboarding/README.md",
+      "sha": "e3482175c4c4a475cc8f5f2f7793a98106dd8f87",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/onboarding/cloud_demo.sh",
+      "sha": "929c5e9a2926a8d056c08be79ca16ae18ff5cbff",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/onboarding/config.toml",
+      "sha": "06b6d684425243325e408749ad3eae6ab0ad4f6e",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/onboarding/demo.sh",
+      "sha": "09f94d3f9d1fc6891b380d38f54f0dd17ee5bbf8",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/onboarding/sample_project/inventory.json",
+      "sha": "c7eb02af32a414872d0283ffedf6a9bab34d2274",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/onboarding/sample_project/task.json",
+      "sha": "ae0f587ea6a10e3cfb07fee0070eff7a842f6a68",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/onboarding/validate_tutorial.py",
+      "sha": "30a9bd86ba96a1db1df940f11b22068dbb2cb279",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/python_api.py",
+      "sha": "b4fb99d35fd776f2ec8c370ea08034b74ccec2e3",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/station-mission.md",
+      "sha": "d16d8aa89f9ec54eea6a88e1b2f5f53c60570514",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/study-fixture.toml",
+      "sha": "36a2a35b6169c81376d0ca8e2ad40a85e29b3ff2",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/study/affine-dev/grader.json",
+      "sha": "cfbf3204c99e6668d8995d22d402f2e542b93106",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/study/affine-dev/task.json",
+      "sha": "31aa8f7d22275d92f083b3a73f23e805ab0dfa1d",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/study/floor/grader.json",
+      "sha": "a3167db00c2a87e2bb5bde0410f9b3e2d4c94d59",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/study/floor/task.json",
+      "sha": "3a12c5ef60974c5ef292306b83f7dcbc9b3ba50c",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/study/frozen-dead-end/grader.json",
+      "sha": "0be72f9cd06e6bbb018c971fb90b4253326d4a6a",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/study/frozen-dead-end/task.json",
+      "sha": "fd634518c26a37140f80de846b9237117bec2781",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/study/joint-choice/grader.json",
+      "sha": "22d018ced392e0f4d6735e0cf0979aab99d8b86a",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/study/joint-choice/task.json",
+      "sha": "e143f7229636a41d89bec114868a89ed42b3997f",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/study/modulo/grader.json",
+      "sha": "60fbeb8449771f8713a0515bca0e2e04b97c8426",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/study/modulo/task.json",
+      "sha": "fd10139d8e41115e38051c04ed0ed271f46127d3",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/study/quadratic/grader.json",
+      "sha": "35b4f5877e848d682cb5f9c32c87cde51c2d5f3a",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/study/quadratic/task.json",
+      "sha": "7a3a18fcdfeece05380df7a4e7ce37ca91dcfc4a",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/study/suite.json",
+      "sha": "1ebe3fcc3c8ec1a6293ebda56c548e5e5ece7d56",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/study/weak-composition/grader.json",
+      "sha": "0be72f9cd06e6bbb018c971fb90b4253326d4a6a",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/study/weak-composition/task.json",
+      "sha": "3d5806da7be2892376e67941b9f74212737972c1",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/suite.json",
+      "sha": "c4a2b67d2fc309915a3e4b043f6c74da99f28545",
+      "mode": "100644"
+    },
+    {
+      "path": "harness_specs/ARCHITECTURE_DIAGRAMS.md",
+      "sha": "2fab6e00dd5f1a1f38573bab5c79959d84113e24",
+      "mode": "100644"
+    },
+    {
+      "path": "harness_specs/CONFLICT_RESOLUTIONS.md",
+      "sha": "efdafb292fed74ea1009b73b05de9d9dde3230b9",
+      "mode": "100644"
+    },
+    {
+      "path": "harness_specs/CONTROL_PLANE_SPECS.md",
+      "sha": "2991545928401b07af886d3e525ab001bbeb15d3",
+      "mode": "100644"
+    },
+    {
+      "path": "harness_specs/DESIGN.md",
+      "sha": "0912355263e8538e81788c4f513b6146c1ed2ad9",
+      "mode": "100644"
+    },
+    {
+      "path": "harness_specs/GAP_ANALYSIS.md",
+      "sha": "9418976941f6f3720bb2f2ca25fcf57d376969e8",
+      "mode": "100644"
+    },
+    {
+      "path": "harness_specs/GAP_CLOSURE_SPECS.md",
+      "sha": "4897173cc96650109903d89021be59fb5faae29c",
+      "mode": "100644"
+    },
+    {
+      "path": "harness_specs/M2_M3_M4_SPECS.md",
+      "sha": "84bb2cc25b519a38e8d6388dc1032016b4119585",
+      "mode": "100644"
+    },
+    {
+      "path": "harness_specs/MESH_SPECS.md",
+      "sha": "3df0ced306e9dc8c3dea6f8121940dadef80917c",
+      "mode": "100644"
+    },
+    {
+      "path": "harness_specs/NETOPS_SECOPS_SPECS.md",
+      "sha": "a6f8930d6ad333cd773802649308cbb377572aa0",
+      "mode": "100644"
+    },
+    {
+      "path": "harness_specs/PATH_TO_10_SPECS.md",
+      "sha": "4a63bf4fc18b5d7e69015ab1b87e10f132a947ee",
+      "mode": "100644"
+    },
+    {
+      "path": "harness_specs/PHASE_4_5_SPECS.md",
+      "sha": "e5708d68ca2a7eee6ee94671449b40ae39f3c671",
+      "mode": "100644"
+    },
+    {
+      "path": "harness_specs/README.md",
+      "sha": "6fc274eecc8a1232d9c0bbbcace63ba1a6162177",
+      "mode": "100644"
+    },
+    {
+      "path": "harness_specs/RESILIENCE_SPECS.md",
+      "sha": "ea6a3c9b07d6301bf350e88aab7b7b4de07eab95",
+      "mode": "100644"
+    },
+    {
+      "path": "harness_specs/SPECS.md",
+      "sha": "88fdc4f0924e7f82b681029fa777817021d1ced5",
+      "mode": "100644"
+    },
+    {
+      "path": "harness_specs/STUDIO_SPECS.md",
+      "sha": "26155d06beb237ff014d088a4dace0539265716d",
+      "mode": "100644"
+    },
+    {
+      "path": "harness_specs/SWARM_RELIABILITY_PROGRAM.md",
+      "sha": "aeb775e08d2c7823f50f1d24f776408e8406c64b",
+      "mode": "100644"
+    },
+    {
+      "path": "harness_specs/V040_ASSESSMENT.md",
+      "sha": "d185dd5847004b4ae8a40b18c63dbe56502da3cf",
+      "mode": "100644"
+    },
+    {
+      "path": "harness_specs/WORLD_CLASS_SPECS.md",
+      "sha": "453bda655e58997a0164a1e536e8912d84015b00",
+      "mode": "100644"
+    },
+    {
+      "path": "implementation-status.yaml",
+      "sha": "237fc794c1fac04b2a794947ed4a973c7817f55a",
+      "mode": "100644"
+    },
+    {
+      "path": "index.html",
+      "sha": "d1b247e97cfc66d51ff6d571cd18282ce40d8115",
+      "mode": "100644"
+    },
+    {
+      "path": "observation_layer/__init__.py",
+      "sha": "f78c55bdc77cfed0f8b44f2e11eed2ac78333b18",
+      "mode": "100644"
+    },
+    {
+      "path": "observation_layer/bus.py",
+      "sha": "8c49ac2c05c2a8a54fd47f5937ea8234a6c5ad3f",
+      "mode": "100644"
+    },
+    {
+      "path": "observation_layer/core.py",
+      "sha": "5809a97fae6a4cef43d37b3160ecea258312bf79",
+      "mode": "100644"
+    },
+    {
+      "path": "observation_layer/filters.py",
+      "sha": "07089bffa5cca181abdd6bf4b4054fc715dbfff6",
+      "mode": "100644"
+    },
+    {
+      "path": "observation_layer/hooks.py",
+      "sha": "16891239fab84a074f3204140d1b7cca7268b6f2",
+      "mode": "100644"
+    },
+    {
+      "path": "observation_layer/query.py",
+      "sha": "ec185247d95eedd83605d47735cddeab89737d72",
+      "mode": "100644"
+    },
+    {
+      "path": "observation_layer/sinks.py",
+      "sha": "8286505e91d7d68daff5c64a42089c0c8044f925",
+      "mode": "100644"
+    },
+    {
+      "path": "package.json",
+      "sha": "a08a85d81043e66da077d11c57fb4ea415a9cea2",
+      "mode": "100644"
+    },
+    {
+      "path": "projects/.keep",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "mode": "100644"
+    },
+    {
+      "path": "pyproject.toml",
+      "sha": "f933e698eacd588b518795ca4d8f3f18991543ae",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/__init__.py",
+      "sha": "112a11bf692189ec3c641f292e99f5a3416af3f5",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/__main__.py",
+      "sha": "eb53e2f31b2f703ad32ef64b8a41faa3e7d18e08",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/assurance/__init__.py",
+      "sha": "c819091748b59e33b36baa40c8d6d2076ea2ea7f",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/assurance/distributed.py",
+      "sha": "5e373eb01ef55efa63536f6aca3dd2c5b0ef6ae8",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/assurance/evaluation.py",
+      "sha": "c7c4fabed3b72d63a6c11f49b5da4a948276c8c4",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/assurance/external.py",
+      "sha": "4c14f7fc4985563aaa8423311dd9e400de9b9d1c",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/assurance/factory_adapter.py",
+      "sha": "ed79533b9c3c960eb62088c892d08aaf83d570a1",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/assurance/factory_admission.py",
+      "sha": "171541a4cb885adb9e266c57ac00d80f8f180808",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/assurance/factory_dynamic.py",
+      "sha": "676697a01acccd1303d041ec740222e5c7c57238",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/assurance/market.py",
+      "sha": "8348403f547dde58bb11078a7c5371599d631957",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/assurance/orchestration.py",
+      "sha": "345d99a8a67c16d1b73f8de25ba7ef338d474a80",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/assurance/preregistered.py",
+      "sha": "a3d426758dad5d6c979b9027804ce92bb53f607d",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/assurance/quality.py",
+      "sha": "498d3c5d99a83a573563ccecb6063f45d816e78d",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/assurance/runtime.py",
+      "sha": "57b99b0cdd3e60349ffe9ca026717215979a45f4",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/async_io/__init__.py",
+      "sha": "c7cdc9529601985778488927cbf73a58005122df",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/async_io/coordinator.py",
+      "sha": "2105dee3bc0fecdda19171d3ec3666c525931740",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/async_io/server.py",
+      "sha": "4d60e4d30a889cd837c26b5dd1aca385487b1c55",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/async_io/sink.py",
+      "sha": "d65a325251e1d0bb9975ba99acbf74c805b2eff1",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/async_io/telemetry.py",
+      "sha": "7d317cdadf88ffdcb2fffba885a3ce2413e2f448",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/brakes.py",
+      "sha": "811878a9d694d3ab0140b66e6a3ceaa47a2b8c8a",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/browser_bridge.py",
+      "sha": "16499246b0bd169617c862fd083348a6142c3bc9",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/cic.py",
+      "sha": "0419b2ee48b475916e8f100b74c593931421d688",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/cli.py",
+      "sha": "d43893ed9522e10072168214f5d6b62d439dcbc0",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/cluster/__init__.py",
+      "sha": "dc596c33adfcdbecaadc5e193165277770288857",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/cluster/auth.py",
+      "sha": "a137f6787323493be37f831b60955c8647862069",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/cluster/capabilities.py",
+      "sha": "186848606940b9a2162163b16166acf8832d71d4",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/cluster/cli.py",
+      "sha": "84abb7efcc65636462d64833261fd476a7d07893",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/cluster/discovery.py",
+      "sha": "2048c9d95688bac202e557ea052f9d63bab850e9",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/cluster/node.py",
+      "sha": "b89845b69c9ff058ef55ca6f0d1ae78084d042fd",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/cluster/registry.py",
+      "sha": "479a7a35266e77d30c9a76bd76a5bd7874b94a22",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/cluster/schema.py",
+      "sha": "924692a59e45e3e94de3fc8496812ca4eab2d19c",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/cluster/transport.py",
+      "sha": "1bb194af785a593bfd2480fdf08aea204810454c",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/compliance/__init__.py",
+      "sha": "1f9762b4b80ef9ec32acde840d4767d92e58c097",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/compliance/erasure.py",
+      "sha": "4aab9cb14b09b46834c9e1e24e5d39dbd03c6435",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/compliance/legal_hold.py",
+      "sha": "2f948a3c5b3d41a3e5adeae96d8a4331faf08bd3",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/compliance/log.py",
+      "sha": "e1096ce3503fc671e949f33a9c4271136bf0ba3c",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/compliance/reports.py",
+      "sha": "5c7c4bbfabbf53bfb3754b3e25701022c12bbe7d",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/compliance/residency.py",
+      "sha": "965d5e77dda3c9d60d1e7b08acf2ec2bf9305fd4",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/compliance/retention.py",
+      "sha": "e1d65a1bca06941ca0c90dbf181b8b875102c2b0",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/compliance/siem.py",
+      "sha": "9a7db289351f1cd8ce17f1eada989b3d8df3ce84",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/compliance/signing.py",
+      "sha": "ff16d9f67d6720466b9e1105118e68d9eedacef3",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/compliance/tagging.py",
+      "sha": "a184f99fc77def947374bbdabc1351163b9ae6ff",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/config.py",
+      "sha": "1375e6af917df9c902dc3422ac690640efc80836",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/connectors/__init__.py",
+      "sha": "61cdd3012564698818620f1cc9e77bb21823fe7b",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/connectors/conformance/__init__.py",
+      "sha": "f2c58df909be1de34ba060db05809b3c6f039ffc",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/connectors/conformance/harness.py",
+      "sha": "e76293c4a75c859497af165555d1adec0359259f",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/control_plane/__init__.py",
+      "sha": "782571bccd77c967976b3c6133c623b53538ab09",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/control_plane/amendments.py",
+      "sha": "ad84751e371bf9f3aeed4988b23d87732a27e9c5",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/control_plane/environment.py",
+      "sha": "be685480bd0770c9201247fbc475e0a38c17d433",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/control_plane/invariants.py",
+      "sha": "e834289b2194b3ce8167905def37451413d22e8a",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/control_plane/models.py",
+      "sha": "dfa38df0f2a16813e7b783f72b700aa10d940620",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/control_plane/policy.py",
+      "sha": "37a8662a368952dea94f245cfe129899ed1e5367",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/control_plane/routing.py",
+      "sha": "3bf15e775fb4cf434328d25d50478ee9c4bf7181",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/control_plane/transactions.py",
+      "sha": "9e86738413611aa84b3b0a95f3da9d52074c2868",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/core.py",
+      "sha": "9ac60b82d2832a8b4fa62e8fb75b05d8889ba4ed",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/crypto/__init__.py",
+      "sha": "6ed9c8cbb5ca82ad9a2b792246d813d3f8df9408",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/crypto/_aesgcm_fallback.py",
+      "sha": "e9034e67baab100f976ef32a6d8ea18369c42137",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/crypto/provider.py",
+      "sha": "6d78199e70c9b0acc22b850145550e8744142248",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/crypto/rotation.py",
+      "sha": "95236e8752a2bd666aa3bf831782b9221435461b",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/demo.py",
+      "sha": "9af262b169f734d54f3ce01f416febcb05bbd605",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/dsm/__init__.py",
+      "sha": "e56dd45b1e9348d6f29d975ac72fe4f4036f4435",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/dsm/delivery.py",
+      "sha": "fc11b32aa2f994e96efa9d9ce6d50dac0906048d",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/dsm/evidence.py",
+      "sha": "aaffca1716a53602c35ce23daf2f229eafd59acf",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/dsm/faults.py",
+      "sha": "67a83983a85a16b626e95481aad73fb99e7a876b",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/dsm/journal.py",
+      "sha": "1930773dc4a006394b14bd1e7a00dd76c5c176a2",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/dsm/lease.py",
+      "sha": "83fcc8d2c299f192bd792238e66b1ec5e30543ee",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/dsm/ownership.py",
+      "sha": "25fd5270024b9c4a9f1e491ed27e4e9281730ad4",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/dsm/recovery.py",
+      "sha": "e8b07893bce3a6fede02ca9583efbbeae8d595e1",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/dsm/store.py",
+      "sha": "9620d4ebf8021101ffddaed6f9efed5db10a82a8",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/engine.py",
+      "sha": "12893381c52bdb63382d09876c587e2080bfc4d8",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/engines/__init__.py",
+      "sha": "383a29609ba90676061efd252f4d8d9ecb50f911",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/engines/_isolated.py",
+      "sha": "dc5757fe4ac6f8d03274a7be0afdb5e3eaa01b0d",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/engines/crewai_adapter.py",
+      "sha": "b10682c9fa5a4b0e1a21a1d19b6fa37d61fbd88c",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/engines/langgraph_adapter.py",
+      "sha": "809bccf294d9bca027ac268dce46044eded23bbf",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/engines/probe.py",
+      "sha": "549e8221f0fe44c6963b026bc2c8a66639b1df73",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/engines/protocol.py",
+      "sha": "7ea430f2e17ac141aed16981873cc62b8c6b374a",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/engines/provider_bridge.py",
+      "sha": "dd876c89e2d17cc2dc65dd48f6f802af0f791cc5",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/engines/router.py",
+      "sha": "e444dabe4dfe426725c692d17951c974ddb8a2e6",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/engines/sdk_adapter.py",
+      "sha": "7973599ef3b8053cb571293ce9e7c1b8754e7da2",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval/__init__.py",
+      "sha": "e6167d3541b0bd67aa916a2844845d46c96be0b9",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval/ablations.py",
+      "sha": "876fa3cd08a7f688ea663ef623e339e0f2412fb2",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval/cli.py",
+      "sha": "00e895060778891deb2f90167e2d51f283b7c4ff",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval/faults.py",
+      "sha": "30c2b8417c8ac3ec2ce7fc0778bc43867aca45c6",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval/loop_modes.py",
+      "sha": "8ffca877275a4c94d8dc8f9cbf59d3ab6dcb30f2",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval/measured_factory.py",
+      "sha": "7b54dc0294d7ec623b5b985fde6396b0fc4e82a3",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval/replay.py",
+      "sha": "3d3c46c7e055df0e1fe8019cb991324a3f9f7513",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval/report.py",
+      "sha": "6f375094dc143ed99e3f581012162c242b108659",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval/runner.py",
+      "sha": "d533b0158b426266e53e267bd00cf12a6c28f903",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval/spec_eval.py",
+      "sha": "62218cc936ff1562b256e1900da1043fd9774d07",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval/stats.py",
+      "sha": "061063e5b683c7d017d1544f19968ddec2428fa5",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval/workload.py",
+      "sha": "b9209f6e24a09e5649a39dbe998673f6f56bf536",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval_frozen/__init__.py",
+      "sha": "2223e82fd851fe24b948325114ed6814b0e26b56",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval_frozen/__main__.py",
+      "sha": "eca6d4310baea4bc736d630d015606732111de9f",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval_frozen/acceptance_binding.py",
+      "sha": "e61a835188da7f9c52e98baa08d26c71d07bb5b0",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval_frozen/configs.py",
+      "sha": "10643f80423ca2b79bd5ca1c160023501f5eb541",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval_frozen/evidence.py",
+      "sha": "694a99a1ee73edb53361a94043d5a185ed55f302",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval_frozen/metrics.py",
+      "sha": "8950d56bf71bcaf238708ad86cc28d03fee7a234",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval_frozen/report.py",
+      "sha": "8f786bb0cade48195ebe8ca748c604e79ea96878",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval_frozen/runner.py",
+      "sha": "456bacca9c610a9d10f690104d400cd2195c3ec1",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/eval_frozen/workload.py",
+      "sha": "1fc6dccabc264e8c0cc516731d9e4036b3b64aeb",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/evaluation.py",
+      "sha": "c415981d4d6c09fec25a1f019b9ab297503fc487",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/extensions.py",
+      "sha": "a77800c983f713c77c42eda512c5a452feb034d5",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/__init__.py",
+      "sha": "09d3bdec9c3b244e4050e3fb3c40e251d78fb88c",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/__main__.py",
+      "sha": "d4ce0a86b4dfaa6bdf1148839f69982502f78b5e",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/_isolated_child.py",
+      "sha": "96456c4130ad4f0b867145ae2c30a47f1e8b6c0f",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/_sandbox_child.py",
+      "sha": "417204382b70374c6739018cbf45ea61700a2b0c",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/cli.py",
+      "sha": "f4605fb5402f814104d932a96770fc6689b7a89d",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/compiler.py",
+      "sha": "5f4d12cbb15a9f89c96c515a5d0232aabd968690",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/evidence_bus.py",
+      "sha": "6c491014b5aa6abf1751ba65a3237d6467c4aed8",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/evidence_receipts.py",
+      "sha": "1be2bb71b37c47c9004a7db49cf77c94abc066fd",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/loop_runtime/__init__.py",
+      "sha": "e54395c43db98b7dfeeea38f17572bfa60f312e6",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/loop_runtime/contract.py",
+      "sha": "9f8eb2357e377ee52d91bc43f1c1506c8f414e57",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/loop_runtime/controller.py",
+      "sha": "66f95b7953f6ce46f237e14eb8d906d9a98ef607",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/loop_runtime/policy.py",
+      "sha": "931cec5ae36c1f71d3bee0d956e0c9da20a41cc7",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/loop_runtime/progress.py",
+      "sha": "860234c2a3916c2bb1d5d57352864458cf1fdaae",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/loop_runtime/state.py",
+      "sha": "f71f009eaaed1fc55aeab6e875e9d8b877bd04b9",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/m4_evidence.py",
+      "sha": "96fec82751e0e0292f070fd62039c02b3af7a718",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/m4_git_evidence.py",
+      "sha": "779cf672aee74600084bed898ec6371f6a89bf60",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/m4_integrator.py",
+      "sha": "f6fa85f9d0935a08da3fa4c7d2aa962e77a70986",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/m4_qualification_prereq.py",
+      "sha": "d6a50ae8738b21ffe8ce337b86a412c822ff40d7",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/m4_safety.py",
+      "sha": "a5e1a4ab7bd9a10729e079bec2fb561ebeb3e0db",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/m4_sandbox.py",
+      "sha": "58b322358c74a6072b621d7ab87b468c26be0448",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/m4_scheduler.py",
+      "sha": "91b9b4faf048242c4df39ff800b1ed544a8a0f63",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/models.py",
+      "sha": "6b01303944dfa7eed0925ca79e2bc5070a006dc0",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/runtime.py",
+      "sha": "933886e02a824cbc24fb79d8b1154ff4acbd9df9",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/runtime_journal.py",
+      "sha": "9a90b6d3a83de96a5c7f76f92d104b64332367ab",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/runtime_workspace.py",
+      "sha": "71391f79ca8d0e2d3f15f78def2a5eb716cadc6e",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/station_issuer.py",
+      "sha": "4db9231b966cb83373010118f4506ac7a41cdada",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/termination_provenance.py",
+      "sha": "fa40f38e5bcab48457f40c27ba1964f199bd544f",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/factory/worker_contract.py",
+      "sha": "39b47df9c1bccee9f8269bee4df53dc994c5dd25",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/gateway/__init__.py",
+      "sha": "5e223ab624b58ee70798901a052137a9f4618017",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/gateway/gateway.py",
+      "sha": "b083728d938f7130ef4f4ad28d4a8e79545e4e81",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/gateway/intents.py",
+      "sha": "ccb441fa0b215dde727471cf39a6b613b6974574",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/goalspec.py",
+      "sha": "803d9faea44f3b4199833d0852b95697ce10153e",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/hadr/__init__.py",
+      "sha": "2cca7896cb99dde126559ef23a56e0bf37f30a80",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/hadr/backup.py",
+      "sha": "1df774665b34a8230b1df1c86193608a7d9d69c5",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/hadr/chain.py",
+      "sha": "b111d451f82f68c6f085a0474d872e35c9fc5757",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/hadr/clock.py",
+      "sha": "61a2ef298147e9e9dc11cedd9551c206bb9ba24d",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/hadr/cluster.py",
+      "sha": "fa9a10652f105a76bea408c304c755670a2841ff",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/hadr/degraded.py",
+      "sha": "e6a8ddc21b32b3dbce5fabe6abd3a98506cba108",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/hadr/events.py",
+      "sha": "f5d422d8c2725c82d289f88ca4c180c2adb66149",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/hadr/failover.py",
+      "sha": "b724ae0dba470e020f599208ba95739406e2c833",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/hadr/replication.py",
+      "sha": "7e2a62bf60022c822482dc6aa4d48c14ef2c4301",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/hadr/restore.py",
+      "sha": "1579adc243fe9fec3c2339d4d8ded98f4e1826d8",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/hitl/__init__.py",
+      "sha": "1471c14af80e0375814191d52b5be6a9a4a3aa5d",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/hitl/gateway.py",
+      "sha": "063557eaa78532b7d2a953f6e0c3a875967334aa",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/iam/__init__.py",
+      "sha": "9e4e2a3e087f42963e5c2a9bffbd012d4ce38bbe",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/iam/abac.py",
+      "sha": "6a6666355d2dba924fff7740043eff9b30209f4a",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/iam/crypto.py",
+      "sha": "eb9c36a1ca218c6931cb28ab1542b0653e376222",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/iam/events.py",
+      "sha": "b70a0427c266a6a09df3ae0db7ec7ca563296096",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/iam/jit.py",
+      "sha": "52e7095d5a6e3280eaa3249c2995bec031e3490c",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/iam/mfa.py",
+      "sha": "83ce24f91c4005dc56b25b08859518dcd445b564",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/iam/oidc.py",
+      "sha": "e59310b7f81dea0a09e5e90c3ad53f466f593f7a",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/iam/rbac.py",
+      "sha": "74cd86a375036e93c2f6f04eb864bcc781744ebb",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/iam/saml.py",
+      "sha": "53f04ac9768b65a8018c70d44ddb45232f08e1f7",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/iam/service_accounts.py",
+      "sha": "7054776c4cf1db39fc5e5b42c8731b89547088d4",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/iam/sessions.py",
+      "sha": "0571024b7343c7b8f9b28cd700fe854ba52b7c20",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/integration.py",
+      "sha": "bf6769c6ad328dd69072d083d29b9d6697a31069",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/integrations/__init__.py",
+      "sha": "841206d5cf8f4da4af85784da81e65207b9e4bb6",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/integrations/base.py",
+      "sha": "2f6d67640b4c170bcaf1a1da7ee1e78a2a7287ba",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/integrations/cicd.py",
+      "sha": "ec474fd67d4bdb3224d535150b4b1b060d10f22c",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/integrations/comms.py",
+      "sha": "a408caff783bcfb8ee7083be934fbfcec06b3882",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/integrations/itsm.py",
+      "sha": "7fc098b281bcc0a449d3ef2d7dd524f89f166a95",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/integrations/monitoring.py",
+      "sha": "e735ecbcad81d5319c89fe2f31361b8771966880",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/integrations/ticketing.py",
+      "sha": "61cf9ca33a541ee7f583a23f3755c6a5d7693139",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/licensing/__init__.py",
+      "sha": "9bda10c712fb8f386e1ee204f9642b3822cd67c7",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/licensing/model.py",
+      "sha": "df1d30b46f864f67d4ee32ca2099926fda267837",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/licensing/pilot.py",
+      "sha": "f3b8e1bf47e8bcf63ff330c259e35a90e21b93f7",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/licensing/support.py",
+      "sha": "7353e2455f082d37d622830b11cf792d41fc96f9",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/licensing/training.py",
+      "sha": "260b29d2d2cd7e3c9ff5019e332f370c16e594e9",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/lifecycle.py",
+      "sha": "661226db5b131fe51d5df6b1bd0a926c0348decd",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/lifecycle_glue/__init__.py",
+      "sha": "96cf6dc3616b0bdcdf766dd1c8d9975e1b1c31a3",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/lifecycle_glue/checkpoints.py",
+      "sha": "329f8eb6a594c642a4c4d8f6c72db03499c92b30",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/lifecycle_glue/indexing.py",
+      "sha": "84658082f858d7928dec34a31444c0ad6b3a9377",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/lifecycle_glue/resume.py",
+      "sha": "e47c3e78f7c7f6e91442eda8c703b9659e58a23d",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/lifecycle_glue/retrieval.py",
+      "sha": "5a7071dbb18d2dfed85a34d5ca1b9aec5f6d5a79",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/loop.py",
+      "sha": "c9b3442a03d2514d5ad462f19569ebf1c493c24c",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/marketplace/__init__.py",
+      "sha": "a209e3d76e65bfe3ac3924a29d083d7a5fc67124",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/marketplace/cli.py",
+      "sha": "2e61cbfacd771a13edad4208641bd51868bed90e",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/marketplace/install.py",
+      "sha": "dae8f6831f9398dba49447d19500d3ec7eec724a",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/marketplace/loader.py",
+      "sha": "793d7e55073e3231c0dbc9c117d259adeaebb690",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/marketplace/registry.py",
+      "sha": "abc06eac93b3ff84f2bcf9d4ea8942217416afda",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/marketplace/signing.py",
+      "sha": "0fcab0962d4ea593689a862a3a9c89b18dbbf988",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/marketplace/validate.py",
+      "sha": "6880f71f3d3d14aacdf96452c43a6b61d8227e85",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/memory/__init__.py",
+      "sha": "6b02e204c406a29062e8fae62783373111e4e1b1",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/memory/store.py",
+      "sha": "4b3f011ff8be8e54243736f0e3ad60dd3213aff9",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/mesh/__init__.py",
+      "sha": "0ef50319ef8d9767739eac78b138f8ebea4be0f7",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/mesh/node.py",
+      "sha": "e8d05f5387011256e8ec57f5d5f3774eb933a75f",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/modular.py",
+      "sha": "59626850c10e8b6eb42a41e527f9add400760820",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/modules/__init__.py",
+      "sha": "904eee5cb09cdebcb8ab4a00a7b5cca237ad15f7",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/modules/adapters.py",
+      "sha": "233fdc72d2125780df8ba01f672fe738b4961ee4",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/modules/netops.py",
+      "sha": "a0ff0bed040731d2b796105fa779b042466efa3d",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/modules/secops.py",
+      "sha": "8964384f4df9ad9a4aa55cb8a4a0724c3c18da41",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/observability/__init__.py",
+      "sha": "d0af60bcb3558500cf6deb004078ac102dac5bf5",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/observability/alerts.py",
+      "sha": "e1ebf5f3ac913ab0ec33e6fcf20e0d547014d16a",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/observability/bridge.py",
+      "sha": "347e0ac28f1e7e6da6844f92a068a0dd90e9a0cd",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/observability/completeness.py",
+      "sha": "643e4cea2ffd38b2e72c11039c7509f5ce4ff359",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/observability/correlation.py",
+      "sha": "d00fcb235b0de7481b5b5e3c0c9344935be7268c",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/observability/exporter.py",
+      "sha": "89e205d375e6be2350f9b2f3883d818ff78ab4dc",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/observability/http.py",
+      "sha": "c03f8660a15e9c9094e0eb6082e710d9ac9f6a3b",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/observability/logging.py",
+      "sha": "14512e30568c18337db31815e836560acd2e1dd4",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/observability/loop_metrics.py",
+      "sha": "39e297778674ac1bcca1c88a867d1fa360ac87bc",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/observability/metrics.py",
+      "sha": "fd828500f7359fe8bc032c1bef7a6db939314c99",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/observability/slo.py",
+      "sha": "2c855aee8bc71a83d7cbbd0b8cd3f0745a59c484",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/orchestrator/__init__.py",
+      "sha": "1caf1f33208edc62d0653bbcfadc4110536327b4",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/orchestrator/ambiguity.py",
+      "sha": "3a4b9342ea146c37f23a7c8123c7924a65f98a52",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/orchestrator/compiler.py",
+      "sha": "adb2783b4785002409cd79eecad1e2c781a72945",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/orchestrator/intent.py",
+      "sha": "b3315bcf52d25d0abb9353325fac5a698a00c87d",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/orchestrator/partition.py",
+      "sha": "2ae32e56c5abba8fe5bc82f25c549dcb29cb1c18",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/orchestrator/pipeline.py",
+      "sha": "1fa14e00ef6b2212141ef5a9607da7f88bef569b",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/orchestrator/plan.py",
+      "sha": "6c385a4fde71d8c77b3f42d2f94c54cdfd4057c8",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/orchestrator/requirements.py",
+      "sha": "fdbfc5e46b725ae4ed2def0ea05208b6ec5542b7",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/orchestrator/risk.py",
+      "sha": "b3f51af7bc621b1c880a5ee8251737031f18261c",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/otx/__init__.py",
+      "sha": "51a66ca272ca3b6d238e4450094082e5513895e4",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/otx/controller.py",
+      "sha": "2a51d959d4072a4f4bc43c4c008cc317f58102bd",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/otx/estimator.py",
+      "sha": "f9ebd09b5dd6323d1205a5312ad6e42a7eee5412",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/otx/evidence.py",
+      "sha": "d05424e0584114c80a3666a516fcadcc93d12c87",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/otx/models.py",
+      "sha": "a7134af7e72d7382e117cf039556647ab4ca4fa4",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/otx/observation.py",
+      "sha": "365822ba33e54c31ec769ac6197a78537b0a6ac3",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/otx/replay.py",
+      "sha": "e07bbde63b6d7efcda746283dcd0dcf9002af5c8",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/otx/workload.py",
+      "sha": "0246fbceca9e3bb96e81ecf63b3ff8261e658fbb",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/providers.py",
+      "sha": "fe44948f83965825460bf05e28a890f672c8a1f7",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/quarantine.py",
+      "sha": "aa495db7d7dbfece4e512297746488175124acf0",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/receipts.py",
+      "sha": "7b23f344f83ce8b069444094740af859c6afaadd",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/runtime/__init__.py",
+      "sha": "1757efac5fd6b97db7ad1a9c5fc95305f557031f",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/runtime/adapters.py",
+      "sha": "107eefddef771d3846084be41f418449d43f1c7f",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/runtime/cancellation.py",
+      "sha": "2959b15b5d4ecc3cd80d3a1114b656a8636221f0",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/runtime/conformance.py",
+      "sha": "2da2712f4b338a7afcba958e110db5a038dac0ef",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/runtime/evidence.py",
+      "sha": "6333ff19594a32d8816caa61215f9ff248674d40",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/runtime/policy.py",
+      "sha": "94f6024c4b5e44a1ec473177cf3dfb6b53ae7dcd",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/runtime/records.py",
+      "sha": "112db6084d048170ce9ce26954afc8a9873f7353",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/runtime/router.py",
+      "sha": "44edb4ee5112d3ae411fb7a926d7c26ba77d7888",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/runtime/sinks.py",
+      "sha": "0afcefb8e9af16d65feb1c8c692c9e70ec2a9e4c",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/runtime/telemetry.py",
+      "sha": "0fa533b2a02bc7e26f8e5723398a75752a2023d6",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/sandbox/__init__.py",
+      "sha": "af7aa4dff6fe0d01f624c1f9b8917c0969d95a0d",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/sandbox/_nslaunch.py",
+      "sha": "bb33121f25ed681b5dc1ca508827644ea9aa2eeb",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/sandbox/backend.py",
+      "sha": "feabc3674ee6730591a5516a91bd9417eb9a2bfd",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/sandbox/bwrap.py",
+      "sha": "83e26349ee4e7795e97594f74e992a4ab463c968",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/sandbox/spec.py",
+      "sha": "7e30f6c5f519080d2b65acf6e8d29a1f587e5621",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/sandbox/subprocess_backend.py",
+      "sha": "5c599f9908194497a4a17eb8a2fa82156ec4c102",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/soak/__init__.py",
+      "sha": "e2f274b880add8f1edf5a58a4e5f92f2b519d96c",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/soak/failure_injection.py",
+      "sha": "89351f7a201e5cabae962c91bd44747c289efaf2",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/soak/harness.py",
+      "sha": "433fd17cd594c53e0e33d8792b0023d8b2b3b0e1",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/soak/loadgen.py",
+      "sha": "a09e0111f6d8ea8064c174385879cc3dec23fe83",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/soak/metrics.py",
+      "sha": "61f62860b115684cd8495c8cbba619d2b5fdc522",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/soak/redteam.py",
+      "sha": "c40bfcd46ae965c9fe251cb71bb432a5ada9d263",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/soak/report.py",
+      "sha": "08e210c5c6a962206366e7774f7feda890f48f06",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/soak/state.py",
+      "sha": "4aeb24efc551a7fa9f5634e6c9ec568a6331e28b",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/soak/tasks.py",
+      "sha": "cc8937feea6ef2eda02346e7f1080cbaa911b0de",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/station/__init__.py",
+      "sha": "caa8253ac2229077f6b8452b66091d26e4fcb9e4",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/station/contracts.py",
+      "sha": "a8474efbfe605ea5346bb7b8a47e3f10b6790a04",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/station/control.py",
+      "sha": "0c6dd6d1b662f2e7be2e7a2bec6053ab5575eb2f",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/station/extensions.py",
+      "sha": "2016db5f446694c7427ffd4746a9e7bcda490b14",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/station/models.py",
+      "sha": "60d0402ddcaeaab97c945e7442bd0de4a21a6cae",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/station/observability.py",
+      "sha": "755803b5e58db4b764f02e60fa5ed362114a3606",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/station/schemas/ldd-base.json",
+      "sha": "1cea609a2a808d3991f96c8d8b5e91bf4363792d",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/station/schemas/runtime.json",
+      "sha": "682c51755c94b084a66cbae0ae8421ccb41cf5c7",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/station/schemas/workflow-event.json",
+      "sha": "6b2f4b02a6d3526c702280cbd1864a6148bef758",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/station/server.py",
+      "sha": "c1f7eec95c77b9ceeab8f35ddf3af749f084807b",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/station/service.py",
+      "sha": "bcd7d39f08b68aacd4ef06beff7dfa84cf075b64",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/station/static/app.js",
+      "sha": "6221599e7db4b18f5686b8e346801dd055cbfcab",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/station/static/favicon.svg",
+      "sha": "4d097feb7093e5cf2f9001ab22968d576f871442",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/station/static/index.html",
+      "sha": "7c7fe06b4bae01b6780f99c0acf481c6c54d5577",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/station/static/scene.svg",
+      "sha": "4870a5afb5413469b6387cf5e3a01131f9ee749d",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/station/static/style.css",
+      "sha": "9f52082a6d886e057890681ddc546bd89eb86549",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/station/store.py",
+      "sha": "4fe5d34528153b54142de48a47baccd0faa6fa49",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/station/worker.py",
+      "sha": "d9e7f3dc17214f0f02724fb871f23e3773ab279c",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/station/workspace.py",
+      "sha": "d59b6ecd50adce42c000fc27ba6737fee6276324",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/storage.py",
+      "sha": "8a87755026100535013d075e028bee2398a6ecd3",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/studio_frontend/README.md",
+      "sha": "3326cb115895a52431f3796d884f2e1351e0f11b",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/studio_frontend/__init__.py",
+      "sha": "4b5ef9d0eac62a1735f2e7711103d12b81ec3e8c",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/studio_frontend/__main__.py",
+      "sha": "24332cf852a5b235d0778f4ddaadd7ccfc2766c3",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/studio_frontend/contracts.py",
+      "sha": "0bd50420c9926777c85d551b933a192698d83f77",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/studio_frontend/fixtures/approvals.json",
+      "sha": "0d33d245261701b6c446e7796a09d9ea7addef3c",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/studio_frontend/fixtures/contracts.json",
+      "sha": "c41fb1483194f3c827528ac3b6851754c1098d27",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/studio_frontend/fixtures/plan.json",
+      "sha": "4041225185c94a34813ed626fffc6e0edba706b0",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/studio_frontend/fixtures/receipts.json",
+      "sha": "84c4bcfaef9046c8c1c240cbc49418248007e416",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/studio_frontend/fixtures/swarm.json",
+      "sha": "ab6e7a4295ce02610cb65bfdb3c10ec11c4f427a",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/studio_frontend/static/app.js",
+      "sha": "89eb6981ea5d087395f2707e8efbf0cb5e626fc6",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/studio_frontend/static/index.html",
+      "sha": "b2fcf65653b2aa367395eb96455f15122c7940d8",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/studio_frontend/static/style.css",
+      "sha": "cc506816fa63fcb8f7da4be338f5a4d3f2a34e24",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/studio_frontend/stub_server.py",
+      "sha": "4bb1e9fced4507b4239a54ee5e79b459057af51f",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/study.py",
+      "sha": "d0e762b2511bc59f536acf84586a8c199ba3380c",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/study_tasks.py",
+      "sha": "5454e04c60cb8617ded5b9ebc142e6ddc0362e9f",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/supplychain/__init__.py",
+      "sha": "3ba5f91c7df00bf07cee5dd4e68ebc41d26d52c9",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/supplychain/audit.py",
+      "sha": "10934b0bc98acd44935f575ee9654a82cff51f52",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/supplychain/disclosure.py",
+      "sha": "e5790fb5320d811c0de5a4eeded6b29df0833230",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/supplychain/pinning.py",
+      "sha": "22ea8d59b8c62ec44695bf01720b902c9a06ad75",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/supplychain/reproducible.py",
+      "sha": "71f632b305b59ee39b0ec1a018dcc2cb61a28f30",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/supplychain/sandbox.py",
+      "sha": "08508ccaddb9257739a49a5f321c6b7dbf6a2855",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/supplychain/sbom.py",
+      "sha": "092087a9c599f963406245e1fcb7f6424235e5ab",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/supplychain/signing.py",
+      "sha": "9b253ac78932544331966e2190eae831c7ccf695",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/telemetry/__init__.py",
+      "sha": "cdeb0299d944efbcec0f12c2132e503a379c549d",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/telemetry/evidence.py",
+      "sha": "3b058f76f8033f4f7973205dac9adf6ca06263fb",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/telemetry/exporter.py",
+      "sha": "3254d66538c82928d7f6f645ffb170f260bf92f3",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/telemetry/fixtures.py",
+      "sha": "bd3fc5547650435420ec48ed61d46b710ae7afb8",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/telemetry/labels.py",
+      "sha": "254a86c199915c320fa58321471309282994098e",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/telemetry/metric_families.py",
+      "sha": "90acdb5690fd441d975b7d47569d61e837081cfd",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/telemetry/report.py",
+      "sha": "660dfa3a79a9dd4e64d4f980ec29f9a60a49c29e",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/telemetry/schema.py",
+      "sha": "0675b3f4f8e8ac117565559ae20648530bfd24d8",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/tenancy/__init__.py",
+      "sha": "e7afa6811992d2b74ad13c618780ac4032f1a2c7",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/tenancy/delegation.py",
+      "sha": "5625ddfd6bf3b70af9c05143e9578a158519b540",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/tenancy/isolation.py",
+      "sha": "6440f5e71d25e2b94aeaa43b658bbc94b90b3a1a",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/tenancy/lifecycle.py",
+      "sha": "04d3500037d540ca40855efb24ccec77ea91bbe8",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/tenancy/policies.py",
+      "sha": "0f285d691769a8d70e90e20968bca0811a1a9541",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/tenancy/scheduler.py",
+      "sha": "bedb755fb816c308570d8a70cd1909deccecb21a",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/tenancy/tenant.py",
+      "sha": "b55f006e570b9c0440a6e96dea2f6c1add435d23",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/trajectory/__init__.py",
+      "sha": "37be4d1986f48024198d889326a4130794d5f75d",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/trajectory/recorder.py",
+      "sha": "b74f00245eb98fde853678a893418d19a0036077",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/tui/__init__.py",
+      "sha": "c5453d1d285b878e0a641d7bbb578fbd778e0b7b",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/tui/dashboard.py",
+      "sha": "66f84c5dfd03ee6286f06605c09edf4f2b1fd38d",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/verifier.py",
+      "sha": "495d385daf0fbc33a42d232ac8d7c135016fc460",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/vq/__init__.py",
+      "sha": "a8b2322c32f0c804d577f439b9830d2309574af8",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/vq/benchmark.py",
+      "sha": "9559c29d6d910679b00984d474b388d46f9f8e9f",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/vq/ensemble.py",
+      "sha": "d0cbf01cbca4902f049bc6816c854155fb7b29b7",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/vq/evidence.py",
+      "sha": "23c19d3ab740f75f1ffbfd3371a798ad925e0a7f",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/vq/frozen.py",
+      "sha": "3b3ab97df5caf5b282bddaaa42a051a789bd7f23",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/vq/gate.py",
+      "sha": "24dca1d46c9158e4b5ecbd713583a35114c8af91",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/vq/identity.py",
+      "sha": "9334524b114a90c22c84d8c3a7f3e68acb53f544",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/vq/outcomes.py",
+      "sha": "551177e546640af867f9ec691abf94bda3ab4c50",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/vq/profile.py",
+      "sha": "3ea65f9e0ba5bc384d3f830f86f113dd90a00a0d",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/vq/snapshot.py",
+      "sha": "9149d10ea2ff4c2325bcc36b01e78df2347ba7ff",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/workbench/__init__.py",
+      "sha": "45a8909eeb6ad33115959011303d0d0de2a50c17",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/workbench/__main__.py",
+      "sha": "fa660abbb093fe69cd6b1fa106541fb003814cb0",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/workbench/browser_build.py",
+      "sha": "7775f9713062bf920b8ce980f1113caafc891b9c",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/workbench/browser_mailbox.py",
+      "sha": "7da85bc20f4fe67270524aa8b6e21bbf3b9053f5",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/workbench/browser_run.py",
+      "sha": "8911353f5df83b0371b4eb2075d56d4123baa028",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/workbench/build.py",
+      "sha": "b74d13fb06a9617c5f91971f9e8dbc566ad8440d",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/workbench/conversation_build.py",
+      "sha": "892fb113f5a1a855d1168c2dd6e357fe5cfe9946",
+      "mode": "100644"
+    },
+    {
+      "path": "residual/workbench/runner.py",
+      "sha": "238c50cfca2003d8356f1afbfd8d6270e1675173",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/m4-trust/canonical-api-report.json",
+      "sha": "b40c98e971ca52d4c8aa27ba8025c871c1d79d96",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/m4-trust/git-evidence-matrix.json",
+      "sha": "b52b765051c64044935a5dae4d0b489044cbad27",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/m4-trust/m4-trust-report.json",
+      "sha": "5b7d13753ec6005fa00292f798b768944054645a",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/m4-trust/sandbox-logs/canonical-api.log",
+      "sha": "1f9cbcab7fb135976b28354d512532590fd3b956",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/m4-trust/sandbox-logs/fs-redteam.log",
+      "sha": "47a7e19da43a247c3b6d8c1114ad73381210b39b",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/m4-trust/sandbox-logs/git-evidence.log",
+      "sha": "b3fab7faa248696be44b8ca223a1c80c3b7e67e4",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/m4-trust/sandbox-logs/m4-regression.log",
+      "sha": "8c99e0fbfe48e8d8cc9ddc364013b82dd99438e7",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/m4-trust/sandbox-logs/sandbox.log",
+      "sha": "7628ec471187420bcf3c9594607f1c2dc03185f3",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/m4-trust/sandbox-logs/tree-binding.log",
+      "sha": "ded0138ae697a23e23b2d839636aa7832588ce88",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/m4-trust/tree-hashes.json",
+      "sha": "dbf08f89b6948047764335965bd4c0a2fe7a2e0f",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/sandbox-timing/determinism-report.json",
+      "sha": "75d4ed06b04676dba2fe3ecd67e72131c43616ae",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/sandbox-timing/repeat-factory-runtime.json",
+      "sha": "319d63c27467c72d11fc7275b1d3ea60a72ebaf9",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/sandbox-timing/repeat-sandbox-containment.json",
+      "sha": "c3d6fe9bce6106880096acf035acdd53cb324832",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/assurance_eval.py",
+      "sha": "9fab8f6ec292d0bff24f6d471fe5023defe6482c",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/build_cic_suite.py",
+      "sha": "99aa2cfa7e1b8cf43cec29271364de2afe5591e7",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/build_fixtures.py",
+      "sha": "1beedd55af60905e29e33019f69d8aa34ac94ad3",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/build_study_suite.py",
+      "sha": "c301b8ad661eed21b8dcbfbf78e187bca41f1da0",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/bundle_station.py",
+      "sha": "7f7f6e373cb823a2d1253806be6ac3aeee36504e",
+      "mode": "100755"
+    },
+    {
+      "path": "scripts/export_m4_artifact.py",
+      "sha": "d447f0b9683323edcbca8d8daef060740ede5468",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/external_assurance_eval.py",
+      "sha": "0d02add7b741e44d4abf6f09446abaa5a15418b2",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/factory_termination_matrix.py",
+      "sha": "c0b704c4b88749bdf6d30b4388bb68204745fb22",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/import_external_jsonl.py",
+      "sha": "28d3d5e0c7f8f661a9ffadd8be2f9f5ba7e604e9",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/m4_trust_evidence.py",
+      "sha": "a2210a59a3736333b19689ce273f044b152f63b4",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/publish.py",
+      "sha": "23c465110f4bd81bdbb1d53ed3376b21d3ec25ac",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/qualification_unittest.py",
+      "sha": "2f412bbf74dcad459de75088caeea145f90caa03",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/repeat_run.py",
+      "sha": "e641bfd658087bb0f1a2b3b20fd7267f6da68780",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/scale_study.py",
+      "sha": "778dd5a3f631f0c2c598a250de196933d52604ed",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/status_check.py",
+      "sha": "d1a859e7bf67374bbbedf1e906e8ec271f4f64bc",
+      "mode": "100755"
+    },
+    {
+      "path": "site/coi-serviceworker.js",
+      "sha": "d0ad69dc1c8e7ae49a41551e0a3706ad51be2e03",
+      "mode": "100644"
+    },
+    {
+      "path": "site/demo.html",
+      "sha": "1fcb6a99f14d7c399ac8c25deb2a582d1d4131fd",
+      "mode": "100644"
+    },
+    {
+      "path": "site/demo/index.html",
+      "sha": "7d1371e6275a599776b74db5853ba45a614f5d84",
+      "mode": "100644"
+    },
+    {
+      "path": "site/index.html",
+      "sha": "003ebed9223d771d4fdd749f1ab62f8a0db33028",
+      "mode": "100644"
+    },
+    {
+      "path": "site/live-demo.html",
+      "sha": "f7d92a195a0a15fc44d6cf24b434d6aa03085bda",
+      "mode": "100644"
+    },
+    {
+      "path": "site/walkthrough-persist.js",
+      "sha": "8a9e3c926a81f141936e9ee3e3c248406f55cafc",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/__init__.py",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/browser.cjs",
+      "sha": "e8ae0a234a8d25123dfb278f68f75e1b735f159a",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/enterprise/__init__.py",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/enterprise/test_compliance.py",
+      "sha": "39230614a3ebabc4a40d00c19597bada3a1126a3",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/enterprise/test_hadr.py",
+      "sha": "228bc02e16ec18f3ab8c192168d81f0561d4be6a",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/enterprise/test_iam.py",
+      "sha": "9c29ecbbdbaf61479cb6b3145428801cdaeea55f",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/enterprise/test_integrations.py",
+      "sha": "f40d2d8e104335bc6874dd6b323566e0da13605f",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/enterprise/test_licensing.py",
+      "sha": "811079ae9726f0a33c4cc7f98307a439b890ec1c",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/enterprise/test_supplychain.py",
+      "sha": "f0d49908e9af11a951c11de3240d47791184c85a",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/enterprise/test_tenancy.py",
+      "sha": "dc0dc509afd0ff4b80279f441222b570b0f04431",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/modular/__init__.py",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/modular/test_adapters.py",
+      "sha": "3354b905b27898c44256b0c3a940705ccbffec00",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/modular/test_observations.py",
+      "sha": "9b7a8128def02eb2a864c307358ab539400cdd08",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/modular/test_routing.py",
+      "sha": "7f9729a949f7010a3b5bb30e38fbe666c7a2375c",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/redteam/__init__.py",
+      "sha": "8bec8a418ba5e506e81ea1938b0f957980e9bee3",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/redteam/attacks.py",
+      "sha": "225c4e617261865c9b89054360c8bcfeaba97d14",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/redteam/test_receipt_attacks.py",
+      "sha": "b0ffafd80a43196ff6fc3024532bf09633b75784",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/redteam/test_worker_attacks.py",
+      "sha": "9505d4075a9c67e19093cad262e71516b73d5d1a",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/station/__init__.py",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/station/test_station.py",
+      "sha": "fac0e7e9c14a3cf462ea2aaec36514336ee1cbb5",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/swarm/__init__.py",
+      "sha": "9fe6d1e9f773cdec5f74b576e70c5b175328f8c1",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/swarm/test_dsm.py",
+      "sha": "2e006bbf0a047caf8d50f07f6a519fb82587e475",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/swarm/test_eval_frozen.py",
+      "sha": "920d0e43d965c0f3811d5c6cda9fd9e9175acc90",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/swarm/test_obs006.py",
+      "sha": "a5db66731ca2d9f747cbd886c1d98ae472ddacbd",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/swarm/test_otx.py",
+      "sha": "e06e8571d776c385befd040d7e522e286d5c004d",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/swarm/test_runtime005.py",
+      "sha": "4a86bf679ee52a6308185d77b0ef5c385d4a2cf9",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/swarm/test_vq.py",
+      "sha": "4daf928d6e238a18e37fd5fae491b91e191e09a5",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_adaptive_assurance.py",
+      "sha": "715329f38e58391bfe423907f128d0d0ef9504ca",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_assurance_evaluation.py",
+      "sha": "3ef3de2c847044ba26ef6fa07d4000a8a91531c7",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_assurance_factory_adapter.py",
+      "sha": "3f0f51c70176229a15a3ee909b135565059f4633",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_assurance_factory_admission_partial.py",
+      "sha": "e29baf84c67576f4115dba7812e8bd498c737269",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_assurance_factory_dynamic.py",
+      "sha": "b39c505982b69ab0356039b02e22f6a1fd6f0e8f",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_assurance_runtime.py",
+      "sha": "7fe6f7d68444f9767dfb5ff47426b4f17bf3fb3d",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_browser_bridge.py",
+      "sha": "2a16ec0c50e6a8a4f5efe29c96988e8c3b6ee4a6",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_cic.py",
+      "sha": "44b88a36395a1ad02de07c476c2a527cdb9738d9",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_clean_install_qualification.py",
+      "sha": "3ce7ecdc1d30db24ee76f0f8dfc9e7a52a6b507a",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_cli.py",
+      "sha": "9df5de71018fd44bab4d76fa4772ef17b5605201",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_cluster.py",
+      "sha": "c42d3608c3081b163c66e3b94c24274193cabd30",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_cluster_cli.py",
+      "sha": "f0ebd8080fff29e3967effffcd69f68e067b5bf3",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_connector_conformance.py",
+      "sha": "edfd37c278dce93c68a3d83f5fe70b41a72269c7",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_control_integrity.py",
+      "sha": "d4db559ef4c7ee4b2b0cc9e9b482d2d092dd36e1",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_control_plane.py",
+      "sha": "2a9ea4a6bffa75cdee6f5531ff946e4193782040",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_control_plane_governance.py",
+      "sha": "c1dd4a018560af448a2afe10b6c810aadc0f7154",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_crypto.py",
+      "sha": "852554868c55a5758c26018b7e6d5e160e767424",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_demo_cloud_gateway.py",
+      "sha": "c6cd59964cb2db332e61349bdbcd8c87d6004e0b",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_eval_frozen_acceptance_binding.py",
+      "sha": "c5ee92166223c44beda361b08d11486620a6a639",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_eval_runner.py",
+      "sha": "2d2ea2eb59c48febf1bf2025eed8fb00cb0d86f8",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_eval_stats.py",
+      "sha": "3ebdfabede309bef33ed77efa1b9d7305dd41a3d",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_eval_workload.py",
+      "sha": "22b58a854f0351e1a2bc9c225f3adc6f2da25f85",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_extension_integration.py",
+      "sha": "c32cba60e292b65bacd11316ff542af02878acb7",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_external_evidence.py",
+      "sha": "b603b1b4f49d308154d81ab8b43c00e14850634f",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_cli_process_isolation.py",
+      "sha": "40cb5d2affea4acd11fe7d18cc0b80fa41d04192",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_compiler.py",
+      "sha": "bccd958879faead394da8ce04961c69fe8eeceda",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_evidence_bus.py",
+      "sha": "4e68fe763c43c705d2b3a420c7b7891b654ba30d",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_m4_artifact_export.py",
+      "sha": "778d70eb8d56a8532f4565692aaee2c845e2edf4",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_m4_attribution.py",
+      "sha": "8d9d67eac156144cbd201a6e63de4c67bc5ef895",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_m4_canonical_api.py",
+      "sha": "5996d0e4292452f089587d826b1d66e23b305840",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_m4_evidence.py",
+      "sha": "013dc8b7fdbfb6c280472cdbf621062bc1960bd1",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_m4_fs_redteam.py",
+      "sha": "324ce0ddd84855a2151cf3354c7c7565f26648b4",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_m4_git_evidence.py",
+      "sha": "af7cd769c0d0b71421547057774e85ff85e9256b",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_m4_integrator.py",
+      "sha": "f33ce7bfc32a04c8a5eaf9aa8cd6547f3ea17fe5",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_m4_qualification_prereq.py",
+      "sha": "abb96421cbfd3d44e5819ec9d22f878f511aa7b9",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_m4_safety.py",
+      "sha": "b13fdb1af9bfca2eb8b73889a1f89eac6c0498a5",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_m4_sandbox.py",
+      "sha": "230035adb86436b385cb09f41cf84149738412ef",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_m4_scheduler.py",
+      "sha": "dde093171a7c8475f4617ff0e4422c4b532cb8b6",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_m4_tree_binding.py",
+      "sha": "6f2511d08ff882058a83214530048ba8c5027fa7",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_ownership_gate.py",
+      "sha": "91e086e885c4a70818199d2c25c6269fbaadd766",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_runtime.py",
+      "sha": "842254d4f37234c37eb20f1aa849bbd16a345b12",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_runtime_lifecycle.py",
+      "sha": "85c6bf10a675ea3a74d775906d0bbaa79e411100",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_runtime_startup.py",
+      "sha": "90a13f2d438361ba2e9b4f87f8c4ee9bb0692f0d",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_termination_matrix.py",
+      "sha": "8a9436a3abd30bd0ab6ac8dd3b775847a43c6efb",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_termination_provenance.py",
+      "sha": "17313e5fee87b0fa6b8133616a5d3033411c631f",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_factory_worker_contract.py",
+      "sha": "b4b54d32f02c0c3beaa4c6ecad0aee19967bad3f",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_foundation.py",
+      "sha": "b2a3f0a4e53e84cc4028967a8dd39a2a2eace272",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_gap_closure.py",
+      "sha": "701e68f26b13164ad15dc377eefe50f2f8ad145c",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_gateway.py",
+      "sha": "4f855ae31f6a720268729e7abf12abf911bd0992",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_gateway_bypass.py",
+      "sha": "019b26b1ab6e4b78b05f6e89a06bcdb1ed7511fb",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_harness.py",
+      "sha": "57b8fd5eefac97ad30b71198e3825aa2fab5927e",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_homepage_explainers.py",
+      "sha": "e4ca8e1506c3b69e230277ed27b68b8020d1dab8",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_lifecycle_glue.py",
+      "sha": "0a0fbcafdc67a30effb9acdace1ac03214756ffd",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_lifecycle_glue_resume.py",
+      "sha": "2e2bdf71289c9f5de3ba45bfc58276b0ed80f5ce",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_loop_layer.py",
+      "sha": "18d77d39bdac29b83c9ed403a4b82dbeb199a8d1",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_loop_metrics.py",
+      "sha": "344ae998d6522f72babb0f80b5b83b9bedbab7fe",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_loop_modes.py",
+      "sha": "7fbf6a5743c5a27a564f61de4197c9ded871664e",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_loop_runtime.py",
+      "sha": "dc72675215389ba35dc622b94b73b09c78d070de",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_measured_factory_eval.py",
+      "sha": "8620f661c1340d14cf4d6606db8dc068aae2adfb",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_observability_hardening.py",
+      "sha": "67feb58d82a4242cd461e0c33540c608b92920cf",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_onboarding.py",
+      "sha": "ca742e4e2dafea611b2da5141664db436178e0c1",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_onboarding_studio.py",
+      "sha": "108eb1f6aa5c4c4c590528bc27a30b22b8ff9d3f",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_orchestrator_dag.py",
+      "sha": "f8e22284a51298ad979b9508760484eaadb740f2",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_orchestrator_intent.py",
+      "sha": "9c1444d8c7917e119d039a0ee5856f40948211b9",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_orchestrator_partition.py",
+      "sha": "4af91fe69b66a8d75b1d15ee7ac272911cb9ad57",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_orchestrator_plan.py",
+      "sha": "0f2eb29bbff33ee317724ae7cc2e786001fbbcdc",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_planning.py",
+      "sha": "aea227f65186d64d76520d79a9256c1a98fda8d8",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_preregistered_external.py",
+      "sha": "54708359e4c80b3ae627928c996c3e6af21fcb70",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_providers.py",
+      "sha": "574f4c6c71eee7a4686a3af88826c52180852941",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_publish.py",
+      "sha": "2ba19f0b79b27f03e8cf84584b936b010467b032",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_sandbox.py",
+      "sha": "91a011bc3147839b9a61a359ae93e41f87186750",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_sandbox_containment.py",
+      "sha": "9187db2cece3c87febf439a6ed3b2436cbcd0a97",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_sandbox_timing_adversarial.py",
+      "sha": "fb1b16dbae474c58a0a8bcad0ad4d02fba69a388",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_sandbox_timing_determinism.py",
+      "sha": "eae62d8360c749cc0684accaadfae73b0c775ba0",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_sandbox_timing_repairs.py",
+      "sha": "536960d05b80402b5da26e260a391908b142c2d2",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_soak.py",
+      "sha": "cfe14bd65567b375a3b7075c4c18236fc7a5f5d0",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_soak_report.py",
+      "sha": "2a6bf1e7f348e9b669a4515377781e62c3013794",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_soak_state.py",
+      "sha": "9e4b9a4c17fa6ae13e50dbb574b5056601508897",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_spec_eval_001.py",
+      "sha": "dadbbad20498dfee8e03064e9f323ff19ce8f3a2",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_study.py",
+      "sha": "709780a40f5666109a1c537809ef6fa5fb912912",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_traceability.py",
+      "sha": "a5664ca40fa06cef39ecb993e1048b398bc19545",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_tracks_2_8.py",
+      "sha": "30c435a29e495f76bfa82b545de58d32cd26a005",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_webvm_browser_mailbox.py",
+      "sha": "4304d7b9cbf5bc414ef1a8f484ca2dc35c215192",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_webvm_build.py",
+      "sha": "9aa42ef8cc639f6442b59fe9ca1e541abfa94b44",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_webvm_cli_output.py",
+      "sha": "6329239ee48cbd3616a7434fcea4ebfe17e54f99",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_webvm_conversation_loop.py",
+      "sha": "9f3a91f3a7729649a083f4e38e19b9c7bab3bfa4",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_webvm_deployment_workflow.py",
+      "sha": "653c453cd76a68b7c31d25b03c495a89a4b889dc",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_webvm_publication.py",
+      "sha": "44cec311e3d5c8069c6e11e0e6530296bc82fc38",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_webvm_serviceworker_retry.py",
+      "sha": "7d2e6a4777fb8ee50783caf6ee3578bd882df81d",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_webvm_workbench.py",
+      "sha": "1bbe49b999e741c9d5b1b4a7ff02da95a7319928",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/webvm-provider-failure-ux.test.mjs",
+      "sha": "c550eb616b254093238361026f81e08de3262ba9",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/webvm-provider.test.mjs",
+      "sha": "7fd28d5dc42e279a799d7515af8d3f62e782ef33",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/webvm-serviceworker-retry.test.mjs",
+      "sha": "774e320c309d5f4ada323941cfbdd6e4340c0bcf",
+      "mode": "100644"
+    },
+    {
+      "path": "vendor/ldd-kit/LICENSE",
+      "sha": "09bc14ac91dd67eae544758fdc31015b7a8b6464",
+      "mode": "100644"
+    },
+    {
+      "path": "vendor/ldd-kit/PROVENANCE.md",
+      "sha": "f37d0e0accac09a445f762e1638c73037f81d1b6",
+      "mode": "100644"
+    },
+    {
+      "path": "vendor/ldd-kit/SPEC.md",
+      "sha": "b0fe76a2efd835aad3307539291c868cde2fa129",
+      "mode": "100644"
+    },
+    {
+      "path": "vendor/ldd-kit/base.json",
+      "sha": "1cea609a2a808d3991f96c8d8b5e91bf4363792d",
+      "mode": "100644"
+    },
+    {
+      "path": "vendor/ldd-kit/config.yaml",
+      "sha": "121196f00acab27cbc880e17d52e5f2f8f32bd44",
+      "mode": "100644"
+    },
+    {
+      "path": "vendor/user-modules/OBSERVATION-ORIGINAL-README.md",
+      "sha": "4297684f4602f6cef76709015317c96037ac17fe",
+      "mode": "100644"
+    },
+    {
+      "path": "vendor/user-modules/PROVENANCE.md",
+      "sha": "e4022c02b8a861a0acb6cb9ccf3003c236a4f3ce",
+      "mode": "100644"
+    },
+    {
+      "path": "vendor/user-modules/SOURCE-HASHES.json",
+      "sha": "4712389134b912eb1088e55335de0c05721dfa3e",
+      "mode": "100644"
+    },
+    {
+      "path": "vendor/user-modules/test_observation_original.py",
+      "sha": "71e375f6e51d9d0504f291de021f1d7defd0e6fe",
+      "mode": "100644"
+    },
+    {
+      "path": "verifier/README.md",
+      "sha": "7ddc34e58e0fa696a45c13a375755cf5c12f881e",
+      "mode": "100644"
+    },
+    {
+      "path": "verifier/runs/2026-09-14T00-v1-fail.txt",
+      "sha": "7076071d569a5fb77d0b24cd60673ef2dc79b208",
+      "mode": "100644"
+    },
+    {
+      "path": "verifier/runs/2026-09-14T01-v2-pass.txt",
+      "sha": "37e3e9559ecc19bbf674fbd982a279a6da9a0a49",
+      "mode": "100644"
+    },
+    {
+      "path": "verifier/runs/2026-09-14T02-v2-pass-docstring-fix.txt",
+      "sha": "d2664183a6c750d5240de43054c416730b1b14d5",
+      "mode": "100644"
+    },
+    {
+      "path": "verifier/runs/2026-09-14T03-v3-pre-swarm-baseline.txt",
+      "sha": "27bd4b34cd9afc8376c68322aa2715043c6e3daf",
+      "mode": "100644"
+    },
+    {
+      "path": "verifier/runs/2026-09-14T04-v3-fail-exec-bit.txt",
+      "sha": "ebe61708c3345cce3c7d9c151fc94197ff9eb280",
+      "mode": "100644"
+    },
+    {
+      "path": "verifier/runs/2026-09-14T05-v3-pass.txt",
+      "sha": "b18ab97a6944fe186fd2ca512f5c68851cacc707",
+      "mode": "100644"
+    },
+    {
+      "path": "verifier/runs/2026-09-14T06-v3-pass-merged-with-factory.txt",
+      "sha": "67152ff9c3ad9f8e453adf06440bd805563bbdf3",
+      "mode": "100644"
+    },
+    {
+      "path": "verifier/runs/20260914T042309Z_v1_remote-pass.txt",
+      "sha": "508a9052f2892c4884ef6e67f9633dcf191693e9",
+      "mode": "100644"
+    },
+    {
+      "path": "verifier/v1/acceptance.md",
+      "sha": "ac66ed429cebdc3f2e0aeea3670a2e48f0c3fbe3",
+      "mode": "100644"
+    },
+    {
+      "path": "verifier/v1/check.sh",
+      "sha": "83135e898de359e3587b4decc9313430a7e6cf85",
+      "mode": "100644"
+    },
+    {
+      "path": "verifier/v1/check_specs.py",
+      "sha": "49a1e1afd4378860a71b73f081ca9e2813bb3548",
+      "mode": "100644"
+    },
+    {
+      "path": "verifier/v2/check_specs.py",
+      "sha": "b01328598ed4a70011fef4d53eba5509d3611e6e",
+      "mode": "100644"
+    },
+    {
+      "path": "verifier/v3/check_factory_ownership.py",
+      "sha": "e60977acffb9ed2fc0d40d3293978767cd536145",
+      "mode": "100644"
+    },
+    {
+      "path": "verifier/v3/check_swarm.py",
+      "sha": "f2c6a351b0960c4fc2dd0c0db27288e33d13d797",
+      "mode": "100644"
+    },
+    {
+      "path": "verifier/v3/factory_ownership_baseline.json",
+      "sha": "fb24893d19f8851dbf5ac77c5a7a6ef11246f9b8",
+      "mode": "100644"
+    },
+    {
+      "path": "verifier/v3/qualify_clean_install.py",
+      "sha": "a7d0283285ce93b2db613fda557a80f837dfecb5",
+      "mode": "100644"
+    }
+  ]
+}
+

@@ -1,8 +1,24 @@
 # RESIDUAL current status
 
-_Implementation snapshot: 2026-09-14 at `5b89be1014de5e648f76a2bb8ada920871719f03`; live-evaluation gate correction checked against merged `main` at `90dd2f40bff916e8b50d1777bf35debc511e996f`._
+_Triage baseline: 2026-09-15 at `1cf4e46c0ace8e3cdc76147ad4c7dc6480a9fb34`, including merged #106. Branch findings are identified separately in the [PR ledger](status/PR_TRIAGE_2026-09-15.md); later revisions do not inherit qualification automatically._
 
 This page is the human-readable current-state summary for RESIDUAL. Historical roadmap documents and generated implementation tables may lag active integration work; when they disagree with this page, follow the code, tests, open qualification issues, and the machine-readable evidence produced by the current tree.
+
+## Latest targeted qualification update — 2026-09-15
+
+Accepted main is `9d88195a` after #124; #108 and #121 are also merged.
+#109 at `fb99d589` includes that main, the real-subprocess CLI repair and
+exporter hardening: exactly six unique expected members and a 16 MiB declared
+uncompressed limit. Seven exporter tests plus six subtests pass, and three
+reversion mutants fail as intended. Fresh M4 qualification passed 142 cases
+plus 84 subtests with zero skips on an identical candidate/tested tree;
+the full archive is retained and hash-verified against GitHub metadata.
+One protected test blob changes, and its ownership pin has not been advanced.
+Independent review, a reviewed baseline update and fresh CI remain required.
+Ordinary CI remains red on that ownership mismatch; cancelled matrix siblings
+are not passes. The earlier COMMENTED review explicitly defers independent
+authorization. See the [repair handoff](../runs/reviews/pr109/fb99d589/README.md).
+Other lane observations below retain their stated historical scope.
 
 ## Executive summary
 
@@ -22,8 +38,8 @@ The repository contains substantial implementation and development evidence for 
 | Command Station | Implemented research/operations surface | Self-hosted run control, model/provider management, observations, HITL hooks, evidence download and operational UI are present. Deployment-specific production readiness still depends on the environment. |
 | Factory M2 — worker contract/runtime | Implemented | Real `WorkerContract`, bounded worker runtime, isolated worktrees, journaled observations, host-owned termination and sandbox enforcement exist under `residual/factory/`. Development fault-containment work has exercised real OS boundaries. |
 | Factory M3 — evidence bus/receipts | Implemented | Station-issued receipts, artifact binding, evidence-bus handoff and signature/integrity checks exist. Trust is enforced at the trusted consumption/admission boundary, not merely because bytes were stored. |
-| Factory M4 — deterministic integration/scheduler | Implemented but **not yet fully qualified for live claims** | Deterministic integration and scheduler code exist. Issue #63 tracks remaining accepted-tree binding, filesystem/link safety, verifier-execution isolation, and missing-Git-evidence semantics that must be closed before treating current M4 as a fully hardened trust boundary. |
-| Evaluation | Implemented | `residual/eval/` contains hash-locked `FrozenWorkload`, repeated-run execution, ablations, reporting, statistics, fault injection and measured Factory evaluation hooks. Live provider/model evidence remains the next research gate; the measured-evidence adapter in PR #71 still needs correction and independent requalification. |
+| Factory M4 — deterministic integration/scheduler | Implemented; candidate M4 qualified, independent acceptance pending | Hardening from closed issue #63 landed via #81. #109 at fb99d589 passes real M4 execution with zero skips and a retained, hash-verified archive on an identical tested tree; independent protected-test review and ownership-dependent CI remain open. |
+| Evaluation | Implemented apparatus, unqualified live experiment | `residual/eval_frozen/` contains the frozen R0–R5 apparatus. PR #103 rebuilt the binding intended by closed PR #71 with negative tests for replay, topology, task mapping and verifier qualification. Passing those tests does not establish live provider/model results or independently authenticate its prerequisite reports. |
 | Sandbox / red team | Implemented development surface | Bubblewrap/namespace/rlimit paths plus live containment tests and a receipted red-team corpus are present. cgroup-v2-specific enforcement depends on host capability. |
 | Cluster / distributed execution | Implemented development surface | Versioned wire schema, authenticated join/leave, heartbeats, task reassignment, local-first routing and cluster CLI exist. Some optional network transports degrade gracefully when optional dependencies are absent. |
 | Orchestration | Implemented | Intent schema, requirement DAG construction, ambiguity detection, deterministic plan hashes, partitioning and HITL approval gating exist. |
@@ -45,28 +61,66 @@ The large swarm integration milestone at commit `412b66c35f7c0e1ac479fe60a5b7d33
 
 ## Current qualification blockers
 
-### 1. M4 trust-boundary hardening — issue #63
+### 1. Required enforcement and exact-tree integration
 
-Before live qualification or paper-facing claims depend on current M4, close the following:
+Workflow activation (#101) has landed. The initial snapshot found no protection; a subsequent live settings check on 2026-09-15 confirms `main` is now protected by active ruleset `23436488`, with 12 required checks, strict up-to-date validation, resolved review threads, deletion/force-push restrictions and no configured bypass actors. This is real enforcement progress.
 
-1. **Accepted-tree binding:** verify and accept the same artifact tree, or explicitly authorize and re-verify any transformation.
-2. **Filesystem/link safety:** use non-following, descriptor-relative access with explicit regular-file/link policies and race-resistant handling.
-3. **Verifier execution isolation:** candidate-dependent project verification must run under a bounded verification execution boundary instead of inheriting unrestricted host authority.
-4. **Git evidence semantics:** distinguish proven absence from unavailable/corrupt/incomparable Git evidence; missing evidence must remain `UNKNOWN`/error, not silently become absence.
+Enforcement is still incomplete: the required approving-review count is **0**, and `current-status` and `measured-eval-binding` are absent from the required-check list. Copilot review-on-push is enabled, but it does not make an independent approval mandatory. A maintainer must complete those settings; see the [integration handoff](status/INTEGRATION_HANDOFF.md). Independently submitted tracks still need disposition and validation against their eventual combined tree. Policy settings are separate from code revisions; the live main observed during this follow-up was `eefee6ac005c93278f483e002e38a768920f0fae`.
 
-### 2. Traceability reconciliation — issue #48
+### 2. M4 live qualification
 
-`implementation-status.yaml` and the generated `docs/status/IMPLEMENTATION_STATUS.md` still contain pre-merge entries marking M2, M3, M4 and EVAL as `not_started`. That is stale relative to the current tree. Do not use those four entries as current-state evidence until #48 is reconciled and the generated status document is rebuilt from the corrected manifest.
+The accepted-tree, filesystem/link, isolation and Git-evidence code-hardening review in closed issue #63 is historical. #109 succeeds closed #88/#114 as the M4 prerequisite/zero-skips lane. Its historical smoke at `e873dd62` reported UNKNOWN because namespace isolation was unavailable. The fresh `fb99d589` run on an explicit capable runner passes with a complete retained archive and matching head/tested trees; this is candidate evidence pending independent acceptance. Preserve `UNKNOWN`, infrastructure errors and skipped namespace tests as evidence gaps; none may count as a passed trust-boundary qualification.
 
-### 3. Clean-install qualification
+### 3. Runtime reproducibility
 
-A hardened clean-install qualification stack was developed with isolated wheel installation, `pip check`, `python -I`, installed CLI smoke tests, asset checks, Python 3.11/3.12/3.13 coverage and retained artifacts. Its branch validation also exposed two timing-sensitive Factory OS tests that failed once and passed unchanged on rerun. Treat that as unresolved reproducibility evidence until the race/flakiness source is classified rather than hiding it behind retries.
+PR #96 merged termination provenance and a repetition matrix. The historical Command Station Python 3.13 job on baseline `a8082109` failed `test_ptrace_is_kernel_killed`: expected SIGSYS (`-31`), observed SIGKILL (`-9`). Run `34927698993`, attempt `1`, job `104249155773` retained 895 tests, one failure and 21 skips. The cause remains **unclassified** by that evidence. Later passing runs do not erase this failure. #108 subsequently merged at `0430f2fa`, with its ownership anchor updated by #121 at `1a52e9a2`. The new #109 protected-test change requires its own independent review.
 
-### 4. Measured-evidence provenance — PR #71
+Historical pre-acceptance #108 repair record at `de436fc7`, including main
+`326eb2a`. R1-R5 are implemented and the original receipt-v2 assertion restored.
+Twelve new protected regression tests pass; Factory CI reports 980 unittest
+cases with 22 skips, and ownership passes at the identical source tree. Full
+local suites remain red with retained host/startup failures; M4 still has
+namespace capability skips. The [repair handoff](../runs/reviews/pr108/de436fc7/README.md)
+recorded the then-required independent review because this continuation implemented
+the repairs. Subsequent #108 acceptance is recorded in the latest update above.
 
-The reviewed Factory evaluation adapter has four unresolved integrity gaps: replayed evidence can count as independent repetitions; scheduler topology is not authenticated and bound to the run; measured task populations can differ from the frozen workload; and arbitrary verifier-boundary labels can be accepted when signed. Correct and requalify this path before using it for confirmatory data. Require fresh execution identities, replay rejection, authenticated run-bound scheduler evidence, an exact approved task mapping, and an independently qualified verifier policy/boundary. A recovered run is not a new repetition.
+Previously, Lane 2 independently reviewed #108 at `b127d000`: the original adversarial
+battery is **12/12 PASS**, with **8/8 reversion attacks caught**, but the merge
+verdict is **REQUEST CHANGES**. Five additional probes fail (declared timeout,
+watchdog deadline during lease contention, pending-reap recovery, SQLite error
+retention and reader retry budget); both current CI failures reproduce locally.
+The local determinism module is 19 passed, 2 failed, 7 skipped, and does not
+qualify this host. The [review](../runs/reviews/pr108/b127d000/README.md) retains
+source identities, fault boundaries, logs and the exact repair checklist.
 
-This is separate from M4 isolation (#63), traceability (#48), and timing reproducibility. A protocol may instead explicitly exclude PR #71's adapter and qualify a different evidence path under the [live evaluation gate](evaluation.md#live-evaluation-gate); closing the other issues alone does not clear live evaluation.
+#117 replaces closed #97 and exposes three missing local runtime/DSM guarantees:
+process-group tracking, fencing held through authoritative append, and rejection
+of reused event IDs with changed payloads. Its focused suite is **3 failed,
+60 passed, zero skipped** locally. Those pytest functions are now explicitly
+run in its required CI matrix; ordinary unittest discovery did not collect them.
+
+The supplementary diagnostic runner retains per-test outcomes and returned Factory fixture termination records in the ordinary CI runs. It changes neither runtime code nor assertions, performs no retries, and cannot recover records for calls that never return or bypass `Fixture.run_source`. See the handoff for those limits and the retained-run format.
+
+### 4. Measured binding and experimental qualification
+
+PR #103 replaced the path intended by closed PR #71. #106 has merged its active acceptance-binding workflow after all required checks and the binding job passed; making that new check mandatory is still a separate setting. These negative/contract tests are not live R0–R5 measurements. Review the [binding's explicit trust limits](measured-eval-binding.md): prerequisite inputs are unauthenticated, timestamps are operator-asserted, and signature-only verification does not establish freshness without the retained chain.
+
+The live protocol and corpus still need freezing and execution under the [live evaluation gate](evaluation.md#live-evaluation-gate). No new empirical reliability, cost or throughput values are claimed here.
+
+### 5. Release and soak evidence
+
+Clean-install tooling (#100) and the baseline's clean-install workflow are present/passing. That does not establish a blank-VM release-candidate run or completed 24-hour, 72-hour or 30-day live soak. Retain environment, exact revision and every failed attempt for these separate lanes.
+
+#115 adds preparation tooling, but review reproduced accepted truncated evidence
+logs and a capped synthetic schedule incorrectly reported COMPLETE. Repair its
+integrity/completion checks and label simulated days before using those procedures
+as qualification evidence. A synthetic soak rehearsal is not elapsed runtime.
+
+### Traceability scope
+
+Implementation manifest: M2=implemented; M3=implemented; M4=implemented; EVAL=implemented.
+
+The basic reconciliation in closed issue #48 is historical. PR #94's broader family coverage and remaining manifest-note reconciliation are separate work; this change does not replace its scope or change the protected checker. `scripts/check_current_status.py` checks the two active summaries against the local manifest and explicit closed-reference wording. It is intentionally not an exhaustive natural-language or live-GitHub consistency proof.
 
 ## Research status
 
@@ -89,17 +143,22 @@ The project does not yet claim, for live heterogeneous models, that:
 
 ## Next gates
 
+The completion target is **Residual 1.0 + Experimental Release 1**. Track all
+17 steps, completed prerequisites and the six final acceptance gates in
+[COMPLETION_TRACKER.md](status/COMPLETION_TRACKER.md). An unfavorable hypothesis
+result does not block completion when the experiment answers the question credibly.
+
 The recommended order is:
 
-1. Close #63 and requalify the exact current M4 tree.
-2. Close #48 and regenerate the implementation-status documentation.
-3. Classify and fix the timing-sensitive Factory OS reproducibility failures.
-4. Correct and requalify PR #71's measured-evidence path, or explicitly exclude it and independently qualify the alternative specified by the live protocol.
+1. Require active checks on `main`, then integrate submitted tracks against exact head/base/tree revisions.
+2. Independently accept #109's protected test, deliberately advance its pin, and rerun exact-head gates; capable-runner M4 candidate evidence is now retained. Corpus acquisition can proceed independently.
+3. Classify the retained signal mismatch and fix its cause through a separately reviewed runtime change if needed.
+4. Qualify the #103 measured-evidence path and retain the prerequisite reports, identity chain and signed artifacts.
 5. Freeze the live evaluation protocol, selected evidence path and workload before seeing model results.
 6. Run one fixed live model across R0–R5 configurations to measure `P(X)`, `P(A)`, `P(X|A)`, AER, ASSR, latency, throughput and cost.
 7. Run model-degradation and heterogeneous-routing studies.
 8. Run fault campaigns under live execution.
-9. Progress through 24-hour → 72-hour → 30-day soak only after shorter qualification gates are clean.
+9. Complete the reviewed 24-hour/72-hour elapsed soak ladder. A later 30-day production-maturity run is outside the agreed six-gate 1.0 target.
 10. Update the paper from retained artifacts only.
 
 ## Documentation authority

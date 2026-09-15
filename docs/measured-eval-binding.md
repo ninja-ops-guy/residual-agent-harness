@@ -146,6 +146,13 @@ the retained run-identity chain is supplied.
 
 ## Tests
 
+`.github/workflows/measured-eval-binding.yml` runs these pytest-style tests
+explicitly (ordinary unittest discovery does not collect them). The workflow
+also retains adjacent regression output, including namespace skips; those
+skips are evidence gaps, not live M4 qualification. Required-check enforcement
+is a separate maintainer setting documented in the
+[integration handoff](status/INTEGRATION_HANDOFF.md).
+
 `tests/test_eval_frozen_acceptance_binding.py` covers each requirement as
 negative tests: replay rejected, resumed evidence rejected as non-fresh,
 forged/tampered/reordered chain rejected, unauthenticated/partial-interval/

@@ -1,0 +1,49 @@
+2026-09-15T13:00:51.2528204Z ##[group]Fetching the repository
+2026-09-15T13:00:51.2537795Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +15f9a7a3c7f7abe6332ff4fc2de524bca475dc61:refs/remotes/pull/108/merge
+2026-09-15T13:00:52.6110129Z From https://github.com/ninja-ops-guy/residual-agent-harness
+2026-09-15T13:00:52.6112094Z  * [new ref]         15f9a7a3c7f7abe6332ff4fc2de524bca475dc61 -> pull/108/merge
+2026-09-15T13:00:52.6116304Z ##[endgroup]
+2026-09-15T13:00:52.6117861Z ##[group]Determining the checkout info
+2026-09-15T13:00:52.6119402Z ##[endgroup]
+2026-09-15T13:00:52.6122748Z [command]/usr/bin/git sparse-checkout disable
+2026-09-15T13:00:52.6744405Z 
+2026-09-15T13:00:52.6745823Z HEAD is now at 15f9a7a Merge b127d000dbac7d75723969840491be5f44ec7c4e into 1cf4e46c0ace8e3cdc76147ad4c7dc6480a9fb34
+2026-09-15T13:00:52.6751142Z ##[endgroup]
+2026-09-15T13:00:52.6776283Z [command]/usr/bin/git log -1 --format=%H
+2026-09-15T13:00:52.6806742Z 15f9a7a3c7f7abe6332ff4fc2de524bca475dc61
+2026-09-15T13:00:52.6816231Z ##[group]Removing auth
+2026-09-15T13:00:52.6820306Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-15T13:00:52.6854162Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-15T13:00:52.7044314Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-15T13:00:52.9606886Z ##[endgroup]
+2026-09-15T13:00:52.9724998Z 15f9a7a3c7f7abe6332ff4fc2de524bca475dc61
+2026-09-15T13:00:53.1168609Z {
+2026-09-15T13:00:53.1169979Z   "scope": "factory-ownership-blob-pin",
+2026-09-15T13:00:53.1172630Z   "manifest": "/home/runner/work/residual-agent-harness/residual-agent-harness/verifier/v3/factory_ownership_baseline.json",
+2026-09-15T13:00:53.1175329Z   "pinned_at": "b3b2a5a18ce28bd1249725c7529228acca7d498e",
+2026-09-15T13:00:53.1176918Z   "protected_files": 37,
+2026-09-15T13:00:53.1177988Z   "checked": 37,
+2026-09-15T13:00:53.1178858Z   "mismatches": [
+2026-09-15T13:00:53.1180015Z     "tests/test_factory_m4_safety.py"
+2026-09-15T13:00:53.1181115Z   ],
+2026-09-15T13:00:53.1181923Z   "passed": false
+2026-09-15T13:00:53.1182788Z }
+2026-09-15T13:00:53.1183545Z FAIL:
+2026-09-15T13:00:53.1186241Z  - protected path modified without baseline advance: tests/test_factory_m4_safety.py (pinned b13fdb1af9bfca2eb8b73889a1f89eac6c0498a5, actual 4b2b117a2f3323a73dafaf04c21ab5ed9a1f79c0)
+2026-09-15T13:00:53.1255494Z ##[error]Process completed with exit code 1.
+2026-09-15T13:00:53.1445433Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-15T13:00:53.1449916Z ##[group]Run actions/upload-artifact@v4
+2026-09-15T13:00:53.1451001Z with:
+2026-09-15T13:00:53.1452153Z   name: factory-ownership-15f9a7a3c7f7abe6332ff4fc2de524bca475dc61
+2026-09-15T13:00:53.1453606Z   path: runs/factory-ownership
+2026-09-15T13:00:53.1454672Z   if-no-files-found: error
+2026-09-15T13:00:53.1455637Z   retention-days: 14
+2026-09-15T13:00:53.1456549Z   compression-level: 6
+2026-09-15T13:00:53.9827663Z Finalizing artifact upload
+2026-09-15T13:00:54.2711884Z Artifact factory-ownership-15f9a7a3c7f7abe6332ff4fc2de524bca475dc61.zip successfully finalized. Artifact ID 10397731316
+2026-09-15T13:00:54.2713068Z Artifact factory-ownership-15f9a7a3c7f7abe6332ff4fc2de524bca475dc61 has been successfully uploaded! Final size is 621 bytes. Artifact ID is 10397731316
+2026-09-15T13:00:54.2718886Z Artifact download URL: https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34972037241/artifacts/10397731316
+2026-09-15T13:00:54.3013376Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-15T13:00:54.3014660Z Post job cleanup.
+2026-09-15T13:00:54.3884990Z [command]/usr/bin/git version
+

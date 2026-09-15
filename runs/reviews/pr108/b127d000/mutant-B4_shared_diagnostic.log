@@ -1,0 +1,25 @@
+MUTATION B4_shared_diagnostic TESTS ['tests/test_sandbox_timing_adversarial.py::LeaseDiagAttributionTests']
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+cachedir: .pytest_cache
+rootdir: /tmp/residual-lane2-b127
+configfile: pyproject.toml
+collecting ... collected 2 items
+
+tests/test_sandbox_timing_adversarial.py::LeaseDiagAttributionTests::test_diag_cannot_be_cross_attributed FAILED [ 50%]
+tests/test_sandbox_timing_adversarial.py::LeaseDiagAttributionTests::test_diag_cannot_be_erased_by_concurrent_attempt FAILED [100%]
+
+=================================== FAILURES ===================================
+________ LeaseDiagAttributionTests.test_diag_cannot_be_cross_attributed ________
+tests/test_sandbox_timing_adversarial.py:240: in test_diag_cannot_be_cross_attributed
+    self.assertIsNone(
+E   AssertionError: ('OperationalError', 5) is not None : B's error ('OperationalError', 5) became visible on A's read result
+__ LeaseDiagAttributionTests.test_diag_cannot_be_erased_by_concurrent_attempt __
+tests/test_sandbox_timing_adversarial.py:217: in test_diag_cannot_be_erased_by_concurrent_attempt
+    self.assertIsNotNone(
+E   AssertionError: unexpectedly None : A's read-error provenance was erased by B's concurrent read
+- generated xml file: /tmp/residual-lane2-evidence-b127/mutant-B4_shared_diagnostic.xml -
+=========================== short test summary info ============================
+FAILED tests/test_sandbox_timing_adversarial.py::LeaseDiagAttributionTests::test_diag_cannot_be_cross_attributed - AssertionError: ('OperationalError', 5) is not None : B's error ('OperationalError', 5) became visible on A's read result
+FAILED tests/test_sandbox_timing_adversarial.py::LeaseDiagAttributionTests::test_diag_cannot_be_erased_by_concurrent_attempt - AssertionError: unexpectedly None : A's read-error provenance was erased by B's concurrent read
+============================== 2 failed in 4.05s ===============================

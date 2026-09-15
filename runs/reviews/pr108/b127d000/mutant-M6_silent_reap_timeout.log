@@ -1,0 +1,19 @@
+MUTATION M6_silent_reap_timeout TESTS ['tests/test_sandbox_timing_determinism.py::ReapTimeoutProvenanceTests::test_reap_timeout_emits_typed_event_and_reason']
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+cachedir: .pytest_cache
+rootdir: /tmp/residual-lane2-b127
+configfile: pyproject.toml
+collecting ... collected 1 item
+
+tests/test_sandbox_timing_determinism.py::ReapTimeoutProvenanceTests::test_reap_timeout_emits_typed_event_and_reason FAILED [100%]
+
+=================================== FAILURES ===================================
+__ ReapTimeoutProvenanceTests.test_reap_timeout_emits_typed_event_and_reason ___
+tests/test_sandbox_timing_determinism.py:273: in test_reap_timeout_emits_typed_event_and_reason
+    self.assertTrue(control.reap_timed_out.is_set())
+E   AssertionError: False is not true
+- generated xml file: /tmp/residual-lane2-evidence-b127/mutant-M6_silent_reap_timeout.xml -
+=========================== short test summary info ============================
+FAILED tests/test_sandbox_timing_determinism.py::ReapTimeoutProvenanceTests::test_reap_timeout_emits_typed_event_and_reason - AssertionError: False is not true
+============================== 1 failed in 0.06s ===============================

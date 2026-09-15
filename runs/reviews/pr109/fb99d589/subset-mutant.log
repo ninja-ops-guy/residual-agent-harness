@@ -1,0 +1,120 @@
+.F                                                                 [100%]
+=================================== FAILURES ===================================
+_ ArtifactExportTests.test_each_missing_member_is_rejected (missing='dependencies.txt') _
+
+self = <tests.test_factory_m4_artifact_export.ArtifactExportTests testMethod=test_each_missing_member_is_rejected>
+
+    def test_each_missing_member_is_rejected(self):
+        for missing in sorted(exporter.FILES):
+            with self.subTest(missing=missing):
+>               self.reject([(name, value) for name, value in self.entries() if name != missing],
+                            'exactly six unique expected files')
+
+tests/test_factory_m4_artifact_export.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_m4_artifact_export.py:44: in reject
+    with self.assertRaisesRegex(RuntimeError, message):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: RuntimeError not raised
+_ ArtifactExportTests.test_each_missing_member_is_rejected (missing='m4-sandbox.xml') _
+
+self = <tests.test_factory_m4_artifact_export.ArtifactExportTests testMethod=test_each_missing_member_is_rejected>
+
+    def test_each_missing_member_is_rejected(self):
+        for missing in sorted(exporter.FILES):
+            with self.subTest(missing=missing):
+>               self.reject([(name, value) for name, value in self.entries() if name != missing],
+                            'exactly six unique expected files')
+
+tests/test_factory_m4_artifact_export.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_m4_artifact_export.py:44: in reject
+    with self.assertRaisesRegex(RuntimeError, message):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: RuntimeError not raised
+_ ArtifactExportTests.test_each_missing_member_is_rejected (missing='probe.log') _
+
+self = <tests.test_factory_m4_artifact_export.ArtifactExportTests testMethod=test_each_missing_member_is_rejected>
+
+    def test_each_missing_member_is_rejected(self):
+        for missing in sorted(exporter.FILES):
+            with self.subTest(missing=missing):
+>               self.reject([(name, value) for name, value in self.entries() if name != missing],
+                            'exactly six unique expected files')
+
+tests/test_factory_m4_artifact_export.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_m4_artifact_export.py:44: in reject
+    with self.assertRaisesRegex(RuntimeError, message):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: RuntimeError not raised
+_ ArtifactExportTests.test_each_missing_member_is_rejected (missing='report.json') _
+
+self = <tests.test_factory_m4_artifact_export.ArtifactExportTests testMethod=test_each_missing_member_is_rejected>
+
+    def test_each_missing_member_is_rejected(self):
+        for missing in sorted(exporter.FILES):
+            with self.subTest(missing=missing):
+>               self.reject([(name, value) for name, value in self.entries() if name != missing],
+                            'exactly six unique expected files')
+
+tests/test_factory_m4_artifact_export.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_m4_artifact_export.py:44: in reject
+    with self.assertRaisesRegex(RuntimeError, message):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: RuntimeError not raised
+_ ArtifactExportTests.test_each_missing_member_is_rejected (missing='source-environment.json') _
+
+self = <tests.test_factory_m4_artifact_export.ArtifactExportTests testMethod=test_each_missing_member_is_rejected>
+
+    def test_each_missing_member_is_rejected(self):
+        for missing in sorted(exporter.FILES):
+            with self.subTest(missing=missing):
+>               self.reject([(name, value) for name, value in self.entries() if name != missing],
+                            'exactly six unique expected files')
+
+tests/test_factory_m4_artifact_export.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_m4_artifact_export.py:44: in reject
+    with self.assertRaisesRegex(RuntimeError, message):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: RuntimeError not raised
+_ ArtifactExportTests.test_each_missing_member_is_rejected (missing='tests.log') _
+
+self = <tests.test_factory_m4_artifact_export.ArtifactExportTests testMethod=test_each_missing_member_is_rejected>
+
+    def test_each_missing_member_is_rejected(self):
+        for missing in sorted(exporter.FILES):
+            with self.subTest(missing=missing):
+>               self.reject([(name, value) for name, value in self.entries() if name != missing],
+                            'exactly six unique expected files')
+
+tests/test_factory_m4_artifact_export.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_m4_artifact_export.py:44: in reject
+    with self.assertRaisesRegex(RuntimeError, message):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: RuntimeError not raised
+_ ArtifactExportTests.test_duplicate_member_is_rejected_even_with_all_expected_names _
+
+self = <tests.test_factory_m4_artifact_export.ArtifactExportTests testMethod=test_duplicate_member_is_rejected_even_with_all_expected_names>
+
+    def test_duplicate_member_is_rejected_even_with_all_expected_names(self):
+        entries = self.entries()
+        with self.assertWarnsRegex(UserWarning, 'Duplicate name'):
+            data = self.archive(entries + [entries[0]])
+>       with self.assertRaisesRegex(RuntimeError, 'exactly six unique expected files'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: RuntimeError not raised
+
+tests/test_factory_m4_artifact_export.py:71: AssertionError
+=========================== short test summary info ============================
+SUBFAILED(missing='dependencies.txt') tests/test_factory_m4_artifact_export.py::ArtifactExportTests::test_each_missing_member_is_rejected
+SUBFAILED(missing='m4-sandbox.xml') tests/test_factory_m4_artifact_export.py::ArtifactExportTests::test_each_missing_member_is_rejected
+SUBFAILED(missing='probe.log') tests/test_factory_m4_artifact_export.py::ArtifactExportTests::test_each_missing_member_is_rejected
+SUBFAILED(missing='report.json') tests/test_factory_m4_artifact_export.py::ArtifactExportTests::test_each_missing_member_is_rejected
+SUBFAILED(missing='source-environment.json') tests/test_factory_m4_artifact_export.py::ArtifactExportTests::test_each_missing_member_is_rejected
+SUBFAILED(missing='tests.log') tests/test_factory_m4_artifact_export.py::ArtifactExportTests::test_each_missing_member_is_rejected
+FAILED tests/test_factory_m4_artifact_export.py::ArtifactExportTests::test_duplicate_member_is_rejected_even_with_all_expected_names
+7 failed, 1 passed in 0.09s

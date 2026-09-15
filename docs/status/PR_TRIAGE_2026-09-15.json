@@ -1,0 +1,3232 @@
+{
+  "schema": "residual.pr-triage.v1",
+  "date": "2026-09-15",
+  "main": "1cf4e46c0ace8e3cdc76147ad4c7dc6480a9fb34",
+  "open_at_start": 36,
+  "open_at_followup": 32,
+  "class_counts": {
+    "A": 7,
+    "B": 25
+  },
+  "scope": "Changed-file inventory and gate dispositions, not a complete adversarial source audit",
+  "prs": [
+    {
+      "number": 116,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/116",
+      "inventory_head": "42563421804bb9e0e2dcb4d457a921e265a1261a",
+      "inventory_base": "65d9d77ea611d6885dfa5aa2097575bbf32e8193",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "fe652532f9c6f3f7a6353bf07570b1fdb0624d49",
+      "class": "A",
+      "lane": "Demo owner",
+      "disposition": "Owner lane in flight; review its deployed browser/guest evidence at the final revision.",
+      "files": [
+        {
+          "path": "demo/vm/install_workbench.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "b0da2c5b3d900709b455efeb4d0e99cbdc037a11"
+        },
+        {
+          "path": "demo/vm/mission-control.js",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "217925cce64f866fcae40ce245167ac858908d1a"
+        },
+        {
+          "path": "demo/vm/mission-preview.js",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "7b95ab29e3e5b02a4c2fa480c86176979651ad66"
+        },
+        {
+          "path": "demo/vm/mission_smoke.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "3e98e262f1ac8cad58a15ee5985f2900a4e2c7c4"
+        }
+      ]
+    },
+    {
+      "number": 115,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/115",
+      "inventory_head": "50577480ab2a9b1189189f1844a44080ba037048",
+      "inventory_base": "65d9d77ea611d6885dfa5aa2097575bbf32e8193",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "aef4e086d89acec78be630527e70650ca617d4c2",
+      "class": "A",
+      "lane": "Release",
+      "disposition": "BLOCKED: repair truncation verification, capped-run completion and resume/config integrity; synthetic days do not qualify elapsed soak.",
+      "files": [
+        {
+          "path": "ci/release-preparation.yml",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "03e40a77a4dd761024e7633a6a9c97338494f28a"
+        },
+        {
+          "path": "docs/release/BLANK_VM_INSTALL.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "b67f01fc0e3a64255d45552f028be0a648d9e64d"
+        },
+        {
+          "path": "docs/release/RECOVERY_SCENARIOS.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "dce8345fa4fb978b84c2f47ec4ce1ad3f1afd6ae"
+        },
+        {
+          "path": "docs/release/SOAK_PLAN.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "55f5722536d91706fe989afa85061ede48858637"
+        },
+        {
+          "path": "scripts/release/blank_vm_install_check.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "7fc5437a37d8f6ca9e6023286e5313f92aa74ff9"
+        },
+        {
+          "path": "scripts/release/recovery_check.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "ff667784653e8fd672275cfeaae355b678dde0b7"
+        },
+        {
+          "path": "scripts/release/soak_run.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "6a12aca32fc3630b1a81fac80c91506e292d50d9"
+        },
+        {
+          "path": "tests/test_release_preparation.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "0520f25bbd6316d57fe12bd71e3ade5893f14f70"
+        }
+      ]
+    },
+    {
+      "number": 114,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/114",
+      "inventory_head": "fa5a8a5faba6744b8484dfbfaa2e2dc739c13d81",
+      "inventory_base": "c5535a541751e6f2a4dd2a70e75130185fb9e17f",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "closed",
+      "latest_observed_head": "fa5a8a5faba6744b8484dfbfaa2e2dc739c13d81",
+      "class": "C",
+      "lane": null,
+      "disposition": "See closed proposal map in PR_TRIAGE_2026-09-15.md",
+      "files": [
+        {
+          "path": "docs/runbooks/M4_CAPABLE_RUNNER.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "f1a7db8351485e102972586ff686a30d07e8c875"
+        },
+        {
+          "path": "scripts/m4_runner_preflight.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "1c71587fc39b2cafe0e0bb0c08a492828f617f86"
+        },
+        {
+          "path": "tests/test_factory_m4_sandbox.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "b2b9f8000fbc915d2fb1e8ed13f4b2ab47f4f516"
+        },
+        {
+          "path": "tests/test_m4_runner_preflight.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "be6ce7f32eb977d622204769307c730a2b9e3411"
+        }
+      ]
+    },
+    {
+      "number": 113,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/113",
+      "inventory_head": "78c8fdaa169e4104aa76bd681830d9a61232b332",
+      "inventory_base": "c5535a541751e6f2a4dd2a70e75130185fb9e17f",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "78c8fdaa169e4104aa76bd681830d9a61232b332",
+      "class": "B",
+      "lane": "Science",
+      "disposition": "Salvage corpus checker/tests under #110’s canonical tier definitions. Existing FrozenWorkload cases remain development fixtures; reconcile duplicate protocol authority.",
+      "files": [
+        {
+          "path": "docs/protocol/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "a9ccc2809af3a0ae35500c6a597e36addc98f4e2"
+        },
+        {
+          "path": "docs/protocol/r0-r5-consolidated.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "4f4b323e6ffce4f7713b0d159861da5ec8033060"
+        },
+        {
+          "path": "experiments/corpus/manifest.v1.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "0c482ec80720aff360fca7f020403c44d4996aac"
+        },
+        {
+          "path": "scripts/check_corpus_manifest.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "548d1b3bdcb5994f456934b0145215811debba40"
+        },
+        {
+          "path": "tests/test_corpus_manifest.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "85b627abb02b59d647b57d25aa8c3085be7ec4d7"
+        }
+      ]
+    },
+    {
+      "number": 110,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/110",
+      "inventory_head": "41661a625656688538dd2bae1371fd90288283bd",
+      "inventory_base": "eefee6ac005c93278f483e002e38a768920f0fae",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "41661a625656688538dd2bae1371fd90288283bd",
+      "class": "A",
+      "lane": "Science",
+      "disposition": "Retain as canonical reconciled specification. Resolve per-arm denominators and paired power data-generating model before selecting F; implement launch/analysis enforcement.",
+      "files": [
+        {
+          "path": "docs/experiments/R0_R5_ANALYSIS_PLAN.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "98a8af2b6a6fab2e1bdbad22fe62c8c59ab231a6"
+        },
+        {
+          "path": "docs/experiments/R0_R5_CLAIM_EVIDENCE_TABLE.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "652022f7b38e5d1ad6d311080275c9cca22b36e9"
+        },
+        {
+          "path": "docs/experiments/R0_R5_CORPUS_MANIFEST.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "99570f05c63ea2b0f2352a7a0e2ad89f87c5b085"
+        },
+        {
+          "path": "docs/experiments/R0_R5_FROZEN_PROTOCOL.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e4d949f7907b5566ba083d8b2af57d0fdd170051"
+        },
+        {
+          "path": "docs/experiments/R0_R5_RUN_LEDGER_TEMPLATE.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "b86543984276302790d3b2c230dac6c1baf94089"
+        }
+      ]
+    },
+    {
+      "number": 109,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/109",
+      "inventory_head": "3e3d270363588401d228367b1bb0345baf85a51a",
+      "inventory_base": "eefee6ac005c93278f483e002e38a768920f0fae",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "e873dd62f2c7b6f1e2ee019048943b1e0b584229",
+      "class": "A",
+      "lane": "M4 runner",
+      "disposition": "Repair published: actual run_isolated smoke, numeric dependency versions, deterministic unit fixtures. Independent review pending; real hosted-runner probe is BLOCKED.",
+      "files": [
+        {
+          "path": "ci/m4-qualification-prereq.yml",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "670fc78518582699acedd24295e8342ebd2ad6c8"
+        },
+        {
+          "path": "docs/m4-qualification-runner-prereqs.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "51d2d64c2dc78de9e28e4e52f88f1fead7da2916"
+        },
+        {
+          "path": "evidence/m4-qualification-prereq/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e35c7b03037cf7970408a53580ff9a41e789e875"
+        },
+        {
+          "path": "evidence/m4-qualification-prereq/local-probe-report.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e99c15c3fb73e7964ba32add027f6c310332455a"
+        },
+        {
+          "path": "evidence/m4-qualification-prereq/local-probe-stdout.txt",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "6b049e588a52734b512cb60014d033e252bc0a3a"
+        },
+        {
+          "path": "evidence/m4-qualification-prereq/local-tests.txt",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "aba8b36c113be3080efe0530d008276a5e3398ef"
+        },
+        {
+          "path": "residual/factory/m4_qualification_prereq.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "9f6cc1c2e8ef7cd02debd033d892b920f2b17df3"
+        },
+        {
+          "path": "tests/test_factory_m4_qualification_prereq.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "f00669850d63f65f64f3b81489872a5685d1539d"
+        }
+      ]
+    },
+    {
+      "number": 108,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/108",
+      "inventory_head": "49d0a4ceafd4d80e0e4d1c1638f7a2e6204a11f4",
+      "inventory_base": "a8082109e01aff9eda72030b837103c09d1393d3",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "b4294117631d667ca963d0879ae3a36ec0b62e1a",
+      "class": "A",
+      "lane": "Runtime owner + reviewer",
+      "disposition": "Active protected runtime repair; assess final head, compatibility and mutant evidence. Do not repin or merge from an older review.",
+      "files": [
+        {
+          "path": "residual/factory/_isolated_child.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "96456c4130ad4f0b867145ae2c30a47f1e8b6c0f"
+        },
+        {
+          "path": "residual/factory/m4_integrator.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "9f16e3b8cbec6ae13a12b4460512020ecedf0af9"
+        },
+        {
+          "path": "residual/factory/m4_safety.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "688cb3e000973c341d3678a29ee07492b913fd1e"
+        },
+        {
+          "path": "residual/factory/m4_sandbox.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "58b322358c74a6072b621d7ab87b468c26be0448"
+        },
+        {
+          "path": "residual/factory/runtime.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "cce6290cffd9f99adf36da5192cc7c1263feb3fa"
+        },
+        {
+          "path": "residual/factory/runtime_journal.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "ad9d96c6b2b8d4a2b92dd0983be204a36a41322c"
+        },
+        {
+          "path": "residual/factory/runtime_workspace.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "71391f79ca8d0e2d3f15f78def2a5eb716cadc6e"
+        },
+        {
+          "path": "residual/factory/termination_provenance.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "fa40f38e5bcab48457f40c27ba1964f199bd544f"
+        },
+        {
+          "path": "residual/factory/worker_contract.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "39b47df9c1bccee9f8269bee4df53dc994c5dd25"
+        },
+        {
+          "path": "residual/sandbox/bwrap.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "83e26349ee4e7795e97594f74e992a4ab463c968"
+        },
+        {
+          "path": "residual/sandbox/spec.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "7e30f6c5f519080d2b65acf6e8d29a1f587e5621"
+        },
+        {
+          "path": "residual/sandbox/subprocess_backend.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "7354b8edd9e090ce8e80a52883a2160ecccf6465"
+        },
+        {
+          "path": "runs/sandbox-timing/determinism-report.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "75d4ed06b04676dba2fe3ecd67e72131c43616ae"
+        },
+        {
+          "path": "runs/sandbox-timing/repeat-factory-runtime.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "319d63c27467c72d11fc7275b1d3ea60a72ebaf9"
+        },
+        {
+          "path": "runs/sandbox-timing/repeat-sandbox-containment.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "c3d6fe9bce6106880096acf035acdd53cb324832"
+        },
+        {
+          "path": "scripts/repeat_run.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e641bfd658087bb0f1a2b3b20fd7267f6da68780"
+        },
+        {
+          "path": "tests/test_control_integrity.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "d4db559ef4c7ee4b2b0cc9e9b482d2d092dd36e1"
+        },
+        {
+          "path": "tests/test_factory_m4_canonical_api.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "c0b19265b3b4c72ec8534ffe6bd1d59e3006adee"
+        },
+        {
+          "path": "tests/test_factory_m4_safety.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "4b2b117a2f3323a73dafaf04c21ab5ed9a1f79c0"
+        },
+        {
+          "path": "tests/test_factory_m4_sandbox.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "230035adb86436b385cb09f41cf84149738412ef"
+        },
+        {
+          "path": "tests/test_factory_runtime.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "842254d4f37234c37eb20f1aa849bbd16a345b12"
+        },
+        {
+          "path": "tests/test_factory_runtime_lifecycle.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "fd501377ed2d8fb40c240a54d5766f3c82d62fbd"
+        },
+        {
+          "path": "tests/test_factory_runtime_startup.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "96fc69419eb9e699c3603c6a4864d66298d8180c"
+        },
+        {
+          "path": "tests/test_sandbox_timing_determinism.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "f38a1d83bb4c05785a343b3065be536be3066499"
+        },
+        {
+          "path": "verifier/v3/factory_ownership_baseline.json",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "b4acec45051fdbc694c65b15a0fdcb4c6ec4fca0"
+        }
+      ]
+    },
+    {
+      "number": 107,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/107",
+      "inventory_head": "e1ee136d936d45c1c42b2c198e9b3e11073b0fab",
+      "inventory_base": "a8082109e01aff9eda72030b837103c09d1393d3",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "e1ee136d936d45c1c42b2c198e9b3e11073b0fab",
+      "class": "A",
+      "lane": "Coordinator + independent reviewer",
+      "disposition": "Publish status/diagnostics and this ledger. #106 activation overlap resolved by preserving main’s exact workflow. Independent review required.",
+      "files": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "098569b65366afd3b279f5c74e4609a4b801addf"
+        },
+        {
+          "path": ".github/workflows/measured-eval-binding.yml",
+          "previous_path": "ci/measured-eval-binding.yml",
+          "status": "renamed",
+          "blob_sha": "413f10c3533ccc64af1d8f5c36db9a26ec3007a2"
+        },
+        {
+          "path": ".github/workflows/qualification-integrity.yml",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "8d1ae574685f95f01854f5109d9960b5294db693"
+        },
+        {
+          "path": ".github/workflows/station.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "aa8e3b8e8dfb7363d48cfb26a8a14b72c208458f"
+        },
+        {
+          "path": "README.md",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "fb9a562da2a8fb6858b8860e6c20f623f64eb6ef"
+        },
+        {
+          "path": "docs/CURRENT_STATUS.md",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "12d424538a5f3499116b2aa89e0d8c4c69d1b2ec"
+        },
+        {
+          "path": "docs/measured-eval-binding.md",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "64fc71b9bdc6884e5bbf959c1ec45cc9ef54b6c3"
+        },
+        {
+          "path": "docs/status/COMPLETION_TRACKER.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "385f5253331ead804d4b691d7b9c3e1614e8c1a7"
+        },
+        {
+          "path": "docs/status/INTEGRATION_HANDOFF.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "fcd81c6bd9d08cf80cebbab79d88740904a2f3fe"
+        },
+        {
+          "path": "docs/status/QUALIFICATION_EXECUTION_PLAN.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "100760dda45e61e333c3e247fabcad09ef91a5e1"
+        },
+        {
+          "path": "scripts/check_current_status.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "cd338c55cb8d7864d1620c6030aa77017c8a5f7b"
+        },
+        {
+          "path": "scripts/qualification_test_runner.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "6ee5bb6ae4bfaac89c11ec0a90b2973022618569"
+        },
+        {
+          "path": "tests/test_qualification_diagnostics.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "4049a339be9d026174a00d200cefd1111c33c803"
+        },
+        {
+          "path": "tests/test_qualification_status.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "b19db30b63d2f010c594c79d8aff41a39044abdd"
+        }
+      ]
+    },
+    {
+      "number": 106,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/106",
+      "inventory_head": "c82ac790041277c48203324a85cb9a1588a3aaed",
+      "inventory_base": "a8082109e01aff9eda72030b837103c09d1393d3",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "merged",
+      "latest_observed_head": "c82ac790041277c48203324a85cb9a1588a3aaed",
+      "class": "MERGED",
+      "lane": null,
+      "disposition": "See closed proposal map in PR_TRIAGE_2026-09-15.md",
+      "files": [
+        {
+          "path": ".github/workflows/measured-eval-binding.yml",
+          "previous_path": "ci/measured-eval-binding.yml",
+          "status": "renamed",
+          "blob_sha": "bb6c6c03de137d9f733a7cf53738e44be42d3fe1"
+        }
+      ]
+    },
+    {
+      "number": 102,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/102",
+      "inventory_head": "def2b2bec7d27d773de8458e69053b40e0ba392d",
+      "inventory_base": "7d56488d57b8412bfb51204fa0e77d6a8d62e87f",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "def2b2bec7d27d773de8458e69053b40e0ba392d",
+      "class": "B",
+      "lane": "Demo owner",
+      "disposition": "Retain unique walkthrough changes for owner comparison with #116/current demo; do not close solely by age.",
+      "files": [
+        {
+          "path": "site/demo.html",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "2ba4aa34e1aff6d3d8827f4f33242bd29942499c"
+        }
+      ]
+    },
+    {
+      "number": 97,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/97",
+      "inventory_head": "3d0941dcb6aa49aec980c61bca5bb4bc86bfb584",
+      "inventory_base": "5e9abe4d951df6fd852c36a8acc25543f5e47713",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "closed",
+      "latest_observed_head": "3d0941dcb6aa49aec980c61bca5bb4bc86bfb584",
+      "class": "C",
+      "lane": null,
+      "disposition": "See closed proposal map in PR_TRIAGE_2026-09-15.md",
+      "files": [
+        {
+          "path": "docs/swarm/runtime-distributed-closure.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "1dda8fddcd78ee4d11b0ed716e5caaa8ccbdd095"
+        },
+        {
+          "path": "tests/swarm/test_runtime_distributed_closure.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "4703ba1f231778c4a3f1c0e930e94054f048bfaf"
+        }
+      ]
+    },
+    {
+      "number": 94,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/94",
+      "inventory_head": "1c8c0881711ca85ac1c56527aad11ba72eaf01cc",
+      "inventory_base": "50646c93ff5772e9ee1182ca6b4c290b1a5e7cba",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "1c8c0881711ca85ac1c56527aad11ba72eaf01cc",
+      "class": "B",
+      "lane": "Traceability",
+      "disposition": "Port unique family inventory/audit onto accepted main; reconcile #93 and shared manifest. Protected status checker changes need deliberate independent review.",
+      "files": [
+        {
+          "path": "README.md",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "e09c878217471d61961c1e1be5c8c5f71470553b"
+        },
+        {
+          "path": "docs/CURRENT_STATUS.md",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "b87f378cdbd4529979393b52cfd51d6f0ecda4ff"
+        },
+        {
+          "path": "docs/evaluation.md",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "43a76909367c92275940a3a3ba6354aebec22fae"
+        },
+        {
+          "path": "docs/research.md",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "66a3eb494a499c74c4aecf877d1d181adca9a0a7"
+        },
+        {
+          "path": "docs/roadmap/README.md",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "93c59718f41b5f9b203720d6a28701c653c80f87"
+        },
+        {
+          "path": "docs/status/IMPLEMENTATION_STATUS.md",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "50c1ca1e386f84915e9bfc7dd807aa9448fa5098"
+        },
+        {
+          "path": "docs/status/TRACEABILITY_AUDIT_2026-09-15.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "45cdf1ea475bcc32d7f90b3ca90948253d204bc1"
+        },
+        {
+          "path": "implementation-status.yaml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "a9e06e9208464a2b7c8824f0b450370fdfe24725"
+        },
+        {
+          "path": "scripts/status_check.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "48a209c0dbba70f47581ed2d5346a03692854f8a"
+        },
+        {
+          "path": "tests/test_traceability.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "1f2f58dcf5ebc87dc920a2bc9603e655e7a0ef29"
+        }
+      ]
+    },
+    {
+      "number": 93,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/93",
+      "inventory_head": "2c9a220dddba57dc3b6b5daecb27592503bf0ac7",
+      "inventory_base": "50646c93ff5772e9ee1182ca6b4c290b1a5e7cba",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "2c9a220dddba57dc3b6b5daecb27592503bf0ac7",
+      "class": "B",
+      "lane": "Economics/observability",
+      "disposition": "Port OBS/economics and tests against canonical residual.otx. Do not introduce the competing residual.assurance.orchestration authority or blindly replace the manifest.",
+      "files": [
+        {
+          "path": "docs/research/SWARM5-ECONOMICS-OBSERVABILITY.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "c049cdfae3345321d17b3ea0f39106e7242e1ae7"
+        },
+        {
+          "path": "docs/status/IMPLEMENTATION_STATUS.md",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "a637b6bdde7eb5a01d172ae3d8521a8e621e5ae9"
+        },
+        {
+          "path": "implementation-status.yaml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "9c7d9a90289aa25f7074ecd20ed815d023a24567"
+        },
+        {
+          "path": "residual/assurance/__init__.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "a1e82ab5c978ff72924b09fcf9c2484a229a87fb"
+        },
+        {
+          "path": "residual/assurance/orchestration.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "9c893e4baac76b01c9847bea8e3a065cb684e70b"
+        },
+        {
+          "path": "residual/eval_frozen/__init__.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "ea07dbc5d7575c21cd2251d53ef39eb257271c39"
+        },
+        {
+          "path": "residual/eval_frozen/economics.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "71a3c112074555c3a1234313d8d802f29815b180"
+        },
+        {
+          "path": "residual/observability/__init__.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "105c7f22d6e2e0648c2316e66a2793e436fe25ca"
+        },
+        {
+          "path": "residual/observability/bridge.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "ad4b995ad09c8a82179f2e4cf9f3718a4f24ce73"
+        },
+        {
+          "path": "residual/observability/metrics.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "66f34c3c1a06b24a5789199828cbafeddd50d213"
+        },
+        {
+          "path": "residual/observability/reliability.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "84ac0f198c0c8cd67b99ca44f51ee211cfe90845"
+        },
+        {
+          "path": "runs/swarm5/aggregate-report.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "cb412a5d6f019af2c2656e23e1ba5c1c80444da2"
+        },
+        {
+          "path": "runs/swarm5/evidence.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "43383144e116dfbd18f262fe3644729886ead779"
+        },
+        {
+          "path": "runs/swarm5/orchestration-tax.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "9b6ec8c78237e8dc8789e179cf57663a227121d1"
+        },
+        {
+          "path": "runs/swarm5/pareto-inputs.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "72ac72f8893ee5b9f0f597961556c1e29d82b4cb"
+        },
+        {
+          "path": "runs/swarm5/raw-timing-observations.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "63cb6699ed7b94e57c75e50460d1cf59bb76cdae"
+        },
+        {
+          "path": "runs/swarm5/report.sha256",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "ac56f644510f9db841b596c5d1b1d2bf186460a7"
+        },
+        {
+          "path": "runs/swarm5/topology-decisions.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "f2c7819027208369f928ef19b8ef4b52e16e706d"
+        },
+        {
+          "path": "scripts/swarm5_evidence.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "33c4ddde92d9d582faf186e289b4007c731f1400"
+        },
+        {
+          "path": "tests/swarm/test_economics_observability.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "13e8a2bfa8f9301f8bd5c4fba08c59ed5b3e9269"
+        }
+      ]
+    },
+    {
+      "number": 91,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/91",
+      "inventory_head": "d07ef173c4c7f1748740d6601e0b3c8126ac13ed",
+      "inventory_base": "bbc65272662e0d84dc83d9e4e19a5be97011e2f2",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "d07ef173c4c7f1748740d6601e0b3c8126ac13ed",
+      "class": "B",
+      "lane": "Science/reproduction",
+      "disposition": "154-file inventory retained. Salvage offline reproduction, development adversarial corpus, preparation/analysis tooling and claim boundaries; planning converges on #110.",
+      "files": [
+        {
+          "path": ".github/workflows/program-preparation.yml",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "dfed6fe932c12268e55c0ba396b217d145f84cfe"
+        },
+        {
+          "path": "docs/program/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "f1db9b661b0fde457bbe333ce9348f490ab2b6e4"
+        },
+        {
+          "path": "docs/program/audit/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "941bc35f05b81c6e19eac5d190f155080b53d199"
+        },
+        {
+          "path": "docs/program/audit/controller-observability-review.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "9c034904413816ed7e2d84ff3261e263a2da4c95"
+        },
+        {
+          "path": "docs/program/audit/cost-accounting.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "2a8d484bf8609b0ed96d2646957e56de8c374ae1"
+        },
+        {
+          "path": "docs/program/audit/evidence-chain.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "2583e6da9a6ca4971dba0dccedf8f14906ec3d77"
+        },
+        {
+          "path": "docs/program/product/DSM-004.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "6bd061cf22bee7b8f4e196daa60e4e8b34d2c391"
+        },
+        {
+          "path": "docs/program/product/ONBOARDING.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "f3f59b44656e7fdca9d6e9700fbcce9ceb6f006d"
+        },
+        {
+          "path": "docs/program/product/PROD-007.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "1ad1191c7db76b94182f3917d67725e6f7c7ab2c"
+        },
+        {
+          "path": "docs/program/product/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "915c8a88755f7477294386d84a580a6c4f67557f"
+        },
+        {
+          "path": "docs/program/product/RELEASE-RC1.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "3a2515e4a61bbe5817a30b434fe24f0a196f2059"
+        },
+        {
+          "path": "docs/program/product/THREAT-MODEL.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "4fb0ec3676badc76ac116f5478b912b2ab2aaf91"
+        },
+        {
+          "path": "docs/program/product/VALIDATION.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "c97d70f73fd5b3ce2191c7b5b2cd8254eea37a56"
+        },
+        {
+          "path": "docs/program/product/preflight-validation.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "60473e3e756cd7f2f3314de4501bc90e1175bf25"
+        },
+        {
+          "path": "docs/program/reproduction/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "c9e805b939da5a62d4669dc3d45e7a0ee8912b2f"
+        },
+        {
+          "path": "docs/program/reproduction/bundle-v1.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "8b0428dd689dc9136e63f616f678700fe49a7460"
+        },
+        {
+          "path": "docs/program/science/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "138aa5c63b8423c111f56aa1dfd4225f2b1ad474"
+        },
+        {
+          "path": "docs/program/science/analysis-plan.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "67891ced57ffc6752a9f2ceb28be0ca2edb21ba8"
+        },
+        {
+          "path": "docs/program/science/claim-evidence.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "26472c88f93b655fa78d2fef759826be9aa51d92"
+        },
+        {
+          "path": "docs/program/science/comparison-rubric.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "2af9b6016f01257c72ca44d8f2c0840f5ffedf25"
+        },
+        {
+          "path": "docs/program/science/models-routing.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "df9768b1e45388615ac1025447de28b59f1be673"
+        },
+        {
+          "path": "docs/program/trust/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "455a8adcd2a32412a4df1801ced526545f838c8f"
+        },
+        {
+          "path": "docs/program/trust/architecture-invariants.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "b37ccf47be5723c229503bffcb91f49b4fe827c2"
+        },
+        {
+          "path": "docs/program/trust/evidence/pr81-30d1d02/junit.xml",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "96dda68daf45748169455041ee740b3df8d8b69a"
+        },
+        {
+          "path": "docs/program/trust/evidence/pr81-30d1d02/manifest.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "f7624cabb85456cd111d4523e982c6cece245000"
+        },
+        {
+          "path": "docs/program/trust/evidence/pr81-30d1d02/stderr.txt",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        {
+          "path": "docs/program/trust/evidence/pr81-30d1d02/stdout.txt",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "a5f85c558573cbc85a3c8bbc4260bac18fecfa06"
+        },
+        {
+          "path": "docs/program/trust/evidence/runner-timeout/manifest.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "258c0e8fdb9737c22f579839a2a2c060ad1f8a13"
+        },
+        {
+          "path": "docs/program/trust/evidence/runner-timeout/stderr.txt",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        {
+          "path": "docs/program/trust/evidence/runner-timeout/stdout.txt",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "7b83314244121036752c6a8445474b7a5929a456"
+        },
+        {
+          "path": "docs/program/trust/review-findings.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "7970df3adabd14056a1c88767eb73c994df5399d"
+        },
+        {
+          "path": "docs/program/trust/sandbox-protocol.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "33c201db2fa2603cc3e6177f39e308d4aafd0ec9"
+        },
+        {
+          "path": "docs/program/validation/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "a3f3e0b59e6271b391930805582e473e006bc6ff"
+        },
+        {
+          "path": "docs/program/validation/full-suite.log",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "203bdde33ff0ac23f9de5493620349462d6712a9"
+        },
+        {
+          "path": "docs/program/validation/full-suite.xml",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "fec04b0322eea0c478f3301dafc72fdabb0fc6ec"
+        },
+        {
+          "path": "docs/program/validation/preparation.log",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "afc497b5f187aea38f18bf3b507274574647cbfc"
+        },
+        {
+          "path": "docs/program/validation/preparation.xml",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "06ccbe3ddf30ba77493edf10fd42b159825ebb11"
+        },
+        {
+          "path": "docs/program/validation/reconciled.log",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "d856fcbd6fa95251bd39dd031498bab627a59187"
+        },
+        {
+          "path": "docs/program/validation/reconciled.xml",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "0902bcfac85c2cda2acb9083baf1579604587e04"
+        },
+        {
+          "path": "docs/program/validation/source-history.bundle",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "b43df4645fc2fce97710dd8470a7d3ef42c9acf6"
+        },
+        {
+          "path": "docs/program/validation/source-history.bundle.sha256",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "64bf5040f67bac8a0ef422932aa1f8ff3c7d7a4c"
+        },
+        {
+          "path": "docs/program/validation/summary.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "6874a5206548bbd3499ca89eada224860b8fc512"
+        },
+        {
+          "path": "docs/program/verifier/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "8626916fed778cf13a0e4dbbc10aba0a20ea4d2b"
+        },
+        {
+          "path": "docs/program/verifier/probe_vq_exact_head.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "9396ea2d63fa6ba61f7d06e9736eae8359036ab4"
+        },
+        {
+          "path": "docs/program/verifier/vq-head-audit.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "a513ea9f2e7659182e4b146028233538e7b813a9"
+        },
+        {
+          "path": "examples/application-preflight/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "a2689d64f95cf8d736af7efc17b93770593ba9ac"
+        },
+        {
+          "path": "examples/application-preflight/code-repair.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "18472b8f11769f092d9a41352b1d76c33144f797"
+        },
+        {
+          "path": "examples/application-preflight/configuration-generation.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "be6244f8c11bc1d609cee9d5546ed529fa8e5894"
+        },
+        {
+          "path": "examples/application-preflight/data-cleaning.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "c974ed05ae46d25b0525f5f72d9c4b1fcd5ac9c6"
+        },
+        {
+          "path": "examples/application-preflight/documentation-synthesis.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "4acb59e82e9be29b3e7849ad277e0ff0698920d4"
+        },
+        {
+          "path": "examples/application-preflight/manifest.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "803d19c33b03854bc1e8747f9853fced3354e67b"
+        },
+        {
+          "path": "examples/application-preflight/security-triage.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "9300d67c88f8d59e1e2fd0e850e72629ba3945df"
+        },
+        {
+          "path": "examples/application-preflight/test-generation.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "0b110ee4196e04a52d5adf53748b88a593e18da6"
+        },
+        {
+          "path": "examples/reproduction/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "7fda6c279f3c5c2f84ddde8a49a47305d648d267"
+        },
+        {
+          "path": "examples/reproduction/synthetic-demo/attachments/prompt.txt",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "01c77219b1d071da2a0d4afd0b8f5b8584b7f6f4"
+        },
+        {
+          "path": "examples/reproduction/synthetic-demo/attachments/protocol.txt",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "8e8b9fa1e5ad5e26f2652603f47799d448ac258c"
+        },
+        {
+          "path": "examples/reproduction/synthetic-demo/evidence/receipts.jsonl",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        {
+          "path": "examples/reproduction/synthetic-demo/evidence/scheduler.jsonl",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        {
+          "path": "examples/reproduction/synthetic-demo/evidence/verifier.jsonl",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        {
+          "path": "examples/reproduction/synthetic-demo/manifest.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "d634af29d67b2d1d82db03c8f90c4364aa26dbc7"
+        },
+        {
+          "path": "examples/reproduction/synthetic-demo/metadata/environment.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "52e9335ca9c71986ec738150dfe39a47ba5c65c3"
+        },
+        {
+          "path": "examples/reproduction/synthetic-demo/metadata/git.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "8402a5043a87fa5a4c552940e0a5283aa590c41f"
+        },
+        {
+          "path": "examples/reproduction/synthetic-demo/metadata/models.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "1b8de88761e613f8357321708ba9ad513d5519d7"
+        },
+        {
+          "path": "examples/reproduction/synthetic-demo/metadata/prompts.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "977023b9ed8e40d5ed72d8bfd0af0b1a49e422f0"
+        },
+        {
+          "path": "examples/reproduction/synthetic-demo/metadata/protocol.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "2f38466e04825ef1e859a20c750a7085929e1e5d"
+        },
+        {
+          "path": "examples/reproduction/synthetic-demo/metadata/workload.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "a3c07dfcddc2181637f496d744b1d9dd82ff6c1a"
+        },
+        {
+          "path": "examples/reproduction/synthetic-demo/records/cells.jsonl",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "d5aad5791096ce6d5dcf84cb64ff014459896075"
+        },
+        {
+          "path": "examples/reproduction/synthetic-demo/records/failures.jsonl",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "d15132f57bd4b906b354a564d7664b5f07ee8342"
+        },
+        {
+          "path": "examples/reproduction/synthetic-demo/records/timing.jsonl",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "c921b770de88054c4708412a2d48ef6b1a37e3cd"
+        },
+        {
+          "path": "examples/reproduction/synthetic-demo/records/usage.jsonl",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "94593a4022ddff57b0af0dde70b65eb46eba307a"
+        },
+        {
+          "path": "examples/reproduction/synthetic-demo/reproduce.txt",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "084ddba87e835c6416305d4db2f220bdba5c85d9"
+        },
+        {
+          "path": "examples/reproduction/synthetic-demo/streams/stderr.bin",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        {
+          "path": "examples/reproduction/synthetic-demo/streams/stdout.bin",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        {
+          "path": "experiments/preflight/adversarial/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "55260a302d1175065ec89b68a35830c27865c78b"
+        },
+        {
+          "path": "experiments/preflight/adversarial/candidates/VC-0001.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "0dc107f0db2d87dbe80a76826cb808b20cb09b01"
+        },
+        {
+          "path": "experiments/preflight/adversarial/candidates/VC-0002.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "373d448566b0959aa04b80c2f921f6d73c6bea83"
+        },
+        {
+          "path": "experiments/preflight/adversarial/candidates/VC-0003.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "b61c8b2dbf18564d366bb1cbe87c8c420186ddc6"
+        },
+        {
+          "path": "experiments/preflight/adversarial/candidates/VC-0004.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "ca6e51cfea5e30be07daf032f2ef24a56ff58350"
+        },
+        {
+          "path": "experiments/preflight/adversarial/candidates/VC-0005.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "cad97008a30490feefd8161ac00b689c2ec5bccb"
+        },
+        {
+          "path": "experiments/preflight/adversarial/candidates/VC-0006.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "8e4a84ecdf37703d01f75048e3fb101f6b7d00bd"
+        },
+        {
+          "path": "experiments/preflight/adversarial/candidates/VC-0007.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "301aef44c12a8374a66afd4e8ee8247529c57155"
+        },
+        {
+          "path": "experiments/preflight/adversarial/candidates/VC-0008.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "f18b23dfdae6fccd2a8cdb040e4d783ee81642d7"
+        },
+        {
+          "path": "experiments/preflight/adversarial/candidates/VC-0009.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "186293355e166febe3882196f09206d9523ef14b"
+        },
+        {
+          "path": "experiments/preflight/adversarial/candidates/VC-0010.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e9a65cdfbcb85477eba9126156414f7d51e06893"
+        },
+        {
+          "path": "experiments/preflight/adversarial/candidates/VC-0011.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "44af6828df0555d3c39efb049f610c68e3f2dd01"
+        },
+        {
+          "path": "experiments/preflight/adversarial/candidates/VC-0012.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "80c7b17c351f719a5c13efbde47ebb24d6194bf8"
+        },
+        {
+          "path": "experiments/preflight/adversarial/candidates/VC-0013.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "f3521394c82d725a6c09ed197850a4687bf7be04"
+        },
+        {
+          "path": "experiments/preflight/adversarial/candidates/VC-0014.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "3f0fe1157540a631e6ce3e096c111a72a168aa7f"
+        },
+        {
+          "path": "experiments/preflight/adversarial/candidates/VC-0015.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "bbdfad2194b43e3b94a2a86c6f69ee400a13f4e4"
+        },
+        {
+          "path": "experiments/preflight/adversarial/candidates/VC-0016.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "65beacfbed262eab976757b947ba2d74a49dfeea"
+        },
+        {
+          "path": "experiments/preflight/adversarial/fault-matrix.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "efa7d3c6cbeb0055d96417610436a401162726e9"
+        },
+        {
+          "path": "experiments/preflight/adversarial/gold/labels.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "0d48787213fb65e88b339adacade613ddc5b6d57"
+        },
+        {
+          "path": "experiments/preflight/adversarial/manifest.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "4b1275bd3e2cf6ba04323ebfbe559168813577ea"
+        },
+        {
+          "path": "experiments/preflight/engineering/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "fb133824b526b64c198ef7d1d4f8809d09873566"
+        },
+        {
+          "path": "experiments/preflight/engineering/preflight-20260915.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "1c0e88ee83e2dec30abf836fd562a6842493dcd8"
+        },
+        {
+          "path": "experiments/preflight/engineering/source-inventory.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "64b329544216d88b14ddde6392b5e4fcde8a8df9"
+        },
+        {
+          "path": "experiments/preflight/engineering/validation-20260915.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "7075a958e4614e230c7e3bff660a091820e89d77"
+        },
+        {
+          "path": "experiments/preflight/science/model-candidate-review.v1.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "ed26f780fb8611fe887f8dd3814811a217daeefa"
+        },
+        {
+          "path": "experiments/preflight/science/preparation-manifest.v1.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "7ddd50a0ea5934297c409629d242d78ce9332219"
+        },
+        {
+          "path": "experiments/preflight/science/preparation-manifest.v1.sha256",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "67dc04894ca0baa0fcd6208220b0f9c991e5d486"
+        },
+        {
+          "path": "experiments/preflight/science/protocol.v1.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "a3e594baf0d5adb600529c34e2f7165e86006873"
+        },
+        {
+          "path": "experiments/preflight/science/protocol.v1.sha256",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "b595a91bb77ce6b573dc4fce0075b2f4df2fc048"
+        },
+        {
+          "path": "experiments/preflight/science/templates/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "751ef12a24ccfc55adb8f1a362db5b8c6dd76ff1"
+        },
+        {
+          "path": "experiments/preflight/science/templates/acceptance_correctness.csv",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "ae32b70861f486e8bf06f4c2d571d438c14060dd"
+        },
+        {
+          "path": "experiments/preflight/science/templates/acceptance_correctness.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "7fe44dc8248d2a1877809327c8f975a5deaaa582"
+        },
+        {
+          "path": "experiments/preflight/science/templates/acceptance_correctness.svg",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "37dd6b947c7748ae9d962bfef7526b107b545476"
+        },
+        {
+          "path": "experiments/preflight/science/templates/claim_evidence.csv",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "36d384e598b05be6fb67de2a6146d1a6cd5a10d0"
+        },
+        {
+          "path": "experiments/preflight/science/templates/competitive_comparison.csv",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "a73665596ea6737cb894e8f238859d9096a541d3"
+        },
+        {
+          "path": "experiments/preflight/science/templates/evidence_pipeline.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "149d4897a69e12800ee4ae4c606fe60239e24e94"
+        },
+        {
+          "path": "experiments/preflight/science/templates/hypothesis_results.csv",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "6ce21070a4ffa87504934d55594b2d609807338e"
+        },
+        {
+          "path": "experiments/preflight/science/templates/manifest.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "7c7dc534da2e0a9e13ab207f34f4696eb7299510"
+        },
+        {
+          "path": "experiments/preflight/science/templates/missingness.csv",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "54a2a55288b667bca791e24b47963180534d81d2"
+        },
+        {
+          "path": "experiments/preflight/science/templates/model_degradation.csv",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "5fa6893d46d92f991ec8dcde6d77063ac81d1bf9"
+        },
+        {
+          "path": "experiments/preflight/science/templates/model_degradation.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "cd571e8b62f7cdd87b2a74b9573580e4e9c89f4d"
+        },
+        {
+          "path": "experiments/preflight/science/templates/model_degradation.svg",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "6c80312f5519e94fa03659743968aed776590d9e"
+        },
+        {
+          "path": "experiments/preflight/science/templates/orchestration_tax.csv",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "961a0822ca1a318826e3c6f963912c0fa62d225f"
+        },
+        {
+          "path": "experiments/preflight/science/templates/orchestration_tax.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "d24c99e8383438049b589fca393f8d6cea8895df"
+        },
+        {
+          "path": "experiments/preflight/science/templates/orchestration_tax.svg",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "2a136910478aaaf45c66234eaeab55ed552526f8"
+        },
+        {
+          "path": "experiments/preflight/science/templates/paired_cells.csv",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "5ad1f9ee7662b2c7384a88a2de2fade4963cd507"
+        },
+        {
+          "path": "experiments/preflight/science/templates/reliability_cost_pareto.csv",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "520e280e76fd2bb52e76c0ab7e1f5da25eda8ff7"
+        },
+        {
+          "path": "experiments/preflight/science/templates/reliability_cost_pareto.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "23ad0556984c9fe788bdeadf0e16ae56bf5f7ba1"
+        },
+        {
+          "path": "experiments/preflight/science/templates/reliability_cost_pareto.svg",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "dccbd72be3c4239a4857df3d28dc7c26ed02b4b9"
+        },
+        {
+          "path": "experiments/preflight/science/templates/reliability_curve.csv",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "5974b446ea87cfd2769060be30ed49d100b6f635"
+        },
+        {
+          "path": "experiments/preflight/science/templates/reliability_curve.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "f8f942a32883d76b7fced69a0c8a030d22459a06"
+        },
+        {
+          "path": "experiments/preflight/science/templates/reliability_curve.svg",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "90cbd076072803bf60616ebabbe49e14f2164e57"
+        },
+        {
+          "path": "experiments/preflight/science/templates/soak_failure.csv",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "0eea2a6189ded907b1831dd6f9c21359d7c3e133"
+        },
+        {
+          "path": "experiments/preflight/science/templates/soak_failure.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "f72ee731d0806dd2cdeaedee69aee9cec9b0ea13"
+        },
+        {
+          "path": "experiments/preflight/science/templates/soak_failure.svg",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "eb39477ef4e8314bccd7e94b79be92dcf1fae64e"
+        },
+        {
+          "path": "experiments/preflight/science/templates/verifier_calibration.csv",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "2c24b76d7fc31849f6d11b782558da01b25782d4"
+        },
+        {
+          "path": "experiments/preflight/science/templates/verifier_calibration.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e1e63114f45a405403e17e5c3fa90a3c4ddf133e"
+        },
+        {
+          "path": "experiments/preflight/science/templates/verifier_calibration.svg",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "da453512557af98f271c80e318cacf17b217986e"
+        },
+        {
+          "path": "experiments/preflight/science/templates/verifier_roc.csv",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "c85abf97c66c93eaacacda6492e6ab9611d7a1af"
+        },
+        {
+          "path": "experiments/preflight/science/templates/verifier_roc.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "31f6b2b8707a57fc041ccd19f2636977f42b699a"
+        },
+        {
+          "path": "experiments/preflight/science/templates/verifier_roc.svg",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "749e37aac2a9b6ee1ad463291d47f553d6110fd1"
+        },
+        {
+          "path": "pyproject.toml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "ac3dbf68cf3635b1fca33435417d118388a6b7c8"
+        },
+        {
+          "path": "residual/cli.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "e0c396e8a253236a20233fbf4896e8fc1df61c09"
+        },
+        {
+          "path": "residual/reproduce.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "4a3d69ce003e05ff4cb6286b25f29d3cc100097b"
+        },
+        {
+          "path": "scripts/application_preflight.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "dc11d299222a7e64242ed1d245f9120a344ae976"
+        },
+        {
+          "path": "scripts/clean_machine_preflight.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "1329dc88b4ee98621d42472f054e63ec573c36a4"
+        },
+        {
+          "path": "scripts/engineering_envelope.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "a377e7f9c1198e17c5a651790b803ea2b0bcf135"
+        },
+        {
+          "path": "scripts/paper_templates.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "70b5d98261711bcc8d1bc9da196831d8aa119b92"
+        },
+        {
+          "path": "scripts/run_trust_preflight.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "9bc787af2afd0edd336334f8cc027b4e4399c252"
+        },
+        {
+          "path": "scripts/validate_adversarial_corpus.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "ffb749175c3795d9e8478fe7e5e4974e15eeaea6"
+        },
+        {
+          "path": "tests/preflight_trust/conftest.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "b20726f8538cb7b89d18a6b7086e534d29f159ac"
+        },
+        {
+          "path": "tests/preflight_trust/test_invariants.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "4c91911754925f5acec136424b1ce53abc0dd0cf"
+        },
+        {
+          "path": "tests/preflight_trust/test_properties.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "4d638a27cec5cfec6edb0bda35b920716fc76086"
+        },
+        {
+          "path": "tests/preflight_trust/test_sandbox_probes.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "5b3688c7c2af4d3ba8acbd139493e5a1a86ed639"
+        },
+        {
+          "path": "tests/test_adversarial_corpus.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "cd1e0b3b5bcba0f54c663ba685d7f240bdecf46e"
+        },
+        {
+          "path": "tests/test_application_preflight.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "f0b02b2989e73b6890d3e53fd047323c45abc5f4"
+        },
+        {
+          "path": "tests/test_clean_machine_preflight.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "de719872de53637e229c01c62756839282fae9f1"
+        },
+        {
+          "path": "tests/test_engineering_envelope.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "85403e42c700fb049e5939664041101760270ee5"
+        },
+        {
+          "path": "tests/test_program_science.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "bcda6fba6daadb796379decb30e0a671e630fe43"
+        },
+        {
+          "path": "tests/test_reproduce.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "7bbce905c9bb13cf7f31cd5445c6e5a87313bca7"
+        },
+        {
+          "path": "tests/test_reproduce_cli.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "0e14d17b17d85674f7c5f747cb3177480368dec1"
+        }
+      ]
+    },
+    {
+      "number": 90,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/90",
+      "inventory_head": "058da769359583b29d1923dacb87a42ba3aa12f7",
+      "inventory_base": "bbc65272662e0d84dc83d9e4e19a5be97011e2f2",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "058da769359583b29d1923dacb87a42ba3aa12f7",
+      "class": "B",
+      "lane": "Evaluation/M5",
+      "disposition": "Salvage launcher/protocol enforcement and unique M5 completion repairs with tests. Planning supersession by #110 does not dispose of executable scope.",
+      "files": [
+        {
+          "path": "docs/evaluation.md",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "d1422ac06333bd6a662884a5c038f34097d49a4b"
+        },
+        {
+          "path": "docs/evaluation/launch-preparation.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "0c57059b385791fcc0fdff399d122d383495eefc"
+        },
+        {
+          "path": "docs/evaluation/r0-r5-freeze.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "0ed0b56c743c6f7e81d75440c2b7238028dd92dd"
+        },
+        {
+          "path": "docs/evaluation/r0-r5.fixture-workload.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "7fb82ab1df62279bbd15539f0e3d1a370c6c16a2"
+        },
+        {
+          "path": "docs/evaluation/r0-r5.protocol.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "b25d9bb13d9996b359d78a90ce3dcf08e3054e96"
+        },
+        {
+          "path": "docs/evaluation/r0-r5.protocol.sha256",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "c0fb09597ebcf51f1330a07ec6fdb41e13098de6"
+        },
+        {
+          "path": "docs/loop/M5-INDEPENDENT-AUDIT-2026-09-15.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "56210ab6e91c7d416ed4b6ce6836a2e42513df5b"
+        },
+        {
+          "path": "docs/papers/reliability-from-unreliable-computation.md",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "4305315f9813b2af3d3709860911882e890e547c"
+        },
+        {
+          "path": "docs/research.md",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "3c00a724ff6dd86656307b5d670001a91c155840"
+        },
+        {
+          "path": "docs/study-qa/PARALLEL-LANE-REVIEW.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "130102546faf585a1395e919396408ca17903118"
+        },
+        {
+          "path": "residual/eval/launch.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "588309c9c54da602ecbf4656222f124167a37582"
+        },
+        {
+          "path": "residual/eval/protocol.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "2fb877c08c1dad462fad9ee365d87c96dfbab4e7"
+        },
+        {
+          "path": "residual/factory/loop_runtime/controller.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "ffea99e6b03c3991171b24ac8d0bbee78d9392ab"
+        },
+        {
+          "path": "residual/factory/loop_runtime/state.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "013820182f7671c4d70d186b905baa3a558bc0f1"
+        },
+        {
+          "path": "tests/test_eval_launch.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "8460d6f18e353650d4e5b758ac997e62c78e9ad6"
+        },
+        {
+          "path": "tests/test_loop_runtime.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "02234f64cc46fe32d5debc86c6146bdb9d125a3f"
+        },
+        {
+          "path": "tests/test_r0_r5_protocol.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "9c2aee5c4f45075abe768d1e2886a43c59ede14a"
+        }
+      ]
+    },
+    {
+      "number": 89,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/89",
+      "inventory_head": "8bd04067d6a35654f7e57cab8628185645f5aa33",
+      "inventory_base": "72634fec8916917d97f8e4f36980b8caeeba16f5",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "8bd04067d6a35654f7e57cab8628185645f5aa33",
+      "class": "B",
+      "lane": "Onboarding",
+      "disposition": "Consolidation candidate for #78/#73; review credential handling and unique Inspector/onboarding behavior on current main before dispositions.",
+      "files": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "ca81cae8219bba33df4bf909a8dc5fd5797596e8"
+        },
+        {
+          "path": "docs/quickstart.md",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "bc8966d757ccafdd78678707e032c24a090c9596"
+        },
+        {
+          "path": "docs/station/INSPECTOR.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "15d06a0b1753dc054111e9878b917221f7f23a65"
+        },
+        {
+          "path": "residual/cli.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "92d4d57b6e768ac3743cf19c929d0a054baf2f14"
+        },
+        {
+          "path": "residual/config.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "4b9cc6c55cdcb58d1748c18c3aceee2756d6649b"
+        },
+        {
+          "path": "residual/inspector.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "6e9a602efea82942934ed01fdbf53de18e2f6337"
+        },
+        {
+          "path": "residual/onboarding.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "58c9bc26657bb8d7452e6ed572bbc97708a19331"
+        },
+        {
+          "path": "tests/test_freellmapi_onboarding.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "8a5a0a809ba293b586b968b8b2f0c492849db596"
+        },
+        {
+          "path": "tests/test_inspector.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "81aacd294d4a65988dc35fe231d6b519cdf146e9"
+        }
+      ]
+    },
+    {
+      "number": 88,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/88",
+      "inventory_head": "07ff4930993a555e6fd5bdde4dd8eed96ad2068e",
+      "inventory_base": "72634fec8916917d97f8e4f36980b8caeeba16f5",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "closed",
+      "latest_observed_head": "07ff4930993a555e6fd5bdde4dd8eed96ad2068e",
+      "class": "C",
+      "lane": null,
+      "disposition": "See closed proposal map in PR_TRIAGE_2026-09-15.md",
+      "files": [
+        {
+          "path": ".github/workflows/factory-execution.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "50bdcda4c27572b14686150145aa90a7dbab224b"
+        },
+        {
+          "path": "docs/study-qa/m4-qualification-review.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "1c5c2696a642071b27368b32951b3a639764e3d5"
+        }
+      ]
+    },
+    {
+      "number": 83,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/83",
+      "inventory_head": "d10e1b6d5279d939b52451f85ee61cd99aa1091a",
+      "inventory_base": "800ea736308e3b0c091b81bf9cdb18c9786b9ac4",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "d10e1b6d5279d939b52451f85ee61cd99aa1091a",
+      "class": "B",
+      "lane": "Demo owner",
+      "disposition": "Compare unique guest-readiness/Pages failure handling with current demo; retain only missing behavior through the owner’s lane.",
+      "files": [
+        {
+          "path": ".github/workflows/pages-browser.yml",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "43f7833a6cc8245c26b816881053f8ea51eedd2c"
+        },
+        {
+          "path": ".github/workflows/pages.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "f67b2fe2354b2ed88a7cd9a5dc9a21fbb14441d1"
+        },
+        {
+          "path": ".github/workflows/vm-demo-ci.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "0de6cf0573f104ccdc63af7f1bed5c3ab5ecff41"
+        },
+        {
+          "path": "scripts/check_live_demo_browser.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "2e892a2f270e1936638d438a880bdd09ef7a3efa"
+        },
+        {
+          "path": "site/live-demo.html",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "b09b12a05636404d0762eb782280f9132d430f1b"
+        }
+      ]
+    },
+    {
+      "number": 78,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/78",
+      "inventory_head": "ff269d33b95428aa53ddfbaac7caa99ecbdee159",
+      "inventory_base": "bbc65272662e0d84dc83d9e4e19a5be97011e2f2",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "ff269d33b95428aa53ddfbaac7caa99ecbdee159",
+      "class": "B",
+      "lane": "Onboarding",
+      "disposition": "Reconcile guided setup/doctor work into #89; preserve tests and credential behavior before closing predecessor.",
+      "files": [
+        {
+          "path": ".github/workflows/freellmapi-qualification.yml",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "fcb2b77faa4035b03be50717357ee2f3c00fd3d1"
+        },
+        {
+          "path": "docs/freellmapi-qualification.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "7710bee3e6a26190cc0ba4b57ca7d508cf5543e3"
+        },
+        {
+          "path": "docs/quickstart.md",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "bc8966d757ccafdd78678707e032c24a090c9596"
+        },
+        {
+          "path": "residual/cli.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "efd038884a0007e6ea576e98095dac6f0d7ffc67"
+        },
+        {
+          "path": "residual/config.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "4b9cc6c55cdcb58d1748c18c3aceee2756d6649b"
+        },
+        {
+          "path": "residual/onboarding.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "2eb365febe7b07be3183414d4b57d9df56cc1f59"
+        },
+        {
+          "path": "scripts/freellmapi_qualification.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "671829f99da2f29b19a0042e5f9508677c62d5bf"
+        },
+        {
+          "path": "tests/test_freellmapi_onboarding.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "06ff5270a1062f07c9bdb9b735708bc98573a2fb"
+        }
+      ]
+    },
+    {
+      "number": 73,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/73",
+      "inventory_head": "26c01b2eb40b64f5c2f74ed183bd5d422b4124cb",
+      "inventory_base": "90dd2f40bff916e8b50d1777bf35debc511e996f",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "26c01b2eb40b64f5c2f74ed183bd5d422b4124cb",
+      "class": "B",
+      "lane": "Onboarding/Inspector",
+      "disposition": "Reconcile unique Inspector surface into #89; defer additional product features under scope freeze.",
+      "files": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "ca81cae8219bba33df4bf909a8dc5fd5797596e8"
+        },
+        {
+          "path": "docs/station/INSPECTOR.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "7917aac211a343c58aebc1fba5b3a632df95f83a"
+        },
+        {
+          "path": "residual/cli.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "1ec22119fe4158bc88dfbd4b2ce3e5b034d87436"
+        },
+        {
+          "path": "residual/inspector.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "7a8b04e3eb5e7d60d27d3bbf5f7fb6f24b9e0862"
+        },
+        {
+          "path": "tests/test_inspector.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "ae4f8c3b9c2a1a58e339d914300e1368ada30715"
+        }
+      ]
+    },
+    {
+      "number": 57,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/57",
+      "inventory_head": "9c10adc7f597db2bff0db4b7875e4b59c0d35273",
+      "inventory_base": "6d1e53c33084315108338c3e867e36ea3f68cc30",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "9c10adc7f597db2bff0db4b7875e4b59c0d35273",
+      "class": "B",
+      "lane": "Demo owner",
+      "disposition": "Historical demo-tooling source; compare against canonical black/green demo and retain missing qualification tooling.",
+      "files": [
+        {
+          "path": ".github/workflows/pages.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "b5694816ba2edc488fae8c1e06269ae7ffa29fb4"
+        },
+        {
+          "path": "demo/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "344d6da99c9075c3c325cbd62798b1e4312cb1ad"
+        },
+        {
+          "path": "demo/build.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e457f18ef8497772ae8d908fcb3c4ea2534dbb78"
+        },
+        {
+          "path": "demo/site/.nojekyll",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        {
+          "path": "demo/site/app.mjs",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "269de806db6ec1a3c8f51c94e869e08f6b5836af"
+        },
+        {
+          "path": "demo/site/favicon.svg",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "1e1e214ca66d05cce99b0a60ccbacc26ba971d74"
+        },
+        {
+          "path": "demo/site/index.html",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "1e5a0dcff48b8b74728474232e889c78d06ba2ba"
+        },
+        {
+          "path": "demo/site/model.mjs",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "2cba7279591d1ab607061f88a3f1cced32b88f25"
+        },
+        {
+          "path": "demo/site/styles.css",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "60b9c38869857268a2daa36310e14323f67a6535"
+        },
+        {
+          "path": "demo/tests/browser.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "787f7fd3d62827f103f022420cace97670550ff2"
+        },
+        {
+          "path": "demo/tests/model.test.mjs",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "563b2f3efb1739f73a70461ab80ca18d31c55fb2"
+        },
+        {
+          "path": "demo/tests/requirements.txt",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "c78670ebae91801c97a994ca2ac14462fb5b43f3"
+        },
+        {
+          "path": "demo/tests/test_build.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "8ca385fe1ef83dc2d83f1cde46a7391d772717f1"
+        },
+        {
+          "path": "tests/test_pages_publisher.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "5d5dff47930443ddb62162fc1ea8a40787c8df5f"
+        }
+      ]
+    },
+    {
+      "number": 56,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/56",
+      "inventory_head": "793d629c483502b8d4e61e058f2e69980f583623",
+      "inventory_base": "78b711569faea75357bbe9e7ad588384a87dbc58",
+      "inventory_base_ref": "feat/factory-fb004",
+      "latest_observed_state": "open",
+      "latest_observed_head": "793d629c483502b8d4e61e058f2e69980f583623",
+      "class": "B",
+      "lane": "Factory benchmarks",
+      "disposition": "Port corpus verification and doctor/setup tooling onto current Factory; do not merge its FB004 stack.",
+      "files": [
+        {
+          "path": ".github/workflows/factory-execution.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "9b9302e4310357015ea93f9391d814ec9f870338"
+        },
+        {
+          "path": "benchmarks/factory/corpus/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e648dea8a405f08ee794e538c954627ad5ce618f"
+        },
+        {
+          "path": "benchmarks/factory/corpus/common.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "0d04d1227514eabe40dbb12658478d59b13f2e46"
+        },
+        {
+          "path": "benchmarks/factory/corpus/run_corpus.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "4ffe614ea14599950b2876ef7445b6adba874ed5"
+        },
+        {
+          "path": "benchmarks/factory/corpus/verify_corpus.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "d13bf9a3e0064d1cac79fcd6b97e22537f26d743"
+        },
+        {
+          "path": "benchmarks/factory/fb004/common.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "63ecd35c9247de31046c4568bfbe0c78bc230dea"
+        },
+        {
+          "path": "residual/cli.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "7466dea1407a8c54528d120ddda80a99b0bcbccf"
+        },
+        {
+          "path": "residual/factory/doctor.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "a62e61c79b1ce9dde21adc35680ab8cfe320bb01"
+        },
+        {
+          "path": "scripts/setup_factory.sh",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "621132632580b0b48a16bcf88ee9303bcfac93a4"
+        },
+        {
+          "path": "tests/test_factory_corpus.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "5b60b9ee8628e93280b18fe10a95a26ccd9e034a"
+        },
+        {
+          "path": "tests/test_factory_doctor.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "f9b0883a355f84da8d1fb9924a9fc5e6b4c4071b"
+        }
+      ]
+    },
+    {
+      "number": 54,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/54",
+      "inventory_head": "78b711569faea75357bbe9e7ad588384a87dbc58",
+      "inventory_base": "58b0a23c40cd8d0b893363a62c9bc01c501ab207",
+      "inventory_base_ref": "feat/factory-fb003",
+      "latest_observed_state": "open",
+      "latest_observed_head": "78b711569faea75357bbe9e7ad588384a87dbc58",
+      "class": "B",
+      "lane": "Factory benchmarks",
+      "disposition": "Port FB004 whole-project completion as the principal Factory benchmark on current main.",
+      "files": [
+        {
+          "path": ".github/workflows/factory-execution.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "4eabae20efc6773959be86850f6bdd5f3950965d"
+        },
+        {
+          "path": "benchmarks/factory/fb004/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "351462c1cb0573bb3edbfc7b78a2b0185a5355da"
+        },
+        {
+          "path": "benchmarks/factory/fb004/common.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "76247e66cef7904abe39c91ff10d749a26e28dcc"
+        },
+        {
+          "path": "benchmarks/factory/fb004/prepare_workload.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "7f2814e21d7af2f9313fa2dd200ddaeda9812d91"
+        },
+        {
+          "path": "benchmarks/factory/fb004/run_live.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "c708fd05421badf819b841eb90b28affb074b7be"
+        },
+        {
+          "path": "tests/test_factory_fb004.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "1709eb377c4cac0534785110ebcccf5632d5640c"
+        }
+      ]
+    },
+    {
+      "number": 53,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/53",
+      "inventory_head": "20cc039290873396411e0e8fd16b8c4727f7ae47",
+      "inventory_base": "2ba3fc3adc2874114dc6349007905cd18315bebc",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "20cc039290873396411e0e8fd16b8c4727f7ae47",
+      "class": "B",
+      "lane": "Science",
+      "disposition": "Compare reliability evidence pipeline with #86/#90/#91/#110; port unique execution/reporting and preserve development-vs-confirmatory labels.",
+      "files": [
+        {
+          "path": "README.md",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "c5e7ceffe4a7fb310d79def8f1a778cbaf00ce56"
+        },
+        {
+          "path": "docs/degradation-experiment.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "01818e2f56b3f31fd7df6ed22b353d00c080a212"
+        },
+        {
+          "path": "docs/papers/reliability-from-unreliable-computation.md",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "0ed04a9c59024c75528c93e0a9d560a0841bc8c3"
+        },
+        {
+          "path": "docs/reliability-experimental-release.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "ebb198a555de517ab9776708cc79354b315b1a7a"
+        },
+        {
+          "path": "examples/reliability/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "47782db276154a2f3ce6cc36667d6ff8b929eed5"
+        },
+        {
+          "path": "examples/reliability/manifest.example.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "069dcfd5346b0b92399bb24ff87950885a5eee9f"
+        },
+        {
+          "path": "residual/experiments/__init__.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "a1fbc854b4bc9b35ca56b7170551ccfb1a21cafd"
+        },
+        {
+          "path": "residual/experiments/adapters.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "67f4c4972428fabc76cf034411f9bba5319c533d"
+        },
+        {
+          "path": "residual/experiments/degradation.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "8ba40c49ca9ebd9aca61c2d2e223b2cb23d4cdda"
+        },
+        {
+          "path": "residual/experiments/reliability.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "d8c7b9d36b73ba2c7a9e9820e15e82fe4faf16f1"
+        },
+        {
+          "path": "scripts/reliability_experiment.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "be72a56e6795a3c6fed27096fe487376d130f100"
+        },
+        {
+          "path": "tests/test_reliability_adapters.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e9c3532c141007a20d5b168b5f48a5c927bb3d0a"
+        },
+        {
+          "path": "tests/test_reliability_degradation.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e7c67a99633001f35b8f836c9f0a8adb45f01d0f"
+        },
+        {
+          "path": "tests/test_reliability_experiment.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "5ed566f3384c2d23b09417558bcc3eae02bf10a1"
+        }
+      ]
+    },
+    {
+      "number": 52,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/52",
+      "inventory_head": "58b0a23c40cd8d0b893363a62c9bc01c501ab207",
+      "inventory_base": "0fe3172a75f9dce104a4af5f3de811fd4b29dec4",
+      "inventory_base_ref": "feat/factory-fb002",
+      "latest_observed_state": "open",
+      "latest_observed_head": "58b0a23c40cd8d0b893363a62c9bc01c501ab207",
+      "class": "B",
+      "lane": "Factory benchmarks",
+      "disposition": "Port FB003 overlapping-edit/conflict tasks on current Factory; keep failure-exposure accounting.",
+      "files": [
+        {
+          "path": ".github/workflows/factory-execution.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "6a0f967a2ac875f30ffd7a0a6434b47254f55505"
+        },
+        {
+          "path": "benchmarks/factory/fb003/.gitignore",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "c651d22f8c570849007e8a128aa97959d060b971"
+        },
+        {
+          "path": "benchmarks/factory/fb003/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e1bc9f1385ad5f242ed4844161fef529b0cc1621"
+        },
+        {
+          "path": "benchmarks/factory/fb003/common.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "4486ff115b6d6539ac8b6d4a00276f3c6a612e18"
+        },
+        {
+          "path": "benchmarks/factory/fb003/prepare_workload.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "5ea314cd101a107004a5aa794eddb85e88d07b17"
+        },
+        {
+          "path": "benchmarks/factory/fb003/run_live.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "6ba658fb9847b2e113e69ffe307724f7f9942692"
+        },
+        {
+          "path": "tests/test_factory_fb003.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "48159e857a4aee78ce9e1964bcf897c007528ecb"
+        }
+      ]
+    },
+    {
+      "number": 46,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/46",
+      "inventory_head": "0fe3172a75f9dce104a4af5f3de811fd4b29dec4",
+      "inventory_base": "b0427d7e0e4213810c019a363c181125e8a7fe11",
+      "inventory_base_ref": "feat/factory-fb001",
+      "latest_observed_state": "open",
+      "latest_observed_head": "0fe3172a75f9dce104a4af5f3de811fd4b29dec4",
+      "class": "B",
+      "lane": "Factory benchmarks",
+      "disposition": "Port FB002 multi-file DAG workload/runner onto current Factory.",
+      "files": [
+        {
+          "path": ".github/workflows/factory-execution.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "7433f8b18afa9d84a96ddaa56888cbe0a245a14e"
+        },
+        {
+          "path": "benchmarks/factory/fb002/.gitignore",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "c651d22f8c570849007e8a128aa97959d060b971"
+        },
+        {
+          "path": "benchmarks/factory/fb002/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "fc5c0aaa53201c4e0a4fc77752f33e12d9d1085d"
+        },
+        {
+          "path": "benchmarks/factory/fb002/common.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "fc35799bffacf0797ca95233cec2a4aa87431885"
+        },
+        {
+          "path": "benchmarks/factory/fb002/prepare_workload.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "f000cf760190b5611e4b381f0a4c106ec1f94b42"
+        },
+        {
+          "path": "benchmarks/factory/fb002/run_live.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "7166701fb04256a3df04d0b361febefe3aa8d024"
+        },
+        {
+          "path": "tests/test_factory_fb002.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "9af1a0904155e60997f362ff4ddeb67911de2432"
+        }
+      ]
+    },
+    {
+      "number": 38,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/38",
+      "inventory_head": "b0427d7e0e4213810c019a363c181125e8a7fe11",
+      "inventory_base": "eec2969a864a7590ddc9aa70114f4a869bf0c6ee",
+      "inventory_base_ref": "feat/factory-eval-framework",
+      "latest_observed_state": "open",
+      "latest_observed_head": "b0427d7e0e4213810c019a363c181125e8a7fe11",
+      "class": "B",
+      "lane": "Factory benchmarks",
+      "disposition": "Port FB001 measured parallelism workload/runner onto current Factory.",
+      "files": [
+        {
+          "path": ".github/workflows/factory-execution.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "39b6cf870f033441492b37bbd768d28d86de563a"
+        },
+        {
+          "path": "benchmarks/factory/fb001/.gitignore",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "93511c5e757a1b3f2a41c2e13f15905a1410a703"
+        },
+        {
+          "path": "benchmarks/factory/fb001/README.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "bebbeafb75d532985262baf95a6d555c098a8570"
+        },
+        {
+          "path": "benchmarks/factory/fb001/common.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "9040e5fb2ebec3e4b626e0384da9993d9b59b9a8"
+        },
+        {
+          "path": "benchmarks/factory/fb001/prepare_workload.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "2f93e2bf3e72da4c90fcb5fce75967578a6d11f3"
+        },
+        {
+          "path": "benchmarks/factory/fb001/run_live.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e594135571f73a0ed6db85771775692e9c3de100"
+        },
+        {
+          "path": "tests/test_factory_fb001.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "335ed2cd6e5ca53a379a5c949234ad21a3559c8b"
+        }
+      ]
+    },
+    {
+      "number": 37,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/37",
+      "inventory_head": "b915915ebde11d30237eba1a54524155c014fdee",
+      "inventory_base": "624b400763f5e362ce26c9f5512e24376943bbc0",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "b915915ebde11d30237eba1a54524155c014fdee",
+      "class": "B",
+      "lane": "Science/provider accounting",
+      "disposition": "Review unique pre-dispatch budget enforcement against the frozen launch/accounting path; retain verifier/retry/control costs.",
+      "files": [
+        {
+          "path": "residual/assurance/external.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "bcf1edca5d958be46e7af03afddadff58c99bbee"
+        },
+        {
+          "path": "scripts/external_assurance_eval.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "ed72aaa53e60adab68ac6ecd99c60b559ca60ce8"
+        },
+        {
+          "path": "tests/test_external_budget.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "b139f446b8324896d19541d5c08483704ec7b156"
+        }
+      ]
+    },
+    {
+      "number": 26,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/26",
+      "inventory_head": "eec2969a864a7590ddc9aa70114f4a869bf0c6ee",
+      "inventory_base": "8088300337167cc7a0942a85b2c90cc6e3bf03e2",
+      "inventory_base_ref": "feat/factory-m4-integrator-scheduler",
+      "latest_observed_state": "open",
+      "latest_observed_head": "eec2969a864a7590ddc9aa70114f4a869bf0c6ee",
+      "class": "B",
+      "lane": "Factory benchmarks",
+      "disposition": "Use old evaluation driver/framework only as source for missing behavior; canonical runtime/apparatus are main and #86, not the closed #22 stack.",
+      "files": [
+        {
+          "path": ".github/workflows/factory-execution.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "96dbfce3ba55d6479bd2e61b5aefa2c4fc9fb0f9"
+        },
+        {
+          "path": ".github/workflows/station.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "26b019d3e455c73680101c7f232c628629192f71"
+        },
+        {
+          "path": "docs/factory/EVAL-FRAMEWORK.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "4ee04ae2e611e18fe8acfa29e06e9435306a96f0"
+        },
+        {
+          "path": "residual/cli.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "c3407265c210723633f5f10e0a32d8543d3cd1ab"
+        },
+        {
+          "path": "residual/engines/sdk_adapter.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "c6a47c135b0bccce7a835dd71d73ea7764c85a74"
+        },
+        {
+          "path": "residual/factory/__init__.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "967045f5dec0939a93c49c9e48f896f6ab41f573"
+        },
+        {
+          "path": "residual/factory/eval_driver.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "b08974a8c29e0dac11d4d897465f9a3b93e64be6"
+        },
+        {
+          "path": "residual/factory/eval_framework.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "c41b4b9d624ede30af991caf63923f1661145bd1"
+        },
+        {
+          "path": "tests/test_factory_eval.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e2922137f99dbdc5601a761b2a18d70a74147f32"
+        },
+        {
+          "path": "tests/test_factory_eval_driver.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "33b4b82d2417ebfb214d33743cee5bd82bf959a5"
+        }
+      ]
+    },
+    {
+      "number": 24,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/24",
+      "inventory_head": "0cd8c01f79b899e7bfbd8eff7decdb99dbf77f52",
+      "inventory_base": "8088300337167cc7a0942a85b2c90cc6e3bf03e2",
+      "inventory_base_ref": "feat/factory-m4-integrator-scheduler",
+      "latest_observed_state": "open",
+      "latest_observed_head": "0cd8c01f79b899e7bfbd8eff7decdb99dbf77f52",
+      "class": "B",
+      "lane": "Fault experiments",
+      "disposition": "Port useful M4 fault cases and exposure denominators onto canonical current M4; obsolete #22 integration is not a dependency to merge.",
+      "files": [
+        {
+          "path": ".github/workflows/m4-reliability.yml",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "98712c01e53f02d32fbe8be83de306d131d2e524"
+        },
+        {
+          "path": "residual/factory/reliability_m4.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "6276469d361c926368ac636ab129422fa4f5a24f"
+        },
+        {
+          "path": "scripts/run_m4_fault_matrix.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "6b8c0e49d196726d89f365f51d5f9ee184f25dbb"
+        },
+        {
+          "path": "tests/test_factory_reliability_m4.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "3060609632ffc115d02cc980e3b4608c9c1056df"
+        }
+      ]
+    },
+    {
+      "number": 22,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/22",
+      "inventory_head": "1ef002a3826f8b11e0fef6aa4ed3ad0e8fedeec3",
+      "inventory_base": "782efe079fecc1e62151de7b49c9e1c446fd1a61",
+      "inventory_base_ref": "feat/factory-m3-evidence-bus",
+      "latest_observed_state": "closed",
+      "latest_observed_head": "1ef002a3826f8b11e0fef6aa4ed3ad0e8fedeec3",
+      "class": "C",
+      "lane": null,
+      "disposition": "See closed proposal map in PR_TRIAGE_2026-09-15.md",
+      "files": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "8f50b6459a95452ab2bbbf206589e7660d2f4241"
+        },
+        {
+          "path": ".github/workflows/factory-execution.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "04d1266c2723721888bc3633f50599bfb9d9b5b6"
+        },
+        {
+          "path": ".github/workflows/station.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "26b019d3e455c73680101c7f232c628629192f71"
+        },
+        {
+          "path": "docs/factory/M4-INTEGRATION-SCHEDULER.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "ddec9d9e1d2d95f939957bda72f1697286a380c3"
+        },
+        {
+          "path": "residual/factory/__init__.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "0f06330e8409943480e62f26c251282c3827504e"
+        },
+        {
+          "path": "residual/factory/evidence_receipts.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "51bb84d69c369f5fe09f38f5e625a4fe1f901cbc"
+        },
+        {
+          "path": "residual/factory/integrator.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "533e17411b6499730e4990b21120f1f0269f31ed"
+        },
+        {
+          "path": "residual/factory/scheduler.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "fe20c810526912cdf4e37cac8e4d23173f6167cc"
+        },
+        {
+          "path": "tests/test_factory_m4.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "7444a544b3c409092db1330bb64ad7cd34106b4b"
+        }
+      ]
+    },
+    {
+      "number": 20,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/20",
+      "inventory_head": "2af5b2a5bb56d7690944f795448b8bf082b1a699",
+      "inventory_base": "782efe079fecc1e62151de7b49c9e1c446fd1a61",
+      "inventory_base_ref": "feat/factory-m3-evidence-bus",
+      "latest_observed_state": "open",
+      "latest_observed_head": "2af5b2a5bb56d7690944f795448b8bf082b1a699",
+      "class": "B",
+      "lane": "Fault experiments",
+      "disposition": "Port unique M3 evidence-bus fault cases onto current accepted code; retain provenance and invalid-injection counts.",
+      "files": [
+        {
+          "path": ".github/workflows/m3-bus-reliability.yml",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "4f2e8bf0a904adc46d0cf248317e4bc5b5e174c1"
+        },
+        {
+          "path": "residual/factory/reliability_m3_bus.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "ebb305124951d5b4fda15b1f769712d380c22484"
+        },
+        {
+          "path": "scripts/run_m3_bus_fault_matrix.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "cb4be8edd4ec1084d11f8c25a629bb31ca7bf70e"
+        },
+        {
+          "path": "tests/test_factory_reliability_m3_bus.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "6b8628fda6732cb0dc3e525a79a7588857b7c1fe"
+        }
+      ]
+    },
+    {
+      "number": 17,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/17",
+      "inventory_head": "1294810f4f6946191bd39aed618d4113df5233dd",
+      "inventory_base": "1d3542208b4ad13f637b207daeb1d5b65f4488ba",
+      "inventory_base_ref": "feat/factory-m2-contract-foundation",
+      "latest_observed_state": "open",
+      "latest_observed_head": "1294810f4f6946191bd39aed618d4113df5233dd",
+      "class": "B",
+      "lane": "Fault experiments",
+      "disposition": "Port unique M2 OS-boundary fault cases onto current runtime after #108 acceptance.",
+      "files": [
+        {
+          "path": ".github/workflows/factory-execution.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "adeda3ebad4f83fa5dfe78c5d4f29bc946bc3fc2"
+        },
+        {
+          "path": "residual/factory/reliability_experiments.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "e993a5e7b36965d75ed15ff26fe3aa1ea37e8d5c"
+        },
+        {
+          "path": "residual/factory/runtime_journal.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "7aac1cdfb1bf81cefdd89cec14d11f81418284a1"
+        },
+        {
+          "path": "scripts/run_m2_reliability_fault_matrix.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "506cccfa36082bf16b6b3f8768673ade9fedca1e"
+        },
+        {
+          "path": "tests/test_factory_reliability_experiments.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "7af60d9368b73f1d77caca7d0569da22002fad9d"
+        }
+      ]
+    },
+    {
+      "number": 12,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/12",
+      "inventory_head": "63308afb174c837874b159032e80d5b96100e16d",
+      "inventory_base": "86d9f88958a5fdf87417ee3ebc90fbe366496815",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "63308afb174c837874b159032e80d5b96100e16d",
+      "class": "B",
+      "lane": "Research",
+      "disposition": "Reconcile paper/evidence-package material with #53/#91 and retained artifacts. Do not promote historical development results to live claims.",
+      "files": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "c4c3e795c6cf04587b493a8bde32507a762c7b88"
+        },
+        {
+          "path": "docs/papers/reliability-claim-evidence-matrix.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "1bdb5525e8b1119065e1d51a7f9945d14a1a354c"
+        },
+        {
+          "path": "docs/papers/reliability-fault-coverage.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "fb0b93ed0409aa244d54d3b8905486ae4888f47c"
+        },
+        {
+          "path": "docs/papers/reliability-h1-protocol.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "eb2df35628e5c7ce0aa2ed940f07611f87b19583"
+        },
+        {
+          "path": "docs/papers/reliability-metrics.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "5cfc4db9676b30bafb6d09dabbab7148cea3502b"
+        },
+        {
+          "path": "docs/papers/reliability-related-work.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "13c842c518285c58020ad5f479440a66cf71bd05"
+        },
+        {
+          "path": "residual/reliability_experiment_report.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "94befc9237e3e69dc9bf174b6a56c93040cec5b0"
+        },
+        {
+          "path": "residual/reliability_experiments.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "d389387fcf857fb8f37c652b82622c291f741f91"
+        },
+        {
+          "path": "residual/reliability_metrics.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "30ae463b2e7a0213b1394a5d22903821569b9a1d"
+        },
+        {
+          "path": "scripts/run_reliability_fault_matrix.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "f41217ff73bd13826bbe80ca29b848bb455fe1da"
+        },
+        {
+          "path": "tests/test_reliability_experiment_report.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "9c7a927cc98b778d695c4d5daab8af5aa0b2d0d0"
+        },
+        {
+          "path": "tests/test_reliability_experiments.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "0819263e1bb20555d04d315901b569b3c0cdb5f2"
+        },
+        {
+          "path": "tests/test_reliability_metrics.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "eb129ffb9671c65bcb043a1e6eee56d9e7ae0df8"
+        }
+      ]
+    },
+    {
+      "number": 10,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/10",
+      "inventory_head": "f9b461cdb22209f401a6b51d47994343a3c6e932",
+      "inventory_base": "8c595ca06337796f6b5c32ed217bc8581a7db1ad",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "f9b461cdb22209f401a6b51d47994343a3c6e932",
+      "class": "B",
+      "lane": "Deferred engine feature",
+      "disposition": "Hold OpenClaw integration under feature freeze unless a frozen experiment or qualification gate requires it; preserve source.",
+      "files": [
+        {
+          "path": "README.md",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "28fdc84929c7b1aa60174064f2e27dbbf7703bf8"
+        },
+        {
+          "path": "docs/integrations/OPENCLAW.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "84dc9c0dd5ca449e580ac8895d20a4bbe2640e83"
+        },
+        {
+          "path": "docs/specs/SPEC-OPENCLAW-001.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "68166acda6f840f09ceca76ac8705c590c0e4648"
+        },
+        {
+          "path": "residual/engines/__init__.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "adc8520fe6b6ec04b512c1166937b9414ff66c41"
+        },
+        {
+          "path": "residual/engines/openclaw_adapter.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "8826a04f00cedba4bab511e7478175e89402796b"
+        },
+        {
+          "path": "tests/test_openclaw_adapter.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "722afed9c044c826ec7e7caeaecb183c90acfc4a"
+        }
+      ]
+    },
+    {
+      "number": 1,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/1",
+      "inventory_head": "0df7e069886b8107420ad99e164cc2719bbc0b39",
+      "inventory_base": "e9907fe50edb7e89faba2f822d1fd5562cb601e2",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "0df7e069886b8107420ad99e164cc2719bbc0b39",
+      "class": "B",
+      "lane": "Deferred provider feature",
+      "disposition": "Hold unique experimental FreeLLMAPI gateway/budget scope under feature freeze. It is not automatically superseded by onboarding work.",
+      "files": [
+        {
+          "path": "README.md",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "cb0ec5200550c652a9e2bd0109d6a72aad72ec98"
+        },
+        {
+          "path": "ai_providers/adapters/free_claude_code_adapter.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "dba6a752a31219f92fbad45781d9095810ea2015"
+        },
+        {
+          "path": "ai_providers/adapters/freellmapi_adapter.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "40317f5175b84c92f21e73b853ae886eb1b457cf"
+        },
+        {
+          "path": "ai_providers/core.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "3fd00cab504c3e573f4bbe58447563b1739a98c8"
+        },
+        {
+          "path": "ai_providers/registry.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "06a626064720b8fcda0a0cafb0443f1788c77391"
+        },
+        {
+          "path": "ai_providers/router.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "503159bc246d28628109a6a44ccdf23003f113fc"
+        },
+        {
+          "path": "docs/station/FCC_CONTINUITY.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "b618d90cf4f9dea88bde8e5763fa39c6dac0f231"
+        },
+        {
+          "path": "docs/station/FREELLMAPI.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "148ff6b8d12ad00a2283523347df67b28482a6a2"
+        },
+        {
+          "path": "docs/station/qa/fcc-continuity.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "ee9ff1d2dcb3a139ac77c8e8323794a48a4376b0"
+        },
+        {
+          "path": "docs/station/qa/freellmapi-integration.json",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "3754d4b4a8ad4e53fed2db47a71c1d6fbb1071e2"
+        },
+        {
+          "path": "examples/freellmapi.toml",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "56b27b0a5df347228c7106d58a23848468dc6dad"
+        },
+        {
+          "path": "residual/config.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "f5322c3114b12cb0f86c0fb6fdf73a7f50c06ac8"
+        },
+        {
+          "path": "residual/modular.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "c7522a84458cb2997e6ce18b2061a3baac4ec46e"
+        },
+        {
+          "path": "residual/station/models.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "a626aad9015d37daeb14ae249ae30470fef9b723"
+        },
+        {
+          "path": "residual/station/service.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "c7c0b4ba98a8dc8a1c64bc82e87b2f815e5b84a1"
+        },
+        {
+          "path": "residual/station/static/app.js",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "85682fb2568b9fa82d0291f46a93c5d1a22e61cf"
+        },
+        {
+          "path": "residual/station/store.py",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "ad193f4dcd47699fa225357e8d05394ed9644177"
+        },
+        {
+          "path": "tests/browser.cjs",
+          "previous_path": null,
+          "status": "modified",
+          "blob_sha": "345f09e1e47ff1d7db08594e4c84a71cbedcc8b9"
+        },
+        {
+          "path": "tests/modular/test_fcc_continuity.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "3dc36ed1eec50bf59c832b8573cfc9b03c17cc0d"
+        },
+        {
+          "path": "tests/modular/test_fcc_live.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "03ed8be2949e8da037f09ebbbe034f8d40ad2d40"
+        },
+        {
+          "path": "tests/modular/test_freellmapi.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "7422793eb224c40935b9046975ad6147b157e5a5"
+        }
+      ]
+    },
+    {
+      "number": 117,
+      "url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/117",
+      "inventory_head": "23f51453aff8739ababae796a58c6b492a25bd28",
+      "inventory_base": "1cf4e46c0ace8e3cdc76147ad4c7dc6480a9fb34",
+      "inventory_base_ref": "main",
+      "latest_observed_state": "open",
+      "latest_observed_head": "d146df9cbcc6862c71b7ec094d3cbaffcf2a2554",
+      "class": "A",
+      "lane": "Runtime/DSM",
+      "disposition": "BLOCKED: three missing implementations. Required pytest gate added; preserve assertions and repair process tracking, fencing through append and payload-collision rejection.",
+      "files": [
+        {
+          "path": "docs/swarm/runtime-distributed-closure.md",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "1dda8fddcd78ee4d11b0ed716e5caaa8ccbdd095"
+        },
+        {
+          "path": "tests/swarm/test_runtime_distributed_closure.py",
+          "previous_path": null,
+          "status": "added",
+          "blob_sha": "8cdc0335b42e718addfaaf846c1d394596b84112"
+        }
+      ]
+    }
+  ]
+}

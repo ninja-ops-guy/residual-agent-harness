@@ -66,11 +66,11 @@ The Factory runtime extends RESIDUAL into multi-worker execution:
 - sandbox/red-team, crypto, connector-conformance, SLO/alert and observability layers;
 - Studio/operator surfaces and executable onboarding paths.
 
-M2/M3/M4 are no longer paper-only concepts: the canonical implementations live under `residual/factory/` and related platform packages. However, **current M4 is not yet fully qualified for live/paper-facing claims**; issue #63 tracks accepted-tree binding, filesystem/link safety, verifier execution isolation and Git-evidence semantics that must be closed first.
+M2/M3/M4 are no longer paper-only concepts: the canonical implementations live under `residual/factory/` and related platform packages. The code-hardening work in closed issue #63 has landed. **Live M4 qualification remains outstanding**: closure of the code review does not substitute for evidence from a namespace-capable runner at the evaluated revision.
 
 ### Evaluation and soak infrastructure
 
-`residual/eval/` now provides the main frozen reliability-evaluation apparatus:
+`residual/eval_frozen/` provides the frozen R0–R5 reliability-evaluation apparatus, alongside the earlier evaluation utilities in `residual/eval/`:
 
 - immutable hash-locked `FrozenWorkload` sets;
 - repeated configuration runs;
@@ -99,20 +99,22 @@ The project also contains soak infrastructure, but long-duration live qualificat
 
 A major integrated milestone at `412b66c35f7c0e1ac479fe60a5b7d33d5510e3af` recorded **1,033 tests plus 166 subtests green** with verifier v2 green and protected-path ownership checks. That evidence applies to that exact tree.
 
-Current `main` has advanced beyond that point. Before starting paper-facing live reliability evaluation, the priority gates are:
+The triage baseline is `1cf4e46c0ace8e3cdc76147ad4c7dc6480a9fb34` (2026-09-15), including merged #106. The [PR convergence ledger](docs/status/PR_TRIAGE_2026-09-15.md) records 32 open proposals and their dispositions. Before starting paper-facing live reliability evaluation, the priority gates are:
 
-1. close **#63** — harden/qualify the current M4 trust boundary;
-2. close **#48** — reconcile stale `implementation-status.yaml` and regenerate the generated status document;
-3. classify the retained timing-sensitive Factory OS fail-then-pass behavior;
-4. freeze the live evaluation protocol before observing model results;
-5. run one fixed live model across R0–R5 and measure raw correctness, acceptance coverage, accepted correctness, AER/ASSR, latency, throughput and cost;
-6. only then progress to model-degradation, heterogeneous-routing and 24h → 72h → 30-day soak studies.
+1. complete required-check coverage and independent-approval enforcement on the now-protected `main` branch (see the current-status policy update);
+2. qualify the exact M4 tree on a namespace-capable runner through #109 (successor to closed #88), retaining failures and skips;
+3. independently accept #108's Factory repair and fix the three local runtime/DSM failures now gated by #117; preserve the historical signal failures;
+4. qualify the merged #103 measured-evidence binding, including its real verifier boundary and retained prerequisite reports;
+5. freeze the live protocol and corpus before observing model results, then run R0–R5 with correctness, coverage, latency, throughput and cost measurements;
+6. complete the blank-VM release-candidate and long-duration soak lanes; neither is established by a unit-test pass.
 
 See [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md) for the detailed current-state map and claim boundaries.
 
 ## Important traceability note
 
-`implementation-status.yaml` and `docs/status/IMPLEMENTATION_STATUS.md` currently contain stale pre-merge entries that still mark M2, M3, M4 and EVAL as `not_started`. That documentation drift is tracked by issue #48. Until it is reconciled, do **not** use those four generated rows as current-state evidence; use the exact code/tests, open qualification issues and [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md).
+Implementation manifest: M2=implemented; M3=implemented; M4=implemented; EVAL=implemented.
+
+The basic reconciliation in closed issue #48 has landed. These are implementation states, not live qualification results. The broader family-coverage reconciliation remains a separate PR #94 track. The supplemental `scripts/check_current_status.py` keeps these active summaries aligned with the manifest and reviewed historical references; it does not replace the pinned traceability checker.
 
 ## Quick start
 
