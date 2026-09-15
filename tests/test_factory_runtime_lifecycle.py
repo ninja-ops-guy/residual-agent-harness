@@ -13,8 +13,8 @@ from unittest.mock import Mock, patch
 
 from tests.test_factory_runtime import Fixture
 from residual.factory.runtime import main
-from residual.factory.runtime_journal import LeaseRead
 from residual.factory.termination_provenance import ProcessControl
+from residual.factory.runtime_journal import LeaseRead
 from residual.factory.runtime_workspace import ManagedWorktree
 from residual.factory.worker_contract import WorkerContractError
 
@@ -180,7 +180,7 @@ class WatchdogIntentGuards(Fixture):
         control = self.control()
         self.runtime._clock = lambda: 100.0
         with patch.object(Path, 'read_text', return_value='1 1'):
-            with patch.object(self.journal, 'lease_state', return_value=LeaseRead('revoked')):
+            with patch.object(self.journal, 'lease_state', return_value='revoked'):
                 self.watch(control, self.contract(), self.FAR)
         control.kill.assert_called_once_with(
             ('lease', 'lease_generation', {'reason': 'revoked_or_unavailable'}),
@@ -194,7 +194,8 @@ class WatchdogIntentGuards(Fixture):
         ticks = iter([100.0 + 0.5 * n for n in range(64)])
         self.runtime._clock = lambda: next(ticks)
         with patch.object(Path, 'read_text', return_value='1 1'):
-            with patch.object(self.journal, 'lease_state', return_value=LeaseRead('unknown')):
+            with patch.object(self.journal, 'lease_read',
+                              return_value=LeaseRead('unknown')):
                 self.watch(control, self.contract(), self.FAR)
         control.kill.assert_called_once_with(
             ('lease', 'lease_unreadable', {'reason': 'revoked_or_unavailable'}),
