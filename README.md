@@ -44,9 +44,11 @@ The original harness provides obligation DAGs, immutable evidence snapshots, ver
 
 `FAIL`, `UNKNOWN`, malformed output, verifier exceptions, provider errors and abstention never silently become success.
 
-### Command Station
+### Command Station and Mission Control
 
 Command Station exposes the harness as a self-hosted operations console with mission/spec import, run control, local/cloud execution, provider routing, observation traces, model management, HITL hooks, security inspection, downloadable evidence and source-release packaging.
+
+The browser Mission Control path supports multi-turn artifact conversations, explicit parent lineage, isolated previews, browser-local conversation restoration, optional provider connection, typed provider-failure reporting and real-guest acceptance checks. Generated preview artifacts remain outside repository mutation authority; repository-changing autonomous work still belongs behind Factory/M4 controls.
 
 Provider paths include OpenAI, OpenAI-compatible endpoints, Anthropic, Gemini, Azure, Bedrock and Ollama through bounded adapters. Local-first execution and cloud escalation are policy decisions rather than architectural assumptions.
 
@@ -66,11 +68,13 @@ The Factory runtime extends RESIDUAL into multi-worker execution:
 - sandbox/red-team, crypto, connector-conformance, SLO/alert and observability layers;
 - Studio/operator surfaces and executable onboarding paths.
 
-M2/M3/M4 are no longer paper-only concepts: the canonical implementations live under `residual/factory/` and related platform packages. However, **current M4 is not yet fully qualified for live/paper-facing claims**; issue #63 tracks accepted-tree binding, filesystem/link safety, verifier execution isolation and Git-evidence semantics that must be closed first.
+M2/M3/M4 are no longer paper-only concepts: the canonical implementations live under `residual/factory/` and related platform packages. The four original M4 trust-boundary defects tracked by issue #63 are closed, and the deterministic sandbox-timing/termination repair from PR #108 is now merged on `main`.
+
+That is **implementation and reviewed mechanism closure, not blanket live qualification**. Namespace-capable M4 execution still requires a genuinely capable runner with zero namespace-dependent skips and actual isolated execution. Release/recovery qualification, soak evidence and live research results remain separate gates.
 
 ### Evaluation and soak infrastructure
 
-`residual/eval/` now provides the main frozen reliability-evaluation apparatus:
+`residual/eval/` provides the main frozen reliability-evaluation apparatus:
 
 - immutable hash-locked `FrozenWorkload` sets;
 - repeated configuration runs;
@@ -97,22 +101,24 @@ The project also contains soak infrastructure, but long-duration live qualificat
 
 ## Current status and qualification boundary
 
-A major integrated milestone at `412b66c35f7c0e1ac479fe60a5b7d33d5510e3af` recorded **1,033 tests plus 166 subtests green** with verifier v2 green and protected-path ownership checks. That evidence applies to that exact tree.
+The protected M4 trust-boundary implementation is present on `main`, including the accepted-tree/filesystem/verifier-isolation/Git-evidence closure and the later deterministic sandbox-timing repair. PR #108 landed as commit `0430f2fa2d107fe48d26ae84a3c1550af029cb52`; namespace-dependent tests were deliberately retained as non-qualification where the host could not provide the required isolation capability.
 
-Current `main` has advanced beyond that point. Before starting paper-facing live reliability evaluation, the priority gates are:
+Current `main` has since advanced through the Mission Control real-provider reliability work in PR #122. See [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md) for the exact current SHA, current CI state and active qualification blockers.
 
-1. close **#63** — harden/qualify the current M4 trust boundary;
-2. close **#48** — reconcile stale `implementation-status.yaml` and regenerate the generated status document;
-3. classify the retained timing-sensitive Factory OS fail-then-pass behavior;
+Before paper-facing live reliability evaluation, the priority gates are now:
+
+1. run the M4 qualification path on a genuinely namespace-capable runner and require zero namespace skips plus actual isolated execution; PR #109 currently records the hosted-runner capability result as `BLOCKED`, not `PASS`;
+2. keep exact-current-main browser/Pages qualification green and retain any recurrence of the intermittent WebVM guest-runtime failure tracked by issue #120;
+3. complete downstream release/recovery qualification without weakening security or acceptance gates;
 4. freeze the live evaluation protocol before observing model results;
 5. run one fixed live model across R0–R5 and measure raw correctness, acceptance coverage, accepted correctness, AER/ASSR, latency, throughput and cost;
 6. only then progress to model-degradation, heterogeneous-routing and 24h → 72h → 30-day soak studies.
 
-See [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md) for the detailed current-state map and claim boundaries.
-
 ## Important traceability note
 
-`implementation-status.yaml` and `docs/status/IMPLEMENTATION_STATUS.md` currently contain stale pre-merge entries that still mark M2, M3, M4 and EVAL as `not_started`. That documentation drift is tracked by issue #48. Until it is reconciled, do **not** use those four generated rows as current-state evidence; use the exact code/tests, open qualification issues and [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md).
+Issue #48 is closed. `implementation-status.yaml` and its generated status documentation have been reconciled with the merged Factory/evaluation tree; M2, M3, M4 and EVAL are no longer represented by the old stale `not_started` rows.
+
+The manifest records **implementation status**, not production qualification. An `implemented` or `implemented_unverified` family does not convert missing namespace, live-provider, soak or research evidence into a pass.
 
 ## Quick start
 
@@ -227,7 +233,7 @@ Exact Factory/research claims should additionally retain commit/tree identity an
 
 RESIDUAL is an implemented research and engineering platform, not a universal proof system. A verifier proves only what its contract and evidence allow it to check. Receipts are evidence of checked acceptance under stated conditions, not certificates of arbitrary truth. Plugins and host integrations remain trusted code unless explicitly isolated by another boundary.
 
-The project does not currently claim a universal verifier, universally optimal scheduler, new foundation model, guaranteed token savings, guaranteed quality preservation, blanket production readiness, live proof of the central reliability hypothesis, or first-in-literature status.
+The project does not currently claim a universal verifier, universally optimal scheduler, new foundation model, guaranteed token savings, guaranteed quality preservation, blanket production readiness, namespace-qualified M4 on every supported host, live proof of the central reliability hypothesis, or first-in-literature status.
 
 ---
 
