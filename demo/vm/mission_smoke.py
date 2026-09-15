@@ -93,6 +93,7 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     assert await provider.evaluate('window.__providerFixture.gesture'), 'sign-in lost user gesture'
 
     await page.locator('#mc-mission').click()
+    await page.get_by_text('Run controls', exact=True).click()
     await page.locator('#mc-mode').select_option('build')
     await page.locator('#mc-prompt').fill('Build a calculator')
     await page.locator('#mc-files').fill('')
@@ -120,7 +121,6 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     # Natural follow-up must carry the exact prior accepted bundle as frozen evidence.
     await page.locator('#mc-mission').click()
     await page.locator('#mc-prompt').fill('Make the calculator dark mode while preserving addition')
-    await page.locator('#mc-required').fill('Calculator')
     await page.locator('#mc-run').click()
     await page.wait_for_function("() => document.querySelector('#mc-session').textContent.includes('REV 2') && document.querySelector('#mc-answer').textContent.includes('dark mode')", timeout=120000)
     assert await page.locator('#mc-inline-preview-frame-r1').count() == 1
@@ -139,6 +139,7 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await stage('workbench_followup_revision_and_runtime_smoke_passed')
 
     await page.locator('#mc-mission').click()
+    await page.get_by_text('Run controls', exact=True).click()
     await page.locator('#mc-mode').select_option('live')
     nonce = 'mission-proof-' + secrets.token_hex(4)
     await page.locator('#mc-prompt').fill('Explain the selected source. Include ' + nonce)
