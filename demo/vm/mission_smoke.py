@@ -21,10 +21,19 @@ window.puter = {
   },
   ai: {chat: async (messages, options) => {
     window.__providerFixture.calls++;
-    const packet = JSON.parse(messages[messages.length-1].content), e = packet.evidence[0];
-    const answer = {text:'Transport contract fixture for: '+packet.goal,
-      citations:[{artifact_id:e.artifact_id,start_line:e.start_line,end_line:e.start_line,quote:e.text.split('\n')[0]}]};
-    return {message:{content:JSON.stringify({updates:{answer},requests:[]})},usage:{input_tokens:10,output_tokens:10}};
+    const packet = JSON.parse(messages[messages.length-1].content), obligation = packet.obligations[0], e = packet.evidence[0];
+    let updates;
+    if (obligation.id === 'build') {
+      updates = {build:{summary:'Calculator deliverable generated for review.',files:[
+        {path:'index.html',content:'<!doctype html><title>Calculator</title><main><h1>Calculator</h1><input id="a"><button>=</button></main>'},
+        {path:'README.md',content:'Calculator\n\nGenerated review artifact. Not executed by RESIDUAL.'}
+      ]}};
+    } else {
+      const answer = {text:'Transport contract fixture for: '+packet.goal,
+        citations:[{artifact_id:e.artifact_id,start_line:e.start_line,end_line:e.start_line,quote:e.text.split('\n')[0]}]};
+      updates = {answer};
+    }
+    return {message:{content:JSON.stringify({updates,requests:[]})},usage:{input_tokens:10,output_tokens:10}};
   }}
 };
 '''
@@ -71,6 +80,27 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await provider.locator('#signin').click()
     await page.wait_for_function("() => document.querySelector('#mc-connect').textContent === 'Provider connected'", timeout=20000)
     assert await provider.evaluate('window.__providerFixture.gesture'), 'sign-in lost user gesture'
+
+    # Prompt-first build: real guest/Harness, bounded generated files, never executed.
+    await page.locator('#mc-mission').click()
+    await page.locator('#mc-mode').select_option('build')
+    await page.locator('#mc-prompt').fill('Build a calculator')
+    await page.locator('#mc-files').fill('')
+    await page.locator('#mc-required').fill('Calculator')
+    await page.locator('#mc-consent').check()
+    await page.locator('#mc-run').click()
+    await page.wait_for_function("() => document.querySelector('#mc-verdict').textContent.includes('CODE CORRECTNESS: UNKNOWN') && !document.querySelector('#mc-result').hidden", timeout=120000)
+    assert 'PASSED' in await page.locator('#mc-verdict').inner_text()
+    assert 'index.html' in await page.locator('#mc-artifact-list').inner_text()
+    assert 'Calculator deliverable' in await page.locator('#mc-answer').inner_text()
+    build_path = re.search(r'/opt/residual/runs/missions/m-[a-f0-9]{32}', await page.locator('#mc-path').inner_text()).group()
+    await page.screenshot(path=str(args.output / 'mission-build-artifacts.png'))
+    await page.locator('#mc-terminal').click()
+    await command_proof(f'test -s {build_path}/artifacts/index.html && grep -q Calculator {build_path}/artifacts/index.html && grep -q "\\\"executed\\\":false" {build_path}/artifacts/manifest.json && python3 -m residual verify-trace {build_path}/trace.jsonl --result {build_path}/result.json')
+    report['workbench_build_artifacts'] = 'PASS_WITH_SDK_TEST_DOUBLE_NOT_EXECUTED'
+    await stage('workbench_generated_artifacts_saved_and_verified')
+
+    # Existing source-grounded review path remains intact.
     await page.locator('#mc-mission').click()
     await page.locator('#mc-mode').select_option('live')
     nonce = 'mission-proof-' + secrets.token_hex(4)
@@ -83,7 +113,7 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     assert 'PASSED' in await page.locator('#mc-verdict').inner_text()
     assert nonce in await page.locator('#mc-answer').inner_text()
     assert 'README.md:1-1' in await page.locator('#mc-citations').text_content()
-    assert await provider.evaluate('window.__providerFixture.calls') == 1
+    assert await provider.evaluate('window.__providerFixture.calls') == 2
     path = re.search(r'/opt/residual/runs/missions/m-[a-f0-9]{32}', await page.locator('#mc-path').inner_text()).group()
     await page.screenshot(path=str(args.output / 'mission-provider-contract.png'))
     await page.locator('#mc-terminal').click()
@@ -101,5 +131,5 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await page.reload(wait_until='domcontentloaded')
     await page.locator('#mc-terminal').click()
     await page.wait_for_function("() => document.body.innerText.replace(/\\s/g,'').includes('residual@demo:~/residual-agent-harness$')", timeout=120000)
-    await command_proof(f'test -s {path}/answer.md && python3 -m residual verify-trace {path}/trace.jsonl --result {path}/result.json')
-    await stage('workbench_saved_mission_survives_reload')
+    await command_proof(f'test -s {path}/answer.md && test -s {build_path}/artifacts/index.html && python3 -m residual verify-trace {path}/trace.jsonl --result {path}/result.json && python3 -m residual verify-trace {build_path}/trace.jsonl --result {build_path}/result.json')
+    await stage('workbench_saved_missions_survive_reload')
