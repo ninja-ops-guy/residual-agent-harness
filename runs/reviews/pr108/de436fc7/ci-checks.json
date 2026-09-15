@@ -2,7 +2,7 @@
   "source_head": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
   "source_tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe",
   "checked_out_merge": "12406a5c1eb3f8f7811a5ed9740bfce1add13dcb",
-  "observed_at": "2026-09-15T15:09:25.196Z",
+  "observed_at": "2026-09-15T15:14:00.577Z",
   "checks": [
     {
       "id": 104436472833,
@@ -98,10 +98,10 @@
       "id": 104434410348,
       "name": "matrix (combined)",
       "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "started_at": "2026-09-15T14:55:24Z",
-      "completed_at": null,
+      "completed_at": "2026-09-15T15:12:02Z",
       "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984910992/job/104434410348"
     },
     {

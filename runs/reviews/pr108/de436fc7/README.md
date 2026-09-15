@@ -47,8 +47,7 @@ checker itself is unchanged. Matching 38 pins is integrity evidence, not review.
 | Local full unittest | 946 run, 5 failures, 1 error, 29 skips | Nonzero exit retained; class-level capability skips affect discovery/run counts |
 | GitHub Factory CI | 980 unittest cases, 22 skips, success | Synthetic merge has identical source tree; namespace skips remain |
 | Required ordinary Python matrices, ownership, clean-install checks | Success | Development CI scopes; clean-install checks are not blank-VM RC qualification |
-| Termination matrix: normal, CPU, I/O | Each: 500 repetitions per test, two tests, zero failures/errors/skips | Raw syscall SIGSYS and blocked-audit termination only; no universal determinism or soak claim |
-| Termination matrix: combined | Pending at this evidence snapshot | No full-matrix acceptance inferred; consult the exact run below |
+| Termination matrix: normal, CPU, I/O, combined | Each: 500 repetitions per test, two tests; all 4,000 candidate executions have zero failures/errors/skips | Raw syscall SIGSYS and blocked-audit termination only; no universal determinism or soak claim |
 
 The 15 local pytest failures are the same selectors previously retained for
 this host: nine bubblewrap namespace-permission failures, one AF_UNIX permission
@@ -110,8 +109,8 @@ failed cleanup/terminal writes, primary-reason preservation, deadline ownership,
 receipt schema stability and all changed protected pins. Permanently unreapable
 children remain pending. Unexpected cleanup/storage errors remain recorded for
 operator reconciliation; this patch does not provide process-restart recovery.
-Complete combined contention evidence is required before treating that matrix
-as passed. Keep namespace qualification and elapsed 24h/72h soak separate.
+All four contention reports are retained. Keep namespace qualification and
+elapsed 24h/72h soak separate.
 
 The owner retains merge authority. Squash merge remains recommended because
 the branch's historical commits contain temporary placeholder evidence files.

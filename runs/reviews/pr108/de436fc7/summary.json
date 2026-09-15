@@ -296,11 +296,12 @@
     "normal": "PASS_500_PER_TEST",
     "cpu": "PASS_500_PER_TEST",
     "io": "PASS_500_PER_TEST",
-    "combined": "IN_PROGRESS",
+    "combined": "PASS_500_PER_TEST",
     "tests": [
       "raw_file_syscall",
       "blocked_audit_termination"
-    ]
+    ],
+    "candidate_executions": 4000
   },
   "acceptance": "Fresh independent review and owner merge decision required. M4 and elapsed soak are not qualified."
 }

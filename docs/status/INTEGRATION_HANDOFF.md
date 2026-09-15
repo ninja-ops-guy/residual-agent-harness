@@ -16,6 +16,8 @@ qualify M4. Local pytest remains 1,625 passed / 15 failed / 62 skipped, with
 342 subtests passed; local unittest is 946 run / 5 failures / 1 error / 29 skips.
 The [repair bundle](../../runs/reviews/pr108/de436fc7/README.md) retains the logs,
 mutation results, CI source identity and the original probe cleanup failure.
+All four contention conditions pass: 500 repetitions per test, 4,000 candidate
+executions total, zero failures/errors/skips.
 
 This continuation became the implementer. A fresh independent reviewer must
 review the new head, reproduce the original 12-test battery and five repaired
