@@ -60,6 +60,10 @@ adversarial scenarios, frozen 20–30-mission benchmark and bounded generation
 experiments. Reconcile existing work before implementation; no completion is
 inferred from this backlog entry. The initial test list truncates after SH-T18;
 the revised acceptance-test wording truncates at SH-T02's expected result.
+The review revision proposes REJECTED for SH-T02, explicit A/B/C/D classes,
+a bounded campaign profile, per-category benchmark oracles and rollback checks.
+A 31-PR/current-main inventory is delivered; SH-01 review and complete
+acceptance-inventory approval remain required before implementation.
 
 The first experiment requires a frozen qualified parent and produces only a
 successor candidate, with no merge or deployment. Candidate-produced changes
