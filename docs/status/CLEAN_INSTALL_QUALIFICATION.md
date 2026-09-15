@@ -39,10 +39,9 @@ python verifier/v3/qualify_clean_install.py \
   --source-root . --output runs/clean-install/report.json
 ```
 
-The staged workflow `ci/clean-install-qualification.yml` runs this on a
-Python 3.11/3.12/3.13 matrix for PRs and pushes to `main`. It is staged
-outside `.github/workflows/` and must be moved into place by a maintainer
-to become active.
+The active workflow `.github/workflows/clean-install-qualification.yml` runs
+this qualification on Python 3.11/3.12/3.13 for pull requests and pushes to
+`main`, retaining evidence even when qualification fails.
 
 The `test` extra (`pytest`, `PyYAML`) supports running the repository test
 suite and the regression tests for this tooling
