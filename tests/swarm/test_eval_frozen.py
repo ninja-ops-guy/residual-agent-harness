@@ -306,6 +306,13 @@ def test_r9_report_hash_bound_and_deterministic(workload):
     json.dumps(first, allow_nan=False)
 
 
+def test_r9_report_hash_pinned(report):
+    """Pin the frozen fixture pipeline's report hash so any drift in
+    workload, engine, metrics, or normalization fails CI."""
+    assert report["report_sha256"] == \
+        "1bce348dd69c4a0471fbf8b90c69d0603ce396cd75845e86c1c5ec76e53b2416"
+
+
 # --- EVAL-R10: CI fixture labeled separately from live -------------------------
 
 def test_r10_fixture_labeled_development(report, records):

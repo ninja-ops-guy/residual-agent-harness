@@ -53,13 +53,13 @@ not live LLM capability.
 | EVAL-R6 metric families | `test_r6_all_metric_families_present`, `test_r6_metric_definitions`, `test_r6_fcr_none_without_fault_labels`, `test_r6_control_layers_change_outcomes` |
 | EVAL-R7 paired run records | `test_r7_paired_records_enable_task_level_comparison` |
 | EVAL-R8 failed/aborted retained | `test_r8_failures_and_aborts_stay_in_aggregates`, `test_r8_states_distinct_and_typed` |
-| EVAL-R9 CSV/JSON + plotting inputs | `test_r9_csv_rows_parseable`, `test_r9_plotting_inputs_bound_to_report`, `test_r9_report_hash_bound_and_deterministic`, `test_r9_report_hash_reproducible_across_processes` |
+| EVAL-R9 CSV/JSON + plotting inputs | `test_r9_csv_rows_parseable`, `test_r9_plotting_inputs_bound_to_report`, `test_r9_report_hash_bound_and_deterministic`, `test_r9_report_hash_pinned`, `test_r9_report_hash_reproducible_across_processes` |
 | EVAL-R10 CI fixture vs live labeling | `test_r10_fixture_labeled_development`, `test_r10_live_runs_separately_labeled`, `test_r10_invalid_evidence_level_rejected` |
 | Gate B evidence artifact | `test_gate_b_evidence_artifact_identity_and_contents` |
 | Gate C reproduction (P(X), P(A), P(X\|A)) | `test_gate_c_recompute_probabilities_from_raw_records`, `test_gate_c_aggregate_metrics_match_recomputed`, `test_gate_c_unknowns_stay_in_recompute_denominators` |
 | Acceptance (end-to-end R0–R5) | `test_acceptance_end_to_end_fixture_study`, `test_acceptance_cli_runs_end_to_end` |
 
-Gate A: `python3 -m pytest tests/swarm/ -q` → 33 passed.
+Gate A: `python3 -m pytest tests/swarm/ -q` → 34 passed.
 
 ## Reproduction
 
@@ -69,9 +69,10 @@ python3 -m residual.eval_frozen --out evidence/eval   # regenerate fixture artif
 ```
 
 Retained evidence (regenerated on `swarm/eval-001-frozen-reliability-v2`
-after the package rename and the aggregate-float normalization fix; source
-identity is bound via `eval_source_digests` in the artifact, and the artifact
-file itself is committed in a follow-up commit on the same branch):
+from inside a clean git checkout at commit
+`33778d24a7d4388cc05d67b79eca1190fb8cc125`, so the artifact's `source` block
+carries the real `commit`/`tree`; the artifact file itself is committed in a
+follow-up commit on the same branch):
 
 - `evidence/eval/fixture-study.json` — full hash-bound report (`residual.eval-report.v1`);
   regenerated on demand by `python3 -m residual.eval_frozen` (deterministic; aggregate floats normalized to 9 decimal places before hashing) and pinned
@@ -79,7 +80,7 @@ file itself is committed in a follow-up commit on the same branch):
   (`1bce348dd69c4a0471fbf8b90c69d0603ce396cd75845e86c1c5ec76e53b2416`).
 - `evidence/eval/fixture-study.csv` — paper-ready per-config/slice metrics
 - `evidence/eval/fixture-study-plot-inputs.json` — plotting inputs bound to the report hash
-- `evidence/eval/fixture-study-evidence.json` — Gate B artifact (`residual.eval-evidence.v1`), evidence sha256 `7e62fdcb44ad1aefee6a1c82421b2f81dcb402e87482f75c38fb02e24ccce07c`
+- `evidence/eval/fixture-study-evidence.json` — Gate B artifact (`residual.eval-evidence.v1`), evidence sha256 `acb405f5a1a70534b23292f7d605a8762702b1e11dbc2cbe7a02301f9ca66211`
 
 `recompute_from_records` recomputes P(X), P(A), P(X|A) per configuration from
 the retained raw run records alone and is asserted equal to the aggregate
@@ -89,5 +90,9 @@ report in Gate C tests.
 
 - Fixture outcomes are scripted; no live-model performance claim is made.
   Live runs must use `--live` and are labeled `live_model` separately.
+- The frozen workload declares two slices ("development" and "evaluation"),
+  but only the "evaluation" slice is exercised: all 108 retained observations
+  (6 configurations × 6 tasks × 3 repeats) have `slice="evaluation"`. No
+  per-slice comparison is possible from this fixture.
 - The evidence artifact records the commit/tree of the generating code; the
   artifact file itself is committed in a follow-up commit on the same branch.
