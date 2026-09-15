@@ -107,7 +107,7 @@ Current `main` has since advanced through the Mission Control real-provider reli
 
 Before paper-facing live reliability evaluation, the priority gates are now:
 
-1. run the M4 qualification path on a genuinely namespace-capable runner and require zero namespace skips plus actual isolated execution; PR #109 currently records the hosted-runner capability result as `BLOCKED`, not `PASS`;
+1. independently review and integrate PR #109's exact-candidate M4 qualification: its current Ubuntu 22.04 run achieved real namespace probes, actual isolated execution and zero skipped M4 cases, but the PASS remains bound to the PR synthetic candidate until review, complete CI and deliberate merge;
 2. keep exact-current-main browser/Pages qualification green and retain any recurrence of the intermittent WebVM guest-runtime failure tracked by issue #120;
 3. complete downstream release/recovery qualification without weakening security or acceptance gates;
 4. freeze the live evaluation protocol before observing model results;
