@@ -315,7 +315,7 @@ def main(argv=None):
         request = read_json(args.request) if args.request else {
             "mode": "build", "prompt": args.prompt, "files": args.files, "model": args.model,
             "max_calls": args.max_calls, "max_output_tokens": args.max_output_tokens,
-            "cloud_consent": args.allow_cloud, "conversation_id": args.conversation_id,
+            "cloud_consent": args.allow_cloud, "conversation_id": args.conversation_id or "c-" + uuid.uuid4().hex,
             "parent_mission_id": args.parent_mission_id}
         request["mode"] = "build"
         def deadline(_signum, _frame): raise WorkbenchDeadline("mission wall-clock budget exhausted")
