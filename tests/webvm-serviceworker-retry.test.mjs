@@ -61,13 +61,13 @@ test('non-chunk 503 is never retried', async () => {
 });
 
 test('cross-origin and non-GET requests are never retried', async () => {
-  await withRuntime([{status:503},{status:200}], async calls => {
-    const cross = await residualFetchWithRetry(request(chunk, 'GET', 'https://cdn.example'));
+  await withRuntime([{status:503},{status:200}], async (calls, fetchWithRetry) => {
+    const cross = await fetchWithRetry(request(chunk, 'GET', 'https://cdn.example'));
     assert.equal(cross.status, 503);
     assert.equal(calls(), 1);
   });
-  await withRuntime([{status:503},{status:200}], async calls => {
-    const post = await residualFetchWithRetry(request(chunk, 'POST'));
+  await withRuntime([{status:503},{status:200}], async (calls, fetchWithRetry) => {
+    const post = await fetchWithRetry(request(chunk, 'POST'));
     assert.equal(post.status, 503);
     assert.equal(calls(), 1);
   });
