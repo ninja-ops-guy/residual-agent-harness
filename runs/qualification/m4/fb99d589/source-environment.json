@@ -1,0 +1,17 @@
+{
+  "commit": "d43db468ee1075bb0f2612ef75575afa0ac01d5f",
+  "tree": "ed2d089f21273ec1e305d5ab432d554092267343",
+  "tracked_source_dirty": false,
+  "python": "3.12.14 (main, Aug 13 2026, 02:48:23) [GCC 11.4.0]",
+  "platform": "Linux-6.8.0-1064-azure-x86_64-with-glibc2.35",
+  "runner": {
+    "ImageOS": "ubuntu22",
+    "ImageVersion": "20260907.292.1",
+    "RUNNER_OS": "Linux",
+    "RUNNER_ARCH": "X64",
+    "GITHUB_RUN_ID": "35017167706",
+    "GITHUB_RUN_ATTEMPT": "1",
+    "SOURCE_PR_HEAD": "fb99d5896b23b91e3903965a8c56813412533d48",
+    "SOURCE_BASE": "9d88195a6329151197b53c05c6cbb5a74167f08f"
+  }
+}

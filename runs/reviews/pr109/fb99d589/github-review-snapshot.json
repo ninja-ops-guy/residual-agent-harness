@@ -1,0 +1,43 @@
+[
+  {
+    "_links": {
+      "html": {
+        "href": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/109#pullrequestreview-5215110153"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/ninja-ops-guy/residual-agent-harness/pulls/109"
+      }
+    },
+    "author_association": "OWNER",
+    "body": "Protected-surface review of exact head `2551585f8951d242db92cd4c3e680409b0e4c572`:\n\n- The only protected blob change is `tests/test_factory_runtime_lifecycle.py`, accepted baseline `d4e00bd290351fa2ccd302ac578ac5dc463eda84` -> proposed `85c6bf10a675ea3a74d775906d0bbaa79e411100`; the ownership baseline itself remains unchanged and correctly fails closed.\n- The protected test does not drop or relax its behavioral assertions. It still exercises both `--run-id` and `--trace-id`, requires return code 1, empty stdout, exact `{\"status\":\"blocked\",\"error_type\":\"FileNotFoundError\"}` stderr JSON, no temporary-path disclosure, and zero journal attempts.\n- Replacing parent-process `redirect_stderr`/direct `main()` invocation with `python -m residual.factory` subprocess capture is a boundary correction, not an assertion weakening: unrelated parent warnings/finalizers can no longer contaminate the child CLI's stderr. The new adversarial regression injects parent `ResourceWarning` noise twice and verifies both alias executions remain isolated.\n- `residual/factory/__main__.py` delegates directly to `runtime.main()` and does not suppress warnings or alter Factory semantics.\n- The fresh capable-runner M4 evidence on this exact head/synthetic merge remains evidence for the candidate only; it does not qualify merged `main`, does not waive the ownership mismatch, and does not broaden production/soak/research claims.\n\nReview conclusion: the proposed protected test byte is technically acceptable for a *deliberate subsequent ownership-baseline advancement* after a genuinely independent reviewer/maintainer authorizes it. I am not treating this comment as self-approval, and I am not advancing the baseline or merging this PR.",
+    "commit_id": "2551585f8951d242db92cd4c3e680409b0e4c572",
+    "html_url": "https://github.com/ninja-ops-guy/residual-agent-harness/pull/109#pullrequestreview-5215110153",
+    "id": 5215110153,
+    "node_id": "PRR_kwDOUZYKYs8AAAABNthECQ",
+    "pull_request_url": "https://api.github.com/repos/ninja-ops-guy/residual-agent-harness/pulls/109",
+    "state": "COMMENTED",
+    "submitted_at": "2026-09-15T19:55:29Z",
+    "user": {
+      "avatar_url": "https://avatars.githubusercontent.com/u/222743524?v=4",
+      "events_url": "https://api.github.com/users/ninja-ops-guy/events{/privacy}",
+      "followers_url": "https://api.github.com/users/ninja-ops-guy/followers",
+      "following_url": "https://api.github.com/users/ninja-ops-guy/following{/other_user}",
+      "gists_url": "https://api.github.com/users/ninja-ops-guy/gists{/gist_id}",
+      "gravatar_id": "",
+      "html_url": "https://github.com/ninja-ops-guy",
+      "id": 222743524,
+      "login": "ninja-ops-guy",
+      "node_id": "U_kgDODUbL5A",
+      "organizations_url": "https://api.github.com/users/ninja-ops-guy/orgs",
+      "received_events_url": "https://api.github.com/users/ninja-ops-guy/received_events",
+      "repos_url": "https://api.github.com/users/ninja-ops-guy/repos",
+      "site_admin": false,
+      "starred_url": "https://api.github.com/users/ninja-ops-guy/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/ninja-ops-guy/subscriptions",
+      "type": "User",
+      "url": "https://api.github.com/users/ninja-ops-guy",
+      "user_view_type": "public"
+    }
+  }
+]
+

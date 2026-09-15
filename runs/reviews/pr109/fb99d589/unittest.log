@@ -1,0 +1,12 @@
+test_compressible_archive_above_uncompressed_bound_is_rejected (tests.test_factory_m4_artifact_export.ArtifactExportTests.test_compressible_archive_above_uncompressed_bound_is_rejected) ... ok
+test_duplicate_member_is_rejected_even_with_all_expected_names (tests.test_factory_m4_artifact_export.ArtifactExportTests.test_duplicate_member_is_rejected_even_with_all_expected_names) ... ok
+test_each_missing_member_is_rejected (tests.test_factory_m4_artifact_export.ArtifactExportTests.test_each_missing_member_is_rejected) ... ok
+test_empty_archive_is_rejected (tests.test_factory_m4_artifact_export.ArtifactExportTests.test_empty_archive_is_rejected) ... ok
+test_exact_six_unique_members_export_byte_exactly (tests.test_factory_m4_artifact_export.ArtifactExportTests.test_exact_six_unique_members_export_byte_exactly) ... ok
+test_uncompressed_bound_is_inclusive (tests.test_factory_m4_artifact_export.ArtifactExportTests.test_uncompressed_bound_is_inclusive) ... ok
+test_unexpected_member_is_rejected (tests.test_factory_m4_artifact_export.ArtifactExportTests.test_unexpected_member_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.126s
+
+OK

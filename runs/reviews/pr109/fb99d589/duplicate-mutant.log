@@ -1,0 +1,18 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_ ArtifactExportTests.test_duplicate_member_is_rejected_even_with_all_expected_names _
+
+self = <tests.test_factory_m4_artifact_export.ArtifactExportTests testMethod=test_duplicate_member_is_rejected_even_with_all_expected_names>
+
+    def test_duplicate_member_is_rejected_even_with_all_expected_names(self):
+        entries = self.entries()
+        with self.assertWarnsRegex(UserWarning, 'Duplicate name'):
+            data = self.archive(entries + [entries[0]])
+>       with self.assertRaisesRegex(RuntimeError, 'exactly six unique expected files'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: RuntimeError not raised
+
+tests/test_factory_m4_artifact_export.py:71: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_factory_m4_artifact_export.py::ArtifactExportTests::test_duplicate_member_is_rejected_even_with_all_expected_names
+1 failed in 0.06s

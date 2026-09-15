@@ -1,0 +1,282 @@
+Head fb99d5896b23b91e3903965a8c56813412533d48; base 9d88195a6329151197b53c05c6cbb5a74167f08f
+Failure excerpts, not complete suite logs. Full job URLs are retained in ci-checks.json.
+
+Job 104543393069
+2026-09-15T20:03:52.2075891Z 
+2026-09-15T20:03:52.2076088Z ======================================================================
+2026-09-15T20:03:52.2076964Z FAIL: test_repo_manifest_matches_committed_tree (test_factory_ownership_gate.FactoryOwnershipGateTests.test_repo_manifest_matches_committed_tree)
+2026-09-15T20:03:52.2077692Z ----------------------------------------------------------------------
+2026-09-15T20:03:52.2078061Z Traceback (most recent call last):
+2026-09-15T20:03:52.2084535Z   File "/home/runner/work/residual-agent-harness/residual-agent-harness/tests/test_factory_ownership_gate.py", line 105, in test_repo_manifest_matches_committed_tree
+2026-09-15T20:03:52.2085357Z     self.assertEqual(failures, [], report)
+2026-09-15T20:03:52.2085841Z AssertionError: Lists differ: ['protected path modified without baseline[145 chars]00)'] != []
+2026-09-15T20:03:52.2086216Z 
+2026-09-15T20:03:52.2086339Z First list contains 1 additional elements.
+2026-09-15T20:03:52.2086626Z First extra element 0:
+2026-09-15T20:03:52.2087381Z 'protected path modified without baseline advance: tests/test_factory_runtime_lifecycle.py (pinned d4e00bd290351fa2ccd302ac578ac5dc463eda84, actual 85c6bf10a675ea3a74d775906d0bbaa79e411100)'
+2026-09-15T20:03:52.2088086Z 
+2026-09-15T20:03:52.2088166Z + []
+2026-09-15T20:03:52.2088405Z - ['protected path modified without baseline advance: '
+2026-09-15T20:03:52.2088776Z -  'tests/test_factory_runtime_lifecycle.py (pinned '
+2026-09-15T20:03:52.2089120Z -  'd4e00bd290351fa2ccd302ac578ac5dc463eda84, actual '
+2026-09-15T20:03:52.2090524Z -  '85c6bf10a675ea3a74d775906d0bbaa79e411100)'] : {'scope': 'factory-ownership-blob-pin', 'manifest': '/home/runner/work/residual-agent-harness/residual-agent-harness/verifier/v3/factory_ownership_baseline.json', 'pinned_at': '0430f2fa2d107fe48d26ae84a3c1550af029cb52', 'protected_files': 38, 'checked': 38, 'mismatches': ['tests/test_factory_runtime_lifecycle.py']}
+2026-09-15T20:03:52.2092661Z 
+2026-09-15T20:03:52.2092826Z ----------------------------------------------------------------------
+2026-09-15T20:03:52.2093166Z Ran 1017 tests in 79.065s
+2026-09-15T20:03:52.2093315Z 
+2026-09-15T20:03:52.2093411Z FAILED (failures=1, skipped=22)
+2026-09-15T20:03:52.2753489Z ##[error]Process completed with exit code 1.
+2026-09-15T20:03:52.2875406Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-15T20:03:52.2876704Z ##[group]Run actions/upload-artifact@v4
+2026-09-15T20:03:52.2876971Z with:
+2026-09-15T20:03:52.2877272Z   name: factory-os-evidence-d43db468ee1075bb0f2612ef75575afa0ac01d5f
+2026-09-15T20:03:52.2877660Z   path: runs/factory-execution
+
+Job 104543392772
+2026-09-15T20:02:25.3589952Z {
+2026-09-15T20:02:25.3590382Z   "status": "FAIL",
+2026-09-15T20:02:25.3593045Z   "error": "QualificationError: factory ownership gate failed: {\n  \"scope\": \"factory-ownership-blob-pin\",\n  \"manifest\": \"/home/runner/work/residual-agent-harness/residual-agent-harness/verifier/v3/factory_ownership_baseline.json\",\n  \"pinned_at\": \"0430f2fa2d107fe48d26ae84a3c1550af029cb52\",\n  \"protected_files\": 38,\n  \"checked\": 38,\n  \"mismatches\": [\n    \"tests/test_factory_runtime_lifecycle.py\"\n  ],\n  \"passed\": false\n}\nFAIL:\n - protected path modified without baseline advance: tests/test_factory_runtime_lifecycle.py (pinned d4e00bd290351fa2ccd302ac578ac5dc463eda84, actual 85c6bf10a675ea3a74d775906d0bbaa79e411100)\n",
+2026-09-15T20:02:25.3595490Z   "python": "3.12.14 (main, Aug 13 2026, 02:47:42) [GCC 13.3.0]"
+2026-09-15T20:02:25.3595879Z }
+2026-09-15T20:02:25.3688885Z ##[error]Process completed with exit code 1.
+2026-09-15T20:02:25.3868534Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-15T20:02:25.3869884Z ##[group]Run actions/upload-artifact@v4
+2026-09-15T20:02:25.3870240Z with:
+2026-09-15T20:02:25.3870643Z   name: clean-install-python-3.12-d43db468ee1075bb0f2612ef75575afa0ac01d5f
+2026-09-15T20:02:25.3871146Z   path: runs/clean-install
+2026-09-15T20:02:25.3871674Z   if-no-files-found: error
+2026-09-15T20:02:25.3871979Z   retention-days: 14
+2026-09-15T20:02:25.3872278Z   compression-level: 6
+2026-09-15T20:02:25.3872579Z   overwrite: false
+2026-09-15T20:02:25.3872884Z   include-hidden-files: false
+2026-09-15T20:02:25.3873191Z env:
+2026-09-15T20:02:25.3873517Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T20:02:25.3874078Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-15T20:02:25.3874569Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T20:02:25.3875020Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T20:02:25.3875466Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T20:02:25.3875936Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-15T20:02:25.3876339Z ##[endgroup]
+2026-09-15T20:02:25.5547876Z (node:2512) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-15T20:02:25.5549197Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-15T20:02:25.5601742Z With the provided path, there will be 2 files uploaded
+2026-09-15T20:02:25.5607734Z Artifact name is valid!
+2026-09-15T20:02:25.5608293Z Root directory input is valid!
+
+Job 104543392598
+2026-09-15T20:02:26.0640288Z {
+2026-09-15T20:02:26.0640833Z   "status": "FAIL",
+2026-09-15T20:02:26.0645265Z   "error": "QualificationError: factory ownership gate failed: {\n  \"scope\": \"factory-ownership-blob-pin\",\n  \"manifest\": \"/home/runner/work/residual-agent-harness/residual-agent-harness/verifier/v3/factory_ownership_baseline.json\",\n  \"pinned_at\": \"0430f2fa2d107fe48d26ae84a3c1550af029cb52\",\n  \"protected_files\": 38,\n  \"checked\": 38,\n  \"mismatches\": [\n    \"tests/test_factory_runtime_lifecycle.py\"\n  ],\n  \"passed\": false\n}\nFAIL:\n - protected path modified without baseline advance: tests/test_factory_runtime_lifecycle.py (pinned d4e00bd290351fa2ccd302ac578ac5dc463eda84, actual 85c6bf10a675ea3a74d775906d0bbaa79e411100)\n",
+2026-09-15T20:02:26.0649465Z   "python": "3.13.15 (main, Aug  6 2026, 02:15:18) [GCC 13.3.0]"
+2026-09-15T20:02:26.0650073Z }
+2026-09-15T20:02:26.0732574Z ##[error]Process completed with exit code 1.
+2026-09-15T20:02:26.0911225Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-15T20:02:26.0912561Z ##[group]Run actions/upload-artifact@v4
+2026-09-15T20:02:26.0912850Z with:
+2026-09-15T20:02:26.0913180Z   name: clean-install-python-3.13-d43db468ee1075bb0f2612ef75575afa0ac01d5f
+2026-09-15T20:02:26.0913606Z   path: runs/clean-install
+2026-09-15T20:02:26.0913850Z   if-no-files-found: error
+2026-09-15T20:02:26.0914277Z   retention-days: 14
+2026-09-15T20:02:26.0914513Z   compression-level: 6
+2026-09-15T20:02:26.0914743Z   overwrite: false
+2026-09-15T20:02:26.0914995Z   include-hidden-files: false
+2026-09-15T20:02:26.0915243Z env:
+2026-09-15T20:02:26.0915517Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-15T20:02:26.0916006Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.15/x64/lib/pkgconfig
+2026-09-15T20:02:26.0916435Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-15T20:02:26.0916817Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-15T20:02:26.0917202Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-15T20:02:26.0917591Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.15/x64/lib
+2026-09-15T20:02:26.0917932Z ##[endgroup]
+2026-09-15T20:02:26.2680132Z (node:2495) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-15T20:02:26.2682222Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-15T20:02:26.2737026Z With the provided path, there will be 2 files uploaded
+2026-09-15T20:02:26.2742329Z Artifact name is valid!
+2026-09-15T20:02:26.2743181Z Root directory input is valid!
+
+Job 104543392307
+2026-09-15T20:02:25.0448038Z {
+2026-09-15T20:02:25.0448907Z   "status": "FAIL",
+2026-09-15T20:02:25.0453015Z   "error": "QualificationError: factory ownership gate failed: {\n  \"scope\": \"factory-ownership-blob-pin\",\n  \"manifest\": \"/home/runner/work/residual-agent-harness/residual-agent-harness/verifier/v3/factory_ownership_baseline.json\",\n  \"pinned_at\": \"0430f2fa2d107fe48d26ae84a3c1550af029cb52\",\n  \"protected_files\": 38,\n  \"checked\": 38,\n  \"mismatches\": [\n    \"tests/test_factory_runtime_lifecycle.py\"\n  ],\n  \"passed\": false\n}\nFAIL:\n - protected path modified without baseline advance: tests/test_factory_runtime_lifecycle.py (pinned d4e00bd290351fa2ccd302ac578ac5dc463eda84, actual 85c6bf10a675ea3a74d775906d0bbaa79e411100)\n",
+2026-09-15T20:02:25.0457023Z   "python": "3.11.16 (main, Aug 13 2026, 02:46:14) [GCC 13.3.0]"
+2026-09-15T20:02:25.0457746Z }
+2026-09-15T20:02:25.0533005Z ##[error]Process completed with exit code 1.
+2026-09-15T20:02:25.0713313Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-15T20:02:25.0714715Z ##[group]Run actions/upload-artifact@v4
+2026-09-15T20:02:25.0715038Z with:
+2026-09-15T20:02:25.0715410Z   name: clean-install-python-3.11-d43db468ee1075bb0f2612ef75575afa0ac01d5f
+2026-09-15T20:02:25.0715895Z   path: runs/clean-install
+2026-09-15T20:02:25.0716189Z   if-no-files-found: error
+2026-09-15T20:02:25.0716476Z   retention-days: 14
+2026-09-15T20:02:25.0716739Z   compression-level: 6
+2026-09-15T20:02:25.0717009Z   overwrite: false
+2026-09-15T20:02:25.0717288Z   include-hidden-files: false
+2026-09-15T20:02:25.0717567Z env:
+2026-09-15T20:02:25.0717870Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.16/x64
+2026-09-15T20:02:25.0718390Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.16/x64/lib/pkgconfig
+2026-09-15T20:02:25.0718881Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.16/x64
+2026-09-15T20:02:25.0719316Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.16/x64
+2026-09-15T20:02:25.0719754Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.16/x64
+2026-09-15T20:02:25.0720205Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.16/x64/lib
+2026-09-15T20:02:25.0720605Z ##[endgroup]
+2026-09-15T20:02:25.2401692Z (node:2506) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-15T20:02:25.2403238Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-15T20:02:25.2455599Z With the provided path, there will be 2 files uploaded
+2026-09-15T20:02:25.2462042Z Artifact name is valid!
+2026-09-15T20:02:25.2463155Z Root directory input is valid!
+
+Job 104543392670
+2026-09-15T20:03:40.6342542Z 
+2026-09-15T20:03:40.6342784Z ======================================================================
+2026-09-15T20:03:40.6344208Z FAIL: test_repo_manifest_matches_committed_tree (test_factory_ownership_gate.FactoryOwnershipGateTests.test_repo_manifest_matches_committed_tree)
+2026-09-15T20:03:40.6345191Z ----------------------------------------------------------------------
+2026-09-15T20:03:40.6345653Z Traceback (most recent call last):
+2026-09-15T20:03:40.6352213Z   File "/home/runner/work/residual-agent-harness/residual-agent-harness/tests/test_factory_ownership_gate.py", line 105, in test_repo_manifest_matches_committed_tree
+2026-09-15T20:03:40.6353183Z     self.assertEqual(failures, [], report)
+2026-09-15T20:03:40.6354066Z AssertionError: Lists differ: ['protected path modified without baseline[145 chars]00)'] != []
+2026-09-15T20:03:40.6354531Z 
+2026-09-15T20:03:40.6354680Z First list contains 1 additional elements.
+2026-09-15T20:03:40.6355015Z First extra element 0:
+2026-09-15T20:03:40.6355953Z 'protected path modified without baseline advance: tests/test_factory_runtime_lifecycle.py (pinned d4e00bd290351fa2ccd302ac578ac5dc463eda84, actual 85c6bf10a675ea3a74d775906d0bbaa79e411100)'
+2026-09-15T20:03:40.6356750Z 
+2026-09-15T20:03:40.6356827Z + []
+2026-09-15T20:03:40.6357088Z - ['protected path modified without baseline advance: '
+2026-09-15T20:03:40.6357459Z -  'tests/test_factory_runtime_lifecycle.py (pinned '
+2026-09-15T20:03:40.6357807Z -  'd4e00bd290351fa2ccd302ac578ac5dc463eda84, actual '
+2026-09-15T20:03:40.6359410Z -  '85c6bf10a675ea3a74d775906d0bbaa79e411100)'] : {'scope': 'factory-ownership-blob-pin', 'manifest': '/home/runner/work/residual-agent-harness/residual-agent-harness/verifier/v3/factory_ownership_baseline.json', 'pinned_at': '0430f2fa2d107fe48d26ae84a3c1550af029cb52', 'protected_files': 38, 'checked': 38, 'mismatches': ['tests/test_factory_runtime_lifecycle.py']}
+2026-09-15T20:03:40.6361101Z 
+2026-09-15T20:03:40.6361251Z ----------------------------------------------------------------------
+2026-09-15T20:03:40.6361711Z Ran 1017 tests in 78.743s
+2026-09-15T20:03:40.6361862Z 
+2026-09-15T20:03:40.6361955Z FAILED (failures=1, skipped=22)
+2026-09-15T20:03:40.7095216Z ============================================================
+2026-09-15T20:03:40.7107471Z ##[error]Process completed with exit code 1.
+2026-09-15T20:03:40.7258438Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-15T20:03:40.7259684Z Post job cleanup.
+2026-09-15T20:03:40.8103605Z [command]/usr/bin/git version
+2026-09-15T20:03:40.8143868Z git version 2.55.0
+
+Job 104543392390
+2026-09-15T20:03:37.0118477Z 
+2026-09-15T20:03:37.0118769Z ======================================================================
+2026-09-15T20:03:37.0120103Z FAIL: test_repo_manifest_matches_committed_tree (test_factory_ownership_gate.FactoryOwnershipGateTests.test_repo_manifest_matches_committed_tree)
+2026-09-15T20:03:37.0121419Z ----------------------------------------------------------------------
+2026-09-15T20:03:37.0121885Z Traceback (most recent call last):
+2026-09-15T20:03:37.0129290Z   File "/home/runner/work/residual-agent-harness/residual-agent-harness/tests/test_factory_ownership_gate.py", line 105, in test_repo_manifest_matches_committed_tree
+2026-09-15T20:03:37.0130527Z     self.assertEqual(failures, [], report)
+2026-09-15T20:03:37.0131150Z AssertionError: Lists differ: ['protected path modified without baseline[145 chars]00)'] != []
+2026-09-15T20:03:37.0131640Z 
+2026-09-15T20:03:37.0131779Z First list contains 1 additional elements.
+2026-09-15T20:03:37.0132136Z First extra element 0:
+2026-09-15T20:03:37.0133158Z 'protected path modified without baseline advance: tests/test_factory_runtime_lifecycle.py (pinned d4e00bd290351fa2ccd302ac578ac5dc463eda84, actual 85c6bf10a675ea3a74d775906d0bbaa79e411100)'
+2026-09-15T20:03:37.0134147Z 
+2026-09-15T20:03:37.0134243Z + []
+2026-09-15T20:03:37.0134541Z - ['protected path modified without baseline advance: '
+2026-09-15T20:03:37.0135020Z -  'tests/test_factory_runtime_lifecycle.py (pinned '
+2026-09-15T20:03:37.0135481Z -  'd4e00bd290351fa2ccd302ac578ac5dc463eda84, actual '
+2026-09-15T20:03:37.0137614Z -  '85c6bf10a675ea3a74d775906d0bbaa79e411100)'] : {'scope': 'factory-ownership-blob-pin', 'manifest': '/home/runner/work/residual-agent-harness/residual-agent-harness/verifier/v3/factory_ownership_baseline.json', 'pinned_at': '0430f2fa2d107fe48d26ae84a3c1550af029cb52', 'protected_files': 38, 'checked': 38, 'mismatches': ['tests/test_factory_runtime_lifecycle.py']}
+2026-09-15T20:03:37.0139333Z 
+2026-09-15T20:03:37.0139479Z ----------------------------------------------------------------------
+2026-09-15T20:03:37.0139809Z Ran 1017 tests in 74.388s
+2026-09-15T20:03:37.0140065Z 
+2026-09-15T20:03:37.0140162Z FAILED (failures=1, skipped=22)
+2026-09-15T20:03:37.0769752Z ============================================================
+2026-09-15T20:03:37.0781673Z ##[error]Process completed with exit code 1.
+2026-09-15T20:03:37.0895155Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-15T20:03:37.0896466Z ##[group]Run actions/upload-artifact@v4
+2026-09-15T20:03:37.0896729Z with:
+2026-09-15T20:03:37.0896936Z   name: controlled-study-python-3.11
+
+Job 104543392188
+2026-09-15T20:03:39.4878187Z 
+2026-09-15T20:03:39.4878427Z ======================================================================
+2026-09-15T20:03:39.4879232Z FAIL: test_repo_manifest_matches_committed_tree (test_factory_ownership_gate.FactoryOwnershipGateTests.test_repo_manifest_matches_committed_tree)
+2026-09-15T20:03:39.4879969Z ----------------------------------------------------------------------
+2026-09-15T20:03:39.4880350Z Traceback (most recent call last):
+2026-09-15T20:03:39.4886125Z   File "/home/runner/work/residual-agent-harness/residual-agent-harness/tests/test_factory_ownership_gate.py", line 105, in test_repo_manifest_matches_committed_tree
+2026-09-15T20:03:39.4886941Z     self.assertEqual(failures, [], report)
+2026-09-15T20:03:39.4887441Z AssertionError: Lists differ: ['protected path modified without baseline[145 chars]00)'] != []
+2026-09-15T20:03:39.4888038Z 
+2026-09-15T20:03:39.4888165Z First list contains 1 additional elements.
+2026-09-15T20:03:39.4888453Z First extra element 0:
+2026-09-15T20:03:39.4889233Z 'protected path modified without baseline advance: tests/test_factory_runtime_lifecycle.py (pinned d4e00bd290351fa2ccd302ac578ac5dc463eda84, actual 85c6bf10a675ea3a74d775906d0bbaa79e411100)'
+2026-09-15T20:03:39.4889936Z 
+2026-09-15T20:03:39.4890006Z + []
+2026-09-15T20:03:39.4890246Z - ['protected path modified without baseline advance: '
+2026-09-15T20:03:39.4890619Z -  'tests/test_factory_runtime_lifecycle.py (pinned '
+2026-09-15T20:03:39.4890966Z -  'd4e00bd290351fa2ccd302ac578ac5dc463eda84, actual '
+2026-09-15T20:03:39.4892553Z -  '85c6bf10a675ea3a74d775906d0bbaa79e411100)'] : {'scope': 'factory-ownership-blob-pin', 'manifest': '/home/runner/work/residual-agent-harness/residual-agent-harness/verifier/v3/factory_ownership_baseline.json', 'pinned_at': '0430f2fa2d107fe48d26ae84a3c1550af029cb52', 'protected_files': 38, 'checked': 38, 'mismatches': ['tests/test_factory_runtime_lifecycle.py']}
+2026-09-15T20:03:39.4893852Z 
+2026-09-15T20:03:39.4893995Z ----------------------------------------------------------------------
+2026-09-15T20:03:39.4894325Z Ran 1017 tests in 78.521s
+2026-09-15T20:03:39.4894471Z 
+2026-09-15T20:03:39.4894565Z FAILED (failures=1, skipped=22)
+2026-09-15T20:03:39.5647489Z ##[error]Process completed with exit code 1.
+2026-09-15T20:03:39.5749314Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-15T20:03:39.5750611Z ##[group]Run actions/upload-artifact@v4
+2026-09-15T20:03:39.5750887Z with:
+2026-09-15T20:03:39.5751171Z   name: factory-evidence-d43db468ee1075bb0f2612ef75575afa0ac01d5f
+2026-09-15T20:03:39.5751549Z   path: runs/factory-evidence
+
+Job 104543392029
+2026-09-15T20:02:20.5495863Z ##[endgroup]
+2026-09-15T20:02:20.6342219Z {
+2026-09-15T20:02:20.6342539Z   "scope": "factory-ownership-blob-pin",
+2026-09-15T20:02:20.6343125Z   "manifest": "/home/runner/work/residual-agent-harness/residual-agent-harness/verifier/v3/factory_ownership_baseline.json",
+2026-09-15T20:02:20.6343639Z   "pinned_at": "0430f2fa2d107fe48d26ae84a3c1550af029cb52",
+2026-09-15T20:02:20.6343903Z   "protected_files": 38,
+2026-09-15T20:02:20.6344093Z   "checked": 38,
+2026-09-15T20:02:20.6344255Z   "mismatches": [
+2026-09-15T20:02:20.6344447Z     "tests/test_factory_runtime_lifecycle.py"
+2026-09-15T20:02:20.6344690Z   ],
+2026-09-15T20:02:20.6344840Z   "passed": false
+2026-09-15T20:02:20.6344999Z }
+2026-09-15T20:02:20.6345143Z FAIL:
+2026-09-15T20:02:20.6345721Z  - protected path modified without baseline advance: tests/test_factory_runtime_lifecycle.py (pinned d4e00bd290351fa2ccd302ac578ac5dc463eda84, actual 85c6bf10a675ea3a74d775906d0bbaa79e411100)
+2026-09-15T20:02:20.6406849Z ##[error]Process completed with exit code 1.
+2026-09-15T20:02:20.6501507Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-15T20:02:20.6502458Z ##[group]Run actions/upload-artifact@v4
+2026-09-15T20:02:20.6502673Z with:
+2026-09-15T20:02:20.6502919Z   name: measured-eval-binding-d43db468ee1075bb0f2612ef75575afa0ac01d5f
+2026-09-15T20:02:20.6503391Z   path: runs/measured-eval-binding
+2026-09-15T20:02:20.6503605Z   if-no-files-found: error
+2026-09-15T20:02:20.6503807Z   retention-days: 14
+2026-09-15T20:02:20.6503981Z   compression-level: 6
+2026-09-15T20:02:20.6504160Z   overwrite: false
+2026-09-15T20:02:20.6504335Z   include-hidden-files: false
+2026-09-15T20:02:20.6504534Z env:
+2026-09-15T20:02:20.6504745Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T20:02:20.6505106Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-15T20:02:20.6505438Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+
+Job 104543391430
+2026-09-15T20:02:14.2813401Z d43db468ee1075bb0f2612ef75575afa0ac01d5f
+2026-09-15T20:02:14.4182821Z {
+2026-09-15T20:02:14.4183912Z   "scope": "factory-ownership-blob-pin",
+2026-09-15T20:02:14.4185040Z   "manifest": "/home/runner/work/residual-agent-harness/residual-agent-harness/verifier/v3/factory_ownership_baseline.json",
+2026-09-15T20:02:14.4186138Z   "pinned_at": "0430f2fa2d107fe48d26ae84a3c1550af029cb52",
+2026-09-15T20:02:14.4186803Z   "protected_files": 38,
+2026-09-15T20:02:14.4187350Z   "checked": 38,
+2026-09-15T20:02:14.4187926Z   "mismatches": [
+2026-09-15T20:02:14.4188542Z     "tests/test_factory_runtime_lifecycle.py"
+2026-09-15T20:02:14.4189195Z   ],
+2026-09-15T20:02:14.4189704Z   "passed": false
+2026-09-15T20:02:14.4190443Z }
+2026-09-15T20:02:14.4191131Z FAIL:
+2026-09-15T20:02:14.4192322Z  - protected path modified without baseline advance: tests/test_factory_runtime_lifecycle.py (pinned d4e00bd290351fa2ccd302ac578ac5dc463eda84, actual 85c6bf10a675ea3a74d775906d0bbaa79e411100)
+2026-09-15T20:02:14.4265099Z ##[error]Process completed with exit code 1.
+2026-09-15T20:02:14.4405145Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-15T20:02:14.4406784Z ##[group]Run actions/upload-artifact@v4
+2026-09-15T20:02:14.4407330Z with:
+2026-09-15T20:02:14.4407958Z   name: factory-ownership-d43db468ee1075bb0f2612ef75575afa0ac01d5f
+2026-09-15T20:02:14.4408656Z   path: runs/factory-ownership
+2026-09-15T20:02:14.4409255Z   if-no-files-found: error
+2026-09-15T20:02:14.4409875Z   retention-days: 14
+2026-09-15T20:02:14.4410612Z   compression-level: 6
+2026-09-15T20:02:14.4411170Z   overwrite: false
+2026-09-15T20:02:14.4411732Z   include-hidden-files: false
+2026-09-15T20:02:14.4412288Z env:
+2026-09-15T20:02:14.4412893Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T20:02:14.4413745Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-15T20:02:14.4414501Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+

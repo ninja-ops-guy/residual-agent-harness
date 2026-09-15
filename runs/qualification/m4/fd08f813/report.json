@@ -1,0 +1,247 @@
+{
+  "blocked_capabilities": [],
+  "capabilities": [
+    {
+      "detail": "Linux-6.8.0-1064-azure-x86_64-with-glibc2.35",
+      "name": "platform_linux",
+      "probe_argv": [],
+      "returncode": null,
+      "status": "pass"
+    },
+    {
+      "detail": "os.chroot present",
+      "name": "chroot_available",
+      "probe_argv": [],
+      "returncode": null,
+      "status": "pass"
+    },
+    {
+      "detail": "/usr/bin/unshare",
+      "name": "unshare_binary",
+      "probe_argv": [],
+      "returncode": null,
+      "status": "pass"
+    },
+    {
+      "detail": "ok",
+      "name": "user_namespace",
+      "probe_argv": [
+        "/usr/bin/unshare",
+        "--user",
+        "--map-root-user",
+        "--",
+        "/usr/bin/env",
+        "-i",
+        "sh",
+        "-c",
+        "true"
+      ],
+      "returncode": 0,
+      "status": "pass"
+    },
+    {
+      "detail": "ok",
+      "name": "mount_namespace",
+      "probe_argv": [
+        "/usr/bin/unshare",
+        "--user",
+        "--map-root-user",
+        "--mount",
+        "--",
+        "/usr/bin/env",
+        "-i",
+        "sh",
+        "-c",
+        "true"
+      ],
+      "returncode": 0,
+      "status": "pass"
+    },
+    {
+      "detail": "ok",
+      "name": "pid_namespace",
+      "probe_argv": [
+        "/usr/bin/unshare",
+        "--user",
+        "--map-root-user",
+        "--pid",
+        "--fork",
+        "--",
+        "/usr/bin/env",
+        "-i",
+        "sh",
+        "-c",
+        "true"
+      ],
+      "returncode": 0,
+      "status": "pass"
+    },
+    {
+      "detail": "ok",
+      "name": "network_namespace",
+      "probe_argv": [
+        "/usr/bin/unshare",
+        "--user",
+        "--map-root-user",
+        "--net",
+        "--",
+        "/usr/bin/env",
+        "-i",
+        "sh",
+        "-c",
+        "true"
+      ],
+      "returncode": 0,
+      "status": "pass"
+    },
+    {
+      "detail": "ok",
+      "name": "ipc_namespace",
+      "probe_argv": [
+        "/usr/bin/unshare",
+        "--user",
+        "--map-root-user",
+        "--ipc",
+        "--",
+        "/usr/bin/env",
+        "-i",
+        "sh",
+        "-c",
+        "true"
+      ],
+      "returncode": 0,
+      "status": "pass"
+    },
+    {
+      "detail": "ok",
+      "name": "uts_namespace",
+      "probe_argv": [
+        "/usr/bin/unshare",
+        "--user",
+        "--map-root-user",
+        "--uts",
+        "--",
+        "/usr/bin/env",
+        "-i",
+        "sh",
+        "-c",
+        "true"
+      ],
+      "returncode": 0,
+      "status": "pass"
+    },
+    {
+      "detail": "ok",
+      "name": "kill_child",
+      "probe_argv": [
+        "/usr/bin/unshare",
+        "--user",
+        "--map-root-user",
+        "--kill-child",
+        "--pid",
+        "--fork",
+        "--",
+        "/usr/bin/env",
+        "-i",
+        "sh",
+        "-c",
+        "sleep 5 & exec true"
+      ],
+      "returncode": 0,
+      "status": "pass"
+    },
+    {
+      "detail": "linux-userns-isolated-v1:ok",
+      "name": "composite_sandbox_profile",
+      "probe_argv": [
+        "/usr/bin/unshare",
+        "--user",
+        "--map-root-user",
+        "--mount",
+        "--pid",
+        "--fork",
+        "--net",
+        "--ipc",
+        "--uts",
+        "--kill-child",
+        "--",
+        "/usr/bin/env",
+        "-i",
+        "sh",
+        "-c",
+        "true"
+      ],
+      "returncode": null,
+      "status": "pass"
+    },
+    {
+      "detail": "{\"execution_boundary\": \"linux-userns-isolated-v1\", \"reason\": \"exit\", \"returncode\": 0, \"status\": \"pass\", \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\", \"stdout_sha256\": \"a35dc92ee294d7c31fc8ba602a78808819533fc81f6799b7db2bab2df89d7db6\", \"timed_out\": false}",
+      "name": "isolated_execution",
+      "probe_argv": [
+        "/usr/bin/python3",
+        "-c",
+        "import sys; sys.stdout.write('m4-prerequisite-execution\\n')"
+      ],
+      "returncode": 0,
+      "status": "pass"
+    }
+  ],
+  "environment_manifest": {
+    "captured_at_unix": 1789502337,
+    "cpu_count": 4,
+    "dependencies": {
+      "cryptography": {
+        "minimum_major": "43",
+        "status": "pass",
+        "version": "50.0.1"
+      },
+      "yaml": {
+        "minimum_major": "6",
+        "status": "pass",
+        "version": "6.0.3"
+      }
+    },
+    "kernel": {
+      "max_user_namespaces": "63848",
+      "unprivileged_userns_apparmor_policy": null,
+      "unprivileged_userns_clone": "1"
+    },
+    "platform": {
+      "machine": "x86_64",
+      "platform": "Linux-6.8.0-1064-azure-x86_64-with-glibc2.35",
+      "release": "6.8.0-1064-azure",
+      "system": "Linux"
+    },
+    "python": {
+      "executable": "/opt/hostedtoolcache/Python/3.12.14/x64/bin/python",
+      "pinned": [
+        "3.12"
+      ],
+      "status": "pass",
+      "version": "3.12.14"
+    },
+    "resource_limits": {
+      "RLIMIT_AS": {
+        "hard": -1,
+        "soft": -1
+      },
+      "RLIMIT_CPU": {
+        "hard": -1,
+        "soft": -1
+      },
+      "RLIMIT_NOFILE": {
+        "hard": 65536,
+        "soft": 65536
+      },
+      "RLIMIT_NPROC": {
+        "hard": 63848,
+        "soft": 63848
+      }
+    },
+    "schema": "m4-qualification-env-manifest-v1"
+  },
+  "overall": "PASS",
+  "revision": "7d9438c01edfef6f2db9f19ed8b463bccbc9f373",
+  "sandbox_profile": "linux-userns-isolated-v1",
+  "schema": "m4-qualification-prereq-report-v1"
+}

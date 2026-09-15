@@ -1,17 +1,21 @@
 # Qualification convergence handoff
 
-## Current handoff — #109 at 2551585f
+## Current handoff — #109 at fb99d589
 
-#108 and #121 are merged; accepted main is `1a52e9a2`. The new #109 candidate
-passes real zero-skip M4 qualification with a fully retained, digest-verified
-archive. It repairs the CLI capture using a real subprocess/package entry
-point and adds a parent-warning regression proven to fail on reversion.
+#108, #121 and #124 are merged; accepted main is `9d88195a`. #109 includes
+that main and passes real zero-skip M4 qualification: 142 cases + 84 subtests,
+with an identical head/tested tree and complete digest-verified archive.
+The exporter now requires six unique expected members and bounds declared
+uncompressed size at 16 MiB; seven tests plus six subtests pass and three
+reversion mutants fail. The earlier CLI subprocess repair is preserved.
 
 One protected test changes. Its pin is deliberately unchanged: independent
 review must precede baseline advancement, fresh CI and merge. Current CI
-fails the ownership assertion and cancels matrix siblings. Read the
-[source-bound repair handoff](../../runs/reviews/pr109/2551585f/README.md) and
-[complete M4 evidence](../../runs/qualification/m4/2551585f/README.md).
+fails the ownership assertion and cancels matrix siblings. Review 5215110153
+is COMMENTED on an earlier head and expressly defers independent authorization;
+it is not merge approval. Read the
+[source-bound repair handoff](../../runs/reviews/pr109/fb99d589/README.md) and
+[complete M4 evidence](../../runs/qualification/m4/fb99d589/README.md).
 The earlier failure's precise origin is not retroactively established.
 Demo, recovery/soak, blank-machine RC and ER1 remain separate lanes.
 

@@ -1,0 +1,20 @@
+{
+  "archive_download_url": "https://api.github.com/repos/ninja-ops-guy/residual-agent-harness/actions/artifacts/10415892042/zip",
+  "created_at": "2026-09-15T19:59:16Z",
+  "digest": "sha256:8397ccd37709efce946ef42fed0e328c9189e50fd0da67b4cc50927fd550503f",
+  "expired": false,
+  "expires_at": "2026-09-29T19:59:16Z",
+  "id": 10415892042,
+  "name": "m4-qualification-prereq-7d9438c01edfef6f2db9f19ed8b463bccbc9f373",
+  "node_id": "MDg6QXJ0aWZhY3QxMDQxNTg5MjA0Mg==",
+  "size_in_bytes": 10772,
+  "updated_at": "2026-09-15T19:59:16Z",
+  "url": "https://api.github.com/repos/ninja-ops-guy/residual-agent-harness/actions/artifacts/10415892042",
+  "workflow_run": {
+    "head_branch": "lane4/m4-qualification-prereqs",
+    "head_repository_id": 1368787554,
+    "head_sha": "fd08f8133ae05cd43a9f4a8bfbe55c7c1bac71b3",
+    "id": 35016795709,
+    "repository_id": 1368787554
+  }
+}

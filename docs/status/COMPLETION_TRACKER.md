@@ -4,7 +4,7 @@ Target: Residual 1.0 plus a completed Experimental Release 1 (ER1).
 A credible negative or inconclusive experimental result is acceptable; favorable
 hypothesis results are not a release requirement.
 
-Latest targeted update: 2026-09-15, accepted main `1a52e9a2dfc9ea9a9d24579bb9b44548c483f0b9`.
+Latest targeted update: 2026-09-15, accepted main `9d88195a6329151197b53c05c6cbb5a74167f08f`.
 Other lane rows below retain their earlier observations unless explicitly updated.
 This reviewed tracker is delivered in PR #107. Refresh evidence before changing
 a gate to PASS. Merged code, passing branch tests and completed release
@@ -30,17 +30,23 @@ retroactively qualify the earlier PR integration or the final demo journey.
 
 ## Latest M4 and ownership update
 
-#121 is merged at `1a52e9a2`. #109 now publishes the CLI qualification repair
-at `2551585f`. Its fresh M4 run passes 135 cases plus 78 subtests, zero skips;
-the complete ZIP matches GitHub's SHA-256 and all six members are inspected.
-The [complete candidate evidence](../../runs/qualification/m4/2551585f/README.md)
-and [repair/mutation handoff](../../runs/reviews/pr109/2551585f/README.md) are retained.
+#121 is merged at `1a52e9a2`; #124 subsequently merged at `9d88195a`.
+#109 at `fb99d589` includes that accepted main, the CLI repair and exporter
+hardening. The exporter requires six unique expected files and caps declared
+uncompressed size at 16 MiB. Seven tests plus six subtests pass; three reversion
+mutants fail as intended. Its fresh M4 run passes **142 cases plus 84 subtests,
+zero skips**. Synthetic merge `d43db468` exactly matches the candidate tree.
+The complete ZIP matches GitHub's SHA-256 and all six members are inspected.
+The [complete candidate evidence](../../runs/qualification/m4/fb99d589/README.md)
+and [repair/mutation handoff](../../runs/reviews/pr109/fb99d589/README.md) are retained.
 
 The original global stderr capture is sensitive to unrelated parent warnings.
 Both aliases now use real subprocesses through `python -m residual.factory`,
 with every original assertion preserved. One protected test blob changes;
 its pin remains unchanged pending independent review. Ordinary CI correctly
-fails the ownership assertion, with cancelled matrix siblings. No full-suite,
+fails the ownership assertion (1,017 unittest cases, one failure, 22 namespace
+skips), with cancelled matrix siblings. A COMMENTED review at the earlier
+head explicitly defers independent authorization; it is not approval. No full-suite,
 release-gate, independent-acceptance or merge PASS is claimed. The historical
 Python 3.13 exception's exact origin remains unproven.
 
@@ -59,7 +65,7 @@ Demo ownership remains in the existing demo thread.
 | M4 code-hardening closure | [#81](https://github.com/ninja-ops-guy/residual-agent-harness/pull/81) merged | Capable-runner qualification and later boundary changes still need evidence |
 | Frozen evaluation apparatus | [#86](https://github.com/ninja-ops-guy/residual-agent-harness/pull/86) merged | A framework is not a frozen live ER1 protocol or completed experiment |
 | Workflow activation | [#101](https://github.com/ninja-ops-guy/residual-agent-harness/pull/101) merged | Complete required-check coverage and independent approval policy |
-| Termination provenance tooling | [#96](https://github.com/ninja-ops-guy/residual-agent-harness/pull/96) merged | Runtime failures and #108 review blockers remain open |
+| Termination provenance tooling | [#96](https://github.com/ninja-ops-guy/residual-agent-harness/pull/96) and #108 merged | Runtime/recovery qualification and elapsed soak remain open |
 | Clean-install tooling | [#100](https://github.com/ninja-ops-guy/residual-agent-harness/pull/100) merged | Blank-VM RC qualification still required |
 | Measured acceptance binding | #103 and activation [#106](https://github.com/ninja-ops-guy/residual-agent-harness/pull/106) merged | #106/#107 activation overlap resolved; require the new check in branch policy and qualify the real boundary |
 | WebVM/browser publication work | [#98](https://github.com/ninja-ops-guy/residual-agent-harness/pull/98) merged | Verify the final canonical demonstration at its deployed revision |
@@ -80,7 +86,7 @@ tag listing, and the GitHub releases collection was empty.
 | --- | --- | --- | --- | --- |
 | C01 | Freeze scope | POLICY DOCUMENTED; adoption pending | Use the policy above and flag out-of-scope requests; this PR does not globally control other threads | Owner + all lanes; start now |
 | C02 | Converge PR board | TRIAGE EXECUTED; integration ongoing | #106 merged; #22 closed; concurrent triage replaced #97 with #117 and closed #88/#114 into #109. 32 open proposals individually dispositioned; #93/#94 and benchmark salvage remain | Coordinator + lane owners; see full ledger |
-| C03 | Qualify M4 | CANDIDATE PASSED; protected-test review pending | #109 at 2551585f: actual isolated execution, 135 cases + 78 subtests, zero skips. Complete archive hash matches GitHub and six members inspected. CLI capture repair has a revert-failing regression; one protected test pin awaits review | Independent review, deliberate baseline advancement, then fresh CI/qualification; no merge yet |
+| C03 | Qualify M4 | CANDIDATE PASSED; protected-test review pending | #109 at fb99d589 includes main 9d88195a: actual isolated execution, 142 cases + 84 subtests, zero skips; tested tree equals head tree. Complete six-member archive retained and digest verified. Exporter guards have three failing reversion mutants; one protected test pin awaits independent review | Independent review, deliberate baseline advancement, then fresh CI/qualification; no merge yet |
 | C04 | Finish Swarm 3 | #108 MERGED; ownership anchor accepted | #108 accepted at 0430f2fa; metadata-only #121 merged at 1a52e9a2 after narrow review and fresh CI, preserving all 38 protected pins. Historical repair evidence below remains source-bound | Future executable changes require new review and relevant qualification |
 | C05 | Qualify distributed/runtime behavior | BLOCKED BY THREE LOCAL FAILURES | #117 succeeds closed #97. Required pytest coverage now exposes missing process tracking, fencing through append and collision rejection (3 failed/60 passed locally). Repair and review before real concurrency/recovery and elapsed 24h/72h soak | Runtime/recovery lane; accepted candidate and isolated infrastructure |
 | C06 | Port principal Factory benchmarks | PENDING RECONCILIATION | Salvage #26/#38/#46/#52/#54/#56 onto current Factory. Preserve FB001-FB004 progression and whole-project completion focus | Benchmark owner designated through backlog lane |
@@ -90,7 +96,7 @@ tag listing, and the GitHub releases collection was empty.
 | C10 | Reliability degradation | NOT EVIDENCED | Freeze degradation mechanism and levels. Report realized worker correctness vs accepted correctness alongside coverage and uncertainty; also distinguish this from substituting different models | Science lane; preregister before results |
 | C11 | Live fault injection | DEVELOPMENT EVIDENCE ONLY | Existing M4 trust fixtures are not the live campaign. Prove each intended fault was exercised and whether it reached accepted state; report invalid injections and UNKNOWN separately | Fault lane; accepted candidate/protocol, isolated resources |
 | C12 | Matched-budget / heterogeneous experiments | PREPARATION; results not evidenced | #93 contains proposed accounting/observability work. Freeze comparisons, count verifier/retry/control compute, measure reliability-cost-latency frontier | Science/economics lane; shared corpus/protocol and budget authorization |
-| C13 | Canonical demo | PARTIAL; substantial merged work | #98/#104 merged and current Pages/browser evidence passed. Final bad-candidate-to-receipt journey needs owner acceptance on deployed revision; preserve black/green design | Existing demo thread; parallel with science |
+| C13 | Canonical demo | PARTIAL; substantial merged work | #98/#104 and now #124 merged; #124 adds transient disk-chunk recovery. Final bad-candidate-to-receipt journey still needs owner acceptance on deployed revision; preserve black/green design | Existing demo thread; parallel with science |
 | C14 | Blank-machine RC | CORE TOOLING MERGED; procedure repairs needed | #100/clean-install CI exists. #115 review found truncation/completion defects in preparation tooling. Repair first, then an independent installer exercises setup, recovery, restart, credentials, upgrade and cleanup on a blank VM at RC1 | Release lane; reviewed procedures, RC artifact and public docs |
 | C15 | Freeze RC and final regression | NOT STARTED | Record RC commit/tree/package and rerun required integration, M4, runtime, benchmark, install, browser and soak gates against it | Integration coordinator; candidate stable |
 | C16 | Paper from evidence | DRAFT/METHODS PRESENT; empirical results pending | Populate/reproduce Results from retained artifacts. Include uncertainty, negative findings, exclusions and UNKNOWNs; independent audit | Science/writing lane; may prepare methods now |
@@ -156,8 +162,8 @@ dispositions are recorded in [PR_TRIAGE_2026-09-15.md](PR_TRIAGE_2026-09-15.md).
 
 | Gate | Required result | Snapshot verdict / missing proof |
 | --- | --- | --- |
-| Core architecture | PASS on integrated RC, with independent review and enforced checks | AMBER: binding activation merged; #108 review and #117 implementation gaps remain; required approval count is 0 |
-| M4 trust boundary | QUALIFIED with no skipped mandatory security capability tests | AMBER: #109 at 2551585f passes real zero-skip M4; complete archive retained. Protected-test acceptance and ownership-dependent CI remain blocked |
+| Core architecture | PASS on integrated RC, with independent review and enforced checks | AMBER: binding activation and #108 accepted; #109 protected-test acceptance and #117 implementation gaps remain; required approval count was 0 at policy audit |
+| M4 trust boundary | QUALIFIED with no skipped mandatory security capability tests | AMBER: #109 at fb99d589 passes real zero-skip M4 on an identical tested tree; complete archive retained. Protected-test acceptance and ownership-dependent CI remain blocked |
 | Runtime/recovery | PASS plus completed 72h soak after clean shorter runs | RED: retained runtime failures, integration and elapsed soak evidence outstanding |
 | Clean installation | PASS from genuinely blank VM on RC | AMBER: tooling and CI pass; independent blank-VM RC execution not evidenced |
 | Canonical demo | PASS in real browser and guest on final deployed revision | AMBER: current browser/Pages jobs pass; full final narrative acceptance outstanding |

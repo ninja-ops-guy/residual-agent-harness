@@ -6,13 +6,18 @@ This page is the human-readable current-state summary for RESIDUAL. Historical r
 
 ## Latest targeted qualification update — 2026-09-15
 
-Accepted main is `1a52e9a2` after #121; #108 is merged at `0430f2fa`.
-#109 at `2551585f` delivers a real-subprocess CLI test and a canonical package
-entry point. Its fresh M4 job passed 135 cases plus 78 subtests with zero skips;
+Accepted main is `9d88195a` after #124; #108 and #121 are also merged.
+#109 at `fb99d589` includes that main, the real-subprocess CLI repair and
+exporter hardening: exactly six unique expected members and a 16 MiB declared
+uncompressed limit. Seven exporter tests plus six subtests pass, and three
+reversion mutants fail as intended. Fresh M4 qualification passed 142 cases
+plus 84 subtests with zero skips on an identical candidate/tested tree;
 the full archive is retained and hash-verified against GitHub metadata.
 One protected test blob changes, and its ownership pin has not been advanced.
 Independent review, a reviewed baseline update and fresh CI remain required.
-See the [repair handoff](../runs/reviews/pr109/2551585f/README.md).
+Ordinary CI remains red on that ownership mismatch; cancelled matrix siblings
+are not passes. The earlier COMMENTED review explicitly defers independent
+authorization. See the [repair handoff](../runs/reviews/pr109/fb99d589/README.md).
 Other lane observations below retain their stated historical scope.
 
 ## Executive summary
@@ -33,7 +38,7 @@ The repository contains substantial implementation and development evidence for 
 | Command Station | Implemented research/operations surface | Self-hosted run control, model/provider management, observations, HITL hooks, evidence download and operational UI are present. Deployment-specific production readiness still depends on the environment. |
 | Factory M2 — worker contract/runtime | Implemented | Real `WorkerContract`, bounded worker runtime, isolated worktrees, journaled observations, host-owned termination and sandbox enforcement exist under `residual/factory/`. Development fault-containment work has exercised real OS boundaries. |
 | Factory M3 — evidence bus/receipts | Implemented | Station-issued receipts, artifact binding, evidence-bus handoff and signature/integrity checks exist. Trust is enforced at the trusted consumption/admission boundary, not merely because bytes were stored. |
-| Factory M4 — deterministic integration/scheduler | Implemented but **not yet fully qualified for live claims** | Hardening from closed issue #63 landed via #81. #109 at 2551585f passes real M4 execution with zero skips and a retained, hash-verified archive; independent protected-test review and ownership-dependent CI remain open. |
+| Factory M4 — deterministic integration/scheduler | Implemented; candidate M4 qualified, independent acceptance pending | Hardening from closed issue #63 landed via #81. #109 at fb99d589 passes real M4 execution with zero skips and a retained, hash-verified archive on an identical tested tree; independent protected-test review and ownership-dependent CI remain open. |
 | Evaluation | Implemented apparatus, unqualified live experiment | `residual/eval_frozen/` contains the frozen R0–R5 apparatus. PR #103 rebuilt the binding intended by closed PR #71 with negative tests for replay, topology, task mapping and verifier qualification. Passing those tests does not establish live provider/model results or independently authenticate its prerequisite reports. |
 | Sandbox / red team | Implemented development surface | Bubblewrap/namespace/rlimit paths plus live containment tests and a receipted red-team corpus are present. cgroup-v2-specific enforcement depends on host capability. |
 | Cluster / distributed execution | Implemented development surface | Versioned wire schema, authenticated join/leave, heartbeats, task reassignment, local-first routing and cluster CLI exist. Some optional network transports degrade gracefully when optional dependencies are absent. |
@@ -64,7 +69,7 @@ Enforcement is still incomplete: the required approving-review count is **0**, a
 
 ### 2. M4 live qualification
 
-The accepted-tree, filesystem/link, isolation and Git-evidence code-hardening review in closed issue #63 is historical. #109 succeeds closed #88/#114 as the M4 prerequisite/zero-skips lane. Its historical smoke at `e873dd62` reported UNKNOWN because namespace isolation was unavailable. The fresh `2551585f` run on an explicit capable runner passes with a complete retained archive; this is candidate evidence pending independent acceptance. Preserve `UNKNOWN`, infrastructure errors and skipped namespace tests as evidence gaps; none may count as a passed trust-boundary qualification.
+The accepted-tree, filesystem/link, isolation and Git-evidence code-hardening review in closed issue #63 is historical. #109 succeeds closed #88/#114 as the M4 prerequisite/zero-skips lane. Its historical smoke at `e873dd62` reported UNKNOWN because namespace isolation was unavailable. The fresh `fb99d589` run on an explicit capable runner passes with a complete retained archive and matching head/tested trees; this is candidate evidence pending independent acceptance. Preserve `UNKNOWN`, infrastructure errors and skipped namespace tests as evidence gaps; none may count as a passed trust-boundary qualification.
 
 ### 3. Runtime reproducibility
 
@@ -146,7 +151,7 @@ result does not block completion when the experiment answers the question credib
 The recommended order is:
 
 1. Require active checks on `main`, then integrate submitted tracks against exact head/base/tree revisions.
-2. Obtain namespace-capable M4 qualification while the corpus acquisition lane proceeds independently.
+2. Independently accept #109's protected test, deliberately advance its pin, and rerun exact-head gates; capable-runner M4 candidate evidence is now retained. Corpus acquisition can proceed independently.
 3. Classify the retained signal mismatch and fix its cause through a separately reviewed runtime change if needed.
 4. Qualify the #103 measured-evidence path and retain the prerequisite reports, identity chain and signed artifacts.
 5. Freeze the live evaluation protocol, selected evidence path and workload before seeing model results.

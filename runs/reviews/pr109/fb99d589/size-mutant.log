@@ -1,0 +1,17 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_ ArtifactExportTests.test_compressible_archive_above_uncompressed_bound_is_rejected _
+
+self = <tests.test_factory_m4_artifact_export.ArtifactExportTests testMethod=test_compressible_archive_above_uncompressed_bound_is_rejected>
+
+    def test_compressible_archive_above_uncompressed_bound_is_rejected(self):
+        data = self.archive(self.sized_entries(exporter.MAX_UNCOMPRESSED_BYTES + 1))
+        self.assertLess(len(data), exporter.MAX_ARCHIVE_BYTES)
+>       with self.assertRaisesRegex(RuntimeError, 'Uncompressed archive exceeds size bound'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: RuntimeError not raised
+
+tests/test_factory_m4_artifact_export.py:86: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_factory_m4_artifact_export.py::ArtifactExportTests::test_compressible_archive_above_uncompressed_bound_is_rejected
+1 failed in 0.11s
