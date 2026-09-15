@@ -58,6 +58,8 @@ class GoalEvaluator:
                 failed.append(verification_id)
             elif item.status == VerificationStatus.UNKNOWN:
                 unknown.append(verification_id)
+            elif item.status != VerificationStatus.PASS:
+                unknown.append(verification_id)
         return GoalEvaluation(
             complete=not (missing or failed or unknown),
             missing=tuple(missing),
@@ -171,6 +173,13 @@ class LoopController:
                 intent=intent,
                 failure_fingerprint=fingerprint,
             ))
+
+            # An abort arriving during the synchronous Factory call takes
+            # precedence over a late successful result. Keep completed evidence.
+            if self.abort_requested():
+                return self._abort(state, records, "human_or_operator_abort")
+            if elapsed >= contract.max_wall_time_s:
+                return self._abort(state, records, "wall_time_exhausted")
 
             if evaluation.complete:
                 terminal = replace(state, status=MissionStatus.COMPLETE)

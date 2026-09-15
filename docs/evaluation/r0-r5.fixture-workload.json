@@ -1,0 +1,237 @@
+{
+  "manifest": {
+    "manifest_hash": "39b30aa126185aff598739e930f49c91537751b0ab113b4bd8c460c2f12533a0",
+    "name": "FrozenWorkload-v1",
+    "schema_version": "residual.eval.frozen_workload.v1",
+    "seed": 20260914,
+    "task_count": 16,
+    "task_hashes": [
+      "4aa4997cf6c4580b7a6cdcef6202822d167f53d1e41555c39ea649dc6973cf26",
+      "84b40a441b72817a0e0ae647955397d5c18ba4598c27eb09ca8b98b5f632757d",
+      "1e76014b333c5d370c8896f64404e204356380dfe8c59e55e18938f3ee97f656",
+      "8907f8430165713ead7bc9dae548dd6e94503df1be9742d4553262405d150ab0",
+      "3fd4333b8b221c855e1cecb026da9549717331f192657085eedc98b41d640c41",
+      "50cafee04ddd0aec859b45d6050e46814f412b27ee4b2d8c472a72e925f0ff9d",
+      "541406f138110ed414e0de82ef3fe798cac7c6b96d336091d3430d1cdecbb137",
+      "d9159e77b2879bf0f298298770dd98d2d2b03afcb566bdc0ea2968f328eeb159",
+      "08a446bb218902661a258aa1ad04cbd4a001312f616362528c98526488343281",
+      "74ddbdfc69ed67067f7f48906ffb8a737febdb952fe2f742c43a14403475ade4",
+      "8332189754947f6cd3bac944da6a025be15c06be68d9bde8e22559c4b3b72981",
+      "4f8d4838bb577b7c9de6c1f22417c344f5f394549ddea98cee300b0c8de05e94",
+      "59c8ccaa15f03dd01d4997099632ca50d73d884a286b045ffc0155a0a6f1fb2c",
+      "a95badcdfdcbab087689b2a8fd76e0b48e6d404e2d2917837f9dc7d489c92815",
+      "9a2feb68c7fd56ecf78ecd2c9d7808305cf430f69530c5231d9700dd1c32bf90",
+      "ea68cf6dcc4c23cf424bce51a431612de550471ee66e1495180f17e80cff8273"
+    ]
+  },
+  "tasks": [
+    {
+      "expected": {
+        "checks_passed": true,
+        "max_steps": 16
+      },
+      "kind": "netops",
+      "metadata": {
+        "difficulty": "high",
+        "noise_lines": 274
+      },
+      "prompt": "[netops] investigate alert #1000 with 274 log lines",
+      "task_id": "fw1-000"
+    },
+    {
+      "expected": {
+        "checks_passed": true,
+        "max_steps": 17
+      },
+      "kind": "secops",
+      "metadata": {
+        "difficulty": "medium",
+        "noise_lines": 382
+      },
+      "prompt": "[secops] investigate alert #1001 with 382 log lines",
+      "task_id": "fw1-001"
+    },
+    {
+      "expected": {
+        "checks_passed": true,
+        "max_steps": 18
+      },
+      "kind": "incident",
+      "metadata": {
+        "difficulty": "medium",
+        "noise_lines": 405
+      },
+      "prompt": "[incident] investigate alert #1002 with 405 log lines",
+      "task_id": "fw1-002"
+    },
+    {
+      "expected": {
+        "checks_passed": true,
+        "max_steps": 17
+      },
+      "kind": "netops",
+      "metadata": {
+        "difficulty": "high",
+        "noise_lines": 356
+      },
+      "prompt": "[netops] investigate alert #1003 with 356 log lines",
+      "task_id": "fw1-003"
+    },
+    {
+      "expected": {
+        "checks_passed": true,
+        "max_steps": 19
+      },
+      "kind": "secops",
+      "metadata": {
+        "difficulty": "low",
+        "noise_lines": 489
+      },
+      "prompt": "[secops] investigate alert #1004 with 489 log lines",
+      "task_id": "fw1-004"
+    },
+    {
+      "expected": {
+        "checks_passed": true,
+        "max_steps": 18
+      },
+      "kind": "incident",
+      "metadata": {
+        "difficulty": "medium",
+        "noise_lines": 443
+      },
+      "prompt": "[incident] investigate alert #1005 with 443 log lines",
+      "task_id": "fw1-005"
+    },
+    {
+      "expected": {
+        "checks_passed": true,
+        "max_steps": 18
+      },
+      "kind": "netops",
+      "metadata": {
+        "difficulty": "high",
+        "noise_lines": 446
+      },
+      "prompt": "[netops] investigate alert #1006 with 446 log lines",
+      "task_id": "fw1-006"
+    },
+    {
+      "expected": {
+        "checks_passed": true,
+        "max_steps": 18
+      },
+      "kind": "secops",
+      "metadata": {
+        "difficulty": "medium",
+        "noise_lines": 387
+      },
+      "prompt": "[secops] investigate alert #1007 with 387 log lines",
+      "task_id": "fw1-007"
+    },
+    {
+      "expected": {
+        "checks_passed": true,
+        "max_steps": 19
+      },
+      "kind": "incident",
+      "metadata": {
+        "difficulty": "high",
+        "noise_lines": 482
+      },
+      "prompt": "[incident] investigate alert #1008 with 482 log lines",
+      "task_id": "fw1-008"
+    },
+    {
+      "expected": {
+        "checks_passed": true,
+        "max_steps": 18
+      },
+      "kind": "netops",
+      "metadata": {
+        "difficulty": "low",
+        "noise_lines": 413
+      },
+      "prompt": "[netops] investigate alert #1009 with 413 log lines",
+      "task_id": "fw1-009"
+    },
+    {
+      "expected": {
+        "checks_passed": true,
+        "max_steps": 17
+      },
+      "kind": "secops",
+      "metadata": {
+        "difficulty": "high",
+        "noise_lines": 343
+      },
+      "prompt": "[secops] investigate alert #1010 with 343 log lines",
+      "task_id": "fw1-010"
+    },
+    {
+      "expected": {
+        "checks_passed": true,
+        "max_steps": 15
+      },
+      "kind": "incident",
+      "metadata": {
+        "difficulty": "low",
+        "noise_lines": 209
+      },
+      "prompt": "[incident] investigate alert #1011 with 209 log lines",
+      "task_id": "fw1-011"
+    },
+    {
+      "expected": {
+        "checks_passed": true,
+        "max_steps": 15
+      },
+      "kind": "netops",
+      "metadata": {
+        "difficulty": "high",
+        "noise_lines": 250
+      },
+      "prompt": "[netops] investigate alert #1012 with 250 log lines",
+      "task_id": "fw1-012"
+    },
+    {
+      "expected": {
+        "checks_passed": true,
+        "max_steps": 19
+      },
+      "kind": "secops",
+      "metadata": {
+        "difficulty": "low",
+        "noise_lines": 465
+      },
+      "prompt": "[secops] investigate alert #1013 with 465 log lines",
+      "task_id": "fw1-013"
+    },
+    {
+      "expected": {
+        "checks_passed": true,
+        "max_steps": 15
+      },
+      "kind": "incident",
+      "metadata": {
+        "difficulty": "low",
+        "noise_lines": 237
+      },
+      "prompt": "[incident] investigate alert #1014 with 237 log lines",
+      "task_id": "fw1-014"
+    },
+    {
+      "expected": {
+        "checks_passed": true,
+        "max_steps": 13
+      },
+      "kind": "netops",
+      "metadata": {
+        "difficulty": "low",
+        "noise_lines": 118
+      },
+      "prompt": "[netops] investigate alert #1015 with 118 log lines",
+      "task_id": "fw1-015"
+    }
+  ]
+}

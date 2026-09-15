@@ -75,7 +75,7 @@ Controlled development fault experiments against earlier M2/M3/M4 trees demonstr
 
 ### M4 qualification
 
-Issue #63 tracks four trust-boundary gaps that must be closed before current M4 should support live/paper-facing reliability claims:
+PR #81 is merged at `de9c9fa`. Before M4 supports live/paper-facing reliability claims, retain independent audit and namespace-enabled qualification of the exact merged tree for these four boundaries:
 
 1. accepted-tree identity must remain bound to the artifact tree that was actually verified;
 2. filesystem writes must use race-resistant non-following traversal/policies;
@@ -84,15 +84,23 @@ Issue #63 tracks four trust-boundary gaps that must be closed before current M4 
 
 ### Traceability drift
 
-Issue #48 tracks stale `implementation-status.yaml` entries that still mark M2/M3/M4/EVAL `not_started`. The code exists; the generated status view is stale. That documentation inconsistency must be reconciled before using the manifest as paper evidence.
+The #48 reconciliation, merged through PR #77 at `31cd2bf`, maps M2/M3/EVAL to canonical code and leaves M4 `implemented_unverified`. The generated status document is derived from that manifest, with canonical-path drift checks. A manifest entry establishes implementation traceability only; M4 needs retained qualification of the merged main commit/tree before its closure state can advance.
 
 ### Reproducibility classification
 
 Clean-install qualification work retained an initial Python 3.11 failure in two timing-sensitive Factory OS tests that passed unchanged on rerun. The source of that nondeterminism must be classified rather than hidden by retry policy.
 
+### Measured-evidence provenance
+
+The earlier review of PR #71's Factory adapter identified replay to count as independent repetitions, unsigned/run-unbound topology, drift between measured and frozen task populations, and unqualified verifier-boundary labels. These are historical review findings, not a re-audit of its current head. A signature over the resulting report does not repair invalid source evidence.
+
+Before using that adapter for confirmatory results, correct and independently requalify fresh execution/run binding, cross-repetition replay rejection, authenticated scheduler evidence over the run interval, the exact approved workload-to-task mapping, and the qualified verifier policy/execution boundary. Resume must preserve the original run identity rather than count recovered evidence as new execution. These measurement requirements remain separate from closing #63, #48 and the timing issue.
+
+A live R0–R5 protocol can explicitly exclude this Factory adapter and use a different independently qualified evidence path. It must still satisfy the applicable guarantees in the [live evaluation gate](evaluation.md#live-evaluation-gate); a different path must not be assumed sound merely because PR #71 is not used.
+
 ## Next confirmatory experiment
 
-After the blockers above are closed, freeze the implementation, model configuration, verifier revisions, task corpus, prompts, inference settings and evaluation metrics **before** observing live results.
+After the blockers above are closed or explicitly excluded through a qualified alternative, freeze the implementation, selected execution/evidence adapter, model configuration, verifier revisions and policies, task corpus and mapping, prompts, inference settings, evaluation metrics and analysis code **before** observing live results. Retain the selected path's qualification evidence alongside the frozen protocol.
 
 The primary experiment should run one fixed model across R0–R5 configurations and retain raw observations sufficient to recompute:
 
