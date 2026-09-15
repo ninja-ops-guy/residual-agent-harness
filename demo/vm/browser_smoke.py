@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Real WebVM acceptance. Cloud failure test never authenticates or spends money."""
+"""Real WebVM acceptance. Cloud failure tests never authenticate or spend money."""
 from __future__ import annotations
 
 import argparse
@@ -15,6 +15,7 @@ from urllib.parse import urlsplit
 from playwright.async_api import async_playwright
 from pages_contract import validate_entry_html
 from mission_smoke import workbench_acceptance
+from provider_failure_smoke import provider_failure_acceptance
 
 BOOT = "RESIDUAL BOOT: guest process attached"
 PROMPT = "residual@demo:~/residual-agent-harness$"
@@ -63,13 +64,11 @@ async def main() -> int:
 
         async def wait_guest() -> None:
             await wait_text(BOOT, timeout=args.boot_timeout * 1000)
-            # Guest process attachment is not yet interactive-shell readiness.
             await wait_text(PROMPT, timeout=args.boot_timeout * 1000)
 
         async def command_proof(command: str) -> None:
             nonce = secrets.token_hex(8)
             prefix = f"RESIDUAL_E2E_{nonce}:"
-            # The complete nonce is absent from the echoed command line.
             wire = command + "; proof_rc=$?; printf '\\nRESIDUAL_E2E_%s%s:%s\\n' '" + nonce[:8] + "' '" + nonce[8:] + "' \"$proof_rc\""
             await page.locator(".xterm-helper-textarea").focus()
             await page.keyboard.press("Control+u")
@@ -116,6 +115,7 @@ async def main() -> int:
             await stage("warm_reload_and_verify_passed")
             assert not report["optional_requests"], "cloud SDK loaded without opt-in"
             await workbench_acceptance(page, context, args, report, command_proof, stage)
+            await provider_failure_acceptance(page, context, args, report, stage)
             assert not report["errors"], "unhandled browser JavaScript error"
             report["status"] = "PASS"
         except Exception as error:

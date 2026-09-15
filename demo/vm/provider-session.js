@@ -29,6 +29,20 @@ export function errorCode(error) {
   const code = error?.error || error?.code;
   return ['popup_blocked', 'auth_window_closed', 'not_available_in_app'].includes(code) ? code : 'provider_error';
 }
+export function providerFailureMessage(code) {
+  const messages = {
+    provider_model_unavailable: 'Provider connected, but the selected model is unavailable. Choose another model and retry.',
+    provider_authorization_failed: 'Provider connected, but this model request was not authorized/allowed. Check account allowance or billing.',
+    provider_protocol_invalid: 'Provider returned a response, but it violated the RESIDUAL worker protocol. No candidate was accepted.',
+    provider_timeout: 'Provider request timed out. No candidate was accepted; a timed-out remote request may still be billed.',
+    provider_request_failed: 'Provider request failed before a usable candidate was returned. No candidate was accepted.',
+    provider_response_too_large: 'Provider response exceeded the browser bridge limit. No candidate was accepted.',
+    provider_budget_exhausted: 'Provider call budget was exhausted. RESIDUAL refused another dispatch.',
+    provider_disconnected: 'Provider connection was lost before the request completed.',
+    mission_cancelled: 'Provider authorization was revoked because the mission was cancelled.'
+  };
+  return messages[code] || 'Provider failed with a bounded safe error code. No candidate was accepted.';
+}
 export function textReply(result) {
   if (typeof result === 'string') return result;
   const content = result?.message?.content ?? result?.text ?? result?.content;
@@ -81,7 +95,6 @@ export class ProviderSession {
     this.channel.onmessage = event => this.receive(event.data);
     const url = new URL('../provider/', location.href);
     url.hash = token;
-    // Opens on the original click. It is deliberately independent of opener/COOP.
     window.open(url.href, '_blank', 'noopener,noreferrer');
     this.onState('connecting', 'Complete provider setup in the new tab. Allow popups for this site if it did not open.');
     return url.href;
@@ -95,6 +108,7 @@ export class ProviderSession {
     if (message.kind === 'response' && validRequest(message.request_id)) {
       const entry = this.pending.get(message.request_id);
       if (entry && message.mission_id === entry.missionId) {
+        if (message.ok === false && typeof message.error === 'string') this.onState(this.ready ? 'connected' : 'disconnected', providerFailureMessage(message.error));
         clearTimeout(entry.timer); this.pending.delete(message.request_id);
         entry.resolve(message);
       }
@@ -113,7 +127,9 @@ export class ProviderSession {
     return new Promise(resolve => {
       const timer = setTimeout(() => {
         this.pending.delete(req.request_id);
-        resolve({ok: false, request_id: req.request_id, error: 'provider_timeout'});
+        const response={ok: false, request_id: req.request_id, error: 'provider_timeout'};
+        this.onState(this.ready ? 'connected' : 'disconnected', providerFailureMessage(response.error));
+        resolve(response);
       }, 85000);
       this.pending.set(req.request_id, {resolve, timer, missionId});
       this.channel.postMessage({protocol: PROTOCOL, kind: 'request', mission_id: missionId, ...req});
