@@ -72,7 +72,7 @@ class Fixture(unittest.TestCase):
         return [dict(obs.payload) for obs in self.journal.observations()]
 
     def wait_active(self):
-        end = time.monotonic() + 5
+        end = time.monotonic() + 15  # condition-based; generous margin only
         while time.monotonic() < end:
             if any(x['event'] == 'RuntimeSandboxReady' for x in self.events()):
                 return
@@ -449,6 +449,23 @@ class ExecutionTests(Fixture):
         self.assertEqual((result.status, result.reason), ('VIOLATED', 'lease_generation'))
         self.assertTrue(result.process_reaped)
 
+    def test_lease_revocation_kills_with_lease_generation(self):
+        # A durably revoked lease must terminate the worker with the typed
+        # primary reason ('lease', 'lease_generation') — never retyped.
+        c = self.contract()
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(self.runtime.run, self.plan, self.approval, c, 'while True: pass')
+            self.wait_active()
+            second = RuntimeJournal(self.journal.path, trace_id='test-run')
+            second.revoke(c.attempt_id)
+            result = future.result(timeout=15)
+        self.assertEqual((result.status, result.reason), ('VIOLATED', 'lease_generation'))
+        violations = [e for e in self.events() if e['event'] == 'ContractViolation']
+        self.assertEqual(len(violations), 1)
+        self.assertEqual(violations[0]['boundary'], 'lease')
+        self.assertEqual(violations[0]['field'], 'lease_generation')
+        self.assertTrue(result.process_reaped)
+
     def test_audit_error_prevents_launch(self):
         original = self.journal.observe
         def refuse(payload):
@@ -488,7 +505,8 @@ class ExecutionTests(Fixture):
 
         runtime = FactoryRuntime(self.repo, self.root / 'work', self.journal,
                                  allow_local_worker_code=True,
-                                 monotonic_ns=deterministic_clock_ns)
+                                 monotonic_ns=deterministic_clock_ns,
+                                 clock=lambda: 31.0 if entered.is_set() else 0.0)
         c = self.contract(wall_clock_budget_s=30)
         with patch.object(self.journal, 'observe', side_effect=blocked), ThreadPoolExecutor(max_workers=1) as pool:
             future = pool.submit(runtime.run, self.plan, self.approval, c, "write_file('output.txt','no')")

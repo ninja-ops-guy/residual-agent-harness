@@ -55,7 +55,8 @@ class BwrapBackend:
     def exec(self, argv: list[str], *, stdin: str = "") -> SandboxResult:
         if self._spec is None:
             raise RuntimeError("sandbox not started")
-        return run_contained(self._wrap(argv), self._spec, stdin=stdin)
+        return run_contained(self._wrap(argv), self._spec, stdin=stdin,
+                             enforcement=Enforcement.KERNEL)
 
     def stop(self) -> None:
         self._spec = None

@@ -14,6 +14,7 @@ from unittest.mock import Mock, patch
 from tests.test_factory_runtime import Fixture
 from residual.factory.runtime import main
 from residual.factory.termination_provenance import ProcessControl
+from residual.factory.runtime_journal import LeaseRead
 from residual.factory.runtime_workspace import ManagedWorktree
 from residual.factory.worker_contract import WorkerContractError
 
@@ -149,35 +150,56 @@ class WatchdogIntentGuards(Fixture):
             kill=Mock(),
         )
 
+    FAR = 1e9  # deadline snapshot far in the future: wall clock cannot fire
+
+    def watch(self, control, contract, deadline):
+        self.runtime._watch(control, contract, deadline, threading.Event(),
+                            threading.Event())
+
     def test_existing_termination_intent_skips_secondary_lease_read(self):
         control = self.control()
         control.termination_requested.set()
-        with patch.object(self.journal, 'lease_is_current') as lease:
-            self.runtime._watch(control, self.contract(), 100_000_000_000, threading.Event())
+        with patch.object(self.journal, 'lease_read') as lease:
+            self.watch(control, self.contract(), self.FAR)
         lease.assert_not_called()
         control.kill.assert_not_called()
 
     def test_termination_between_memory_read_and_lease_read_preserves_primary_owner(self):
         control = self.control()
+        self.runtime._clock = lambda: 100.0
         def statm(*_):
             control.termination_requested.set()
             return '1 1'
-        with patch.object(self.runtime, '_monotonic_ns', return_value=100_000_000_000):
-            with patch.object(Path, 'read_text', side_effect=statm):
-                with patch.object(self.journal, 'lease_is_current') as lease:
-                    self.runtime._watch(control, self.contract(), 100_000_000_000, threading.Event())
+        with patch.object(Path, 'read_text', side_effect=statm):
+            with patch.object(self.journal, 'lease_read') as lease:
+                self.watch(control, self.contract(), self.FAR)
         lease.assert_not_called()
         control.kill.assert_not_called()
 
-    def test_lease_read_failure_without_other_owner_still_kills(self):
+    def test_lease_revocation_kills_with_lease_generation(self):
         control = self.control()
-        with patch.object(self.runtime, '_monotonic_ns', return_value=100_000_000_000):
-            with patch.object(Path, 'read_text', return_value='1 1'):
-                with patch.object(self.journal, 'lease_is_current', side_effect=OSError('fixture error')):
-                    self.runtime._watch(control, self.contract(), 100_000_000_000, threading.Event())
+        self.runtime._clock = lambda: 100.0
+        with patch.object(Path, 'read_text', return_value='1 1'):
+            with patch.object(self.journal, 'lease_read', return_value=LeaseRead('revoked')):
+                self.watch(control, self.contract(), self.FAR)
         control.kill.assert_called_once_with(
-            ('lease', 'lease_generation', {'reason': 'revoked_or_unavailable'}), requester='watchdog'
-        )
+            ('lease', 'lease_generation', {'reason': 'revoked_or_unavailable'}),
+            requester='watchdog')
+
+    def test_lease_read_failure_without_other_owner_still_kills(self):
+        # An unreadable lease is retried with bounded backoff, then killed
+        # with the DISTINCT lease_unreadable reason — never retyped as a
+        # lease_generation revocation.
+        control = self.control()
+        ticks = iter([100.0 + 0.5 * n for n in range(64)])
+        self.runtime._clock = lambda: next(ticks)
+        with patch.object(Path, 'read_text', return_value='1 1'):
+            with patch.object(self.journal, 'lease_read',
+                              return_value=LeaseRead('unknown')):
+                self.watch(control, self.contract(), self.FAR)
+        control.kill.assert_called_once_with(
+            ('lease', 'lease_unreadable', {'reason': 'revoked_or_unavailable'}),
+            requester='watchdog')
 
     def test_kill_records_intent_before_signal_and_single_reap(self):
         process = Mock(pid=12345, args=['fixture'])
