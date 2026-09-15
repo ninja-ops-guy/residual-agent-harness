@@ -70,7 +70,7 @@ The Factory runtime extends RESIDUAL into multi-worker execution:
 
 M2/M3/M4 are no longer paper-only concepts: the canonical implementations live under `residual/factory/` and related platform packages. The four original M4 trust-boundary defects tracked by issue #63 are closed, and the deterministic sandbox-timing/termination repair from PR #108 is now merged on `main`.
 
-That is **implementation and reviewed mechanism closure, not blanket live qualification**. Merged `main` is not yet namespace-qualified. PR #109 has produced capable-runner exact-candidate PASS evidence with real isolated execution and zero M4 skips, but its current head changes one protected lifecycle test and therefore remains blocked on independent protected-surface review and deliberate ownership-baseline advancement. Release/recovery qualification, soak evidence and live research results remain separate gates.
+That is **implementation and reviewed mechanism closure, not blanket live qualification**. Merged `main` is not yet namespace-qualified. PR #109 head `fb99d5896b23b91e3903965a8c56813412533d48` now includes current `main` after #124 and has fresh capable-runner exact-candidate PASS evidence: 142 cases plus 84 subtests, real isolated execution, all 12 capability probes passing and zero skips. It also hardens the retained artifact exporter. The candidate still changes one protected lifecycle test, so acceptance remains blocked on genuinely independent protected-surface review and deliberate ownership-baseline advancement. Release/recovery qualification, soak evidence and live research results remain separate gates.
 
 ### Evaluation and soak infrastructure
 
@@ -107,8 +107,8 @@ Current `main` has since advanced through the Mission Control real-provider reli
 
 Before paper-facing live reliability evaluation, the priority gates are now:
 
-1. independently review PR #109's current protected lifecycle-test repair and deliberately advance the ownership baseline only if that review accepts the changed bytes; its Ubuntu 22.04 candidate passed all namespace probes, actual isolated execution, and 135 M4 tests plus 78 subtests with zero skips, but that evidence is bound to its exact pre-#124 synthetic candidate and must not be projected onto a later combined tree without rerunning the required gates;
-2. complete exact-current-main PR #124 Pages/WebVM deployment and post-deploy browser acceptance, keep issue #120 open, retain any recurrence, and quantify reliability rather than treating one hardened path or one green rerun as production proof;
+1. independently review PR #109's protected lifecycle-test repair and deliberately advance the ownership baseline only if that review accepts blob `85c6bf10a675ea3a74d775906d0bbaa79e411100`; the refreshed Ubuntu 22.04 candidate at `fb99d589...` includes current `main`, passed all 12 probes, actual isolated execution, and 142 cases plus 84 subtests with zero skips, but its ownership-dependent CI correctly remains red until that one protected pin is accepted;
+2. retain the successful exact-main #124 Pages/WebVM deployment and desktop/narrow live acceptance from run `35016468585`, keep issue #120 open, retain any recurrence, and quantify reliability rather than treating one hardened path or one green run as production proof;
 3. complete downstream release/recovery qualification without weakening security or acceptance gates;
 4. freeze the live evaluation protocol before observing model results;
 5. run one fixed live model across R0–R5 and measure raw correctness, acceptance coverage, accepted correctness, AER/ASSR, latency, throughput and cost;
