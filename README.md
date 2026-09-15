@@ -175,6 +175,7 @@ Start with:
 - [`docs/research.md`](docs/research.md) — research claim, prior art and evidence boundaries;
 - [`docs/papers/reliability-from-unreliable-computation.md`](docs/papers/reliability-from-unreliable-computation.md) — IEEE-style working manuscript;
 - [`docs/controlled-evaluation.md`](docs/controlled-evaluation.md) — controlled study design;
+- [`docs/cic-integration.md`](docs/cic-integration.md) — opt-in CIC constraint grouping, bounded feasibility, and comparison fixtures;
 - [`docs/evaluation.md`](docs/evaluation.md) — evaluation/reproduction guidance.
 
 ## Documentation map

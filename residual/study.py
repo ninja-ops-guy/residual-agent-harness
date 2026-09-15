@@ -263,7 +263,7 @@ def run_study(lock_path, output):
         try:
             result = harness.run(task)
             grading_started = time.monotonic()
-            verdict = grade(result["values"], grader)
+            verdict = grade(result.get("original_values", result["values"]), grader)
             row.update(status="completed", controller_success=result["success"],
                        success=bool(result["success"] and verdict["pass"]), grade=verdict,
                        grading_elapsed_ms=(time.monotonic() - grading_started) * 1000,
@@ -320,6 +320,7 @@ def summarize_rows(rows, calls, protocol, simulation=False):
         false_accepts = sum(r["controller_success"] and not r["success"] for r in group)
         verification_ms = sum(r.get("metrics", {}).get("verification_elapsed_ms", 0) for r in group)
         solver_ms = sum(r.get("metrics", {}).get("solver_elapsed_ms", 0) for r in group)
+        structural_ms = sum(r.get("metrics", {}).get("structural_elapsed_ms", 0) for r in group)
         grading_ms = sum(r.get("grading_elapsed_ms", 0) for r in group)
         provider_ms = sum(c.get("elapsed_ms", 0) for c in used)
         by_placement = {}
@@ -347,8 +348,12 @@ def summarize_rows(rows, calls, protocol, simulation=False):
             "total_cost_per_success_usd": total / successful if total is not None and successful else None,
             "median_elapsed_ms": statistics.median(elapsed) if elapsed else None, "p95_elapsed_ms": percentile(elapsed, .95),
             "verification_elapsed_ms": verification_ms, "solver_elapsed_ms": solver_ms,
+            "structural_elapsed_ms": structural_ms,
+            **{key: sum(r.get("metrics", {}).get(key, 0) for r in group) for key in (
+                "structural_search_nodes", "structural_unsat_groups", "dependency_blocked_obligations",
+                "candidate_rejections", "repeated_dispatch_calls")},
             "grading_elapsed_ms": grading_ms, "provider_elapsed_ms": provider_ms,
-            "other_host_elapsed_ms": max(0, sum(elapsed) - verification_ms - solver_ms - grading_ms - provider_ms)})
+            "other_host_elapsed_ms": max(0, sum(elapsed) - verification_ms - solver_ms - structural_ms - grading_ms - provider_ms)})
     return summary
 
 

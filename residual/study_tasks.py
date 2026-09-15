@@ -189,6 +189,11 @@ class StudyFixtureProvider(Provider):
                 else:
                     answer = next((v for values in itertools.islice(combinations, 10000)
                                    if assignment_valid(v := dict(zip(keys, values)), data)), {})
+                if "members" in o:
+                    answer = {m["id"]: answer[m["id"]] for m in o["members"] if m["id"] in answer}
+                elif o["id"] in data["domains"]:
+                    # Ungrouped scalar obligations see exactly the same model.
+                    answer = answer.get(o["id"])
             elif "choices" in data:
                 answer = data["choices"][o["id"]][0]
             else:

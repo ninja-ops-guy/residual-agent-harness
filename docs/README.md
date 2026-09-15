@@ -34,6 +34,10 @@ Station-specific documentation lives under [`station/`](station/), including arc
 
 Use [`controlled-evaluation.md`](controlled-evaluation.md) for the controlled study design and [`evaluation.md`](evaluation.md) for evaluation tooling/metrics. Development fixtures demonstrate controller behavior; they do not prove that a real model preserves quality, reduces cost, or makes cloud reasoning necessary.
 
+[`cic-integration.md`](cic-integration.md) documents the opt-in structural grouping
+and bounded CIC feasibility checks in the original obligation harness, including
+receipt semantics, model limits, and the three-arm scripted comparison.
+
 The project intentionally distinguishes:
 
 | Level | Meaning |
