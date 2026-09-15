@@ -1,7 +1,7 @@
 ============================= test session starts ==============================
 platform linux -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
 cachedir: .pytest_cache
-rootdir: /mnt/agents/output/clone
+rootdir: /tmp/m4fix-a
 configfile: pyproject.toml
 plugins: anyio-4.9.0
 collecting ... collected 10 items
@@ -20,6 +20,6 @@ tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_snapshot_detec
 tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_symlink_parent_swap_race_rejected_or_contained PASSED [ 90%]
 tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_unix_socket_rejected_by_snapshot PASSED [100%]
 
-==================== 10 passed, 10 subtests passed in 3.53s ====================
+==================== 10 passed, 10 subtests passed in 2.85s ====================
 
 --- STDERR ---

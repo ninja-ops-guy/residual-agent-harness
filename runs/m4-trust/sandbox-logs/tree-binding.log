@@ -1,7 +1,7 @@
 ============================= test session starts ==============================
 platform linux -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
 cachedir: .pytest_cache
-rootdir: /mnt/agents/output/clone
+rootdir: /tmp/m4fix-a
 configfile: pyproject.toml
 plugins: anyio-4.9.0
 collecting ... collected 9 items
@@ -16,6 +16,6 @@ tests/test_factory_m4_tree_binding.py::FixtureTreeBindingTests::test_git_add_sta
 tests/test_factory_m4_tree_binding.py::FixtureTreeBindingTests::test_post_check_mutation_before_commit_rejected PASSED [ 88%]
 tests/test_factory_m4_tree_binding.py::FixtureTreeBindingTests::test_verified_tree_hash_equals_accepted_tree_hash PASSED [100%]
 
-============================== 9 passed in 1.41s ===============================
+============================== 9 passed in 1.14s ===============================
 
 --- STDERR ---

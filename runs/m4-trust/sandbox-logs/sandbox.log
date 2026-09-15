@@ -1,27 +1,32 @@
 ============================= test session starts ==============================
 platform linux -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
 cachedir: .pytest_cache
-rootdir: /mnt/agents/output/clone
+rootdir: /tmp/m4fix-a
 configfile: pyproject.toml
 plugins: anyio-4.9.0
-collecting ... collected 15 items
+collecting ... collected 20 items
 
-tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_child_surviving_timeout_is_killed PASSED [  6%]
-tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_external_filesystem_write_attempt_fails PASSED [ 13%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_candidate_exit_125_is_fail_not_sandbox_error PASSED [  5%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_child_surviving_timeout_is_killed PASSED [ 10%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_external_filesystem_write_attempt_fails PASSED [ 15%]
 tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_fork_descendants_do_not_escape PASSED [ 20%]
-tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_host_paths_not_visible PASSED [ 26%]
-tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_infinite_loop_hits_deterministic_timeout PASSED [ 33%]
-tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_infinite_output_is_bounded_and_killed PASSED [ 40%]
-tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_memory_limit_fails_runaway_allocation PASSED [ 46%]
-tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_network_attempt_fails PASSED [ 53%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_host_paths_not_visible PASSED [ 25%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_infinite_loop_hits_deterministic_timeout PASSED [ 30%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_infinite_output_is_bounded_and_killed PASSED [ 35%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_ipc_namespace_hides_sysv_shm_from_host PASSED [ 40%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_memory_limit_fails_runaway_allocation PASSED [ 45%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_missing_executable_is_launch_failed_not_sandbox_error PASSED [ 50%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_network_attempt_fails PASSED [ 55%]
 tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_pass_and_fail_and_hashes PASSED [ 60%]
-tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_verifier_crash_is_fail_not_error PASSED [ 66%]
-tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_worktree_readable_but_read_only PASSED [ 73%]
-tests/test_factory_m4_sandbox.py::FailClosedTests::test_failed_namespace_probe_fails_closed PASSED [ 80%]
-tests/test_factory_m4_sandbox.py::FailClosedTests::test_invalid_requests_rejected PASSED [ 86%]
-tests/test_factory_m4_sandbox.py::FailClosedTests::test_missing_unshare_binary_fails_closed PASSED [ 93%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_posix_mqueue_namespace_isolated PASSED [ 65%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_tmpfs_scratch_is_bounded PASSED [ 70%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_verifier_crash_is_fail_not_error PASSED [ 75%]
+tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_worktree_readable_but_read_only PASSED [ 80%]
+tests/test_factory_m4_sandbox.py::FailClosedTests::test_failed_namespace_probe_fails_closed PASSED [ 85%]
+tests/test_factory_m4_sandbox.py::FailClosedTests::test_invalid_requests_rejected PASSED [ 90%]
+tests/test_factory_m4_sandbox.py::FailClosedTests::test_missing_unshare_binary_fails_closed PASSED [ 95%]
 tests/test_factory_m4_sandbox.py::FailClosedTests::test_non_linux_platform_fails_closed PASSED [100%]
 
-============================== 15 passed in 7.42s ==============================
+============================== 20 passed in 6.78s ==============================
 
 --- STDERR ---
