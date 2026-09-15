@@ -32,16 +32,27 @@ each invocation, verifies both injections occurred and remained visible in
 the parent, and executes the existing assertions against the real child.
 Restoring the old in-process capture causes this regression to fail with
 JSONDecodeError. Local validation: 21 unittest cases; 21 pytest cases plus
-22 subtests passed. Full fresh CI remains required for the published head.
+22 subtests passed.
 
-## Independent review required
+## Protected review and accepted ownership pin
 
-One protected file changes: `tests/test_factory_runtime_lifecycle.py`.
-Its ownership pin has deliberately not been advanced. The ownership gate
-must remain failing until independent review accepts the changed test,
-the new entry point, and the mutation evidence, followed by an explicitly
-reviewed baseline update. There is no metadata-only exception and no
-self-approval. Any final candidate must receive fresh qualification.
+The protected change to `tests/test_factory_runtime_lifecycle.py` was reviewed
+and accepted at candidate head `fb99d5896b23b91e3903965a8c56813412533d48`.
+The ownership baseline was then deliberately advanced only for that file, from
+blob `d4e00bd290351fa2ccd302ac578ac5dc463eda84` to
+`85c6bf10a675ea3a74d775906d0bbaa79e411100`. The other 37 protected blob pins
+and the existing provenance anchor remained unchanged.
+
+Fresh post-pin qualification ran on PR #109 source head
+`69cc6095a4094f86eb5e18427a63d913b1b427a2`, synthetic merge
+`dc467f856de527c37e8a37b7b45f3bf48b4df0b0`, against accepted main
+`9d88195a6329151197b53c05c6cbb5a74167f08f`. The ownership gate and all
+applicable CI checks passed. The M4 qualification job exercised real
+`linux-userns-isolated-v1` execution and passed 142 cases plus 84 subtests with
+zero skips. Artifact `10419671882` was retained with SHA-256
+`677f22810fe66e2b0ade0a420173117416a251fc673d792e38ca0b84a2045dbb`.
+This qualifies that named candidate and environment only; it does not establish
+release, recovery, production, elapsed-soak, or research qualification.
 
 ## Retained evidence transport
 
