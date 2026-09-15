@@ -29,7 +29,6 @@ export function previewDocument(bundle) {
   if (!entry) return null;
   const map = new Map(bundle.files.map(item => [cleanPath(item?.path), item?.content]).filter(([path, content]) => path && typeof content === 'string'));
   const parsed = new DOMParser().parseFromString(entry.content, 'text/html');
-  // Generated policy cannot weaken or accidentally block the preview policy.
   parsed.querySelectorAll('base,object,embed,iframe,meta[http-equiv="refresh" i],meta[http-equiv="content-security-policy" i]').forEach(node => node.remove());
   for (const link of [...parsed.querySelectorAll('link[rel~="stylesheet"][href]')]) {
     const path = resolveLocal(entry.path, link.getAttribute('href'));
@@ -50,6 +49,11 @@ export function previewDocument(bundle) {
   return '<!doctype html>\n' + parsed.documentElement.outerHTML;
 }
 
+function instrument(srcdoc, token) {
+  const probe = `<script>(()=>{let n=0;const send=(state)=>parent.postMessage({type:'residual-preview-smoke',token:'${token}',state,errors:n},'*');addEventListener('error',()=>n++);addEventListener('unhandledrejection',()=>n++);addEventListener('DOMContentLoaded',()=>{send('ready');setTimeout(()=>send(n?'fail':'pass'),700)})})()<\/script>`;
+  return srcdoc.includes('<head>') ? srcdoc.replace('<head>', '<head>'+probe) : probe+srcdoc;
+}
+
 export function renderPreview(container, bundle, {frameId = '', status = null} = {}) {
   container.replaceChildren();
   const srcdoc = previewDocument(bundle);
@@ -58,14 +62,23 @@ export function renderPreview(container, bundle, {frameId = '', status = null} =
     return null;
   }
   const controls = document.createElement('div'); controls.className = 'preview-controls';
-  const note = document.createElement('span'); note.className = 'muted'; note.textContent = 'Interactive opaque-origin preview · external resources/connect APIs restricted · not semantic verification';
+  const note = document.createElement('span'); note.className = 'muted'; note.textContent = 'Interactive opaque-origin preview · runtime smoke observed · external network blocked · not semantic verification';
   const stop = document.createElement('button'); stop.type = 'button'; stop.textContent = 'Stop preview';
   controls.append(note, stop);
   const frame = document.createElement('iframe');
   if (frameId) frame.id = frameId;
-  frame.title = 'Generated app preview'; frame.sandbox = 'allow-scripts'; frame.referrerPolicy = 'no-referrer'; frame.srcdoc = srcdoc;
-  frame.addEventListener('load', () => { if (status) status.textContent = 'Preview loaded in an isolated browser sandbox. Interact with it below to verify behavior.'; });
-  stop.onclick = () => { frame.remove(); stop.disabled = true; if (status) status.textContent = 'Preview stopped. Generated files remain saved in the guest.'; };
+  const token = crypto.randomUUID();
+  frame.title = 'Generated app preview'; frame.sandbox = 'allow-scripts'; frame.referrerPolicy = 'no-referrer'; frame.srcdoc = instrument(srcdoc, token);
+  const listener = event => {
+    if (event.source !== frame.contentWindow || event.data?.type !== 'residual-preview-smoke' || event.data?.token !== token) return;
+    if (!status) return;
+    if (event.data.state === 'ready') status.textContent = 'Preview started. Watching for startup JavaScript failures…';
+    if (event.data.state === 'pass') status.textContent = 'RUNTIME SMOKE: PASS · preview loaded with no startup JavaScript errors · semantic/code correctness remains UNKNOWN.';
+    if (event.data.state === 'fail') status.textContent = `RUNTIME SMOKE: FAIL · ${event.data.errors} startup JavaScript error(s) observed. Inspect Files/Terminal.`;
+  };
+  window.addEventListener('message', listener);
+  frame.addEventListener('load', () => { if (status) status.textContent = 'Preview loaded in an isolated browser sandbox. Running startup smoke…'; });
+  stop.onclick = () => { window.removeEventListener('message', listener); frame.remove(); stop.disabled = true; if (status) status.textContent = 'Preview stopped. Generated files remain saved in the guest.'; };
   container.append(controls, frame);
   return frame;
 }
