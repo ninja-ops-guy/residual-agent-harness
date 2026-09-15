@@ -1,6 +1,6 @@
 """Versioned mission, authority, evidence and governance models."""
 from __future__ import annotations
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any, Mapping, Optional
 import time
@@ -22,7 +22,7 @@ class CapabilityGrant:
     scope: Mapping[str, Any]=field(default_factory=dict); constraints: Mapping[str, Any]=field(default_factory=dict)
     conditions: Mapping[str, Any]=field(default_factory=dict); approval_policy: Mapping[str, Any]=field(default_factory=dict)
     expires_at: Optional[float]=None
-    def fingerprint(self): return digest(self.__dict__)
+    def fingerprint(self): return digest(asdict(self))
 
 @dataclass(frozen=True)
 class MissionRevision:
@@ -48,7 +48,10 @@ class RoutingDecision:
     decision_id: str; mission_revision: str; obligation_id: str; eligible_workers: tuple[str,...]; selected_worker: str
     scoring_inputs: Mapping[str, Any]; certified_state_refs: tuple[str,...]; router_revision: str; policy_revision: str
     required_capability_hash: str; granted_capability_hash: str; excluded_workers: Mapping[str,str]=field(default_factory=dict)
-    timestamp: float=field(default_factory=time.time); expires_at: Optional[float]=None
+    timestamp: float=field(default_factory=time.time)
+    # None deliberately means no coarse time-based expiry. Certified state, policy,
+    # mission revision, and capability validity are still re-evaluated at execution start.
+    expires_at: Optional[float]=None
     execution_preconditions: Mapping[str,str]=field(default_factory=lambda:{"certified_state_freshness":"required_at_execution_start","policy_revision_match":"required_at_execution_start","capability_grant_validity":"required_at_execution_start"})
     re_route_policy: str="fail_closed"
 
