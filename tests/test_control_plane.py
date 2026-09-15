@@ -22,8 +22,7 @@ class ControlPlaneTests(unittest.TestCase):
         self.assertEqual(s.status(now=31,environment_fingerprint="env"),CertifiedStatus.STALE)
         self.assertEqual(s.status(now=15,environment_fingerprint="changed"),CertifiedStatus.INVALIDATED)
     def test_transaction_reconciliation_and_partial(self):
-        a=AtomicEffect("a","i1")
-        b=AtomicEffect("b","i2",("a",))
+        a=AtomicEffect("a","i1"); b=AtomicEffect("b","i2",("a",))
         tx=SideEffectTransaction("t",{"a":a,"b":b})
         self.assertEqual([x.effect_id for x in tx.ready()],["a"])
         tx.transition("a",IntentState.ATTEMPTED); tx.transition("a",IntentState.APPLIED)
@@ -36,4 +35,4 @@ class ControlPlaneTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             SideEffectTransaction("t",{"a":AtomicEffect("a","i",("b",)),"b":AtomicEffect("b","j",("a",))})
 
-if
+if __name__ == "__main__": unittest.main()
