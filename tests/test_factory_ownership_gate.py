@@ -98,6 +98,13 @@ class FactoryOwnershipGateTests(unittest.TestCase):
         self.assertTrue(repo_manifest["justification"].strip())
         self.assertEqual(len(repo_manifest["pinned_at"]), 40)
 
+    def test_repo_manifest_matches_committed_tree(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        manifest = repo_root / "verifier/v3/factory_ownership_baseline.json"
+        report, failures = gate.evaluate_ownership(repo_root, manifest)
+        self.assertEqual(failures, [], report)
+        self.assertEqual(report["checked"], len(json.loads(manifest.read_text())["files"]))
+
     def test_unchanged_tree_passes(self):
         report, failures = self.evaluate()
         self.assertEqual(failures, [])
