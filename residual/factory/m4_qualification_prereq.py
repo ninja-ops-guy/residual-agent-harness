@@ -24,6 +24,7 @@ tracked by issue #108 and the execution gate of PR #88.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import platform
@@ -31,11 +32,12 @@ import resource
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from .m4_sandbox import SANDBOX_PROFILE, _unshare_argv, probe_isolation
+from .m4_sandbox import SANDBOX_PROFILE, _unshare_argv, probe_isolation, run_isolated
 
 REPORT_SCHEMA = "m4-qualification-prereq-report-v1"
 
@@ -113,7 +115,7 @@ def probe_capabilities() -> list[CapabilityResult]:
         # Without unshare every namespace probe is blocked, not skipped.
         for name in ("user_namespace", "mount_namespace", "pid_namespace",
                      "network_namespace", "ipc_namespace", "uts_namespace",
-                     "kill_child", "composite_sandbox_profile"):
+                     "kill_child", "composite_sandbox_profile", "isolated_execution"):
             results.append(CapabilityResult(name, "blocked", "unshare_binary_missing"))
         return results
     results.append(CapabilityResult("unshare_binary", "pass", unshare))
@@ -136,7 +138,32 @@ def probe_capabilities() -> list[CapabilityResult]:
         "composite_sandbox_profile", "pass" if ok else "blocked",
         f"{SANDBOX_PROFILE}:{reason}",
         tuple(_unshare_argv(["/usr/bin/env", "-i", "sh", "-c", "true"]) or ())))
+    results.append(probe_execution())
     return results
+
+
+def probe_execution() -> CapabilityResult:
+    """Exercise the actual verifier path, including setup and candidate exec.
+
+    Namespace availability alone does not establish that the chroot, resource
+    limits, readiness handshake and child executable can all run. This is a
+    prerequisite smoke check, not containment/security qualification.
+    """
+    marker = b"m4-prerequisite-execution\n"
+    argv = ("/usr/bin/python3", "-c", f"import sys; sys.stdout.write({marker.decode()!r})")
+    try:
+        with tempfile.TemporaryDirectory(prefix="m4-prereq-worktree-") as worktree:
+            result = run_isolated(argv, Path(worktree), timeout_s=20, output_limit=4096)
+    except (OSError, RuntimeError, subprocess.SubprocessError) as exc:
+        return CapabilityResult("isolated_execution", "blocked",
+                                f"execution_probe_failed:{type(exc).__name__}", argv)
+    passed = (result.status == "pass" and result.returncode == 0
+              and result.reason == "exit" and result.execution_boundary == SANDBOX_PROFILE
+              and result.stdout_sha256 == hashlib.sha256(marker).hexdigest()
+              and result.stderr_sha256 == hashlib.sha256(b"").hexdigest())
+    return CapabilityResult(
+        "isolated_execution", "pass" if passed else "blocked",
+        json.dumps(asdict(result), sort_keys=True), argv, result.returncode)
 
 
 def _namespace_probe(name: str, flags: tuple[str, ...], inner: tuple[str, ...]) -> CapabilityResult:
@@ -157,7 +184,10 @@ def _dependency_versions() -> dict[str, dict[str, str]]:
         try:
             mod = __import__(module)
             version = getattr(mod, "__version__", "unknown")
-            ok = version != "unknown" and version.split(".")[0] >= minimum
+            try:
+                ok = int(version.split(".")[0]) >= int(minimum)
+            except (AttributeError, TypeError, ValueError):
+                ok = False
             out[module] = {
                 "status": "pass" if ok else "blocked",
                 "version": version,

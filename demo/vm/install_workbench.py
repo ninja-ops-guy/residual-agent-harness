@@ -25,8 +25,10 @@ def patch(text):
                 if (!/^m-[a-f0-9]{32}$/.test(request.id)) throw new Error("Invalid mission ID");
                 const name = "/" + request.id + ".json";
                 await residualDataDevice.writeFile(name, JSON.stringify(request));
-                return await cx.run("/usr/bin/python3", ["-m", "residual.workbench", "run", "--request", "/data" + name,
-                    "--mailbox", "/data", "--root", "/opt/residual", "--output-root", "/opt/residual/runs/missions", "--stream"], configObj.opts);
+                const args = request.mode === "build"
+                    ? ["-m", "residual.workbench.build", "--request", "/data" + name, "--mailbox", "/data", "--root", "/opt/residual", "--output-root", "/opt/residual/runs/missions", "--stream"]
+                    : ["-m", "residual.workbench", "run", "--request", "/data" + name, "--mailbox", "/data", "--root", "/opt/residual", "--output-root", "/opt/residual/runs/missions", "--stream"];
+                return await cx.run("/usr/bin/python3", args, configObj.opts);
             }
         });''')
     # Preserve legacy transport functions for CLI backwards compatibility, but

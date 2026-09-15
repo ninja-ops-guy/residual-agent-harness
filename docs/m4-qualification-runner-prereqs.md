@@ -18,6 +18,11 @@ M4 verifier (`residual/factory/m4_sandbox.py`, profile
   as the sandbox enters it), mount, PID (`--fork`), network, IPC, UTS
   namespaces, `--kill-child`, and the composite sandbox profile probe
   (`m4_sandbox.probe_isolation()`).
+* **Actual isolated execution smoke** through `m4_sandbox.run_isolated()`:
+  require successful setup, exit 0, the expected execution boundary and exact
+  stdout/stderr hashes. A successful namespace probe cannot mask a failed
+  child setup, timeout, UNKNOWN or unexpected output. The complete typed
+  execution result is retained in the `isolated_execution` capability detail.
 * **Reproducible environment manifest** (schema
   `m4-qualification-env-manifest-v1`): OS/kernel release, userns sysctls
   (`max_user_namespaces`, `unprivileged_userns_clone`,
@@ -44,7 +49,7 @@ zero-skips requirement (the same skip-rejection check PR #88 introduced).
 
 ## Local evidence
 
-This environment (Linux 5.10.134-18.0.12 lifsea kernel, x86_64, glibc 2.36,
+The original submission's environment (Linux 5.10.134-18.0.12 lifsea kernel, x86_64, glibc 2.36,
 `max_user_namespaces=22829`, `unprivileged_userns_clone=1`, Python 3.12.12,
 cryptography 44.0.2, PyYAML 6.0.2) reported **PASS** on every capability,
 and the full `tests/test_factory_m4_sandbox.py` suite ran with 0 skips.
@@ -53,6 +58,32 @@ Retained under `evidence/m4-qualification-prereq/` and bound to main tip
 where `unprivileged_userns_clone=0` or AppArmor policy denies userns, as
 observed on ubuntu-latest in PR #88 run 34915813110) names the exact failed
 capability and exits nonzero.
+
+That retained report predates the `isolated_execution` capability. It is
+historical evidence for the original probe, not a qualification of this repair.
+Run the revised probe on the eventual integrated candidate and retain the
+actual report separately from unit-test output.
+
+## Review repair — 2026-09-15
+
+The required Python 3.11 CI job 104354380103 exposed two PASS tests that used
+the ambient Python manifest despite the qualification pin being 3.12. Those
+tests now supply an explicit 3.12 fixture, and the CLI fixture output is
+captured rather than mixed into live-looking capability logs. The same module
+tests real manifest handling for 3.11/3.12/3.13 and numeric dependency versions
+(for example, cryptography 4 is below 43, while 100 is above it).
+
+Correction to the earlier PR review: the successful namespace fields printed
+by that CI job came from `test_main_exit_codes_and_output_file` with mocked
+subprocess/probe calls. They were not a live prerequisite PASS contradicting
+the real M4 skips. The two matrix failures remain real. A new unmocked test
+uses the same cached availability predicate as M4 and runs the revised probe;
+BLOCKED is an acceptable prerequisite observation, never a containment PASS.
+Separate failing regression cases require execution failure to block the
+report even when namespace probes succeed.
+
+The workflow remains staged until review of this repair and the required
+matrix is green. Activating it does not supply a capable runner.
 
 ## Non-claims and dependencies
 
