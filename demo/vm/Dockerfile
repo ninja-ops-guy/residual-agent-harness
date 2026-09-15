@@ -7,7 +7,9 @@ RUN apt-get update \
        bash ca-certificates git python3 python3-pip python3-venv less procps \
     && rm -rf /var/lib/apt/lists/*
 
-RUN useradd --create-home --uid 1000 --shell /bin/bash residual
+RUN useradd --create-home --uid 1000 --shell /bin/bash residual \
+    && mkdir -p /home/user/documents \
+    && chmod 0755 /home/user /home/user/documents
 
 COPY --chown=residual:residual residual-src/ /opt/residual/
 
