@@ -2,9 +2,9 @@
 
 Covers scripts/release/blank_vm_install_check.py (typed checks, hash chain,
 fail-closed behavior), scripts/release/recovery_check.py (scenario
-detection), and scripts/release/soak_run.py (journal chain, stop criteria,
-retention manifest). Real venv/pip scenarios are exercised where the
-sandbox allows; slow end-to-end cases are marked and skippable.
+detection), and scripts/release/soak_run.py (journal chain, signed resume
+checkpoint, stop criteria, retention manifest). Real venv/pip scenarios are
+exercised where the sandbox allows.
 """
 from __future__ import annotations
 
@@ -33,7 +33,6 @@ class CheckLogTests(unittest.TestCase):
             ok, records, error = bvic.verify_chain(log.path)
             self.assertTrue(ok, error)
             self.assertEqual([r["check_id"] for r in records], ["a", "b"])
-            # Tamper: flip a status.
             lines = log.path.read_text().splitlines()
             first = json.loads(lines[0])
             first["status"] = "FAIL"
@@ -91,7 +90,6 @@ class HashGateTests(unittest.TestCase):
             self.assertEqual(summary["status"], "FAIL")
             self.assertEqual(summary["checks"]["verify_hash"], "FAIL")
             self.assertEqual(summary["checks"]["create_venv"], "SKIP")
-            # The corrupt artifact must never reach a venv.
             self.assertFalse((out / "work" / "install-venv").exists())
 
     def test_correct_hash_passes_gate(self):
@@ -100,12 +98,10 @@ class HashGateTests(unittest.TestCase):
             wheel = recovery_check.make_trivial_wheel(Path(d) / "f.whl")
             out = Path(d) / "evidence"
             log = bvic.CheckLog(out / "c.jsonl")
-            fetched = bvic.check_fetch(log, out / "logs", out / "work",
-                                       wheel.as_uri())
+            fetched = bvic.check_fetch(log, out / "logs", out / "work", wheel.as_uri())
             self.assertIsNotNone(fetched)
-            self.assertTrue(
-                bvic.check_hash(log, out / "logs", fetched,
-                                bvic.sha256_file(wheel)))
+            self.assertTrue(bvic.check_hash(
+                log, out / "logs", fetched, bvic.sha256_file(wheel)))
 
 
 class VenvRecoveryTests(unittest.TestCase):
@@ -121,13 +117,10 @@ class VenvRecoveryTests(unittest.TestCase):
             self.assertIsNotNone(venv)
             self.assertFalse((dirty / "STALE").exists())
             self.assertTrue(bvic.venv_python(venv).is_file())
-            self.assertIn("partial prior install",
-                          log.records[0]["recovery"])
+            self.assertIn("partial prior install", log.records[0]["recovery"])
 
 
 class RecoveryScenarioTests(unittest.TestCase):
-    """Drive the recovery checker harness itself (offline scenarios)."""
-
     def test_all_offline_scenarios_pass(self):
         import tempfile
         with tempfile.TemporaryDirectory() as d:
@@ -154,8 +147,7 @@ class RecoveryScenarioTests(unittest.TestCase):
             result = bvic.run_logged(
                 [str(bvic.venv_python(venv)), "-m", "pip", "install",
                  "--no-index", str(wheel)],
-                Path(d) / "logs" / "i.log", env=bvic.clean_env(),
-                timeout=180)
+                Path(d) / "logs" / "i.log", env=bvic.clean_env(), timeout=180)
             self.assertEqual(result.returncode, 0)
 
 
@@ -168,7 +160,7 @@ class SoakDriverTests(unittest.TestCase):
         kwargs.update(overrides)
         return soak_run.run_soak(**kwargs)
 
-    def test_complete_run_chains_and_signs(self):
+    def test_complete_run_chains_signs_and_checkpoints(self):
         import tempfile
         from residual.soak import verify_report
         with tempfile.TemporaryDirectory() as d:
@@ -181,35 +173,71 @@ class SoakDriverTests(unittest.TestCase):
                              ["START", "DAY", "DAY", "COMPLETE"])
             report = json.loads((Path(d) / "report.json").read_text())
             self.assertTrue(verify_report(report, STATION_KEY))
-            manifest = json.loads(
-                (Path(d) / "retention-manifest.json").read_text())
+            manifest = json.loads((Path(d) / "retention-manifest.json").read_text())
+            self.assertEqual(manifest["status"], "COMPLETE")
             self.assertEqual(manifest["journal_chain_head"], journal.head)
-            self.assertIn("soak-journal.jsonl",
-                          manifest["retained_files_sha256"])
+            self.assertEqual(manifest["journal_record_count"], len(records))
+            self.assertIn("soak-journal.jsonl", manifest["retained_files_sha256"])
+            checkpoint = soak_run.verify_checkpoint(Path(d), journal, STATION_KEY)
+            self.assertEqual(checkpoint["status"], "COMPLETE")
 
     def test_determinism_same_seed_same_metrics(self):
         import tempfile
-        with tempfile.TemporaryDirectory() as d1, \
-                tempfile.TemporaryDirectory() as d2:
+        with tempfile.TemporaryDirectory() as d1, tempfile.TemporaryDirectory() as d2:
             self._run(Path(d1))
             self._run(Path(d2))
             m1 = json.loads((Path(d1) / "report.json").read_text())["payload"]["totals"]
             m2 = json.loads((Path(d2) / "report.json").read_text())["payload"]["totals"]
             self.assertEqual(m1, m2)
 
-    def test_resume_after_interrupt(self):
+    def test_resume_after_rehearsal_pause(self):
         import tempfile
         with tempfile.TemporaryDirectory() as d:
             first = self._run(Path(d), days=3, max_days=1)
-            self.assertEqual(first["status"], "COMPLETE")
+            self.assertEqual(first["status"], "PAUSED")
             self.assertEqual(first["days_completed"], 1)
+            self.assertFalse((Path(d) / "report.json").exists())
             second = self._run(Path(d), days=3)
+            self.assertEqual(second["status"], "COMPLETE")
             self.assertEqual(second["days_completed"], 3)
             journal = soak_run.Journal(Path(d) / "soak-journal.jsonl")
             ok, records, error = journal.verify()
             self.assertTrue(ok, error)
-            self.assertEqual(
-                sum(1 for r in records if r["type"] == "DAY"), 3)
+            self.assertEqual(sum(1 for r in records if r["type"] == "DAY"), 3)
+            self.assertIn("PAUSED", [r["type"] for r in records])
+            self.assertIn("RESUME", [r["type"] for r in records])
+            self.assertEqual(records[-1]["type"], "COMPLETE")
+
+    def test_truncated_journal_is_rejected_before_resume(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d)
+            self.assertEqual(self._run(out, days=3, max_days=1)["status"], "PAUSED")
+            journal_path = out / "soak-journal.jsonl"
+            lines = journal_path.read_text().splitlines()
+            journal_path.write_text("\n".join(lines[:-1]) + "\n")
+            with self.assertRaisesRegex(RuntimeError, "checkpoint|manifest"):
+                self._run(out, days=3)
+
+    def test_checkpoint_hmac_rejects_tamper(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d)
+            self._run(out, days=3, max_days=1)
+            path = out / "soak-checkpoint.json"
+            envelope = json.loads(path.read_text())
+            envelope["payload"]["state"]["next_day"] = 2
+            path.write_text(json.dumps(envelope))
+            with self.assertRaisesRegex(RuntimeError, "HMAC"):
+                self._run(out, days=3)
+
+    def test_resume_configuration_mismatch_fails_closed(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d)
+            self._run(out, days=3, max_days=1)
+            with self.assertRaisesRegex(RuntimeError, "configuration mismatch"):
+                self._run(out, days=4)
 
     def test_resource_stop_criterion(self):
         import tempfile
@@ -221,8 +249,9 @@ class SoakDriverTests(unittest.TestCase):
             ok, records, _ = journal.verify()
             self.assertTrue(ok)
             self.assertEqual(records[-1]["type"], "STOP")
-            # Retention manifest is still written on stop.
             self.assertTrue((Path(d) / "retention-manifest.json").is_file())
+            checkpoint = soak_run.verify_checkpoint(Path(d), journal, STATION_KEY)
+            self.assertEqual(checkpoint["status"], "STOPPED")
 
     def test_load_minimum_enforced_by_default(self):
         import tempfile
