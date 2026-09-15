@@ -31,6 +31,16 @@ True conflicts stop integration. A caller may resume only by providing a `Confli
 
 When `secops_active=True`, a `security_scan` command is mandatory as well. Commands are executed directly without a shell in the isolated integration worktree. The receipt records pass/fail status, return code, and SHA-256 hashes of stdout/stderr rather than copying arbitrary command output into trusted evidence.
 
+### Isolated verification runner
+
+Candidate-dependent verification commands run only inside the OS-isolated runner (`residual/factory/m4_sandbox.py`), which constructs a fresh Linux sandbox per command: user + mount + PID + IPC + UTS + network namespaces (`unshare --user --map-root-user --mount --pid --fork --net --ipc --uts`), a minimal read-only chroot root, bounded tmpfs scratch (`size=`-capped), `RLIMIT_AS`/`RLIMIT_CPU`/`RLIMIT_FSIZE`/`RLIMIT_NOFILE`/`RLIMIT_CORE` ceilings, a finite wall-clock deadline, bounded hashed output capture, and deterministic typed outcomes (PASS / FAIL / UNKNOWN / ERROR). A pre-exec readiness pipe separates sandbox setup failure (`M4SANDBOX-ERROR:` prefix on stderr -> ERROR) from candidate behaviour; a candidate exiting with code 125 is an ordinary candidate FAIL, and an exec() failure after readiness (e.g. missing executable) is `unknown`/`launch_failed`, matching the fixture lane's typing.
+
+**Fail-closed probe policy.** `probe_isolation()` runs once before any candidate command; on non-Linux platforms, a missing `unshare` binary, or a rejected namespace probe (including rejection of the `--ipc`/`--uts` flags) the runner returns UNKNOWN/ERROR and `require_isolation()` raises. There is deliberately no fallback to unsandboxed execution of candidate-dependent commands.
+
+**Execution boundary.** Receipts record `execution_boundary=linux-userns-isolated-v1` for sandboxed verification and `trusted_fixture_unsandboxed` for `trusted_fixture_mode=True` (explicit, operator-reviewed development fixtures only — this lane is NOT sandboxed). Correspondingly, integration receipts carry `evidence_level=isolated_candidate_verification` for sandboxed runs versus `development_fixture` for fixture runs.
+
+**Explicit non-claims.** The sandbox does not configure cgroups (resource ceilings are rlimits, namespace lifetimes, and bounded tmpfs only); a same-UID host process adversary is outside the threat boundary (user namespaces protect kernel objects, not same-UID ptrace on the host); isolation is Linux-only; and `trusted_fixture_mode` runs verification unsandboxed and must never be pointed at untrusted candidate content.
+
 If accumulated verification fails, the integrator deterministically bisects the receipt set by replaying counterfactual subsets from the frozen root commit and re-running the same verification policy. Overlap classification is recomputed for each subset rather than reusing the full-run resolution state. When one receipt can be isolated, `M4ReceiptRevisionRequired` is emitted with `action=replan`, and `ProjectVerificationError.offending_receipt_hash` identifies it. Interaction-only failures where neither half fails independently return no single offending receipt rather than inventing attribution.
 
 ## IntegrationReceipt
