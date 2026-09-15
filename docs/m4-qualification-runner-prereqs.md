@@ -1,5 +1,33 @@
 # M4 qualification runner prerequisites + capability probes
 
+## Hosted qualification target — 2026-09-15
+
+The qualification job now targets `ubuntu-22.04` explicitly. The earlier
+`ubuntu-latest` attempt remains retained as BLOCKED; this runner change must
+earn a new result through the unchanged real-execution prerequisite and
+zero-skips gate. No sysctl, AppArmor policy, privilege or sandbox setting is
+changed by the workflow. The runner label alone is not evidence of capability.
+
+The job runs every `tests/test_factory_m4*.py` module, including prerequisite,
+filesystem and verified-tree binding tests, plus the isolated timeout-typing
+test. It retains raw probe/test logs, JUnit, exact checkout commit/tree,
+PR/base identities, runner image identifiers, Python/platform and installed
+dependency versions. The dependency capture is an environment record, not a
+frozen experimental dependency lock. A failed probe or test returns nonzero;
+any skipped case or empty selection prevents qualification.
+
+GitHub documents [Ubuntu 24.04 unshare restrictions](https://github.com/actions/runner-images/issues/10443).
+Testing the older image is a scoped host-compatibility experiment, not a claim
+that every Linux host supports the boundary. GitHub's [Ubuntu 22.04 retirement
+notice](https://github.com/actions/runner-images/issues/14254) starts deprecation
+on 2026-09-17 and ends support on 2027-04-17. Replace this temporary target with
+a reviewed, capable runner before retirement and repeat qualification there.
+Do not silence failures or silently disable host policies to retain a PASS.
+
+This workflow change requires independent review. A successful run qualifies
+only its recorded candidate and environment for the tests actually executed;
+it does not establish elapsed soak, production reliability or live experiments.
+
 `residual/factory/m4_qualification_prereq.py` prepares the runner
 prerequisites for the M4 qualification gate intended by draft PR #88
 ("ci: require actual M4 execution before qualification"). It answers, with
