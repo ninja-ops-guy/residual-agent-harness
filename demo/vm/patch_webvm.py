@@ -9,6 +9,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+from harden_serviceworker import harden as harden_serviceworker
+
 
 def require_once(text: str, needle: str, label: str) -> None:
     count = text.count(needle)
@@ -172,6 +174,7 @@ def patch_serviceworker(path: Path) -> None:
     require_once(text, old, "WebVM service-worker fetch failure hook")
     new = '''\tcatch (e) {\n\t\tconsole.warn("Serviceworker fetch failed:", request.url, e);\n\t\treturn Response.error();\n\t}\n\tif (r.status === 0) {'''
     path.write_text(text.replace(old, new, 1))
+    harden_serviceworker(path)
 
 
 def main() -> None:
