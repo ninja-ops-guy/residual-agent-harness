@@ -36,14 +36,21 @@ class CanonicalApiTests(unittest.TestCase):
     def test_canonical_verifier_result_interface(self):
         result = m4_integrator.VerificationResult(
             "tests", "full_test_suite", "pass", 0, "0" * 64, "0" * 64)
+        self.assertFalse(result.timed_out)
         payload = result.to_dict()
         self.assertEqual(
             set(payload),
             {"name", "category", "status", "returncode", "stdout_sha256",
-             "stderr_sha256", "termination_reason", "execution_boundary"},
+             "stderr_sha256", "termination_reason", "execution_boundary",
+             "timed_out"},
         )
-        for status in ("pass", "fail", "unknown", "error"):
+        for status in ("pass", "fail", "unknown", "error", "timeout"):
             m4_integrator.VerificationResult("n", "type_check", status, None, "0" * 64, "0" * 64)
+        timed = m4_integrator.VerificationResult(
+            "n", "type_check", "timeout", 124, "0" * 64, "0" * 64,
+            termination_reason="timeout", timed_out=True)
+        self.assertTrue(timed.to_dict()["timed_out"])
+        self.assertEqual(timed.to_dict()["returncode"], 124)
 
 
 if __name__ == "__main__":
