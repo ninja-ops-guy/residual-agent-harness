@@ -26,7 +26,7 @@ an acceptance obligation, not a verifier executed by this M2 backend.
 For an existing approved plan and explicit contract, the opt-in CLI is:
 
 ```sh
-python -m residual.factory.runtime \
+python -m residual.factory \
   --repo /srv/projects/example \
   --runtime-root /srv/residual/work \
   --journal /srv/residual/state/run.db --run-id example-run \
