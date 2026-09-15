@@ -1,0 +1,66 @@
+name: FreeLLMAPI qualification
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/freellmapi-qualification.yml'
+      - 'residual/onboarding.py'
+      - 'residual/config.py'
+      - 'residual/providers.py'
+      - 'residual/engine.py'
+      - 'scripts/freellmapi_qualification.py'
+      - 'tests/test_freellmapi_onboarding.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install qualification dependencies
+        run: python -m pip install '.[factory]' pytest
+
+      - name: Prove fail-closed cleanup regressions
+        run: >-
+          python -m pytest -q tests/test_freellmapi_onboarding.py
+          -k 'bootstrap_readiness_failure_still_scrubs_secret or bootstrap_scrub_failure_stops_service or generated_config_uses_private_secret_file_not_inline_key or managed_image_is_immutable_digest_pin'
+
+      - name: Pull reviewed immutable FreeLLMAPI image
+        run: |
+          IMAGE=$(python - <<'PY'
+          from residual.onboarding import FREELLMAPI_IMAGE
+          print(FREELLMAPI_IMAGE)
+          PY
+          )
+          docker pull "$IMAGE"
+
+      - name: Run live pinned-image qualification
+        env:
+          RESIDUAL_QUALIFICATION_HOME: ${{ runner.temp }}/residual-freellmapi-qualification
+          RESIDUAL_QUALIFICATION_OUTPUT: runs/freellmapi-qualification.json
+        run: python scripts/freellmapi_qualification.py
+
+      - name: Show retained qualification evidence
+        if: always()
+        run: |
+          if [ -f runs/freellmapi-qualification.json ]; then
+            cat runs/freellmapi-qualification.json
+          fi
+
+      - name: Preserve qualification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: freellmapi-qualification-${{ github.sha }}
+          path: runs/freellmapi-qualification.json
+          if-no-files-found: warn
+          retention-days: 30
