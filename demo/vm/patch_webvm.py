@@ -124,6 +124,13 @@ def patch_source(path: Path) -> None:
     path.write_text(text)
 
 
+def patch_app(path: Path) -> None:
+    text = path.read_text()
+    plausible = '<script data-domain="webvm.io" src="https://plausible.leaningtech.com/js/script.js"></script>'
+    require_once(text, plausible, "WebVM Plausible script")
+    path.write_text(text.replace(plausible, '', 1))
+
+
 def patch_index(path: Path) -> None:
     text = path.read_text()
     marker = "<head>"
@@ -133,11 +140,13 @@ def patch_index(path: Path) -> None:
 
 
 def main() -> None:
-    if len(sys.argv) != 3 or sys.argv[1] not in {"source", "index"}:
-        raise SystemExit("usage: patch_webvm.py {source|index} PATH")
+    if len(sys.argv) != 3 or sys.argv[1] not in {"source", "app", "index"}:
+        raise SystemExit("usage: patch_webvm.py {source|app|index} PATH")
     path = Path(sys.argv[2])
     if sys.argv[1] == "source":
         patch_source(path)
+    elif sys.argv[1] == "app":
+        patch_app(path)
     else:
         patch_index(path)
 
