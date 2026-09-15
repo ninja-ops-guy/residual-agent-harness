@@ -3,7 +3,7 @@
 <!-- GENERATED FILE. Source of truth: implementation-status.yaml.
      Regenerate with: python3 scripts/status_check.py --generate -->
 
-Requirement families: 39 total - 19 implemented, 12 partial, 8 not started.
+Requirement families: 39 total - 22 implemented, 1 implemented (closure unverified), 12 partial, 4 not started.
 
 | Family | Title | Status | Spec | Code | Tests |
 |---|---|---|---|---|---|
@@ -39,10 +39,10 @@ Requirement families: 39 total - 19 implemented, 12 partial, 8 not started.
 | FED | Federated Multi-Station Trust Meshes | not_started | `harness_specs/RESILIENCE_SPECS.md` | - | - |
 | MESH | Mesh Networking | partial | `harness_specs/MESH_SPECS.md` | `residual/mesh/node.py` | `tests/test_control_integrity.py`, `tests/test_tracks_2_8.py` |
 | STUDIO | Residual Studio Platform | partial | `harness_specs/STUDIO_SPECS.md` | `residual/factory/compiler.py`, `residual/factory/models.py`, `residual/station/server.py`, `residual/station/service.py` | `tests/test_factory_compiler.py`, `tests/station/test_station.py` |
-| M2 | Worker Contract + Swarm Runtime | not_started | `harness_specs/M2_M3_M4_SPECS.md` | - | - |
-| M3 | Evidence Bus + Receipts | not_started | `harness_specs/M2_M3_M4_SPECS.md` | - | - |
-| M4 | Deterministic Integrator + Scheduler Intelligence | not_started | `harness_specs/M2_M3_M4_SPECS.md` | - | - |
-| EVAL | Evaluation Framework | not_started | `harness_specs/M2_M3_M4_SPECS.md` | - | - |
+| M2 | Worker Contract + Swarm Runtime | implemented | `harness_specs/M2_M3_M4_SPECS.md` | `residual/factory/worker_contract.py`, `residual/factory/runtime.py`, `residual/factory/runtime_journal.py`, `residual/factory/runtime_workspace.py` | `tests/test_factory_worker_contract.py`, `tests/test_factory_runtime.py` |
+| M3 | Evidence Bus + Receipts | implemented | `harness_specs/M2_M3_M4_SPECS.md` | `residual/factory/evidence_bus.py`, `residual/factory/evidence_receipts.py` | `tests/test_factory_evidence_bus.py` |
+| M4 | Deterministic Integrator + Scheduler Intelligence | implemented_unverified | `harness_specs/M2_M3_M4_SPECS.md` | `residual/factory/m4_integrator.py`, `residual/factory/m4_scheduler.py`, `residual/factory/m4_evidence.py` | `tests/test_factory_m4_integrator.py`, `tests/test_factory_m4_scheduler.py`, `tests/test_factory_m4_evidence.py` |
+| EVAL | Evaluation Framework | implemented | `harness_specs/M2_M3_M4_SPECS.md` | `residual/eval/runner.py`, `residual/eval/workload.py`, `residual/eval/stats.py`, `residual/eval/report.py`, `residual/eval/measured_factory.py` | `tests/test_eval_runner.py`, `tests/test_eval_workload.py`, `tests/test_eval_stats.py`, `tests/test_measured_factory_eval.py` |
 | CP | Control Plane (Engine Protocol, Routing, Sandbox) | partial | `harness_specs/CONTROL_PLANE_SPECS.md` | `residual/engines/protocol.py`, `residual/engines/router.py`, `residual/engines/_isolated.py`, `residual/engines/probe.py` | `tests/test_gap_closure.py`, `tests/test_control_integrity.py` |
 | N9 | Path to 9.5 (Engines, Soak, Async, Cluster, Docs) | partial | `harness_specs/PATH_TO_10_SPECS.md` | `residual/engines/protocol.py`, `residual/async_io/coordinator.py`, `residual/mesh/node.py`, `docs/quickstart.md`, `docs/module-tutorial.md`, `docs/faq.md` | `tests/test_gap_closure.py`, `tests/test_control_integrity.py` |
 | T10 | Path to 10 (Research Frontiers) | not_started | `harness_specs/PATH_TO_10_SPECS.md` | - | - |
@@ -175,23 +175,25 @@ Local in-memory mesh protocol and receipt-export adapter implemented; authentica
 
 ### STUDIO - Residual Studio Platform (partial)
 
-Requirement compiler (STUDIO-002) and station surfaces exist; swarm runtime (STUDIO-003), evidence bus (STUDIO-004), cluster (STUDIO-006), IDE (STUDIO-007) and deterministic integration (STUDIO-008) are Swarm 2/3/4/8 and M2-M4 scope.
+Requirement compiler (STUDIO-002) and station surfaces exist. The canonical Factory swarm runtime, evidence bus and deterministic integrator (STUDIO-003/004/008 mechanisms) are merged under residual/factory/ - see families M2/M3/M4 (M4 closure unverified, issue 63). Still partial rather than complete - cluster (STUDIO-006), IDE (STUDIO-007) and the Studio frontend (residual/studio_frontend/) remain stubs/prototypes and must not be conflated with the canonical Factory runtime.
 
-### M2 - Worker Contract + Swarm Runtime (not_started)
+### M2 - Worker Contract + Swarm Runtime (implemented)
 
-residual/swarm/ does not exist yet; owned by the M2-M4 effort per the swarm execution contract.
+Canonical Factory swarm runtime merged under residual/factory/ (worker contract, runtime, journal, workspace); covered by factory runtime/worker-contract tests. This is the merged M2 mechanism, not the open swarm lanes in PRs 39-44.
 
-### M3 - Evidence Bus + Receipts (not_started)
+### M3 - Evidence Bus + Receipts (implemented)
 
-residual/evidence/ does not exist yet; owned by the M2-M4 effort.
+Canonical Factory evidence bus and evidence receipts merged under residual/factory/ with fixture test coverage. Git evidence semantics for the M4 integrator remain part of the open trust-boundary closure tracked in issue 63 (see family M4).
 
-### M4 - Deterministic Integrator + Scheduler Intelligence (not_started)
+### M4 - Deterministic Integrator + Scheduler Intelligence (implemented_unverified)
 
-residual/integrator/ and residual/scheduler/ do not exist yet; owned by the M2-M4 effort.
+Closure: implemented, trust-boundary closure in progress (#63)
 
-### EVAL - Evaluation Framework (not_started)
+Canonical M4 deterministic integrator, scheduler and M4 evidence modules merged under residual/factory/ with fixture test coverage. Requirement closure is NOT verified - issue 63 (accepted-tree binding, filesystem safety, OS-isolated verification, git evidence semantics) remains open and is being worked on branch swarm/m4-trust-boundary-closure. Green fixture tests are not evidence that these security boundaries are closed.
 
-residual/eval/ does not exist yet; Swarm 5 (track J) scope. residual/evaluation.py is the frozen controlled study, a different artifact.
+### EVAL - Evaluation Framework (implemented)
+
+residual/eval/ exists (runner, workload, stats, report, measured factory evaluation) with unit coverage. residual/evaluation.py remains the frozen controlled study, a different artifact. Fixture-level green runs are not live empirical closure of research claims.
 
 ### CP - Control Plane (Engine Protocol, Routing, Sandbox) (partial)
 

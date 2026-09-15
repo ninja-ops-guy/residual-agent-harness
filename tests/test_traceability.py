@@ -54,11 +54,44 @@ def test_manifest_paths_exist(manifest):
 
 def test_implemented_families_have_code_and_tests(manifest):
     for fam in manifest["families"]:
-        if fam["status"] == "implemented":
+        if fam["status"] in ("implemented", "implemented_unverified"):
             assert fam["code_paths"], fam["family"]
             assert fam["test_paths"], fam["family"]
         if fam["status"] == "not_started":
             assert fam["code_paths"] == [], fam["family"]
+
+
+def test_not_started_families_have_no_canonical_code(manifest):
+    problems = status_check.check_not_started_canonical_absent(manifest, ROOT)
+    assert not problems, "stale not_started families: " + "; ".join(problems)
+
+
+def test_not_started_families_declare_canonical_paths(manifest):
+    for fam in manifest["families"]:
+        if fam["status"] == "not_started":
+            assert fam.get("canonical_paths"), (
+                f"{fam['family']}: not_started family lacks canonical_paths")
+
+
+def test_checker_fails_when_not_started_canonical_path_exists(tmp_path):
+    root = _make_tree(tmp_path, "# Demo\n")
+    stale = root / "residual" / "research"
+    stale.mkdir(parents=True, exist_ok=True)
+    (stale / "__init__.py").touch()
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--root", str(root)],
+        capture_output=True, text=True)
+    assert result.returncode == 1
+    assert "T10" in result.stderr
+    assert "not_started" in result.stderr
+
+
+def test_implemented_unverified_requires_closure_discipline(manifest):
+    for fam in manifest["families"]:
+        if fam["status"] == "implemented_unverified":
+            assert fam.get("closure"), (
+                f"{fam['family']}: implemented_unverified without a "
+                f"closure annotation")
 
 
 def test_status_values_valid(manifest):
@@ -67,12 +100,8 @@ def test_status_values_valid(manifest):
 
 
 def test_checker_script_is_executable():
-    # The exec bit MUST be set. On filesystems that cannot represent exec
-    # bits (some mounted volumes), fall back to the git index mode (100755),
-    # which is the source of truth once committed.
     mode = SCRIPT.stat().st_mode
     if not mode & stat.S_IXUSR:
-        import subprocess
         entry = subprocess.run(
             ["git", "ls-files", "-s", "scripts/status_check.py"],
             capture_output=True, text=True, check=True,
@@ -112,11 +141,9 @@ def test_checker_passes_on_repo():
 
 
 def _make_tree(tmp_path: Path, readme_body: str) -> Path:
-    """Build a minimal fake repo tree with the real manifest."""
     (tmp_path / "implementation-status.yaml").write_text(
         MANIFEST.read_text(encoding="utf-8"), encoding="utf-8")
     (tmp_path / "README.md").write_text(readme_body, encoding="utf-8")
-    # create every path the manifest references so path checks pass
     data = yaml.safe_load(MANIFEST.read_text(encoding="utf-8"))
     for fam in data["families"]:
         for rel in [fam["spec"], *fam["code_paths"], *fam["test_paths"]]:
@@ -143,7 +170,6 @@ def test_checker_flags_stale_not_implemented_claim(tmp_path):
 
 def test_checker_ignores_historical_documents(tmp_path):
     root = _make_tree(tmp_path, "# Demo\n\nEverything is fine here.\n")
-    # plant a stale claim inside a historical snapshot; must be skipped
     hist = root / "harness_specs" / "GAP_ANALYSIS.md"
     hist.write_text("has no goal-specification layer, no brake system\n",
                     encoding="utf-8")
@@ -188,4 +214,19 @@ def test_validate_manifest_rejects_implemented_without_paths():
     fam = dict(family="X", title="x", spec="s.md", status="implemented",
                code_paths=[], test_paths=[], keywords=[], notes="n")
     with pytest.raises(status_check.ManifestError):
+        status_check.validate_manifest({"families": [fam]})
+
+
+def test_validate_manifest_rejects_not_started_without_canonical_paths():
+    fam = dict(family="X", title="x", spec="s.md", status="not_started",
+               code_paths=[], test_paths=[], keywords=[], notes="n")
+    with pytest.raises(status_check.ManifestError, match="canonical_paths"):
+        status_check.validate_manifest({"families": [fam]})
+
+
+def test_validate_manifest_rejects_implemented_unverified_without_closure():
+    fam = dict(family="X", title="x", spec="s.md",
+               status="implemented_unverified", code_paths=["x.py"],
+               test_paths=["test_x.py"], keywords=[], notes="n", closure="   ")
+    with pytest.raises(status_check.ManifestError, match="closure"):
         status_check.validate_manifest({"families": [fam]})

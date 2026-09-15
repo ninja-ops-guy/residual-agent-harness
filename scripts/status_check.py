@@ -37,7 +37,15 @@ except ImportError:  # pragma: no cover - environment guard
     )
     sys.exit(2)
 
-VALID_STATUSES = ("implemented", "partial", "not_started")
+VALID_STATUSES = ("implemented", "implemented_unverified", "partial",
+                  "not_started")
+
+# Statuses whose code is present on disk. The stale-doc detector treats
+# both as "implemented" for the purpose of flagging "not implemented"
+# prose claims; ``implemented_unverified`` means the code exists and is
+# test-covered but requirement closure (e.g. security/trust boundaries)
+# is NOT verified - see the family's ``closure`` annotation.
+IMPLEMENTED_STATUSES = ("implemented", "implemented_unverified")
 GENERATED_DOC = "docs/status/IMPLEMENTATION_STATUS.md"
 
 # Phrases that count as a "not implemented" claim in prose.
@@ -99,13 +107,38 @@ def validate_manifest(data: dict, source: str = "manifest") -> None:
             if not isinstance(fam[key], list) or not all(
                     isinstance(p, str) for p in fam[key]):
                 raise ManifestError(f"{where}: '{key}' must be a list of strings")
-        if fam["status"] == "implemented":
+        if fam["status"] in IMPLEMENTED_STATUSES:
             if not fam["code_paths"]:
                 raise ManifestError(
-                    f"{where}: implemented family '{name}' MUST list code_paths")
+                    f"{where}: family '{name}' with status "
+                    f"'{fam['status']}' MUST list code_paths")
             if not fam["test_paths"]:
                 raise ManifestError(
-                    f"{where}: implemented family '{name}' MUST list test_paths")
+                    f"{where}: family '{name}' with status "
+                    f"'{fam['status']}' MUST list test_paths")
+        closure = fam.get("closure")
+        if closure is not None and not isinstance(closure, str):
+            raise ManifestError(f"{where}: 'closure' must be a string when present")
+        if fam["status"] == "implemented_unverified":
+            if not isinstance(closure, str) or not closure.strip():
+                raise ManifestError(
+                    f"{where}: family '{name}' with status "
+                    "'implemented_unverified' MUST name open closure work")
+        canonical = fam.get("canonical_paths")
+        if canonical is not None and (
+                not isinstance(canonical, list)
+                or not all(isinstance(c, str) and c.strip() for c in canonical)):
+            raise ManifestError(
+                f"{where}: 'canonical_paths' must be a list of non-empty strings")
+        if fam["status"] == "not_started":
+            if fam["code_paths"] or fam["test_paths"]:
+                raise ManifestError(
+                    f"{where}: family '{name}' marked 'not_started' MUST have "
+                    "empty code_paths and test_paths")
+            if not canonical:
+                raise ManifestError(
+                    f"{where}: family '{name}' marked 'not_started' MUST list "
+                    "canonical_paths so merged code cannot silently outrun status")
         if not isinstance(fam["notes"], str):
             raise ManifestError(f"{where}: 'notes' must be a string")
     hist = data.get("historical_documents", [])
@@ -127,6 +160,23 @@ def check_manifest_paths(data: dict, root: Path) -> list[str]:
     return problems
 
 
+def check_not_started_canonical_absent(data: dict, root: Path) -> list[str]:
+    """A family marked ``not_started`` MUST NOT have any of its canonical
+    implementation paths present on disk. If one exists, the manifest is
+    stale: the family's status/paths must be updated instead."""
+    problems = []
+    for fam in data["families"]:
+        if fam["status"] != "not_started":
+            continue
+        for rel in fam["canonical_paths"]:
+            if (root / rel).exists():
+                problems.append(
+                    f"{fam['family']}: marked 'not_started' but canonical "
+                    f"implementation path exists: {rel} - reconcile the "
+                    f"manifest status instead of leaving it stale")
+    return problems
+
+
 def _iter_scan_files(root: Path, skip: set[str]):
     for pattern in SCAN_GLOBS:
         for path in sorted(root.glob(pattern)):
@@ -142,7 +192,8 @@ def find_stale_claims(data: dict, root: Path) -> list[str]:
     """Return stale-doc violations: prose claiming an implemented family
     is not implemented."""
     skip = set(data.get("historical_documents", []))
-    implemented = [f for f in data["families"] if f["status"] == "implemented"]
+    implemented = [f for f in data["families"]
+                   if f["status"] in IMPLEMENTED_STATUSES]
     violations = []
     for rel, path in _iter_scan_files(root, skip):
         try:
@@ -179,7 +230,9 @@ def render_status_doc(data: dict) -> str:
         "     Regenerate with: python3 scripts/status_check.py --generate -->",
         "",
         f"Requirement families: {len(data['families'])} total - "
-        f"{counts['implemented']} implemented, {counts['partial']} partial, "
+        f"{counts['implemented']} implemented, "
+        f"{counts['implemented_unverified']} implemented (closure "
+        f"unverified), {counts['partial']} partial, "
         f"{counts['not_started']} not started.",
         "",
         "| Family | Title | Status | Spec | Code | Tests |",
@@ -195,6 +248,9 @@ def render_status_doc(data: dict) -> str:
     for fam in data["families"]:
         lines.append(f"### {fam['family']} - {fam['title']} ({fam['status']})")
         lines.append("")
+        if fam.get("closure"):
+            lines.append(f"Closure: {fam['closure']}")
+            lines.append("")
         lines.append(fam["notes"])
         lines.append("")
     hist = data.get("historical_documents", [])
@@ -241,6 +297,7 @@ def main(argv=None) -> int:
         return 0
 
     problems = check_manifest_paths(data, root)
+    problems += check_not_started_canonical_absent(data, root)
     problems += find_stale_claims(data, root)
     if problems:
         sys.stderr.write("status_check FAILED:\n")
