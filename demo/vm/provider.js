@@ -26,7 +26,7 @@ load.addEventListener('click', () => {
     settled = true; clearTimeout(timer); sdk = window.puter;
     sign.disabled = false; tell('SDK loaded. Click Sign in to open authorization. No inference has run.'); state();
   };
-  document.head.append(script);
+  document.head.appendChild(script);
 });
 sign.addEventListener('click', () => {
   if (!sdk || busy) return;
@@ -59,14 +59,16 @@ async function receive(m) {
     const tools = [{type: 'function', function: {
       name: 'residual_submit',
       description: 'Submit the RESIDUAL worker response. Always call this function exactly once instead of returning prose.',
-      parameters: RESPONSE_SCHEMA,
-      strict: true
+      parameters: RESPONSE_SCHEMA
     }}];
     const result = await Promise.race([
       sdk.ai.chat(m.messages, {model: m.model, max_tokens: m.max_output_tokens, stream: false, normalize: true, tools}),
       new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('provider_timeout')), 80000); })
     ]);
     if (grant !== g) return reply({ok: false, error: 'mission_cancelled'});
+    // Tool arguments or a JSON text fallback are independently validated here
+    // before anything is returned to the guest. We do not rely on a vendor's
+    // strict-schema dialect for RESIDUAL's dynamic obligation map.
     const text = protocolReply(result), u = result?.usage || {};
     if (new TextEncoder().encode(text).length > 48000) return reply({ok: false, error: 'provider_response_too_large'});
     const integer = n => Number.isInteger(n) && n >= 0 ? n : null;
