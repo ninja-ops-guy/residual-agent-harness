@@ -1,7 +1,7 @@
 ============================= test session starts ==============================
 platform linux -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
 cachedir: .pytest_cache
-rootdir: /mnt/agents/output/clone
+rootdir: /tmp/m4fix-a
 configfile: pyproject.toml
 plugins: anyio-4.9.0
 collecting ... collected 63 items
@@ -80,6 +80,6 @@ tests/test_factory_m4_scheduler.py::M4SchedulerTests::test_resize_releases_worke
 tests/test_factory_m4_scheduler.py::M4SchedulerTests::test_structural_bottleneck_generates_new_plan_proposal PASSED [ 98%]
 tests/test_factory_m4_scheduler.py::M4SchedulerTests::test_structural_replan_does_not_trigger_below_threshold PASSED [100%]
 
-==================== 63 passed, 46 subtests passed in 4.73s ====================
+==================== 63 passed, 46 subtests passed in 4.31s ====================
 
 --- STDERR ---
