@@ -43,6 +43,13 @@ class BuildWorkbenchTests(unittest.TestCase):
         self.assertFalse(manifest['executed']); self.assertEqual(len(manifest['files']), 2)
         self.assertFalse((self.root / 'index.html').exists())
 
+    def test_build_instruction_requires_directly_previewable_static_browser_bundle(self):
+        task, _, _, _ = make_build_task(self.req, self.root)
+        instruction = task.obligations[0].description
+        self.assertIn('directly previewable static bundle', instruction)
+        self.assertIn('index.html', instruction)
+        self.assertIn('do not require npm, a build step, a dev server, CDN assets, or remote network access', instruction)
+
     def test_generated_code_is_never_executed(self):
         value = {'summary': 'Calculator', 'files': [
             {'path': 'app.py', 'content': "from pathlib import Path\nPath('OWNED').write_text('bad')\n# Calculator"}]}
