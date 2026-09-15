@@ -35,7 +35,7 @@
     "tests/test_factory_m4_scheduler.py": "dde093171a7c8475f4617ff0e4422c4b532cb8b6",
     "tests/test_factory_m4_tree_binding.py": "6f2511d08ff882058a83214530048ba8c5027fa7",
     "tests/test_factory_runtime.py": "842254d4f37234c37eb20f1aa849bbd16a345b12",
-    "tests/test_factory_runtime_lifecycle.py": "d4e00bd290351fa2ccd302ac578ac5dc463eda84",
+    "tests/test_factory_runtime_lifecycle.py": "85c6bf10a675ea3a74d775906d0bbaa79e411100",
     "tests/test_factory_runtime_startup.py": "90a13f2d438361ba2e9b4f87f8c4ee9bb0692f0d",
     "tests/test_factory_termination_matrix.py": "8a9436a3abd30bd0ab6ac8dd3b775847a43c6efb",
     "tests/test_factory_termination_provenance.py": "17313e5fee87b0fa6b8133616a5d3033411c631f",
