@@ -10,61 +10,51 @@ function request(path, method='GET', origin='https://example.test') {
 }
 
 async function withRuntime(sequence, callback) {
-  const originalFetch = globalThis.fetch;
-  const originalSelf = globalThis.self;
-  const originalTimeout = globalThis.setTimeout;
-  const originalWarn = console.warn;
   let calls = 0;
-  globalThis.self = {location:{origin:'https://example.test'}};
-  globalThis.setTimeout = fn => { fn(); return 0; };
-  console.warn = () => {};
-  globalThis.fetch = async () => {
-    const value = sequence[Math.min(calls++, sequence.length - 1)];
-    if (value instanceof Error) throw value;
-    return value;
-  };
-  vm.runInThisContext(source, {filename:'serviceworker_retry_fragment.js'});
-  try { await callback(() => calls); }
-  finally {
-    globalThis.fetch = originalFetch;
-    globalThis.self = originalSelf;
-    globalThis.setTimeout = originalTimeout;
-    console.warn = originalWarn;
-    delete globalThis.residualIsImmutableDiskChunk;
-    delete globalThis.residualDiskRetryDelay;
-    delete globalThis.residualFetchWithRetry;
-  }
+  const context = vm.createContext({
+    URL,
+    console: {warn() {}},
+    self: {location: {origin: 'https://example.test'}},
+    setTimeout(fn) { fn(); return 0; },
+    fetch: async () => {
+      const value = sequence[Math.min(calls++, sequence.length - 1)];
+      if (value instanceof Error) throw value;
+      return value;
+    },
+  });
+  vm.runInContext(source, context, {filename: 'serviceworker_retry_fragment.js'});
+  await callback(() => calls, context.residualFetchWithRetry);
 }
 
 const chunk = '/residual-agent-harness/demo/residual-demo-' + 'a'.repeat(64) + '.ext2.c0001e9.txt';
 
 test('same-origin immutable disk chunk retries one transient 503', async () => {
-  await withRuntime([{status:503},{status:200}], async calls => {
-    const result = await residualFetchWithRetry(request(chunk));
+  await withRuntime([{status:503},{status:200}], async (calls, fetchWithRetry) => {
+    const result = await fetchWithRetry(request(chunk));
     assert.equal(result.status, 200);
     assert.equal(calls(), 2);
   });
 });
 
 test('same-origin immutable disk chunk retries a network exception', async () => {
-  await withRuntime([new Error('network'),{status:200}], async calls => {
-    const result = await residualFetchWithRetry(request(chunk));
+  await withRuntime([new Error('network'),{status:200}], async (calls, fetchWithRetry) => {
+    const result = await fetchWithRetry(request(chunk));
     assert.equal(result.status, 200);
     assert.equal(calls(), 2);
   });
 });
 
 test('immutable disk chunk exhausts at three attempts', async () => {
-  await withRuntime([{status:503},{status:502},{status:504}], async calls => {
-    const result = await residualFetchWithRetry(request(chunk));
+  await withRuntime([{status:503},{status:502},{status:504}], async (calls, fetchWithRetry) => {
+    const result = await fetchWithRetry(request(chunk));
     assert.equal(result.status, 504);
     assert.equal(calls(), 3);
   });
 });
 
 test('non-chunk 503 is never retried', async () => {
-  await withRuntime([{status:503},{status:200}], async calls => {
-    const result = await residualFetchWithRetry(request('/provider/provider.js'));
+  await withRuntime([{status:503},{status:200}], async (calls, fetchWithRetry) => {
+    const result = await fetchWithRetry(request('/provider/provider.js'));
     assert.equal(result.status, 503);
     assert.equal(calls(), 1);
   });
