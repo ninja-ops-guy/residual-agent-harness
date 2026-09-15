@@ -1,8 +1,16 @@
 name: Factory OS execution evidence
 on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "residual/factory/**"
+      - "tests/test_factory_m4*.py"
+      - ".github/workflows/factory-execution.yml"
   pull_request:
     paths:
       - 'residual/factory/**'
+      - 'tests/test_factory_m4*.py'
       - 'tests/test_factory_worker_contract.py'
       - 'tests/test_factory_runtime.py'
       - 'tests/test_factory_evidence_bus.py'
@@ -14,12 +22,17 @@ permissions:
   contents: read
 jobs:
   linux-execution:
+    strategy:
+      fail-fast: false
+      matrix:
+        source: [head, merge]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          ref: ${{ matrix.source == 'head' && github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -37,6 +50,18 @@ jobs:
           uname -a > runs/factory-execution/platform.txt
           python --version >> runs/factory-execution/platform.txt
           dpkg-query -W libseccomp2 >> runs/factory-execution/platform.txt
+      - name: Require actual M4 namespace capability
+        run: python -c "from residual.factory.m4_sandbox import require_isolation; require_isolation()"
+      - name: M4 qualification requires zero skipped tests
+        run: |
+          python -m pytest tests/test_factory_m4*.py -v --junitxml=runs/factory-execution/m4.xml
+          python - <<'PYQUAL'
+          import xml.etree.ElementTree as ET
+          root = ET.parse("runs/factory-execution/m4.xml").getroot()
+          cases = list(root.iter("testcase"))
+          assert cases, "No M4 test cases were executed"
+          assert not any(c.find("skipped") is not None for c in cases), "Skipped M4 tests cannot qualify the boundary"
+          PYQUAL
       - name: Real OS-boundary and regression tests
         env:
           RESIDUAL_REQUIRE_SECCOMP: '1'
@@ -53,5 +78,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: factory-os-evidence-${{ github.sha }}
+          name: factory-os-evidence-${{ matrix.source }}-${{ github.sha }}
           path: runs/factory-execution

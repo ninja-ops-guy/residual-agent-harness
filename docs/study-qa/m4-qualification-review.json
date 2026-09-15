@@ -1,0 +1,151 @@
+{
+  "schema": "m4-qualification-review-v1",
+  "head_sha": "7ea194df0ecb76722610015491f4668b69619c05",
+  "tested_merge_sha": "8bb7dda5ac35bc639bff63d92f81efd984428e6d",
+  "base_sha": "800ea736308e3b0c091b81bf9cdb18c9786b9ac4",
+  "qualified": false,
+  "reason": "21 namespace-dependent M4 tests skipped; independent adversarial review incomplete",
+  "runs": {
+    "workflow_runs": [
+      {
+        "conclusion": null,
+        "id": 34914060938,
+        "jobs_url": "https://api.github.com/repos/ninja-ops-guy/residual-agent-harness/actions/runs/34914060938/jobs",
+        "logs_url": "https://api.github.com/repos/ninja-ops-guy/residual-agent-harness/actions/runs/34914060938/logs",
+        "name": "Command Station checks",
+        "run_number": 960,
+        "status": "in_progress",
+        "workflow_id": 357301759
+      },
+      {
+        "conclusion": "success",
+        "id": 34914060945,
+        "jobs_url": "https://api.github.com/repos/ninja-ops-guy/residual-agent-harness/actions/runs/34914060945/jobs",
+        "logs_url": "https://api.github.com/repos/ninja-ops-guy/residual-agent-harness/actions/runs/34914060945/logs",
+        "name": "Factory OS execution evidence",
+        "run_number": 98,
+        "status": "completed",
+        "workflow_id": 357510817
+      },
+      {
+        "conclusion": "success",
+        "id": 34914060942,
+        "jobs_url": "https://api.github.com/repos/ninja-ops-guy/residual-agent-harness/actions/runs/34914060942/jobs",
+        "logs_url": "https://api.github.com/repos/ninja-ops-guy/residual-agent-harness/actions/runs/34914060942/logs",
+        "name": "Factory runtime evidence",
+        "run_number": 118,
+        "status": "completed",
+        "workflow_id": 357462717
+      },
+      {
+        "conclusion": "success",
+        "id": 34914060991,
+        "jobs_url": "https://api.github.com/repos/ninja-ops-guy/residual-agent-harness/actions/runs/34914060991/jobs",
+        "logs_url": "https://api.github.com/repos/ninja-ops-guy/residual-agent-harness/actions/runs/34914060991/logs",
+        "name": "Controller and provider contracts",
+        "run_number": 960,
+        "status": "completed",
+        "workflow_id": 357301758
+      }
+    ]
+  },
+  "os_jobs": {
+    "jobs": [
+      {
+        "conclusion": "success",
+        "id": 104207711841,
+        "logs_url": null,
+        "name": "linux-execution",
+        "run_id": 34914060945,
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/checkout@v4",
+            "number": 2,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/setup-python@v5",
+            "number": 3,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Install Factory dependencies and kernel filter library",
+            "number": 4,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Preserve exact source",
+            "number": 5,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Real OS-boundary and regression tests",
+            "number": 6,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Scripted end-to-end execution",
+            "number": 7,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/upload-artifact@v4",
+            "number": 8,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/setup-python@v5",
+            "number": 15,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v4",
+            "number": 16,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 17,
+            "status": "completed"
+          }
+        ]
+      }
+    ]
+  },
+  "artifact": {
+    "id": 10375254068,
+    "digest": "sha256:98003c3672128431acb3c3e1205d345b77bd31d3749f363d02d4c16603b9467f"
+  },
+  "nonclaims": [
+    "No live model evaluation",
+    "No M4 closure",
+    "No confirmed sandbox escape"
+  ],
+  "local_probe": "namespace_probe_failed",
+  "head_tree": "a8062fa3198b7459fcdc7bd90505ea7b32808ef7",
+  "tested_merge_tree": "339aec6383b6b69c063f9c088c7557634592ecf9",
+  "scope": "Historical review of head 7ea194d only; not a qualification of later merged code.",
+  "subsequent_state": {
+    "pr81": "merged",
+    "issue63": "closed by another session",
+    "main_at_reconciliation": "31cd2bf",
+    "qualification_of_new_main": "not established in this review"
+  }
+}
