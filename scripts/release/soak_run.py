@@ -65,6 +65,8 @@ class Journal:
             for line in self.path.read_text(encoding="utf-8").splitlines():
                 if line.strip():
                     self._prev = hashlib.sha256(line.encode("utf-8")).hexdigest()
+        else:
+            self.path.touch()
 
     def append(self, record_type, payload):
         record = {
@@ -233,7 +235,6 @@ def run_soak(*, out_dir, days, tasks_per_day, seed, station_key,
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     journal = Journal(out_dir / "soak-journal.jsonl")
-    existing_records = _validate_history(journal, SoakState(seed, tasks_per_day, days)) if not (out_dir / "soak-state.json").exists() and journal.count == 0 else None
 
     checkpoint = verify_checkpoint(out_dir, journal, station_key)
     verify_retention_manifest(out_dir, journal)
