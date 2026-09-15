@@ -32,6 +32,12 @@ from ..core import ContractError
 from .backend import Enforcement
 from .spec import NetworkPolicy, SandboxResult, SandboxSpec, Violation
 
+# Extra wall-clock allowance on top of spec.limits.timeout_seconds in BOTH
+# execution paths, so launcher startup overhead cannot turn a payload that
+# respected its budget into a parent-side timeout in one path but not the
+# other. Uniform by construction.
+LAUNCHER_ALLOWANCE_S = 5
+
 
 def current_uid_processes() -> int:
     """Number of processes owned by our real UID (RLIMIT_NPROC charges).
@@ -78,7 +84,8 @@ def _classify(returncode: int, timed_out: bool) -> tuple[int | None, int | None,
     return returncode, None, Violation.NONE
 
 
-def run_contained(argv: list[str], spec: SandboxSpec, *, stdin: str = "") -> SandboxResult:
+def run_contained(argv: list[str], spec: SandboxSpec, *, stdin: str = "",
+                  enforcement: Enforcement = Enforcement.BEST_EFFORT) -> SandboxResult:
     """Run argv under rlimits + timeout; every failure is data (B-R4, B-R10)."""
     env = {"PATH": "/usr/bin:/bin", "HOME": "/tmp", **dict(spec.env)}
     if spec.network is NetworkPolicy.PROXY:
@@ -93,7 +100,8 @@ def run_contained(argv: list[str], spec: SandboxSpec, *, stdin: str = "") -> San
         preexec_fn=lambda: _apply_rlimits(
             spec, nproc_budget=current_uid_processes() + spec.limits.max_pids), text=False)
     try:
-        out, err = proc.communicate(stdin.encode(), timeout=spec.limits.timeout_seconds)
+        out, err = proc.communicate(stdin.encode(),
+                                    timeout=spec.limits.timeout_seconds + LAUNCHER_ALLOWANCE_S)
     except subprocess.TimeoutExpired:
         timed_out = True
         try:
@@ -109,7 +117,8 @@ def run_contained(argv: list[str], spec: SandboxSpec, *, stdin: str = "") -> San
         exit_code=exit_code, signal=sig, timed_out=timed_out, violation=violation,
         stdout=out[:cap].decode("utf-8", "replace"),
         stderr=err[:cap].decode("utf-8", "replace"),
-        duration_seconds=duration, truncated=truncated)
+        duration_seconds=duration, truncated=truncated,
+        enforcement=enforcement.name.lower())
 
 
 class SubprocessBackend:
@@ -177,15 +186,18 @@ class SubprocessBackend:
             env["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(residual.__file__)))
             # rlimits apply inside the launcher; it exec's the payload.
             wrapped = [sys.executable, "-m", "residual.sandbox._nslaunch", "--"] + argv
-            return run_contained_env(wrapped, spec, stdin=stdin, extra_env=env)
-        return run_contained(argv, spec, stdin=stdin)
+            return run_contained_env(wrapped, spec, stdin=stdin, extra_env=env,
+                                     enforcement=Enforcement.KERNEL)
+        return run_contained(argv, spec, stdin=stdin,
+                             enforcement=Enforcement.BEST_EFFORT)
 
     def stop(self) -> None:
         self._spec = None
 
 
 def run_contained_env(argv: list[str], spec: SandboxSpec, *, stdin: str,
-                      extra_env: dict) -> SandboxResult:
+                      extra_env: dict,
+                      enforcement: Enforcement = Enforcement.BEST_EFFORT) -> SandboxResult:
     """Like run_contained but preserves a caller-supplied environment."""
     started = time.monotonic()
     timed_out = False
@@ -195,7 +207,8 @@ def run_contained_env(argv: list[str], spec: SandboxSpec, *, stdin: str,
         start_new_session=True, env=env, cwd="/",
         preexec_fn=lambda: _apply_rlimits(spec, nproc_budget=0), text=False)
     try:
-        out, err = proc.communicate(stdin.encode(), timeout=spec.limits.timeout_seconds + 5)
+        out, err = proc.communicate(stdin.encode(),
+                                    timeout=spec.limits.timeout_seconds + LAUNCHER_ALLOWANCE_S)
     except subprocess.TimeoutExpired:
         timed_out = True
         try:
@@ -211,4 +224,5 @@ def run_contained_env(argv: list[str], spec: SandboxSpec, *, stdin: str,
         exit_code=exit_code, signal=sig, timed_out=timed_out, violation=violation,
         stdout=out[:cap].decode("utf-8", "replace"),
         stderr=err[:cap].decode("utf-8", "replace"),
-        duration_seconds=duration, truncated=truncated)
+        duration_seconds=duration, truncated=truncated,
+        enforcement=enforcement.name.lower())

@@ -179,11 +179,12 @@ def snapshot(worktree: Path) -> dict[str, tuple[str, int, str]]:
 
 @dataclass(frozen=True)
 class FixtureProcessResult:
-    status: str
+    status: str  # 'pass' | 'fail' | 'timeout' | 'unknown'
     returncode: int | None
     stdout_sha256: str
     stderr_sha256: str
     reason: str
+    timed_out: bool = False
 
 
 def run_trusted_fixture(argv: tuple[str, ...], worktree: Path, *,
@@ -251,5 +252,10 @@ def run_trusted_fixture(argv: tuple[str, ...], worktree: Path, *,
         for stream in (process.stdout, process.stderr):
             stream.close()
         process.wait(timeout=5)
-    status = 'pass' if reason == 'exit' and process.returncode == 0 else 'fail'
-    return FixtureProcessResult(status, process.returncode, hashes[0].hexdigest(), hashes[1].hexdigest(), reason)
+    if reason == 'timeout':
+        # Typed parent-side wall-clock timeout, matching the isolated lane.
+        status = 'timeout'
+    else:
+        status = 'pass' if reason == 'exit' and process.returncode == 0 else 'fail'
+    return FixtureProcessResult(status, process.returncode, hashes[0].hexdigest(),
+                                hashes[1].hexdigest(), reason, timed_out=reason == 'timeout')
