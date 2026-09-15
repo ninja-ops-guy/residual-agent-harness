@@ -1,1 +1,6 @@
-__REPORT__
+{
+  "report": "swarm3-sandbox-timing-determinism",
+  "commit": "d750c487d6bebc408b0ba079223c66a7f4478f6f",
+  "tree_sha": "fdbf906a0bbbb2d5d6fe7c11c2f4efd8d39c7130",
+  "base_main": "a8082109e01aff9eda7__TRUNCATED_SEE_BELOW__"
+}
