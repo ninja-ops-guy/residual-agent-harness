@@ -112,4 +112,40 @@ class LoopRuntimeTests(unittest.TestCase):
         params=GoalEvaluator.evaluate.__annotations__
         self.assertNotIn("worker_output",params)
 
+    def test_unrecognized_verifier_states_are_rejected(self):
+        for status in ("error", "skipped", None, "PASS", 1):
+            with self.subTest(status=status), self.assertRaises(ValueError):
+                VerificationResultRef("required", status, "tree", "root")
+
+    def test_serialized_status_is_normalized(self):
+        ref = VerificationResultRef("required", "unknown", "tree", "root")
+        self.assertIs(ref.status, VerificationStatus.UNKNOWN)
+
+    def test_duplicate_result_cannot_hide_failed_verification(self):
+        fail = VerificationResultRef("required", VerificationStatus.FAIL, "tree", "root")
+        passed = VerificationResultRef("required", VerificationStatus.PASS, "tree", "root")
+        for results in ((fail, passed), (passed, fail), (passed, passed)):
+            with self.subTest(results=results), self.assertRaisesRegex(ValueError, "duplicate verification"):
+                FactoryResultSet("r", "tree", "root", None, results, (), {})
+
+    def test_abort_during_factory_call_overrides_late_pass(self):
+        factory = FakeFactory([verified("r1", "tree", "root")])
+        result = LoopController(factory, abort_requested=lambda: bool(factory.calls)).run(
+            self.contract(), (obligation("a"),)
+        )
+        self.assertEqual(result.status, MissionStatus.ABORTED)
+        self.assertTrue(factory.cancelled)
+        self.assertEqual(len(result.iterations), 1)
+        self.assertEqual(result.state.accepted_evidence_root, "root")
+
+    def test_wall_deadline_during_factory_call_overrides_late_pass(self):
+        factory = FakeFactory([verified("r1", "tree", "root")])
+        ticks = iter((0, 0, 11))
+        result = LoopController(factory, monotonic=lambda: next(ticks)).run(
+            self.contract(max_wall_time_s=10), (obligation("a"),)
+        )
+        self.assertEqual(result.status, MissionStatus.ABORTED)
+        self.assertEqual(result.reason, "wall_time_exhausted")
+        self.assertTrue(factory.cancelled)
+
 if __name__ == "__main__": unittest.main()

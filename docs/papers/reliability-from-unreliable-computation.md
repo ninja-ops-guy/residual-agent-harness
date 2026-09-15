@@ -3,7 +3,7 @@
 
 **Author:** Mike Olivares  
 **Status:** Working IEEE-style manuscript draft  
-**Date:** 2026-09-13
+**Date:** 2026-09-15
 
 > **Research hypothesis:** AI reliability does not necessarily require making individual models reliable. Reliable accepted behavior may emerge when unreliable computation is constrained, observed, independently verified, and deterministically integrated.
 
@@ -46,17 +46,7 @@ These implementation checkpoints are research lineage and engineering evidence, 
 
 That research established a recurring pattern:
 
-```text
-uncertain generation
-        ↓
-candidate artifact
-        ↓
-observable evidence
-        ↓
-independent verification
-        ↓
-controlled acceptance
-```
+Uncertain generation produces a candidate artifact; observable evidence supports independent verification and controlled acceptance.
 
 Residual generalizes this pattern from cyber plans to arbitrary agent work. Boundary-oriented CIC research and LDD methodology further motivate explicit treatment of interactions, failure boundaries, and learning from observable discrepancies. These prior lines are used here as architectural motivation; claims unique to Residual remain subject to the experiments defined below.
 
@@ -90,9 +80,20 @@ This formulation also exposes a trade-off. A stricter verifier can increase cond
 
 Residual implements the sequence:
 
-```text
-constrain → observe → verify → deterministically integrate → evaluate
+```mermaid
+flowchart TD
+  W["Untrusted worker and candidate"] --> V["Bounded candidate verification"]
+  C["Host contract and policy"] --> V
+  V --> G{"Required evidence passes?"}
+  G -->|Yes| I["Deterministic integration"]
+  G -->|No or unavailable| Q["Reject or retain unresolved"]
+  I --> A["Accepted tree"]
+  V --> E["Retained evidence and receipts"]
+  I --> E
+  A --> E
 ```
+
+This diagram describes the intended acceptance boundary. Its presence is not evidence that the current implementation closes every boundary; M4 remains `implemented_unverified` pending merged-tree qualification.
 
 A task is compiled into an execution plan and one or more immutable `WorkerContract`s. A contract binds inputs, expected outputs, permitted tools, filesystem boundaries, and resource limits before worker execution. Contract violations are terminal events and are recorded as observations rather than being handled as conversational suggestions.
 
@@ -112,6 +113,19 @@ Several claims remain deliberately unsupported until live controlled experiments
 
 Maintaining this distinction between implemented control and demonstrated outcome is part of the evidence-first methodology.
 
+### Claim and evidence ledger
+
+| Claim | Present support | Evidence required to advance | Status |
+| --- | --- | --- | --- |
+| Worker authority is constrained | Canonical runtime and development tests | Exact commit/tree, host capability probe and independent containment results | Implemented; host qualification required |
+| Accepted tree equals verified tree | M4 implementation and fixture coverage | PR #81 merged at `de9c9fa`; retain independent audit and qualification on resulting main, including post-verification mutation | `implemented_unverified` (#63) |
+| Repetitions represent fresh executions | Measurement interfaces and fixture coverage | Run-bound identities, replay rejection, exact task population, qualified topology and verifier policy | Qualification required |
+| Accepted correctness improves at useful coverage | Falsifiable model and evaluation apparatus | Frozen R0–R5 live observations and independent ground truth | Unmeasured |
+| Cheaper or weaker workers preserve useful reliability | Routing implementation | Preregistered degradation and heterogeneous-routing studies | Unmeasured |
+| Sustained operation meets reliability targets | Soak infrastructure | Retained qualified 24-hour, 72-hour and 30-day campaigns | Unmeasured |
+
+Implementation mapping is maintained in the [generated status document](../status/IMPLEMENTATION_STATUS.md). Historical test counts are evidence for their recorded tree only; they do not advance these claims automatically.
+
 ## VI. Experimental Methodology
 
 The primary experiment is a controlled ablation in which the underlying model, task corpus, prompts, temperature policy, and environment are held constant while system controls are introduced progressively.
@@ -125,9 +139,19 @@ The primary experiment is a controlled ablation in which the underlying model, t
 | E: COVD | Yes | Yes | Yes | Optional |
 | F: Dynamic swarm | Yes | Yes | Yes | Yes |
 
-Each configuration must run at least three times against a frozen workload. Evaluation records must be derivable from observation logs and include elapsed time, accepted tasks per hour, token/GPU cost, coordination overhead, rework, merge conflicts, verifier rejection rate, and final test pass rate. Signed comparison reports and CLI-reproducible execution should be retained as experimental artifacts.
+The A–F table is a conceptual ablation sketch, not an executable R0–R5 mapping. The frozen protocol must define the exact R0–R5 controls and repetition count before execution; neither this sketch nor a runner default overrides it. Evaluation records must be derivable from observation logs and include elapsed time, accepted tasks per hour, token/GPU cost, coordination overhead, rework, merge conflicts, verifier rejection rate, and final test pass rate. Signed comparison reports and CLI-reproducible execution should be retained as experimental artifacts.
 
-### A. Model-degradation experiment
+### A. Preregistration and provenance
+
+Freeze the task population and workload hash, selected execution/evidence adapter, model and version, prompts, inference settings, seeds, repetitions, verifier revisions and policy, metrics, exclusions, failure denominators and output schema before observing confirmatory results. Preparation and fixture tests may proceed while M4 qualification is open. Real measurements remain disabled until the [live evaluation gates](../evaluation.md#live-evaluation-gate) are satisfied.
+
+At launch, retain the merged-main commit and tree, clean-worktree check, Linux namespace capability probe, workload/config hashes, environment and model identities, and all required CI job outcomes including skipped jobs. A branch-local pass is not merged-tree qualification. Protocol amendments receive new identities and cannot silently relabel already observed outcomes as confirmatory.
+
+Bind every experiment cell to a fresh execution identity and its exact approved task mapping. Preserve original identity on resume; recovered receipts are not independent repetitions. Retain raw observations, signed receipts, accepted-tree identities, verifier policy/boundary identities and authenticated scheduler evidence covering the run. A signed aggregate cannot repair replayed or unbound inputs. PR #71's adapter requires independent provenance qualification, or explicit exclusion in favor of a qualified alternative.
+
+Failures, timeouts, rejected and unresolved outcomes remain in the prespecified denominators. Preserve `PASS`, `FAIL`, `UNKNOWN`, `SKIPPED` and execution errors without coercion to success; report missing cost as unknown. Undefined ratios, including accepted correctness when nothing is accepted, remain undefined rather than zero or perfect.
+
+### B. Model-degradation experiment
 
 Repeat the workload with progressively less reliable workers while preserving the acceptance architecture. This tests whether accepted-system reliability degrades more slowly than raw worker reliability.
 
@@ -137,7 +161,7 @@ The desired comparison is not whether Residual makes the weaker model smarter. I
 
 remains materially above raw worker correctness as worker quality decreases.
 
-### B. Fault-injection experiment
+### C. Fault-injection experiment
 
 Introduce controlled failures including:
 
@@ -184,7 +208,18 @@ A separate efficiency frontier should plot accepted correctness against cost and
 
 ## VIII. Expected Results and Falsification Criteria
 
-No empirical result is asserted in this section.
+No empirical result is asserted in this section. Empty cells below mean not measured; they are not zero values.
+
+| Configuration | Attempts | P(X) | P(A) | P(X given A) | AER | ASSR | Latency | Cost | Evidence hash |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| R0 | | | | | | | | | |
+| R1 | | | | | | | | | |
+| R2 | | | | | | | | | |
+| R3 | | | | | | | | | |
+| R4 | | | | | | | | | |
+| R5 | | | | | | | | | |
+
+Populate this table and any correctness/coverage/cost plots only from retained outputs of the frozen protocol. Confidence intervals and exclusions must be reconstructible from the same artifacts.
 
 H1 is supported only if controls produce reproducible improvements in accepted-system correctness under fixed model capability. It is weakened if improvements disappear across task classes, are explained primarily by increased compute, or require verifier knowledge that effectively solves the task itself.
 
@@ -193,6 +228,8 @@ H1 is falsified for the tested domain if COVD does not materially improve AER or
 Any example benchmark numbers used in specifications or documentation must remain clearly labeled as examples until reproduced by frozen evaluation artifacts.
 
 ## IX. Threats to Validity
+
+The execution threat model treats candidate bytes and candidate-dependent project checks as adversarial. Qualification must attempt verifier namespace escapes, surviving child processes, output exhaustion, filesystem races and symlink/hardlink substitution, corrupt or unavailable Git evidence, and mutation after verification. The host policy, evidence issuer, verifier launcher and integration implementation remain trusted components; a compromised kernel or host authority is outside this containment claim. Namespace support must be established on the actual host, not inferred from a fixture result.
 
 Verifier dependence is the principal epistemic risk. A verifier can be deterministic and still encode an incomplete or incorrect specification. Correlated failure between generator and verifier can defeat apparent independence.
 
@@ -268,7 +305,7 @@ Current implementation evidence establishes a substantial testable system but do
 
 - [ ] Freeze benchmark/task corpus and publish its hash.
 - [ ] Freeze model versions, inference settings, prompts, tool versions, verifier revisions, and policies.
-- [ ] Run every configuration at least three times and preserve complete observation logs and receipts.
+- [ ] Run every configuration for the frozen repetition count and preserve complete observation logs and receipts.
 - [ ] Label ground truth independently of worker self-reports.
 - [ ] Compute AER, FCR, acceptance rate, throughput, cost, rework, conflicts, rejection, and final test pass rate.
 - [ ] Run model-degradation and fault-injection studies.

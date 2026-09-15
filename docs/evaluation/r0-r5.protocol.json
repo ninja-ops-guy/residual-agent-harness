@@ -1,0 +1,259 @@
+{
+  "analysis": {
+    "inference": "descriptive only until independent task families and a power/effect-size plan are frozen",
+    "no_post_result_tuning": true,
+    "primary": "P_X_given_A with P_A, ASSR and AER bounds jointly"
+  },
+  "blockers": [
+    "R0-R5 interventions and approved executable adapters are not specified on main",
+    "No immutable provider/model identity or qualified sampling/usage adapter selected",
+    "Bundled workload is public synthetic development material, without independent graders or approved Factory task mapping",
+    "Merged M4 commit/tree and Linux namespace qualification not retained",
+    "Prompt templates, verifier revisions, per-task budgets and retry policy require binding before freeze"
+  ],
+  "budgets": {
+    "cache_policy": "disabled between trials",
+    "per_task_calls": null,
+    "per_task_seconds": null,
+    "provider_retries": null
+  },
+  "configurations": [
+    {
+      "adapter": null,
+      "id": "R0",
+      "intervention": null
+    },
+    {
+      "adapter": null,
+      "id": "R1",
+      "intervention": null
+    },
+    {
+      "adapter": null,
+      "id": "R2",
+      "intervention": null
+    },
+    {
+      "adapter": null,
+      "id": "R3",
+      "intervention": null
+    },
+    {
+      "adapter": null,
+      "id": "R4",
+      "intervention": null
+    },
+    {
+      "adapter": null,
+      "id": "R5",
+      "intervention": null
+    }
+  ],
+  "exclusions": [],
+  "failure_denominator": "Every scheduled task/configuration/repetition remains in scheduled N, including timeout, crash, missing, not-run, unknown grading and provider failure. No replacement runs. Recovery preserves originals.",
+  "frozen": false,
+  "live_execution_enabled": false,
+  "metrics": {
+    "AER": "accepted independently incorrect / accepted; null when accepted=0; report upper bound (incorrect+unknown)/accepted",
+    "ASSR": "accepted independently correct / scheduled N",
+    "P_A": "accepted / scheduled N",
+    "P_X": "raw independently correct / scheduled N; also report known-grade coverage and unknown count",
+    "P_X_given_A": "accepted independently correct / accepted; null when accepted=0; unknown accepted grades reported separately",
+    "cost": "all attempted calls including failures; unknown usage/prices remain null; no successful-trials-only accounting",
+    "diagnostics": [
+      "verifier state counts",
+      "rework",
+      "merge conflicts",
+      "tokens",
+      "GPU seconds",
+      "unknown usage count"
+    ],
+    "false_acceptance": "accepted independently incorrect count, with accepted unknown grade count separately",
+    "false_rejection": "not accepted AND independently correct count; denominator independently correct",
+    "latency": "trusted monotonic duration; median and p95 with timeout/censoring and completion coverage",
+    "throughput": "accepted independently correct / measured study wall seconds"
+  },
+  "model": {
+    "adapter_revision": null,
+    "immutable_id": null,
+    "provider": null,
+    "same_model_across_configurations": true
+  },
+  "order": "paired task/repetition blocks; deterministic shuffle of configuration IDs with block seed; exact schedule must be retained before execution",
+  "output_schema": {
+    "grade_enum": [
+      "correct",
+      "incorrect",
+      "unknown"
+    ],
+    "nullable_fields": [
+      "elapsed_seconds",
+      "usage"
+    ],
+    "required": [
+      "protocol_sha256",
+      "workload_manifest_hash",
+      "commit_sha",
+      "tree_sha",
+      "environment_identity",
+      "model_identity",
+      "configuration",
+      "task_id",
+      "repeat",
+      "schedule_seed",
+      "status",
+      "accepted",
+      "raw_grade",
+      "accepted_grade",
+      "verifier_state",
+      "elapsed_seconds",
+      "usage",
+      "receipts",
+      "artifact_hashes"
+    ],
+    "rules": [
+      "exactly one scheduled identity per record",
+      "null is never zero",
+      "raw and accepted artifacts graded separately",
+      "receipts bind accepted tree and verifier revision",
+      "preserve attempts and terminal records"
+    ],
+    "status_enum": [
+      "completed",
+      "timeout",
+      "error",
+      "not_run",
+      "missing"
+    ],
+    "version": "residual.r0-r5.trial.v1"
+  },
+  "prompts": {
+    "rendering_revision": null,
+    "system_template": null,
+    "task_prompts": "workload.tasks[].prompt"
+  },
+  "readiness": "blocked",
+  "repetitions": 10,
+  "sampling": {
+    "max_output_tokens": null,
+    "provider_seed_support": null,
+    "reasoning_effort": null,
+    "temperature": 0.0,
+    "top_p": null
+  },
+  "schema_version": "residual.r0-r5.protocol.v1",
+  "seed_scope": "schedule only; provider reproducibility is not assumed",
+  "seeds": [
+    20260914,
+    20260915,
+    20260916,
+    20260917,
+    20260918,
+    20260919,
+    20260920,
+    20260921,
+    20260922,
+    20260923
+  ],
+  "task_mapping": {
+    "fw1-000": {
+      "approved_factory_plan": null,
+      "independent_grader": null
+    },
+    "fw1-001": {
+      "approved_factory_plan": null,
+      "independent_grader": null
+    },
+    "fw1-002": {
+      "approved_factory_plan": null,
+      "independent_grader": null
+    },
+    "fw1-003": {
+      "approved_factory_plan": null,
+      "independent_grader": null
+    },
+    "fw1-004": {
+      "approved_factory_plan": null,
+      "independent_grader": null
+    },
+    "fw1-005": {
+      "approved_factory_plan": null,
+      "independent_grader": null
+    },
+    "fw1-006": {
+      "approved_factory_plan": null,
+      "independent_grader": null
+    },
+    "fw1-007": {
+      "approved_factory_plan": null,
+      "independent_grader": null
+    },
+    "fw1-008": {
+      "approved_factory_plan": null,
+      "independent_grader": null
+    },
+    "fw1-009": {
+      "approved_factory_plan": null,
+      "independent_grader": null
+    },
+    "fw1-010": {
+      "approved_factory_plan": null,
+      "independent_grader": null
+    },
+    "fw1-011": {
+      "approved_factory_plan": null,
+      "independent_grader": null
+    },
+    "fw1-012": {
+      "approved_factory_plan": null,
+      "independent_grader": null
+    },
+    "fw1-013": {
+      "approved_factory_plan": null,
+      "independent_grader": null
+    },
+    "fw1-014": {
+      "approved_factory_plan": null,
+      "independent_grader": null
+    },
+    "fw1-015": {
+      "approved_factory_plan": null,
+      "independent_grader": null
+    }
+  },
+  "task_population": [
+    "fw1-000",
+    "fw1-001",
+    "fw1-002",
+    "fw1-003",
+    "fw1-004",
+    "fw1-005",
+    "fw1-006",
+    "fw1-007",
+    "fw1-008",
+    "fw1-009",
+    "fw1-010",
+    "fw1-011",
+    "fw1-012",
+    "fw1-013",
+    "fw1-014",
+    "fw1-015"
+  ],
+  "verifier": {
+    "accept_only": "PASS",
+    "implementation_sha256": null,
+    "non_accepting_states": [
+      "FAIL",
+      "UNKNOWN",
+      "ERROR",
+      "SKIPPED"
+    ],
+    "policy_revision": null
+  },
+  "workload": {
+    "evidence_level": "development_fixture",
+    "manifest_hash": "39b30aa126185aff598739e930f49c91537751b0ab113b4bd8c460c2f12533a0",
+    "path": "docs/evaluation/r0-r5.fixture-workload.json",
+    "sha256": "3fa35842fe13da56201b21fc7b26080e40708fda6deba28e3e6050c1397ed4fe"
+  }
+}
