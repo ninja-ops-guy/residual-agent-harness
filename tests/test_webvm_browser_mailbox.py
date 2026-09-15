@@ -128,10 +128,20 @@ class BrowserMailboxPublicationSourceTests(unittest.TestCase):
         source = self.source()
         self.assertNotIn('cx.run("/usr/bin/python3"', source)
         self.assertIn('readData(command + "\\\\r");', source)
-        self.assertIn('RESIDUAL_HOST_RUN_${request.id}', source)
+        self.assertIn('echo RESIDUAL_HOST_RUN_${request.id}:$__residual_rc', source)
         self.assertIn('residualShellCommandBusy', source)
-        self.assertIn('if (!residualShellCommandBusy) readData(data);', source)
         self.assertIn('Guest command already active', source)
+
+    def test_terminal_input_is_queued_not_dropped_while_child_is_active(self):
+        source = self.source()
+        self.assertIn('var residualShellInputBuffer = "";', source)
+        self.assertIn('residualShellInputBuffer += data;', source)
+        self.assertIn('const queuedInput = residualShellInputBuffer;', source)
+        self.assertIn('if (queuedInput) readData(queuedInput);', source)
+        flush = source.index('if (queuedInput) readData(queuedInput);')
+        finish = source.index('current.finish({status: Number(match[1])});')
+        self.assertLess(flush, finish)
+        self.assertNotIn('if (!residualShellCommandBusy) readData(data);', source)
 
     def test_completion_frames_are_projected_before_shell_marker_resolution(self):
         source = self.source()
