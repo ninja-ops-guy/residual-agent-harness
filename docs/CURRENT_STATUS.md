@@ -1,6 +1,6 @@
 # RESIDUAL current status
 
-_Current-state check: 2026-09-15 against merged `main` at `bc8b783d8d01b343f870cae704fe7b63c6ea6c0d`._
+_Current-state check: 2026-09-15 against merged `main` at `1a52e9a2dfc9ea9a9d24579bb9b44548c483f0b9`._
 
 This page is the human-readable current-state summary for RESIDUAL. Exact code, exact-tree tests and retained machine-readable evidence remain more authoritative than prose. Historical results apply only to the revisions they name.
 
@@ -16,10 +16,11 @@ The repository contains substantial implementation and development evidence for 
 
 ## What changed on 2026-09-15
 
-Two changes materially advanced the integrated tree:
+Three changes materially advanced the integrated tree:
 
 1. **PR #108 landed on `main` as `0430f2fa2d107fe48d26ae84a3c1550af029cb52`.** It carries the deterministic sandbox-timing and termination repair: lease tri-state semantics, a single wall-clock deadline owner, bounded lease-read contention, pending-reap ownership/recovery, typed timeout outcomes and receipt-v2 compatibility preservation. The merge explicitly retained namespace-dependent skips as **non-qualification** rather than treating them as passes.
 2. **PR #122 advanced `main` to `bc8b783d8d01b343f870cae704fe7b63c6ea6c0d`.** It hardens the Mission Control real-provider experience with truthful failure categories, selected-model validation, a bounded browser/guest mailbox path, guided authorization state, blocked-build conversation behavior and real-browser acceptance coverage. These product/demo changes do not grant generated artifacts M4 authority.
+3. **PR #121 advanced `main` to `1a52e9a2dfc9ea9a9d24579bb9b44548c483f0b9`.** It changes only the protected ownership manifest's provenance metadata: `pinned_at` now names the accepted #108 squash commit `0430f2fa...`; all 38 protected path-to-blob pins are unchanged. The refreshed exact-head review and applicable CI passed before merge. This records accepted source identity and does not add namespace, production, soak or research qualification.
 
 Issue #63 is closed: the accepted-tree, filesystem/link, verifier-isolation and Git-evidence defects that it tracked are no longer the active M4 implementation blocker. Issue #48 is also closed: the implementation-status manifest has been reconciled with the merged Factory/evaluation tree.
 
@@ -42,7 +43,7 @@ Issue #63 is closed: the accepted-tree, filesystem/link, verifier-isolation and 
 
 ## Exact-tree CI status at this refresh
 
-For `main` at `bc8b783d8d01b343f870cae704fe7b63c6ea6c0d`, the following push workflows had completed successfully when this document was prepared:
+For current `main` at `1a52e9a2dfc9ea9a9d24579bb9b44548c483f0b9`, the following metadata-triggered push workflows completed successfully:
 
 - Clean install qualification;
 - Measured evaluation acceptance binding;
@@ -50,9 +51,9 @@ For `main` at `bc8b783d8d01b343f870cae704fe7b63c6ea6c0d`, the following push wor
 - Command Station checks;
 - Controller and provider contracts.
 
-The GitHub Pages/WebVM workflow for this exact SHA failed its first live attempt in narrow Chromium after the deployed disk chunk returned HTTP 503 and the guest stalled after attachment. The unchanged rerun then completed successfully on desktop and narrow Chromium. Run [35003867644](https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35003867644) retains both outcomes; failed-attempt artifact `10410904479` has ZIP SHA-256 `57ab059987126acbc4baf3b0b4b10bc7f3412fa8c38322c756fbd1b4b13564a5`, and successful-attempt artifact `10411624041` has ZIP SHA-256 `0cbfe28cc0cd1e94d4cde603ad4452b9834a6a6f6f14e41c4ec32565ffc25386`.
+PR #121 did not change the deployed browser surface, so Pages was not rerun for the metadata-only `1a52e9a...` push. The latest deployed application revision remains `bc8b783d8d01b343f870cae704fe7b63c6ea6c0d`. Its GitHub Pages/WebVM workflow failed its first live attempt in narrow Chromium after the deployed disk chunk returned HTTP 503 and the guest stalled after attachment. The unchanged rerun then completed successfully on desktop and narrow Chromium. Run [35003867644](https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35003867644) retains both outcomes; failed-attempt artifact `10410904479` has ZIP SHA-256 `57ab059987126acbc4baf3b0b4b10bc7f3412fa8c38322c756fbd1b4b13564a5`, and successful-attempt artifact `10411624041` has ZIP SHA-256 `0cbfe28cc0cd1e94d4cde603ad4452b9834a6a6f6f14e41c4ec32565ffc25386`.
 
-The exact-current-main GitHub workflow suite is therefore green after an unchanged rerun, while issue #120 remains open because repeated intermittent failures on the live WebVM surface are a production-reliability concern. The separate Vercel commit status is red because of an account build-rate limit; that is an external deployment-capacity condition, not a repository test pass. None of these outcomes constitutes namespace qualification, production soak, live-provider research evidence or blanket production readiness.
+The applicable exact-current-main metadata checks are green, and the latest deployed application revision's Pages gate is green after an unchanged rerun, while issue #120 remains open because repeated intermittent failures on the live WebVM surface are a production-reliability concern. The separate Vercel commit status is red because of an account build-rate limit; that is an external deployment-capacity condition, not a repository test pass. None of these outcomes constitutes namespace qualification, production soak, live-provider research evidence or blanket production readiness.
 
 ## M4 claim boundary
 
