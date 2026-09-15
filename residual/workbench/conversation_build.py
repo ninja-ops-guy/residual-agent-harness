@@ -174,6 +174,7 @@ def make_task(request: dict, root: Path, prior_bundle=None, parent_binding=None)
     artifacts, paths = source_snapshot(root, names) if names else ({}, {})
     consent = request.get("cloud_consent") is True
     artifacts = {key: dataclasses.replace(value, cloud=consent) for key, value in artifacts.items()}
+    provider_evidence = list(artifacts)
     artifacts["conversation-session"] = Artifact("conversation-session", canonical({"conversation_id": conversation_id}), consent)
     prior_paths = {}
     if prior_bundle is not None:
@@ -187,11 +188,12 @@ def make_task(request: dict, root: Path, prior_bundle=None, parent_binding=None)
         for index, item in enumerate(prior_bundle["files"]):
             key = f"prior-{index}"
             artifacts[key] = Artifact(key, item["content"], consent)
+            provider_evidence.append(key)
             prior_paths[key] = item["path"]
     instruction = prompt + "\n\n"
     if prior_paths:
-        instruction += ("This is a revision of the immediately preceding accepted build in the same verified conversation session. "
-                        "The parent identity, trace root, and conversation identity are frozen in prior-lineage evidence, and the complete prior bundle is supplied as prior-* evidence. "
+        instruction += ("This is a revision of the immediately preceding accepted build in the same host-verified conversation session. "
+                        "The host has verified parent identity and trace lineage; only the complete prior deliverable is exposed here as prior-* evidence. "
                         "Return the COMPLETE replacement deliverable, not a diff. Preserve unrelated working behavior unless the user explicitly asks to remove it. "
                         "Prior artifact paths: " + canonical(prior_paths) + "\n")
     instruction += ("Create a reviewable deliverable. Return exactly one value for obligation 'build' with two fields: summary (short string) and "
@@ -201,8 +203,7 @@ def make_task(request: dict, root: Path, prior_bundle=None, parent_binding=None)
                     "Do not claim files were executed, tested, deployed, or merged. They will be written only into the mission artifact directory. "
                     "Reference repository source paths, if any: " + canonical(paths) +
                     "\nRequired literal text somewhere in the summary or generated files: " + canonical(required))
-    evidence = tuple(artifacts)
-    obligation = Obligation("build", instruction, "workbench:build", evidence,
+    obligation = Obligation("build", instruction, "workbench:build", tuple(provider_evidence),
                             parameters={"required_text": required, "paths": paths, "prior_paths": prior_paths}, cloud=consent)
     calls, tokens = request.get("max_calls", 2), request.get("max_output_tokens", 1536)
     if type(calls) is not int or not 1 <= calls <= 3 or type(tokens) is not int or not 256 <= tokens <= 1536:
