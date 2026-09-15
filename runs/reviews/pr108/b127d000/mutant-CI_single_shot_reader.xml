@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.143" timestamp="2026-09-15T23:19:09.597169+09:00" hostname="localhost"><testcase classname="tests.test_sandbox_timing_determinism.JournalContentionReadTests" name="test_observations_retry_transient_lock_then_succeed" time="0.016"><failure message="sqlite3.OperationalError: database is locked">tests/test_sandbox_timing_determinism.py:620: in test_observations_retry_transient_lock_then_succeed
+    observations = self.journal.observations()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+residual/factory/runtime_journal.py:311: in observations
+    rows = self._read("SELECT record FROM events ORDER BY sequence")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../residual-lane2-evidence-b127/mutation_probe.py:74: in changed
+    with self._connect() as db:
+         ^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+residual/factory/runtime_journal.py:115: in _connect
+    db = sqlite3.connect(self.path, timeout=timeout, isolation_level=None)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py:1139: in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py:1143: in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py:1204: in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_sandbox_timing_determinism.py:615: in contended
+    raise sqlite3.OperationalError('database is locked')
+E   sqlite3.OperationalError: database is locked</failure></testcase></testsuite></testsuites>

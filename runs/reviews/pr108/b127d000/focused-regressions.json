@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-m",
+    "pytest",
+    "tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_receipt_labels_unsandboxed_fixture_and_binds_policy",
+    "tests/test_factory_ownership_gate.py::FactoryOwnershipGateTests::test_repo_manifest_matches_committed_tree",
+    "tests/test_factory_m4_canonical_api.py",
+    "tests/test_factory_runtime_lifecycle.py::WatchdogIntentGuards",
+    "tests/test_factory_runtime_startup.py::StartupWatchdogTests",
+    "-vv",
+    "-rA",
+    "--junitxml=/tmp/residual-lane2-evidence-b127/focused-regressions.xml"
+  ],
+  "exit_code": 1,
+  "elapsed_s": 0.9650359299994307
+}

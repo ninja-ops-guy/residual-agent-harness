@@ -1,0 +1,26 @@
+MUTATION B2_deadline_after_first_read TESTS ['tests/test_sandbox_timing_adversarial.py::LeaseUnknownDeadlineTests']
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+cachedir: .pytest_cache
+rootdir: /tmp/residual-lane2-b127
+configfile: pyproject.toml
+collecting ... collected 3 items
+
+tests/test_sandbox_timing_adversarial.py::LeaseUnknownDeadlineTests::test_lease_denial_mutant_shorter_inner_timeout_still_bounded FAILED [ 33%]
+tests/test_sandbox_timing_adversarial.py::LeaseUnknownDeadlineTests::test_lease_denial_total_block_is_bounded FAILED [ 66%]
+tests/test_sandbox_timing_adversarial.py::LeaseUnknownDeadlineTests::test_unknown_never_retyped_as_revocation PASSED [100%]
+
+=================================== FAILURES ===================================
+_ LeaseUnknownDeadlineTests.test_lease_denial_mutant_shorter_inner_timeout_still_bounded _
+tests/test_sandbox_timing_adversarial.py:174: in test_lease_denial_mutant_shorter_inner_timeout_still_bounded
+    self.assertLessEqual(
+E   AssertionError: 3.8002673909941223 not less than or equal to 2.5 : total 3.80s with 3 reads; deadline must start at first read
+______ LeaseUnknownDeadlineTests.test_lease_denial_total_block_is_bounded ______
+tests/test_sandbox_timing_adversarial.py:137: in test_lease_denial_total_block_is_bounded
+    self.assertLessEqual(
+E   AssertionError: 4.006369873000949 not less than or equal to 2.5 : watchdog blocked 4.01s in _lease_denial; advertised hard bound is 2s
+- generated xml file: /tmp/residual-lane2-evidence-b127/mutant-B2_deadline_after_first_read.xml -
+=========================== short test summary info ============================
+FAILED tests/test_sandbox_timing_adversarial.py::LeaseUnknownDeadlineTests::test_lease_denial_mutant_shorter_inner_timeout_still_bounded - AssertionError: 3.8002673909941223 not less than or equal to 2.5 : total 3.80s with 3 reads; deadline must start at first read
+FAILED tests/test_sandbox_timing_adversarial.py::LeaseUnknownDeadlineTests::test_lease_denial_total_block_is_bounded - AssertionError: 4.006369873000949 not less than or equal to 2.5 : watchdog blocked 4.01s in _lease_denial; advertised hard bound is 2s
+========================= 2 failed, 1 passed in 7.88s ==========================

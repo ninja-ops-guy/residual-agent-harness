@@ -1,0 +1,20 @@
+MUTATION B3_stopped_before_reap TESTS ['tests/test_sandbox_timing_adversarial.py::ReapTimeoutSemanticsTests']
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+cachedir: .pytest_cache
+rootdir: /tmp/residual-lane2-b127
+configfile: pyproject.toml
+collecting ... collected 2 items
+
+tests/test_sandbox_timing_adversarial.py::ReapTimeoutSemanticsTests::test_reap_timeout_does_not_publish_stopped_as_completion FAILED [ 50%]
+tests/test_sandbox_timing_adversarial.py::ReapTimeoutSemanticsTests::test_reap_timeout_reason_is_typed_not_silent PASSED [100%]
+
+=================================== FAILURES ===================================
+_ ReapTimeoutSemanticsTests.test_reap_timeout_does_not_publish_stopped_as_completion _
+tests/test_sandbox_timing_adversarial.py:267: in test_reap_timeout_does_not_publish_stopped_as_completion
+    self.fail("stopped was set on reap timeout while _reaped is false; "
+E   AssertionError: stopped was set on reap timeout while _reaped is false; callers treat stopped as completion evidence
+- generated xml file: /tmp/residual-lane2-evidence-b127/mutant-B3_stopped_before_reap.xml -
+=========================== short test summary info ============================
+FAILED tests/test_sandbox_timing_adversarial.py::ReapTimeoutSemanticsTests::test_reap_timeout_does_not_publish_stopped_as_completion - AssertionError: stopped was set on reap timeout while _reaped is false; callers treat stopped as completion evidence
+========================= 1 failed, 1 passed in 0.04s ==========================

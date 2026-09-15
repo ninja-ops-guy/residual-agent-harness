@@ -1,0 +1,82 @@
+[
+  {
+    "case": "B1_signed_payload_key",
+    "exit_code": 1,
+    "elapsed_s": 0.3652390619972721,
+    "tests": 2,
+    "failures": 2,
+    "errors": 0,
+    "skipped": 0,
+    "caught": true
+  },
+  {
+    "case": "B2_deadline_after_first_read",
+    "exit_code": 1,
+    "elapsed_s": 8.241958696002257,
+    "tests": 3,
+    "failures": 2,
+    "errors": 0,
+    "skipped": 0,
+    "caught": true
+  },
+  {
+    "case": "B3_stopped_before_reap",
+    "exit_code": 1,
+    "elapsed_s": 0.36499208500026725,
+    "tests": 2,
+    "failures": 1,
+    "errors": 0,
+    "skipped": 0,
+    "caught": true
+  },
+  {
+    "case": "B4_shared_diagnostic",
+    "exit_code": 1,
+    "elapsed_s": 4.378996945997642,
+    "tests": 2,
+    "failures": 2,
+    "errors": 0,
+    "skipped": 0,
+    "caught": true
+  },
+  {
+    "case": "B5_signal_exit_for_timeout",
+    "exit_code": 1,
+    "elapsed_s": 0.8667189980042167,
+    "tests": 2,
+    "failures": 1,
+    "errors": 0,
+    "skipped": 0,
+    "caught": true
+  },
+  {
+    "case": "CI_single_shot_reader",
+    "exit_code": 1,
+    "elapsed_s": 0.4653970110011869,
+    "tests": 1,
+    "failures": 1,
+    "errors": 0,
+    "skipped": 0,
+    "caught": true
+  },
+  {
+    "case": "H2_recompute_deadline",
+    "exit_code": 1,
+    "elapsed_s": 0.9166317630006233,
+    "tests": 1,
+    "failures": 1,
+    "errors": 0,
+    "skipped": 0,
+    "caught": true
+  },
+  {
+    "case": "M6_silent_reap_timeout",
+    "exit_code": 1,
+    "elapsed_s": 0.4151870770001551,
+    "tests": 1,
+    "failures": 1,
+    "errors": 0,
+    "skipped": 0,
+    "caught": true
+  }
+]

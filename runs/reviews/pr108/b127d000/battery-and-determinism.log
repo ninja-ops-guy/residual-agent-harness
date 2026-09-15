@@ -1,0 +1,157 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+cachedir: .pytest_cache
+rootdir: /tmp/residual-lane2-b127
+configfile: pyproject.toml
+collecting ... collected 40 items
+
+tests/test_sandbox_timing_adversarial.py::LeaseUnknownDeadlineTests::test_lease_denial_mutant_shorter_inner_timeout_still_bounded PASSED [  2%]
+tests/test_sandbox_timing_adversarial.py::LeaseUnknownDeadlineTests::test_lease_denial_total_block_is_bounded PASSED [  5%]
+tests/test_sandbox_timing_adversarial.py::LeaseUnknownDeadlineTests::test_unknown_never_retyped_as_revocation PASSED [  7%]
+tests/test_sandbox_timing_adversarial.py::LeaseDiagAttributionTests::test_diag_cannot_be_cross_attributed PASSED [ 10%]
+tests/test_sandbox_timing_adversarial.py::LeaseDiagAttributionTests::test_diag_cannot_be_erased_by_concurrent_attempt PASSED [ 12%]
+tests/test_sandbox_timing_adversarial.py::ReapTimeoutSemanticsTests::test_reap_timeout_does_not_publish_stopped_as_completion PASSED [ 15%]
+tests/test_sandbox_timing_adversarial.py::ReapTimeoutSemanticsTests::test_reap_timeout_reason_is_typed_not_silent PASSED [ 17%]
+tests/test_sandbox_timing_adversarial.py::FixtureTimeoutContractTests::test_candidate_legit_exit_124_not_retyped_timeout PASSED [ 20%]
+tests/test_sandbox_timing_adversarial.py::FixtureTimeoutContractTests::test_fixture_timeout_returncode_matches_documented_124 PASSED [ 22%]
+tests/test_sandbox_timing_adversarial.py::ReceiptSchemaStabilityTests::test_receipt_hash_stable_for_identical_logical_result PASSED [ 25%]
+tests/test_sandbox_timing_adversarial.py::ReceiptSchemaStabilityTests::test_v2_verification_result_serialization_unchanged PASSED [ 27%]
+tests/test_sandbox_timing_adversarial.py::CiLockContentionTests::test_observations_under_write_storm_never_raises_locked PASSED [ 30%]
+tests/test_sandbox_timing_determinism.py::LeaseTriStateTests::test_lease_read_binds_diag_per_call_not_journal_global PASSED [ 32%]
+tests/test_sandbox_timing_determinism.py::LeaseTriStateTests::test_lease_read_deadline_caps_busy_budget PASSED [ 35%]
+tests/test_sandbox_timing_determinism.py::LeaseTriStateTests::test_lease_state_tri_state_unit PASSED [ 37%]
+tests/test_sandbox_timing_determinism.py::LeaseTriStateTests::test_one_shot_locked_read_does_not_kill_or_retype FAILED [ 40%]
+tests/test_sandbox_timing_determinism.py::SingleDeadlineOwnerTests::test_fake_clock_watchdog_kills_past_deadline_snapshot PASSED [ 42%]
+tests/test_sandbox_timing_determinism.py::SingleDeadlineOwnerTests::test_guard_owns_started_and_deadline PASSED [ 45%]
+tests/test_sandbox_timing_determinism.py::SingleDeadlineOwnerTests::test_watchdog_skips_wall_clock_once_exchange_completing PASSED [ 47%]
+tests/test_sandbox_timing_determinism.py::WatchdogDeadlineSnapshotTests::test_watchdog_kills_at_snapshot_not_recomputed_deadline PASSED [ 50%]
+tests/test_sandbox_timing_determinism.py::ReapTimeoutProvenanceTests::test_reap_timeout_does_not_overwrite_primary_reason PASSED [ 52%]
+tests/test_sandbox_timing_determinism.py::ReapTimeoutProvenanceTests::test_reap_timeout_emits_typed_event_and_reason PASSED [ 55%]
+tests/test_sandbox_timing_determinism.py::ReapTimeoutProvenanceTests::test_reap_timeout_then_successful_followup_reap_restores_invariants PASSED [ 57%]
+tests/test_sandbox_timing_determinism.py::TypedOutcomeDeterminismTests::test_cancel_after_publication_returns_false SKIPPED [ 60%]
+tests/test_sandbox_timing_determinism.py::TypedOutcomeDeterminismTests::test_cancel_only_true_for_own_primary_cancellation SKIPPED [ 62%]
+tests/test_sandbox_timing_determinism.py::TypedOutcomeDeterminismTests::test_cancel_race_published_candidate_with_control_still_false SKIPPED [ 65%]
+tests/test_sandbox_timing_determinism.py::TypedOutcomeDeterminismTests::test_cancel_race_terminal_cancelled_with_own_reason_is_true SKIPPED [ 67%]
+tests/test_sandbox_timing_determinism.py::TypedOutcomeDeterminismTests::test_closed_fds_then_spin_single_typed_outcome SKIPPED [ 70%]
+tests/test_sandbox_timing_determinism.py::TypedOutcomeDeterminismTests::test_n10_determinism_proof_three_worker_corpus SKIPPED [ 72%]
+tests/test_sandbox_timing_determinism.py::IsolatedTimeoutTypingTests::test_timeout_is_distinct_typed_outcome SKIPPED [ 75%]
+tests/test_sandbox_timing_determinism.py::FixtureLaneTimeoutTypingTests::test_fixture_timeout_is_typed_timeout PASSED [ 77%]
+tests/test_sandbox_timing_determinism.py::IntegratorTimeoutTypingTests::test_verification_timeout_is_timeout_not_fail PASSED [ 80%]
+tests/test_sandbox_timing_determinism.py::TypedGitTimeoutTests::test_git_timeout_is_typed PASSED [ 82%]
+tests/test_sandbox_timing_determinism.py::LeaseUnknownBoundedDeadlineTests::test_persistent_contention_bounded_by_single_deadline PASSED [ 85%]
+tests/test_sandbox_timing_determinism.py::LeaseUnknownBoundedDeadlineTests::test_retry_recovers_before_deadline_without_kill PASSED [ 87%]
+tests/test_sandbox_timing_determinism.py::LeaseUnknownBoundedDeadlineTests::test_unknown_diag_is_atomic_per_attempt PASSED [ 90%]
+tests/test_sandbox_timing_determinism.py::JournalContentionReadTests::test_observations_bounded_failure_under_persistent_lock PASSED [ 92%]
+tests/test_sandbox_timing_determinism.py::JournalContentionReadTests::test_observations_retry_transient_lock_then_succeed PASSED [ 95%]
+tests/test_sandbox_timing_determinism.py::JournalContentionReadTests::test_observations_under_held_wal_writer_lock PASSED [ 97%]
+tests/test_sandbox_timing_determinism.py::JournalContentionReadTests::test_readiness_polling_survives_concurrent_writer FAILED [100%]
+
+=================================== FAILURES ===================================
+_____ LeaseTriStateTests.test_one_shot_locked_read_does_not_kill_or_retype _____
+
+self = <tests.test_sandbox_timing_determinism.LeaseTriStateTests testMethod=test_one_shot_locked_read_does_not_kill_or_retype>
+
+    def test_one_shot_locked_read_does_not_kill_or_retype(self):
+        # A single transient 'database is locked' on the lease read path must
+        # NOT kill the worker — and must never be retyped as lease_generation.
+        fired = threading.Event()
+        real_connect = sqlite3.connect
+    
+        def flaky_connect(path, *args, **kwargs):
+            timeout = kwargs.get('timeout')
+            # The lease read path is the bounded one (budget <= the 2s lease
+            # read cap); journal writers (0.2s) and bulk readers (5s) differ.
+            if isinstance(timeout, float) and 0.2 < timeout <= RuntimeJournal.LEASE_READ_TIMEOUT_S \
+                    and not fired.is_set():
+                fired.set()
+                raise sqlite3.OperationalError('database is locked')
+            return real_connect(path, *args, **kwargs)
+    
+        with patch('residual.factory.runtime_journal.sqlite3.connect', side_effect=flaky_connect):
+            _, result = self.run_source("write_file('output.txt', 'fine')")
+>       self.assertTrue(fired.is_set(), 'injection did not reach the lease read path')
+E       AssertionError: False is not true : injection did not reach the lease read path
+
+tests/test_sandbox_timing_determinism.py:120: AssertionError
+_ JournalContentionReadTests.test_readiness_polling_survives_concurrent_writer _
+
+self = <tests.test_sandbox_timing_determinism.JournalContentionReadTests testMethod=test_readiness_polling_survives_concurrent_writer>
+
+    def test_readiness_polling_survives_concurrent_writer(self):
+        # Mirrors the failed CI scenario (test_lease_revocation_kills_with_
+        # lease_generation): wait_active()-style observations() polling from a
+        # reader thread while the runtime writes journal events must not raise.
+        errors = []
+        stop = threading.Event()
+    
+        def poll():
+            while not stop.is_set():
+                try:
+                    self.journal.observations()
+                except Exception as exc:  # noqa: BLE001 - record, assert below
+                    errors.append(exc)
+                    return
+    
+        reader = threading.Thread(target=poll, daemon=True)
+        reader.start()
+        try:
+            _, result = self.run_source("write_file('output.txt', 'fine')")
+        finally:
+            stop.set()
+            reader.join(timeout=15)
+        self.assertFalse(reader.is_alive())
+        self.assertEqual(errors, [])
+>       self.assertEqual(result.status, 'CANDIDATE', result)
+E       AssertionError: 'VIOLATED' != 'CANDIDATE'
+E       - VIOLATED
+E       + CANDIDATE
+E        : RuntimeResult(attempt_id='attempt1', status='VIOLATED', contract_hash='006f77fe8dd6131948550239cf5403a3a5260289638c44deb39f3a2ab9adbb29', execution_plan_hash='58fb9d19994c80ea1c2b1291d828223e7d838249debd402d7c74c6c7c21f1fe8', returncode=-9, process_reaped=True, usage={'tokens': 0, 'tool_calls': 0, 'file_writes': 0, 'reserved_tokens': 0}, candidate=None, reason='memory_limit_mb', termination={'correlation_id': 'attempt1', 'pid': 136, 'pid_start_time_ticks': None, 'boot_id': '3e5e0159-69ad-49e1-b415-673eb6dcc9b4', 'requested_by': 'watchdog', 'request_boundary': 'resource', 'request_field': 'memory_limit_mb', 'request_action': {'reason': 'rss_meter_unavailable'}, 'requested_monotonic_ns': 50320427674587, 'observed_monotonic_ns': 50320428362204, 'reaped_monotonic_ns': 50320428448575, 'returncode': -9, 'observed_signal': 9, 'waitid_code': 2, 'waitid_status': 9, 'cgroup_memory_events_before': {'low': 0, 'high': 0, 'max': 0, 'oom': 0, 'oom_kill': 0, 'oom_group_kill': 0}, 'cgroup_memory_events_after': {'low': 0, 'high': 0, 'max': 0, 'oom': 0, 'oom_kill': 0, 'oom_group_kill': 0}, 'cgroup_oom_kill_delta': 0, 'classification': 'watchdog_memory', 'kernel_audit_evidence': 'not_collected_by_unprivileged_runtime'}, engine_name='brokered-python', engine_version='linux-seccomp-broker-v1')
+
+tests/test_sandbox_timing_determinism.py:676: AssertionError
+==================================== PASSES ====================================
+- generated xml file: /tmp/residual-lane2-evidence-b127/battery-and-determinism.xml -
+=========================== short test summary info ============================
+PASSED tests/test_sandbox_timing_adversarial.py::LeaseUnknownDeadlineTests::test_lease_denial_mutant_shorter_inner_timeout_still_bounded
+PASSED tests/test_sandbox_timing_adversarial.py::LeaseUnknownDeadlineTests::test_lease_denial_total_block_is_bounded
+PASSED tests/test_sandbox_timing_adversarial.py::LeaseUnknownDeadlineTests::test_unknown_never_retyped_as_revocation
+PASSED tests/test_sandbox_timing_adversarial.py::LeaseDiagAttributionTests::test_diag_cannot_be_cross_attributed
+PASSED tests/test_sandbox_timing_adversarial.py::LeaseDiagAttributionTests::test_diag_cannot_be_erased_by_concurrent_attempt
+PASSED tests/test_sandbox_timing_adversarial.py::ReapTimeoutSemanticsTests::test_reap_timeout_does_not_publish_stopped_as_completion
+PASSED tests/test_sandbox_timing_adversarial.py::ReapTimeoutSemanticsTests::test_reap_timeout_reason_is_typed_not_silent
+PASSED tests/test_sandbox_timing_adversarial.py::FixtureTimeoutContractTests::test_candidate_legit_exit_124_not_retyped_timeout
+PASSED tests/test_sandbox_timing_adversarial.py::FixtureTimeoutContractTests::test_fixture_timeout_returncode_matches_documented_124
+PASSED tests/test_sandbox_timing_adversarial.py::ReceiptSchemaStabilityTests::test_receipt_hash_stable_for_identical_logical_result
+PASSED tests/test_sandbox_timing_adversarial.py::ReceiptSchemaStabilityTests::test_v2_verification_result_serialization_unchanged
+PASSED tests/test_sandbox_timing_adversarial.py::CiLockContentionTests::test_observations_under_write_storm_never_raises_locked
+PASSED tests/test_sandbox_timing_determinism.py::LeaseTriStateTests::test_lease_read_binds_diag_per_call_not_journal_global
+PASSED tests/test_sandbox_timing_determinism.py::LeaseTriStateTests::test_lease_read_deadline_caps_busy_budget
+PASSED tests/test_sandbox_timing_determinism.py::LeaseTriStateTests::test_lease_state_tri_state_unit
+PASSED tests/test_sandbox_timing_determinism.py::SingleDeadlineOwnerTests::test_fake_clock_watchdog_kills_past_deadline_snapshot
+PASSED tests/test_sandbox_timing_determinism.py::SingleDeadlineOwnerTests::test_guard_owns_started_and_deadline
+PASSED tests/test_sandbox_timing_determinism.py::SingleDeadlineOwnerTests::test_watchdog_skips_wall_clock_once_exchange_completing
+PASSED tests/test_sandbox_timing_determinism.py::WatchdogDeadlineSnapshotTests::test_watchdog_kills_at_snapshot_not_recomputed_deadline
+PASSED tests/test_sandbox_timing_determinism.py::ReapTimeoutProvenanceTests::test_reap_timeout_does_not_overwrite_primary_reason
+PASSED tests/test_sandbox_timing_determinism.py::ReapTimeoutProvenanceTests::test_reap_timeout_emits_typed_event_and_reason
+PASSED tests/test_sandbox_timing_determinism.py::ReapTimeoutProvenanceTests::test_reap_timeout_then_successful_followup_reap_restores_invariants
+PASSED tests/test_sandbox_timing_determinism.py::FixtureLaneTimeoutTypingTests::test_fixture_timeout_is_typed_timeout
+PASSED tests/test_sandbox_timing_determinism.py::IntegratorTimeoutTypingTests::test_verification_timeout_is_timeout_not_fail
+PASSED tests/test_sandbox_timing_determinism.py::TypedGitTimeoutTests::test_git_timeout_is_typed
+PASSED tests/test_sandbox_timing_determinism.py::LeaseUnknownBoundedDeadlineTests::test_persistent_contention_bounded_by_single_deadline
+PASSED tests/test_sandbox_timing_determinism.py::LeaseUnknownBoundedDeadlineTests::test_retry_recovers_before_deadline_without_kill
+PASSED tests/test_sandbox_timing_determinism.py::LeaseUnknownBoundedDeadlineTests::test_unknown_diag_is_atomic_per_attempt
+PASSED tests/test_sandbox_timing_determinism.py::JournalContentionReadTests::test_observations_bounded_failure_under_persistent_lock
+PASSED tests/test_sandbox_timing_determinism.py::JournalContentionReadTests::test_observations_retry_transient_lock_then_succeed
+PASSED tests/test_sandbox_timing_determinism.py::JournalContentionReadTests::test_observations_under_held_wal_writer_lock
+SKIPPED [1] tests/test_sandbox_timing_determinism.py:369: libseccomp/kernel backend unavailable (no fallback)
+SKIPPED [1] tests/test_sandbox_timing_determinism.py:374: libseccomp/kernel backend unavailable (no fallback)
+SKIPPED [1] tests/test_sandbox_timing_determinism.py:413: libseccomp/kernel backend unavailable (no fallback)
+SKIPPED [1] tests/test_sandbox_timing_determinism.py:393: libseccomp/kernel backend unavailable (no fallback)
+SKIPPED [1] tests/test_sandbox_timing_determinism.py:336: libseccomp/kernel backend unavailable (no fallback)
+SKIPPED [1] tests/test_sandbox_timing_determinism.py:347: libseccomp/kernel backend unavailable (no fallback)
+SKIPPED [1] tests/test_sandbox_timing_determinism.py:441: kernel namespace isolation unavailable on this platform
+FAILED tests/test_sandbox_timing_determinism.py::LeaseTriStateTests::test_one_shot_locked_read_does_not_kill_or_retype - AssertionError: False is not true : injection did not reach the lease read path
+FAILED tests/test_sandbox_timing_determinism.py::JournalContentionReadTests::test_readiness_polling_survives_concurrent_writer - AssertionError: 'VIOLATED' != 'CANDIDATE'
+- VIOLATED
++ CANDIDATE
+ : RuntimeResult(attempt_id='attempt1', status='VIOLATED', contract_hash='006f77fe8dd6131948550239cf5403a3a5260289638c44deb39f3a2ab9adbb29', execution_plan_hash='58fb9d19994c80ea1c2b1291d828223e7d838249debd402d7c74c6c7c21f1fe8', returncode=-9, process_reaped=True, usage={'tokens': 0, 'tool_calls': 0, 'file_writes': 0, 'reserved_tokens': 0}, candidate=None, reason='memory_limit_mb', termination={'correlation_id': 'attempt1', 'pid': 136, 'pid_start_time_ticks': None, 'boot_id': '3e5e0159-69ad-49e1-b415-673eb6dcc9b4', 'requested_by': 'watchdog', 'request_boundary': 'resource', 'request_field': 'memory_limit_mb', 'request_action': {'reason': 'rss_meter_unavailable'}, 'requested_monotonic_ns': 50320427674587, 'observed_monotonic_ns': 50320428362204, 'reaped_monotonic_ns': 50320428448575, 'returncode': -9, 'observed_signal': 9, 'waitid_code': 2, 'waitid_status': 9, 'cgroup_memory_events_before': {'low': 0, 'high': 0, 'max': 0, 'oom': 0, 'oom_kill': 0, 'oom_group_kill': 0}, 'cgroup_memory_events_after': {'low': 0, 'high': 0, 'max': 0, 'oom': 0, 'oom_kill': 0, 'oom_group_kill': 0}, 'cgroup_oom_kill_delta': 0, 'classification': 'watchdog_memory', 'kernel_audit_evidence': 'not_collected_by_unprivileged_runtime'}, engine_name='brokered-python', engine_version='linux-seccomp-broker-v1')
+=================== 2 failed, 31 passed, 7 skipped in 28.87s ===================

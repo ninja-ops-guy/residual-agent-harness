@@ -1,0 +1,25 @@
+MUTATION B1_signed_payload_key TESTS ['tests/test_sandbox_timing_adversarial.py::ReceiptSchemaStabilityTests']
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+cachedir: .pytest_cache
+rootdir: /tmp/residual-lane2-b127
+configfile: pyproject.toml
+collecting ... collected 2 items
+
+tests/test_sandbox_timing_adversarial.py::ReceiptSchemaStabilityTests::test_receipt_hash_stable_for_identical_logical_result FAILED [ 50%]
+tests/test_sandbox_timing_adversarial.py::ReceiptSchemaStabilityTests::test_v2_verification_result_serialization_unchanged FAILED [100%]
+
+=================================== FAILURES ===================================
+_ ReceiptSchemaStabilityTests.test_receipt_hash_stable_for_identical_logical_result _
+tests/test_sandbox_timing_adversarial.py:360: in test_receipt_hash_stable_for_identical_logical_result
+    self.assertNotIn('"timed_out"', payload,
+E   AssertionError: '"timed_out"' unexpectedly found in '{"conflict_resolutions": [], "evidence_level": "development_fixture", "execution_plan_hash": "e", "input_receipt_hashes": [], "integrated_at_ns": 1, "integration_plan_hash": "i", "output_commit": "o", "schema_version": "factory-integration-receipt-v2", "station_key_id": "k", "verification_policy_hash": "p", "verification_results": [{"category": "c", "execution_boundary": "trusted_fixture_unsandboxed", "name": "t", "returncode": 0, "status": "pass", "stderr_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "stdout_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "termination_reason": "exit", "timed_out": false}]}' : v2 unsigned payload bytes changed in place
+_ ReceiptSchemaStabilityTests.test_v2_verification_result_serialization_unchanged _
+tests/test_sandbox_timing_adversarial.py:337: in test_v2_verification_result_serialization_unchanged
+    self.assertNotIn(
+E   AssertionError: 'timed_out' unexpectedly found in {'stdout_sha256', 'category', 'status', 'execution_boundary', 'timed_out', 'name', 'returncode', 'stderr_sha256', 'termination_reason'} : schema remains factory-integration-receipt-v2 but to_dict() gained 'timed_out', mutating the canonical signed v2 payload in place; bump/migrate the schema or use an already-versioned representation
+- generated xml file: /tmp/residual-lane2-evidence-b127/mutant-B1_signed_payload_key.xml -
+=========================== short test summary info ============================
+FAILED tests/test_sandbox_timing_adversarial.py::ReceiptSchemaStabilityTests::test_receipt_hash_stable_for_identical_logical_result - AssertionError: '"timed_out"' unexpectedly found in '{"conflict_resolutions": [], "evidence_level": "development_fixture", "execution_plan_hash": "e", "input_receipt_hashes": [], "integrated_at_ns": 1, "integration_plan_hash": "i", "output_commit": "o", "schema_version": "factory-integration-receipt-v2", "station_key_id": "k", "verification_policy_hash": "p", "verification_results": [{"category": "c", "execution_boundary": "trusted_fixture_unsandboxed", "name": "t", "returncode": 0, "status": "pass", "stderr_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "stdout_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "termination_reason": "exit", "timed_out": false}]}' : v2 unsigned payload bytes changed in place
+FAILED tests/test_sandbox_timing_adversarial.py::ReceiptSchemaStabilityTests::test_v2_verification_result_serialization_unchanged - AssertionError: 'timed_out' unexpectedly found in {'stdout_sha256', 'category', 'status', 'execution_boundary', 'timed_out', 'name', 'returncode', 'stderr_sha256', 'termination_reason'} : schema remains factory-integration-receipt-v2 but to_dict() gained 'timed_out', mutating the canonical signed v2 payload in place; bump/migrate the schema or use an already-versioned representation
+============================== 2 failed in 0.04s ===============================

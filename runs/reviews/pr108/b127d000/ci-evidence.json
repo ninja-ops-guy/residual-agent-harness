@@ -1,0 +1,33 @@
+{
+  "reviewed_head": "b127d000dbac7d75723969840491be5f44ec7c4e",
+  "checkout": "15f9a7a3c7f7abe6332ff4fc2de524bca475dc61",
+  "base": "1cf4e46c0ace8e3cdc76147ad4c7dc6480a9fb34",
+  "current_main_observed": "326eb2af47a4635c75c81735738801dd065fdd81",
+  "factory": {
+    "run_id": 34972037232,
+    "job_id": 104390406617,
+    "tests": 967,
+    "failures": 2,
+    "errors": 0,
+    "skips": 22,
+    "elapsed_s": 104.443,
+    "n10_recorded": "PASS",
+    "isolated_timeout_recorded": "SKIP",
+    "artifact_id": 10398291157,
+    "artifact_zip_sha256": "8a1929101cfc5c5ad8c498b92409bfa697fe88819d368c3c4b847e64488d61bd",
+    "url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34972037232"
+  },
+  "ownership": {
+    "run_id": 34972037241,
+    "job_id": 104390406303,
+    "checked": 37,
+    "failures": 1,
+    "path": "tests/test_factory_m4_safety.py",
+    "expected": "b13fdb1af9bfca2eb8b73889a1f89eac6c0498a5",
+    "actual": "4b2b117a2f3323a73dafaf04c21ab5ed9a1f79c0",
+    "artifact_id": 10397731316,
+    "artifact_zip_sha256": "1fab776f9457bdfa23d6e77efdc063295a96de9ebaddccaccea6a727a8c8dd94",
+    "url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34972037241"
+  },
+  "qualification_limit": "Retained CI observed at its synthetic merge, not an independent local N10 reproduction or current-main qualification."
+}

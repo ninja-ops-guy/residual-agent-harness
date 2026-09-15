@@ -1,0 +1,21 @@
+MUTATION H2_recompute_deadline TESTS ['tests/test_sandbox_timing_determinism.py::WatchdogDeadlineSnapshotTests']
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+cachedir: .pytest_cache
+rootdir: /tmp/residual-lane2-b127
+configfile: pyproject.toml
+collecting ... collected 1 item
+
+tests/test_sandbox_timing_determinism.py::WatchdogDeadlineSnapshotTests::test_watchdog_kills_at_snapshot_not_recomputed_deadline FAILED [100%]
+
+=================================== FAILURES ===================================
+_ WatchdogDeadlineSnapshotTests.test_watchdog_kills_at_snapshot_not_recomputed_deadline _
+tests/test_sandbox_timing_determinism.py:224: in test_watchdog_kills_at_snapshot_not_recomputed_deadline
+    control.kill.assert_called_once()
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py:928: in assert_called_once
+    raise AssertionError(msg)
+E   AssertionError: Expected 'mock' to have been called once. Called 0 times.
+- generated xml file: /tmp/residual-lane2-evidence-b127/mutant-H2_recompute_deadline.xml -
+=========================== short test summary info ============================
+FAILED tests/test_sandbox_timing_determinism.py::WatchdogDeadlineSnapshotTests::test_watchdog_kills_at_snapshot_not_recomputed_deadline - AssertionError: Expected 'mock' to have been called once. Called 0 times.
+============================== 1 failed in 0.61s ===============================

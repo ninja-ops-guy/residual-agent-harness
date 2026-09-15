@@ -1,5 +1,25 @@
 # Qualification convergence handoff
 
+## Lane 2 continuation — #108 at b127d000
+
+Independent review is complete with **REQUEST CHANGES**, not merge acceptance.
+The original battery passes 12/12 and eight independent reversion attacks are
+caught. Five new probes fail, and the current receipt-version and ownership CI
+failures reproduce on the exact head. Full local determinism remains unqualified
+(19 passed, 2 failed, 7 capability skips). Read the
+[review and executable repair probes](../../runs/reviews/pr108/b127d000/README.md)
+before dispatching another repair; implementation ownership stays separate from
+this review. Restore the original v2 safety-test blob rather than repinning its
+incorrect v3 assertion. Then repair R1-R5 and obtain new exact-head and integrated
+CI evidence; no protected runtime/test/pin or #108 branch change was made here.
+
+Queue corrections to the pasted lane handoff: #106 is already merged; #97 was
+closed in favor of #117; main protection already enforces 12 checks, but still
+requires zero approving reviews. The remaining approval/check settings are an
+owner action, not an unperformed initial protection flip. Latest observed main
+is `326eb2a` (includes the owner's merged #116 demo work). The prior dated
+disposition inventory below is retained; no unrelated lane was merged here.
+
 Current authorized triage and dispositions are recorded in
 [PR_TRIAGE_2026-09-15.md](PR_TRIAGE_2026-09-15.md), based on main
 `1cf4e46c0ace8e3cdc76147ad4c7dc6480a9fb34`. #106 has merged; #107 preserves

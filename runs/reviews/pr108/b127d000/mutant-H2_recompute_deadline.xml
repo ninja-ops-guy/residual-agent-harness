@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.610" timestamp="2026-09-15T23:19:10.054178+09:00" hostname="localhost"><testcase classname="tests.test_sandbox_timing_determinism.WatchdogDeadlineSnapshotTests" name="test_watchdog_kills_at_snapshot_not_recomputed_deadline" time="0.519"><failure message="AssertionError: Expected 'mock' to have been called once. Called 0 times.">tests/test_sandbox_timing_determinism.py:224: in test_watchdog_kills_at_snapshot_not_recomputed_deadline
+    control.kill.assert_called_once()
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py:928: in assert_called_once
+    raise AssertionError(msg)
+E   AssertionError: Expected 'mock' to have been called once. Called 0 times.</failure></testcase></testsuite></testsuites>

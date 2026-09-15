@@ -1,0 +1,183 @@
+{
+  "schema": "residual-review-artifact-manifest-v1",
+  "reviewed_head": "b127d000dbac7d75723969840491be5f44ec7c4e",
+  "reviewed_tree": "46c4146e9afcc9bbfd474d3d7b738970a10e0253",
+  "files": {
+    "README.md": {
+      "sha256": "0a03828eb3a22e6cf92811b92dd4b93247cd2b040206291b29c2bf77f8b551d5",
+      "bytes": 11860
+    },
+    "battery-and-determinism.json": {
+      "sha256": "7b4f62a6038f49f3a82ef45f86164a1fca70824778649b5d3c2337234e5adccb",
+      "bytes": 1014
+    },
+    "battery-and-determinism.log": {
+      "sha256": "2c441accc09a360ceda87e721791e96ef8459ee7e61cd0890e2e34b2090d5266",
+      "bytes": 16565
+    },
+    "battery-and-determinism.xml": {
+      "sha256": "4aeac3b21c6a662c04b41ef4337c640afe787277d3b6d6eb21fe1ceb60a5b100",
+      "bytes": 13734
+    },
+    "ci-evidence.json": {
+      "sha256": "9aab2192db5bcb9839a835dfde95aa64c25079304e03dc1c403f0959a61e9d10",
+      "bytes": 1358
+    },
+    "dependencies.txt": {
+      "sha256": "285f78b4d0bf29d6d239407249eccd936b57d1d0970306b7186f1f22984dfd34",
+      "bytes": 1665
+    },
+    "environment.json": {
+      "sha256": "f6178b6f368db9c28442de5a39cd228dadda7bb54962271cc616002b4dc3e357",
+      "bytes": 565
+    },
+    "factory-ci-excerpt.log": {
+      "sha256": "f64b535297179af49dfca4665b8b34d224cb2437f669aa3b179cc8d28e98981e",
+      "bytes": 16265
+    },
+    "focused-regressions.json": {
+      "sha256": "86a829c5939d59546821de086c141279b2dc802718925354d601f303f2a9b29d",
+      "bytes": 695
+    },
+    "focused-regressions.log": {
+      "sha256": "a7a848ef847fc1a4f0a51358308675b7f7e36bd00f7669f070639dacc83f44d1",
+      "bytes": 7868
+    },
+    "focused-regressions.xml": {
+      "sha256": "c143e991e8bd730ee74055ae6ee0ba67928be2da98c11ce992863d21cb76803e",
+      "bytes": 5902
+    },
+    "host-capabilities.json": {
+      "sha256": "5cb9d4396d2df2948aaba7db98dfa07b72d7b986b8d0340e1f7a56928a38670b",
+      "bytes": 232
+    },
+    "mutant-B1_signed_payload_key.log": {
+      "sha256": "a43e2956c960cb71d5f198b27b64ffa5d2dfacbbb9b1978459f40c50a7bfa59e",
+      "bytes": 4094
+    },
+    "mutant-B1_signed_payload_key.xml": {
+      "sha256": "8cd0d9446c0fbe2fb655bb60971f8273d051c1d42ee2da590b68c44211886504",
+      "bytes": 3594
+    },
+    "mutant-B2_deadline_after_first_read.log": {
+      "sha256": "0a49a36dacf3d1726e57d57c0d948f7951080247b6a668f5c5491544f93df679",
+      "bytes": 2401
+    },
+    "mutant-B2_deadline_after_first_read.xml": {
+      "sha256": "80fc3ca80a2ff63373c615a505cee7b36cd56502812e3912b4147c6d1fc9c87f",
+      "bytes": 1570
+    },
+    "mutant-B3_stopped_before_reap.log": {
+      "sha256": "980c1b6c57aa227b7b5f4719699a0718bfe0b6e041dd24ff5cf0127cbe3e5996",
+      "bytes": 1690
+    },
+    "mutant-B3_stopped_before_reap.xml": {
+      "sha256": "335122ba772984e7d1ff17fac6c2a006d92d38021b13e73e2af48a7941efb7eb",
+      "bytes": 1017
+    },
+    "mutant-B4_shared_diagnostic.log": {
+      "sha256": "2079b91597327fb885bba5081a6fb9309284e6145cedb39752f9761e88194ac8",
+      "bytes": 2112
+    },
+    "mutant-B4_shared_diagnostic.xml": {
+      "sha256": "733b1e8303fd4c050e5632e9696b3cea167d722941995887e8287f22f24a9faa",
+      "bytes": 1298
+    },
+    "mutant-B5_signal_exit_for_timeout.log": {
+      "sha256": "d2cf507fcb664bcf7cde0121627e81543afb661fd4328f7423efc80370ea99f3",
+      "bytes": 1772
+    },
+    "mutant-B5_signal_exit_for_timeout.xml": {
+      "sha256": "0bacfbf6c5b4be7703d2e2975bf745a5d49e7ade4627d5aaee6c54e9fb2bcbc2",
+      "bytes": 1089
+    },
+    "mutant-CI_single_shot_reader.log": {
+      "sha256": "5f0c5656c9c9e80d1ca5e93d1d21acca5734f26f2d12f53d8d7ed1aaf55ee5a2",
+      "bytes": 2884
+    },
+    "mutant-CI_single_shot_reader.xml": {
+      "sha256": "88e319a6639491025cd4ff0e6a811d1fedef7457e46087d205450f42fa1af70d",
+      "bytes": 2143
+    },
+    "mutant-H2_recompute_deadline.log": {
+      "sha256": "aa915f2ec688e1e82a22ffcb52c83ed198d503d37e5d4a756fd5ab213c4ee00b",
+      "bytes": 1601
+    },
+    "mutant-H2_recompute_deadline.xml": {
+      "sha256": "8e118682460e64496de695edd8ac94e21bec4c6682c75401018702a179f7bfff",
+      "bytes": 896
+    },
+    "mutant-M6_silent_reap_timeout.log": {
+      "sha256": "2a01d5f59538066bb4a4f47ebf6e6d9569cc6b6a7354eda770bb6187b10b08ef",
+      "bytes": 1390
+    },
+    "mutant-M6_silent_reap_timeout.xml": {
+      "sha256": "17fba9a82c295c6633446215dfe7ce7b3e1f6671585ad556fd1543f2fb739c67",
+      "bytes": 659
+    },
+    "mutation_probe.py": {
+      "sha256": "3bcdab43225b311aa9b21d58d8c5e30423d3756802a218150fda180db0873fa1",
+      "bytes": 4372
+    },
+    "mutations.json": {
+      "sha256": "8fd214f2244b1122aca93cc3609f9ac7bf4fb22e722bbabb7bf290259a140c3f",
+      "bytes": 1551
+    },
+    "ownership-ci-excerpt.log": {
+      "sha256": "e17dda2b65a076d16fe4f2a573eb22c78511f508fb40e17520e59e8bfeda6a5b",
+      "bytes": 4422
+    },
+    "receipt-baseline-comparison.json": {
+      "sha256": "7344ddcaaf4120cf3684e80c3d9b4016ec295a73a8e35e16bc688d9e31f94167",
+      "bytes": 346
+    },
+    "review-probes.json": {
+      "sha256": "4e83fd8594493c9f70936e20c6b7845ab9ba1ab0cf2e227e82b51899749ac965",
+      "bytes": 345
+    },
+    "review-probes.log": {
+      "sha256": "8308038d4797bddbc8e375fba5922275da6c9389988ed77baadaff61ee52b9e3",
+      "bytes": 9337
+    },
+    "review-probes.xml": {
+      "sha256": "1d638e1256ed812fdd494aea159a375de1fb497f3f695f319e0e1dbaab12b292",
+      "bytes": 6246
+    },
+    "review.json": {
+      "sha256": "393412fd51df7b9347d9e5d708d9538d15acde3dea0405315f204699aa968c81",
+      "bytes": 4970
+    },
+    "review_probes.py": {
+      "sha256": "604a56c5af1fe7298ca717f1c088fb8b8620e697d072f2b8862e97ae58aa8875",
+      "bytes": 8446
+    },
+    "seccomp-probe.json": {
+      "sha256": "2db5faeae1fe782f2abd3bd836831a3a0f5bfbea087d4944cc6816348e5fc28c",
+      "bytes": 56
+    },
+    "timeout-budget.json": {
+      "sha256": "1fd34a1d71ccc974d04ff50f78137b2a80cd59c416d78ddfeef1c90c89df87c7",
+      "bytes": 440
+    },
+    "timeout-budget.log": {
+      "sha256": "bb0dc21c08a8523b7cace974581782801ae6d009f8278a08bafa8cb4e9d78695",
+      "bytes": 2699
+    },
+    "timeout-budget.xml": {
+      "sha256": "34f920e1cb3b42cd34726eaf22ff49c80e620e5e1c04b59879989834a8d0a31c",
+      "bytes": 1747
+    },
+    "timeout_budget_probe.py": {
+      "sha256": "96a92102f8099551176f86feeed3905554e0c1ce2e9e9dd5d98c634e191566d7",
+      "bytes": 1284
+    },
+    "writer-only-control.log": {
+      "sha256": "439c49b63a50ff9f914c7b98b3f0f3e2903f936943f0376c2257a8565453433e",
+      "bytes": 71
+    },
+    "writer-only-control.py": {
+      "sha256": "d1915db9ab58aed3484bce7e4b949b2381430adbb099a12032daac4a2f1733f4",
+      "bytes": 3418
+    }
+  }
+}

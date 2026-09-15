@@ -59,6 +59,15 @@ The accepted-tree, filesystem/link, isolation and Git-evidence code-hardening re
 
 PR #96 merged termination provenance and a repetition matrix. The historical Command Station Python 3.13 job on baseline `a8082109` failed `test_ptrace_is_kernel_killed`: expected SIGSYS (`-31`), observed SIGKILL (`-9`). Run `34927698993`, attempt `1`, job `104249155773` retained 895 tests, one failure and 21 skips. The cause remains **unclassified** by that evidence. Later passing runs do not erase this failure. #108's current repair requires independent review at its final head.
 
+Lane 2 independently reviewed #108 at `b127d000`: the original adversarial
+battery is **12/12 PASS**, with **8/8 reversion attacks caught**, but the merge
+verdict is **REQUEST CHANGES**. Five additional probes fail (declared timeout,
+watchdog deadline during lease contention, pending-reap recovery, SQLite error
+retention and reader retry budget); both current CI failures reproduce locally.
+The local determinism module is 19 passed, 2 failed, 7 skipped, and does not
+qualify this host. The [review](../runs/reviews/pr108/b127d000/README.md) retains
+source identities, fault boundaries, logs and the exact repair checklist.
+
 #117 replaces closed #97 and exposes three missing local runtime/DSM guarantees:
 process-group tracking, fencing held through authoritative append, and rejection
 of reused event IDs with changed payloads. Its focused suite is **3 failed,
