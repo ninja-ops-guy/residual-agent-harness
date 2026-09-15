@@ -4,12 +4,13 @@ Target: Residual 1.0 plus a completed Experimental Release 1 (ER1).
 A credible negative or inconclusive experimental result is acceptable; favorable
 hypothesis results are not a release requirement.
 
-Snapshot: 2026-09-15, main `1cf4e46c0ace8e3cdc76147ad4c7dc6480a9fb34`.
+Latest targeted update: 2026-09-15, accepted main `1a52e9a2dfc9ea9a9d24579bb9b44548c483f0b9`.
+Other lane rows below retain their earlier observations unless explicitly updated.
 This reviewed tracker is delivered in PR #107. Refresh evidence before changing
 a gate to PASS. Merged code, passing branch tests and completed release
 qualification are different states.
 
-Repair continuation, 2026-09-15: **#108 repairs published at `de436fc7`; fresh
+Historical repair continuation, 2026-09-15: **#108 repairs published at `de436fc7`; fresh
 independent review required**. R1-R5 are implemented, 12 protected regression
 tests added, and the receipt-v2 assertion restored. Current main `326eb2a` is
 included. Factory and ownership CI pass on the identical source tree; local
@@ -26,6 +27,17 @@ host capability prevents complete qualification. See the
 [source-bound review and retained evidence](../../runs/reviews/pr108/b127d000/README.md).
 Latest observed main is `326eb2a`, including #116; this observation does not
 retroactively qualify the earlier PR integration or the final demo journey.
+
+## Latest M4 and ownership update
+
+#121 is merged at `1a52e9a2`; all 13 listed main checks succeeded. #109 now
+includes that base at `91c9ae67`. Its real hosted M4 job passed 135 tests plus
+78 subtests with zero skips. Broader Python 3.13 CI failed in the lifecycle
+CLI stderr JSON assertion; independent review and archive inspection remain
+required. The ZIP download returned HTTP 403; only the decoded job logs and
+artifact metadata are permanently retained here. See the
+[candidate evidence and precise limits](../../runs/qualification/m4/91c9ae67/README.md).
+#109 stays unmerged; this is not a final release-gate PASS.
 
 ## Scope policy for this completion plan
 
@@ -63,8 +75,8 @@ tag listing, and the GitHub releases collection was empty.
 | --- | --- | --- | --- | --- |
 | C01 | Freeze scope | POLICY DOCUMENTED; adoption pending | Use the policy above and flag out-of-scope requests; this PR does not globally control other threads | Owner + all lanes; start now |
 | C02 | Converge PR board | TRIAGE EXECUTED; integration ongoing | #106 merged; #22 closed; concurrent triage replaced #97 with #117 and closed #88/#114 into #109. 32 open proposals individually dispositioned; #93/#94 and benchmark salvage remain | Coordinator + lane owners; see full ledger |
-| C03 | Qualify M4 | BLOCKED BY RUNNER | #109 at e873dd62 adds actual execution smoke and preserves the owner’s activated zero-skips workflow. Real hosted-runner probe reports BLOCKED/namespace unavailable. Closed #88/#114 are not gates to merge again | Runner lane + independent reviewer; accepted #108 boundary |
-| C04 | Finish Swarm 3 | REPAIR DELIVERED; independent acceptance pending | #108 at de436fc7 includes main 326eb2a and repairs R1-R5 plus the stale receipt assertion. Twelve new protected tests pass; all five repair reversions and eight original attacks are caught. Factory/ownership CI and all four contention conditions pass (500 repetitions per test); local full suites remain red with retained baseline/host findings. See the source-bound repair bundle | Fresh independent reviewer must assess de436fc7 and its pending-reap lifecycle; owner retains merge authority |
+| C03 | Qualify M4 | CANDIDATE RUN PASSED; acceptance pending | #109 at 91c9ae67 includes accepted main 1a52e9a2. Actual isolated execution and 135 tests + 78 subtests pass with zero skips. Logs retained; artifact ZIP download/inspection outstanding after HTTP 403. Broader lifecycle CI failed | Fresh independent review, complete retained artifact and full CI required before merge |
+| C04 | Finish Swarm 3 | #108 MERGED; ownership anchor accepted | #108 accepted at 0430f2fa; metadata-only #121 merged at 1a52e9a2 after narrow review and fresh CI, preserving all 38 protected pins. Historical repair evidence below remains source-bound | Future executable changes require new review and relevant qualification |
 | C05 | Qualify distributed/runtime behavior | BLOCKED BY THREE LOCAL FAILURES | #117 succeeds closed #97. Required pytest coverage now exposes missing process tracking, fencing through append and collision rejection (3 failed/60 passed locally). Repair and review before real concurrency/recovery and elapsed 24h/72h soak | Runtime/recovery lane; accepted candidate and isolated infrastructure |
 | C06 | Port principal Factory benchmarks | PENDING RECONCILIATION | Salvage #26/#38/#46/#52/#54/#56 onto current Factory. Preserve FB001-FB004 progression and whole-project completion focus | Benchmark owner designated through backlog lane |
 | C07 | Freeze ER1 protocol | RECONCILED SPECIFICATION DELIVERED in #110; execution blocked | #110 reconciles #90/#91 planning, pins the ladder/statistical rules and ledger, and preserves launch gates. Resolve the denominator and power-model review items below; implement/review adapters, analysis and launch enforcement; fill actual model/corpus identities before launch | Science lane + independent protocol review |
@@ -140,7 +152,7 @@ dispositions are recorded in [PR_TRIAGE_2026-09-15.md](PR_TRIAGE_2026-09-15.md).
 | Gate | Required result | Snapshot verdict / missing proof |
 | --- | --- | --- |
 | Core architecture | PASS on integrated RC, with independent review and enforced checks | AMBER: binding activation merged; #108 review and #117 implementation gaps remain; required approval count is 0 |
-| M4 trust boundary | QUALIFIED with no skipped mandatory security capability tests | RED: capable-runner qualification outstanding; changes proposed in #108 need reviewed compatibility |
+| M4 trust boundary | QUALIFIED with no skipped mandatory security capability tests | AMBER: #109 candidate run passes with zero skips; independent acceptance, complete artifact inspection and broader CI remain open |
 | Runtime/recovery | PASS plus completed 72h soak after clean shorter runs | RED: retained runtime failures, integration and elapsed soak evidence outstanding |
 | Clean installation | PASS from genuinely blank VM on RC | AMBER: tooling and CI pass; independent blank-VM RC execution not evidenced |
 | Canonical demo | PASS in real browser and guest on final deployed revision | AMBER: current browser/Pages jobs pass; full final narrative acceptance outstanding |
