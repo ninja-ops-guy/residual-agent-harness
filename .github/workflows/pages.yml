@@ -87,8 +87,6 @@ jobs:
           sudo umount /mnt/residual-webvm
           docker rm "$CONTAINER_ID" >/dev/null
           trap - EXIT
-          # Match WebVM's official GitHub Pages layout: the image chunks live
-          # beside the WebVM build that consumes them.
           sudo split residual-demo.ext2 _site/demo/residual-demo.ext2.c -a 6 -b 128k -x --additional-suffix=.txt
           stat -c%s residual-demo.ext2 | sudo tee _site/demo/residual-demo.ext2.meta >/dev/null
           sudo chmod -R a+rX _site/demo
@@ -107,129 +105,13 @@ jobs:
           export const opts = {env:["HOME=/home/residual","TERM=xterm","USER=residual","SHELL=/bin/bash","EDITOR=vi","LANG=C","LC_ALL=C","PYTHONUNBUFFERED=1","RESIDUAL_DEMO_MODEL=gpt-5.6-luna"],cwd:"/opt/residual",uid:1000,gid:1000};
           EOF
 
-      - name: Add Residual cloud bridge and readiness UI to WebVM
+      - name: Patch WebVM for RESIDUAL
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          path = Path('_webvm/src/lib/WebVM.svelte')
-          text = path.read_text()
+          python3 demo/vm/patch_webvm.py source _webvm/src/lib/WebVM.svelte
 
-          anchor = '\tvar sideBarPinned = false;'
-          bridge = r'''
-	var residualBridgeBuffer = "";
-	var residualCloudReady = false;
-	var residualCloudLabel = "ENABLE CLOUD ✦";
-	var residualVmState = "VM BOOTING…";
-	function residualDecode64url(s)
-	{
-		s=s.replace(/-/g,"+").replace(/_/g,"/");
-		while(s.length%4)s+="=";
-		const bin=atob(s),bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
-		return new TextDecoder().decode(bytes);
-	}
-	function residualEncode64url(text)
-	{
-		const bytes=new TextEncoder().encode(text);let bin="";
-		for(const b of bytes)bin+=String.fromCharCode(b);
-		return btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
-	}
-	function residualPuterText(result)
-	{
-		if(typeof result==="string")return result;
-		const c=result?.message?.content;
-		if(typeof c==="string")return c;
-		if(Array.isArray(c))return c.map(p=>typeof p==="string"?p:(p?.text||p?.content||"")).join("");
-		if(typeof result?.text==="string")return result.text;
-		if(typeof result?.content==="string")return result.content;
-		throw new Error("Puter returned no text content");
-	}
-	function residualSend(id,obj)
-	{
-		if(cxReadFunc==null)return;
-		const wire=`__RESIDUAL_BROWSER_RESPONSE__:${id}:${residualEncode64url(JSON.stringify(obj))}\n`;
-		readData(wire);
-	}
-	async function residualHandleLine(line)
-	{
-		const m=line.match(/^__RESIDUAL_BROWSER_REQUEST__:([0-9a-f]+):([A-Za-z0-9_-]+)$/);
-		if(!m)return;
-		const id=m[1];let req;
-		try{req=JSON.parse(residualDecode64url(m[2]));}catch(e){residualSend(id,{ok:false,error:"browser_bridge_invalid_request"});return;}
-		if(!residualCloudReady||!window.puter?.ai){residualSend(id,{ok:false,error:"browser_bridge_auth_required"});return;}
-		residualVmState="CLOUD INFERENCE…";
-		try
-		{
-			const maxTokens=Number.isInteger(req.max_output_tokens)?Math.max(1,Math.min(req.max_output_tokens,512)):256;
-			const result=await window.puter.ai.chat(req.messages,{model:req.model||"gpt-5.6-luna",max_tokens:maxTokens,normalize:true});
-			const usage=result?.usage||{};
-			residualSend(id,{ok:true,text:residualPuterText(result),finish_reason:result?.finish_reason||result?.message?.finish_reason||"stop",usage:{input_tokens:Number.isInteger(usage.prompt_tokens)?usage.prompt_tokens:(Number.isInteger(usage.input_tokens)?usage.input_tokens:null),output_tokens:Number.isInteger(usage.completion_tokens)?usage.completion_tokens:(Number.isInteger(usage.output_tokens)?usage.output_tokens:null)}});
-			residualVmState="VM READY · CLOUD RESPONSE RETURNED";
-		}
-		catch(e)
-		{
-			console.warn("Puter inference failed",e);
-			residualSend(id,{ok:false,error:"browser_bridge_remote_error"});
-			residualVmState="VM READY · CLOUD REQUEST FAILED";
-		}
-	}
-	async function enableResidualCloud()
-	{
-		residualCloudLabel="LOADING CLOUD…";
-		try
-		{
-			if(!window.puter?.auth)throw new Error("Puter SDK unavailable");
-			if(!window.puter.auth.isSignedIn?.())await window.puter.auth.signIn({attempt_temp_user_creation:true});
-			const user=await window.puter.auth.getUser();
-			residualCloudReady=true;
-			residualCloudLabel="CLOUD READY ✓"+(user?.username?` · ${user.username}`:"");
-		}
-		catch(e)
-		{
-			console.warn("Puter sign-in unavailable",e);
-			residualCloudReady=false;
-			residualCloudLabel="ENABLE CLOUD ✦";
-		}
-	}
-'''
-          if text.count(anchor) != 1:
-              raise SystemExit('WebVM state anchor moved; refusing unsafe patch')
-          text = text.replace(anchor, anchor + bridge, 1)
-
-          old_write = '''\t\tterm.write(new Uint8Array(buf));'''
-          new_write = '''\t\tconst bytes = new Uint8Array(buf);\n\t\tterm.write(bytes);\n\t\tconst out = new TextDecoder().decode(bytes);\n\t\tif(out.includes("RESIDUAL BOOT: guest process attached")) residualVmState = "VM READY · GUEST ATTACHED";\n\t\tresidualBridgeBuffer += out;\n\t\tconst parts = residualBridgeBuffer.split(/\\r?\\n/);\n\t\tresidualBridgeBuffer = parts.pop() || "";\n\t\tfor(const line of parts) residualHandleLine(line.trim());'''
-          if text.count(old_write) != 1:
-              raise SystemExit('WebVM writeData hook moved; refusing unsafe patch')
-          text = text.replace(old_write, new_write, 1)
-
-          old_init = '''\t\ttry\n\t\t{\n\t\t\tawait initCheerpX();\n\t\t}\n\t\tcatch(e)\n\t\t{\n\t\t\tprintMessage(unexpectedErrorMessage);\n\t\t\tprintMessage([e.toString()]);\n\t\t\treturn;\n\t\t}'''
-          new_init = '''\t\ttry\n\t\t{\n\t\t\tresidualVmState = window.crossOriginIsolated ? "VM RUNTIME LOADING…" : "VM WAITING FOR ISOLATION RELOAD…";\n\t\t\tawait initCheerpX();\n\t\t}\n\t\tcatch(e)\n\t\t{\n\t\t\tresidualVmState = "VM RUNTIME ERROR · " + e.toString().slice(0,100);\n\t\t\tprintMessage(unexpectedErrorMessage);\n\t\t\tprintMessage([e.toString()]);\n\t\t\treturn;\n\t\t}'''
-          if text.count(old_init) != 1:
-              raise SystemExit('WebVM init hook moved; refusing unsafe patch')
-          text = text.replace(old_init, new_init, 1)
-
-          console_hook = '''\t\tcxReadFunc = cx.setCustomConsole(writeData, term.cols, term.rows);'''
-          console_new = '''\t\tcxReadFunc = cx.setCustomConsole(writeData, term.cols, term.rows);\n\t\tresidualVmState = "VM CONSOLE ATTACHED · STARTING GUEST…";'''
-          if text.count(console_hook) != 1:
-              raise SystemExit('WebVM console hook moved; refusing unsafe patch')
-          text = text.replace(console_hook, console_new, 1)
-
-          run_hook = '''\t\t\tawait cx.run(configObj.cmd, configObj.args, configObj.opts);'''
-          run_new = '''\t\t\tresidualVmState = "VM GUEST STARTING…";\n\t\t\tawait cx.run(configObj.cmd, configObj.args, configObj.opts);'''
-          if text.count(run_hook) != 1:
-              raise SystemExit('WebVM run hook moved; refusing unsafe patch')
-          text = text.replace(run_hook, run_new, 1)
-
-          main_marker = '<main class="relative w-full h-full">'
-          topbar = '''<main class="relative w-full h-full">\n\t<div style="position:fixed;top:0.35rem;left:15rem;right:24rem;z-index:60;display:flex;align-items:center;gap:0.5rem;pointer-events:none;font-family:monospace;font-size:11px;color:#39ff68">\n\t\t<strong style="letter-spacing:.12em">RESIDUAL / LIVE VM</strong>\n\t\t<span style="opacity:.72">{residualVmState}</span>\n\t\t<button on:click={enableResidualCloud} disabled={residualCloudReady} style="pointer-events:auto;margin-left:auto;border:1px solid #39ff68;background:#031006;color:#39ff68;padding:5px 9px;font-family:monospace;font-size:10px;cursor:pointer">{residualCloudLabel}</button>\n\t</div>'''
-          if text.count(main_marker) != 1:
-              raise SystemExit('WebVM main marker moved; refusing unsafe patch')
-          text = text.replace(main_marker, topbar, 1)
-          path.write_text(text)
-          PY
-
-      - name: Build WebVM client as the top-level demo
+      - name: Build WebVM client as top-level demo
         shell: bash
         run: |
           set -euo pipefail
@@ -237,26 +119,17 @@ jobs:
           npm install
           WEBVM_MODE=github npm run build
           cd ..
-          # WebVM itself is the /demo/ document. This matches the upstream
-          # supported GitHub Pages topology and lets its own serviceWorker.js
-          # establish cross-origin isolation without an iframe boundary.
           cp -a _webvm/build/. _site/demo/
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('_site/demo/index.html')
-          text = p.read_text()
-          marker = '<head>'
-          injection = '<head>\n<meta name="theme-color" content="#000000">\n<script defer src="https://js.puter.com/v2/"></script>'
-          if marker not in text:
-              raise SystemExit('WebVM built index head marker missing')
-          p.write_text(text.replace(marker, injection, 1))
-          PY
+          python3 demo/vm/patch_webvm.py index _site/demo/index.html
 
       - name: Build WebVM index lists
         shell: bash
         run: |
           set -euo pipefail
-          find _site/demo -type d | while read -r dir; do rm -f "$dir/index.list"; ls "$dir" | tee "$dir/index.list" >/dev/null; done
+          find _site/demo -type d | while read -r dir; do
+            rm -f "$dir/index.list"
+            ls "$dir" | tee "$dir/index.list" >/dev/null
+          done
 
       - name: Validate Pages artifact
         shell: bash
