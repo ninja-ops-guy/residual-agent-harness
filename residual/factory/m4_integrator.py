@@ -130,6 +130,7 @@ class VerificationResult:
     stderr_sha256: str
     termination_reason: str = "exit"
     execution_boundary: str = "trusted_fixture_unsandboxed"
+    timed_out: bool = False
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -141,6 +142,7 @@ class VerificationResult:
             "stderr_sha256": self.stderr_sha256,
             "termination_reason": self.termination_reason,
             "execution_boundary": self.execution_boundary,
+            "timed_out": self.timed_out,
         }
 
 
@@ -429,6 +431,7 @@ class DeterministicIntegrator:
             results.append(VerificationResult(
                 check.name, check.category, process.status, process.returncode,
                 process.stdout_sha256, process.stderr_sha256, process.reason, boundary,
+                timed_out=process.timed_out,
             ))
             if process.status != "pass":
                 break

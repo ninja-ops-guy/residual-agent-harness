@@ -217,8 +217,7 @@ class AttemptGuard:
     """Thread-safe pre-dispatch accounting, not a process sandbox or watchdog.
 
     observe MUST acknowledge durable storage before returning. terminate must be
-    a host-controlled stop hook. No process-kill guarantee is inferred from 
-    it.
+    a host-controlled stop hook. No process-kill guarantee is inferred from it.
     Every worker call must be mediated; arbitrary shell engines are unsupported.
     """
     def __init__(self, contract: WorkerContract, *,
