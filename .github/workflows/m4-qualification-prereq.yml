@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   m4-prereq:
@@ -82,9 +83,17 @@ jobs:
               "Skipped M4 tests cannot qualify the boundary"
           PYQUAL
       - uses: actions/upload-artifact@v4
+        id: m4_artifact
         if: always()
         with:
           name: m4-qualification-prereq-${{ github.sha }}
           path: runs/m4-qualification-prereq
           if-no-files-found: error
           retention-days: 14
+      - name: Export verified artifact bytes to retained job log
+        if: always() && steps.m4_artifact.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          M4_ARTIFACT_ID: ${{ steps.m4_artifact.outputs.artifact-id }}
+          M4_ARTIFACT_DIGEST: ${{ steps.m4_artifact.outputs.artifact-digest }}
+        run: python scripts/export_m4_artifact.py
