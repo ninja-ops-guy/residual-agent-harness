@@ -47,9 +47,9 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     assert await page.locator('button[data-tab="activity"]').count() == 1
     assert await page.locator('button[data-tab="evidence"]').count() == 1
     assert await page.locator('button[data-tab="files"]').count() == 1
+    await page.get_by_text('Run controls', exact=True).click()
     await page.locator('#mc-mode').select_option('audit')
     await page.locator('#mc-prompt').fill('Inspect these actual repository sources ' + secrets.token_hex(4))
-    await page.get_by_text('Run controls', exact=True).click()
     await page.locator('#mc-files').fill('residual/cli.py\nresidual/engine.py')
     await page.locator('#mc-run').click()
     await page.wait_for_function("() => document.querySelector('#mc-verdict').textContent.startsWith('PASSED') && !document.querySelector('#mc-result').hidden", timeout=120000)
