@@ -47,6 +47,11 @@ class RuntimeJournal:
         private_directory(self.path.parent)
         self.trace_id = trace_id
         self._lock = threading.RLock()
+        # Diagnostic of the most recent failed lease read: (exception type
+        # name, sqlite_errorcode). Never carries exception text, so nothing
+        # untrusted can flow into a ledger reason. None when the last read
+        # succeeded (or no read has failed yet).
+        self.lease_read_diag: tuple[str, int] | None = None
         flags = os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW | os.O_CLOEXEC
         descriptor = os.open(self.path, flags, 0o600)
         try:
@@ -169,6 +174,36 @@ class RuntimeJournal:
                              "WHERE attempt_id=?", (contract.attempt_id,)).fetchone()
         return bool(row and row[0] == contract.lease_id and row[1] == contract.lease_generation
                     and not row[2] and row[3] in ('RESERVED', 'RUNNING') and row[4] == contract.contract_hash)
+
+    LEASE_READ_TIMEOUT_S = 2.0
+
+    def lease_state(self, contract: WorkerContract) -> str:
+        """Tri-state lease read: 'current', 'revoked', or 'unknown'.
+
+        'unknown' is returned ONLY when the durable store itself cannot be
+        read (sqlite3.Error, including a bounded busy-timeout). A missing,
+        revoked, terminal, or mismatched row is 'revoked' — never 'unknown'.
+        Callers must never retype an 'unknown' outcome as a revocation.
+        """
+        try:
+            db = sqlite3.connect(self.path, timeout=self.LEASE_READ_TIMEOUT_S,
+                                 isolation_level=None)
+            try:
+                db.execute(f"PRAGMA busy_timeout={int(self.LEASE_READ_TIMEOUT_S * 1000)}")
+                row = db.execute(
+                    "SELECT lease_id,generation,revoked,state,contract_hash FROM attempts "
+                    "WHERE attempt_id=?", (contract.attempt_id,)).fetchone()
+            finally:
+                db.close()
+        except sqlite3.Error as exc:
+            code = getattr(exc, 'sqlite_errorcode', None)
+            self.lease_read_diag = (type(exc).__name__, code) if type(code) is int else None
+            return 'unknown'
+        self.lease_read_diag = None
+        current = bool(row and row[0] == contract.lease_id and row[1] == contract.lease_generation
+                       and not row[2] and row[3] in ('RESERVED', 'RUNNING')
+                       and row[4] == contract.contract_hash)
+        return 'current' if current else 'revoked'
 
     def revoke(self, attempt_id: str) -> None:
         with self._transaction() as db:
