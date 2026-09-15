@@ -32,7 +32,21 @@ except ImportError:  # pragma: no cover
     Ed25519PublicKey = None
 
 
-INTEGRATION_SCHEMA = "factory-integration-receipt-v2"
+# Receipt schema history:
+#   v2 "factory-integration-receipt-v2": VerificationResult had NO timed_out
+#       field; the signed payload carried exactly the 8 keys in
+#       VerificationResult.to_dict_v2().
+#   v3 "factory-integration-receipt-v3" (current): VerificationResult gained
+#       timed_out, which changes the signed payload. Backward compatibility:
+#       a receipt that declares v2 serializes its verification results with
+#       to_dict_v2() so its signed payload bytes (and therefore its
+#       receipt_hash and Ed25519 signature validity) are byte-identical to
+#       what a v2 signer produced; from_dict() accepts both versions and
+#       defaults timed_out=False for v2 payloads. Unknown versions fail
+#       closed.
+INTEGRATION_SCHEMA_V2 = "factory-integration-receipt-v2"
+INTEGRATION_SCHEMA = "factory-integration-receipt-v3"
+KNOWN_INTEGRATION_SCHEMAS = (INTEGRATION_SCHEMA_V2, INTEGRATION_SCHEMA)
 ObservationSink = Callable[[dict[str, object]], None]
 
 
@@ -133,6 +147,7 @@ class VerificationResult:
     timed_out: bool = False
 
     def to_dict(self) -> dict[str, object]:
+        """Current (v3) serialization, including timed_out."""
         return {
             "name": self.name,
             "category": self.category,
@@ -144,6 +159,35 @@ class VerificationResult:
             "execution_boundary": self.execution_boundary,
             "timed_out": self.timed_out,
         }
+
+    def to_dict_v2(self) -> dict[str, object]:
+        """Legacy v2 serialization: exactly the 8 keys a v2 signer saw.
+
+        Used ONLY for receipts that declare schema_version v2 so their signed
+        payload bytes remain unchanged across the v3 bump."""
+        return {
+            "name": self.name,
+            "category": self.category,
+            "status": self.status,
+            "returncode": self.returncode,
+            "stdout_sha256": self.stdout_sha256,
+            "stderr_sha256": self.stderr_sha256,
+            "termination_reason": self.termination_reason,
+            "execution_boundary": self.execution_boundary,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, object]) -> "VerificationResult":
+        # timed_out is absent in v2 payloads: it defaults to False there.
+        return cls(
+            name=str(data["name"]), category=str(data["category"]),
+            status=str(data["status"]),
+            returncode=data["returncode"] if data["returncode"] is None else int(data["returncode"]),
+            stdout_sha256=str(data["stdout_sha256"]), stderr_sha256=str(data["stderr_sha256"]),
+            termination_reason=str(data.get("termination_reason", "exit")),
+            execution_boundary=str(data.get("execution_boundary", "trusted_fixture_unsandboxed")),
+            timed_out=bool(data.get("timed_out", False)),
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -162,13 +206,22 @@ class IntegrationReceipt:
     schema_version: str = INTEGRATION_SCHEMA
 
     def unsigned_payload(self) -> dict[str, object]:
+        if self.schema_version == INTEGRATION_SCHEMA_V2:
+            # v2 receipts keep their exact v2 signed payload bytes (no
+            # timed_out key): receipt_hash and signature validity are
+            # preserved across the v3 bump.
+            results = [x.to_dict_v2() for x in self.verification_results]
+        elif self.schema_version == INTEGRATION_SCHEMA:
+            results = [x.to_dict() for x in self.verification_results]
+        else:
+            raise M4IntegrationError(f"unknown integration receipt schema: {self.schema_version!r}")
         return {
             "schema_version": self.schema_version,
             "execution_plan_hash": self.execution_plan_hash,
             "integration_plan_hash": self.integration_plan_hash,
             "input_receipt_hashes": list(self.input_receipt_hashes),
             "output_commit": self.output_commit,
-            "verification_results": [x.to_dict() for x in self.verification_results],
+            "verification_results": results,
             "conflict_resolutions": [x.to_dict() for x in self.conflict_resolutions],
             "integrated_at_ns": self.integrated_at_ns,
             "station_key_id": self.station_key_id,
@@ -183,6 +236,34 @@ class IntegrationReceipt:
     def to_dict(self) -> dict[str, object]:
         return {**self.unsigned_payload(), "receipt_hash": self.receipt_hash,
                 "station_signature": self.station_signature}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, object]) -> "IntegrationReceipt":
+        """Deserialize a v2 or v3 receipt; unknown schema versions fail closed.
+
+        v2 payloads lack timed_out in verification results (defaults False);
+        re-serializing the result with its declared schema_version reproduces
+        the original signed payload bytes for both versions.
+        """
+        schema = data.get("schema_version")
+        if schema not in KNOWN_INTEGRATION_SCHEMAS:
+            raise M4IntegrationError(f"unknown integration receipt schema: {schema!r}")
+        return cls(
+            execution_plan_hash=str(data["execution_plan_hash"]),
+            integration_plan_hash=str(data["integration_plan_hash"]),
+            input_receipt_hashes=tuple(str(x) for x in data["input_receipt_hashes"]),
+            output_commit=str(data["output_commit"]),
+            verification_results=tuple(VerificationResult.from_dict(x)
+                                       for x in data["verification_results"]),
+            conflict_resolutions=tuple(ConflictResolution(**x)
+                                       for x in data["conflict_resolutions"]),
+            integrated_at_ns=int(data["integrated_at_ns"]),
+            station_key_id=str(data["station_key_id"]),
+            station_signature=str(data.get("station_signature", "pending")),
+            verification_policy_hash=str(data["verification_policy_hash"]),
+            evidence_level=str(data.get("evidence_level", "development_fixture")),
+            schema_version=str(schema),
+        )
 
     def verify_signature(self, public_key: bytes) -> bool:
         if Ed25519PublicKey is None or len(public_key) != 32:
