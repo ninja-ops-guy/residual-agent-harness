@@ -1,0 +1,154 @@
+{
+  "schema_version": "residual.program-preparation-validation.v1",
+  "evidence_level": "development_validation",
+  "confirmatory_launch_qualified": false,
+  "review_base": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+  "broad_sweep": {
+    "source_commit": "be8e2d12ce75a51db13c823952d8aa1184d72fcf",
+    "command": "python -m pytest -q --ignore=tests/preflight_trust --junitxml=full-suite.xml",
+    "exit_code": 1,
+    "junit_summary": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "11",
+      "skipped": "32",
+      "tests": "1413",
+      "time": "25.878",
+      "timestamp": "2026-09-15T10:00:41.493063+09:00",
+      "hostname": "localhost"
+    },
+    "failures": [
+      {
+        "test": "tests.redteam.test_worker_attacks.TestMaliciousWorkerOutput::test_forged_receipt_in_worker_output",
+        "classification": "namespace_permission_denied_before_candidate_execution"
+      },
+      {
+        "test": "tests.redteam.test_worker_attacks.TestMaliciousWorkerOutput::test_terminal_escape_output_is_inert_data",
+        "classification": "namespace_permission_denied_before_candidate_execution"
+      },
+      {
+        "test": "tests.redteam.test_worker_attacks.TestMaliciousWorkerOutput::test_oversized_output_capped",
+        "classification": "namespace_permission_denied_before_candidate_execution"
+      },
+      {
+        "test": "tests.test_sandbox_containment::test_success_path",
+        "classification": "namespace_permission_denied_before_candidate_execution"
+      },
+      {
+        "test": "tests.test_sandbox_containment::test_nonzero_exit_captured",
+        "classification": "namespace_permission_denied_before_candidate_execution"
+      },
+      {
+        "test": "tests.test_sandbox_containment::test_timeout_kills",
+        "classification": "namespace_permission_denied_before_candidate_execution"
+      },
+      {
+        "test": "tests.test_sandbox_containment::test_memory_cap_enforced",
+        "classification": "namespace_permission_denied_before_candidate_execution"
+      },
+      {
+        "test": "tests.test_sandbox_containment::test_fork_bomb_defused",
+        "classification": "namespace_permission_denied_before_candidate_execution"
+      },
+      {
+        "test": "tests.test_sandbox_containment::test_fs_allowlist_read_write",
+        "classification": "namespace_permission_denied_before_candidate_execution"
+      },
+      {
+        "test": "tests.test_traceability::test_checker_script_is_executable",
+        "classification": "baseline_file_mode_100644"
+      },
+      {
+        "test": "tests.test_traceability::test_checker_passes_on_repo",
+        "classification": "corrected_and_targeted_retest_passed"
+      }
+    ],
+    "text_log_completeness": "unconfirmed: captured log ends in failure detail; complete JUnit XML is retained separately",
+    "trust_suite_exclusion": "Trust suite targets pinned PR81 separately, not this main-derived integration branch",
+    "source_tree": "8588bb55bc744fbfd26c6cc5f9039f332cd89731"
+  },
+  "final_preparation_tools": {
+    "source_commit": "6cebc23c150fbdd00e95363d91c35e1b54ed9dc7",
+    "source_tree": "8685b5abbf9d1d0a503c05920e80235044f0cdd5",
+    "working_change": "documentation-only wording correction in docs/program/trust/architecture-invariants.md",
+    "tests_passed": 85,
+    "subtests_passed": 48,
+    "exit_code": 0,
+    "traceability_document_check": "PASS after correcting test-coverage wording",
+    "command": "python -m pytest -q tests/test_application_preflight.py tests/test_reproduce.py tests/test_reproduce_cli.py tests/test_program_science.py tests/test_adversarial_corpus.py tests/test_engineering_envelope.py tests/test_clean_machine_preflight.py",
+    "working_doc_sha256": "27ab00b389568b7eca4bb4307ebc59fd65f10eb68496526e68021cdf6aa812b4"
+  },
+  "trust": {
+    "target_commit": "30d1d020469d958d90969bc02946145c248e0adb",
+    "verdict": "INCOMPLETE",
+    "passed": 27,
+    "unknown": 13,
+    "known_gap": 3,
+    "manifest": "../trust/evidence/pr81-30d1d02/manifest.json",
+    "continuation": "Agent interrupted by automated security restriction after evidence was written; root validated artifact/runner/suite hashes and retained files without another sandbox run."
+  },
+  "external_model_calls": 0,
+  "artifacts": {
+    "full-suite.xml": "d0b6c7fa983740e97c04065f14289102254364124229a039f5d14687b1926bb8",
+    "full-suite.log": "98fe1b337b21df5f49f4ac787a76aa8d2ba66fb8537001617b54e39579fbf1b2",
+    "preparation.xml": "5b622235fec7fe6ccdb45629204ba2256c57ccc687d1e13825685c338eeba9fe",
+    "preparation.log": "770a00f8138f8a36be344c933c0c5f2673f9aa6a54de00ae7fb9804851586112",
+    "reconciled.xml": "fbac89c3d589f5ac460c64ce0768a2c1bea0674e9e182a08d405ae63f64fcc15",
+    "reconciled.log": "beb3e3efb80f713f6f5616e0b7b0c5f227c2969dfd282cd61cd7d52922dd8e14"
+  },
+  "reconciled_main": {
+    "main_commit": "72634fec8916917d97f8e4f36980b8caeeba16f5",
+    "tested_commit": "31dd64b77ca68fcd849c1760615776b4d2841381",
+    "tested_tree": "d9844e7ae0740cb0f6abd8640070ffc8a43e0533",
+    "exit_code": 1,
+    "pytest_tests_passed": 1275,
+    "subtests_passed": 278,
+    "skipped": 53,
+    "failed": 1,
+    "failure": "tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_unix_socket_rejected_by_snapshot",
+    "failure_reason": "PermissionError creating AF_UNIX socket before test exercises snapshot",
+    "independent_host_diagnostic": "Fresh interpreter also denies AF_UNIX creation; no bind or connection attempted",
+    "excluded_paths": [
+      "tests/preflight_trust",
+      "tests/redteam/test_worker_attacks.py",
+      "tests/test_sandbox_containment.py"
+    ],
+    "exclusion_reason": "Pinned trust suite has separate retained run; namespace-only suites already failed host prerequisites in the original broad sweep and were not retried",
+    "baseline_checker_mode": "fixed by merged traceability change; traceability tests pass in reconciled run",
+    "command": "python -m pytest -q --ignore=tests/preflight_trust --ignore=tests/redteam/test_worker_attacks.py --ignore=tests/test_sandbox_containment.py --junitxml=reconciled.xml"
+  },
+  "audit_applicability": {
+    "m4": [
+      {
+        "file": "residual/factory/m4_integrator.py",
+        "reviewed_blob": "7bd913d03be0f5784e4f7ef9588dc08a54339cc2",
+        "reconciled_blob": "7bd913d03be0f5784e4f7ef9588dc08a54339cc2"
+      },
+      {
+        "file": "residual/factory/m4_safety.py",
+        "reviewed_blob": "0b3e0ea72103e5f29d89dca6dfbbe1486213de72",
+        "reconciled_blob": "0b3e0ea72103e5f29d89dca6dfbbe1486213de72"
+      },
+      {
+        "file": "residual/factory/m4_sandbox.py",
+        "reviewed_blob": "eb0e10d8e6d6e39f2cfe914570da38f3a2342562",
+        "reconciled_blob": "eb0e10d8e6d6e39f2cfe914570da38f3a2342562"
+      },
+      {
+        "file": "residual/factory/m4_git_evidence.py",
+        "reviewed_blob": "779cf672aee74600084bed898ec6371f6a89bf60",
+        "reconciled_blob": "779cf672aee74600084bed898ec6371f6a89bf60"
+      },
+      {
+        "file": "residual/factory/_isolated_child.py",
+        "reviewed_blob": "a5fc261cc05d531db245dbe99012ca929238cb03",
+        "reconciled_blob": "a5fc261cc05d531db245dbe99012ca929238cb03"
+      }
+    ],
+    "vq": {
+      "reviewed_tree": "8ebc2303f0701b82ea0d14fac6f1d49118838d71",
+      "reconciled_tree": "8ebc2303f0701b82ea0d14fac6f1d49118838d71"
+    },
+    "scope": "same source bytes only; no new namespace execution or merged-main security qualification inferred"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "columns": [
+    "verifier_revision",
+    "corpus_sha256",
+    "bin_lower",
+    "bin_upper",
+    "mean_predicted_defect_probability",
+    "observed_defect_rate",
+    "count",
+    "unknown",
+    "execution_error"
+  ],
+  "data": [],
+  "evidence_level": "empty_template",
+  "plot_id": "verifier_calibration",
+  "protocol_sha256": "8f0010b51b932af1fa0f9d3018bf6e02029eab784c9fe4f9885bc99667949d59",
+  "schema_version": "residual.paper-template.v1",
+  "title": "Verifier confidence calibration",
+  "x": "mean_predicted_defect_probability",
+  "y": "observed_defect_rate",
+  "y_label": "Independently labeled defect rate"
+}

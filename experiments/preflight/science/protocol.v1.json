@@ -1,0 +1,468 @@
+{
+  "analysis_document": "docs/program/science/analysis-plan.md",
+  "base_commit": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+  "claims": [
+    {
+      "category": "hypothesis",
+      "evidence": [],
+      "id": "C01"
+    },
+    {
+      "category": "hypothesis",
+      "evidence": [],
+      "id": "C02"
+    },
+    {
+      "category": "hypothesis",
+      "evidence": [],
+      "id": "C03"
+    },
+    {
+      "category": "hypothesis",
+      "evidence": [],
+      "id": "C04"
+    },
+    {
+      "category": "planned_or_under_review",
+      "evidence": [],
+      "id": "C05"
+    },
+    {
+      "category": "planned_or_under_review",
+      "evidence": [],
+      "id": "C06"
+    },
+    {
+      "category": "planned_or_under_review",
+      "evidence": [],
+      "id": "C07"
+    },
+    {
+      "category": "planned_or_under_review",
+      "evidence": [],
+      "id": "C08"
+    },
+    {
+      "category": "planned_or_under_review",
+      "evidence": [],
+      "id": "C09"
+    },
+    {
+      "category": "planned_or_under_review",
+      "evidence": [],
+      "id": "C10"
+    }
+  ],
+  "comparison": {
+    "conclusions": [],
+    "criteria": [
+      "authority_model",
+      "deterministic_integration",
+      "evidence_provenance",
+      "verifier_isolation",
+      "replayability",
+      "heterogeneous_routing",
+      "cost_control",
+      "failure_semantics"
+    ],
+    "missing_evidence": "unknown, not absent",
+    "rubric_document": "docs/program/science/comparison-rubric.md",
+    "targets": [
+      "LangGraph",
+      "CrewAI",
+      "AutoGen",
+      "OpenAI Agents SDK",
+      "Temporal-style workflow systems",
+      "conventional CI/CD",
+      "Residual"
+    ]
+  },
+  "configurations": [
+    {
+      "concept": "raw final output",
+      "id": "R0",
+      "qualified_adapter_sha256": null
+    },
+    {
+      "concept": "orchestrated",
+      "id": "R1",
+      "qualified_adapter_sha256": null
+    },
+    {
+      "concept": "contracted",
+      "id": "R2",
+      "qualified_adapter_sha256": null
+    },
+    {
+      "concept": "constrained observed verified",
+      "id": "R3",
+      "qualified_adapter_sha256": null
+    },
+    {
+      "concept": "COVD",
+      "id": "R4",
+      "qualified_adapter_sha256": null
+    },
+    {
+      "concept": "dynamic swarm",
+      "id": "R5",
+      "qualified_adapter_sha256": null
+    }
+  ],
+  "confirmatory_launch_enabled": false,
+  "degradation": {
+    "all_generating_roles_use_assigned_class": true,
+    "analysis": "prespecified descriptive paired contrast; conditional attenuation plus goodput",
+    "configurations": [
+      "R0",
+      "R4",
+      "R5"
+    ],
+    "deterministic_verifier_fixed": true,
+    "independent_grader_fixed": true,
+    "model_classes": [
+      "S",
+      "M",
+      "W",
+      "L"
+    ]
+  },
+  "heterogeneous_routes": [
+    {
+      "coordinator": "S",
+      "deterministic_acceptance": "fixed M4 verifier set",
+      "id": "H0",
+      "reviewer": "S",
+      "workers": [
+        "S",
+        "S",
+        "S",
+        "S"
+      ]
+    },
+    {
+      "coordinator": "S",
+      "deterministic_acceptance": "fixed M4 verifier set",
+      "id": "H1",
+      "reviewer": "S",
+      "workers": [
+        "W",
+        "W",
+        "W",
+        "W"
+      ]
+    },
+    {
+      "coordinator": "W",
+      "deterministic_acceptance": "fixed M4 verifier set",
+      "id": "H2",
+      "reviewer": "S",
+      "workers": [
+        "W",
+        "W",
+        "W",
+        "W"
+      ]
+    },
+    {
+      "coordinator": "L",
+      "deterministic_acceptance": "fixed M4 verifier set",
+      "id": "H3",
+      "reviewer": "S",
+      "workers": [
+        "L",
+        "L",
+        "L",
+        "L"
+      ]
+    }
+  ],
+  "inference": {
+    "alpha": 0.05,
+    "bootstrap_degenerate": "inferential coverage unavailable",
+    "bootstrap_draws": 20000,
+    "bootstrap_method": "paired whole-family percentile",
+    "bootstrap_zero_denominator": "entire ratio CI unavailable; report undefined draw fraction",
+    "ci_not_simultaneous": true,
+    "effect_direction": "treatment minus control",
+    "effect_unit": "percentage_points",
+    "exact_swap_max_families": 20,
+    "familywise_quantiles": [
+      0.00625,
+      0.99375
+    ],
+    "holm_family": [
+      {
+        "alternative": "two-sided",
+        "control": "R0",
+        "endpoint": "accepted_error_rate",
+        "id": "H01",
+        "treatment": "R4"
+      },
+      {
+        "alternative": "two-sided",
+        "control": "R0",
+        "endpoint": "verified_goodput",
+        "id": "H02",
+        "treatment": "R4"
+      },
+      {
+        "alternative": "two-sided",
+        "control": "R4",
+        "endpoint": "accepted_error_rate",
+        "id": "H03",
+        "treatment": "R5"
+      },
+      {
+        "alternative": "two-sided",
+        "control": "R4",
+        "endpoint": "verified_goodput",
+        "id": "H04",
+        "treatment": "R5"
+      }
+    ],
+    "implementation_status": "not_implemented_by_this_lane",
+    "monte_carlo_p": "(extreme+1)/(draws+1)",
+    "paired_test": "whole-family sample-label swaps under exchangeability null",
+    "practical_aer_decrease": 0.01,
+    "practical_goodput_increase": 0.05,
+    "prng": "Python random.Random; retain runtime and sampled-index hashes",
+    "quantile_interpolation": "linear",
+    "quantiles": [
+      0.025,
+      0.975
+    ],
+    "secondary_inference": "prespecified descriptive; no confirmatory p-values",
+    "seed_derivation": "int.from_bytes(SHA256((protocol_sha256+\":\"+analysis_id).encode(\"utf-8\")).digest(),\"big\")",
+    "swap_draws": 99999,
+    "two_sided_tail": "absolute statistic >= abs(observed), ties included",
+    "unavailable_p": 1
+  },
+  "launch_gates": [
+    {
+      "evidence_sha256": null,
+      "id": "m4_qualification",
+      "status": "unresolved"
+    },
+    {
+      "evidence_sha256": null,
+      "id": "r0_r5_adapter_mapping",
+      "status": "unresolved"
+    },
+    {
+      "evidence_sha256": null,
+      "id": "heldout_workload",
+      "status": "unresolved"
+    },
+    {
+      "evidence_sha256": null,
+      "id": "independent_graders",
+      "status": "unresolved"
+    },
+    {
+      "evidence_sha256": null,
+      "id": "model_resolution",
+      "status": "unresolved"
+    },
+    {
+      "evidence_sha256": null,
+      "id": "prompt_environment_budgets_prices",
+      "status": "unresolved"
+    },
+    {
+      "evidence_sha256": null,
+      "id": "exact_schedule",
+      "status": "unresolved"
+    },
+    {
+      "evidence_sha256": null,
+      "id": "power_design",
+      "status": "unresolved"
+    },
+    {
+      "evidence_sha256": null,
+      "id": "paired_inference",
+      "status": "unresolved"
+    },
+    {
+      "evidence_sha256": null,
+      "id": "offline_reproduction",
+      "status": "unresolved"
+    },
+    {
+      "evidence_sha256": null,
+      "id": "external_commitment",
+      "status": "unresolved"
+    }
+  ],
+  "metrics": {
+    "acceptance_rate": {
+      "denominator": "all scheduled workload cells",
+      "numerator": "established acceptances"
+    },
+    "accepted_error_burden": {
+      "denominator": "all scheduled workload cells",
+      "numerator": "known incorrect accepted"
+    },
+    "accepted_error_rate": {
+      "denominator": "all established acceptances",
+      "numerator": "known incorrect accepted",
+      "unknown_grade": "identification bounds; no fully identified point",
+      "zero_denominator": null
+    },
+    "cost_per_useful_acceptance": {
+      "denominator": "independently correct accepted",
+      "incomplete_cost": null,
+      "numerator": "all attempt fees plus declared local occupancy",
+      "zero_denominator": null
+    },
+    "fault_containment_rate": {
+      "denominator": "all scheduled injected faults",
+      "numerator": "faults proven contained",
+      "requires_fault_labels": true
+    },
+    "raw_correctness": {
+      "denominator": "all scheduled workload cells",
+      "numerator": "independently correct raw proposals",
+      "report_unknown_bounds": true
+    },
+    "verified_goodput": {
+      "denominator": "all scheduled workload cells",
+      "numerator": "independently correct accepted",
+      "unknown_success_contribution": 0
+    }
+  },
+  "missingness": {
+    "acceptance_unknown_distinct_from_rejection": true,
+    "aer_unknown_acceptance_bounds": "[bad/(accepted+unknown_acceptance),(bad+unknown_grade+unknown_acceptance)/(accepted+unknown_acceptance)]",
+    "aer_unknown_grade_bounds": "[bad/accepted,(bad+unknown_grade)/accepted]",
+    "artifact_corruption": "block numerical report",
+    "drop_scheduled_cells": false,
+    "missing_cost_is_zero": false,
+    "replacement_runs": false,
+    "unknown_is_pass": false
+  },
+  "model_selection": {
+    "candidate_review": "experiments/preflight/science/model-candidate-review.v1.json",
+    "fallback": false,
+    "rank_from_experimental_performance": false,
+    "resolve_before_confirmatory_outcomes": true,
+    "rule": "eligible catalog; lexical provider/family with three documented distinct capacities; minimum/lower-median/maximum; largest fitting local parameter count",
+    "rule_document": "docs/program/science/models-routing.md",
+    "selected_ids": {
+      "L": null,
+      "M": null,
+      "S": null,
+      "W": null
+    }
+  },
+  "negative_results": {
+    "amendments": "separate version with outcome-access declaration; exploratory after access",
+    "no_result_driven_model_or_task_changes": true,
+    "preserve_failed_aborted_missing": true,
+    "publish_all_locked_cells": true
+  },
+  "pair_fields": [
+    "family_id",
+    "task_id",
+    "repeat_index",
+    "configuration",
+    "model_class",
+    "topology"
+  ],
+  "pareto": {
+    "additional_panel": "latency_seconds",
+    "dominance_frequency": "descriptive only",
+    "equal_points": "retain",
+    "maximize": [
+      "verified_goodput"
+    ],
+    "minimize": [
+      "accepted_error_rate",
+      "total_cost_usd"
+    ],
+    "missing_dimension": "indeterminate"
+  },
+  "population": {
+    "balanced": true,
+    "cluster": "independent_task_family",
+    "cross_trial_cache": false,
+    "cross_trial_learning": false,
+    "minimum_families": 30,
+    "repeats_per_task": 10,
+    "sample_size": null,
+    "tasks_per_family": 3
+  },
+  "power_design": {
+    "alpha_for_design": 0.0125,
+    "baseline_goodput": [
+      0.2,
+      0.5,
+      0.8
+    ],
+    "code_sha256": null,
+    "family_candidates": [
+      30,
+      40,
+      50,
+      60,
+      70,
+      80,
+      90,
+      100,
+      110,
+      120,
+      130,
+      140,
+      150,
+      160,
+      170,
+      180,
+      190,
+      200
+    ],
+    "generative_model_sha256": null,
+    "goodput_effect": 0.05,
+    "no_post_outcome_sample_size_change": true,
+    "seed": 20260915,
+    "selection": "smallest N satisfying all predeclared scenarios; else descriptive",
+    "simulation_draws": 10000,
+    "status": "not_calculated",
+    "target_power": 0.8,
+    "within_family_correlation": [
+      0.1,
+      0.3,
+      0.5
+    ]
+  },
+  "prepared_date": "2026-09-15",
+  "repetitions": 10,
+  "result_access": "no_confirmatory_outcomes_collected_by_this_lane",
+  "schema_version": "residual.science-preparation.v1",
+  "source_references": [
+    {
+      "topic": "paired bootstrap",
+      "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.bootstrap.html"
+    },
+    {
+      "topic": "paired label swaps and add-one Monte Carlo p",
+      "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.permutation_test.html"
+    },
+    {
+      "topic": "Holm 1979 sequential multiplicity procedure",
+      "url": "https://www.jstor.org/stable/4615733"
+    }
+  ],
+  "status": "preparation_frozen_launch_blocked",
+  "templates": [
+    "reliability_curve",
+    "acceptance_correctness",
+    "reliability_cost_pareto",
+    "model_degradation",
+    "orchestration_tax",
+    "verifier_roc",
+    "verifier_calibration",
+    "soak_failure"
+  ],
+  "version": "1.0.0"
+}

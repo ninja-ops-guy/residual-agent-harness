@@ -1,0 +1,1 @@
+protocol_sha256,bundle_sha256,analysis_sha256,family_id,task_id,repeat_index,configuration,model_class,topology,predicted_tax,observed_tax,tax_unit,single_worker_cost,swarm_cost,selected_topology,controller_revision

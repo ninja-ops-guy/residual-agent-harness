@@ -1,0 +1,49 @@
+{
+  "candidates": {
+    "broken": {
+      "debug": false,
+      "host": "0.0.0.0",
+      "port": 8765
+    },
+    "good": {
+      "debug": false,
+      "host": "127.0.0.1",
+      "port": 8765
+    },
+    "missing": null
+  },
+  "expected": {
+    "debug": false,
+    "host": "127.0.0.1",
+    "port": 8765
+  },
+  "id": "configuration-generation",
+  "input": {
+    "bind": "loopback",
+    "debug": false,
+    "port": 8765
+  },
+  "intent_document": {
+    "intent": "Generate a local development listener configuration.",
+    "requirements": [
+      {
+        "acceptance": [
+          "Emit candidate.json only."
+        ],
+        "id": "REQ-prepare",
+        "statement": "Create a candidate from the supplied public fixture inputs."
+      },
+      {
+        "acceptance": [
+          "Listen only on 127.0.0.1 port 8765 with debug disabled."
+        ],
+        "depends_on": [
+          "REQ-prepare"
+        ],
+        "id": "REQ-review",
+        "statement": "Assess the candidate against independently authored requirements."
+      }
+    ]
+  },
+  "schema_version": "residual.application-case.v1"
+}

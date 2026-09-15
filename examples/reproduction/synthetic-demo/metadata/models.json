@@ -1,0 +1,11 @@
+{
+  "models": [
+    {
+      "model_id": "fixture-model",
+      "observed_revision": null,
+      "parameters": {},
+      "provider": "none",
+      "requested_revision": "synthetic-v1"
+    }
+  ]
+}

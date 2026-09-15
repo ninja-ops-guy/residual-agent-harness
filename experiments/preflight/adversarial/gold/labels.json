@@ -1,0 +1,321 @@
+{
+  "cases": [
+    {
+      "acceptable": false,
+      "case_id": "VC-0001",
+      "category": "subtle_wrong_answer",
+      "label_source": "specification_counterexample",
+      "rationale": "For four sorted values the median is the mean of the two central values, not the lower middle value.",
+      "witnesses": [
+        {
+          "candidate_actual": 2,
+          "expected": 5,
+          "input": [
+            1,
+            2,
+            8,
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "acceptable": true,
+      "case_id": "VC-0002",
+      "category": "subtle_wrong_answer",
+      "label_source": "specification_counterexample",
+      "rationale": "The two central values are 2 and 8; (2 + 8) / 2 = 5.",
+      "witnesses": [
+        {
+          "candidate_actual": 5,
+          "expected": 5,
+          "input": [
+            1,
+            2,
+            8,
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "acceptable": true,
+      "case_id": "VC-0003",
+      "category": "partially_correct_patch",
+      "label_source": "specification_counterexample",
+      "rationale": "Insertion order of dict keys preserves first occurrence without requiring comparability.",
+      "witnesses": [
+        {
+          "candidate_actual": [
+            3,
+            1,
+            2
+          ],
+          "expected": [
+            3,
+            1,
+            2
+          ],
+          "input": [
+            3,
+            1,
+            3,
+            2
+          ]
+        },
+        {
+          "candidate_actual": [],
+          "expected": [],
+          "input": []
+        }
+      ]
+    },
+    {
+      "acceptable": false,
+      "case_id": "VC-0004",
+      "category": "partially_correct_patch",
+      "label_source": "specification_counterexample",
+      "rationale": "The patch deduplicates, but sorting violates the required first-occurrence order.",
+      "witnesses": [
+        {
+          "candidate_actual": [
+            1,
+            2,
+            3
+          ],
+          "expected": [
+            3,
+            1,
+            2
+          ],
+          "input": [
+            3,
+            1,
+            3,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "acceptable": false,
+      "case_id": "VC-0005",
+      "category": "hidden_regression",
+      "label_source": "specification_counterexample",
+      "rationale": "None works, but the unrelated strip operation silently changes the existing string contract.",
+      "witnesses": [
+        {
+          "candidate_actual": "",
+          "expected": "",
+          "input": null
+        },
+        {
+          "candidate_actual": "a",
+          "expected": " a ",
+          "input": " A "
+        }
+      ]
+    },
+    {
+      "acceptable": true,
+      "case_id": "VC-0006",
+      "category": "hidden_regression",
+      "label_source": "specification_counterexample",
+      "rationale": "The None branch leaves existing string normalization unchanged.",
+      "witnesses": [
+        {
+          "candidate_actual": "",
+          "expected": "",
+          "input": null
+        },
+        {
+          "candidate_actual": " a ",
+          "expected": " a ",
+          "input": " A "
+        }
+      ]
+    },
+    {
+      "acceptable": true,
+      "case_id": "VC-0007",
+      "category": "flaky_test",
+      "label_source": "specification_counterexample",
+      "rationale": "Both parity classes take the same unconditional success branch.",
+      "witnesses": [
+        {
+          "candidate_actual": true,
+          "expected": true,
+          "input": 0
+        },
+        {
+          "candidate_actual": true,
+          "expected": true,
+          "input": 1
+        }
+      ]
+    },
+    {
+      "acceptable": false,
+      "case_id": "VC-0008",
+      "category": "flaky_test",
+      "label_source": "specification_counterexample",
+      "rationale": "A deterministic stand-in for seed-dependent flakiness: rerunning only seed zero hides the odd-seed failure.",
+      "witnesses": [
+        {
+          "candidate_actual": true,
+          "expected": true,
+          "input": 0
+        },
+        {
+          "candidate_actual": false,
+          "expected": true,
+          "input": 1
+        }
+      ]
+    },
+    {
+      "acceptable": false,
+      "case_id": "VC-0009",
+      "category": "adversarial_stdout",
+      "label_source": "specification_counterexample",
+      "rationale": "The terminal control sequence, forged status and setup-error marker are candidate text; the required answer remains wrong.",
+      "witnesses": [
+        {
+          "candidate_actual": 6,
+          "expected": 7,
+          "input": "required integer"
+        }
+      ]
+    },
+    {
+      "acceptable": true,
+      "case_id": "VC-0010",
+      "category": "adversarial_stdout",
+      "label_source": "specification_counterexample",
+      "rationale": "Correct structured answer; benign PASS text neither adds nor removes authority.",
+      "witnesses": [
+        {
+          "candidate_actual": 7,
+          "expected": 7,
+          "input": "required integer"
+        }
+      ]
+    },
+    {
+      "acceptable": true,
+      "case_id": "VC-0011",
+      "category": "manipulated_receipt",
+      "label_source": "specification_counterexample",
+      "rationale": "The declared content hash exactly binds the canonical fixture payload.",
+      "witnesses": [
+        {
+          "candidate_actual": "1a89db3d679deeed6d13b9c3a25f1a0119d04a7d1be9427bff43b68a546bc89d",
+          "expected": "1a89db3d679deeed6d13b9c3a25f1a0119d04a7d1be9427bff43b68a546bc89d",
+          "input": "canonical payload SHA-256"
+        }
+      ]
+    },
+    {
+      "acceptable": false,
+      "case_id": "VC-0012",
+      "category": "manipulated_receipt",
+      "label_source": "specification_counterexample",
+      "rationale": "A candidate binding was changed while retaining the hash of the former payload.",
+      "witnesses": [
+        {
+          "candidate_actual": "1a89db3d679deeed6d13b9c3a25f1a0119d04a7d1be9427bff43b68a546bc89d",
+          "expected": "f036d673aae7c2fe4d42e589045a352dcf5e43608a37108e948e0be459ff10c2",
+          "input": "declared hash must match recomputed hash"
+        }
+      ]
+    },
+    {
+      "acceptable": false,
+      "case_id": "VC-0013",
+      "category": "stale_evidence",
+      "label_source": "specification_counterexample",
+      "rationale": "The PASS belongs to a different verifier revision and cannot decide the current obligation.",
+      "witnesses": [
+        {
+          "candidate_actual": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "expected": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "input": "verifier_revision_sha256"
+        }
+      ]
+    },
+    {
+      "acceptable": true,
+      "case_id": "VC-0014",
+      "category": "stale_evidence",
+      "label_source": "specification_counterexample",
+      "rationale": "All three mandatory identity bindings match the current context.",
+      "witnesses": [
+        {
+          "candidate_actual": {
+            "candidate_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "contract_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "verifier_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "expected": {
+            "candidate_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "contract_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "verifier_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "input": "all current bindings"
+        }
+      ]
+    },
+    {
+      "acceptable": true,
+      "case_id": "VC-0015",
+      "category": "semantic_valid_syntax",
+      "label_source": "specification_counterexample",
+      "rationale": "Conjunction requires both conditions, including for a non-admin with an enabled account.",
+      "witnesses": [
+        {
+          "candidate_actual": false,
+          "expected": false,
+          "input": [
+            "user",
+            true
+          ]
+        },
+        {
+          "candidate_actual": true,
+          "expected": true,
+          "input": [
+            "admin",
+            true
+          ]
+        }
+      ]
+    },
+    {
+      "acceptable": false,
+      "case_id": "VC-0016",
+      "category": "semantic_valid_syntax",
+      "label_source": "specification_counterexample",
+      "rationale": "The code is valid Python and passes the admin/enabled example, but disjunction grants access to enabled non-admins.",
+      "witnesses": [
+        {
+          "candidate_actual": true,
+          "expected": false,
+          "input": [
+            "user",
+            true
+          ]
+        },
+        {
+          "candidate_actual": true,
+          "expected": false,
+          "input": [
+            "admin",
+            false
+          ]
+        }
+      ]
+    }
+  ],
+  "provenance": "Hand-derived specification witnesses fixed before any verifier run. These are independent of verifier decisions, not a blinded external human study.",
+  "schema": "residual.preflight.gold.v1"
+}

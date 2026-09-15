@@ -1,0 +1,175 @@
+{
+  "artifacts": [
+    {
+      "bytes": 40,
+      "path": "attachments/prompt.txt",
+      "sha256": "78181c7f351d3cdc0bd8b81d9ab85e9d588f25edb617d1571f97f5cfa08b4c91"
+    },
+    {
+      "bytes": 80,
+      "path": "attachments/protocol.txt",
+      "sha256": "93820ca2f73712ed9b53941eef691629f7d8cc80ced89a94d1faca77c0685d1f"
+    },
+    {
+      "bytes": 0,
+      "path": "evidence/receipts.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "path": "evidence/scheduler.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "path": "evidence/verifier.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 166,
+      "path": "metadata/environment.json",
+      "sha256": "19495c141ed2ce5c72944c6ee45767a09a190a997bfec9918f67c77d240dc276"
+    },
+    {
+      "bytes": 208,
+      "path": "metadata/git.json",
+      "sha256": "2b233894e070bf0534917b16d1af270d70bceb5b4f98f1f9395ec7ee9bb6643d"
+    },
+    {
+      "bytes": 195,
+      "path": "metadata/models.json",
+      "sha256": "81302e921ef393aa588593ffc358858652a8b1db0e61feefd47b3bf54315c961"
+    },
+    {
+      "bytes": 195,
+      "path": "metadata/prompts.json",
+      "sha256": "5c271dbf06d17328b1949776668df5d67508a620acc17b7836fe7273be8baf8e"
+    },
+    {
+      "bytes": 211,
+      "path": "metadata/protocol.json",
+      "sha256": "6cd251a99975ffa7c9234d9e50951bdb57b9c1e7f13b56a1b24013fadea63088"
+    },
+    {
+      "bytes": 1355,
+      "path": "metadata/workload.json",
+      "sha256": "de56f5ba18403f42eec06e6a08b50dbb75fd98a8d0716776335badeff3eb3b78"
+    },
+    {
+      "bytes": 1293,
+      "path": "records/cells.jsonl",
+      "sha256": "28f2589476645beca9e4d259dae47a3b9f1f9cab3d515f16c11a96dfdeedff50"
+    },
+    {
+      "bytes": 166,
+      "path": "records/failures.jsonl",
+      "sha256": "0728fccb26b30db354a335f1bb1a7ada91066466639153bc7f6beb594c7df4d8"
+    },
+    {
+      "bytes": 795,
+      "path": "records/timing.jsonl",
+      "sha256": "e7dbe200bf8bc4047da8ca1120c7daf1b564ea1e7be7f4c5705a917f26948572"
+    },
+    {
+      "bytes": 1273,
+      "path": "records/usage.jsonl",
+      "sha256": "9203ea1ad09f761979354d7c4fec0ac0a050cccd8ea38831e8997e6b27552e58"
+    },
+    {
+      "bytes": 77,
+      "path": "reproduce.txt",
+      "sha256": "1955154167f77e7c5a8c022332b06ee39f148cbb07620c576812cc8b37516f00"
+    },
+    {
+      "bytes": 0,
+      "path": "streams/stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "path": "streams/stdout.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "evidence_mode": "synthetic",
+  "expected_cells": [
+    {
+      "cell_id": "R0-task1",
+      "configuration": "R0",
+      "family_id": "family1",
+      "model_class": "synthetic",
+      "repeat_index": 0,
+      "task_id": "task1",
+      "topology": "fixture"
+    },
+    {
+      "cell_id": "R0-task2",
+      "configuration": "R0",
+      "family_id": "family2",
+      "model_class": "synthetic",
+      "repeat_index": 0,
+      "task_id": "task2",
+      "topology": "fixture"
+    },
+    {
+      "cell_id": "R0-task3",
+      "configuration": "R0",
+      "family_id": "family3",
+      "model_class": "synthetic",
+      "repeat_index": 0,
+      "task_id": "task3",
+      "topology": "fixture"
+    },
+    {
+      "cell_id": "R5-task1",
+      "configuration": "R5",
+      "family_id": "family1",
+      "model_class": "synthetic",
+      "repeat_index": 0,
+      "task_id": "task1",
+      "topology": "fixture"
+    },
+    {
+      "cell_id": "R5-task2",
+      "configuration": "R5",
+      "family_id": "family2",
+      "model_class": "synthetic",
+      "repeat_index": 0,
+      "task_id": "task2",
+      "topology": "fixture"
+    },
+    {
+      "cell_id": "R5-task3",
+      "configuration": "R5",
+      "family_id": "family3",
+      "model_class": "synthetic",
+      "repeat_index": 0,
+      "task_id": "task3",
+      "topology": "fixture"
+    }
+  ],
+  "run_id": "synthetic-demo",
+  "schema_version": "residual.experiment-bundle.v1",
+  "source_coverage": {
+    "receipts": {
+      "reason": "Synthetic fixture; no Station, process, or model execution occurred.",
+      "status": "not_applicable"
+    },
+    "scheduler": {
+      "reason": "Synthetic fixture; no Station, process, or model execution occurred.",
+      "status": "not_applicable"
+    },
+    "stderr": {
+      "reason": "Synthetic fixture; no Station, process, or model execution occurred.",
+      "status": "not_applicable"
+    },
+    "stdout": {
+      "reason": "Synthetic fixture; no Station, process, or model execution occurred.",
+      "status": "not_applicable"
+    },
+    "verifier": {
+      "reason": "Synthetic fixture; no Station, process, or model execution occurred.",
+      "status": "not_applicable"
+    }
+  }
+}

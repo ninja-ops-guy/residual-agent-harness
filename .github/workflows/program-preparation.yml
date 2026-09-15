@@ -1,0 +1,71 @@
+name: Program preparation tools (not study qualification)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/program-preparation.yml'
+      - 'docs/program/**'
+      - 'experiments/preflight/**'
+      - 'examples/application-preflight/**'
+      - 'examples/reproduction/**'
+      - 'residual/reproduce.py'
+      - 'residual/cli.py'
+      - 'scripts/*preflight.py'
+      - 'scripts/engineering_envelope.py'
+      - 'scripts/paper_templates.py'
+      - 'scripts/validate_adversarial_corpus.py'
+      - 'tests/test_*preflight.py'
+      - 'tests/test_reproduce*.py'
+      - 'tests/test_program_science.py'
+      - 'tests/test_adversarial_corpus.py'
+      - 'tests/test_engineering_envelope.py'
+      - 'tests/preflight_trust/**'
+      - 'pyproject.toml'
+
+permissions:
+  contents: read
+
+jobs:
+  tools:
+    name: Offline preparation contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install preparation test dependencies
+        run: python -m pip install '.[preflight]'
+      - name: Check new tools and frozen artifact contracts
+        run: >-
+          python -m pytest -q
+          tests/test_application_preflight.py
+          tests/test_reproduce.py
+          tests/test_reproduce_cli.py
+          tests/test_program_science.py
+          tests/test_adversarial_corpus.py
+          tests/test_engineering_envelope.py
+          tests/test_clean_machine_preflight.py
+      - name: Reconstruct synthetic retained bundle
+        run: python -m residual reproduce synthetic-demo --runs-dir examples/reproduction --output reproduction.json
+      - name: Verify inert application fixtures
+        run: python scripts/application_preflight.py --output application-preflight.json
+      - name: Validate frozen verifier corpus
+        run: python scripts/validate_adversarial_corpus.py validate
+      - name: Retain development reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: program-preparation-development-reports
+          path: |
+            reproduction.json
+            application-preflight.json
+          if-no-files-found: warn
+
+# This job validates preparation tools. It deliberately does not execute R0–R5,
+# call providers, interpret skipped pinned-PR reviews as trust qualification, or
+# run sandbox probes against an unqualified host. Retained trust manifests carry
+# their own INCOMPLETE/FAIL/PASS verdict and exact target/source identities.

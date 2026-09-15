@@ -1,0 +1,48 @@
+{
+  "candidates": {
+    "broken": {
+      "file": "count.py",
+      "replace": "return len(items) - 1",
+      "with": "return len(items) + 1"
+    },
+    "good": {
+      "file": "count.py",
+      "replace": "return len(items) - 1",
+      "with": "return len(items)"
+    },
+    "missing": null
+  },
+  "expected": {
+    "file": "count.py",
+    "replace": "return len(items) - 1",
+    "with": "return len(items)"
+  },
+  "id": "code-repair",
+  "input": {
+    "before": "return len(items) - 1",
+    "file": "count.py"
+  },
+  "intent_document": {
+    "intent": "Repair an off-by-one count without running supplied code.",
+    "requirements": [
+      {
+        "acceptance": [
+          "Emit candidate.json only."
+        ],
+        "id": "REQ-prepare",
+        "statement": "Create a candidate from the supplied public fixture inputs."
+      },
+      {
+        "acceptance": [
+          "The replacement returns the number of items, including zero."
+        ],
+        "depends_on": [
+          "REQ-prepare"
+        ],
+        "id": "REQ-review",
+        "statement": "Assess the candidate against independently authored requirements."
+      }
+    ]
+  },
+  "schema_version": "residual.application-case.v1"
+}

@@ -1,0 +1,11 @@
+{
+  "artifact": {
+    "candidate_source": "def smoke(seed):\n    return True\n",
+    "format": "python_source"
+  },
+  "case_id": "VC-0007",
+  "schema": "residual.preflight.candidate.v1",
+  "task": {
+    "instruction": "The smoke check must deterministically return True for every integer seed. Seed is a test input, not a relaxation of the requirement."
+  }
+}

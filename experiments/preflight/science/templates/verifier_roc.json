@@ -1,0 +1,25 @@
+{
+  "columns": [
+    "verifier_revision",
+    "corpus_sha256",
+    "threshold",
+    "true_positive_rate",
+    "false_positive_rate",
+    "decision_coverage",
+    "tp",
+    "fp",
+    "tn",
+    "fn",
+    "unknown",
+    "execution_error"
+  ],
+  "data": [],
+  "evidence_level": "empty_template",
+  "plot_id": "verifier_roc",
+  "protocol_sha256": "8f0010b51b932af1fa0f9d3018bf6e02029eab784c9fe4f9885bc99667949d59",
+  "schema_version": "residual.paper-template.v1",
+  "title": "Verifier defect detection: decision coverage shown separately",
+  "x": "false_positive_rate",
+  "y": "true_positive_rate",
+  "y_label": "Defect-detection true-positive rate"
+}

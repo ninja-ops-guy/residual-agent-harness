@@ -1,0 +1,30 @@
+{
+  "categories": [
+    "R0",
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5"
+  ],
+  "columns": [
+    "configuration",
+    "metric",
+    "estimate",
+    "ci_low",
+    "ci_high",
+    "numerator",
+    "denominator",
+    "unknown",
+    "ci_status"
+  ],
+  "data": [],
+  "evidence_level": "empty_template",
+  "plot_id": "reliability_curve",
+  "protocol_sha256": "8f0010b51b932af1fa0f9d3018bf6e02029eab784c9fe4f9885bc99667949d59",
+  "schema_version": "residual.paper-template.v1",
+  "title": "R0\u2013R5 reliability and useful acceptance",
+  "x": "configuration",
+  "y": "rate",
+  "y_label": "Rate (with denominator)"
+}

@@ -1,0 +1,52 @@
+{
+  "candidates": {
+    "broken": {
+      "action": "disable-account",
+      "classification": "confirmed-compromise",
+      "compromise_confirmed": true,
+      "event_id": "event-1"
+    },
+    "good": {
+      "action": "operator-review",
+      "classification": "failed-authentication",
+      "compromise_confirmed": false,
+      "event_id": "event-1"
+    },
+    "missing": null
+  },
+  "expected": {
+    "action": "operator-review",
+    "classification": "failed-authentication",
+    "compromise_confirmed": false,
+    "event_id": "event-1"
+  },
+  "id": "security-triage",
+  "input": {
+    "event_id": "event-1",
+    "result": "failed",
+    "successful_logins": 0
+  },
+  "intent_document": {
+    "intent": "Classify a synthetic failed-login record for operator review.",
+    "requirements": [
+      {
+        "acceptance": [
+          "Emit candidate.json only."
+        ],
+        "id": "REQ-prepare",
+        "statement": "Create a candidate from the supplied public fixture inputs."
+      },
+      {
+        "acceptance": [
+          "One failed login is insufficient to claim compromise; propose operator review only."
+        ],
+        "depends_on": [
+          "REQ-prepare"
+        ],
+        "id": "REQ-review",
+        "statement": "Assess the candidate against independently authored requirements."
+      }
+    ]
+  },
+  "schema_version": "residual.application-case.v1"
+}

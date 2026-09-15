@@ -1,0 +1,2467 @@
+{
+  "inventory_sha256": "96ee1b35e9ac1fa1fb9f288a7efbac040de14b64f1aa55158a6d9505e9612c81",
+  "kind": "source-inspection-only",
+  "records": [
+    {
+      "bytes": 25306,
+      "git_sha": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+      "path": "residual/factory/m4_integrator.py",
+      "sha256": "7e1e34e806149db2f9ef737387756bc187ce83d1396e13c45ff9574064519cde",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/dec571992a97b4ae80f0310aa32ffd8f542aef8c/residual/factory/m4_integrator.py",
+      "symbols": [
+        {
+          "first_line": 34,
+          "last_line": 35,
+          "name": "M4IntegrationError"
+        },
+        {
+          "first_line": 38,
+          "last_line": 39,
+          "name": "IntegrationConflictError"
+        },
+        {
+          "first_line": 42,
+          "last_line": 45,
+          "name": "ProjectVerificationError"
+        },
+        {
+          "first_line": 49,
+          "last_line": 66,
+          "name": "ConflictResolution"
+        },
+        {
+          "first_line": 70,
+          "last_line": 84,
+          "name": "VerificationCommand"
+        },
+        {
+          "first_line": 88,
+          "last_line": 106,
+          "name": "ProjectVerificationPolicy"
+        },
+        {
+          "first_line": 110,
+          "last_line": 126,
+          "name": "VerificationResult"
+        },
+        {
+          "first_line": 130,
+          "last_line": 175,
+          "name": "IntegrationReceipt"
+        },
+        {
+          "first_line": 179,
+          "last_line": 182,
+          "name": "IntegrationOutcome"
+        },
+        {
+          "first_line": 185,
+          "last_line": 559,
+          "name": "DeterministicIntegrator"
+        },
+        {
+          "first_line": 43,
+          "last_line": 45,
+          "name": "__init__"
+        },
+        {
+          "first_line": 55,
+          "last_line": 58,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 60,
+          "last_line": 66,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 76,
+          "last_line": 84,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 92,
+          "last_line": 106,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 118,
+          "last_line": 126,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 142,
+          "last_line": 153,
+          "name": "unsigned_payload"
+        },
+        {
+          "first_line": 156,
+          "last_line": 157,
+          "name": "receipt_hash"
+        },
+        {
+          "first_line": 159,
+          "last_line": 161,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 163,
+          "last_line": 175,
+          "name": "verify_signature"
+        },
+        {
+          "first_line": 186,
+          "last_line": 198,
+          "name": "__init__"
+        },
+        {
+          "first_line": 200,
+          "last_line": 202,
+          "name": "_emit"
+        },
+        {
+          "first_line": 204,
+          "last_line": 222,
+          "name": "_receipts"
+        },
+        {
+          "first_line": 224,
+          "last_line": 235,
+          "name": "_root_commit"
+        },
+        {
+          "first_line": 237,
+          "last_line": 255,
+          "name": "_ancestors"
+        },
+        {
+          "first_line": 257,
+          "last_line": 271,
+          "name": "_git_blob"
+        },
+        {
+          "first_line": 274,
+          "last_line": 296,
+          "name": "_normalized_edits"
+        },
+        {
+          "first_line": 298,
+          "last_line": 306,
+          "name": "_artifact_bytes"
+        },
+        {
+          "first_line": 308,
+          "last_line": 351,
+          "name": "_classify_overlaps"
+        },
+        {
+          "first_line": 354,
+          "last_line": 366,
+          "name": "_safe_path"
+        },
+        {
+          "first_line": 368,
+          "last_line": 387,
+          "name": "_apply_receipts"
+        },
+        {
+          "first_line": 389,
+          "last_line": 415,
+          "name": "_run_verification"
+        },
+        {
+          "first_line": 418,
+          "last_line": 419,
+          "name": "_passes"
+        },
+        {
+          "first_line": 421,
+          "last_line": 427,
+          "name": "_worktree"
+        },
+        {
+          "first_line": 429,
+          "last_line": 431,
+          "name": "_remove_worktree"
+        },
+        {
+          "first_line": 433,
+          "last_line": 445,
+          "name": "_verify_subset"
+        },
+        {
+          "first_line": 447,
+          "last_line": 468,
+          "name": "_attribute_failure"
+        },
+        {
+          "first_line": 470,
+          "last_line": 559,
+          "name": "integrate"
+        },
+        {
+          "first_line": 241,
+          "last_line": 251,
+          "name": "visit"
+        }
+      ]
+    },
+    {
+      "bytes": 11230,
+      "git_sha": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+      "path": "residual/factory/evidence_receipts.py",
+      "sha256": "da1448c9fca3411b4dd594fbf635ba91f75af762d2fd710718b76c9c52216499",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/dec571992a97b4ae80f0310aa32ffd8f542aef8c/residual/factory/evidence_receipts.py",
+      "symbols": [
+        {
+          "first_line": 33,
+          "last_line": 34,
+          "name": "EvidenceError"
+        },
+        {
+          "first_line": 37,
+          "last_line": 38,
+          "name": "_sha256"
+        },
+        {
+          "first_line": 41,
+          "last_line": 42,
+          "name": "_hash"
+        },
+        {
+          "first_line": 45,
+          "last_line": 48,
+          "name": "_require_hash"
+        },
+        {
+          "first_line": 52,
+          "last_line": 78,
+          "name": "VerificationDecision"
+        },
+        {
+          "first_line": 82,
+          "last_line": 101,
+          "name": "ArtifactBinding"
+        },
+        {
+          "first_line": 105,
+          "last_line": 198,
+          "name": "WorkerReceipt"
+        },
+        {
+          "first_line": 201,
+          "last_line": 256,
+          "name": "StationIdentity"
+        },
+        {
+          "first_line": 59,
+          "last_line": 72,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 74,
+          "last_line": 78,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 88,
+          "last_line": 97,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 99,
+          "last_line": 101,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 130,
+          "last_line": 156,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 158,
+          "last_line": 172,
+          "name": "unsigned_payload"
+        },
+        {
+          "first_line": 175,
+          "last_line": 176,
+          "name": "receipt_hash"
+        },
+        {
+          "first_line": 178,
+          "last_line": 180,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 183,
+          "last_line": 198,
+          "name": "from_dict"
+        },
+        {
+          "first_line": 203,
+          "last_line": 208,
+          "name": "__init__"
+        },
+        {
+          "first_line": 211,
+          "last_line": 214,
+          "name": "generate"
+        },
+        {
+          "first_line": 217,
+          "last_line": 222,
+          "name": "load_private"
+        },
+        {
+          "first_line": 224,
+          "last_line": 235,
+          "name": "save_private"
+        },
+        {
+          "first_line": 237,
+          "last_line": 238,
+          "name": "public_bytes"
+        },
+        {
+          "first_line": 240,
+          "last_line": 242,
+          "name": "sign"
+        },
+        {
+          "first_line": 245,
+          "last_line": 256,
+          "name": "verify"
+        }
+      ]
+    },
+    {
+      "bytes": 15946,
+      "git_sha": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+      "path": "residual/factory/evidence_bus.py",
+      "sha256": "907b1f933a25a65a87b05b0e8b3e2de15a98fb238649cf3a696f79a512e54b96",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/dec571992a97b4ae80f0310aa32ffd8f542aef8c/residual/factory/evidence_bus.py",
+      "symbols": [
+        {
+          "first_line": 17,
+          "last_line": 263,
+          "name": "EvidenceBus"
+        },
+        {
+          "first_line": 18,
+          "last_line": 60,
+          "name": "__init__"
+        },
+        {
+          "first_line": 63,
+          "last_line": 69,
+          "name": "_connect"
+        },
+        {
+          "first_line": 72,
+          "last_line": 79,
+          "name": "_tx"
+        },
+        {
+          "first_line": 82,
+          "last_line": 83,
+          "name": "_event_value"
+        },
+        {
+          "first_line": 85,
+          "last_line": 86,
+          "name": "_append_event"
+        },
+        {
+          "first_line": 88,
+          "last_line": 92,
+          "name": "_emit"
+        },
+        {
+          "first_line": 94,
+          "last_line": 97,
+          "name": "observations"
+        },
+        {
+          "first_line": 99,
+          "last_line": 144,
+          "name": "append"
+        },
+        {
+          "first_line": 146,
+          "last_line": 157,
+          "name": "verify_queue"
+        },
+        {
+          "first_line": 159,
+          "last_line": 165,
+          "name": "get"
+        },
+        {
+          "first_line": 167,
+          "last_line": 183,
+          "name": "is_stale"
+        },
+        {
+          "first_line": 185,
+          "last_line": 196,
+          "name": "approve_stale"
+        },
+        {
+          "first_line": 198,
+          "last_line": 211,
+          "name": "consumable"
+        },
+        {
+          "first_line": 213,
+          "last_line": 225,
+          "name": "admit_dependencies"
+        },
+        {
+          "first_line": 227,
+          "last_line": 236,
+          "name": "artifact"
+        },
+        {
+          "first_line": 238,
+          "last_line": 263,
+          "name": "query"
+        }
+      ]
+    },
+    {
+      "bytes": 6200,
+      "git_sha": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+      "path": "residual/factory/station_issuer.py",
+      "sha256": "34a53667feeac144c209caff23abd9a080fb66e3008c06ea74585014e4481f62",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/dec571992a97b4ae80f0310aa32ffd8f542aef8c/residual/factory/station_issuer.py",
+      "symbols": [
+        {
+          "first_line": 12,
+          "last_line": 96,
+          "name": "FactoryStationIssuer"
+        },
+        {
+          "first_line": 14,
+          "last_line": 15,
+          "name": "__init__"
+        },
+        {
+          "first_line": 18,
+          "last_line": 36,
+          "name": "_candidate_bytes"
+        },
+        {
+          "first_line": 38,
+          "last_line": 48,
+          "name": "issue"
+        },
+        {
+          "first_line": 50,
+          "last_line": 96,
+          "name": "_issue"
+        }
+      ]
+    },
+    {
+      "bytes": 18470,
+      "git_sha": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+      "path": "residual/factory/worker_contract.py",
+      "sha256": "8055b85cf6e6d8ea13a6b62a47f28154c9a26f4deda1296627e5ba8013d27da3",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/dec571992a97b4ae80f0310aa32ffd8f542aef8c/residual/factory/worker_contract.py",
+      "symbols": [
+        {
+          "first_line": 20,
+          "last_line": 21,
+          "name": "WorkerContractError"
+        },
+        {
+          "first_line": 24,
+          "last_line": 26,
+          "name": "_canonical"
+        },
+        {
+          "first_line": 29,
+          "last_line": 30,
+          "name": "_digest"
+        },
+        {
+          "first_line": 33,
+          "last_line": 36,
+          "name": "_identifier"
+        },
+        {
+          "first_line": 39,
+          "last_line": 42,
+          "name": "_integer"
+        },
+        {
+          "first_line": 45,
+          "last_line": 52,
+          "name": "_number"
+        },
+        {
+          "first_line": 55,
+          "last_line": 62,
+          "name": "_strings"
+        },
+        {
+          "first_line": 65,
+          "last_line": 74,
+          "name": "_path"
+        },
+        {
+          "first_line": 77,
+          "last_line": 78,
+          "name": "_matches"
+        },
+        {
+          "first_line": 81,
+          "last_line": 85,
+          "name": "PlanSource"
+        },
+        {
+          "first_line": 89,
+          "last_line": 207,
+          "name": "WorkerContract"
+        },
+        {
+          "first_line": 210,
+          "last_line": 213,
+          "name": "ContractViolation"
+        },
+        {
+          "first_line": 216,
+          "last_line": 410,
+          "name": "AttemptGuard"
+        },
+        {
+          "first_line": 84,
+          "last_line": 84,
+          "name": "graph_hash"
+        },
+        {
+          "first_line": 85,
+          "last_line": 85,
+          "name": "canonical_payload"
+        },
+        {
+          "first_line": 116,
+          "last_line": 161,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 163,
+          "last_line": 165,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 168,
+          "last_line": 169,
+          "name": "contract_hash"
+        },
+        {
+          "first_line": 172,
+          "last_line": 178,
+          "name": "from_dict"
+        },
+        {
+          "first_line": 180,
+          "last_line": 197,
+          "name": "assert_matches_plan"
+        },
+        {
+          "first_line": 199,
+          "last_line": 207,
+          "name": "permits_path"
+        },
+        {
+          "first_line": 211,
+          "last_line": 213,
+          "name": "__init__"
+        },
+        {
+          "first_line": 223,
+          "last_line": 236,
+          "name": "__init__"
+        },
+        {
+          "first_line": 239,
+          "last_line": 241,
+          "name": "state"
+        },
+        {
+          "first_line": 244,
+          "last_line": 246,
+          "name": "usage"
+        },
+        {
+          "first_line": 248,
+          "last_line": 254,
+          "name": "_event"
+        },
+        {
+          "first_line": 256,
+          "last_line": 265,
+          "name": "_emit"
+        },
+        {
+          "first_line": 267,
+          "last_line": 277,
+          "name": "start"
+        },
+        {
+          "first_line": 279,
+          "last_line": 294,
+          "name": "_violate"
+        },
+        {
+          "first_line": 296,
+          "last_line": 306,
+          "name": "_active"
+        },
+        {
+          "first_line": 308,
+          "last_line": 310,
+          "name": "check_deadline"
+        },
+        {
+          "first_line": 312,
+          "last_line": 320,
+          "name": "authorize_tool"
+        },
+        {
+          "first_line": 322,
+          "last_line": 336,
+          "name": "authorize_path"
+        },
+        {
+          "first_line": 338,
+          "last_line": 348,
+          "name": "reserve_tokens"
+        },
+        {
+          "first_line": 350,
+          "last_line": 364,
+          "name": "settle_tokens"
+        },
+        {
+          "first_line": 366,
+          "last_line": 374,
+          "name": "check_memory"
+        },
+        {
+          "first_line": 376,
+          "last_line": 382,
+          "name": "assert_lease"
+        },
+        {
+          "first_line": 384,
+          "last_line": 390,
+          "name": "finish"
+        },
+        {
+          "first_line": 392,
+          "last_line": 400,
+          "name": "fail"
+        },
+        {
+          "first_line": 402,
+          "last_line": 410,
+          "name": "cancel"
+        }
+      ]
+    },
+    {
+      "bytes": 7533,
+      "git_sha": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+      "path": "residual/factory/models.py",
+      "sha256": "01afa3f583f6cfcccb25253a0297cc8b75dbcb2d9fa3f5adb676a6428afdc076",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/dec571992a97b4ae80f0310aa32ffd8f542aef8c/residual/factory/models.py",
+      "symbols": [
+        {
+          "first_line": 11,
+          "last_line": 32,
+          "name": "Requirement"
+        },
+        {
+          "first_line": 36,
+          "last_line": 61,
+          "name": "FactoryTask"
+        },
+        {
+          "first_line": 65,
+          "last_line": 149,
+          "name": "ExecutionPlan"
+        },
+        {
+          "first_line": 153,
+          "last_line": 188,
+          "name": "FrozenPlan"
+        },
+        {
+          "first_line": 191,
+          "last_line": 192,
+          "name": "load_plan_text"
+        },
+        {
+          "first_line": 195,
+          "last_line": 196,
+          "name": "dump_plan"
+        },
+        {
+          "first_line": 17,
+          "last_line": 24,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 26,
+          "last_line": 32,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 43,
+          "last_line": 52,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 54,
+          "last_line": 61,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 71,
+          "last_line": 88,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 91,
+          "last_line": 100,
+          "name": "_assert_acyclic"
+        },
+        {
+          "first_line": 102,
+          "last_line": 108,
+          "name": "canonical_payload"
+        },
+        {
+          "first_line": 111,
+          "last_line": 112,
+          "name": "graph_hash"
+        },
+        {
+          "first_line": 114,
+          "last_line": 117,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 120,
+          "last_line": 149,
+          "name": "from_dict"
+        },
+        {
+          "first_line": 160,
+          "last_line": 167,
+          "name": "approve"
+        },
+        {
+          "first_line": 169,
+          "last_line": 175,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 177,
+          "last_line": 179,
+          "name": "assert_matches"
+        },
+        {
+          "first_line": 182,
+          "last_line": 188,
+          "name": "from_dict"
+        }
+      ]
+    },
+    {
+      "bytes": 13780,
+      "git_sha": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+      "path": "residual/factory/runtime_workspace.py",
+      "sha256": "6bba4fd3d3d96b635cbbc50c5283a23313da2bece9cbcdb209a698153320b539",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/dec571992a97b4ae80f0310aa32ffd8f542aef8c/residual/factory/runtime_workspace.py",
+      "symbols": [
+        {
+          "first_line": 24,
+          "last_line": 38,
+          "name": "git"
+        },
+        {
+          "first_line": 42,
+          "last_line": 52,
+          "name": "CandidateTree"
+        },
+        {
+          "first_line": 55,
+          "last_line": 142,
+          "name": "ManagedWorktree"
+        },
+        {
+          "first_line": 145,
+          "last_line": 282,
+          "name": "SafeFileBroker"
+        },
+        {
+          "first_line": 49,
+          "last_line": 52,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 57,
+          "last_line": 70,
+          "name": "__init__"
+        },
+        {
+          "first_line": 72,
+          "last_line": 81,
+          "name": "create"
+        },
+        {
+          "first_line": 83,
+          "last_line": 93,
+          "name": "discard"
+        },
+        {
+          "first_line": 95,
+          "last_line": 142,
+          "name": "capture"
+        },
+        {
+          "first_line": 151,
+          "last_line": 157,
+          "name": "__init__"
+        },
+        {
+          "first_line": 159,
+          "last_line": 162,
+          "name": "close"
+        },
+        {
+          "first_line": 164,
+          "last_line": 182,
+          "name": "_parent"
+        },
+        {
+          "first_line": 185,
+          "last_line": 191,
+          "name": "_regular"
+        },
+        {
+          "first_line": 193,
+          "last_line": 207,
+          "name": "_read"
+        },
+        {
+          "first_line": 209,
+          "last_line": 229,
+          "name": "_write"
+        },
+        {
+          "first_line": 231,
+          "last_line": 243,
+          "name": "_delete"
+        },
+        {
+          "first_line": 245,
+          "last_line": 274,
+          "name": "dispatch"
+        },
+        {
+          "first_line": 276,
+          "last_line": 282,
+          "name": "snapshot_output"
+        }
+      ]
+    },
+    {
+      "bytes": 10341,
+      "git_sha": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+      "path": "residual/factory/m4_evidence.py",
+      "sha256": "307e4147dc1c1b3f7b7d0e854e6e2d34bafeb1978661593d96fa3795c96ecd3f",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/dec571992a97b4ae80f0310aa32ffd8f542aef8c/residual/factory/m4_evidence.py",
+      "symbols": [
+        {
+          "first_line": 21,
+          "last_line": 22,
+          "name": "M4EvidenceError"
+        },
+        {
+          "first_line": 29,
+          "last_line": 50,
+          "name": "ReadyDagSnapshot"
+        },
+        {
+          "first_line": 54,
+          "last_line": 64,
+          "name": "IntegrationConflict"
+        },
+        {
+          "first_line": 68,
+          "last_line": 80,
+          "name": "PlannedArtifact"
+        },
+        {
+          "first_line": 84,
+          "last_line": 108,
+          "name": "EvidenceIntegrationPlan"
+        },
+        {
+          "first_line": 111,
+          "last_line": 263,
+          "name": "ReceiptBackedM4"
+        },
+        {
+          "first_line": 37,
+          "last_line": 46,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 49,
+          "last_line": 50,
+          "name": "snapshot_hash"
+        },
+        {
+          "first_line": 59,
+          "last_line": 64,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 74,
+          "last_line": 80,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 92,
+          "last_line": 93,
+          "name": "integration_eligible"
+        },
+        {
+          "first_line": 95,
+          "last_line": 104,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 107,
+          "last_line": 108,
+          "name": "plan_hash"
+        },
+        {
+          "first_line": 119,
+          "last_line": 135,
+          "name": "__init__"
+        },
+        {
+          "first_line": 137,
+          "last_line": 139,
+          "name": "_emit"
+        },
+        {
+          "first_line": 141,
+          "last_line": 158,
+          "name": "_receipts"
+        },
+        {
+          "first_line": 160,
+          "last_line": 182,
+          "name": "ready_dag"
+        },
+        {
+          "first_line": 184,
+          "last_line": 263,
+          "name": "integration_plan"
+        }
+      ]
+    },
+    {
+      "bytes": 20854,
+      "git_sha": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+      "path": "residual/factory/m4_scheduler.py",
+      "sha256": "9e36663bc708f94461adf452dac14a228b2f21f5da459c63c65ec1357c3bec63",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/dec571992a97b4ae80f0310aa32ffd8f542aef8c/residual/factory/m4_scheduler.py",
+      "symbols": [
+        {
+          "first_line": 20,
+          "last_line": 21,
+          "name": "M4SchedulerError"
+        },
+        {
+          "first_line": 28,
+          "last_line": 54,
+          "name": "SchedulerNode"
+        },
+        {
+          "first_line": 58,
+          "last_line": 76,
+          "name": "EnginePlacement"
+        },
+        {
+          "first_line": 80,
+          "last_line": 111,
+          "name": "SchedulerMeasurements"
+        },
+        {
+          "first_line": 115,
+          "last_line": 131,
+          "name": "SchedulerCapacity"
+        },
+        {
+          "first_line": 135,
+          "last_line": 159,
+          "name": "SchedulerAction"
+        },
+        {
+          "first_line": 163,
+          "last_line": 186,
+          "name": "StructuralReplanProposal"
+        },
+        {
+          "first_line": 190,
+          "last_line": 215,
+          "name": "SchedulerPolicy"
+        },
+        {
+          "first_line": 218,
+          "last_line": 481,
+          "name": "M4AdaptiveScheduler"
+        },
+        {
+          "first_line": 37,
+          "last_line": 50,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 53,
+          "last_line": 54,
+          "name": "available_slots"
+        },
+        {
+          "first_line": 67,
+          "last_line": 76,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 93,
+          "last_line": 107,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 110,
+          "last_line": 111,
+          "name": "measurement_hash"
+        },
+        {
+          "first_line": 123,
+          "last_line": 131,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 143,
+          "last_line": 149,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 151,
+          "last_line": 159,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 173,
+          "last_line": 174,
+          "name": "replacement_plan_hash"
+        },
+        {
+          "first_line": 176,
+          "last_line": 186,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 200,
+          "last_line": 215,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 219,
+          "last_line": 235,
+          "name": "__init__"
+        },
+        {
+          "first_line": 237,
+          "last_line": 239,
+          "name": "_emit"
+        },
+        {
+          "first_line": 241,
+          "last_line": 245,
+          "name": "_market_profile"
+        },
+        {
+          "first_line": 247,
+          "last_line": 303,
+          "name": "select_engine"
+        },
+        {
+          "first_line": 305,
+          "last_line": 336,
+          "name": "measure"
+        },
+        {
+          "first_line": 338,
+          "last_line": 401,
+          "name": "resize"
+        },
+        {
+          "first_line": 403,
+          "last_line": 416,
+          "name": "_downstream"
+        },
+        {
+          "first_line": 418,
+          "last_line": 481,
+          "name": "structural_replan"
+        }
+      ]
+    },
+    {
+      "bytes": 5549,
+      "git_sha": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+      "path": "observation_layer/core.py",
+      "sha256": "3ffd311ee4a972aa4fd8fbd7960c92be737bf93bbae5da2196691117da6f481c",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/dec571992a97b4ae80f0310aa32ffd8f542aef8c/observation_layer/core.py",
+      "symbols": [
+        {
+          "first_line": 12,
+          "last_line": 25,
+          "name": "ObservationKind"
+        },
+        {
+          "first_line": 31,
+          "last_line": 36,
+          "name": "FrozenDict"
+        },
+        {
+          "first_line": 39,
+          "last_line": 50,
+          "name": "freeze"
+        },
+        {
+          "first_line": 54,
+          "last_line": 93,
+          "name": "Observation"
+        },
+        {
+          "first_line": 96,
+          "last_line": 116,
+          "name": "ObservationSequencer"
+        },
+        {
+          "first_line": 119,
+          "last_line": 134,
+          "name": "verify_chain"
+        },
+        {
+          "first_line": 32,
+          "last_line": 33,
+          "name": "_readonly"
+        },
+        {
+          "first_line": 35,
+          "last_line": 36,
+          "name": "__deepcopy__"
+        },
+        {
+          "first_line": 66,
+          "last_line": 83,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 85,
+          "last_line": 86,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 88,
+          "last_line": 90,
+          "name": "canonical_bytes"
+        },
+        {
+          "first_line": 92,
+          "last_line": 93,
+          "name": "hash"
+        },
+        {
+          "first_line": 97,
+          "last_line": 98,
+          "name": "__init__"
+        },
+        {
+          "first_line": 100,
+          "last_line": 100,
+          "name": "count"
+        },
+        {
+          "first_line": 102,
+          "last_line": 102,
+          "name": "head_hash"
+        },
+        {
+          "first_line": 104,
+          "last_line": 106,
+          "name": "draft"
+        },
+        {
+          "first_line": 108,
+          "last_line": 113,
+          "name": "commit"
+        },
+        {
+          "first_line": 115,
+          "last_line": 116,
+          "name": "next"
+        }
+      ]
+    },
+    {
+      "bytes": 11984,
+      "git_sha": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+      "path": "residual/providers.py",
+      "sha256": "5aecc7b74229550e3ba6167b60112e7be49b563d9dd2f6cff3d80f6072ede0a8",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/dec571992a97b4ae80f0310aa32ffd8f542aef8c/residual/providers.py",
+      "symbols": [
+        {
+          "first_line": 42,
+          "last_line": 43,
+          "name": "ProviderError"
+        },
+        {
+          "first_line": 47,
+          "last_line": 62,
+          "name": "Usage"
+        },
+        {
+          "first_line": 66,
+          "last_line": 70,
+          "name": "Reply"
+        },
+        {
+          "first_line": 74,
+          "last_line": 95,
+          "name": "Prices"
+        },
+        {
+          "first_line": 98,
+          "last_line": 112,
+          "name": "Provider"
+        },
+        {
+          "first_line": 115,
+          "last_line": 131,
+          "name": "CallableProvider"
+        },
+        {
+          "first_line": 134,
+          "last_line": 136,
+          "name": "NoRedirect"
+        },
+        {
+          "first_line": 139,
+          "last_line": 231,
+          "name": "HTTPProvider"
+        },
+        {
+          "first_line": 54,
+          "last_line": 62,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 79,
+          "last_line": 82,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 84,
+          "last_line": 95,
+          "name": "cost"
+        },
+        {
+          "first_line": 103,
+          "last_line": 106,
+          "name": "payload"
+        },
+        {
+          "first_line": 108,
+          "last_line": 109,
+          "name": "wire_size"
+        },
+        {
+          "first_line": 111,
+          "last_line": 112,
+          "name": "generate"
+        },
+        {
+          "first_line": 121,
+          "last_line": 124,
+          "name": "__init__"
+        },
+        {
+          "first_line": 126,
+          "last_line": 131,
+          "name": "generate"
+        },
+        {
+          "first_line": 135,
+          "last_line": 136,
+          "name": "redirect_request"
+        },
+        {
+          "first_line": 140,
+          "last_line": 169,
+          "name": "__init__"
+        },
+        {
+          "first_line": 171,
+          "last_line": 184,
+          "name": "payload"
+        },
+        {
+          "first_line": 186,
+          "last_line": 231,
+          "name": "generate"
+        }
+      ]
+    },
+    {
+      "bytes": 24223,
+      "git_sha": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+      "path": "residual/engine.py",
+      "sha256": "fec1efc1ae15aec831f237525d7caef7fcba05a56af1f90a150e46df0467170e",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/dec571992a97b4ae80f0310aa32ffd8f542aef8c/residual/engine.py",
+      "symbols": [
+        {
+          "first_line": 18,
+          "last_line": 31,
+          "name": "Limits"
+        },
+        {
+          "first_line": 38,
+          "last_line": 424,
+          "name": "Harness"
+        },
+        {
+          "first_line": 29,
+          "last_line": 31,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 39,
+          "last_line": 47,
+          "name": "__init__"
+        },
+        {
+          "first_line": 49,
+          "last_line": 133,
+          "name": "run"
+        },
+        {
+          "first_line": 135,
+          "last_line": 136,
+          "name": "_context"
+        },
+        {
+          "first_line": 138,
+          "last_line": 143,
+          "name": "_binding"
+        },
+        {
+          "first_line": 145,
+          "last_line": 155,
+          "name": "_cache_key"
+        },
+        {
+          "first_line": 157,
+          "last_line": 166,
+          "name": "_identity"
+        },
+        {
+          "first_line": 168,
+          "last_line": 170,
+          "name": "_parents"
+        },
+        {
+          "first_line": 172,
+          "last_line": 182,
+          "name": "_cached_candidate"
+        },
+        {
+          "first_line": 184,
+          "last_line": 186,
+          "name": "_failure"
+        },
+        {
+          "first_line": 188,
+          "last_line": 226,
+          "name": "_accept"
+        },
+        {
+          "first_line": 228,
+          "last_line": 283,
+          "name": "_packet"
+        },
+        {
+          "first_line": 286,
+          "last_line": 293,
+          "name": "_merge"
+        },
+        {
+          "first_line": 295,
+          "last_line": 303,
+          "name": "_dispatch"
+        },
+        {
+          "first_line": 305,
+          "last_line": 372,
+          "name": "_work"
+        },
+        {
+          "first_line": 374,
+          "last_line": 394,
+          "name": "_parse"
+        },
+        {
+          "first_line": 396,
+          "last_line": 424,
+          "name": "_request_evidence"
+        }
+      ]
+    },
+    {
+      "bytes": 29607,
+      "git_sha": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+      "path": "residual/study.py",
+      "sha256": "999f12a2fead5ed05aee2931b5e42b02f5680e5c7cd0e2f06b9b40118825817d",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/dec571992a97b4ae80f0310aa32ffd8f542aef8c/residual/study.py",
+      "symbols": [
+        {
+          "first_line": 33,
+          "last_line": 39,
+          "name": "write_json"
+        },
+        {
+          "first_line": 42,
+          "last_line": 46,
+          "name": "append_json"
+        },
+        {
+          "first_line": 49,
+          "last_line": 52,
+          "name": "finite_nonnegative"
+        },
+        {
+          "first_line": 55,
+          "last_line": 59,
+          "name": "sources"
+        },
+        {
+          "first_line": 62,
+          "last_line": 105,
+          "name": "load_suite"
+        },
+        {
+          "first_line": 108,
+          "last_line": 131,
+          "name": "validate_config"
+        },
+        {
+          "first_line": 134,
+          "last_line": 161,
+          "name": "make_protocol"
+        },
+        {
+          "first_line": 164,
+          "last_line": 175,
+          "name": "schedule"
+        },
+        {
+          "first_line": 178,
+          "last_line": 194,
+          "name": "StudyBudget"
+        },
+        {
+          "first_line": 197,
+          "last_line": 224,
+          "name": "MeteredProvider"
+        },
+        {
+          "first_line": 227,
+          "last_line": 283,
+          "name": "run_study"
+        },
+        {
+          "first_line": 286,
+          "last_line": 290,
+          "name": "read_jsonl"
+        },
+        {
+          "first_line": 293,
+          "last_line": 299,
+          "name": "percentile"
+        },
+        {
+          "first_line": 302,
+          "last_line": 352,
+          "name": "summarize_rows"
+        },
+        {
+          "first_line": 355,
+          "last_line": 381,
+          "name": "paired_intervals"
+        },
+        {
+          "first_line": 384,
+          "last_line": 457,
+          "name": "report_study"
+        },
+        {
+          "first_line": 460,
+          "last_line": 493,
+          "name": "main"
+        },
+        {
+          "first_line": 110,
+          "last_line": 122,
+          "name": "visit"
+        },
+        {
+          "first_line": 179,
+          "last_line": 182,
+          "name": "__init__"
+        },
+        {
+          "first_line": 184,
+          "last_line": 194,
+          "name": "reserve"
+        },
+        {
+          "first_line": 198,
+          "last_line": 201,
+          "name": "__init__"
+        },
+        {
+          "first_line": 203,
+          "last_line": 204,
+          "name": "wire_size"
+        },
+        {
+          "first_line": 206,
+          "last_line": 224,
+          "name": "generate"
+        }
+      ]
+    },
+    {
+      "bytes": 5590,
+      "git_sha": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+      "path": "residual/station/worker.py",
+      "sha256": "efb7f986294534c8f33ad3e4ba66b7b4e73b4f40f9f5f1129e743b4c7018fdc0",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/dec571992a97b4ae80f0310aa32ffd8f542aef8c/residual/station/worker.py",
+      "symbols": [
+        {
+          "first_line": 20,
+          "last_line": 76,
+          "name": "WorkerClient"
+        },
+        {
+          "first_line": 79,
+          "last_line": 110,
+          "name": "main"
+        },
+        {
+          "first_line": 21,
+          "last_line": 30,
+          "name": "__init__"
+        },
+        {
+          "first_line": 32,
+          "last_line": 39,
+          "name": "request"
+        },
+        {
+          "first_line": 41,
+          "last_line": 76,
+          "name": "run_once"
+        },
+        {
+          "first_line": 47,
+          "last_line": 52,
+          "name": "heartbeat"
+        }
+      ]
+    },
+    {
+      "bytes": 4267,
+      "git_sha": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+      "path": "residual/engines/provider_bridge.py",
+      "sha256": "d30551c2b9de389853d09577deae5410d40c30aef0b97247cb5135bd9de3ce63",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/dec571992a97b4ae80f0310aa32ffd8f542aef8c/residual/engines/provider_bridge.py",
+      "symbols": [
+        {
+          "first_line": 19,
+          "last_line": 36,
+          "name": "ProviderEngineConfig"
+        },
+        {
+          "first_line": 39,
+          "last_line": 115,
+          "name": "ProviderExecutionEngine"
+        },
+        {
+          "first_line": 28,
+          "last_line": 36,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 44,
+          "last_line": 50,
+          "name": "__init__"
+        },
+        {
+          "first_line": 53,
+          "last_line": 54,
+          "name": "engine_id"
+        },
+        {
+          "first_line": 56,
+          "last_line": 57,
+          "name": "supports"
+        },
+        {
+          "first_line": 59,
+          "last_line": 64,
+          "name": "health"
+        },
+        {
+          "first_line": 66,
+          "last_line": 98,
+          "name": "execute"
+        },
+        {
+          "first_line": 100,
+          "last_line": 103,
+          "name": "normalize"
+        },
+        {
+          "first_line": 106,
+          "last_line": 115,
+          "name": "_prompt"
+        }
+      ]
+    },
+    {
+      "bytes": 6175,
+      "git_sha": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+      "path": "ai_providers/router.py",
+      "sha256": "74c4424e6a90ad4bbb75ba32cfcc8860906401c78e80f04c688f75d66754cc36",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/dec571992a97b4ae80f0310aa32ffd8f542aef8c/ai_providers/router.py",
+      "symbols": [
+        {
+          "first_line": 12,
+          "last_line": 22,
+          "name": "ModelRef"
+        },
+        {
+          "first_line": 25,
+          "last_line": 115,
+          "name": "Router"
+        },
+        {
+          "first_line": 16,
+          "last_line": 22,
+          "name": "parse"
+        },
+        {
+          "first_line": 26,
+          "last_line": 32,
+          "name": "__init__"
+        },
+        {
+          "first_line": 34,
+          "last_line": 39,
+          "name": "_emit"
+        },
+        {
+          "first_line": 41,
+          "last_line": 44,
+          "name": "_candidates"
+        },
+        {
+          "first_line": 46,
+          "last_line": 58,
+          "name": "_begin"
+        },
+        {
+          "first_line": 60,
+          "last_line": 64,
+          "name": "_end"
+        },
+        {
+          "first_line": 66,
+          "last_line": 80,
+          "name": "chat"
+        },
+        {
+          "first_line": 82,
+          "last_line": 104,
+          "name": "stream"
+        },
+        {
+          "first_line": 113,
+          "last_line": 114,
+          "name": "Bound"
+        },
+        {
+          "first_line": 114,
+          "last_line": 114,
+          "name": "stream"
+        }
+      ]
+    },
+    {
+      "bytes": 31971,
+      "git_sha": "30d1d020469d958d90969bc02946145c248e0adb",
+      "path": "residual/factory/m4_integrator.py",
+      "sha256": "70ad38dfb1ee895bfedbe091a560be105ad740da988c5a3cb3608ae54e007b80",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/30d1d020469d958d90969bc02946145c248e0adb/residual/factory/m4_integrator.py",
+      "symbols": [
+        {
+          "first_line": 39,
+          "last_line": 40,
+          "name": "M4IntegrationError"
+        },
+        {
+          "first_line": 43,
+          "last_line": 44,
+          "name": "IntegrationConflictError"
+        },
+        {
+          "first_line": 47,
+          "last_line": 50,
+          "name": "ProjectVerificationError"
+        },
+        {
+          "first_line": 54,
+          "last_line": 71,
+          "name": "ConflictResolution"
+        },
+        {
+          "first_line": 75,
+          "last_line": 93,
+          "name": "VerificationCommand"
+        },
+        {
+          "first_line": 97,
+          "last_line": 120,
+          "name": "ProjectVerificationPolicy"
+        },
+        {
+          "first_line": 124,
+          "last_line": 144,
+          "name": "VerificationResult"
+        },
+        {
+          "first_line": 148,
+          "last_line": 197,
+          "name": "IntegrationReceipt"
+        },
+        {
+          "first_line": 201,
+          "last_line": 204,
+          "name": "IntegrationOutcome"
+        },
+        {
+          "first_line": 207,
+          "last_line": 657,
+          "name": "DeterministicIntegrator"
+        },
+        {
+          "first_line": 48,
+          "last_line": 50,
+          "name": "__init__"
+        },
+        {
+          "first_line": 60,
+          "last_line": 63,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 65,
+          "last_line": 71,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 82,
+          "last_line": 93,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 102,
+          "last_line": 120,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 134,
+          "last_line": 144,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 162,
+          "last_line": 175,
+          "name": "unsigned_payload"
+        },
+        {
+          "first_line": 178,
+          "last_line": 179,
+          "name": "receipt_hash"
+        },
+        {
+          "first_line": 181,
+          "last_line": 183,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 185,
+          "last_line": 197,
+          "name": "verify_signature"
+        },
+        {
+          "first_line": 208,
+          "last_line": 220,
+          "name": "__init__"
+        },
+        {
+          "first_line": 222,
+          "last_line": 224,
+          "name": "_emit"
+        },
+        {
+          "first_line": 226,
+          "last_line": 246,
+          "name": "_receipts"
+        },
+        {
+          "first_line": 248,
+          "last_line": 261,
+          "name": "_root_commit"
+        },
+        {
+          "first_line": 263,
+          "last_line": 281,
+          "name": "_ancestors"
+        },
+        {
+          "first_line": 283,
+          "last_line": 290,
+          "name": "_validated_commit"
+        },
+        {
+          "first_line": 292,
+          "last_line": 303,
+          "name": "_git_blob"
+        },
+        {
+          "first_line": 306,
+          "last_line": 328,
+          "name": "_normalized_edits"
+        },
+        {
+          "first_line": 330,
+          "last_line": 338,
+          "name": "_artifact_bytes"
+        },
+        {
+          "first_line": 340,
+          "last_line": 386,
+          "name": "_classify_overlaps"
+        },
+        {
+          "first_line": 388,
+          "last_line": 395,
+          "name": "_apply_receipts"
+        },
+        {
+          "first_line": 398,
+          "last_line": 407,
+          "name": "_require_execution_policy"
+        },
+        {
+          "first_line": 410,
+          "last_line": 411,
+          "name": "_execution_boundary"
+        },
+        {
+          "first_line": 413,
+          "last_line": 438,
+          "name": "_run_verification"
+        },
+        {
+          "first_line": 440,
+          "last_line": 465,
+          "name": "_freeze_tree"
+        },
+        {
+          "first_line": 468,
+          "last_line": 469,
+          "name": "_passes"
+        },
+        {
+          "first_line": 472,
+          "last_line": 479,
+          "name": "_verification_available"
+        },
+        {
+          "first_line": 481,
+          "last_line": 487,
+          "name": "_worktree"
+        },
+        {
+          "first_line": 489,
+          "last_line": 491,
+          "name": "_remove_worktree"
+        },
+        {
+          "first_line": 493,
+          "last_line": 510,
+          "name": "_verify_subset"
+        },
+        {
+          "first_line": 512,
+          "last_line": 544,
+          "name": "_attribute_failure"
+        },
+        {
+          "first_line": 546,
+          "last_line": 657,
+          "name": "integrate"
+        },
+        {
+          "first_line": 267,
+          "last_line": 277,
+          "name": "visit"
+        }
+      ]
+    },
+    {
+      "bytes": 10962,
+      "git_sha": "30d1d020469d958d90969bc02946145c248e0adb",
+      "path": "residual/factory/m4_safety.py",
+      "sha256": "c2569a30dba5632bbe1e831127f8cb7584ac30a5ee2c0bfb0d7d555a0eaece78",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/30d1d020469d958d90969bc02946145c248e0adb/residual/factory/m4_safety.py",
+      "symbols": [
+        {
+          "first_line": 25,
+          "last_line": 26,
+          "name": "M4SafetyError"
+        },
+        {
+          "first_line": 29,
+          "last_line": 38,
+          "name": "artifact_parts"
+        },
+        {
+          "first_line": 41,
+          "last_line": 44,
+          "name": "_directory_flags"
+        },
+        {
+          "first_line": 48,
+          "last_line": 66,
+          "name": "_parent"
+        },
+        {
+          "first_line": 69,
+          "last_line": 76,
+          "name": "_regular_entry"
+        },
+        {
+          "first_line": 79,
+          "last_line": 115,
+          "name": "apply_artifact"
+        },
+        {
+          "first_line": 118,
+          "last_line": 177,
+          "name": "snapshot"
+        },
+        {
+          "first_line": 181,
+          "last_line": 186,
+          "name": "FixtureProcessResult"
+        },
+        {
+          "first_line": 189,
+          "last_line": 255,
+          "name": "run_trusted_fixture"
+        },
+        {
+          "first_line": 128,
+          "last_line": 167,
+          "name": "walk"
+        }
+      ]
+    },
+    {
+      "bytes": 11554,
+      "git_sha": "30d1d020469d958d90969bc02946145c248e0adb",
+      "path": "residual/factory/m4_sandbox.py",
+      "sha256": "fc56e012ce50bc862e23c76f80f64131421947d3a36d357abd9fde83106bb157",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/30d1d020469d958d90969bc02946145c248e0adb/residual/factory/m4_sandbox.py",
+      "symbols": [
+        {
+          "first_line": 46,
+          "last_line": 47,
+          "name": "M4SandboxError"
+        },
+        {
+          "first_line": 63,
+          "last_line": 70,
+          "name": "_unshare_argv"
+        },
+        {
+          "first_line": 73,
+          "last_line": 101,
+          "name": "probe_isolation"
+        },
+        {
+          "first_line": 104,
+          "last_line": 110,
+          "name": "require_isolation"
+        },
+        {
+          "first_line": 114,
+          "last_line": 120,
+          "name": "IsolatedResult"
+        },
+        {
+          "first_line": 123,
+          "last_line": 124,
+          "name": "_invalid"
+        },
+        {
+          "first_line": 127,
+          "last_line": 286,
+          "name": "run_isolated"
+        },
+        {
+          "first_line": 289,
+          "last_line": 291,
+          "name": "shutil_rmtree"
+        }
+      ]
+    },
+    {
+      "bytes": 12602,
+      "git_sha": "0063e6400fa945acf2db393f7e9d30db02cb1139",
+      "path": "residual/otx/controller.py",
+      "sha256": "8d537384abeb6b21cee279f0532d6523edcc8c5f3f27a40db5c4c36267eec614",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/0063e6400fa945acf2db393f7e9d30db02cb1139/residual/otx/controller.py",
+      "symbols": [
+        {
+          "first_line": 44,
+          "last_line": 54,
+          "name": "ControllerConfig"
+        },
+        {
+          "first_line": 57,
+          "last_line": 222,
+          "name": "OrchestrationTaxController"
+        },
+        {
+          "first_line": 256,
+          "last_line": 276,
+          "name": "simulate_execution"
+        },
+        {
+          "first_line": 51,
+          "last_line": 54,
+          "name": "to_dict"
+        },
+        {
+          "first_line": 60,
+          "last_line": 67,
+          "name": "__init__"
+        },
+        {
+          "first_line": 70,
+          "last_line": 77,
+          "name": "orchestration_tax"
+        },
+        {
+          "first_line": 80,
+          "last_line": 86,
+          "name": "_utility"
+        },
+        {
+          "first_line": 88,
+          "last_line": 102,
+          "name": "_candidates"
+        },
+        {
+          "first_line": 105,
+          "last_line": 150,
+          "name": "select_topology"
+        },
+        {
+          "first_line": 153,
+          "last_line": 185,
+          "name": "record_outcome"
+        },
+        {
+          "first_line": 188,
+          "last_line": 214,
+          "name": "evaluate_fixture"
+        },
+        {
+          "first_line": 217,
+          "last_line": 222,
+          "name": "replay_decisions"
+        }
+      ]
+    },
+    {
+      "bytes": 4652,
+      "git_sha": "0063e6400fa945acf2db393f7e9d30db02cb1139",
+      "path": "residual/otx/models.py",
+      "sha256": "7a4cb17fcd486044aca01610701567ef104c5647f636f0a2eec7e609951ed1c5",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/0063e6400fa945acf2db393f7e9d30db02cb1139/residual/otx/models.py",
+      "symbols": [
+        {
+          "first_line": 13,
+          "last_line": 47,
+          "name": "Phase"
+        },
+        {
+          "first_line": 51,
+          "last_line": 91,
+          "name": "PhaseTiming"
+        },
+        {
+          "first_line": 95,
+          "last_line": 102,
+          "name": "Task"
+        },
+        {
+          "first_line": 106,
+          "last_line": 118,
+          "name": "Topology"
+        },
+        {
+          "first_line": 59,
+          "last_line": 65,
+          "name": "__post_init__"
+        },
+        {
+          "first_line": 67,
+          "last_line": 68,
+          "name": "phase_seconds"
+        },
+        {
+          "first_line": 71,
+          "last_line": 72,
+          "name": "worker_execution_s"
+        },
+        {
+          "first_line": 75,
+          "last_line": 77,
+          "name": "coordination_overhead_s"
+        },
+        {
+          "first_line": 80,
+          "last_line": 81,
+          "name": "total_s"
+        },
+        {
+          "first_line": 83,
+          "last_line": 88,
+          "name": "observed_tax"
+        },
+        {
+          "first_line": 90,
+          "last_line": 91,
+          "name": "breakdown"
+        }
+      ]
+    },
+    {
+      "bytes": 7730,
+      "git_sha": "0063e6400fa945acf2db393f7e9d30db02cb1139",
+      "path": "residual/otx/estimator.py",
+      "sha256": "aff6863239c8944ae24d5da71decdebff74987dce61a45ded4d914bb4749836a",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/0063e6400fa945acf2db393f7e9d30db02cb1139/residual/otx/estimator.py",
+      "symbols": [
+        {
+          "first_line": 23,
+          "last_line": 68,
+          "name": "NormalInverseGamma"
+        },
+        {
+          "first_line": 72,
+          "last_line": 107,
+          "name": "BetaRate"
+        },
+        {
+          "first_line": 110,
+          "last_line": 203,
+          "name": "TaxModel"
+        },
+        {
+          "first_line": 33,
+          "last_line": 34,
+          "name": "prior"
+        },
+        {
+          "first_line": 36,
+          "last_line": 45,
+          "name": "update"
+        },
+        {
+          "first_line": 48,
+          "last_line": 49,
+          "name": "mean"
+        },
+        {
+          "first_line": 52,
+          "last_line": 56,
+          "name": "mean_variance"
+        },
+        {
+          "first_line": 59,
+          "last_line": 61,
+          "name": "mean_std"
+        },
+        {
+          "first_line": 63,
+          "last_line": 64,
+          "name": "snapshot"
+        },
+        {
+          "first_line": 67,
+          "last_line": 68,
+          "name": "from_snapshot"
+        },
+        {
+          "first_line": 79,
+          "last_line": 81,
+          "name": "prior"
+        },
+        {
+          "first_line": 83,
+          "last_line": 87,
+          "name": "update"
+        },
+        {
+          "first_line": 90,
+          "last_line": 91,
+          "name": "mean"
+        },
+        {
+          "first_line": 94,
+          "last_line": 95,
+          "name": "n"
+        },
+        {
+          "first_line": 98,
+          "last_line": 100,
+          "name": "std"
+        },
+        {
+          "first_line": 102,
+          "last_line": 103,
+          "name": "snapshot"
+        },
+        {
+          "first_line": 106,
+          "last_line": 107,
+          "name": "from_snapshot"
+        },
+        {
+          "first_line": 118,
+          "last_line": 122,
+          "name": "__init__"
+        },
+        {
+          "first_line": 124,
+          "last_line": 125,
+          "name": "_key"
+        },
+        {
+          "first_line": 127,
+          "last_line": 136,
+          "name": "_tax_est"
+        },
+        {
+          "first_line": 138,
+          "last_line": 144,
+          "name": "_worker_est"
+        },
+        {
+          "first_line": 146,
+          "last_line": 152,
+          "name": "_rel_est"
+        },
+        {
+          "first_line": 155,
+          "last_line": 156,
+          "name": "predicted_tax"
+        },
+        {
+          "first_line": 158,
+          "last_line": 159,
+          "name": "tax_uncertainty"
+        },
+        {
+          "first_line": 161,
+          "last_line": 162,
+          "name": "predicted_worker_s"
+        },
+        {
+          "first_line": 164,
+          "last_line": 166,
+          "name": "predicted_total_s"
+        },
+        {
+          "first_line": 168,
+          "last_line": 169,
+          "name": "predicted_reliability"
+        },
+        {
+          "first_line": 171,
+          "last_line": 172,
+          "name": "sample_count"
+        },
+        {
+          "first_line": 175,
+          "last_line": 187,
+          "name": "observe"
+        },
+        {
+          "first_line": 190,
+          "last_line": 195,
+          "name": "snapshot"
+        },
+        {
+          "first_line": 198,
+          "last_line": 203,
+          "name": "from_snapshot"
+        }
+      ]
+    },
+    {
+      "bytes": 8272,
+      "git_sha": "058e25b3ca73de4528648b72b1901b2c319fe643",
+      "path": "residual/telemetry/report.py",
+      "sha256": "db5cd5a32d863bbc957ca2cc0fb92cc2bda14b281c60efb6fe2adb5b963f5561",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/058e25b3ca73de4528648b72b1901b2c319fe643/residual/telemetry/report.py",
+      "symbols": [
+        {
+          "first_line": 22,
+          "last_line": 32,
+          "name": "_aggregate_with_evidence"
+        },
+        {
+          "first_line": 35,
+          "last_line": 183,
+          "name": "build_reliability_report"
+        },
+        {
+          "first_line": 186,
+          "last_line": 190,
+          "name": "_counts"
+        },
+        {
+          "first_line": 56,
+          "last_line": 57,
+          "name": "ev"
+        }
+      ]
+    },
+    {
+      "bytes": 6647,
+      "git_sha": "058e25b3ca73de4528648b72b1901b2c319fe643",
+      "path": "residual/telemetry/metric_families.py",
+      "sha256": "6c93daaf3740d2afc3b731415c1ac1a38de236387ffc1f54f750b211d154d181",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/058e25b3ca73de4528648b72b1901b2c319fe643/residual/telemetry/metric_families.py",
+      "symbols": [
+        {
+          "first_line": 34,
+          "last_line": 61,
+          "name": "build_telemetry_registry"
+        },
+        {
+          "first_line": 64,
+          "last_line": 124,
+          "name": "TelemetryCollector"
+        },
+        {
+          "first_line": 127,
+          "last_line": 139,
+          "name": "_tracked_optional"
+        },
+        {
+          "first_line": 68,
+          "last_line": 74,
+          "name": "__init__"
+        },
+        {
+          "first_line": 76,
+          "last_line": 79,
+          "name": "_lv"
+        },
+        {
+          "first_line": 81,
+          "last_line": 124,
+          "name": "ingest"
+        }
+      ]
+    },
+    {
+      "bytes": 6571,
+      "git_sha": "058e25b3ca73de4528648b72b1901b2c319fe643",
+      "path": "residual/telemetry/schema.py",
+      "sha256": "a5ba90c9c260018920b099a7199c22d6e97d0574c4712f9efeb1a615dc9419a8",
+      "source_url": "https://github.com/ninja-ops-guy/residual-agent-harness/blob/058e25b3ca73de4528648b72b1901b2c319fe643/residual/telemetry/schema.py",
+      "symbols": [
+        {
+          "first_line": 97,
+          "last_line": 98,
+          "name": "EvidenceError"
+        },
+        {
+          "first_line": 101,
+          "last_line": 132,
+          "name": "validate_observation"
+        },
+        {
+          "first_line": 135,
+          "last_line": 149,
+          "name": "canonical_json"
+        },
+        {
+          "first_line": 152,
+          "last_line": 154,
+          "name": "hash_object"
+        },
+        {
+          "first_line": 157,
+          "last_line": 160,
+          "name": "hash_observations"
+        }
+      ]
+    }
+  ],
+  "schema_version": "residual.audit-source-inventory.v1"
+}

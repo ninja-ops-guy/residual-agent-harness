@@ -1,0 +1,60 @@
+{
+  "candidates": {
+    "broken": {
+      "assets": [
+        "pc-01"
+      ],
+      "blank_rows": 1,
+      "duplicate_rows": 1
+    },
+    "good": {
+      "assets": [
+        "pc-01",
+        "pc-02"
+      ],
+      "blank_rows": 1,
+      "duplicate_rows": 1
+    },
+    "missing": null
+  },
+  "expected": {
+    "assets": [
+      "pc-01",
+      "pc-02"
+    ],
+    "blank_rows": 1,
+    "duplicate_rows": 1
+  },
+  "id": "data-cleaning",
+  "input": {
+    "rows": [
+      " PC-01 ",
+      "pc-01",
+      "PC-02",
+      ""
+    ]
+  },
+  "intent_document": {
+    "intent": "Normalize an asset inventory and preserve first-seen order.",
+    "requirements": [
+      {
+        "acceptance": [
+          "Emit candidate.json only."
+        ],
+        "id": "REQ-prepare",
+        "statement": "Create a candidate from the supplied public fixture inputs."
+      },
+      {
+        "acceptance": [
+          "Trim and lowercase asset ids, retain both unique ids, count blank and duplicate rows."
+        ],
+        "depends_on": [
+          "REQ-prepare"
+        ],
+        "id": "REQ-review",
+        "statement": "Assess the candidate against independently authored requirements."
+      }
+    ]
+  },
+  "schema_version": "residual.application-case.v1"
+}

@@ -1,0 +1,26 @@
+{
+  "columns": [
+    "family_id",
+    "task_id",
+    "repeat_index",
+    "configuration",
+    "model_class",
+    "topology",
+    "predicted_tax",
+    "observed_tax",
+    "tax_unit",
+    "single_worker_cost",
+    "swarm_cost",
+    "selected_topology",
+    "controller_revision"
+  ],
+  "data": [],
+  "evidence_level": "empty_template",
+  "plot_id": "orchestration_tax",
+  "protocol_sha256": "8f0010b51b932af1fa0f9d3018bf6e02029eab784c9fe4f9885bc99667949d59",
+  "schema_version": "residual.paper-template.v1",
+  "title": "Predicted and observed orchestration tax",
+  "x": "predicted_tax",
+  "y": "observed_tax",
+  "y_label": "Observed tax (declared unit)"
+}

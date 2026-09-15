@@ -1,0 +1,135 @@
+........................................................................ [  6%]
+........................................................................ [ 12%]
+........................................................................ [ 18%]
+.............................. [ 20%]
+.............................................................FFF... [ 26%]
+................................................ [ 30%]
+.................................................................. [ 35%]
+....................................................... [ 40%]
+........................................................................ [ 46%]
+................................................................ssssssss [ 52%]
+ssssssssssssssssssssssss........ [ 54%]
+......................................... [ 58%]
+....................................................... [ 62%]
+........................................................................ [ 68%]
+........................................................................ [ 74%]
+..................................................................... [ 80%]
+......................................................... [ 85%]
+...........FF.FFF.F...........................................................................F...F............................... [ 96%]
+.............................................                            [100%]
+=================================== FAILURES ===================================
+________ TestMaliciousWorkerOutput.test_forged_receipt_in_worker_output ________
+
+self = <tests.redteam.test_worker_attacks.TestMaliciousWorkerOutput object at 0x7f1fe43865d0>
+backend = <residual.sandbox.bwrap.BwrapBackend object at 0x7f1fe2dbf9b0>
+spec = SandboxSpec(name='redteam', limits=SandboxLimits(cpu_seconds=15, memory_mb=128, max_pids=25, timeout_seconds=8, max_ou...rker_0',)), network=<NetworkPolicy.DENY: 'deny'>, proxy_host='', proxy_port=0, proxy_allowlist=(), workdir='/', env=())
+
+    def test_forged_receipt_in_worker_output(self, backend, spec):
+        """Attack: worker emits a forged receipt JSON on stdout."""
+        backend.start(spec)
+        genuine = StationReceipt(
+            task_id="task-z", cache_key=hashlib.sha256(b"c").hexdigest(),
+            value_hash=digest("vetted"), verifier_name="mechanical:unit",
+            verifier_revision=hashlib.sha256(b"r").hexdigest(),
+            verdict=CheckResult.PASS)
+        forged = genuine.to_dict()
+        forged["payload"]["value_hash"] = hashlib.sha256(b"malicious").hexdigest()
+        emit = "print(" + repr(json.dumps(forged)) + ")"
+        result = backend.exec([PY, "-c", emit])
+>       assert result.ok  # output captured as data, never executed
+        ^^^^^^^^^^^^^^^^
+E       AssertionError: assert False
+E        +  where False = SandboxResult(exit_code=1, signal=None, timed_out=False, violation=<Violation.EXIT_NONZERO: 'exit-nonzero'>, stdout=''...rap: Creating new namespace failed: Operation not permitted\n', duration_seconds=0.002617817000100331, truncated=False).ok
+
+tests/redteam/test_worker_attacks.py:116: AssertionError
+_____ TestMaliciousWorkerOutput.test_terminal_escape_output_is_inert_data ______
+
+self = <tests.redteam.test_worker_attacks.TestMaliciousWorkerOutput object at 0x7f1fe4385be0>
+backend = <residual.sandbox.bwrap.BwrapBackend object at 0x7f1fe2dbf9b0>
+spec = SandboxSpec(name='redteam', limits=SandboxLimits(cpu_seconds=15, memory_mb=128, max_pids=25, timeout_seconds=8, max_ou...ut_is0',)), network=<NetworkPolicy.DENY: 'deny'>, proxy_host='', proxy_port=0, proxy_allowlist=(), workdir='/', env=())
+
+    def test_terminal_escape_output_is_inert_data(self, backend, spec):
+        """Attack: ANSI/control spam in worker output must stay inert."""
+        backend.start(spec)
+        payload = "\\x1b[2J\\x1b[H\\x07" * 100
+        result = backend.exec([PY, "-c", f"print({payload!r})"])
+>       assert result.ok
+E       AssertionError: assert False
+E        +  where False = SandboxResult(exit_code=1, signal=None, timed_out=False, violation=<Violation.EXIT_NONZERO: 'exit-nonzero'>, stdout=''...rap: Creating new namespace failed: Operation not permitted\n', duration_seconds=0.004792835999978706, truncated=False).ok
+
+tests/redteam/test_worker_attacks.py:127: AssertionError
+____________ TestMaliciousWorkerOutput.test_oversized_output_capped ____________
+
+self = <tests.redteam.test_worker_attacks.TestMaliciousWorkerOutput object at 0x7f1fe4385670>
+backend = <residual.sandbox.bwrap.BwrapBackend object at 0x7f1fe2dbf9b0>
+spec = SandboxSpec(name='redteam', limits=SandboxLimits(cpu_seconds=15, memory_mb=128, max_pids=25, timeout_seconds=8, max_ou...apped0',)), network=<NetworkPolicy.DENY: 'deny'>, proxy_host='', proxy_port=0, proxy_allowlist=(), workdir='/', env=())
+
+    def test_oversized_output_capped(self, backend, spec):
+        """Attack: memory-exhaust the harness via unbounded stdout."""
+        capped = SandboxSpec(
+            name="redteam-cap",
+            limits=SandboxLimits(cpu_seconds=15, memory_mb=128, max_pids=25,
+                                 timeout_seconds=15, max_output_bytes=4096))
+        backend.start(capped)
+        result = backend.exec([PY, "-c", "print('A' * 10_000_000)"])
+>       assert result.truncated and len(result.stdout) <= 4096
+E       AssertionError: assert (False)
+E        +  where False = SandboxResult(exit_code=1, signal=None, timed_out=False, violation=<Violation.EXIT_NONZERO: 'exit-nonzero'>, stdout=''...ap: Creating new namespace failed: Operation not permitted\n', duration_seconds=0.0041694960000313586, truncated=False).truncated
+
+tests/redteam/test_worker_attacks.py:140: AssertionError
+______________________________ test_success_path _______________________________
+
+backend = <residual.sandbox.bwrap.BwrapBackend object at 0x7f1fe2a2f3b0>
+spec = SandboxSpec(name='containment', limits=SandboxLimits(cpu_seconds=15, memory_mb=128, max_pids=25, timeout_seconds=8, ma..._path0',)), network=<NetworkPolicy.DENY: 'deny'>, proxy_host='', proxy_port=0, proxy_allowlist=(), workdir='/', env=())
+
+    def test_success_path(backend, spec):
+        backend.start(spec)
+        result = backend.exec(["/bin/echo", "sandbox-ok"])
+>       assert result.ok and result.stdout.strip() == "sandbox-ok"
+E       AssertionError: assert (False)
+E        +  where False = SandboxResult(exit_code=1, signal=None, timed_out=False, violation=<Violation.EXIT_NONZERO: 'exit-nonzero'>, stdout=''...wrap: Creating new namespace failed: Operation not permitted\n', duration_seconds=0.00514743100029591, truncated=False).ok
+
+tests/test_sandbox_containment.py:37: AssertionError
+__________________________ test_nonzero_exit_captured __________________________
+
+backend = <residual.sandbox.bwrap.BwrapBackend object at 0x7f1fe2a2f3b0>
+spec = SandboxSpec(name='containment', limits=SandboxLimits(cpu_seconds=15, memory_mb=128, max_pids=25, timeout_seconds=8, ma...tured0',)), network=<NetworkPolicy.DENY: 'deny'>, proxy_host='', proxy_port=0, proxy_allowlist=(), workdir='/', env=())
+
+    def test_nonzero_exit_captured(backend, spec):
+        backend.start(spec)
+        result = backend.exec(["/bin/bash", "-c", "exit 7"])
+>       assert result.exit_code == 7 and result.violation is Violation.EXIT_NONZERO
+E       AssertionError: assert (1 == 7)
+E        +  where 1 = SandboxResult(exit_code=1, signal=None, timed_out=False, violation=<Violation.EXIT_NONZERO: 'exit-nonzero'>, stdout=''...rap: Creating new namespace failed: Operation not permitted\n', duration_seconds=0.005268021999654593, truncated=False).exit_code
+
+tests/test_sandbox_containment.py:44: AssertionError
+______________________________ test_timeout_kills ______________________________
+
+backend = <residual.sandbox.bwrap.BwrapBackend object at 0x7f1fe2a2f3b0>
+spec = SandboxSpec(name='containment', limits=SandboxLimits(cpu_seconds=15, memory_mb=128, max_pids=25, timeout_seconds=8, ma...kills0',)), network=<NetworkPolicy.DENY: 'deny'>, proxy_host='', proxy_port=0, proxy_allowlist=(), workdir='/', env=())
+
+    def test_timeout_kills(backend, spec):
+        backend.start(spec)
+        result = backend.exec(["/bin/sleep", "600"])
+>       assert result.timed_out and result.violation is Violation.TIMEOUT
+E       AssertionError: assert (False)
+E        +  where False = SandboxResult(exit_code=1, signal=None, timed_out=False, violation=<Violation.EXIT_NONZERO: 'exit-nonzero'>, stdout=''...rap: Creating new namespace failed: Operation not permitted\n', duration_seconds=0.004150417999881029, truncated=False).timed_out
+
+tests/test_sandbox_containment.py:61: AssertionError
+___________________________ test_memory_cap_enforced ___________________________
+
+backend = <residual.sandbox.bwrap.BwrapBackend object at 0x7f1fe2a2f3b0>
+spec = SandboxSpec(name='containment', limits=SandboxLimits(cpu_seconds=15, memory_mb=128, max_pids=25, timeout_seconds=8, ma...orced0',)), network=<NetworkPolicy.DENY: 'deny'>, proxy_host='', proxy_port=0, proxy_allowlist=(), workdir='/', env=())
+
+    def test_memory_cap_enforced(backend, spec):
+        backend.start(spec)
+        code = "x=[]\nwhile True: x.append(b' ' * 10**6)"
+        result = backend.exec([PY, "-c", code])
+        assert not result.ok
+        # Either Python hit RLIMIT_AS (MemoryError) or the kernel killed it;
+        # it MUST NOT complete and MUST NOT take the host down.
+        assert "MemoryError" in result.stderr or result.violation in (
+            Violation.EXIT_NONZERO, Violation.SIGNALLED, Violation.TIMEOUT)
+>       assert backend.exec(["/bin/echo", "alive"]).ok
+E       AssertionError: assert False
+E        +  where False = SandboxResult(exit_code=1, signal=None, timed_out=False, violation=<Violation.EXIT_NONZERO: 'exit-nonzero'>, stdout=''...rap: Creating new namespace failed: Operation not permitted\n', duration_seconds=0.004180121999979747, truncated=False).ok

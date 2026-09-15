@@ -1,0 +1,175 @@
+{
+  "baseline_head": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+  "m4_head": "30d1d020469d958d90969bc02946145c248e0adb",
+  "m4_pr": 81,
+  "probes": {
+    "class_orientation": {
+      "FA": 1,
+      "FR": 1,
+      "TA": 2,
+      "TR": 3,
+      "acceptance_recall": 0.6666666666666666,
+      "defect_recall": 0.75,
+      "reported_recall": 0.666667
+    },
+    "string_false_replay": {
+      "false_accept": {
+        "estimate": null,
+        "lower": null,
+        "n": 0,
+        "name": "false_accept",
+        "status": "UNKNOWN",
+        "upper": null
+      },
+      "precision": {
+        "estimate": 1.0,
+        "lower": 0.206543,
+        "n": 1,
+        "name": "precision",
+        "status": "KNOWN",
+        "upper": 1.0
+      }
+    },
+    "string_status_error": {
+      "coverage": {
+        "estimate": 1.0,
+        "lower": 0.342372,
+        "n": 2,
+        "name": "coverage",
+        "status": "KNOWN",
+        "upper": 1.0
+      },
+      "false_accept": {
+        "estimate": 1.0,
+        "lower": 0.206543,
+        "n": 1,
+        "name": "false_accept",
+        "status": "KNOWN",
+        "upper": 1.0
+      },
+      "verdicts": [
+        true,
+        true
+      ]
+    },
+    "string_status_fail": {
+      "coverage": {
+        "estimate": 1.0,
+        "lower": 0.342372,
+        "n": 2,
+        "name": "coverage",
+        "status": "KNOWN",
+        "upper": 1.0
+      },
+      "false_accept": {
+        "estimate": 1.0,
+        "lower": 0.206543,
+        "n": 1,
+        "name": "false_accept",
+        "status": "KNOWN",
+        "upper": 1.0
+      },
+      "verdicts": [
+        true,
+        true
+      ]
+    },
+    "string_status_unknown": {
+      "coverage": {
+        "estimate": 1.0,
+        "lower": 0.342372,
+        "n": 2,
+        "name": "coverage",
+        "status": "KNOWN",
+        "upper": 1.0
+      },
+      "false_accept": {
+        "estimate": 1.0,
+        "lower": 0.206543,
+        "n": 1,
+        "name": "false_accept",
+        "status": "KNOWN",
+        "upper": 1.0
+      },
+      "verdicts": [
+        true,
+        true
+      ]
+    },
+    "verifier_exception": {
+      "escaped_exception": "TimeoutError",
+      "report_returned": false
+    }
+  },
+  "schema": "residual.preflight.vq-head-audit.v1",
+  "scope": "synthetic_API_probes_and_read_only_M4_source_review",
+  "sources": {
+    "residual/core.py": {
+      "commit": "9dd0955afaf146719bcf9c8ff27d9dd14021fc4a",
+      "git_blob": "3da04b1272c557c92ea84b88db06239b533d997a",
+      "sha256": "da9e9c51a798328ee43a6c545392a497d0aaf6c46a21c5a6415e3773b7a05fec"
+    },
+    "residual/factory/m4_integrator.py": {
+      "commit": "30d1d020469d958d90969bc02946145c248e0adb",
+      "git_blob": "7bd913d03be0f5784e4f7ef9588dc08a54339cc2",
+      "sha256": "70ad38dfb1ee895bfedbe091a560be105ad740da988c5a3cb3608ae54e007b80"
+    },
+    "residual/factory/m4_sandbox.py": {
+      "commit": "30d1d020469d958d90969bc02946145c248e0adb",
+      "git_blob": "eb0e10d8e6d6e39f2cfe914570da38f3a2342562",
+      "sha256": "fc56e012ce50bc862e23c76f80f64131421947d3a36d357abd9fde83106bb157"
+    },
+    "residual/vq/__init__.py": {
+      "commit": "9dd0955afaf146719bcf9c8ff27d9dd14021fc4a",
+      "git_blob": "a8b2322c32f0c804d577f439b9830d2309574af8",
+      "sha256": "9c026806c5fdd10addef85f4c98f2ffa657ef2e4d7c48b2c6cc3733a34ad9739"
+    },
+    "residual/vq/benchmark.py": {
+      "commit": "9dd0955afaf146719bcf9c8ff27d9dd14021fc4a",
+      "git_blob": "9559c29d6d910679b00984d474b388d46f9f8e9f",
+      "sha256": "8fda5d7d81d589fb7a3d148b78810cd253aa8843634000f41941a8ee7475bbf4"
+    },
+    "residual/vq/ensemble.py": {
+      "commit": "9dd0955afaf146719bcf9c8ff27d9dd14021fc4a",
+      "git_blob": "d0cbf01cbca4902f049bc6816c854155fb7b29b7",
+      "sha256": "e686f16cec9af0178a43493fbec50caf90db048817c70148c94372961ecb8b38"
+    },
+    "residual/vq/evidence.py": {
+      "commit": "9dd0955afaf146719bcf9c8ff27d9dd14021fc4a",
+      "git_blob": "23c19d3ab740f75f1ffbfd3371a798ad925e0a7f",
+      "sha256": "b88a02cffd04945a97113b74dc08be3bbcacd225ba37da18b65973729c036fe8"
+    },
+    "residual/vq/frozen.py": {
+      "commit": "9dd0955afaf146719bcf9c8ff27d9dd14021fc4a",
+      "git_blob": "3b3ab97df5caf5b282bddaaa42a051a789bd7f23",
+      "sha256": "e0538de19c72696d9e0eea380163955ff749729283d094754b6bb4f424c1f109"
+    },
+    "residual/vq/gate.py": {
+      "commit": "9dd0955afaf146719bcf9c8ff27d9dd14021fc4a",
+      "git_blob": "24dca1d46c9158e4b5ecbd713583a35114c8af91",
+      "sha256": "8607b5e6e9a5853e49419bb9bf9f147c49e9d2d9857e7762b38d689fd282d3dc"
+    },
+    "residual/vq/identity.py": {
+      "commit": "9dd0955afaf146719bcf9c8ff27d9dd14021fc4a",
+      "git_blob": "9334524b114a90c22c84d8c3a7f3e68acb53f544",
+      "sha256": "870a9555bbc79576982d9e799e95a2a5996270925a249fd5cccacef4f710a3cc"
+    },
+    "residual/vq/outcomes.py": {
+      "commit": "9dd0955afaf146719bcf9c8ff27d9dd14021fc4a",
+      "git_blob": "551177e546640af867f9ec691abf94bda3ab4c50",
+      "sha256": "76ab85f6dedbc29ddac12aae2815df45a1adfb6bf71701cbc0daf42677f274cd"
+    },
+    "residual/vq/profile.py": {
+      "commit": "9dd0955afaf146719bcf9c8ff27d9dd14021fc4a",
+      "git_blob": "3ea65f9e0ba5bc384d3f830f86f113dd90a00a0d",
+      "sha256": "6ce387567605c8051b8bb4b585bd65d419e47211926b087e17de8750f4d4db4f"
+    },
+    "residual/vq/snapshot.py": {
+      "commit": "9dd0955afaf146719bcf9c8ff27d9dd14021fc4a",
+      "git_blob": "9149d10ea2ff4c2325bcc36b01e78df2347ba7ff",
+      "sha256": "1bb872a09f4bf2faf20ca3e4ad8132fbaa1b9601c809f0583e514c03dd7d27cd"
+    }
+  },
+  "vq_head": "9dd0955afaf146719bcf9c8ff27d9dd14021fc4a",
+  "vq_pr": 41
+}

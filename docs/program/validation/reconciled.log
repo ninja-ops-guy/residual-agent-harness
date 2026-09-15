@@ -1,0 +1,54 @@
+........................................................................ [  5%]
+........................................................................ [ 10%]
+........................................................................ [ 16%]
+.............................. [ 18%]
+................................................................... [ 23%]
+.................................................................................................................. [ 32%]
+............................................................................................................................... [ 41%]
+.................................................................. [ 46%]
+.....................F...................................................sssssssssssss [ 53%]
+sss............sssss.....................sssssssssssssssssssssssssssssss [ 58%]
+s....................................................... [ 62%]
+........................................................................ [ 68%]
+........................................................................ [ 73%]
+........................................................................ [ 79%]
+..................................................................... [ 84%]
+......................................................... [ 88%]
+.......................................................... [ 92%]
+........................................................................ [ 98%]
+.......................                                                  [100%]
+=================================== FAILURES ===================================
+_________ FilesystemRedTeamTests.test_unix_socket_rejected_by_snapshot _________
+
+self = <tests.test_factory_m4_fs_redteam.FilesystemRedTeamTests testMethod=test_unix_socket_rejected_by_snapshot>
+
+    def test_unix_socket_rejected_by_snapshot(self):
+>       sock = socket.socket(socket.AF_UNIX)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_factory_m4_fs_redteam.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <socket.socket fd=-1, family=0, type=0, proto=0>
+family = <AddressFamily.AF_UNIX: 1>, type = <SocketKind.SOCK_STREAM: 1>
+proto = 0, fileno = None
+
+    def __init__(self, family=-1, type=-1, proto=-1, fileno=None):
+        # For user code address family and type values are IntEnum members, but
+        # for the underlying _socket.socket they're just integers. The
+        # constructor of _socket.socket converts the given argument to an
+        # integer automatically.
+        if fileno is None:
+            if family == -1:
+                family = AF_INET
+            if type == -1:
+                type = SOCK_STREAM
+            if proto == -1:
+                proto = 0
+>       _socket.socket.__init__(self, family, type, proto, fileno)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/socket.py:233: PermissionError
+=========================== short test summary info ============================
+FAILED tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_unix_socket_rejected_by_snapshot
+1 failed, 1275 passed, 53 skipped, 278 subtests passed in 30.23s

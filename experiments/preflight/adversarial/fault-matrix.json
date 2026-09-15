@@ -1,0 +1,248 @@
+{
+  "count": 15,
+  "faults": [
+    {
+      "blocked_prerequisites": "Bounded synthetic worker; watchdog and process cleanup available",
+      "boundary": "worker deadline before receipt admission",
+      "execution_status": "not_executed",
+      "expected_fail_closed_result": "No acceptance from incomplete work; bounded termination, explicit timeout and retry only under a new attempt identity.",
+      "fault_id": "FI-001",
+      "injection": "Synthetic worker held past a bounded monotonic deadline",
+      "name": "worker_timeout",
+      "observed_injection_requirement": "Supervisor deadline/termination event with worker identity and no successful receipt",
+      "required_evidence": [
+        "run/attempt IDs",
+        "accepted-state and receipt hashes before/after",
+        "Supervisor deadline/termination event with worker identity and no successful receipt",
+        "recovery outcome with terminal classification"
+      ]
+    },
+    {
+      "blocked_prerequisites": "Disposable worker process and retained supervisor events",
+      "boundary": "worker process exit before receipt admission",
+      "execution_status": "not_executed",
+      "expected_fail_closed_result": "No acceptance; record worker crash and permit identity-preserving task retry with a distinct attempt.",
+      "fault_id": "FI-002",
+      "injection": "Synthetic worker exits nonzero before committing an output receipt",
+      "name": "worker_crash",
+      "observed_injection_requirement": "Exit/signal event and receipt-store scan proving no complete receipt",
+      "required_evidence": [
+        "run/attempt IDs",
+        "accepted-state and receipt hashes before/after",
+        "Exit/signal event and receipt-store scan proving no complete receipt",
+        "recovery outcome with terminal classification"
+      ]
+    },
+    {
+      "blocked_prerequisites": "Injectable fake provider and strict parser boundary",
+      "boundary": "provider response parser / artifact admission",
+      "execution_status": "not_executed",
+      "expected_fail_closed_result": "Reject malformed response without inferring omitted fields; no worker receipt accepted.",
+      "fault_id": "FI-003",
+      "injection": "Return a truncated JSON response or schema-invalid object from a fake provider",
+      "name": "malformed_response",
+      "observed_injection_requirement": "Exact fake-provider response bytes/hash and parser rejection event",
+      "required_evidence": [
+        "run/attempt IDs",
+        "accepted-state and receipt hashes before/after",
+        "Exact fake-provider response bytes/hash and parser rejection event",
+        "recovery outcome with terminal classification"
+      ]
+    },
+    {
+      "blocked_prerequisites": "Signed fixture receipt and persistent receipt index",
+      "boundary": "Evidence Bus receipt admission / M4 acceptance",
+      "execution_status": "not_executed",
+      "expected_fail_closed_result": "At most one logical receipt and one acceptance; documented idempotent acknowledgement or explicit duplicate rejection.",
+      "fault_id": "FI-004",
+      "injection": "Deliver identical signed receipt twice under the same task and attempt",
+      "name": "duplicate_receipt",
+      "observed_injection_requirement": "Two delivery IDs and one content hash; durable receipt/acceptance counts before and after",
+      "required_evidence": [
+        "run/attempt IDs",
+        "accepted-state and receipt hashes before/after",
+        "Two delivery IDs and one content hash; durable receipt/acceptance counts before and after",
+        "recovery outcome with terminal classification"
+      ]
+    },
+    {
+      "blocked_prerequisites": "Two distinct frozen plans/contracts and a receipt signed for the older one",
+      "boundary": "receipt context validation",
+      "execution_status": "not_executed",
+      "expected_fail_closed_result": "Reject replay across context; no acceptance or lease/cursor advance based on stale receipt.",
+      "fault_id": "FI-005",
+      "injection": "Present a valid historic receipt against a changed plan or contract",
+      "name": "stale_receipt",
+      "observed_injection_requirement": "Old/new hashes and context-mismatch rejection evidence",
+      "required_evidence": [
+        "run/attempt IDs",
+        "accepted-state and receipt hashes before/after",
+        "Old/new hashes and context-mismatch rejection evidence",
+        "recovery outcome with terminal classification"
+      ]
+    },
+    {
+      "blocked_prerequisites": "Mock transport with mid-stream fault hook",
+      "boundary": "provider transport mid-response",
+      "execution_status": "not_executed",
+      "expected_fail_closed_result": "No synthetic success; preserve interrupted attempt and bound retries with accounting.",
+      "fault_id": "FI-006",
+      "injection": "Fake transport raises connection error after a retained response prefix",
+      "name": "network_loss",
+      "observed_injection_requirement": "Transport fault callback, byte count/prefix hash and incomplete-attempt record",
+      "required_evidence": [
+        "run/attempt IDs",
+        "accepted-state and receipt hashes before/after",
+        "Transport fault callback, byte count/prefix hash and incomplete-attempt record",
+        "recovery outcome with terminal classification"
+      ]
+    },
+    {
+      "blocked_prerequisites": "Fake HTTP provider and controllable clock",
+      "boundary": "provider retry/rate-limit boundary",
+      "execution_status": "not_executed",
+      "expected_fail_closed_result": "Bounded policy-controlled backoff; no acceptance; every attempt retained with cost unknown if not reported.",
+      "fault_id": "FI-007",
+      "injection": "Fake provider returns HTTP 429 with fixed Retry-After",
+      "name": "provider_429",
+      "observed_injection_requirement": "Captured status/header and attempt/retry timing records",
+      "required_evidence": [
+        "run/attempt IDs",
+        "accepted-state and receipt hashes before/after",
+        "Captured status/header and attempt/retry timing records",
+        "recovery outcome with terminal classification"
+      ]
+    },
+    {
+      "blocked_prerequisites": "Fake HTTP provider and fixed retry policy",
+      "boundary": "provider service-error boundary",
+      "execution_status": "not_executed",
+      "expected_fail_closed_result": "Bounded retries or explicit service-unavailable result; no successful evidence fabricated.",
+      "fault_id": "FI-008",
+      "injection": "Fake provider returns HTTP 500 on a preregistered attempt sequence",
+      "name": "provider_500",
+      "observed_injection_requirement": "Returned status plus attempt identity and retry/exhaustion event",
+      "required_evidence": [
+        "run/attempt IDs",
+        "accepted-state and receipt hashes before/after",
+        "Returned status plus attempt identity and retry/exhaustion event",
+        "recovery outcome with terminal classification"
+      ]
+    },
+    {
+      "blocked_prerequisites": "Disposable repository clone, corruption hook and typed M4 lookup",
+      "boundary": "M4 base/object lookup",
+      "execution_status": "not_executed",
+      "expected_fail_closed_result": "UNKNOWN/ERROR, never ABSENT; accepted ref unchanged; no attributed candidate defect.",
+      "fault_id": "FI-009",
+      "injection": "Corrupt a copied Git object in a disposable repository only",
+      "name": "corrupted_git_object",
+      "observed_injection_requirement": "Expected object ID, corruption byte hash, Git diagnostic and typed lookup outcome",
+      "required_evidence": [
+        "run/attempt IDs",
+        "accepted-state and receipt hashes before/after",
+        "Expected object ID, corruption byte hash, Git diagnostic and typed lookup outcome",
+        "recovery outcome with terminal classification"
+      ]
+    },
+    {
+      "blocked_prerequisites": "Qualified M4 namespace runner and externally bounded supervisor",
+      "boundary": "isolated verifier deadline",
+      "execution_status": "not_executed",
+      "expected_fail_closed_result": "No acceptance; timeout stays separate from semantic verifier FAIL/false reject.",
+      "fault_id": "FI-010",
+      "injection": "Bounded synthetic verifier intentionally exceeds its fixed deadline",
+      "name": "verifier_timeout",
+      "observed_injection_requirement": "Readiness/launch evidence plus timeout event, child cleanup and output-prefix hashes",
+      "required_evidence": [
+        "run/attempt IDs",
+        "accepted-state and receipt hashes before/after",
+        "Readiness/launch evidence plus timeout event, child cleanup and output-prefix hashes",
+        "recovery outcome with terminal classification"
+      ]
+    },
+    {
+      "blocked_prerequisites": "Documented durable scheduler boundaries and restart harness; DSM-004 fencing remains prerequisite",
+      "boundary": "scheduler durable transition and cursor boundary",
+      "execution_status": "not_executed",
+      "expected_fail_closed_result": "No duplicate logical dispatch/acceptance; replay unfinished work using fencing; never infer durability from metrics.",
+      "fault_id": "FI-011",
+      "injection": "Crash the scheduler immediately before/after each documented durable write",
+      "name": "scheduler_restart",
+      "observed_injection_requirement": "Observed crash-point ID plus persisted state/cursor and post-restart transition trace",
+      "required_evidence": [
+        "run/attempt IDs",
+        "accepted-state and receipt hashes before/after",
+        "Observed crash-point ID plus persisted state/cursor and post-restart transition trace",
+        "recovery outcome with terminal classification"
+      ]
+    },
+    {
+      "blocked_prerequisites": "Durable Station boundary map; DSM-004 fencing and PROD-007 recovery implementation",
+      "boundary": "Station lease/acceptance/receipt boundary",
+      "execution_status": "not_executed",
+      "expected_fail_closed_result": "Reconcile committed state deterministically; one acceptance, no stale-owner writes, no new authority from replay.",
+      "fault_id": "FI-012",
+      "injection": "Crash Station immediately before/after durable acceptance and receipt publication",
+      "name": "station_restart",
+      "observed_injection_requirement": "Crash-point ID, accepted ref, receipt store and fencing epoch before/after restart",
+      "required_evidence": [
+        "run/attempt IDs",
+        "accepted-state and receipt hashes before/after",
+        "Crash-point ID, accepted ref, receipt store and fencing epoch before/after restart",
+        "recovery outcome with terminal classification"
+      ]
+    },
+    {
+      "blocked_prerequisites": "Injectable durable sink and explicit fsync/ack contract",
+      "boundary": "durable evidence append and acknowledgement",
+      "execution_status": "not_executed",
+      "expected_fail_closed_result": "Do not advance authority/cursor beyond durable evidence; bounded buffering/backpressure or explicit unavailable state.",
+      "fault_id": "FI-013",
+      "injection": "Fake sink rejects/interrupts append at the declared durability boundary",
+      "name": "evidence_sink_interruption",
+      "observed_injection_requirement": "Sink fault event, committed bytes, ack/cursor position and recovery log",
+      "required_evidence": [
+        "run/attempt IDs",
+        "accepted-state and receipt hashes before/after",
+        "Sink fault event, committed bytes, ack/cursor position and recovery log",
+        "recovery outcome with terminal classification"
+      ]
+    },
+    {
+      "blocked_prerequisites": "Filesystem fault adapter or safe disposable quota mount; never exhaust host disk",
+      "boundary": "durable artifact/receipt write",
+      "execution_status": "not_executed",
+      "expected_fail_closed_result": "No published partial artifact/receipt; preserve prior durable state, surface storage failure and stop acceptance.",
+      "fault_id": "FI-014",
+      "injection": "Inject ENOSPC through a filesystem adapter or quota-limited disposable mount",
+      "name": "disk_full",
+      "observed_injection_requirement": "Observed ENOSPC at write/fsync, partial/temp-file listing and prior durable hash",
+      "required_evidence": [
+        "run/attempt IDs",
+        "accepted-state and receipt hashes before/after",
+        "Observed ENOSPC at write/fsync, partial/temp-file listing and prior durable hash",
+        "recovery outcome with terminal classification"
+      ]
+    },
+    {
+      "blocked_prerequisites": "Atomic-write adapter with short-write and fsync fault hooks",
+      "boundary": "atomic artifact/receipt publication",
+      "execution_status": "not_executed",
+      "expected_fail_closed_result": "Partial data remains uncommitted; existing committed content intact or explicit recovery quarantine; never hash a prefix as complete.",
+      "fault_id": "FI-015",
+      "injection": "Fault adapter writes a prefix then raises before rename/fsync",
+      "name": "partial_write",
+      "observed_injection_requirement": "Exact prefix hash/length, failed operation and pre/post durable destination hash",
+      "required_evidence": [
+        "run/attempt IDs",
+        "accepted-state and receipt hashes before/after",
+        "Exact prefix hash/length, failed operation and pre/post durable destination hash",
+        "recovery outcome with terminal classification"
+      ]
+    }
+  ],
+  "rule": "Configured or requested injection is not observed injection. Unobserved injections are INVALID trials, never PASS. Execute only in disposable environments with an external deadline.",
+  "schema": "residual.preflight.fault-matrix.v1",
+  "status": "design_frozen_not_executed"
+}

@@ -1,0 +1,184 @@
+{
+  "schema_version": "residual.onboarding-preflight.v1",
+  "status": "pass",
+  "scope": "fresh-venv-source-checkout",
+  "blank_vm_tested": false,
+  "installed_distribution_tested": false,
+  "sandbox_qualified": false,
+  "real_provider_requested": false,
+  "started_unix_ns": 1789433740161308278,
+  "finished_unix_ns": 1789433740886781166,
+  "phase_timeout_seconds": 120,
+  "harness_sha256": "09de5c8363e2aeef223cdb13aa4a283193cbb9f1bddaacb2be6ffaecef374b59",
+  "environment": {
+    "system": "Linux",
+    "release": "6.18.44",
+    "machine": "x86_64",
+    "bootstrap_python": "3.12.14"
+  },
+  "git_sha": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+  "git_tree": "6839c59babb5de81d0f9bb75de7f6c1e0b89e87b",
+  "git_version": "git version 2.51.1",
+  "source_archive_sha256": "b2d77dba887bbf25d17ce98938fb68ebd1a5fd88e78a99c63b278309a2071199",
+  "instruction_hashes": {
+    "README.md": "6df53645eb38ce3aaa3bc8719aa5f29811943a34fc4b9cbdfed119788e1d9a8d",
+    "START-HERE.md": "6c51038002fcf451dfb3ac6322545b318c7e71d48879f45572d1c1126849477a",
+    "docs/quickstart.md": "012657f37efc01cb1454e6db49c3b3f92dfc033b515e7bd4a90a343d91ab9c1b"
+  },
+  "diagnostics": {
+    "python": "3.12.14",
+    "fresh_venv": true,
+    "sqlite": "3.53.1",
+    "pidfd_api": true
+  },
+  "trace_root": "1aeb38771f570e6776a7bef7e33c9d1a3965d321c0933588fe88dbd7119fbbd4",
+  "scripted_artifacts": {
+    "result.json": "83733997d751271c11e630f9aefa44798eb3028d84bf8f2d97133df53f87fc17",
+    "trace.jsonl": "44fd0329bd9a899015d63c307b4ae55910f01f2ae14d1423485901707d339bf9"
+  },
+  "provider_smoke": {
+    "status": "not_requested",
+    "model_calls": 0
+  },
+  "limitations": [
+    "Host OS, interpreter, Git, system libraries, and network policy are inherited.",
+    "No graphical Station interaction or Factory sandbox qualification is performed.",
+    "Source mode is README-supported; wheel installation is a separate release gate."
+  ],
+  "full_manifest_sha256": "74c9eb0c22b7f2f93f93b261c277dc4b74474cd8cbe998435b7a00faca50fbe6",
+  "reproduction_command": "python3 scripts/clean_machine_preflight.py --output /tmp/residual-preflight-new",
+  "phases": [
+    {
+      "name": "git-sha",
+      "status": "pass",
+      "exit_code": 0,
+      "elapsed_seconds": 0.002125621999766736,
+      "stdout_sha256": "da826b3a11a02a53cd89c89d31243f067099a97eaaecc4a21c55ccd4e7adcab0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_withheld": false,
+      "stdout_log_sha256": "da826b3a11a02a53cd89c89d31243f067099a97eaaecc4a21c55ccd4e7adcab0",
+      "stderr_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "git-tree",
+      "status": "pass",
+      "exit_code": 0,
+      "elapsed_seconds": 0.0022620879999522003,
+      "stdout_sha256": "11ea00020e16c397974fe7cf535de1c0b407b210ae96b721da19f4fd0cb5cb19",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_withheld": false,
+      "stdout_log_sha256": "11ea00020e16c397974fe7cf535de1c0b407b210ae96b721da19f4fd0cb5cb19",
+      "stderr_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "git-version",
+      "status": "pass",
+      "exit_code": 0,
+      "elapsed_seconds": 0.00154741100004685,
+      "stdout_sha256": "86e56d87412c17ab76c1b5a3d50f9d374e5e28887068e6823973fd1232f1d6c6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_withheld": false,
+      "stdout_log_sha256": "86e56d87412c17ab76c1b5a3d50f9d374e5e28887068e6823973fd1232f1d6c6",
+      "stderr_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "source-archive",
+      "status": "pass",
+      "exit_code": 0,
+      "elapsed_seconds": 0.01210452700024689,
+      "stdout_sha256": "b2d77dba887bbf25d17ce98938fb68ebd1a5fd88e78a99c63b278309a2071199",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_withheld": true,
+      "stdout_log_sha256": "92b88bec95078fbd6caa8e2c55484ef94aa767e4d2ccdb7eeafa8cfbb241720e",
+      "stderr_log_sha256": "92b88bec95078fbd6caa8e2c55484ef94aa767e4d2ccdb7eeafa8cfbb241720e"
+    },
+    {
+      "name": "fresh-venv",
+      "status": "pass",
+      "exit_code": 0,
+      "elapsed_seconds": 0.043747622999944724,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_withheld": false,
+      "stdout_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diagnostics",
+      "status": "pass",
+      "exit_code": 0,
+      "elapsed_seconds": 0.017458583999996335,
+      "stdout_sha256": "a72454e965ec54af71778e156ac4d0d23128b2950f7394d3cb913848f18c8935",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_withheld": false,
+      "stdout_log_sha256": "a72454e965ec54af71778e156ac4d0d23128b2950f7394d3cb913848f18c8935",
+      "stderr_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "cli-help",
+      "status": "pass",
+      "exit_code": 0,
+      "elapsed_seconds": 0.12739077900005213,
+      "stdout_sha256": "f842e5388f416a5f07ce1ea85dd1d498295ed418dfd842e802b863f40f383de0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_withheld": false,
+      "stdout_log_sha256": "f842e5388f416a5f07ce1ea85dd1d498295ed418dfd842e802b863f40f383de0",
+      "stderr_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "station-help",
+      "status": "pass",
+      "exit_code": 0,
+      "elapsed_seconds": 0.1661655839998275,
+      "stdout_sha256": "44afa3fd624e1df0df8632b3a3e3d44d5fdc514be99a7bc63cfcf5cc2768e4f1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_withheld": false,
+      "stdout_log_sha256": "44afa3fd624e1df0df8632b3a3e3d44d5fdc514be99a7bc63cfcf5cc2768e4f1",
+      "stderr_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "scripted-demo",
+      "status": "pass",
+      "exit_code": 0,
+      "elapsed_seconds": 0.1137436830003935,
+      "stdout_sha256": "d4c679e23dbf8855bf504aa937346b231ba9b65fbf60fe103de8cf5d0f7dbea0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_withheld": false,
+      "stdout_log_sha256": "d4c679e23dbf8855bf504aa937346b231ba9b65fbf60fe103de8cf5d0f7dbea0",
+      "stderr_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "trace-check",
+      "status": "pass",
+      "exit_code": 0,
+      "elapsed_seconds": 0.10433790599972781,
+      "stdout_sha256": "0af36615daf778c0e006d5b0a3cdaaca9d0cd75af69a93c9144f26a4ddeb70e9",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_withheld": false,
+      "stdout_log_sha256": "0af36615daf778c0e006d5b0a3cdaaca9d0cd75af69a93c9144f26a4ddeb70e9",
+      "stderr_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "result-binding",
+      "status": "pass",
+      "exit_code": 0,
+      "elapsed_seconds": 0.10688163399981931,
+      "stdout_sha256": "e955858bead2ef699cb0c7fc1af4121391cb4ac9ca49c60d61dff5add4ebfcf1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_withheld": false,
+      "stdout_log_sha256": "e955858bead2ef699cb0c7fc1af4121391cb4ac9ca49c60d61dff5add4ebfcf1",
+      "stderr_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "vm_capability_observation": {
+    "executables": {
+      "qemu-system-x86_64": null,
+      "cloud-init": null,
+      "podman": null,
+      "docker": null,
+      "unshare": "/usr/bin/unshare"
+    },
+    "dev_kvm_exists": false,
+    "blank_vm_started": false
+  }
+}

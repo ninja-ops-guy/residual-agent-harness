@@ -1,0 +1,22 @@
+{
+  "columns": [
+    "cohort_id",
+    "elapsed_hours",
+    "at_risk",
+    "failures",
+    "censored",
+    "survival_probability",
+    "ci_low",
+    "ci_high",
+    "failure_definition_revision"
+  ],
+  "data": [],
+  "evidence_level": "empty_template",
+  "plot_id": "soak_failure",
+  "protocol_sha256": "8f0010b51b932af1fa0f9d3018bf6e02029eab784c9fe4f9885bc99667949d59",
+  "schema_version": "residual.paper-template.v1",
+  "title": "Soak survival with at-risk and censoring counts",
+  "x": "elapsed_hours",
+  "y": "survival_probability",
+  "y_label": "Survival probability"
+}

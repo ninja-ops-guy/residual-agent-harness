@@ -1,0 +1,5 @@
+{"cell_id": "R0-task1", "coordination_seconds": 1, "elapsed_seconds": 3, "gpu_seconds": 0, "local_cost_usd": 0.001, "source_refs": [], "usage_complete": true}
+{"cell_id": "R0-task2", "coordination_seconds": 1, "elapsed_seconds": 3, "gpu_seconds": 0, "local_cost_usd": 0.001, "source_refs": [], "usage_complete": true}
+{"cell_id": "R5-task1", "coordination_seconds": 1, "elapsed_seconds": 3, "gpu_seconds": 0, "local_cost_usd": 0.001, "source_refs": [], "usage_complete": true}
+{"cell_id": "R5-task2", "coordination_seconds": 1, "elapsed_seconds": 3, "gpu_seconds": 0, "local_cost_usd": 0.001, "source_refs": [], "usage_complete": true}
+{"cell_id": "R5-task3", "coordination_seconds": 1, "elapsed_seconds": 3, "gpu_seconds": 0, "local_cost_usd": 0.001, "source_refs": [], "usage_complete": true}

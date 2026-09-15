@@ -1,0 +1,93 @@
+{
+  "cases": [
+    {
+      "case_id": "VC-0001",
+      "input_path": "candidates/VC-0001.json"
+    },
+    {
+      "case_id": "VC-0002",
+      "input_path": "candidates/VC-0002.json"
+    },
+    {
+      "case_id": "VC-0003",
+      "input_path": "candidates/VC-0003.json"
+    },
+    {
+      "case_id": "VC-0004",
+      "input_path": "candidates/VC-0004.json"
+    },
+    {
+      "case_id": "VC-0005",
+      "input_path": "candidates/VC-0005.json"
+    },
+    {
+      "case_id": "VC-0006",
+      "input_path": "candidates/VC-0006.json"
+    },
+    {
+      "case_id": "VC-0007",
+      "input_path": "candidates/VC-0007.json"
+    },
+    {
+      "case_id": "VC-0008",
+      "input_path": "candidates/VC-0008.json"
+    },
+    {
+      "case_id": "VC-0009",
+      "input_path": "candidates/VC-0009.json"
+    },
+    {
+      "case_id": "VC-0010",
+      "input_path": "candidates/VC-0010.json"
+    },
+    {
+      "case_id": "VC-0011",
+      "input_path": "candidates/VC-0011.json"
+    },
+    {
+      "case_id": "VC-0012",
+      "input_path": "candidates/VC-0012.json"
+    },
+    {
+      "case_id": "VC-0013",
+      "input_path": "candidates/VC-0013.json"
+    },
+    {
+      "case_id": "VC-0014",
+      "input_path": "candidates/VC-0014.json"
+    },
+    {
+      "case_id": "VC-0015",
+      "input_path": "candidates/VC-0015.json"
+    },
+    {
+      "case_id": "VC-0016",
+      "input_path": "candidates/VC-0016.json"
+    }
+  ],
+  "fault_matrix_path": "fault-matrix.json",
+  "files": {
+    "candidates/VC-0001.json": "3a41aed6cfc842e4c68bb80c99fe2e6b9f0abde94ef576133274337b03b4c918",
+    "candidates/VC-0002.json": "0fc026d5c7b5225ecd335ef5ccdb3c0b0f65e186a058adc06a452f72723070a5",
+    "candidates/VC-0003.json": "91fde6b87087af77f678db69ab9d60991521f01345f52dfbbf424d1a5f01b555",
+    "candidates/VC-0004.json": "a54e5136deb11cc2311c6036012cc87a90ed147928f36c9237b646f473b34ce7",
+    "candidates/VC-0005.json": "9c52bbf1df5ee9c094bb30d17070f172f77d9da308789ad1253a45c543193cf9",
+    "candidates/VC-0006.json": "12df7bcf697e766963e77ce67be1ec84455fa52a28364dced1355df72e464dc1",
+    "candidates/VC-0007.json": "70f85c387496552923aee3267a5a1d90b377b11f2b37d6aac1b5bfa8f76b6e6f",
+    "candidates/VC-0008.json": "07728f86616b946fdabb85fbf672470f23623ef3c6ac8c102dab523b1b73d40d",
+    "candidates/VC-0009.json": "5b728931890edc643c7930eea4e85844894541676b564e0f6e690745dac5adf1",
+    "candidates/VC-0010.json": "649839fb238528bb1738b94060ab51ea4bfc7c2db584d1e02cc57788bb827873",
+    "candidates/VC-0011.json": "c0534eb4c9e7d79193216d4296a7f1cf32c40a8fb0d1cccc2f2866fed42580a1",
+    "candidates/VC-0012.json": "c74cfd492f69fd523f7edf08d4de2d2d41cb49f44d39c1cef1643d6b436b6aa0",
+    "candidates/VC-0013.json": "3c85b2d7543cb254f8b2e52d8260a6af56d5a7a2ed92add09a3b9886a9a7eaae",
+    "candidates/VC-0014.json": "2a7bc6e8c763ec8a0441ff915b996e76256649ddd5ce7d589ca4eb1591be08f3",
+    "candidates/VC-0015.json": "1a5f78a252fe47fccd2c6c85426ccc7a85096aa238401f22873b6576dddb103d",
+    "candidates/VC-0016.json": "7088c4955cd39acfb4b7f4ced6c205154da04ea704bef02972f69b2d0e8ba640",
+    "fault-matrix.json": "e61622b817c8de0e44afbf22b0a1768b2e2f478a2e7b133ed378139aa53bf671",
+    "gold/labels.json": "72ab4faf51ae2e7e061ea62a5c28f8b14777d27237540f206b2d5cb67b2f3cc3"
+  },
+  "freeze_id": "adversarial-preflight-v1",
+  "gold_path": "gold/labels.json",
+  "purpose": "Non-confirmatory verifier engineering challenge set, not a prevalence estimate or paper outcome.",
+  "schema": "residual.preflight.adversarial-manifest.v1"
+}

@@ -28,6 +28,9 @@ def main(argv=None):
     if argv and argv[0] == "evaluate":
         from .eval.cli import main as evaluate
         return evaluate(argv[1:])
+    if argv and argv[0] == "reproduce":
+        from .reproduce import main as reproduce
+        return reproduce(argv[1:])
     if argv and argv[0] == "study":
         from .study import main as study
         return study(argv[1:])
@@ -47,6 +50,7 @@ def main(argv=None):
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("factory", help="Plan and approve headless multi-swarm Factory Mode work")
     sub.add_parser("evaluate", help="Run SPEC-EVAL-001 comparative evidence (evaluate --help)")
+    sub.add_parser("reproduce", help="Rebuild metrics from retained artifacts without model calls")
     sub.add_parser("serve", help="Open the local web command station (serve --help for options)")
     sub.add_parser("worker", help="Connect a distributed inference runner")
     sub.add_parser("study", help="Freeze/run independently graded studies (study --help)")

@@ -1,0 +1,25 @@
+{
+  "columns": [
+    "configuration",
+    "model_class",
+    "topology",
+    "total_cost_usd",
+    "accepted_error_rate",
+    "aer_lower_bound",
+    "aer_upper_bound",
+    "verified_goodput",
+    "acceptance_rate",
+    "latency_seconds",
+    "cost_complete",
+    "dominance_status"
+  ],
+  "data": [],
+  "evidence_level": "empty_template",
+  "plot_id": "reliability_cost_pareto",
+  "protocol_sha256": "8f0010b51b932af1fa0f9d3018bf6e02029eab784c9fe4f9885bc99667949d59",
+  "schema_version": "residual.paper-template.v1",
+  "title": "Reliability, useful acceptance and cost",
+  "x": "total_cost_usd",
+  "y": "accepted_error_rate",
+  "y_label": "Accepted error rate"
+}
