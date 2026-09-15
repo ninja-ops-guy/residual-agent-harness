@@ -6,6 +6,7 @@ import argparse
 import asyncio
 import hashlib
 import json
+import re
 import secrets
 import time
 from pathlib import Path
@@ -15,6 +16,7 @@ from playwright.async_api import async_playwright
 from pages_contract import validate_entry_html
 
 BOOT = "RESIDUAL BOOT: guest process attached"
+PROMPT = "residual@demo:~/residual-agent-harness$"
 
 
 def safe_url(url: str) -> str:
@@ -55,23 +57,31 @@ async def main() -> int:
             print(f"WEBVM_STAGE: {name}", flush=True)
 
         async def wait_text(text: str, timeout: int = 120000) -> None:
-            # Accessible xterm wraps on narrow screens; ignore whitespace only.
             await page.wait_for_function("text => document.body.innerText.replace(/\\s/g,'').includes(text.replace(/\\s/g,''))", arg=text, timeout=timeout)
+
+        async def wait_guest() -> None:
+            await wait_text(BOOT, timeout=args.boot_timeout * 1000)
+            # Guest process attachment is not yet interactive-shell readiness.
+            await wait_text(PROMPT, timeout=args.boot_timeout * 1000)
 
         async def command_proof(command: str) -> None:
             nonce = secrets.token_hex(8)
-            expected = f"RESIDUAL_E2E_{nonce}:0"
+            prefix = f"RESIDUAL_E2E_{nonce}:"
             # The complete nonce is absent from the echoed command line.
             wire = command + "; proof_rc=$?; printf '\\nRESIDUAL_E2E_%s%s:%s\\n' '" + nonce[:8] + "' '" + nonce[8:] + "' \"$proof_rc\""
             await page.locator(".xterm-helper-textarea").focus()
             await page.keyboard.press("Control+u")
             await page.keyboard.type(wire, delay=1)
             await page.keyboard.press("Enter")
-            await wait_text(expected, timeout=180000)
-            report.setdefault("guest_proofs", []).append({"command": command, "observed_exit_marker": expected})
+            await page.wait_for_function("prefix => new RegExp(prefix+'[0-9]+').test(document.body.innerText.replace(/\\s/g,''))", arg=prefix, timeout=180000)
+            body = re.sub(r"\s", "", await page.locator("body").inner_text())
+            match = re.search(re.escape(prefix) + r"(\d+)", body)
+            assert match is not None, "guest exit marker disappeared"
+            code = int(match[1])
+            report.setdefault("guest_proofs", []).append({"command": command, "observed_exit_marker": match[0], "exit_status": code})
+            assert code == 0, f"Guest command failed with exit {code}: {command}"
 
         try:
-            # Inspect actual served bytes before executing a possible loop.
             response = await context.request.get(args.url, timeout=30000)
             assert response.ok, f"entry HTTP {response.status}"
             entry = await response.body()
@@ -89,8 +99,8 @@ async def main() -> int:
             await stage("served_artifact_identity_verified")
             await page.goto(args.url, wait_until="domcontentloaded", timeout=60000)
             await stage("document_loaded")
-            await wait_text(BOOT, timeout=args.boot_timeout * 1000)
-            await stage("guest_attached")
+            await wait_guest()
+            await stage("guest_attached_and_shell_ready")
             assert await page.evaluate("window.crossOriginIsolated"), "guest page is not cross-origin isolated"
             assert await page.evaluate("window.top === window"), "WebVM is not top-level"
             assert not report["optional_requests"], "optional service initialized before cloud opt-in"
@@ -98,7 +108,7 @@ async def main() -> int:
             await stage("real_demo_verify_and_finite_metrics_passed")
             await page.screenshot(path=str(args.output / "demo-passed.png"))
             await page.reload(wait_until="domcontentloaded")
-            await wait_text(BOOT, timeout=args.boot_timeout * 1000)
+            await wait_guest()
             await command_proof("test -s runs/demo/trace.jsonl && verify-demo")
             await stage("warm_reload_and_verify_passed")
             assert not report["optional_requests"], "cloud SDK loaded without opt-in"
