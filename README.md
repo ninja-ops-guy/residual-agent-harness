@@ -101,7 +101,7 @@ A major integrated milestone at `412b66c35f7c0e1ac479fe60a5b7d33d5510e3af` recor
 
 The reviewed baseline is `a8082109e01aff9eda72030b837103c09d1393d3` (2026-09-15). Before starting paper-facing live reliability evaluation, the priority gates are:
 
-1. make the active qualification workflows required on `main` through maintainer-managed branch protection;
+1. complete required-check coverage and independent-approval enforcement on the now-protected `main` branch (see the current-status policy update);
 2. qualify the exact M4 tree on a namespace-capable runner (PR #88), retaining failures and skips;
 3. classify the recurring Factory OS signal mismatch; merged termination-provenance tooling alone does not close it;
 4. qualify the merged #103 measured-evidence binding, including its real verifier boundary and retained prerequisite reports;

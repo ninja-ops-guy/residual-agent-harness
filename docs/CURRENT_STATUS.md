@@ -47,7 +47,9 @@ The large swarm integration milestone at commit `412b66c35f7c0e1ac479fe60a5b7d33
 
 ### 1. Required enforcement and exact-tree integration
 
-Workflow activation (#101) has landed, but the reviewed `main` branch was unprotected and its repository ruleset list was empty. An active workflow can report failure without preventing a merge. A maintainer must require the appropriate checks and approvals; see the [integration handoff](status/INTEGRATION_HANDOFF.md). Independently submitted tracks still need disposition and validation against their eventual combined tree.
+Workflow activation (#101) has landed. The initial snapshot found no protection; a subsequent live settings check on 2026-09-15 confirms `main` is now protected by active ruleset `23436488`, with 12 required checks, strict up-to-date validation, resolved review threads, deletion/force-push restrictions and no configured bypass actors. This is real enforcement progress.
+
+Enforcement is still incomplete: the required approving-review count is **0**, and `current-status` and `measured-eval-binding` are absent from the required-check list. Copilot review-on-push is enabled, but it does not make an independent approval mandatory. A maintainer must complete those settings; see the [integration handoff](status/INTEGRATION_HANDOFF.md). Independently submitted tracks still need disposition and validation against their eventual combined tree. Policy settings are separate from code revisions; the live main observed during this follow-up was `eefee6ac005c93278f483e002e38a768920f0fae`.
 
 ### 2. M4 live qualification
 
@@ -95,6 +97,11 @@ The project does not yet claim, for live heterogeneous models, that:
 - 24-hour, 72-hour or 30-day production soak targets have been satisfied.
 
 ## Next gates
+
+The completion target is **Residual 1.0 + Experimental Release 1**. Track all
+17 steps, completed prerequisites and the six final acceptance gates in
+[COMPLETION_TRACKER.md](status/COMPLETION_TRACKER.md). An unfavorable hypothesis
+result does not block completion when the experiment answers the question credibly.
 
 The recommended order is:
 

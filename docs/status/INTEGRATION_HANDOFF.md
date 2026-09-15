@@ -9,7 +9,7 @@ non-demo PR; it does not lift issue #79's restrictions for all agents.
 
 | Track | Current disposition / next action | Completion evidence |
 | --- | --- | --- |
-| Enforcement | #101 merged; maintainer branch settings still needed | Required checks and review policy on `main`, including a rejected failing merge attempt in a safe test PR |
+| Enforcement | Active main protection verified; independent approval and two additional required checks still needed | Complete required-check/review policy on `main`, including a rejected failing merge attempt in a safe test PR |
 | Current-status integrity | This PR: repair the active summaries and add a narrow offline guard | Both status guards and their regressions pass on the proposed tree |
 | Runtime reproducibility | #96 merged; retain ordinary-suite provenance; #97 remains its own regression track | Classified original SIGKILL evidence plus a reviewed fix and exact-tree requalification; no retry laundering |
 | Measured binding | #103 merged; this PR activates its staged workflow | Negative/contract tests plus separate real-boundary qualification and retained chain/reports |
@@ -40,13 +40,37 @@ does not assign historical PRs to C merely because they are old.
 - [Command Station run 34927698993, job 104249155773](https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34927698993/job/104249155773),
   attempt 1, Python 3.13: ptrace expected `-31`, observed `-9`, one failure
   among 895 tests and 21 skips. The old log does not establish the kill's cause.
-- The reviewed branch API reported `protected=false`; the repository ruleset
-  endpoint returned `[]`. Recheck live settings before calling enforcement done.
+- The initial branch API reported `protected=false` and no rulesets. A follow-up
+  on 2026-09-15 reports `protected=true` and active ruleset `23436488`; see the
+  policy snapshot below. Preserve the initial observation as history.
+
+## Verified policy update — 2026-09-15
+
+[Residual main protection](https://github.com/ninja-ops-guy/residual-agent-harness/rules/23436488)
+targets `refs/heads/main`, is active, and was last updated at
+`2026-09-15T06:48:20.024-04:00`. At read time main was
+`eefee6ac005c93278f483e002e38a768920f0fae`.
+
+Required checks: `tests (3.11)`, `tests (3.12)`, `tests (3.13)`,
+`factory-ownership`, `qualify (3.11)`, `qualify (3.12)`, `qualify (3.13)`,
+`python (3.11)`, `python (3.12)`, `python (3.13)`, `browser`, `docker`.
+All are bound to integration id `15368`; strict up-to-date checks are enabled.
+Deletion and non-fast-forward updates are restricted. Review threads must be
+resolved; stale approvals are dismissed. No bypass actors are configured and
+the connected user reports `current_user_can_bypass=never`.
+
+Remaining settings: require at least one independent approving review
+(currently **0**), and add `current-status` and `measured-eval-binding` to the
+required checks. Copilot review-on-push/draft review is enabled; this is review
+automation, not an independently enforced approval. Safe rejection testing of
+the complete policy remains outstanding. This follow-up inspected settings;
+it did not change them.
 
 ## Maintainer-only enforcement
 
 The connected GitHub tool surface does not expose a branch-administration
-write. A maintainer must configure `main` after the new checks have appeared:
+write. A maintainer must finish the remaining settings without removing the
+already-active protections:
 
 1. Require PRs and at least one independent approving review; dismiss stale
    approvals after new commits and require resolved review conversations.

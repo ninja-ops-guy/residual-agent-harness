@@ -2,6 +2,9 @@
 
 Owner: integration coordinator. Preparation only; no qualification or merge approval is implied.
 
+The governing completion target and reviewed 17-step status are recorded in
+[COMPLETION_TRACKER.md](COMPLETION_TRACKER.md): Residual 1.0 plus Experimental Release 1.
+
 ## Reviewed snapshot — 2026-09-15
 
 - Current main: eefee6ac005c93278f483e002e38a768920f0fae, including #104.
@@ -13,8 +16,11 @@ Owner: integration coordinator. Preparation only; no qualification or merge appr
   Factory runtime evidence run 34940491451 failed while the lease-revocation
   test read observations: SQLite database locked at PRAGMA synchronous=FULL.
   Its repair and independent review remain separate lane responsibilities.
-- main reports protected=false; repository rulesets are empty. Enforcement is
-  a maintainer action that can proceed immediately, independently of runtime repair.
+- Initial protection was absent. A subsequent 2026-09-15 check confirms main
+  is protected by active ruleset 23436488 with 12 required checks, strict
+  up-to-date validation and no bypass actors. Approving-review count is still
+  0; current-status and measured-eval-binding remain optional. Complete those
+  maintainer settings independently of runtime repair; see INTEGRATION_HANDOFF.md.
 - Thirty open PRs were observed. Their count is not a completion metric.
   Refresh branch heads, review comments and check runs before any decision.
 
