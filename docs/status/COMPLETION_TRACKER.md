@@ -41,13 +41,13 @@ tag listing, and the GitHub releases collection was empty.
 | ID | Step | Current state | Evidence already present / next acceptance condition | Owner / dependencies |
 | --- | --- | --- | --- | --- |
 | C01 | Freeze scope | POLICY DOCUMENTED; adoption pending | Use the policy above and flag out-of-scope requests; this PR does not globally control other threads | Owner + all lanes; start now |
-| C02 | Converge PR board | PARTIAL | #101/#96 landed; #97/#94/#93 remain open. Resolve #106/#107 overlap. Classify and salvage old stacks; close only after explicit disposition preserves unique work | Backlog lane; no need to delay runner/corpus preparation |
+| C02 | Converge PR board | AUDIT REPORTED COMPLETE; dispositions pending | Owner reports Priority 2 audit complete; its artifact has not been independently inspected in this tracker update. #101/#96 landed; #97/#94/#93 remain open. Resolve #106/#107 overlap and act on reviewed salvage/supersession decisions | Backlog lane; no need to delay runner/corpus preparation |
 | C03 | Qualify M4 | BLOCKED | #81 code exists; #88 remains open. Execute every mandatory security case on a capable runner with zero capability skips, bound to accepted code/schema | Runner lane + independent reviewer; after relevant #108 repairs |
 | C04 | Finish Swarm 3 | PARTIAL / REPAIR BLOCKED | #96 already merged. #108 has unresolved production review and retained CI failure; see incident ledger below. Retain contention evidence and UNKNOWN attribution | Runtime implementer + separate reviewer |
 | C05 | Qualify distributed/runtime behavior | PREPARATION / BLOCKED | #97 regressions await integration. Execute real-process concurrency, loss/restart/replay/cleanup/network cases, then 24h and 72h soak | Runtime/recovery lane; accepted candidate and isolated infrastructure |
 | C06 | Port principal Factory benchmarks | PENDING RECONCILIATION | Salvage #26/#38/#46/#52/#54/#56 onto current Factory. Preserve FB001-FB004 progression and whole-project completion focus | Benchmark owner designated through backlog lane |
-| C07 | Freeze ER1 protocol | PREPARATION | #86/#103 merged; #90/#91 drafts overlap. Freeze model/configuration, code/verifiers, budgets, repetitions, stopping rules, analysis and exclusions before confirmatory results | Science lane + independent protocol review |
-| C08 | Acquire held-out corpus | PREPARATION; independent corpus not evidenced | Reconcile draft corpora, prove provenance/holdout and hidden graders, hash tasks/splits. 60-100 tasks across at least four families is a provisional target, not proof of adequate statistical precision | Corpus/science lane; start now, finalize before C07 |
+| C07 | Freeze ER1 protocol | RECONCILED SPECIFICATION DELIVERED in #110; execution blocked | #110 reconciles #90/#91 planning, pins the ladder/statistical rules and ledger, and preserves launch gates. Resolve the denominator and power-model review items below; implement/review adapters, analysis and launch enforcement; fill actual model/corpus identities before launch | Science lane + independent protocol review |
+| C08 | Acquire held-out corpus | DEVELOPMENT TIERS PINNED; T3 blocked | #110 pins both 16-item development corpora and a confirmatory generation procedure. Actual T3 tasks/graders/hashes remain BLOCKED-UNTIL-GENERATED. Its proposed design uses 30-200 independent families, three tasks each: 90-600 tasks, replacing the earlier provisional 60-100 planning target if accepted | Corpus/science lane; power design must be resolved before selecting F |
 | C09 | Fixed-model R0-R5 | NOT EVIDENCED | Run the frozen comparison and retain raw candidate outcomes, coverage, accepted correctness, AER/false rejection/FCR, complete compute cost, latency and throughput | Cleared trust/experiment gates + C07/C08 |
 | C10 | Reliability degradation | NOT EVIDENCED | Freeze degradation mechanism and levels. Report realized worker correctness vs accepted correctness alongside coverage and uncertainty; also distinguish this from substituting different models | Science lane; preregister before results |
 | C11 | Live fault injection | DEVELOPMENT EVIDENCE ONLY | Existing M4 trust fixtures are not the live campaign. Prove each intended fault was exercised and whether it reached accepted state; report invalid injections and UNKNOWN separately | Fault lane; accepted candidate/protocol, isolated resources |
@@ -61,6 +61,57 @@ tag listing, and the GitHub releases collection was empty.
 "Not evidenced" means no qualifying completed evidence was found in the
 reviewed main, PR dispositions, retained main artifacts and release records.
 It does not assert that no unpublished work exists in another thread.
+
+## Wave update: Priority 4 / PR #110
+
+Reviewed [#110](https://github.com/ninja-ops-guy/residual-agent-harness/pull/110)
+at head `41661a625656688538dd2bae1371fd90288283bd`. It is open/non-draft,
+with five added documentation/manifest files. No runtime, launcher, analysis
+implementation or executable test is added by that PR. Its planning deliverable
+is present; this tracker does not certify its complete launch readiness.
+
+Confirmed preparation: one R0-R5 ladder; development/confirmatory tier separation;
+paired family-cluster analysis and fixed multiplicity family; per-run identity
+and artifact requirements; a fail-closed specification for missing T3/adapters,
+model/verifier identities and M4 qualification. #90/#91 retain distinct tooling
+and code scope; their planning supersession does not close those branches.
+
+Two specification questions must be resolved before an authoritative power run:
+
+1. **Per-configuration denominators.** The analysis document defines
+   `N = 6 * F * 3 * 10` for the entire study, then uses N for acceptance coverage,
+   goodput and raw correctness. State explicitly that each configuration uses
+   its own scheduled denominator `n_r = F * 3 * 10`, including its missing cells,
+   while total N is only the study-wide schedule/accounting denominator. With
+   a per-arm numerator and the literal global denominator, even an arm accepting
+   every task has coverage 1/6; the five-percentage-point goodput power target
+   changes meaning. Pin the contrast statistic and its denominator too.
+2. **Synthetic paired-outcome model.** Seed 20260915, baseline goodput and
+   within-family correlation do not uniquely define a simulation. Specify the
+   outcome-generating distribution, family/task/repetition dependence, coupling
+   between treatment/control outcomes, construction of the effect, acceptance
+   and error model, and statistic used in the planned label-swap test. Review
+   these before running a simulation intended to select the smallest eligible F.
+
+No authoritative power simulation was run in this coordination update; inventing
+those assumptions would silently change the proposed design. Once specified,
+implementation and synthetic calibration can proceed independently of M4 repair.
+
+The proposed range implies 90-600 distinct tasks and **5,400-36,000 scheduled
+configuration/task/repetition cells**, before decomposition, verification,
+additional calls or secondary studies. Review feasibility and budget before
+freezing the actual manifest. If the power/resource gate fails, retain the
+protocol's descriptive-only outcome instead of claiming confirmatory power.
+
+The published command examples also depend on #90/#91 code and files that are
+not present on reviewed main (for example the launch/protocol/reproduction
+paths and referenced tests). Integrate and validate these dependencies before
+calling the fixture-promotion and launch rules executable protections. A
+documentation statement alone does not demonstrate structural enforcement.
+
+Owner reports Priority 2 and Priority 4 preparation complete; Swarm A runtime
+repair and Swarm C preflight remain in flight. No other branch was changed,
+closed or approved by this update.
 
 ## Six final gates
 
@@ -132,4 +183,3 @@ evidence establishes the cause; later instrumentation does not recover it.
 
 Keep each tracker update bound to source revisions, run attempts, artifacts and
 review dispositions. Opening or merging a PR alone cannot turn a release gate green.
-
