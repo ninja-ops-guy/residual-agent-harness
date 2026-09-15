@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from residual.core import ContractError, canonical, strict_json
+from residual.core import ContractError, canonical
 from residual.workbench.conversation_build import execute, verified_parent_bundle
 
 
@@ -53,8 +53,12 @@ class ConversationBuildTests(unittest.TestCase):
         two = execute(self.request(second, 'Make it dark mode', first), root=self.root, output_root=self.out,
                       mailbox=self.mail, observer=self.observer(revised, inspect))
         self.assertTrue(two['result']['success'])
-        self.assertEqual(two['lineage'], {'conversation_id': self.cid, 'parent_mission_id': first, 'revision': 2})
-        self.assertIn('prior-0', seen['ids']); self.assertIn('Calculator', seen['text'])
+        self.assertEqual(two['lineage']['conversation_id'], self.cid)
+        self.assertEqual(two['lineage']['parent_mission_id'], first)
+        self.assertEqual(two['lineage']['parent_trace_root'], one['result']['trace_root'])
+        self.assertEqual(two['lineage']['revision'], 2)
+        self.assertIn('prior-lineage', seen['ids']); self.assertIn('prior-0', seen['ids'])
+        self.assertIn(first, seen['text']); self.assertIn(one['result']['trace_root'], seen['text']); self.assertIn('Calculator', seen['text'])
         self.assertIn('COMPLETE replacement deliverable', seen['instruction'])
         self.assertIn('Preserve unrelated working behavior', seen['instruction'])
         self.assertEqual((self.out / second / 'artifacts/index.html').read_text(), revised['files'][0]['content'])
