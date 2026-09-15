@@ -1,16 +1,13 @@
-name: WebVM browser proof
+name: WebVM publishing diagnostics
 
+# Actual candidate and live browser proof now run in pages.yml using exactly
+# the artifact that is published. This manual read-only diagnostic is for
+# publishing-source problems; it never reruns, merges, or deploys anything.
 on:
-  pull_request:
-    paths:
-      - 'demo/vm/**'
-      - '.github/workflows/pages.yml'
-      - '.github/workflows/webvm-browser-proof.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
-  actions: read
   pages: read
 
 jobs:
@@ -18,61 +15,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
+      - uses: actions/checkout@v4
       - name: Inspect Pages source and deployed entry point
         env:
           GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
         run: |
           mkdir -p publishing-evidence
-          gh api "repos/$REPO/pages" > publishing-evidence/pages-config.json
+          gh api "repos/$GITHUB_REPOSITORY/pages" > publishing-evidence/pages-config.json
           jq '{build_type,source,status,html_url}' publishing-evidence/pages-config.json
           curl --fail --show-error --location --max-time 30 -D publishing-evidence/headers.txt https://ninja-ops-guy.github.io/residual-agent-harness/demo/ -o publishing-evidence/index.html
-          cat publishing-evidence/index.html
-          test "$(jq -r .build_type publishing-evidence/pages-config.json)" = workflow || { echo '::error::Pages source is not GitHub Actions. Repository administrator must select Settings > Pages > Build and deployment > Source > GitHub Actions.'; exit 1; }
+          python demo/vm/pages_contract.py --pages-config publishing-evidence/pages-config.json
       - name: Retain publishing diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: publishing-diagnostics-${{ github.run_id }}
+          name: publishing-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
           path: publishing-evidence/
           retention-days: 7
-
-  artifact-browser:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Download the actual built Pages artifact from merged PR 87
-        uses: actions/download-artifact@v4
-        with:
-          artifact-ids: '10376262342'
-          run-id: '34916978356'
-          github-token: ${{ github.token }}
-          path: downloaded
-          merge-multiple: true
-      - name: Serve the retained Pages artifact without modifying it
-        run: |
-          mkdir -p preview browser-evidence
-          tar -xf downloaded/artifact.tar -C preview
-          printf '%s\n' '{"commit":"1addd19d8cddbb8ba09750b3e8f63802f4cec42c","artifact_id":10376262342,"run_id":34916978356,"claim":"local HTTP serving of original Pages artifact; not live deployment"}' > browser-evidence/artifact-provenance.json
-          python -m http.server 8765 --bind 127.0.0.1 --directory preview > browser-evidence/http-server.log 2>&1 &
-      - name: Install browser test dependencies
-        run: |
-          python -m pip install playwright==1.55.0
-          python -m playwright install --with-deps chromium
-      - name: Exercise real WebVM artifact and real guest commands
-        run: >-
-          python demo/vm/browser_smoke.py
-          --url http://127.0.0.1:8765/demo/
-          --output browser-evidence/artifact-chromium
-      - name: Retain browser evidence even on failure
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: webvm-browser-proof-${{ github.run_id }}-${{ github.run_attempt }}
-          path: browser-evidence/
-          retention-days: 7
-          if-no-files-found: warn
