@@ -9,33 +9,89 @@ from qualify_webvm import replace_once
 def patch(text):
     text = replace_once(text, "<script>\n", "<script>\n\timport { mountMissionControl } from './mission-control-world.js';\n")
     text = replace_once(text, 'var residualBridgeBuffer = "";',
-                        'var residualWorkbench = null;\n\tvar residualDataDevice = null;\n\tvar residualShellTail = "";\n\tvar residualShellReady = false;\n\tvar residualBridgeBuffer = "";')
+                        'var residualWorkbench = null;\n\tvar residualDataDevice = null;\n\tvar residualShellTail = "";\n\tvar residualShellReady = false;\n\tvar residualShellCommandBusy = false;\n\tvar residualShellRun = null;\n\tvar residualShellInputBuffer = "";\n\tvar residualBridgeBuffer = "";')
     text = replace_once(text, 'const out = residualDecoder.decode(bytes, {stream:true});', '''const out = residualDecoder.decode(bytes, {stream:true});
-        residualShellTail = (residualShellTail + out).slice(-2048).replace(/\\x1b\\[[0-9;?]*[A-Za-z]/g, "");
+        residualShellTail = (residualShellTail + out).slice(-4096).replace(/\\x1b\\[[0-9;?]*[A-Za-z]/g, "");
         if (residualShellTail.includes("residual@demo:~/residual-agent-harness$")) residualShellReady = true;
-        residualWorkbench?.onOutput(out);''')
+        // Project authoritative guest frames before resolving a shell-dispatch
+        // completion marker that may share the same terminal output chunk.
+        residualWorkbench?.onOutput(out);
+        if (residualShellRun) {
+            const marker = new RegExp("RESIDUAL_HOST_RUN_" + residualShellRun.missionId + ":([0-9]+)");
+            const match = residualShellTail.match(marker);
+            if (match) {
+                const current = residualShellRun;
+                residualShellRun = null;
+                residualShellCommandBusy = false;
+                // Terminal input can arrive after Mission Control has projected
+                // a completion frame but before the shell child has emitted its
+                // exit marker. Queue it rather than dropping it or splicing it
+                // into the running child, then hand it to Bash once the child
+                // has exited. Flush before resolving host.run() so a subsequent
+                // mission cannot overtake queued terminal input.
+                const queuedInput = residualShellInputBuffer;
+                residualShellInputBuffer = "";
+                if (queuedInput) readData(queuedInput);
+                current.finish({status: Number(match[1])});
+            }
+        }''')
     text = replace_once(text, 'var dataDevice = await CheerpX.DataDevice.create();',
                         'var dataDevice = await CheerpX.DataDevice.create();\n\t\tresidualDataDevice = dataDevice;')
-    text = replace_once(text, 'term.onData(readData);', '''term.onData(readData);
+    text = replace_once(text, 'term.onData(readData);', '''term.onData(data => {
+            // Mission Control launches Python as a child of this one long-lived
+            // shell. User/automation terminal input that arrives while the child
+            // is active is queued and replayed after its exit marker, preventing
+            // command splicing without losing keystrokes.
+            if (residualShellCommandBusy) {
+                residualShellInputBuffer += data;
+                return;
+            }
+            readData(data);
+        });
         residualWorkbench = mountMissionControl({
-            ready: () => !!cx && !!residualDataDevice && residualShellReady,
+            ready: () => !!cx && !!residualDataDevice && residualShellReady && !residualShellCommandBusy,
             focus: () => term.focus(),
             mailbox: async (path, text) => {
-                if (!/^\\/m-[a-f0-9]{32}-[a-f0-9]{32}\\.json$/.test(path)) throw new Error("Invalid mailbox response path");
-                // Publish the body first and only then expose a request-specific
-                // ready marker. The guest waits for the marker before reading,
-                // so DataDevice writes cannot be consumed mid-publication.
+                const response = /^\\/m-[a-f0-9]{32}-[a-f0-9]{32}\\.json$/.test(path);
+                const cancel = /^\\/m-[a-f0-9]{32}-cancel\\.json$/.test(path);
+                if (!response && !cancel) throw new Error("Invalid mailbox path");
+                // Publish provider responses in two phases. Cancellation is a
+                // one-file signal and therefore does not need a ready marker.
                 await residualDataDevice.writeFile(path, text);
-                await residualDataDevice.writeFile(path + ".ready", "1");
+                if (response) await residualDataDevice.writeFile(path + ".ready", "1");
             },
             run: async (request) => {
                 if (!/^m-[a-f0-9]{32}$/.test(request.id)) throw new Error("Invalid mission ID");
+                if (!["audit", "live", "build"].includes(request.mode)) throw new Error("Invalid mission mode");
+                if (residualShellCommandBusy || residualShellRun) throw new Error("Guest command already active");
                 const name = "/" + request.id + ".json";
                 await residualDataDevice.writeFile(name, JSON.stringify(request));
-                const args = request.mode === "build"
-                    ? ["-m", "residual.workbench.browser_build", "--request", "/data" + name, "--mailbox", "/data", "--root", "/opt/residual", "--output-root", "/opt/residual/runs/missions", "--stream"]
-                    : ["-m", "residual.workbench.browser_run", "run", "--request", "/data" + name, "--mailbox", "/data", "--root", "/opt/residual", "--output-root", "/opt/residual/runs/missions", "--stream"];
-                return await cx.run("/usr/bin/python3", args, configObj.opts);
+                const entry = request.mode === "build"
+                    ? "residual.workbench.browser_build"
+                    : "residual.workbench.browser_run";
+                const verb = request.mode === "build" ? "" : " run";
+                const command = `python3 -m ${entry}${verb} --request /data${name} --mailbox /data --root /opt/residual --output-root /opt/residual/runs/missions --stream; __residual_rc=$?; echo RESIDUAL_HOST_RUN_${request.id}:$__residual_rc`;
+                residualShellCommandBusy = true;
+                residualShellTail = "";
+                residualShellInputBuffer = "";
+                return await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        if (!residualShellRun || residualShellRun.missionId !== request.id) return;
+                        residualShellRun = null;
+                        residualShellCommandBusy = false;
+                        residualShellInputBuffer = "";
+                        reject(new Error("Guest shell dispatch timed out"));
+                    }, 330000);
+                    residualShellRun = {
+                        missionId: request.id,
+                        finish: value => { clearTimeout(timeout); resolve(value); }
+                    };
+                    // Do not call cx.run() here. WebVM already owns one
+                    // long-lived cx.run() for this interactive shell; launching
+                    // the mission as its child keeps process lifecycle inside
+                    // the guest instead of re-entering the host run API.
+                    readData(command + "\\r");
+                });
             }
         });''')
     start = text.index('\tasync function enableResidualCloud()')
