@@ -33,7 +33,7 @@ class ConversationBuildTests(unittest.TestCase):
         if parent: value['parent_mission_id'] = parent
         return value
 
-    def test_follow_up_freezes_verified_parent_and_records_lineage(self):
+    def test_follow_up_binds_control_lineage_without_disclosing_it_to_provider(self):
         first = 'm-' + '1' * 32
         initial = {'summary': 'Calculator v1', 'files': [
             {'path': 'index.html', 'content': '<h1>Calculator</h1><button>Add</button>'},
@@ -57,10 +57,15 @@ class ConversationBuildTests(unittest.TestCase):
         self.assertEqual(two['lineage']['parent_mission_id'], first)
         self.assertEqual(two['lineage']['parent_trace_root'], one['result']['trace_root'])
         self.assertEqual(two['lineage']['revision'], 2)
-        self.assertIn('conversation-session', seen['ids']); self.assertIn('prior-lineage', seen['ids']); self.assertIn('prior-0', seen['ids'])
-        self.assertIn(self.cid, seen['text']); self.assertIn(first, seen['text']); self.assertIn(one['result']['trace_root'], seen['text']); self.assertIn('Calculator', seen['text'])
+        self.assertNotIn('conversation-session', seen['ids']); self.assertNotIn('prior-lineage', seen['ids'])
+        self.assertIn('prior-0', seen['ids']); self.assertIn('prior-1', seen['ids'])
+        self.assertNotIn(self.cid, seen['text']); self.assertNotIn(first, seen['text']); self.assertNotIn(one['result']['trace_root'], seen['text'])
+        self.assertIn('Calculator', seen['text'])
         self.assertIn('COMPLETE replacement deliverable', seen['instruction'])
         self.assertIn('Preserve unrelated working behavior', seen['instruction'])
+        snapshot = json.loads((self.out / second / 'task.json').read_text())
+        committed_ids = {item['id'] for item in snapshot['artifacts']}
+        self.assertIn('conversation-session', committed_ids); self.assertIn('prior-lineage', committed_ids)
         self.assertEqual((self.out / second / 'artifacts/index.html').read_text(), revised['files'][0]['content'])
 
     def test_revision_is_derived_from_trace_bound_lineage_not_summary_metadata(self):
