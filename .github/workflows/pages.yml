@@ -50,7 +50,7 @@ jobs:
         run: |
           printf 'name=github-pages-%s-%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
       - name: Test publication contracts
-        run: python -m unittest -v tests.test_webvm_publication tests.test_webvm_cli_output tests.test_webvm_deployment_workflow
+        run: python -m unittest -v tests.test_webvm_publication tests.test_webvm_cli_output tests.test_webvm_deployment_workflow tests.test_webvm_workbench
       - name: Build static site shell
         shell: bash
         run: |
@@ -125,6 +125,7 @@ jobs:
         run: |
           python demo/vm/patch_webvm.py source _webvm/src/lib/WebVM.svelte
           python demo/vm/qualify_webvm.py _webvm/src/lib/WebVM.svelte
+          python demo/vm/install_workbench.py _webvm/src/lib/WebVM.svelte _site
           python demo/vm/patch_webvm.py app _webvm/src/app.html
       - name: Build WebVM client as top-level demo
         shell: bash
@@ -155,6 +156,8 @@ jobs:
           test -s _site/demo/serviceWorker.js
           test -s "_site/demo/residual-demo-${IMAGE_SHA}.ext2.meta"
           test -s _site/demo/build-info.json
+          test -s _site/provider/index.html
+          test -s _site/provider/provider.js
           test -s _site/demo.html
           test -s _site/site/demo.html
           test -s _site/walkthrough/index.html
