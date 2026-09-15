@@ -6,12 +6,14 @@ from dataclasses import replace
 import io
 import json
 from pathlib import Path
+import signal
 import threading
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from tests.test_factory_runtime import Fixture
-from residual.factory.runtime import _ProcessControl, main
+from residual.factory.runtime import main
+from residual.factory.termination_provenance import ProcessControl
 from residual.factory.runtime_workspace import ManagedWorktree
 from residual.factory.worker_contract import WorkerContractError
 
@@ -140,14 +142,18 @@ class LifecycleGuards(Fixture):
 
 class WatchdogIntentGuards(Fixture):
     def control(self):
-        return SimpleNamespace(termination_requested=threading.Event(),
-                               process=SimpleNamespace(pid=12345, poll=lambda: None), kill=Mock())
+        return SimpleNamespace(
+            termination_requested=threading.Event(),
+            process=SimpleNamespace(pid=12345),
+            exited=Mock(return_value=False),
+            kill=Mock(),
+        )
 
     def test_existing_termination_intent_skips_secondary_lease_read(self):
         control = self.control()
         control.termination_requested.set()
         with patch.object(self.journal, 'lease_is_current') as lease:
-            self.runtime._watch(control, self.contract(), 100.0, threading.Event())
+            self.runtime._watch(control, self.contract(), 100_000_000_000, threading.Event())
         lease.assert_not_called()
         control.kill.assert_not_called()
 
@@ -156,30 +162,48 @@ class WatchdogIntentGuards(Fixture):
         def statm(*_):
             control.termination_requested.set()
             return '1 1'
-        with patch('residual.factory.runtime.time.monotonic', return_value=100.0):
+        with patch.object(self.runtime, '_monotonic_ns', return_value=100_000_000_000):
             with patch.object(Path, 'read_text', side_effect=statm):
                 with patch.object(self.journal, 'lease_is_current') as lease:
-                    self.runtime._watch(control, self.contract(), 100.0, threading.Event())
+                    self.runtime._watch(control, self.contract(), 100_000_000_000, threading.Event())
         lease.assert_not_called()
         control.kill.assert_not_called()
 
     def test_lease_read_failure_without_other_owner_still_kills(self):
         control = self.control()
-        with patch('residual.factory.runtime.time.monotonic', return_value=100.0):
+        with patch.object(self.runtime, '_monotonic_ns', return_value=100_000_000_000):
             with patch.object(Path, 'read_text', return_value='1 1'):
                 with patch.object(self.journal, 'lease_is_current', side_effect=OSError('fixture error')):
-                    self.runtime._watch(control, self.contract(), 100.0, threading.Event())
-        control.kill.assert_called_once_with(('lease', 'lease_generation', {'reason': 'revoked_or_unavailable'}))
+                    self.runtime._watch(control, self.contract(), 100_000_000_000, threading.Event())
+        control.kill.assert_called_once_with(
+            ('lease', 'lease_generation', {'reason': 'revoked_or_unavailable'}), requester='watchdog'
+        )
 
-    def test_kill_records_intent_before_process_poll(self):
-        process = Mock(pid=12345)
-        with patch('residual.factory.runtime.os.pidfd_open', return_value=10):
-            control = _ProcessControl(process)
-        def poll():
-            self.assertTrue(control.termination_requested.is_set())
-            return 0
-        process.poll.side_effect = poll
+    def test_kill_records_intent_before_signal_and_single_reap(self):
+        process = Mock(pid=12345, args=['fixture'])
+        process.returncode = None
+        def wait(timeout):
+            process.returncode = -signal.SIGKILL
+            return process.returncode
+        process.wait.side_effect = wait
         reason = ('tool', 'broker_protocol', {'reason': 'primary'})
-        control.kill(reason)
-        self.assertEqual(control.reason, reason)
+        observed = {}
+        with patch('residual.factory.termination_provenance.os.pidfd_open', return_value=10), \
+             patch('residual.factory.termination_provenance.select.select',
+                   side_effect=[([], [], []), ([10], [], [])]), \
+             patch('residual.factory.termination_provenance.os.waitid',
+                   return_value=SimpleNamespace(si_code=2, si_status=signal.SIGKILL)), \
+             patch('residual.factory.termination_provenance.signal.pidfd_send_signal') as send:
+            control = ProcessControl(process, correlation_id='attempt-fixture')
+            def check_send(*_):
+                observed['termination_requested'] = control.termination_requested.is_set()
+                observed['reason'] = control.reason
+                observed['requester'] = control.requested_by
+            send.side_effect = check_send
+            control.kill(reason, requester='guard')
+        self.assertTrue(observed['termination_requested'])
+        self.assertEqual(observed['reason'], reason)
+        self.assertEqual(observed['requester'], 'guard')
+        process.wait.assert_called_once()
         self.assertTrue(control.stopped.is_set())
+        self.assertEqual(control.termination_record().observed_signal, signal.SIGKILL)

@@ -43,6 +43,7 @@ CORE_PROTECTED = frozenset({
     "residual/factory/runtime_journal.py",
     "residual/factory/runtime_workspace.py",
     "residual/factory/station_issuer.py",
+    "residual/factory/termination_provenance.py",
     "residual/factory/worker_contract.py",
 })
 
