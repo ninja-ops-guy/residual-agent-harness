@@ -43,6 +43,32 @@ def _passthrough(fake):
     return wrapper
 
 
+def _passing_manifest():
+    """Environment-independent manifest for tests that exercise a PASS report.
+
+    The real collect_manifest() remains covered separately, and the explicit
+    Python-pin mismatch test proves that a non-3.12 qualification environment
+    still fails closed. This helper prevents the repository's ordinary 3.11/
+    3.13 unit-test matrices from being mistaken for qualification runs.
+    """
+    return {
+        "schema": "m4-qualification-env-manifest-v1",
+        "python": {
+            "status": "pass",
+            "version": "3.12.0",
+            "pinned": ["3.12"],
+            "executable": "/usr/bin/python3",
+        },
+        "dependencies": {
+            m: {"status": "pass", "version": "test", "minimum_major": minimum}
+            for m, minimum in prereq.REQUIRED_DEPENDENCIES.items()
+        },
+        "platform": {},
+        "kernel": {},
+        "resource_limits": {},
+    }
+
+
 class CapabilityProbeTests(unittest.TestCase):
     def test_all_probes_pass_when_kernel_supports_namespaces(self):
         with mock.patch.object(prereq.subprocess, "run", side_effect=_passthrough(lambda a, **k: _ok_proc())), \
@@ -54,7 +80,6 @@ class CapabilityProbeTests(unittest.TestCase):
                      "network_namespace", "ipc_namespace", "uts_namespace",
                      "kill_child", "composite_sandbox_profile"):
             self.assertEqual(names[name], "pass", name)
-        # machine-readable: every probe records the argv actually run
         for r in results:
             if r.name.endswith("_namespace") or r.name == "kill_child":
                 self.assertIn("--user", r.probe_argv)
@@ -73,8 +98,7 @@ class CapabilityProbeTests(unittest.TestCase):
         self.assertIn("probe_failed", net["detail"])
 
     def test_probe_timeout_and_launch_failure_are_blocked(self):
-        with mock.patch.object(prereq.subprocess, "run",
-                               side_effect=_passthrough(_raise_timeout)), \
+        with mock.patch.object(prereq.subprocess, "run", side_effect=_passthrough(_raise_timeout)), \
              mock.patch.object(prereq, "probe_isolation", return_value=(False, "namespace_probe_failed")):
             results = prereq.probe_capabilities()
         userns = next(r for r in results if r.name == "user_namespace")
@@ -107,8 +131,6 @@ class CapabilityProbeTests(unittest.TestCase):
             prereq.probe_capabilities()
         composite = next(c for c in prereq.probe_capabilities()
                          if c.name == "composite_sandbox_profile")
-        # per-capability probes always enter a userns with root mapping first,
-        # exactly as m4_sandbox._unshare_argv composes the sandbox boundary
         for argv in captured:
             self.assertEqual(argv[1:3], ["--user", "--map-root-user"])
         self.assertIn(SANDBOX_PROFILE, composite.detail)
@@ -158,25 +180,27 @@ class ManifestAndReportTests(unittest.TestCase):
 
     def test_report_is_json_serializable_and_revision_bound(self):
         with mock.patch.object(prereq.subprocess, "run", side_effect=_passthrough(lambda a, **k: _ok_proc())), \
-             mock.patch.object(prereq, "probe_isolation", return_value=(True, "ok")):
+             mock.patch.object(prereq, "probe_isolation", return_value=(True, "ok")), \
+             mock.patch.object(prereq, "collect_manifest", return_value=_passing_manifest()):
             report = prereq.build_report(revision="a" * 40)
         self.assertEqual(report["overall"], "PASS")
         self.assertEqual(report["revision"], "a" * 40)
         self.assertEqual(report["schema"], prereq.REPORT_SCHEMA)
-        json.dumps(report)  # must not raise
+        json.dumps(report)
 
     def test_main_exit_codes_and_output_file(self):
         import tempfile
         from pathlib import Path
         out = Path(tempfile.mkdtemp()) / "report.json"
         with mock.patch.object(prereq.subprocess, "run", side_effect=_passthrough(lambda a, **k: _ok_proc())), \
-             mock.patch.object(prereq, "probe_isolation", return_value=(True, "ok")):
+             mock.patch.object(prereq, "probe_isolation", return_value=(True, "ok")), \
+             mock.patch.object(prereq, "collect_manifest", return_value=_passing_manifest()):
             self.assertEqual(prereq.main(["--output", str(out), "--revision", "b" * 40]), 0)
         written = json.loads(out.read_text())
         self.assertEqual(written["overall"], "PASS")
         with mock.patch.object(prereq.subprocess, "run", side_effect=_passthrough(lambda a, **k: _fail_proc())), \
              mock.patch.object(prereq, "probe_isolation", return_value=(False, "namespace_probe_failed")):
-            self.assertEqual(prereq.main([]), 1)  # BLOCKED => nonzero, never silent
+            self.assertEqual(prereq.main([]), 1)
 
 
 if __name__ == "__main__":
