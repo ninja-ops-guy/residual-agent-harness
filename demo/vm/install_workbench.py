@@ -26,8 +26,8 @@ def patch(text):
                 const name = "/" + request.id + ".json";
                 await residualDataDevice.writeFile(name, JSON.stringify(request));
                 const args = request.mode === "build"
-                    ? ["-m", "residual.workbench.conversation_build", "--request", "/data" + name, "--mailbox", "/data", "--root", "/opt/residual", "--output-root", "/opt/residual/runs/missions", "--stream"]
-                    : ["-m", "residual.workbench", "run", "--request", "/data" + name, "--mailbox", "/data", "--root", "/opt/residual", "--output-root", "/opt/residual/runs/missions", "--stream"];
+                    ? ["-m", "residual.workbench.browser_build", "--request", "/data" + name, "--mailbox", "/data", "--root", "/opt/residual", "--output-root", "/opt/residual/runs/missions", "--stream"]
+                    : ["-m", "residual.workbench.browser_run", "run", "--request", "/data" + name, "--mailbox", "/data", "--root", "/opt/residual", "--output-root", "/opt/residual/runs/missions", "--stream"];
                 return await cx.run("/usr/bin/python3", args, configObj.opts);
             }
         });''')
