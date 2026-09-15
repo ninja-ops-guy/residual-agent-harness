@@ -22,7 +22,7 @@ Five changes materially advanced or narrowed the integrated qualification state:
 2. **PR #122 advanced `main` to `bc8b783d8d01b343f870cae704fe7b63c6ea6c0d`.** It hardens the Mission Control real-provider experience with truthful failure categories, selected-model validation, a bounded browser/guest mailbox path, guided authorization state, blocked-build conversation behavior and real-browser acceptance coverage. These product/demo changes do not grant generated artifacts M4 authority.
 3. **PR #121 advanced `main` to `1a52e9a2dfc9ea9a9d24579bb9b44548c483f0b9`.** It changes only the protected ownership manifest's provenance metadata: `pinned_at` names the accepted #108 squash commit `0430f2fa...`; all 38 protected path-to-blob pins are unchanged. This records accepted source identity and does not add namespace, production, soak or research qualification.
 4. **PR #124 advanced `main` to `9d88195a6329151197b53c05c6cbb5a74167f08f`.** It addresses the retained production WebVM delivery failure in which one immutable ext2 chunk returned HTTP 503 and the guest subsequently aborted. The merged change adds a narrowly scoped service-worker retry for same-origin `GET` requests matching only immutable `residual-demo-<sha>.ext2.c<chunk>.txt` resources, with bounded retry/backoff and no retry expansion to provider calls, cross-origin traffic, ordinary assets or 4xx responses. This is delivery hardening, not evidence that WebVM reliability is solved.
-5. **PR #109 remains a stronger but intentionally blocked qualification candidate.** Head `2551585f8951d242db92cd4c3e680409b0e4c572`, synthetic merge `6c62e64f2b1251f7ac8e43883207fa2a3240554e`, tree `0299afd8e0caef5cc247317b5ed2d41423f86a14`, was qualified against the preceding accepted main `1a52e9a...`. Its Ubuntu 22.04 M4 job passed all capability probes, actual `linux-userns-isolated-v1` execution, and 135 M4 tests plus 78 subtests with **zero skips**. The same head changes one protected lifecycle test; ownership correctly fails closed until independent authorization and deliberate baseline advancement. Because `main` has since advanced through #124, this PASS remains exact-candidate historical evidence and must not be projected onto a later combined tree without rerunning the required gates.
+5. **PR #109 is refreshed onto current main and has a new exact-candidate PASS, but remains intentionally blocked.** Head `fb99d5896b23b91e3903965a8c56813412533d48`, synthetic merge `d43db468ee1075bb0f2612ef75575afa0ac01d5f`, tree `ed2d089f21273ec1e305d5ab432d554092267343`, includes accepted main `9d88195a...`. Its Ubuntu 22.04 M4 job passed all 12 capability probes, actual `linux-userns-isolated-v1` execution, and 142 cases plus 84 subtests with **zero skips**. It also repairs the artifact exporter to require exactly six unique members and cap declared uncompressed size. The same candidate changes one protected lifecycle test; ownership correctly fails closed until genuinely independent authorization and deliberate baseline advancement.
 
 Issue #63 is closed: the accepted-tree, filesystem/link, verifier-isolation and Git-evidence defects that it tracked are no longer the active M4 implementation blocker. Issue #48 is also closed: the implementation-status manifest has been reconciled with the merged Factory/evaluation tree.
 
@@ -49,34 +49,36 @@ Issue #63 is closed: the accepted-tree, filesystem/link, verifier-isolation and 
 
 Current `main` is `9d88195a6329151197b53c05c6cbb5a74167f08f`, the merge of PR #124.
 
-The non-Pages push workflows inspected on this exact revision are green, including Factory ownership, Controller/provider and Command Station; no current-main repository failure was found in those completed jobs. The exact-main Pages/WebVM run is `35016468585` and is still **IN PROGRESS** at this refresh. Therefore this document does not claim post-#124 live deployment/browser qualification yet.
+The exact-main push workflows on this revision are green. Pages/WebVM run `35016468585` completed successfully: its artifact build/browser proof passed, deployment passed, and the published WebVM completed both desktop and narrow-Chromium live acceptance. This clears the post-#124 deployment gate for that exact revision; it does not establish an empirical production failure rate.
 
 The failure that motivated #124 remains retained evidence. On deployed revision `bc8b783...`, Pages/WebVM run `35003867644` failed its first narrow-Chromium live attempt after an immutable WebVM disk chunk returned HTTP 503 and the guest aborted/stalled; the unchanged rerun later passed. Failed-attempt artifact `10410904479` has ZIP SHA-256 `57ab059987126acbc4baf3b0b4b10bc7f3412fa8c38322c756fbd1b4b13564a5`; successful-attempt artifact `10411624041` has ZIP SHA-256 `0cbfe28cc0cd1e94d4cde603ad4452b9834a6a6f6f14e41c4ec32565ffc25386`.
 
-PR #124 changes the product path instead of merely relying on reruns: only the matching same-origin immutable disk-chunk fetch receives bounded retries. That mechanism must still be validated by the exact-main post-deploy acceptance. It does not establish an empirical recurrence rate or production soak result.
+PR #124 changes the product path instead of merely relying on reruns: only matching same-origin immutable disk-chunk fetches receive bounded retries. The exact-main deployment confirms the hardened path can complete the required acceptance flow, but it does not establish a recurrence rate or production soak result.
 
-Issue #120 remains open because repeated intermittent failures on the live WebVM surface are a production-reliability concern. The separate Vercel commit status has also been observed red from external account/deployment-capacity limits; that is not a repository-test pass or failure. None of these outcomes constitutes namespace qualification, production soak, live-provider research evidence or blanket production readiness.
+Issue #120 remains open because repeated intermittent failures on the live WebVM surface are a production-reliability concern. The separate Vercel commit status may still be red from external account/deployment-capacity limits; that is not a repository-test pass or failure. None of these outcomes constitutes namespace qualification of merged main, production soak, live-provider research evidence or blanket production readiness.
 
 ### Active PR #109 qualification candidate
 
-Current PR #109 head is `2551585f8951d242db92cd4c3e680409b0e4c572`; GitHub tested synthetic merge `6c62e64f2b1251f7ac8e43883207fa2a3240554e` with tree `0299afd8e0caef5cc247317b5ed2d41423f86a14` against base `1a52e9a...`.
+Current PR #109 head is `fb99d5896b23b91e3903965a8c56813412533d48`; GitHub tested synthetic merge `d43db468ee1075bb0f2612ef75575afa0ac01d5f` with tree `ed2d089f21273ec1e305d5ab432d554092267343` against current base `9d88195a6329151197b53c05c6cbb5a74167f08f`. The head and synthetic merge have the same tree.
 
-The dedicated capable-runner qualification, run `35010813043`, is **PASS** for that exact candidate:
+The dedicated capable-runner qualification, run `35017167706`, is **PASS** for that exact candidate:
 
-- Ubuntu 22.04.5 / kernel `6.8.0-1064-azure` / Python 3.12.14;
-- all prerequisite namespace/capability probes passed;
-- actual isolated execution passed with boundary `linux-userns-isolated-v1`, return code 0, and retained stdout/stderr hashes;
-- 135 selected M4 tests plus 78 subtests passed;
+- Ubuntu 22.04 / kernel `6.8.0-1064-azure` / Python 3.12.14;
+- all 12 prerequisite namespace/security capability probes passed;
+- actual isolated execution passed with boundary `linux-userns-isolated-v1`;
+- 142 selected cases plus 84 subtests passed;
 - zero skipped test cases were permitted or observed;
-- retained artifact `10413437995`, ZIP SHA-256 `181c57c49e94aaca513f8cf16f83dd2924d1cc0ec12f8105fbb6110047ddc7e1`.
+- retained artifact `10416235755`, ZIP SHA-256 `49fa75e9c39e13a102bb16b20346e2875f42eac0b83f539ed137f78bc527db6a`.
 
-That is genuine exact-candidate namespace/isolation qualification evidence for the tests and environment recorded by the run. It is **not** a production, soak, live-model or research result, and it is not qualification of current `main` after #124.
+The artifact contains exactly the six expected members, and its source/environment identities agree with the current candidate. PR #107 permanently retains the archive, extracted evidence and review handoff at commit `27225f9f366ac6472a91cc03d28c01c3aa53a3a0`.
 
-The #109 head deliberately remains blocked at the ownership boundary. `tests/test_factory_runtime_lifecycle.py` changed from protected blob `d4e00bd290351fa2ccd302ac578ac5dc463eda84` to proposed blob `85c6bf10a675ea3a74d775906d0bbaa79e411100`. The Factory ownership gate therefore fails closed with exactly that one mismatch. Clean-install qualification fails for the same ownership prerequisite on Python 3.11/3.12/3.13, and measured-evaluation binding stops at its ownership prerequisite. These are expected trust-gate failures for an unreviewed protected-byte change, not evidence that the ownership control is defective.
+This candidate also repairs the evidence exporter: it now requires exactly six unique expected archive names, rejects more than 16 MiB of declared uncompressed data, and preserves the existing 1 MiB ZIP and digest checks. Seven real-ZIP tests plus six subtests pass, with mutation checks catching removal of the subset, duplicate-name and expansion bounds. This is metadata-level expansion control, not a claim that every member is decompressed during export.
 
-Broad exact-head CI on that branch supported the same classification rather than exposing a second functional defect. Factory runtime, Factory OS execution, Controller/provider and the Command Station Python suite reached the same ownership-manifest mismatch; the new CLI isolation regression and protected lifecycle CLI test passed in those suites. Factory OS execution's focused 121-test OS/runtime/evidence set passed before the full suite reached the ownership gate; its retained artifact is `10414060533`, ZIP SHA-256 `395081276dd557123ab1eae77992ffbd6f5444a9d0472a2712110420930f5d10`. Factory runtime retained artifact `10414255073`, ZIP SHA-256 `f48b687ca46065898a8ec75e69dd7b7e0d0323248ca686ab6fdcd489de54f230`.
+The #109 head deliberately remains blocked at the ownership boundary. `tests/test_factory_runtime_lifecycle.py` changed from protected blob `d4e00bd290351fa2ccd302ac578ac5dc463eda84` to proposed blob `85c6bf10a675ea3a74d775906d0bbaa79e411100`; the other 37 protected blobs and baseline remain unchanged. A COMMENTED review recorded on the preceding head was submitted by the implementer and explicitly defers independent authorization. It is not an independent approval and cannot be recycled for this refreshed head.
 
-No inspected failure justifies weakening the ownership checker, changing qualification criteria, or automatically advancing the protected baseline. The candidate remains **BLOCKED for acceptance** until the protected test bytes receive genuinely independent authorization and deliberate baseline advancement. Because main advanced after this evidence was collected, any accepted #109 update must also be refreshed/requalified against the then-current base.
+Fresh ordinary CI correctly remains red at the single protected ownership mismatch. Ownership, clean-install, measured binding, Factory runtime/OS, Controller/provider and Command Station all terminate on that trust gate; completed full unittest jobs report 1,017 cases with one ownership failure and 22 namespace skips. Those are repository/trust-review blockers, not host-policy failures. Control Plane and Pages are green. No inspected failure justifies weakening the checker or automatically advancing the baseline.
+
+Required sequence: genuinely independent review of the exact current protected test and candidate changes; deliberate one-file pin advancement if accepted; then fresh exact-head ownership, clean-install, measured-binding, full CI and capable-runner zero-skip qualification before merge. The current M4 result qualifies only the named candidate tree and does not complete release, recovery, soak, live-model or research gates.
 
 ## M4 claim boundary
 
@@ -100,7 +102,7 @@ Namespace-dependent M4 tests that skip because a host cannot provide the require
 
 PR #109 has produced multiple Ubuntu 22.04 capable-runner passes. The immediately preceding diagnostic head `1e4c02c5a967ca286cb60cbf23c893cf14a83c3b` passed run `35009804287` with 135 tests plus 78 subtests and zero skips; artifact `10413341869` has ZIP SHA-256 `073a3b4934d5f46153996258402613a1a426ac361efca152267cc62e53a21b3f`. That result is historical evidence for that exact earlier tree.
 
-The current #109 head `2551585f...` changed the protected lifecycle CLI test to exercise both real subprocess aliases and prevent parent warning contamination from corrupting JSON parsing. Fresh M4 run `35010813043` again passed all probes, actual isolated execution and the 135-test/78-subtest zero-skip gate. Because the protected test bytes changed, that successful namespace run does not authorize the protected change. Because `main` subsequently advanced through #124, it also does not qualify a later combined tree.
+The current #109 head `fb99d589...` includes accepted main through #124, preserves the protected lifecycle CLI subprocess repair, and adds the hardened evidence exporter. Fresh M4 run `35017167706` passed all 12 probes, actual isolated execution and the 142-case/84-subtest zero-skip gate. The successful namespace run qualifies that named candidate tree only; it does not authorize the protected test-byte change or waive the ownership mismatch.
 
 The original Python 3.13 failures remain retained. A later full instrumented run passed 1,005 tests with 22 namespace skips, so the historical exception's exact origin is not proven. The current repair demonstrates parent-warning contamination and a separate direct-module warning path, but those reproductions should not be expanded into a claim that every historical intermittent failure has been fully explained.
 
@@ -129,7 +131,7 @@ The exact-current-main Pages run `35016468585` is still in progress, so post-#12
 - The architecture separates generation authority from acceptance authority.
 - Bounded worker execution, evidence capture, independent verification and deterministic integration are implemented mechanisms rather than paper-only abstractions.
 - The protected M4 implementation gaps tracked by #63 are closed, and the timing/termination repair from #108 is merged.
-- PR #109 produced an exact-candidate capable-runner zero-skip M4 PASS; acceptance of its new protected test bytes and current-main refresh are still pending.
+- PR #109 produced a refreshed exact-current-main capable-runner zero-skip M4 PASS; acceptance of its new protected test bytes is still pending genuinely independent review and deliberate one-file baseline advancement.
 - The repository contains evaluation machinery capable of preserving raw observations and recomputing paper-facing metrics.
 - Mission Control can exercise real guest workflows and optional provider transport while retaining explicit non-claims around semantic correctness and authority.
 - WebVM now contains a narrowly scoped recovery path for the specific retained immutable disk-chunk transient-failure class.
@@ -142,7 +144,7 @@ The project does not yet claim, for live heterogeneous models, that:
 - the gain remains useful at nontrivial acceptance coverage;
 - the reliability gain is worth the orchestration tax in cost/latency/throughput;
 - lower-cost or weaker workers can be substituted without unacceptable verifier false-acceptance risk;
-- PR #109's current protected lifecycle-test change has been independently authorized, baseline-advanced and integrated into accepted current `main`;
+- PR #109's current protected lifecycle-test change has been independently authorized, baseline-advanced and integrated into accepted `main`;
 - PR #124's recovery path has established an acceptable empirical WebVM recurrence rate;
 - 24-hour, 72-hour or 30-day production soak targets have been satisfied.
 
@@ -150,16 +152,15 @@ The project does not yet claim, for live heterogeneous models, that:
 
 The recommended order is:
 
-1. **Finish exact-current-main Pages/WebVM qualification.** Require run `35016468585` to complete deployment and post-deploy public-site acceptance before calling #124's integrated product path green. Retain failures rather than rerunning them away.
-2. **Independently authorize the protected #109 lifecycle-test repair.** Inspect proposed blob `85c6bf10...`; do not advance the ownership baseline merely to make CI green. If accepted, deliberately repin the single protected path and refresh the candidate against then-current `main`.
-3. **Rerun exact combined-tree trust gates.** Ownership, clean-install, measured-evaluation binding, full CI and capable-runner zero-skip M4 evidence must bind the same accepted candidate; do not project the pre-#124 PASS onto a later tree.
-4. **Quantify WebVM reliability.** Keep issue #120 open, retain every failed attempt, and run a defined repeated-run campaign before making a production reliability claim.
-5. **Run release/recovery qualification.** Exercise blank-environment setup, recovery and retained-evidence procedures on the accepted candidate without broadening claims from fixture evidence.
-6. **Freeze the live evaluation protocol.** Lock workload, evidence path, metrics, model/configuration and analysis choices before observing confirmatory model results.
-7. **Run one fixed live model across R0–R5.** Measure `P(X)`, `P(A)`, `P(X|A)`, AER/ASSR, verifier false acceptance/rejection/`UNKNOWN`, latency, throughput and cost.
-8. **Run model-degradation and heterogeneous-routing studies.** Preserve negative results and denominator discipline.
-9. **Progress through 24-hour → 72-hour → 30-day soak** only after shorter qualification gates are clean.
-10. **Update the paper from retained artifacts only.** No simulated, historical or synthetic evidence should be presented as live current-tree evidence.
+1. **Independently authorize the exact #109 protected lifecycle-test repair.** Review proposed blob `85c6bf10...` on current head `fb99d589...`; do not reuse the implementer's COMMENTED review or advance the pin merely to make CI green.
+2. **Deliberately advance only the accepted protected pin and rerun the complete gate.** Require ownership, clean-install, measured binding, full CI and a fresh capable-runner zero-skip M4 run on the resulting exact head before merge.
+3. **Quantify WebVM reliability.** Keep issue #120 open, retain every failed attempt, and run a defined repeated-run campaign; the green #124 exact-main deployment proves one acceptance run, not an acceptable production recurrence rate.
+4. **Run release/recovery qualification.** Exercise blank-environment setup, recovery and retained-evidence procedures on the accepted candidate without broadening claims from fixture evidence.
+5. **Freeze the live evaluation protocol.** Lock workload, evidence path, metrics, model/configuration and analysis choices before observing confirmatory model results.
+6. **Run one fixed live model across R0–R5.** Measure `P(X)`, `P(A)`, `P(X|A)`, AER/ASSR, verifier false acceptance/rejection/`UNKNOWN`, latency, throughput and cost.
+7. **Run model-degradation and heterogeneous-routing studies.** Preserve negative results and denominator discipline.
+8. **Progress through 24-hour → 72-hour → 30-day soak** only after shorter qualification gates are clean.
+9. **Update the paper from retained artifacts only.** No simulated, historical or synthetic evidence should be presented as live current-tree evidence.
 
 ## Documentation authority
 
