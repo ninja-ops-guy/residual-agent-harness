@@ -82,6 +82,7 @@ jobs:
           sudo test -x /mnt/residual-webvm/bin/bash
           sudo test -x /mnt/residual-webvm/usr/local/bin/residual-demo-shell
           sudo test -f /mnt/residual-webvm/home/residual/.bashrc
+          sudo test -d /mnt/residual-webvm/home/user/documents
           sudo test -f /mnt/residual-webvm/opt/residual/pyproject.toml
           sudo grep -q 'RESIDUAL BOOT: guest process attached' /mnt/residual-webvm/usr/local/bin/residual-demo-shell
           sudo umount /mnt/residual-webvm
@@ -110,6 +111,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 demo/vm/patch_webvm.py source _webvm/src/lib/WebVM.svelte
+          python3 demo/vm/patch_webvm.py app _webvm/src/app.html
 
       - name: Build WebVM client as top-level demo
         shell: bash
@@ -146,6 +148,7 @@ jobs:
           grep -q "js.puter.com/v2" _site/demo/index.html
           grep -q "RESIDUAL / LIVE VM" _webvm/src/lib/WebVM.svelte
           grep -q "VM READY · GUEST ATTACHED" _webvm/src/lib/WebVM.svelte
+          ! grep -q "plausible.leaningtech.com" _webvm/src/app.html
           grep -q "browser_bridge" examples/onboarding/cloud_demo.sh
           grep -q "RESIDUAL" _site/index.html
           grep -q "Run failure scenario" _site/walkthrough/index.html
