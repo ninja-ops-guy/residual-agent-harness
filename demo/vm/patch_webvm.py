@@ -25,6 +25,7 @@ def patch_source(path: Path) -> None:
 	var residualBridgeBuffer = "";
 	var residualCloudReady = false;
 	var residualCloudLabel = "ENABLE CLOUD ✦";
+	var residualCloudSdkPromise = null;
 	var residualVmState = "VM BOOTING…";
 	function residualDecode64url(s)
 	{
@@ -48,6 +49,27 @@ def patch_source(path: Path) -> None:
 		if(typeof result?.text==="string")return result.text;
 		if(typeof result?.content==="string")return result.content;
 		throw new Error("Puter returned no text content");
+	}
+	function residualLoadPuterSdk()
+	{
+		if(window.puter?.auth)return Promise.resolve(window.puter);
+		if(residualCloudSdkPromise)return residualCloudSdkPromise;
+		residualCloudSdkPromise=new Promise((resolve,reject)=>{
+			const script=document.createElement("script");
+			script.src="https://js.puter.com/v2/";
+			script.async=true;
+			script.dataset.residualPuterSdk="1";
+			const fail=(message)=>{residualCloudSdkPromise=null;script.remove();reject(new Error(message));};
+			const timer=setTimeout(()=>fail("Puter SDK load timed out"),10000);
+			script.onload=()=>{
+				clearTimeout(timer);
+				if(window.puter?.auth)resolve(window.puter);
+				else fail("Puter SDK loaded without auth API");
+			};
+			script.onerror=()=>{clearTimeout(timer);fail("Puter SDK failed to load");};
+			document.head.appendChild(script);
+		});
+		return residualCloudSdkPromise;
 	}
 	function residualSend(id,obj)
 	{
@@ -83,9 +105,9 @@ def patch_source(path: Path) -> None:
 		residualCloudLabel="LOADING CLOUD…";
 		try
 		{
-			if(!window.puter?.auth)throw new Error("Puter SDK unavailable");
-			if(!window.puter.auth.isSignedIn?.())await window.puter.auth.signIn({attempt_temp_user_creation:true});
-			const user=await window.puter.auth.getUser();
+			const puterSdk=await residualLoadPuterSdk();
+			if(!puterSdk.auth.isSignedIn?.())await puterSdk.auth.signIn({attempt_temp_user_creation:true});
+			const user=await puterSdk.auth.getUser();
 			residualCloudReady=true;
 			residualCloudLabel="CLOUD READY ✓"+(user?.username?` · ${user.username}`:"");
 		}
@@ -133,22 +155,37 @@ def patch_app(path: Path) -> None:
 
 def patch_index(path: Path) -> None:
     text = path.read_text()
+    if "plausible.leaningtech.com" in text:
+        raise SystemExit("Plausible analytics survived the app patch")
+    if "js.puter.com/v2" in text:
+        raise SystemExit("unexpected eager Puter SDK reference in built index")
     marker = "<head>"
     require_once(text, marker, "WebVM built index head marker")
-    injection = '<head>\n<meta name="theme-color" content="#000000">\n<script defer src="https://js.puter.com/v2/"></script>'
-    path.write_text(text.replace(marker, injection, 1))
+    if 'name="theme-color"' not in text:
+        text = text.replace(marker, '<head>\n<meta name="theme-color" content="#000000">', 1)
+    path.write_text(text)
+
+
+def patch_serviceworker(path: Path) -> None:
+    text = path.read_text()
+    old = '''\tcatch (e) {\n\t\tconsole.error(e)\n\t}\n\tif (r.status === 0) {'''
+    require_once(text, old, "WebVM service-worker fetch failure hook")
+    new = '''\tcatch (e) {\n\t\tconsole.warn("Serviceworker fetch failed:", request.url, e);\n\t\treturn Response.error();\n\t}\n\tif (r.status === 0) {'''
+    path.write_text(text.replace(old, new, 1))
 
 
 def main() -> None:
-    if len(sys.argv) != 3 or sys.argv[1] not in {"source", "app", "index"}:
-        raise SystemExit("usage: patch_webvm.py {source|app|index} PATH")
+    if len(sys.argv) != 3 or sys.argv[1] not in {"source", "app", "index", "serviceworker"}:
+        raise SystemExit("usage: patch_webvm.py {source|app|index|serviceworker} PATH")
     path = Path(sys.argv[2])
     if sys.argv[1] == "source":
         patch_source(path)
     elif sys.argv[1] == "app":
         patch_app(path)
-    else:
+    elif sys.argv[1] == "index":
         patch_index(path)
+    else:
+        patch_serviceworker(path)
 
 
 if __name__ == "__main__":
