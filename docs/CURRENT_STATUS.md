@@ -122,7 +122,7 @@ PR #124 is now merged. Its service-worker recovery is intentionally narrow: retr
 
 Issue #120 remains open for retained intermittent failures on the Pages/WebVM surface, including the earlier guest Python `_sha512` import failure and the later disk-chunk HTTP 503/WebVM abort. The fact that exact revisions later passed unchanged reruns supports an **intermittent delivery/guest-runtime** classification for those observations; it does not prove the reliability risk is solved. Recurrences must be retained and measured rather than hidden behind silent retries.
 
-The exact-current-main Pages run `35016468585` is still in progress, so post-#124 deployed desktop/narrow acceptance is **not yet claimed** in this refresh.
+The exact-current-main Pages run `35016468585` completed successfully, including deployment and desktop plus narrow-Chromium live acceptance. This is one exact-revision result, not an empirical recurrence-rate or production-soak claim.
 
 ## Research status
 
