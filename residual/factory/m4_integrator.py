@@ -1,117 +1,136 @@
-"""M4 offline integration: quarantined evidence plus consent yields one receipt.
-
-Integration copies receipt-bound artifact bytes from the candidate worktree into
-a private integration worktree using descriptor-relative, no-follow writes. The
-recorded project baseline version and an explicit operator integration consent
-record are checked in one process before any write. Verification commands are
-short host-owned allowlisted commands (audit/build tooling, not project code) or
-bounded trusted fixtures; no project test runner executes on the host.
-"""
+"""Deterministic M4 project integration over locally verified M3 evidence."""
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+import difflib
 import hashlib
-import hmac
-import json
 import math
-from pathlib import Path
+import re
 import tempfile
+import os
 import time
-from typing import Callable
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Callable, Sequence
 
-from residual.core import canonical, strict_json
-from .m4_safety import FixtureProcessResult, M4SafetyError, apply_artifact, run_trusted_fixture, snapshot
-from .m4_sandbox import sandbox_verification_supported
+from residual.core import digest
+
+from .evidence_bus import EvidenceBus
+from .evidence_receipts import SIGNATURE_DOMAIN, StationIdentity, WorkerReceipt, _sha256
+from .m4_evidence import EvidenceIntegrationPlan, IntegrationConflict
+from .m4_git_evidence import GitEvidenceState, read_base_blob
+from .m4_safety import artifact_parts, apply_artifact, snapshot, run_trusted_fixture
+from .m4_sandbox import SANDBOX_PROFILE, require_isolation, run_isolated
+from .runtime_journal import private_directory
+from .runtime_workspace import git
 from .worker_contract import WorkerContractError
+
+try:
+    from cryptography.exceptions import InvalidSignature
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+except ImportError:  # pragma: no cover
+    InvalidSignature = None
+    Ed25519PublicKey = None
+
+
+INTEGRATION_SCHEMA = "factory-integration-receipt-v2"
+ObservationSink = Callable[[dict[str, object]], None]
 
 
 class M4IntegrationError(WorkerContractError):
     pass
 
 
-INTEGRATION_SCHEMA = "factory-integration-receipt-v2"
-ObservationSink = Callable[[dict[str, object]], None]
-
-# Host-owned command allowlist. Entries are exact argv prefixes; project-defined
-# arguments, wrappers, shells, and environment tricks are rejected elsewhere.
-ALLOWED_VERIFICATION_COMMANDS: tuple[tuple[str, ...], ...] = (
-    ("python3", "--version"),
-    ("python3", "-c"),
-    ("git", "diff"),
-    ("git", "status"),
-)
-MAX_OUTPUT = 65536
-VERIFICATION_CATEGORIES = {
-    "artifact_hash_replay",
-    "patch_idempotency_check",
-    "static_policy_scan",
-    "type_check",
-    "full_test_suite",
-}
-_RESULT_STATUSES = {"pass", "fail", "unknown", "error", "timeout"}
+class IntegrationConflictError(M4IntegrationError):
+    pass
 
 
-@dataclass(frozen=True)
-class IntegrationPlan:
-    worker_id: str
-    candidate_id: str
-    verification_profile: str
-    verification_commands: tuple[str, ...]
-    expected_base_tree_hash: str
-    approval_hash: str
+class ProjectVerificationError(M4IntegrationError):
+    def __init__(self, message: str, *, offending_receipt_hash: str | None = None):
+        super().__init__(message)
+        self.offending_receipt_hash = offending_receipt_hash
+
+
+@dataclass(frozen=True, slots=True)
+class ConflictResolution:
+    path: str
+    selected_receipt_hash: str
+    approved_by: str
+    reason: str
 
     def __post_init__(self) -> None:
-        if not self.worker_id or not self.candidate_id:
-            raise M4IntegrationError("integration plan requires worker and candidate identities")
-        if not all(isinstance(command, str) and command for command in self.verification_commands):
-            raise M4IntegrationError("verification commands must be host-owned strings")
-        if len(self.expected_base_tree_hash) != 64:
-            raise M4IntegrationError("expected base tree hash must be hex SHA-256")
-        if len(self.approval_hash) != 64:
-            raise M4IntegrationError("approval binding must be a SHA-256 hash")
-        object.__setattr__(self, "verification_commands", tuple(self.verification_commands))
+        if not all(isinstance(x, str) and x.strip() for x in
+                   (self.path, self.selected_receipt_hash, self.approved_by, self.reason)):
+            raise M4IntegrationError("complete HITL conflict resolution required")
 
-    def to_dict(self) -> dict[str, object]:
-        return asdict(self)
-
-    @classmethod
-    def from_dict(cls, value: dict[str, object]) -> "IntegrationPlan":
-        return cls(**strict_json(canonical(value)))
-
-    @property
-    def plan_hash(self) -> str:
-        return hashlib.sha256(canonical(self.to_dict()).encode()).hexdigest()
+    def to_dict(self) -> dict[str, str]:
+        return {
+            "path": self.path,
+            "selected_receipt_hash": self.selected_receipt_hash,
+            "approved_by": self.approved_by.strip(),
+            "reason": self.reason.strip(),
+        }
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
+class VerificationCommand:
+    name: str
+    category: str
+    argv: tuple[str, ...]
+    timeout_s: float = 120.0
+    max_output_bytes: int = 1024 * 1024
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.name, str) or not self.name.strip():
+            raise M4IntegrationError("verification command name required")
+        if self.category not in {"full_test_suite", "type_check", "contract_validation", "security_scan"}:
+            raise M4IntegrationError("invalid verification category")
+        if not isinstance(self.argv, tuple) or not self.argv or not all(
+                isinstance(x, str) and x and "\x00" not in x for x in self.argv):
+            raise M4IntegrationError("verification argv required")
+        if type(self.timeout_s) not in (int, float) or not math.isfinite(self.timeout_s) or not 0 < self.timeout_s <= 900:
+            raise M4IntegrationError("verification timeout must be finite and within (0, 900]")
+        if type(self.max_output_bytes) is not int or not 1 <= self.max_output_bytes <= 16 * 1024 * 1024:
+            raise M4IntegrationError("verification output cap must be an integer within [1, 16 MiB]")
+
+
+@dataclass(frozen=True, slots=True)
+class ProjectVerificationPolicy:
+    commands: tuple[VerificationCommand, ...]
+    secops_active: bool = False
+    trusted_fixture_mode: bool = False
+
+    def __post_init__(self) -> None:
+        if type(self.trusted_fixture_mode) is not bool or type(self.secops_active) is not bool:
+            raise M4IntegrationError("verification mode flags must be boolean")
+        if not isinstance(self.commands, tuple) or not all(isinstance(c, VerificationCommand) for c in self.commands):
+            raise M4IntegrationError("immutable verification commands required")
+        if not self.commands:
+            raise M4IntegrationError("project verification policy cannot be empty")
+        names = [x.name for x in self.commands]
+        if len(set(names)) != len(names):
+            raise M4IntegrationError("verification command names must be unique")
+        categories = {x.category for x in self.commands}
+        required = {"full_test_suite", "type_check", "contract_validation"}
+        if self.secops_active:
+            required.add("security_scan")
+        missing = sorted(required - categories)
+        if missing:
+            raise M4IntegrationError(
+                "verification policy omits required categories: " + ", ".join(missing)
+            )
+
+
+@dataclass(frozen=True, slots=True)
 class VerificationResult:
     name: str
     category: str
-    status: str  # 'pass' | 'fail' | 'unknown' | 'error' | 'timeout'
+    status: str
     returncode: int | None
     stdout_sha256: str
     stderr_sha256: str
     termination_reason: str = "exit"
     execution_boundary: str = "trusted_fixture_unsandboxed"
     timed_out: bool = False
-
-    def __post_init__(self) -> None:
-        if self.status not in _RESULT_STATUSES:
-            raise M4IntegrationError("invalid verification status")
-        if self.category not in VERIFICATION_CATEGORIES:
-            raise M4IntegrationError("verification category must be profile-declared")
-        if self.status == "unknown":
-            raise M4IntegrationError("evidence-bearing results may not be unknown")
-        if self.returncode is not None and type(self.returncode) is not int:
-            raise M4IntegrationError("invalid returncode")
-        for name in ("stdout_sha256", "stderr_sha256"):
-            value = getattr(self, name)
-            if not isinstance(value, str) or len(value) != 64:
-                raise M4IntegrationError(f"{name} must be a SHA-256 hex digest")
-        if not isinstance(self.termination_reason, str) or not self.termination_reason:
-            raise M4IntegrationError("termination reason must be recorded")
-        if self.execution_boundary not in {"isolated_sandbox_v1", "trusted_fixture_unsandboxed"}:
-            raise M4IntegrationError("unknown verification execution boundary")
 
     def to_dict(self) -> dict[str, object]:
         # Schema-explicit v2 serialization: the signed payload byte set is
@@ -133,20 +152,7 @@ class VerificationResult:
         }
 
 
-@dataclass(frozen=True)
-class ConflictResolution:
-    policy: str
-    choice: str
-    rule_hash: str
-
-    def __post_init__(self) -> None:
-        if self.policy != "conservative_no_auto_merge":
-            raise M4IntegrationError("only conservative conflict records are supported")
-        if not self.choice or len(self.rule_hash) != 64:
-            raise M4IntegrationError("conflict resolution requires a choice and rule hash")
-
-
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class IntegrationReceipt:
     execution_plan_hash: str
     integration_plan_hash: str
@@ -161,14 +167,6 @@ class IntegrationReceipt:
     evidence_level: str = "development_fixture"
     schema_version: str = INTEGRATION_SCHEMA
 
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "input_receipt_hashes", tuple(self.input_receipt_hashes))
-        object.__setattr__(self, "verification_results", tuple(self.verification_results))
-        object.__setattr__(self, "conflict_resolutions", tuple(self.conflict_resolutions))
-        for value in (self.execution_plan_hash, self.integration_plan_hash, self.verification_policy_hash):
-            if not isinstance(value, str) or len(value) != 64:
-                raise M4IntegrationError("receipt hashes must be SHA-256 hex digests")
-
     def unsigned_payload(self) -> dict[str, object]:
         return {
             "schema_version": self.schema_version,
@@ -177,7 +175,7 @@ class IntegrationReceipt:
             "input_receipt_hashes": list(self.input_receipt_hashes),
             "output_commit": self.output_commit,
             "verification_results": [x.to_dict() for x in self.verification_results],
-            "conflict_resolutions": [asdict(x) for x in self.conflict_resolutions],
+            "conflict_resolutions": [x.to_dict() for x in self.conflict_resolutions],
             "integrated_at_ns": self.integrated_at_ns,
             "station_key_id": self.station_key_id,
             "verification_policy_hash": self.verification_policy_hash,
@@ -186,206 +184,483 @@ class IntegrationReceipt:
 
     @property
     def receipt_hash(self) -> str:
-        return hashlib.sha256(canonical(self.unsigned_payload()).encode()).hexdigest()
-
-    def verify_signature(self, verifier) -> bool:
-        """Fail closed: a malformed or unverifiable signature is never valid."""
-        try:
-            return bool(verifier(self.station_key_id, canonical(self.unsigned_payload()),
-                                 self.station_signature))
-        except Exception:
-            return False
+        return digest(self.unsigned_payload())
 
     def to_dict(self) -> dict[str, object]:
-        return {**self.unsigned_payload(), "station_signature": self.station_signature,
-                "receipt_hash": self.receipt_hash}
+        return {**self.unsigned_payload(), "receipt_hash": self.receipt_hash,
+                "station_signature": self.station_signature}
 
-
-@dataclass(frozen=True)
-class IntegrationConsent:
-    worker_id: str
-    candidate_id: str
-    baseline_version: str
-    approved_at: str
-    approved_by: str
-
-    def __post_init__(self) -> None:
-        if not all((self.worker_id, self.candidate_id, self.baseline_version,
-                    self.approved_at, self.approved_by)):
-            raise M4IntegrationError("integration consent requires explicit fields")
-
-    @property
-    def consent_hash(self) -> str:
-        return hashlib.sha256(canonical(asdict(self)).encode()).hexdigest()
-
-
-@dataclass
-class ProjectRegistration:
-    project_id: str
-    baseline_version: str
-    baseline_tree_hash: str
-    plan: IntegrationPlan
-    consent: IntegrationConsent | None = None
-
-
-class Integrator:
-    """One private integration worktree per integration; candidates stay quarantined."""
-
-    def __init__(self, root: str | Path, *, observe: ObservationSink | None = None,
-                 verification_policy_hash: str | None = None, clock_ns=time.time_ns):
-        self.root = Path(root).absolute()
-        self._observe = observe or (lambda payload: None)
-        self._clock_ns = clock_ns
-        self._registrations: dict[str, ProjectRegistration] = {}
-        self._receipts: dict[str, IntegrationReceipt] = {}
-        self._policy_hash = verification_policy_hash or hashlib.sha256(
-            canonical({
-                "commands": ALLOWED_VERIFICATION_COMMANDS,
-                "fixture_bound_s": 900,
-                "output_limit": MAX_OUTPUT,
-            }).encode()).hexdigest()
-
-    def register_project(self, project_id: str, baseline_version: str,
-                         baseline_tree_hash: str, plan: IntegrationPlan) -> None:
-        if not project_id or project_id in self._registrations:
-            raise M4IntegrationError("unknown or duplicate project registration")
-        if plan.expected_base_tree_hash != baseline_tree_hash:
-            raise M4IntegrationError("integration plan baseline does not match registration")
-        self._registrations[project_id] = ProjectRegistration(
-            project_id, baseline_version, baseline_tree_hash, plan)
-
-    def record_consent(self, project_id: str, consent: IntegrationConsent) -> None:
-        registration = self._registration(project_id)
-        if consent.worker_id != registration.plan.worker_id:
-            raise M4IntegrationError("consent does not name the planned worker")
-        if consent.candidate_id != registration.plan.candidate_id:
-            raise M4IntegrationError("consent does not name the planned candidate")
-        if consent.baseline_version != registration.baseline_version:
-            raise M4IntegrationError("consent baseline drift detected")
-        registration.consent = consent
-
-    def integrate(self, project_id: str, source_root: str | Path,
-                  artifacts: dict[str, bytes | None],
-                  receipt_hashes: tuple[str, ...],
-                  fixture_argv: tuple[str, ...] | None = None,
-                  *, fixture_consent: IntegrationConsent | None = None) -> IntegrationReceipt:
-        registration = self._registration(project_id)
-        consent = registration.consent
-        if consent is None or consent.consent_hash != registration.plan.approval_hash:
-            raise M4IntegrationError("integration consent is missing or does not bind the plan")
-        source = Path(source_root).absolute()
-        if not source.is_dir():
-            raise M4IntegrationError("candidate source is unavailable")
-        if not isinstance(artifacts, dict) or not artifacts:
-            raise M4IntegrationError("integration requires receipt-bound artifacts")
-        # Untrusted project verification is structurally refused. Only an explicit
-        # fixture-consent record may select the bounded trusted-fixture path.
-        if fixture_argv is not None:
-            if fixture_consent is None or fixture_consent.consent_hash != consent.consent_hash:
-                raise M4IntegrationError("trusted fixture execution requires explicit consent")
-        self._emit("M4IntegrationStarted", project_id=project_id,
-                   worker_id=registration.plan.worker_id,
-                   candidate_id=registration.plan.candidate_id,
-                   integration_plan_hash=registration.plan.plan_hash)
-        self.root.mkdir(parents=True, exist_ok=True)
-        worktree = Path(tempfile.mkdtemp(prefix=f"m4-{project_id}-", dir=self.root))
-        results: list[VerificationResult] = []
+    def verify_signature(self, public_key: bytes) -> bool:
+        if Ed25519PublicKey is None or len(public_key) != 32:
+            return False
+        if _sha256(public_key) != self.station_key_id:
+            return False
         try:
-            inventory = snapshot(source)
-            for relative, data in artifacts.items():
-                if data is not None:
-                    expected = hashlib.sha256(data).hexdigest()
-                    entry = inventory.get(relative)
-                    if entry is None or entry[0] != "file" or entry[2] != expected:
-                        raise M4IntegrationError("artifact hash does not replay candidate evidence")
-                apply_artifact(worktree, relative, data)
-            integrated = snapshot(worktree)
-            expected_names = {name for name, data in artifacts.items() if data is not None}
-            present = {name for name, entry in integrated.items() if entry[0] == "file"}
-            if not expected_names <= present:
-                raise M4IntegrationError("integrated inventory is incomplete")
-            for name in sorted(expected_names):
-                entry = integrated[name]
-                expected = hashlib.sha256(artifacts[name] or b"").hexdigest()
-                results.append(VerificationResult(
-                    name=f"artifact:{name}", category="artifact_hash_replay",
-                    status="pass" if entry[2] == expected else "fail", returncode=0,
-                    stdout_sha256=hashlib.sha256(entry[2].encode()).hexdigest(),
-                    stderr_sha256=hashlib.sha256(b"").hexdigest()))
-            if fixture_argv is not None:
-                # Only the operator-consented trusted fixture may execute, and
-                # only under the bounded process-group supervisor.
-                fixture = run_trusted_fixture(fixture_argv, worktree, timeout_s=60,
-                                              output_limit=MAX_OUTPUT)
-                results.append(VerificationResult(
-                    name="trusted_fixture", category="full_test_suite",
-                    status=fixture.status, returncode=fixture.returncode,
-                    stdout_sha256=fixture.stdout_sha256,
-                    stderr_sha256=fixture.stderr_sha256,
-                    termination_reason=fixture.reason, timed_out=fixture.timed_out))
-            for command in registration.plan.verification_commands:
-                argv = tuple(command.split())
-                if not any(argv[:len(prefix)] == prefix for prefix in ALLOWED_VERIFICATION_COMMANDS):
-                    results.append(VerificationResult(
-                        name=command, category="static_policy_scan", status="error",
-                        returncode=None, stdout_sha256=hashlib.sha256(b"").hexdigest(),
-                        stderr_sha256=hashlib.sha256(b"not allowlisted".encode()).hexdigest(),
-                        termination_reason="blocked_not_allowlisted"))
-                    continue
-                import subprocess
-                try:
-                    completed = subprocess.run(argv, cwd=worktree, capture_output=True,
-                                               timeout=60, check=False)
-                    results.append(VerificationResult(
-                        name=command, category="static_policy_scan",
-                        status="pass" if completed.returncode == 0 else "fail",
-                        returncode=completed.returncode,
-                        stdout_sha256=hashlib.sha256(completed.stdout).hexdigest(),
-                        stderr_sha256=hashlib.sha256(completed.stderr).hexdigest()))
-                except (OSError, subprocess.TimeoutExpired) as exc:
-                    results.append(VerificationResult(
-                        name=command, category="static_policy_scan", status="error",
-                        returncode=None, stdout_sha256=hashlib.sha256(b"").hexdigest(),
-                        stderr_sha256=hashlib.sha256(type(exc).__name__.encode()).hexdigest(),
-                        termination_reason=type(exc).__name__))
-        except M4SafetyError as exc:
-            self._emit("M4IntegrationRefused", project_id=project_id, reason=type(exc).__name__)
-            raise M4IntegrationError(str(exc)) from exc
-        if any(result.status == "fail" for result in results):
-            self._emit("M4IntegrationRejected", project_id=project_id,
-                       failed=[result.name for result in results if result.status == "fail"])
-            raise M4IntegrationError("verification failed; integration receipt refused")
-        receipt = IntegrationReceipt(
-            execution_plan_hash=hashlib.sha256(registration.plan.plan_hash.encode()).hexdigest(),
-            integration_plan_hash=registration.plan.plan_hash,
-            input_receipt_hashes=tuple(receipt_hashes),
-            output_commit=hashlib.sha256(canonical(integrated).encode()).hexdigest()[:40],
-            verification_results=tuple(results),
-            conflict_resolutions=(),
-            integrated_at_ns=self._clock_ns(),
-            station_key_id="local-development-key",
-            station_signature="pending-station-signing",
-            verification_policy_hash=self._policy_hash)
-        self._receipts[receipt.receipt_hash] = receipt
-        self._emit("M4IntegrationCompleted", project_id=project_id,
-                   receipt_hash=receipt.receipt_hash,
-                   verification_results=[result.to_dict() for result in results])
-        return receipt
+            Ed25519PublicKey.from_public_bytes(public_key).verify(
+                bytes.fromhex(self.station_signature),
+                SIGNATURE_DOMAIN + self.receipt_hash.encode("ascii"),
+            )
+            return True
+        except (ValueError, InvalidSignature):
+            return False
 
-    def receipts(self) -> dict[str, IntegrationReceipt]:
-        return dict(self._receipts)
 
-    def _registration(self, project_id: str) -> ProjectRegistration:
-        try:
-            return self._registrations[project_id]
-        except KeyError:
-            raise M4IntegrationError("unregistered project") from None
+@dataclass(frozen=True, slots=True)
+class IntegrationOutcome:
+    receipt: IntegrationReceipt
+    output_tree: str
+    root_input_commit: str
+
+
+class DeterministicIntegrator:
+    def __init__(self, repository: str | Path, integration_root: str | Path,
+                 bus: EvidenceBus, *, station_public_key: bytes,
+                 observe: ObservationSink | None = None) -> None:
+        self.repository = Path(repository).absolute()
+        if self.repository.resolve() != self.repository or not self.repository.is_dir():
+            raise M4IntegrationError("repository must be a resolved local directory")
+        self.root = private_directory(Path(integration_root).absolute())
+        if (self.root == self.repository or self.root.is_relative_to(self.repository)
+                or self.repository.is_relative_to(self.root)):
+            raise M4IntegrationError("integration storage and source repository must be disjoint")
+        self.bus = bus
+        self.station_public_key = station_public_key
+        self.observe = observe
 
     def _emit(self, event: str, **payload: object) -> None:
-        self._observe({"event": event, **payload})
+        if self.observe is not None:
+            self.observe({"event": event, "component": "factory-m4-integrator", **payload})
 
+    def _receipts(self, plan: EvidenceIntegrationPlan) -> tuple[WorkerReceipt, ...]:
+        if not plan.ordered_receipt_hashes:
+            raise M4IntegrationError("integration plan cannot be empty")
+        receipts = tuple(
+            self.bus.consumable(value, station_public_key=self.station_public_key)
+            for value in plan.ordered_receipt_hashes
+        )
+        if tuple(r.receipt_hash for r in receipts) != plan.ordered_receipt_hashes:
+            raise M4IntegrationError("integration plan receipt order changed")
+        if tuple(r.task_id for r in receipts) != plan.ordered_task_ids:
+            raise M4IntegrationError("integration plan task order does not match receipts")
+        if any(r.execution_plan_hash != plan.execution_plan_hash for r in receipts):
+            raise M4IntegrationError("receipt belongs to another ExecutionPlan")
+        if len(set(plan.ordered_receipt_hashes)) != len(receipts) or len(set(plan.ordered_task_ids)) != len(receipts):
+            raise M4IntegrationError("duplicate integration receipt or task")
+        seen: set[str] = set()
+        for receipt in receipts:
+            if any(parent not in seen for parent in receipt.parent_receipts):
+                raise M4IntegrationError("integration plan is not topological")
+            seen.add(receipt.receipt_hash)
+        return receipts
 
-def verify_receipt(receipt: IntegrationReceipt, verifier) -> bool:
-    if not isinstance(receipt, IntegrationReceipt):
-        return False
-    return receipt.verify_signature(verifier)
+    def _root_commit(self, receipts: Sequence[WorkerReceipt]) -> str:
+        roots = [r for r in receipts if not r.parent_receipts]
+        if not roots:
+            raise M4IntegrationError("integration requires at least one root receipt")
+        commits = {r.input_commit for r in roots}
+        if len(commits) != 1:
+            raise M4IntegrationError("root receipts do not share one input commit")
+        root = next(iter(commits))
+        for receipt in receipts:
+            self._validated_commit(receipt.input_commit)
+        resolved = git(self.repository, "rev-parse", "--verify", f"{root}^{{commit}}").decode().strip()
+        if resolved != root:
+            raise M4IntegrationError("root input commit does not resolve exactly")
+        return root
+
+    def _ancestors(self, receipts: Sequence[WorkerReceipt]) -> dict[str, set[str]]:
+        parents = {r.receipt_hash: set(r.parent_receipts) for r in receipts}
+        result: dict[str, set[str]] = {}
+
+        def visit(value: str) -> set[str]:
+            if value in result:
+                return result[value]
+            found: set[str] = set()
+            for parent in parents[value]:
+                if parent not in parents:
+                    raise M4IntegrationError("receipt parent absent from integration set")
+                found.add(parent)
+                found.update(visit(parent))
+            result[value] = found
+            return found
+
+        for value in parents:
+            visit(value)
+        return result
+
+    def _validated_commit(self, commit: str) -> str:
+        if not isinstance(commit, str) or re.fullmatch(r"[0-9a-f]{40}", commit) is None:
+            raise M4IntegrationError("exact SHA-1 Git commit required")
+        resolved = git(self.repository, "rev-parse", "--verify", f"{commit}^{{commit}}",
+                       extra_env={"GIT_NO_REPLACE_OBJECTS": "1"}).decode().strip()
+        if resolved != commit:
+            raise M4IntegrationError("input commit does not resolve exactly")
+        return resolved
+
+    def _git_blob(self, commit: str, path: str) -> bytes | None:
+        artifact_parts(path)
+        self._validated_commit(commit)
+        evidence = read_base_blob(self.repository, commit, path)
+        if evidence.state is GitEvidenceState.ABSENT:
+            return None  # Only a proven exact-path absence maps to None.
+        if evidence.state is GitEvidenceState.PRESENT:
+            return evidence.data
+        # UNKNOWN/ERROR: a failed lookup is never silently treated as absence.
+        raise M4IntegrationError(
+            f"Git base evidence unavailable ({evidence.state.value}: {evidence.detail})"
+        )
+
+    @staticmethod
+    def _normalized_edits(before: bytes | None, after: bytes | None) -> frozenset[tuple[object, ...]]:
+        # Preserve existence so an absent file and an empty file are not equivalent.
+        before_exists, after_exists = before is not None, after is not None
+        left_bytes = b"" if before is None else before
+        right_bytes = b"" if after is None else after
+        existence = ("existence", before_exists, after_exists)
+        try:
+            left = left_bytes.decode("utf-8").splitlines(keepends=True)
+            right = right_bytes.decode("utf-8").splitlines(keepends=True)
+        except UnicodeDecodeError:
+            return frozenset({
+                existence,
+                ("binary", hashlib.sha256(left_bytes).hexdigest(),
+                 hashlib.sha256(right_bytes).hexdigest()),
+            })
+        edits: set[tuple[object, ...]] = {existence}
+        matcher = difflib.SequenceMatcher(a=left, b=right, autojunk=False)
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if tag == "equal":
+                continue
+            replacement = tuple(hashlib.sha256(x.encode("utf-8")).hexdigest() for x in right[j1:j2])
+            edits.add((tag, i1, i2, replacement))
+        return frozenset(edits)
+
+    def _artifact_bytes(self, receipt: WorkerReceipt, path: str) -> bytes | None:
+        binding = next((a for a in receipt.artifacts if a.path == path), None)
+        if binding is None:
+            raise M4IntegrationError("planned overlap path absent from receipt")
+        if binding.deleted:
+            return None
+        return self.bus.artifact(
+            receipt.receipt_hash, path, station_public_key=self.station_public_key
+        )
+
+    def _classify_overlaps(self, receipts: Sequence[WorkerReceipt]) -> tuple[dict[str, str], tuple[IntegrationConflict, ...]]:
+        ancestors = self._ancestors(receipts)
+        path_receipts: dict[str, list[WorkerReceipt]] = {}
+        for receipt in receipts:
+            for artifact in receipt.artifacts:
+                path_receipts.setdefault(artifact.path, []).append(receipt)
+
+        winners: dict[str, str] = {}
+        conflicts: list[IntegrationConflict] = []
+        for path in sorted(path_receipts):
+            values = path_receipts[path]
+            if len(values) == 1:
+                winners[path] = values[0].receipt_hash
+                continue
+            incomparable = [
+                receipt for receipt in values
+                if not any(receipt.receipt_hash in ancestors[other.receipt_hash] for other in values)
+            ]
+            if len(incomparable) <= 1:
+                winners[path] = values[-1].receipt_hash
+                continue
+
+            base_values = [self._git_blob(receipt.input_commit, path) for receipt in incomparable]
+            if any(value != base_values[0] for value in base_values[1:]):
+                raise M4IntegrationError("incomparable edits have different base file states")
+            edit_sets: list[tuple[WorkerReceipt, frozenset[tuple[object, ...]]]] = []
+            for receipt in incomparable:
+                after = self._artifact_bytes(receipt, path)
+                before = self._git_blob(receipt.input_commit, path)
+                edit_sets.append((receipt, self._normalized_edits(before, after)))
+
+            candidates: list[tuple[int, str]] = []
+            for receipt, edits in edit_sets:
+                if all(other <= edits for _, other in edit_sets):
+                    candidates.append((len(edits), receipt.receipt_hash))
+            if candidates:
+                winners[path] = max(candidates, key=lambda value: (value[0], value[1]))[1]
+                continue
+
+            conflicts.append(IntegrationConflict(
+                path=path,
+                receipt_hashes=tuple(r.receipt_hash for r in incomparable),
+                artifact_hashes=tuple(
+                    next(a.sha256 for a in r.artifacts if a.path == path) for r in incomparable
+                ),
+            ))
+        return winners, tuple(conflicts)
+
+    def _apply_receipts(self, worktree: Path, receipts: Sequence[WorkerReceipt],
+                        winners: dict[str, str]) -> None:
+        for receipt in receipts:
+            for artifact in receipt.artifacts:
+                if winners.get(artifact.path) != receipt.receipt_hash:
+                    continue
+                data = None if artifact.deleted else self._artifact_bytes(receipt, artifact.path)
+                apply_artifact(worktree, artifact.path, data)
+
+    @staticmethod
+    def _require_execution_policy(policy: ProjectVerificationPolicy) -> None:
+        if not isinstance(policy, ProjectVerificationPolicy):
+            raise M4IntegrationError("ProjectVerificationPolicy required")
+        if policy.trusted_fixture_mode:
+            # Explicit, operator-reviewed development fixtures only. This path
+            # is NOT an OS sandbox and its receipts stay development_fixture.
+            return
+        # Candidate-dependent verification requires the OS-isolated runner.
+        # Fail closed when the platform cannot provide it; never fall back.
+        require_isolation()
+
+    @staticmethod
+    def _execution_boundary(policy: ProjectVerificationPolicy) -> str:
+        return "trusted_fixture_unsandboxed" if policy.trusted_fixture_mode else SANDBOX_PROFILE
+
+    def _run_verification(self, worktree: Path,
+                          policy: ProjectVerificationPolicy) -> tuple[VerificationResult, ...]:
+        self._require_execution_policy(policy)
+        boundary = self._execution_boundary(policy)
+        before = snapshot(worktree)
+        results = []
+        for check in policy.commands:
+            if policy.trusted_fixture_mode:
+                process = run_trusted_fixture(check.argv, worktree, timeout_s=check.timeout_s,
+                                              output_limit=check.max_output_bytes)
+            else:
+                process = run_isolated(check.argv, worktree, timeout_s=check.timeout_s,
+                                       output_limit=check.max_output_bytes)
+            if snapshot(worktree) != before:
+                self._emit("M4VerificationMutationRejected", check_name=check.name)
+                raise M4IntegrationError("verification modified the frozen candidate workspace")
+            results.append(VerificationResult(
+                check.name, check.category, process.status, process.returncode,
+                process.stdout_sha256, process.stderr_sha256, process.reason, boundary,
+                timed_out=process.timed_out,
+            ))
+            if process.status != "pass":
+                break
+        if snapshot(worktree) != before:
+            self._emit("M4VerificationMutationRejected", check_name="<post-check>")
+            raise M4IntegrationError("verification modified the frozen candidate workspace")
+        return tuple(results)
+
+    def _freeze_tree(self, worktree: Path, root_commit: str, receipts: Sequence[WorkerReceipt],
+                     winners: dict[str, str]) -> str:
+        # Build solely from signed artifact bytes + the validated root, never from
+        # `git add -A` or a verifier-controlled index/worktree. Filters cannot run.
+        by_hash = {r.receipt_hash: r for r in receipts}
+        inventory = snapshot(worktree)
+        with tempfile.TemporaryDirectory(prefix="frozen-index-", dir=self.root) as directory:
+            env = {"GIT_INDEX_FILE": str(Path(directory) / "index"), "GIT_NO_REPLACE_OBJECTS": "1"}
+            git(self.repository, "read-tree", root_commit, extra_env=env)
+            for path, receipt_hash in sorted(winners.items()):
+                artifact_parts(path)
+                receipt = by_hash[receipt_hash]
+                data = self._artifact_bytes(receipt, path)
+                if data is None:
+                    if path in inventory:
+                        raise M4IntegrationError("deleted artifact still present")
+                    git(self.repository, "update-index", "--force-remove", "--", path, extra_env=env)
+                    continue
+                actual = inventory.get(path)
+                if actual is None or actual[0] != "file" or actual[2] != hashlib.sha256(data).hexdigest():
+                    raise M4IntegrationError("materialized candidate differs from receipted bytes")
+                oid = git(self.repository, "hash-object", "-w", "--no-filters", "--stdin",
+                          data=data, extra_env=env).decode().strip()
+                mode = "100755" if actual[1] & 0o111 else "100644"
+                git(self.repository, "update-index", "--add", "--cacheinfo", f"{mode},{oid},{path}", extra_env=env)
+            return git(self.repository, "write-tree", extra_env=env).decode().strip()
+
+    @staticmethod
+    def _passes(results: Sequence[VerificationResult]) -> bool:
+        return bool(results) and all(result.status == "pass" for result in results)
+
+    @staticmethod
+    def _verification_available(results: Sequence[VerificationResult]) -> bool:
+        # Only normal verifier exits support candidate attribution. UNKNOWN,
+        # resource termination, signals and incomplete results never do.
+        return bool(results) and all(
+            r.status in {"pass", "fail"} and r.termination_reason == "exit"
+            and type(r.returncode) is int and r.returncode >= 0
+            for r in results
+        )
+
+    def _worktree(self, name: str, root_commit: str) -> Path:
+        path = self.root / name
+        if path.exists() or path.is_symlink():
+            raise M4IntegrationError("integration workspace already exists")
+        git(self.repository, "worktree", "add", "--detach", str(path), root_commit)
+        os.chmod(path, 0o700)
+        return path
+
+    def _remove_worktree(self, path: Path) -> None:
+        if path.exists():
+            git(self.repository, "worktree", "remove", "--force", str(path))
+
+    def _verify_subset(self, root_commit: str, receipts: Sequence[WorkerReceipt],
+                       policy: ProjectVerificationPolicy, token: str) -> bool | None:
+        """PASS/FAIL/UNKNOWN counterfactual; missing dependencies are not FAIL."""
+        supplied = {r.receipt_hash for r in receipts}
+        if any(parent not in supplied for r in receipts for parent in r.parent_receipts):
+            return None
+        path = self._worktree(f"bisect-{token}", root_commit)
+        try:
+            winners, conflicts = self._classify_overlaps(receipts)
+            if conflicts:
+                return None
+            self._apply_receipts(path, receipts, winners)
+            results = self._run_verification(path, policy)
+            if not self._verification_available(results):
+                return None
+            return self._passes(results)
+        finally:
+            self._remove_worktree(path)
+
+    def _attribute_failure(self, root_commit: str, receipts: Sequence[WorkerReceipt],
+                           policy: ProjectVerificationPolicy) -> str | None:
+        # A broken/unavailable baseline verifier cannot establish a regression.
+        if self._verify_subset(root_commit, (), policy, "baseline") is not True:
+            return None
+        candidates = list(receipts)
+        round_id = 0
+        while len(candidates) > 1:
+            midpoint = len(candidates) // 2
+            left, right = candidates[:midpoint], candidates[midpoint:]
+            left_passes = self._verify_subset(root_commit, left, policy, f"{round_id}-left")
+            self._emit("M4VerificationBisect", round=round_id,
+                       candidate_count=len(candidates), tested="left", passes=left_passes)
+            if left_passes is None:
+                return None
+            if left_passes is False:
+                candidates = left
+            else:
+                right_passes = self._verify_subset(root_commit, right, policy, f"{round_id}-right")
+                self._emit("M4VerificationBisect", round=round_id,
+                           candidate_count=len(candidates), tested="right", passes=right_passes)
+                if right_passes is None:
+                    return None
+                if right_passes is False:
+                    candidates = right
+                else:
+                    return None
+            round_id += 1
+        # Even a single receipt must reproduce a normal-exit failure. This is a
+        # diagnostic, not proof of unique causality for arbitrary interactions.
+        if candidates and self._verify_subset(root_commit, candidates, policy, "confirm") is False:
+            return candidates[0].receipt_hash
+        return None
+
+    def integrate(self, plan: EvidenceIntegrationPlan, *, policy: ProjectVerificationPolicy,
+                  station_identity: StationIdentity,
+                  resolutions: Sequence[ConflictResolution] = ()) -> IntegrationOutcome:
+        self._require_execution_policy(policy)
+        boundary = self._execution_boundary(policy)
+        if not isinstance(plan, EvidenceIntegrationPlan):
+            raise M4IntegrationError("EvidenceIntegrationPlan required")
+        if station_identity.key_id != _sha256(self.station_public_key):
+            raise M4IntegrationError("Station signing identity does not match Evidence Bus trust root")
+
+        receipts = self._receipts(plan)
+        root_commit = self._root_commit(receipts)
+        winners, conflicts = self._classify_overlaps(receipts)
+        by_resolution = {resolution.path: resolution for resolution in resolutions}
+        if len(by_resolution) != len(tuple(resolutions)):
+            raise M4IntegrationError("duplicate HITL conflict resolution path")
+        for conflict in conflicts:
+            resolution = by_resolution.get(conflict.path)
+            if resolution is None:
+                self._emit("M4IntegrationConflict", path=conflict.path,
+                           receipt_hashes=list(conflict.receipt_hashes), action="hitl_required")
+                raise IntegrationConflictError("true integration conflict requires HITL resolution")
+            if resolution.selected_receipt_hash not in conflict.receipt_hashes:
+                raise M4IntegrationError("HITL resolution selects receipt outside conflict")
+            winners[conflict.path] = resolution.selected_receipt_hash
+            self._emit("M4ConflictResolved", path=conflict.path,
+                       selected_receipt_hash=resolution.selected_receipt_hash,
+                       approved_by=resolution.approved_by.strip())
+        if set(by_resolution) - {conflict.path for conflict in conflicts}:
+            raise M4IntegrationError("HITL resolution supplied for non-conflicting path")
+
+        worktree = self._worktree(f"integrate-{plan.plan_hash[:16]}", root_commit)
+        try:
+            snapshot(worktree)  # Reject links/special files inherited from the root.
+            self._apply_receipts(worktree, receipts, winners)
+            tree = self._freeze_tree(worktree, root_commit, receipts, winners)
+            results = self._run_verification(worktree, policy)
+            passed = self._passes(results)
+            self._emit("M4ProjectVerification", integration_plan_hash=plan.plan_hash,
+                       passed=passed, checks=[result.to_dict() for result in results])
+            if not passed:
+                offender = None
+                if self._verification_available(results):
+                    try:
+                        offender = self._attribute_failure(root_commit, receipts, policy)
+                    except WorkerContractError:
+                        self._emit("M4AttributionUnavailable", reason="counterfactual_evidence_unavailable")
+                else:
+                    self._emit("M4AttributionUnavailable", reason="verification_unavailable_or_resource_limited")
+                if offender is not None:
+                    task_id = next(r.task_id for r in receipts if r.receipt_hash == offender)
+                    self._emit("M4ReceiptRevisionRequired", receipt_hash=offender,
+                               task_id=task_id, action="replan")
+                raise ProjectVerificationError(
+                    "accumulated project verification failed",
+                    offending_receipt_hash=offender,
+                )
+
+            identity = {
+                "GIT_AUTHOR_NAME": "Residual Factory",
+                "GIT_AUTHOR_EMAIL": "factory@localhost",
+                "GIT_COMMITTER_NAME": "Residual Factory",
+                "GIT_COMMITTER_EMAIL": "factory@localhost",
+                "GIT_AUTHOR_DATE": "2000-01-01T00:00:00Z",
+                "GIT_COMMITTER_DATE": "2000-01-01T00:00:00Z",
+            }
+            output_commit = git(
+                self.repository, "commit-tree", tree, "-p", root_commit,
+                data=f"Residual M4 integration {plan.plan_hash}\n".encode(),
+                extra_env={**identity, "GIT_NO_REPLACE_OBJECTS": "1"},
+            ).decode().strip()
+
+            unsigned = IntegrationReceipt(
+                execution_plan_hash=plan.execution_plan_hash,
+                integration_plan_hash=plan.plan_hash,
+                input_receipt_hashes=plan.ordered_receipt_hashes,
+                output_commit=output_commit,
+                verification_results=results,
+                conflict_resolutions=tuple(sorted(resolutions, key=lambda value: value.path)),
+                integrated_at_ns=time.time_ns(),
+                station_key_id=station_identity.key_id,
+                station_signature="pending",
+                verification_policy_hash=digest({
+                    "execution_boundary": boundary,
+                    "secops_active": policy.secops_active,
+                    "commands": [dict(name=c.name, category=c.category, argv=list(c.argv),
+                                      timeout_s=c.timeout_s, max_output_bytes=c.max_output_bytes)
+                                 for c in policy.commands],
+                }),
+                evidence_level=(
+                    "development_fixture" if policy.trusted_fixture_mode
+                    else "isolated_candidate_verification"
+                ),
+            )
+            receipt = IntegrationReceipt(
+                execution_plan_hash=unsigned.execution_plan_hash,
+                integration_plan_hash=unsigned.integration_plan_hash,
+                input_receipt_hashes=unsigned.input_receipt_hashes,
+                output_commit=unsigned.output_commit,
+                verification_results=unsigned.verification_results,
+                conflict_resolutions=unsigned.conflict_resolutions,
+                integrated_at_ns=unsigned.integrated_at_ns,
+                station_key_id=unsigned.station_key_id,
+                station_signature=station_identity.sign(unsigned.receipt_hash),
+                verification_policy_hash=unsigned.verification_policy_hash,
+                evidence_level=unsigned.evidence_level,
+            )
+            self._emit("IntegrationReceiptIssued", receipt_hash=receipt.receipt_hash,
+                       output_commit=output_commit, input_receipt_count=len(receipts))
+            return IntegrationOutcome(receipt, tree, root_commit)
+        finally:
+            self._remove_worktree(worktree)
