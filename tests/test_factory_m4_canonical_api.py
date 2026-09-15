@@ -9,7 +9,11 @@ from residual.factory import m4_evidence, m4_integrator, m4_scheduler
 
 class CanonicalApiTests(unittest.TestCase):
     def test_single_canonical_integration_receipt_schema(self):
-        self.assertEqual(m4_integrator.INTEGRATION_SCHEMA, "factory-integration-receipt-v2")
+        self.assertEqual(m4_integrator.INTEGRATION_SCHEMA, "factory-integration-receipt-v3")
+        # The retired v2 schema name stays known for backward-compatible
+        # verification/deserialization of v2 receipts (byte-stable payloads).
+        self.assertEqual(m4_integrator.INTEGRATION_SCHEMA_V2, "factory-integration-receipt-v2")
+        self.assertIn(m4_integrator.INTEGRATION_SCHEMA_V2, m4_integrator.KNOWN_INTEGRATION_SCHEMAS)
         self.assertTrue(hasattr(m4_integrator.IntegrationReceipt, "verify_signature"))
         # The enterprise connector receipt is a distinct, non-parallel name.
         self.assertFalse(hasattr(integrations, "IntegrationReceipt"))

@@ -146,8 +146,12 @@ class ProcessControl:
         self.requested_by: str | None = None
         self.requested_monotonic_ns: int | None = None
         self.termination_requested = threading.Event()
+        # stopped == the process is actually terminal AND reaped (completion
+        # evidence). It is set ONLY by a successful reap(); a reap timeout is
+        # a distinct typed state (reap_timed_out), never "stopped".
         self.stopped = threading.Event()
         self.reap_timed_out = threading.Event()
+        self._escalation_started = False
         self._signal_sent = False
         self._waitid_code: int | None = None
         self._waitid_status: int | None = None
@@ -225,6 +229,7 @@ class ProcessControl:
                 self._record = self._build_record()
                 self._reaped = True
                 self.stopped.set()
+                self.reap_timed_out.clear()
             return returncode
 
     def kill(self, reason: tuple[str, str, dict[str, Any]] | None = None, *,
@@ -254,8 +259,12 @@ class ProcessControl:
                         pass  # exit won the race; do not invent a delivered kill
         # Reap OUTSIDE the state lock (reap() takes only _reap_lock): a stuck
         # reap must never serialize a concurrent killer. A reap timeout is a
-        # typed condition, not an escaping exception: record reap_timed_out
-        # and, when no primary reason exists, the distinct reap_timeout reason.
+        # typed condition, not an escaping exception and NOT "stopped": record
+        # reap_timed_out and, when no primary reason exists, the distinct
+        # reap_timeout reason, then start the mandatory escalation reaper that
+        # keeps re-delivering SIGKILL and retrying the reap until the process
+        # is actually terminal and reaped (which alone sets stopped and
+        # clears reap_timed_out).
         try:
             self.reap(timeout=2.0)
         except subprocess.TimeoutExpired:
@@ -265,7 +274,42 @@ class ProcessControl:
                     self.reason = ("resource", "reap_timeout", {"timeout_s": 2})
                     self.requested_by = requester
                     self.requested_monotonic_ns = self._clock_ns()
-            self.stopped.set()
+                start_escalation = not self._escalation_started and not self._reaped
+                self._escalation_started = True
+            if start_escalation:
+                thread = threading.Thread(target=self._reap_escalation,
+                                          name=f"reap-escalation-{self.process.pid}",
+                                          daemon=True)
+                thread.start()
+
+    REAP_ESCALATION_INTERVAL_S = 0.5
+
+    def _reap_escalation(self) -> None:
+        """Mandatory follow-up after a reap timeout: restore the invariant
+        stopped == actually terminal/reaped by escalating (re-deliver SIGKILL)
+        and retrying the consuming reap until it succeeds. A successful reap
+        sets stopped and clears the transient reap_timed_out state."""
+        while True:
+            with self._state_lock:
+                if self._reaped:
+                    self.reap_timed_out.clear()
+                    return
+                pidfd = self.pidfd
+            if pidfd >= 0:
+                try:
+                    signal.pidfd_send_signal(pidfd, signal.SIGKILL)
+                except (ProcessLookupError, OSError):
+                    pass  # exit won the race, or fd already closing after reap
+            try:
+                self.reap(timeout=self.REAP_ESCALATION_INTERVAL_S)
+            except subprocess.TimeoutExpired:
+                continue
+            except RuntimeError:
+                return  # ownership gone (close after a concurrent reap)
+            with self._state_lock:
+                if self._reaped:
+                    self.reap_timed_out.clear()
+                    return
 
     def _exit_outcome(self) -> tuple[int | None, int | None, bool]:
         """Prefer typed waitid exit metadata and cross-check the consuming wait.
