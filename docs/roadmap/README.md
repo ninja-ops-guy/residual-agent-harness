@@ -35,11 +35,12 @@ The old build order is complete or superseded. The current sequence is:
 1. **Close M4 trust-boundary gaps (#63).** Bind accepted state to the verified tree, harden filesystem writes, isolate candidate-dependent verification, and preserve `UNKNOWN` for missing Git evidence.
 2. **Reconcile traceability (#48).** Update M2/M3/M4/EVAL status, regenerate the generated status document, and add drift prevention.
 3. **Resolve Factory OS timing nondeterminism.** Determine whether the retained retry-only failures represent runtime races or test flakiness.
-4. **Freeze the live evaluation protocol.** Do not tune workloads/metrics after observing model outcomes.
-5. **Run R0–R5 with one fixed live model.** Measure raw correctness, acceptance coverage, accepted correctness, AER/ASSR, cost, latency and throughput.
-6. **Run model-degradation + heterogeneous-routing studies.** Test whether cheaper/weaker workers can contribute safely under the same acceptance boundary.
-7. **Run live fault campaigns and staged soak tests.** 24-hour → 72-hour → 30-day only after shorter gates are clean.
-8. **Promote paper claims only from retained evidence.** Negative, `UNKNOWN`, rejected and failed runs stay in the record.
+4. **Qualify measured-evidence integrity (PR #71 or an explicit alternative).** The reviewed Factory adapter needs fresh run/execution binding, anti-replay across independent repetitions, authenticated run-bound scheduler/topology evidence, an exact workload-to-task mapping, and a qualified verifier policy/boundary. Correct and requalify it, or explicitly exclude it from the live protocol and independently qualify the chosen evidence path under the [live evaluation gate](../evaluation.md#live-evaluation-gate). Closing #63/#48/timing alone does not clear this gate.
+5. **Freeze the live evaluation protocol and selected evidence path.** Do not tune workloads/metrics after observing model outcomes.
+6. **Run R0–R5 with one fixed live model.** Measure raw correctness, acceptance coverage, accepted correctness, AER/ASSR, cost, latency and throughput.
+7. **Run model-degradation + heterogeneous-routing studies.** Test whether cheaper/weaker workers can contribute safely under the same acceptance boundary.
+8. **Run live fault campaigns and staged soak tests.** 24-hour → 72-hour → 30-day only after shorter gates are clean.
+9. **Promote paper claims only from retained evidence.** Negative, `UNKNOWN`, rejected and failed runs stay in the record.
 
 ## Historical implementation material
 
