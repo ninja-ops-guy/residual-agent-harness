@@ -62,13 +62,17 @@ class RuntimeResult:
 class FactoryRuntime:
     def __init__(self, repository: str | Path, runtime_root: str | Path,
                  journal: RuntimeJournal, *, allow_local_worker_code: bool = False,
-                 monotonic_ns=time.monotonic_ns):
+                 monotonic_ns=time.monotonic_ns, clock: Any = None):
         if sys.platform != 'linux':
             raise RuntimeUnavailable('the brokered execution backend requires Linux')
         self.repository, self.root = Path(repository).absolute(), Path(runtime_root).absolute()
         self.journal = journal
         self.enabled = allow_local_worker_code is True
         self._monotonic_ns = monotonic_ns
+        # One injected monotonic clock (float seconds) shared by the
+        # AttemptGuard deadline owner and the watchdog; exactly one deadline
+        # owner. Distinct from monotonic_ns, which stamps evidence records.
+        self._clock = clock if clock is not None else time.monotonic
         self._lock = threading.Lock()
         self._active: dict[str, ProcessControl] = {}
 
@@ -81,54 +85,108 @@ class FactoryRuntime:
         try:
             self.journal.revoke(attempt_id)  # serialize cancellation against candidate publication
         except JournalError:
-            return False  # already terminal; do not claim a completed candidate was cancelled
-        return True
+            # Already terminal. Our kill may have let the run thread finish as
+            # CANCELLED before revoke landed: report True only when the terminal
+            # state is CANCELLED and the recorded primary reason is our own
+            # cancellation. A published CANDIDATE (or any other terminal state)
+            # still returns False.
+            own = control.reason is not None and control.reason[:2] == ('cancellation', 'operator_cancel')
+            rows = [row for row in self.journal.attempts() if row['attempt_id'] == attempt_id]
+            return bool(own and rows and rows[0]['state'] == 'CANCELLED' and not rows[0]['revoked'])
+        # The revoke won the race against candidate publication. Claim the
+        # cancellation only when our own reason is the recorded primary; an
+        # attempt already terminated by the watchdog/guard for another cause
+        # is not "cancelled" even though we fenced it.
+        return control.reason is not None and control.reason[:2] == ('cancellation', 'operator_cancel')
+
+    LEASE_UNKNOWN_DEADLINE_S = 2.0
+
+    def _lease_denial(self, contract: WorkerContract, detail: str) -> tuple[str, str, dict] | None:
+        """Tri-state lease gate: kill only on 'revoked'; 'unknown' is distinct.
+
+        Returns None when the lease is current. A revoked lease yields the
+        primary ('lease', 'lease_generation', ...) reason. An unreadable
+        lease is retried with bounded backoff up to a 2s monotonic deadline
+        and then yields the DISTINCT ('lease', 'lease_unreadable', ...) reason
+        — an uncertain store is never retyped as a revocation.
+        """
+        state = self.journal.lease_state(contract)
+        if state == 'current':
+            return None
+        if state == 'unknown':
+            deadline = self._clock() + self.LEASE_UNKNOWN_DEADLINE_S
+            delay = 0.02
+            while state == 'unknown':
+                remaining = deadline - self._clock()
+                if remaining <= 0:
+                    break
+                time.sleep(min(delay, remaining))
+                delay = min(delay * 2, 0.2)
+                state = self.journal.lease_state(contract)
+        if state == 'revoked':
+            return ('lease', 'lease_generation', {'reason': detail})
+        if state == 'unknown':
+            action: dict = {'reason': detail}
+            diag = getattr(self.journal, 'lease_read_diag', None)
+            if diag is not None:
+                # Preserve why the read was unavailable (type + SQLite code
+                # only; never exception text) without retyping the uncertain
+                # store as a revocation.
+                action['read_error_type'], action['sqlite_errorcode'] = diag
+            return ('lease', 'lease_unreadable', action)
+        return None
 
     def _watch(self, control: ProcessControl, contract: WorkerContract,
-               started_ns: int, done: threading.Event,
+               deadline: float, done: threading.Event,
+               exchange_completing: threading.Event,
                started_persisted: threading.Event | None = None) -> None:
-        memory_at_ns = lease_at_ns = 0
+        # `deadline` is a plain-float snapshot taken from the guard AFTER
+        # guard.start(); this loop never touches the guard's lock, so a
+        # blocked audit writer cannot freeze wall-clock enforcement.
+        memory_at = lease_at = 0.0
         while not done.wait(0.02):
-            if control.termination_requested.is_set() or control.exited():
-                return
-            now_ns = self._monotonic_ns()
-            reason = None
-            elapsed_s = (now_ns - started_ns) / 1_000_000_000
-            if elapsed_s >= contract.wall_clock_budget_s:
-                reason = ('resource', 'wall_clock_budget_s', {'elapsed_s': elapsed_s})
-            elif now_ns >= memory_at_ns:
-                memory_at_ns = now_ns + 1_000_000_000
-                try:
-                    fields = Path(f'/proc/{control.process.pid}/statm').read_text().split()
-                    resident = int(fields[1]) * os.sysconf('SC_PAGE_SIZE')
-                    if resident > contract.memory_limit_mb * 1024 * 1024:
-                        reason = ('resource', 'memory_limit_mb', {'resident_bytes': resident})
-                except (OSError, ValueError, IndexError):
-                    if not control.exited():
-                        reason = ('resource', 'memory_limit_mb', {'reason': 'rss_meter_unavailable'})
-            if (reason is None and now_ns >= lease_at_ns
-                    and (started_persisted is None or started_persisted.is_set())):
-                lease_at_ns = now_ns + 200_000_000
-                # A broker/guard path may have started killing the worker after the
-                # top-of-loop check. Do not perform a secondary lease read in that
-                # window and accidentally overwrite the primary violation reason.
-                if control.termination_requested.is_set():
+            try:
+                if control.termination_requested.is_set() or control.exited():
                     return
-                action = {'reason': 'revoked_or_unavailable'}
+                now = self._clock()
+                reason = None
+                if not exchange_completing.is_set() and now >= deadline:
+                    reason = ('resource', 'wall_clock_budget_s',
+                              {'elapsed_s': now - (deadline - contract.wall_clock_budget_s)})
+                elif now >= memory_at:
+                    memory_at = now + 1.0
+                    try:
+                        fields = Path(f'/proc/{control.process.pid}/statm').read_text().split()
+                        resident = int(fields[1]) * os.sysconf('SC_PAGE_SIZE')
+                        if resident > contract.memory_limit_mb * 1024 * 1024:
+                            reason = ('resource', 'memory_limit_mb', {'resident_bytes': resident})
+                    except (OSError, ValueError, IndexError):
+                        if not control.exited():
+                            reason = ('resource', 'memory_limit_mb', {'reason': 'rss_meter_unavailable'})
+                # Lease polling is deferred until the host acknowledges durable
+                # start (started_persisted). No worker source can be dispatched
+                # before that acknowledgement.
+                if (reason is None and now >= lease_at
+                        and (started_persisted is None or started_persisted.is_set())):
+                    lease_at = now + 0.2
+                    # A broker/guard path may have started killing the worker after the
+                    # top-of-loop check. Do not perform a secondary lease read in that
+                    # window and accidentally overwrite the primary violation reason.
+                    if control.termination_requested.is_set():
+                        return
+                    reason = self._lease_denial(contract, 'revoked_or_unavailable')
+                if reason is not None:
+                    control.kill(reason, requester='watchdog')
+                    return
+            except Exception:
+                # No exception may escape the watchdog thread. Fail closed:
+                # terminate with a typed reason rather than leaving a worker
+                # unenforced.
                 try:
-                    current = self.journal.lease_is_current(contract)
-                except Exception as exc:
-                    current = False
-                    # Preserve why a read was unavailable, without exception text
-                    # or synchronous journal publication on the watchdog thread.
-                    code = getattr(exc, 'sqlite_errorcode', None)
-                    if type(code) is int:
-                        action['read_error_type'] = type(exc).__name__
-                        action['sqlite_errorcode'] = code
-                if not current:
-                    reason = ('lease', 'lease_generation', action)
-            if reason is not None:
-                control.kill(reason, requester='watchdog')
+                    control.kill(('lease', 'lease_unreadable', {'reason': 'watchdog_error'}),
+                                 requester='watchdog')
+                except Exception:
+                    pass
                 return
 
     def run(self, plan: ExecutionPlan, approval: FrozenPlan,
@@ -161,12 +219,14 @@ class FactoryRuntime:
         process = control = broker = watcher = None
         done = threading.Event()
         started_persisted = threading.Event()
+        exchange_completing = threading.Event()
         guard = AttemptGuard(
             contract,
             observe=self.journal.observe,
             terminate=lambda: control.kill(
                 ('guard', 'contract_violation', {'reason': 'guard_stop_hook'}), requester='guard'
             ) if control is not None else None,
+            clock=self._clock,
         )
         state, reason, candidate = 'FAILED', 'launch_failed', None
         reaped = False
@@ -183,10 +243,10 @@ class FactoryRuntime:
                 guard.check_deadline()
                 if control is not None and control.reason is not None:
                     guard.fail(*control.reason)
-                if not self.journal.lease_is_current(contract):
-                    guard.fail('lease', 'lease_generation', {'reason': 'fenced_before_io'})
+                denial = self._lease_denial(contract, 'fenced_before_io')
+                if denial is not None:
+                    guard.fail(*denial)
             broker = SafeFileBroker(workspace, guard, before_io=before_io)
-            started_ns = self._monotonic_ns()
             bootstrap = Path(__file__).with_name('_sandbox_child.py').resolve()
             process = subprocess.Popen(
                 [sys.executable, '-I', '-S', str(bootstrap), str(contract.memory_limit_mb),
@@ -196,11 +256,17 @@ class FactoryRuntime:
                 cwd='/', close_fds=True, start_new_session=True, bufsize=0)
             control = ProcessControl(process, correlation_id=contract.attempt_id,
                                      clock_ns=self._monotonic_ns)
-            # Resource enforcement is live during persistence; lease polling is
-            # deferred until the host acknowledges durable start. No worker
-            # source can be dispatched before that acknowledgement.
+            # Single deadline owner: the guard records started/deadline; the
+            # watchdog takes a plain-float snapshot AFTER guard.start() and
+            # never blocks on the guard's lock. Resource enforcement is live
+            # during persistence; lease polling is deferred until the host
+            # acknowledges durable start.
+            deadline = guard.deadline
+            if deadline is None:
+                raise WorkerContractError('guard did not record a deadline')
             watcher = threading.Thread(target=self._watch,
-                                       args=(control, contract, started_ns, done, started_persisted),
+                                       args=(control, contract, deadline, done,
+                                             exchange_completing, started_persisted),
                                        daemon=True)
             watcher.start()
             with self._lock:
@@ -213,7 +279,15 @@ class FactoryRuntime:
                                   'monotonic_ns': self._monotonic_ns(),
                                   'identity': control.identity.to_dict()})
             complete = self._exchange(process, control, guard, broker, contract, source)
-            control.reap(timeout=2)
+            try:
+                control.reap(timeout=2)
+            except subprocess.TimeoutExpired:
+                guard.fail('resource', 'drain_timeout', {'timeout_s': 2})
+            # The worker has exited (or was fenced): stop wall-clock enforcement
+            # so a slow candidate capture below cannot be retyped as a worker
+            # wall-clock timeout. While the worker is still alive during the
+            # drain above, the watchdog must keep enforcing the deadline.
+            exchange_completing.set()
             reaped = True
             termination = control.termination_record().to_dict()
             done.set()
@@ -237,8 +311,9 @@ class FactoryRuntime:
                 reason = 'worker_failed_or_incomplete'
                 guard.cancel()
             else:
-                if not self.journal.lease_is_current(contract):
-                    guard.fail('lease', 'lease_generation', {'reason': 'stale_before_capture'})
+                denial = self._lease_denial(contract, 'stale_before_capture')
+                if denial is not None:
+                    guard.fail(*denial)
                 candidate = workspace.capture(broker)
                 guard.finish()
                 state, reason = 'CANDIDATE', 'awaiting_station_verification'
@@ -269,8 +344,12 @@ class FactoryRuntime:
                 # A failure before ProcessControl ownership is established is the
                 # only fallback path allowed to consume this PID directly.
                 process.kill()
-                process.wait(timeout=2)
-                reaped = True
+                try:
+                    process.wait(timeout=2)
+                except subprocess.TimeoutExpired:
+                    reaped = False
+                else:
+                    reaped = True
             done.set()
             if watcher is not None:
                 watcher.join(timeout=2)
@@ -369,8 +448,9 @@ class FactoryRuntime:
                                 not isinstance(value.get('operation'), str) or not isinstance(value.get('arguments'), dict):
                             guard.fail('tool', 'broker_protocol', {'reason': 'invalid_or_replayed_request'})
                         expected += 1
-                        if not self.journal.lease_is_current(contract):
-                            guard.fail('lease', 'lease_generation', {'reason': 'revoked_before_dispatch'})
+                        denial = self._lease_denial(contract, 'revoked_before_dispatch')
+                        if denial is not None:
+                            guard.fail(*denial)
                         if value['operation'] == '__complete__':
                             if value['arguments']:
                                 guard.fail('tool', 'broker_protocol', {'reason': 'invalid_completion'})
