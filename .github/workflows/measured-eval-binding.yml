@@ -1,11 +1,5 @@
-# STAGED WORKFLOW - requires one manual step before the gate is enforced.
-#
-# The automation token used to author this PR lacks the `workflow` OAuth
-# scope, so GitHub rejects API writes under `.github/workflows/`. A
-# maintainer with a workflow-scoped token must move this file to
-# `.github/workflows/measured-eval-binding.yml` (no content changes needed).
-# Until then, run locally:
-#   python -m pytest tests/test_eval_frozen_acceptance_binding.py -v
+# Contract/negative tests only: skipped namespace tests are not live M4 qualification.
+# Branch protection is a separate maintainer setting.
 
 name: Measured evaluation acceptance binding
 
@@ -58,7 +52,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: measured-eval-binding-${{ github.sha }}
+          name: measured-eval-binding-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
           path: runs/measured-eval-binding
           if-no-files-found: error
           retention-days: 14
