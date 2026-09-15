@@ -20,6 +20,10 @@ UNKNOWN at each split/singleton, and dependency-incomplete counterfactuals. The
 original candidate-specific failure/replan regression remains in
 `tests/test_factory_m4_integrator.py` and must continue passing.
 
-This follows review 5199052670 on PR #66. It does not add an OS sandbox or make
-trusted-fixture execution safe for untrusted code. Issue #63 remains open. No
+This follows review 5199052670 on PR #66. Candidate-dependent verification now
+runs inside the OS-isolated runner (`residual/factory/m4_sandbox.py`,
+execution boundary `linux-userns-isolated-v1`); `trusted_fixture_mode` remains
+unsandboxed and is restricted to operator-reviewed development fixtures.
+Attribution treats sandbox ERROR/UNKNOWN outcomes as infrastructure, never as
+worker fault. No
 Pages presentation, M2 runtime, evaluation adapter, or ownership baseline changes.

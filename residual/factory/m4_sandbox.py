@@ -12,6 +12,9 @@ by the kernel, not by environment hygiene:
   construction, not by policy);
 * a private PID namespace — descendant processes are contained and die with the
   namespace init, so fork/daemon escapes cannot survive;
+* private IPC and UTS namespaces — SysV IPC/POSIX mqueue objects created by the
+  candidate are invisible to the host (no shared ``ipcs`` namespace), and the
+  hostname is isolated;
 * ``RLIMIT_AS`` memory, ``RLIMIT_CPU`` CPU and a finite parent-side wall-clock
   deadline; bounded stdout/stderr capture with hashing;
 * deterministic typed outcomes: PASS / FAIL / UNKNOWN / ERROR.
@@ -36,7 +39,7 @@ import sys
 import tempfile
 import time
 
-from ._isolated_child import SANDBOX_ERROR_EXIT
+from ._isolated_child import SANDBOX_ERROR_EXIT, SANDBOX_ERROR_PREFIX
 from .worker_contract import WorkerContractError
 
 
@@ -63,7 +66,7 @@ def _unshare_argv(command: list[str]) -> list[str] | None:
         return None
     return [
         binary, "--user", "--map-root-user", "--mount", "--pid", "--fork",
-        "--net", "--kill-child", "--", *command,
+        "--net", "--ipc", "--uts", "--kill-child", "--", *command,
     ]
 
 
@@ -214,6 +217,8 @@ def run_isolated(argv: tuple[str, ...], worktree: Path, *, timeout_s: float,
 
         reason_out = "exit"
         captured = 0
+        prefix_probe = SANDBOX_ERROR_PREFIX.encode("ascii")
+        stderr_head = bytearray()
         try:
             with selectors.DefaultSelector() as selector:
                 for index, stream in enumerate((process.stdout, process.stderr)):
@@ -232,6 +237,8 @@ def run_isolated(argv: tuple[str, ...], worktree: Path, *, timeout_s: float,
                         permitted = max(0, output_limit - captured)
                         hashes[key.data].update(chunk[:permitted])
                         captured += len(chunk)
+                        if key.data == 1 and len(stderr_head) < len(prefix_probe):
+                            stderr_head += chunk[:len(prefix_probe) - len(stderr_head)]
                         if captured > output_limit:
                             reason_out = "output_limit"
                             break
@@ -250,8 +257,17 @@ def run_isolated(argv: tuple[str, ...], worktree: Path, *, timeout_s: float,
         if reason_out == "exit" and process.returncode == 0:
             status = "pass"
         elif reason_out == "exit" and process.returncode == SANDBOX_ERROR_EXIT:
-            status = "error"
-            reason_out = "sandbox_error"
+            if bytes(stderr_head).startswith(prefix_probe):
+                # The child exec() failed after the sandbox was ready (e.g.
+                # missing executable): the candidate never launched, which the
+                # fixture lane types as unknown/launch_failed — not a
+                # candidate FAIL and not a sandbox infrastructure ERROR.
+                status = "unknown"
+                reason_out = "launch_failed"
+            else:
+                # A candidate process itself exiting with code 125 is
+                # ordinary candidate behaviour: FAIL with exit code 125.
+                status = "fail"
         else:
             status = "fail"
         return IsolatedResult(status, process.returncode,
