@@ -1,6 +1,30 @@
 # Qualification convergence handoff
 
-## Lane 2 continuation — #108 at b127d000
+## Repair continuation — #108 at de436fc7
+
+The authorized repair is published at `de436fc7b6eaabee93ac5a734e3c71d9f2fecd12`,
+tree `7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe`, including main `326eb2a`.
+Declared payload timeouts are restored; lease contention no longer monopolizes
+the watchdog; reader retries share one deadline and retain actual diagnostics;
+pending reaps retain ownership until resource cleanup and terminal publication.
+The receipt-v2 assertion is restored to its original protected blob. Twelve new
+tests are protected by the updated ownership manifest; the checker is unchanged.
+
+Factory CI passes with 980 unittest cases and 22 skips on synthetic merge
+`12406a5c`, whose tree exactly equals the published head. Namespace skips do not
+qualify M4. Local pytest remains 1,625 passed / 15 failed / 62 skipped, with
+342 subtests passed; local unittest is 946 run / 5 failures / 1 error / 29 skips.
+The [repair bundle](../../runs/reviews/pr108/de436fc7/README.md) retains the logs,
+mutation results, CI source identity and the original probe cleanup failure.
+
+This continuation became the implementer. A fresh independent reviewer must
+review the new head, reproduce the original 12-test battery and five repaired
+regression probes, and verify the reversion tests. Inspect persistent pending
+reaps, failed terminal publication, primary-cause preservation and the changed
+ownership pins. No self-approval or merge was performed. Squash merge remains
+recommended because the historical remote commits include placeholder files.
+
+## Historical Lane 2 review — #108 at b127d000
 
 Independent review is complete with **REQUEST CHANGES**, not merge acceptance.
 The original battery passes 12/12 and eight independent reversion attacks are

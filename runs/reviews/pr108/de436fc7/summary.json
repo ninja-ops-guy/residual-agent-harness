@@ -1,0 +1,306 @@
+{
+  "schema": "residual-pr-repair-evidence-v1",
+  "pr": 108,
+  "head": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+  "tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe",
+  "status": "REPAIR_DELIVERED_INDEPENDENT_REVIEW_PENDING",
+  "ci_merge": "12406a5c1eb3f8f7811a5ed9740bfce1add13dcb",
+  "original_battery": {
+    "passed": 12,
+    "failed": 0,
+    "skipped": 0
+  },
+  "new_protected_tests": {
+    "passed": 12,
+    "failed": 0,
+    "skipped": 0
+  },
+  "repaired_probes": {
+    "command": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+      "-m",
+      "pytest",
+      "/tmp/residual-pr108-repair-evidence/review_probes_cleanup.py",
+      "/tmp/residual-pr108-repair-evidence/timeout_budget_probe.py",
+      "-q",
+      "--tb=short",
+      "--junitxml=/tmp/residual-pr108-repair-evidence/review-probes-cleanup.xml"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 5.080901525994705,
+    "head": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+    "tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe",
+    "note": "Only fixture teardown joins the pending-reap owner. Original assertions and failed original run retained.",
+    "tests": 5,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "initial_combined_probes": {
+    "passed": 28,
+    "failed": 1,
+    "failure_boundary": "original probe cleanup raced asynchronous worktree cleanup; assertions passed; original run retained"
+  },
+  "repair_reversions": [
+    {
+      "case": "R1",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/tmp/residual-pr108-repair-evidence/repair_mutations.py",
+        "R1",
+        "/tmp/residual-pr108-repair-evidence/exact-head-revert-R1.xml"
+      ],
+      "head": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe",
+      "exit_code": 1,
+      "elapsed_s": 4.377224287003628,
+      "tests": 2,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "caught": true
+    },
+    {
+      "case": "R2",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/tmp/residual-pr108-repair-evidence/repair_mutations.py",
+        "R2",
+        "/tmp/residual-pr108-repair-evidence/exact-head-revert-R2.xml"
+      ],
+      "head": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe",
+      "exit_code": 1,
+      "elapsed_s": 2.474035264996928,
+      "tests": 2,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "caught": true
+    },
+    {
+      "case": "R3",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/tmp/residual-pr108-repair-evidence/repair_mutations.py",
+        "R3",
+        "/tmp/residual-pr108-repair-evidence/exact-head-revert-R3.xml"
+      ],
+      "head": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe",
+      "exit_code": 1,
+      "elapsed_s": 0.615767452,
+      "tests": 4,
+      "failures": 4,
+      "errors": 0,
+      "skipped": 0,
+      "caught": true
+    },
+    {
+      "case": "R4",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/tmp/residual-pr108-repair-evidence/repair_mutations.py",
+        "R4",
+        "/tmp/residual-pr108-repair-evidence/exact-head-revert-R4.xml"
+      ],
+      "head": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe",
+      "exit_code": 1,
+      "elapsed_s": 2.421854733998771,
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "caught": true
+    },
+    {
+      "case": "R5",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/tmp/residual-pr108-repair-evidence/repair_mutations.py",
+        "R5",
+        "/tmp/residual-pr108-repair-evidence/exact-head-revert-R5.xml"
+      ],
+      "head": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe",
+      "exit_code": 1,
+      "elapsed_s": 6.686036967999826,
+      "tests": 3,
+      "failures": 3,
+      "errors": 0,
+      "skipped": 0,
+      "caught": true
+    }
+  ],
+  "original_reversion_attacks": [
+    {
+      "name": "original-attack-B1_signed_payload_key",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/tmp/residual-pr108-repair-evidence/mutation_probe.py",
+        "B1_signed_payload_key",
+        "/tmp/residual-pr108-repair-evidence/original-attack-B1_signed_payload_key.xml"
+      ],
+      "exit_code": 1,
+      "elapsed_s": 0.5155833539974992,
+      "head": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe",
+      "tests": 2,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "original-attack-B2_deadline_after_first_read",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/tmp/residual-pr108-repair-evidence/mutation_probe.py",
+        "B2_deadline_after_first_read",
+        "/tmp/residual-pr108-repair-evidence/original-attack-B2_deadline_after_first_read.xml"
+      ],
+      "exit_code": 1,
+      "elapsed_s": 8.242305934996693,
+      "head": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe",
+      "tests": 3,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "original-attack-B3_stopped_before_reap",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/tmp/residual-pr108-repair-evidence/mutation_probe.py",
+        "B3_stopped_before_reap",
+        "/tmp/residual-pr108-repair-evidence/original-attack-B3_stopped_before_reap.xml"
+      ],
+      "exit_code": 1,
+      "elapsed_s": 0.3648662220002734,
+      "head": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe",
+      "tests": 2,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "original-attack-B4_shared_diagnostic",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/tmp/residual-pr108-repair-evidence/mutation_probe.py",
+        "B4_shared_diagnostic",
+        "/tmp/residual-pr108-repair-evidence/original-attack-B4_shared_diagnostic.xml"
+      ],
+      "exit_code": 1,
+      "elapsed_s": 4.428209031000733,
+      "head": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe",
+      "tests": 2,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "original-attack-B5_signal_exit_for_timeout",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/tmp/residual-pr108-repair-evidence/mutation_probe.py",
+        "B5_signal_exit_for_timeout",
+        "/tmp/residual-pr108-repair-evidence/original-attack-B5_signal_exit_for_timeout.xml"
+      ],
+      "exit_code": 1,
+      "elapsed_s": 0.8668230830007815,
+      "head": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe",
+      "tests": 2,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "original-attack-CI_single_shot_reader",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/tmp/residual-pr108-repair-evidence/mutation_probe.py",
+        "CI_single_shot_reader",
+        "/tmp/residual-pr108-repair-evidence/original-attack-CI_single_shot_reader.xml"
+      ],
+      "exit_code": 1,
+      "elapsed_s": 0.5155375790054677,
+      "head": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "original-attack-H2_recompute_deadline",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/tmp/residual-pr108-repair-evidence/mutation_probe.py",
+        "H2_recompute_deadline",
+        "/tmp/residual-pr108-repair-evidence/original-attack-H2_recompute_deadline.xml"
+      ],
+      "exit_code": 1,
+      "elapsed_s": 0.916623213001003,
+      "head": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "original-attack-M6_silent_reap_timeout",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/tmp/residual-pr108-repair-evidence/mutation_probe.py",
+        "M6_silent_reap_timeout",
+        "/tmp/residual-pr108-repair-evidence/original-attack-M6_silent_reap_timeout.xml"
+      ],
+      "exit_code": 1,
+      "elapsed_s": 0.3647722959940438,
+      "head": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "local_pytest": {
+    "passed": 1625,
+    "failed": 15,
+    "skipped": 62,
+    "subtests_passed": 342,
+    "exit_code": 1
+  },
+  "local_unittest": {
+    "run": 946,
+    "failures": 5,
+    "errors": 1,
+    "skipped": 29,
+    "exit_code": 1
+  },
+  "ci_factory_unittest": {
+    "run": 980,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 22,
+    "conclusion": "success"
+  },
+  "termination_matrix": {
+    "normal": "PASS_500_PER_TEST",
+    "cpu": "PASS_500_PER_TEST",
+    "io": "PASS_500_PER_TEST",
+    "combined": "IN_PROGRESS",
+    "tests": [
+      "raw_file_syscall",
+      "blocked_audit_termination"
+    ]
+  },
+  "acceptance": "Fresh independent review and owner merge decision required. M4 and elapsed soak are not qualified."
+}

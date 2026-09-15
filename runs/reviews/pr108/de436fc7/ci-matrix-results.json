@@ -1,0 +1,279 @@
+[
+  {
+    "job_id": 104434410312,
+    "report": {
+      "anomaly_files": [],
+      "claim_boundary": "Zero failures establish only the reported statistical upper bound; they do not prove determinism. An anomalous signal is not classified without retained termination provenance.",
+      "commit": "83016683188040aea4213aec46cc433caad67766",
+      "condition": "normal",
+      "details": [
+        {
+          "iteration": 1,
+          "kind": "failure",
+          "test": "swarm3_target_factory_runtime.ExecutionTests.test_watchdog_kills_even_when_audit_callback_is_blocked",
+          "traceback": "Traceback (most recent call last):\n  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/unittest/case.py\", line 57, in testPartExecutor\n    yield\n  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/unittest/case.py\", line 623, in run\n    self._callTestMethod(testMethod)\n  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/unittest/case.py\", line 579, in _callTestMethod\n    if method() is not None:\n       ^^^^^^^^\n  File \"/home/runner/work/residual-agent-harness/residual-agent-harness/baseline/tests/test_factory_runtime.py\", line 467, in test_watchdog_kills_even_when_audit_callback_is_blocked\n    self.assertTrue(entered.wait(2))\n  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/unittest/case.py\", line 715, in assertTrue\n    raise self.failureException(msg)\nAssertionError: False is not true\n"
+        },
+        {
+          "iteration": 62,
+          "kind": "failure",
+          "test": "swarm3_target_factory_runtime.ExecutionTests.test_watchdog_kills_even_when_audit_callback_is_blocked",
+          "traceback": "Traceback (most recent call last):\n  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/unittest/case.py\", line 57, in testPartExecutor\n    yield\n  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/unittest/case.py\", line 623, in run\n    self._callTestMethod(testMethod)\n  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/unittest/case.py\", line 579, in _callTestMethod\n    if method() is not None:\n       ^^^^^^^^\n  File \"/home/runner/work/residual-agent-harness/residual-agent-harness/baseline/tests/test_factory_runtime.py\", line 467, in test_watchdog_kills_even_when_audit_callback_is_blocked\n    self.assertTrue(entered.wait(2))\n  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/unittest/case.py\", line 715, in assertTrue\n    raise self.failureException(msg)\nAssertionError: False is not true\n"
+        },
+        {
+          "iteration": 63,
+          "kind": "failure",
+          "test": "swarm3_target_factory_runtime.ExecutionTests.test_watchdog_kills_even_when_audit_callback_is_blocked",
+          "traceback": "Traceback (most recent call last):\n  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/unittest/case.py\", line 57, in testPartExecutor\n    yield\n  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/unittest/case.py\", line 623, in run\n    self._callTestMethod(testMethod)\n  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/unittest/case.py\", line 579, in _callTestMethod\n    if method() is not None:\n       ^^^^^^^^\n  File \"/home/runner/work/residual-agent-harness/residual-agent-harness/baseline/tests/test_factory_runtime.py\", line 467, in test_watchdog_kills_even_when_audit_callback_is_blocked\n    self.assertTrue(entered.wait(2))\n  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/unittest/case.py\", line 715, in assertTrue\n    raise self.failureException(msg)\nAssertionError: False is not true\n"
+        }
+      ],
+      "duration_s": 68.14080526,
+      "finished_monotonic_ns": 111736110663,
+      "load": {
+        "cpu_processes": 0,
+        "io_pressure": false
+      },
+      "repo_root": "/home/runner/work/residual-agent-harness/residual-agent-harness/baseline",
+      "runs_per_test": 100,
+      "schema_version": "swarm3-termination-matrix-v1",
+      "started_monotonic_ns": 43595305403,
+      "stats": {
+        "test_raw_file_syscall_is_kernel_killed": {
+          "errors": 0,
+          "failures": 0,
+          "runs": 100,
+          "skips": 0,
+          "unexplained_failures": 0,
+          "zero_failure_upper_95": 0.029513049607039932
+        },
+        "test_watchdog_kills_even_when_audit_callback_is_blocked": {
+          "errors": 0,
+          "failures": 3,
+          "runs": 100,
+          "skips": 0,
+          "unexplained_failures": 3,
+          "zero_failure_upper_95": null
+        }
+      },
+      "tests": {
+        "blocked_audit": "test_watchdog_kills_even_when_audit_callback_is_blocked",
+        "raw_seccomp": "test_raw_file_syscall_is_kernel_killed"
+      },
+      "tree": "b0b479af4467c45daafd5f23adf133cdb806f034"
+    }
+  },
+  {
+    "job_id": 104434410312,
+    "report": {
+      "anomaly_files": [],
+      "claim_boundary": "Zero failures establish only the reported statistical upper bound; they do not prove determinism. An anomalous signal is not classified without retained termination provenance.",
+      "commit": "12406a5c1eb3f8f7811a5ed9740bfce1add13dcb",
+      "condition": "normal",
+      "details": [],
+      "duration_s": 132.240905724,
+      "finished_monotonic_ns": 244302054890,
+      "load": {
+        "cpu_processes": 0,
+        "io_pressure": false
+      },
+      "repo_root": "/home/runner/work/residual-agent-harness/residual-agent-harness/current",
+      "runs_per_test": 500,
+      "schema_version": "swarm3-termination-matrix-v1",
+      "started_monotonic_ns": 112061149166,
+      "stats": {
+        "test_raw_file_syscall_is_kernel_killed": {
+          "errors": 0,
+          "failures": 0,
+          "runs": 500,
+          "skips": 0,
+          "unexplained_failures": 0,
+          "zero_failure_upper_95": 0.005973551516349596
+        },
+        "test_watchdog_termination_is_independent_of_blocked_audit_callback": {
+          "errors": 0,
+          "failures": 0,
+          "runs": 500,
+          "skips": 0,
+          "unexplained_failures": 0,
+          "zero_failure_upper_95": 0.005973551516349596
+        }
+      },
+      "tests": {
+        "blocked_audit": "test_watchdog_termination_is_independent_of_blocked_audit_callback",
+        "raw_seccomp": "test_raw_file_syscall_is_kernel_killed"
+      },
+      "tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe"
+    }
+  },
+  {
+    "job_id": 104434410047,
+    "report": {
+      "anomaly_files": [],
+      "claim_boundary": "Zero failures establish only the reported statistical upper bound; they do not prove determinism. An anomalous signal is not classified without retained termination provenance.",
+      "commit": "83016683188040aea4213aec46cc433caad67766",
+      "condition": "cpu",
+      "details": [],
+      "duration_s": 50.31316552,
+      "finished_monotonic_ns": 215151293954,
+      "load": {
+        "cpu_processes": 4,
+        "io_pressure": false
+      },
+      "repo_root": "/home/runner/work/residual-agent-harness/residual-agent-harness/baseline",
+      "runs_per_test": 100,
+      "schema_version": "swarm3-termination-matrix-v1",
+      "started_monotonic_ns": 164838128434,
+      "stats": {
+        "test_raw_file_syscall_is_kernel_killed": {
+          "errors": 0,
+          "failures": 0,
+          "runs": 100,
+          "skips": 0,
+          "unexplained_failures": 0,
+          "zero_failure_upper_95": 0.029513049607039932
+        },
+        "test_watchdog_kills_even_when_audit_callback_is_blocked": {
+          "errors": 0,
+          "failures": 0,
+          "runs": 100,
+          "skips": 0,
+          "unexplained_failures": 0,
+          "zero_failure_upper_95": 0.029513049607039932
+        }
+      },
+      "tests": {
+        "blocked_audit": "test_watchdog_kills_even_when_audit_callback_is_blocked",
+        "raw_seccomp": "test_raw_file_syscall_is_kernel_killed"
+      },
+      "tree": "b0b479af4467c45daafd5f23adf133cdb806f034"
+    }
+  },
+  {
+    "job_id": 104434410047,
+    "report": {
+      "anomaly_files": [],
+      "claim_boundary": "Zero failures establish only the reported statistical upper bound; they do not prove determinism. An anomalous signal is not classified without retained termination provenance.",
+      "commit": "12406a5c1eb3f8f7811a5ed9740bfce1add13dcb",
+      "condition": "cpu",
+      "details": [],
+      "duration_s": 153.104226312,
+      "finished_monotonic_ns": 368644295788,
+      "load": {
+        "cpu_processes": 4,
+        "io_pressure": false
+      },
+      "repo_root": "/home/runner/work/residual-agent-harness/residual-agent-harness/current",
+      "runs_per_test": 500,
+      "schema_version": "swarm3-termination-matrix-v1",
+      "started_monotonic_ns": 215540069476,
+      "stats": {
+        "test_raw_file_syscall_is_kernel_killed": {
+          "errors": 0,
+          "failures": 0,
+          "runs": 500,
+          "skips": 0,
+          "unexplained_failures": 0,
+          "zero_failure_upper_95": 0.005973551516349596
+        },
+        "test_watchdog_termination_is_independent_of_blocked_audit_callback": {
+          "errors": 0,
+          "failures": 0,
+          "runs": 500,
+          "skips": 0,
+          "unexplained_failures": 0,
+          "zero_failure_upper_95": 0.005973551516349596
+        }
+      },
+      "tests": {
+        "blocked_audit": "test_watchdog_termination_is_independent_of_blocked_audit_callback",
+        "raw_seccomp": "test_raw_file_syscall_is_kernel_killed"
+      },
+      "tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe"
+    }
+  },
+  {
+    "job_id": 104434409854,
+    "report": {
+      "anomaly_files": [],
+      "claim_boundary": "Zero failures establish only the reported statistical upper bound; they do not prove determinism. An anomalous signal is not classified without retained termination provenance.",
+      "commit": "83016683188040aea4213aec46cc433caad67766",
+      "condition": "io",
+      "details": [],
+      "duration_s": 74.120698425,
+      "finished_monotonic_ns": 111504257455,
+      "load": {
+        "cpu_processes": 0,
+        "io_pressure": true
+      },
+      "repo_root": "/home/runner/work/residual-agent-harness/residual-agent-harness/baseline",
+      "runs_per_test": 100,
+      "schema_version": "swarm3-termination-matrix-v1",
+      "started_monotonic_ns": 37383559030,
+      "stats": {
+        "test_raw_file_syscall_is_kernel_killed": {
+          "errors": 0,
+          "failures": 0,
+          "runs": 100,
+          "skips": 0,
+          "unexplained_failures": 0,
+          "zero_failure_upper_95": 0.029513049607039932
+        },
+        "test_watchdog_kills_even_when_audit_callback_is_blocked": {
+          "errors": 0,
+          "failures": 0,
+          "runs": 100,
+          "skips": 0,
+          "unexplained_failures": 0,
+          "zero_failure_upper_95": 0.029513049607039932
+        }
+      },
+      "tests": {
+        "blocked_audit": "test_watchdog_kills_even_when_audit_callback_is_blocked",
+        "raw_seccomp": "test_raw_file_syscall_is_kernel_killed"
+      },
+      "tree": "b0b479af4467c45daafd5f23adf133cdb806f034"
+    }
+  },
+  {
+    "job_id": 104434409854,
+    "report": {
+      "anomaly_files": [],
+      "claim_boundary": "Zero failures establish only the reported statistical upper bound; they do not prove determinism. An anomalous signal is not classified without retained termination provenance.",
+      "commit": "12406a5c1eb3f8f7811a5ed9740bfce1add13dcb",
+      "condition": "io",
+      "details": [],
+      "duration_s": 258.034885444,
+      "finished_monotonic_ns": 369959773831,
+      "load": {
+        "cpu_processes": 0,
+        "io_pressure": true
+      },
+      "repo_root": "/home/runner/work/residual-agent-harness/residual-agent-harness/current",
+      "runs_per_test": 500,
+      "schema_version": "swarm3-termination-matrix-v1",
+      "started_monotonic_ns": 111924888387,
+      "stats": {
+        "test_raw_file_syscall_is_kernel_killed": {
+          "errors": 0,
+          "failures": 0,
+          "runs": 500,
+          "skips": 0,
+          "unexplained_failures": 0,
+          "zero_failure_upper_95": 0.005973551516349596
+        },
+        "test_watchdog_termination_is_independent_of_blocked_audit_callback": {
+          "errors": 0,
+          "failures": 0,
+          "runs": 500,
+          "skips": 0,
+          "unexplained_failures": 0,
+          "zero_failure_upper_95": 0.005973551516349596
+        }
+      },
+      "tests": {
+        "blocked_audit": "test_watchdog_termination_is_independent_of_blocked_audit_callback",
+        "raw_seccomp": "test_raw_file_syscall_is_kernel_killed"
+      },
+      "tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe"
+    }
+  }
+]

@@ -1,0 +1,318 @@
+{
+  "source_head": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+  "source_tree": "7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe",
+  "checked_out_merge": "12406a5c1eb3f8f7811a5ed9740bfce1add13dcb",
+  "observed_at": "2026-09-15T15:09:25.196Z",
+  "checks": [
+    {
+      "id": 104436472833,
+      "name": "deploy",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-09-15T15:00:41Z",
+      "completed_at": "2026-09-15T15:00:41Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984911004/job/104436472833"
+    },
+    {
+      "id": 104434490097,
+      "name": "Vercel Preview Comments",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:34Z",
+      "completed_at": "2026-09-15T14:55:34Z",
+      "details_url": "https://vercel.com/github"
+    },
+    {
+      "id": 104434419726,
+      "name": "measured-eval-binding",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:42Z",
+      "completed_at": "2026-09-15T14:56:00Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984910962/job/104434419726"
+    },
+    {
+      "id": 104434414034,
+      "name": "qualify (3.13)",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:24Z",
+      "completed_at": "2026-09-15T14:55:43Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984911194/job/104434414034"
+    },
+    {
+      "id": 104434413795,
+      "name": "qualify (3.12)",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:29Z",
+      "completed_at": "2026-09-15T14:55:49Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984911194/job/104434413795"
+    },
+    {
+      "id": 104434413652,
+      "name": "qualify (3.11)",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:24Z",
+      "completed_at": "2026-09-15T14:55:48Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984911194/job/104434413652"
+    },
+    {
+      "id": 104434410962,
+      "name": "factory",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:23Z",
+      "completed_at": "2026-09-15T14:56:57Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984911243/job/104434410962"
+    },
+    {
+      "id": 104434410809,
+      "name": "test",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:23Z",
+      "completed_at": "2026-09-15T14:55:28Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984911186/job/104434410809"
+    },
+    {
+      "id": 104434410712,
+      "name": "factory-ownership",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:24Z",
+      "completed_at": "2026-09-15T14:55:36Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984911334/job/104434410712"
+    },
+    {
+      "id": 104434410348,
+      "name": "matrix (combined)",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "in_progress",
+      "conclusion": null,
+      "started_at": "2026-09-15T14:55:24Z",
+      "completed_at": null,
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984910992/job/104434410348"
+    },
+    {
+      "id": 104434410323,
+      "name": "python (3.12)",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:24Z",
+      "completed_at": "2026-09-15T14:57:47Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984911022/job/104434410323"
+    },
+    {
+      "id": 104434410312,
+      "name": "matrix (normal)",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:23Z",
+      "completed_at": "2026-09-15T14:59:00Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984910992/job/104434410312"
+    },
+    {
+      "id": 104434410245,
+      "name": "python (3.13)",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:25Z",
+      "completed_at": "2026-09-15T14:57:04Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984911022/job/104434410245"
+    },
+    {
+      "id": 104434410188,
+      "name": "tests (3.13)",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:25Z",
+      "completed_at": "2026-09-15T14:57:04Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984911019/job/104434410188"
+    },
+    {
+      "id": 104434410138,
+      "name": "python (3.11)",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:23Z",
+      "completed_at": "2026-09-15T14:56:53Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984911022/job/104434410138"
+    },
+    {
+      "id": 104434410074,
+      "name": "docker",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:24Z",
+      "completed_at": "2026-09-15T14:57:59Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984911022/job/104434410074"
+    },
+    {
+      "id": 104434410047,
+      "name": "matrix (cpu)",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:23Z",
+      "completed_at": "2026-09-15T14:58:58Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984910992/job/104434410047"
+    },
+    {
+      "id": 104434410026,
+      "name": "tests (3.11)",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:23Z",
+      "completed_at": "2026-09-15T14:57:43Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984911019/job/104434410026"
+    },
+    {
+      "id": 104434409868,
+      "name": "build-and-browser-proof",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:23Z",
+      "completed_at": "2026-09-15T15:00:36Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984911004/job/104434409868"
+    },
+    {
+      "id": 104434409854,
+      "name": "matrix (io)",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:23Z",
+      "completed_at": "2026-09-15T15:01:11Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984910992/job/104434409854"
+    },
+    {
+      "id": 104434409765,
+      "name": "tests (3.12)",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:23Z",
+      "completed_at": "2026-09-15T14:57:00Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984911019/job/104434409765"
+    },
+    {
+      "id": 104434409753,
+      "name": "browser",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:24Z",
+      "completed_at": "2026-09-15T14:56:07Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984911022/job/104434409753"
+    },
+    {
+      "id": 104434409397,
+      "name": "linux-execution",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:23Z",
+      "completed_at": "2026-09-15T14:57:13Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984910861/job/104434409397"
+    },
+    {
+      "id": 104434397064,
+      "name": "tests (3.12)",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:22Z",
+      "completed_at": "2026-09-15T14:57:00Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984907098/job/104434397064"
+    },
+    {
+      "id": 104434396882,
+      "name": "tests (3.13)",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:22Z",
+      "completed_at": "2026-09-15T14:57:04Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984907098/job/104434396882"
+    },
+    {
+      "id": 104434396860,
+      "name": "python (3.12)",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:21Z",
+      "completed_at": "2026-09-15T14:56:50Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984906791/job/104434396860"
+    },
+    {
+      "id": 104434396664,
+      "name": "python (3.13)",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:21Z",
+      "completed_at": "2026-09-15T14:56:56Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984906791/job/104434396664"
+    },
+    {
+      "id": 104434396638,
+      "name": "tests (3.11)",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:22Z",
+      "completed_at": "2026-09-15T14:56:50Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984907098/job/104434396638"
+    },
+    {
+      "id": 104434396620,
+      "name": "docker",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:21Z",
+      "completed_at": "2026-09-15T14:56:34Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984906791/job/104434396620"
+    },
+    {
+      "id": 104434396562,
+      "name": "python (3.11)",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:22Z",
+      "completed_at": "2026-09-15T14:57:15Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984906791/job/104434396562"
+    },
+    {
+      "id": 104434396292,
+      "name": "browser",
+      "head_sha": "de436fc7b6eaabee93ac5a734e3c71d9f2fecd12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-15T14:55:21Z",
+      "completed_at": "2026-09-15T14:56:00Z",
+      "details_url": "https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/34984906791/job/104434396292"
+    }
+  ]
+}

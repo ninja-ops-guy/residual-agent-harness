@@ -9,7 +9,16 @@ This reviewed tracker is delivered in PR #107. Refresh evidence before changing
 a gate to PASS. Merged code, passing branch tests and completed release
 qualification are different states.
 
-Lane 2 follow-up, 2026-09-15: **#108 at `b127d000` is BLOCKED / REQUEST CHANGES**.
+Repair continuation, 2026-09-15: **#108 repairs published at `de436fc7`; fresh
+independent review required**. R1-R5 are implemented, 12 protected regression
+tests added, and the receipt-v2 assertion restored. Current main `326eb2a` is
+included. Factory and ownership CI pass on the identical source tree; local
+capability/startup failures and namespace skips remain retained. See the
+[repair results and handoff](../../runs/reviews/pr108/de436fc7/README.md).
+This continuation performed implementation, so it cannot supply its own
+independent acceptance. C04 and the release gates remain open.
+
+Historical Lane 2 review, 2026-09-15: **#108 at `b127d000` received REQUEST CHANGES**.
 The independent review reproduced 12/12 original adversarial passes and caught
 8/8 reversion attacks, but found five additional failing regression probes and
 reproduced both CI failures. Local determinism is 19 passed, 2 failed, 7 skipped;
@@ -55,7 +64,7 @@ tag listing, and the GitHub releases collection was empty.
 | C01 | Freeze scope | POLICY DOCUMENTED; adoption pending | Use the policy above and flag out-of-scope requests; this PR does not globally control other threads | Owner + all lanes; start now |
 | C02 | Converge PR board | TRIAGE EXECUTED; integration ongoing | #106 merged; #22 closed; concurrent triage replaced #97 with #117 and closed #88/#114 into #109. 32 open proposals individually dispositioned; #93/#94 and benchmark salvage remain | Coordinator + lane owners; see full ledger |
 | C03 | Qualify M4 | BLOCKED BY RUNNER | #109 at e873dd62 adds actual execution smoke and preserves the owner’s activated zero-skips workflow. Real hosted-runner probe reports BLOCKED/namespace unavailable. Closed #88/#114 are not gates to merge again | Runner lane + independent reviewer; accepted #108 boundary |
-| C04 | Finish Swarm 3 | BLOCKED — independent review completed at b127d000 | #96 merged. #108 original battery 12/12 and eight reversion attacks pass review, but five new probes fail: payload budget, watchdog deadline under contention, reap recovery, diagnostic retention, total reader budget. Restore the stale v3 safety assertion to v2 to clear both CI failures; see the retained Lane 2 review | Runtime implementer repairs; separate reviewer rechecks new head and current-main integration |
+| C04 | Finish Swarm 3 | REPAIR DELIVERED; independent acceptance pending | #108 at de436fc7 includes main 326eb2a and repairs R1-R5 plus the stale receipt assertion. Twelve new protected tests pass; all five repair reversions and eight original attacks are caught. Factory/ownership CI pass; local full suites remain red with retained baseline/host findings. See the source-bound repair bundle | Fresh independent reviewer must assess de436fc7 and its pending-reap lifecycle; owner retains merge authority |
 | C05 | Qualify distributed/runtime behavior | BLOCKED BY THREE LOCAL FAILURES | #117 succeeds closed #97. Required pytest coverage now exposes missing process tracking, fencing through append and collision rejection (3 failed/60 passed locally). Repair and review before real concurrency/recovery and elapsed 24h/72h soak | Runtime/recovery lane; accepted candidate and isolated infrastructure |
 | C06 | Port principal Factory benchmarks | PENDING RECONCILIATION | Salvage #26/#38/#46/#52/#54/#56 onto current Factory. Preserve FB001-FB004 progression and whole-project completion focus | Benchmark owner designated through backlog lane |
 | C07 | Freeze ER1 protocol | RECONCILED SPECIFICATION DELIVERED in #110; execution blocked | #110 reconciles #90/#91 planning, pins the ladder/statistical rules and ledger, and preserves launch gates. Resolve the denominator and power-model review items below; implement/review adapters, analysis and launch enforcement; fill actual model/corpus identities before launch | Science lane + independent protocol review |

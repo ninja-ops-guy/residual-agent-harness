@@ -59,7 +59,16 @@ The accepted-tree, filesystem/link, isolation and Git-evidence code-hardening re
 
 PR #96 merged termination provenance and a repetition matrix. The historical Command Station Python 3.13 job on baseline `a8082109` failed `test_ptrace_is_kernel_killed`: expected SIGSYS (`-31`), observed SIGKILL (`-9`). Run `34927698993`, attempt `1`, job `104249155773` retained 895 tests, one failure and 21 skips. The cause remains **unclassified** by that evidence. Later passing runs do not erase this failure. #108's current repair requires independent review at its final head.
 
-Lane 2 independently reviewed #108 at `b127d000`: the original adversarial
+The authorized repair is published on #108 at `de436fc7`, including main
+`326eb2a`. R1-R5 are implemented and the original receipt-v2 assertion restored.
+Twelve new protected regression tests pass; Factory CI reports 980 unittest
+cases with 22 skips, and ownership passes at the identical source tree. Full
+local suites remain red with retained host/startup failures; M4 still has
+namespace capability skips. The [repair handoff](../runs/reviews/pr108/de436fc7/README.md)
+requires a fresh independent reviewer because this continuation implemented the
+repairs. No acceptance or merge is claimed.
+
+Previously, Lane 2 independently reviewed #108 at `b127d000`: the original adversarial
 battery is **12/12 PASS**, with **8/8 reversion attacks caught**, but the merge
 verdict is **REQUEST CHANGES**. Five additional probes fail (declared timeout,
 watchdog deadline during lease contention, pending-reap recovery, SQLite error
