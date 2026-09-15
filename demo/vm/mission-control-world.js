@@ -1,4 +1,4 @@
-import {mountMissionControl as mountBase} from './mission-control.js';
+import {mountMissionControl as mountBase} from './mission-control-engineer.js';
 import {renderPreview} from './mission-preview.js';
 
 const CURRENT='residual.chat.current.v2', INDEX='residual.chat.index.v2';
@@ -16,6 +16,7 @@ function save(state,title){try{localStorage.setItem(key(state.id),JSON.stringify
 function append(state,turn){const safe=safeTurn(turn);if(!safe)return;state.turns.push(safe);state.turns=state.turns.slice(-16);save(state)}
 function bubble(root,kind,text){const node=document.createElement('div');node.className=`bubble ${kind}`;const meta=document.createElement('span');meta.className='meta';meta.textContent=kind==='user'?'YOU':kind==='assistant'?'RESIDUAL':'SYSTEM';const body=document.createElement('div');body.textContent=text;node.append(meta,body);root.append(node);return node}
 function parseFrames(text,consume){const prefix='\x1b]777;RESIDUAL;';let cursor=0;while(true){const start=text.indexOf(prefix,cursor);if(start<0)return;const end=text.indexOf('\x07',start+prefix.length);if(end<0)return;try{const raw=text.slice(start+prefix.length,end).replace(/-/g,'+').replace(/_/g,'/');const bin=atob(raw);consume(JSON.parse(new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)))))}catch{}cursor=end+1}}
+function failureText(data){const values=Object.values(data?.result?.unresolved||{});const item=values.find(v=>v&&typeof v==='object')||{};const code=item.code||'no_verified_candidate';const map={provider_exception:'provider adapter exception',provider_error:'provider request failed',provider_request_failed:'provider request failed',provider_model_unavailable:'selected model unavailable',provider_authorization_failed:'provider authorization/allowance failed',provider_protocol_invalid:'provider response violated the worker protocol',provider_timeout:'provider request timed out',browser_response_invalid:'browser-to-guest provider response was invalid',provider_budget_exhausted:'provider call budget exhausted',invalid_protocol:'provider response violated the worker protocol'};return `Build blocked — no artifact was accepted. Cause: ${map[code]||code}. Open Activity for what happened/why and Evidence for the retained result.`}
 
 export function mountMissionControl(host){
   let id;try{id=localStorage.getItem(CURRENT)}catch{}if(!validCid(id))id=cid();
@@ -36,6 +37,20 @@ export function mountMissionControl(host){
   detach.onclick=()=>{if(busy)return;state.continueFrom=null;save(state);status();bubble(chat,'system','Next build starts a fresh artifact while this conversation remains visible.')};
   history.onchange=()=>{if(busy||!validCid(history.value))return;state=load(history.value);pending.clear();save(state);restore()};
   restore();
-  function capture(event){if(!event||!pending.has(event.mission_id))return;if(event.kind==='mission_error'){append(state,{role:'assistant',text:'Mission failed without a verified result.',mission_id:event.mission_id,status:'INCOMPLETE'});pending.delete(event.mission_id);setBusy(false);fillHistory();return}if(event.kind!=='mission_finished')return;const data=event.data||{},build=data.execution==='generated_artifacts',bundle=data.result?.values?.build;let text=build?(bundle?.summary||'Build completed.'):data.result?.values?.answer?.text;if(!text&&data.result?.values?.inventory)text='Repository audit completed with deterministic source inventory.';if(!text)text=data.status?`Mission ${String(data.status).toLowerCase()}.`:'Mission completed.';append(state,{role:'assistant',text,mission_id:event.mission_id,status:data.status,mode:build?'build':'other'});if(build&&data.result?.success&&bundle){const safe=safeBundle(bundle);if(safe){state.lastBuildMission=event.mission_id;state.continueFrom=event.mission_id;state.lastBundle=safe;state.revision=Number.isInteger(data.lineage?.revision)?data.lineage.revision:state.revision+1;save(state)}}pending.delete(event.mission_id);setBusy(false);fillHistory()}
+  function capture(event){
+    if(!event||!pending.has(event.mission_id))return;
+    if(event.kind==='mission_error'){append(state,{role:'assistant',text:'Mission failed without a verified result. Open Activity for the failure explanation.',mission_id:event.mission_id,status:'INCOMPLETE'});pending.delete(event.mission_id);setBusy(false);fillHistory();return}
+    if(event.kind!=='mission_finished')return;
+    const data=event.data||{},build=data.execution==='generated_artifacts',bundle=data.result?.values?.build,accepted=build&&data.status==='passed'&&data.result?.success===true&&bundle&&Array.isArray(bundle.files)&&bundle.files.length>0;
+    let text;
+    if(accepted)text=bundle.summary||'Build completed with accepted generated files.';
+    else if(build)text=failureText(data);
+    else text=data.result?.values?.answer?.text;
+    if(!text&&data.result?.values?.inventory)text='Repository audit completed with deterministic source inventory.';
+    if(!text)text=data.status?`Mission ${String(data.status).toLowerCase()}.`:'Mission completed.';
+    append(state,{role:'assistant',text,mission_id:event.mission_id,status:data.status,mode:build?'build':'other'});
+    if(accepted){const safe=safeBundle(bundle);if(safe){state.lastBuildMission=event.mission_id;state.continueFrom=event.mission_id;state.lastBundle=safe;state.revision=Number.isInteger(data.lineage?.revision)?data.lineage.revision:state.revision+1;save(state)}}
+    pending.delete(event.mission_id);setBusy(false);fillHistory();
+  }
   return {onOutput(text){base.onOutput(text);parseFrames(text,capture)},connectProvider:base.connectProvider,destroy(){base.destroy()}};
 }
