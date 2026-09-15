@@ -29,7 +29,8 @@ export function previewDocument(bundle) {
   if (!entry) return null;
   const map = new Map(bundle.files.map(item => [cleanPath(item?.path), item?.content]).filter(([path, content]) => path && typeof content === 'string'));
   const parsed = new DOMParser().parseFromString(entry.content, 'text/html');
-  parsed.querySelectorAll('base,object,embed,iframe,meta[http-equiv="refresh" i]').forEach(node => node.remove());
+  // Generated policy cannot weaken or accidentally block the preview policy.
+  parsed.querySelectorAll('base,object,embed,iframe,meta[http-equiv="refresh" i],meta[http-equiv="content-security-policy" i]').forEach(node => node.remove());
   for (const link of [...parsed.querySelectorAll('link[rel~="stylesheet"][href]')]) {
     const path = resolveLocal(entry.path, link.getAttribute('href'));
     if (path && map.has(path)) {
@@ -57,7 +58,7 @@ export function renderPreview(container, bundle, {frameId = '', status = null} =
     return null;
   }
   const controls = document.createElement('div'); controls.className = 'preview-controls';
-  const note = document.createElement('span'); note.className = 'muted'; note.textContent = 'Interactive isolated preview · network blocked · not semantic verification';
+  const note = document.createElement('span'); note.className = 'muted'; note.textContent = 'Interactive opaque-origin preview · external resources/connect APIs restricted · not semantic verification';
   const stop = document.createElement('button'); stop.type = 'button'; stop.textContent = 'Stop preview';
   controls.append(note, stop);
   const frame = document.createElement('iframe');
