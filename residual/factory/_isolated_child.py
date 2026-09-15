@@ -1,7 +1,8 @@
 """Namespace bootstrap for the isolated M4 verification runner.
 
-This module is executed as a *script* inside fresh Linux user/mount/PID/network
-namespaces (via ``unshare --user --map-root-user --mount --pid --fork --net``).
+This module is executed as a *script* inside fresh Linux user/mount/PID/IPC/
+UTS/network namespaces (via ``unshare --user --map-root-user --mount --pid
+--fork --net --ipc --uts``).
 It must stay stdlib-only and must never be imported on the host: importing the
 package ``__init__`` would drag in unrelated factory machinery.
 
@@ -77,7 +78,7 @@ def main() -> None:
         # path. Host $HOME, credentials, /etc and the source repository are
         # unreachable after chroot.
         os.makedirs(newroot, mode=0o700, exist_ok=True)
-        _mount("tmpfs", newroot, "tmpfs", 0, "mode=700")
+        _mount("tmpfs", newroot, "tmpfs", 0, "mode=700,size=256m")
         for name in ("usr", "bin", "lib", "lib64", "sbin"):
             source = "/" + name
             target = os.path.join(newroot, name)
@@ -93,14 +94,14 @@ def main() -> None:
             _mount(source, target, None, MS_BIND | MS_REMOUNT | MS_RDONLY)
         tmp = os.path.join(newroot, "tmp")
         os.makedirs(tmp, exist_ok=True)
-        _mount("tmpfs", tmp, "tmpfs", 0, "mode=1777")
+        _mount("tmpfs", tmp, "tmpfs", 0, "mode=1777,size=256m")
         target_wt = os.path.join(newroot, worktree.lstrip("/"))
         os.makedirs(target_wt, exist_ok=True)
         _mount(worktree, target_wt, None, MS_BIND)
         _mount(worktree, target_wt, None, MS_BIND | MS_REMOUNT | MS_RDONLY)
         dev = os.path.join(newroot, "dev")
         os.makedirs(dev, exist_ok=True)
-        _mount("tmpfs", dev, "tmpfs", 0, "mode=755")
+        _mount("tmpfs", dev, "tmpfs", 0, "mode=755,size=16m")
         for node in ("null", "zero", "full", "urandom"):
             path = os.path.join(dev, node)
             fd = os.open(path, os.O_CREAT | os.O_WRONLY, 0o666)
