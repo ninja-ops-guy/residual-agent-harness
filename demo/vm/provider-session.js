@@ -5,6 +5,20 @@ export const validId = value => typeof value === 'string' && /^m-[a-f0-9]{32}$/.
 export const validRequest = value => typeof value === 'string' && /^[a-f0-9]{32}$/.test(value);
 export const validModel = value => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,95}$/.test(value);
 export const bounded = value => { try { return new TextEncoder().encode(JSON.stringify(value)).length <= MAX_WIRE; } catch { return false; } };
+export const RESPONSE_SCHEMA = {
+  type: 'object', additionalProperties: false, required: ['updates', 'requests'],
+  properties: {
+    updates: {type: 'object'},
+    requests: {type: 'array', items: {
+      type: 'object', additionalProperties: false,
+      required: ['obligation_id', 'artifact_id', 'start_line', 'end_line'],
+      properties: {
+        obligation_id: {type: 'string'}, artifact_id: {type: 'string'},
+        start_line: {type: 'integer', minimum: 1}, end_line: {type: 'integer', minimum: 1}
+      }
+    }}
+  }
+};
 export function validInference(req) {
   return req && validRequest(req.request_id) && validModel(req.model) &&
     Number.isInteger(req.max_output_tokens) && req.max_output_tokens >= 1 && req.max_output_tokens <= 1536 &&
@@ -21,6 +35,31 @@ export function textReply(result) {
   if (typeof content === 'string') return content;
   if (Array.isArray(content)) return content.map(p => typeof p === 'string' ? p : (p?.text || '')).join('');
   throw new Error('provider_response_invalid');
+}
+export function validProtocolEnvelope(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const keys = Object.keys(value).sort();
+  if (keys.length !== 2 || keys[0] !== 'requests' || keys[1] !== 'updates') return false;
+  if (!value.updates || typeof value.updates !== 'object' || Array.isArray(value.updates) || !Array.isArray(value.requests)) return false;
+  return value.requests.every(r => r && typeof r === 'object' && !Array.isArray(r) &&
+    Object.keys(r).sort().join(',') === 'artifact_id,end_line,obligation_id,start_line' &&
+    typeof r.obligation_id === 'string' && typeof r.artifact_id === 'string' &&
+    Number.isInteger(r.start_line) && r.start_line >= 1 && Number.isInteger(r.end_line) && r.end_line >= 1);
+}
+function parseEnvelope(text) {
+  if (typeof text !== 'string' || !text.trim()) throw new Error('provider_protocol_invalid');
+  let value;
+  try { value = JSON.parse(text); } catch { throw new Error('provider_protocol_invalid'); }
+  if (!validProtocolEnvelope(value)) throw new Error('provider_protocol_invalid');
+  return JSON.stringify(value);
+}
+export function protocolReply(result) {
+  const calls = result?.message?.tool_calls;
+  if (Array.isArray(calls) && calls.length === 1 && calls[0]?.function?.name === 'residual_submit') {
+    const args = calls[0].function.arguments;
+    return parseEnvelope(typeof args === 'string' ? args : JSON.stringify(args));
+  }
+  return parseEnvelope(textReply(result));
 }
 export class ProviderSession {
   constructor(onState = () => {}) {
