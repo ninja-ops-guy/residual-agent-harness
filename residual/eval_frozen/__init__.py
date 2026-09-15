@@ -15,6 +15,7 @@ from .metrics import SliceMetrics, compute_slice_metrics
 from .report import build_report, report_csv_rows, plotting_inputs
 from .evidence import build_evidence_artifact, write_evidence_artifact
 from .acceptance_binding import (
+    CHAIN_SCHEMA,
     AcceptanceBindingError,
     FreshRunRegistry,
     MeasuredRunEvidence,
@@ -23,9 +24,11 @@ from .acceptance_binding import (
     SchedulerTopologyEvidence,
     VerifierQualification,
     WorkloadTaskMapping,
+    chain_fresh_record,
     validate_and_issue_acceptance,
     validate_prerequisites,
     verify_acceptance_artifact,
+    verify_run_identity_chain,
 )
 
 __all__ = [
@@ -48,6 +51,7 @@ __all__ = [
     "build_evidence_artifact",
     "write_evidence_artifact",
     "AcceptanceBindingError",
+    "CHAIN_SCHEMA",
     "FreshRunRegistry",
     "MeasuredRunEvidence",
     "RunIdentityRecord",
@@ -55,7 +59,9 @@ __all__ = [
     "SchedulerTopologyEvidence",
     "VerifierQualification",
     "WorkloadTaskMapping",
+    "chain_fresh_record",
     "validate_and_issue_acceptance",
     "validate_prerequisites",
     "verify_acceptance_artifact",
+    "verify_run_identity_chain",
 ]
