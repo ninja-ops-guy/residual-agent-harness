@@ -23,7 +23,10 @@ function replaceBubble(node,text){const body=node?.querySelector('div');if(body)
 
 const LEDGER_EXPLAIN={
   run_started:['Task frozen','The Harness bound the task, limits, and artifact hashes before worker dispatch.','Any later evidence refers back to this frozen start state.'],
-  dispatch:['Worker dispatched','A bounded worker/provider call was selected for unresolved obligations.','The response still has no authority until verification passes.'],
+  context_plan:['Context plan selected','RESIDUAL chose the bounded evidence/context capsule for this dispatch.','Inspect Evidence to see exactly which frozen artifacts were in scope.'],
+  call_reserved:['Provider call reserved','A remote call slot was reserved before I/O because failed requests may still incur cost.','The response still has no authority until protocol parsing and verification pass.'],
+  provider_failed:['Provider call failed','The provider/transport ended before a usable candidate was accepted.','Use the safe failure code and provider tab status to choose the next action.'],
+  call_completed:['Provider response returned','A bounded provider response arrived and was hash-recorded.','RESIDUAL must still parse the worker protocol and verify any candidate.'],
   verification:['Verifier checked candidate','A declared verifier evaluated the candidate against the obligation contract.','PASS can advance; FAIL/UNKNOWN remains unaccepted.'],
   counterexample:['Candidate rejected','RESIDUAL recorded why the current candidate could not be accepted.','The reason may guide a bounded retry; rejection is not hidden.'],
   obligation_accepted:['Obligation accepted','A candidate passed its declared mechanical verifier and received an acceptance receipt.','This proves the contract pass—not general semantic/code correctness.'],
@@ -35,6 +38,7 @@ export function mountMissionControl(host){
   const core=mountCore(host),root=document.querySelector('#mission-control'),chat=root.querySelector('#mc-chat'),form=root.querySelector('#mc-form');
   const q=id=>root.querySelector('#mc-'+id),details=root.querySelector('#mc-composer details'),consent=q('consent'),consentLabel=q('consent-label'),connect=q('connect');
   if(q('model').value==='gpt-5-nano')q('model').value='openai/gpt-5-nano';
+  let setupOpened=false;
 
   const gate=document.createElement('div');gate.id='mc-provider-gate';gate.className='notice';
   const gateStatus=document.createElement('div');gateStatus.id='mc-provider-gate-status';
@@ -45,21 +49,33 @@ export function mountMissionControl(host){
   engineer.innerHTML='<summary>Engineering trace · what happened and why</summary><p class="muted">This is a human-readable projection of the real guest/Harness events. It is explanatory, not an additional trust anchor; the retained guest trace remains authoritative.</p><div id="mc-engineer-timeline"></div>';
   const cards=activity.querySelector('.cards');activity.insertBefore(engineer,cards);
   const timeline=engineer.querySelector('#mc-engineer-timeline');
-  function explain(title,why,next,code=''){if(timeline.children.length>=80)timeline.firstElementChild?.remove();const d=document.createElement('div');d.className='notice';const h=document.createElement('strong');h.textContent=title+(code?` · ${code}`:'');const p=document.createElement('div');p.textContent='WHY · '+why;const n=document.createElement('div');n.className='muted';n.textContent='NEXT · '+next;d.append(h,p,n);timeline.append(d)}
+  function explain(title,why,next,code=''){if(timeline.children.length>=80)timeline.firstElementChild?.remove();const d=document.createElement('div');d.className='notice';const h=document.createElement('strong');h.textContent=title+(code?` · ${code}`:'');const p=document.createElement('div');p.textContent='WHY · '+why;const n=document.createElement('div');n.className='muted';n.textContent='NEXT · '+next;d.append(h,p,n);timeline.append(d);timeline.scrollTop=timeline.scrollHeight}
   function system(text){const node=document.createElement('div');node.className='bubble system';node.innerHTML='<span class="meta">SYSTEM</span>';const body=document.createElement('div');body.textContent=text;node.append(body);chat.append(node);chat.scrollTop=chat.scrollHeight}
   function remoteMode(){return ['build','live'].includes(q('mode').value)}
   function providerReady(){return connect.textContent==='Provider connected'}
-  function updateGate(){gate.hidden=!remoteMode();if(!remoteMode())return;if(!providerReady()){gateStatus.textContent='Provider not connected · Send opens provider setup and keeps your prompt here.';return}if(!consent.checked){gateStatus.textContent='Provider connected · authorize this specific prompt below, then Send.';return}gateStatus.textContent='Provider connected + prompt authorized · ready to dispatch when you Send.'}
+  function updateGate(){
+    gate.hidden=!remoteMode();if(!remoteMode())return;
+    if(!providerReady()){
+      gateStatus.textContent=setupOpened
+        ? 'Provider setup opened · complete SDK load/sign-in in the new tab. Your prompt is preserved and unsent.'
+        : 'Provider not connected · Send opens provider setup and keeps your prompt here.';
+      return;
+    }
+    setupOpened=false;
+    if(!consent.checked){gateStatus.textContent='Provider connected · authorize this specific prompt below, then Send.';return}
+    gateStatus.textContent='Provider connected + prompt authorized · ready to dispatch when you Send.';
+  }
   new MutationObserver(updateGate).observe(connect,{childList:true,subtree:true});q('mode').addEventListener('change',updateGate);consent.addEventListener('change',updateGate);updateGate();
 
   form.addEventListener('submit',event=>{
     if(!remoteMode())return;
     if(!providerReady()){
       event.preventDefault();event.stopImmediatePropagation();
-      gateStatus.textContent='Provider setup opened. Complete SDK load/sign-in, return here, authorize this prompt, then Send again. Your prompt was preserved.';
+      setupOpened=true;
+      gateStatus.textContent='Provider setup opened · complete SDK load/sign-in in the new tab. Your prompt is preserved and unsent.';
       system('Provider setup opened. Your prompt is still in the composer; no inference was sent. Complete sign-in, authorize this prompt, then Send again.');
       explain('Authorization gate stopped dispatch','The mission requires a remote provider, but no live provider session was connected.','Complete provider setup; the prompt remains unsent and editable.','provider_disconnected');
-      core.connectProvider();return;
+      core.connectProvider();updateGate();return;
     }
     if(!consent.checked){
       event.preventDefault();event.stopImmediatePropagation();
