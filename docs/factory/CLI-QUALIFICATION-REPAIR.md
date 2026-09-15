@@ -50,8 +50,12 @@ uses read-only Actions access to retrieve that uploaded ZIP, checks its
 SHA-256 against the upload action's digest, and emits bounded base64 chunks
 in the job log. This permits byte-exact retention when the local artifact
 download URL cannot be used. Repository credentials are never forwarded to
-the storage redirect. The export accepts only the six M4 evidence filenames,
-and is a transport check, not an acceptance decision.
+the storage redirect. The export requires exactly six unique expected filenames.
+It bounds the ZIP to 1 MiB compressed and 16 MiB total declared uncompressed
+content before emitting any bytes. Real ZIP regression fixtures reject every
+missing member, duplicates, extra members, empty archives and excessive
+expansion, and verify the inclusive size boundary. This is a transport check,
+not an acceptance decision.
 
 The ordinary unittest diagnostic wrapper preserves discovery, default
 warning handling, failures and exit status. It only records a failed JSON

@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 import zipfile
 
 MAX_ARCHIVE_BYTES = 1024 * 1024
+MAX_UNCOMPRESSED_BYTES = 16 * 1024 * 1024
 FILES = {"dependencies.txt", "source-environment.json", "report.json",
          "probe.log", "tests.log", "m4-sandbox.xml"}
 
@@ -54,8 +55,12 @@ def main() -> None:
     if digest != expected:
         raise RuntimeError("Downloaded archive does not match upload digest")
     with zipfile.ZipFile(io.BytesIO(data)) as archive:
-        if not set(archive.namelist()) <= FILES:
-            raise RuntimeError("Unexpected files in M4 artifact")
+        names = archive.namelist()
+        if len(names) != len(FILES) or set(names) != FILES:
+            raise RuntimeError("M4 artifact must contain exactly six unique expected files")
+        total = sum(info.file_size for info in archive.infolist())
+        if total > MAX_UNCOMPRESSED_BYTES:
+            raise RuntimeError("Uncompressed archive exceeds size bound")
     print("M4_ARCHIVE_BEGIN " + json.dumps({"artifact_id": artifact,
           "sha256": digest, "size": len(data)}, sort_keys=True))
     encoded = base64.b64encode(data).decode("ascii")
