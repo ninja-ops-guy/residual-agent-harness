@@ -42,7 +42,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import textwrap
 import zipfile
 
 THIS = Path(__file__).resolve()
@@ -66,7 +65,10 @@ def make_trivial_wheel(path, name="tamper_fixture", version="0.1"):
 
 
 def serve_url(path):
-    return Path(path).as_uri()
+    # Path.as_uri() requires an absolute path. Resolve here so the recovery
+    # harness behaves the same whether --out is absolute (unit tests) or
+    # repository-relative (CI/operator invocation).
+    return Path(path).resolve().as_uri()
 
 
 def scenario_record(records, scenario, detection_point, expected, observed,
@@ -106,7 +108,6 @@ def sc_corrupt_download(records, out_root, fixture_wheel):
         "FAIL at verify_hash; install never attempted",
         json.dumps(checks),
         "delete the artifact, re-fetch, re-verify hash, re-run", ok)
-    # Recovery: correct bytes pass the hash check (fetch+hash only scope).
     log = bvic.CheckLog(out / "recovery.jsonl")
     recovered = bvic.check_fetch(log, out / "logs", out / "work",
                                  serve_url(fixture_wheel))
@@ -166,14 +167,12 @@ def sc_dependency_resolution(records, out_root, fixture_wheel):
                         "FAIL at install_artifact", "venv creation failed",
                         "n/a", False)
         return False
-    # A requirement that cannot resolve offline.
     exe = bvic.venv_python(venv)
     result = bvic.run_logged(
         [str(exe), "-m", "pip", "install", "--no-index",
          "definitely-not-a-real-package-xyz==99.99"],
         out / "logs" / "pip-fail.log", env=bvic.clean_env(), timeout=120)
     detected = result is None or result.returncode != 0
-    # Recovery: install a valid artifact into the same clean venv.
     recovery = bvic.run_logged(
         [str(exe), "-m", "pip", "install", "--no-index", str(fixture_wheel)],
         out / "logs" / "pip-recover.log", env=bvic.clean_env(), timeout=120)
@@ -234,6 +233,10 @@ def main(argv=None):
     parser.add_argument("--only", nargs="*", default=None,
                         help="restrict to named scenarios")
     args = parser.parse_args(argv)
+    # Normalize once so every child executable, cwd, and file:// URI remains
+    # valid even when the operator supplies the documented repository-relative
+    # output path.
+    args.out = args.out.resolve()
     args.out.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="release-recovery-") as tmp:
         fixture_wheel = make_trivial_wheel(Path(tmp) / "fixture.whl")
@@ -244,7 +247,7 @@ def main(argv=None):
                 continue
             try:
                 ok = fn(records, args.out, fixture_wheel)
-            except Exception as exc:  # a crashed scenario is a FAIL
+            except Exception as exc:
                 scenario_record(records, name, "harness",
                                 "no exception", f"{type(exc).__name__}: {exc}",
                                 "inspect retained evidence", False)
