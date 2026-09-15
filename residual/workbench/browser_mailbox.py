@@ -1,9 +1,10 @@
 """Hardened WebVM mailbox provider for the public browser workbench.
 
-This is a transport adapter, not a new trust boundary. It preserves a bounded
-safe error vocabulary from the browser helper and tolerates a small number of
-transient/partial mailbox reads. Raw provider exception text never enters the
-guest ledger.
+This is a transport adapter, not a new trust boundary. Browser responses are
+published in two phases: the host writes the response body, then a request-
+specific ready marker. The guest does not read the response until that marker
+exists, preventing a browser-mediated DataDevice write from being consumed
+mid-publication. Raw provider exception text never enters the guest ledger.
 """
 from __future__ import annotations
 
@@ -30,7 +31,7 @@ SAFE_BROWSER_ERRORS = {
 
 
 class BrowserMailboxProvider(MailboxProvider):
-    """MailboxProvider with typed browser failures and bounded torn-read recovery."""
+    """MailboxProvider with typed browser failures and two-phase publication."""
 
     def generate(self, packet, max_output_tokens):
         if self.cancelled():
@@ -46,20 +47,33 @@ class BrowserMailboxProvider(MailboxProvider):
             raise ProviderError('browser_request_too_large')
         self.emit('inference_requested', request)
         path = self.mailbox / f'{self.mission_id}-{rid}.json'
+        ready = self.mailbox / f'{self.mission_id}-{rid}.json.ready'
         started = time.monotonic()
         invalid_reads = 0
         while time.monotonic() - started < 90:
             if self.cancelled():
                 raise ProviderError('mission_cancelled')
+            # DataDevice.writeFile exposes the destination while it is being
+            # populated. The browser writes this marker only after the awaited
+            # response write resolves, so the guest never races the body write.
+            try:
+                if not ready.is_file():
+                    time.sleep(0.05)
+                    continue
+            except OSError:
+                time.sleep(0.05)
+                continue
             try:
                 response = read_json(path, MAX_RESPONSE)
             except FileNotFoundError:
+                # Fail closed on publication reordering without manufacturing a
+                # candidate. A completed marker with a delayed body may recover.
                 time.sleep(0.05)
                 continue
-            except (ValueError, TypeError, UnicodeDecodeError, RecursionError):
-                # DataDevice writes are browser-mediated. A reader may observe a
-                # transient partial file; retry a small fixed number rather than
-                # converting that race into an opaque provider_exception.
+            except (OSError, ValueError, TypeError, UnicodeDecodeError, RecursionError):
+                # A completed marker should make these rare, but browser-backed
+                # filesystems can still transiently reject/tear a read. Keep the
+                # recovery bounded and expose only a safe typed failure.
                 invalid_reads += 1
                 if invalid_reads >= 5:
                     raise ProviderError('browser_response_invalid')
