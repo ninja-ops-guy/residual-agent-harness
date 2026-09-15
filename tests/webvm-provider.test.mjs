@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {ProviderSession, PROTOCOL, validInference, textReply, errorCode} from '../demo/vm/provider-session.js';
+import {ProviderSession, PROTOCOL, RESPONSE_SCHEMA, validInference, protocolReply, validProtocolEnvelope, errorCode} from '../demo/vm/provider-session.js';
 const mid = 'm-'+'a'.repeat(32), rid = 'b'.repeat(32);
 const request = {request_id:rid, model:'gpt-5-nano', max_output_tokens:256, messages:[{role:'user',content:'Untrusted prompt'}]};
 function session() { const p = new ProviderSession(); p.channel = {postMessage(){}, close(){}}; p.connected = true; p.lastSeen = Date.now(); return p; }
@@ -30,10 +30,21 @@ test('model selection is bound to grant', async () => { const p=session();p.begi
 test('errors are mapped to safe codes, not arbitrary server bodies', () => {
  assert.equal(errorCode({error:'popup_blocked'}),'popup_blocked');assert.equal(errorCode({msg:'private token',error:'secret'}),'provider_error');
 });
-test('known provider response shapes, not arbitrary objects', () => {
- assert.equal(textReply({message:{content:[{text:'hello'},' world']}}),'hello world');assert.throws(()=>textReply({credential:'secret'}));
+test('protocol tool schema is strict at the top level', () => {
+ assert.deepEqual(RESPONSE_SCHEMA.required,['updates','requests']); assert.equal(RESPONSE_SCHEMA.additionalProperties,false);
 });
-
+test('tool-call responses are converted to the exact RESIDUAL envelope', () => {
+ const envelope={updates:{answer:{text:'ok',citations:[]}},requests:[]};
+ const result={message:{tool_calls:[{function:{name:'residual_submit',arguments:JSON.stringify(envelope)}}]}};
+ assert.equal(protocolReply(result),JSON.stringify(envelope)); assert.equal(validProtocolEnvelope(envelope),true);
+});
+test('plain JSON envelope remains compatible but prose and malformed envelopes fail closed', () => {
+ const envelope={updates:{answer:{text:'ok',citations:[]}},requests:[]};
+ assert.equal(protocolReply({message:{content:JSON.stringify(envelope)}}),JSON.stringify(envelope));
+ assert.throws(()=>protocolReply({message:{content:'Here is your answer'}}),/provider_protocol_invalid/);
+ assert.throws(()=>protocolReply({message:{content:JSON.stringify({updates:{}})}}),/provider_protocol_invalid/);
+ assert.throws(()=>protocolReply({message:{tool_calls:[{function:{name:'other',arguments:'{}'}}]}}),/provider_response_invalid|provider_protocol_invalid/);
+});
 test('lost heartbeat produces visible disconnection once', () => {
  const changes=[]; const p=session();p.onState=(...v)=>changes.push(v);p.lastSeen=Date.now()-16000;
  p.checkConnection();p.checkConnection();assert.equal(p.connected,false);assert.equal(changes.length,1);assert.equal(changes[0][0],'disconnected');p.close();

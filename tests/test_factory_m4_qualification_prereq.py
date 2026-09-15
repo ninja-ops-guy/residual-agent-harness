@@ -6,13 +6,21 @@ capability (or wrong Python pin / missing dependency) forces BLOCKED.
 """
 from __future__ import annotations
 
+import hashlib
+import io
 import json
 import subprocess
+import sys
+import tempfile
+from dataclasses import replace
+from pathlib import Path
+from types import SimpleNamespace
 import unittest
 from unittest import mock
 
 from residual.factory import m4_qualification_prereq as prereq
-from residual.factory.m4_sandbox import SANDBOX_PROFILE
+from residual.factory import m4_sandbox
+from residual.factory.m4_sandbox import IsolatedResult, SANDBOX_PROFILE
 
 
 def _ok_proc():
@@ -21,26 +29,6 @@ def _ok_proc():
 
 def _fail_proc(rc=1):
     return subprocess.CompletedProcess(args=[], returncode=rc, stderr=b"unshare: failed")
-
-
-_REAL_RUN = subprocess.run
-
-
-def _raise_timeout(argv, **kw):
-    raise subprocess.TimeoutExpired(cmd="unshare", timeout=1)
-
-
-def _raise_oserror(argv, **kw):
-    raise OSError("nope")
-
-
-def _passthrough(fake):
-    """Only intercept unshare probes; delegate everything else to real subprocess.run."""
-    def wrapper(argv, **kw):
-        if isinstance(argv, (list, tuple)) and argv and "unshare" in str(argv[0]):
-            return fake(argv, **kw)
-        return _REAL_RUN(argv, **kw)
-    return wrapper
 
 
 def _passing_manifest():
@@ -69,7 +57,38 @@ def _passing_manifest():
     }
 
 
+def _pass_execution():
+    return IsolatedResult("pass", 0,
+                          hashlib.sha256(b"m4-prerequisite-execution\n").hexdigest(),
+                          hashlib.sha256(b"").hexdigest(), "exit")
+
+
+_REAL_RUN = subprocess.run
+
+
+def _raise_timeout(argv, **kw):
+    raise subprocess.TimeoutExpired(cmd="unshare", timeout=1)
+
+
+def _raise_oserror(argv, **kw):
+    raise OSError("nope")
+
+
+def _passthrough(fake):
+    """Only intercept unshare probes; delegate everything else to real subprocess.run."""
+    def wrapper(argv, **kw):
+        if isinstance(argv, (list, tuple)) and argv and "unshare" in str(argv[0]):
+            return fake(argv, **kw)
+        return _REAL_RUN(argv, **kw)
+    return wrapper
+
+
 class CapabilityProbeTests(unittest.TestCase):
+    def setUp(self):
+        patcher = mock.patch.object(prereq, "run_isolated", return_value=_pass_execution())
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
     def test_all_probes_pass_when_kernel_supports_namespaces(self):
         with mock.patch.object(prereq.subprocess, "run", side_effect=_passthrough(lambda a, **k: _ok_proc())), \
              mock.patch.object(prereq, "probe_isolation", return_value=(True, "ok")):
@@ -78,8 +97,9 @@ class CapabilityProbeTests(unittest.TestCase):
         for name in ("platform_linux", "chroot_available", "unshare_binary",
                      "user_namespace", "mount_namespace", "pid_namespace",
                      "network_namespace", "ipc_namespace", "uts_namespace",
-                     "kill_child", "composite_sandbox_profile"):
+                     "kill_child", "composite_sandbox_profile", "isolated_execution"):
             self.assertEqual(names[name], "pass", name)
+        # machine-readable: every probe records the argv actually run
         for r in results:
             if r.name.endswith("_namespace") or r.name == "kill_child":
                 self.assertIn("--user", r.probe_argv)
@@ -98,7 +118,8 @@ class CapabilityProbeTests(unittest.TestCase):
         self.assertIn("probe_failed", net["detail"])
 
     def test_probe_timeout_and_launch_failure_are_blocked(self):
-        with mock.patch.object(prereq.subprocess, "run", side_effect=_passthrough(_raise_timeout)), \
+        with mock.patch.object(prereq.subprocess, "run",
+                               side_effect=_passthrough(_raise_timeout)), \
              mock.patch.object(prereq, "probe_isolation", return_value=(False, "namespace_probe_failed")):
             results = prereq.probe_capabilities()
         userns = next(r for r in results if r.name == "user_namespace")
@@ -131,12 +152,19 @@ class CapabilityProbeTests(unittest.TestCase):
             prereq.probe_capabilities()
         composite = next(c for c in prereq.probe_capabilities()
                          if c.name == "composite_sandbox_profile")
+        # per-capability probes always enter a userns with root mapping first,
+        # exactly as m4_sandbox._unshare_argv composes the sandbox boundary
         for argv in captured:
             self.assertEqual(argv[1:3], ["--user", "--map-root-user"])
         self.assertIn(SANDBOX_PROFILE, composite.detail)
 
 
 class ManifestAndReportTests(unittest.TestCase):
+    def setUp(self):
+        patcher = mock.patch.object(prereq, "run_isolated", return_value=_pass_execution())
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
     def test_manifest_schema_and_required_fields(self):
         manifest = prereq.collect_manifest()
         self.assertEqual(manifest["schema"], "m4-qualification-env-manifest-v1")
@@ -186,21 +214,75 @@ class ManifestAndReportTests(unittest.TestCase):
         self.assertEqual(report["overall"], "PASS")
         self.assertEqual(report["revision"], "a" * 40)
         self.assertEqual(report["schema"], prereq.REPORT_SCHEMA)
-        json.dumps(report)
+        json.dumps(report)  # must not raise
 
     def test_main_exit_codes_and_output_file(self):
-        import tempfile
-        from pathlib import Path
-        out = Path(tempfile.mkdtemp()) / "report.json"
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        out = Path(temp.name) / "report.json"
         with mock.patch.object(prereq.subprocess, "run", side_effect=_passthrough(lambda a, **k: _ok_proc())), \
              mock.patch.object(prereq, "probe_isolation", return_value=(True, "ok")), \
-             mock.patch.object(prereq, "collect_manifest", return_value=_passing_manifest()):
+             mock.patch.object(prereq, "collect_manifest", return_value=_passing_manifest()), \
+             mock.patch("sys.stdout", new_callable=io.StringIO) as output:
             self.assertEqual(prereq.main(["--output", str(out), "--revision", "b" * 40]), 0)
+        self.assertEqual(json.loads(output.getvalue())["overall"], "PASS")
         written = json.loads(out.read_text())
         self.assertEqual(written["overall"], "PASS")
         with mock.patch.object(prereq.subprocess, "run", side_effect=_passthrough(lambda a, **k: _fail_proc())), \
-             mock.patch.object(prereq, "probe_isolation", return_value=(False, "namespace_probe_failed")):
-            self.assertEqual(prereq.main([]), 1)
+             mock.patch.object(prereq, "probe_isolation", return_value=(False, "namespace_probe_failed")), \
+             mock.patch("sys.stdout", new_callable=io.StringIO):
+            self.assertEqual(prereq.main([]), 1)  # BLOCKED => nonzero, never silent
+
+
+class ExecutionAndVersionTests(unittest.TestCase):
+    def test_namespace_success_does_not_mask_execution_failure(self):
+        with mock.patch.object(prereq, "_namespace_probe", side_effect=lambda name, *args: prereq.CapabilityResult(name, "pass", "fixture")), \
+             mock.patch.object(prereq, "probe_isolation", return_value=(True, "ok")), \
+             mock.patch.object(prereq, "collect_manifest", return_value=_passing_manifest()), \
+             mock.patch.object(prereq, "run_isolated", return_value=replace(_pass_execution(), status="error", reason="sandbox_error")):
+            report = prereq.build_report()
+        self.assertEqual(report["overall"], "BLOCKED")
+        self.assertIn("isolated_execution", report["blocked_capabilities"])
+
+    def test_execution_requires_exact_success_and_output(self):
+        for field, value in (("status", "unknown"), ("returncode", 1), ("reason", "timeout"),
+                             ("execution_boundary", "unconfined"), ("stdout_sha256", "0" * 64),
+                             ("stderr_sha256", "0" * 64)):
+            with self.subTest(field=field), mock.patch.object(
+                    prereq, "run_isolated", return_value=replace(_pass_execution(), **{field: value})):
+                self.assertEqual(prereq.probe_execution().status, "blocked")
+
+    def test_execution_timeout_is_blocked(self):
+        with mock.patch.object(prereq, "run_isolated", side_effect=subprocess.TimeoutExpired("probe", 20)):
+            self.assertEqual(prereq.probe_execution().status, "blocked")
+
+    def test_real_probe_uses_same_availability_predicate_as_m4(self):
+        # No mocked kernel/probe/execution and no capability skip. This may
+        # correctly establish BLOCKED, never M4 qualification on this host.
+        available, _ = m4_sandbox.probe_isolation()
+        report = prereq.build_report()
+        capabilities = {c["name"]: c for c in report["capabilities"]}
+        self.assertEqual(capabilities["composite_sandbox_profile"]["status"],
+                         "pass" if available else "blocked")
+        executed = capabilities["isolated_execution"]
+        if report["overall"] == "PASS":
+            self.assertTrue(available)
+            self.assertEqual(executed["status"], "pass")
+            self.assertEqual(json.loads(executed["detail"])["status"], "pass")
+        if not available:
+            self.assertEqual(report["overall"], "BLOCKED")
+            self.assertEqual(executed["status"], "blocked")
+
+    def test_actual_python_version_is_checked_against_pin(self):
+        for version, status in (("3.11.9", "blocked"), ("3.12.8", "pass"), ("3.13.1", "blocked")):
+            with self.subTest(version=version), mock.patch.object(prereq.platform, "python_version", return_value=version):
+                self.assertEqual(prereq.collect_manifest()["python"]["status"], status)
+
+    def test_dependency_versions_are_numeric_and_fail_closed(self):
+        for version, status in (("4.0", "blocked"), ("9.0", "blocked"), ("43.0", "pass"), ("100.0", "pass"), ("unknown", "blocked")):
+            with self.subTest(version=version), mock.patch.dict(
+                    sys.modules, {"cryptography": SimpleNamespace(__version__=version)}):
+                self.assertEqual(prereq._dependency_versions()["cryptography"]["status"], status)
 
 
 if __name__ == "__main__":

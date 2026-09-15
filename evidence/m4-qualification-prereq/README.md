@@ -1,5 +1,10 @@
 # M4 qualification prerequisite probe — local evidence
 
+Historical evidence for the original 11-capability implementation. These
+files are preserved unchanged and do not qualify the later execution-smoke
+repair. New runs must contain the `isolated_execution` capability and identify
+their actual integrated source revision.
+
 Captured 2026-09-15 by running the new
 `residual/factory/m4_qualification_prereq.py` against main tip
 `eefee6ac005c93278f483e002e38a768920f0fae` (public tarball), plus the new
