@@ -18,15 +18,17 @@ import sys
 import uuid
 
 from residual.config import build_harness, load_config
-from residual.core import Artifact, ContractError, Obligation, Registry, Task, canonical
+from residual.core import Artifact, ContractError, Obligation, Registry, Task, canonical, strict_json
 from residual.engine import Limits
 from .build import register_build, validate_bundle, write_bundle
-from .runner import (MailboxProvider, ObservedHarness, WorkbenchDeadline, read_json,
+from .runner import (MailboxProvider, ObservedHarness, WorkbenchDeadline, MAX_RESULT, read_json,
                      save, source_snapshot, verify_run)
 
 MID = re.compile(r"m-[0-9a-f]{32}\Z")
 CID = re.compile(r"c-[0-9a-f]{32}\Z")
+TRACE_ROOT = re.compile(r"[0-9a-f]{64}\Z")
 MAX_PRIOR_TOTAL_BYTES = 80000
+MAX_LINEAGE_DEPTH = 16
 
 
 def _id(value, pattern, label, *, optional=False):
@@ -37,20 +39,62 @@ def _id(value, pattern, label, *, optional=False):
     return value
 
 
-def verified_parent_bundle(output_root: Path, parent_mission_id: str):
-    """Return a persisted parent bundle only after every retained binding agrees."""
+def _trace_bound_artifacts(folder: Path, result: dict) -> dict[str, Artifact]:
+    """Reconstruct task artifacts and require the verified trace to bind them exactly."""
+    task_path = folder / "task.json"
+    trace_path = folder / "trace.jsonl"
+    if task_path.is_symlink() or trace_path.is_symlink() or not task_path.is_file() or not trace_path.is_file():
+        raise ContractError("parent task/trace evidence must be regular contained files")
+    task = read_json(task_path, MAX_RESULT)
+    if not isinstance(task, dict) or task.get("id") != result.get("task_id") or not isinstance(task.get("artifacts"), list):
+        raise ContractError("parent task snapshot does not match verified result identity")
+    artifacts: dict[str, Artifact] = {}
+    for item in task["artifacts"]:
+        if not isinstance(item, dict) or set(item) != {"id", "text", "cloud"}:
+            raise ContractError("parent task artifact snapshot has an invalid shape")
+        artifact = Artifact(item["id"], item["text"], item["cloud"])
+        if artifact.id in artifacts:
+            raise ContractError("parent task artifact snapshot contains duplicate identity")
+        artifacts[artifact.id] = artifact
+    lines = trace_path.read_text(encoding="utf-8").splitlines()
+    if not lines:
+        raise ContractError("parent trace is empty")
+    first = strict_json(lines[0])
+    data = first.get("data") if isinstance(first, dict) else None
+    committed = data.get("artifact_hashes") if isinstance(data, dict) else None
+    if not isinstance(data, dict) or first.get("kind") != "run_started" or data.get("task_id") != result.get("task_id") or not isinstance(committed, dict):
+        raise ContractError("parent trace start does not bind task artifacts")
+    actual = {key: value.sha256 for key, value in artifacts.items()}
+    if committed != actual:
+        raise ContractError("parent task artifacts differ from verified run-start commitments")
+    return artifacts
+
+
+def verified_parent_bundle(output_root: Path, parent_mission_id: str, *, _expected_root=None, _seen=None, _depth=0):
+    """Return a parent bundle and revision derived only from verified, hash-bound lineage."""
     parent_mission_id = _id(parent_mission_id, MID, "parent mission identity")
+    if _depth >= MAX_LINEAGE_DEPTH:
+        raise ContractError("conversation lineage exceeds the verification depth budget")
+    seen = set() if _seen is None else set(_seen)
+    if parent_mission_id in seen:
+        raise ContractError("conversation lineage contains a cycle")
+    seen.add(parent_mission_id)
     root = output_root.resolve()
     folder = root / parent_mission_id
     if folder.is_symlink() or not folder.is_dir() or folder.resolve().parent != root:
         raise ContractError("parent mission is not a contained run directory")
     result, proof = verify_run(folder)
+    trace_root = result.get("trace_root")
+    if not isinstance(trace_root, str) or not TRACE_ROOT.fullmatch(trace_root) or proof.get("root") != trace_root:
+        raise ContractError("parent trace root is invalid")
+    if _expected_root is not None and trace_root != _expected_root:
+        raise ContractError("parent trace root does not match child lineage commitment")
     if not proof.get("result_bound") or not result.get("success") or "build" not in result.get("values", {}):
         raise ContractError("parent mission is not a verified successful build")
     bundle = result["values"]["build"]
     if validate_bundle(bundle):
         raise ContractError("parent build bundle no longer satisfies the build contract")
-    manifest = read_json(folder / "artifacts" / "manifest.json")
+    manifest = read_json(folder / "artifacts" / "manifest.json", MAX_RESULT)
     if not isinstance(manifest, dict) or manifest.get("executed") is not False or not isinstance(manifest.get("files"), list):
         raise ContractError("parent artifact manifest is invalid")
     listed = {entry.get("path"): entry for entry in manifest["files"] if isinstance(entry, dict)}
@@ -71,17 +115,21 @@ def verified_parent_bundle(output_root: Path, parent_mission_id: str):
         content_hash = hashlib.sha256(encoded).hexdigest()
         if raw != encoded or meta.get("bytes") != len(encoded) or meta.get("sha256") != content_hash:
             raise ContractError("parent artifact bytes do not match retained accepted evidence")
-    summary_path = folder / "summary.json"
+    artifacts = _trace_bound_artifacts(folder, result)
     revision = 1
-    if summary_path.is_file() and not summary_path.is_symlink():
-        try:
-            summary = read_json(summary_path)
-            revision = summary.get("lineage", {}).get("revision", 1)
-            if type(revision) is not int or revision < 1:
-                revision = 1
-        except (OSError, ValueError, TypeError, KeyError):
-            revision = 1
-    binding = {"parent_mission_id": parent_mission_id, "parent_trace_root": result["trace_root"]}
+    prior_lineage = artifacts.get("prior-lineage")
+    if prior_lineage is not None:
+        lineage = strict_json(prior_lineage.text)
+        if not isinstance(lineage, dict) or set(lineage) != {"parent_mission_id", "parent_trace_root"}:
+            raise ContractError("parent lineage evidence has an invalid shape")
+        grandparent_id = _id(lineage.get("parent_mission_id"), MID, "grandparent mission identity")
+        grandparent_root = lineage.get("parent_trace_root")
+        if not isinstance(grandparent_root, str) or not TRACE_ROOT.fullmatch(grandparent_root):
+            raise ContractError("grandparent trace root is invalid")
+        _, grandparent_revision, _ = verified_parent_bundle(
+            output_root, grandparent_id, _expected_root=grandparent_root, _seen=seen, _depth=_depth + 1)
+        revision = grandparent_revision + 1
+    binding = {"parent_mission_id": parent_mission_id, "parent_trace_root": trace_root}
     return bundle, revision, binding
 
 
