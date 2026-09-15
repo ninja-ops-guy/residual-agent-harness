@@ -24,7 +24,7 @@ def test_first_run_uses_existing_command_station_demo_path():
     assert "/api/" not in onboarding, "onboarding must delegate execution to the existing station action"
 
 
-def test_onboarding_is_external_csp_safe_and_project_aware():
+def test_onboarding_is_external_csp_safe_project_aware_and_bootstrap_gated():
     html = (STATIC / "index.html").read_text()
     onboarding = (STATIC / "onboarding.js").read_text()
 
@@ -34,6 +34,9 @@ def test_onboarding_is_external_csp_safe_and_project_aware():
     assert "residual-project" in onboarding
     assert "residual-onboarding-v1-dismissed" in onboarding
     assert "showModal" in onboarding
+    assert "stationReady" in onboarding
+    assert '#main .page-heading' in onboarding
+    assert "openWhenReady" in onboarding
 
 
 def test_station_theme_matches_public_website_visual_tokens():
