@@ -11,8 +11,20 @@
     return !localStorage.getItem(PROJECT) && localStorage.getItem(DISMISSED) !== "1";
   }
 
+  function stationReady() {
+    return Boolean(document.querySelector("#main .page-heading"));
+  }
+
   function openFirstRun() {
     if (shouldOpen() && !dialog.open) dialog.showModal();
+  }
+
+  function openWhenReady(attempt = 0) {
+    if (stationReady()) {
+      openFirstRun();
+      return;
+    }
+    if (attempt < 80) window.setTimeout(() => openWhenReady(attempt + 1), 100);
   }
 
   function dismiss() {
@@ -20,8 +32,8 @@
     if (dialog.open) dialog.close();
   }
 
-  // Defer until Command Station has had a chance to render its bootstrap state.
-  window.addEventListener("load", () => requestAnimationFrame(openFirstRun), {once: true});
+  // Wait for app.js to finish the authenticated station bootstrap and render a real view.
+  window.addEventListener("load", () => openWhenReady(), {once: true});
 
   dialog.addEventListener("cancel", event => {
     event.preventDefault();
