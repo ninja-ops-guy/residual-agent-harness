@@ -26,8 +26,8 @@ class ConversationBuildTests(unittest.TestCase):
             (self.mail / f"{event['mission_id']}-{request['request_id']}.json").write_text(canonical(reply))
         return callback
 
-    def request(self, mid, prompt, parent=None):
-        value = {'id': mid, 'conversation_id': self.cid, 'mode': 'build', 'prompt': prompt,
+    def request(self, mid, prompt, parent=None, conversation=None):
+        value = {'id': mid, 'conversation_id': conversation or self.cid, 'mode': 'build', 'prompt': prompt,
                  'files': [], 'model': 'gpt-5-nano', 'max_calls': 1,
                  'max_output_tokens': 1536, 'cloud_consent': True, 'required_text': ['Calculator']}
         if parent: value['parent_mission_id'] = parent
@@ -57,11 +57,47 @@ class ConversationBuildTests(unittest.TestCase):
         self.assertEqual(two['lineage']['parent_mission_id'], first)
         self.assertEqual(two['lineage']['parent_trace_root'], one['result']['trace_root'])
         self.assertEqual(two['lineage']['revision'], 2)
-        self.assertIn('prior-lineage', seen['ids']); self.assertIn('prior-0', seen['ids'])
-        self.assertIn(first, seen['text']); self.assertIn(one['result']['trace_root'], seen['text']); self.assertIn('Calculator', seen['text'])
+        self.assertIn('conversation-session', seen['ids']); self.assertIn('prior-lineage', seen['ids']); self.assertIn('prior-0', seen['ids'])
+        self.assertIn(self.cid, seen['text']); self.assertIn(first, seen['text']); self.assertIn(one['result']['trace_root'], seen['text']); self.assertIn('Calculator', seen['text'])
         self.assertIn('COMPLETE replacement deliverable', seen['instruction'])
         self.assertIn('Preserve unrelated working behavior', seen['instruction'])
         self.assertEqual((self.out / second / 'artifacts/index.html').read_text(), revised['files'][0]['content'])
+
+    def test_revision_is_derived_from_trace_bound_lineage_not_summary_metadata(self):
+        first = 'm-' + '6' * 32
+        second = 'm-' + '7' * 32
+        third = 'm-' + '8' * 32
+        one_value = {'summary': 'Calculator v1', 'files': [{'path': 'index.html', 'content': '<h1>Calculator</h1>'}]}
+        two_value = {'summary': 'Calculator v2', 'files': [{'path': 'index.html', 'content': '<h1>Calculator v2</h1>'}]}
+        three_value = {'summary': 'Calculator v3', 'files': [{'path': 'index.html', 'content': '<h1>Calculator v3</h1>'}]}
+        one = execute(self.request(first, 'Build Calculator'), root=self.root, output_root=self.out,
+                      mailbox=self.mail, observer=self.observer(one_value))
+        two = execute(self.request(second, 'Refine Calculator', first), root=self.root, output_root=self.out,
+                      mailbox=self.mail, observer=self.observer(two_value))
+        summary_path = self.out / second / 'summary.json'
+        tampered = json.loads(summary_path.read_text()); tampered['lineage']['revision'] = 999
+        summary_path.write_text(canonical(tampered))
+        _, revision, binding = verified_parent_bundle(self.out, second, _expected_conversation=self.cid)
+        self.assertEqual(revision, 2)
+        self.assertEqual(binding['parent_trace_root'], two['result']['trace_root'])
+        three = execute(self.request(third, 'Refine Calculator again', second), root=self.root, output_root=self.out,
+                        mailbox=self.mail, observer=self.observer(three_value))
+        self.assertEqual(three['lineage']['revision'], 3)
+        self.assertEqual(three['lineage']['parent_trace_root'], two['result']['trace_root'])
+        self.assertEqual(one['lineage']['revision'], 1)
+
+    def test_cross_session_parent_graft_is_rejected_before_provider_dispatch(self):
+        first = 'm-' + '9' * 32
+        value = {'summary': 'Calculator', 'files': [{'path': 'index.html', 'content': '<h1>Calculator</h1>'}]}
+        execute(self.request(first, 'Build Calculator'), root=self.root, output_root=self.out,
+                mailbox=self.mail, observer=self.observer(value))
+        called = []
+        other = 'c-' + 'b' * 32
+        with self.assertRaises(ContractError):
+            execute(self.request('m-' + 'a' * 32, 'Take over Calculator', first, conversation=other),
+                    root=self.root, output_root=self.out, mailbox=self.mail,
+                    observer=lambda event: called.append(event))
+        self.assertFalse(any(event.get('kind') == 'inference_requested' for event in called))
 
     def test_parent_tamper_is_rejected_before_provider_dispatch(self):
         first = 'm-' + '3' * 32
@@ -74,6 +110,22 @@ class ConversationBuildTests(unittest.TestCase):
             execute(self.request('m-' + '4' * 32, 'Make it blue', first), root=self.root, output_root=self.out,
                     mailbox=self.mail, observer=lambda event: called.append(event))
         self.assertFalse(any(event.get('kind') == 'inference_requested' for event in called))
+
+    def test_trace_bound_task_artifact_tamper_is_rejected(self):
+        first = 'm-' + 'b' * 32
+        second = 'm-' + 'c' * 32
+        value = {'summary': 'Calculator', 'files': [{'path': 'index.html', 'content': '<h1>Calculator</h1>'}]}
+        execute(self.request(first, 'Build Calculator'), root=self.root, output_root=self.out,
+                mailbox=self.mail, observer=self.observer(value))
+        execute(self.request(second, 'Refine Calculator', first), root=self.root, output_root=self.out,
+                mailbox=self.mail, observer=self.observer(value))
+        task_path = self.out / second / 'task.json'
+        task = json.loads(task_path.read_text())
+        for artifact in task['artifacts']:
+            if artifact['id'] == 'prior-lineage': artifact['text'] = artifact['text'].replace(first, 'm-' + 'd' * 32)
+        task_path.write_text(canonical(task))
+        with self.assertRaises(ContractError):
+            verified_parent_bundle(self.out, second)
 
     def test_invalid_conversation_and_cross_run_parent_fail_closed(self):
         with self.assertRaises(ContractError):
