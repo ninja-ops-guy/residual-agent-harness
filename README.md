@@ -103,7 +103,7 @@ The project also contains soak infrastructure, but long-duration live qualificat
 
 The protected M4 trust-boundary implementation is present on `main`, including the accepted-tree/filesystem/verifier-isolation/Git-evidence closure and the later deterministic sandbox-timing repair. PR #108 landed as commit `0430f2fa2d107fe48d26ae84a3c1550af029cb52`; namespace-dependent tests were deliberately retained as non-qualification where the host could not provide the required isolation capability.
 
-Current `main` has since advanced through the Mission Control real-provider reliability work in PR #122. See [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md) for the exact current SHA, current CI state and active qualification blockers.
+Current `main` has since advanced through the Mission Control real-provider reliability work in PR #122 and the provenance-only Factory ownership anchor finalization in PR #121. See [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md) for the exact current SHA, current CI state and active qualification blockers.
 
 Before paper-facing live reliability evaluation, the priority gates are now:
 
