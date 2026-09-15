@@ -17,7 +17,7 @@ function parseFrames(text,consume){const prefix='\x1b]777;RESIDUAL;';let cursor=
 export function mountMissionControl(host){
   let id;try{id=localStorage.getItem(CURRENT)}catch{}if(!validCid(id))id=cid();
   let state=load(id), pending=new Set();
-  const wrapped={...host,run:async request=>{let next={...request};if(request.mode==='build'){next.conversation_id=state.id;if(state.continueFrom)next.parent_mission_id=state.continueFrom;}pending.add(request.id);append(state,{role:'user',text:request.prompt,mission_id:request.id,mode:request.mode});return host.run(next)}};
+  const wrapped={...host,run:async request=>{let next={...request};if(request.mode==='build'){const previous=document.querySelector('#mc-inline-preview-frame');if(previous)previous.id=`mc-inline-preview-frame-r${Math.max(1,state.revision)}`;next.conversation_id=state.id;if(state.continueFrom)next.parent_mission_id=state.continueFrom;}pending.add(request.id);append(state,{role:'user',text:request.prompt,mission_id:request.id,mode:request.mode});return host.run(next)}};
   const base=mountBase(wrapped), root=document.querySelector('#mission-control'), chat=root.querySelector('#mc-chat'), header=root.querySelector('header');
   const session=document.createElement('span');session.className='muted';session.id='mc-session';
   const history=document.createElement('select');history.id='mc-history';history.title='Conversation history';
