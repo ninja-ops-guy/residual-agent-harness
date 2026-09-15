@@ -1,6 +1,21 @@
 # Qualification convergence handoff
 
-## Repair continuation — #108 at de436fc7
+## Current handoff — #109 at 2551585f
+
+#108 and #121 are merged; accepted main is `1a52e9a2`. The new #109 candidate
+passes real zero-skip M4 qualification with a fully retained, digest-verified
+archive. It repairs the CLI capture using a real subprocess/package entry
+point and adds a parent-warning regression proven to fail on reversion.
+
+One protected test changes. Its pin is deliberately unchanged: independent
+review must precede baseline advancement, fresh CI and merge. Current CI
+fails the ownership assertion and cancels matrix siblings. Read the
+[source-bound repair handoff](../../runs/reviews/pr109/2551585f/README.md) and
+[complete M4 evidence](../../runs/qualification/m4/2551585f/README.md).
+The earlier failure's precise origin is not retroactively established.
+Demo, recovery/soak, blank-machine RC and ER1 remain separate lanes.
+
+## Historical repair continuation — #108 at de436fc7
 
 The authorized repair is published at `de436fc7b6eaabee93ac5a734e3c71d9f2fecd12`,
 tree `7907b6f5857d8ad3c3c7e1c74eee2d12c565cdfe`, including main `326eb2a`.

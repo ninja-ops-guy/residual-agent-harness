@@ -1,0 +1,10 @@
+cffi==2.1.1
+cryptography==50.0.1
+iniconfig==2.3.0
+packaging==26.3
+pluggy==1.6.0
+pycparser==3.0
+Pygments==2.21.0
+pytest==9.1.1
+PyYAML==6.0.3
+-e git+https://github.com/ninja-ops-guy/residual-agent-harness@87639bebce93b83043045f2a5e7016d03ba9523b#egg=residual_agent_harness

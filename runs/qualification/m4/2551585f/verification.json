@@ -1,0 +1,15 @@
+{
+  "archive_sha256": "181c57c49e94aaca513f8cf16f83dd2924d1cc0ec12f8105fbb6110047ddc7e1",
+  "archive_matches_github_metadata": true,
+  "all_six_members_inspected": true,
+  "candidate_head": "2551585f8951d242db92cd4c3e680409b0e4c572",
+  "synthetic_merge": "6c62e64f2b1251f7ac8e43883207fa2a3240554e",
+  "tree": "0299afd8e0caef5cc247317b5ed2d41423f86a14",
+  "testcases": 135,
+  "subtests": 78,
+  "skips": 0,
+  "failures": 0,
+  "errors": 0,
+  "capabilities_passed": 12,
+  "independent_acceptance": false
+}

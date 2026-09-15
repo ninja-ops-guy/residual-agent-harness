@@ -4,6 +4,17 @@ _Triage baseline: 2026-09-15 at `1cf4e46c0ace8e3cdc76147ad4c7dc6480a9fb34`, incl
 
 This page is the human-readable current-state summary for RESIDUAL. Historical roadmap documents and generated implementation tables may lag active integration work; when they disagree with this page, follow the code, tests, open qualification issues, and the machine-readable evidence produced by the current tree.
 
+## Latest targeted qualification update — 2026-09-15
+
+Accepted main is `1a52e9a2` after #121; #108 is merged at `0430f2fa`.
+#109 at `2551585f` delivers a real-subprocess CLI test and a canonical package
+entry point. Its fresh M4 job passed 135 cases plus 78 subtests with zero skips;
+the full archive is retained and hash-verified against GitHub metadata.
+One protected test blob changes, and its ownership pin has not been advanced.
+Independent review, a reviewed baseline update and fresh CI remain required.
+See the [repair handoff](../runs/reviews/pr109/2551585f/README.md).
+Other lane observations below retain their stated historical scope.
+
 ## Executive summary
 
 RESIDUAL has evolved from a verification-oriented agent harness into an evidence-first reliability and control plane for heterogeneous AI computation. The platform now spans requirement compilation, bounded execution, evidence/receipt handling, deterministic integration, cluster execution, lifecycle recovery, evaluation, observability, crypto/hardening, and operator-facing surfaces.
@@ -22,7 +33,7 @@ The repository contains substantial implementation and development evidence for 
 | Command Station | Implemented research/operations surface | Self-hosted run control, model/provider management, observations, HITL hooks, evidence download and operational UI are present. Deployment-specific production readiness still depends on the environment. |
 | Factory M2 — worker contract/runtime | Implemented | Real `WorkerContract`, bounded worker runtime, isolated worktrees, journaled observations, host-owned termination and sandbox enforcement exist under `residual/factory/`. Development fault-containment work has exercised real OS boundaries. |
 | Factory M3 — evidence bus/receipts | Implemented | Station-issued receipts, artifact binding, evidence-bus handoff and signature/integrity checks exist. Trust is enforced at the trusted consumption/admission boundary, not merely because bytes were stored. |
-| Factory M4 — deterministic integration/scheduler | Implemented but **not yet fully qualified for live claims** | Hardening from closed issue #63 landed via #81. #109 carries the capable-runner gate after closed #88/#114; its hosted-runner probe is BLOCKED, not containment evidence. |
+| Factory M4 — deterministic integration/scheduler | Implemented but **not yet fully qualified for live claims** | Hardening from closed issue #63 landed via #81. #109 at 2551585f passes real M4 execution with zero skips and a retained, hash-verified archive; independent protected-test review and ownership-dependent CI remain open. |
 | Evaluation | Implemented apparatus, unqualified live experiment | `residual/eval_frozen/` contains the frozen R0–R5 apparatus. PR #103 rebuilt the binding intended by closed PR #71 with negative tests for replay, topology, task mapping and verifier qualification. Passing those tests does not establish live provider/model results or independently authenticate its prerequisite reports. |
 | Sandbox / red team | Implemented development surface | Bubblewrap/namespace/rlimit paths plus live containment tests and a receipted red-team corpus are present. cgroup-v2-specific enforcement depends on host capability. |
 | Cluster / distributed execution | Implemented development surface | Versioned wire schema, authenticated join/leave, heartbeats, task reassignment, local-first routing and cluster CLI exist. Some optional network transports degrade gracefully when optional dependencies are absent. |
@@ -53,20 +64,20 @@ Enforcement is still incomplete: the required approving-review count is **0**, a
 
 ### 2. M4 live qualification
 
-The accepted-tree, filesystem/link, isolation and Git-evidence code-hardening review in closed issue #63 is historical. #109 succeeds closed #88/#114 as the M4 prerequisite/zero-skips lane. Its actual execution smoke at `e873dd62` reported UNKNOWN because namespace isolation was unavailable; the prerequisite job correctly failed. Preserve `UNKNOWN`, infrastructure errors and skipped namespace tests as evidence gaps; none may count as a passed trust-boundary qualification.
+The accepted-tree, filesystem/link, isolation and Git-evidence code-hardening review in closed issue #63 is historical. #109 succeeds closed #88/#114 as the M4 prerequisite/zero-skips lane. Its historical smoke at `e873dd62` reported UNKNOWN because namespace isolation was unavailable. The fresh `2551585f` run on an explicit capable runner passes with a complete retained archive; this is candidate evidence pending independent acceptance. Preserve `UNKNOWN`, infrastructure errors and skipped namespace tests as evidence gaps; none may count as a passed trust-boundary qualification.
 
 ### 3. Runtime reproducibility
 
-PR #96 merged termination provenance and a repetition matrix. The historical Command Station Python 3.13 job on baseline `a8082109` failed `test_ptrace_is_kernel_killed`: expected SIGSYS (`-31`), observed SIGKILL (`-9`). Run `34927698993`, attempt `1`, job `104249155773` retained 895 tests, one failure and 21 skips. The cause remains **unclassified** by that evidence. Later passing runs do not erase this failure. #108's current repair requires independent review at its final head.
+PR #96 merged termination provenance and a repetition matrix. The historical Command Station Python 3.13 job on baseline `a8082109` failed `test_ptrace_is_kernel_killed`: expected SIGSYS (`-31`), observed SIGKILL (`-9`). Run `34927698993`, attempt `1`, job `104249155773` retained 895 tests, one failure and 21 skips. The cause remains **unclassified** by that evidence. Later passing runs do not erase this failure. #108 subsequently merged at `0430f2fa`, with its ownership anchor updated by #121 at `1a52e9a2`. The new #109 protected-test change requires its own independent review.
 
-The authorized repair is published on #108 at `de436fc7`, including main
+Historical pre-acceptance #108 repair record at `de436fc7`, including main
 `326eb2a`. R1-R5 are implemented and the original receipt-v2 assertion restored.
 Twelve new protected regression tests pass; Factory CI reports 980 unittest
 cases with 22 skips, and ownership passes at the identical source tree. Full
 local suites remain red with retained host/startup failures; M4 still has
 namespace capability skips. The [repair handoff](../runs/reviews/pr108/de436fc7/README.md)
-requires a fresh independent reviewer because this continuation implemented the
-repairs. No acceptance or merge is claimed.
+recorded the then-required independent review because this continuation implemented
+the repairs. Subsequent #108 acceptance is recorded in the latest update above.
 
 Previously, Lane 2 independently reviewed #108 at `b127d000`: the original adversarial
 battery is **12/12 PASS**, with **8/8 reversion attacks caught**, but the merge
