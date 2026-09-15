@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from ..core import ContractError
-from .base import IntegrationConnector, IntegrationReceipt, TransportResponse
+from .base import IntegrationConnector, ConnectorReceipt, TransportResponse
 
 
 class TicketingConnector(IntegrationConnector):
@@ -48,7 +48,7 @@ class TicketingConnector(IntegrationConnector):
         self.require_ok(resp, "status sync")
         return resp
 
-    def post_receipt(self, ticket_id: str, receipt: IntegrationReceipt) -> TransportResponse:
+    def post_receipt(self, ticket_id: str, receipt: ConnectorReceipt) -> TransportResponse:
         """Attach a receipt as evidence on the ticket. Implements ENT6-R5 and ENT6-R6."""
         resp = self.call("POST", f"{self.issue_path.format(id=ticket_id)}/attachments", {
             "kind": "evidence",
@@ -58,7 +58,7 @@ class TicketingConnector(IntegrationConnector):
         return resp
 
     def close_on_acceptance(self, ticket_id: str,
-                            receipt: IntegrationReceipt) -> TransportResponse:
+                            receipt: ConnectorReceipt) -> TransportResponse:
         """Automatically close the ticket when the task is accepted;
         attaches the receipt as evidence first. Implements ENT6-R5."""
         if not receipt.accepted:

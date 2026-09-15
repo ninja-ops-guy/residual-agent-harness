@@ -1,0 +1,268 @@
+{
+  "schema": "m4-trust-report-v1",
+  "issue": 63,
+  "source_commit_main": "610ce42ebf1d7f32f4c976174661225a947c783a",
+  "based_on_pr66_head": "3961f52b45c4d5a167b5e346790451392572646d",
+  "generated_at_ns": 1789431995865869384,
+  "environment": {
+    "python": "3.12.12 (main, Oct  9 2025, 22:40:06) [GCC 12.2.0]",
+    "platform": "Linux-5.10.134-18.0.12.lifsea8.x86_64-x86_64-with-glibc2.36",
+    "kernel": "5.10.134-18.0.12.lifsea8.x86_64",
+    "unshare": "unshare from util-linux 2.38.1",
+    "git": "git version 2.39.5",
+    "pytest": "9.1.1",
+    "cryptography": "44.0.2"
+  },
+  "git_evidence_matrix": [
+    {
+      "scenario": "valid_base_absent_path",
+      "state": "ABSENT",
+      "detail": "path_not_in_base_tree",
+      "has_data": false
+    },
+    {
+      "scenario": "valid_base_present_path",
+      "state": "PRESENT",
+      "detail": "ok",
+      "has_data": true
+    },
+    {
+      "scenario": "malformed_commit_ref",
+      "state": "ERROR",
+      "detail": "invalid_commit_ref",
+      "has_data": false
+    },
+    {
+      "scenario": "nonexistent_commit",
+      "state": "UNKNOWN",
+      "detail": "base_commit_unresolvable",
+      "has_data": false
+    },
+    {
+      "scenario": "corrupt_missing_object",
+      "state": "ERROR",
+      "detail": "object_unreadable",
+      "has_data": false
+    },
+    {
+      "scenario": "missing_repository_evidence",
+      "state": "UNKNOWN",
+      "detail": "base_commit_unresolvable",
+      "has_data": false
+    }
+  ],
+  "adversarial_trials": [
+    {
+      "scenario": "extra_file_creation",
+      "isolation_available": true,
+      "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+      "wall_s": 0.031,
+      "sandbox_result": {
+        "status": "fail",
+        "returncode": 1,
+        "reason": "exit",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "3e290c9babbcd260f23d01d1c9d01957c178e37b7348d71177a1d874d371f945",
+        "execution_boundary": "linux-userns-isolated-v1"
+      },
+      "tree_hash_after": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+      "tree_unchanged": true
+    },
+    {
+      "scenario": "candidate_artifact_mutation",
+      "isolation_available": true,
+      "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+      "wall_s": 0.031,
+      "sandbox_result": {
+        "status": "fail",
+        "returncode": 1,
+        "reason": "exit",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "66e72453be520b170f689c3a3159f61bd644dc2ae4d7b47168ac51dd8b7f1c4d",
+        "execution_boundary": "linux-userns-isolated-v1"
+      },
+      "tree_hash_after": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+      "tree_unchanged": true
+    },
+    {
+      "scenario": "network_exfiltration_attempt",
+      "isolation_available": true,
+      "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+      "wall_s": 0.039,
+      "sandbox_result": {
+        "status": "fail",
+        "returncode": 1,
+        "reason": "exit",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "e9e6b0de6cd8d8f80cd39a9f2afdc7aaae324945fc34b9ed5f1b5d3a21fac289",
+        "execution_boundary": "linux-userns-isolated-v1"
+      },
+      "tree_hash_after": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+      "tree_unchanged": true
+    },
+    {
+      "scenario": "external_filesystem_write_attempt",
+      "isolation_available": true,
+      "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+      "wall_s": 0.031,
+      "sandbox_result": {
+        "status": "fail",
+        "returncode": 1,
+        "reason": "exit",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "21f5117af91910dc21bacd28754f9c4ad0d4b20a3c923cc9fa18f9f8351e3db0",
+        "execution_boundary": "linux-userns-isolated-v1"
+      },
+      "tree_hash_after": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+      "tree_unchanged": true
+    },
+    {
+      "scenario": "infinite_loop",
+      "isolation_available": true,
+      "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+      "wall_s": 5.003,
+      "sandbox_result": {
+        "status": "fail",
+        "returncode": -9,
+        "reason": "timeout",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "execution_boundary": "linux-userns-isolated-v1"
+      },
+      "tree_hash_after": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+      "tree_unchanged": true
+    },
+    {
+      "scenario": "infinite_output",
+      "isolation_available": true,
+      "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+      "wall_s": 0.034,
+      "sandbox_result": {
+        "status": "fail",
+        "returncode": -9,
+        "reason": "output_limit",
+        "stdout_sha256": "1f8745f0d2d1387ec1af2211a3cf417b2e9e885e853472649c1d979d0e9370e3",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "execution_boundary": "linux-userns-isolated-v1"
+      },
+      "tree_hash_after": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+      "tree_unchanged": true
+    },
+    {
+      "scenario": "fork_descendant_escape",
+      "isolation_available": true,
+      "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+      "wall_s": 0.032,
+      "sandbox_result": {
+        "status": "pass",
+        "returncode": 0,
+        "reason": "exit",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "execution_boundary": "linux-userns-isolated-v1"
+      },
+      "tree_hash_after": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+      "tree_unchanged": true
+    }
+  ],
+  "canonical_api": {
+    "decision": {
+      "integration_receipt_schema": {
+        "canonical": "residual.factory.m4_integrator.IntegrationReceipt",
+        "schema_version": "factory-integration-receipt-v2",
+        "renamed_parallel_api": "residual.integrations.base.IntegrationReceipt -> ConnectorReceipt (enterprise connector transport receipt, unrelated semantics)",
+        "parallel_name_removed": true
+      },
+      "scheduler_decision_schema": {
+        "canonical": "residual.factory.m4_scheduler",
+        "schemas": [
+          "factory-m4-scheduler-measurements-v1",
+          "factory-m4-structural-replan-v1",
+          "factory-m4-ready-dag-v1"
+        ]
+      },
+      "conflict_resolution_schema": {
+        "canonical": "residual.factory.m4_integrator.ConflictResolution"
+      },
+      "verifier_result_interface": {
+        "canonical": "residual.factory.m4_integrator.VerificationResult",
+        "typed_statuses": [
+          "pass",
+          "fail",
+          "unknown",
+          "error"
+        ],
+        "execution_boundaries": [
+          "linux-userns-isolated-v1",
+          "trusted_fixture_unsandboxed (development only)"
+        ]
+      }
+    },
+    "issues_reconciled": [
+      "#22",
+      "#24",
+      "#26"
+    ],
+    "notes": "Older evaluation/fault/benchmark adapters do not import the M4 API in this tree (verified by grep over residual/eval); the only parallel live surface was the enterprise IntegrationReceipt name, now renamed. measurement/eval code continues to consume evidence_receipts (M3) unchanged."
+  },
+  "suites": [
+    {
+      "suite": "sandbox",
+      "paths": [
+        "tests/test_factory_m4_sandbox.py"
+      ],
+      "returncode": 0,
+      "summary": "============================== 20 passed in 6.78s ==============================",
+      "log": "runs/m4-trust/sandbox-logs/sandbox.log"
+    },
+    {
+      "suite": "tree-binding",
+      "paths": [
+        "tests/test_factory_m4_tree_binding.py"
+      ],
+      "returncode": 0,
+      "summary": "============================== 9 passed in 1.14s ===============================",
+      "log": "runs/m4-trust/sandbox-logs/tree-binding.log"
+    },
+    {
+      "suite": "fs-redteam",
+      "paths": [
+        "tests/test_factory_m4_fs_redteam.py"
+      ],
+      "returncode": 0,
+      "summary": "==================== 10 passed, 10 subtests passed in 2.85s ====================",
+      "log": "runs/m4-trust/sandbox-logs/fs-redteam.log"
+    },
+    {
+      "suite": "git-evidence",
+      "paths": [
+        "tests/test_factory_m4_git_evidence.py"
+      ],
+      "returncode": 0,
+      "summary": "==================== 11 passed, 8 subtests passed in 0.26s =====================",
+      "log": "runs/m4-trust/sandbox-logs/git-evidence.log"
+    },
+    {
+      "suite": "canonical-api",
+      "paths": [
+        "tests/test_factory_m4_canonical_api.py"
+      ],
+      "returncode": 0,
+      "summary": "============================== 4 passed in 0.13s ===============================",
+      "log": "runs/m4-trust/sandbox-logs/canonical-api.log"
+    },
+    {
+      "suite": "m4-regression",
+      "paths": [
+        "tests/test_factory_m4_integrator.py",
+        "tests/test_factory_m4_safety.py",
+        "tests/test_factory_m4_attribution.py",
+        "tests/test_factory_m4_evidence.py",
+        "tests/test_factory_m4_scheduler.py"
+      ],
+      "returncode": 0,
+      "summary": "==================== 63 passed, 46 subtests passed in 4.31s ====================",
+      "log": "runs/m4-trust/sandbox-logs/m4-regression.log"
+    }
+  ]
+}

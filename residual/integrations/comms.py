@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from ..core import ContractError
-from .base import IntegrationConnector, IntegrationReceipt, TransportResponse
+from .base import IntegrationConnector, ConnectorReceipt, TransportResponse
 
 
 class CommsConnector(IntegrationConnector):
@@ -37,7 +37,7 @@ class CommsConnector(IntegrationConnector):
             blocks=[{"type": "actions", "challenge_id": challenge_id,
                      "options": ["approve", "reject", "inspect"]}])
 
-    def deliver_receipt(self, channel: str, receipt: IntegrationReceipt) -> TransportResponse:
+    def deliver_receipt(self, channel: str, receipt: ConnectorReceipt) -> TransportResponse:
         """Deliver a receipt on approval. Implements ENT6-R4."""
         if not receipt.accepted:
             raise ContractError("receipt delivery is for approved (accepted) receipts")
@@ -76,7 +76,7 @@ class CommsConnector(IntegrationConnector):
         return {"external_id": external_id, "source": self.system_name,
                 "goal": (body or {}).get("text", ""), "raw": body}
 
-    def post_receipt(self, external_id: str, receipt: IntegrationReceipt) -> TransportResponse:
+    def post_receipt(self, external_id: str, receipt: ConnectorReceipt) -> TransportResponse:
         return self.send_message(external_id,
                                  f"Receipt {receipt.verdict} for {receipt.subject_id}",
                                  blocks=[{"type": "receipt", "receipt": receipt.to_dict()}])

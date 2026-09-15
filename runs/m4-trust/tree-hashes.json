@@ -1,0 +1,114 @@
+[
+  {
+    "scenario": "extra_file_creation",
+    "isolation_available": true,
+    "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+    "wall_s": 0.031,
+    "sandbox_result": {
+      "status": "fail",
+      "returncode": 1,
+      "reason": "exit",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "3e290c9babbcd260f23d01d1c9d01957c178e37b7348d71177a1d874d371f945",
+      "execution_boundary": "linux-userns-isolated-v1"
+    },
+    "tree_hash_after": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+    "tree_unchanged": true
+  },
+  {
+    "scenario": "candidate_artifact_mutation",
+    "isolation_available": true,
+    "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+    "wall_s": 0.031,
+    "sandbox_result": {
+      "status": "fail",
+      "returncode": 1,
+      "reason": "exit",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "66e72453be520b170f689c3a3159f61bd644dc2ae4d7b47168ac51dd8b7f1c4d",
+      "execution_boundary": "linux-userns-isolated-v1"
+    },
+    "tree_hash_after": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+    "tree_unchanged": true
+  },
+  {
+    "scenario": "network_exfiltration_attempt",
+    "isolation_available": true,
+    "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+    "wall_s": 0.039,
+    "sandbox_result": {
+      "status": "fail",
+      "returncode": 1,
+      "reason": "exit",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e9e6b0de6cd8d8f80cd39a9f2afdc7aaae324945fc34b9ed5f1b5d3a21fac289",
+      "execution_boundary": "linux-userns-isolated-v1"
+    },
+    "tree_hash_after": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+    "tree_unchanged": true
+  },
+  {
+    "scenario": "external_filesystem_write_attempt",
+    "isolation_available": true,
+    "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+    "wall_s": 0.031,
+    "sandbox_result": {
+      "status": "fail",
+      "returncode": 1,
+      "reason": "exit",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "21f5117af91910dc21bacd28754f9c4ad0d4b20a3c923cc9fa18f9f8351e3db0",
+      "execution_boundary": "linux-userns-isolated-v1"
+    },
+    "tree_hash_after": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+    "tree_unchanged": true
+  },
+  {
+    "scenario": "infinite_loop",
+    "isolation_available": true,
+    "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+    "wall_s": 5.003,
+    "sandbox_result": {
+      "status": "fail",
+      "returncode": -9,
+      "reason": "timeout",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "execution_boundary": "linux-userns-isolated-v1"
+    },
+    "tree_hash_after": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+    "tree_unchanged": true
+  },
+  {
+    "scenario": "infinite_output",
+    "isolation_available": true,
+    "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+    "wall_s": 0.034,
+    "sandbox_result": {
+      "status": "fail",
+      "returncode": -9,
+      "reason": "output_limit",
+      "stdout_sha256": "1f8745f0d2d1387ec1af2211a3cf417b2e9e885e853472649c1d979d0e9370e3",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "execution_boundary": "linux-userns-isolated-v1"
+    },
+    "tree_hash_after": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+    "tree_unchanged": true
+  },
+  {
+    "scenario": "fork_descendant_escape",
+    "isolation_available": true,
+    "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+    "wall_s": 0.032,
+    "sandbox_result": {
+      "status": "pass",
+      "returncode": 0,
+      "reason": "exit",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "execution_boundary": "linux-userns-isolated-v1"
+    },
+    "tree_hash_after": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+    "tree_unchanged": true
+  }
+]

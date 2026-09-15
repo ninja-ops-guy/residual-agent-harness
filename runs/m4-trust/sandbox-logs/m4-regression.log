@@ -1,0 +1,85 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /tmp/m4fix-a
+configfile: pyproject.toml
+plugins: anyio-4.9.0
+collecting ... collected 63 items
+
+tests/test_factory_m4_integrator.py::M4IntegratorTests::test_deterministic_commit_and_signed_receipt PASSED [  1%]
+tests/test_factory_m4_integrator.py::M4IntegratorTests::test_failed_project_verification_attributes_receipt_and_replans PASSED [  3%]
+tests/test_factory_m4_integrator.py::M4IntegratorTests::test_secops_policy_requires_security_scan PASSED [  4%]
+tests/test_factory_m4_integrator.py::M4IntegratorTests::test_subset_overlap_keeps_superset_without_hitl PASSED [  6%]
+tests/test_factory_m4_integrator.py::M4IntegratorTests::test_true_conflict_requires_and_binds_hitl_resolution PASSED [  7%]
+tests/test_factory_m4_safety.py::PathBoundaryTests::test_dangling_target_cannot_create_external_file PASSED [  9%]
+tests/test_factory_m4_safety.py::PathBoundaryTests::test_directory_is_not_a_file_target 
+tests/test_factory_m4_safety.py::PathBoundaryTests::test_directory_is_not_a_file_target PASSED [ 11%]
+tests/test_factory_m4_safety.py::PathBoundaryTests::test_hardlink_rejected_before_overwrite_or_delete 
+tests/test_factory_m4_safety.py::PathBoundaryTests::test_hardlink_rejected_before_overwrite_or_delete PASSED [ 12%]
+tests/test_factory_m4_safety.py::PathBoundaryTests::test_noncanonical_and_git_metadata_paths_rejected 
+tests/test_factory_m4_safety.py::PathBoundaryTests::test_noncanonical_and_git_metadata_paths_rejected PASSED [ 14%]
+tests/test_factory_m4_safety.py::PathBoundaryTests::test_parent_substitution_race_rejected_at_descriptor_open PASSED [ 15%]
+tests/test_factory_m4_safety.py::PathBoundaryTests::test_regular_creation_and_replacement_preserve_executable_mode PASSED [ 17%]
+tests/test_factory_m4_safety.py::PathBoundaryTests::test_regular_delete_and_absent_parent_delete PASSED [ 19%]
+tests/test_factory_m4_safety.py::PathBoundaryTests::test_snapshot_includes_ignored_files_directories_and_git_marker PASSED [ 20%]
+tests/test_factory_m4_safety.py::PathBoundaryTests::test_snapshot_rejects_dangling_link_and_fifo PASSED [ 22%]
+tests/test_factory_m4_safety.py::PathBoundaryTests::test_symlink_parents_live_and_dangling_rejected PASSED [ 23%]
+tests/test_factory_m4_safety.py::PathBoundaryTests::test_symlink_target_cannot_overwrite_external_file PASSED [ 25%]
+tests/test_factory_m4_safety.py::PathBoundaryTests::test_target_symlink_substitution_race_never_follows_link PASSED [ 26%]
+tests/test_factory_m4_safety.py::PathBoundaryTests::test_whitespace_paths_remain_literal PASSED [ 28%]
+tests/test_factory_m4_safety.py::VerificationInputTests::test_argv_must_be_immutable_and_nul_free 
+tests/test_factory_m4_safety.py::VerificationInputTests::test_argv_must_be_immutable_and_nul_free PASSED [ 30%]
+tests/test_factory_m4_safety.py::VerificationInputTests::test_deadline_requires_finite_typed_bounded_value 
+tests/test_factory_m4_safety.py::VerificationInputTests::test_deadline_requires_finite_typed_bounded_value PASSED [ 31%]
+tests/test_factory_m4_safety.py::VerificationInputTests::test_fixture_consent_is_boolean_not_truthy_string PASSED [ 33%]
+tests/test_factory_m4_safety.py::VerificationInputTests::test_output_cap_requires_positive_bounded_integer 
+tests/test_factory_m4_safety.py::VerificationInputTests::test_output_cap_requires_positive_bounded_integer PASSED [ 34%]
+tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_acceptance_uses_frozen_tree_not_later_worktree_contents PASSED [ 36%]
+tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_artifact_mutation_never_gets_signed PASSED [ 38%]
+tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_cache_output_and_permission_changes_rejected 
+tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_cache_output_and_permission_changes_rejected PASSED [ 39%]
+tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_default_refuses_unsandboxed_execution_before_worktree_creation PASSED [ 41%]
+tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_different_incomparable_base_states_cannot_auto_resolve PASSED [ 42%]
+tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_duplicate_receipts_fail_closed PASSED [ 44%]
+tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_extra_unreceipted_file_never_gets_signed PASSED [ 46%]
+tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_failed_tree_lookup_is_an_error_not_absence PASSED [ 47%]
+tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_git_absence_is_distinct_from_empty_file PASSED [ 49%]
+tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_missing_base_blob_is_an_error_not_absence PASSED [ 50%]
+tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_missing_commit_is_an_error_not_absence PASSED [ 52%]
+tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_mutation_is_checked_after_each_command PASSED [ 53%]
+tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_output_limit_failure_publishes_no_integration_receipt PASSED [ 55%]
+tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_receipt_labels_unsandboxed_fixture_and_binds_policy PASSED [ 57%]
+tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_unavailable_executable_is_unknown_not_pass PASSED [ 58%]
+tests/test_factory_m4_safety.py::FixtureSupervisorTests::test_direct_supervisor_rejects_unbounded_inputs 
+tests/test_factory_m4_safety.py::FixtureSupervisorTests::test_direct_supervisor_rejects_unbounded_inputs PASSED [ 60%]
+tests/test_factory_m4_safety.py::FixtureSupervisorTests::test_output_capture_cap_does_not_depend_on_communicate_buffer PASSED [ 61%]
+tests/test_factory_m4_safety.py::FixtureSupervisorTests::test_timeout_kills_process_group_not_only_parent PASSED [ 63%]
+tests/test_factory_m4_attribution.py::M4AttributionTests::test_dependency_incomplete_subset_is_not_a_failed_candidate PASSED [ 65%]
+tests/test_factory_m4_attribution.py::M4AttributionTests::test_preexisting_project_failure_does_not_blame_a_new_receipt PASSED [ 66%]
+tests/test_factory_m4_attribution.py::M4AttributionTests::test_resource_or_signal_failure_is_not_candidate_attribution 
+tests/test_factory_m4_attribution.py::M4AttributionTests::test_resource_or_signal_failure_is_not_candidate_attribution PASSED [ 68%]
+tests/test_factory_m4_attribution.py::M4AttributionTests::test_subset_with_unavailable_verifier_has_unknown_outcome PASSED [ 69%]
+tests/test_factory_m4_attribution.py::M4AttributionTests::test_unavailable_executable_is_unknown_not_pass PASSED [ 71%]
+tests/test_factory_m4_attribution.py::M4AttributionTests::test_unknown_counterfactual_is_not_false_and_cannot_select_receipt 
+tests/test_factory_m4_attribution.py::M4AttributionTests::test_unknown_counterfactual_is_not_false_and_cannot_select_receipt PASSED [ 73%]
+tests/test_factory_m4_attribution.py::M4AttributionTests::test_unknown_multi_receipt_verification_never_bisects_or_blames PASSED [ 74%]
+tests/test_factory_m4_attribution.py::M4AttributionTests::test_unknown_singleton_recheck_never_returns_its_hash PASSED [ 76%]
+tests/test_factory_m4_evidence.py::M4EvidenceTests::test_dependency_order_is_deterministic PASSED [ 77%]
+tests/test_factory_m4_evidence.py::M4EvidenceTests::test_identical_overlap_is_deduplicated_deterministically PASSED [ 79%]
+tests/test_factory_m4_evidence.py::M4EvidenceTests::test_missing_dependency_receipt_is_rejected PASSED [ 80%]
+tests/test_factory_m4_evidence.py::M4EvidenceTests::test_nonidentical_overlap_becomes_hitl_conflict PASSED [ 82%]
+tests/test_factory_m4_evidence.py::M4EvidenceTests::test_ready_dag_consumes_only_signed_receipts PASSED [ 84%]
+tests/test_factory_m4_evidence.py::M4EvidenceTests::test_stale_receipt_rejected_without_human_approval PASSED [ 85%]
+tests/test_factory_m4_evidence.py::M4EvidenceTests::test_wrong_parent_binding_is_rejected PASSED [ 87%]
+tests/test_factory_m4_scheduler.py::M4SchedulerTests::test_cloud_used_for_capability_gap_or_local_exhaustion PASSED [ 88%]
+tests/test_factory_m4_scheduler.py::M4SchedulerTests::test_conflict_pressure_pauses_before_resize PASSED [ 90%]
+tests/test_factory_m4_scheduler.py::M4SchedulerTests::test_local_engine_preferred_when_capability_equal PASSED [ 92%]
+tests/test_factory_m4_scheduler.py::M4SchedulerTests::test_measurements_cover_all_required_bottlenecks PASSED [ 93%]
+tests/test_factory_m4_scheduler.py::M4SchedulerTests::test_resize_adds_workers_and_verifiers_when_pressure_demands PASSED [ 95%]
+tests/test_factory_m4_scheduler.py::M4SchedulerTests::test_resize_releases_workers_when_blocked_dominates PASSED [ 96%]
+tests/test_factory_m4_scheduler.py::M4SchedulerTests::test_structural_bottleneck_generates_new_plan_proposal PASSED [ 98%]
+tests/test_factory_m4_scheduler.py::M4SchedulerTests::test_structural_replan_does_not_trigger_below_threshold PASSED [100%]
+
+==================== 63 passed, 46 subtests passed in 4.31s ====================
+
+--- STDERR ---

@@ -1,0 +1,40 @@
+{
+  "decision": {
+    "integration_receipt_schema": {
+      "canonical": "residual.factory.m4_integrator.IntegrationReceipt",
+      "schema_version": "factory-integration-receipt-v2",
+      "renamed_parallel_api": "residual.integrations.base.IntegrationReceipt -> ConnectorReceipt (enterprise connector transport receipt, unrelated semantics)",
+      "parallel_name_removed": true
+    },
+    "scheduler_decision_schema": {
+      "canonical": "residual.factory.m4_scheduler",
+      "schemas": [
+        "factory-m4-scheduler-measurements-v1",
+        "factory-m4-structural-replan-v1",
+        "factory-m4-ready-dag-v1"
+      ]
+    },
+    "conflict_resolution_schema": {
+      "canonical": "residual.factory.m4_integrator.ConflictResolution"
+    },
+    "verifier_result_interface": {
+      "canonical": "residual.factory.m4_integrator.VerificationResult",
+      "typed_statuses": [
+        "pass",
+        "fail",
+        "unknown",
+        "error"
+      ],
+      "execution_boundaries": [
+        "linux-userns-isolated-v1",
+        "trusted_fixture_unsandboxed (development only)"
+      ]
+    }
+  },
+  "issues_reconciled": [
+    "#22",
+    "#24",
+    "#26"
+  ],
+  "notes": "Older evaluation/fault/benchmark adapters do not import the M4 API in this tree (verified by grep over residual/eval); the only parallel live surface was the enterprise IntegrationReceipt name, now renamed. measurement/eval code continues to consume evidence_receipts (M3) unchanged."
+}

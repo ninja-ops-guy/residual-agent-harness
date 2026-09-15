@@ -311,7 +311,7 @@ assignment.
 Jenkins, GitLab CI, GitHub Actions, Azure DevOps, CircleCI.
 Integration MUST support: task triggering from pipeline
 stages, pipeline gating on Residual verification (pipeline
-waits for IntegrationReceipt), and receipt publication as
+waits for ConnectorReceipt), and receipt publication as
 pipeline artifacts.
 
 **ENT6-R3.** Residual MUST integrate with monitoring systems:

@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from ..core import ContractError
-from .base import IntegrationConnector, IntegrationReceipt, TransportResponse
+from .base import IntegrationConnector, ConnectorReceipt, TransportResponse
 
 
 class ITSMConnector(IntegrationConnector):
@@ -36,7 +36,7 @@ class ITSMConnector(IntegrationConnector):
             "status": body.get(self.status_field, "open"),
         }
 
-    def post_receipt(self, ticket_id: str, receipt: IntegrationReceipt) -> TransportResponse:
+    def post_receipt(self, ticket_id: str, receipt: ConnectorReceipt) -> TransportResponse:
         """Attach a receipt to a ticket as evidence. Implements ENT6-R1 and ENT6-R6."""
         resp = self.call("POST", self.attachment_path.format(id=ticket_id), {
             "name": f"residual-receipt-{receipt.receipt_hash[:12]}.json",

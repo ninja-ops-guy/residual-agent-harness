@@ -26,6 +26,8 @@ from .m4_integrator import (
     VerificationCommand,
     VerificationResult,
 )
+from .m4_git_evidence import GitBlobEvidence, GitEvidenceState, read_base_blob
+from .m4_sandbox import IsolatedResult, M4SandboxError, probe_isolation, run_isolated
 from .m4_scheduler import (
     EnginePlacement,
     M4AdaptiveScheduler,
@@ -77,4 +79,11 @@ __all__ = [
     "SchedulerNode",
     "SchedulerPolicy",
     "StructuralReplanProposal",
+    "GitBlobEvidence",
+    "GitEvidenceState",
+    "read_base_blob",
+    "IsolatedResult",
+    "M4SandboxError",
+    "probe_isolation",
+    "run_isolated",
 ]
