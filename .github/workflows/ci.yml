@@ -45,3 +45,16 @@ jobs:
             runs/ci-assurance-evidence.json
           if-no-files-found: ignore
           retention-days: 14
+      - name: CIC grouping and feasibility comparison (scripted fixtures)
+        run: |
+          residual study freeze --suite examples/cic/suite.json --config examples/study-fixture.toml --modes residual structural cic --repeats 2 --output runs/ci-cic.lock.json
+          residual study run --lock runs/ci-cic.lock.json --output runs/ci-cic
+          residual study report runs/ci-cic
+      - name: Preserve CIC comparison evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cic-study-python-${{ matrix.python }}
+          path: runs/ci-cic/
+          if-no-files-found: ignore
+          retention-days: 14
