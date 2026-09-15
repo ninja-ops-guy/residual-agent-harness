@@ -70,7 +70,17 @@ def _trace_bound_artifacts(folder: Path, result: dict) -> dict[str, Artifact]:
     return artifacts
 
 
-def verified_parent_bundle(output_root: Path, parent_mission_id: str, *, _expected_root=None, _seen=None, _depth=0):
+def _conversation_id(artifacts: dict[str, Artifact]) -> str:
+    session = artifacts.get("conversation-session")
+    if session is None:
+        raise ContractError("parent build predates evidence-bound conversation identity")
+    value = strict_json(session.text)
+    if not isinstance(value, dict) or set(value) != {"conversation_id"}:
+        raise ContractError("conversation-session evidence has an invalid shape")
+    return _id(value.get("conversation_id"), CID, "evidence-bound conversation identity")
+
+
+def verified_parent_bundle(output_root: Path, parent_mission_id: str, *, _expected_root=None, _expected_conversation=None, _seen=None, _depth=0):
     """Return a parent bundle and revision derived only from verified, hash-bound lineage."""
     parent_mission_id = _id(parent_mission_id, MID, "parent mission identity")
     if _depth >= MAX_LINEAGE_DEPTH:
@@ -116,20 +126,27 @@ def verified_parent_bundle(output_root: Path, parent_mission_id: str, *, _expect
         if raw != encoded or meta.get("bytes") != len(encoded) or meta.get("sha256") != content_hash:
             raise ContractError("parent artifact bytes do not match retained accepted evidence")
     artifacts = _trace_bound_artifacts(folder, result)
+    conversation_id = _conversation_id(artifacts)
+    if _expected_conversation is not None and conversation_id != _expected_conversation:
+        raise ContractError("parent conversation identity does not match child session")
     revision = 1
     prior_lineage = artifacts.get("prior-lineage")
     if prior_lineage is not None:
         lineage = strict_json(prior_lineage.text)
-        if not isinstance(lineage, dict) or set(lineage) != {"parent_mission_id", "parent_trace_root"}:
+        if not isinstance(lineage, dict) or set(lineage) != {"conversation_id", "parent_mission_id", "parent_trace_root"}:
             raise ContractError("parent lineage evidence has an invalid shape")
+        lineage_conversation = _id(lineage.get("conversation_id"), CID, "lineage conversation identity")
+        if lineage_conversation != conversation_id:
+            raise ContractError("conversation identity changed inside verified lineage")
         grandparent_id = _id(lineage.get("parent_mission_id"), MID, "grandparent mission identity")
         grandparent_root = lineage.get("parent_trace_root")
         if not isinstance(grandparent_root, str) or not TRACE_ROOT.fullmatch(grandparent_root):
             raise ContractError("grandparent trace root is invalid")
         _, grandparent_revision, _ = verified_parent_bundle(
-            output_root, grandparent_id, _expected_root=grandparent_root, _seen=seen, _depth=_depth + 1)
+            output_root, grandparent_id, _expected_root=grandparent_root,
+            _expected_conversation=conversation_id, _seen=seen, _depth=_depth + 1)
         revision = grandparent_revision + 1
-    binding = {"parent_mission_id": parent_mission_id, "parent_trace_root": trace_root}
+    binding = {"conversation_id": conversation_id, "parent_mission_id": parent_mission_id, "parent_trace_root": trace_root}
     return bundle, revision, binding
 
 
@@ -139,7 +156,7 @@ def make_task(request: dict, root: Path, prior_bundle=None, parent_binding=None)
     if not isinstance(request, dict) or set(request) - allowed:
         raise ContractError("unknown iterative build mission fields")
     mid = _id(request.get("id", "m-" + uuid.uuid4().hex), MID, "mission identity")
-    conversation_id = _id(request.get("conversation_id"), CID, "conversation identity", optional=True)
+    conversation_id = _id(request.get("conversation_id"), CID, "conversation identity")
     parent_id = _id(request.get("parent_mission_id"), MID, "parent mission identity", optional=True)
     prompt = request.get("prompt", "")
     if not isinstance(prompt, str) or not 1 <= len(prompt.encode("utf-8")) <= 4000 or not prompt.strip():
@@ -157,10 +174,13 @@ def make_task(request: dict, root: Path, prior_bundle=None, parent_binding=None)
     artifacts, paths = source_snapshot(root, names) if names else ({}, {})
     consent = request.get("cloud_consent") is True
     artifacts = {key: dataclasses.replace(value, cloud=consent) for key, value in artifacts.items()}
+    artifacts["conversation-session"] = Artifact("conversation-session", canonical({"conversation_id": conversation_id}), consent)
     prior_paths = {}
     if prior_bundle is not None:
-        if parent_id is None or not isinstance(parent_binding, dict) or parent_binding.get("parent_mission_id") != parent_id:
-            raise ContractError("prior build evidence requires an exact verified parent binding")
+        if (parent_id is None or not isinstance(parent_binding, dict)
+                or parent_binding.get("parent_mission_id") != parent_id
+                or parent_binding.get("conversation_id") != conversation_id):
+            raise ContractError("prior build evidence requires an exact same-session parent binding")
         if validate_bundle(prior_bundle):
             raise ContractError("invalid prior build bundle")
         artifacts["prior-lineage"] = Artifact("prior-lineage", canonical(parent_binding), consent)
@@ -170,9 +190,10 @@ def make_task(request: dict, root: Path, prior_bundle=None, parent_binding=None)
             prior_paths[key] = item["path"]
     instruction = prompt + "\n\n"
     if prior_paths:
-        instruction += ("This is a revision of the immediately preceding accepted build. The verified parent identity and trace root are frozen in prior-lineage evidence, "
-                        "and the complete prior bundle is supplied as prior-* evidence. Return the COMPLETE replacement deliverable, not a diff. "
-                        "Preserve unrelated working behavior unless the user explicitly asks to remove it. Prior artifact paths: " + canonical(prior_paths) + "\n")
+        instruction += ("This is a revision of the immediately preceding accepted build in the same verified conversation session. "
+                        "The parent identity, trace root, and conversation identity are frozen in prior-lineage evidence, and the complete prior bundle is supplied as prior-* evidence. "
+                        "Return the COMPLETE replacement deliverable, not a diff. Preserve unrelated working behavior unless the user explicitly asks to remove it. "
+                        "Prior artifact paths: " + canonical(prior_paths) + "\n")
     instruction += ("Create a reviewable deliverable. Return exactly one value for obligation 'build' with two fields: summary (short string) and "
                     "files (one to eight objects with exactly path and content). Paths must be relative text paths, never absolute, hidden, parent-relative, or duplicated. "
                     "For browser-facing apps or interactive web UI, return a directly previewable static bundle with an index.html entry point; use only bundle-local "
@@ -198,10 +219,13 @@ def make_task(request: dict, root: Path, prior_bundle=None, parent_binding=None)
 def execute(request: dict, *, root: Path, output_root: Path, mailbox: Path | None = None,
             config: dict | None = None, observer=None):
     output_root.mkdir(parents=True, exist_ok=True)
+    conversation_id = request.get("conversation_id") if isinstance(request, dict) else None
+    conversation_id = _id(conversation_id, CID, "conversation identity")
     parent_id = request.get("parent_mission_id") if isinstance(request, dict) else None
     prior_bundle, parent_revision, parent_binding = (None, 0, None)
     if parent_id is not None:
-        prior_bundle, parent_revision, parent_binding = verified_parent_bundle(output_root, parent_id)
+        prior_bundle, parent_revision, parent_binding = verified_parent_bundle(
+            output_root, parent_id, _expected_conversation=conversation_id)
     task, paths, model, limits, conversation_id, parent_id = make_task(request, root, prior_bundle, parent_binding)
     lock = output_root / ".active"
     fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
