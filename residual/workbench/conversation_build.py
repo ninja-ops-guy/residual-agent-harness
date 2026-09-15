@@ -68,8 +68,8 @@ def verified_parent_bundle(output_root: Path, parent_mission_id: str):
         total += len(encoded)
         if total > MAX_PRIOR_TOTAL_BYTES:
             raise ContractError("parent artifact bundle exceeds the continuation evidence budget")
-        digest = hashlib.sha256(encoded).hexdigest()
-        if raw != encoded or meta.get("bytes") != len(encoded) or meta.get("sha256") != digest:
+        content_hash = hashlib.sha256(encoded).hexdigest()
+        if raw != encoded or meta.get("bytes") != len(encoded) or meta.get("sha256") != content_hash:
             raise ContractError("parent artifact bytes do not match retained accepted evidence")
     summary_path = folder / "summary.json"
     revision = 1
@@ -81,10 +81,11 @@ def verified_parent_bundle(output_root: Path, parent_mission_id: str):
                 revision = 1
         except (OSError, ValueError, TypeError, KeyError):
             revision = 1
-    return bundle, revision
+    binding = {"parent_mission_id": parent_mission_id, "parent_trace_root": result["trace_root"]}
+    return bundle, revision, binding
 
 
-def make_task(request: dict, root: Path, prior_bundle=None):
+def make_task(request: dict, root: Path, prior_bundle=None, parent_binding=None):
     allowed = {"id", "conversation_id", "parent_mission_id", "prompt", "files", "mode", "model",
                "max_calls", "max_output_tokens", "required_text", "cloud_consent"}
     if not isinstance(request, dict) or set(request) - allowed:
@@ -110,19 +111,20 @@ def make_task(request: dict, root: Path, prior_bundle=None):
     artifacts = {key: dataclasses.replace(value, cloud=consent) for key, value in artifacts.items()}
     prior_paths = {}
     if prior_bundle is not None:
-        if parent_id is None:
-            raise ContractError("prior build evidence requires a parent mission identity")
+        if parent_id is None or not isinstance(parent_binding, dict) or parent_binding.get("parent_mission_id") != parent_id:
+            raise ContractError("prior build evidence requires an exact verified parent binding")
         if validate_bundle(prior_bundle):
             raise ContractError("invalid prior build bundle")
+        artifacts["prior-lineage"] = Artifact("prior-lineage", canonical(parent_binding), consent)
         for index, item in enumerate(prior_bundle["files"]):
             key = f"prior-{index}"
             artifacts[key] = Artifact(key, item["content"], consent)
             prior_paths[key] = item["path"]
     instruction = prompt + "\n\n"
     if prior_paths:
-        instruction += ("This is a revision of the immediately preceding accepted build. The frozen prior bundle is supplied as prior-* evidence. "
-                        "Return the COMPLETE replacement deliverable, not a diff. Preserve unrelated working behavior unless the user explicitly asks to remove it. "
-                        "Prior artifact paths: " + canonical(prior_paths) + "\n")
+        instruction += ("This is a revision of the immediately preceding accepted build. The verified parent identity and trace root are frozen in prior-lineage evidence, "
+                        "and the complete prior bundle is supplied as prior-* evidence. Return the COMPLETE replacement deliverable, not a diff. "
+                        "Preserve unrelated working behavior unless the user explicitly asks to remove it. Prior artifact paths: " + canonical(prior_paths) + "\n")
     instruction += ("Create a reviewable deliverable. Return exactly one value for obligation 'build' with two fields: summary (short string) and "
                     "files (one to eight objects with exactly path and content). Paths must be relative text paths, never absolute, hidden, parent-relative, or duplicated. "
                     "For browser-facing apps or interactive web UI, return a directly previewable static bundle with an index.html entry point; use only bundle-local "
@@ -149,10 +151,10 @@ def execute(request: dict, *, root: Path, output_root: Path, mailbox: Path | Non
             config: dict | None = None, observer=None):
     output_root.mkdir(parents=True, exist_ok=True)
     parent_id = request.get("parent_mission_id") if isinstance(request, dict) else None
-    prior_bundle, parent_revision = (None, 0)
+    prior_bundle, parent_revision, parent_binding = (None, 0, None)
     if parent_id is not None:
-        prior_bundle, parent_revision = verified_parent_bundle(output_root, parent_id)
-    task, paths, model, limits, conversation_id, parent_id = make_task(request, root, prior_bundle)
+        prior_bundle, parent_revision, parent_binding = verified_parent_bundle(output_root, parent_id)
+    task, paths, model, limits, conversation_id, parent_id = make_task(request, root, prior_bundle, parent_binding)
     lock = output_root / ".active"
     fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
     os.write(fd, task.id.encode()); os.close(fd)
@@ -170,6 +172,7 @@ def execute(request: dict, *, root: Path, output_root: Path, mailbox: Path | Non
         save(folder / "request.json", {**request, "id": task.id, "mode": "build"})
         save(folder / "sources.json", paths)
         lineage = {"conversation_id": conversation_id, "parent_mission_id": parent_id,
+                   "parent_trace_root": parent_binding.get("parent_trace_root") if parent_binding else None,
                    "revision": parent_revision + 1 if parent_id else 1}
         emit("mission_started", {"output": str(folder), "mode": "build", "limits": dataclasses.asdict(limits),
                                  "source_paths": paths, "semantic_verification": "UNKNOWN", "lineage": lineage})
