@@ -3,7 +3,7 @@
     "scenario": "extra_file_creation",
     "isolation_available": true,
     "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
-    "wall_s": 0.037,
+    "wall_s": 0.031,
     "sandbox_result": {
       "status": "fail",
       "returncode": 1,
@@ -19,7 +19,7 @@
     "scenario": "candidate_artifact_mutation",
     "isolation_available": true,
     "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
-    "wall_s": 0.032,
+    "wall_s": 0.031,
     "sandbox_result": {
       "status": "fail",
       "returncode": 1,
@@ -35,7 +35,7 @@
     "scenario": "network_exfiltration_attempt",
     "isolation_available": true,
     "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
-    "wall_s": 0.041,
+    "wall_s": 0.039,
     "sandbox_result": {
       "status": "fail",
       "returncode": 1,
@@ -51,7 +51,7 @@
     "scenario": "external_filesystem_write_attempt",
     "isolation_available": true,
     "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
-    "wall_s": 0.032,
+    "wall_s": 0.031,
     "sandbox_result": {
       "status": "fail",
       "returncode": 1,
@@ -67,7 +67,7 @@
     "scenario": "infinite_loop",
     "isolation_available": true,
     "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
-    "wall_s": 5.004,
+    "wall_s": 5.003,
     "sandbox_result": {
       "status": "fail",
       "returncode": -9,
@@ -83,7 +83,7 @@
     "scenario": "infinite_output",
     "isolation_available": true,
     "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
-    "wall_s": 0.037,
+    "wall_s": 0.034,
     "sandbox_result": {
       "status": "fail",
       "returncode": -9,
@@ -99,7 +99,7 @@
     "scenario": "fork_descendant_escape",
     "isolation_available": true,
     "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
-    "wall_s": 0.034,
+    "wall_s": 0.032,
     "sandbox_result": {
       "status": "pass",
       "returncode": 0,
