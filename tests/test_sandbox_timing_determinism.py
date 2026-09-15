@@ -23,7 +23,7 @@ from unittest.mock import Mock, patch
 
 from residual.factory import m4_sandbox
 from residual.factory.m4_safety import run_trusted_fixture
-from residual.factory.runtime_journal import RuntimeJournal
+from residual.factory.runtime_journal import LeaseRead, RuntimeJournal
 from residual.factory.runtime_workspace import GitOperationTimeout
 from residual.factory.termination_provenance import ProcessControl
 from residual.factory.worker_contract import (
@@ -41,16 +41,23 @@ class LeaseTriStateTests(Fixture):
     def test_lease_state_tri_state_unit(self):
         contract = self.contract()
         # No row at all: definitively not current -> revoked (never unknown).
-        self.assertEqual(self.journal.lease_state(contract), 'revoked')
+        self.assertEqual(self.journal.lease_state(contract).state, 'revoked')
         self.journal.claim(contract, source_hash='a' * 64, approval=self.approval.to_dict())
-        self.assertEqual(self.journal.lease_state(contract), 'current')
+        read = self.journal.lease_state(contract)
+        self.assertEqual((read.state, read.diagnostic), ('current', None))
         self.journal.revoke(contract.attempt_id)
-        self.assertEqual(self.journal.lease_state(contract), 'revoked')
+        self.assertEqual(self.journal.lease_state(contract).state, 'revoked')
         # Store failure: unknown, and ONLY on sqlite3.Error.
         real_connect = sqlite3.connect
+        failure = sqlite3.OperationalError('database is locked')
+        failure.sqlite_errorcode = sqlite3.SQLITE_BUSY
         with patch('residual.factory.runtime_journal.sqlite3.connect',
-                   side_effect=sqlite3.OperationalError('database is locked')):
-            self.assertEqual(self.journal.lease_state(contract), 'unknown')
+                   side_effect=failure):
+            read = self.journal.lease_state(contract)
+        self.assertEqual(read.state, 'unknown')
+        # The diagnostic is bound to THIS read: (type name, sqlite code),
+        # never exception text, never journal-global mutable state.
+        self.assertEqual(read.diagnostic, ('OperationalError', sqlite3.SQLITE_BUSY))
         self.assertTrue(callable(real_connect))
 
     def test_one_shot_locked_read_does_not_kill_or_retype(self):
@@ -60,7 +67,10 @@ class LeaseTriStateTests(Fixture):
         real_connect = sqlite3.connect
 
         def flaky_connect(path, *args, **kwargs):
-            if kwargs.get('timeout') == RuntimeJournal.LEASE_READ_TIMEOUT_S and not fired.is_set():
+            # Only the lease read path: writer connects use the small
+            # WRITE_CONNECT_TIMEOUT_S; lease reads carry the caller's
+            # remaining budget (<= LEASE_READ_TIMEOUT_S).
+            if kwargs.get('timeout', 0) > RuntimeJournal.WRITE_CONNECT_TIMEOUT_S and not fired.is_set():
                 fired.set()
                 raise sqlite3.OperationalError('database is locked')
             return real_connect(path, *args, **kwargs)
@@ -102,7 +112,7 @@ class SingleDeadlineOwnerTests(Fixture):
                                   kill=Mock())
         done = threading.Event()
         completing = threading.Event()
-        with patch.object(self.journal, 'lease_state', return_value='current'):
+        with patch.object(self.journal, 'lease_state', return_value=LeaseRead('current')):
             with patch.object(Path, 'read_text', return_value='1 1'):
                 def advance():
                     time.sleep(0.1)
@@ -125,7 +135,7 @@ class SingleDeadlineOwnerTests(Fixture):
         completing = threading.Event()
         completing.set()
         threading.Timer(0.2, done.set).start()
-        with patch.object(self.journal, 'lease_state', return_value='current'):
+        with patch.object(self.journal, 'lease_state', return_value=LeaseRead('current')):
             with patch.object(Path, 'read_text', return_value='1 1'):
                 # Deadline (1.0) already in the past, yet completion in
                 # progress: wall-clock enforcement must not fire.
@@ -167,7 +177,7 @@ class WatchdogDeadlineSnapshotTests(Fixture):
         # the very first poll, long before this timer.
         threading.Timer(0.5, done.set).start()
         started = time.monotonic()
-        with patch.object(self.journal, 'lease_state', return_value='current'):
+        with patch.object(self.journal, 'lease_state', return_value=LeaseRead('current')):
             with patch.object(Path, 'read_text', return_value='1 1'):
                 self.runtime._watch(control, contract, deadline, done, completing)
         wall = time.monotonic() - started
@@ -219,13 +229,30 @@ class ReapTimeoutProvenanceTests(unittest.TestCase):
                 control.kill(None, requester='runtime')
             except Exception as exc:  # (c) nothing may escape the caller
                 self.fail(f'reap timeout escaped the caller: {exc!r}')
-        # (a) the typed reap_timed_out event is recorded
-        self.assertTrue(control.reap_timed_out.is_set())
-        # (b) with no primary reason, the distinct reap_timeout reason is set
-        self.assertEqual(control.reason, ('resource', 'reap_timeout', {'timeout_s': 2}))
-        self.assertEqual(control.requested_by, 'runtime')
-        self.assertIsNotNone(control.requested_monotonic_ns)
-        self.assertTrue(control.stopped.is_set())
+            # (a) the typed reap_timed_out event is recorded
+            self.assertTrue(control.reap_timed_out.is_set())
+            # (b) with no primary reason, the distinct reap_timeout reason is set
+            self.assertEqual(control.reason, ('resource', 'reap_timeout', {'timeout_s': 2}))
+            self.assertEqual(control.requested_by, 'runtime')
+            self.assertIsNotNone(control.requested_monotonic_ns)
+            # (d) stopped == actually terminal/reaped: the reap timed out, the
+            # process is NOT reaped, so stopped must NOT be set and no
+            # termination record exists yet.
+            self.assertFalse(control.stopped.is_set())
+            self.assertFalse(control.reaped)
+            with self.assertRaises(RuntimeError):
+                control.termination_record()
+        # (e) mandatory follow-up: the escalation reaper restores the
+        # invariant — eventual reap sets stopped, clears reap_timed_out, and
+        # makes termination_record() available.
+        deadline = time.monotonic() + 15
+        while not control.stopped.is_set() and time.monotonic() < deadline:
+            time.sleep(0.02)
+        self.assertTrue(control.stopped.is_set(), 'escalation reaper did not reap')
+        self.assertTrue(control.reaped)
+        self.assertFalse(control.reap_timed_out.is_set())
+        record = control.termination_record()
+        self.assertEqual(record.returncode, -signal.SIGKILL)
 
     def test_reap_timeout_does_not_overwrite_primary_reason(self):
         control = self._control()
@@ -233,10 +260,17 @@ class ReapTimeoutProvenanceTests(unittest.TestCase):
         with patch('residual.factory.termination_provenance.select.select',
                    return_value=([], [], [])):
             control.kill(primary, requester='guard')
-        # The timeout is still typed, but an existing primary reason wins.
-        self.assertTrue(control.reap_timed_out.is_set())
+            # The timeout is still typed, but an existing primary reason wins,
+            # and stopped still requires the actual reap.
+            self.assertTrue(control.reap_timed_out.is_set())
+            self.assertEqual(control.reason, primary)
+            self.assertEqual(control.requested_by, 'guard')
+            self.assertFalse(control.stopped.is_set())
+        deadline = time.monotonic() + 15
+        while not control.stopped.is_set() and time.monotonic() < deadline:
+            time.sleep(0.02)
+        self.assertTrue(control.stopped.is_set(), 'escalation reaper did not reap')
         self.assertEqual(control.reason, primary)
-        self.assertEqual(control.requested_by, 'guard')
 
 
 class SeccompProbe:
@@ -313,7 +347,7 @@ class TypedOutcomeDeterminismTests(Fixture):
             with self.runtime._lock:
                 self.runtime._active.pop(contract.attempt_id, None)
         # The attempt was revoked (fence) even though cancel reported False.
-        self.assertEqual(self.journal.lease_state(contract), 'revoked')
+        self.assertEqual(self.journal.lease_state(contract).state, 'revoked')
 
     def test_cancel_race_terminal_cancelled_with_own_reason_is_true(self):
         # Regression: kill lands, the run thread finishes CANCELLED before
@@ -392,6 +426,11 @@ class FixtureLaneTimeoutTypingTests(unittest.TestCase):
         self.assertEqual(result.status, 'timeout')
         self.assertTrue(result.timed_out)
         self.assertEqual(result.reason, 'timeout')
+        # Uniform contract: the fixture lane synthesizes the SAME
+        # deterministic returncode 124 as the isolated lane — never the real
+        # post-kill signal code.
+        self.assertEqual(result.returncode, 124)
+        self.assertEqual(result.returncode, m4_sandbox.SANDBOX_TIMEOUT_EXIT)
 
 
 class IntegratorTimeoutTypingTests(unittest.TestCase):
@@ -424,8 +463,270 @@ class IntegratorTimeoutTypingTests(unittest.TestCase):
         self.assertEqual(timed.status, 'timeout')
         self.assertTrue(timed.timed_out)
         self.assertEqual(timed.termination_reason, 'timeout')
+        # Uniform 124 contract visible at the integrator/receipt layer too.
+        self.assertEqual(timed.returncode, 124)
         self.assertNotEqual(timed.status, 'fail')
         self.assertTrue(timed.to_dict()['timed_out'])
+        self.assertEqual(timed.to_dict()['returncode'], 124)
+
+
+class ReceiptSchemaVersioningTests(unittest.TestCase):
+    """Review blocker 1: timed_out bumps the signed payload to schema v3 while
+    v2 receipts keep byte-identical v2 payloads (hash/signature stable)."""
+
+    @staticmethod
+    def _result():
+        from residual.factory.m4_integrator import VerificationResult
+        return VerificationResult('tests', 'full_test_suite', 'timeout', 124,
+                                  'a' * 64, 'b' * 64, 'timeout',
+                                  'trusted_fixture_unsandboxed', timed_out=True)
+
+    def _receipt(self, schema):
+        from residual.factory.m4_integrator import IntegrationReceipt
+        return IntegrationReceipt(
+            execution_plan_hash='1' * 64, integration_plan_hash='2' * 64,
+            input_receipt_hashes=('3' * 64,), output_commit='0' * 40,
+            verification_results=(self._result(),), conflict_resolutions=(),
+            integrated_at_ns=123456789, station_key_id='4' * 64,
+            station_signature='pending', verification_policy_hash='5' * 64,
+            evidence_level='development_fixture', schema_version=schema)
+
+    def test_v2_receipt_payload_bytes_unchanged(self):
+        from residual.core import canonical, digest
+        from residual.factory.m4_integrator import INTEGRATION_SCHEMA_V2
+        receipt = self._receipt(INTEGRATION_SCHEMA_V2)
+        payload = receipt.unsigned_payload()
+        self.assertEqual(payload['schema_version'], 'factory-integration-receipt-v2')
+        # The v2 signed payload carries EXACTLY the legacy 8 keys — no
+        # timed_out — even though the VerificationResult instance has one.
+        self.assertEqual(set(payload['verification_results'][0]),
+                         {'name', 'category', 'status', 'returncode',
+                          'stdout_sha256', 'stderr_sha256', 'termination_reason',
+                          'execution_boundary'})
+        # Golden payload built literally here: the hash is pinned independent
+        # of the implementation, so silently mutating v2 semantics breaks it.
+        golden = {
+            'schema_version': 'factory-integration-receipt-v2',
+            'execution_plan_hash': '1' * 64, 'integration_plan_hash': '2' * 64,
+            'input_receipt_hashes': ['3' * 64], 'output_commit': '0' * 40,
+            'verification_results': [{
+                'name': 'tests', 'category': 'full_test_suite', 'status': 'timeout',
+                'returncode': 124, 'stdout_sha256': 'a' * 64, 'stderr_sha256': 'b' * 64,
+                'termination_reason': 'timeout',
+                'execution_boundary': 'trusted_fixture_unsandboxed'}],
+            'conflict_resolutions': [], 'integrated_at_ns': 123456789,
+            'station_key_id': '4' * 64, 'verification_policy_hash': '5' * 64,
+            'evidence_level': 'development_fixture'}
+        self.assertEqual(canonical(payload), canonical(golden))
+        self.assertEqual(receipt.receipt_hash, digest(golden))
+
+    def test_v3_payload_includes_timed_out_and_new_hash(self):
+        from residual.factory.m4_integrator import INTEGRATION_SCHEMA, INTEGRATION_SCHEMA_V2
+        v3 = self._receipt(INTEGRATION_SCHEMA)
+        payload = v3.unsigned_payload()
+        self.assertEqual(payload['schema_version'], 'factory-integration-receipt-v3')
+        self.assertIs(payload['verification_results'][0]['timed_out'], True)
+        self.assertNotEqual(v3.receipt_hash, self._receipt(INTEGRATION_SCHEMA_V2).receipt_hash)
+
+    def test_from_dict_roundtrip_both_versions(self):
+        from residual.factory.m4_integrator import (
+            INTEGRATION_SCHEMA, INTEGRATION_SCHEMA_V2, IntegrationReceipt)
+        for schema in (INTEGRATION_SCHEMA_V2, INTEGRATION_SCHEMA):
+            with self.subTest(schema=schema):
+                receipt = self._receipt(schema)
+                restored = IntegrationReceipt.from_dict(receipt.to_dict())
+                self.assertEqual(restored.schema_version, schema)
+                self.assertEqual(restored.unsigned_payload(), receipt.unsigned_payload())
+                self.assertEqual(restored.receipt_hash, receipt.receipt_hash)
+        # v2 deserialization defaults timed_out=False even for a result whose
+        # in-memory value was True (the v2 payload never carried it).
+        v2 = self._receipt(INTEGRATION_SCHEMA_V2)
+        self.assertFalse(IntegrationReceipt.from_dict(v2.to_dict())
+                         .verification_results[0].timed_out)
+
+    def test_v2_signature_remains_valid_after_roundtrip(self):
+        from residual.factory.evidence_receipts import StationIdentity
+        from residual.factory.m4_integrator import INTEGRATION_SCHEMA_V2, IntegrationReceipt
+        identity = StationIdentity.generate()
+        unsigned = IntegrationReceipt.from_dict(
+            {**self._receipt(INTEGRATION_SCHEMA_V2).to_dict(),
+             'station_key_id': identity.key_id})
+        signed = IntegrationReceipt.from_dict(
+            {**unsigned.to_dict(),
+             'station_signature': identity.sign(unsigned.receipt_hash)})
+        self.assertTrue(signed.verify_signature(identity.public_bytes()))
+        # Round-tripping a signed v2 receipt preserves its payload bytes: the
+        # signature still verifies after a from_dict/to_dict cycle.
+        restored = IntegrationReceipt.from_dict(signed.to_dict())
+        self.assertTrue(restored.verify_signature(identity.public_bytes()))
+
+    def test_unknown_schema_fails_closed(self):
+        from residual.factory.m4_integrator import IntegrationReceipt, M4IntegrationError
+        receipt = self._receipt('factory-integration-receipt-v9')
+        with self.assertRaises(M4IntegrationError):
+            receipt.unsigned_payload()
+        with self.assertRaises(M4IntegrationError):
+            IntegrationReceipt.from_dict({'schema_version': 'factory-integration-receipt-v9'})
+
+
+class LeaseUnknownHardBoundTests(Fixture):
+    """Review blocker 2: ONE absolute monotonic deadline bounds the whole
+    lease-unknown window, including PERSISTENT contention beyond the bound."""
+
+    def test_persistent_contention_bounded_by_one_absolute_deadline(self):
+        contract = self.contract()
+        self.journal.claim(contract, source_hash='a' * 64, approval=self.approval.to_dict())
+        budgets = []
+
+        def contended(*args, **kwargs):
+            # Contention lasts far beyond the bound: every read busy-waits its
+            # full remaining budget and then still fails.
+            budget = kwargs.get('timeout', 2.0)
+            budgets.append(budget)
+            time.sleep(min(budget, 30.0))
+            err = sqlite3.OperationalError('database is locked')
+            err.sqlite_errorcode = sqlite3.SQLITE_BUSY
+            raise err
+
+        started = time.monotonic()
+        with patch('residual.factory.runtime_journal.sqlite3.connect', side_effect=contended):
+            denial = self.runtime._lease_denial(contract, 'revoked_or_unavailable')
+        elapsed = time.monotonic() - started
+        self.assertIsNotNone(denial)
+        self.assertEqual(denial[:2], ('lease', 'lease_unreadable'))
+        self.assertEqual(denial[2]['read_error_type'], 'OperationalError')
+        bound = self.runtime.LEASE_UNKNOWN_DEADLINE_S
+        # The whole window — first read, retries, every SQLite wait — fits
+        # under ONE 2s monotonic deadline (never 2s + 2s + ... ).
+        self.assertLessEqual(elapsed, bound + 0.75)
+        self.assertGreaterEqual(elapsed, bound - 0.5)
+        self.assertTrue(budgets, 'no lease read was attempted')
+        self.assertTrue(all(0 <= b <= bound for b in budgets))
+        self.assertEqual(budgets, sorted(budgets, reverse=True),
+                         'each read must get only the remaining budget')
+
+
+class LeaseDiagnosticsConcurrencyTests(Fixture):
+    """Review blocker 4: lease-read diagnostics are bound per attempt; two
+    interleaved attempts can never cross-attribute failure causes."""
+
+    def test_diagnostic_bound_to_each_attempt_sequentially(self):
+        contract = self.contract()
+        errors = iter((sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED))
+
+        class FakeConnection:
+            def execute(self, *a, **k):
+                err = sqlite3.OperationalError('text must not leak')
+                err.sqlite_errorcode = next(errors)
+                raise err
+
+            def close(self):
+                pass
+
+        with patch('residual.factory.runtime_journal.sqlite3.connect',
+                   side_effect=lambda *a, **k: FakeConnection()):
+            first = self.journal.lease_state(contract)
+            second = self.journal.lease_state(contract)
+        # Attempt 1's ALREADY-RETURNED result still carries its own diagnostic.
+        self.assertEqual((first.state, first.diagnostic[1]), ('unknown', sqlite3.SQLITE_BUSY))
+        self.assertEqual((second.state, second.diagnostic[1]), ('unknown', sqlite3.SQLITE_LOCKED))
+
+    def test_interleaved_gates_do_not_cross_attribute(self):
+        codes = {'gate-a': sqlite3.SQLITE_BUSY, 'gate-b': sqlite3.SQLITE_LOCKED}
+        barrier = threading.Barrier(2)
+
+        class FakeConnection:
+            def execute(self, *a, **k):
+                err = sqlite3.OperationalError('text must not leak')
+                err.sqlite_errorcode = codes[threading.current_thread().name]
+                raise err
+
+            def close(self):
+                # Sync AFTER both attempts have recorded their failure: any
+                # journal-global diagnostic has been overwritten by the other
+                # thread before either gate reads it.
+                try:
+                    barrier.wait(timeout=10)
+                except threading.BrokenBarrierError:
+                    pass
+
+        results: dict = {}
+        contract = self.contract()
+
+        def gate(name):
+            results[name] = self.runtime._lease_denial(contract, 'x')
+
+        with patch.object(type(self.runtime), 'LEASE_UNKNOWN_DEADLINE_S', 0.2), \
+                patch('residual.factory.runtime_journal.sqlite3.connect',
+                      side_effect=lambda *a, **k: FakeConnection()):
+            threads = [threading.Thread(target=gate, args=(name,), name=name, daemon=True)
+                       for name in codes]
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join(20)
+            self.assertFalse(any(thread.is_alive() for thread in threads))
+        self.assertEqual(set(results), set(codes))
+        for name, code in codes.items():
+            denial = results[name]
+            self.assertIsNotNone(denial)
+            self.assertEqual(denial[:2], ('lease', 'lease_unreadable'))
+            self.assertEqual(denial[2]['sqlite_errorcode'], code,
+                             f'{name} cross-attributed another attempt\'s diagnostic')
+
+
+class JournalConcurrentReadTests(Fixture):
+    """Review blocker 6 (CI run 34940491451): journal readers never execute
+    lock-sensitive PRAGMAs and survive a concurrently held writer lock."""
+
+    def test_readers_survive_held_writer_lock_bounded(self):
+        contract = self.contract()
+        self.journal.claim(contract, source_hash='a' * 64, approval=self.approval.to_dict())
+        # Hold the writer lock from OUTSIDE the journal while all read paths
+        # (observations / attempts / readiness lease polling) proceed.
+        holder = sqlite3.connect(self.journal.path, timeout=5, isolation_level=None)
+        try:
+            holder.execute('BEGIN IMMEDIATE')
+            started = time.monotonic()
+            observations = self.journal.observations()
+            attempts = self.journal.attempts()
+            read = self.journal.lease_state(contract)
+            elapsed = time.monotonic() - started
+        finally:
+            holder.execute('ROLLBACK')
+            holder.close()
+        self.assertTrue(observations)
+        self.assertEqual(len(attempts), 1)
+        self.assertEqual(read.state, 'current')
+        # Bounded, deterministic success — no OperationalError, no retry storm.
+        self.assertLess(elapsed, 5.0)
+
+    def test_readers_run_no_lock_sensitive_pragmas(self):
+        executed = []
+        real_connect = sqlite3.connect
+
+        class SpyConnection:
+            def __init__(self, conn):
+                object.__setattr__(self, '_conn', conn)
+
+            def __getattr__(self, name):
+                return getattr(self._conn, name)
+
+            def __setattr__(self, name, value):
+                setattr(self._conn, name, value)
+
+            def execute(self, sql, *args):
+                executed.append(str(sql).lower())
+                return self._conn.execute(sql, *args)
+
+        with patch('residual.factory.runtime_journal.sqlite3.connect',
+                   side_effect=lambda *a, **k: SpyConnection(real_connect(*a, **k))):
+            self.journal.observations()
+            self.journal.attempts()
+        lock_sensitive = [sql for sql in executed
+                          if 'synchronous' in sql or 'journal_mode' in sql]
+        self.assertEqual(lock_sensitive, [],
+                         'reader connections must not run lock-sensitive PRAGMAs')
 
 
 class TypedGitTimeoutTests(Fixture):
