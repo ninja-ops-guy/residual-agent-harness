@@ -149,6 +149,97 @@ class IsolatedRunnerTests(unittest.TestCase):
         result = self.check("x = bytearray(10 * 1024**3)", memory_mb=64)
         self.assertEqual(result.status, "fail")
 
+    def test_ipc_namespace_hides_sysv_shm_from_host(self):
+        # Candidate creates a SysV shared-memory segment (and deliberately
+        # does not IPC_RMID it). With a private IPC namespace the segment
+        # must never appear in the host's segment table.
+        def host_shmids() -> set:
+            ids = set()
+            with open("/proc/sysvipc/shm") as fh:
+                next(fh, None)
+                for line in fh:
+                    parts = line.split()
+                    if parts:
+                        ids.add(parts[1])
+            return ids
+
+        before = host_shmids()
+        code = (
+            "import ctypes\n"
+            "libc = ctypes.CDLL(None, use_errno=True)\n"
+            "IPC_PRIVATE = 0\n"
+            "IPC_CREAT = 0o1000\n"
+            "shmid = libc.shmget(IPC_PRIVATE, 65536, IPC_CREAT | 0o600)\n"
+            "assert shmid >= 0, 'shmget failed inside sandbox'\n"
+        )
+        result = self.check(code)
+        self.assertEqual(result.status, "pass")  # shmget itself succeeded
+        leaked = host_shmids() - before
+        # Belt and braces: clean up anything that did leak to the host.
+        if leaked:
+            import ctypes
+            libc = ctypes.CDLL(None, use_errno=True)
+            for shmid in leaked:
+                libc.shmctl(int(shmid), 0, None)  # IPC_RMID
+        self.assertEqual(leaked, set(), "sandboxed SysV shm leaked into host IPC namespace")
+
+    def test_posix_mqueue_namespace_isolated(self):
+        # Candidate creates a POSIX mqueue; the host's /dev/mqueue must not
+        # gain a new entry.
+        code = (
+            "import ctypes\n"
+            "libc = ctypes.CDLL(None, use_errno=True)\n"
+            "name = b'/m4-probe-queue'\n"
+            "mqd = libc.mq_open(name, 0o100 | 0o200, 0o600, None)  # O_CREAT|O_EXCL\n"
+            "assert mqd >= 0 or ctypes.get_errno() != 0  # either way, not host-visible\n"
+        )
+        host_mq = Path("/dev/mqueue")
+        before = set(host_mq.iterdir()) if host_mq.is_dir() else set()
+        result = self.check(code)
+        self.assertEqual(result.status, "pass")
+        after = set(host_mq.iterdir()) if host_mq.is_dir() else set()
+        self.assertEqual(after - before, set(), "sandboxed mqueue leaked into host /dev/mqueue")
+
+    def test_candidate_exit_125_is_fail_not_sandbox_error(self):
+        # Exit code 125 from candidate code must not be mistyped as a
+        # sandbox infrastructure ERROR.
+        result = self.check("import sys; sys.exit(125)")
+        self.assertEqual(result.status, "fail")
+        self.assertEqual(result.returncode, 125)
+        self.assertEqual(result.reason, "exit")
+
+    def test_missing_executable_is_launch_failed_not_sandbox_error(self):
+        # The sandbox was set up (ready byte sent) but exec() failed: the
+        # candidate never launched -> unknown/launch_failed, matching the
+        # fixture lane's typing.
+        result = run_isolated(
+            ("/definitely/not/a/real/binary-m4",), self.worktree,
+            timeout_s=20, output_limit=1 << 20,
+        )
+        self.assertEqual(result.status, "unknown")
+        self.assertEqual(result.reason, "launch_failed")
+
+    def test_tmpfs_scratch_is_bounded(self):
+        # RLIMIT_FSIZE is 64 MiB, so write many small files: 300 x 1 MiB
+        # exceeds the 256 MiB tmpfs ceiling and must hit ENOSPC (exit 42).
+        # Without a size= bound this would succeed (exit 0).
+        code = (
+            "import os, sys\n"
+            "block = b'x' * (1 << 20)\n"
+            "written = 0\n"
+            "try:\n"
+            "    for i in range(300):\n"
+            "        with open(f'/tmp/fill-{i}', 'wb') as fh:\n"
+            "            fh.write(block)\n"
+            "        written += 1\n"
+            "except OSError:\n"
+            "    sys.exit(42)\n"
+            "sys.exit(0)\n"
+        )
+        result = self.check(code, memory_mb=1024)
+        self.assertEqual(result.status, "fail")
+        self.assertEqual(result.returncode, 42)
+
 
 class FailClosedTests(unittest.TestCase):
     def setUp(self):
