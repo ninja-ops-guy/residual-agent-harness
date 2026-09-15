@@ -116,6 +116,8 @@ def make_build_task(request: dict, root: Path):
     instruction = (prompt + "\n\nCreate a reviewable deliverable. Return exactly one value for obligation 'build' with "
                    "two fields: summary (short string) and files (one to eight objects with exactly path and content). "
                    "Paths must be relative text paths, never absolute, hidden, parent-relative, or duplicated. "
+                   "For browser-facing apps or interactive web UI, return a directly previewable static bundle with an index.html entry point; "
+                   "use only bundle-local JavaScript/CSS files or inline code, and do not require npm, a build step, a dev server, CDN assets, or remote network access. "
                    "Do not claim files were executed, tested, deployed, or merged. They will be written only into the mission artifact directory. "
                    "Reference source paths, if any: " + canonical(paths) +
                    "\nRequired literal text somewhere in the summary or generated files: " + canonical(required))
