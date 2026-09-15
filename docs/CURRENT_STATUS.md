@@ -1,6 +1,6 @@
 # RESIDUAL current status
 
-_Current-state check: 2026-09-15 against merged `main` at `9d88195a6329151197b53c05c6cbb5a74167f08f` and the active PR #109 qualification candidate where explicitly named._
+_Current-state check: 2026-09-15 against merged `main` at `7cf45ea8eab675b870502fb76db1b6e63b562e9f` and the active PR #109 qualification candidate where explicitly named._
 
 This is the human-readable current-state summary for RESIDUAL. Exact code, exact-tree tests and retained machine-readable evidence remain more authoritative than prose. Historical results apply only to the revisions they name.
 
@@ -16,7 +16,7 @@ The repository contains substantial implementation and development evidence for 
 
 ## Accepted main
 
-Current accepted `main` is **`9d88195a6329151197b53c05c6cbb5a74167f08f`**, the merge of PR #124.
+Current accepted `main` is **`7cf45ea8eab675b870502fb76db1b6e63b562e9f`**, the merge of PR #127.
 
 Important accepted milestones on the current tree:
 
@@ -24,14 +24,16 @@ Important accepted milestones on the current tree:
 - **PR #122 / `bc8b783d...`** — Mission Control real-provider reliability/UX hardening, including truthful provider failure classes, model validation, bounded browser/guest mailbox behavior and real-browser acceptance coverage. These product/demo mechanisms do not grant generated artifacts M4 authority.
 - **PR #121 / `1a52e9a2...`** — provenance-only finalization of the Factory ownership anchor after #108. All 38 accepted protected blob pins remained unchanged.
 - **PR #124 / `9d88195a...`** — narrowly scoped WebVM recovery for transient same-origin immutable disk-chunk failures. Retries apply only to matching immutable ext2 chunk `GET`s and do not expand to provider calls, cross-origin traffic, ordinary assets or 4xx responses.
+- **PR #125 / `70e701d5...`** — publishes a completion marker for WebVM provider replies. It is confined to the WebVM/workbench surface and does not change Factory/M4 or shared evidence schemas.
+- **PR #127 / `7cf45ea8...`** — launches WebVM workbench missions through the guest shell. It is likewise disjoint from the protected Factory/M4 surface.
 
 Issue #63 is closed: its accepted-tree, filesystem/link, verifier-isolation and Git-evidence implementation defects are no longer the active M4 blocker. Issue #48 is closed: `implementation-status.yaml` has been reconciled with the merged Factory/evaluation implementation.
 
 ## Accepted-main Pages/WebVM status
 
-Pages/WebVM run **`35016468585`** on exact main `9d88195a...` completed successfully: artifact build/browser proof passed, deployment passed, and the published WebVM completed both desktop and narrow-Chromium live acceptance.
+Pages/WebVM run **`35031823399`** on exact main `7cf45ea8...` completed successfully: artifact build/browser proof passed, deployment passed, and the published WebVM completed both desktop and narrow-Chromium live acceptance. The other push-triggered main workflows are also green.
 
-That clears the post-#124 deployment gate for that exact revision. It does **not** establish an empirical production failure rate or soak result.
+That clears the exact-revision deployment gate through #127. It does **not** establish an empirical production failure rate or soak result.
 
 The failure that motivated #124 remains retained evidence. On deployed revision `bc8b783...`, run `35003867644` failed its first narrow-Chromium live attempt after an immutable WebVM disk chunk returned HTTP 503 and the guest aborted/stalled; the unchanged rerun later passed. Issue #120 remains open because repeated intermittent delivery/guest-runtime failures are an operational reliability concern and must be measured rather than erased by retries.
 
@@ -51,13 +53,13 @@ to reviewed blob:
 
 The repair preserves the original substantive assertions while moving observation to the real CLI subprocess boundary: both CLI aliases, exit code, empty stdout, exact sanitized blocked JSON, path-disclosure guard and empty-journal assertions remain enforced.
 
-The recorded owner-supplied independent technical acceptance authorized **only that protected test-byte change**. Current PR head **`69cc6095a4094f86eb5e18427a63d913b1b427a2`** advances only that one ownership pin. The other 37 protected pins, the accepted provenance anchor and protected executable blobs are unchanged. This is not represented as an independent-account GitHub approval event.
+The recorded owner-supplied independent technical acceptance authorized **only that protected test-byte change**. Current PR head **`4c44fe07f7e214c2c25ab8ff48f06e81ff5c86b9`** advances only that one ownership pin. Its refresh onto current main added only the disjoint WebVM/workbench files from PRs #125 and #127; the reviewed lifecycle-test blob remains `85c6bf10...`. The other 37 protected pins, the accepted provenance anchor and protected executable blobs are unchanged. This is not represented as an independent-account GitHub approval event.
 
 ### Fresh exact-head qualification
 
-GitHub tested synthetic merge **`dc467f856de527c37e8a37b7b45f3bf48b4df0b0`**, tree **`1ef6a65331f1bbc9bbc70619df19d60afb16e3eb`**, combining PR #109 head `69cc6095...` with current main `9d88195a...`.
+GitHub tested synthetic merge **`fea9429b2d111851fa074d6e72eb1892e3797d60`**, tree **`39599b2296fa8865ab1e0dabae333b9b6f933da8`**, combining PR #109 head `4c44fe07...` with current main `7cf45ea8...`.
 
-The dedicated capable-runner M4 workflow, run **`35026035574`**, completed **PASS** on Ubuntu 22.04 / kernel `6.8.0-1064-azure` / Python 3.12.14:
+The dedicated capable-runner M4 workflow, run **`35032478689`**, completed **PASS** on Ubuntu 22.04 / Python 3.12:
 
 - all 12 prerequisite capability probes passed;
 - `blocked_capabilities` was empty;
@@ -65,7 +67,7 @@ The dedicated capable-runner M4 workflow, run **`35026035574`**, completed **PAS
 - **142 test cases passed**;
 - **84 subtests passed**;
 - the zero-skip gate passed;
-- retained artifact **`10419671882`** has ZIP SHA-256 **`677f22810fe66e2b0ade0a420173117416a251fc673d792e38ca0b84a2045dbb`**.
+- retained artifact **`10421733816`** is 10,760 bytes and has ZIP SHA-256 **`2fdafde41243964fd2ed8964dfd52d6c2a2e77b4ffb3f6910b94e80db6de4f89`**.
 
 At the latest exact-head snapshot, the current GitHub check set is terminal with no failures or still-running/queued jobs. Factory ownership and measured-evaluation binding are green after the one-pin advancement; Python qualification jobs, Factory/runtime/OS paths, browser checks and the capable-runner M4 gate also complete without a failing check. PR-triggered deployment skips are not represented as live deployment evidence.
 
@@ -73,7 +75,7 @@ This means the previous ownership blocker has been resolved **for the named PR c
 
 ### Historical candidate evidence
 
-The preceding #109 candidate `fb99d5896b23b91e3903965a8c56813412533d48` remains useful historical evidence. Its run `35017167706` passed all 12 probes, actual isolated execution and 142 cases plus 84 subtests with zero skips. That earlier PASS is not being reused as evidence for the current head; the current head has its own fresh run `35026035574`.
+The preceding #109 candidate `fb99d5896b23b91e3903965a8c56813412533d48` remains useful historical evidence. Its run `35017167706` passed all 12 probes, actual isolated execution and 142 cases plus 84 subtests with zero skips. That earlier PASS is not being reused as evidence for the current head; the current head has its own fresh run `35032478689`.
 
 ## Current implementation map
 
@@ -112,7 +114,7 @@ PR #108's retained contention evidence supports its named timing/termination tes
 
 Namespace-dependent M4 tests that skip because a host cannot provide the required isolation capability remain **UNKNOWN/BLOCKED**, not PASS. Earlier Ubuntu 24.04 hosted attempts remain retained BLOCKED evidence.
 
-PR #109 now has fresh exact-current-main candidate evidence after the protected test-byte review and one-pin advancement. Run `35026035574` is the authoritative current capable-runner result for head `69cc6095...` / synthetic merge `dc467f85...`: all 12 probes PASS, isolated execution PASS, 142 tests + 84 subtests PASS, zero skips.
+PR #109 now has fresh exact-current-main candidate evidence after the protected test-byte review and one-pin advancement. Run `35032478689` is the authoritative current capable-runner result for head `4c44fe07...` / synthetic merge `fea9429b...` / tree `39599b22...`: all 12 probes PASS, isolated execution PASS, 142 tests + 84 subtests PASS, zero skips.
 
 The remaining boundary is integration authority: this PASS qualifies that named candidate tree only. It does not authorize a claim that accepted `main` is namespace-qualified before merge and any required post-merge exact-tree confirmation.
 
@@ -131,7 +133,7 @@ This reconciliation fixes implementation traceability; it does **not** promote i
 - Generation authority is separated from acceptance authority.
 - Bounded worker execution, evidence capture, independent verification and deterministic integration are implemented mechanisms.
 - The protected M4 implementation gaps tracked by #63 are closed, and #108's timing/termination repair is merged.
-- PR #109's reviewed current candidate has a fresh capable-runner zero-skip M4 PASS after the deliberate one-pin ownership advancement.
+- PR #109's reviewed current-main candidate has a fresh capable-runner zero-skip M4 PASS after the deliberate one-pin ownership advancement.
 - The repository contains evaluation machinery capable of preserving raw observations and recomputing paper-facing metrics.
 - Mission Control exercises real guest workflows and optional provider transport while retaining explicit non-claims around semantic correctness and authority.
 - WebVM contains a narrowly scoped recovery path for the retained immutable disk-chunk transient-failure class.
