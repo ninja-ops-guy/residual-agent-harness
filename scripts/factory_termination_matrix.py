@@ -16,6 +16,7 @@ import threading
 import time
 import traceback
 import unittest
+from typing import Any
 
 RAW_TEST = "test_raw_file_syscall_is_kernel_killed"
 OLD_BLOCKED_TEST = "test_watchdog_kills_even_when_audit_callback_is_blocked"
@@ -41,18 +42,61 @@ def _load_execution_tests(repo: Path):
     blocked = NEW_BLOCKED_TEST if hasattr(cls, NEW_BLOCKED_TEST) else OLD_BLOCKED_TEST
     if not hasattr(cls, RAW_TEST) or not hasattr(cls, blocked):
         raise RuntimeError("required Swarm-3 tests are missing")
+
+    # Capture the RuntimeResult on each isolated unittest instance without
+    # weakening or modifying the underlying strict security assertions.
+    original_run_source = cls.run_source
+
+    def capturing_run_source(self, *args, **kwargs):
+        outcome = original_run_source(self, *args, **kwargs)
+        try:
+            _, runtime_result = outcome
+        except (TypeError, ValueError):
+            return outcome
+        self._swarm3_last_runtime_result = runtime_result
+        return outcome
+
+    cls.run_source = capturing_run_source
     return cls, blocked
+
+
+def _runtime_result_payload(test) -> dict[str, Any] | None:
+    runtime_result = getattr(test, "_swarm3_last_runtime_result", None)
+    if runtime_result is None:
+        return None
+    try:
+        payload = runtime_result.to_dict()
+    except Exception:
+        payload = {
+            "returncode": getattr(runtime_result, "returncode", None),
+            "status": getattr(runtime_result, "status", None),
+            "reason": getattr(runtime_result, "reason", None),
+            "termination": getattr(runtime_result, "termination", None),
+        }
+    return payload if isinstance(payload, dict) else None
 
 
 class RecordingResult(unittest.TestResult):
     def __init__(self):
         super().__init__()
         self.stats: dict[str, dict[str, int]] = {}
-        self.details: list[dict[str, str]] = []
+        self.details: list[dict[str, Any]] = []
 
     def _row(self, test) -> dict[str, int]:
         name = getattr(test, "_testMethodName", test.id())
         return self.stats.setdefault(name, {"runs": 0, "failures": 0, "errors": 0, "skips": 0})
+
+    def _detail(self, test, kind: str, text: str) -> dict[str, Any]:
+        detail: dict[str, Any] = {
+            "test": test.id(),
+            "kind": kind,
+            "traceback": text,
+            "iteration": getattr(test, "_swarm3_iteration", None),
+        }
+        runtime_result = _runtime_result_payload(test)
+        if runtime_result is not None:
+            detail["runtime_result"] = runtime_result
+        return detail
 
     def startTest(self, test):
         self._row(test)["runs"] += 1
@@ -60,17 +104,17 @@ class RecordingResult(unittest.TestResult):
 
     def addFailure(self, test, err):
         self._row(test)["failures"] += 1
-        self.details.append({"test": test.id(), "kind": "failure", "traceback": "".join(traceback.format_exception(*err))})
+        self.details.append(self._detail(test, "failure", "".join(traceback.format_exception(*err))))
         super().addFailure(test, err)
 
     def addError(self, test, err):
         self._row(test)["errors"] += 1
-        self.details.append({"test": test.id(), "kind": "error", "traceback": "".join(traceback.format_exception(*err))})
+        self.details.append(self._detail(test, "error", "".join(traceback.format_exception(*err))))
         super().addError(test, err)
 
     def addSkip(self, test, reason):
         self._row(test)["skips"] += 1
-        self.details.append({"test": test.id(), "kind": "skip", "traceback": reason})
+        self.details.append(self._detail(test, "skip", reason))
         super().addSkip(test, reason)
 
 
@@ -160,14 +204,44 @@ def main(argv: list[str] | None = None) -> int:
     return subprocess.run(command, check=False).returncode
 
 
+def _write_anomaly_records(output: Path, details: list[dict[str, Any]]) -> list[str]:
+    names: list[str] = []
+    for index, detail in enumerate(details, start=1):
+        runtime_result = detail.get("runtime_result")
+        if not isinstance(runtime_result, dict):
+            continue
+        termination = runtime_result.get("termination")
+        if not isinstance(termination, dict):
+            continue
+        correlation_id = str(termination.get("correlation_id") or "unknown")
+        safe_id = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in correlation_id)[:80]
+        iteration = detail.get("iteration") or index
+        path = output.parent / f"{output.stem}-anomaly-{iteration}-{safe_id}.json"
+        payload = {
+            "schema_version": "swarm3-termination-anomaly-v1",
+            "test": detail.get("test"),
+            "kind": detail.get("kind"),
+            "iteration": detail.get("iteration"),
+            "runtime_result": runtime_result,
+            "traceback": detail.get("traceback"),
+        }
+        path.write_text(json.dumps(payload, sort_keys=True, indent=2) + "\n")
+        names.append(path.name)
+    return names
+
+
 def _run_matrix(argv: list[str]) -> int:
     args = _parse_args(argv)
     repo = args.repo_root.resolve()
     tests, blocked_test = _load_execution_tests(repo)
     suite = unittest.TestSuite()
-    for _ in range(args.runs):
-        suite.addTest(tests(RAW_TEST))
-        suite.addTest(tests(blocked_test))
+    for iteration in range(1, args.runs + 1):
+        raw = tests(RAW_TEST)
+        raw._swarm3_iteration = iteration
+        blocked = tests(blocked_test)
+        blocked._swarm3_iteration = iteration
+        suite.addTest(raw)
+        suite.addTest(blocked)
 
     started_ns = time.monotonic_ns()
     with contention(args.condition) as load:
@@ -181,6 +255,8 @@ def _run_matrix(argv: list[str]) -> int:
         row["unexplained_failures"] = unexplained
         row["zero_failure_upper_95"] = upper_95_zero_failures(row["runs"]) if unexplained == 0 and row["skips"] == 0 else None
 
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    anomaly_files = _write_anomaly_records(args.output, result.details)
     report = {
         "schema_version": "swarm3-termination-matrix-v1",
         "repo_root": str(repo),
@@ -195,9 +271,9 @@ def _run_matrix(argv: list[str]) -> int:
         "duration_s": (finished_ns - started_ns) / 1_000_000_000,
         "stats": stats,
         "details": result.details,
-        "claim_boundary": "Zero failures establish only the reported statistical upper bound; they do not prove determinism.",
+        "anomaly_files": anomaly_files,
+        "claim_boundary": "Zero failures establish only the reported statistical upper bound; they do not prove determinism. An anomalous signal is not classified without retained termination provenance.",
     }
-    args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, sort_keys=True, indent=2) + "\n")
     print(json.dumps(report, sort_keys=True, indent=2))
 
