@@ -25,7 +25,7 @@ window.puter = {
     let updates;
     if (obligation.id === 'build') {
       updates = {build:{summary:'Calculator deliverable generated for review.',files:[
-        {path:'index.html',content:'<!doctype html><title>Calculator</title><main><h1>Calculator</h1><input id="a"><button>=</button></main>'},
+        {path:'index.html',content:'<!doctype html><title>Calculator</title><main><h1>Calculator</h1><label>A <input id="a" type="number"></label><label>B <input id="b" type="number"></label><button id="go">Add</button><output id="result">0</output></main><script>go.onclick=()=>result.textContent=String(Number(a.value)+Number(b.value));</script>'},
         {path:'README.md',content:'Calculator\n\nGenerated review artifact. Not executed by RESIDUAL.'}
       ]}};
     } else {
@@ -43,18 +43,24 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     report['workbench_provider_evidence'] = 'REAL_GUEST_WITH_TEST_DOUBLE_SDK_NOT_PAID_INFERENCE'
     report['provider_auth_evidence'] = 'USER_GESTURE_AND_POPUP_CONTRACT_TEST_DOUBLE_NOT_REAL_PUTER_LOGIN'
     await page.locator('#mc-mission').click()
+    assert await page.locator('#mc-mission').inner_text() == 'Chat'
+    assert await page.locator('button[data-tab="activity"]').count() == 1
+    assert await page.locator('button[data-tab="evidence"]').count() == 1
+    assert await page.locator('button[data-tab="files"]').count() == 1
+    await page.get_by_text('Run controls', exact=True).click()
     await page.locator('#mc-mode').select_option('audit')
     await page.locator('#mc-prompt').fill('Inspect these actual repository sources ' + secrets.token_hex(4))
-    await page.get_by_text('Sources and acceptance checks', exact=True).click()
     await page.locator('#mc-files').fill('residual/cli.py\nresidual/engine.py')
     await page.locator('#mc-run').click()
     await page.wait_for_function("() => document.querySelector('#mc-verdict').textContent.startsWith('PASSED') && !document.querySelector('#mc-result').hidden", timeout=120000)
     assert 'deterministic source inventory' in await page.locator('#mc-verdict').inner_text()
     assert int(await page.locator('#mc-count').inner_text()) > 0
     assert 'main' in await page.locator('#mc-answer').inner_text()
+    assert 'Inspect these actual repository sources' in await page.locator('#mc-chat').inner_text()
     report['workbench_audit'] = 'PASS'
+    report['workbench_chat_ui'] = 'PASS_WITH_BACKGROUND_TABS'
     await stage('workbench_real_repository_audit_passed')
-    await page.screenshot(path=str(args.output / 'mission-audit.png'))
+    await page.screenshot(path=str(args.output / 'mission-chat-audit.png'))
     assert not report['optional_requests'], 'provider network initialized before opt-in'
 
     async with context.expect_page() as info:
@@ -81,7 +87,8 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await page.wait_for_function("() => document.querySelector('#mc-connect').textContent === 'Provider connected'", timeout=20000)
     assert await provider.evaluate('window.__providerFixture.gesture'), 'sign-in lost user gesture'
 
-    # Prompt-first build: real guest/Harness, bounded generated files, never executed.
+    # Prompt-first build: real guest/Harness, bounded generated files, plus an
+    # isolated interactive browser preview. The provider itself remains a test double.
     await page.locator('#mc-mission').click()
     await page.locator('#mc-mode').select_option('build')
     await page.locator('#mc-prompt').fill('Build a calculator')
@@ -93,12 +100,20 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     assert 'PASSED' in await page.locator('#mc-verdict').inner_text()
     assert 'index.html' in await page.locator('#mc-artifact-list').inner_text()
     assert 'Calculator deliverable' in await page.locator('#mc-answer').inner_text()
+    await page.locator('#mc-inline-preview-frame').wait_for(timeout=20000)
+    frame = page.frame_locator('#mc-inline-preview-frame')
+    await frame.locator('#a').fill('2')
+    await frame.locator('#b').fill('3')
+    await frame.locator('#go').click()
+    assert await frame.locator('#result').inner_text() == '5'
+    assert await page.locator('#mc-inline-preview-frame').get_attribute('sandbox') == 'allow-scripts'
     build_path = re.search(r'/opt/residual/runs/missions/m-[a-f0-9]{32}', await page.locator('#mc-path').inner_text()).group()
-    await page.screenshot(path=str(args.output / 'mission-build-artifacts.png'))
+    await page.screenshot(path=str(args.output / 'mission-chat-build-preview.png'))
     await page.locator('#mc-terminal').click()
     await command_proof(f'test -s {build_path}/artifacts/index.html && grep -q Calculator {build_path}/artifacts/index.html && grep -q "\\\"executed\\\":false" {build_path}/artifacts/manifest.json && python3 -m residual verify-trace {build_path}/trace.jsonl --result {build_path}/result.json')
     report['workbench_build_artifacts'] = 'PASS_WITH_SDK_TEST_DOUBLE_NOT_EXECUTED'
-    await stage('workbench_generated_artifacts_saved_and_verified')
+    report['workbench_interactive_preview'] = 'PASS_SANDBOXED_CALCULATOR_INTERACTION_WITH_TEST_DOUBLE_ARTIFACT'
+    await stage('workbench_generated_artifacts_saved_previewed_and_verified')
 
     # Existing source-grounded review path remains intact.
     await page.locator('#mc-mission').click()
@@ -115,7 +130,7 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     assert 'README.md:1-1' in await page.locator('#mc-citations').text_content()
     assert await provider.evaluate('window.__providerFixture.calls') == 2
     path = re.search(r'/opt/residual/runs/missions/m-[a-f0-9]{32}', await page.locator('#mc-path').inner_text()).group()
-    await page.screenshot(path=str(args.output / 'mission-provider-contract.png'))
+    await page.screenshot(path=str(args.output / 'mission-chat-provider-contract.png'))
     await page.locator('#mc-terminal').click()
     await command_proof(f'test -s {path}/answer.md && python3 -m residual verify-trace {path}/trace.jsonl --result {path}/result.json')
     report['workbench_provider_contract'] = 'PASS_WITH_SDK_TEST_DOUBLE'
