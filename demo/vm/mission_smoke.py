@@ -99,8 +99,13 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await page.locator('#mc-files').fill('')
     await page.locator('#mc-required').fill('Calculator')
     await page.locator('#mc-consent').check()
+    conversation_id = await page.evaluate("localStorage.getItem('residual.chat.current.v2')")
+    assert re.fullmatch(r'c-[a-f0-9]{32}', conversation_id)
     await page.locator('#mc-run').click()
+    assert await page.locator('#mc-new-chat').is_disabled()
+    assert await page.locator('#mc-history').is_disabled()
     await page.wait_for_function("() => document.querySelector('#mc-verdict').textContent.includes('CODE CORRECTNESS: UNKNOWN') && !document.querySelector('#mc-result').hidden", timeout=120000)
+    assert not await page.locator('#mc-new-chat').is_disabled()
     assert 'PASSED' in await page.locator('#mc-verdict').inner_text()
     assert 'index.html' in await page.locator('#mc-artifact-list').inner_text()
     assert 'Calculator deliverable' in await page.locator('#mc-answer').inner_text()
@@ -118,11 +123,16 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     report['workbench_interactive_preview'] = 'PASS_SANDBOXED_CALCULATOR_INTERACTION_WITH_TEST_DOUBLE_ARTIFACT'
     await stage('workbench_generated_artifacts_saved_previewed_and_verified')
 
-    # Natural follow-up must carry the exact prior accepted bundle as frozen evidence.
     await page.locator('#mc-mission').click()
     await page.locator('#mc-prompt').fill('Make the calculator dark mode while preserving addition')
     await page.locator('#mc-run').click()
+    assert await page.locator('#mc-new-chat').is_disabled()
+    assert await page.locator('#mc-history').is_disabled()
+    assert await page.locator('#mc-detach').is_disabled()
     await page.wait_for_function("() => document.querySelector('#mc-session').textContent.includes('REV 2') && document.querySelector('#mc-answer').textContent.includes('dark mode')", timeout=120000)
+    assert not await page.locator('#mc-new-chat').is_disabled()
+    assert not await page.locator('#mc-history').is_disabled()
+    assert not await page.locator('#mc-detach').is_disabled()
     assert await page.locator('#mc-inline-preview-frame-r1').count() == 1
     refined = page.frame_locator('#mc-inline-preview-frame')
     assert await refined.locator('body').get_attribute('data-revision') == '2'
@@ -133,9 +143,10 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await page.locator('button[data-tab="files"]').click()
     await page.wait_for_function("() => document.querySelector('#mc-preview-status').textContent.includes('RUNTIME SMOKE: PASS')", timeout=20000)
     await page.locator('#mc-terminal').click()
-    await command_proof(f'grep -q "\\\"parent_mission_id\\\":\\\"{first_mid}\\\"" {second_path}/summary.json && grep -q "\\\"revision\\\":2" {second_path}/summary.json && python3 -m residual verify-trace {second_path}/trace.jsonl --result {second_path}/result.json')
-    report['workbench_conversation_continuity'] = 'PASS_PARENT_BUNDLE_FROZEN_AND_REVISION_BOUND'
+    await command_proof(f'grep -q "\\\"conversation_id\\\":\\\"{conversation_id}\\\"" {second_path}/summary.json && grep -q "\\\"parent_mission_id\\\":\\\"{first_mid}\\\"" {second_path}/summary.json && grep -q "\\\"revision\\\":2" {second_path}/summary.json && python3 -m residual verify-trace {second_path}/trace.jsonl --result {second_path}/result.json')
+    report['workbench_conversation_continuity'] = 'PASS_SAME_SESSION_PARENT_BUNDLE_FROZEN_AND_REVISION_BOUND'
     report['workbench_preview_runtime_smoke'] = 'PASS_NO_STARTUP_JS_ERRORS_SEMANTIC_CORRECTNESS_UNKNOWN'
+    report['workbench_active_mission_navigation_lock'] = 'PASS'
     await stage('workbench_followup_revision_and_runtime_smoke_passed')
 
     await page.locator('#mc-mission').click()
@@ -170,8 +181,11 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await page.wait_for_function("() => document.body.innerText.replace(/\\s/g,'').includes('residual@demo:~/residual-agent-harness$')", timeout=120000)
     await command_proof(f'test -s {path}/answer.md && test -s {second_path}/artifacts/index.html && python3 -m residual verify-trace {path}/trace.jsonl --result {path}/result.json && python3 -m residual verify-trace {second_path}/trace.jsonl --result {second_path}/result.json')
     await page.locator('#mc-mission').click()
-    assert 'Build a calculator' in await page.locator('#mc-chat').inner_text()
-    assert 'Make the calculator dark mode while preserving addition' in await page.locator('#mc-chat').inner_text()
+    chat_text = await page.locator('#mc-chat').inner_text()
+    assert 'Build a calculator' in chat_text
+    assert 'Make the calculator dark mode while preserving addition' in chat_text
+    assert 'Session transcript restored from this browser' in chat_text
+    assert 'Restored browser-local preview cache' in chat_text
     assert await page.locator('#mc-restored-preview-frame').count() == 1
-    report['workbench_conversation_reload'] = 'PASS_CHAT_AND_LATEST_ARTIFACT_RESTORED'
+    report['workbench_conversation_reload'] = 'PASS_SANITIZED_BROWSER_CACHE_WITH_AUTHORITY_LABEL'
     await stage('workbench_saved_conversation_survives_reload')
