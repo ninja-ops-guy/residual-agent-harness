@@ -217,7 +217,8 @@ class AttemptGuard:
     """Thread-safe pre-dispatch accounting, not a process sandbox or watchdog.
 
     observe MUST acknowledge durable storage before returning. terminate must be
-    a host-controlled stop hook. No process-kill guarantee is inferred from it.
+    a host-controlled stop hook. No process-kill guarantee is inferred from 
+    it.
     Every worker call must be mediated; arbitrary shell engines are unsupported.
     """
     def __init__(self, contract: WorkerContract, *,
@@ -244,6 +245,25 @@ class AttemptGuard:
     def usage(self) -> dict[str, int]:
         with self._lock:
             return {**self._counts, "reserved_tokens": sum(self._reservations.values())}
+
+    @property
+    def started_at(self) -> float | None:
+        """Monotonic start instant recorded by start(); None before it."""
+        with self._lock:
+            return self._started
+
+    @property
+    def deadline(self) -> float | None:
+        """The single wall-clock deadline owned by this guard (monotonic).
+
+        The watchdog reads a plain-float snapshot of this value AFTER
+        start() returns; it must never compute its own deadline or block on
+        this lock in its polling loop.
+        """
+        with self._lock:
+            if self._started is None:
+                return None
+            return self._started + self.contract.wall_clock_budget_s
 
     def _event(self, event: str, **data: Any) -> dict[str, Any]:
         return {"event": event, "schema_version": "factory-attempt-event-v1",
