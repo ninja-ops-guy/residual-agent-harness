@@ -1,7 +1,7 @@
 {
   "pinned_at": "4ab4de97ec61415151e8608d1399c1bd884ceaff",
-  "pinned_at_note": "Review input head for PR #96. The file pins identify the amended candidate bytes in this same reviewed commit; pinned_at is the provenance anchor, not a claim that the anchor already contains these amendments.",
-  "justification": "PR #96 user review authorizes pidfd lifecycle locking, explicit late-kill semantics, waitid cross-checks and direct tests. Swarm 3 startup-unavailability remediation gates lease polling on durable start while preserving resource enforcement and fail-closed post-start reads. Pins advance only for this reviewed runtime/provenance/test scope; no M4 trust-boundary implementation or shared evidence schema is changed. Historical raw SIGKILL and the exact cause of the retained old-head lease-read failure are not retrospectively attributed.",
+  "pinned_at_note": "Review input head for PR #96. The file pins identify the amended candidate bytes authorized through follow-on review commits; pinned_at is the provenance anchor, not a claim that the anchor already contains every later evidence-only amendment.",
+  "justification": "PR #96 user review authorizes pidfd lifecycle locking, explicit late-kill semantics, waitid cross-checks and direct tests. Swarm 3 startup-unavailability remediation gates lease polling on durable start while preserving resource enforcement and fail-closed post-start reads. Follow-on evidence capture commit edaaf41 preserves the strict SIGSYS assertion and changes only the protected matrix harness so failed iterations retain the RuntimeResult and full termination provenance before reporting failure. No M4 trust-boundary implementation or shared evidence schema is changed. Historical raw SIGKILL, the prior 1/500 I/O SIGKILL, and the exact cause of the retained old-head lease-read failure remain UNKNOWN until retained provenance supports classification.",
   "files": {
     "residual/factory/__init__.py": "09d3bdec9c3b244e4050e3fb3c40e251d78fb88c",
     "residual/factory/_isolated_child.py": "a5fc261cc05d531db245dbe99012ca929238cb03",
@@ -20,7 +20,7 @@
     "residual/factory/station_issuer.py": "4db9231b966cb83373010118f4506ac7a41cdada",
     "residual/factory/termination_provenance.py": "4b7bb2167a7851a4b47ba845de63231cfaf50dcf",
     "residual/factory/worker_contract.py": "2a707cc7be21210109719cba063ae940c0bbc921",
-    "scripts/factory_termination_matrix.py": "31a771b817acb609836df9a6ab56d4950e0ebb91",
+    "scripts/factory_termination_matrix.py": "de30f7beb4a18cf4298c157dba3cb052d856a837",
     "scripts/status_check.py": "d1a859e7bf67374bbbedf1e906e8ec271f4f64bc",
     "tests/test_factory_compiler.py": "bccd958879faead394da8ce04961c69fe8eeceda",
     "tests/test_factory_evidence_bus.py": "4e68fe763c43c705d2b3a420c7b7891b654ba30d",
