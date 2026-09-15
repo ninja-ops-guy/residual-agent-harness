@@ -123,6 +123,7 @@ jobs:
           cd ..
           cp -a _webvm/build/. _site/demo/
           python3 demo/vm/patch_webvm.py index _site/demo/index.html
+          python3 demo/vm/patch_webvm.py serviceworker _site/demo/serviceWorker.js
 
       - name: Build WebVM index lists
         shell: bash
@@ -145,10 +146,14 @@ jobs:
           test -s _site/site/demo.html
           test -s _site/walkthrough/index.html
           test -s _site/walkthrough/persist.js
-          grep -q "js.puter.com/v2" _site/demo/index.html
+          ! grep -q "js.puter.com/v2" _site/demo/index.html
+          ! grep -q "plausible.leaningtech.com" _site/demo/index.html
+          ! grep -q "plausible.leaningtech.com" _webvm/src/app.html
+          grep -q "residualLoadPuterSdk" _webvm/src/lib/WebVM.svelte
+          grep -q "js.puter.com/v2" _webvm/src/lib/WebVM.svelte
+          grep -q "return Response.error()" _site/demo/serviceWorker.js
           grep -q "RESIDUAL / LIVE VM" _webvm/src/lib/WebVM.svelte
           grep -q "VM READY · GUEST ATTACHED" _webvm/src/lib/WebVM.svelte
-          ! grep -q "plausible.leaningtech.com" _webvm/src/app.html
           grep -q "browser_bridge" examples/onboarding/cloud_demo.sh
           grep -q "RESIDUAL" _site/index.html
           grep -q "Run failure scenario" _site/walkthrough/index.html
