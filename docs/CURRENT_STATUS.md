@@ -50,7 +50,9 @@ For `main` at `bc8b783d8d01b343f870cae704fe7b63c6ea6c0d`, the following push wor
 - Command Station checks;
 - Controller and provider contracts.
 
-The GitHub Pages/WebVM deployment workflow for this exact SHA was still **in progress** at the time of the refresh. Therefore this document does **not** claim that every exact-current-main workflow is green. A later successful Pages completion may clear that deployment check, but it still would not constitute namespace qualification, production soak, live-provider research evidence or blanket production readiness.
+The GitHub Pages/WebVM workflow for this exact SHA failed its first live attempt in narrow Chromium after the deployed disk chunk returned HTTP 503 and the guest stalled after attachment. The unchanged rerun then completed successfully on desktop and narrow Chromium. Run [35003867644](https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35003867644) retains both outcomes; failed-attempt artifact `10410904479` has ZIP SHA-256 `57ab059987126acbc4baf3b0b4b10bc7f3412fa8c38322c756fbd1b4b13564a5`, and successful-attempt artifact `10411624041` has ZIP SHA-256 `0cbfe28cc0cd1e94d4cde603ad4452b9834a6a6f6f14e41c4ec32565ffc25386`.
+
+The exact-current-main GitHub workflow suite is therefore green after an unchanged rerun, while issue #120 remains open because repeated intermittent failures on the live WebVM surface are a production-reliability concern. The separate Vercel commit status is red because of an account build-rate limit; that is an external deployment-capacity condition, not a repository test pass. None of these outcomes constitutes namespace qualification, production soak, live-provider research evidence or blanket production readiness.
 
 ## M4 claim boundary
 
@@ -82,7 +84,7 @@ This reconciliation fixes implementation traceability; it does **not** promote i
 
 PR #122 improves the real-provider path without converting provider success into an acceptance proof. The browser surface now distinguishes authorization/setup and provider failure classes, keeps conversation history truthful when builds are blocked, and routes browser missions through a bounded guest mailbox contract.
 
-Issue #120 remains open for the earlier intermittent guest Python `_sha512` import failure observed during Pages acceptance on `afb9a191...`. The exact same revision and acceptance step passed on rerun without code or test changes. That supports an **intermittent guest-runtime** classification, not a claim that the reliability risk is solved. Recurrences should be retained and measured rather than hidden behind silent retries.
+Issue #120 remains open for two retained intermittent failures on the Pages/WebVM surface. The first, on `afb9a191...`, was a guest Python `_sha512` import failure. The second, on current main `bc8b783...`, was a narrow-viewport disk-chunk HTTP 503 followed by a WebVM runtime abort and proof timeout. Each exact revision passed its unchanged rerun without code or test changes. That supports an **intermittent delivery/guest-runtime** classification, not a claim that the reliability risk is solved. Recurrences must be retained and measured rather than hidden behind silent retries.
 
 ## Research status
 
@@ -109,7 +111,7 @@ The project does not yet claim, for live heterogeneous models, that:
 
 The recommended order is:
 
-1. **Finish exact-current-main deployment qualification.** Require the Pages/WebVM workflow for the exact release candidate to complete successfully; retain failures and do not weaken acceptance assertions to get green CI.
+1. **Control live WebVM reliability.** Keep the exact-current-main Pages/WebVM gate green, retain every failed attempt, quantify the recurrence rate under a defined repeated-run campaign, and investigate delivery/runtime failures without weakening acceptance assertions.
 2. **Qualify M4 on a capable runner.** Refresh the PR #109 runner-prerequisite path onto the accepted current trust boundary, independently review it, and require all namespace prerequisites plus actual isolated execution with zero namespace-dependent skips.
 3. **Run release/recovery qualification.** Exercise blank-environment setup, recovery and retained-evidence procedures on the accepted candidate without broadening claims from fixture evidence.
 4. **Freeze the live evaluation protocol.** Lock workload, evidence path, metrics, model/configuration and analysis choices before observing confirmatory model results.
