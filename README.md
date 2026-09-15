@@ -70,7 +70,7 @@ The Factory runtime extends RESIDUAL into multi-worker execution:
 
 M2/M3/M4 are no longer paper-only concepts: the canonical implementations live under `residual/factory/` and related platform packages. The four original M4 trust-boundary defects tracked by issue #63 are closed, and the deterministic sandbox-timing/termination repair from PR #108 is now merged on `main`.
 
-That is **implementation and reviewed mechanism closure, not blanket live qualification**. Namespace-capable M4 execution still requires a genuinely capable runner with zero namespace-dependent skips and actual isolated execution. Release/recovery qualification, soak evidence and live research results remain separate gates.
+That is **implementation and reviewed mechanism closure, not blanket live qualification**. Merged `main` is not yet namespace-qualified. PR #109 has produced capable-runner exact-candidate PASS evidence with real isolated execution and zero M4 skips, but its current head changes one protected lifecycle test and therefore remains blocked on independent protected-surface review and deliberate ownership-baseline advancement. Release/recovery qualification, soak evidence and live research results remain separate gates.
 
 ### Evaluation and soak infrastructure
 
@@ -107,7 +107,7 @@ Current `main` has since advanced through the Mission Control real-provider reli
 
 Before paper-facing live reliability evaluation, the priority gates are now:
 
-1. independently review and deliberately integrate PR #109's exact-candidate M4 qualification: its current Ubuntu 22.04 run achieved real namespace probes, actual isolated execution and zero skipped M4 cases, and the current exact-head workflow suite is green; preserve the preceding Python 3.13 intermittent failure as reliability evidence rather than treating the green reruns as release, recovery or soak qualification;
+1. independently review PR #109's current protected lifecycle-test repair and deliberately advance the ownership baseline only if that review accepts the changed bytes; its fresh Ubuntu 22.04 synthetic candidate again passed all namespace probes, actual isolated execution, and 135 M4 tests plus 78 subtests with zero skips, while Factory ownership, clean-install, and measured-evaluation gates correctly fail closed until the protected test pin is reviewed and advanced;
 2. keep exact-current-main browser/Pages qualification green and retain any recurrence of the intermittent WebVM guest-runtime failure tracked by issue #120;
 3. complete downstream release/recovery qualification without weakening security or acceptance gates;
 4. freeze the live evaluation protocol before observing model results;
