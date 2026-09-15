@@ -25,6 +25,7 @@ from residual.factory import m4_sandbox
 from residual.factory.m4_safety import run_trusted_fixture
 from residual.factory.runtime_journal import RuntimeJournal
 from residual.factory.runtime_workspace import GitOperationTimeout
+from residual.factory.termination_provenance import ProcessControl
 from residual.factory.worker_contract import (
     AttemptGuard, WorkerContract, WorkerContractError,
 )
@@ -130,6 +131,112 @@ class SingleDeadlineOwnerTests(Fixture):
                 # progress: wall-clock enforcement must not fire.
                 self.runtime._watch(control, self.contract(), 1.0, done, completing)
         control.kill.assert_not_called()
+
+
+class WatchdogDeadlineSnapshotTests(Fixture):
+    """The watchdog must enforce the guard-owned deadline snapshot taken AFTER
+    guard.start(); it must never recompute its own deadline at poll time."""
+
+    def test_watchdog_kills_at_snapshot_not_recomputed_deadline(self):
+        contract = self.contract(wall_clock_budget_s=30)
+        ticks = [1000.0]
+
+        def fake_clock():
+            return ticks[0]
+
+        guard = AttemptGuard(contract, observe=self.journal.observe,
+                             terminate=lambda: None, clock=fake_clock)
+        guard.start()
+        # The injected clock ADVANCES between guard.start() and the watchdog's
+        # first poll, past the guard-owned deadline snapshot. A watchdog that
+        # recomputed `clock() + budget` at poll time would instead produce a
+        # deadline 30s in the future (no kill / a much later kill), and one
+        # that killed at `now` would report ~0 elapsed.
+        ticks[0] = 1000.0 + 30.0 + 0.25
+        deadline = guard.deadline
+        self.assertEqual(deadline, 1030.0)
+        self.runtime._clock = fake_clock
+        control = SimpleNamespace(termination_requested=threading.Event(),
+                                  exited=lambda: False,
+                                  process=SimpleNamespace(pid=12345, poll=lambda: None),
+                                  kill=Mock())
+        done = threading.Event()
+        completing = threading.Event()
+        # Bound the loop so a broken (recomputing) watchdog fails fast here
+        # instead of hanging: with the snapshot semantics the kill fires on
+        # the very first poll, long before this timer.
+        threading.Timer(0.5, done.set).start()
+        started = time.monotonic()
+        with patch.object(self.journal, 'lease_state', return_value='current'):
+            with patch.object(Path, 'read_text', return_value='1 1'):
+                self.runtime._watch(control, contract, deadline, done, completing)
+        wall = time.monotonic() - started
+        control.kill.assert_called_once()
+        reason = control.kill.call_args[0][0]
+        self.assertEqual(reason[:2], ('resource', 'wall_clock_budget_s'))
+        # Elapsed is measured from the guard-owned start instant (1000.0):
+        # 1030.25 - 1000.0. A recomputed deadline would yield ~0 or a kill
+        # delayed by the full 30s budget.
+        self.assertAlmostEqual(reason[2]['elapsed_s'], 30.25, places=2)
+        self.assertLess(wall, 5.0)
+
+
+class ReapTimeoutProvenanceTests(unittest.TestCase):
+    """M6: a reap TimeoutExpired is typed (reap_timed_out event plus the
+    ('resource', 'reap_timeout') reason when no primary reason exists) and
+    never escapes the caller."""
+
+    def _control(self):
+        process = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(30)'])
+        control = ProcessControl(process, correlation_id='reap-timeout-test')
+        self.addCleanup(self._cleanup, control, process)
+        return control
+
+    @staticmethod
+    def _cleanup(control, process):
+        try:
+            process.kill()
+        except Exception:
+            pass
+        try:
+            if not control.reaped:
+                control.reap(timeout=5)
+        except Exception:
+            pass
+        try:
+            if control.reaped:
+                control.close()
+        except Exception:
+            pass
+
+    def test_reap_timeout_emits_typed_event_and_reason(self):
+        control = self._control()
+        # Force the consuming wait to time out: the pidfd never becomes ready,
+        # so ProcessControl.reap() raises subprocess.TimeoutExpired.
+        with patch('residual.factory.termination_provenance.select.select',
+                   return_value=([], [], [])):
+            try:
+                control.kill(None, requester='runtime')
+            except Exception as exc:  # (c) nothing may escape the caller
+                self.fail(f'reap timeout escaped the caller: {exc!r}')
+        # (a) the typed reap_timed_out event is recorded
+        self.assertTrue(control.reap_timed_out.is_set())
+        # (b) with no primary reason, the distinct reap_timeout reason is set
+        self.assertEqual(control.reason, ('resource', 'reap_timeout', {'timeout_s': 2}))
+        self.assertEqual(control.requested_by, 'runtime')
+        self.assertIsNotNone(control.requested_monotonic_ns)
+        self.assertTrue(control.stopped.is_set())
+
+    def test_reap_timeout_does_not_overwrite_primary_reason(self):
+        control = self._control()
+        primary = ('guard', 'contract_violation', {'reason': 'guard_stop_hook'})
+        with patch('residual.factory.termination_provenance.select.select',
+                   return_value=([], [], [])):
+            control.kill(primary, requester='guard')
+        # The timeout is still typed, but an existing primary reason wins.
+        self.assertTrue(control.reap_timed_out.is_set())
+        self.assertEqual(control.reason, primary)
+        self.assertEqual(control.requested_by, 'guard')
 
 
 class SeccompProbe:
