@@ -43,20 +43,21 @@ def _load_execution_tests(repo: Path):
     if not hasattr(cls, RAW_TEST) or not hasattr(cls, blocked):
         raise RuntimeError("required Swarm-3 tests are missing")
 
-    # Capture the RuntimeResult on each isolated unittest instance without
-    # weakening or modifying the underlying strict security assertions.
-    original_run_source = cls.run_source
-
-    def capturing_run_source(self, *args, **kwargs):
-        outcome = original_run_source(self, *args, **kwargs)
-        try:
-            _, runtime_result = outcome
-        except (TypeError, ValueError):
+    # Real Factory runtime tests expose run_source(). Synthetic matrix-isolation
+    # fixtures intentionally do not. Capture provenance only where the hook
+    # exists; fixture behavior must remain unchanged.
+    original_run_source = getattr(cls, "run_source", None)
+    if original_run_source is not None:
+        def capturing_run_source(self, *args, **kwargs):
+            outcome = original_run_source(self, *args, **kwargs)
+            try:
+                _, runtime_result = outcome
+            except (TypeError, ValueError):
+                return outcome
+            self._swarm3_last_runtime_result = runtime_result
             return outcome
-        self._swarm3_last_runtime_result = runtime_result
-        return outcome
 
-    cls.run_source = capturing_run_source
+        cls.run_source = capturing_run_source
     return cls, blocked
 
 
