@@ -15,7 +15,7 @@ import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Callable, Iterator
 
 from observation_layer import Observation, ObservationKind, SCHEMA_VERSION, verify_chain
 from residual.core import canonical, strict_json
@@ -28,17 +28,14 @@ class JournalError(WorkerContractError):
 
 @dataclass(frozen=True)
 class LeaseRead:
-    """Atomic outcome of ONE bounded lease read attempt.
+    """Atomic lease-read outcome: state plus its own diagnostic.
 
-    state is 'current' | 'revoked' | 'unknown'; 'unknown' is produced ONLY
-    when the durable store itself could not be read. diagnostic carries
-    (exception type name, sqlite_errorcode) for a failed read — never
-    exception text — and is bound to THIS call's return value, not to
-    journal-global mutable state, so concurrent lease attempts can never
-    cross-attribute failure causes.
+    ``diag`` is bound to THIS read at construction, so a concurrent attempt's
+    failed read can never overwrite another attempt's provenance. It carries
+    only (exception type name, sqlite_errorcode) — never exception text.
     """
-    state: str
-    diagnostic: tuple[str, int] | None = None
+    state: str  # 'current' | 'revoked' | 'unknown'
+    diag: tuple[str, int] | None = None
 
 
 def private_directory(path: Path) -> Path:
@@ -71,7 +68,7 @@ class RuntimeJournal:
                 raise JournalError("journal must be a private regular file")
         finally:
             os.close(descriptor)
-        with self._connect(writer=True) as db:
+        with self._connect(write=True) as db:
             db.execute("PRAGMA journal_mode=WAL")
             db.executescript('''
                 CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -102,35 +99,57 @@ class RuntimeJournal:
             db.execute("COMMIT")
         self.observations()  # refuse a corrupt persisted chain on restart
 
+    # Readers get a longer bounded budget than writers: an expected
+    # observation/status read must not fail merely because a writer holds a
+    # transaction briefly (CI contention). Writers fail fast as before.
+    READ_CONNECT_TIMEOUT_S = 5.0
     WRITE_CONNECT_TIMEOUT_S = 0.2
-    READ_BUSY_TIMEOUT_S = 2.0
 
     @contextmanager
-    def _connect(self, *, writer: bool = False) -> Iterator[sqlite3.Connection]:
-        # Lock-sensitive, persistent PRAGMAs (journal_mode=WAL) are set ONCE at
-        # creation/migration in __init__, never per reader. synchronous=FULL is
-        # a writer-durability concern and runs on writer connections only: a
-        # reader executing it can hit "database is locked" under a concurrently
-        # held writer transaction (CI run 34940491451). Readers run under WAL
-        # (no lock needed at all) with a bounded busy-timeout as the only
-        # defence for a non-WAL fallback.
-        if writer:
-            db = sqlite3.connect(self.path, timeout=self.WRITE_CONNECT_TIMEOUT_S,
-                                 isolation_level=None)
-        else:
-            db = sqlite3.connect(self.path, timeout=self.READ_BUSY_TIMEOUT_S,
-                                 isolation_level=None)
+    def _connect(self, *, write: bool = False) -> Iterator[sqlite3.Connection]:
+        # Lock-sensitive write pragmas (synchronous) run ONLY on writer
+        # connections. A reader connection must be able to initialize and
+        # serve a consistent WAL snapshot without taking or waiting on the
+        # write lock beyond the bounded busy-timeout.
+        timeout = self.WRITE_CONNECT_TIMEOUT_S if write else self.READ_CONNECT_TIMEOUT_S
+        db = sqlite3.connect(self.path, timeout=timeout, isolation_level=None)
         try:
-            if writer:
+            if write:
                 db.execute("PRAGMA synchronous=FULL")
             db.execute("PRAGMA foreign_keys=ON")
             yield db
         finally:
             db.close()
 
+    def _read(self, query: str, params: tuple = (), *,
+              row_factory: Any = None) -> list:
+        """One bounded read: retries transient lock contention up to
+        READ_CONNECT_TIMEOUT_S, then raises the last sqlite3.Error.
+
+        The connection's own busy-timeout covers waitable locks; this retry
+        covers contention classes the busy handler does not wait out (for
+        example SQLITE_BUSY_SNAPSHOT during WAL checkpointing), so a held
+        writer can never turn an expected read into an unbounded block or an
+        immediate failure.
+        """
+        deadline = time.monotonic() + self.READ_CONNECT_TIMEOUT_S
+        delay = 0.02
+        while True:
+            try:
+                with self._connect() as db:
+                    if row_factory is not None:
+                        db.row_factory = row_factory
+                    return db.execute(query, params).fetchall()
+            except sqlite3.OperationalError:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise
+                time.sleep(min(delay, remaining))
+                delay = min(delay * 2, 0.2)
+
     @contextmanager
     def _transaction(self) -> Iterator[sqlite3.Connection]:
-        with self._lock, self._connect(writer=True) as db:
+        with self._lock, self._connect(write=True) as db:
             db.execute("BEGIN IMMEDIATE")
             try:
                 yield db
@@ -204,22 +223,31 @@ class RuntimeJournal:
 
     LEASE_READ_TIMEOUT_S = 2.0
 
-    def lease_state(self, contract: WorkerContract, *, timeout_s: float | None = None) -> LeaseRead:
-        """Tri-state lease read: LeaseRead('current'|'revoked'|'unknown', diag).
+    def lease_read(self, contract: WorkerContract, *, deadline: float | None = None,
+                   clock: Callable[[], float] = time.monotonic) -> LeaseRead:
+        """Atomic tri-state lease read returning state AND its own diagnostic.
 
-        'unknown' is returned ONLY when the durable store itself cannot be
-        read (sqlite3.Error, including a bounded busy-timeout). A missing,
-        revoked, terminal, or mismatched row is 'revoked' — never 'unknown'.
-        Callers must never retype an 'unknown' outcome as a revocation.
+        The returned LeaseRead binds (state, diag) for THIS read, so a
+        concurrent attempt's failed read can never overwrite this attempt's
+        provenance. 'unknown' is returned ONLY when the durable store itself
+        cannot be read (sqlite3.Error, including a bounded busy-timeout) or
+        when the caller-supplied absolute ``deadline`` is already exhausted.
+        A missing, revoked, terminal, or mismatched row is 'revoked' — never
+        'unknown'. Callers must never retype an 'unknown' outcome as a
+        revocation.
 
-        ``timeout_s`` caps this attempt's SQLite busy wait; callers holding an
-        absolute deadline pass only their REMAINING budget so one deadline
-        covers every read/retry. Default: LEASE_READ_TIMEOUT_S.
+        When ``deadline`` (on ``clock``) is given, this read's busy budget is
+        capped at the remaining time so the caller's total lease-denial bound
+        is honored end to end.
         """
-        budget = self.LEASE_READ_TIMEOUT_S if timeout_s is None else max(0.0, float(timeout_s))
+        budget = self.LEASE_READ_TIMEOUT_S
+        if deadline is not None:
+            remaining = deadline - clock()
+            if remaining <= 0:
+                return LeaseRead('unknown', ('read_budget_exhausted', 0))
+            budget = min(budget, remaining)
         try:
-            db = sqlite3.connect(self.path, timeout=budget,
-                                 isolation_level=None)
+            db = sqlite3.connect(self.path, timeout=budget, isolation_level=None)
             try:
                 db.execute(f"PRAGMA busy_timeout={int(budget * 1000)}")
                 row = db.execute(
@@ -229,12 +257,16 @@ class RuntimeJournal:
                 db.close()
         except sqlite3.Error as exc:
             code = getattr(exc, 'sqlite_errorcode', None)
-            diag = (type(exc).__name__, code) if type(code) is int else None
+            diag = (type(exc).__name__, code) if type(code) is int else (type(exc).__name__, -1)
             return LeaseRead('unknown', diag)
         current = bool(row and row[0] == contract.lease_id and row[1] == contract.lease_generation
                        and not row[2] and row[3] in ('RESERVED', 'RUNNING')
                        and row[4] == contract.contract_hash)
         return LeaseRead('current' if current else 'revoked')
+
+    def lease_state(self, contract: WorkerContract) -> str:
+        """Tri-state convenience wrapper over lease_read(); see its contract."""
+        return self.lease_read(contract).state
 
     def revoke(self, attempt_id: str) -> None:
         with self._transaction() as db:
@@ -271,13 +303,12 @@ class RuntimeJournal:
             self._append(db, {"event": "RuntimeCandidatePurged", "attempt_id": attempt_id})
 
     def attempts(self) -> list[dict]:
-        with self._connect() as db:
-            db.row_factory = sqlite3.Row
-            return [dict(row) for row in db.execute("SELECT * FROM attempts ORDER BY created_ns,attempt_id")]
+        rows = self._read("SELECT * FROM attempts ORDER BY created_ns,attempt_id",
+                          row_factory=sqlite3.Row)
+        return [dict(row) for row in rows]
 
     def observations(self) -> list[Observation]:
-        with self._connect() as db:
-            rows = db.execute("SELECT record FROM events ORDER BY sequence").fetchall()
+        rows = self._read("SELECT record FROM events ORDER BY sequence")
         values = [Observation(**strict_json(row[0])) for row in rows]
         if not verify_chain(values):
             raise JournalError("observation chain is invalid")
