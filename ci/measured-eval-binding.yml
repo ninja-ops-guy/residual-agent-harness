@@ -1,0 +1,64 @@
+# STAGED WORKFLOW - requires one manual step before the gate is enforced.
+#
+# The automation token used to author this PR lacks the `workflow` OAuth
+# scope, so GitHub rejects API writes under `.github/workflows/`. A
+# maintainer with a workflow-scoped token must move this file to
+# `.github/workflows/measured-eval-binding.yml` (no content changes needed).
+# Until then, run locally:
+#   python -m pytest tests/test_eval_frozen_acceptance_binding.py -v
+
+name: Measured evaluation acceptance binding
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  measured-eval-binding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[factory]" pytest
+      - name: Factory ownership gate (#95 prerequisite)
+        run: |
+          set -o pipefail
+          mkdir -p runs/measured-eval-binding
+          python verifier/v3/check_factory_ownership.py 2>&1 | tee runs/measured-eval-binding/ownership.txt
+      - name: Binding regression tests (four-requirement negative tests)
+        run: |
+          set -o pipefail
+          python -m pytest tests/test_eval_frozen_acceptance_binding.py -v 2>&1 | tee runs/measured-eval-binding/binding-tests.txt
+      - name: Adjacent factory/eval regression tests
+        run: |
+          set -o pipefail
+          python -m pytest \
+            tests/test_factory_m4_integrator.py \
+            tests/test_factory_m4_sandbox.py \
+            tests/test_factory_m4_scheduler.py \
+            tests/test_factory_m4_evidence.py \
+            tests/test_factory_evidence_bus.py \
+            tests/test_eval_runner.py \
+            tests/test_eval_workload.py \
+            tests/test_eval_stats.py \
+            -q 2>&1 | tee runs/measured-eval-binding/adjacent-tests.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: measured-eval-binding-${{ github.sha }}
+          path: runs/measured-eval-binding
+          if-no-files-found: error
+          retention-days: 14
