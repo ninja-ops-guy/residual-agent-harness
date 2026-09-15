@@ -26,7 +26,8 @@ def git(repo: Path, *args: str) -> str:
     return subprocess.check_output(["git", "-C", str(repo), *args], text=True).strip()
 
 
-def load_execution_tests(repo: Path):
+def _load_execution_tests(repo: Path):
+    """Child-interpreter only: never import a target into the caller process."""
     repo = repo.resolve()
     sys.path.insert(0, str(repo))
     path = repo / "tests" / "test_factory_runtime.py"
@@ -130,7 +131,7 @@ def upper_95_zero_failures(n: int) -> float | None:
     return 1.0 - math.pow(0.05, 1.0 / n)
 
 
-def main(argv: list[str] | None = None) -> int:
+def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", type=Path, required=True)
     parser.add_argument("--condition", choices=("normal", "cpu", "io", "combined"), required=True)
@@ -141,8 +142,28 @@ def main(argv: list[str] | None = None) -> int:
     if args.runs < 1:
         parser.error("--runs must be positive")
 
+    return args
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Run each repository in a fresh interpreter, including calls from pytest.
+
+    Restoring sys.path alone is insufficient: sys.modules can retain a different
+    baseline/candidate implementation. The parent never imports the target.
+    """
+    args = _parse_args(argv)
+    command = [sys.executable, '-I', str(Path(__file__).resolve()), '--matrix-worker',
+               '--repo-root', str(args.repo_root.resolve()), '--condition', args.condition,
+               '--runs', str(args.runs), '--output', str(args.output.resolve())]
+    if args.allow_failures:
+        command.append('--allow-failures')
+    return subprocess.run(command, check=False).returncode
+
+
+def _run_matrix(argv: list[str]) -> int:
+    args = _parse_args(argv)
     repo = args.repo_root.resolve()
-    tests, blocked_test = load_execution_tests(repo)
+    tests, blocked_test = _load_execution_tests(repo)
     suite = unittest.TestSuite()
     for _ in range(args.runs):
         suite.addTest(tests(RAW_TEST))
@@ -158,7 +179,7 @@ def main(argv: list[str] | None = None) -> int:
     for row in stats.values():
         unexplained = row["failures"] + row["errors"]
         row["unexplained_failures"] = unexplained
-        row["zero_failure_upper_95"] = upper_95_zero_failures(row["runs"]) if unexplained == 0 else None
+        row["zero_failure_upper_95"] = upper_95_zero_failures(row["runs"]) if unexplained == 0 and row["skips"] == 0 else None
 
     report = {
         "schema_version": "swarm3-termination-matrix-v1",
@@ -188,4 +209,6 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    if sys.argv[1:2] == ['--matrix-worker']:
+        raise SystemExit(_run_matrix(sys.argv[2:]))
     raise SystemExit(main())

@@ -1,7 +1,7 @@
 {
-  "pinned_at": "a19d2c3248c6180a566b6ff7b331e075a48518c7",
-  "pinned_at_note": "PR #96 reviewed Swarm 3 candidate after reconciliation through main 6f0df6c538b71039f65526048143a9dc7ec7d9ff. The protected runtime/test blobs below are the exact candidate bytes; subsequent main-only ownership/telemetry/OTX merges are orthogonal and must preserve these pins when #96 is reconciled.",
-  "justification": "PR #96 authorizes the narrow Swarm 3 termination-provenance transition: runtime.py gains single-owner pidfd reaping and typed termination evidence; termination_provenance.py becomes a new protected core file; runtime tests replace the invalid blocked-audit scheduler assumption while preserving exact SIGSYS assertions. The historical raw SIGKILL remains UNKNOWN and is not reclassified as seccomp success.",
+  "pinned_at": "4ab4de97ec61415151e8608d1399c1bd884ceaff",
+  "pinned_at_note": "Review input head for PR #96. The file pins identify the amended candidate bytes in this same reviewed commit; pinned_at is the provenance anchor, not a claim that the anchor already contains these amendments.",
+  "justification": "PR #96 user review authorizes pidfd lifecycle locking, explicit late-kill semantics, waitid cross-checks and direct tests. Swarm 3 startup-unavailability remediation gates lease polling on durable start while preserving resource enforcement and fail-closed post-start reads. Pins advance only for this reviewed runtime/provenance/test scope; no M4 trust-boundary implementation or shared evidence schema is changed. Historical raw SIGKILL and the exact cause of the retained old-head lease-read failure are not retrospectively attributed.",
   "files": {
     "residual/factory/__init__.py": "09d3bdec9c3b244e4050e3fb3c40e251d78fb88c",
     "residual/factory/_isolated_child.py": "a5fc261cc05d531db245dbe99012ca929238cb03",
@@ -14,12 +14,13 @@
     "residual/factory/m4_safety.py": "0b3e0ea72103e5f29d89dca6dfbbe1486213de72",
     "residual/factory/m4_sandbox.py": "eb0e10d8e6d6e39f2cfe914570da38f3a2342562",
     "residual/factory/m4_scheduler.py": "91b9b4faf048242c4df39ff800b1ed544a8a0f63",
-    "residual/factory/runtime.py": "14b80f3c41e9c0b8ba41172d21ce117252694264",
+    "residual/factory/runtime.py": "038f1ed7b4f819b61d017a74ad58a9eb2685a3ae",
     "residual/factory/runtime_journal.py": "50d46932ee6d45b6aaa08670c8346700974d794c",
     "residual/factory/runtime_workspace.py": "9f84ae96483a149c09c94bbe3053930b583bd857",
     "residual/factory/station_issuer.py": "4db9231b966cb83373010118f4506ac7a41cdada",
-    "residual/factory/termination_provenance.py": "100157cc58bb514e9c1779114afc8ac625951b9c",
+    "residual/factory/termination_provenance.py": "4b7bb2167a7851a4b47ba845de63231cfaf50dcf",
     "residual/factory/worker_contract.py": "2a707cc7be21210109719cba063ae940c0bbc921",
+    "scripts/factory_termination_matrix.py": "31a771b817acb609836df9a6ab56d4950e0ebb91",
     "scripts/status_check.py": "d1a859e7bf67374bbbedf1e906e8ec271f4f64bc",
     "tests/test_factory_compiler.py": "bccd958879faead394da8ce04961c69fe8eeceda",
     "tests/test_factory_evidence_bus.py": "4e68fe763c43c705d2b3a420c7b7891b654ba30d",
@@ -35,6 +36,9 @@
     "tests/test_factory_m4_tree_binding.py": "6f2511d08ff882058a83214530048ba8c5027fa7",
     "tests/test_factory_runtime.py": "3baaa59140b62c5115188324bb15553860e2ae81",
     "tests/test_factory_runtime_lifecycle.py": "568ecd6fb7753cf3957f9605a6af15f67fccc22d",
+    "tests/test_factory_runtime_startup.py": "895def4a5db945fc6dd01ee524cd2deab6c9f4e4",
+    "tests/test_factory_termination_matrix.py": "8a9436a3abd30bd0ab6ac8dd3b775847a43c6efb",
+    "tests/test_factory_termination_provenance.py": "17313e5fee87b0fa6b8133616a5d3033411c631f",
     "tests/test_factory_worker_contract.py": "b4b54d32f02c0c3beaa4c6ecad0aee19967bad3f"
   }
 }

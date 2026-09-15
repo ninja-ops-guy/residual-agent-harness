@@ -85,7 +85,8 @@ class FactoryRuntime:
         return True
 
     def _watch(self, control: ProcessControl, contract: WorkerContract,
-               started_ns: int, done: threading.Event) -> None:
+               started_ns: int, done: threading.Event,
+               started_persisted: threading.Event | None = None) -> None:
         memory_at_ns = lease_at_ns = 0
         while not done.wait(0.02):
             if control.termination_requested.is_set() or control.exited():
@@ -105,19 +106,27 @@ class FactoryRuntime:
                 except (OSError, ValueError, IndexError):
                     if not control.exited():
                         reason = ('resource', 'memory_limit_mb', {'reason': 'rss_meter_unavailable'})
-            if reason is None and now_ns >= lease_at_ns:
+            if (reason is None and now_ns >= lease_at_ns
+                    and (started_persisted is None or started_persisted.is_set())):
                 lease_at_ns = now_ns + 200_000_000
                 # A broker/guard path may have started killing the worker after the
                 # top-of-loop check. Do not perform a secondary lease read in that
                 # window and accidentally overwrite the primary violation reason.
                 if control.termination_requested.is_set():
                     return
+                action = {'reason': 'revoked_or_unavailable'}
                 try:
                     current = self.journal.lease_is_current(contract)
-                except Exception:
+                except Exception as exc:
                     current = False
+                    # Preserve why a read was unavailable, without exception text
+                    # or synchronous journal publication on the watchdog thread.
+                    code = getattr(exc, 'sqlite_errorcode', None)
+                    if type(code) is int:
+                        action['read_error_type'] = type(exc).__name__
+                        action['sqlite_errorcode'] = code
                 if not current:
-                    reason = ('lease', 'lease_generation', {'reason': 'revoked_or_unavailable'})
+                    reason = ('lease', 'lease_generation', action)
             if reason is not None:
                 control.kill(reason, requester='watchdog')
                 return
@@ -151,6 +160,7 @@ class FactoryRuntime:
 
         process = control = broker = watcher = None
         done = threading.Event()
+        started_persisted = threading.Event()
         guard = AttemptGuard(
             contract,
             observe=self.journal.observe,
@@ -186,12 +196,17 @@ class FactoryRuntime:
                 cwd='/', close_fds=True, start_new_session=True, bufsize=0)
             control = ProcessControl(process, correlation_id=contract.attempt_id,
                                      clock_ns=self._monotonic_ns)
-            # Start the watchdog before persistence/dispatch, not in the worker.
-            watcher = threading.Thread(target=self._watch, args=(control, contract, started_ns, done), daemon=True)
+            # Resource enforcement is live during persistence; lease polling is
+            # deferred until the host acknowledges durable start. No worker
+            # source can be dispatched before that acknowledgement.
+            watcher = threading.Thread(target=self._watch,
+                                       args=(control, contract, started_ns, done, started_persisted),
+                                       daemon=True)
             watcher.start()
             with self._lock:
                 self._active[contract.attempt_id] = control
             self.journal.started(contract, process.pid)
+            started_persisted.set()
             self.journal.observe({'event': 'RuntimeProcessIdentity',
                                   'attempt_id': contract.attempt_id,
                                   'correlation_id': contract.attempt_id,
@@ -212,6 +227,8 @@ class FactoryRuntime:
                     state, reason = 'CANCELLED', field
                 else:
                     guard.fail(boundary, field, action)
+            elif termination['classification'] == 'unknown_wait_status':
+                raise WorkerContractError('inconsistent or unavailable process exit evidence')
             elif process.returncode == -signal.SIGSYS:
                 guard.fail('tool', 'os_syscall_allowlist',
                            {'reason': 'kernel_seccomp_kill', 'signal': signal.SIGSYS,
