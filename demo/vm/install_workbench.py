@@ -31,14 +31,10 @@ def patch(text):
                 return await cx.run("/usr/bin/python3", args, configObj.opts);
             }
         });''')
-    # Preserve legacy transport functions for CLI backwards compatibility, but
-    # authorization is no longer attempted after an asynchronous SDK load.
     start = text.index('\tasync function enableResidualCloud()')
     end = text.index('\n\tfunction writeData(', start)
     text = text[:start] + '\tfunction enableResidualCloud() { residualWorkbench?.connectProvider(); }\n' + text[end:]
     text = text.replace('var residualCloudLabel = "ENABLE CLOUD ✦";', 'var residualCloudLabel = "Connect provider";')
-    # Only the new workbench header offers the connection control. Old core
-    # bridge remains disabled (auth_required), never silently invokes a model.
     old = '\t\t<button on:click={enableResidualCloud}'
     if text.count(old) != 1:
         raise ValueError('Legacy cloud button anchor changed')
@@ -50,7 +46,7 @@ def patch(text):
 def install(source: Path, site: Path):
     source.write_text(patch(source.read_text()))
     here = Path(__file__).resolve().parent
-    for name in ('mission-control.js', 'provider-session.js'):
+    for name in ('mission-control.js', 'mission-preview.js', 'provider-session.js'):
         shutil.copyfile(here / name, source.parent / name)
     provider = site / 'provider'; provider.mkdir(parents=True, exist_ok=True)
     for src, dst in [('provider.html', 'index.html'), ('provider.js', 'provider.js'), ('provider-session.js', 'provider-session.js')]:
