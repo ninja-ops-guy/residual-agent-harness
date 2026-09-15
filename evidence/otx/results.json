@@ -3,8 +3,8 @@
   "artifact_version": "1.0.0",
   "identity": {
     "git_branch": "swarm/otx-003-orchestration-tax",
-    "git_commit": "b131d6b05a619e057be81966f93a11a97bdf518a",
-    "git_tree": "e49b809b2f53b04360460da70a7fccd24a8b0356",
+    "git_commit": "0063e6400fa945acf2db393f7e9d30db02cb1139",
+    "git_tree": "6c48073575641c40d02250d5259e93a5dc77c119",
     "platform": "Linux-5.10.134-18.0.12.lifsea8.x86_64-x86_64-with-glibc2.36",
     "python_version": "3.12.12"
   },
