@@ -110,40 +110,39 @@ class FactoryRuntime:
         ('lease', 'lease_unreadable', ...) reason — an uncertain store is
         never retyped as a revocation.
 
-        ONE absolute monotonic deadline (LEASE_UNKNOWN_DEADLINE_S, taken at
-        entry) covers EVERY lease read and retry, including the first: each
-        attempt's SQLite busy-timeout is exactly the remaining budget, so the
-        watchdog can never be blocked beyond the bound no matter how long
-        store contention persists. The failure diagnostic arrives bound to
-        the LeaseRead that produced it (per-attempt, race-free).
+        ONE absolute monotonic deadline (LEASE_UNKNOWN_DEADLINE_S from the
+        FIRST read attempt, on the injected clock) bounds the ENTIRE gate:
+        every SQLite read — including the first — receives only the remaining
+        budget, so a persistently contended store cannot stretch the unknown
+        window beyond the advertised bound. State and diagnostic come back
+        atomically from each read (LeaseRead); no journal-global mutable
+        provenance is consulted, so a concurrent attempt cannot cross-
+        attribute its read failure to this attempt.
         """
         deadline = self._clock() + self.LEASE_UNKNOWN_DEADLINE_S
-        read = self.journal.lease_state(
-            contract, timeout_s=max(0.0, deadline - self._clock()))
-        state, diag = read.state, read.diagnostic
+        read = self.journal.lease_read(contract, deadline=deadline, clock=self._clock)
+        if read.state == 'current':
+            return None
         delay = 0.02
-        while state == 'unknown':
+        while read.state == 'unknown':
             remaining = deadline - self._clock()
             if remaining <= 0:
                 break
             time.sleep(min(delay, remaining))
             delay = min(delay * 2, 0.2)
-            remaining = deadline - self._clock()
-            if remaining <= 0:
-                break
-            read = self.journal.lease_state(contract, timeout_s=remaining)
-            state, diag = read.state, read.diagnostic
-        if state == 'current':
-            return None
-        if state == 'revoked':
+            read = self.journal.lease_read(contract, deadline=deadline, clock=self._clock)
+        if read.state == 'revoked':
             return ('lease', 'lease_generation', {'reason': detail})
-        # state == 'unknown': preserve why the read was unavailable (type +
-        # SQLite code only; never exception text) without retyping the
-        # uncertain store as a revocation.
-        action: dict = {'reason': detail}
-        if diag is not None:
-            action['read_error_type'], action['sqlite_errorcode'] = diag
-        return ('lease', 'lease_unreadable', action)
+        if read.state == 'unknown':
+            action: dict = {'reason': detail}
+            if read.diag is not None:
+                # Preserve why the read was unavailable (type + SQLite code
+                # only; never exception text) without retyping the uncertain
+                # store as a revocation. The diagnostic is bound atomically
+                # to THIS attempt's read.
+                action['read_error_type'], action['sqlite_errorcode'] = read.diag
+            return ('lease', 'lease_unreadable', action)
+        return None
 
     def _watch(self, control: ProcessControl, contract: WorkerContract,
                deadline: float, done: threading.Event,
