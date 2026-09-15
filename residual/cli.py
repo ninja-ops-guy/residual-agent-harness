@@ -43,6 +43,7 @@ def main(argv=None):
     if argv and argv[0] == "cluster":
         from .cluster.cli import cluster_main
         return cluster_main(argv[1:])
+
     parser = argparse.ArgumentParser(description="RESIDUAL — hybrid agents with verifiable task boundaries")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("factory", help="Plan and approve headless multi-swarm Factory Mode work")
@@ -52,6 +53,30 @@ def main(argv=None):
     sub.add_parser("study", help="Freeze/run independently graded studies (study --help)")
     sub.add_parser("node", help="Join/leave the distributed cluster (node --help)")
     sub.add_parser("cluster", help="Show cluster status (cluster --help)")
+
+    setup_parser = sub.add_parser("setup", help="Guided first-run setup with managed FreeLLMAPI")
+    setup_parser.add_argument("--home", help="Residual managed home (default: ~/.residual or RESIDUAL_HOME)")
+    setup_parser.add_argument("--provider", choices=("groq", "google", "cerebras", "mistral", "openrouter"))
+    setup_parser.add_argument("--provider-key-env", help="Read the upstream provider key from this environment variable")
+    setup_parser.add_argument("--unified-key-env", help="Read the FreeLLMAPI unified key from this environment variable")
+    setup_parser.add_argument("--model", default="auto", help="FreeLLMAPI model route (default: auto)")
+    setup_parser.add_argument("--non-interactive", action="store_true")
+    setup_parser.add_argument("--skip-start", action="store_true", help="Write managed files without starting Docker")
+    setup_parser.add_argument("--skip-smoke", action="store_true", help="Skip the live Residual worker-contract smoke test")
+
+    doctor_parser = sub.add_parser("doctor", help="Diagnose the local Residual/FreeLLMAPI setup")
+    doctor_parser.add_argument("--home", help="Residual managed home (default: ~/.residual or RESIDUAL_HOME)")
+    doctor_parser.add_argument("--fix", action="store_true", help="Apply safe deterministic repairs")
+    doctor_parser.add_argument("--json", action="store_true", dest="json_output")
+
+    providers_parser = sub.add_parser("providers", help="Show supported FreeLLMAPI upstream provider setup links")
+    providers_parser.add_argument("action", nargs="?", choices=("list",), default="list")
+
+    services_parser = sub.add_parser("services", help="Manage Residual-owned local services")
+    services_parser.add_argument("action", choices=("install", "start"))
+    services_parser.add_argument("service", choices=("freellmapi",))
+    services_parser.add_argument("--home", help="Residual managed home (default: ~/.residual or RESIDUAL_HOME)")
+
     for name in ("demo", "run"):
         run = sub.add_parser(name)
         if name == "run":
@@ -75,7 +100,40 @@ def main(argv=None):
     verify.add_argument("--expected-root")
     verify.add_argument("--result", help="Also check the final event binds this result JSON")
     args = parser.parse_args(argv)
+
     try:
+        if args.command in {"setup", "doctor", "providers", "services"}:
+            from .onboarding import (
+                ManagedPaths, doctor, ensure_service_files, list_providers,
+                print_doctor, setup, start_service,
+            )
+            if args.command == "providers":
+                list_providers()
+                return 0
+            paths = ManagedPaths.from_value(args.home)
+            if args.command == "setup":
+                return setup(
+                    paths, provider_id=args.provider, provider_key_env=args.provider_key_env,
+                    unified_key_env=args.unified_key_env, model=args.model,
+                    non_interactive=args.non_interactive, skip_start=args.skip_start,
+                    skip_smoke=args.skip_smoke,
+                )
+            if args.command == "doctor":
+                checks = doctor(paths, fix=args.fix)
+                if args.json_output:
+                    print(json.dumps([c.as_dict() for c in checks], indent=2))
+                else:
+                    print_doctor(checks)
+                return 1 if any(c.status == "fail" for c in checks) else 0
+            if args.action == "install":
+                changed = ensure_service_files(paths)
+                print(json.dumps({"service": args.service, "installed": True, "changed": changed,
+                                  "path": str(paths.service_dir)}, indent=2))
+                return 0
+            ok, detail = start_service(paths)
+            print(json.dumps({"service": args.service, "started": ok, "detail": detail}, indent=2))
+            return 0 if ok else 1
+
         if args.command == "verify-trace":
             result = verify_ledger(args.trace, args.expected_root)
             if args.result:
