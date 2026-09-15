@@ -1,0 +1,13 @@
+{
+  "artifact": {
+    "base_source": "def allow(role, enabled):\n    return False\n",
+    "candidate_source": "def allow(role, enabled):\n    return role == \"admin\" or enabled\n",
+    "format": "unified_diff",
+    "patch": "--- a/solution.py\n+++ b/solution.py\n@@ -1,2 +1,2 @@\n def allow(role, enabled):\n-    return False\n+    return role == \"admin\" or enabled\n"
+  },
+  "case_id": "VC-0016",
+  "schema": "residual.preflight.candidate.v1",
+  "task": {
+    "instruction": "Allow access if and only if role equals admin AND enabled is True. Inputs are strings and booleans."
+  }
+}

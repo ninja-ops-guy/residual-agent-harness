@@ -1,0 +1,59 @@
+{
+  "expected_cells": [
+    {
+      "cell_id": "R0-task1",
+      "configuration": "R0",
+      "family_id": "family1",
+      "model_class": "synthetic",
+      "repeat_index": 0,
+      "task_id": "task1",
+      "topology": "fixture"
+    },
+    {
+      "cell_id": "R0-task2",
+      "configuration": "R0",
+      "family_id": "family2",
+      "model_class": "synthetic",
+      "repeat_index": 0,
+      "task_id": "task2",
+      "topology": "fixture"
+    },
+    {
+      "cell_id": "R0-task3",
+      "configuration": "R0",
+      "family_id": "family3",
+      "model_class": "synthetic",
+      "repeat_index": 0,
+      "task_id": "task3",
+      "topology": "fixture"
+    },
+    {
+      "cell_id": "R5-task1",
+      "configuration": "R5",
+      "family_id": "family1",
+      "model_class": "synthetic",
+      "repeat_index": 0,
+      "task_id": "task1",
+      "topology": "fixture"
+    },
+    {
+      "cell_id": "R5-task2",
+      "configuration": "R5",
+      "family_id": "family2",
+      "model_class": "synthetic",
+      "repeat_index": 0,
+      "task_id": "task2",
+      "topology": "fixture"
+    },
+    {
+      "cell_id": "R5-task3",
+      "configuration": "R5",
+      "family_id": "family3",
+      "model_class": "synthetic",
+      "repeat_index": 0,
+      "task_id": "task3",
+      "topology": "fixture"
+    }
+  ],
+  "workload_id": "synthetic-three-tasks"
+}

@@ -1,0 +1,16 @@
+{
+  "artifact": {
+    "declared_sha256": "1a89db3d679deeed6d13b9c3a25f1a0119d04a7d1be9427bff43b68a546bc89d",
+    "payload": {
+      "candidate_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "schema": "fixture.receipt.v1",
+      "status": "pass",
+      "task_id": "fixture-task"
+    }
+  },
+  "case_id": "VC-0011",
+  "schema": "residual.preflight.candidate.v1",
+  "task": {
+    "instruction": "Validate this fixture receipt: declared_sha256 must equal SHA-256 of ASCII JSON payload with sorted keys and separators comma/colon. This fixture is not a production signature or authorization token."
+  }
+}

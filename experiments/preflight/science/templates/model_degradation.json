@@ -1,0 +1,29 @@
+{
+  "categories": [
+    "S",
+    "M",
+    "W",
+    "L"
+  ],
+  "columns": [
+    "model_class",
+    "model_identity",
+    "configuration",
+    "metric",
+    "estimate",
+    "ci_low",
+    "ci_high",
+    "numerator",
+    "denominator",
+    "unknown"
+  ],
+  "data": [],
+  "evidence_level": "empty_template",
+  "plot_id": "model_degradation",
+  "protocol_sha256": "8f0010b51b932af1fa0f9d3018bf6e02029eab784c9fe4f9885bc99667949d59",
+  "schema_version": "residual.paper-template.v1",
+  "title": "Frozen capacity classes: raw and accepted outcomes",
+  "x": "model_class",
+  "y": "rate",
+  "y_label": "Rate (with denominator)"
+}

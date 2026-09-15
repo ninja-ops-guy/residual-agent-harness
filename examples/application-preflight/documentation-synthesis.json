@@ -1,0 +1,48 @@
+{
+  "candidates": {
+    "broken": {
+      "citation": "RUNBOOK-1",
+      "quote": "Stop the service before replacing the configuration.",
+      "summary": "Replace the configuration while the service runs."
+    },
+    "good": {
+      "citation": "RUNBOOK-1",
+      "quote": "Stop the service before replacing the configuration.",
+      "summary": "Stop the service before changing its configuration."
+    },
+    "missing": null
+  },
+  "expected": {
+    "citation": "RUNBOOK-1",
+    "quote": "Stop the service before replacing the configuration.",
+    "summary": "Stop the service before changing its configuration."
+  },
+  "id": "documentation-synthesis",
+  "input": {
+    "source_id": "RUNBOOK-1",
+    "text": "Stop the service before replacing the configuration."
+  },
+  "intent_document": {
+    "intent": "Summarize a runbook with an exact supporting quotation.",
+    "requirements": [
+      {
+        "acceptance": [
+          "Emit candidate.json only."
+        ],
+        "id": "REQ-prepare",
+        "statement": "Create a candidate from the supplied public fixture inputs."
+      },
+      {
+        "acceptance": [
+          "The summary preserves the ordering and includes a source-bound quotation."
+        ],
+        "depends_on": [
+          "REQ-prepare"
+        ],
+        "id": "REQ-review",
+        "statement": "Assess the candidate against independently authored requirements."
+      }
+    ]
+  },
+  "schema_version": "residual.application-case.v1"
+}

@@ -1,0 +1,26 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_engineering_envelope.py",
+    "-v"
+  ],
+  "confirmatory": false,
+  "cwd_semantics": "repository root",
+  "exit_code": 0,
+  "files": {
+    "experiments/preflight/engineering/preflight-20260915.json": "6657d24a29022ce1e835432c3d231e4fde0bc998e4484e5f99867eb8ed4ec293",
+    "experiments/preflight/engineering/source-inventory.json": "0d81b1114d21e137e643c2c6ed29177108dcc5453cf347e8196519e9726ecec7",
+    "scripts/engineering_envelope.py": "1f31c3db278e6867d800d5a0a6a6e961c4bf58b1798e6cc356e119225df8756d",
+    "tests/test_engineering_envelope.py": "a8a579b6bc9f51a3c6eb3aac74aafc88df82570cedc4c637703264d4442f415e"
+  },
+  "model_calls": 0,
+  "schema_version": "residual.engineering-validation.v1",
+  "stderr": "test_chain_rejects_tamper_reorder_and_anchored_truncation (test_engineering_envelope.EngineeringEnvelopeTests.test_chain_rejects_tamper_reorder_and_anchored_truncation) ... ok\ntest_failover_attempts_reserved_before_dispatch (test_engineering_envelope.EngineeringEnvelopeTests.test_failover_attempts_reserved_before_dispatch) ... ok\ntest_real_m2_capture_keeps_candidate_untrusted (test_engineering_envelope.EngineeringEnvelopeTests.test_real_m2_capture_keeps_candidate_untrusted) ... ok\ntest_receipt_signature_detects_semantic_mutation (test_engineering_envelope.EngineeringEnvelopeTests.test_receipt_signature_detects_semantic_mutation) ... ok\ntest_report_is_hashed_and_cannot_mislabel_metadata_as_live_workers (test_engineering_envelope.EngineeringEnvelopeTests.test_report_is_hashed_and_cannot_mislabel_metadata_as_live_workers) ... ok\ntest_size_limits_reject_bools_and_unbounded_requests (test_engineering_envelope.EngineeringEnvelopeTests.test_size_limits_reject_bools_and_unbounded_requests) ... ok\ntest_timeout_never_becomes_success_from_partial_samples (test_engineering_envelope.EngineeringEnvelopeTests.test_timeout_never_becomes_success_from_partial_samples) ... ok\ntest_unknown_costs_remain_unknown (test_engineering_envelope.EngineeringEnvelopeTests.test_unknown_costs_remain_unknown) ... ok\ntest_metrics_do_not_control_paper_report (test_engineering_envelope.PinnedPRReviewTests.test_metrics_do_not_control_paper_report) ... ok\ntest_pr81_policy_binding_is_acknowledged (test_engineering_envelope.PinnedPRReviewTests.test_pr81_policy_binding_is_acknowledged) ... ok\ntest_reproduces_pinned_controller_duplicate_delivery_defect (test_engineering_envelope.PinnedPRReviewTests.test_reproduces_pinned_controller_duplicate_delivery_defect) ... ok\ntest_reproduces_pinned_report_identity_and_type_defects (test_engineering_envelope.PinnedPRReviewTests.test_reproduces_pinned_report_identity_and_type_defects) ... ok\ntest_tiny_task_feedback_learns_single (test_engineering_envelope.PinnedPRReviewTests.test_tiny_task_feedback_learns_single) ... ok\n\n----------------------------------------------------------------------\nRan 13 tests in 0.132s\n\nOK\n",
+  "stdout": ""
+}

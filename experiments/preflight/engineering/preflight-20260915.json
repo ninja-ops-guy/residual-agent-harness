@@ -1,0 +1,1287 @@
+{
+  "cases": [
+    {
+      "error_type": null,
+      "mechanism": "worker_receipt_hash_roundtrip_signature_verify",
+      "median_ns": 418582,
+      "repeats_requested": 1,
+      "result": {
+        "artifact_count": 10,
+        "receipt_hash": "fe73735b8cc2901dee709272e8229e50df15e6cfb354e49a4fa971ac09f97c89"
+      },
+      "samples_ns": [
+        418582
+      ],
+      "size": {
+        "artifacts": 10
+      },
+      "status": "measured",
+      "timeout_s": 10.0
+    },
+    {
+      "error_type": null,
+      "mechanism": "worker_receipt_hash_roundtrip_signature_verify",
+      "median_ns": 13308618,
+      "repeats_requested": 1,
+      "result": {
+        "artifact_count": 1000,
+        "receipt_hash": "4256be8a9725da696080668733723ccf662e8c6a18c62e5ed58b7a07e70e6b16"
+      },
+      "samples_ns": [
+        13308618
+      ],
+      "size": {
+        "artifacts": 1000
+      },
+      "status": "measured",
+      "timeout_s": 10.0
+    },
+    {
+      "error_type": null,
+      "mechanism": "scheduler_select_and_measure",
+      "median_ns": 70857,
+      "repeats_requested": 1,
+      "result": {
+        "launched_workers": 0,
+        "measurement_hash": "fe134b11820fd45396d0203a45b3454eefd3c6bfe37c1e0368f7ea0655692623",
+        "selected_node": "node0",
+        "synthetic_node_records": 10
+      },
+      "samples_ns": [
+        70857
+      ],
+      "size": {
+        "synthetic_node_records": 10
+      },
+      "status": "measured",
+      "timeout_s": 10.0
+    },
+    {
+      "error_type": null,
+      "mechanism": "scheduler_select_and_measure",
+      "median_ns": 78899,
+      "repeats_requested": 1,
+      "result": {
+        "launched_workers": 0,
+        "measurement_hash": "15c27806d2d15898ced36a1c352526d9e981fbb075f2c6da74ad02edac756ec1",
+        "selected_node": "node0",
+        "synthetic_node_records": 100
+      },
+      "samples_ns": [
+        78899
+      ],
+      "size": {
+        "synthetic_node_records": 100
+      },
+      "status": "measured",
+      "timeout_s": 10.0
+    },
+    {
+      "error_type": null,
+      "mechanism": "scheduler_select_and_measure",
+      "median_ns": 579795,
+      "repeats_requested": 1,
+      "result": {
+        "launched_workers": 0,
+        "measurement_hash": "2cd69e938ece6bd098aecc92e957a33bb33ef6daf97f9107de27187dda5286ce",
+        "selected_node": "node0",
+        "synthetic_node_records": 1000
+      },
+      "samples_ns": [
+        579795
+      ],
+      "size": {
+        "synthetic_node_records": 1000
+      },
+      "status": "measured",
+      "timeout_s": 10.0
+    },
+    {
+      "error_type": null,
+      "mechanism": "observation_chain_build_verify_serialize",
+      "median_ns": 28551003,
+      "repeats_requested": 1,
+      "result": {
+        "count": 1000,
+        "head": "da94ea5e0267aa574ce5fd89a267bd99d67da10c28853bdfa7e985364aac1518",
+        "serialized_bytes": 256616
+      },
+      "samples_ns": [
+        28551003
+      ],
+      "size": {
+        "observations": 1000
+      },
+      "status": "measured",
+      "timeout_s": 10.0
+    },
+    {
+      "error_type": null,
+      "mechanism": "observation_chain_build_verify_serialize",
+      "median_ns": 279839088,
+      "repeats_requested": 1,
+      "result": {
+        "count": 10000,
+        "head": "33446b5776599254f7120b9975b3909d3102ca836e79fd3169334c534022f579",
+        "serialized_bytes": 2596617
+      },
+      "samples_ns": [
+        279839088
+      ],
+      "size": {
+        "observations": 10000
+      },
+      "status": "measured",
+      "timeout_s": 10.0
+    },
+    {
+      "error_type": null,
+      "mechanism": "observation_chain_build_verify_serialize",
+      "median_ns": 2922679337,
+      "repeats_requested": 1,
+      "result": {
+        "count": 100000,
+        "head": "8ef887ce36876a2c6685de3a8b203b22e6c02bccfd4a26fb70dd7b29585f3b07",
+        "serialized_bytes": 26266618
+      },
+      "samples_ns": [
+        2922679337
+      ],
+      "size": {
+        "observations": 100000
+      },
+      "status": "measured",
+      "timeout_s": 10.0
+    },
+    {
+      "error_type": null,
+      "mechanism": "execution_plan_validate_hash_and_snapshot_hash",
+      "median_ns": 1005366,
+      "repeats_requested": 1,
+      "result": {
+        "plan_hash": "672d9d33eef5b9bcb1af1397ae3f16964eb53529f678497cc1b9168ca67dfcba",
+        "snapshot_hash": "3512b2c7a6bb51600dddc593758c47f78171f48b12a03db1b265c66042edec38"
+      },
+      "samples_ns": [
+        1005366
+      ],
+      "size": {
+        "nodes": 100,
+        "shape": "wide"
+      },
+      "status": "measured",
+      "timeout_s": 10.0
+    },
+    {
+      "error_type": null,
+      "mechanism": "execution_plan_validate_hash_and_snapshot_hash",
+      "median_ns": 1102192,
+      "repeats_requested": 1,
+      "result": {
+        "plan_hash": "4f2d4e6ce808c36e4287887a00cbc5fa8d9192530658da76a46fa484c3b0c076",
+        "snapshot_hash": "7d6a45261008c819b6f1a8c5eb2eb77e3d790b05d0ee970b1ef758c16205ab73"
+      },
+      "samples_ns": [
+        1102192
+      ],
+      "size": {
+        "nodes": 100,
+        "shape": "chain"
+      },
+      "status": "measured",
+      "timeout_s": 10.0
+    },
+    {
+      "error_type": null,
+      "mechanism": "execution_plan_validate_hash_and_snapshot_hash",
+      "median_ns": 8378684,
+      "repeats_requested": 1,
+      "result": {
+        "plan_hash": "b96c971c109d9f284bc01246489c42c6d5840f69cd9797c146ed50c60d9f6453",
+        "snapshot_hash": "743302f440a112d039786595715b68be91686d04bb40a043f30abb25aa637103"
+      },
+      "samples_ns": [
+        8378684
+      ],
+      "size": {
+        "nodes": 1000,
+        "shape": "wide"
+      },
+      "status": "measured",
+      "timeout_s": 10.0
+    },
+    {
+      "error_type": null,
+      "mechanism": "execution_plan_validate_hash_and_snapshot_hash",
+      "median_ns": 23044148,
+      "repeats_requested": 1,
+      "result": {
+        "plan_hash": "99e457002095dbaed51f38c950c7ab8478cc9c2ad9b28f1eb1821f556c94ede0",
+        "snapshot_hash": "14172d2a8238812b165106f5c63f9c6d063ab6d4ab5e334067776eca08278dfb"
+      },
+      "samples_ns": [
+        23044148
+      ],
+      "size": {
+        "nodes": 1000,
+        "shape": "chain"
+      },
+      "status": "measured",
+      "timeout_s": 10.0
+    },
+    {
+      "error_type": null,
+      "mechanism": "execution_plan_validate_hash_and_snapshot_hash",
+      "median_ns": 105251167,
+      "repeats_requested": 1,
+      "result": {
+        "plan_hash": "0644ec1cffc9cce820fc7162c74e74ae7f1b966d79d6a109b295c6958acb1691",
+        "snapshot_hash": "b0be92e43e3ba61490b4541e6b7c134753973fee27470268680112c7494e9af4"
+      },
+      "samples_ns": [
+        105251167
+      ],
+      "size": {
+        "nodes": 10000,
+        "shape": "wide"
+      },
+      "status": "measured",
+      "timeout_s": 10.0
+    },
+    {
+      "error_type": null,
+      "mechanism": "execution_plan_validate_hash_and_snapshot_hash",
+      "median_ns": 2134174418,
+      "repeats_requested": 1,
+      "result": {
+        "plan_hash": "d77da1549eb2e224c7e57346f68eebba9c5f477e34ef8c2394c076b7fd4d0b4d",
+        "snapshot_hash": "3ccc25458c4ecd4d3ba38972663fbb295c2e7e116502760681f1ba96f59e1236"
+      },
+      "samples_ns": [
+        2134174418
+      ],
+      "size": {
+        "nodes": 10000,
+        "shape": "chain"
+      },
+      "status": "measured",
+      "timeout_s": 10.0
+    },
+    {
+      "error_type": null,
+      "mechanism": "m2_broker_candidate_capture",
+      "median_ns": 33619415,
+      "repeats_requested": 1,
+      "result": {
+        "artifacts": [
+          [
+            "out/file0.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file1.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file2.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file3.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file4.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file5.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file6.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file7.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file8.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file9.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ]
+        ],
+        "input_commit": "ba2d75c0a16e34e3bbc8266aa299e4644e0f4302",
+        "output_commit": "c4f8d2e8c3ab04d1248f6e21cab6061dae5d9815",
+        "output_tree": "d299daa543da5bd75a7391348f5ba79b03b1a25e",
+        "status": "UNTRUSTED_CANDIDATE"
+      },
+      "samples_ns": [
+        33619415
+      ],
+      "size": {
+        "bytes_per_file": 1024,
+        "files": 10
+      },
+      "status": "measured",
+      "timeout_s": 10.0
+    },
+    {
+      "error_type": null,
+      "mechanism": "m2_broker_candidate_capture",
+      "median_ns": 290690416,
+      "repeats_requested": 1,
+      "result": {
+        "artifacts": [
+          [
+            "out/file0.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file1.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file10.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file11.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file12.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file13.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file14.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file15.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file16.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file17.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file18.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file19.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file2.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file20.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file21.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file22.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file23.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file24.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file25.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file26.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file27.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file28.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file29.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file3.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file30.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file31.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file32.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file33.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file34.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file35.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file36.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file37.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file38.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file39.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file4.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file40.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file41.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file42.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file43.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file44.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file45.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file46.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file47.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file48.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file49.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file5.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file50.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file51.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file52.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file53.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file54.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file55.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file56.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file57.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file58.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file59.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file6.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file60.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file61.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file62.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file63.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file64.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file65.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file66.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file67.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file68.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file69.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file7.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file70.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file71.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file72.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file73.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file74.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file75.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file76.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file77.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file78.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file79.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file8.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file80.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file81.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file82.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file83.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file84.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file85.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file86.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file87.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file88.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file89.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file9.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file90.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file91.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file92.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file93.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file94.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file95.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file96.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file97.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file98.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ],
+          [
+            "out/file99.txt",
+            "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7"
+          ]
+        ],
+        "input_commit": "ba2d75c0a16e34e3bbc8266aa299e4644e0f4302",
+        "output_commit": "8277495e6d687105d1e3f8ee0393c5799e332834",
+        "output_tree": "fed4d7c456ec19a50b03f7bd20a39ef9133543b8",
+        "status": "UNTRUSTED_CANDIDATE"
+      },
+      "samples_ns": [
+        290690416
+      ],
+      "size": {
+        "bytes_per_file": 1024,
+        "files": 100
+      },
+      "status": "measured",
+      "timeout_s": 10.0
+    }
+  ],
+  "chain_schema_audit": {
+    "end_to_end_proof": "BLOCKED: missing explicit edges and retained run artifact",
+    "integration_has_explicit_verified_tree_field": false,
+    "integration_has_verifier_revision": false,
+    "integration_receipt_fields": [
+      "conflict_resolutions",
+      "execution_plan_hash",
+      "input_receipt_hashes",
+      "integrated_at_ns",
+      "integration_plan_hash",
+      "output_commit",
+      "schema_version",
+      "station_key_id",
+      "station_signature",
+      "verification_results"
+    ],
+    "plan_has_workload_hash": false,
+    "status": "schema/source audit; no final run receipt was supplied",
+    "worker_has_contract_hash": true,
+    "worker_has_execution_plan_hash": true
+  },
+  "configuration": {
+    "artifacts": [
+      10,
+      1000
+    ],
+    "capture_files": [
+      10,
+      100
+    ],
+    "case_timeout_s": 10.0,
+    "dag_nodes": [
+      100,
+      1000,
+      10000
+    ],
+    "observations": [
+      1000,
+      10000,
+      100000
+    ],
+    "repeats": 1,
+    "workers": [
+      10,
+      100,
+      1000
+    ]
+  },
+  "confirmatory": false,
+  "cost_arithmetic": {
+    "estimated_usage_usd": null,
+    "missing_usage_usd": null,
+    "reported_100_in_50_out_usd": 0.0002,
+    "status": "native Prices arithmetic only; adapter coverage is source-reviewed, not end-to-end metering",
+    "unsupported_cache_write_usd": null
+  },
+  "environment": {
+    "clock": "perf_counter_ns",
+    "cpu_count": 9,
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "python": "3.12.14"
+  },
+  "generated_at_utc": "2026-09-15T00:57:20Z",
+  "kind": "engineering-only",
+  "model_calls": 0,
+  "pinned_source_reviews": {
+    "observability": {
+      "duplicate_acceptances": 2,
+      "fixture": [
+        {
+          "correct": true,
+          "kind": "execution",
+          "outcome": "pass",
+          "schema_version": "obs006.observation.v1",
+          "task_class": "code",
+          "task_id": "a",
+          "worker_seconds": 1.0
+        },
+        {
+          "correct": true,
+          "kind": "acceptance",
+          "schema_version": "obs006.observation.v1",
+          "task_class": "code",
+          "task_id": "a"
+        },
+        {
+          "correct": false,
+          "kind": "execution",
+          "outcome": "fail",
+          "schema_version": "obs006.observation.v1",
+          "task_class": "code",
+          "task_id": "b",
+          "worker_seconds": 1.0
+        }
+      ],
+      "metrics_mutation_changes_report": false,
+      "mutable_raw_evidence_changes_report": true,
+      "non_boolean_correct_accepted": true,
+      "reported_p_x": 0.6666666666666666,
+      "source": {
+        "files": {
+          "residual/telemetry/__init__.py": "50de3ee14d211ddaec265e93fc3c2731f9177f60ed4445c8ba2af92989175cea",
+          "residual/telemetry/evidence.py": "dfc60ff2f0c219c821f5851311329065ec0554970816fec210f96e11950b1813",
+          "residual/telemetry/exporter.py": "fae7b6ef1dc506d9ca6f56647d46851a50c03de1eedea2674802cf8daf9cef0d",
+          "residual/telemetry/fixtures.py": "7c7993da2d53b3f4e79b702ff5593d92ddcc73ede65767cbf76c2ba2e471d941",
+          "residual/telemetry/labels.py": "a4d1b1963edd59c7bc2a51cd021b541817ee23a696b8e9bbee31a678d3f19bbf",
+          "residual/telemetry/metric_families.py": "6c93daaf3740d2afc3b731415c1ac1a38de236387ffc1f54f750b211d154d181",
+          "residual/telemetry/report.py": "db5cd5a32d863bbc957ca2cc0fb92cc2bda14b281c60efb6fe2adb5b963f5561",
+          "residual/telemetry/schema.py": "a5ba90c9c260018920b099a7199c22d6e97d0574c4712f9efeb1a615dc9419a8"
+        },
+        "git_sha": "058e25b3ca73de4528648b72b1901b2c319fe643"
+      },
+      "unique_execution_p_x": 0.5
+    },
+    "otx": {
+      "choices": [
+        "swarm",
+        "pair",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single",
+        "single"
+      ],
+      "duplicate_outcome_count_delta": 1,
+      "fixture_kind": "hand-authored synthetic outcomes; not measured timings",
+      "fixture_seconds": {
+        "pair": {
+          "scheduling": 1.0,
+          "worker_execution": 0.01
+        },
+        "single": {
+          "scheduling": 0.001,
+          "worker_execution": 0.01
+        },
+        "swarm": {
+          "scheduling": 5.0,
+          "worker_execution": 0.01
+        }
+      },
+      "learned_single": true,
+      "limits": [
+        "No live quality/cost inference",
+        "No forced exploration guarantee",
+        "No runtime integration claim"
+      ],
+      "source": {
+        "files": {
+          "residual/otx/__init__.py": "4a824c59691fdeed67cce823ab16d53770bbcabbb685cdb2130f9c08c5e5c2b6",
+          "residual/otx/controller.py": "8d537384abeb6b21cee279f0532d6523edcc8c5f3f27a40db5c4c36267eec614",
+          "residual/otx/estimator.py": "aff6863239c8944ae24d5da71decdebff74987dce61a45ded4d914bb4749836a",
+          "residual/otx/evidence.py": "709c15536c99534060b570ae1b3133d42c80511ad5faf23e0980db25dc826cd1",
+          "residual/otx/models.py": "7a4cb17fcd486044aca01610701567ef104c5647f636f0a2eec7e609951ed1c5",
+          "residual/otx/observation.py": "7b01815dda6275ce303796d26654703ef2e794fce32e011b68114d160e752e98",
+          "residual/otx/replay.py": "0fa806b0da8c77289dc5de12578aefc18647c7f3762e2ac242f8880d9507988b",
+          "residual/otx/workload.py": "3a1ff7e756ff8946e091d1c827b6422768137f61bc293d488c35ba4155a8565c"
+        },
+        "git_sha": "0063e6400fa945acf2db393f7e9d30db02cb1139"
+      }
+    },
+    "pr81": {
+      "candidate_binding": "output_commit -> pre-verification frozen Git tree; signed indirectly by receipt",
+      "git_sha": "30d1d020469d958d90969bc02946145c248e0adb",
+      "integration_receipt_fields": [
+        "execution_plan_hash",
+        "integration_plan_hash",
+        "input_receipt_hashes",
+        "output_commit",
+        "verification_results",
+        "conflict_resolutions",
+        "integrated_at_ns",
+        "station_key_id",
+        "station_signature",
+        "verification_policy_hash",
+        "evidence_level",
+        "schema_version"
+      ],
+      "remaining_gaps": [
+        "policy hash does not hash external verifier executable/dependencies",
+        "stdout/stderr hashes without persisted bytes are not reproducible outputs",
+        "ExecutionPlan lacks intrinsic workload cell hash"
+      ],
+      "sources": {
+        "residual/factory/m4_integrator.py": {
+          "sha256": "70ad38dfb1ee895bfedbe091a560be105ad740da988c5a3cb3608ae54e007b80",
+          "symbols": {
+            "ConflictResolution": {
+              "first_line": 54,
+              "last_line": 71
+            },
+            "DeterministicIntegrator": {
+              "first_line": 207,
+              "last_line": 657
+            },
+            "IntegrationConflictError": {
+              "first_line": 43,
+              "last_line": 44
+            },
+            "IntegrationOutcome": {
+              "first_line": 201,
+              "last_line": 204
+            },
+            "IntegrationReceipt": {
+              "first_line": 148,
+              "last_line": 197
+            },
+            "M4IntegrationError": {
+              "first_line": 39,
+              "last_line": 40
+            },
+            "ProjectVerificationError": {
+              "first_line": 47,
+              "last_line": 50
+            },
+            "ProjectVerificationPolicy": {
+              "first_line": 97,
+              "last_line": 120
+            },
+            "VerificationCommand": {
+              "first_line": 75,
+              "last_line": 93
+            },
+            "VerificationResult": {
+              "first_line": 124,
+              "last_line": 144
+            },
+            "__init__": {
+              "first_line": 208,
+              "last_line": 220
+            },
+            "__post_init__": {
+              "first_line": 102,
+              "last_line": 120
+            },
+            "_ancestors": {
+              "first_line": 263,
+              "last_line": 281
+            },
+            "_apply_receipts": {
+              "first_line": 388,
+              "last_line": 395
+            },
+            "_artifact_bytes": {
+              "first_line": 330,
+              "last_line": 338
+            },
+            "_attribute_failure": {
+              "first_line": 512,
+              "last_line": 544
+            },
+            "_classify_overlaps": {
+              "first_line": 340,
+              "last_line": 386
+            },
+            "_emit": {
+              "first_line": 222,
+              "last_line": 224
+            },
+            "_execution_boundary": {
+              "first_line": 410,
+              "last_line": 411
+            },
+            "_freeze_tree": {
+              "first_line": 440,
+              "last_line": 465
+            },
+            "_git_blob": {
+              "first_line": 292,
+              "last_line": 303
+            },
+            "_normalized_edits": {
+              "first_line": 306,
+              "last_line": 328
+            },
+            "_passes": {
+              "first_line": 468,
+              "last_line": 469
+            },
+            "_receipts": {
+              "first_line": 226,
+              "last_line": 246
+            },
+            "_remove_worktree": {
+              "first_line": 489,
+              "last_line": 491
+            },
+            "_require_execution_policy": {
+              "first_line": 398,
+              "last_line": 407
+            },
+            "_root_commit": {
+              "first_line": 248,
+              "last_line": 261
+            },
+            "_run_verification": {
+              "first_line": 413,
+              "last_line": 438
+            },
+            "_validated_commit": {
+              "first_line": 283,
+              "last_line": 290
+            },
+            "_verification_available": {
+              "first_line": 472,
+              "last_line": 479
+            },
+            "_verify_subset": {
+              "first_line": 493,
+              "last_line": 510
+            },
+            "_worktree": {
+              "first_line": 481,
+              "last_line": 487
+            },
+            "integrate": {
+              "first_line": 546,
+              "last_line": 657
+            },
+            "receipt_hash": {
+              "first_line": 178,
+              "last_line": 179
+            },
+            "to_dict": {
+              "first_line": 181,
+              "last_line": 183
+            },
+            "unsigned_payload": {
+              "first_line": 162,
+              "last_line": 175
+            },
+            "verify_signature": {
+              "first_line": 185,
+              "last_line": 197
+            },
+            "visit": {
+              "first_line": 267,
+              "last_line": 277
+            }
+          }
+        },
+        "residual/factory/m4_safety.py": {
+          "sha256": "c2569a30dba5632bbe1e831127f8cb7584ac30a5ee2c0bfb0d7d555a0eaece78",
+          "symbols": {
+            "FixtureProcessResult": {
+              "first_line": 181,
+              "last_line": 186
+            },
+            "M4SafetyError": {
+              "first_line": 25,
+              "last_line": 26
+            },
+            "_directory_flags": {
+              "first_line": 41,
+              "last_line": 44
+            },
+            "_parent": {
+              "first_line": 48,
+              "last_line": 66
+            },
+            "_regular_entry": {
+              "first_line": 69,
+              "last_line": 76
+            },
+            "apply_artifact": {
+              "first_line": 79,
+              "last_line": 115
+            },
+            "artifact_parts": {
+              "first_line": 29,
+              "last_line": 38
+            },
+            "run_trusted_fixture": {
+              "first_line": 189,
+              "last_line": 255
+            },
+            "snapshot": {
+              "first_line": 118,
+              "last_line": 177
+            },
+            "walk": {
+              "first_line": 128,
+              "last_line": 167
+            }
+          }
+        },
+        "residual/factory/m4_sandbox.py": {
+          "sha256": "fc56e012ce50bc862e23c76f80f64131421947d3a36d357abd9fde83106bb157",
+          "symbols": {
+            "IsolatedResult": {
+              "first_line": 114,
+              "last_line": 120
+            },
+            "M4SandboxError": {
+              "first_line": 46,
+              "last_line": 47
+            },
+            "_invalid": {
+              "first_line": 123,
+              "last_line": 124
+            },
+            "_unshare_argv": {
+              "first_line": 63,
+              "last_line": 70
+            },
+            "probe_isolation": {
+              "first_line": 73,
+              "last_line": 101
+            },
+            "require_isolation": {
+              "first_line": 104,
+              "last_line": 110
+            },
+            "run_isolated": {
+              "first_line": 127,
+              "last_line": 286
+            },
+            "shutil_rmtree": {
+              "first_line": 289,
+              "last_line": 291
+            }
+          }
+        }
+      },
+      "status": "source inspection only; no #81 runtime qualification",
+      "verification_policy_hash_present": true
+    }
+  },
+  "report_sha256": "122db84c2c9f5f2da602466baa0aad4cee7818937e45e4f3471c8a2e13f55579",
+  "routing_accounting_probe": {
+    "attempt_numbers": [
+      1,
+      2
+    ],
+    "completed_attempts": 2,
+    "completion_fields": [
+      "attempt",
+      "elapsed_ms",
+      "error",
+      "finish_reason",
+      "model",
+      "provider",
+      "request_bytes",
+      "request_id",
+      "status",
+      "usage"
+    ],
+    "dispatch_order": [
+      "reserve:openai",
+      "dispatch:openai",
+      "complete:openai",
+      "reserve:anthropic",
+      "dispatch:anthropic",
+      "complete:anthropic"
+    ],
+    "durable_metering": "not demonstrated: audit callbacks retain in memory only",
+    "failed_usage": {},
+    "kind": "offline fake transports through actual Router",
+    "reserved_attempts": 2,
+    "shared_request_id": true,
+    "statuses": [
+      "failed",
+      "completed"
+    ]
+  },
+  "schema_version": "residual.engineering-envelope.v1",
+  "source": {
+    "files": {
+      "ai_providers/core.py": "106d8d57f39bc8221c74fbd2eff881ebdc3249d3fc6cf6484f73093497988d35",
+      "ai_providers/registry.py": "8d4637ac9a158af49878d67ca991bc8b804ac342d0fe2d4f312d53f29ab12a03",
+      "ai_providers/router.py": "74c4424e6a90ad4bbb75ba32cfcc8860906401c78e80f04c688f75d66754cc36",
+      "observation_layer/core.py": "3ffd311ee4a972aa4fd8fbd7960c92be737bf93bbae5da2196691117da6f481c",
+      "residual/assurance/market.py": "88db52d1416e001c9db7c1adc07fd1274357ebf44d84c45379367a41f2d2fbd7",
+      "residual/core.py": "da9e9c51a798328ee43a6c545392a497d0aaf6c46a21c5a6415e3773b7a05fec",
+      "residual/engine.py": "fec1efc1ae15aec831f237525d7caef7fcba05a56af1f90a150e46df0467170e",
+      "residual/engines/provider_bridge.py": "d30551c2b9de389853d09577deae5410d40c30aef0b97247cb5135bd9de3ce63",
+      "residual/factory/evidence_bus.py": "907b1f933a25a65a87b05b0e8b3e2de15a98fb238649cf3a696f79a512e54b96",
+      "residual/factory/evidence_receipts.py": "da1448c9fca3411b4dd594fbf635ba91f75af762d2fd710718b76c9c52216499",
+      "residual/factory/m4_evidence.py": "307e4147dc1c1b3f7b7d0e854e6e2d34bafeb1978661593d96fa3795c96ecd3f",
+      "residual/factory/m4_integrator.py": "7e1e34e806149db2f9ef737387756bc187ce83d1396e13c45ff9574064519cde",
+      "residual/factory/m4_scheduler.py": "9e36663bc708f94461adf452dac14a228b2f21f5da459c63c65ec1357c3bec63",
+      "residual/factory/models.py": "01afa3f583f6cfcccb25253a0297cc8b75dbcb2d9fa3f5adb676a6428afdc076",
+      "residual/factory/runtime_workspace.py": "6bba4fd3d3d96b635cbbc50c5283a23313da2bece9cbcdb209a698153320b539",
+      "residual/factory/worker_contract.py": "8055b85cf6e6d8ea13a6b62a47f28154c9a26f4deda1296627e5ba8013d27da3",
+      "residual/observability/metrics.py": "8617ab6eb8b1a3386996b75d0a236d018e3aa118c5ee10d730bf4df6e939e2a6",
+      "residual/providers.py": "5aecc7b74229550e3ba6167b60112e7be49b563d9dd2f6cff3d80f6072ede0a8",
+      "residual/station/worker.py": "efb7f986294534c8f33ad3e4ba66b7b4e73b4f40f9f5f1129e743b4c7018fdc0",
+      "residual/study.py": "999f12a2fead5ed05aee2931b5e42b02f5680e5c7cd0e2f06b9b40118825817d",
+      "scripts/engineering_envelope.py": "1f31c3db278e6867d800d5a0a6a6e961c4bf58b1798e6cc356e119225df8756d"
+    },
+    "git_sha": "dec571992a97b4ae80f0310aa32ffd8f542aef8c",
+    "git_tree": "6839c59babb5de81d0f9bb75de7f6c1e0b89e87b",
+    "worktree_dirty": true
+  },
+  "unmeasured": [
+    {
+      "mechanism": "M4 verifier sandbox startup/output limits/verified snapshot/integration latency",
+      "status": "BLOCKED pending #81 merge and qualified boundary"
+    },
+    {
+      "mechanism": "simultaneously running 10/100/1000 workers or candidates",
+      "status": "NOT RUN; scheduler node metadata only"
+    },
+    {
+      "mechanism": "long receipt ancestry on EvidenceBus and durable 100k observation ingestion",
+      "status": "NOT RUN; in-memory observation chains and plan DAGs measured separately"
+    }
+  ]
+}

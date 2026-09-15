@@ -1,0 +1,13 @@
+{
+  "artifact": {
+    "base_source": "def normalize_name(value):\n    return value.lower()\n",
+    "candidate_source": "def normalize_name(value):\n    return \"\" if value is None else value.lower()\n",
+    "format": "unified_diff",
+    "patch": "--- a/solution.py\n+++ b/solution.py\n@@ -1,2 +1,2 @@\n def normalize_name(value):\n-    return value.lower()\n+    return \"\" if value is None else value.lower()\n"
+  },
+  "case_id": "VC-0006",
+  "schema": "residual.preflight.candidate.v1",
+  "task": {
+    "instruction": "Add support for None, returning an empty string. Preserve the existing behavior for every string, including surrounding whitespace."
+  }
+}

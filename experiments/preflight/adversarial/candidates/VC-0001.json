@@ -1,0 +1,10 @@
+{
+  "artifact": {
+    "answer": 2
+  },
+  "case_id": "VC-0001",
+  "schema": "residual.preflight.candidate.v1",
+  "task": {
+    "instruction": "Compute the exact median of [1, 2, 8, 9]. Return a JSON number."
+  }
+}

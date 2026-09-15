@@ -1,0 +1,1 @@
+python -m residual.reproduce synthetic-demo --runs-dir examples/reproduction

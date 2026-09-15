@@ -1,0 +1,31 @@
+{
+  "cases": [
+    {
+      "file": "code-repair.json",
+      "sha256": "38b9ec89f7722a41f3e581974a1c555b8789eff78e484b69e1670db5754c83cd"
+    },
+    {
+      "file": "configuration-generation.json",
+      "sha256": "11e685d628a196abc163d41dc120c5154edc4561ff7b42e0ee5f3db1f71bc14d"
+    },
+    {
+      "file": "documentation-synthesis.json",
+      "sha256": "4fe25771df126fd46595543125020afdf3b52d31c9ca18853c40de497c88b388"
+    },
+    {
+      "file": "security-triage.json",
+      "sha256": "3c255b28eafaaf19d069653831231e900e759dd112064dfd5df3f1aaa914477a"
+    },
+    {
+      "file": "test-generation.json",
+      "sha256": "536fca1572972e7a431cc604d60a7b7c297928b126d96310cd8614164b0cbf9b"
+    },
+    {
+      "file": "data-cleaning.json",
+      "sha256": "3c3f194c1152b18bff46463d073e019dcddb8f1d18feea3be3afc37a94ec2497"
+    }
+  ],
+  "confirmatory_eligible": false,
+  "evidence_level": "development_fixture",
+  "schema_version": "residual.application-fixtures.v1"
+}

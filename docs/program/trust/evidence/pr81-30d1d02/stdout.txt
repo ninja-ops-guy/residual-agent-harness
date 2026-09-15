@@ -1,0 +1,7 @@
+...............xxx............sssssssssssss                              [100%]
+=========================== short test summary info ============================
+SKIPPED [13] ../lane-trust/tests/preflight_trust/test_sandbox_probes.py:157: isolation unavailable (namespace_probe_failed); no attack attempted
+XFAIL ../lane-trust/tests/preflight_trust/test_invariants.py::test_malformed_git_size_has_typed_error - TRUST-002: cat-file size parsing ValueError escapes typed ERROR
+XFAIL ../lane-trust/tests/preflight_trust/test_invariants.py::test_string_false_requirement_is_rejected - TRUST-003: VerificationDecision truthiness-coerces non-boolean requirements
+XFAIL ../lane-trust/tests/preflight_trust/test_invariants.py::test_scheduler_nonfinite_policy_is_rejected - TRUST-004: SchedulerPolicy accepts NaN imbalance threshold
+27 passed, 13 skipped, 3 xfailed in 2.39s

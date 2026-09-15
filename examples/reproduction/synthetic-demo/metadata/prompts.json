@@ -1,0 +1,9 @@
+{
+  "prompts": [
+    {
+      "path": "attachments/prompt.txt",
+      "prompt_id": "fixture-prompt",
+      "sha256": "78181c7f351d3cdc0bd8b81d9ab85e9d588f25edb617d1571f97f5cfa08b4c91"
+    }
+  ]
+}

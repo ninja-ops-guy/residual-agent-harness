@@ -1,0 +1,1 @@
+protocol_sha256,bundle_sha256,analysis_sha256,cohort_id,elapsed_hours,at_risk,failures,censored,survival_probability,ci_low,ci_high,failure_definition_revision

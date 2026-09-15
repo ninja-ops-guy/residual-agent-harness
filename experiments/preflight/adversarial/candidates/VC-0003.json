@@ -1,0 +1,13 @@
+{
+  "artifact": {
+    "base_source": "def unique(values):\n    return list(set(values))\n",
+    "candidate_source": "def unique(values):\n    return list(dict.fromkeys(values))\n",
+    "format": "unified_diff",
+    "patch": "--- a/solution.py\n+++ b/solution.py\n@@ -1,2 +1,2 @@\n def unique(values):\n-    return list(set(values))\n+    return list(dict.fromkeys(values))\n"
+  },
+  "case_id": "VC-0003",
+  "schema": "residual.preflight.candidate.v1",
+  "task": {
+    "instruction": "Return each hashable value once in its original first-occurrence order, including when input is empty."
+  }
+}

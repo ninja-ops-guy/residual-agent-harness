@@ -1,0 +1,103 @@
+{
+  "candidates": {
+    "broken": {
+      "vectors": [
+        {
+          "expected": 1,
+          "input": []
+        },
+        {
+          "expected": 1,
+          "input": [
+            "a"
+          ]
+        },
+        {
+          "expected": 3,
+          "input": [
+            "a",
+            "b",
+            "c"
+          ]
+        }
+      ]
+    },
+    "good": {
+      "vectors": [
+        {
+          "expected": 0,
+          "input": []
+        },
+        {
+          "expected": 1,
+          "input": [
+            "a"
+          ]
+        },
+        {
+          "expected": 3,
+          "input": [
+            "a",
+            "b",
+            "c"
+          ]
+        }
+      ]
+    },
+    "missing": null
+  },
+  "expected": {
+    "vectors": [
+      {
+        "expected": 0,
+        "input": []
+      },
+      {
+        "expected": 1,
+        "input": [
+          "a"
+        ]
+      },
+      {
+        "expected": 3,
+        "input": [
+          "a",
+          "b",
+          "c"
+        ]
+      }
+    ]
+  },
+  "id": "test-generation",
+  "input": {
+    "operation": "count",
+    "requirements": [
+      "empty",
+      "one",
+      "three"
+    ]
+  },
+  "intent_document": {
+    "intent": "Propose boundary test vectors for a count operation.",
+    "requirements": [
+      {
+        "acceptance": [
+          "Emit candidate.json only."
+        ],
+        "id": "REQ-prepare",
+        "statement": "Create a candidate from the supplied public fixture inputs."
+      },
+      {
+        "acceptance": [
+          "Test vectors cover zero, one and three items with independently correct counts."
+        ],
+        "depends_on": [
+          "REQ-prepare"
+        ],
+        "id": "REQ-review",
+        "statement": "Assess the candidate against independently authored requirements."
+      }
+    ]
+  },
+  "schema_version": "residual.application-case.v1"
+}

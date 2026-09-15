@@ -1,0 +1,39 @@
+{
+  "candidates": [
+    {
+      "class_candidate": "S",
+      "eligibility": "unqualified",
+      "model": "gpt-4.1-2025-04-14",
+      "observed": "snapshot listed",
+      "source_url": "https://developers.openai.com/api/docs/models/gpt-4.1"
+    },
+    {
+      "class_candidate": "M",
+      "eligibility": "unqualified",
+      "model": "gpt-4.1-mini-2025-04-14",
+      "observed": "snapshot listed",
+      "source_url": "https://developers.openai.com/api/docs/models/gpt-4.1-mini"
+    },
+    {
+      "class_candidate": "W",
+      "eligibility": "excluded from new confirmatory cohort",
+      "model": "gpt-4.1-nano-2025-04-14",
+      "observed": "snapshot listed with Deprecated label",
+      "source_url": "https://developers.openai.com/api/docs/models/gpt-4.1-nano"
+    },
+    {
+      "class_candidate": "L",
+      "eligibility": "unqualified; immutable weights, memory fit and shared I/O required",
+      "model": "Qwen/Qwen2.5-Coder-7B-Instruct-GGUF",
+      "observed": "publisher repository and Q4_K_M usage listed",
+      "quantization_candidate": "Q4_K_M",
+      "source_url": "https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct-GGUF",
+      "weights_sha256": null
+    }
+  ],
+  "note": "Documentation inspection only. No claim of authenticated availability, price qualification, local fit, or family selection.",
+  "qualified_endpoint_calls": 0,
+  "review_date": "2026-09-15",
+  "schema_version": "residual.model-candidate-review.v1",
+  "selected_models": []
+}

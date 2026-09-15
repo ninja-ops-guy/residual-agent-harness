@@ -1,0 +1,20 @@
+{
+  "artifact": {
+    "bindings": {
+      "candidate_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "contract_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "verifier_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "status": "pass"
+  },
+  "case_id": "VC-0014",
+  "schema": "residual.preflight.candidate.v1",
+  "task": {
+    "current_context": {
+      "candidate_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "contract_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "verifier_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "instruction": "Evidence is admissible only if candidate, verifier revision and contract hashes all equal the current context. A historic PASS is insufficient."
+  }
+}

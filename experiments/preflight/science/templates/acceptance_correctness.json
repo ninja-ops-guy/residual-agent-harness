@@ -1,0 +1,23 @@
+{
+  "categories": [
+    "accepted",
+    "rejected",
+    "unknown"
+  ],
+  "columns": [
+    "configuration",
+    "acceptance",
+    "independent_grade",
+    "count",
+    "scheduled_n"
+  ],
+  "data": [],
+  "evidence_level": "empty_template",
+  "plot_id": "acceptance_correctness",
+  "protocol_sha256": "8f0010b51b932af1fa0f9d3018bf6e02029eab784c9fe4f9885bc99667949d59",
+  "schema_version": "residual.paper-template.v1",
+  "title": "Acceptance and independent correctness",
+  "x": "acceptance",
+  "y": "correctness",
+  "y_label": "Independent grade"
+}
