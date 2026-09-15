@@ -1,6 +1,20 @@
 # Swarm 6 — Runtime + Distributed-State Closure
 
-Status: **QUALIFIED**
+Status: **BLOCKED — integration regressions expose missing implementation**
+
+At main `1cf4e46c0ace8e3cdc76147ad4c7dc6480a9fb34`, the combined
+`test_runtime_distributed_closure.py`, `test_runtime005.py`, and `test_dsm.py`
+suite has three failing regressions. The runtime has no `track_process` API;
+lease reassignment is not locked through journal append; and a reused event
+ID with a changed payload is incorrectly returned as a duplicate. The earlier
+QUALIFIED label was premature. Existing component evidence cannot close these
+integration failures or qualify production/soak behavior.
+
+These pytest functions are now explicitly executed in the required CI `tests`
+job on Python 3.11/3.12/3.13; unittest discovery alone did not collect them.
+Keep their assertions and timing budgets intact while repairing the runtime
+and DSM implementations. Retain failures in the job artifacts and obtain
+independent review before changing this status.
 
 This integration note reconciles the independently landed `SPEC-SWARM-RUNTIME-005`
 and `SPEC-SWARM-DSM-004` lanes without treating reliable transport as consensus.
@@ -13,11 +27,11 @@ and `SPEC-SWARM-DSM-004` lanes without treating reliable transport as consensus.
 | Probe before routing | PASS | Fresh dispatch probe; mismatch and degraded engines fail closed. |
 | RESIDUAL HITL authority | PASS | Provider approval/autonomy metadata is stripped or rejected. |
 | Stale telemetry | PASS | Stale/absent values return `UNKNOWN` and suppress the value. |
-| Async cancellation | PASS | Tasks and dedicated POSIX worker process groups terminate within a fixed budget; survivors produce a failed cancellation report. |
+| Async cancellation | PARTIAL / BLOCKED | Async-task cancellation exists; dedicated process-group tracking required by the new regression is absent. |
 | Terminal observation flush | PASS | Close drains the buffer to an fsynced JSONL leg; stop or flush timeout fails closed. |
 | Durable ack/cursor | PASS | Journal-backed outbox, ack log and monotonic replay cursor. |
-| Replay idempotence | PASS | The globally unique `event_id` is the authoritative transition key; exact retries are duplicates and key collisions with different payloads fail closed. |
-| Fencing at commit boundary | PASS (single process) | The lease lock is held from token validation through journal `fsync`; reassignment cannot race the append. |
+| Replay idempotence | PARTIAL / BLOCKED | Exact retry after recovery passes; changed-payload key collisions are not rejected. |
+| Fencing at commit boundary | BLOCKED | Reassignment succeeds during authoritative append; the required shared lock is absent. |
 | Restart provenance | PASS | Recovery reconstructs accepted transitions and hash-linked provenance from the journal alone. |
 
 ## Authority map
@@ -33,9 +47,10 @@ Terminal decisions (`succeeded`, `failed`, `rejected`, `unknown`) are absorbing 
 
 ## Exact cluster guarantees
 
-The current implementation guarantees the following under crash-stop and arbitrary
+The intended local contract covers the following under crash-stop and arbitrary
 duplicate, delayed, reordered or lost deliveries, provided one journal-writing process
-owns the state directory and the filesystem honors `fsync`:
+owns the state directory and the filesystem honors `fsync`. This combined
+contract remains unqualified until the three failures above are repaired:
 
 - durable acknowledgement and reconnect/catch-up;
 - at-least-once delivery with exactly-once accepted effect;
@@ -65,8 +80,8 @@ for that evidence.
 
 ## Production-hardening decision
 
-Production-hardening may proceed for adapter work, observability, crash/replay soak
-testing and a consensus-backed storage proof of concept. The current layer remains
-labeled **QUALIFIED**, not production-ready, until real multi-process/multi-node
-contention, network partitions, consensus-backed fencing and host-loss recovery are
-measured.
+Repair the three missing local guarantees and independently verify the required
+CI regressions first. Then qualify real process contention, restart/recovery and
+elapsed soak at the selected candidate revision. Multi-node consensus, network
+partitions and host-loss recovery require their own implementation and evidence;
+they are not established by these local tests.

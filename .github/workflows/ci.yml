@@ -8,6 +8,7 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python: ['3.11', '3.12', '3.13']
     steps:
@@ -21,6 +22,25 @@ jobs:
         run: |
           python -m compileall -q residual
           python -m unittest discover -s tests -v
+      - name: Runtime and DSM integration regressions
+        if: always()
+        run: |
+          set -o pipefail
+          mkdir -p runs/runtime-dsm
+          python -m pytest \
+            tests/swarm/test_runtime_distributed_closure.py \
+            tests/swarm/test_runtime005.py \
+            tests/swarm/test_dsm.py \
+            -ra --junitxml=runs/runtime-dsm/results.xml \
+            2>&1 | tee runs/runtime-dsm/tests.txt
+      - name: Preserve runtime and DSM integration evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-dsm-${{ github.run_id }}-${{ github.run_attempt }}-python-${{ matrix.python }}
+          path: runs/runtime-dsm/
+          if-no-files-found: error
+          retention-days: 14
       - name: Exercise packaged CLI
         run: |
           residual demo --output runs/ci-demo
