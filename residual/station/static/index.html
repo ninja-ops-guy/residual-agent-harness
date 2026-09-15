@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b1418"><meta name="description" content="Your local-first agent command center. Specs in. Verified work out.">
+  <meta name="theme-color" content="#000000"><meta name="description" content="RESIDUAL Command Station — evidence-driven reliability control for untrusted AI computation.">
   <title>RESIDUAL · Command Station</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/style.css">
-  <script src="/app.js" defer></script>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/website-theme.css">
+  <script src="/app.js" defer></script><script src="/onboarding.js" defer></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to workspace</a>
@@ -30,6 +30,29 @@
   </div>
   <section id="job-tray" aria-label="Active operations" aria-live="polite"></section>
   <div id="toasts" role="status" aria-live="polite"></div>
+
+  <dialog id="first-run" class="first-run-dialog" aria-labelledby="first-run-title" aria-describedby="first-run-copy">
+    <div class="first-run-shell">
+      <div class="first-run-topline"><span class="first-run-prompt">ZERO-CONFIG FIRST RUN</span><span class="first-run-status">LOCAL · DETERMINISTIC · NO PROVIDER</span></div>
+      <h1 id="first-run-title">Run RESIDUAL before you configure anything.</h1>
+      <p id="first-run-copy" class="first-run-lead">Start with one real Command Station workflow. The training mission uses scripted worker proposals, real Git changes, deterministic acceptance checks, and evidence receipts. It does not require an API key, model account, or cloud provider.</p>
+      <div class="first-run-flow" aria-label="First mission flow">
+        <span>SPEC</span><b>→</b><span>PLAN</span><b>→</b><span>RUN</span><b>→</b><span>VERIFY</span><b>→</b><span>RECEIPT</span>
+      </div>
+      <div class="first-run-grid">
+        <section><span class="first-run-step">01 / LOAD</span><h2>Night Shift mission</h2><p>Load the bundled training specification into the normal project store.</p></section>
+        <section><span class="first-run-step">02 / EXECUTE</span><h2>Real station path</h2><p>Queue the same run operation used by Command Station projects—no separate fake demo UI.</p></section>
+        <section><span class="first-run-step">03 / INSPECT</span><h2>Evidence attached</h2><p>Watch task state, checks, activity, and the final receipt appear in the app.</p></section>
+      </div>
+      <div class="first-run-note"><b>CLAIM DISCIPLINE</b> · Training mode is deterministic and clearly labeled. Live model inference remains opt-in and uses the same UI after you connect a provider.</div>
+      <div class="first-run-actions">
+        <button type="button" class="button primary first-run-primary" data-action="demo" data-onboarding-run>▶ RUN FIRST MISSION</button>
+        <button type="button" class="first-run-secondary" data-onboarding-dismiss>OPEN EMPTY WORKSPACE</button>
+      </div>
+      <p class="first-run-foot">The first mission can be rerun later from the workspace. Dismissing this screen changes only onboarding UI state.</p>
+    </div>
+  </dialog>
+
   <dialog id="dialog" aria-labelledby="dialog-title"><header><div><span class="eyebrow" id="dialog-eyebrow">COMMAND STATION</span><h2 id="dialog-title"></h2></div><button class="icon-button" data-action="close-dialog" aria-label="Close dialog">✕</button></header><div id="dialog-body"></div></dialog>
 </body>
 </html>
