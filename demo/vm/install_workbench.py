@@ -20,7 +20,14 @@ def patch(text):
         residualWorkbench = mountMissionControl({
             ready: () => !!cx && !!residualDataDevice && residualShellReady,
             focus: () => term.focus(),
-            mailbox: (path, text) => residualDataDevice.writeFile(path, text),
+            mailbox: async (path, text) => {
+                if (!/^\\/m-[a-f0-9]{32}-[a-f0-9]{32}\\.json$/.test(path)) throw new Error("Invalid mailbox response path");
+                // Publish the body first and only then expose a request-specific
+                // ready marker. The guest waits for the marker before reading,
+                // so DataDevice writes cannot be consumed mid-publication.
+                await residualDataDevice.writeFile(path, text);
+                await residualDataDevice.writeFile(path + ".ready", "1");
+            },
             run: async (request) => {
                 if (!/^m-[a-f0-9]{32}$/.test(request.id)) throw new Error("Invalid mission ID");
                 const name = "/" + request.id + ".json";
