@@ -22,10 +22,40 @@ from residual.factory.m4_sandbox import (
 
 PYTHON = "/usr/bin/python3"  # Path inside the sandbox root.
 ISOLATED = probe_isolation()[0]
+# Qualification-lane switch: when M4_REQUIRE_ISOLATION=1, a runner that
+# cannot prove namespace isolation must FAIL LOUDLY (with the preflight
+# report) instead of skipping. A skipped test is not qualification evidence.
+REQUIRE_ISOLATION = os.environ.get("M4_REQUIRE_ISOLATION") == "1"
 
 
-@unittest.skipUnless(ISOLATED, "kernel namespace isolation unavailable on this platform")
+def isolation_preflight_report() -> str:
+    """Run scripts/m4_runner_preflight.py and return its report as text."""
+    script = Path(__file__).resolve().parents[1] / "scripts" / "m4_runner_preflight.py"
+    try:
+        result = subprocess.run(
+            [sys.executable, str(script)],
+            capture_output=True, text=True, timeout=120, check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return f"preflight probe could not execute: {type(exc).__name__}"
+    return f"preflight exit={result.returncode} report:\n{result.stdout.strip()}"
+
+
+@unittest.skipUnless(
+    ISOLATED or REQUIRE_ISOLATION,
+    "kernel namespace isolation unavailable on this platform",
+)
 class IsolatedRunnerTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        if REQUIRE_ISOLATION and not ISOLATED:
+            raise M4SandboxError(
+                "M4_REQUIRE_ISOLATION=1 but namespace isolation is BLOCKED on "
+                "this runner; refusing to let skipped tests read as "
+                "qualification. " + isolation_preflight_report()
+            )
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
