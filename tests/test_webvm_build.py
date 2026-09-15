@@ -45,7 +45,7 @@ class BuildWorkbenchTests(unittest.TestCase):
 
     def test_build_instruction_requires_directly_previewable_static_browser_bundle(self):
         task, _, _, _ = make_build_task(self.req, self.root)
-        instruction = task.obligations[0].description
+        instruction = task.obligations[0].instruction
         self.assertIn('directly previewable static bundle', instruction)
         self.assertIn('index.html', instruction)
         self.assertIn('do not require npm, a build step, a dev server, CDN assets, or remote network access', instruction)
