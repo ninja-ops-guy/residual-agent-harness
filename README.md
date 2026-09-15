@@ -107,7 +107,7 @@ Current `main` has since advanced through the Mission Control real-provider reli
 
 Before paper-facing live reliability evaluation, the priority gates are now:
 
-1. independently review and integrate PR #109's exact-candidate M4 qualification: its current Ubuntu 22.04 run achieved real namespace probes, actual isolated execution and zero skipped M4 cases, but the broader Python 3.13 matrix reproducibly fails a protected lifecycle stderr-contract test and must be root-caused without weakening that assertion before complete exact-candidate CI and deliberate merge;
+1. independently review and deliberately integrate PR #109's exact-candidate M4 qualification: its current Ubuntu 22.04 run achieved real namespace probes, actual isolated execution and zero skipped M4 cases, and the current exact-head workflow suite is green; preserve the preceding Python 3.13 intermittent failure as reliability evidence rather than treating the green reruns as release, recovery or soak qualification;
 2. keep exact-current-main browser/Pages qualification green and retain any recurrence of the intermittent WebVM guest-runtime failure tracked by issue #120;
 3. complete downstream release/recovery qualification without weakening security or acceptance gates;
 4. freeze the live evaluation protocol before observing model results;
