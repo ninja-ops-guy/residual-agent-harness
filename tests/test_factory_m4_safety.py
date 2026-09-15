@@ -242,7 +242,7 @@ class M4AcceptanceSafetyTests(unittest.TestCase):
         second = self.integrate()
         self.assertEqual(first.output_tree, second.output_tree)
         receipt = first.receipt
-        self.assertEqual(receipt.schema_version, 'factory-integration-receipt-v2')
+        self.assertEqual(receipt.schema_version, 'factory-integration-receipt-v3')
         self.assertEqual(receipt.evidence_level, 'development_fixture')
         self.assertEqual(receipt.verification_results[0].execution_boundary, 'trusted_fixture_unsandboxed')
         self.assertTrue(receipt.verify_signature(self.f.identity.public_bytes()))
