@@ -1,7 +1,8 @@
-"""M4 safety: candidate workspaces are evidence, never trusted writes.
+"""M4 host-side I/O and bounded *trusted-fixture* process supervision.
 
-Artifact application writes bytes only for receipt-bound regular files, inside
-the candidate worktree, with symlink/special-file rejection at every level.
+No helper in this module is an OS sandbox. Untrusted project verification is
+blocked by the integrator. A hostile same-UID host process is outside this trust
+boundary; the private worktree is never exposed to an untrusted running worker.
 """
 from __future__ import annotations
 
@@ -26,98 +27,135 @@ class M4SafetyError(WorkerContractError):
     pass
 
 
-def artifact_parts(path: str) -> tuple[str, ...]:
-    """Validate and split a receipt-declared artifact path (lexical policy)."""
-    if not isinstance(path, str) or not path:
-        raise M4SafetyError('invalid artifact path')
-    if any(ch in path for ch in '\\:*?[]') or any(ord(ch) < 32 or ord(ch) == 127 for ch in path):
-        raise M4SafetyError('invalid artifact path')
-    pure = PurePosixPath(path)
-    if pure.is_absolute() or any(part in {'', '.', '..'} for part in pure.parts):
-        raise M4SafetyError('artifact path must be relative and normalized')
-    if '.git' in (part.lower() for part in pure.parts):
-        raise M4SafetyError('artifact path must not touch .git')
-    return pure.parts
-
-
-def _openat_dir(fd: int, name: str, *, create: bool) -> int:
-    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC
-    if create:
-        flags |= os.O_CREAT
-        return os.open(name, flags, 0o700, dir_fd=fd)
-    return os.open(name, flags, dir_fd=fd)
+def artifact_parts(relative: str) -> tuple[str, ...]:
+    if not isinstance(relative, str) or not relative or '\x00' in relative or '\\' in relative:
+        raise M4SafetyError('invalid integration artifact path')
+    path = PurePosixPath(relative)
+    parts = path.parts
+    if path.is_absolute() or not parts or path.as_posix() != relative:
+        raise M4SafetyError('noncanonical integration artifact path')
+    if any(p in {'.', '..'} or p.casefold() == '.git' for p in parts):
+        raise M4SafetyError('reserved or traversing integration artifact path')
+    return parts
 
 
 def _directory_flags() -> int:
+    if os.name != 'posix' or not hasattr(os, 'O_NOFOLLOW'):
+        raise M4SafetyError('descriptor-relative no-follow I/O is required')
     return os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC
 
 
-def apply_artifact(worktree: Path, path: str, data: bytes | None) -> None:
-    """Write or delete exactly one receipt-bound artifact inside ``worktree``.
-
-    Every path component is opened with O_NOFOLLOW; the final write uses
-    O_CREAT|O_EXCL for creation and an in-place truncate+write for an existing
-    regular file owned by this worktree. ``data=None`` deletes the artifact.
-    """
-    parts = artifact_parts(path)
-    root = os.open(str(worktree), _directory_flags())
+@contextmanager
+def _parent(worktree: Path, relative: str, *, create: bool):
+    parts = artifact_parts(relative)
     try:
-        current = root
+        fd = os.open(worktree, _directory_flags())
+    except OSError as exc:
+        raise M4SafetyError('integration workspace root is unavailable') from exc
+    try:
         for part in parts[:-1]:
-            current = _openat_dir(current, part, create=True)
-        name = parts[-1]
-        if data is None:
-            try:
-                os.unlink(name, dir_fd=current)
-            except FileNotFoundError:
-                pass
-            return
-        flags = os.O_WRONLY | os.O_NOFOLLOW | os.O_CLOEXEC
-        try:
-            fd = os.open(name, flags, dir_fd=current)
-            info = os.fstat(fd)
-            if not stat.S_ISREG(info.st_mode):
-                raise M4SafetyError('artifact target is not a regular file')
-            os.ftruncate(fd, 0)
-        except FileNotFoundError:
-            fd = os.open(name, flags | os.O_CREAT | os.O_EXCL, 0o600, dir_fd=current)
-        try:
-            view = memoryview(data)
-            while view:
-                written = os.write(fd, view)
-                view = view[written:]
-            os.fsync(fd)
-        finally:
+            if create:
+                try:
+                    os.mkdir(part, 0o700, dir_fd=fd)
+                except FileExistsError:
+                    pass
+            next_fd = os.open(part, _directory_flags(), dir_fd=fd)
             os.close(fd)
+            fd = next_fd
+        yield fd, parts[-1]
     finally:
-        os.close(root)
+        os.close(fd)
+
+
+def _regular_entry(fd: int, name: str):
+    try:
+        info = os.stat(name, dir_fd=fd, follow_symlinks=False)
+    except FileNotFoundError:
+        return None
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+        raise M4SafetyError('artifact must be a single-link regular file, not a link or directory')
+    return info
+
+
+def apply_artifact(worktree: Path, relative: str, data: bytes | None) -> None:
+    """No target inode is opened for writing: replace a fresh private file.
+
+    NOFOLLOW is used for each parent. A link substituted after validation is
+    replaced/unlinked as a directory entry, never followed to external content.
+    Existing hard links, symlinks (including dangling ones), and special files
+    fail closed. Existing executable mode is preserved; new files are 0644.
+    """
+    try:
+        with _parent(worktree, relative, create=data is not None) as (fd, name):
+            previous = _regular_entry(fd, name)
+            if data is None:
+                if previous is not None:
+                    os.unlink(name, dir_fd=fd)
+                return
+            temporary = '.residual-write-' + uuid.uuid4().hex
+            out = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL |
+                          os.O_NOFOLLOW | os.O_CLOEXEC, 0o600, dir_fd=fd)
+            try:
+                with os.fdopen(out, 'wb') as stream:
+                    stream.write(data)
+                    stream.flush()
+                    os.fchmod(stream.fileno(), 0o755 if previous and previous.st_mode & 0o111 else 0o644)
+                    os.fsync(stream.fileno())
+                os.replace(temporary, name, src_dir_fd=fd, dst_dir_fd=fd)
+                os.fsync(fd)
+            finally:
+                try:
+                    os.unlink(temporary, dir_fd=fd)
+                except FileNotFoundError:
+                    pass
+    except FileNotFoundError:
+        if data is not None:
+            raise M4SafetyError('integration parent vanished') from None
+        # An absent parent proves that a deletion target is already absent.
+    except OSError as exc:
+        raise M4SafetyError('integration descriptor operation failed') from exc
 
 
 def snapshot(worktree: Path) -> dict[str, tuple[str, int, str]]:
-    """Hash every regular file under ``worktree``; reject links/specials."""
-    result: dict[str, tuple[str, int, str]] = {}
+    """Read a bounded full inventory, including ignored files and .git marker.
 
-    def walk(fd: int, prefix: str = '') -> None:
-        for entry in os.listdir(fd):
-            if entry in {'.', '..'}:
-                continue
-            info = os.stat(entry, dir_fd=fd, follow_symlinks=False)
-            relative = f'{prefix}{entry}'
+    No Git status cache or clean filter participates. Hash file contents through
+    no-follow descriptors, reject hard links/special files, and retain directory
+    entries so even empty unreceipted directories are visible.
+    """
+    result: dict[str, tuple[str, int, str]] = {}
+    total = 0
+
+    def walk(fd: int, prefix: str = ''):
+        nonlocal total
+        for name in sorted(os.listdir(fd)):
+            relative = prefix + name
+            if len(result) >= 100_000:
+                raise M4SafetyError('verification snapshot file-count limit exceeded')
+            info = os.stat(name, dir_fd=fd, follow_symlinks=False)
             if stat.S_ISDIR(info.st_mode):
-                child_fd = os.open(entry, _directory_flags(), dir_fd=fd)
+                child = os.open(name, _directory_flags(), dir_fd=fd)
                 try:
-                    walk(child_fd, relative + '/')
+                    result[relative] = ('directory', stat.S_IMODE(info.st_mode), '')
+                    walk(child, relative + '/')
                 finally:
-                    os.close(child_fd)
-            elif stat.S_ISREG(info.st_mode):
-                child = os.open(entry, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC, dir_fd=fd)
+                    os.close(child)
+            elif stat.S_ISREG(info.st_mode) and info.st_nlink == 1:
+                child = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC | os.O_NONBLOCK, dir_fd=fd)
                 try:
                     before = os.fstat(child)
+                    if (before.st_dev, before.st_ino) != (info.st_dev, info.st_ino) or before.st_nlink != 1:
+                        raise M4SafetyError('snapshot identity changed')
+                    if not stat.S_ISREG(before.st_mode):
+                        raise M4SafetyError('snapshot target is not regular')
                     value = hashlib.sha256()
                     while True:
                         chunk = os.read(child, 65536)
                         if not chunk:
                             break
+                        total += len(chunk)
+                        if total > 1024 * 1024 * 1024:
+                            raise M4SafetyError('verification snapshot byte limit exceeded')
                         value.update(chunk)
                     after = os.fstat(child)
                     if (before.st_size, before.st_mtime_ns, before.st_ctime_ns) != (
