@@ -614,3 +614,34 @@ families:
   - hardware-rooted attestation
   notes: Research tracks (zk proofs, hardware-rooted attestation, adversarial hypothesis quality, epistemic
     merging) per docs/roadmap/README.md; no production claim.
+- family: SWARM-OTX-003
+  title: Orchestration Tax Controller
+  spec: harness_specs/SWARM_RELIABILITY_PROGRAM.md
+  status: implemented
+  code_paths:
+  - residual/assurance/orchestration.py
+  - residual/eval_frozen/economics.py
+  test_paths:
+  - tests/swarm/test_economics_observability.py
+  keywords:
+  - orchestration tax
+  - topology controller
+  notes: Observation-conditioned topology learning, threshold policy, replayable decisions,
+    and deterministic multi-granularity fixture are implemented. Fixture evidence does not
+    establish live-model economic benefit.
+- family: SWARM-OBS-006
+  title: Reliability Observability
+  spec: harness_specs/SWARM_RELIABILITY_PROGRAM.md
+  status: implemented
+  code_paths:
+  - residual/observability/reliability.py
+  - residual/observability/metrics.py
+  - residual/observability/bridge.py
+  test_paths:
+  - tests/swarm/test_economics_observability.py
+  keywords:
+  - reliability observability
+  - paper metrics
+  notes: Hash-bound raw observations deterministically rebuild paper metrics, completeness,
+    timing, nullable accounting, Prometheus projections, and Pareto inputs. Prometheus is
+    non-authoritative and dynamic label values are bounded.

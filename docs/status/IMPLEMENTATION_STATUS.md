@@ -3,7 +3,7 @@
 <!-- GENERATED FILE. Source of truth: implementation-status.yaml.
      Regenerate with: python3 scripts/status_check.py --generate -->
 
-Requirement families: 39 total - 22 implemented, 1 implemented (closure unverified), 12 partial, 4 not started.
+Requirement families: 41 total - 24 implemented, 1 implemented (closure unverified), 12 partial, 4 not started.
 
 | Family | Title | Status | Spec | Code | Tests |
 |---|---|---|---|---|---|
@@ -46,6 +46,8 @@ Requirement families: 39 total - 22 implemented, 1 implemented (closure unverifi
 | CP | Control Plane (Engine Protocol, Routing, Sandbox) | partial | `harness_specs/CONTROL_PLANE_SPECS.md` | `residual/engines/protocol.py`, `residual/engines/router.py`, `residual/engines/_isolated.py`, `residual/engines/probe.py` | `tests/test_gap_closure.py`, `tests/test_control_integrity.py` |
 | N9 | Path to 9.5 (Engines, Soak, Async, Cluster, Docs) | partial | `harness_specs/PATH_TO_10_SPECS.md` | `residual/engines/protocol.py`, `residual/async_io/coordinator.py`, `residual/mesh/node.py`, `docs/quickstart.md`, `docs/module-tutorial.md`, `docs/faq.md` | `tests/test_gap_closure.py`, `tests/test_control_integrity.py` |
 | T10 | Path to 10 (Research Frontiers) | not_started | `harness_specs/PATH_TO_10_SPECS.md` | - | - |
+| SWARM-OTX-003 | Orchestration Tax Controller | implemented | `harness_specs/SWARM_RELIABILITY_PROGRAM.md` | `residual/assurance/orchestration.py`, `residual/eval_frozen/economics.py` | `tests/swarm/test_economics_observability.py` |
+| SWARM-OBS-006 | Reliability Observability | implemented | `harness_specs/SWARM_RELIABILITY_PROGRAM.md` | `residual/observability/reliability.py`, `residual/observability/metrics.py`, `residual/observability/bridge.py` | `tests/swarm/test_economics_observability.py` |
 
 ## Notes
 
@@ -206,6 +208,14 @@ N9-R1..R8 engine adapters, N9-R13..R17 async I/O and N9-R24..R28 docs implemente
 ### T10 - Path to 10 (Research Frontiers) (not_started)
 
 Research tracks (zk proofs, hardware-rooted attestation, adversarial hypothesis quality, epistemic merging) per docs/roadmap/README.md; no production claim.
+
+### SWARM-OTX-003 - Orchestration Tax Controller (implemented)
+
+Observation-conditioned topology learning, threshold policy, replayable decisions, and deterministic multi-granularity fixture are implemented. Fixture evidence does not establish live-model economic benefit.
+
+### SWARM-OBS-006 - Reliability Observability (implemented)
+
+Hash-bound raw observations deterministically rebuild paper metrics, completeness, timing, nullable accounting, Prometheus projections, and Pareto inputs. Prometheus is non-authoritative and dynamic label values are bounded.
 
 ## Historical documents
 
