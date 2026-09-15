@@ -37,7 +37,7 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await page.locator('#mc-mode').select_option('audit')
     await page.locator('#mc-prompt').fill('Inspect these actual repository sources ' + secrets.token_hex(4))
     await page.get_by_text('Sources and acceptance checks', exact=True).click()
-    await page.locator('#mc-files').fill('residual/cli.py')
+    await page.locator('#mc-files').fill('residual/cli.py\nresidual/engine.py')
     await page.locator('#mc-run').click()
     await page.wait_for_function("() => document.querySelector('#mc-verdict').textContent.startsWith('PASSED') && !document.querySelector('#mc-result').hidden", timeout=120000)
     assert 'deterministic source inventory' in await page.locator('#mc-verdict').inner_text()
@@ -82,6 +82,7 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await page.wait_for_function("() => document.querySelector('#mc-verdict').textContent.includes('SEMANTIC CORRECTNESS: UNKNOWN') && !document.querySelector('#mc-result').hidden", timeout=120000)
     assert 'PASSED' in await page.locator('#mc-verdict').inner_text()
     assert nonce in await page.locator('#mc-answer').inner_text()
+    assert 'README.md:1-1' in await page.locator('#mc-citations').text_content()
     assert await provider.evaluate('window.__providerFixture.calls') == 1
     path = re.search(r'/opt/residual/runs/missions/m-[a-f0-9]{32}', await page.locator('#mc-path').inner_text()).group()
     await page.screenshot(path=str(args.output / 'mission-provider-contract.png'))

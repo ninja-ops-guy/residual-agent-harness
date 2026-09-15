@@ -30,7 +30,7 @@ from residual.providers import Provider, ProviderError, Reply, Usage
 from residual.storage import verify_ledger
 
 MAX_REQUEST = 65536
-MAX_SOURCE = 24000
+MAX_SOURCE = 32000
 MAX_TOTAL_SOURCE = 48000
 MAX_RESPONSE = 65536
 MAX_RESULT = 262144
@@ -222,7 +222,7 @@ class MailboxProvider(Provider):
             text = response.get('text')
             if not isinstance(text, str) or len(text.encode()) > 48000:
                 raise ProviderError('browser_response_invalid')
-            usage = response.get('usage') or {}
+            usage = response.get('usage') if isinstance(response.get('usage'), dict) else {}
             inp, out = usage.get('input_tokens'), usage.get('output_tokens')
             inp = inp if type(inp) is int and inp >= 0 else None
             out = out if type(out) is int and out >= 0 else None

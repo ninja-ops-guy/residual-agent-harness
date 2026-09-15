@@ -59,7 +59,7 @@ class WorkbenchTests(unittest.TestCase):
         with self.assertRaises(ContractError): source_snapshot(self.root, ['residual/link.py'])
 
     def test_source_size_and_binary_rejected(self):
-        for raw in [b'x' * 24001, b'\x00bad']:
+        for raw in [b'x' * 32001, b'\x00bad']:
             (self.root / 'README.md').write_bytes(raw)
             with self.assertRaises(ContractError): source_snapshot(self.root, ['README.md'])
 

@@ -18,12 +18,12 @@ export function mountMissionControl(host) {
 <div id="mc-provider-state" class="notice" role="status">Live prompts require a provider connection. Repository audit runs locally without a model.</div><a id="mc-provider-link" hidden target="_blank" rel="noopener noreferrer">Open provider setup tab</a>
 <form id="mc-form"><label for="mc-prompt">Mission</label><textarea id="mc-prompt" rows="4" maxlength="4000" placeholder="Explain how this repository rejects invalid worker output. Cite the relevant source lines, and write a review checklist." required></textarea>
 <div class="row"><label>Execution<select id="mc-mode"><option value="live">Live prompt / artifact</option><option value="audit">Repository audit · no model</option></select></label><label>Call budget<select id="mc-budget"><option value="1">Quick · at most 1 call</option><option value="2" selected>Bounded · at most 2 calls</option><option value="3">Repair budget · at most 3 calls</option></select></label></div>
-<details><summary>Sources and acceptance checks</summary><label for="mc-files">Repository paths · one per line · at most 6 files</label><textarea id="mc-files" rows="3">README.md\nresidual/cli.py</textarea><label for="mc-required">Required literal text · one check per line (optional)</label><textarea id="mc-required" rows="2" placeholder="Review checklist"></textarea><div class="row"><label>Model<input id="mc-model" value="gpt-5-nano" maxlength="96"></label><label>Max output tokens<input id="mc-tokens" type="number" min="256" max="1536" value="1024"></label></div><p class="muted">Selected source snapshots, not the entire workspace, can be sent to the provider. Citation checks prove exact excerpt matches, not that the answer is true. Generated text is saved for review; it is not executed, merged, or applied to the repository.</p></details>
+<details><summary>Sources and acceptance checks</summary><label for="mc-files">Repository paths · at most 6 files · 32 KB/file · 48 KB total</label><textarea id="mc-files" rows="3">README.md\nresidual/cli.py</textarea><label for="mc-required">Required literal text · one check per line (optional)</label><textarea id="mc-required" rows="2" placeholder="Review checklist"></textarea><div class="row"><label>Model<input id="mc-model" value="gpt-5-nano" maxlength="96"></label><label>Max output tokens<input id="mc-tokens" type="number" min="256" max="1536" value="1024"></label></div><p class="muted">Selected source snapshots, not the entire workspace, can be sent to the provider. Citation checks prove exact excerpt matches, not that the answer is true. Generated text is saved for review; it is not executed, merged, or applied to the repository.</p></details>
 <label id="mc-consent-label"><input type="checkbox" id="mc-consent"> I authorize sending this prompt and the selected source snapshots to my provider, up to the chosen call/token budget. Provider charges may apply.</label>
 <div class="row"><button id="mc-run" class="primary" disabled>Run mission</button><button id="mc-stop" type="button" disabled>Stop mission</button><span class="muted">One active mission per workspace · 240-second guest limit</span></div></form>
 <p id="mc-run-state" class="notice" role="status">Waiting for a mission. The terminal and this interface share the same repository and run files.</p>
 <div class="cards"><details><summary>Mission</summary><p>Validated prompt, frozen source snapshots and explicit checks become a real <code>Task</code>.</p><code>residual/workbench/runner.py</code></details><details><summary>Workers</summary><p>Existing Harness dispatch with bounded calls and counterexample feedback. Live mode never substitutes a scripted provider.</p><code>residual/engine.py</code></details><details><summary>Verifiers</summary><p>Mechanical answer shape, literal requirements and exact source quotations. Semantic correctness stays UNKNOWN.</p><code>workbench:answer</code></details><details><summary>Evidence</summary><p>Original hash-linked ledger events and result-bound receipts. Browser display is a projection, not an external anchor.</p><code>residual/storage.py</code></details><details><summary>Integration</summary><p>The Harness accepts contract-passing values and writes review artifacts. This is not Factory patch application or an M4 sandbox certification.</p><code>runs/missions/</code></details><details><summary>Policy / runtime</summary><p>One guest workspace, explicit cloud consent, source/call/token/time limits. Hosted identity, durable quotas and abuse-resistant server admission are not implemented here.</p></details></div>
-<section id="mc-result" hidden><h3>Result and verification scope</h3><p id="mc-verdict"></p><pre id="mc-answer"></pre><p id="mc-path"></p><button id="mc-download" type="button">Download run evidence JSON</button><details><summary>Metrics, receipts and result binding</summary><pre id="mc-json"></pre></details></section>
+<section id="mc-result" hidden><h3>Result and verification scope</h3><p id="mc-verdict"></p><pre id="mc-answer"></pre><details id="mc-citations-box" hidden><summary>Checked source quotations</summary><pre id="mc-citations"></pre></details><p id="mc-path"></p><button id="mc-download" type="button">Download run evidence JSON</button><details><summary>Metrics, receipts and result binding</summary><pre id="mc-json"></pre></details></section>
 <details open><summary>Live evidence events <span id="mc-count">0</span></summary><div id="mc-events"></div></details>
 <details><summary>CLI / existing repository workflows</summary><p>The CLI operates on the same files. A streamed audit launched from the terminal appears here too:</p><pre>mission audit --stream --files README.md residual/cli.py
 mission inspect runs/missions/&lt;mission-id&gt;
@@ -68,6 +68,8 @@ python3 -m residual verify-trace runs/custom/trace.jsonl --result runs/custom/re
       const live = data.execution === 'live_provider';
       $('verdict').textContent = `${data.status.toUpperCase()} · evidence integrity checked · ${live ? 'SEMANTIC CORRECTNESS: UNKNOWN — human review required' : 'deterministic source inventory only — not a security audit'}`;
       $('answer').textContent = data.result.values.answer?.text || JSON.stringify(data.result.values.inventory || data.result.unresolved, null, 2);
+      $('citations-box').hidden = !live || !data.result.values.answer;
+      $('citations').textContent = (data.result.values.answer?.citations || []).map(c => `${data.source_paths[c.artifact_id] || c.artifact_id}:${c.start_line}-${c.end_line}\n${c.quote}`).join('\n\n');
       $('path').textContent = `Same guest files: ${data.output}/result.json · trace.jsonl · ${live ? 'answer.md (only if accepted)' : 'sources.json'}`;
       $('json').textContent = JSON.stringify({metrics: data.result.metrics, receipts: data.result.receipts, verification: data.verification, unresolved: data.result.unresolved}, null, 2);
       state(`${data.status.toUpperCase()} · ${data.output}\n${live ? 'A contract pass does not establish answer truth or code correctness.' : 'No model was called. Findings were computed from the selected current source files.'}`);
@@ -109,14 +111,18 @@ python3 -m residual verify-trace runs/custom/trace.jsonl --result runs/custom/re
   $('stop').onclick = async () => {
     if (!active) return;
     const mid = active; provider.end();
-    await host.mailbox(`/${mid}-cancel.json`, '{}');
-    state('Stop requested. Pending inference may still incur provider charges. Waiting for the guest to finish.');
+    try {
+      await host.mailbox(`/${mid}-cancel.json`, '{}');
+      state('Stop requested. Pending inference may still incur provider charges. Waiting for the guest to finish.');
+    } catch {
+      state('Provider authorization revoked, but the guest stop signal could not be written. The guest may run until its deadline; inspect the terminal.');
+    }
   };
   $('download').onclick = () => {
     if (!result) return;
     const url = URL.createObjectURL(new Blob([JSON.stringify(result, null, 2)], {type: 'application/json'}));
     const a = document.createElement('a'); a.href = url; a.download = `${result.summary.result.task_id}-evidence.json`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
-  const timer = setInterval(() => { const ready = host.ready(); $('runtime').textContent = ready ? 'LINUX · READY' : 'GUEST STARTING'; $('run').disabled = !ready || !!active || running; $('stop').disabled = !active; }, 300);
+  const timer = setInterval(() => { provider.checkConnection(); const ready = host.ready(); $('runtime').textContent = ready ? 'LINUX · READY' : 'GUEST STARTING'; $('run').disabled = !ready || !!active || running; $('stop').disabled = !active; }, 300);
   return {onOutput, connectProvider, destroy() { clearInterval(timer); provider.close(); element.remove(); }};
 }

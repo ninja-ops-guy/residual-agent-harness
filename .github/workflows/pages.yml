@@ -11,6 +11,7 @@ on:
       - 'residual/**'
       - 'pyproject.toml'
       - 'tests/test_webvm_*.py'
+      - 'tests/webvm-provider.test.mjs'
       - 'examples/onboarding/cloud_demo.sh'
       - '.github/workflows/pages.yml'
   pull_request:
@@ -20,6 +21,7 @@ on:
       - 'residual/**'
       - 'pyproject.toml'
       - 'tests/test_webvm_*.py'
+      - 'tests/webvm-provider.test.mjs'
       - 'examples/onboarding/cloud_demo.sh'
       - 'tests/test_webvm_publication.py'
       - '.github/workflows/pages.yml'
@@ -49,6 +51,11 @@ jobs:
         shell: bash
         run: |
           printf 'name=github-pages-%s-%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test provider session contracts
+        run: node --experimental-default-type=module --test tests/webvm-provider.test.mjs
       - name: Test publication contracts
         run: python -m unittest -v tests.test_webvm_publication tests.test_webvm_cli_output tests.test_webvm_deployment_workflow tests.test_webvm_workbench
       - name: Build static site shell

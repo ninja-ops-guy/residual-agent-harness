@@ -21,7 +21,7 @@ RUN python3 -m pip install --break-system-packages --no-deps -e /opt/residual \
       'alias mission="python3 -m residual.workbench"' \
       'alias demo="python3 -m residual demo --output runs/demo"' \
       'alias verify-demo="python3 -m residual verify-trace runs/demo/trace.jsonl --result runs/demo/result.json"' \
-      'alias cloud-demo="bash examples/onboarding/cloud_demo.sh"' \
+      'cloud-demo() { printf "Legacy cloud-demo transport is retired in this WebVM. Use Mission Control > Connect provider > Run mission.\\n"; return 2; }' \
       'printf "\\033[1;32mRESIDUAL // LIVE SYSTEM\\033[0m\\n"' \
       'printf "Disposable browser VM · Debian · Python 3 · repository preloaded\\n\\n"' \
       'printf "Try:\\n  mission audit --stream --files README.md residual/cli.py\\n  demo  # scripted tutorial\\n  verify-demo\\n  mission --help   # live workbench usage\\n\\n"' \

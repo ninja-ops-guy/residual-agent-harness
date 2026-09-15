@@ -2,7 +2,8 @@
 
 Mission Control is a prompt-first interface over the actual bundled RESIDUAL
 repository. It is not a desktop simulation, a hosted SaaS backend, or a replacement
-for Factory/M4. The original `demo` is still an explicitly scripted tutorial.
+for Factory/M4. The original `demo` is still an explicitly scripted tutorial. The old `cloud-demo`
+alias now explains the migration rather than invoking the retired PTY transport.
 
 ## Visitor workflow
 
@@ -62,7 +63,8 @@ Use an explicit local provider configuration. Remote export needs
 The UI writes JSON into a CheerpX DataDevice and invokes a fixed Python module
 using an argv array. No user prompt, model text, or file path becomes shell code.
 The same Linux instance, repository, Python Harness and writable overlay serve
-both surfaces. Source text is frozen into `task.json` before dispatch. The adapter
+both surfaces. Source text is frozen into `task.json` before dispatch (at most six distinct files,
+32 KB per file and 48 KB total, measured as UTF-8 bytes). The adapter
 registers its own mechanical checks and uses existing Harness acceptance and
 hash-linked evidence without changing shared schemas or M4 trust-boundary code.
 

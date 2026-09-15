@@ -28,6 +28,12 @@ export class ProviderSession {
     this.connected = false; this.lastSeen = 0; this.grant = null; this.generation = 0;
   }
   get ready() { return this.connected && Date.now() - this.lastSeen < 15000; }
+  checkConnection() {
+    if (this.connected && !this.ready) {
+      this.connected = false;
+      this.onState('disconnected', 'Provider tab stopped responding. Reopen setup or return to that tab. No new requests are authorized.');
+    }
+  }
   open() {
     this.close();
     const bytes = crypto.getRandomValues(new Uint8Array(32));
