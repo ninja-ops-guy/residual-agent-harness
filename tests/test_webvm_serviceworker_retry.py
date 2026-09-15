@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+import shutil
+import subprocess
 import tempfile
 import unittest
 
@@ -52,6 +54,18 @@ class ServiceWorkerRetryTests(unittest.TestCase):
         self.path.write_text(PATCHED_UPSTREAM.replace('var r = await fetch(request);', 'var r = await fetch(request.url);'), encoding='utf-8')
         with self.assertRaises(SystemExit):
             harden(self.path)
+
+    @unittest.skipUnless(shutil.which('node'), 'Node.js not installed')
+    def test_javascript_retry_scope_and_attempt_contract(self):
+        completed = subprocess.run(
+            ['node', '--test', 'tests/webvm-serviceworker-retry.test.mjs'],
+            cwd=Path(__file__).resolve().parents[1],
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            timeout=30,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stdout)
 
 
 if __name__ == '__main__':
