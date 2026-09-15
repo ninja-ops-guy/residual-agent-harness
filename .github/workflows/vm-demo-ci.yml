@@ -65,34 +65,39 @@ jobs:
               python3 -c "import residual; print(residual.__file__)"
             '
 
-      - name: Build WebVM browser client with session injection
+      - name: Build patched WebVM browser client
         shell: bash
         run: |
           set -euo pipefail
+          python3 -m py_compile demo/vm/patch_webvm.py
           cat > _webvm/config_github_terminal.js <<'EOF'
-          const fragment = new URLSearchParams(globalThis.location?.hash?.slice(1) || "");
-          const demoToken = fragment.get("demoToken") || "";
-          const gateway = (fragment.get("gateway") || "").replace(/\/$/, "");
           export const diskImageUrl = "residual-demo.ext2";
           export const diskImageType = "github";
           export const printIntro = false;
           export const needsDisplay = false;
-          export const cmd = "/bin/bash";
-          export const args = ["--login"];
-          const cloudEnv = demoToken && gateway ? [`LLM_API_KEY=${demoToken}`, `LLM_BASE_URL=${gateway}/v1`] : [];
-          export const opts = {env:["HOME=/home/residual","TERM=xterm-256color","USER=residual","SHELL=/bin/bash","LANG=C.UTF-8",...cloudEnv],cwd:"/opt/residual",uid:1000,gid:1000};
+          export const cmd = "/usr/local/bin/residual-demo-shell";
+          export const args = [];
+          export const opts = {env:["HOME=/home/residual","TERM=xterm","USER=residual","SHELL=/bin/bash","EDITOR=vi","LANG=C","LC_ALL=C","PYTHONUNBUFFERED=1","RESIDUAL_DEMO_MODEL=gpt-5.6-luna"],cwd:"/opt/residual",uid:1000,gid:1000};
           EOF
+          python3 demo/vm/patch_webvm.py source _webvm/src/lib/WebVM.svelte
           cd _webvm
           npm install
           WEBVM_MODE=github npm run build
-          test -s build/index.html
+          cd ..
+          test -s _webvm/build/index.html
+          test -s _webvm/build/serviceWorker.js
+          python3 demo/vm/patch_webvm.py index _webvm/build/index.html
+          python3 demo/vm/patch_webvm.py serviceworker _webvm/build/serviceWorker.js
 
-      - name: Validate embedded demo shell
+      - name: Validate embedded demo shell and startup isolation
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'The repository is the demo' site/live-demo.html
-          grep -q 'v1/demo/session' site/live-demo.html
-          grep -q 'demoToken' site/live-demo.html
           grep -q 'cloud-demo' demo/vm/Dockerfile
-          grep -q 'RESET VM' site/live-demo.html
+          grep -q 'RESIDUAL / LIVE VM' _webvm/src/lib/WebVM.svelte
+          grep -q 'VM READY · GUEST ATTACHED' _webvm/src/lib/WebVM.svelte
+          grep -q 'residualLoadPuterSdk' _webvm/src/lib/WebVM.svelte
+          grep -q 'js.puter.com/v2' _webvm/src/lib/WebVM.svelte
+          ! grep -q 'js.puter.com/v2' _webvm/build/index.html
+          ! grep -q 'plausible.leaningtech.com' _webvm/build/index.html
+          grep -q 'return Response.error()' _webvm/build/serviceWorker.js
