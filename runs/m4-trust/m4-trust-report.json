@@ -3,7 +3,7 @@
   "issue": 63,
   "source_commit_main": "610ce42ebf1d7f32f4c976174661225a947c783a",
   "based_on_pr66_head": "3961f52b45c4d5a167b5e346790451392572646d",
-  "generated_at_ns": 1789426838291183962,
+  "generated_at_ns": 1789431995865869384,
   "environment": {
     "python": "3.12.12 (main, Oct  9 2025, 22:40:06) [GCC 12.2.0]",
     "platform": "Linux-5.10.134-18.0.12.lifsea8.x86_64-x86_64-with-glibc2.36",
@@ -56,7 +56,7 @@
       "scenario": "extra_file_creation",
       "isolation_available": true,
       "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
-      "wall_s": 0.037,
+      "wall_s": 0.031,
       "sandbox_result": {
         "status": "fail",
         "returncode": 1,
@@ -72,7 +72,7 @@
       "scenario": "candidate_artifact_mutation",
       "isolation_available": true,
       "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
-      "wall_s": 0.032,
+      "wall_s": 0.031,
       "sandbox_result": {
         "status": "fail",
         "returncode": 1,
@@ -88,7 +88,7 @@
       "scenario": "network_exfiltration_attempt",
       "isolation_available": true,
       "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
-      "wall_s": 0.041,
+      "wall_s": 0.039,
       "sandbox_result": {
         "status": "fail",
         "returncode": 1,
@@ -104,7 +104,7 @@
       "scenario": "external_filesystem_write_attempt",
       "isolation_available": true,
       "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
-      "wall_s": 0.032,
+      "wall_s": 0.031,
       "sandbox_result": {
         "status": "fail",
         "returncode": 1,
@@ -120,7 +120,7 @@
       "scenario": "infinite_loop",
       "isolation_available": true,
       "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
-      "wall_s": 5.004,
+      "wall_s": 5.003,
       "sandbox_result": {
         "status": "fail",
         "returncode": -9,
@@ -129,14 +129,15 @@
         "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
         "execution_boundary": "linux-userns-isolated-v1"
       },
-      "tree_hash_after": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
+      "tree_hash_after": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0b
+c782373",
       "tree_unchanged": true
     },
     {
       "scenario": "infinite_output",
       "isolation_available": true,
       "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
-      "wall_s": 0.037,
+      "wall_s": 0.034,
       "sandbox_result": {
         "status": "fail",
         "returncode": -9,
@@ -152,7 +153,7 @@
       "scenario": "fork_descendant_escape",
       "isolation_available": true,
       "tree_hash_before": "7bfdeb1338d76f51daf954b57efb7851aa126eadc4d12d224ca922e0bc782373",
-      "wall_s": 0.034,
+      "wall_s": 0.032,
       "sandbox_result": {
         "status": "pass",
         "returncode": 0,
@@ -212,7 +213,7 @@
         "tests/test_factory_m4_sandbox.py"
       ],
       "returncode": 0,
-      "summary": "============================== 15 passed in 7.42s ==============================",
+      "summary": "============================== 20 passed in 6.78s ==============================",
       "log": "runs/m4-trust/sandbox-logs/sandbox.log"
     },
     {
@@ -221,7 +222,7 @@
         "tests/test_factory_m4_tree_binding.py"
       ],
       "returncode": 0,
-      "summary": "============================== 9 passed in 1.41s ===============================",
+      "summary": "============================== 9 passed in 1.14s ===============================",
       "log": "runs/m4-trust/sandbox-logs/tree-binding.log"
     },
     {
@@ -230,7 +231,7 @@
         "tests/test_factory_m4_fs_redteam.py"
       ],
       "returncode": 0,
-      "summary": "==================== 10 passed, 10 subtests passed in 3.53s ====================",
+      "summary": "==================== 10 passed, 10 subtests passed in 2.85s ====================",
       "log": "runs/m4-trust/sandbox-logs/fs-redteam.log"
     },
     {
@@ -239,7 +240,7 @@
         "tests/test_factory_m4_git_evidence.py"
       ],
       "returncode": 0,
-      "summary": "==================== 11 passed, 8 subtests passed in 0.41s =====================",
+      "summary": "==================== 11 passed, 8 subtests passed in 0.26s =====================",
       "log": "runs/m4-trust/sandbox-logs/git-evidence.log"
     },
     {
@@ -248,7 +249,7 @@
         "tests/test_factory_m4_canonical_api.py"
       ],
       "returncode": 0,
-      "summary": "============================== 4 passed in 0.30s ===============================",
+      "summary": "============================== 4 passed in 0.13s ===============================",
       "log": "runs/m4-trust/sandbox-logs/canonical-api.log"
     },
     {
@@ -261,7 +262,7 @@
         "tests/test_factory_m4_scheduler.py"
       ],
       "returncode": 0,
-      "summary": "==================== 63 passed, 46 subtests passed in 4.73s ====================",
+      "summary": "==================== 63 passed, 46 subtests passed in 4.31s ====================",
       "log": "runs/m4-trust/sandbox-logs/m4-regression.log"
     }
   ]
