@@ -1,18 +1,17 @@
 """Reproduce #58 lifecycle regressions without launching model or worker code."""
 from __future__ import annotations
 
-from contextlib import redirect_stderr, redirect_stdout
 from dataclasses import replace
-import io
 import json
 from pathlib import Path
 import signal
+import subprocess
+import sys
 import threading
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from tests.test_factory_runtime import Fixture
-from residual.factory.runtime import main
 from residual.factory.termination_provenance import ProcessControl
 from residual.factory.runtime_journal import LeaseRead
 from residual.factory.runtime_workspace import ManagedWorktree
@@ -128,16 +127,21 @@ class LifecycleGuards(Fixture):
     def test_missing_cli_input_returns_sanitized_blocked_json_for_both_run_aliases(self):
         for option in ('--run-id', '--trace-id'):
             with self.subTest(option=option):
-                out, err = io.StringIO(), io.StringIO()
-                with redirect_stdout(out), redirect_stderr(err):
-                    code = main(['--repo', str(self.repo), '--runtime-root', str(self.root/'work'),
-                                 '--journal', str(self.journal.path), option, 'test-run',
-                                 '--plan', str(self.root/'missing.json'), '--approval', 'missing',
-                                 '--contract', 'missing', '--source', 'missing'])
-                self.assertEqual(code, 1)
-                self.assertEqual(out.getvalue(), '')
-                self.assertEqual(json.loads(err.getvalue()), {'status': 'blocked', 'error_type': 'FileNotFoundError'})
-                self.assertNotIn(str(self.root), err.getvalue())
+                # Verify the actual CLI's streams. In-process redirection also
+                # captures unrelated test-suite finalizers and warnings.
+                result = subprocess.run(
+                    [sys.executable, '-m', 'residual.factory',
+                     '--repo', str(self.repo), '--runtime-root', str(self.root/'work'),
+                     '--journal', str(self.journal.path), option, 'test-run',
+                     '--plan', str(self.root/'missing.json'), '--approval', 'missing',
+                     '--contract', 'missing', '--source', 'missing'],
+                    cwd=Path(__file__).resolve().parents[1],
+                    capture_output=True, text=True, timeout=15,
+                )
+                self.assertEqual(result.returncode, 1)
+                self.assertEqual(result.stdout, '')
+                self.assertEqual(json.loads(result.stderr), {'status': 'blocked', 'error_type': 'FileNotFoundError'})
+                self.assertNotIn(str(self.root), result.stderr)
                 self.assertEqual(self.journal.attempts(), [])
 
 
