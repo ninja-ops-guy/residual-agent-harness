@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import signal
 import subprocess
 import time
@@ -41,8 +40,8 @@ def slope_per_hour(samples: list[dict], key: str, *, min_window_s: float) -> flo
 def probe(url: str, timeout: float) -> tuple[bool, str]:
     try:
         with urllib.request.urlopen(url, timeout=timeout) as response:
-            body = response.read(4096)
-            return 200 <= response.status < 500 and bool(body), f"HTTP {response.status}"
+            response.read(4096)
+            return 200 <= response.status < 300, f"HTTP {response.status}"
     except Exception as exc:
         return False, f"{type(exc).__name__}: {exc}"
 
@@ -59,6 +58,51 @@ def terminate(proc: subprocess.Popen) -> None:
             proc.wait(timeout=5)
         except Exception:
             pass
+
+
+def qualification_reasons(
+    *,
+    samples: list[dict],
+    probe_failures: list[dict],
+    error: str | None,
+    elapsed_observed_s: float,
+    duration_requested_s: float,
+    process_alive_at_completion: bool,
+    rss_slope: float | None,
+    fd_slope: float | None,
+    max_probe_failures: int,
+    max_rss_growth_mib_per_hour: float,
+    max_fd_growth_per_hour: float,
+) -> list[str]:
+    reasons: list[str] = []
+    if error:
+        reasons.append(error)
+    if elapsed_observed_s < duration_requested_s:
+        reasons.append(
+            f"observed elapsed time {elapsed_observed_s:.3f}s < requested {duration_requested_s:.3f}s"
+        )
+    if not process_alive_at_completion:
+        reasons.append("process was not alive at the completion boundary")
+    if len(probe_failures) > max_probe_failures:
+        reasons.append(f"probe failures {len(probe_failures)} > {max_probe_failures}")
+    if not samples:
+        reasons.append("no resource samples collected")
+    metric_errors = [sample for sample in samples if sample.get("metric_error")]
+    if metric_errors:
+        reasons.append(f"resource metric sampling failed {len(metric_errors)} time(s)")
+
+    rss_limit = max_rss_growth_mib_per_hour * 1024 * 1024
+    if rss_slope is None:
+        reasons.append("RSS growth slope unavailable")
+    elif rss_slope > rss_limit:
+        reasons.append(
+            f"RSS growth {rss_slope / 1024 / 1024:.3f} MiB/hour > {max_rss_growth_mib_per_hour}"
+        )
+    if fd_slope is None:
+        reasons.append("FD growth slope unavailable")
+    elif fd_slope > max_fd_growth_per_hour:
+        reasons.append(f"FD growth {fd_slope:.3f}/hour > {max_fd_growth_per_hour}")
+    return reasons
 
 
 def main(argv=None) -> int:
@@ -92,6 +136,8 @@ def main(argv=None) -> int:
         samples: list[dict] = []
         probe_failures: list[dict] = []
         error: str | None = None
+        elapsed_observed_s = 0.0
+        process_alive_at_completion = False
         try:
             time.sleep(args.startup_seconds)
             while time.monotonic() - start < args.duration_seconds:
@@ -114,23 +160,26 @@ def main(argv=None) -> int:
                         probe_failures.append({"elapsed_s": elapsed, "detail": detail})
                 samples.append(sample)
                 time.sleep(args.interval_seconds)
+            elapsed_observed_s = time.monotonic() - start
+            process_alive_at_completion = proc.poll() is None
         finally:
             terminate(proc)
 
     rss_slope = slope_per_hour(samples, "rss_bytes", min_window_s=args.min_slope_window_seconds)
     fd_slope = slope_per_hour(samples, "fd_count", min_window_s=args.min_slope_window_seconds)
-    reasons: list[str] = []
-    if error:
-        reasons.append(error)
-    if len(probe_failures) > args.max_probe_failures:
-        reasons.append(f"probe failures {len(probe_failures)} > {args.max_probe_failures}")
-    rss_limit = args.max_rss_growth_mib_per_hour * 1024 * 1024
-    if rss_slope is not None and rss_slope > rss_limit:
-        reasons.append(f"RSS growth {rss_slope / 1024 / 1024:.3f} MiB/hour > {args.max_rss_growth_mib_per_hour}")
-    if fd_slope is not None and fd_slope > args.max_fd_growth_per_hour:
-        reasons.append(f"FD growth {fd_slope:.3f}/hour > {args.max_fd_growth_per_hour}")
-    if not samples:
-        reasons.append("no resource samples collected")
+    reasons = qualification_reasons(
+        samples=samples,
+        probe_failures=probe_failures,
+        error=error,
+        elapsed_observed_s=elapsed_observed_s,
+        duration_requested_s=args.duration_seconds,
+        process_alive_at_completion=process_alive_at_completion,
+        rss_slope=rss_slope,
+        fd_slope=fd_slope,
+        max_probe_failures=args.max_probe_failures,
+        max_rss_growth_mib_per_hour=args.max_rss_growth_mib_per_hour,
+        max_fd_growth_per_hour=args.max_fd_growth_per_hour,
+    )
 
     report = {
         "schema": "residual.qualification.process-soak.v1",
@@ -138,6 +187,8 @@ def main(argv=None) -> int:
         "command": command,
         "pid": proc.pid,
         "duration_requested_s": args.duration_seconds,
+        "elapsed_observed_s": elapsed_observed_s,
+        "process_alive_at_completion": process_alive_at_completion,
         "sample_count": len(samples),
         "rss_growth_bytes_per_hour": rss_slope,
         "fd_growth_per_hour": fd_slope,
