@@ -96,6 +96,7 @@ dialog header{border-bottom-color:var(--border);background:#000}
 .loading{color:#68a975}.loader{border-color:#173c1e;border-top-color:var(--green)}
 
 /* First-run surface: intentionally mirrors the public website's terminal language. */
+body:has(#first-run[open]) #main [data-action="demo"]{visibility:hidden}
 .first-run-dialog{width:min(880px,calc(100% - 28px));max-height:min(90vh,860px);padding:0;border:1px solid var(--green);background:#010501;color:#72ff8d;box-shadow:0 0 0 1px #000,0 0 64px #39ff6824;overflow:auto}
 .first-run-dialog::backdrop{background:#000e;backdrop-filter:blur(4px)}
 .first-run-shell{padding:30px}
