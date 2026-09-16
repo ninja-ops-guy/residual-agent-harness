@@ -1,6 +1,6 @@
 # RESIDUAL current status
 
-_Current-state check: 2026-09-16 UTC against current `main` at `0580c1e53ddb9163d2423d82c0bca846a6d68ba2`._
+_Current-state check: 2026-09-16 UTC against current `main` at `f2d58e779ad589fe1d08842c9efc40ec5214a213`._
 
 This is the human-readable current-state summary for RESIDUAL. Exact code, exact-head workflow output, retained machine-readable artifacts, submitted review records and explicit open issues are more authoritative than prose. Historical results apply only to the revisions they name.
 
@@ -8,184 +8,166 @@ This is the human-readable current-state summary for RESIDUAL. Exact code, exact
 
 RESIDUAL is an evidence-first reliability and control plane for heterogeneous AI computation. The repository contains substantial implementation and qualification evidence for bounded execution, evidence/receipt handling, deterministic integration, lifecycle recovery, evaluation, observability, operator surfaces, browser/WebVM execution and bounded self-maintenance research.
 
-Current `main` is **technically qualified for its observed automated/browser scopes but review-provisional**. Several important current-main-bound candidates are now exact-head green, but no submitted independent approvals are recorded for them. Two other important lanes have retained exact-head failures that remain authoritative and must not be rerun or relabeled merely to obtain green.
+Current `main` is **technically qualified for its observed automated/browser scopes but review-provisional**. PR #151 materially advanced the Mission Control live execution surface and provider transport, and the exact merged revision passed its main-push qualification set. No submitted independent review exists for #151, and no fresh successful paid/live Puter run is retained on that revision.
 
-The project does **not** claim that the central live-model reliability hypothesis is proven, that WebVM has an acceptable long-run failure rate, that the historical guest-corruption family has been root-caused, that real Puter inference is qualified on the current deployed revision, that blank-machine/recovery qualification is complete, or that elapsed production soak targets have been met.
+The project does **not** claim that the central live-model reliability hypothesis is proven, that WebVM has an acceptable long-run failure rate, that the historical guest-corruption family has been root-caused, that real Puter inference is qualified on current main, that blank-machine/recovery qualification is complete, or that elapsed production soak targets have been met.
 
 ## Current main — technically qualified, review-provisional
 
-Current `main` is **`0580c1e53ddb9163d2423d82c0bca846a6d68ba2`**, tree **`0bfc9f70b86f58a75fa58a7a95a2e3b027886a0b`**, the merge of PR #147.
+Current `main` is **`f2d58e779ad589fe1d08842c9efc40ec5214a213`**, tree **`c62cf2a5d8c4234edcd7e53e0faa8edeb94a1571`**, the merge of PR #151.
 
-Its observed push-triggered workflow set is green. Pages run **`35138502311`** passed generated desktop+narrow browser proof, deployment, published real-guest execution and published narrow Chromium acceptance. M4 run **`35138502603`** retained real capable-runner qualification with no blocked capabilities and zero skips in that qualified scope.
+PR #151 adds:
 
-Those facts are exact-revision automated/browser evidence. They do **not** establish independent technical review, every-host M4 capability, live Puter quality, long-run WebVM reliability, blank-environment release qualification, actual host-loss recovery, elapsed soak or live-model research claims.
+- an event-backed `LIVE PIPELINE` projection in Mission Control Chat;
+- bounded provider-stage telemetry correlated to the pending mission/request;
+- explicit non-streaming Puter inference presentation rather than invented stream activity;
+- stricter `residual_submit` response transport while preserving exact raw JSON as compatibility fallback;
+- exact requested-model handling without silent model substitution;
+- the visible default model `openai/gpt-5.4-nano`.
 
-Merged PRs #145 and #147 have no submitted independent reviews in the retained GitHub review record. Their exact-head CI/browser results remain valid evidence, but current main remains **review-provisional**, not independently accepted.
+The change does not modify protected Factory/M4 implementation or shared evidence schemas.
+
+### Exact merged-main qualification
+
+The exact #151 candidate head passed all eight observed applicable pull-request workflows. After merge, all **seven observed main-push workflows passed** on exact `main@f2d58e77...`.
+
+Important retained evidence:
+
+- capable-runner M4 — run **`35149837820`**: real `linux-userns-isolated-v1`, `blocked_capabilities: []`, **142 tests + 84 subtests, zero skips**;
+- Pages/WebVM — run **`35149837756`**: **PASS on first attempt** for generated desktop+narrow proof plus published desktop+narrow acceptance;
+- live proof artifact — **`10468668615`**, SHA-256 **`5105cdda5d63eae0b97ed5953989cf8ce1616af6a28fa103940b0e4e28be2a1f`**.
+
+These are revision- and environment-bound `PASS` results. They do **not** establish independent technical review, every-host M4 capability, paid/live-provider quality, long-run WebVM reliability, release/recovery qualification, elapsed soak or confirmatory research claims.
+
+GitHub records **zero submitted reviews and zero review threads** for PR #151. Current main therefore remains **review-provisional**. Green CI is not independent acceptance. Missing pre-merge independent acceptance on #136/#145/#147/#151 remains governance debt.
+
+An external Vercel deployment status also failed because the free deployment quota was rate-limited. That external rate-limit failure is retained separately and is not converted into a repository qualification PASS or treated as evidence that GitHub Pages qualification failed.
 
 ## Live real-provider boundary
 
-The latest retained real-account provider attempt before #147 remains **FAIL** as `provider_protocol_invalid`; no obligation/artifact was accepted. That failure was correct fail-closed behavior.
+The latest retained real-account provider path remains negative. Real Puter responses previously failed closed as `provider_protocol_invalid`; no obligation or artifact was accepted.
 
-PR #147 tightened Puter response transport/conformance. PR **#149** then ported one surviving nested-envelope instruction from closed-unmerged #143 onto exact current main: build output belongs at `updates.build = {summary, files}` inside the exact `updates` + `requests` worker envelope, not at top level.
+PR #151 tightens provider transport and makes the real pipeline more observable, but its post-merge browser proof explicitly records **`cloud_inference: NOT_RUN`** and uses the SDK test double. Therefore:
 
-PR #149 exact head **`2b4c2d094c28e984da6dfc56455acc8f8d5d0af7`** is **8/8 automated/browser workflows PASS**, including Browser VM Demo CI and Pages, with zero submitted reviews recorded.
+- automated provider contract/browser qualification on current main: **PASS** for its tested scope;
+- retained real-account provider conformance before the latest transport work: **FAIL**;
+- successful paid/live Puter acceptance on exact `main@f2d58e77...`: **UNKNOWN / NOT YET RETAINED**.
 
-Current claim discipline is therefore:
-
-- automated provider contract/browser qualification: **PASS** for its tested scope on current main and #149;
-- retained pre-#147 real-account provider conformance: **FAIL**;
-- post-#147 / post-#149 real-account provider success: **UNKNOWN / NOT YET RETAINED**.
-
-Do not convert SDK-test-double/browser CI into a live-provider-quality claim.
+PR #149 carries additional nested `updates.build = {summary, files}` guidance, but it is still based on pre-#151 `main@0580c1e5...`. Its earlier green exact-head evidence is historical to that head. It must be refreshed/requalified before it can support a current-main integration claim.
 
 ## WebVM reliability boundary
 
 Issues **#120** and **#126** remain open.
 
-Diagnostic PR #133 retains reproducible evidence for a WebVM-specific, process-local positive-duration CPython timed-wait failure surface around call 273. Fresh CPython processes reset or avoid the narrow boundary, while direct monotonic reads and zero-duration sleep do not reproduce it. That supports a narrow characterization of the observed timed-wait symptom, not a proven lower-level root cause and not proof that the broader historical corruption family is eliminated.
+Diagnostic PR #133 retains reproducible evidence for a WebVM-specific, process-local CPython positive-duration timed-wait failure affecting at least `time.sleep()` and `select.select()` around call 273. Tested direct libc waits continue beyond that narrow boundary. Fresh process creation resets or avoids the observed symptom.
 
-Merged #145 avoids that known positive-Python-timed-wait surface in the long-lived browser polling path. Avoidance is not long-run reliability evidence. Keep #120/#126 open until a predefined retained repeated-run campaign or a proven regression-tested root cause supports closure.
+Merged #145 routes long-lived browser polling below that known Python timed-wait surface. Avoiding the trigger is not root-cause proof. The exact CPython/glibc/WebVM mechanism, relationship to earlier `_sha512`/impossible-constructor/allocator-corruption symptoms, and acceptable production recurrence rate remain **UNKNOWN**.
+
+Keep #120/#126 open until a predefined retained repeated-run reliability campaign or a proven regression-tested root cause supports closure.
 
 ## Browser acceptance / onboarding
 
-### PR #140 — post-run control-unlock acceptance race
+### PR #89 — retained authoritative failure
 
-PR **#140** is refreshed onto current main at exact head **`205257e7b4f83e4a282c4345f73153ad95c5214b`**.
+PR #89 retains a first-attempt narrow-browser **FAIL** from Pages run `35147627190`. Desktop passed. The terminal body shows a guest exit marker ending in `:0`, while the report parsed `:03` after whitespace normalization allowed an unrelated later digit to extend the unterminated decimal marker.
 
-Fresh exact-head qualification is **8/8 PASS**, including Browser VM Demo CI and Pages. The diff remains exactly one acceptance-harness file with the original three-line synchronization repair. No submitted independent review is recorded.
+This is classified as an **acceptance-observation defect**, not evidence that the guest command failed. The failure remains authoritative; #89 is **NOT qualified**.
 
-This proves the focused control-unlock harness repair on that exact head. It does not retroactively erase #89's retained historical failure, qualify onboarding, prove production WebVM reliability or establish live-provider quality.
+### PR #153 — current-main consolidated harness repair
 
-### PR #89 — onboarding / Inspector
+Closed-unmerged PRs #140 and #150 carried separate repairs for:
 
-PR **#89** is refreshed onto current main at exact head **`e8d25b67707acfe57feb1c36a4e066636336ab2f`** with its expected 11-file onboarding/Inspector surface.
+1. post-run control-unlock synchronization; and
+2. bounded terminal-proof marker parsing.
 
-All non-Pages exact-head workflows passed, including the dedicated Inspector/onboarding qualification, Factory runtime evidence, Command Station and controller/provider contracts.
+Those repairs are now consolidated on PR **#153**, built directly from current `main@f2d58e77...`.
 
-Pages run **`35147627190`** failed on its **first authoritative attempt** in generated desktop+narrow browser proof. Desktop passed. The retained narrow-browser terminal body shows the guest emitted:
+Current exact head: **`ee3e8f5b78d7e273fbd61dd110dbebb824ed960c`**.
 
-`RESIDUAL_E2E_3d6840b33599abaa:0`
-
-but the browser report recorded:
-
-`RESIDUAL_E2E_3d6840b33599abaa:03`
-
-and treated it as exit status 3. Cloud inference was `NOT_RUN`.
-
-Retained artifact: **`webvm-proof-35147627190-1`**, artifact ID **`10467956285`**, SHA-256 **`e9e281a8f642e8dd1cb1a7e82d9dd4efb3f8d66f0804c9773b9df79f711e75c5`**.
-
-The failure is classified as an **acceptance-observation defect**, not evidence that the guest command failed: `browser_smoke.py` removed terminal whitespace and greedily parsed an unterminated decimal exit code, so narrow rendering could concatenate a valid `:0` with an unrelated later digit into synthetic `:03`.
-
-The failed run remains authoritative and is not rerun away. #89 is **NOT qualified**.
-
-### PR #150 — bounded exit-marker parser repair
-
-Focused PR **#150** was opened directly from current main to repair the exact #89 observation defect.
-
-Exact head: **`c47a3d5a2f96cc866378b7acf9db49800107948f`**.
-
-Scope is three files only:
+Scope is four acceptance-harness files only:
 
 - `demo/vm/browser_smoke.py`;
-- new `demo/vm/terminal_proof.py`;
+- `demo/vm/mission_smoke.py`;
+- `demo/vm/terminal_proof.py`;
 - `tests/test_webvm_deployment_workflow.py`.
 
-The repair adds an explicit nonnumeric `:END` terminator, requires `prefix + digits + :END`, keeps whitespace normalization for terminal wrapping, and adds deterministic regressions proving a real exit `0` cannot absorb a later unrelated digit, wrapped markers still parse and unterminated markers fail closed.
+At this snapshot, Factory ownership and Control Plane are **PASS**. Browser VM Demo CI and Pages are **IN PROGRESS**; Command Station, controller/provider, clean install and measured binding are still **QUEUED**. No submitted independent review is recorded.
 
-At this status snapshot, **seven of eight observed workflows are PASS** and Pages run **`35148410760`** remains **IN PROGRESS** in the generated desktop+narrow browser proof. No submitted independent review is recorded.
+Therefore #153 is **NOT yet exact-head qualified**. Historical green results from #140/#150 do not qualify this current-main consolidation. After any accepted #153 integration, #89 must be refreshed onto the resulting main and fully requalified; #153 does not qualify #89 by itself.
 
-Do not merge #150 until its exact-head Pages proof completes successfully and a genuine independent technical review accepts the exact current head. If #150 later lands, #89 must be refreshed onto the resulting new main and fully requalified; #150 does not qualify #89 by itself.
+## Qualification v1 — draft PR #152
 
-## Runtime / distributed-state lane — PR #118
+Draft PR **#152** proposes a unified evidence-first qualification layer over the existing repository gates. It adds fail-closed qualification manifests/evidence envelopes, generated lifecycle exploration, RuntimeJournal state-machine testing, DSM fault-matrix binding, mutation canaries, branch coverage, exact-wheel qualification, multi-browser journeys, bounded process-soak tooling and manual elapsed-soak/live-provider workflows.
 
-PR **#118** is refreshed onto current main at exact head **`a18e8f84f5cbfb148e7dc6a243629a9907cce9cf`**.
+Current exact head: **`2a70f38751f843d577ae0492c281262546d6cc43`**.
 
-Fresh exact-head qualification is **7/7 PASS**, including Pages. The refresh is zero behind current main and preserves only the intended runtime/DSM workflow, documentation, implementation, retained review artifacts and two swarm tests. No current-main WebVM/provider or protected M4 file was replaced.
+Observed status at this snapshot is partial:
 
-No submitted independent review is recorded. #118 therefore remains blocked **only on genuine independent technical review** and must not be self-certified or merged from CI alone.
+- Browser VM Demo CI — **PASS**;
+- Factory OS execution evidence — **PASS**;
+- Factory ownership — **PASS**;
+- Control Plane — **PASS**;
+- measured-evaluation binding — **PASS**;
+- Pages — **IN PROGRESS**;
+- Factory runtime evidence — **IN PROGRESS**;
+- Command Station, controller/provider, clean install and the new `RESIDUAL Qualification v1` workflow — **QUEUED**.
 
-Release/recovery, production worker wiring, host-loss behavior, multi-node consensus, blank-environment qualification and elapsed 24h/72h/30-day soak remain separate unproven gates.
+No aggregate qualification `PASS` is claimed. Virtual-day stress is not elapsed wall-clock soak; a live-provider canary would prove only one bounded adapter execution path, not model quality; 24h/72h/30d evidence does not exist until those wall-clock runs actually complete.
 
-## Release-readiness lane — PR #115
+## Open integration candidates after #151
 
-PR **#115** is refreshed onto current main at exact head **`6ebf917516cdc855cfc5bb945b6d66415a54a217`**.
+PRs **#118**, **#115**, **#131**, **#93** and **#149** were last refreshed/qualified against `main@0580c1e5...`, before PR #151 merged. Their retained exact-head outcomes remain valid historical evidence for those heads but are **not current-main qualification**.
 
-Fresh exact-head qualification is **7/7 applicable workflows PASS**, including the dedicated Release preparation procedures gate. The refresh preserves the intended 18-file release-preparation surface and is zero behind current main.
+- **#118** — prior exact head `a18e8f84...` had 7/7 PASS; independent acceptance remained open. It must refresh/requalify after #151 before merge.
+- **#115** — prior exact head `6ebf9175...` had its applicable workflows PASS; procedure/simulation evidence still was not bare-OS, actual recovery or elapsed-soak evidence. It must refresh/requalify after #151.
+- **#131** — prior exact head `818af414...` had 7/7 PASS; local SoakState persistence is not elapsed-soak evidence. It must refresh/requalify after #151.
+- **#93** — prior exact head `7f5e24d9...` retained an authoritative Command Station **FAIL** in `test_readiness_polling_survives_concurrent_writer` with `AUDIT_FAILED/OperationalError`. The affected runtime-journal path is protected Factory/M4 surface. #93 remains **NOT qualified**; #151 does not change that retained blocker.
+- **#149** — prior exact head `2b4c2d09...` had 8/8 PASS on the pre-#151 base but zero submitted reviews and no live-provider success. Refresh/requalification is required.
 
-No submitted independent review is recorded.
-
-The retained two-day rehearsal is still **simulation/procedure evidence only**. It does not establish elapsed soak, a true blank-machine install, production HTTPS release-host success, live Station/provider execution, actual host-loss recovery or production reliability.
-
-## Core soak-state lane — PR #131
-
-PR **#131** is refreshed onto current main at exact head **`818af4142792356884fb53b3b80a86129b3dbda2`**.
-
-Fresh exact-head qualification is **7/7 PASS**, including Pages. The current-main diff remains exactly the two-file SoakState atomic-persistence hardening surface:
-
-- `residual/soak/state.py`;
-- `tests/test_soak_state.py`.
-
-No submitted independent review is recorded. The change hardens local resumable state persistence; it is **not elapsed-soak evidence** and remains separate from #115.
-
-## Observability / economics lane — PR #93
-
-PR **#93** is refreshed onto current main at exact head **`7f5e24d958d03b990a8885be5906b82a4f4c2455`**. The refresh is zero behind current main and preserves the original 47-file observability/economics lane diff.
-
-Exact-head PASS scopes include Factory ownership, measured-evaluation binding, clean install, Control Plane, controller/provider contracts, the dedicated Economics and observability qualification, and Pages.
-
-However, Command Station run **`35147825425`** is authoritatively **FAIL**. Python 3.11 job **`104968277918`** failed `test_readiness_polling_survives_concurrent_writer` with runtime status `AUDIT_FAILED`, reason `OperationalError`; Python 3.12 and 3.13 passed the same suite.
-
-The failing test exists specifically to prove that readiness polling cannot destabilize runtime writes. This is therefore treated as a repository-level runtime-journal concurrency defect/nondeterminism, not an ordinary namespace skip and not an observability-fixture result to waive.
-
-`residual/factory/runtime_journal.py` is part of the protected Factory/M4 ownership surface. The #93 lane stopped at that dependency rather than modifying protected runtime bytes, tests, schemas or ownership pins for green CI.
-
-#93 is **NOT exact-head qualified** and must not merge. Its retained observability/economics results remain development-fixture evidence only, not live-model SLO, production-reliability or research evidence.
-
-PRs #93 and #118 both touch `tests/swarm`; if either eventually integrates first, the other must be refreshed and requalified against the resulting new main before later integration.
+Do not merge any of these from stale exact-head evidence.
 
 ## Factory / M4 protected boundary
 
-M2/M3/M4 are implemented. Current M4 claims remain environment-bound: capable-runner qualification is not every-host qualification, and namespace/capability-unavailable hosts remain `BLOCKED`/`UNKNOWN`, not `PASS`.
+M2/M3/M4 are implemented. Issues #63 and #48 are closed. Current M4 claims remain environment-bound: capable-runner qualification is not every-host qualification, and namespace/capability-unavailable hosts remain `BLOCKED`/`UNKNOWN`, not `PASS`.
 
 ### PR #139 — protected test repair
 
-PR #139 head **`2d8855274ba3fe1d6af3296140d4a382680db3a7`** changes protected `tests/test_factory_m4_safety.py` to close a `/proc/<pid>/status` observation race without weakening the termination property.
+PR #139 changes protected `tests/test_factory_m4_safety.py` to close a `/proc/<pid>/status` observation race without weakening the termination property.
 
-Ownership/dependent gates correctly fail closed while the baseline still pins the prior protected test blob. A same-author/owner COMMENT is not independent acceptance.
+Ownership/dependent gates correctly fail closed while the baseline pins the prior protected test blob. A same-author/owner COMMENT is not independent acceptance.
 
-Required sequence:
+Required sequence remains:
 
 1. genuinely independent review of the exact protected head;
 2. deliberate ownership-baseline decision if accepted;
 3. fresh qualification after any protected pin change;
 4. only then refresh/requalify downstream #134 against the resulting current main.
 
-No protected byte, ownership pin, evidence schema or qualification threshold is weakened by this status work.
+This documentation update changes no protected byte, ownership pin, evidence schema or qualification threshold.
 
-## Provider-adapter lane — PR #134
+### PR #134 — provider-adapter lane
 
-PR #134 remains held on the protected #139 dependency and is behind current main. Its retained first-attempt Command Station failure remains evidence; adapter-specific tests passing in that run do not convert the full workflow into `PASS`.
+PR #134 remains downstream of #139 and behind current main. Its retained first-attempt failure remains evidence. Adapter-specific tests passing in that run do not turn the full workflow into `PASS`.
 
-Do not advance #134 until #139 completes the independent protected-byte sequence. If #139 is accepted, #134 still requires current-main refresh and exact-head requalification before integration or a new real-provider test request.
+Do not advance #134 until #139 completes the independent protected-byte sequence, then refresh/requalify #134 against current main before any integration or new live-provider acceptance request.
 
 ## Governance / independent review
 
 Issue **#144** remains open.
 
-PR **#146** implements a repository-side independent-current-head review gate, but it is not integration-ready on its current head. Its own policy correctly rejects self-review, bot review, stale-head approval, COMMENT-only review, missing review evidence and green CI alone.
+PR **#146** is now rebuilt directly from `main@f2d58e77...` at head **`e620bb22e5023fa842063e1db7e7e9cf7f490f40`**. It codifies a fail-closed repository-side independent-current-head review check. The gate accepts only a human, non-author reviewer with write/admin permission who approved the exact current PR head and has not subsequently invalidated that approval.
 
-No current critical lane should use the repository owner's own review as a substitute for genuine independent acceptance.
+Self/owner approval, bots, COMMENT-only review, stale-head approval, read-only review, missing permission evidence and green CI alone do not qualify.
 
-Current technically green but review-blocked candidates include **#118, #115, #131, #140 and #149**. #150 may join that set only if its still-running Pages workflow completes successfully on the exact current head.
+Platform enforcement is still incomplete: the active repository ruleset must eventually require at least one approving review and the new `independent-review` status check. Do not merge #146 itself without genuinely independent exact-head acceptance and its ordinary qualification gates.
 
 ## Research / release non-claims
 
 The project does **not** yet claim that:
 
-- live heterogeneous models show materially higher `P(correct | accepted)` than raw worker correctness under matched capability;
-- acceptance coverage remains useful while achieving that gain;
+- live heterogeneous models materially improve `P(correct | accepted)` over raw worker correctness at useful coverage;
 - the gain is worth orchestration cost/latency/throughput;
-- current real Puter inference succeeds after #147 or #149;
+- current real Puter inference succeeds on `main@f2d58e77...`;
 - the WebVM timed-wait defect or historical corruption family has been root-caused;
 - long-run WebVM failure rate is acceptable;
 - release/recovery qualification is complete;
@@ -196,15 +178,15 @@ The project does **not** yet claim that:
 
 ## Next production-readiness gates
 
-1. Complete #150's exact-head Pages/browser proof. Preserve any first-attempt failure if one occurs. If the exact head becomes fully green, obtain independent technical review before integration.
-2. After any #150 integration, refresh #89 onto the new main and fully requalify onboarding/Inspector; do not inherit #150's result as #89 evidence.
-3. Obtain genuine independent exact-head acceptance for technically green #118, #115, #131, #140 and #149. Recheck live main immediately before any merge and requalify a candidate if main moved materially.
-4. Resolve #93's protected runtime-journal dependency through the protected M4 ownership/review process rather than editing protected runtime or tests inside #93.
-5. Resolve #139 through independent protected-byte review → deliberate baseline handling → fresh qualification; only then refresh #134.
-6. Complete #144/#146 platform enforcement so future merges cannot bypass the independent-review rule.
+1. Obtain a genuinely independent post-merge technical review for exact current main / PR #151 and complete #144/#146 enforcement for future merges.
+2. Run and retain a fresh paid/live Puter acceptance on exact deployed `f2d58e77...`; preserve `PASS`, `FAIL` or `UNKNOWN` rather than inferring success from SDK-test-double CI.
+3. Complete #153 exact-head CI. Preserve any first-attempt failure. If fully green, require independent technical review before integration, then refresh/requalify #89.
+4. Finish #152 only through its own fail-closed aggregate qualification; do not promote partial workflow success, virtual-day stress or planned elapsed-soak workflows into release evidence.
+5. Refresh/requalify stale-base integration candidates #118/#115/#131/#149 against current main. Preserve #93's retained red blocker until its protected dependency is resolved.
+6. Resolve #139 through independent protected-byte review → deliberate baseline handling → fresh qualification; only then refresh #134.
 7. Quantify WebVM reliability with a predefined retained repeated-run campaign; keep #120/#126 open until evidence supports closure.
-8. Complete true blank-environment release/recovery qualification without converting rehearsal/simulation evidence into release `PASS`.
-9. Freeze the live evaluation workload, evidence path, model/configuration, verifier policy, metrics and analysis before confirmatory outcome access.
+8. Complete true blank-environment release/recovery qualification without converting rehearsal/simulation into release `PASS`.
+9. Freeze live-evaluation source, workload, model/configuration, evidence path, verifier policy, metrics and analysis before confirmatory outcome access.
 10. Progress through elapsed 24h → 72h → 30-day soak only after shorter gates are clean.
 
 ## Documentation authority
