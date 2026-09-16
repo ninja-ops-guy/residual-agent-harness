@@ -130,8 +130,20 @@ class BrowserMailboxPublicationSourceTests(unittest.TestCase):
         self.assertNotIn('python3 -m ${entry}', source)
         self.assertIn('python3 -m residual.workbench.browser_worker', source)
         self.assertIn('RESIDUAL_WORKER_RUN_', source)
-        self.assertIn('/tmp/residual-workbench.fifo', source)
+        self.assertIn('/data/residual-worker.control', source)
+        self.assertIn('/tmp/residual-workbench.busy', source)
+        self.assertNotIn('/tmp/residual-workbench.fifo', source)
+        self.assertNotIn('mkfifo', source)
         self.assertIn('Guest command already active', source)
+
+    def test_worker_control_is_published_after_request_body(self):
+        source = self.source()
+        request_write = 'await residualDataDevice.writeFile(name, JSON.stringify(request));'
+        control_write = 'residualDataDevice.writeFile(\n                        "/residual-worker.control"'
+        self.assertIn(request_write, source)
+        self.assertIn(control_write, source)
+        self.assertLess(source.index(request_write), source.index(control_write))
+        self.assertIn('request.id + " " + request.mode + "\\\\n"', source)
 
     def test_terminal_input_is_queued_not_dropped_while_worker_is_active(self):
         source = self.source()
@@ -154,6 +166,7 @@ class BrowserMailboxPublicationSourceTests(unittest.TestCase):
         self.assertIn('RESIDUAL_WORKER_FATAL_', source)
         self.assertIn('residualWorkerPoisoned = true;', source)
         self.assertIn('!residualWorkerPoisoned', source)
+        self.assertIn('await terminateResidualWorker(current.missionId)', source)
 
 
 if __name__ == '__main__':
