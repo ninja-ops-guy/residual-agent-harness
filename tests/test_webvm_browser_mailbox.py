@@ -140,7 +140,7 @@ class BrowserMailboxPublicationSourceTests(unittest.TestCase):
         source = self.source()
         request_write = 'await residualDataDevice.writeFile(name, JSON.stringify(request));'
         control_publish = 'const controlCommand ='
-        control_dispatch = 'readData(controlCommand);'
+        control_dispatch = 'readData(controlCommand + "\\\\r");'
         self.assertIn(request_write, source)
         self.assertIn(control_publish, source)
         self.assertIn(control_dispatch, source)
