@@ -1,0 +1,12 @@
+{
+  "commit": "22a5bae54ec12987ffd7a90d881fb4533c9b4b97",
+  "tree": "39599b2296fa8865ab1e0dabae333b9b6f933da8",
+  "artifact_id": 10423467722,
+  "sha256": "18fbc15c5fb8b6dd2e1984e55a131530f38b0ea96860d1b86ccaf7d5a5812922",
+  "test_cases": 142,
+  "subtests": 84,
+  "skips": 0,
+  "capabilities": 12,
+  "qualified_scope": "accepted-main M4 on recorded Ubuntu 22.04 runner only",
+  "result": "PASS"
+}

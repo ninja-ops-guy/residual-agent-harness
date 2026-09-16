@@ -1,0 +1,756 @@
+﻿2026-09-15T23:38:49.0507727Z Current runner version: '2.337.0'
+2026-09-15T23:38:49.0526748Z ##[group]Runner Image Provisioner
+2026-09-15T23:38:49.0527507Z Hosted Compute Agent
+2026-09-15T23:38:49.0527973Z Version: 20260828.587
+2026-09-15T23:38:49.0528455Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-15T23:38:49.0529000Z Build Date: 2026-08-28T16:44:25Z
+2026-09-15T23:38:49.0529521Z Worker ID: {79ccf087-50b3-4de3-8cdf-54d2ed1acb23}
+2026-09-15T23:38:49.0530324Z Azure Region: centralus
+2026-09-15T23:38:49.0530752Z ##[endgroup]
+2026-09-15T23:38:49.0532049Z ##[group]Operating System
+2026-09-15T23:38:49.0532567Z Ubuntu
+2026-09-15T23:38:49.0532937Z 22.04.5
+2026-09-15T23:38:49.0533293Z LTS
+2026-09-15T23:38:49.0533684Z ##[endgroup]
+2026-09-15T23:38:49.0534078Z ##[group]Runner Image
+2026-09-15T23:38:49.0534519Z Image: ubuntu-22.04
+2026-09-15T23:38:49.0534918Z Version: 20260907.292.1
+2026-09-15T23:38:49.0535906Z Included Software: https://github.com/actions/runner-images/blob/ubuntu22/20260907.292/images/ubuntu/Ubuntu2204-Readme.md
+2026-09-15T23:38:49.0537064Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu22%2F20260907.292
+2026-09-15T23:38:49.0537795Z ##[endgroup]
+2026-09-15T23:38:49.0538647Z ##[group]GITHUB_TOKEN Permissions
+2026-09-15T23:38:49.0540771Z Actions: read
+2026-09-15T23:38:49.0541216Z Contents: read
+2026-09-15T23:38:49.0541639Z Metadata: read
+2026-09-15T23:38:49.0542022Z ##[endgroup]
+2026-09-15T23:38:49.0543579Z Secret source: Actions
+2026-09-15T23:38:49.0544283Z Cache mode: write
+2026-09-15T23:38:49.0544994Z Prepare workflow directory
+2026-09-15T23:38:49.0773755Z Prepare all required actions
+2026-09-15T23:38:49.0807867Z Getting action download info
+2026-09-15T23:38:49.3565939Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-09-15T23:38:50.1468223Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-09-15T23:38:50.4089910Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-09-15T23:38:50.9843634Z Complete job name: m4-prereq
+2026-09-15T23:38:51.0465163Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-15T23:38:51.0472542Z ##[group]Run actions/checkout@v4
+2026-09-15T23:38:51.0473446Z with:
+2026-09-15T23:38:51.0474111Z   persist-credentials: false
+2026-09-15T23:38:51.0474949Z   repository: ninja-ops-guy/residual-agent-harness
+2026-09-15T23:38:51.0480912Z   token: ***
+2026-09-15T23:38:51.0481626Z   ssh-strict: true
+2026-09-15T23:38:51.0482324Z   ssh-user: git
+2026-09-15T23:38:51.0482984Z   clean: true
+2026-09-15T23:38:51.0483656Z   sparse-checkout-cone-mode: true
+2026-09-15T23:38:51.0484444Z   fetch-depth: 1
+2026-09-15T23:38:51.0485097Z   fetch-tags: false
+2026-09-15T23:38:51.0485800Z   show-progress: true
+2026-09-15T23:38:51.0486506Z   lfs: false
+2026-09-15T23:38:51.0487209Z   submodules: false
+2026-09-15T23:38:51.0487928Z   set-safe-directory: true
+2026-09-15T23:38:51.0488684Z   allow-unsafe-pr-checkout: false
+2026-09-15T23:38:51.0489690Z ##[endgroup]
+2026-09-15T23:38:51.1241088Z Syncing repository: ninja-ops-guy/residual-agent-harness
+2026-09-15T23:38:51.1243121Z ##[group]Getting Git version info
+2026-09-15T23:38:51.1244246Z Working directory is '/home/runner/work/residual-agent-harness/residual-agent-harness'
+2026-09-15T23:38:51.1245861Z [command]/usr/bin/git version
+2026-09-15T23:38:51.1276035Z git version 2.55.0
+2026-09-15T23:38:51.1290197Z ##[endgroup]
+2026-09-15T23:38:51.1299886Z Temporarily overriding HOME='/home/runner/work/_temp/49d53496-9b0c-42b8-b016-3266823b9b2f' before making global git config changes
+2026-09-15T23:38:51.1302325Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-15T23:38:51.1304674Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/residual-agent-harness/residual-agent-harness
+2026-09-15T23:38:51.1327230Z Deleting the contents of '/home/runner/work/residual-agent-harness/residual-agent-harness'
+2026-09-15T23:38:51.1332387Z ##[group]Initializing the repository
+2026-09-15T23:38:51.1334881Z [command]/usr/bin/git init /home/runner/work/residual-agent-harness/residual-agent-harness
+2026-09-15T23:38:51.2230151Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-15T23:38:51.2231695Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-15T23:38:51.2232917Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-15T23:38:51.2233956Z hint: call:
+2026-09-15T23:38:51.2234572Z hint:
+2026-09-15T23:38:51.2235345Z hint: 	git config --global init.defaultBranch <name>
+2026-09-15T23:38:51.2236223Z hint:
+2026-09-15T23:38:51.2237132Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-15T23:38:51.2238712Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-15T23:38:51.2240149Z hint:
+2026-09-15T23:38:51.2240962Z hint: 	git branch -m <name>
+2026-09-15T23:38:51.2241787Z hint:
+2026-09-15T23:38:51.2242829Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-15T23:38:51.2244660Z Initialized empty Git repository in /home/runner/work/residual-agent-harness/residual-agent-harness/.git/
+2026-09-15T23:38:51.2247268Z [command]/usr/bin/git remote add origin https://github.com/ninja-ops-guy/residual-agent-harness
+2026-09-15T23:38:51.2509888Z ##[endgroup]
+2026-09-15T23:38:51.2513631Z ##[group]Disabling automatic garbage collection
+2026-09-15T23:38:51.2514677Z [command]/usr/bin/git config --local gc.auto 0
+2026-09-15T23:38:51.2540625Z ##[endgroup]
+2026-09-15T23:38:51.2542166Z ##[group]Setting up auth
+2026-09-15T23:38:51.2545988Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-15T23:38:51.2569758Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-15T23:38:51.2951551Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-15T23:38:51.2974884Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-15T23:38:51.3121174Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-15T23:38:51.3141759Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-15T23:38:51.3287578Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-15T23:38:51.3312114Z ##[endgroup]
+2026-09-15T23:38:51.3313724Z ##[group]Fetching the repository
+2026-09-15T23:38:51.3319773Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +22a5bae54ec12987ffd7a90d881fb4533c9b4b97:refs/remotes/origin/main
+2026-09-15T23:38:52.0012537Z From https://github.com/ninja-ops-guy/residual-agent-harness
+2026-09-15T23:38:52.0013307Z  * [new ref]         22a5bae54ec12987ffd7a90d881fb4533c9b4b97 -> origin/main
+2026-09-15T23:38:52.0015655Z ##[endgroup]
+2026-09-15T23:38:52.0016168Z ##[group]Determining the checkout info
+2026-09-15T23:38:52.0017264Z ##[endgroup]
+2026-09-15T23:38:52.0023288Z [command]/usr/bin/git sparse-checkout disable
+2026-09-15T23:38:52.0052785Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-15T23:38:52.0075718Z ##[group]Checking out the ref
+2026-09-15T23:38:52.0078785Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-09-15T23:38:52.0901000Z Switched to a new branch 'main'
+2026-09-15T23:38:52.0901894Z branch 'main' set up to track 'origin/main'.
+2026-09-15T23:38:52.0908161Z ##[endgroup]
+2026-09-15T23:38:52.0933966Z [command]/usr/bin/git log -1 --format=%H
+2026-09-15T23:38:52.0950056Z 22a5bae54ec12987ffd7a90d881fb4533c9b4b97
+2026-09-15T23:38:52.0956839Z ##[group]Removing auth
+2026-09-15T23:38:52.0959520Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-15T23:38:52.0982153Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-15T23:38:52.1132003Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-15T23:38:52.1147527Z http.https://github.com/.extraheader
+2026-09-15T23:38:52.1151531Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-09-15T23:38:52.1172756Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-15T23:38:52.1317408Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-15T23:38:52.1336649Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-15T23:38:52.1476909Z ##[endgroup]
+2026-09-15T23:38:52.1664264Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-15T23:38:52.1665370Z ##[group]Run actions/setup-python@v5
+2026-09-15T23:38:52.1665658Z with:
+2026-09-15T23:38:52.1665870Z   python-version: 3.12
+2026-09-15T23:38:52.1666104Z   check-latest: false
+2026-09-15T23:38:52.1668075Z   token: ***
+2026-09-15T23:38:52.1668318Z   update-environment: true
+2026-09-15T23:38:52.1668597Z   allow-prereleases: false
+2026-09-15T23:38:52.1668836Z   freethreaded: false
+2026-09-15T23:38:52.1669060Z ##[endgroup]
+2026-09-15T23:38:52.2619382Z ##[group]Installed versions
+2026-09-15T23:38:52.4000760Z (node:1877) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-15T23:38:52.4001545Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-15T23:38:52.4002026Z Successfully set up CPython (3.12.14)
+2026-09-15T23:38:52.4002512Z ##[endgroup]
+2026-09-15T23:38:52.4110386Z ##[group]Run python -m pip install --upgrade pip
+2026-09-15T23:38:52.4110818Z [36;1mpython -m pip install --upgrade pip[0m
+2026-09-15T23:38:52.4111171Z [36;1mpython -m pip install -e ".[factory]" pytest[0m
+2026-09-15T23:38:52.5221825Z shell: /usr/bin/bash -e {0}
+2026-09-15T23:38:52.5222179Z env:
+2026-09-15T23:38:52.5222681Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:38:52.5223129Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-15T23:38:52.5223522Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:38:52.5223857Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:38:52.5224186Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:38:52.5224546Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-15T23:38:52.5224836Z ##[endgroup]
+2026-09-15T23:39:00.0935702Z Requirement already satisfied: pip in /opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages (26.2.1)
+2026-09-15T23:39:01.9866872Z Obtaining file:///home/runner/work/residual-agent-harness/residual-agent-harness
+2026-09-15T23:39:01.9877408Z   Installing build dependencies: started
+2026-09-15T23:39:03.5737886Z   Installing build dependencies: finished with status 'done'
+2026-09-15T23:39:03.5742371Z   Checking if build backend supports build_editable: started
+2026-09-15T23:39:03.8496015Z   Checking if build backend supports build_editable: finished with status 'done'
+2026-09-15T23:39:03.8503086Z   Getting requirements to build editable: started
+2026-09-15T23:39:04.0971596Z   Getting requirements to build editable: finished with status 'done'
+2026-09-15T23:39:04.0980100Z   Preparing editable metadata (pyproject.toml): started
+2026-09-15T23:39:04.2388015Z   Preparing editable metadata (pyproject.toml): finished with status 'done'
+2026-09-15T23:39:04.5692147Z Collecting pytest
+2026-09-15T23:39:04.6989897Z   Downloading pytest-9.1.1-py3-none-any.whl.metadata (7.6 kB)
+2026-09-15T23:39:04.9982767Z Collecting cryptography>=43 (from residual-agent-harness==0.5.0)
+2026-09-15T23:39:05.0321404Z   Downloading cryptography-50.0.1-cp311-abi3-manylinux_2_34_x86_64.whl.metadata (4.3 kB)
+2026-09-15T23:39:05.0931438Z Collecting PyYAML>=6 (from residual-agent-harness==0.5.0)
+2026-09-15T23:39:05.1267430Z   Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+2026-09-15T23:39:05.1688821Z Collecting iniconfig>=1.0.1 (from pytest)
+2026-09-15T23:39:05.2026060Z   Downloading iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+2026-09-15T23:39:05.2868278Z Collecting packaging>=22 (from pytest)
+2026-09-15T23:39:05.3207251Z   Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+2026-09-15T23:39:05.3659820Z Collecting pluggy<2,>=1.5 (from pytest)
+2026-09-15T23:39:05.4000397Z   Downloading pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+2026-09-15T23:39:05.4484785Z Collecting pygments>=2.7.2 (from pytest)
+2026-09-15T23:39:05.4819879Z   Downloading pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+2026-09-15T23:39:05.6329011Z Collecting cffi>=2.0.0 (from cryptography>=43->residual-agent-harness==0.5.0)
+2026-09-15T23:39:05.6667122Z   Downloading cffi-2.1.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.5 kB)
+2026-09-15T23:39:05.7335640Z Collecting pycparser (from cffi>=2.0.0->cryptography>=43->residual-agent-harness==0.5.0)
+2026-09-15T23:39:05.7671978Z   Downloading pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
+2026-09-15T23:39:05.8077240Z Downloading pytest-9.1.1-py3-none-any.whl (386 kB)
+2026-09-15T23:39:06.0067327Z Downloading pluggy-1.6.0-py3-none-any.whl (20 kB)
+2026-09-15T23:39:06.0845246Z Downloading cryptography-50.0.1-cp311-abi3-manylinux_2_34_x86_64.whl (4.7 MB)
+2026-09-15T23:39:06.2572658Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.7/4.7 MB 27.9 MB/s  0:00:00
+2026-09-15T23:39:06.2913083Z Downloading cffi-2.1.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (221 kB)
+2026-09-15T23:39:06.3285145Z Downloading iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+2026-09-15T23:39:06.3652793Z Downloading packaging-26.3-py3-none-any.whl (129 kB)
+2026-09-15T23:39:06.4024364Z Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+2026-09-15T23:39:06.4409048Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 28.1 MB/s  0:00:00
+2026-09-15T23:39:06.4761337Z Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (807 kB)
+2026-09-15T23:39:06.4926523Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 807.9/807.9 kB 38.6 MB/s  0:00:00
+2026-09-15T23:39:06.5265505Z Downloading pycparser-3.0-py3-none-any.whl (48 kB)
+2026-09-15T23:39:06.5617291Z Building wheels for collected packages: residual-agent-harness
+2026-09-15T23:39:06.5622917Z   Building editable for residual-agent-harness (pyproject.toml): started
+2026-09-15T23:39:06.7395146Z   Building editable for residual-agent-harness (pyproject.toml): finished with status 'done'
+2026-09-15T23:39:06.7399466Z   Created wheel for residual-agent-harness: filename=residual_agent_harness-0.5.0-0.editable-py3-none-any.whl size=8732 sha256=10a31d441225abaef9af34b1199b9a23ae119d84295767101ac2ab26ebcfa6b3
+2026-09-15T23:39:06.7401139Z   Stored in directory: /tmp/pip-ephem-wheel-cache-rpieau1s/wheels/34/a8/47/914e9a9c4c3b507d525200dcd8125e19a0e523325bb2aeec37
+2026-09-15T23:39:06.7417366Z Successfully built residual-agent-harness
+2026-09-15T23:39:06.7607171Z Installing collected packages: residual-agent-harness, PyYAML, pygments, pycparser, pluggy, packaging, iniconfig, pytest, cffi, cryptography
+2026-09-15T23:39:08.1906571Z 
+2026-09-15T23:39:08.1920124Z Successfully installed PyYAML-6.0.3 cffi-2.1.1 cryptography-50.0.1 iniconfig-2.3.0 packaging-26.3 pluggy-1.6.0 pycparser-3.0 pygments-2.21.0 pytest-9.1.1 residual-agent-harness-0.5.0
+2026-09-15T23:39:08.2628404Z ##[group]Run mkdir -p runs/m4-qualification-prereq
+2026-09-15T23:39:08.2628869Z [36;1mmkdir -p runs/m4-qualification-prereq[0m
+2026-09-15T23:39:08.2629248Z [36;1mpython -m pip freeze > runs/m4-qualification-prereq/dependencies.txt[0m
+2026-09-15T23:39:08.2629859Z [36;1mpython - <<'PYIDENTITY'[0m
+2026-09-15T23:39:08.2630176Z [36;1mimport json, os, platform, subprocess, sys[0m
+2026-09-15T23:39:08.2630449Z [36;1mfrom pathlib import Path[0m
+2026-09-15T23:39:08.2630719Z [36;1mdef git(*args):[0m
+2026-09-15T23:39:08.2631060Z [36;1m    return subprocess.check_output(['git', *args], text=True).strip()[0m
+2026-09-15T23:39:08.2631476Z [36;1mdirty = git('status', '--porcelain', '--untracked-files=no')[0m
+2026-09-15T23:39:08.2631835Z [36;1midentity = {[0m
+2026-09-15T23:39:08.2632067Z [36;1m    'commit': git('rev-parse', 'HEAD'),[0m
+2026-09-15T23:39:08.2632383Z [36;1m    'tree': git('rev-parse', 'HEAD^{tree}'),[0m
+2026-09-15T23:39:08.2632752Z [36;1m    'tracked_source_dirty': bool(dirty),[0m
+2026-09-15T23:39:08.2633062Z [36;1m    'python': sys.version,[0m
+2026-09-15T23:39:08.2633331Z [36;1m    'platform': platform.platform(),[0m
+2026-09-15T23:39:08.2633616Z [36;1m    'runner': {k: os.environ.get(k) for k in ([0m
+2026-09-15T23:39:08.2633946Z [36;1m        'ImageOS', 'ImageVersion', 'RUNNER_OS', 'RUNNER_ARCH',[0m
+2026-09-15T23:39:08.2634336Z [36;1m        'GITHUB_RUN_ID', 'GITHUB_RUN_ATTEMPT', 'SOURCE_PR_HEAD', 'SOURCE_BASE')},[0m
+2026-09-15T23:39:08.2634694Z [36;1m}[0m
+2026-09-15T23:39:08.2634997Z [36;1mPath('runs/m4-qualification-prereq/source-environment.json').write_text([0m
+2026-09-15T23:39:08.2635377Z [36;1m    json.dumps(identity, indent=2) + '\n')[0m
+2026-09-15T23:39:08.2635718Z [36;1massert not dirty, 'Tracked source changed before qualification'[0m
+2026-09-15T23:39:08.2636029Z [36;1mPYIDENTITY[0m
+2026-09-15T23:39:08.2668806Z shell: /usr/bin/bash -e {0}
+2026-09-15T23:39:08.2669178Z env:
+2026-09-15T23:39:08.2669454Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:08.2669983Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-15T23:39:08.2670379Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:08.2670721Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:08.2671051Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:08.2671382Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-15T23:39:08.2671678Z   SOURCE_PR_HEAD: 
+2026-09-15T23:39:08.2671943Z   SOURCE_BASE: 
+2026-09-15T23:39:08.2672162Z ##[endgroup]
+2026-09-15T23:39:10.4851235Z ##[group]Run set -o pipefail
+2026-09-15T23:39:10.4851548Z [36;1mset -o pipefail[0m
+2026-09-15T23:39:10.4851798Z [36;1mmkdir -p runs/m4-qualification-prereq[0m
+2026-09-15T23:39:10.4852149Z [36;1mpython -m residual.factory.m4_qualification_prereq \[0m
+2026-09-15T23:39:10.4852515Z [36;1m  --output runs/m4-qualification-prereq/report.json \[0m
+2026-09-15T23:39:10.4853014Z [36;1m  --revision "22a5bae54ec12987ffd7a90d881fb4533c9b4b97" 2>&1 | tee runs/m4-qualification-prereq/probe.log[0m
+2026-09-15T23:39:10.4886736Z shell: /usr/bin/bash -e {0}
+2026-09-15T23:39:10.4887022Z env:
+2026-09-15T23:39:10.4887310Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:10.4887717Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-15T23:39:10.4888077Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:10.4888414Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:10.4889043Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:10.4889360Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-15T23:39:10.4889982Z ##[endgroup]
+2026-09-15T23:39:12.0527274Z {
+2026-09-15T23:39:12.0527924Z   "blocked_capabilities": [],
+2026-09-15T23:39:12.0528346Z   "capabilities": [
+2026-09-15T23:39:12.0528783Z     {
+2026-09-15T23:39:12.0529294Z       "detail": "Linux-6.8.0-1064-azure-x86_64-with-glibc2.35",
+2026-09-15T23:39:12.0530099Z       "name": "platform_linux",
+2026-09-15T23:39:12.0530499Z       "probe_argv": [],
+2026-09-15T23:39:12.0530832Z       "returncode": null,
+2026-09-15T23:39:12.0531167Z       "status": "pass"
+2026-09-15T23:39:12.0531445Z     },
+2026-09-15T23:39:12.0531672Z     {
+2026-09-15T23:39:12.0531907Z       "detail": "os.chroot present",
+2026-09-15T23:39:12.0532177Z       "name": "chroot_available",
+2026-09-15T23:39:12.0532419Z       "probe_argv": [],
+2026-09-15T23:39:12.0532643Z       "returncode": null,
+2026-09-15T23:39:12.0532958Z       "status": "pass"
+2026-09-15T23:39:12.0533175Z     },
+2026-09-15T23:39:12.0533368Z     {
+2026-09-15T23:39:12.0533616Z       "detail": "/usr/bin/unshare",
+2026-09-15T23:39:12.0533859Z       "name": "unshare_binary",
+2026-09-15T23:39:12.0534111Z       "probe_argv": [],
+2026-09-15T23:39:12.0534342Z       "returncode": null,
+2026-09-15T23:39:12.0534565Z       "status": "pass"
+2026-09-15T23:39:12.0534788Z     },
+2026-09-15T23:39:12.0534988Z     {
+2026-09-15T23:39:12.0535196Z       "detail": "ok",
+2026-09-15T23:39:12.0535425Z       "name": "user_namespace",
+2026-09-15T23:39:12.0535647Z       "probe_argv": [
+2026-09-15T23:39:12.0535931Z         "/usr/bin/unshare",
+2026-09-15T23:39:12.0536218Z         "--user",
+2026-09-15T23:39:12.0536449Z         "--map-root-user",
+2026-09-15T23:39:12.0536685Z         "--",
+2026-09-15T23:39:12.0536879Z         "/usr/bin/env",
+2026-09-15T23:39:12.0537130Z         "-i",
+2026-09-15T23:39:12.0537323Z         "sh",
+2026-09-15T23:39:12.0537534Z         "-c",
+2026-09-15T23:39:12.0537755Z         "true"
+2026-09-15T23:39:12.0537963Z       ],
+2026-09-15T23:39:12.0538225Z       "returncode": 0,
+2026-09-15T23:39:12.0538445Z       "status": "pass"
+2026-09-15T23:39:12.0538653Z     },
+2026-09-15T23:39:12.0538864Z     {
+2026-09-15T23:39:12.0539065Z       "detail": "ok",
+2026-09-15T23:39:12.0539315Z       "name": "mount_namespace",
+2026-09-15T23:39:12.0539550Z       "probe_argv": [
+2026-09-15T23:39:12.0540011Z         "/usr/bin/unshare",
+2026-09-15T23:39:12.0540278Z         "--user",
+2026-09-15T23:39:12.0540494Z         "--map-root-user",
+2026-09-15T23:39:12.0540785Z         "--mount",
+2026-09-15T23:39:12.0540987Z         "--",
+2026-09-15T23:39:12.0541183Z         "/usr/bin/env",
+2026-09-15T23:39:12.0541426Z         "-i",
+2026-09-15T23:39:12.0541620Z         "sh",
+2026-09-15T23:39:12.0541822Z         "-c",
+2026-09-15T23:39:12.0542028Z         "true"
+2026-09-15T23:39:12.0542235Z       ],
+2026-09-15T23:39:12.0542446Z       "returncode": 0,
+2026-09-15T23:39:12.0542673Z       "status": "pass"
+2026-09-15T23:39:12.0543090Z     },
+2026-09-15T23:39:12.0543356Z     {
+2026-09-15T23:39:12.0543554Z       "detail": "ok",
+2026-09-15T23:39:12.0543787Z       "name": "pid_namespace",
+2026-09-15T23:39:12.0544028Z       "probe_argv": [
+2026-09-15T23:39:12.0544232Z         "/usr/bin/unshare",
+2026-09-15T23:39:12.0544491Z         "--user",
+2026-09-15T23:39:12.0544889Z         "--map-root-user",
+2026-09-15T23:39:12.0545198Z         "--pid",
+2026-09-15T23:39:12.0545415Z         "--fork",
+2026-09-15T23:39:12.0545605Z         "--",
+2026-09-15T23:39:12.0545847Z         "/usr/bin/env",
+2026-09-15T23:39:12.0546065Z         "-i",
+2026-09-15T23:39:12.0546268Z         "sh",
+2026-09-15T23:39:12.0546488Z         "-c",
+2026-09-15T23:39:12.0546689Z         "true"
+2026-09-15T23:39:12.0546926Z       ],
+2026-09-15T23:39:12.0547128Z       "returncode": 0,
+2026-09-15T23:39:12.0547387Z       "status": "pass"
+2026-09-15T23:39:12.0547611Z     },
+2026-09-15T23:39:12.0547801Z     {
+2026-09-15T23:39:12.0548131Z       "detail": "ok",
+2026-09-15T23:39:12.0548374Z       "name": "network_namespace",
+2026-09-15T23:39:12.0548615Z       "probe_argv": [
+2026-09-15T23:39:12.0548854Z         "/usr/bin/unshare",
+2026-09-15T23:39:12.0549082Z         "--user",
+2026-09-15T23:39:12.0549296Z         "--map-root-user",
+2026-09-15T23:39:12.0549551Z         "--net",
+2026-09-15T23:39:12.0549971Z         "--",
+2026-09-15T23:39:12.0550211Z         "/usr/bin/env",
+2026-09-15T23:39:12.0550439Z         "-i",
+2026-09-15T23:39:12.0550644Z         "sh",
+2026-09-15T23:39:12.0550849Z         "-c",
+2026-09-15T23:39:12.0551053Z         "true"
+2026-09-15T23:39:12.0551348Z       ],
+2026-09-15T23:39:12.0551617Z       "returncode": 0,
+2026-09-15T23:39:12.0551828Z       "status": "pass"
+2026-09-15T23:39:12.0552065Z     },
+2026-09-15T23:39:12.0552266Z     {
+2026-09-15T23:39:12.0552553Z       "detail": "ok",
+2026-09-15T23:39:12.0552791Z       "name": "ipc_namespace",
+2026-09-15T23:39:12.0553083Z       "probe_argv": [
+2026-09-15T23:39:12.0553402Z         "/usr/bin/unshare",
+2026-09-15T23:39:12.0553671Z         "--user",
+2026-09-15T23:39:12.0553911Z         "--map-root-user",
+2026-09-15T23:39:12.0554136Z         "--ipc",
+2026-09-15T23:39:12.0554325Z         "--",
+2026-09-15T23:39:12.0554562Z         "/usr/bin/env",
+2026-09-15T23:39:12.0554775Z         "-i",
+2026-09-15T23:39:12.0554985Z         "sh",
+2026-09-15T23:39:12.0555197Z         "-c",
+2026-09-15T23:39:12.0555392Z         "true"
+2026-09-15T23:39:12.0555610Z       ],
+2026-09-15T23:39:12.0555819Z       "returncode": 0,
+2026-09-15T23:39:12.0556076Z       "status": "pass"
+2026-09-15T23:39:12.0556291Z     },
+2026-09-15T23:39:12.0556483Z     {
+2026-09-15T23:39:12.0556699Z       "detail": "ok",
+2026-09-15T23:39:12.0556920Z       "name": "uts_namespace",
+2026-09-15T23:39:12.0557149Z       "probe_argv": [
+2026-09-15T23:39:12.0557387Z         "/usr/bin/unshare",
+2026-09-15T23:39:12.0557611Z         "--user",
+2026-09-15T23:39:12.0557828Z         "--map-root-user",
+2026-09-15T23:39:12.0558060Z         "--uts",
+2026-09-15T23:39:12.0558290Z         "--",
+2026-09-15T23:39:12.0558524Z         "/usr/bin/env",
+2026-09-15T23:39:12.0558746Z         "-i",
+2026-09-15T23:39:12.0558943Z         "sh",
+2026-09-15T23:39:12.0559152Z         "-c",
+2026-09-15T23:39:12.0559399Z         "true"
+2026-09-15T23:39:12.0559744Z       ],
+2026-09-15T23:39:12.0559970Z       "returncode": 0,
+2026-09-15T23:39:12.0560174Z       "status": "pass"
+2026-09-15T23:39:12.0560421Z     },
+2026-09-15T23:39:12.0560655Z     {
+2026-09-15T23:39:12.0560857Z       "detail": "ok",
+2026-09-15T23:39:12.0561083Z       "name": "kill_child",
+2026-09-15T23:39:12.0561298Z       "probe_argv": [
+2026-09-15T23:39:12.0561550Z         "/usr/bin/unshare",
+2026-09-15T23:39:12.0561770Z         "--user",
+2026-09-15T23:39:12.0562005Z         "--map-root-user",
+2026-09-15T23:39:12.0562249Z         "--kill-child",
+2026-09-15T23:39:12.0562464Z         "--pid",
+2026-09-15T23:39:12.0562699Z         "--fork",
+2026-09-15T23:39:12.0562925Z         "--",
+2026-09-15T23:39:12.0563131Z         "/usr/bin/env",
+2026-09-15T23:39:12.0563487Z         "-i",
+2026-09-15T23:39:12.0563691Z         "sh",
+2026-09-15T23:39:12.0563913Z         "-c",
+2026-09-15T23:39:12.0564125Z         "sleep 5 & exec true"
+2026-09-15T23:39:12.0564351Z       ],
+2026-09-15T23:39:12.0564582Z       "returncode": 0,
+2026-09-15T23:39:12.0564801Z       "status": "pass"
+2026-09-15T23:39:12.0565022Z     },
+2026-09-15T23:39:12.0565260Z     {
+2026-09-15T23:39:12.0565477Z       "detail": "linux-userns-isolated-v1:ok",
+2026-09-15T23:39:12.0565786Z       "name": "composite_sandbox_profile",
+2026-09-15T23:39:12.0566049Z       "probe_argv": [
+2026-09-15T23:39:12.0566681Z         "/usr/bin/unshare",
+2026-09-15T23:39:12.0566931Z         "--user",
+2026-09-15T23:39:12.0567160Z         "--map-root-user",
+2026-09-15T23:39:12.0567396Z         "--mount",
+2026-09-15T23:39:12.0567602Z         "--pid",
+2026-09-15T23:39:12.0567801Z         "--fork",
+2026-09-15T23:39:12.0568060Z         "--net",
+2026-09-15T23:39:12.0568271Z         "--ipc",
+2026-09-15T23:39:12.0568582Z         "--uts",
+2026-09-15T23:39:12.0568803Z         "--kill-child",
+2026-09-15T23:39:12.0569006Z         "--",
+2026-09-15T23:39:12.0569257Z         "/usr/bin/env",
+2026-09-15T23:39:12.0569468Z         "-i",
+2026-09-15T23:39:12.0569981Z         "sh",
+2026-09-15T23:39:12.0570206Z         "-c",
+2026-09-15T23:39:12.0570409Z         "true"
+2026-09-15T23:39:12.0570662Z       ],
+2026-09-15T23:39:12.0570874Z       "returncode": null,
+2026-09-15T23:39:12.0571108Z       "status": "pass"
+2026-09-15T23:39:12.0571338Z     },
+2026-09-15T23:39:12.0571530Z     {
+2026-09-15T23:39:12.0572370Z       "detail": "{\"execution_boundary\": \"linux-userns-isolated-v1\", \"reason\": \"exit\", \"returncode\": 0, \"status\": \"pass\", \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\", \"stdout_sha256\": \"a35dc92ee294d7c31fc8ba602a78808819533fc81f6799b7db2bab2df89d7db6\", \"timed_out\": false}",
+2026-09-15T23:39:12.0573224Z       "name": "isolated_execution",
+2026-09-15T23:39:12.0573471Z       "probe_argv": [
+2026-09-15T23:39:12.0573764Z         "/usr/bin/python3",
+2026-09-15T23:39:12.0573984Z         "-c",
+2026-09-15T23:39:12.0574273Z         "import sys; sys.stdout.write('m4-prerequisite-execution\\n')"
+2026-09-15T23:39:12.0574570Z       ],
+2026-09-15T23:39:12.0574764Z       "returncode": 0,
+2026-09-15T23:39:12.0575009Z       "status": "pass"
+2026-09-15T23:39:12.0575214Z     }
+2026-09-15T23:39:12.0575413Z   ],
+2026-09-15T23:39:12.0575625Z   "environment_manifest": {
+2026-09-15T23:39:12.0575872Z     "captured_at_unix": 1789515552,
+2026-09-15T23:39:12.0576151Z     "cpu_count": 4,
+2026-09-15T23:39:12.0576371Z     "dependencies": {
+2026-09-15T23:39:12.0576588Z       "cryptography": {
+2026-09-15T23:39:12.0576865Z         "minimum_major": "43",
+2026-09-15T23:39:12.0577125Z         "status": "pass",
+2026-09-15T23:39:12.0577380Z         "version": "50.0.1"
+2026-09-15T23:39:12.0577605Z       },
+2026-09-15T23:39:12.0577801Z       "yaml": {
+2026-09-15T23:39:12.0578034Z         "minimum_major": "6",
+2026-09-15T23:39:12.0578283Z         "status": "pass",
+2026-09-15T23:39:12.0578514Z         "version": "6.0.3"
+2026-09-15T23:39:12.0578738Z       }
+2026-09-15T23:39:12.0578917Z     },
+2026-09-15T23:39:12.0579132Z     "kernel": {
+2026-09-15T23:39:12.0579363Z       "max_user_namespaces": "63796",
+2026-09-15T23:39:12.0579810Z       "unprivileged_userns_apparmor_policy": null,
+2026-09-15T23:39:12.0580116Z       "unprivileged_userns_clone": "1"
+2026-09-15T23:39:12.0580344Z     },
+2026-09-15T23:39:12.0580578Z     "platform": {
+2026-09-15T23:39:12.0580794Z       "machine": "x86_64",
+2026-09-15T23:39:12.0581079Z       "platform": "Linux-6.8.0-1064-azure-x86_64-with-glibc2.35",
+2026-09-15T23:39:12.0581399Z       "release": "6.8.0-1064-azure",
+2026-09-15T23:39:12.0581643Z       "system": "Linux"
+2026-09-15T23:39:12.0581885Z     },
+2026-09-15T23:39:12.0582111Z     "python": {
+2026-09-15T23:39:12.0582384Z       "executable": "/opt/hostedtoolcache/Python/3.12.14/x64/bin/python",
+2026-09-15T23:39:12.0582703Z       "pinned": [
+2026-09-15T23:39:12.0582917Z         "3.12"
+2026-09-15T23:39:12.0583237Z       ],
+2026-09-15T23:39:12.0583441Z       "status": "pass",
+2026-09-15T23:39:12.0583667Z       "version": "3.12.14"
+2026-09-15T23:39:12.0583908Z     },
+2026-09-15T23:39:12.0584113Z     "resource_limits": {
+2026-09-15T23:39:12.0584388Z       "RLIMIT_AS": {
+2026-09-15T23:39:12.0584624Z         "hard": -1,
+2026-09-15T23:39:12.0584833Z         "soft": -1
+2026-09-15T23:39:12.0585061Z       },
+2026-09-15T23:39:12.0585270Z       "RLIMIT_CPU": {
+2026-09-15T23:39:12.0585489Z         "hard": -1,
+2026-09-15T23:39:12.0585702Z         "soft": -1
+2026-09-15T23:39:12.0585915Z       },
+2026-09-15T23:39:12.0586129Z       "RLIMIT_NOFILE": {
+2026-09-15T23:39:12.0586356Z         "hard": 65536,
+2026-09-15T23:39:12.0586560Z         "soft": 65536
+2026-09-15T23:39:12.0586839Z       },
+2026-09-15T23:39:12.0587038Z       "RLIMIT_NPROC": {
+2026-09-15T23:39:12.0587270Z         "hard": 63796,
+2026-09-15T23:39:12.0587490Z         "soft": 63796
+2026-09-15T23:39:12.0587770Z       }
+2026-09-15T23:39:12.0587999Z     },
+2026-09-15T23:39:12.0588235Z     "schema": "m4-qualification-env-manifest-v1"
+2026-09-15T23:39:12.0588496Z   },
+2026-09-15T23:39:12.0588717Z   "overall": "PASS",
+2026-09-15T23:39:12.0588977Z   "revision": "22a5bae54ec12987ffd7a90d881fb4533c9b4b97",
+2026-09-15T23:39:12.0589337Z   "sandbox_profile": "linux-userns-isolated-v1",
+2026-09-15T23:39:12.0589807Z   "schema": "m4-qualification-prereq-report-v1"
+2026-09-15T23:39:12.0590098Z }
+2026-09-15T23:39:12.0830933Z ##[group]Run set -o pipefail
+2026-09-15T23:39:12.0831287Z [36;1mset -o pipefail[0m
+2026-09-15T23:39:12.0831549Z [36;1mpython -m pytest tests/test_factory_m4*.py \[0m
+2026-09-15T23:39:12.0831981Z [36;1m  tests/test_sandbox_timing_determinism.py::IsolatedTimeoutTypingTests -v \[0m
+2026-09-15T23:39:12.0832382Z [36;1m  --junitxml=runs/m4-qualification-prereq/m4-sandbox.xml \[0m
+2026-09-15T23:39:12.0832736Z [36;1m  2>&1 | tee runs/m4-qualification-prereq/tests.log[0m
+2026-09-15T23:39:12.0833047Z [36;1mpython - <<'PYQUAL'[0m
+2026-09-15T23:39:12.0833311Z [36;1mimport xml.etree.ElementTree as ET[0m
+2026-09-15T23:39:12.0833699Z [36;1mroot = ET.parse("runs/m4-qualification-prereq/m4-sandbox.xml").getroot()[0m
+2026-09-15T23:39:12.0834056Z [36;1mcases = list(root.iter("testcase"))[0m
+2026-09-15T23:39:12.0834370Z [36;1massert cases, "No M4 sandbox test cases were executed"[0m
+2026-09-15T23:39:12.0834828Z [36;1massert not any(c.find("skipped") is not None for c in cases), \[0m
+2026-09-15T23:39:12.0835190Z [36;1m    "Skipped M4 tests cannot qualify the boundary"[0m
+2026-09-15T23:39:12.0835474Z [36;1mPYQUAL[0m
+2026-09-15T23:39:12.0865617Z shell: /usr/bin/bash -e {0}
+2026-09-15T23:39:12.0865918Z env:
+2026-09-15T23:39:12.0866186Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:12.0866643Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-15T23:39:12.0867004Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:12.0867405Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:12.0867724Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:12.0868061Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-15T23:39:12.0868369Z ##[endgroup]
+2026-09-15T23:39:12.6677166Z ============================= test session starts ==============================
+2026-09-15T23:39:12.6677857Z platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /opt/hostedtoolcache/Python/3.12.14/x64/bin/python
+2026-09-15T23:39:12.6678309Z cachedir: .pytest_cache
+2026-09-15T23:39:12.6678751Z rootdir: /home/runner/work/residual-agent-harness/residual-agent-harness
+2026-09-15T23:39:12.6679157Z configfile: pyproject.toml
+2026-09-15T23:39:13.0895511Z collecting ... collected 142 items
+2026-09-15T23:39:13.0895806Z 
+2026-09-15T23:39:13.1489837Z tests/test_factory_m4_artifact_export.py::ArtifactExportTests::test_compressible_archive_above_uncompressed_bound_is_rejected PASSED [  0%]
+2026-09-15T23:39:13.1514114Z tests/test_factory_m4_artifact_export.py::ArtifactExportTests::test_duplicate_member_is_rejected_even_with_all_expected_names PASSED [  1%]
+2026-09-15T23:39:13.1585796Z tests/test_factory_m4_artifact_export.py::ArtifactExportTests::test_each_missing_member_is_rejected 
+2026-09-15T23:39:13.1588107Z tests/test_factory_m4_artifact_export.py::ArtifactExportTests::test_each_missing_member_is_rejected PASSED [  2%]
+2026-09-15T23:39:13.1603917Z tests/test_factory_m4_artifact_export.py::ArtifactExportTests::test_empty_archive_is_rejected PASSED [  2%]
+2026-09-15T23:39:13.1622539Z tests/test_factory_m4_artifact_export.py::ArtifactExportTests::test_exact_six_unique_members_export_byte_exactly PASSED [  3%]
+2026-09-15T23:39:13.2153224Z tests/test_factory_m4_artifact_export.py::ArtifactExportTests::test_uncompressed_bound_is_inclusive PASSED [  4%]
+2026-09-15T23:39:13.2167466Z tests/test_factory_m4_artifact_export.py::ArtifactExportTests::test_unexpected_member_is_rejected PASSED [  4%]
+2026-09-15T23:39:13.4508925Z tests/test_factory_m4_attribution.py::M4AttributionTests::test_dependency_incomplete_subset_is_not_a_failed_candidate PASSED [  5%]
+2026-09-15T23:39:13.6050803Z tests/test_factory_m4_attribution.py::M4AttributionTests::test_preexisting_project_failure_does_not_blame_a_new_receipt PASSED [  6%]
+2026-09-15T23:39:14.1377876Z tests/test_factory_m4_attribution.py::M4AttributionTests::test_resource_or_signal_failure_is_not_candidate_attribution 
+2026-09-15T23:39:14.1381888Z tests/test_factory_m4_attribution.py::M4AttributionTests::test_resource_or_signal_failure_is_not_candidate_attribution PASSED [  7%]
+2026-09-15T23:39:14.1752804Z tests/test_factory_m4_attribution.py::M4AttributionTests::test_subset_with_unavailable_verifier_has_unknown_outcome PASSED [  7%]
+2026-09-15T23:39:14.2229415Z tests/test_factory_m4_attribution.py::M4AttributionTests::test_unavailable_executable_is_unknown_not_pass PASSED [  8%]
+2026-09-15T23:39:14.6778870Z tests/test_factory_m4_attribution.py::M4AttributionTests::test_unknown_counterfactual_is_not_false_and_cannot_select_receipt 
+2026-09-15T23:39:14.6782434Z tests/test_factory_m4_attribution.py::M4AttributionTests::test_unknown_counterfactual_is_not_false_and_cannot_select_receipt PASSED [  9%]
+2026-09-15T23:39:14.9532788Z tests/test_factory_m4_attribution.py::M4AttributionTests::test_unknown_multi_receipt_verification_never_bisects_or_blames PASSED [  9%]
+2026-09-15T23:39:15.0004008Z tests/test_factory_m4_attribution.py::M4AttributionTests::test_unknown_singleton_recheck_never_returns_its_hash PASSED [ 10%]
+2026-09-15T23:39:15.0011454Z tests/test_factory_m4_canonical_api.py::CanonicalApiTests::test_canonical_conflict_resolution_schema PASSED [ 11%]
+2026-09-15T23:39:15.0017075Z tests/test_factory_m4_canonical_api.py::CanonicalApiTests::test_canonical_scheduler_decision_schema PASSED [ 11%]
+2026-09-15T23:39:15.0023277Z tests/test_factory_m4_canonical_api.py::CanonicalApiTests::test_canonical_verifier_result_interface PASSED [ 12%]
+2026-09-15T23:39:15.0028856Z tests/test_factory_m4_canonical_api.py::CanonicalApiTests::test_single_canonical_integration_receipt_schema PASSED [ 13%]
+2026-09-15T23:39:15.0036982Z tests/test_factory_m4_canonical_api.py::CanonicalApiTests::test_v2_signed_payload_bytes_unchanged_by_timed_out PASSED [ 14%]
+2026-09-15T23:39:15.0602672Z tests/test_factory_m4_evidence.py::M4EvidenceTests::test_dependency_order_is_deterministic PASSED [ 14%]
+2026-09-15T23:39:15.1253877Z tests/test_factory_m4_evidence.py::M4EvidenceTests::test_identical_overlap_is_deduplicated_deterministically PASSED [ 15%]
+2026-09-15T23:39:15.1487179Z tests/test_factory_m4_evidence.py::M4EvidenceTests::test_missing_dependency_receipt_is_rejected PASSED [ 16%]
+2026-09-15T23:39:15.1713482Z tests/test_factory_m4_evidence.py::M4EvidenceTests::test_nonidentical_overlap_becomes_hitl_conflict PASSED [ 16%]
+2026-09-15T23:39:15.1883265Z tests/test_factory_m4_evidence.py::M4EvidenceTests::test_ready_dag_consumes_only_signed_receipts PASSED [ 17%]
+2026-09-15T23:39:15.3689726Z tests/test_factory_m4_evidence.py::M4EvidenceTests::test_stale_receipt_rejected_without_human_approval PASSED [ 18%]
+2026-09-15T23:39:15.4184014Z tests/test_factory_m4_evidence.py::M4EvidenceTests::test_wrong_parent_binding_is_rejected PASSED [ 19%]
+2026-09-15T23:39:15.4200060Z tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_absolute_and_backslash_paths_rejected 
+2026-09-15T23:39:15.4203223Z tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_absolute_and_backslash_paths_rejected PASSED [ 19%]
+2026-09-15T23:39:15.4216262Z tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_dangling_symlink_target_and_parent PASSED [ 20%]
+2026-09-15T23:39:15.4230396Z tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_dotdot_traversal_rejected 
+2026-09-15T23:39:15.4233543Z tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_dotdot_traversal_rejected PASSED [ 21%]
+2026-09-15T23:39:15.4242200Z tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_fifo_target_rejected_and_preserved PASSED [ 21%]
+2026-09-15T23:39:15.4264866Z tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_file_type_change_to_symlink_between_calls_rejected PASSED [ 22%]
+2026-09-15T23:39:15.4282848Z tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_git_metadata_paths_rejected 
+2026-09-15T23:39:15.4285595Z tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_git_metadata_paths_rejected PASSED [ 23%]
+2026-09-15T23:39:15.4295278Z tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_hardlink_to_external_sentinel_rejected PASSED [ 23%]
+2026-09-15T23:39:15.4304432Z tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_snapshot_detects_directory_only_pollution PASSED [ 24%]
+2026-09-15T23:39:16.1551094Z tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_symlink_parent_swap_race_rejected_or_contained PASSED [ 25%]
+2026-09-15T23:39:16.1561751Z tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_unix_socket_rejected_by_snapshot PASSED [ 26%]
+2026-09-15T23:39:16.1748052Z tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_absent_is_distinct_from_empty_file PASSED [ 26%]
+2026-09-15T23:39:16.1833159Z tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_command_failure_is_error PASSED [ 27%]
+2026-09-15T23:39:16.2228344Z tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_corrupt_object_is_error_not_absence PASSED [ 28%]
+2026-09-15T23:39:16.2368488Z tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_evidence_value_invariants PASSED [ 28%]
+2026-09-15T23:39:16.2445200Z tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_git_timeout_is_unknown PASSED [ 29%]
+2026-09-15T23:39:16.2519933Z tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_invalid_path_is_error 
+2026-09-15T23:39:16.2522322Z tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_invalid_path_is_error PASSED [ 30%]
+2026-09-15T23:39:16.2598345Z tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_malformed_commit_ref_is_error 
+2026-09-15T23:39:16.2601051Z tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_malformed_commit_ref_is_error PASSED [ 30%]
+2026-09-15T23:39:16.2682802Z tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_missing_repository_evidence PASSED [ 31%]
+2026-09-15T23:39:16.2763899Z tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_nonexistent_commit_is_unknown PASSED [ 32%]
+2026-09-15T23:39:16.2850967Z tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_valid_base_and_absent_path PASSED [ 33%]
+2026-09-15T23:39:16.3128878Z tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_valid_base_and_present_path PASSED [ 33%]
+2026-09-15T23:39:16.5559060Z tests/test_factory_m4_integrator.py::M4IntegratorTests::test_deterministic_commit_and_signed_receipt PASSED [ 34%]
+2026-09-15T23:39:17.7844613Z tests/test_factory_m4_integrator.py::M4IntegratorTests::test_failed_project_verification_attributes_receipt_and_replans PASSED [ 35%]
+2026-09-15T23:39:18.1946391Z tests/test_factory_m4_integrator.py::M4IntegratorTests::test_secops_policy_requires_security_scan PASSED [ 35%]
+2026-09-15T23:39:18.7034700Z tests/test_factory_m4_integrator.py::M4IntegratorTests::test_subset_overlap_keeps_superset_without_hitl PASSED [ 36%]
+2026-09-15T23:39:19.0160816Z tests/test_factory_m4_integrator.py::M4IntegratorTests::test_true_conflict_requires_and_binds_hitl_resolution PASSED [ 37%]
+2026-09-15T23:39:19.0185650Z tests/test_factory_m4_qualification_prereq.py::CapabilityProbeTests::test_all_probes_pass_when_kernel_supports_namespaces PASSED [ 38%]
+2026-09-15T23:39:19.0303343Z tests/test_factory_m4_qualification_prereq.py::CapabilityProbeTests::test_any_failed_namespace_probe_is_blocked_not_skipped PASSED [ 38%]
+2026-09-15T23:39:19.0314176Z tests/test_factory_m4_qualification_prereq.py::CapabilityProbeTests::test_missing_unshare_blocks_every_namespace_capability PASSED [ 39%]
+2026-09-15T23:39:19.0409230Z tests/test_factory_m4_qualification_prereq.py::CapabilityProbeTests::test_probe_argv_mirrors_sandbox_flags PASSED [ 40%]
+2026-09-15T23:39:19.0426167Z tests/test_factory_m4_qualification_prereq.py::CapabilityProbeTests::test_probe_timeout_and_launch_failure_are_blocked PASSED [ 40%]
+2026-09-15T23:39:19.0460569Z tests/test_factory_m4_qualification_prereq.py::ManifestAndReportTests::test_main_exit_codes_and_output_file PASSED [ 41%]
+2026-09-15T23:39:19.0468412Z tests/test_factory_m4_qualification_prereq.py::ManifestAndReportTests::test_manifest_schema_and_required_fields PASSED [ 42%]
+2026-09-15T23:39:19.0484446Z tests/test_factory_m4_qualification_prereq.py::ManifestAndReportTests::test_missing_dependency_blocks PASSED [ 42%]
+2026-09-15T23:39:19.0499089Z tests/test_factory_m4_qualification_prereq.py::ManifestAndReportTests::test_python_pin_mismatch_blocks PASSED [ 43%]
+2026-09-15T23:39:19.0513773Z tests/test_factory_m4_qualification_prereq.py::ManifestAndReportTests::test_report_is_json_serializable_and_revision_bound PASSED [ 44%]
+2026-09-15T23:39:19.0527854Z tests/test_factory_m4_qualification_prereq.py::ExecutionAndVersionTests::test_actual_python_version_is_checked_against_pin 
+2026-09-15T23:39:19.0530356Z tests/test_factory_m4_qualification_prereq.py::ExecutionAndVersionTests::test_actual_python_version_is_checked_against_pin PASSED [ 45%]
+2026-09-15T23:39:19.0540325Z tests/test_factory_m4_qualification_prereq.py::ExecutionAndVersionTests::test_dependency_versions_are_numeric_and_fail_closed 
+2026-09-15T23:39:19.0543174Z tests/test_factory_m4_qualification_prereq.py::ExecutionAndVersionTests::test_dependency_versions_are_numeric_and_fail_closed PASSED [ 45%]
+2026-09-15T23:39:19.0574239Z tests/test_factory_m4_qualification_prereq.py::ExecutionAndVersionTests::test_execution_requires_exact_success_and_output 
+2026-09-15T23:39:19.0576749Z tests/test_factory_m4_qualification_prereq.py::ExecutionAndVersionTests::test_execution_requires_exact_success_and_output PASSED [ 46%]
+2026-09-15T23:39:19.0584652Z tests/test_factory_m4_qualification_prereq.py::ExecutionAndVersionTests::test_execution_timeout_is_blocked PASSED [ 47%]
+2026-09-15T23:39:19.0598576Z tests/test_factory_m4_qualification_prereq.py::ExecutionAndVersionTests::test_namespace_success_does_not_mask_execution_failure PASSED [ 47%]
+2026-09-15T23:39:19.0981519Z tests/test_factory_m4_qualification_prereq.py::ExecutionAndVersionTests::test_real_probe_uses_same_availability_predicate_as_m4 PASSED [ 48%]
+2026-09-15T23:39:19.0990399Z tests/test_factory_m4_safety.py::PathBoundaryTests::test_dangling_target_cannot_create_external_file PASSED [ 49%]
+2026-09-15T23:39:19.0998815Z tests/test_factory_m4_safety.py::PathBoundaryTests::test_directory_is_not_a_file_target 
+2026-09-15T23:39:19.1002222Z tests/test_factory_m4_safety.py::PathBoundaryTests::test_directory_is_not_a_file_target PASSED [ 50%]
+2026-09-15T23:39:19.1010931Z tests/test_factory_m4_safety.py::PathBoundaryTests::test_hardlink_rejected_before_overwrite_or_delete 
+2026-09-15T23:39:19.1013792Z tests/test_factory_m4_safety.py::PathBoundaryTests::test_hardlink_rejected_before_overwrite_or_delete PASSED [ 50%]
+2026-09-15T23:39:19.1031495Z tests/test_factory_m4_safety.py::PathBoundaryTests::test_noncanonical_and_git_metadata_paths_rejected 
+2026-09-15T23:39:19.1034227Z tests/test_factory_m4_safety.py::PathBoundaryTests::test_noncanonical_and_git_metadata_paths_rejected PASSED [ 51%]
+2026-09-15T23:39:19.1046603Z tests/test_factory_m4_safety.py::PathBoundaryTests::test_parent_substitution_race_rejected_at_descriptor_open PASSED [ 52%]
+2026-09-15T23:39:19.1292267Z tests/test_factory_m4_safety.py::PathBoundaryTests::test_regular_creation_and_replacement_preserve_executable_mode PASSED [ 52%]
+2026-09-15T23:39:19.1313789Z tests/test_factory_m4_safety.py::PathBoundaryTests::test_regular_delete_and_absent_parent_delete PASSED [ 53%]
+2026-09-15T23:39:19.1323792Z tests/test_factory_m4_safety.py::PathBoundaryTests::test_snapshot_includes_ignored_files_directories_and_git_marker PASSED [ 54%]
+2026-09-15T23:39:19.1332666Z tests/test_factory_m4_safety.py::PathBoundaryTests::test_snapshot_rejects_dangling_link_and_fifo PASSED [ 54%]
+2026-09-15T23:39:19.1341922Z tests/test_factory_m4_safety.py::PathBoundaryTests::test_symlink_parents_live_and_dangling_rejected PASSED [ 55%]
+2026-09-15T23:39:19.1350490Z tests/test_factory_m4_safety.py::PathBoundaryTests::test_symlink_target_cannot_overwrite_external_file PASSED [ 56%]
+2026-09-15T23:39:19.1378278Z tests/test_factory_m4_safety.py::PathBoundaryTests::test_target_symlink_substitution_race_never_follows_link PASSED [ 57%]
+2026-09-15T23:39:19.3595539Z tests/test_factory_m4_safety.py::PathBoundaryTests::test_whitespace_paths_remain_literal PASSED [ 57%]
+2026-09-15T23:39:19.3605896Z tests/test_factory_m4_safety.py::VerificationInputTests::test_argv_must_be_immutable_and_nul_free 
+2026-09-15T23:39:19.3608683Z tests/test_factory_m4_safety.py::VerificationInputTests::test_argv_must_be_immutable_and_nul_free PASSED [ 58%]
+2026-09-15T23:39:19.3621991Z tests/test_factory_m4_safety.py::VerificationInputTests::test_deadline_requires_finite_typed_bounded_value 
+2026-09-15T23:39:19.3624665Z tests/test_factory_m4_safety.py::VerificationInputTests::test_deadline_requires_finite_typed_bounded_value PASSED [ 59%]
+2026-09-15T23:39:19.3630674Z tests/test_factory_m4_safety.py::VerificationInputTests::test_fixture_consent_is_boolean_not_truthy_string PASSED [ 59%]
+2026-09-15T23:39:19.3641245Z tests/test_factory_m4_safety.py::VerificationInputTests::test_output_cap_requires_positive_bounded_integer 
+2026-09-15T23:39:19.3644026Z tests/test_factory_m4_safety.py::VerificationInputTests::test_output_cap_requires_positive_bounded_integer PASSED [ 60%]
+2026-09-15T23:39:19.6091412Z tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_acceptance_uses_frozen_tree_not_later_worktree_contents PASSED [ 61%]
+2026-09-15T23:39:19.9421542Z tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_artifact_mutation_never_gets_signed PASSED [ 61%]
+2026-09-15T23:39:20.1230312Z tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_cache_output_and_permission_changes_rejected 
+2026-09-15T23:39:20.1233418Z tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_cache_output_and_permission_changes_rejected PASSED [ 62%]
+2026-09-15T23:39:20.1483102Z tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_default_refuses_unsandboxed_execution_before_worktree_creation PASSED [ 63%]
+2026-09-15T23:39:20.6066905Z tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_different_incomparable_base_states_cannot_auto_resolve PASSED [ 64%]
+2026-09-15T23:39:20.6704939Z tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_duplicate_receipts_fail_closed PASSED [ 64%]
+2026-09-15T23:39:21.0186157Z tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_extra_unreceipted_file_never_gets_signed PASSED [ 65%]
+2026-09-15T23:39:21.3866473Z tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_failed_tree_lookup_is_an_error_not_absence PASSED [ 66%]
+2026-09-15T23:39:21.5645552Z tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_git_absence_is_distinct_from_empty_file PASSED [ 66%]
+2026-09-15T23:39:21.8538998Z tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_missing_base_blob_is_an_error_not_absence PASSED [ 67%]
+2026-09-15T23:39:22.0142611Z tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_missing_commit_is_an_error_not_absence PASSED [ 68%]
+2026-09-15T23:39:22.7142955Z tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_mutation_is_checked_after_each_command PASSED [ 69%]
+2026-09-15T23:39:22.9253015Z tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_output_limit_failure_publishes_no_integration_receipt PASSED [ 69%]
+2026-09-15T23:39:23.3875525Z tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_receipt_labels_unsandboxed_fixture_and_binds_policy PASSED [ 70%]
+2026-09-15T23:39:23.4370472Z tests/test_factory_m4_safety.py::M4AcceptanceSafetyTests::test_unavailable_executable_is_unknown_not_pass PASSED [ 71%]
+2026-09-15T23:39:23.4380664Z tests/test_factory_m4_safety.py::FixtureSupervisorTests::test_direct_supervisor_rejects_unbounded_inputs 
+2026-09-15T23:39:23.4383494Z tests/test_factory_m4_safety.py::FixtureSupervisorTests::test_direct_supervisor_rejects_unbounded_inputs PASSED [ 71%]
+2026-09-15T23:39:23.4561805Z tests/test_factory_m4_safety.py::FixtureSupervisorTests::test_output_capture_cap_does_not_depend_on_communicate_buffer PASSED [ 72%]
+2026-09-15T23:39:25.4602760Z tests/test_factory_m4_safety.py::FixtureSupervisorTests::test_timeout_kills_process_group_not_only_parent PASSED [ 73%]
+2026-09-15T23:39:25.4928570Z tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_candidate_exit_125_is_fail_not_sandbox_error PASSED [ 73%]
+2026-09-15T23:39:28.5841979Z tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_child_surviving_timeout_is_killed PASSED [ 74%]
+2026-09-15T23:39:28.6158552Z tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_external_filesystem_write_attempt_fails PASSED [ 75%]
+2026-09-15T23:39:28.6512928Z tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_fork_descendants_do_not_escape PASSED [ 76%]
+2026-09-15T23:39:28.6809925Z tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_host_paths_not_visible PASSED [ 76%]
+2026-09-15T23:39:31.6859478Z tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_infinite_loop_hits_deterministic_timeout PASSED [ 77%]
+2026-09-15T23:39:31.7195108Z tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_infinite_output_is_bounded_and_killed PASSED [ 78%]
+2026-09-15T23:39:31.8097850Z tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_ipc_namespace_hides_sysv_shm_from_host PASSED [ 78%]
+2026-09-15T23:39:31.8411677Z tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_memory_limit_fails_runaway_allocation PASSED [ 79%]
+2026-09-15T23:39:31.8629946Z tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_missing_executable_is_launch_failed_not_sandbox_error PASSED [ 80%]
+2026-09-15T23:39:31.8980620Z tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_network_attempt_fails PASSED [ 80%]
+2026-09-15T23:39:31.9594844Z tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_pass_and_fail_and_hashes PASSED [ 81%]
+2026-09-15T23:39:31.9917803Z tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_posix_mqueue_namespace_isolated PASSED [ 82%]
+2026-09-15T23:39:32.1090216Z tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_tmpfs_scratch_is_bounded PASSED [ 83%]
+2026-09-15T23:39:32.3864119Z tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_verifier_crash_is_fail_not_error PASSED [ 83%]
+2026-09-15T23:39:32.4523040Z tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_worktree_readable_but_read_only PASSED [ 84%]
+2026-09-15T23:39:32.4531935Z tests/test_factory_m4_sandbox.py::FailClosedTests::test_failed_namespace_probe_fails_closed PASSED [ 85%]
+2026-09-15T23:39:32.4539183Z tests/test_factory_m4_sandbox.py::FailClosedTests::test_invalid_requests_rejected PASSED [ 85%]
+2026-09-15T23:39:32.4550292Z tests/test_factory_m4_sandbox.py::FailClosedTests::test_missing_unshare_binary_fails_closed PASSED [ 86%]
+2026-09-15T23:39:32.4556958Z tests/test_factory_m4_sandbox.py::FailClosedTests::test_non_linux_platform_fails_closed PASSED [ 87%]
+2026-09-15T23:39:32.4565886Z tests/test_factory_m4_scheduler.py::M4SchedulerTests::test_cloud_used_for_capability_gap_or_local_exhaustion PASSED [ 88%]
+2026-09-15T23:39:32.4575669Z tests/test_factory_m4_scheduler.py::M4SchedulerTests::test_conflict_pressure_pauses_before_resize PASSED [ 88%]
+2026-09-15T23:39:32.4583098Z tests/test_factory_m4_scheduler.py::M4SchedulerTests::test_local_engine_preferred_when_capability_equal PASSED [ 89%]
+2026-09-15T23:39:32.4591833Z tests/test_factory_m4_scheduler.py::M4SchedulerTests::test_measurements_cover_all_required_bottlenecks PASSED [ 90%]
+2026-09-15T23:39:32.4600412Z tests/test_factory_m4_scheduler.py::M4SchedulerTests::test_resize_adds_workers_and_verifiers_when_pressure_demands PASSED [ 90%]
+2026-09-15T23:39:32.4608851Z tests/test_factory_m4_scheduler.py::M4SchedulerTests::test_resize_releases_workers_when_blocked_dominates PASSED [ 91%]
+2026-09-15T23:39:32.4619434Z tests/test_factory_m4_scheduler.py::M4SchedulerTests::test_structural_bottleneck_generates_new_plan_proposal PASSED [ 92%]
+2026-09-15T23:39:32.4628198Z tests/test_factory_m4_scheduler.py::M4SchedulerTests::test_structural_replan_does_not_trigger_below_threshold PASSED [ 92%]
+2026-09-15T23:39:32.9042483Z tests/test_factory_m4_tree_binding.py::IsolatedTreeBindingTests::test_candidate_artifact_modification_fails PASSED [ 93%]
+2026-09-15T23:39:33.2105319Z tests/test_factory_m4_tree_binding.py::IsolatedTreeBindingTests::test_extra_file_creation_fails_and_nothing_is_accepted PASSED [ 94%]
+2026-09-15T23:39:33.3863951Z tests/test_factory_m4_tree_binding.py::IsolatedTreeBindingTests::test_isolated_verification_issues_receipt_bound_to_verified_tree PASSED [ 95%]
+2026-09-15T23:39:33.5544729Z tests/test_factory_m4_tree_binding.py::IsolatedTreeBindingTests::test_network_exfiltration_attempt_fails_verification PASSED [ 95%]
+2026-09-15T23:39:33.7805503Z tests/test_factory_m4_tree_binding.py::IsolatedTreeBindingTests::test_post_check_mutation_before_commit_rejected PASSED [ 96%]
+2026-09-15T23:39:33.8724970Z tests/test_factory_m4_tree_binding.py::FixtureTreeBindingTests::test_generated_cache_directories_rejected PASSED [ 97%]
+2026-09-15T23:39:33.9745324Z tests/test_factory_m4_tree_binding.py::FixtureTreeBindingTests::test_git_add_staging_unreceipted_state_rejected PASSED [ 97%]
+2026-09-15T23:39:34.0721415Z tests/test_factory_m4_tree_binding.py::FixtureTreeBindingTests::test_post_check_mutation_before_commit_rejected PASSED [ 98%]
+2026-09-15T23:39:34.2332402Z tests/test_factory_m4_tree_binding.py::FixtureTreeBindingTests::test_verified_tree_hash_equals_accepted_tree_hash PASSED [ 99%]
+2026-09-15T23:39:35.2913477Z tests/test_sandbox_timing_determinism.py::IsolatedTimeoutTypingTests::test_timeout_is_distinct_typed_outcome PASSED [100%]
+2026-09-15T23:39:35.2913886Z 
+2026-09-15T23:39:35.2914205Z - generated xml file: /home/runner/work/residual-agent-harness/residual-agent-harness/runs/m4-qualification-prereq/m4-sandbox.xml -
+2026-09-15T23:39:35.2914789Z =================== 142 passed, 84 subtests passed in 22.60s ===================
+2026-09-15T23:39:35.3593008Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-15T23:39:35.3593924Z ##[group]Run actions/upload-artifact@v4
+2026-09-15T23:39:35.3594283Z with:
+2026-09-15T23:39:35.3594572Z   name: m4-qualification-prereq-22a5bae54ec12987ffd7a90d881fb4533c9b4b97
+2026-09-15T23:39:35.3594936Z   path: runs/m4-qualification-prereq
+2026-09-15T23:39:35.3595192Z   if-no-files-found: error
+2026-09-15T23:39:35.3595408Z   retention-days: 14
+2026-09-15T23:39:35.3595649Z   compression-level: 6
+2026-09-15T23:39:35.3595857Z   overwrite: false
+2026-09-15T23:39:35.3596074Z   include-hidden-files: false
+2026-09-15T23:39:35.3596327Z env:
+2026-09-15T23:39:35.3596568Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:35.3597260Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-15T23:39:35.3597630Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:35.3597984Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:35.3598315Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:35.3598639Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-15T23:39:35.3598928Z ##[endgroup]
+2026-09-15T23:39:35.4768972Z (node:2949) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-15T23:39:35.4769781Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-15T23:39:35.4813071Z With the provided path, there will be 6 files uploaded
+2026-09-15T23:39:35.4816627Z Artifact name is valid!
+2026-09-15T23:39:35.4817294Z Root directory input is valid!
+2026-09-15T23:39:35.7588486Z Beginning upload of artifact content to blob storage
+2026-09-15T23:39:35.7778087Z (node:2949) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-09-15T23:39:35.9314728Z Uploaded bytes 10713
+2026-09-15T23:39:35.9741359Z Finished uploading artifact content to blob storage!
+2026-09-15T23:39:35.9741961Z SHA256 digest of uploaded artifact zip is 18fbc15c5fb8b6dd2e1984e55a131530f38b0ea96860d1b86ccaf7d5a5812922
+2026-09-15T23:39:35.9742579Z Finalizing artifact upload
+2026-09-15T23:39:36.1960876Z Artifact m4-qualification-prereq-22a5bae54ec12987ffd7a90d881fb4533c9b4b97.zip successfully finalized. Artifact ID 10423467722
+2026-09-15T23:39:36.1962222Z Artifact m4-qualification-prereq-22a5bae54ec12987ffd7a90d881fb4533c9b4b97 has been successfully uploaded! Final size is 10713 bytes. Artifact ID is 10423467722
+2026-09-15T23:39:36.1963471Z Artifact download URL: https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/35036589940/artifacts/10423467722
+2026-09-15T23:39:36.2086583Z ##[group]Run python scripts/export_m4_artifact.py
+2026-09-15T23:39:36.2086960Z [36;1mpython scripts/export_m4_artifact.py[0m
+2026-09-15T23:39:36.2121217Z shell: /usr/bin/bash -e {0}
+2026-09-15T23:39:36.2121484Z env:
+2026-09-15T23:39:36.2121848Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:36.2122245Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-15T23:39:36.2122686Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:36.2123045Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:36.2123394Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-15T23:39:36.2123924Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-15T23:39:36.2126343Z   GH_TOKEN: ***
+2026-09-15T23:39:36.2126607Z   M4_ARTIFACT_ID: 10423467722
+2026-09-15T23:39:36.2127003Z   M4_ARTIFACT_DIGEST: 18fbc15c5fb8b6dd2e1984e55a131530f38b0ea96860d1b86ccaf7d5a5812922
+2026-09-15T23:39:36.2127490Z ##[endgroup]
+2026-09-15T23:39:36.6564745Z M4_ARCHIVE_BEGIN {"artifact_id": 10423467722, "sha256": "18fbc15c5fb8b6dd2e1984e55a131530f38b0ea96860d1b86ccaf7d5a5812922", "size": 10713}
+2026-09-15T23:39:36.6576906Z M4_ARCHIVE_DATA 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
+2026-09-15T23:39:36.6596955Z M4_ARCHIVE_DATA 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
+2026-09-15T23:39:36.6617927Z M4_ARCHIVE_DATA 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
+2026-09-15T23:39:36.6638548Z M4_ARCHIVE_DATA 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
+2026-09-15T23:39:36.6659449Z M4_ARCHIVE_DATA PKyjUOreh3Y8Kqcqy7ezwodpXAz20o3n1eiXAO3FzrCHKqGqGWOdFUjMgx1rkt/BnMX038HsHWMu7TXomsOjN6ldIcOcxX/TmMljCY6j7OV77SvBbRs0lWM9tMua0BcMBa1A7PuvPi4Y616x7jca8HYBenzKUwFvZxHUr9H+L1gu3HB7UMINuVSsJYYPh5THyzEc0N7ZGey0FNKSAxwDnhjcUT0KdVHLJciOquu8jB678sgfmRGz+HHSiF6bvOfYYqeNCoLh2iivgyGxfeugafLtFBeGzRmAf7MKQyf2R3im8qD3PT1NE+pTV9dvcDsFHgo1ylSmO+jbeD5sywUj1psN3wRlcBRmcfw5Eb2dor85WHt5auwfIzGDpc4hG4Th5jtqivrmIDbK3AehByTDjibCVJhNsDXVmS9+O0U7c4DwwduUrOL9schUiSUBuEyJlVBKYy3/oG+/X7gMcorTToJMpzKkWPHoo3d9tD2m+GwWnq4zob7lqCXZnd0Q23YxYsBZXhCwgw6/PzKZJcZL+kB32MSg6oNw9+0Uc83CSxHCPmNkhfC+H+H4WX83RVxz8CU4jOZLp+3Z9w/tHkNJDf+DD0LlLR7vpihiFoTC5227bx48ZJuFpx9kSFM8MAfJdbqxxNYmFK7HvZ9BPNf3Dg851QYfAcjd/eHSPxdqyOLw4ZGYYfn4JEmgswxpnpP/lXLxS0iPjqQZh+028WgdZlPv5jn340h9VybKInj5SKb8rPs/atnhkppdaSTznPtxJKlQ2JR+S/o3QJRQJvx5/3xeCl2/9H/vMb1QnqGaw5AWs24jsqYay0vo8fDNAy31dt/zvZvwtLOg+7a08Lh6yBdoUB6SxoCvj/gHlsNLI5FrVCa1gQYMFiRCJ1o2bsACboY64d/noHZAcWxdqArUKM+HXrihy6dSzgmQsNcBczfhdOeAxqkjlDEbDjm+fwA9b+9bUv/dMPEMMCNc3gADAiguaW9EgO277JjquEQxJ8OdoII5uNYZXztvqMgmlqxBggmqET6Qj62k6IO0svlC301ww4nQsV11TFKc4es1PowMQj0Q1xqwrRJsFnbwz+lZtz13/tUA/ByvH88YRqFUsbEh4YDe78occipyFLGCcDWUOaPTCkUN5dr0uF6UkXMvdlfml1Ot6El/v6+YW+uznuL4Ygyn+gMRRbDMnjJLnGpPH17BtuHCmaHNeYy19ix9ERu0CjkdHoVBG0pOduj/PyTKuzJ9PYJPiXMBvT99LInbee33CG6Z0E7FRZmRMRSM15G1R3k1iMgviv6kOS8z3Inoe/s6BNyR18bDN36S4R9wXZ9yON7FPtE+tez2d11MMr/u9IEVmWwwiLyxBHj4Vo6rV0g4Z+erYbOstp1YxZdEPfOFU/hLe9ndnO91Zp3Hziy83odjiHh+duzNXfj6KcxjgP20enezsr4Ks5SurbhcXV9f3L46+jqvs/8BUEsHCOABFfRaDgAAFUwAAFBLAQItAxQACAAIAOW8L13eTthfzgAAAA8BAAAQAAAAAAAAAAAAIACkgQAAAABkZXBlbmRlbmNpZXMudHh0UEsBAi0DFAAIAAgA5rwvXUd0M+xwBAAABhUAAAkAAAAAAAAAAAAgAKSBDAEAAHByb2JlLmxvZ1BLAQItAxQACAAIAPG8L12NwHOhkg0AANRQAAAOAAAAAAAAAAAAIACkgbMFAABtNC1zYW5kYm94LnhtbFBLAQItAxQACAAIAOa8L11HdDPscAQAAAYVAAALAAAAAAAAAAAAIACkgYETAAByZXBvcnQuanNvblBLAQItAxQACAAIAOW8L12NWG3jXQEAAA0CAAAXAAAAAAAAAAAAIACkgSoYAABzb3VyY2UtZW52aXJvbm1lbnQuanNvblBLAQItAxQACAAIAPG8L13gARX0Wg4AABVMAAAJAAAAAAAAAAAAIACkgcwZAAB0ZXN0cy5sb2dQSwUGAAAAAAYABgBmAQAAXSgAAAAA
+2026-09-15T23:39:36.6668140Z M4_ARCHIVE_END
+2026-09-15T23:39:36.6739270Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-15T23:39:36.6740523Z Post job cleanup.
+2026-09-15T23:39:36.7654800Z (node:2967) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-15T23:39:36.7655386Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-15T23:39:36.7760471Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-15T23:39:36.7761513Z Post job cleanup.
+2026-09-15T23:39:36.8403180Z [command]/usr/bin/git version
+2026-09-15T23:39:36.8429940Z git version 2.55.0
+2026-09-15T23:39:36.8453208Z Temporarily overriding HOME='/home/runner/work/_temp/c37df39d-7224-4561-825f-5e5d9399baa6' before making global git config changes
+2026-09-15T23:39:36.8454017Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-15T23:39:36.8457174Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/residual-agent-harness/residual-agent-harness
+2026-09-15T23:39:36.8482706Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-15T23:39:36.8505481Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-15T23:39:36.8661257Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-15T23:39:36.8682687Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-15T23:39:36.8833103Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-15T23:39:36.8854862Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-15T23:39:36.9108851Z Cleaning up orphan processes
+2026-09-15T23:39:36.9305280Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
