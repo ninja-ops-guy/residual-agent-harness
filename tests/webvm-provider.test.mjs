@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {ProviderSession, PROTOCOL, RESPONSE_SCHEMA, validInference, protocolReply, validProtocolEnvelope, errorCode} from '../demo/vm/provider-session.js';
 const mid = 'm-'+'a'.repeat(32), rid = 'b'.repeat(32);
 const request = {request_id:rid, model:'gpt-5-nano', max_output_tokens:256, messages:[{role:'user',content:'Untrusted prompt'}]};
@@ -32,6 +33,13 @@ test('errors are mapped to safe codes, not arbitrary server bodies', () => {
 });
 test('protocol tool schema is strict at the top level', () => {
  assert.deepEqual(RESPONSE_SCHEMA.required,['updates','requests']); assert.equal(RESPONSE_SCHEMA.additionalProperties,false);
+});
+test('real provider tool guidance keeps build values inside the worker envelope', () => {
+ const source=readFileSync(new URL('../demo/vm/provider.js', import.meta.url),'utf8');
+ assert.match(source,/exact worker envelope with only updates and requests/);
+ assert.match(source,/updates\.build with summary and files/);
+ assert.match(source,/never summary\/files at the top level/);
+ assert.match(source,/empty requests array when no evidence pull is needed/);
 });
 test('tool-call responses are converted to the exact RESIDUAL envelope', () => {
  const envelope={updates:{answer:{text:'ok',citations:[]}},requests:[]};
