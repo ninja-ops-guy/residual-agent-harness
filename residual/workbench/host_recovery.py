@@ -44,6 +44,11 @@ def build_recovery_command(
     the worker identity is dead it is safe to remove only when it is a regular,
     owner-controlled singleton; this prevents a queued command from replaying
     after an explicit guest reset. Unexpected file types leave recovery poisoned.
+
+    Poison is cleared only at the very end, after process death and every bound
+    state cleanup have been established. A failed/ambiguous recovery therefore
+    remains durably poisoned, while a proven recovery can admit a fresh worker
+    generation without forcing a full browser-VM restart.
     """
     if (
         mission_id is not None
@@ -86,8 +91,6 @@ def build_recovery_command(
         "residual_worker_argv=(); mapfile -d '' residual_worker_argv < \"/proc/$residual_pid/cmdline\" 2>/dev/null || true;",
         f"if [ \"${{residual_worker_argv[1]-}}\" = '-m' ] && [ \"${{residual_worker_argv[2]-}}\" = {module} ]; then residual_target_pid=\"$residual_pid\"; fi;",
         "fi; fi;",
-        # Startup timeout can precede PID-file publication. Give a bounded chance
-        # to publish identity; the poison record independently fences late start.
         "if [ -z \"$residual_target_pid\" ]; then",
         "for residual_wait in {1..50}; do",
         f"if [ -f {pid} ] && [ ! -L {pid} ] && [ -O {pid} ] && [ \"$(stat -c %h {pid} 2>/dev/null)\" = 1 ] && read -r residual_pid < {pid} && [[ \"$residual_pid\" =~ ^[0-9]+$ ]] && [ -r \"/proc/$residual_pid/cmdline\" ]; then",
@@ -98,8 +101,6 @@ def build_recovery_command(
         "kill -KILL \"$residual_target_pid\" 2>/dev/null || true;",
         "wait \"$residual_target_pid\" 2>/dev/null || true;",
         "fi;",
-        # Prove there is no matching persistent worker, including a late process
-        # that never published the expected PID file.
         "residual_worker_live=0;",
         "for residual_cmdline in /proc/[0-9]*/cmdline; do",
         "[ -r \"$residual_cmdline\" ] || continue; residual_scan_argv=();",
@@ -109,19 +110,17 @@ def build_recovery_command(
         "if [ \"$residual_worker_live\" -ne 0 ]; then residual_recovery_status=70; fi;",
         "if [ \"$residual_recovery_status\" -eq 0 ]; then",
         f"if [ -e {pid} ] || [ -L {pid} ]; then if [ -f {pid} ] && [ ! -L {pid} ] && [ -O {pid} ] && [ \"$(stat -c %h {pid} 2>/dev/null)\" = 1 ]; then rm -f -- {pid}; else residual_recovery_status=70; fi; fi;",
-        # A queued control record must never replay after reset. It is reserved
-        # solely for this worker generation, so remove any safe regular singleton
-        # after worker death; unexpected types keep recovery fail-closed.
         f"if [ -e {control} ] || [ -L {control} ]; then if [ -f {control} ] && [ ! -L {control} ] && [ -O {control} ] && [ \"$(stat -c %h {control} 2>/dev/null)\" = 1 ]; then rm -f -- {control}; else residual_recovery_status=70; fi; fi;",
         "fi;",
-        # Busy identity belongs to the admitted mission. Never clear a different
-        # mission's busy marker merely to obtain a green recovery result.
         f"if [ \"$residual_recovery_status\" -eq 0 ] && [ -e {busy} ]; then",
         f"if [ -n {mission} ] && [ -f {busy} ] && [ ! -L {busy} ] && [ -O {busy} ] && [ \"$(stat -c %h {busy} 2>/dev/null)\" = 1 ] && [ \"$(stat -c %s {busy} 2>/dev/null)\" = 34 ]; then residual_busy_id=$(cat -- {busy} 2>/dev/null) || residual_busy_id=''; if [ \"$residual_busy_id\" = {mission} ]; then rm -f -- {busy}; else residual_recovery_status=70; fi; else residual_recovery_status=70; fi;",
         "fi;",
-        # runner.execute writes the mission ID without a trailing newline.
         f"if [ \"$residual_recovery_status\" -eq 0 ] && [ -n {mission} ] && [ -e {active} ]; then",
         f"if [ -f {active} ] && [ ! -L {active} ] && [ -O {active} ] && [ \"$(stat -c %h {active} 2>/dev/null)\" = 1 ] && [ \"$(stat -c %s {active} 2>/dev/null)\" = 34 ]; then residual_active_id=$(cat -- {active} 2>/dev/null) || residual_active_id=''; if [ \"$residual_active_id\" = {mission} ]; then rm -f -- {active}; else residual_recovery_status=70; fi; else residual_recovery_status=70; fi;",
         "fi;",
+        # Clearing poison is itself fail-closed: only the exact private singleton
+        # written by this recovery generation may be removed, and only after all
+        # other recovery checks have passed.
+        f"if [ \"$residual_recovery_status\" -eq 0 ]; then if [ -f {poison} ] && [ ! -L {poison} ] && [ -O {poison} ] && [ \"$(stat -c %h {poison} 2>/dev/null)\" = 1 ] && [ \"$(cat -- {poison} 2>/dev/null)\" = {mission} ]; then rm -f -- {poison}; else residual_recovery_status=70; fi; fi;",
         f"printf '%s:%s\\n' {marker_q} \"$residual_recovery_status\";",
     ])
