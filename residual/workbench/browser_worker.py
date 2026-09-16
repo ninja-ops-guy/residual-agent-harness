@@ -25,6 +25,7 @@ import time
 
 from residual.core import ContractError
 from . import browser_build, browser_run
+from .browser_poll import pause
 from .runner import MAX_REQUEST, read_json
 
 MISSION_ID = re.compile(r"m-[0-9a-f]{32}\Z")
@@ -71,7 +72,7 @@ def _request(mailbox: Path, mission_id: str, mode: str) -> dict:
         except (OSError, UnicodeError, json.JSONDecodeError, ContractError):
             if time.monotonic() >= deadline:
                 raise RequestAdmissionError("mission request not visible") from None
-            time.sleep(0.05)
+            pause()
     if not isinstance(request, dict) or request.get("id") != mission_id or request.get("mode") != mode:
         raise RequestAdmissionError("mission request identity mismatch")
     return request
@@ -262,7 +263,7 @@ def serve(
                 print(REJECTED, flush=True)
                 continue
             if command is None:
-                time.sleep(0.05)
+                pause()
                 continue
             if command == SHUTDOWN:
                 print(STOPPED, flush=True)

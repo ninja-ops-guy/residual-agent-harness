@@ -1,4 +1,4 @@
-import {PROTOCOL, RESPONSE_SCHEMA, validId, validInference, validModel, bounded, errorCode, protocolReply} from './provider-session.js';
+import {PROTOCOL, RESPONSE_SCHEMA, validId, validInference, validModel, bounded, errorCode, protocolReply, protocolFailureReason, providerFailureMessage} from './provider-session.js';
 const status = document.getElementById('status'), load = document.getElementById('load'), sign = document.getElementById('signin');
 const token = location.hash.slice(1);
 history.replaceState(null, '', location.pathname);
@@ -14,13 +14,6 @@ function safeFailure(error) {
   if (raw.includes('auth') || raw.includes('permission') || raw.includes('forbidden') || raw.includes('401') || raw.includes('403') || raw.includes('billing') || raw.includes('credit') || raw.includes('quota')) return 'provider_authorization_failed';
   return 'provider_request_failed';
 }
-const failureText = {
-  provider_protocol_invalid: 'The model did not return the required RESIDUAL worker envelope. No candidate was accepted. Retry or choose a stronger tool-capable model.',
-  provider_timeout: 'The model request exceeded the bounded wait. RESIDUAL will fail closed. A timed-out provider request may still be billed.',
-  provider_model_unavailable: 'The selected model is not available in this provider session. Return to Mission Control and choose an available model.',
-  provider_authorization_failed: 'The account is signed in, but this model request was not authorized/allowed. Check provider allowance or billing, then retry.',
-  provider_request_failed: 'The provider request failed before a usable candidate was returned. No result was accepted; retry after checking provider availability.'
-};
 async function resolveModel(requested) {
   if (!sdk?.ai?.listModels) return requested;
   try {
@@ -87,12 +80,12 @@ async function receive(m) {
   try {
     const selectedModel = await resolveModel(m.model);
     if (!selectedModel) {
-      reply({ok:false,error:'provider_model_unavailable'}); tell(failureText.provider_model_unavailable); return;
+      reply({ok:false,error:'provider_model_unavailable'}); tell(providerFailureMessage('provider_model_unavailable')); return;
     }
     tell(`Running ${g.used}/${g.max} authorized model calls with ${selectedModel}. Charges may apply even if the browser times out.`);
     const tools = [{type: 'function', function: {
       name: 'residual_submit',
-      description: 'Submit the RESIDUAL worker response. Always call this function exactly once instead of returning prose.',
+      description: 'Return the exact RESIDUAL worker envelope by calling this function exactly once. Do not return prose or Markdown instead. If the task cannot be solved, call it with empty updates and requests.',
       parameters: RESPONSE_SCHEMA
     }}];
     const result = await Promise.race([
@@ -107,8 +100,9 @@ async function receive(m) {
     tell('Structured model response returned to the guest. RESIDUAL—not this provider tab—checks the candidate.');
   } catch (error) {
     const code = safeFailure(error);
-    reply({ok: false, error: code});
-    tell(failureText[code] || failureText.provider_request_failed);
+    const detail = code === 'provider_protocol_invalid' ? protocolFailureReason(error) : null;
+    reply({ok: false, error: code, ...(detail ? {detail} : {})});
+    tell(providerFailureMessage(code, detail));
   } finally { clearTimeout(timer); busy = false; state(); }
 }
 window.addEventListener('pagehide', () => { send({kind: 'state', connected: false}); channel?.close(); });
