@@ -7,6 +7,7 @@ import tempfile
 import unittest
 from unittest import mock
 
+from residual.core import ContractError
 from residual.workbench import browser_worker
 
 
@@ -38,32 +39,37 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
         self.assertEqual(browser_worker.SHUTDOWN, 'shutdown')
         self.assertEqual(browser_worker.STOPPED, 'RESIDUAL_WORKER_STOPPED')
 
-    def test_build_dispatch_reuses_in_process_entrypoint(self):
+    def test_build_dispatch_reuses_fail_closed_in_process_entrypoint(self):
         request = self.write_request('build')
-        with mock.patch.object(browser_worker.browser_build, 'main', return_value=2) as entry:
+        with mock.patch.object(browser_worker.browser_build, 'persistent_build', return_value=2) as entry:
             status = browser_worker.dispatch(
                 self.mid, 'build', mailbox=self.mailbox,
                 root=self.root, output_root=self.output,
             )
         self.assertEqual(status, 2)
-        argv = entry.call_args.args[0]
-        self.assertEqual(argv[0:2], ['--request', str(request)])
-        self.assertIn('--stream', argv)
-        self.assertNotIn('run', argv)
+        entry.assert_called_once_with(
+            request_path=request,
+            mailbox=self.mailbox,
+            root=self.root,
+            output_root=self.output,
+        )
 
-    def test_audit_and_live_dispatch_share_persistent_run_entrypoint(self):
+    def test_audit_and_live_dispatch_share_fail_closed_persistent_entrypoint(self):
         for mode in ('audit', 'live'):
             with self.subTest(mode=mode):
-                self.write_request(mode)
-                with mock.patch.object(browser_worker.browser_run, 'main', return_value=0) as entry:
+                request = self.write_request(mode)
+                with mock.patch.object(browser_worker.browser_run, 'persistent_run', return_value=0) as entry:
                     status = browser_worker.dispatch(
                         self.mid, mode, mailbox=self.mailbox,
                         root=self.root, output_root=self.output,
                     )
                 self.assertEqual(status, 0)
-                argv = entry.call_args.args[0]
-                self.assertEqual(argv[0], 'run')
-                self.assertIn('--stream', argv)
+                entry.assert_called_once_with(
+                    request_path=request,
+                    mailbox=self.mailbox,
+                    root=self.root,
+                    output_root=self.output,
+                )
 
     def test_request_identity_and_mode_cannot_be_swapped(self):
         self.write_request('audit')
@@ -104,6 +110,53 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
             with self.assertRaises(browser_worker.RequestAdmissionError):
                 browser_worker._request(self.mailbox, self.mid, 'audit')
 
+    def test_persistent_run_does_not_mask_runtime_typeerror(self):
+        request = self.write_request('audit')
+        with mock.patch.object(
+            browser_worker.browser_run.implementation,
+            'execute',
+            side_effect=TypeError('impossible constructor return'),
+        ):
+            with self.assertRaisesRegex(TypeError, 'impossible constructor return'):
+                browser_worker.browser_run.persistent_run(
+                    request_path=request,
+                    mailbox=self.mailbox,
+                    root=self.root,
+                    output_root=self.output,
+                )
+
+    def test_persistent_build_does_not_mask_runtime_typeerror(self):
+        request = self.write_request('build')
+        with mock.patch.object(
+            browser_worker.browser_build.implementation,
+            'execute',
+            side_effect=TypeError('impossible constructor return'),
+        ):
+            with self.assertRaisesRegex(TypeError, 'impossible constructor return'):
+                browser_worker.browser_build.persistent_build(
+                    request_path=request,
+                    mailbox=self.mailbox,
+                    root=self.root,
+                    output_root=self.output,
+                )
+
+    def test_typed_contract_failure_stays_bounded_in_persistent_entrypoint(self):
+        request = self.write_request('audit')
+        with mock.patch.object(
+            browser_worker.browser_run.implementation,
+            'execute',
+            side_effect=ContractError('bad user contract'),
+        ):
+            self.assertEqual(
+                browser_worker.browser_run.persistent_run(
+                    request_path=request,
+                    mailbox=self.mailbox,
+                    root=self.root,
+                    output_root=self.output,
+                ),
+                1,
+            )
+
     @unittest.skipUnless(os.name == 'posix', 'PID-file safety uses POSIX no-follow/link semantics')
     def test_pid_file_never_follows_symlink_or_truncates_hardlink(self):
         sentinel = self.root / 'sentinel'
@@ -125,8 +178,10 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
         source = Path(browser_worker.__file__).read_text(encoding='utf-8')
         self.assertNotIn('subprocess', source)
         self.assertNotIn('os.system', source)
-        self.assertIn('browser_build.main(common)', source)
-        self.assertIn('browser_run.main(["run", *common])', source)
+        self.assertIn('browser_build.persistent_build(', source)
+        self.assertIn('browser_run.persistent_run(', source)
+        self.assertNotIn('browser_build.main(common)', source)
+        self.assertNotIn('browser_run.main(["run", *common])', source)
         self.assertIn('line.strip() == SHUTDOWN', source)
 
 
