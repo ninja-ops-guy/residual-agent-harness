@@ -38,6 +38,11 @@ Fail-closed: any required check FAIL -> exit 1. Every record is hash-chained
 (sha256 of the previous record line is embedded in the next) so a tampered
 or truncated log is detectable; the chain head is in summary.json.
 
+The evidence output directory must be absent or empty at launch. Evidence logs
+and summary are create-only, and artifact downloads use an exclusive sibling
+temporary file before replacement. This prevents prior/symlinked state from
+being silently overwritten and cited as a fresh blank-VM run.
+
 Non-claims: this is an install qualification procedure for a release
 candidate. It certifies no release and no measured evaluation result.
 """
@@ -50,9 +55,12 @@ import os
 from pathlib import Path
 import re
 import shutil
+import stat
 import subprocess
 import sys
+import tempfile
 import time
+import urllib.error
 import urllib.request
 
 ARTIFACT_EXTRAS = "factory,marketplace"
@@ -171,14 +179,59 @@ def sha256_bytes(data):
     return hashlib.sha256(data).hexdigest()
 
 
+def _fsync_directory(path):
+    if os.name != "posix":
+        return
+    fd = os.open(str(path), os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
+def _create_only_text(path, text):
+    """Create a regular evidence file without following an existing symlink."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+    fd = os.open(str(path), flags, 0o600)
+    try:
+        if not stat.S_ISREG(os.fstat(fd).st_mode):
+            raise RuntimeError(f"evidence path is not a regular file: {path}")
+        with os.fdopen(fd, "w", encoding="utf-8", closefd=False) as handle:
+            handle.write(text)
+            handle.flush()
+            os.fsync(handle.fileno())
+    finally:
+        os.close(fd)
+    _fsync_directory(path.parent)
+
+
+def _require_fresh_output_directory(path):
+    """Accept an absent/empty directory only; never overwrite prior evidence."""
+    path = Path(path)
+    if path.is_symlink():
+        raise RuntimeError("evidence output directory must not be a symlink")
+    if path.exists():
+        if not path.is_dir():
+            raise RuntimeError("evidence output path must be a directory")
+        if any(path.iterdir()):
+            raise RuntimeError("existing install evidence requires a fresh output directory")
+    else:
+        path.mkdir(parents=True)
+    return path
+
+
 class CheckLog:
     """Typed, hash-chained check log. One JSON record per line."""
 
     def __init__(self, path):
         self.path = Path(path)
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        if self.path.exists() and self.path.stat().st_size:
-            raise RuntimeError("existing install evidence requires a fresh output directory")
+        try:
+            _create_only_text(self.path, "")
+        except FileExistsError as exc:
+            raise RuntimeError(
+                "existing install evidence requires a fresh output directory") from exc
         self._prev = "0" * 64  # genesis
         self.records = []
 
@@ -196,8 +249,17 @@ class CheckLog:
         }
         line = json.dumps(record, sort_keys=True)
         self._prev = sha256_bytes(line.encode("utf-8"))
-        with open(self.path, "a", encoding="utf-8") as handle:
-            handle.write(line + "\n")
+        flags = os.O_WRONLY | os.O_APPEND | getattr(os, "O_NOFOLLOW", 0)
+        fd = os.open(str(self.path), flags)
+        try:
+            if not stat.S_ISREG(os.fstat(fd).st_mode):
+                raise RuntimeError("install evidence log is not a regular file")
+            with os.fdopen(fd, "a", encoding="utf-8", closefd=False) as handle:
+                handle.write(line + "\n")
+                handle.flush()
+                os.fsync(handle.fileno())
+        finally:
+            os.close(fd)
         self.records.append(record)
         return record
 
@@ -304,15 +366,37 @@ def check_python(log, logs_dir, override=None):
 
 def check_fetch(log, logs_dir, work_dir, url, max_attempts=2):
     Path(logs_dir).mkdir(parents=True, exist_ok=True)
+    work_dir = Path(work_dir)
+    work_dir.mkdir(parents=True, exist_ok=True)
     target = work_dir / Path(url.split("?")[0]).name
-    Path(work_dir).mkdir(parents=True, exist_ok=True)
+    if target.exists() or target.is_symlink():
+        log.emit(
+            "fetch_artifact", "FAIL",
+            f"refusing pre-existing artifact target: {target}; use a fresh work path",
+            recovery="choose a fresh work directory and re-run the whole procedure")
+        return None
     for attempt in range(1, max_attempts + 1):
         log_path = logs_dir / f"02-fetch-attempt{attempt}.log"
+        fd, tmp_name = tempfile.mkstemp(
+            prefix=f".{target.name}.", suffix=".part", dir=str(work_dir))
+        tmp = Path(tmp_name)
         try:
             with urllib.request.urlopen(url, timeout=120) as response, \
-                    open(target, "wb") as handle:
+                    os.fdopen(fd, "wb") as handle:
                 shutil.copyfileobj(response, handle)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(tmp, target)
+            _fsync_directory(work_dir)
         except (OSError, urllib.error.URLError) as exc:
+            try:
+                os.close(fd)
+            except OSError:
+                pass
+            try:
+                tmp.unlink()
+            except FileNotFoundError:
+                pass
             log_path.write_text(f"fetch failed: {exc}\n", encoding="utf-8")
             recovery = ("re-fetch attempted" if attempt < max_attempts
                         else "recovery: verify network and artifact URL, "
@@ -412,6 +496,10 @@ def check_install(log, logs_dir, venv_dir, artifact):
 def check_smoke(log, logs_dir, venv_dir, work_dir):
     exe = venv_python(venv_dir)
     smoke_script = work_dir / "isolated_smoke.py"
+    if smoke_script.exists() or smoke_script.is_symlink():
+        log.emit("isolated_smoke", "FAIL",
+                 f"refusing pre-existing smoke helper path: {smoke_script}")
+        return False
     smoke_script.write_text(SMOKE_PROGRAM, encoding="utf-8")
     smoke_cwd = work_dir / "smoke-cwd"
     smoke_cwd.mkdir(exist_ok=True)
@@ -457,7 +545,7 @@ def check_ownership(log, logs_dir, checkout):
 
 def run_procedure(*, artifact_url, expected_sha256, out_dir, work_dir,
                   python_override=None, checkout=None):
-    out_dir = Path(out_dir)
+    out_dir = _require_fresh_output_directory(out_dir)
     logs_dir = out_dir / "logs"
     work_dir = Path(work_dir)
     work_dir.mkdir(parents=True, exist_ok=True)
@@ -510,8 +598,7 @@ def run_procedure(*, artifact_url, expected_sha256, out_dir, work_dir,
     if not ok:
         summary["status"] = "FAIL"
         summary["evidence_integrity_error"] = error
-    (out_dir / "summary.json").write_text(
-        json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+    _create_only_text(out_dir / "summary.json", json.dumps(summary, indent=2) + "\n")
     return summary
 
 
@@ -522,7 +609,7 @@ def main(argv=None):
     parser.add_argument("--sha256", required=True,
                         help="expected SHA-256 of the artifact")
     parser.add_argument("--out", type=Path, required=True,
-                        help="evidence output directory (checks.jsonl, "
+                        help="fresh evidence output directory (checks.jsonl, "
                              "summary.json, logs/)")
     parser.add_argument("--work-dir", type=Path, default=None,
                         help="scratch dir for venv/smoke (default: <out>/work)")
