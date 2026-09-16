@@ -34,7 +34,7 @@ async function resolveModel(requested) {
   }
 }
 function transportMessages(messages) {
-  const note = '\n\nBrowser transport requirement: a residual_submit function is attached to this request. Use that function exactly once to return the required updates/requests worker envelope. Do not answer with prose or Markdown instead. Exact raw JSON is only a compatibility fallback if the provider does not expose tool calls.';
+  const note = '\n\nBrowser transport requirement: a residual_submit function is attached to this request. Use that function exactly once to return the required updates/requests worker envelope. Candidate values must be nested under updates using the obligation id. For a build obligation, return updates.build = {summary, files} inside the envelope; never return summary/files at the top level. Use requests: [] when no evidence pull is needed. Do not answer with prose or Markdown instead. Exact raw JSON is only a compatibility fallback if the provider does not expose tool calls.';
   let annotated = false;
   return messages.map(message => {
     if (!annotated && message?.role === 'system') {
@@ -101,10 +101,12 @@ async function receive(m) {
     tell(`Running ${g.used}/${g.max} authorized model calls with ${selectedModel}. Charges may apply even if the browser times out.`);
     const tools = [{type: 'function', function: {
       name: 'residual_submit',
-      description: 'Required response transport. Call this function exactly once with the exact RESIDUAL updates/requests worker envelope. Never substitute prose or Markdown. If the task cannot be solved, call it with empty updates and requests.',
-      parameters: RESPONSE_SCHEMA,
-      strict: true
+      description: 'Required response transport. Call this function exactly once with the exact RESIDUAL worker envelope containing only updates and requests. Put every candidate under updates keyed by its obligation id; for a build obligation use updates.build with summary and files, never summary/files at the top level. Use an empty requests array when no evidence pull is needed. Never substitute prose or Markdown. If the task cannot be solved, call it with empty updates and requests.',
+      parameters: RESPONSE_SCHEMA
     }}];
+    // Do not enable vendor strict-schema mode here. `updates` intentionally has
+    // dynamic obligation-id keys; RESIDUAL performs the authoritative envelope
+    // and candidate validation after the provider response crosses the bridge.
     const options = {model: selectedModel, max_tokens: m.max_output_tokens, stream: false, normalize: true, tools};
     progress('request_dispatched', selectedModel);
     const result = await Promise.race([
