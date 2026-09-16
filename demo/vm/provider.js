@@ -92,7 +92,7 @@ async function receive(m) {
     tell(`Running ${g.used}/${g.max} authorized model calls with ${selectedModel}. Charges may apply even if the browser times out.`);
     const tools = [{type: 'function', function: {
       name: 'residual_submit',
-      description: 'Submit the RESIDUAL worker response. Always call this function exactly once instead of returning prose.',
+      description: 'Submit the RESIDUAL worker response. Call this function exactly once instead of returning prose. Arguments must be the exact worker envelope with only updates and requests. Put every candidate under updates keyed by its obligation id; for a build mission use updates.build with summary and files, never summary/files at the top level. Use an empty requests array when no evidence pull is needed.',
       parameters: RESPONSE_SCHEMA
     }}];
     const result = await Promise.race([
