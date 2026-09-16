@@ -101,7 +101,7 @@ async function receive(m) {
     tell(`Running ${g.used}/${g.max} authorized model calls with ${selectedModel}. Charges may apply even if the browser times out.`);
     const tools = [{type: 'function', function: {
       name: 'residual_submit',
-      description: 'Required response transport. Call this function exactly once with the exact RESIDUAL updates/requests worker envelope. Never substitute prose or Markdown. If the task cannot be solved, call it with empty updates and requests.',
+      description: 'Required response transport. Call this function exactly once with the exact RESIDUAL updates/requests worker envelope. Arguments must contain only updates and requests. Put every candidate under updates keyed by its obligation id; for a build mission use updates.build with summary and files, never summary/files at the top level. Use an empty requests array when no evidence pull is needed. Never substitute prose or Markdown. If the task cannot be solved, call it with empty updates and requests.',
       parameters: RESPONSE_SCHEMA,
       strict: true
     }}];
