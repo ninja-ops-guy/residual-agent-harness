@@ -37,7 +37,7 @@ const LEDGER_EXPLAIN={
 export function mountMissionControl(host){
   const core=mountCore(host),root=document.querySelector('#mission-control'),chat=root.querySelector('#mc-chat'),form=root.querySelector('#mc-form');
   const q=id=>root.querySelector('#mc-'+id),details=root.querySelector('#mc-composer details'),consent=q('consent'),consentLabel=q('consent-label'),connect=q('connect');
-  if(q('model').value==='gpt-5-nano')q('model').value='openai/gpt-5-nano';
+  if(q('model').value==='gpt-5-nano')q('model').value='openai/gpt-5.4-nano';
   let setupOpened=false;
 
   const gate=document.createElement('div');gate.id='mc-provider-gate';gate.className='notice';

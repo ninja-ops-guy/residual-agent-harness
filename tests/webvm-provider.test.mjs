@@ -1,8 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {ProviderSession, PROTOCOL, RESPONSE_SCHEMA, validInference, protocolReply, validProtocolEnvelope, errorCode} from '../demo/vm/provider-session.js';
+import {readFileSync} from 'node:fs';
+import {ProviderSession, PROTOCOL, RESPONSE_SCHEMA, validInference, protocolReply, validProtocolEnvelope, protocolFailureReason, providerFailureMessage, errorCode} from '../demo/vm/provider-session.js';
 const mid = 'm-'+'a'.repeat(32), rid = 'b'.repeat(32);
 const request = {request_id:rid, model:'gpt-5-nano', max_output_tokens:256, messages:[{role:'user',content:'Untrusted prompt'}]};
+const providerSource=readFileSync(new URL('../demo/vm/provider.js',import.meta.url),'utf8');
+const engineerSource=readFileSync(new URL('../demo/vm/mission-control-engineer.js',import.meta.url),'utf8');
 function session() { const p = new ProviderSession(); p.channel = {postMessage(){}, close(){}}; p.connected = true; p.lastSeen = Date.now(); return p; }
 test('SDK is not loaded by creating a session', () => { const p = new ProviderSession(); assert.equal(p.ready,false); assert.equal(p.channel,null); });
 test('bounded request contract rejects malformed role, id, model and token budget', () => {
@@ -38,12 +41,37 @@ test('tool-call responses are converted to the exact RESIDUAL envelope', () => {
  const result={message:{tool_calls:[{function:{name:'residual_submit',arguments:JSON.stringify(envelope)}}]}};
  assert.equal(protocolReply(result),JSON.stringify(envelope)); assert.equal(validProtocolEnvelope(envelope),true);
 });
-test('plain JSON envelope remains compatible but prose and malformed envelopes fail closed', () => {
+test('plain and single fenced JSON envelopes normalize to the exact worker envelope', () => {
  const envelope={updates:{answer:{text:'ok',citations:[]}},requests:[]};
  assert.equal(protocolReply({message:{content:JSON.stringify(envelope)}}),JSON.stringify(envelope));
- assert.throws(()=>protocolReply({message:{content:'Here is your answer'}}),/provider_protocol_invalid/);
+ assert.equal(protocolReply({message:{content:`\`\`\`json\n${JSON.stringify(envelope)}\n\`\`\``}}),JSON.stringify(envelope));
+});
+test('protocol failures stay fail-closed but expose only bounded structural reasons', () => {
+ let error;
+ try { protocolReply({message:{content:'Here is your answer'}}); } catch (value) { error=value; }
+ assert.equal(error?.code,'provider_protocol_invalid');
+ assert.equal(protocolFailureReason(error),'content_not_json');
+ assert.match(providerFailureMessage(error.code, protocolFailureReason(error)),/not a JSON worker envelope/);
  assert.throws(()=>protocolReply({message:{content:JSON.stringify({updates:{}})}}),/provider_protocol_invalid/);
- assert.throws(()=>protocolReply({message:{tool_calls:[{function:{name:'other',arguments:'{}'}}]}}),/provider_response_invalid|provider_protocol_invalid/);
+ assert.throws(()=>protocolReply({message:{tool_calls:[{function:{name:'other',arguments:'{}'}}]}}),/provider_protocol_invalid/);
+ assert.throws(()=>protocolReply({message:{tool_calls:[{function:{name:'residual_submit',arguments:'{}'}},{function:{name:'residual_submit',arguments:'{}'}}]}}),/provider_protocol_invalid/);
+});
+test('provider response detail is visible to the session without changing the safe error code', async () => {
+ const changes=[]; const p=session(); p.onState=(...v)=>changes.push(v); p.begin(mid,1,request.model); const result=p.infer(mid,request);
+ p.receive({protocol:PROTOCOL,kind:'response',mission_id:mid,request_id:rid,ok:false,error:'provider_protocol_invalid',detail:'content_not_json'});
+ assert.equal((await result).error,'provider_protocol_invalid');
+ assert.match(changes.at(-1)[1],/not a JSON worker envelope/); p.close();
+});
+test('Puter production request makes residual_submit an explicit transport requirement', () => {
+ assert.match(providerSource,/Browser transport requirement:/);
+ assert.match(providerSource,/Use that function exactly once/);
+ assert.match(providerSource,/sdk\.ai\.chat\(transportMessages\(m\.messages\), options\)/);
+ assert.match(providerSource,/options\.temperature = 0/);
+ assert.match(providerSource,/options\.verbosity = 'low'/);
+});
+test('Mission Control recommends the current stronger Puter Nano without hiding model choice', () => {
+ assert.match(engineerSource,/q\('model'\)\.value='openai\/gpt-5\.4-nano'/);
+ assert.match(engineerSource,/if\(q\('model'\)\.value==='gpt-5-nano'\)/);
 });
 test('lost heartbeat produces visible disconnection once', () => {
  const changes=[]; const p=session();p.onState=(...v)=>changes.push(v);p.lastSeen=Date.now()-16000;
