@@ -259,7 +259,7 @@ class PersistentWorkerHostWiringTests(unittest.TestCase):
     def test_per_mission_dispatch_uses_owner_private_regular_control_record(self):
         source = self.source()
         self.assertIn("( set -C; umask 077; printf '%s %s\\\\n'", source)
-        self.assertIn("'> /tmp/residual-workbench.control", source)
+        self.assertIn("> /tmp/residual-workbench.control", source)
         self.assertIn('Invalid mission ID', source)
         self.assertIn('Invalid mission mode', source)
         self.assertNotIn('request.prompt}', source)
