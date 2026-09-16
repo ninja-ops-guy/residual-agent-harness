@@ -31,7 +31,7 @@ RUN python3 -m pip install --break-system-packages --no-deps -e /opt/residual \
     && printf '%s\n' 'if [ -f ~/.bashrc ]; then . ~/.bashrc; fi' > /home/residual/.bash_profile \
     && printf '%s\n' \
       '#!/bin/bash' \
-      'export HOME=/home/residual USER=residual SHELL=/bin/bash TERM=xterm LANG=C LC_ALL=C PYTHONUNBUFFERED=1' \
+      'export HOME=/home/residual USER=residual SHELL=/bin/bash TERM=xterm LANG=C LC_ALL=C PYTHONUNBUFFERED=1 RESIDUAL_WEBVM_SLEEP_BACKEND=legacy-nanosleep' \
       'cd /opt/residual || { echo "RESIDUAL BOOT ERROR: /opt/residual missing"; exec /bin/bash -i; }' \
       'stty sane 2>/dev/null || true' \
       'stty echo 2>/dev/null || true' \
