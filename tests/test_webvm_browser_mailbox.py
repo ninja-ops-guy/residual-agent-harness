@@ -8,7 +8,7 @@ import unittest
 from unittest import mock
 
 from residual.providers import ProviderError
-from residual.workbench.browser_mailbox import BrowserMailboxProvider
+from residual.workbench.browser_mailbox import BrowserMailboxProvider, BrowserRuntimeCorruption
 
 
 class BrowserMailboxProviderTests(unittest.TestCase):
@@ -107,6 +107,22 @@ class BrowserMailboxProviderTests(unittest.TestCase):
         self.assertEqual(reply.text, '{"updates":{},"requests":[]}')
         self.assertEqual(reply.usage.input_tokens, 5)
         self.assertEqual(reply.usage.output_tokens, 7)
+
+    def test_runtime_typeerror_is_not_downgraded_to_provider_error(self):
+        def respond(request):
+            self.publish(request, {
+                'request_id': request['request_id'],
+                'ok': True,
+                'text': '{"updates":{},"requests":[]}',
+                'usage': {'input_tokens': 1, 'output_tokens': 1},
+            })
+        provider = self.provider(respond)
+        with mock.patch(
+            'residual.workbench.browser_mailbox.read_json',
+            side_effect=TypeError('impossible constructor return'),
+        ):
+            with self.assertRaisesRegex(BrowserRuntimeCorruption, '^browser_runtime_corruption$'):
+                provider.generate({'goal': 'build'}, 256)
 
 
 class BrowserMailboxPublicationSourceTests(unittest.TestCase):
