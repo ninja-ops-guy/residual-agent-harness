@@ -96,11 +96,12 @@ def patch(text):
                 promise,
                 finish: status => { clearTimeout(timer); resolveTermination(status); }
             };
-            // Write a durable poison marker first.  If the page disappears while
-            // termination is in progress, the next host refuses worker reuse.
-            // The marker is removed only after an identity-validated worker is
-            // proven dead and any matching workspace lock is reconciled.
-            const command = `residual_poison=/opt/residual/runs/missions/.worker-poisoned; residual_worker_status=3; residual_worker_pid=""; if [ -L "$residual_poison" ] || { [ -e "$residual_poison" ] && { [ ! -f "$residual_poison" ] || [ ! -O "$residual_poison" ]; }; }; then residual_worker_status=8; else umask 077; printf '%s\\n' '${token}' > "$residual_poison"; if [ -f /tmp/residual-workbench.pid ] && [ ! -L /tmp/residual-workbench.pid ] && [ -O /tmp/residual-workbench.pid ] && read -r residual_pid_file_value < /tmp/residual-workbench.pid && [[ "$residual_pid_file_value" =~ ^[0-9]+$ ]] && kill -0 "$residual_pid_file_value" 2>/dev/null && mapfile -d '' residual_worker_argv < "/proc/$residual_pid_file_value/cmdline" && [ "\${residual_worker_argv[1]-}" = "-m" ] && [ "\${residual_worker_argv[2]-}" = "residual.workbench.browser_worker" ]; then residual_worker_pid="$residual_pid_file_value"; elif [[ "\${residual_worker_launch_pid-}" =~ ^[0-9]+$ ]] && kill -0 "$residual_worker_launch_pid" 2>/dev/null && mapfile -d '' residual_worker_argv < "/proc/$residual_worker_launch_pid/cmdline" && [ "\${residual_worker_argv[1]-}" = "-m" ] && [ "\${residual_worker_argv[2]-}" = "residual.workbench.browser_worker" ]; then residual_worker_pid="$residual_worker_launch_pid"; fi; if [ -n "$residual_worker_pid" ]; then kill -KILL "$residual_worker_pid" 2>/dev/null || true; wait "$residual_worker_pid" 2>/dev/null || true; for residual_wait_i in {1..100}; do kill -0 "$residual_worker_pid" 2>/dev/null || break; sleep 0.05; done; if ! kill -0 "$residual_worker_pid" 2>/dev/null; then residual_worker_status=0; if [ -f /tmp/residual-workbench.pid ] && [ ! -L /tmp/residual-workbench.pid ] && [ -O /tmp/residual-workbench.pid ] && read -r residual_pid_file_value < /tmp/residual-workbench.pid && [ "$residual_pid_file_value" = "$residual_worker_pid" ]; then rm -f -- /tmp/residual-workbench.pid; fi; if [ -p /tmp/residual-workbench.fifo ] && [ -O /tmp/residual-workbench.fifo ]; then rm -f -- /tmp/residual-workbench.fifo; fi; if [ -n '${missionId}' ] && [ -f /opt/residual/runs/missions/.active ] && [ ! -L /opt/residual/runs/missions/.active ] && [ -O /opt/residual/runs/missions/.active ] && read -r residual_active_mid < /opt/residual/runs/missions/.active && [ "$residual_active_mid" = '${missionId}' ]; then rm -f -- /opt/residual/runs/missions/.active; fi; rm -f -- "$residual_poison"; unset residual_worker_launch_pid; fi; elif [ -z '${missionId}' ] && [[ "\${residual_worker_launch_pid-}" =~ ^[0-9]+$ ]] && ! kill -0 "$residual_worker_launch_pid" 2>/dev/null; then residual_worker_status=0; rm -f -- "$residual_poison"; unset residual_worker_launch_pid; fi; fi; printf '\\nRESIDUAL_WORKER_TERMINATED_${token}:%s\\n' "$residual_worker_status"`;
+            // Run the fail-closed guest recovery helper from the interactive
+            // parent shell. It validates worker identity, kills and proves the
+            // old generation dead, reconciles only the matching mission lock,
+            // and emits an explicit completion marker. A durable poison marker
+            // survives page loss if any step cannot be proven safe.
+            const command = `bash /opt/residual/demo/vm/terminate_worker.sh '${token}' '${missionId}' "\${residual_worker_launch_pid-}"; residual_worker_launch_pid=""`;
             readData(command + "\\r");
             return await promise;
         }
@@ -130,7 +131,7 @@ def patch(text):
                 fail: error => { clearTimeout(timeout); rejectStart(error); }
             };
             // A durable poison marker means a previous timeout could not prove
-            // cleanup.  Refuse reuse instead of silently reviving that generation.
+            // cleanup. Refuse reuse instead of silently reviving that generation.
             const command = `if [ -e /opt/residual/runs/missions/.worker-poisoned ] || [ -L /opt/residual/runs/missions/.worker-poisoned ]; then echo RESIDUAL_WORKER_POISONED; elif [ -f /tmp/residual-workbench.pid ] && [ ! -L /tmp/residual-workbench.pid ] && [ -O /tmp/residual-workbench.pid ] && [ -p /tmp/residual-workbench.fifo ] && read -r residual_worker_pid < /tmp/residual-workbench.pid && [[ "$residual_worker_pid" =~ ^[0-9]+$ ]] && kill -0 "$residual_worker_pid" 2>/dev/null && mapfile -d '' residual_worker_argv < "/proc/$residual_worker_pid/cmdline" && [ "\${residual_worker_argv[1]-}" = "-m" ] && [ "\${residual_worker_argv[2]-}" = "residual.workbench.browser_worker" ]; then echo RESIDUAL_WORKER_READY; else python3 -m residual.workbench.browser_worker --fifo /tmp/residual-workbench.fifo --pid-file /tmp/residual-workbench.pid --mailbox /data --root /opt/residual --output-root /opt/residual/runs/missions & residual_worker_launch_pid=$!; fi`;
             readData(command + "\\r");
             return await promise;
