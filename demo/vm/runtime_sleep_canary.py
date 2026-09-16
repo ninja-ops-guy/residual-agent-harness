@@ -28,18 +28,18 @@ status = pathlib.Path("/tmp/residual-sleep-canary.status")
 log_path = pathlib.Path("/tmp/residual-sleep-canary.log")
 count = 0
 with log_path.open("w", encoding="utf-8", buffering=1) as log:
-    log.write(f"START pid={os.getpid()}\\n")
+    log.write(f"START pid={os.getpid()}\n")
     try:
         for count in range(1, 2401):
             time.sleep(0.05)
             if count % 100 == 0:
-                log.write(f"TICK count={count}\\n")
+                log.write(f"TICK count={count}\n")
     except BaseException as exc:
-        msg = str(exc).replace("\\n", " ")[:500]
-        line = f"FAIL count={count} type={type(exc).__name__} message={msg}\\n"
+        msg = str(exc).replace("\n", " ")[:500]
+        line = f"FAIL count={count} type={type(exc).__name__} message={msg}\n"
         log.write(line); status.write_text(line, encoding="utf-8"); raise
     else:
-        line = f"PASS count={count}\\n"
+        line = f"PASS count={count}\n"
         log.write(line); status.write_text(line, encoding="utf-8")
 '''
 
@@ -227,19 +227,20 @@ async def main() -> int:
                 kind="worker-final",
                 expect_zero=False,
             )
-            report["worker_final_alive"] = worker_final == 0
+            worker_alive = worker_final == 0
+            report["worker_final_alive"] = worker_alive
 
             if terminal_class == "WORKER_FAILED_CANARY_HEALTHY":
                 report["classification"] = terminal_class
             elif canary_state == "FAIL":
                 report["classification"] = (
-                    "WORKER_AND_CANARY_FAILED" if worker_final else "CANARY_FAILED_WORKER_HEALTHY"
+                    "CANARY_FAILED_WORKER_HEALTHY" if worker_alive else "WORKER_AND_CANARY_FAILED"
                 )
-            elif canary_state == "PASS" and worker_final:
-                report["classification"] = "WORKER_FAILED_CANARY_COMPLETED_PASS"
-            elif canary_state == "PASS" and not worker_final:
+            elif canary_state == "PASS" and worker_alive:
                 report["classification"] = "NO_FAILURE_OBSERVED_BOUNDED_CANARY_PASS"
                 report["status"] = "PASS"
+            elif canary_state == "PASS" and not worker_alive:
+                report["classification"] = "WORKER_FAILED_CANARY_COMPLETED_PASS"
             else:
                 report["classification"] = terminal_class or "OBSERVATION_INCONCLUSIVE"
 
