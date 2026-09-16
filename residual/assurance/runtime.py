@@ -75,8 +75,9 @@ class AdaptiveAssuranceRuntime:
     """Closed-loop runtime binding OTX, VQ, and VCM without replacing engine contracts.
 
     DIRECT execution is available out of the box. Swarm/ensemble execution is wired
-    through strategy executors so the assurance layer can adopt M2 runtimes without
-    coupling itself to a particular swarm implementation.
+    through strategy executors. A non-direct executor must explicitly bind the selected
+    engine id in `EngineResult.raw_metadata['engine_attribution']` before VCM will learn
+    from that result; otherwise only strategy-level evidence should be updated.
     """
 
     quality: VerifierQualityRegistry = field(default_factory=VerifierQualityRegistry)
@@ -199,11 +200,21 @@ class AdaptiveAssuranceRuntime:
         quality_profile = self.quality.get(verifier_id)
         verifier_reliability = quality_profile.posterior_mean
         quality_snapshot = quality_profile.receipt_payload()
-        self.market.update(
-            plan.engine_id,
-            verifier_passed=verifier_passed,
-            verifier_reliability=verifier_reliability,
-        )
+        attributed_engine = plan.strategy == ExecutionStrategy.DIRECT or \
+            result.raw_metadata.get("engine_attribution") == plan.engine_id
+        if attributed_engine:
+            self.market.update(
+                plan.engine_id,
+                verifier_passed=verifier_passed,
+                verifier_reliability=verifier_reliability,
+            )
+        else:
+            self._observe("assurance_market_attribution_skipped", {
+                "task_id": task.task_id,
+                "strategy": plan.strategy.value,
+                "engine_id": plan.engine_id,
+                "reason": "non_direct_result_not_bound_to_selected_engine",
+            })
 
         accepted = verifier_passed and not plan.requires_hitl
         escalation_reason = None
@@ -233,6 +244,7 @@ class AdaptiveAssuranceRuntime:
             "verifier_id": verifier_id,
             "verifier_passed": verifier_passed,
             "verifier_reliability": verifier_reliability,
+            "engine_attributed": attributed_engine,
             "accepted": accepted,
             "escalation_reason": escalation_reason,
             "receipt_hash": receipt.receipt_hash,

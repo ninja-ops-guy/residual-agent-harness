@@ -11,7 +11,7 @@ import uuid
 from typing import Any
 
 from ..core import ContractError
-from .base import IntegrationConnector, IntegrationReceipt, TransportResponse
+from .base import IntegrationConnector, ConnectorReceipt, TransportResponse
 
 
 class MonitoringConnector(IntegrationConnector):
@@ -74,7 +74,7 @@ class MonitoringConnector(IntegrationConnector):
         return {"external_id": external_id, "source": self.system_name,
                 "goal": (body or {}).get("title", ""), "raw": body}
 
-    def post_receipt(self, external_id: str, receipt: IntegrationReceipt) -> TransportResponse:
+    def post_receipt(self, external_id: str, receipt: ConnectorReceipt) -> TransportResponse:
         resp = self.call("POST", self.events_path,
                          {"title": f"Residual receipt for {external_id}",
                           "alert_type": "info", "receipt": receipt.to_dict()})

@@ -1,0 +1,25 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /tmp/m4fix-a
+configfile: pyproject.toml
+plugins: anyio-4.9.0
+collecting ... collected 11 items
+
+tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_absent_is_distinct_from_empty_file PASSED [  9%]
+tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_command_failure_is_error PASSED [ 18%]
+tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_corrupt_object_is_error_not_absence PASSED [ 27%]
+tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_evidence_value_invariants PASSED [ 36%]
+tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_git_timeout_is_unknown PASSED [ 45%]
+tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_invalid_path_is_error 
+tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_invalid_path_is_error PASSED [ 54%]
+tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_malformed_commit_ref_is_error 
+tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_malformed_commit_ref_is_error PASSED [ 63%]
+tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_missing_repository_evidence PASSED [ 72%]
+tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_nonexistent_commit_is_unknown PASSED [ 81%]
+tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_valid_base_and_absent_path PASSED [ 90%]
+tests/test_factory_m4_git_evidence.py::GitEvidenceTests::test_valid_base_and_present_path PASSED [100%]
+
+==================== 11 passed, 8 subtests passed in 0.26s =====================
+
+--- STDERR ---

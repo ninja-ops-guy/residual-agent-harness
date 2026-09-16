@@ -1,0 +1,4 @@
+run: python3 verifier/v3/check_swarm.py
+time: 2026-09-14T07:27:48Z
+exit: 1
+result: FAIL pre-swarm baseline — 15 deliverable paths missing, 0 protected-path changes, 591 tests green

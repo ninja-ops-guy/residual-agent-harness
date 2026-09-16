@@ -1,0 +1,42 @@
+{
+  "id": "cic-stronger-member-check",
+  "goal": "Choose one integer for each variable satisfying the member and joint constraints.",
+  "structure": "requirements",
+  "artifacts": [
+    {
+      "id": "requirements",
+      "cloud": true,
+      "text": "{\"domains\": {\"a\": [1, 2], \"b\": [1]}, \"different\": [[\"a\", \"b\"]]}"
+    }
+  ],
+  "obligations": [
+    {
+      "id": "a",
+      "instruction": "Choose a from its domain and satisfy all joint constraints.",
+      "check": "study_choice",
+      "evidence": [
+        "requirements"
+      ],
+      "depends_on": [],
+      "parameters": {
+        "choices": [
+          1
+        ]
+      }
+    },
+    {
+      "id": "b",
+      "instruction": "Choose b from its domain and satisfy all joint constraints.",
+      "check": "study_choice",
+      "evidence": [
+        "requirements"
+      ],
+      "depends_on": [],
+      "parameters": {
+        "choices": [
+          1
+        ]
+      }
+    }
+  ]
+}

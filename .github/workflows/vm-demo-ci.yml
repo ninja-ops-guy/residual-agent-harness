@@ -1,0 +1,105 @@
+name: Browser VM Demo CI
+
+on:
+  pull_request:
+    paths:
+      - 'demo/vm/**'
+      - 'demo/cloud_gateway/**'
+      - 'examples/onboarding/cloud_demo.sh'
+      - 'tests/test_demo_cloud_gateway.py'
+      - 'site/live-demo.html'
+      - '.github/workflows/pages.yml'
+      - '.github/workflows/vm-demo-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  vm-image-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout RESIDUAL
+        uses: actions/checkout@v4
+
+      - name: Test demo gateway budgets and revocation
+        run: python3 -m unittest -v tests.test_demo_cloud_gateway
+
+      - name: Build gateway container
+        run: docker build . -f demo/cloud_gateway/Dockerfile -t residual-demo-gateway-ci
+
+      - name: Checkout WebVM build context
+        uses: actions/checkout@v4
+        with:
+          repository: leaningtech/webvm
+          ref: main
+          path: _webvm
+
+      - name: Stage repository into image context
+        shell: bash
+        run: |
+          set -euo pipefail
+          rsync -a --exclude='.git' --exclude='_webvm' ./ _webvm/residual-src/
+          cp demo/vm/Dockerfile _webvm/dockerfiles/residual_demo
+
+      - name: Build minimal VM filesystem image
+        run: >-
+          docker build _webvm
+          --tag residual-webvm-demo-ci
+          --file _webvm/dockerfiles/residual_demo
+          --platform=linux/386
+
+      - name: Run real RESIDUAL demo inside image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --platform=linux/386 residual-webvm-demo-ci \
+            /bin/bash -lc '
+              set -euo pipefail
+              cd /opt/residual
+              residual demo --output /tmp/residual-demo
+              test -s /tmp/residual-demo/trace.jsonl
+              test -s /tmp/residual-demo/result.json
+              residual verify-trace /tmp/residual-demo/trace.jsonl --result /tmp/residual-demo/result.json
+              bash -n examples/onboarding/cloud_demo.sh
+              python3 -c "import residual; print(residual.__file__)"
+            '
+
+      - name: Build patched WebVM browser client
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile demo/vm/patch_webvm.py
+          cat > _webvm/config_github_terminal.js <<'EOF'
+          export const diskImageUrl = "residual-demo.ext2";
+          export const diskImageType = "github";
+          export const printIntro = false;
+          export const needsDisplay = false;
+          export const cmd = "/usr/local/bin/residual-demo-shell";
+          export const args = [];
+          export const opts = {env:["HOME=/home/residual","TERM=xterm","USER=residual","SHELL=/bin/bash","EDITOR=vi","LANG=C","LC_ALL=C","PYTHONUNBUFFERED=1","RESIDUAL_DEMO_MODEL=gpt-5.6-luna"],cwd:"/opt/residual",uid:1000,gid:1000};
+          EOF
+          python3 demo/vm/patch_webvm.py source _webvm/src/lib/WebVM.svelte
+          python3 demo/vm/patch_webvm.py app _webvm/src/app.html
+          cd _webvm
+          npm install
+          WEBVM_MODE=github npm run build
+          cd ..
+          test -s _webvm/build/index.html
+          test -s _webvm/build/serviceWorker.js
+          python3 demo/vm/patch_webvm.py index _webvm/build/index.html
+          python3 demo/vm/patch_webvm.py serviceworker _webvm/build/serviceWorker.js
+
+      - name: Validate embedded demo shell and startup isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'cloud-demo' demo/vm/Dockerfile
+          grep -q 'RESIDUAL / LIVE VM' _webvm/src/lib/WebVM.svelte
+          grep -q 'VM READY · GUEST ATTACHED' _webvm/src/lib/WebVM.svelte
+          grep -q 'residualLoadPuterSdk' _webvm/src/lib/WebVM.svelte
+          grep -q 'js.puter.com/v2' _webvm/src/lib/WebVM.svelte
+          ! grep -q 'js.puter.com/v2' _webvm/build/index.html
+          ! grep -q 'plausible.leaningtech.com' _webvm/build/index.html
+          ! grep -q 'plausible.leaningtech.com' _webvm/src/app.html
+          grep -q 'return Response.error()' _webvm/build/serviceWorker.js

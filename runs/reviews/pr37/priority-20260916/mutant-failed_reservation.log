@@ -1,0 +1,10 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/test_external_budget.py::ExternalBudgetTests::test_failed_dispatch_keeps_its_reservation -q --tb=short
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________ ExternalBudgetTests.test_failed_dispatch_keeps_its_reservation ________
+tests/test_external_budget.py:103: in test_failed_dispatch_keeps_its_reservation
+    self.assertEqual(CountingProvider.calls, 0)
+E   AssertionError: 1 != 0
+=========================== short test summary info ============================
+FAILED tests/test_external_budget.py::ExternalBudgetTests::test_failed_dispatch_keeps_its_reservation
+1 failed in 0.14s

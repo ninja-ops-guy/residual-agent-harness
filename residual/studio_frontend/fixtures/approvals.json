@@ -1,0 +1,28 @@
+[
+  {
+    "approval_id": "approval-plan-0001",
+    "kind": "plan_approval",
+    "subject": "plan-2026-09-14-demo",
+    "subject_hash": "5c1f0a2b8d4e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f80",
+    "summary": "Factory plan: 5 requirements, 2 swarms, serial estimate 96 min, 2 risk flags.",
+    "requested_at": "2026-09-14T08:55:00Z",
+    "status": "pending",
+    "decided_at": null,
+    "decision": null,
+    "decided_by": null,
+    "note": null
+  },
+  {
+    "approval_id": "approval-gate-0002",
+    "kind": "hitl_gate",
+    "subject": "task-req-2",
+    "subject_hash": "sha256:48de",
+    "summary": "Attempt task-req-2/1 was rejected by verifier. Approve retry with narrowed scope?",
+    "requested_at": "2026-09-14T09:20:05Z",
+    "status": "pending",
+    "decided_at": null,
+    "decision": null,
+    "decided_by": null,
+    "note": null
+  }
+]

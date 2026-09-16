@@ -1,0 +1,4 @@
+run: python3 verifier/v3/check_swarm.py
+time: 2026-09-14T08:11:58Z
+exit: 1
+result: FAIL — test_checker_script_is_executable (mount drops exec bits); 908 passed/1 failed

@@ -256,7 +256,7 @@ Integrate verified artifacts into a coherent project state using deterministic, 
 
 **STUDIO-R43.** The Work Partitioner SHOULD minimize overlapping writable scopes. Conflict frequency MUST be measured and treated as a decomposition-quality signal.
 
-**STUDIO-R44.** Every integration attempt MUST produce an `IntegrationReceipt` binding run ID, base commit, ordered input receipt hashes, artifact hashes, integration policy revision, verifier revisions, project-level verification results, candidate output commit/tree hash, conflict set, and timestamp.
+**STUDIO-R44.** Every integration attempt MUST produce an `ConnectorReceipt` binding run ID, base commit, ordered input receipt hashes, artifact hashes, integration policy revision, verifier revisions, project-level verification results, candidate output commit/tree hash, conflict set, and timestamp.
 
 **STUDIO-R45.** The Integration Receipt is the final human-approvable evidence object for a project change. Approval MUST bind the exact receipt hash and candidate output commit/tree hash; any subsequent mutation MUST invalidate that approval and require a new receipt.
 

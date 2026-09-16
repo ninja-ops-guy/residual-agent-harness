@@ -7,7 +7,7 @@ Implements SPEC-ENT-006: ENT6-R1 (ITSM), ENT6-R2 (CI/CD), ENT6-R3
 from .base import (
     IntegrationConnector,
     IntegrationObservation,
-    IntegrationReceipt,
+    ConnectorReceipt,
     Transport,
     TransportResponse,
     UrllibTransport,
@@ -37,7 +37,7 @@ from .ticketing import (
 )
 
 __all__ = [
-    "IntegrationConnector", "IntegrationObservation", "IntegrationReceipt",
+    "IntegrationConnector", "IntegrationObservation", "ConnectorReceipt",
     "Transport", "TransportResponse", "UrllibTransport",
     "ITSMConnector", "ServiceNowConnector", "JSMConnector", "BMCConnector",
     "CICDConnector", "JenkinsConnector", "GitLabConnector",

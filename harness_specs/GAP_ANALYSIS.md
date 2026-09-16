@@ -1,5 +1,10 @@
 # Residual Command Station v0.2.0 — Gap Analysis
 
+> **HISTORICAL SNAPSHOT.** This document is a frozen point-in-time
+> assessment. Its claims describe the repository as of its date and do
+> **not** reflect current code. For the current, machine-checked status
+> see `implementation-status.yaml` and `docs/status/IMPLEMENTATION_STATUS.md`.
+
 **Date:** 2026-09-13
 **Analyst:** Harness architecture review
 **Scope:** Full codebase (2,901 LOC Python + station subpackage), docs, tests

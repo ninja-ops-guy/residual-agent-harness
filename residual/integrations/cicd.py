@@ -1,7 +1,7 @@
 """CI/CD connectors: Jenkins, GitLab CI, GitHub Actions, Azure DevOps, CircleCI.
 
 Implements ENT6-R2: task triggering from pipeline stages, pipeline gating
-on Residual verification (the pipeline waits for an IntegrationReceipt),
+on Residual verification (the pipeline waits for an ConnectorReceipt),
 and receipt publication as pipeline artifacts.
 Implements ENT6-R6 (bidirectional) and ENT6-R7 (via IntegrationConnector).
 """
@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from ..core import ContractError
-from .base import IntegrationConnector, IntegrationReceipt, TransportResponse
+from .base import IntegrationConnector, ConnectorReceipt, TransportResponse
 
 
 class CICDConnector(IntegrationConnector):
@@ -33,11 +33,11 @@ class CICDConnector(IntegrationConnector):
                 "goal": (body or {}).get("name", ""), "raw": body}
 
     def gate_pipeline(self, run_id: str,
-                      receipt: IntegrationReceipt) -> TransportResponse:
+                      receipt: ConnectorReceipt) -> TransportResponse:
         """Gate a pipeline on Residual verification: the run proceeds only
-        if the IntegrationReceipt verdict is accepted. Implements ENT6-R2."""
-        if not isinstance(receipt, IntegrationReceipt):
-            raise ContractError("pipeline gating requires an IntegrationReceipt")
+        if the ConnectorReceipt verdict is accepted. Implements ENT6-R2."""
+        if not isinstance(receipt, ConnectorReceipt):
+            raise ContractError("pipeline gating requires an ConnectorReceipt")
         return self.call("POST", f"/runs/{run_id}/gate", {
             "decision": "proceed" if receipt.accepted else "hold",
             "receipt_hash": receipt.receipt_hash,
@@ -45,7 +45,7 @@ class CICDConnector(IntegrationConnector):
         })
 
     def publish_receipt_artifact(self, run_id: str,
-                                 receipt: IntegrationReceipt) -> TransportResponse:
+                                 receipt: ConnectorReceipt) -> TransportResponse:
         """Publish a receipt as a pipeline artifact. Implements ENT6-R2."""
         resp = self.call("POST", f"/runs/{run_id}/artifacts", {
             "name": f"residual-receipt-{receipt.receipt_hash[:12]}.json",
@@ -55,7 +55,7 @@ class CICDConnector(IntegrationConnector):
         self.require_ok(resp, "artifact publication")
         return resp
 
-    def post_receipt(self, external_id: str, receipt: IntegrationReceipt) -> TransportResponse:
+    def post_receipt(self, external_id: str, receipt: ConnectorReceipt) -> TransportResponse:
         return self.publish_receipt_artifact(external_id, receipt)
 
     def sync_status(self, external_id: str, task_status: str) -> TransportResponse:

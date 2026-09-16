@@ -1,0 +1,16 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /tmp/m4fix-a
+configfile: pyproject.toml
+plugins: anyio-4.9.0
+collecting ... collected 4 items
+
+tests/test_factory_m4_canonical_api.py::CanonicalApiTests::test_canonical_conflict_resolution_schema PASSED [ 25%]
+tests/test_factory_m4_canonical_api.py::CanonicalApiTests::test_canonical_scheduler_decision_schema PASSED [ 50%]
+tests/test_factory_m4_canonical_api.py::CanonicalApiTests::test_canonical_verifier_result_interface PASSED [ 75%]
+tests/test_factory_m4_canonical_api.py::CanonicalApiTests::test_single_canonical_integration_receipt_schema PASSED [100%]
+
+============================== 4 passed in 0.13s ===============================
+
+--- STDERR ---

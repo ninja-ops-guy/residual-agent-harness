@@ -2,6 +2,43 @@
 
 from .compiler import CompileResult, RequirementCompiler
 from .models import ExecutionPlan, FactoryTask, FrozenPlan, Requirement
+from .evidence_bus import (
+    ArtifactBinding, EvidenceBus, EvidenceError, FactoryStationIssuer,
+    StationIdentity, VerificationDecision, WorkerReceipt,
+)
+from .m4_evidence import (
+    EvidenceIntegrationPlan,
+    IntegrationConflict,
+    M4EvidenceError,
+    PlannedArtifact,
+    ReadyDagSnapshot,
+    ReceiptBackedM4,
+)
+from .m4_integrator import (
+    ConflictResolution,
+    DeterministicIntegrator,
+    IntegrationConflictError,
+    IntegrationOutcome,
+    IntegrationReceipt,
+    M4IntegrationError,
+    ProjectVerificationError,
+    ProjectVerificationPolicy,
+    VerificationCommand,
+    VerificationResult,
+)
+from .m4_git_evidence import GitBlobEvidence, GitEvidenceState, read_base_blob
+from .m4_sandbox import IsolatedResult, M4SandboxError, probe_isolation, run_isolated
+from .m4_scheduler import (
+    EnginePlacement,
+    M4AdaptiveScheduler,
+    M4SchedulerError,
+    SchedulerAction,
+    SchedulerCapacity,
+    SchedulerMeasurements,
+    SchedulerNode,
+    SchedulerPolicy,
+    StructuralReplanProposal,
+)
 
 __all__ = [
     "CompileResult",
@@ -10,4 +47,43 @@ __all__ = [
     "FrozenPlan",
     "Requirement",
     "RequirementCompiler",
+    "ArtifactBinding",
+    "EvidenceBus",
+    "EvidenceError",
+    "FactoryStationIssuer",
+    "StationIdentity",
+    "VerificationDecision",
+    "WorkerReceipt",
+    "EvidenceIntegrationPlan",
+    "IntegrationConflict",
+    "M4EvidenceError",
+    "PlannedArtifact",
+    "ReadyDagSnapshot",
+    "ReceiptBackedM4",
+    "ConflictResolution",
+    "DeterministicIntegrator",
+    "IntegrationConflictError",
+    "IntegrationOutcome",
+    "IntegrationReceipt",
+    "M4IntegrationError",
+    "ProjectVerificationError",
+    "ProjectVerificationPolicy",
+    "VerificationCommand",
+    "VerificationResult",
+    "EnginePlacement",
+    "M4AdaptiveScheduler",
+    "M4SchedulerError",
+    "SchedulerAction",
+    "SchedulerCapacity",
+    "SchedulerMeasurements",
+    "SchedulerNode",
+    "SchedulerPolicy",
+    "StructuralReplanProposal",
+    "GitBlobEvidence",
+    "GitEvidenceState",
+    "read_base_blob",
+    "IsolatedResult",
+    "M4SandboxError",
+    "probe_isolation",
+    "run_isolated",
 ]

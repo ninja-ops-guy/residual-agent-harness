@@ -25,14 +25,17 @@ class Limits:
     max_output_tokens: int = 2048
     max_requested_lines: int = 100
     seed_lines: int = 3
+    max_structural_nodes: int = 10000
 
     def __post_init__(self):
         for key, value in asdict(self).items():
-            positive_int(value, key, allow_zero=key in {"local_rounds", "expert_rounds", "max_expert_calls", "max_remote_input_bytes", "seed_lines"})
+            positive_int(value, key, allow_zero=key in {"local_rounds", "expert_rounds", "max_expert_calls", "max_remote_input_bytes", "seed_lines", "max_structural_nodes"})
+        if self.max_structural_nodes > 1_000_000:
+            raise ContractError("structural node limit exceeds maximum")
 
 
 MODES = {"residual", "residual_fixed", "cascade", "full_cloud", "local_only", "no_pull",
-         "no_feedback", "no_solvers"}
+         "no_feedback", "no_solvers", "structural", "cic"}
 
 
 class Harness:
@@ -44,10 +47,22 @@ class Harness:
             if provider is not None and provider.placement not in {"local", "remote"}:
                 raise ContractError("providers must declare local or remote placement")
         self.registry, self.local, self.expert = registry, local, expert
+        self.source_registry = registry
+        self.structural = None
         self.limits, self.cache, self.mode = limits or Limits(), cache, mode
 
     def run(self, task: Task) -> dict:
         start = time.monotonic()
+        self.registry = self.source_registry
+        structural = None
+        structural_ms = 0.0
+        # Compile before any proposal, receipt, cache lookup, or provider call.
+        if self.mode in {"structural", "cic"}:
+            from .cic import prepare
+            analysis_started = time.monotonic()
+            task, self.registry, structural = prepare(task, self.registry, self.mode, self.limits.max_structural_nodes)
+            structural_ms = (time.monotonic() - analysis_started) * 1000
+        self.structural = structural
         self.task = task
         self.accepted: dict[str, Any] = {}
         self.receipts: dict[str, dict] = {}
@@ -67,7 +82,10 @@ class Harness:
                 raise ContractError("unregistered verifier or solver")
         self.ledger.add("run_started", run_id=str(uuid.uuid4()), task_id=task.id, mode=self.mode,
                         limits=asdict(self.limits), artifact_hashes={k: a.sha256 for k, a in task.artifacts.items()})
-        attempted = set()
+        attempted = set(structural["blocked"]) if structural else set()
+        if structural:
+            self.failures.update(structural["blocked"])
+            self.ledger.add("structural_plan", **structural)
         while True:
             ready = [o.id for o in task.obligations if o.id not in self.accepted and o.id not in attempted
                      and set(o.depends_on) <= self.accepted.keys()]
@@ -110,6 +128,10 @@ class Harness:
         reported = [c for c in remote_calls if c["usage"]["source"] == "reported"
                     and c["usage"]["input_tokens"] is not None and c["usage"]["output_tokens"] is not None]
         priced = [c["cost_usd"] for c in remote_calls if c["cost_usd"] is not None]
+        dispatched, repeated_dispatches = set(), 0
+        for call in self.calls:
+            repeated_dispatches += bool(dispatched.intersection(call["obligation_ids"]))
+            dispatched.update(call["obligation_ids"])
         result = {
             "schema_version": "residual.run.v1", "task_id": task.id, "mode": self.mode,
             "status": "passed" if not unresolved else ("partial" if self.accepted else "blocked"),
@@ -127,8 +149,21 @@ class Harness:
                         "accepted_obligations": len(self.accepted), "total_obligations": len(task.obligations),
                         "verification_elapsed_ms": self.verification_ms,
                         "solver_elapsed_ms": self.solver_ms,
+                        "structural_elapsed_ms": structural_ms,
+                        "structural_search_nodes": structural["search_nodes"] if structural else 0,
+                        "structural_unsat_groups": len(structural["blocked"]) if structural else 0,
+                        "dependency_blocked_obligations": sum(len(structural["groups"][n]) if structural and structural["applicable"] else 1
+                            for n, u in unresolved.items() if u["code"] == "dependency_blocked"),
+                        "candidate_rejections": sum(e["kind"] == "verification" and e["data"]["status"] != "pass" for e in self.ledger.events),
+                        "repeated_dispatch_calls": repeated_dispatches,
                         "elapsed_ms": (time.monotonic() - start) * 1000},
             "calls": self.calls}
+        if structural:
+            result["structural"] = structural
+            if structural["applicable"]:
+                result["original_values"] = {n: value for group in self.accepted.values() for n, value in group.items()}
+                result["metrics"]["original_accepted_obligations"] = len(result["original_values"])
+                result["metrics"]["original_total_obligations"] = sum(map(len, structural["groups"].values()))
         self.ledger.add("run_finished", result_sha256=digest(result), success=result["success"])
         return {**result, "trace_root": self.ledger.head}
 
@@ -265,10 +300,14 @@ class Harness:
                 "manifest": manifest, "evidence": excerpts,
                 "request_limits": {"max_lines": self.limits.max_requested_lines,
                                    "pull_enabled": self.mode != "no_pull"}}
+        if self.structural and self.structural["applicable"]:
+            for entry in packet["obligations"]:
+                entry["members"] = [{k: o[k] for k in ("id", "instruction", "evidence", "depends_on")}
+                    for o in self.task.by_id[entry["id"]].parameters["members"]]
         # A small complete capsule can cost less than even two framed requests.
         # This is a byte heuristic, not an assertion about tokenization or quality.
         plan = "full_context" if full else "seed_and_pull"
-        if self.mode in {"residual", "no_feedback", "no_solvers"} and role == "expert":
+        if self.mode in {"residual", "no_feedback", "no_solvers", "structural", "cic"} and role == "expert":
             seed_size = provider.wire_size(packet, self.limits.max_output_tokens)
             raw_size = sum(len(self.task.artifacts[a].text.encode()) for a in needed)
             if raw_size <= 2 * seed_size:
@@ -293,6 +332,11 @@ class Harness:
         return merged
 
     def _dispatch(self, provider, ready, role, rounds):
+        if self.structural and self.structural["applicable"]:
+            # Each component is a context boundary as well as an acceptance unit.
+            for node_id in ready:
+                self._work(provider, [node_id], role, rounds)
+            return
         if provider.placement == "remote":
             self._work(provider, ready, role, rounds)
         else:

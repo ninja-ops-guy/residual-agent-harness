@@ -1,0 +1,34 @@
+name: WebVM publishing diagnostics
+
+# Actual candidate and live browser proof now run in pages.yml using exactly
+# the artifact that is published. This manual read-only diagnostic is for
+# publishing-source problems; it never reruns, merges, or deploys anything.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: read
+
+jobs:
+  publishing-diagnostics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect Pages source and deployed entry point
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p publishing-evidence
+          gh api "repos/$GITHUB_REPOSITORY/pages" > publishing-evidence/pages-config.json
+          jq '{build_type,source,status,html_url}' publishing-evidence/pages-config.json
+          curl --fail --show-error --location --max-time 30 -D publishing-evidence/headers.txt https://ninja-ops-guy.github.io/residual-agent-harness/demo/ -o publishing-evidence/index.html
+          python demo/vm/pages_contract.py --pages-config publishing-evidence/pages-config.json
+      - name: Retain publishing diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: publishing-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
+          path: publishing-evidence/
+          retention-days: 7
