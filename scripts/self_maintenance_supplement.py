@@ -41,7 +41,7 @@ def make_goal(criteria, max_passes=2):
 
 def documentation_policy_negative_control():
     code = SuccessCriterion("code", CheckType.MECHANICAL, "code healthy", "code")
-    docs = SuccessCriterion("docs", CheckType.SEMANTIC, "docs synchronized", "docs")
+    docs = SuccessCriterion("docs", CheckType.STRUCTURAL, "docs synchronized", "docs")
 
     code_only = make_goal((code,), max_passes=1)
     code_only_verifier = Verifier({
