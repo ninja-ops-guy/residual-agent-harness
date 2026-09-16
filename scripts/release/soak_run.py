@@ -12,6 +12,11 @@ chain head, record count, state digest and resume parameters.  On resume the
 checkpoint and any previous retention manifest are verified before new work is
 accepted.  This makes ordinary tail truncation/state replacement detectable
 instead of relying on the chain's internal links alone.
+
+On POSIX hosts, journal records, state replacements, checkpoints, reports, and
+retention manifests are fsynced (including the containing directory after
+replace/unlink) before a boundary is treated as stable. This is local
+crash-durability hardening, not replicated durability or host-loss recovery.
 """
 from __future__ import annotations
 
@@ -19,6 +24,7 @@ import argparse
 import hashlib
 import hmac
 import json
+import os
 from pathlib import Path
 import shutil
 import sys
@@ -46,11 +52,48 @@ def _canonical(data):
     return json.dumps(data, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
-def _atomic_json(path, data):
+def _fsync_directory(path):
+    """Persist directory-entry updates where POSIX exposes directory fsync."""
+    if os.name != "posix":
+        return
+    flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+    fd = os.open(str(Path(path)), flags)
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
+def _durable_replace_text(path, text):
+    """Write+fsync a temp file, atomically replace, then fsync its directory."""
     path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    tmp.replace(path)
+    with open(tmp, "w", encoding="utf-8") as handle:
+        handle.write(text)
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(tmp, path)
+    _fsync_directory(path.parent)
+
+
+def _sync_existing_file(path):
+    """Flush an already-written file and its directory before checkpointing."""
+    path = Path(path)
+    with open(path, "rb") as handle:
+        os.fsync(handle.fileno())
+    _fsync_directory(path.parent)
+
+
+def _save_state(state, path):
+    """Use the existing state serializer, then make its replace durable."""
+    state.save(path)
+    _sync_existing_file(path)
+
+
+def _atomic_json(path, data):
+    _durable_replace_text(
+        path, json.dumps(data, indent=2, sort_keys=True) + "\n")
 
 
 class Journal:
@@ -68,7 +111,7 @@ class Journal:
                 if line.strip():
                     self._prev = hashlib.sha256(line.encode("utf-8")).hexdigest()
         else:
-            self.path.touch()
+            _durable_replace_text(self.path, "")
 
     def append(self, record_type, payload):
         record = {
@@ -81,6 +124,7 @@ class Journal:
         with open(self.path, "a", encoding="utf-8") as handle:
             handle.write(line + "\n")
             handle.flush()
+            os.fsync(handle.fileno())
         self._prev = hashlib.sha256(line.encode("utf-8")).hexdigest()
         return record
 
@@ -264,7 +308,7 @@ def run_soak(*, out_dir, days, tasks_per_day, seed, station_key,
         if journal.count or checkpoint is not None:
             raise RuntimeError("resume evidence exists without soak-state.json")
         state = harness.state
-        state.save(harness.state_path)
+        _save_state(state, harness.state_path)
 
     _validate_state(state, days=days, tasks_per_day=tasks_per_day, seed=seed)
     records = _validate_history(journal, state)
@@ -293,12 +337,12 @@ def run_soak(*, out_dir, days, tasks_per_day, seed, station_key,
                           "min_free_mb": min_free_mb},
         "resumed_from_day": state.next_day,
     })
-    state.save(harness.state_path)
+    _save_state(state, harness.state_path)
     write_checkpoint(out_dir, journal, state, station_key, "RUNNING", policy)
 
     def stop(reason_type, detail):
         journal.append("STOP", {"criterion": reason_type, "detail": detail})
-        state.save(harness.state_path)
+        _save_state(state, harness.state_path)
         write_checkpoint(out_dir, journal, state, station_key, "STOPPED", policy)
         finalize(out_dir, journal, harness, status="STOPPED", stopped=reason_type)
         return {"status": "STOPPED", "criterion": reason_type, "detail": detail, **EXECUTION_SCOPE}
@@ -321,7 +365,7 @@ def run_soak(*, out_dir, days, tasks_per_day, seed, station_key,
         state.metrics.merge(day_metrics)
         state.next_day = day + 1
         journal.append("DAY", {"day": day, "metrics": day_metrics.to_dict()})
-        state.save(harness.state_path)
+        _save_state(state, harness.state_path)
         write_checkpoint(out_dir, journal, state, station_key, "RUNNING", policy)
         rates = day_metrics.to_dict()["rates"]
         if state.metrics.unhandled_exceptions > max_exceptions:
@@ -338,13 +382,13 @@ def run_soak(*, out_dir, days, tasks_per_day, seed, station_key,
             "days_remaining": state.total_days - state.days_completed,
             "rehearsal_cap": max_days,
         })
-        state.save(harness.state_path)
+        _save_state(state, harness.state_path)
         write_checkpoint(out_dir, journal, state, station_key, "PAUSED", policy)
         finalize(out_dir, journal, harness, status="PAUSED", stopped=None, write_report=False)
         return {"status": "PAUSED", "days_completed": state.days_completed, **EXECUTION_SCOPE}
 
     journal.append("COMPLETE", {"days_completed": state.days_completed})
-    state.save(harness.state_path)
+    _save_state(state, harness.state_path)
     write_checkpoint(out_dir, journal, state, station_key, "COMPLETE", policy)
     finalize(out_dir, journal, harness, status="COMPLETE", stopped=None)
     return {"status": "COMPLETE", "days_completed": state.days_completed, **EXECUTION_SCOPE}
@@ -356,9 +400,10 @@ def finalize(out_dir, journal, harness, *, status, stopped, write_report=True):
         payload = {**harness.report(signed=False), **EXECUTION_SCOPE,
                    "schema_version": "residual.release-soak.rehearsal-report.v1"}
         report = sign_report(payload, harness.station_key)
-        report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+        _atomic_json(report_path, report)
     elif report_path.exists():
         report_path.unlink()
+        _fsync_directory(report_path.parent)
 
     files = {}
     for path in sorted(Path(out_dir).rglob("*")):
