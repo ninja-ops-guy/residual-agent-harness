@@ -1,0 +1,95 @@
+{
+  "schema": "residual.priority-repair.validation.v1",
+  "lane": "37",
+  "recorded_commit": "23cb504e3e5aa99e666adc968a35864fa0927fe2",
+  "tracked_changes": [],
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "command": [
+    "tests/test_external_budget.py",
+    "tests/test_external_evidence.py",
+    "tests/test_preregistered_external.py"
+  ],
+  "positive_exit_code": 0,
+  "restored_exit_code": 0,
+  "mutations": [
+    {
+      "name": "dispatch_guard",
+      "path": "residual/assurance/external.py",
+      "selector": "tests/test_external_budget.py::ExternalBudgetTests::test_budget_blocks_before_first_provider_dispatch",
+      "before": "                    self._reserve_provider_call(spec)\n",
+      "after": "",
+      "source_sha256": "a2b5cf998729a5b143af378ec581eba9ad2f2c927bab2795089cd2d1de53f6c2",
+      "mutant_sha256": "0b51fa6b1b02f4a7d3ce9d9ed9391c9718aa03277f06cad193a419daba03c0d2",
+      "exit_code": 1,
+      "log": "mutant-dispatch_guard.log"
+    },
+    {
+      "name": "all_trials",
+      "path": "residual/assurance/external.py",
+      "selector": "tests/test_external_budget.py::ExternalBudgetTests::test_budget_covers_every_trial_before_dispatch",
+      "before": "self._reserve_provider_call(spec)",
+      "after": "if trial == 1:\n                        self._reserve_provider_call(spec)",
+      "source_sha256": "a2b5cf998729a5b143af378ec581eba9ad2f2c927bab2795089cd2d1de53f6c2",
+      "mutant_sha256": "820b3caf2cf63a70fb3d7a2faa719ec55697661711252152af92c57aa50ea777",
+      "exit_code": 1,
+      "log": "mutant-all_trials.log"
+    },
+    {
+      "name": "zero_ceiling_epsilon",
+      "path": "residual/assurance/external.py",
+      "selector": "tests/test_external_budget.py::ExternalBudgetTests::test_zero_budget_cannot_use_epsilon_to_buy_a_call",
+      "before": "next_total > self._budget_limit:",
+      "after": "next_total > self._budget_limit + Fraction(\"1e-12\"):",
+      "source_sha256": "a2b5cf998729a5b143af378ec581eba9ad2f2c927bab2795089cd2d1de53f6c2",
+      "mutant_sha256": "040856425c0f22b876fc8c005d16c2622b5e8ca3879d351a519ca10ad85a1bdb",
+      "exit_code": 1,
+      "log": "mutant-zero_ceiling_epsilon.log"
+    },
+    {
+      "name": "failed_reservation",
+      "path": "residual/assurance/external.py",
+      "selector": "tests/test_external_budget.py::ExternalBudgetTests::test_failed_dispatch_keeps_its_reservation",
+      "before": "except Exception as exc:\n                        observations",
+      "after": "except Exception as exc:\n                        self._reserved_cost_usd -= self._declared_costs[spec.engine.engine_id]\n                        observations",
+      "source_sha256": "a2b5cf998729a5b143af378ec581eba9ad2f2c927bab2795089cd2d1de53f6c2",
+      "mutant_sha256": "c62689fffd209b6b2fc1aaa008e9756c929109e9f71efbee1a56f36270602452",
+      "exit_code": 1,
+      "log": "mutant-failed_reservation.log"
+    },
+    {
+      "name": "typed_budget_stop",
+      "path": "residual/assurance/external.py",
+      "selector": "tests/test_external_budget.py::ExternalBudgetTests::test_engine_budget_stop_is_not_relabelled_as_candidate_failure",
+      "before": "                    except EvidenceBudgetExceeded:\n                        raise\n",
+      "after": "",
+      "source_sha256": "a2b5cf998729a5b143af378ec581eba9ad2f2c927bab2795089cd2d1de53f6c2",
+      "mutant_sha256": "41532b2bbb65ee41dea0cbdf42c479a66f047d626c94a22d76c8f50d42d0e102",
+      "exit_code": 1,
+      "log": "mutant-typed_budget_stop.log"
+    },
+    {
+      "name": "cli_binding",
+      "path": "scripts/external_assurance_eval.py",
+      "selector": "tests/test_external_budget.py::ExternalBudgetTests::test_cli_forwards_frozen_ceiling_to_actual_dispatch",
+      "before": "        maximum_budget_usd=manifest.maximum_budget_usd,\n",
+      "after": "",
+      "source_sha256": "5152bfbc5152617709cfca6ea2f4748c60023cfd75500f35f10f194e53c569f0",
+      "mutant_sha256": "1be6cd337a1855245c5e5957b7c093b2798f9a4f28d8a57e61c5900a4d519238",
+      "exit_code": 1,
+      "log": "mutant-cli_binding.log"
+    }
+  ],
+  "independent_review": false,
+  "claim_scope": "implementer regression evidence; no production, elapsed-soak or independent acceptance claim",
+  "files_sha256": {
+    "mutant-all_trials.log": "07446ebaabd6523d85e3811a9b38ac3a02923145431e6ff702f08190f61ca25f",
+    "mutant-cli_binding.log": "93dba4dae85ed929bbd07201a0ee281c8696f8f1be6fcd6f3babcc68febd651f",
+    "mutant-dispatch_guard.log": "35a4756d2142e13399c2c0d52d5c6b187fa6fe74707ecba27ec1e6690fd9b73b",
+    "mutant-failed_reservation.log": "263238e78236155705a2faf8647f32816ddd781d8892eef5f4e4df04c3ec3e13",
+    "mutant-typed_budget_stop.log": "65a2fcbd2a5257f6f609dc70fbe3ddab34fef1a7cd6fd491931921e93aa36d3a",
+    "mutant-zero_ceiling_epsilon.log": "a7bc3778d9cfb0243fff3a30c1668b8408a76dd35b11325e0b0c4517bc2ceff4",
+    "positive.log": "7b426145615b963c8f6295f2e56652cc41bc5ecf2d6f1eb8d8797f9d16890626",
+    "restored-positive.log": "d26cc319f160610286df0ed5e15e985570aa3bcc2b84f0fc4f00623a676f9ff3"
+  }
+}
