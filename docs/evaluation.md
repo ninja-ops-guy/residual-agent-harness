@@ -65,21 +65,25 @@ A system that rejects almost everything must not be described as reliable merely
 
 ## Live evaluation gate
 
-Issue #63 and issue #48 are closed and are no longer active blockers. Accepted `main` at `22a5bae54ec12987ffd7a90d881fb4533c9b4b97` has a fresh capable-runner M4 qualification result from run `35036589940`: all prerequisite capability checks passed, actual `linux-userns-isolated-v1` execution passed, and 142 M4 cases plus 84 subtests completed with zero skips on the named Ubuntu 22.04 / Python 3.12 environment. That result qualifies the named exact tree and environment; it does not qualify every host or every possible live-evidence path.
+Issues #63 and #48 are closed and are no longer active blockers. Current accepted `main` is `3a41dc1e84335875537672a62340d9f8c7806417`. Its capable-runner M4 workflow completed **PASS** in run `35101404956`; the named qualification boundary remains environment-specific and must not be generalized to every host or every possible live-evidence path.
+
+PR #136 is integrated on that revision. Exact-main Pages/WebVM run `35101404981` completed **PASS on attempt 1**, including generated desktop+narrow browser proof and published desktop+narrow acceptance. That satisfies the exact merged revision's first-attempt browser release-proof gate only. It does not establish long-run WebVM reliability, prove the historical guest-corruption root cause, qualify live-provider model quality, or complete general release/recovery qualification. Issues #120 and #126 remain open.
 
 Before paper-facing live R0–R5 evaluation, the selected protocol still needs these gates to be satisfied or explicitly scoped out:
 
 1. **Selected execution/evidence path:** bind the exact accepted commit, workload, task population, run identity, verifier policy/boundary and scheduler/topology evidence used for the experiment. A qualified M4 boundary does not automatically qualify a separate measurement adapter.
-2. **Release/recovery qualification:** exercise blank-environment setup, recovery and retained-evidence procedures on the accepted tree before using them as production-facing evidence.
+2. **Release/recovery qualification:** exercise blank-environment setup, recovery and retained-evidence procedures on the accepted tree before using them as production-facing evidence. The first-attempt WebVM release PASS is one gate, not the entire release/recovery program.
 3. **Measured-evidence integrity:** PR #71 was closed unmerged and is not the accepted live-evaluation path. Whichever path is selected must reject replayed evidence as a new repetition, authenticate run-bound scheduler/topology evidence, preserve the exact frozen workload-to-task mapping and fail closed on unknown verifier policies/boundaries.
-4. **Operational surfaces used by the protocol:** issue #120 remains open for intermittent Pages/WebVM reliability. If WebVM is part of the measurement path, quantify its failure rate and retain every failed attempt; otherwise explicitly exclude that surface from the protocol.
+4. **Operational surfaces used by the protocol:** issues #120/#126 remain open for WebVM reliability/root-cause tracking. If WebVM is part of the measurement path, quantify its failure rate and retain every failed attempt; otherwise explicitly exclude that surface from the protocol.
 5. **Protocol freeze:** lock the exact commit, selected execution/evidence adapter, workload hash and task mapping, model/version, inference settings, verifier revisions, policies, prompts, metrics and analysis code before observing confirmatory model results.
 
 Fresh execution identities must bind each experiment cell. Reused evidence must not count as an independent repetition. Resume may recover an existing run, but must not count it as new work. A signature over a report does not repair invalid source evidence.
 
 A different evidence path is acceptable only when the protocol independently qualifies the applicable execution-identity, anti-replay, workload-population, acceptance and topology guarantees of that path. Excluding PR #71 is not permission to omit evidence validation.
 
-Once those gates are clean, collect confirmatory data and retain the qualification evidence with the frozen protocol.
+The retained review record for PR #136 does not contain a genuinely independent pre-merge approval; the final owner-account audit explicitly said it did not satisfy that gate. Do not treat the merge or post-merge CI PASS as independent trust-domain review evidence.
+
+Once the remaining gates are clean, collect confirmatory data and retain the qualification evidence with the frozen protocol.
 
 ## Recommended qualification ladder
 
@@ -117,4 +121,4 @@ Each task/mode/repeat has its own budget. Provider prices are supplied by config
 
 ## Current empirical boundary
 
-The repository has strong development evidence for mechanisms and controlled fixture behavior, plus an accepted-main capable-runner M4 qualification result for the named environment. It does **not** yet have confirmatory live evidence that the reliability architecture materially increases `P(X|A)` over `P(X)` at useful coverage and acceptable orchestration tax. That remains the next major scientific milestone.
+The repository has strong development evidence for mechanisms and controlled fixture behavior, plus accepted-main capable-runner M4 qualification evidence and one exact merged-revision first-attempt WebVM browser release PASS. It does **not** yet have confirmatory live evidence that the reliability architecture materially increases `P(X|A)` over `P(X)` at useful coverage and acceptable orchestration tax. That remains the next major scientific milestone.
