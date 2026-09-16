@@ -11,13 +11,14 @@ from residual.qualification.manifest import aggregate_manifest, write_manifest
 
 
 def envelope(gate: str, result: GateResult = GateResult.PASS, *, commit: str = "a" * 40,
-             tree: str = "b" * 40, skips: int = 0, unknowns: int = 0) -> EvidenceEnvelope:
+             tree: str = "b" * 40, skips: int = 0, unknowns: int = 0,
+             dirty: bool | None = False) -> EvidenceEnvelope:
     return EvidenceEnvelope(
         gate_id=gate,
         result=result,
         started_at="2026-09-16T00:00:00Z",
         finished_at="2026-09-16T00:00:01Z",
-        source={"commit": commit, "tree": tree, "tracked_source_dirty": False},
+        source={"commit": commit, "tree": tree, "tracked_source_dirty": dirty},
         environment={"python": "fixture"},
         skip_count=skips,
         unknown_count=unknowns,
@@ -76,6 +77,14 @@ def test_manifest_rejects_cross_revision_evidence(tmp_path: Path):
     write_envelope(envelope("b", commit="c" * 40), b)
     with pytest.raises(ValueError, match="one commit/tree"):
         aggregate_manifest([a, b], required_gates=["a", "b"])
+
+
+@pytest.mark.parametrize("dirty", [True, None])
+def test_manifest_rejects_dirty_or_unknown_source_cleanliness(tmp_path: Path, dirty: bool | None):
+    path = tmp_path / "gate.json"
+    write_envelope(envelope("gate", dirty=dirty), path)
+    with pytest.raises(ValueError, match="source cleanliness is not established"):
+        aggregate_manifest([path], required_gates=["gate"])
 
 
 def test_failure_ledger_preserves_original_and_linked_rerun(tmp_path: Path):
