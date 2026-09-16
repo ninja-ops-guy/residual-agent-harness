@@ -63,6 +63,14 @@ def patch(text):
             }
             readData(data);
         });
+        function terminateResidualWorker() {
+            // A host-side timeout means the worker did not honor its own bounded
+            // mission lifecycle. Never leave that interpreter available for a
+            // page reload to rediscover. Signal only a PID whose file ownership,
+            // liveness and /proc argv still prove the expected worker identity.
+            const command = `if [ -f /tmp/residual-workbench.pid ] && [ ! -L /tmp/residual-workbench.pid ] && [ -O /tmp/residual-workbench.pid ] && read -r residual_worker_pid < /tmp/residual-workbench.pid && [[ "$residual_worker_pid" =~ ^[0-9]+$ ]] && kill -0 "$residual_worker_pid" 2>/dev/null && mapfile -d '' residual_worker_argv < "/proc/$residual_worker_pid/cmdline" && [ "\${residual_worker_argv[1]-}" = "-m" ] && [ "\${residual_worker_argv[2]-}" = "residual.workbench.browser_worker" ]; then kill -KILL "$residual_worker_pid" 2>/dev/null || true; fi`;
+            readData(command + "\\r");
+        }
         async function ensureResidualWorker() {
             if (residualWorkerPoisoned) throw new Error("Guest worker requires restart");
             if (residualWorkerReady) return;
@@ -74,6 +82,7 @@ def patch(text):
             const promise = new Promise((resolve, reject) => { resolveStart = resolve; rejectStart = reject; });
             const timeout = setTimeout(() => {
                 if (!residualWorkerStart) return;
+                terminateResidualWorker();
                 residualWorkerStart = null;
                 residualWorkerReady = false;
                 residualWorkerPoisoned = true;
@@ -120,6 +129,7 @@ def patch(text):
                 return await new Promise((resolve, reject) => {
                     const timeout = setTimeout(() => {
                         if (!residualShellRun || residualShellRun.missionId !== request.id) return;
+                        terminateResidualWorker();
                         residualShellRun = null;
                         residualWorkerReady = false;
                         residualWorkerPoisoned = true;
