@@ -1,0 +1,82 @@
+name: Live recursive maintenance study
+
+on:
+  push:
+    branches: [research/live-freellmapi-recursive-maintenance]
+    paths:
+      - '.github/workflows/live-recursive-maintenance-study.yml'
+      - 'scripts/live_recursive_maintenance_study.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-study:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout RESIDUAL
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install RESIDUAL qualification dependencies
+        run: python -m pip install -e '.[factory]' pytest
+
+      - name: Checkout pinned FreeLLMAPI
+        uses: actions/checkout@v4
+        with:
+          repository: tashfeenahmed/freellmapi
+          ref: d0eeadfd3216c302b82d134b74f6d52d1987c4a4
+          path: _freellmapi
+
+      - name: Build FreeLLMAPI
+        working-directory: _freellmapi
+        run: |
+          npm ci
+          npm run build
+
+      - name: Execute live repair and critic matrix
+        run: |
+          python scripts/live_recursive_maintenance_study.py \
+            --repo . \
+            --freellmapi-dir _freellmapi \
+            --base f1e62936a7ce72b801c852c1d7428d4c6ed4152c \
+            --output runs/live-recursive-maintenance \
+            --routes auto:fast auto:smart auto:reliable
+
+      - name: Freeze result provenance
+        if: always()
+        shell: bash
+        run: |
+          if test -s runs/live-recursive-maintenance/results.json; then
+            sha256sum runs/live-recursive-maintenance/results.json > runs/live-recursive-maintenance/SHA256SUMS
+            git rev-parse HEAD > runs/live-recursive-maintenance/study-head.txt
+            git rev-parse f1e62936a7ce72b801c852c1d7428d4c6ed4152c > runs/live-recursive-maintenance/base-head.txt
+          fi
+
+      - name: Retain non-secret study evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-recursive-maintenance-evidence
+          path: |
+            runs/live-recursive-maintenance/results.json
+            runs/live-recursive-maintenance/router.json
+            runs/live-recursive-maintenance/*.generator.txt
+            runs/live-recursive-maintenance/*.patch
+            runs/live-recursive-maintenance/SHA256SUMS
+            runs/live-recursive-maintenance/study-head.txt
+            runs/live-recursive-maintenance/base-head.txt
+            runs/live-recursive-maintenance/freellmapi-server.log
+          retention-days: 30
+          if-no-files-found: warn
