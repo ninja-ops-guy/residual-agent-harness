@@ -13,6 +13,7 @@ import json
 import os
 from dataclasses import dataclass, field
 from typing import Any, Dict, List
+import tempfile
 
 from .metrics import SoakMetrics
 
@@ -61,10 +62,38 @@ class SoakState:
         )
 
     def save(self, path: str) -> None:
-        tmp = f"{path}.tmp"
-        with open(tmp, "w", encoding="utf-8") as fh:
-            json.dump(self.to_dict(), fh, indent=2, sort_keys=True)
-        os.replace(tmp, path)  # atomic-ish: never leave a half-written state
+        """Atomically replace state without following a predictable temp path.
+
+        The temporary file is created exclusively in the destination directory,
+        so a pre-planted ``<state>.tmp`` symlink cannot redirect or truncate an
+        unrelated file before replacement.  The file is flushed and fsynced
+        before the atomic replace; on POSIX the containing directory is fsynced
+        after the rename so the new directory entry is durable.
+        """
+        target = os.fspath(path)
+        directory = os.path.dirname(os.path.abspath(target)) or "."
+        os.makedirs(directory, exist_ok=True)
+        fd, tmp = tempfile.mkstemp(
+            prefix=f".{os.path.basename(target)}.", suffix=".tmp", dir=directory, text=True)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                json.dump(self.to_dict(), fh, indent=2, sort_keys=True)
+                fh.flush()
+                os.fsync(fh.fileno())
+            os.replace(tmp, target)
+            if os.name == "posix":
+                flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+                dir_fd = os.open(directory, flags)
+                try:
+                    os.fsync(dir_fd)
+                finally:
+                    os.close(dir_fd)
+        except BaseException:
+            try:
+                os.unlink(tmp)
+            except FileNotFoundError:
+                pass
+            raise
 
     @classmethod
     def load(cls, path: str) -> "SoakState":
