@@ -10,15 +10,13 @@ from . import conversation_build as implementation
 from .browser_mailbox import BrowserMailboxProvider
 from .runner import FRAME
 
-# conversation_build resolves this module global at execution time. Keep the
-# authoritative task/verifier/evidence implementation unchanged; replace only
-# the browser mailbox transport used by this WebVM entry point.
-implementation.MailboxProvider = BrowserMailboxProvider
+# Keep the authoritative task/verifier/evidence implementation unchanged;
+# inject only the browser mailbox transport into this WebVM entry point.
 
 
 def main(argv=None):
     """Standalone CLI behavior remains the existing bounded user-facing contract."""
-    return implementation.main(argv)
+    return implementation.main(argv, mailbox_provider_type=BrowserMailboxProvider)
 
 
 def persistent_build(*, request: dict, mailbox: Path, root: Path, output_root: Path) -> int:
@@ -45,6 +43,7 @@ def persistent_build(*, request: dict, mailbox: Path, root: Path, output_root: P
                 mailbox=mailbox,
                 config=None,
                 observer=stream,
+                mailbox_provider_type=BrowserMailboxProvider,
             )
         except (ContractError, implementation.WorkbenchDeadline):
             print(

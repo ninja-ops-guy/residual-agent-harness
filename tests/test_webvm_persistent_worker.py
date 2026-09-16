@@ -8,7 +8,8 @@ import unittest
 from unittest import mock
 
 from residual.core import ContractError
-from residual.workbench import browser_worker
+from residual.workbench import browser_worker, conversation_build, runner
+from residual.workbench.browser_mailbox import BrowserMailboxProvider
 
 
 class PersistentBrowserWorkerTests(unittest.TestCase):
@@ -39,6 +40,11 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
     def test_shutdown_is_separate_from_mission_command_contract(self):
         self.assertEqual(browser_worker.SHUTDOWN, 'shutdown')
         self.assertEqual(browser_worker.STOPPED, 'RESIDUAL_WORKER_STOPPED')
+
+    def test_browser_entrypoints_do_not_mutate_core_provider_defaults(self):
+        self.assertIsNot(runner.MailboxProvider, BrowserMailboxProvider)
+        self.assertIs(conversation_build.MailboxProvider, runner.MailboxProvider)
+        self.assertTrue(issubclass(BrowserMailboxProvider, runner.MailboxProvider))
 
     def test_build_dispatch_reuses_fail_closed_in_process_entrypoint(self):
         _path, request = self.write_request('build')
@@ -121,7 +127,7 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
             browser_worker.browser_run.implementation,
             'execute',
             side_effect=TypeError('impossible constructor return'),
-        ):
+        ) as execute:
             with self.assertRaisesRegex(TypeError, 'impossible constructor return'):
                 browser_worker.browser_run.persistent_run(
                     request=request,
@@ -129,6 +135,7 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
                     root=self.root,
                     output_root=self.output,
                 )
+        self.assertIs(execute.call_args.kwargs['mailbox_provider_type'], BrowserMailboxProvider)
 
     def test_persistent_build_does_not_mask_runtime_typeerror(self):
         _path, request = self.write_request('build')
@@ -136,7 +143,7 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
             browser_worker.browser_build.implementation,
             'execute',
             side_effect=TypeError('impossible constructor return'),
-        ):
+        ) as execute:
             with self.assertRaisesRegex(TypeError, 'impossible constructor return'):
                 browser_worker.browser_build.persistent_build(
                     request=request,
@@ -144,6 +151,7 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
                     root=self.root,
                     output_root=self.output,
                 )
+        self.assertIs(execute.call_args.kwargs['mailbox_provider_type'], BrowserMailboxProvider)
 
     def test_typed_contract_failure_stays_bounded_in_persistent_entrypoint(self):
         _path, request = self.write_request('audit')

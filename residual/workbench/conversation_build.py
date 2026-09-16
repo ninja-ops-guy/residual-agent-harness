@@ -218,7 +218,8 @@ def make_task(request: dict, root: Path, prior_bundle=None, parent_binding=None)
 
 
 def execute(request: dict, *, root: Path, output_root: Path, mailbox: Path | None = None,
-            config: dict | None = None, observer=None):
+            config: dict | None = None, observer=None,
+            mailbox_provider_type=MailboxProvider):
     output_root.mkdir(parents=True, exist_ok=True)
     conversation_id = request.get("conversation_id") if isinstance(request, dict) else None
     conversation_id = _id(conversation_id, CID, "conversation identity")
@@ -260,7 +261,10 @@ def execute(request: dict, *, root: Path, output_root: Path, mailbox: Path | Non
             if mailbox is None or request.get("cloud_consent") is not True:
                 raise ContractError("browser build missions require explicit cloud consent and a provider mailbox")
             registry = Registry(); register_build(registry)
-            harness = ObservedHarness(registry, MailboxProvider(model, task.id, mailbox, emit, cancelled), None, limits=limits)
+            harness = ObservedHarness(
+                registry, mailbox_provider_type(model, task.id, mailbox, emit, cancelled),
+                None, limits=limits,
+            )
         harness.projected, harness.emit = 0, emit
         if isinstance(harness.local, MailboxProvider):
             delegate = harness.local.emit
@@ -287,7 +291,7 @@ def execute(request: dict, *, root: Path, output_root: Path, mailbox: Path | Non
         lock.unlink(missing_ok=True)
 
 
-def main(argv=None):
+def main(argv=None, *, mailbox_provider_type=MailboxProvider):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("prompt", nargs="?")
     parser.add_argument("--request", type=Path)
@@ -325,7 +329,8 @@ def main(argv=None):
             summary = execute(request, root=args.root, output_root=args.output_root,
                               mailbox=args.mailbox,
                               config=load_config(args.config) if args.config else None,
-                              observer=stream if args.stream else None)
+                              observer=stream if args.stream else None,
+                              mailbox_provider_type=mailbox_provider_type)
         finally:
             signal.alarm(0); signal.signal(signal.SIGALRM, previous)
         print(canonical({"status": summary["status"], "output": summary["output"], "simulation": False,

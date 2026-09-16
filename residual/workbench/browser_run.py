@@ -9,12 +9,11 @@ from residual.core import ContractError, canonical
 from . import runner as implementation
 from .browser_mailbox import BrowserMailboxProvider
 
-implementation.MailboxProvider = BrowserMailboxProvider
 
 
 def main(argv=None):
     """Standalone CLI behavior remains the existing bounded user-facing contract."""
-    return implementation.main(argv)
+    return implementation.main(argv, mailbox_provider_type=BrowserMailboxProvider)
 
 
 def persistent_run(*, request: dict, mailbox: Path, root: Path, output_root: Path) -> int:
@@ -46,6 +45,7 @@ def persistent_run(*, request: dict, mailbox: Path, root: Path, output_root: Pat
                 mailbox=mailbox,
                 config=None,
                 observer=stream,
+                mailbox_provider_type=BrowserMailboxProvider,
             )
         except (ContractError, implementation.WorkbenchDeadline):
             print(
