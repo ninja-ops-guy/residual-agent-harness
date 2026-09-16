@@ -15,6 +15,8 @@ import shlex
 MISSION_ID = re.compile(r"m-[0-9a-f]{32}\Z")
 MARKER = re.compile(r"[A-Z0-9_]{1,96}\Z")
 WORKER_MODULE = "residual.workbench.browser_worker"
+MISSION_TEMPLATE = "__RESIDUAL_MISSION_ID__"
+MARKER_TEMPLATE = "__RESIDUAL_RECOVERY_MARKER__"
 
 
 def _q(value: str | Path) -> str:
@@ -36,10 +38,18 @@ def build_recovery_command(
     active workspace lock is removed only if it is a regular, owner-controlled,
     single-link file containing that exact mission ID. Mission output folders are
     never deleted by recovery.
+
+    The two exported ``*_TEMPLATE`` values are fixed internal placeholders used
+    only while generating the browser's JavaScript template. Arbitrary placeholder
+    strings are not accepted.
     """
-    if mission_id is not None and not MISSION_ID.fullmatch(mission_id):
+    if (
+        mission_id is not None
+        and mission_id != MISSION_TEMPLATE
+        and not MISSION_ID.fullmatch(mission_id)
+    ):
         raise ValueError("invalid recovery mission id")
-    if not MARKER.fullmatch(marker):
+    if marker != MARKER_TEMPLATE and not MARKER.fullmatch(marker):
         raise ValueError("invalid recovery marker")
 
     pid = _q(pid_file)
