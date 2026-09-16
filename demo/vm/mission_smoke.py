@@ -5,6 +5,7 @@ this test process only; the shipped app has no fixture or fallback switch.
 """
 import re
 import secrets
+import shlex
 
 SDK_FIXTURE = r'''
 window.__providerFixture = {signedIn:false, calls:0, gesture:false};
@@ -184,7 +185,13 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     # Preserve the original independent evidence-chain acceptance coverage while
     # avoiding one fresh interpreter per mission: verify build, follow-up, and
     # live-provider outputs together in one post-worker Python process.
-    await command_proof(f'python3 -c "from pathlib import Path; from residual.workbench.runner import verify_run; verify_run(Path(\"{build_path}\")); verify_run(Path(\"{second_path}\")); verify_run(Path(\"{path}\"))"')
+    verify_code = (
+        'from pathlib import Path; from residual.workbench.runner import verify_run; '
+        f'verify_run(Path({build_path!r})); '
+        f'verify_run(Path({second_path!r})); '
+        f'verify_run(Path({path!r}))'
+    )
+    await command_proof('python3 -c ' + shlex.quote(verify_code))
     report['workbench_external_trace_verification'] = 'PASS_BUILD_FOLLOWUP_LIVE_AFTER_WORKER_SHUTDOWN'
     await command_proof('python3 -m residual.workbench audit --stream --files residual/cli.py')
     await page.locator('#mc-mission').click()
@@ -195,7 +202,12 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await page.reload(wait_until='domcontentloaded')
     await page.locator('#mc-terminal').click()
     await page.wait_for_function("() => document.body.innerText.replace(/\\s/g,'').includes('residual@demo:~/residual-agent-harness$')", timeout=120000)
-    await command_proof(f'test -s {path}/answer.md && test -s {build_path}/artifacts/index.html && test -s {second_path}/artifacts/index.html && python3 -c "from pathlib import Path; from residual.workbench.runner import verify_run; verify_run(Path(\"{build_path}\")); verify_run(Path(\"{second_path}\")); verify_run(Path(\"{path}\"))"')
+    await command_proof(
+        f'test -s {path}/answer.md && '
+        f'test -s {build_path}/artifacts/index.html && '
+        f'test -s {second_path}/artifacts/index.html && '
+        'python3 -c ' + shlex.quote(verify_code)
+    )
     await page.locator('#mc-mission').click()
     chat_text = await page.locator('#mc-chat').inner_text()
     assert 'Build a calculator' in chat_text
