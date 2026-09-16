@@ -28,11 +28,11 @@ jobs:
       - name: Build gateway container
         run: docker build . -f demo/cloud_gateway/Dockerfile -t residual-demo-gateway-ci
 
-      - name: Checkout WebVM build context
+      - name: Checkout pinned WebVM build context
         uses: actions/checkout@v4
         with:
           repository: leaningtech/webvm
-          ref: main
+          ref: 388d0adeb319d9ad605a5ec0485777cff5430c88
           path: _webvm
 
       - name: Stage repository into image context
