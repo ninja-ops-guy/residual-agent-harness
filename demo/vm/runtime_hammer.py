@@ -81,13 +81,21 @@ async def main() -> int:
                 "assert str(uuid.UUID(int=0))=='00000000-0000-0000-0000-000000000000'; "
                 "platform.python_implementation()"
             )
+            # The completion marker is deliberately assembled from two nonce
+            # halves in the guest. That prevents the echoed shell command itself
+            # from satisfying Playwright's completion wait before the loop runs.
             command = (
-                f"i=0; while [ $i -lt {args.count} ]; do "
+                f"i=0; hammer_rc=0; while [ $i -lt {args.count} ]; do "
                 f"python3 -c \"{py}\" >/dev/null 2>/tmp/residual-hammer.err || {{ "
-                "rc=$?; echo HAMMER_FAIL_INDEX=$i RC=$rc; cat /tmp/residual-hammer.err; "
-                "printf '\\n" + marker + "%s\\n' $rc; exit $rc; }; "
-                "i=$((i+1)); done; echo HAMMER_PASS_COUNT=$i; "
-                "printf '\\n" + marker + "0\\n'"
+                "hammer_rc=$?; echo HAMMER_FAIL_INDEX=$i RC=$hammer_rc; "
+                "cat /tmp/residual-hammer.err; break; }; "
+                "i=$((i+1)); done; "
+                "if [ $hammer_rc -eq 0 ]; then echo HAMMER_PASS_COUNT=$i; fi; "
+                "printf '\\nRESIDUAL_HAMMER_%s%s:%s\\n' '"
+                + nonce[:8]
+                + "' '"
+                + nonce[8:]
+                + "' \"$hammer_rc\""
             )
             await page.keyboard.press("Control+u")
             await page.keyboard.type(command, delay=0)
