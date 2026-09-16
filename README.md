@@ -81,19 +81,24 @@ The trial also retained controller/policy stress experiments (100-generation lin
 
 Current accepted `main` is `f1e62936a7ce72b801c852c1d7428d4c6ed4152c`. PR #132 changed research/self-maintenance surfaces, not protected Factory/M4 implementation, and the post-merge exact-main qualification workflows listed above completed successfully.
 
-The main unresolved operational reliability boundary is WebVM guest lifecycle stability. Issue #120 remains open for intermittent Pages/WebVM failures, and issue #126 has been reopened after retained production evidence showed later fresh guest Python processes failing inside the standard library after earlier mission steps had succeeded. PR #136 is the current persistent-worker mitigation candidate on `f1e629...`; its own description correctly treats that work as a lifecycle-risk mitigation, **not** a proven root-cause fix. PR #134 (real browser provider-adapter hardening) remains held until the runtime lifecycle boundary is stabilized and requalified.
+The main unresolved operational reliability boundary is WebVM guest lifecycle stability. Issue #120 remains open for intermittent Pages/WebVM failures, and issue #126 has been reopened after retained production evidence showed later fresh guest Python processes failing inside the standard library after earlier mission steps had succeeded. PR #136 is the current persistent-worker mitigation candidate on `f1e629...`; its exact head `1eaca5a2...` remains **FAIL / unqualified** after Pages/WebVM run `35088995295` rejected `/data/residual-worker.control` as unsafe and controller/provider run `35088995307` also failed. These are candidate failures, not accepted-main regressions or proof of the historical corruption root cause. PR #134 remains held until the runtime lifecycle boundary is stabilized and requalified.
 
-Other integration candidates also need current-main discipline: PR #118 (runtime/DSM closure) and PR #115 (release preparation) are still based on the earlier `22a5bae...` main and require refresh/requalification plus independent review before integration.
+The other major integration candidates have now been refreshed onto current accepted `main`, but their qualification states differ:
+
+- **PR #118 — runtime/DSM closure:** live head `334527da...` is based on `f1e62936...` and its current exact-head workflow set is green. Historical first-attempt failures remain retained; fresh independent technical acceptance of this exact repaired head is still required before integration.
+- **PR #131 — core SoakState persistence:** live head `368f3085...` is based on `f1e62936...` and all seven applicable exact-head workflows are green. Independent technical acceptance is still required, and this hardening does not create elapsed-soak evidence.
+- **PR #115 — release preparation:** live head `b1ffbb48...` is also based on `f1e62936...`, but its current exact-head qualification is **incomplete** because controller/provider run `35087653566` is `CANCELLED`. Do not treat the candidate as fully green until the required exact-head workflow set completes successfully and independent review accepts that head.
 
 Before paper-facing live reliability claims, the priority gates are:
 
 1. stabilize and independently qualify the WebVM lifecycle path (#126 / #136), retaining every failure rather than rerunning it away;
 2. rebase/requalify #134 only after the runtime release is stable, then obtain fresh real-provider evidence;
-3. refresh/requalify #118 and #115 against current accepted `main`, preserving their independent-review and release/recovery gates;
-4. complete release/recovery qualification and a defined WebVM reliability campaign;
-5. finish the remaining reproducibility/statistical work tracked by #35 and freeze the live evaluation protocol before confirmatory results;
-6. run fixed-model R0–R5, degradation and heterogeneous-routing studies;
-7. progress through elapsed 24h → 72h → 30-day soak only after shorter gates are clean.
+3. independently review the current-main-qualified #118 and #131 heads, while preserving their component-level non-claims;
+4. complete fresh exact-head qualification and independent review for #115 before using its release/recovery procedures as an integration candidate;
+5. complete release/recovery qualification and a defined WebVM reliability campaign;
+6. finish the remaining reproducibility/statistical work tracked by #35 and freeze the live evaluation protocol before confirmatory results;
+7. run fixed-model R0–R5, degradation and heterogeneous-routing studies;
+8. progress through elapsed 24h → 72h → 30-day soak only after shorter gates are clean.
 
 ## Traceability
 
