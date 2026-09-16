@@ -15,7 +15,7 @@ sys.path.insert(0, str(ROOT))
 from residual.qualification.evidence import GateResult, new_envelope, write_envelope
 from residual.qualification.failures import FailureClass, FailureObservation, append_failure
 from residual.qualification.manifest import aggregate_manifest, write_manifest
-from residual.qualification.schedule import run_campaign, write_campaign
+from residual.qualification.schedule import run_campaign, run_history, write_campaign
 
 
 def now() -> str:
@@ -71,13 +71,44 @@ def command_run(args: argparse.Namespace) -> int:
 def history_run(args: argparse.Namespace) -> int:
     started = now()
     report = run_campaign(start_seed=args.start_seed, seeds=args.seeds, steps=args.steps, lanes=args.lanes)
+
+    # Replay one exact seed twice as part of the required gate, rather than only
+    # trusting that the generator records a seed. Raw observation UUIDs/times are
+    # intentionally excluded by schedule.py; semantic trace/state identity must match.
+    replay_a = run_history(args.start_seed, steps=args.steps, lanes=args.lanes)
+    replay_b = run_history(args.start_seed, steps=args.steps, lanes=args.lanes)
+    replay_ok = bool(
+        replay_a["result"] == replay_b["result"] == "PASS"
+        and replay_a["trace"] == replay_b["trace"]
+        and replay_a["final_state"] == replay_b["final_state"]
+        and replay_a["semantic_observation_digest"] == replay_b["semantic_observation_digest"]
+        and replay_a["replay_digest"] == replay_b["replay_digest"]
+    )
+    report["replay_check"] = {
+        "seed": args.start_seed,
+        "result": "PASS" if replay_ok else "FAIL",
+        "first_digest": replay_a.get("replay_digest"),
+        "second_digest": replay_b.get("replay_digest"),
+    }
+    if not replay_ok:
+        report["result"] = "FAIL"
+        report.setdefault("failures", []).append({
+            "seed": args.start_seed,
+            "failure": "semantic replay mismatch",
+            "first": replay_a,
+            "second": replay_b,
+        })
+
     write_campaign(report, args.report)
     result = GateResult.PASS if report["result"] == "PASS" else GateResult.FAIL
     envelope = new_envelope(
         args.gate_id, result, root=ROOT, started_at=started,
         command=["qualification-history", f"--seeds={args.seeds}", f"--steps={args.steps}"],
         evidence_paths=[args.report],
-        notes=[f"deterministic seeds {args.start_seed}..{args.start_seed + args.seeds - 1}"],
+        notes=[
+            f"deterministic seeds {args.start_seed}..{args.start_seed + args.seeds - 1}",
+            f"same-seed semantic replay check={'PASS' if replay_ok else 'FAIL'}",
+        ],
     )
     write_envelope(envelope, args.output)
     print(json.dumps(report, indent=2, sort_keys=True))
