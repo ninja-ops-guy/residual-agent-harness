@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 class Mutation:
     name: str
     path: str
+    anchor: str
     old: str
     new: str
     tests: tuple[str, ...]
@@ -24,79 +25,99 @@ MUTATIONS = (
     Mutation(
         "revoked-candidate-acceptance",
         "residual/factory/runtime_journal.py",
-        """            if state == 'CANDIDATE' and row[1]:
-                raise JournalError("revoked attempt cannot produce a candidate")""",
-        """            if state == 'CANDIDATE' and not row[1]:
-                raise JournalError("revoked attempt cannot produce a candidate")""",
+        "    def finish(",
+        "if state == 'CANDIDATE' and row[1]:",
+        "if state == 'CANDIDATE' and not row[1]:",
         ("tests/qualification/test_trust_boundary_canaries.py::test_revoked_attempt_can_never_publish_candidate",),
     ),
     Mutation(
         "candidate-lease-resurrection",
         "residual/factory/runtime_journal.py",
-        "and not row[2] and row[3] in ('RESERVED', 'RUNNING')\n                    and row[4] == contract.contract_hash)",
-        "and not row[2] and row[3] in ('RESERVED', 'RUNNING', 'CANDIDATE')\n                    and row[4] == contract.contract_hash)",
+        "    def lease_read(",
+        "and not row[2] and row[3] in ('RESERVED', 'RUNNING')",
+        "and not row[2] and row[3] in ('RESERVED', 'RUNNING', 'CANDIDATE')",
         ("tests/qualification/test_trust_boundary_canaries.py::test_candidate_is_no_longer_an_authoritative_current_lease",),
     ),
     Mutation(
         "git-path-policy-bypass",
         "residual/factory/worker_contract.py",
-        """        if any(part.lower() == ".git" for part in path.split("/")):
-            return False
-        if any(_matches(path, item) for item in self.forbidden):""",
-        """        if any(part.lower() == ".git" for part in path.split("/")):
-            return True
-        if any(_matches(path, item) for item in self.forbidden):""",
+        "    def permits_path(",
+        """if any(part.lower() == ".git" for part in path.split("/")):
+            return False""",
+        """if any(part.lower() == ".git" for part in path.split("/")):
+            return True""",
         ("tests/qualification/test_trust_boundary_canaries.py::test_git_metadata_is_never_permitted_by_worker_path_policy",),
     ),
     Mutation(
         "forbidden-prefix-bypass",
         "residual/factory/worker_contract.py",
-        """        if any(part.lower() == ".git" for part in path.split("/")):
-            return False
-        if any(_matches(path, item) for item in self.forbidden):
-            return False
-        return any(_matches(path, item) for item in (self.allowed_outputs if write else self.inputs))""",
-        """        if any(part.lower() == ".git" for part in path.split("/")):
-            return False
-        if any(_matches(path, item) for item in self.forbidden):
-            return True
-        return any(_matches(path, item) for item in (self.allowed_outputs if write else self.inputs))""",
+        "    def permits_path(",
+        """if any(_matches(path, item) for item in self.forbidden):
+            return False""",
+        """if any(_matches(path, item) for item in self.forbidden):
+            return True""",
         ("tests/qualification/test_trust_boundary_canaries.py::test_forbidden_prefix_wins_over_read_allowlist",),
     ),
 )
 
 
+def _scope(text: str, mutation: Mutation) -> tuple[int, int, str]:
+    start = text.find(mutation.anchor)
+    if start < 0:
+        return -1, -1, ""
+    # All current canaries target class methods. Limit textual mutation to the
+    # selected method so nearby implementation refactors cannot accidentally
+    # make a common expression ambiguous across the whole module.
+    end = text.find("\n    def ", start + len(mutation.anchor))
+    if end < 0:
+        end = len(text)
+    return start, end, text[start:end]
+
+
 def mutation_site_count(mutation: Mutation, *, root: Path = ROOT) -> int:
-    return (root / mutation.path).read_text(encoding="utf-8").count(mutation.old)
+    text = (root / mutation.path).read_text(encoding="utf-8")
+    start, _end, scoped = _scope(text, mutation)
+    return 0 if start < 0 else scoped.count(mutation.old)
 
 
 def validate_mutation_sites(*, root: Path = ROOT) -> list[dict[str, object]]:
-    """Return every mutation whose source selector is not exactly unique.
-
-    Mutation qualification is meaningful only when the intended semantic site is
-    unambiguous. A source refactor therefore fails this harness explicitly instead
-    of mutating whichever textual occurrence happens to come first.
-    """
+    """Return every mutation whose method-scoped selector is not exactly unique."""
     invalid = []
     for mutation in MUTATIONS:
         count = mutation_site_count(mutation, root=root)
         if count != 1:
-            invalid.append({"name": mutation.name, "path": mutation.path, "site_count": count})
+            invalid.append({
+                "name": mutation.name,
+                "path": mutation.path,
+                "anchor": mutation.anchor.strip(),
+                "site_count": count,
+            })
     return invalid
+
+
+def _apply_mutation(text: str, mutation: Mutation) -> str:
+    start, end, scoped = _scope(text, mutation)
+    if start < 0:
+        raise ValueError(f"method anchor not found: {mutation.anchor!r}")
+    count = scoped.count(mutation.old)
+    if count != 1:
+        raise ValueError(f"expected one method-scoped mutation site, found {count}")
+    mutated_scope = scoped.replace(mutation.old, mutation.new, 1)
+    return text[:start] + mutated_scope + text[end:]
 
 
 def run_mutation(mutation: Mutation) -> dict:
     path = ROOT / mutation.path
     original = path.read_text(encoding="utf-8")
-    count = original.count(mutation.old)
-    if count != 1:
+    try:
+        mutated = _apply_mutation(original, mutation)
+    except ValueError as exc:
         return {
             "name": mutation.name,
             "path": mutation.path,
             "result": "ERROR",
-            "reason": f"expected one scoped mutation site, found {count}",
+            "reason": str(exc),
         }
-    mutated = original.replace(mutation.old, mutation.new, 1)
     try:
         path.write_text(mutated, encoding="utf-8")
         proc = subprocess.run(
@@ -109,6 +130,7 @@ def run_mutation(mutation: Mutation) -> dict:
     return {
         "name": mutation.name,
         "path": mutation.path,
+        "anchor": mutation.anchor.strip(),
         "tests": list(mutation.tests),
         "result": "KILLED" if killed else "SURVIVED",
         "returncode": proc.returncode,
