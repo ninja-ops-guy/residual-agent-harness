@@ -16,6 +16,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - label: sleep-1ms
+            sleep_seconds: '0.001'
+            iterations: '800'
           - label: sleep-10ms
             sleep_seconds: '0.01'
             iterations: '1600'
@@ -24,7 +27,7 @@ jobs:
             iterations: '400'
           - label: sleep-100ms
             sleep_seconds: '0.1'
-            iterations: '200'
+            iterations: '400'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -78,7 +81,7 @@ jobs:
             python3 - <<"PY"
           import platform, time
           print("ARCH", platform.architecture()[0])
-          for sleep_s, limit in ((0.01, 1600), (0.05, 400), (0.1, 200)):
+          for sleep_s, limit in ((0.001, 800), (0.01, 1600), (0.05, 400), (0.1, 400)):
               start = time.monotonic_ns()
               for count in range(1, limit + 1):
                   time.sleep(sleep_s)
