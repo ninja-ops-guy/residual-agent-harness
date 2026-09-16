@@ -14,7 +14,7 @@ The project has moved well beyond the v0.3/v0.4 Command Station baseline. Curren
 | Command Station | Implemented research/operations surface; deployment-specific production qualification still applies |
 | Factory M2 worker contracts/runtime | Implemented under `residual/factory/`; real OS-boundary development tests exist |
 | Factory M3 evidence bus/Station receipts | Implemented; trusted consumption/admission is the authority boundary |
-| Factory M4 deterministic integration/scheduler | Implemented and accepted-main capable-runner qualified on `22a5bae...`: all prerequisite probes, actual `linux-userns-isolated-v1` execution, and a zero-skip 142-case + 84-subtest M4 suite passed on the named Ubuntu 22.04 / Python 3.12 environment. This is not every-host or production qualification. |
+| Factory M4 deterministic integration/scheduler | Implemented and current-main capable-runner qualified on `f1e62936...` by run `35046857256`: all prerequisite probes, actual `linux-userns-isolated-v1` execution, and a zero-skip 142-case + 84-subtest M4 suite passed on the named Ubuntu 22.04 / Python 3.12 environment. This is not every-host or production qualification. |
 | Frozen evaluation framework | Implemented under `residual/eval/`: hash-locked workload, repeated runs, ablations, stats/reporting, fault injection and Factory measurement hooks |
 | Sandbox / red-team | Implemented development surface; host capability determines whether specific kernel isolation paths can be qualified |
 | Cluster / distributed execution | Implemented development surface with authenticated membership, heartbeat/reassignment and local-first routing |
@@ -34,14 +34,15 @@ Issue #63 is also closed. Its accepted-tree binding, filesystem/link-safety, ver
 
 The old #63/#48 closure sequence is complete. The current sequence is:
 
-1. **Review and integrate the refreshed runtime/DSM closure candidate.** PR #118 is based on accepted `main`; require terminal exact-head CI and independent technical acceptance before merge.
-2. **Review release preparation, then run release/recovery qualification.** PR #115 is refreshed onto accepted `main`; independently review its implementer evidence and then exercise blank-environment setup, recovery and retained-evidence procedures without broadening fixture claims.
-3. **Quantify WebVM reliability.** Keep issue #120 open, retain every failed attempt, and run a defined repeated-run campaign. A successful exact-revision browser run is not a production recurrence rate.
-4. **Freeze the live evaluation protocol and selected evidence path.** Lock workload, task mapping, run identity, model/configuration, verifier policy/boundary, scheduler/topology evidence, metrics and analysis before observing confirmatory model results.
-5. **Run R0–R5 with one fixed live model.** Measure raw correctness, acceptance coverage, accepted correctness, AER/ASSR, verifier false acceptance/rejection/`UNKNOWN`, cost, latency and throughput.
-6. **Run model-degradation + heterogeneous-routing studies.** Test whether cheaper/weaker workers can contribute safely under the same acceptance boundary.
-7. **Run live fault campaigns and staged soak tests.** 24-hour → 72-hour → 30-day only after shorter gates are clean.
-8. **Promote paper claims only from retained evidence.** Negative, `UNKNOWN`, rejected and failed runs stay in the record.
+1. **Repair and requalify the WebVM worker transport.** PR #136 head `52e820e...` is a retained qualification FAIL because the generated WebVM guest does not implement `mkfifo`. Replace the unsupported FIFO without weakening mission binding, durable poison/recovery or fail-closed cleanup; then require fresh exact-head full CI, desktop+narrow proof and independent technical acceptance.
+2. **Refresh the runtime/DSM closure candidate.** PR #118 remains based on `22a5bae...`, behind current accepted `main@f1e62936...`; merge/rebase current main, rerun exact-head CI and obtain independent technical acceptance before merge.
+3. **Refresh release and core persistence candidates separately.** PR #115 and PR #131 also remain based on `22a5bae...`. Keep #131's core SoakState hardening separate from #115's release/recovery procedures, requalify each on current main and require independent review. The two-day simulator rehearsal is not elapsed-soak evidence.
+4. **Quantify WebVM reliability after transport integration.** Keep issue #120 open, retain every failed attempt, and run a defined repeated-run campaign. A successful exact-revision browser run is not a production recurrence rate.
+5. **Freeze the live evaluation protocol and selected evidence path.** Lock workload, task mapping, run identity, model/configuration, verifier policy/boundary, scheduler/topology evidence, metrics and analysis before observing confirmatory model results.
+6. **Run R0–R5 with one fixed live model.** Measure raw correctness, acceptance coverage, accepted correctness, AER/ASSR, verifier false acceptance/rejection/`UNKNOWN`, cost, latency and throughput.
+7. **Run model-degradation + heterogeneous-routing studies.** Test whether cheaper/weaker workers can contribute safely under the same acceptance boundary.
+8. **Run live fault campaigns and staged soak tests.** 24-hour → 72-hour → 30-day only after shorter gates are clean.
+9. **Promote paper claims only from retained evidence.** Negative, `UNKNOWN`, rejected and failed runs stay in the record.
 
 ## Historical implementation material
 

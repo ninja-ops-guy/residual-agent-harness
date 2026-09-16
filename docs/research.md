@@ -1,6 +1,6 @@
 # Research claim and prior art
 
-Date: 2026-09-15. Status: implemented research platform; central systems hypothesis not yet established by live-model evaluation.
+Date: 2026-09-16. Status: implemented research platform; central systems hypothesis not yet established by live-model evaluation.
 
 > **Current platform state:** [CURRENT_STATUS.md](CURRENT_STATUS.md)
 
@@ -71,7 +71,7 @@ A large integrated milestone at `412b66c35f7c0e1ac479fe60a5b7d33d5510e3af` recor
 
 Controlled development fault experiments against earlier M2/M3/M4 trees demonstrated containment in the declared fault matrices. Those are bounded fixture results and must not be generalized to production or arbitrary workloads.
 
-Accepted `main` at `22a5bae54ec12987ffd7a90d881fb4533c9b4b97` has a fresh post-merge capable-runner M4 qualification result from run `35036589940`: all prerequisite capability checks passed, actual `linux-userns-isolated-v1` execution passed, and 142 M4 cases plus 84 subtests completed with zero skips. That qualifies the named exact tree on the named Ubuntu 22.04 / Python 3.12 environment; it is not an every-host, production, soak or live-model research claim.
+Current accepted `main` at `f1e62936a7ce72b801c852c1d7428d4c6ed4152c` has a post-merge capable-runner M4 qualification result from run `35046857256`: all prerequisite capability checks passed, actual `linux-userns-isolated-v1` execution passed, and 142 M4 cases plus 84 subtests completed with zero skips. That qualifies the named exact tree on the named Ubuntu 22.04 / Python 3.12 environment; it is not an every-host, production, soak or live-model research claim.
 
 ## Current blockers before stronger empirical claims
 
@@ -79,7 +79,7 @@ Accepted `main` at `22a5bae54ec12987ffd7a90d881fb4533c9b4b97` has a fresh post-m
 
 Issue #63 is closed. Its accepted-tree binding, filesystem/link-safety, verifier-isolation and Git-evidence implementation defects are no longer the active M4 blocker on accepted `main`.
 
-The authoritative accepted-main capable-runner result is run `35036589940` for revision `22a5bae54ec12987ffd7a90d881fb4533c9b4b97`. Historical hosts that cannot provide the required namespace boundary remain `UNKNOWN`/`BLOCKED`; a pass on the named Ubuntu 22.04 runner must not be generalized to every kernel or deployment.
+The authoritative current-main capable-runner result is run `35046857256` for revision `f1e62936a7ce72b801c852c1d7428d4c6ed4152c`. Historical hosts that cannot provide the required namespace boundary remain `UNKNOWN`/`BLOCKED`; a pass on the named Ubuntu 22.04 runner must not be generalized to every kernel or deployment.
 
 ### Traceability state
 
