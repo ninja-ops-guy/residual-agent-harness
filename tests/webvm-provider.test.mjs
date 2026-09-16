@@ -73,8 +73,8 @@ test('provider progress is correlated to the live request and exposes only bound
  p.end(); assert.equal((await result).error,'mission_cancelled'); p.close();
 });
 test('provider progress text never includes an invalid model identifier', () => {
- assert.match(providerProgressMessage('model_resolved','openai/gpt-5.4-nano'),/gpt-5\.4-nano/);
- assert.equal(providerProgressMessage('model_resolved','x;secret'),'Provider stage · model resolved');
+ assert.match(providerProgressMessage('model_selected','openai/gpt-5.4-nano'),/gpt-5\.4-nano/);
+ assert.equal(providerProgressMessage('model_selected','x;secret'),'Provider stage · model selected');
  assert.equal(providerProgressMessage('not_a_stage','openai/gpt-5.4-nano'),null);
 });
 test('Puter production request uses strict non-stream structured transport and safe stage telemetry', () => {
@@ -82,7 +82,7 @@ test('Puter production request uses strict non-stream structured transport and s
  assert.match(providerSource,/Use that function exactly once/);
  assert.match(providerSource,/strict:\s*true/);
  assert.match(providerSource,/stream:\s*false/);
- assert.match(providerSource,/progress\('model_resolved'/);
+ assert.match(providerSource,/progress\('model_selected'/);
  assert.match(providerSource,/progress\('request_dispatched'/);
  assert.match(providerSource,/progress\('response_received'/);
  assert.match(providerSource,/progress\('envelope_decoded'/);
