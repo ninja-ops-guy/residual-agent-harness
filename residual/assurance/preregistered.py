@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from fractions import Fraction
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -70,12 +71,22 @@ def engine_config_sha256(path: str | Path) -> str:
     return digest(load_engine_config_payload(path))
 
 
-def projected_declared_cost_usd(suite: ExternalSuite, engines_path: str | Path, trials: int = 1) -> float:
+def _projected_declared_cost_fraction(
+    suite: ExternalSuite, engines_path: str | Path, trials: int = 1,
+) -> Fraction:
+    """Compute declared cost from canonical decimal values without an epsilon."""
     if type(trials) is not int or trials < 1:
         raise ValueError("trials must be a positive integer")
     raw = load_engine_config_payload(engines_path)
-    per_case = sum(float(item.get("cost_per_task", 0.0)) for item in raw["engines"])
+    per_case = sum(
+        (Fraction(str(item.get("cost_per_task", 0.0))) for item in raw["engines"]),
+        Fraction(0),
+    )
     return per_case * len(suite.cases) * trials
+
+
+def projected_declared_cost_usd(suite: ExternalSuite, engines_path: str | Path, trials: int = 1) -> float:
+    return float(_projected_declared_cost_fraction(suite, engines_path, trials))
 
 
 def projected_provider_calls(suite: ExternalSuite, engines_path: str | Path, trials: int = 1) -> int:
@@ -207,8 +218,8 @@ def verify_preregistration(
             raise ValueError("fixed evaluation stopping rule does not match suite")
     elif projected_provider_calls(suite, engines_path, manifest.trials) > manifest.stopping_rule["value"]:
         raise ValueError("planned provider calls exceed preregistered stopping rule")
-    projected_cost = projected_declared_cost_usd(suite, engines_path, manifest.trials)
-    if projected_cost > manifest.maximum_budget_usd + 1e-12:
+    projected_cost = _projected_declared_cost_fraction(suite, engines_path, manifest.trials)
+    if projected_cost > Fraction(str(manifest.maximum_budget_usd)):
         raise ValueError("projected declared cost exceeds preregistered budget")
 
 
