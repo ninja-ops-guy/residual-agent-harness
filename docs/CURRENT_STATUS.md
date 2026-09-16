@@ -8,7 +8,7 @@ This is the human-readable current-state summary for RESIDUAL. Exact code, exact
 
 RESIDUAL is an evidence-first reliability and control plane for heterogeneous AI computation. The platform spans requirement compilation, bounded worker execution, evidence/receipt handling, deterministic integration, lifecycle recovery, evaluation, observability, operator-facing surfaces, and a bounded self-maintenance/research-bundle experiment.
 
-The repository contains substantial implementation and development evidence for the mechanisms required to test its reliability hypothesis. It does **not** yet claim that the hypothesis has been proven on live heterogeneous model workloads, that WebVM guest lifecycle reliability has been solved, that release/recovery qualification is complete, that autonomous recursive self-improvement has been demonstrated, or that production soak targets have been met.
+The repository contains substantial implementation and development evidence for the mechanisms required to test its reliability hypothesis. It does **not** yet claim that the hypothesis has been proven on live heterogeneous model workloads, that WebVM guest lifecycle reliability has an acceptable long-run recurrence rate, that release/recovery qualification is complete, that autonomous recursive self-improvement has been demonstrated, or that production soak targets have been met.
 
 ## Accepted main
 
@@ -61,25 +61,37 @@ Issue #35 remains open because the broader reproducibility program still include
 
 Exact-current-main Pages run `35046857227` is green, but that does **not** close the WebVM lifecycle reliability program.
 
-Issue #120 remains open for intermittent Pages/WebVM delivery and guest-runtime failures. Issue #126 is reopened after retained production evidence on an earlier accepted lineage showed a later fresh guest Python process failing inside the Python standard library after earlier audit/build/follow-up/provider steps had succeeded. PR #134 separately retained the same broad failure family as `munmap_chunk(): invalid pointer`. Root cause remains unproven.
+Issue #120 remains open for intermittent Pages/WebVM delivery and guest-runtime failures. Issue #126 remains reopened after retained production evidence on an earlier accepted lineage showed a later fresh guest Python process failing inside the Python standard library after earlier audit/build/follow-up/provider steps had succeeded. PR #134 separately retained the same broad failure family as `munmap_chunk(): invalid pointer`. Root cause remains unproven.
 
-PR #136 is the current-main mitigation candidate. It has advanced beyond its earlier FIFO transport experiment. The older head `52e820e...` and Pages run `35067563563` remain retained historical **FAIL** evidence: the actual WebVM guest returned `ENOSYS` for `os.mkfifo()`, so desktop qualification could not start the worker and narrow proof was not reached.
+PR #136 is the current-main persistent-worker mitigation candidate. Its earlier candidate heads retained several meaningful failures: FIFO creation was unsupported in the real WebVM guest (`ENOSYS`); a DataDevice control record failed POSIX ownership/type assumptions; stale source-contract assertions blocked browser execution; an obsolete shutdown path left the worker live and exposed a later `OverflowError`; and a post-worker verifier invocation failed because embedded paths were not shell-quoted. Those failures remain retained historical evidence and are not rewritten as PASS.
 
 ### Current PR #136 exact-head state
 
-Live PR #136 head remains **`1eaca5a2bee38cd5ecfca65f8b2adcb5c45a1e09`**, based on accepted `main@f1e62936...`. Its worker path no longer requires FIFO creation; focused Pages-side Python coverage reports **82 tests PASS** before the browser proof, including regular DataDevice control-record and fail-closed worker/recovery assertions.
+Live PR #136 head is **`09fb5dc8c60307e3424f6bedc5026ffd6cacdc17`**, based directly on accepted `main@f1e62936...`.
 
-The exact-head candidate is nevertheless **FAIL / unqualified**:
+All eight applicable exact-head workflows completed **PASS**:
 
-- **Pages/WebVM run `35088995295`: FAIL.** The synthetic merge `ca00a435c3e5367310e06fa3a1498691f63241fd` reached served-artifact identity, guest attach, real demo verification, and warm reload. During persistent-worker startup the actual guest rejected `/data/residual-worker.control` with `RuntimeError: worker control path is unsafe`. Desktop acceptance then timed out after 120 seconds; narrow acceptance was not reached.
-- The failed browser evidence was retained as artifact **`10443373339`**, ZIP SHA-256 **`d1e3f9dd784e2b31c0b46ca551970718fc461d4a2219030b7a7728c18aeab91a`**.
-- **Controller/provider contracts run `35088995307`: FAIL** on the same exact PR head. No broader green-CI claim is made for this candidate.
+- Deploy GitHub Pages — run `35097645386`;
+- Browser VM Demo CI — run `35097644568`;
+- Clean install qualification — run `35097644790`;
+- Control Plane — run `35097644573`;
+- Factory ownership gate — run `35097644666`;
+- measured-evaluation acceptance binding — run `35097644750`;
+- controller/provider contracts — run `35097644846`;
+- Command Station checks — run `35097644520`.
 
-These are candidate qualification failures. They are **not** accepted-main regressions, do not establish the historical guest-corruption root cause, and do not weaken or supersede accepted Factory/M4 qualification.
+Pages run `35097645386` passed generated desktop and narrow/mobile Chromium proof on the same synthetic merge tree. The retained proof demonstrated one persistent worker PID across audit/build/follow-up/live flows, clean control-record shutdown, post-worker evidence-chain verification, standalone CLI projection, reload continuity, consent gating, and truthful provider failure behavior.
 
-PR #136 must remain unmerged until its exact current head has full green repository CI, the desktop+narrow browser proof passes on that same head, and genuinely independent technical review accepts that qualified head. A later repair must retain these failures rather than treating a green rerun or new head as if the failing evidence never existed.
+Retained artifacts for that exact head are:
 
-PR #134 remains held until the runtime lifecycle boundary is stabilized and production-qualified. Its provider-transport changes must be rebased/requalified after #126/#136 is resolved before fresh real-provider iPhone evidence is requested.
+- `webvm-proof-35097645386-1` — artifact **`10446559623`**, SHA-256 **`c23dafbc8001384a079c2195f4c060e02bbccc23da471b18cc3ac739c2a24a86`**;
+- `github-pages-35097645386-1` — artifact **`10446993144`**, SHA-256 **`a0964df76f098d67325446faa0a42dacf7a17b43759deb7e68b676591423b84a`**.
+
+This is exact-head test-double/provider-contract and real-browser qualification evidence for the candidate. It is **not** proof of the historical guest-corruption root cause, not a live paid-provider quality result, not an acceptable long-run recurrence-rate result, and not production release certification.
+
+A technical audit of this exact head found no new blocker in the reviewed scope, but that review was posted through the repository owner's connected account and is therefore **not independent acceptance**. PR #136 must remain unmerged until a genuinely independent reviewer/account accepts this exact qualified head. If it later merges, the exact accepted revision must pass its **first** qualified public desktop+narrow release attempt; a failing first attempt remains evidence and must not be rerun merely to obtain green.
+
+PR #134 remains held until the runtime lifecycle boundary is integrated and independently qualified. Its provider-transport changes must then be rebased/requalified before fresh real-provider iPhone evidence is requested.
 
 ## Current implementation map
 
@@ -87,7 +99,7 @@ PR #134 remains held until the runtime lifecycle boundary is stabilized and prod
 | --- | --- | --- |
 | Core harness | Implemented | Goal contracts, verifier-defined acceptance, brakes, residual delegation, receipts, cache binding, trace/audit surfaces and provider routing exist. |
 | Command Station | Implemented research/operations surface | Run control, provider/model management, observations, HITL hooks, evidence export and operational UI exist. Deployment-specific production readiness remains environment-dependent. |
-| Mission Control / WebVM | Implemented product/demo surface; **reliability gate open** | Accepted main is green at its exact revision, but #120/#126 remain open and PR #136 current head is **FAIL** at current exact-head Pages/WebVM qualification. |
+| Mission Control / WebVM | Implemented product/demo surface; **reliability gate open** | Accepted main is green at its exact revision. PR #136 exact head is now fully green across eight applicable workflows including desktop+narrow browser proof, but independent acceptance, post-merge first-attempt release proof, and long-run reliability evidence remain open. |
 | Factory M2 | Implemented | Worker contracts, bounded runtime, isolated worktrees, journaled observations and host-owned termination exist. |
 | Factory M3 | Implemented | Station-issued receipts, artifact binding, evidence-bus handoff and integrity checks exist. |
 | Factory M4 | Implemented; capable-runner qualified on named environments | Closed #63 implementation gaps, #108 timing repair, fail-closed prerequisite probing and zero-skip qualification path exist. Not every-host or production qualification. |
@@ -106,11 +118,12 @@ The old documentation that described issue #63 as an open M4 closure gate is sta
 
 ## Open integration and release gates
 
-Accepted `main` itself has not changed since the prior check, but three pending candidates were refreshed onto `f1e62936...`, changing their integration status materially:
+Accepted `main` itself has not changed since the prior check, but the pending candidates have materially different integration states:
 
-- **PR #118 — runtime/DSM closure.** Live head **`334527da6025293ffc1ff485362fa38b6e296345`** is now based on current `main@f1e62936...`. All applicable exact-head workflows observed for that head are **PASS**, including controller/provider, Command Station, ownership, clean install, measured binding, Control Plane and Pages browser proof. Retained first-attempt failures remain historical evidence and are not rewritten as passes. The remaining merge gate is genuinely independent technical acceptance of this exact repaired head. Cross-process/multi-host serialization, production process wiring, host-loss behavior, release/recovery and elapsed soak remain separate non-claims.
+- **PR #136 — WebVM persistent-worker lifecycle hardening.** Live head **`09fb5dc8c60307e3424f6bedc5026ffd6cacdc17`** has all eight applicable exact-head workflows **PASS**, including generated desktop+narrow browser proof. Historical failed heads remain evidence. The remaining pre-merge gate is genuinely independent technical acceptance of this exact qualified head. Post-merge first-attempt public desktop+narrow acceptance and long-run reliability measurement remain separate gates.
+- **PR #118 — runtime/DSM closure.** Live head **`334527da6025293ffc1ff485362fa38b6e296345`** is based on current `main@f1e62936...`. All applicable exact-head workflows observed for that head are **PASS**, including controller/provider, Command Station, ownership, clean install, measured binding, Control Plane and Pages browser proof. Retained first-attempt failures remain historical evidence. The remaining merge gate is genuinely independent technical acceptance of this exact repaired head. Cross-process/multi-host serialization, production process wiring, host-loss behavior, release/recovery and elapsed soak remain separate non-claims.
 - **PR #131 — core SoakState persistence hardening.** Live head **`368f308504c5398c79f9935a9c360ae390144c36`** is based on current `main@f1e62936...`. All seven applicable exact-head workflows are **PASS**. The change hardens local resumable state persistence against predictable-temp symlink attacks; it does **not** establish elapsed soak or release readiness. Fresh independent technical acceptance is still required before integration.
-- **PR #115 — release preparation.** Live head **`b1ffbb486585c81b5aa4771f29ffb17aab3946c7`** is now based on current `main@f1e62936...`, so the previous “behind main” statement is no longer accurate. Its current exact-head qualification is **incomplete**, however: controller/provider run **`35087653566`** is **CANCELLED**. Other observed exact-head workflows include successful release-preparation procedures, Factory ownership, clean install, Command Station, Control Plane and measured binding, but a cancelled required workflow is not PASS. Do not merge until the required exact-head workflow set completes green and independent technical acceptance is recorded. True bare-OS install, production HTTPS release-host, host-loss recovery and elapsed soak remain unproven.
+- **PR #115 — release preparation.** Live head **`b1ffbb486585c81b5aa4771f29ffb17aab3946c7`** is based on current `main@f1e62936...`. Its exact-head qualification remains **incomplete** because controller/provider run **`35087653566`** is **CANCELLED** rather than PASS. Do not merge until the required exact-head workflow set completes green and independent technical acceptance is recorded. True bare-OS install, production HTTPS release-host, host-loss recovery and elapsed soak remain unproven.
 
 ## Research status
 
@@ -121,6 +134,7 @@ Accepted `main` itself has not changed since the prior check, but three pending 
 - Accepted main has current push-level Factory ownership, measured binding, clean-install, Station, controller/provider, capable-runner M4 and Pages workflow passes.
 - Frozen research-bundle tooling can bind manuscript metrics to exact retained artifact bytes and reproduce them without model credentials.
 - One bounded external-model self-maintenance trial produced a PR-ready candidate while preserving `merge_authorized=false`.
+- PR #136 has exact-head browser and repository qualification evidence for its current repaired lifecycle candidate.
 
 ### Not yet supported
 
@@ -131,6 +145,7 @@ The project does not yet claim that:
 - the reliability gain is worth the orchestration tax;
 - WebVM lifecycle corruption has been root-caused or shown to have an acceptable recurrence rate;
 - PR #132 proves autonomous recursive self-improvement, independent trust-domain qualification, or autonomous merge authority;
+- PR #136 has independent technical acceptance or post-merge production release evidence;
 - release/recovery qualification is complete;
 - 24-hour, 72-hour or 30-day elapsed production soak targets have been satisfied.
 
@@ -138,16 +153,17 @@ The project does not yet claim that:
 
 The recommended order is:
 
-1. **Repair PR #136 current-head failures.** Preserve the earlier FIFO/`ENOSYS` evidence and current run `35088995295`. Fix the current unsafe regular-control-path failure plus every exact-head red CI job without weakening ownership/identity/poison/recovery assertions. Then run fresh exact-head full CI and desktop+narrow browser qualification on one immutable head.
-2. **Obtain genuinely independent technical review of that exact qualified #136 head.** Same-author/implementer commentary is not independent acceptance. Only after merge should the exact production revision be required to pass its first qualified desktop+narrow release attempt; a failing first attempt remains evidence and must not be rerun merely to obtain green.
-3. **Requalify the provider adapter only after lifecycle stabilization.** Refresh PR #134 onto the stable runtime, then run exact-head and production browser qualification before a fresh real-provider iPhone run.
-4. **Review the current-main-qualified component candidates.** PR #118 and PR #131 are now refreshed and exact-head green; their remaining integration gate is independent technical acceptance, with their stated non-claims preserved.
-5. **Finish exact-head release-preparation qualification.** PR #115 is refreshed onto current main but currently has a cancelled controller/provider run. Require a complete green exact-head workflow set and independent review before integration; do not treat procedure/rehearsal evidence as release PASS.
+1. **Obtain genuinely independent technical acceptance of exact-qualified PR #136 head `09fb5dc8...`.** Same-author/implementer commentary is not independent acceptance. Preserve every earlier failing head/run as historical evidence.
+2. **If #136 merges, require the exact merged revision to pass its first qualified public desktop+narrow release attempt.** A failing first attempt remains evidence and must not be rerun merely to obtain green.
+3. **Requalify the provider adapter only after lifecycle integration.** Refresh PR #134 onto the stable runtime, then run exact-head and production browser qualification before a fresh real-provider iPhone run.
+4. **Review the current-main-qualified component candidates.** PR #118 and PR #131 are exact-head green; their remaining integration gate is independent technical acceptance, with their stated non-claims preserved.
+5. **Finish exact-head release-preparation qualification.** PR #115 currently has a cancelled controller/provider run. Require a complete green exact-head workflow set and independent review before integration; do not treat procedure/rehearsal evidence as release PASS.
 6. **Execute release/recovery qualification.** Exercise blank-environment setup, recovery and retained-evidence procedures without converting rehearsal/simulation evidence into release PASS.
-7. **Complete remaining reproducibility preparation.** Continue #35 work, freeze the live workload/evidence path/metrics/analysis choices before confirmatory model results, and publish negative/`UNKNOWN` outcomes.
-8. **Run fixed-model R0–R5**, followed by degradation and heterogeneous-routing studies.
-9. **Progress through elapsed 24h → 72h → 30-day soak** only after shorter gates are clean.
-10. **Update the paper only from frozen retained artifacts.**
+7. **Quantify WebVM reliability.** Keep #120 open, retain every failure, and run a defined repeated-run campaign; one qualified candidate run is not a long-run production failure rate.
+8. **Complete remaining reproducibility preparation.** Continue #35 work, freeze the live workload/evidence path/metrics/analysis choices before confirmatory model results, and publish negative/`UNKNOWN` outcomes.
+9. **Run fixed-model R0–R5**, followed by degradation and heterogeneous-routing studies.
+10. **Progress through elapsed 24h → 72h → 30-day soak** only after shorter gates are clean.
+11. **Update the paper only from frozen retained artifacts.**
 
 ## Documentation authority
 
