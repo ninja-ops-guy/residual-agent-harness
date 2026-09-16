@@ -14,6 +14,7 @@ dependencies = []
 marketplace = ["cryptography>=43"]
 factory = ["cryptography>=43", "PyYAML>=6"]
 test = ["pytest>=8", "PyYAML>=6"]
+qualification = ["pytest>=8", "PyYAML>=6", "hypothesis>=6", "coverage[toml]>=7"]
 
 [project.scripts]
 residual = "residual.cli:main"
@@ -30,6 +31,14 @@ include = ["residual*", "ai_providers*", "observation_layer*"]
 
 [tool.setuptools.package-data]
 "residual.station" = ["static/*", "schemas/*.json"]
+
+[tool.coverage.run]
+branch = true
+source = ["residual"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
 
 [tool.vercel]
 entrypoint = "demo.cloud_gateway.server:app"
