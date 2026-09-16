@@ -9,47 +9,91 @@ from qualify_webvm import replace_once
 def patch(text):
     text = replace_once(text, "<script>\n", "<script>\n\timport { mountMissionControl } from './mission-control-world.js';\n")
     text = replace_once(text, 'var residualBridgeBuffer = "";',
-                        'var residualWorkbench = null;\n\tvar residualDataDevice = null;\n\tvar residualShellTail = "";\n\tvar residualShellReady = false;\n\tvar residualShellCommandBusy = false;\n\tvar residualShellRun = null;\n\tvar residualShellInputBuffer = "";\n\tvar residualBridgeBuffer = "";')
+                        'var residualWorkbench = null;\n\tvar residualDataDevice = null;\n\tvar residualShellTail = "";\n\tvar residualShellReady = false;\n\tvar residualShellCommandBusy = false;\n\tvar residualShellRun = null;\n\tvar residualShellInputBuffer = "";\n\tvar residualWorkerReady = false;\n\tvar residualWorkerPoisoned = false;\n\tvar residualWorkerStart = null;\n\tvar residualBridgeBuffer = "";')
     text = replace_once(text, 'const out = residualDecoder.decode(bytes, {stream:true});', '''const out = residualDecoder.decode(bytes, {stream:true});
         residualShellTail = (residualShellTail + out).slice(-4096).replace(/\\x1b\\[[0-9;?]*[A-Za-z]/g, "");
         if (residualShellTail.includes("residual@demo:~/residual-agent-harness$")) residualShellReady = true;
-        // Project authoritative guest frames before resolving a shell-dispatch
-        // completion marker that may share the same terminal output chunk.
+        // Project authoritative guest frames before resolving worker lifecycle
+        // markers that may share the same terminal output chunk.
         residualWorkbench?.onOutput(out);
+        if (!residualWorkerPoisoned && residualShellTail.includes("RESIDUAL_WORKER_READY")) {
+            residualWorkerReady = true;
+            if (residualWorkerStart) {
+                const current = residualWorkerStart;
+                residualWorkerStart = null;
+                residualShellCommandBusy = false;
+                const queuedInput = residualShellInputBuffer;
+                residualShellInputBuffer = "";
+                if (queuedInput) readData(queuedInput);
+                current.finish();
+            }
+        }
         if (residualShellRun) {
-            const marker = new RegExp("RESIDUAL_HOST_RUN_" + residualShellRun.missionId + ":([0-9]+)");
-            const match = residualShellTail.match(marker);
+            const normal = new RegExp("RESIDUAL_WORKER_RUN_" + residualShellRun.missionId + ":([0-9]+)");
+            const fatal = new RegExp("RESIDUAL_WORKER_FATAL_" + residualShellRun.missionId + ":([0-9]+)");
+            const fatalMatch = residualShellTail.match(fatal);
+            const match = fatalMatch || residualShellTail.match(normal);
             if (match) {
                 const current = residualShellRun;
                 residualShellRun = null;
                 residualShellCommandBusy = false;
-                // Terminal input can arrive after Mission Control has projected
-                // a completion frame but before the shell child has emitted its
-                // exit marker. Queue it rather than dropping it or splicing it
-                // into the running child, then hand it to Bash once the child
-                // has exited. Flush before resolving host.run() so a subsequent
-                // mission cannot overtake queued terminal input.
+                if (fatalMatch) {
+                    // The persistent interpreter itself reported an unexpected
+                    // failure. Do not dispatch another mission into that runtime;
+                    // a page/guest restart is required.
+                    residualWorkerReady = false;
+                    residualWorkerPoisoned = true;
+                }
                 const queuedInput = residualShellInputBuffer;
                 residualShellInputBuffer = "";
                 if (queuedInput) readData(queuedInput);
-                current.finish({status: Number(match[1])});
+                current.finish({status: Number(match[1]), fatal: !!fatalMatch});
             }
         }''')
     text = replace_once(text, 'var dataDevice = await CheerpX.DataDevice.create();',
                         'var dataDevice = await CheerpX.DataDevice.create();\n\t\tresidualDataDevice = dataDevice;')
     text = replace_once(text, 'term.onData(readData);', '''term.onData(data => {
-            // Mission Control launches Python as a child of this one long-lived
-            // shell. User/automation terminal input that arrives while the child
-            // is active is queued and replayed after its exit marker, preventing
-            // command splicing without losing keystrokes.
+            // User/automation terminal input is queued while Mission Control is
+            // starting or using its persistent worker. The worker itself runs in
+            // the background; queuing prevents shell commands from racing its
+            // FIFO dispatch while preserving every keystroke for later replay.
             if (residualShellCommandBusy) {
                 residualShellInputBuffer += data;
                 return;
             }
             readData(data);
         });
+        async function ensureResidualWorker() {
+            if (residualWorkerPoisoned) throw new Error("Guest worker requires restart");
+            if (residualWorkerReady) return;
+            if (residualWorkerStart) return await residualWorkerStart.promise;
+            residualShellCommandBusy = true;
+            residualShellTail = "";
+            residualShellInputBuffer = "";
+            let resolveStart, rejectStart;
+            const promise = new Promise((resolve, reject) => { resolveStart = resolve; rejectStart = reject; });
+            const timeout = setTimeout(() => {
+                if (!residualWorkerStart) return;
+                residualWorkerStart = null;
+                residualWorkerReady = false;
+                residualWorkerPoisoned = true;
+                residualShellCommandBusy = false;
+                residualShellInputBuffer = "";
+                rejectStart(new Error("Persistent guest worker did not become ready"));
+            }, 60000);
+            residualWorkerStart = {
+                promise,
+                finish: () => { clearTimeout(timeout); resolveStart(); }
+            };
+            // Reuse a surviving worker after a UI reload when possible. Both
+            // read and kill are Bash builtins, so this startup path creates at
+            // most one long-lived CPython process rather than one per mission.
+            const command = `if [ -r /tmp/residual-workbench.pid ] && read -r residual_worker_pid < /tmp/residual-workbench.pid && kill -0 "$residual_worker_pid" 2>/dev/null; then echo RESIDUAL_WORKER_READY; else python3 -m residual.workbench.browser_worker --fifo /tmp/residual-workbench.fifo --pid-file /tmp/residual-workbench.pid --mailbox /data --root /opt/residual --output-root /opt/residual/runs/missions & fi`;
+            readData(command + "\\r");
+            return await promise;
+        }
         residualWorkbench = mountMissionControl({
-            ready: () => !!cx && !!residualDataDevice && residualShellReady && !residualShellCommandBusy,
+            ready: () => !!cx && !!residualDataDevice && residualShellReady && !residualShellCommandBusy && !residualWorkerPoisoned,
             focus: () => term.focus(),
             mailbox: async (path, text) => {
                 const response = /^\\/m-[a-f0-9]{32}-[a-f0-9]{32}\\.json$/.test(path);
@@ -64,13 +108,10 @@ def patch(text):
                 if (!/^m-[a-f0-9]{32}$/.test(request.id)) throw new Error("Invalid mission ID");
                 if (!["audit", "live", "build"].includes(request.mode)) throw new Error("Invalid mission mode");
                 if (residualShellCommandBusy || residualShellRun) throw new Error("Guest command already active");
+                await ensureResidualWorker();
+                if (residualWorkerPoisoned || !residualWorkerReady || residualShellCommandBusy || residualShellRun) throw new Error("Guest worker unavailable");
                 const name = "/" + request.id + ".json";
                 await residualDataDevice.writeFile(name, JSON.stringify(request));
-                const entry = request.mode === "build"
-                    ? "residual.workbench.browser_build"
-                    : "residual.workbench.browser_run";
-                const verb = request.mode === "build" ? "" : " run";
-                const command = `python3 -m ${entry}${verb} --request /data${name} --mailbox /data --root /opt/residual --output-root /opt/residual/runs/missions --stream; __residual_rc=$?; echo RESIDUAL_HOST_RUN_${request.id}:$__residual_rc`;
                 residualShellCommandBusy = true;
                 residualShellTail = "";
                 residualShellInputBuffer = "";
@@ -78,18 +119,20 @@ def patch(text):
                     const timeout = setTimeout(() => {
                         if (!residualShellRun || residualShellRun.missionId !== request.id) return;
                         residualShellRun = null;
+                        residualWorkerReady = false;
+                        residualWorkerPoisoned = true;
                         residualShellCommandBusy = false;
                         residualShellInputBuffer = "";
-                        reject(new Error("Guest shell dispatch timed out"));
+                        reject(new Error("Persistent guest mission timed out; restart required"));
                     }, 330000);
                     residualShellRun = {
                         missionId: request.id,
                         finish: value => { clearTimeout(timeout); resolve(value); }
                     };
-                    // Do not call cx.run() here. WebVM already owns one
-                    // long-lived cx.run() for this interactive shell; launching
-                    // the mission as its child keeps process lifecycle inside
-                    // the guest instead of re-entering the host run API.
+                    // The shell writes only a validated mission id and mode to a
+                    // FIFO using its builtin printf. Prompt/source data remains
+                    // in the DataDevice request file and is never shell-expanded.
+                    const command = `printf '%s\\n' '${request.id} ${request.mode}' > /tmp/residual-workbench.fifo`;
                     readData(command + "\\r");
                 });
             }
