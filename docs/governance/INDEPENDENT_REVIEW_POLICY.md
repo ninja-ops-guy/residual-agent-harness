@@ -28,6 +28,8 @@ This policy does not replace stricter gates. Changes to protected M4 controls/te
 
 `.github/workflows/independent-review.yml` runs `scripts/check_independent_review.py`. The check passes only when GitHub exposes a qualifying independent approval for the exact current head **and** the reviewer-permission endpoint confirms write/admin repository authority.
 
+Review lookup traverses every GitHub review page before evaluation. Pagination is bounded at 100 pages; a malformed page, non-object review, API failure or exhausted bound returns BLOCKED rather than evaluating incomplete history. This prevents a later-page change request or dismissal from being hidden behind an earlier approval.
+
 Reviewer permission lookup is fail-closed. A missing collaborator record, read-only permission, unrecognized permission value, API failure or unavailable permission evidence cannot become PASS.
 
 The workflow is not merge enforcement by itself. Repository ruleset `23436488` must also require the `independent-review` status check and should set `required_approving_review_count` to at least `1`. Keep stale-review dismissal and strict required-status behavior enabled. GitHub's native required-review rule remains an independent platform backstop; the custom check is not a substitute for it.

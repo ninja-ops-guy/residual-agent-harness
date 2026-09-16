@@ -14,6 +14,8 @@ from typing import Any
 
 MEANINGFUL_STATES = {"APPROVED", "CHANGES_REQUESTED", "DISMISSED"}
 WRITE_REVIEW_PERMISSIONS = {"admin", "write"}
+REVIEWS_PER_PAGE = 100
+MAX_REVIEW_PAGES = 100
 
 
 def current_head_human_approvals(
@@ -93,13 +95,26 @@ def _github_json(url: str, token: str) -> Any:
 
 
 def github_reviews(repository: str, pr_number: int, token: str) -> list[dict[str, Any]]:
-    data = _github_json(
-        f"https://api.github.com/repos/{repository}/pulls/{pr_number}/reviews?per_page=100",
-        token,
+    """Fetch every review page, failing closed if the bounded traversal cannot finish."""
+    reviews: list[dict[str, Any]] = []
+    for page in range(1, MAX_REVIEW_PAGES + 1):
+        data = _github_json(
+            "https://api.github.com/repos/"
+            f"{repository}/pulls/{pr_number}/reviews"
+            f"?per_page={REVIEWS_PER_PAGE}&page={page}",
+            token,
+        )
+        if not isinstance(data, list):
+            raise RuntimeError(f"GitHub reviews response page {page} is not a list")
+        if not all(isinstance(review, dict) for review in data):
+            raise RuntimeError(f"GitHub reviews response page {page} contains a non-object review")
+        reviews.extend(data)
+        if len(data) < REVIEWS_PER_PAGE:
+            return reviews
+    raise RuntimeError(
+        f"GitHub reviews pagination exceeded {MAX_REVIEW_PAGES} pages; "
+        "independent review cannot be established"
     )
-    if not isinstance(data, list):
-        raise RuntimeError("GitHub reviews response is not a list")
-    return data
 
 
 def github_reviewer_permission(repository: str, login: str, token: str) -> str:

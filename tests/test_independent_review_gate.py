@@ -1,8 +1,10 @@
 import unittest
+from unittest.mock import call, patch
 
 from scripts.check_independent_review import (
     current_head_human_approvals,
     evaluate,
+    github_reviews,
     qualifying_reviewers,
 )
 
@@ -88,6 +90,62 @@ class IndependentReviewGateTests(unittest.TestCase):
         ok, detail = evaluate({"pull_request": {}}, [], {})
         self.assertFalse(ok)
         self.assertIn("missing", detail)
+
+    @patch("scripts.check_independent_review._github_json")
+    def test_review_pagination_observes_later_change_request(self, github_json):
+        first_page = [
+            review("alice", submitted="2026-09-16T17:00:00Z"),
+            *[
+                review(
+                    f"commenter-{index}",
+                    state="COMMENTED",
+                    submitted=f"2026-09-16T17:{index % 60:02d}:00Z",
+                )
+                for index in range(99)
+            ],
+        ]
+        github_json.side_effect = [
+            first_page,
+            [review("alice", state="CHANGES_REQUESTED", submitted="2026-09-16T18:00:00Z")],
+        ]
+
+        reviews = github_reviews("owner/repo", 7, "token")
+        ok, _ = evaluate(payload(), reviews, {"alice": "write"})
+
+        self.assertFalse(ok)
+        self.assertEqual(len(reviews), 101)
+        self.assertEqual(
+            github_json.call_args_list,
+            [
+                call("https://api.github.com/repos/owner/repo/pulls/7/reviews?per_page=100&page=1", "token"),
+                call("https://api.github.com/repos/owner/repo/pulls/7/reviews?per_page=100&page=2", "token"),
+            ],
+        )
+
+    @patch("scripts.check_independent_review._github_json")
+    def test_review_pagination_stops_after_short_page(self, github_json):
+        github_json.return_value = [review("alice")]
+
+        self.assertEqual(github_reviews("owner/repo", 7, "token"), [review("alice")])
+        github_json.assert_called_once_with(
+            "https://api.github.com/repos/owner/repo/pulls/7/reviews?per_page=100&page=1",
+            "token",
+        )
+
+    @patch("scripts.check_independent_review._github_json")
+    def test_review_pagination_rejects_malformed_later_page(self, github_json):
+        github_json.side_effect = [[review(f"reviewer-{index}") for index in range(100)], {"oops": True}]
+
+        with self.assertRaisesRegex(RuntimeError, "page 2 is not a list"):
+            github_reviews("owner/repo", 7, "token")
+
+    @patch("scripts.check_independent_review.MAX_REVIEW_PAGES", 2)
+    @patch("scripts.check_independent_review._github_json")
+    def test_review_pagination_limit_fails_closed(self, github_json):
+        github_json.return_value = [review(f"reviewer-{index}") for index in range(100)]
+
+        with self.assertRaisesRegex(RuntimeError, "exceeded 2 pages"):
+            github_reviews("owner/repo", 7, "token")
 
 
 if __name__ == '__main__':
