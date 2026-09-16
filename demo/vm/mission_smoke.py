@@ -181,6 +181,11 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     # CLI. This proves the two interfaces independently and avoids concurrent
     # CPython interpreters in the WebVM guest during qualification.
     await command_proof('read -r residual_worker_pid < /tmp/residual-workbench.pid && printf "shutdown\\n" > /tmp/residual-workbench.fifo && wait "$residual_worker_pid" && test ! -e /tmp/residual-workbench.pid && test ! -e /tmp/residual-workbench.fifo')
+    # Preserve the original independent evidence-chain acceptance coverage while
+    # avoiding one fresh interpreter per mission: verify build, follow-up, and
+    # live-provider outputs together in one post-worker Python process.
+    await command_proof(f'python3 -c "from pathlib import Path; from residual.workbench.runner import verify_run; verify_run(Path(\"{build_path}\")); verify_run(Path(\"{second_path}\")); verify_run(Path(\"{path}\"))"')
+    report['workbench_external_trace_verification'] = 'PASS_BUILD_FOLLOWUP_LIVE_AFTER_WORKER_SHUTDOWN'
     await command_proof('python3 -m residual.workbench audit --stream --files residual/cli.py')
     await page.locator('#mc-mission').click()
     assert 'deterministic source inventory' in await page.locator('#mc-verdict').inner_text()
@@ -190,7 +195,7 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await page.reload(wait_until='domcontentloaded')
     await page.locator('#mc-terminal').click()
     await page.wait_for_function("() => document.body.innerText.replace(/\\s/g,'').includes('residual@demo:~/residual-agent-harness$')", timeout=120000)
-    await command_proof(f'test -s {path}/answer.md && test -s {second_path}/artifacts/index.html && python3 -c "from pathlib import Path; from residual.workbench.runner import verify_run; verify_run(Path(\"{path}\")); verify_run(Path(\"{second_path}\"))"')
+    await command_proof(f'test -s {path}/answer.md && test -s {build_path}/artifacts/index.html && test -s {second_path}/artifacts/index.html && python3 -c "from pathlib import Path; from residual.workbench.runner import verify_run; verify_run(Path(\"{build_path}\")); verify_run(Path(\"{second_path}\")); verify_run(Path(\"{path}\"))"')
     await page.locator('#mc-mission').click()
     chat_text = await page.locator('#mc-chat').inner_text()
     assert 'Build a calculator' in chat_text
