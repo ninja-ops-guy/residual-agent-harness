@@ -106,6 +106,8 @@ async def main() -> int:
             assert await page.evaluate("window.crossOriginIsolated"), "guest page is not cross-origin isolated"
             assert await page.evaluate("window.top === window"), "WebVM is not top-level"
             assert not report["optional_requests"], "optional service initialized before cloud opt-in"
+            await command_proof("test \"$RESIDUAL_WEBVM_SLEEP_BACKEND\" = legacy-nanosleep && python3 -c 'from residual.workbench.webvm_wait import sleep; [sleep(0.001) for _ in range(300)]'")
+            await stage("webvm_sleep_backend_crosses_time64_boundary")
             await command_proof('test "$PWD" = /opt/residual && test -f pyproject.toml && python3 -c "import residual" && demo > /tmp/demo-cli.json && cat /tmp/demo-cli.json && verify-demo && python3 demo/vm/guest_result_check.py runs/demo/result.json /tmp/demo-cli.json')
             await stage("real_demo_verify_and_finite_metrics_passed")
             await page.screenshot(path=str(args.output / "demo-passed.png"))
