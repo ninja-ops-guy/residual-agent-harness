@@ -32,7 +32,10 @@ permissions:
 
 concurrency:
   group: pages-${{ github.event_name == 'pull_request' && github.event.pull_request.number || 'production' }}
-  cancel-in-progress: false
+  # Intermediate PR heads are disposable; only the newest candidate needs the
+  # expensive desktop+narrow proof. Production remains non-cancelling so a
+  # newer push cannot erase a failing release attempt.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build-and-browser-proof:
