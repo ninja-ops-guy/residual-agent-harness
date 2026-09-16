@@ -23,8 +23,9 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
         self.root = self.base / 'repo'; self.root.mkdir()
         self.mailbox = self.base / 'mailbox'; self.mailbox.mkdir()
         self.output = self.base / 'runs'; self.output.mkdir()
-        self.fifo = self.base / 'worker.fifo'
+        self.control = self.mailbox / browser_worker.CONTROL_NAME
         self.pid_file = self.base / 'worker.pid'
+        self.busy_file = self.base / 'worker.busy'
         self.poison_file = self.base / 'worker.poison'
         (self.root / 'README.md').write_text('fresh second source\nsecond line\n', encoding='utf-8')
 
@@ -48,14 +49,20 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
 
         def writer():
             try:
-                deadline = time.monotonic() + 5.0
-                while not self.fifo.exists():
-                    if time.monotonic() >= deadline:
-                        raise TimeoutError('worker FIFO was not created')
-                    time.sleep(0.01)
-                with self.fifo.open('w', encoding='ascii') as stream:
-                    stream.write('\n'.join(commands) + '\n')
-                    stream.flush()
+                for command in commands:
+                    deadline = time.monotonic() + 5.0
+                    while self.control.exists():
+                        if time.monotonic() >= deadline:
+                            raise TimeoutError('worker control record was not consumed')
+                        time.sleep(0.01)
+                    self.control.write_text(command + '\n', encoding='ascii')
+                    # Wait until this exact publication is consumed before
+                    # publishing the next one; the worker may still be executing
+                    # the admitted mission, which intentionally tests queueing.
+                    while self.control.exists():
+                        if time.monotonic() >= deadline:
+                            raise TimeoutError('worker control record was not consumed')
+                        time.sleep(0.01)
             except BaseException as exc:  # surfaced in the test thread below
                 errors.append(exc)
 
@@ -65,8 +72,9 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
 
     def serve(self):
         return browser_worker.serve(
-            fifo=self.fifo,
+            control_file=self.control,
             pid_file=self.pid_file,
+            busy_file=self.busy_file,
             poison_file=self.poison_file,
             mailbox=self.mailbox,
             root=self.root,
@@ -78,8 +86,6 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
         good = 'm-' + 'b' * 32
         rid = 'c' * 32
 
-        # The first mission is admitted but fails its user contract before provider
-        # dispatch. The worker must report a bounded nonzero result and remain reusable.
         self.write_request(failed, mode='live', files=['../escape.py'], required=['FIRST_ONLY'])
         self.write_request(good, mode='live', files=['README.md'], required=['SECOND_ONLY'])
 
@@ -134,11 +140,9 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
         self.assertIn(browser_worker.STOPPED, transcript)
         self.assertNotIn(browser_worker.FATAL_PREFIX, transcript)
 
-        # The bounded failure never created accepted run state or provider traffic.
         self.assertFalse((self.output / failed).exists())
         self.assertFalse(any(path.name.startswith(f'{failed}-') for path in self.mailbox.iterdir()))
 
-        # The second mission owns its provider response and all retained evidence.
         good_dir = self.output / good
         self.assertTrue((good_dir / 'answer.md').is_file())
         self.assertIn('SECOND_ONLY', (good_dir / 'answer.md').read_text(encoding='utf-8'))
@@ -154,7 +158,9 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
         self.assertTrue(response_path.is_file())
         self.assertEqual(json.loads(response_path.read_text(encoding='utf-8'))['request_id'], rid)
         self.assertFalse(self.pid_file.exists())
-        self.assertFalse(self.fifo.exists())
+        self.assertFalse(self.busy_file.exists())
+        self.assertFalse(self.control.exists())
+        self.assertFalse(self.poison_file.exists())
 
     def test_runtime_typeerror_exits_before_queued_next_mission(self):
         first = 'm-' + 'd' * 32
@@ -184,8 +190,10 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
         self.assertNotIn(f'{browser_worker.RUN_PREFIX}{first}:', transcript)
         self.assertNotIn(f'{browser_worker.RUN_PREFIX}{second}:', transcript)
         self.assertFalse((self.output / second).exists())
+        self.assertTrue(self.poison_file.is_file(), 'fatal worker did not durably poison generation')
         self.assertFalse(self.pid_file.exists())
-        self.assertFalse(self.fifo.exists())
+        self.assertFalse(self.busy_file.exists())
+        self.assertFalse(self.control.exists())
 
     def test_mailbox_typeerror_crosses_engine_boundary_and_kills_worker(self):
         first = 'm-' + 'f' * 32
@@ -193,8 +201,6 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
         rid = '2' * 32
         self.write_request(first, mode='live', files=['README.md'])
         self.write_request(second, mode='audit', files=['README.md'])
-        # Make the browser response visible so the real BrowserMailboxProvider
-        # reaches read_json(), then inject the retained impossible TypeError there.
         (self.mailbox / f'{first}-{rid}.json.ready').write_text('1', encoding='ascii')
 
         writer, errors = self.start_writer([f'{first} live', f'{second} audit'])
@@ -218,8 +224,10 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
         self.assertFalse((self.output / first / 'result.json').exists())
         self.assertFalse((self.output / second).exists())
         self.assertFalse((self.output / '.active').exists(), 'Python finally did not release mission lock')
+        self.assertTrue(self.poison_file.is_file())
         self.assertFalse(self.pid_file.exists())
-        self.assertFalse(self.fifo.exists())
+        self.assertFalse(self.busy_file.exists())
+        self.assertFalse(self.control.exists())
 
 
 class PersistentWorkerHostTimeoutTests(unittest.TestCase):
@@ -232,6 +240,8 @@ class PersistentWorkerHostTimeoutTests(unittest.TestCase):
         self.assertIn('await terminateResidualWorker(request.id)', source)
         self.assertIn('await terminateResidualWorker(null)', source)
         self.assertIn('/tmp/residual-workbench.poison', source)
+        self.assertIn('/tmp/residual-workbench.busy', source)
+        self.assertIn('/data/residual-worker.control', source)
         self.assertIn('RESIDUAL_WORKER_POISONED', source)
         self.assertIn('--poison-file /tmp/residual-workbench.poison', source)
         self.assertIn('reset guest before retry', source)
