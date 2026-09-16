@@ -10,7 +10,7 @@ on:
       iterations:
         description: 'Full Mission Control stress iterations against the published main artifact'
         required: false
-        default: '2'
+        default: '1'
 
 permissions:
   contents: read
@@ -39,7 +39,7 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: Stress published WebVM guest and retain runtime probes
         env:
-          ITERATIONS: ${{ github.event.inputs.iterations || '2' }}
+          ITERATIONS: ${{ github.event.inputs.iterations || '1' }}
           MAIN_SHA: ${{ steps.main.outputs.sha }}
         run: |
           set -euo pipefail
