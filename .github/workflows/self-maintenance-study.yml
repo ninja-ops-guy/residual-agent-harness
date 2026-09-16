@@ -23,7 +23,7 @@ jobs:
             --junitxml=runs/self-maintenance-study/junit.xml
       - name: Run quantitative recursive-maintenance study
         run: |
-          python scripts/self_maintenance_study.py \
+          python scripts/self_maintenance_study_v2.py \
             --output runs/self-maintenance-study/results.json
       - name: Run durable crash-recovery study
         run: |
