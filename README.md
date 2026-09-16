@@ -54,9 +54,9 @@ PR #139 still changes a protected M4 qualification test. Required order remains:
 
 Several open candidates were built on `main@f2d58e77...` and became stale when #156 merged:
 
-- **#153** — consolidated WebVM acceptance-harness repairs; refresh/requalification and genuinely independent current-head review are required before integration, then #89 must be refreshed/requalified.
+- **#153** — consolidated WebVM acceptance-harness repairs refreshed onto current main at `35cbf2ba060bc04aabb6cfd10fbf90dc8dbccb77`; fresh exact-head qualification and genuinely independent review are required before integration, then #89 must be refreshed/requalified.
 - **#152** — Qualification v1 evidence-first testing framework; its prior exact-head evidence is historical after #156 and no aggregate release `PASS` is inherited.
-- **#146** — independent-current-head review gate; must refresh/requalify and itself receive genuinely independent acceptance before integration. Platform ruleset enforcement remains a separate maintainer action.
+- **#146** — independent-current-head review gate refreshed onto current main at `c416d408149408ff8668a48d6e73eb1f3bf6347e`; fresh exact-head qualification and genuinely independent write-authorized acceptance remain required. Platform ruleset enforcement is a separate maintainer action.
 - **#118/#115/#131/#93** and other older lanes require current-main refresh before any merge claim. Historical `PASS` or `FAIL` remains bound to the exact head that produced it.
 
 ## Design principles
@@ -118,8 +118,8 @@ Paper-facing evaluation must preserve raw worker correctness `P(X)`, acceptance 
 
 1. Retain genuinely independent post-merge technical review for the #156 current-main surface and finish #144/#146 enforcement for future merges.
 2. Run and retain a fresh real-account Puter acceptance test on exact deployed `f6f9bad8...`; do not infer live-provider success from green contract/browser CI.
-3. Refresh/requalify #153 on current main, preserve first-attempt evidence, require independent review before integration, then refresh/requalify #89.
-4. Refresh/requalify #152 and #146 after #156; do not inherit stale-head qualification.
+3. Complete fresh qualification of refreshed #153 head `35cbf2ba060bc04aabb6cfd10fbf90dc8dbccb77`, preserve first-attempt evidence, require independent review before integration, then refresh/requalify #89.
+4. Refresh/requalify #152; complete fresh qualification and independent acceptance of refreshed #146 head `c416d408149408ff8668a48d6e73eb1f3bf6347e`. Do not inherit stale-head qualification.
 5. Keep #120/#126 open until a predefined reliability campaign or proven regression-tested root cause supports closure.
 6. Resolve #139 through independent protected-byte review, deliberate baseline handling and fresh qualification before refreshing #134.
 7. Complete release/recovery qualification without converting rehearsal or simulation into `PASS`.

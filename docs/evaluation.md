@@ -74,9 +74,9 @@ A protocol may exclude WebVM, but exclusion must be explicit before outcome acce
 
 ## Current acceptance-harness gate
 
-PR #89 retains an authoritative first-attempt narrow-browser `FAIL` caused by an observation/parser defect. PR #153 consolidates the bounded #140/#150 repairs, but its current head is based on pre-#156 main.
+PR #89 retains an authoritative first-attempt narrow-browser `FAIL` caused by an observation/parser defect. PR #153 consolidates the bounded #140/#150 repairs and is now refreshed onto exact current main at head `35cbf2ba060bc04aabb6cfd10fbf90dc8dbccb77`.
 
-Therefore #153's previous exact-head workflow results remain historical evidence only. It must refresh onto current main, run its complete qualification set again, preserve any first-attempt failure, and obtain genuinely independent exact-head review before integration. After an accepted #153 merge, #89 must itself be refreshed/requalified; #153 does not qualify #89 by inheritance.
+#153's previous exact-head workflow results remain historical evidence only. Current head `35cbf2ba060bc04aabb6cfd10fbf90dc8dbccb77` must run its complete qualification set, preserve any first-attempt failure, and obtain genuinely independent exact-head review before integration. After an accepted #153 merge, #89 must itself be refreshed/requalified; #153 does not qualify #89 by inheritance.
 
 ## Protected Factory/M4 evidence path
 
@@ -106,7 +106,7 @@ Important interpretation boundaries remain:
 
 ## Governance / independent-review gate
 
-Issue #144 tracks the independent-review enforcement gap. PR #146 implements a fail-closed exact-current-head review checker, but its current head predates #156 and must refresh/requalify before integration. Platform ruleset enforcement still requires a maintainer change after #146 itself is independently accepted.
+Issue #144 tracks the independent-review enforcement gap. PR #146 implements a fail-closed exact-current-head review checker and is now refreshed onto exact current main at head `c416d408149408ff8668a48d6e73eb1f3bf6347e`; fresh qualification and independent write-authorized acceptance are still required. Platform ruleset enforcement still requires a maintainer change after #146 is integrated.
 
 Merged #156 has no submitted review. Its automated qualification remains valid evidence but must not be labeled independent acceptance. For release/paper evidence that requires independent technical acceptance, retain that evidence explicitly.
 

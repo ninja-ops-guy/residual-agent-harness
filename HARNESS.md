@@ -76,11 +76,11 @@ Issues #63 and #48 are closed; M2/M3/M4 are implemented and `implementation-stat
 
 PR #139 still modifies a protected M4 qualification test. Independent exact-head review, deliberate ownership-baseline handling and fresh qualification remain mandatory before that repair can support downstream #134. This documentation does not modify protected bytes, ownership pins, qualification anchors or evidence schemas.
 
-Issue #144 tracks independent-review enforcement. PR #146 implements a fail-closed current-head review check, but its present branch was based on pre-#156 main and must refresh/requalify before integration. Platform ruleset enforcement remains a separate maintainer action after independent acceptance.
+Issue #144 tracks independent-review enforcement. PR #146 is now refreshed onto exact current main at head `c416d408149408ff8668a48d6e73eb1f3bf6347e` with the same four-file governance diff. Fresh exact-head CI and genuinely independent write-authorized approval are still required; platform ruleset enforcement remains a separate maintainer action after integration.
 
 ## Browser acceptance and qualification work
 
-PR #89 retains an authoritative narrow-browser `FAIL` caused by a terminal-proof observation defect; that failure is not rerun away. PR #153 consolidates the bounded #140/#150 acceptance-harness repairs, but #156 moved `main` after #153's current head. #153 must therefore refresh/requalify on current main and receive genuinely independent review before integration; only then should #89 be refreshed/requalified.
+PR #89 retains an authoritative narrow-browser `FAIL` caused by a terminal-proof observation defect; that failure is not rerun away. PR #153 now consolidates the bounded #140/#150 repairs on exact current main at head `35cbf2ba060bc04aabb6cfd10fbf90dc8dbccb77`. Its earlier green evidence is historical; fresh exact-head qualification and genuinely independent review are still required before integration, and only then should #89 be refreshed/requalified.
 
 PR #152 builds a broader evidence-first Qualification v1 framework. Its prior exact-head evidence remains tied to its pre-#156 base. It must refresh/requalify; virtual-day stress is not elapsed soak and a planned live-provider canary is not model-quality evidence.
 

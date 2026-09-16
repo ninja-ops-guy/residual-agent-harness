@@ -48,7 +48,7 @@ Its current head is based on pre-#156 main. Prior workflow outcomes remain exact
 
 ## Governance and evidence independence
 
-Issue #144 tracks the gap between the project's independent-review expectations and platform enforcement. PR #146 implements a fail-closed exact-head review check, but #156 moved main after its current head. Refresh/requalification plus independent current-head acceptance are required before integration. The active ruleset still requires a maintainer enforcement change after the governance PR itself is accepted.
+Issue #144 tracks the gap between the project's independent-review expectations and platform enforcement. PR #146 implements a fail-closed exact-head review check and is now refreshed onto exact current main at head `c416d408149408ff8668a48d6e73eb1f3bf6347e`; fresh qualification plus independent write-authorized current-head acceptance are required before integration. The active ruleset still requires a maintainer enforcement change after the governance PR itself is accepted.
 
 Merged #156 has no submitted review. Its green CI remains valid automated evidence but must not be described as independent technical acceptance.
 
