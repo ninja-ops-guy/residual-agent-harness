@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from math import sqrt
+from math import isfinite, sqrt
 from typing import Iterable, Mapping, Sequence
 
 from ..core import canonical, digest
@@ -16,6 +16,13 @@ class ExecutionStrategy(str, Enum):
     DYNAMIC_SWARM = "dynamic_swarm"
     HETEROGENEOUS_SWARM = "heterogeneous_swarm"
     ENSEMBLE = "ensemble"
+
+
+def _finite_nonnegative(value: object, name: str) -> float:
+    if (isinstance(value, bool) or not isinstance(value, (int, float))
+            or not isfinite(value) or value < 0):
+        raise ValueError(f"{name} must be a finite nonnegative number")
+    return float(value)
 
 
 @dataclass(frozen=True)
@@ -64,12 +71,16 @@ class BetaObservation:
         return self.latency_sum / self.n if self.n else 0.0
 
     def update(self, *, success: bool, cost: float | None, latency_ms: float) -> None:
+        if type(success) is not bool:
+            raise ValueError("success must be boolean")
+        latency = _finite_nonnegative(latency_ms, "latency_ms")
+        normalized_cost = None if cost is None else _finite_nonnegative(cost, "cost")
         self.alpha += float(success)
         self.beta += float(not success)
-        if cost is not None:
-            self.cost_sum += max(0.0, cost)
+        if normalized_cost is not None:
+            self.cost_sum += normalized_cost
             self.cost_n += 1
-        self.latency_sum += max(0.0, latency_ms)
+        self.latency_sum += latency
         self.n += 1
 
 
@@ -167,15 +178,18 @@ class OrchestrationTaxController:
     def observe(self, task_features: Mapping[str, object], strategy: ExecutionStrategy, *,
                 success: bool, cost: float | None, latency_ms: float,
                 retain: bool = True) -> TopologyOutcomeObservation:
-        if cost is not None and cost < 0:
-            raise ValueError("cost must be nonnegative or null")
-        if latency_ms < 0:
-            raise ValueError("latency_ms must be nonnegative")
+        # Validate before mutating learned state or retaining an outcome.  In
+        # particular NaN/inf must never poison utility comparisons during replay.
+        if type(success) is not bool:
+            raise ValueError("success must be boolean")
+        normalized_cost = None if cost is None else _finite_nonnegative(cost, "cost")
+        normalized_latency = _finite_nonnegative(latency_ms, "latency_ms")
         key = (self._bucket(task_features), strategy)
-        self._history.setdefault(key, BetaObservation()).update(success=success, cost=cost, latency_ms=latency_ms)
+        self._history.setdefault(key, BetaObservation()).update(
+            success=success, cost=normalized_cost, latency_ms=normalized_latency)
         outcome = TopologyOutcomeObservation(
             task_features=dict(task_features), strategy=strategy, success=success,
-            cost=cost, latency_ms=latency_ms)
+            cost=normalized_cost, latency_ms=normalized_latency)
         if retain:
             self._retained.append(outcome)
         return outcome
@@ -306,8 +320,8 @@ class OrchestrationTaxController:
             controller.observe(
                 features,
                 ExecutionStrategy(str(raw["strategy"])),
-                success=raw["success"] is True,
+                success=raw["success"],
                 cost=raw.get("cost"),
-                latency_ms=float(raw["latency_ms"]),
+                latency_ms=raw["latency_ms"],
             )
         return controller
