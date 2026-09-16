@@ -97,7 +97,7 @@ async function receive(m) {
     if (!selectedModel) {
       reply({ok:false,error:'provider_model_unavailable'}); tell(providerFailureMessage('provider_model_unavailable')); return;
     }
-    progress('model_resolved', selectedModel);
+    progress('model_selected', selectedModel);
     tell(`Running ${g.used}/${g.max} authorized model calls with ${selectedModel}. Charges may apply even if the browser times out.`);
     const tools = [{type: 'function', function: {
       name: 'residual_submit',
