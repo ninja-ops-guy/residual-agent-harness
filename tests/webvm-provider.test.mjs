@@ -65,6 +65,10 @@ test('provider response detail is visible to the session without changing the sa
 test('Puter production request makes residual_submit an explicit transport requirement', () => {
  assert.match(providerSource,/Browser transport requirement:/);
  assert.match(providerSource,/Use that function exactly once/);
+ assert.match(providerSource,/Arguments must contain only updates and requests/);
+ assert.match(providerSource,/updates\.build with summary and files/);
+ assert.match(providerSource,/never summary\/files at the top level/);
+ assert.match(providerSource,/empty requests array when no evidence pull is needed/);
  assert.match(providerSource,/sdk\.ai\.chat\(transportMessages\(m\.messages\), options\)/);
  assert.match(providerSource,/options\.temperature = 0/);
  assert.match(providerSource,/options\.verbosity = 'low'/);
