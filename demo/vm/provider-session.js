@@ -23,6 +23,9 @@ const PROTOCOL_REASONS = new Set([
   'tool_call_count', 'tool_name', 'tool_arguments_empty', 'tool_arguments_not_json',
   'content_missing', 'content_empty', 'content_not_json', 'envelope_shape'
 ]);
+const PROVIDER_PROGRESS_STAGES = new Set([
+  'model_resolved', 'request_dispatched', 'response_received', 'envelope_decoded'
+]);
 export class ProviderProtocolError extends Error {
   constructor(reason) {
     super('provider_protocol_invalid');
@@ -70,6 +73,17 @@ export function providerFailureMessage(code, detail = null) {
   const base = messages[code] || 'Provider failed with a bounded safe error code. No candidate was accepted.';
   const why = code === 'provider_protocol_invalid' ? protocolReasonText(detail) : '';
   return why ? `${base} ${why}` : base;
+}
+export function providerProgressMessage(stage, model = null) {
+  if (!PROVIDER_PROGRESS_STAGES.has(stage)) return null;
+  const suffix = validModel(model) ? ` · ${model}` : '';
+  const messages = {
+    model_resolved: `Provider stage · model resolved${suffix}`,
+    request_dispatched: `Provider stage · request dispatched${suffix}`,
+    response_received: `Provider stage · response received${suffix}`,
+    envelope_decoded: `Provider stage · envelope decoded${suffix}`
+  };
+  return messages[stage];
 }
 export function textReply(result) {
   if (typeof result === 'string') return result;
@@ -141,6 +155,18 @@ export class ProviderSession {
     if (message.kind === 'state') {
       this.connected = message.connected === true; this.lastSeen = Date.now();
       this.onState(this.ready ? 'connected' : 'disconnected', this.ready ? 'Provider signed in. Model access and billing are checked on each run.' : 'Provider not signed in. Open setup to continue.');
+      return;
+    }
+    if (message.kind === 'progress' && validRequest(message.request_id) && validId(message.mission_id)) {
+      const entry = this.pending.get(message.request_id);
+      const text = providerProgressMessage(message.stage, message.model);
+      if (entry && entry.missionId === message.mission_id && text) {
+        this.onState(this.ready ? 'connected' : 'disconnected', text, {
+          kind: 'provider_progress', stage: message.stage, mission_id: message.mission_id,
+          request_id: message.request_id, model: validModel(message.model) ? message.model : null
+        });
+      }
+      return;
     }
     if (message.kind === 'response' && validRequest(message.request_id)) {
       const entry = this.pending.get(message.request_id);
