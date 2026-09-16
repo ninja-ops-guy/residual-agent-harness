@@ -69,6 +69,48 @@ class InstallIntegrityTests(unittest.TestCase):
             self.assertEqual(sentinel.read_text(encoding="utf-8"), "old-evidence")
             self.assertFalse((out / "checks.jsonl").exists())
 
+    def test_operator_cli_requires_https_without_rehearsal_flag(self):
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d) / "evidence"
+            with self.assertRaises(SystemExit) as raised:
+                bvic.main([
+                    "--artifact-url", "file:///tmp/rehearsal.whl",
+                    "--sha256", "0" * 64,
+                    "--out", str(out),
+                ])
+            self.assertEqual(raised.exception.code, 2)
+            self.assertFalse(out.exists())
+
+    def test_signed_url_provenance_redacts_secrets_but_binds_exact_url(self):
+        exact = "https://example.invalid/releases/candidate.whl?sig=TOPSECRET&expires=1#fragment"
+        meta = bvic._artifact_url_metadata(exact)
+        self.assertTrue(meta["https_release_transport"])
+        self.assertEqual(meta["scheme"], "https")
+        self.assertNotIn("TOPSECRET", meta["display_url"])
+        self.assertNotIn("expires=1", meta["display_url"])
+        self.assertNotIn("fragment", meta["display_url"])
+        self.assertIn("?<redacted>", meta["display_url"])
+        self.assertEqual(meta["url_sha256"], bvic.sha256_bytes(exact.encode("utf-8")))
+
+        credentialed = "https://user:password@example.invalid/candidate.whl?sig=secret"
+        credentialed_meta = bvic._artifact_url_metadata(credentialed)
+        self.assertFalse(credentialed_meta["https_release_transport"])
+        self.assertNotIn("user", credentialed_meta["display_url"])
+        self.assertNotIn("password", credentialed_meta["display_url"])
+        self.assertNotIn("secret", credentialed_meta["display_url"])
+
+    def test_programmatic_rehearsal_marks_non_https_transport_nonqualifying(self):
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d) / "evidence"
+            summary = bvic.run_procedure(
+                artifact_url="file:///tmp/rehearsal.whl",
+                expected_sha256="0" * 64,
+                out_dir=out, work_dir=out / "work",
+                python_override="/nonexistent/python3")
+            self.assertFalse(summary["artifact_transport"]["https_release_transport"])
+            self.assertEqual(summary["artifact_transport"]["scheme"], "file")
+            self.assertEqual(summary["status"], "FAIL")
+
     @unittest.skipUnless(os.name == "posix", "symlink regression is POSIX-specific")
     def test_checklog_and_fetch_never_follow_preplanted_symlinks(self):
         with tempfile.TemporaryDirectory() as d:
