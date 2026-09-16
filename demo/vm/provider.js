@@ -83,6 +83,7 @@ async function receive(m) {
   }
   if (m.kind !== 'request' || !validInference(m) || !validId(m.mission_id)) return;
   const reply = data => send({kind: 'response', mission_id: m.mission_id, request_id: m.request_id, ...data});
+  const progress = (stage, model = null) => send({kind: 'progress', mission_id: m.mission_id, request_id: m.request_id, stage, ...(validModel(model) ? {model} : {})});
   const g = grant;
   if (!sdk?.auth?.isSignedIn() || !g || g.id !== m.mission_id || g.model !== m.model) return reply({ok: false, error: 'provider_disconnected'});
   if (busy || Date.now() > g.expires || g.used >= g.max || g.seen.has(m.request_id)) return reply({ok: false, error: 'provider_budget_exhausted'});
@@ -93,23 +94,24 @@ async function receive(m) {
     if (!selectedModel) {
       reply({ok:false,error:'provider_model_unavailable'}); tell(providerFailureMessage('provider_model_unavailable')); return;
     }
+    progress('model_resolved', selectedModel);
     tell(`Running ${g.used}/${g.max} authorized model calls with ${selectedModel}. Charges may apply even if the browser times out.`);
     const tools = [{type: 'function', function: {
       name: 'residual_submit',
       description: 'Required response transport. Call this function exactly once with the exact RESIDUAL updates/requests worker envelope. Never substitute prose or Markdown. If the task cannot be solved, call it with empty updates and requests.',
-      parameters: RESPONSE_SCHEMA
+      parameters: RESPONSE_SCHEMA,
+      strict: true
     }}];
     const options = {model: selectedModel, max_tokens: m.max_output_tokens, stream: false, normalize: true, tools};
-    if (/^(?:openai\/)?gpt-/i.test(selectedModel)) {
-      options.temperature = 0;
-      options.verbosity = 'low';
-    }
+    progress('request_dispatched', selectedModel);
     const result = await Promise.race([
       sdk.ai.chat(transportMessages(m.messages), options),
       new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('provider_timeout')), 80000); })
     ]);
+    progress('response_received', selectedModel);
     if (grant !== g) return reply({ok: false, error: 'mission_cancelled'});
     const text = protocolReply(result), u = result?.usage || {};
+    progress('envelope_decoded', selectedModel);
     if (new TextEncoder().encode(text).length > 48000) return reply({ok: false, error: 'provider_response_too_large'});
     const integer = n => Number.isInteger(n) && n >= 0 ? n : null;
     reply({ok: true, text, usage: {input_tokens: integer(u.input_tokens ?? u.prompt_tokens), output_tokens: integer(u.output_tokens ?? u.completion_tokens)}});
