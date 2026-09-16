@@ -15,6 +15,7 @@ import uuid
 from residual.core import ContractError, canonical
 from residual.providers import ProviderError, Reply, Usage
 from .runner import MailboxProvider, MAX_REQUEST, MAX_RESPONSE, read_json
+from .webvm_wait import wait as browser_wait
 
 SAFE_BROWSER_ERRORS = {
     'provider_disconnected',
@@ -70,17 +71,17 @@ class BrowserMailboxProvider(MailboxProvider):
             # response write resolves, so the guest never races the body write.
             try:
                 if not ready.is_file():
-                    time.sleep(0.05)
+                    browser_wait(0.05)
                     continue
             except OSError:
-                time.sleep(0.05)
+                browser_wait(0.05)
                 continue
             try:
                 response = read_json(path, MAX_RESPONSE)
             except FileNotFoundError:
                 # Fail closed on publication reordering without manufacturing a
                 # candidate. A completed marker with a delayed body may recover.
-                time.sleep(0.05)
+                browser_wait(0.05)
                 continue
             except TypeError:
                 # The retained production corruption manifested as impossible
@@ -94,7 +95,7 @@ class BrowserMailboxProvider(MailboxProvider):
                 invalid_reads += 1
                 if invalid_reads >= 5:
                     raise ProviderError('browser_response_invalid')
-                time.sleep(0.05)
+                browser_wait(0.05)
                 continue
             if not isinstance(response, dict) or response.get('request_id') != rid:
                 raise ProviderError('browser_response_identity_mismatch')
