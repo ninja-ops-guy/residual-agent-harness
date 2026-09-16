@@ -67,7 +67,7 @@ PR #136 is the current-main mitigation candidate. It has advanced beyond its ear
 
 ### Current PR #136 exact-head state
 
-Live PR #136 head is now **`1eaca5a2bee38cd5ecfca65f8b2adcb5c45a1e09`**, based on accepted `main@f1e62936...`. Its worker path no longer requires FIFO creation; focused Pages-side Python coverage reports **82 tests PASS** before the browser proof, including regular DataDevice control-record and fail-closed worker/recovery assertions.
+Live PR #136 head remains **`1eaca5a2bee38cd5ecfca65f8b2adcb5c45a1e09`**, based on accepted `main@f1e62936...`. Its worker path no longer requires FIFO creation; focused Pages-side Python coverage reports **82 tests PASS** before the browser proof, including regular DataDevice control-record and fail-closed worker/recovery assertions.
 
 The exact-head candidate is nevertheless **FAIL / unqualified**:
 
@@ -106,10 +106,11 @@ The old documentation that described issue #63 as an open M4 closure gate is sta
 
 ## Open integration and release gates
 
-Two substantial candidates were prepared against the previous accepted main and therefore require current-main refresh discipline before integration:
+Accepted `main` itself has not changed since the prior check, but three pending candidates were refreshed onto `f1e62936...`, changing their integration status materially:
 
-- **PR #118 — runtime/DSM closure.** Its old exact head reports green CI after retained unchanged reruns and still requires genuinely independent technical acceptance. Its base remains `22a5bae...`, so it should be refreshed/requalified against `f1e629...` before integration. Cross-process/multi-host serialization, production process wiring and host-loss behavior remain separate non-claims.
-- **PR #115 — release preparation.** It strengthens durability, blank-VM evidence handling, HTTPS/provenance discipline and soak claim labeling, but its base also remains `22a5bae...`. Fresh current-main qualification and independent technical acceptance are required; true bare-OS install, production HTTPS release-host, host-loss recovery and elapsed soak remain unproven.
+- **PR #118 — runtime/DSM closure.** Live head **`334527da6025293ffc1ff485362fa38b6e296345`** is now based on current `main@f1e62936...`. All applicable exact-head workflows observed for that head are **PASS**, including controller/provider, Command Station, ownership, clean install, measured binding, Control Plane and Pages browser proof. Retained first-attempt failures remain historical evidence and are not rewritten as passes. The remaining merge gate is genuinely independent technical acceptance of this exact repaired head. Cross-process/multi-host serialization, production process wiring, host-loss behavior, release/recovery and elapsed soak remain separate non-claims.
+- **PR #131 — core SoakState persistence hardening.** Live head **`368f308504c5398c79f9935a9c360ae390144c36`** is based on current `main@f1e62936...`. All seven applicable exact-head workflows are **PASS**. The change hardens local resumable state persistence against predictable-temp symlink attacks; it does **not** establish elapsed soak or release readiness. Fresh independent technical acceptance is still required before integration.
+- **PR #115 — release preparation.** Live head **`b1ffbb486585c81b5aa4771f29ffb17aab3946c7`** is now based on current `main@f1e62936...`, so the previous “behind main” statement is no longer accurate. Its current exact-head qualification is **incomplete**, however: controller/provider run **`35087653566`** is **CANCELLED**. Other observed exact-head workflows include successful release-preparation procedures, Factory ownership, clean install, Command Station, Control Plane and measured binding, but a cancelled required workflow is not PASS. Do not merge until the required exact-head workflow set completes green and independent technical acceptance is recorded. True bare-OS install, production HTTPS release-host, host-loss recovery and elapsed soak remain unproven.
 
 ## Research status
 
@@ -140,12 +141,13 @@ The recommended order is:
 1. **Repair PR #136 current-head failures.** Preserve the earlier FIFO/`ENOSYS` evidence and current run `35088995295`. Fix the current unsafe regular-control-path failure plus every exact-head red CI job without weakening ownership/identity/poison/recovery assertions. Then run fresh exact-head full CI and desktop+narrow browser qualification on one immutable head.
 2. **Obtain genuinely independent technical review of that exact qualified #136 head.** Same-author/implementer commentary is not independent acceptance. Only after merge should the exact production revision be required to pass its first qualified desktop+narrow release attempt; a failing first attempt remains evidence and must not be rerun merely to obtain green.
 3. **Requalify the provider adapter only after lifecycle stabilization.** Refresh PR #134 onto the stable runtime, then run exact-head and production browser qualification before a fresh real-provider iPhone run.
-4. **Refresh pending runtime/release candidates.** Rebase/reconcile #118 and #115 onto current accepted main, rerun exact-head qualification, and preserve their independent-review requirements.
-5. **Execute release/recovery qualification.** Exercise blank-environment setup, recovery and retained-evidence procedures without converting rehearsal/simulation evidence into release PASS.
-6. **Complete remaining reproducibility preparation.** Continue #35 work, freeze the live workload/evidence path/metrics/analysis choices before confirmatory model results, and publish negative/`UNKNOWN` outcomes.
-7. **Run fixed-model R0–R5**, followed by degradation and heterogeneous-routing studies.
-8. **Progress through elapsed 24h → 72h → 30-day soak** only after shorter gates are clean.
-9. **Update the paper only from frozen retained artifacts.**
+4. **Review the current-main-qualified component candidates.** PR #118 and PR #131 are now refreshed and exact-head green; their remaining integration gate is independent technical acceptance, with their stated non-claims preserved.
+5. **Finish exact-head release-preparation qualification.** PR #115 is refreshed onto current main but currently has a cancelled controller/provider run. Require a complete green exact-head workflow set and independent review before integration; do not treat procedure/rehearsal evidence as release PASS.
+6. **Execute release/recovery qualification.** Exercise blank-environment setup, recovery and retained-evidence procedures without converting rehearsal/simulation evidence into release PASS.
+7. **Complete remaining reproducibility preparation.** Continue #35 work, freeze the live workload/evidence path/metrics/analysis choices before confirmatory model results, and publish negative/`UNKNOWN` outcomes.
+8. **Run fixed-model R0–R5**, followed by degradation and heterogeneous-routing studies.
+9. **Progress through elapsed 24h → 72h → 30-day soak** only after shorter gates are clean.
+10. **Update the paper only from frozen retained artifacts.**
 
 ## Documentation authority
 
