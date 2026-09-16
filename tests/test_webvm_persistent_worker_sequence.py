@@ -17,10 +17,9 @@ from residual.workbench.runner import verify_run
 
 
 WRITER_COMMAND_TIMEOUT = 5.0
-# The writer records its own TimeoutError at WRITER_COMMAND_TIMEOUT.  The test
-# must wait strictly longer than that deadline or it can race the diagnostic
-# path and report only "thread still alive" at the exact timeout boundary.
-# A real writer timeout still fails below because errors must remain empty.
+# The writer records its own TimeoutError at WRITER_COMMAND_TIMEOUT. The test
+# waits strictly longer so a genuine timeout is reported through ``errors``
+# instead of racing an is_alive() assertion at the same boundary.
 WRITER_JOIN_TIMEOUT = WRITER_COMMAND_TIMEOUT + 2.0
 
 
@@ -58,6 +57,16 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
 
         def writer():
             try:
+                # Production starts the persistent worker and establishes its
+                # identity/readiness before publishing any control record. Mirror
+                # that ordering here. Publishing before the worker's startup
+                # stale-control check is intentionally rejected by serve().
+                startup_deadline = time.monotonic() + WRITER_COMMAND_TIMEOUT
+                while not self.pid_file.exists():
+                    if time.monotonic() >= startup_deadline:
+                        raise TimeoutError('worker pid was not published')
+                    time.sleep(0.01)
+
                 for index, command in enumerate(commands):
                     deadline = time.monotonic() + WRITER_COMMAND_TIMEOUT
                     while self.control.exists():
