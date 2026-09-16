@@ -24,7 +24,7 @@ const PROTOCOL_REASONS = new Set([
   'content_missing', 'content_empty', 'content_not_json', 'envelope_shape'
 ]);
 const PROVIDER_PROGRESS_STAGES = new Set([
-  'model_resolved', 'request_dispatched', 'response_received', 'envelope_decoded'
+  'model_selected', 'request_dispatched', 'response_received', 'envelope_decoded'
 ]);
 export class ProviderProtocolError extends Error {
   constructor(reason) {
@@ -78,7 +78,7 @@ export function providerProgressMessage(stage, model = null) {
   if (!PROVIDER_PROGRESS_STAGES.has(stage)) return null;
   const suffix = validModel(model) ? ` · ${model}` : '';
   const messages = {
-    model_resolved: `Provider stage · model resolved${suffix}`,
+    model_selected: `Provider stage · model selected${suffix}`,
     request_dispatched: `Provider stage · request dispatched${suffix}`,
     response_received: `Provider stage · response received${suffix}`,
     envelope_decoded: `Provider stage · envelope decoded${suffix}`
