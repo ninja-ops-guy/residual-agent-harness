@@ -5,7 +5,7 @@ const FAILURE_HELP={
   provider_exception:['Provider adapter failed before a candidate reached RESIDUAL.','The worker boundary raised an unexpected adapter exception, so the Harness accepted nothing.','Retry once after reconnecting. If it repeats, inspect the provider tab and retained trace; this is an integration defect, not a successful build.'],
   provider_error:['Provider request failed before a usable candidate reached RESIDUAL.','The provider boundary returned a safe generic failure code; no provider error body or credential was copied into evidence.','Check model availability/account allowance in the provider tab, then retry.'],
   provider_request_failed:['Provider rejected or failed the model request.','The SDK call failed after authorization, before RESIDUAL received a candidate.','Check model/account allowance in the provider tab or choose another available model.'],
-  provider_model_unavailable:['The selected model is not available in this provider session.','Mission Control checked the provider model catalog before dispatch and refused to guess a replacement model.','Choose an available model and resend the preserved prompt.'],
+  provider_model_unavailable:['The selected model is not available in this provider session.','The provider rejected the selected model or the model could not be routed for this account.','Choose an available model and resend the preserved prompt.'],
   provider_authorization_failed:['Provider authorization or allowance was insufficient for this call.','Sign-in succeeded, but the model request was not authorized or billable for this account.','Return to provider setup, confirm the account/allowance, then retry.'],
   provider_protocol_invalid:['The model replied, but not in RESIDUAL’s required worker envelope.','Fail-closed protocol validation rejected prose or malformed tool arguments before the guest could treat them as a candidate.','Use the live provider stages to see whether decoding failed, then retry or select another tool-capable model.'],
   provider_timeout:['The provider did not return within the bounded request window.','RESIDUAL timed out rather than wait indefinitely or infer success. A timed-out remote request may still be billed.','Check the provider tab, then retry only if the prior request is no longer running.'],
@@ -46,7 +46,7 @@ const LEDGER_PIPELINE={
   run_finished:['EVIDENCE','Trace finalized','The Harness recorded the terminal result and trace root.']
 };
 const PROVIDER_PIPELINE={
-  'model resolved':['PROVIDER','Model resolved',model=>`The signed-in Puter catalog resolved the requested model${model?` to ${model}`:''}.`],
+  'model selected':['PROVIDER','Model selected',model=>`The provider bridge selected ${model||'the requested model'} without substituting a different model.`],
   'request dispatched':['LLM','Model inference running',model=>`puter.ai.chat() was dispatched${model?` to ${model}`:''}; stream:false, so the bridge is waiting for one normalized response.`],
   'response received':['PROVIDER','Model response received',()=>`Puter returned a normalized response object. The browser bridge is decoding tool/JSON structure.`],
   'envelope decoded':['PROTOCOL','Worker envelope decoded',()=>`The browser boundary validated the exact updates/requests shape. The structured response can now cross into the guest mailbox.`]
