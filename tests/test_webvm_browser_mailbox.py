@@ -172,5 +172,14 @@ class BrowserMailboxPublicationSourceTests(unittest.TestCase):
         self.assertIn('!residualWorkerPoisoned', source)
 
 
+def load_tests(loader, tests, pattern):
+    # Pages invokes this module explicitly before building the expensive WebVM
+    # image. Keep the corruption and timeout-recovery regressions in that gate
+    # even though broader unittest discovery also finds their standalone files.
+    tests.addTests(loader.loadTestsFromName('tests.test_webvm_browser_corruption_boundary'))
+    tests.addTests(loader.loadTestsFromName('tests.test_webvm_worker_timeout_recovery'))
+    return tests
+
+
 if __name__ == '__main__':
     unittest.main()
