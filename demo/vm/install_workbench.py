@@ -19,7 +19,8 @@ def _javascript_shell_template(command: str) -> str:
 def patch(text):
     recovery = build_recovery_command(
         pid_file='/tmp/residual-workbench.pid',
-        fifo='/tmp/residual-workbench.fifo',
+        control_file='/data/residual-worker.control',
+        busy_file='/tmp/residual-workbench.busy',
         poison_file='/tmp/residual-workbench.poison',
         active_lock='/opt/residual/runs/missions/.active',
         mission_id='__RESIDUAL_MISSION_ID__',
@@ -76,9 +77,9 @@ def patch(text):
                 const current = residualShellRun;
                 residualShellRun = null;
                 if (fatalMatch) {
-                    // A fatal runtime signal poisons the guest durably before the
-                    // mission promise settles, so page reload cannot silently
-                    // create/reuse another worker in the same suspect guest.
+                    // The worker writes durable poison before the fatal marker.
+                    // Host recovery then proves process death and cleans only
+                    // state bound to this mission/generation.
                     residualWorkerReady = false;
                     residualWorkerPoisoned = true;
                     (async () => {
@@ -101,9 +102,9 @@ def patch(text):
                         'var dataDevice = await CheerpX.DataDevice.create();\n\t\tresidualDataDevice = dataDevice;')
     wiring = """term.onData(data => {
             // User/automation terminal input is queued while Mission Control is
-            // starting or using its persistent worker. The worker itself runs in
-            // the background; queuing prevents shell commands from racing its
-            // FIFO dispatch while preserving every keystroke for later replay.
+            // starting or using its persistent worker. The worker runs in the
+            // background; queuing prevents unrelated shell work from mutating
+            // the checkout during a bounded mission while preserving keystrokes.
             if (residualShellCommandBusy) {
                 residualShellInputBuffer += data;
                 return;
@@ -164,12 +165,12 @@ def patch(text):
                 finish: () => { clearTimeout(timeout); resolveStart(); },
                 fail: error => { clearTimeout(timeout); rejectStart(error); }
             };
-            // A durable poison record always wins over reuse/start. Reuse only a
-            // surviving worker whose PID file, FIFO, process and /proc argv all
-            // identify the expected long-lived module. The shell input deliberately
-            // does not contain the contiguous READY marker, so terminal echo cannot
-            // satisfy readiness before the condition/new worker actually succeeds.
-            const command = `if [ -e /tmp/residual-workbench.poison ] || [ -L /tmp/residual-workbench.poison ]; then printf 'RESIDUAL_WORKER_%s\\n' POISONED; elif [ -f /tmp/residual-workbench.pid ] && [ ! -L /tmp/residual-workbench.pid ] && [ -O /tmp/residual-workbench.pid ] && [ -p /tmp/residual-workbench.fifo ] && read -r residual_worker_pid < /tmp/residual-workbench.pid && [[ "$residual_worker_pid" =~ ^[0-9]+$ ]] && kill -0 "$residual_worker_pid" 2>/dev/null && mapfile -d '' residual_worker_argv < "/proc/$residual_worker_pid/cmdline" && [ "\${residual_worker_argv[1]-}" = "-m" ] && [ "\${residual_worker_argv[2]-}" = "residual.workbench.browser_worker" ]; then printf 'RESIDUAL_WORKER_%s\\n' READY; else python3 -m residual.workbench.browser_worker --fifo /tmp/residual-workbench.fifo --pid-file /tmp/residual-workbench.pid --poison-file /tmp/residual-workbench.poison --mailbox /data --root /opt/residual --output-root /opt/residual/runs/missions & fi`;
+            // Reuse only an idle worker whose PID/process identity is exact. A
+            // stale control record or busy marker means a prior page lost track
+            // of work, so reuse fails closed rather than replaying/overlapping it.
+            // The shell input deliberately composes READY so terminal echo cannot
+            // satisfy readiness before the identity checks/new worker succeed.
+            const command = `if [ -e /tmp/residual-workbench.poison ] || [ -L /tmp/residual-workbench.poison ] || [ -e /tmp/residual-workbench.busy ] || [ -L /tmp/residual-workbench.busy ] || [ -e /data/residual-worker.control ] || [ -L /data/residual-worker.control ]; then printf 'RESIDUAL_WORKER_%s\\n' POISONED; elif [ -f /tmp/residual-workbench.pid ] && [ ! -L /tmp/residual-workbench.pid ] && [ -O /tmp/residual-workbench.pid ] && read -r residual_worker_pid < /tmp/residual-workbench.pid && [[ "$residual_worker_pid" =~ ^[0-9]+$ ]] && kill -0 "$residual_worker_pid" 2>/dev/null && mapfile -d '' residual_worker_argv < "/proc/$residual_worker_pid/cmdline" && [ "\${residual_worker_argv[1]-}" = "-m" ] && [ "\${residual_worker_argv[2]-}" = "residual.workbench.browser_worker" ]; then printf 'RESIDUAL_WORKER_%s\\n' READY; else python3 -m residual.workbench.browser_worker --control-file /data/residual-worker.control --pid-file /tmp/residual-workbench.pid --busy-file /tmp/residual-workbench.busy --poison-file /tmp/residual-workbench.poison --mailbox /data --root /opt/residual --output-root /opt/residual/runs/missions & fi`;
             readData(command + "\\r");
             return await promise;
         }
@@ -215,11 +216,24 @@ def patch(text):
                         finish: value => { clearTimeout(timeout); resolve(value); },
                         fail: error => { clearTimeout(timeout); reject(error); }
                     };
-                    // The shell writes only a validated mission id and mode to a
-                    // FIFO using its builtin printf. Prompt/source data remains
-                    // in the DataDevice request file and is never shell-expanded.
-                    const command = `printf '%s\\n' '${request.id} ${request.mode}' > /tmp/residual-workbench.fifo`;
-                    readData(command + "\\r");
+                    // DataDevice is already the proven browser↔guest mailbox.
+                    // Publish a tiny regular control record only after the full
+                    // request body is visible. No prompt/source bytes enter a
+                    // shell command and no special-file primitive is required.
+                    residualDataDevice.writeFile(
+                        "/residual-worker.control",
+                        request.id + " " + request.mode + "\\n"
+                    ).catch(async error => {
+                        if (!residualShellRun || residualShellRun.missionId !== request.id) return;
+                        const current = residualShellRun;
+                        residualShellRun = null;
+                        residualWorkerReady = false;
+                        residualWorkerPoisoned = true;
+                        try { await terminateResidualWorker(request.id); } catch (_) {}
+                        residualShellCommandBusy = false;
+                        residualShellInputBuffer = "";
+                        current.fail(error);
+                    });
                 });
             }
         });""".replace('__RECOVERY_COMMAND__', recovery_js)
