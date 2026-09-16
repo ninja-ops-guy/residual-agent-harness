@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {ProviderSession, PROTOCOL, RESPONSE_SCHEMA, validInference, protocolReply, validProtocolEnvelope, protocolFailureReason, providerFailureMessage, errorCode} from '../demo/vm/provider-session.js';
+import {ProviderSession, PROTOCOL, RESPONSE_SCHEMA, validInference, protocolReply, validProtocolEnvelope, protocolFailureReason, providerFailureMessage, providerProgressMessage, errorCode} from '../demo/vm/provider-session.js';
 const mid = 'm-'+'a'.repeat(32), rid = 'b'.repeat(32);
 const request = {request_id:rid, model:'gpt-5-nano', max_output_tokens:256, messages:[{role:'user',content:'Untrusted prompt'}]};
 const providerSource=readFileSync(new URL('../demo/vm/provider.js',import.meta.url),'utf8');
@@ -62,16 +62,47 @@ test('provider response detail is visible to the session without changing the sa
  assert.equal((await result).error,'provider_protocol_invalid');
  assert.match(changes.at(-1)[1],/not a JSON worker envelope/); p.close();
 });
-test('Puter production request makes residual_submit an explicit transport requirement', () => {
+test('provider progress is correlated to the live request and exposes only bounded stages', async () => {
+ const changes=[]; const p=session(); p.onState=(...v)=>changes.push(v); p.begin(mid,1,request.model); const result=p.infer(mid,request);
+ p.receive({protocol:PROTOCOL,kind:'progress',mission_id:mid,request_id:rid,stage:'request_dispatched',model:request.model});
+ assert.equal(changes.at(-1)[0],'connected'); assert.match(changes.at(-1)[1],/Provider stage · request dispatched/); assert.equal(changes.at(-1)[2].stage,'request_dispatched');
+ const before=changes.length;
+ p.receive({protocol:PROTOCOL,kind:'progress',mission_id:'m-'+'c'.repeat(32),request_id:rid,stage:'response_received',model:request.model});
+ p.receive({protocol:PROTOCOL,kind:'progress',mission_id:mid,request_id:rid,stage:'private_raw_body',model:request.model});
+ assert.equal(changes.length,before);
+ p.end(); assert.equal((await result).error,'mission_cancelled'); p.close();
+});
+test('provider progress text never includes an invalid model identifier', () => {
+ assert.match(providerProgressMessage('model_resolved','openai/gpt-5.4-nano'),/gpt-5\.4-nano/);
+ assert.equal(providerProgressMessage('model_resolved','x;secret'),'Provider stage · model resolved');
+ assert.equal(providerProgressMessage('not_a_stage','openai/gpt-5.4-nano'),null);
+});
+test('Puter production request uses strict non-stream structured transport and safe stage telemetry', () => {
  assert.match(providerSource,/Browser transport requirement:/);
  assert.match(providerSource,/Use that function exactly once/);
+ assert.match(providerSource,/strict:\s*true/);
+ assert.match(providerSource,/stream:\s*false/);
+ assert.match(providerSource,/progress\('model_resolved'/);
+ assert.match(providerSource,/progress\('request_dispatched'/);
+ assert.match(providerSource,/progress\('response_received'/);
+ assert.match(providerSource,/progress\('envelope_decoded'/);
  assert.match(providerSource,/sdk\.ai\.chat\(transportMessages\(m\.messages\), options\)/);
- assert.match(providerSource,/options\.temperature = 0/);
- assert.match(providerSource,/options\.verbosity = 'low'/);
+ assert.doesNotMatch(providerSource,/options\.temperature/);
+ assert.doesNotMatch(providerSource,/options\.verbosity/);
 });
-test('Mission Control recommends the current stronger Puter Nano without hiding model choice', () => {
+test('Mission Control uses a current tool-capable Puter default while keeping model choice visible', () => {
  assert.match(engineerSource,/q\('model'\)\.value='openai\/gpt-5\.4-nano'/);
  assert.match(engineerSource,/if\(q\('model'\)\.value==='gpt-5-nano'\)/);
+});
+test('chat pipeline animation is explicitly event-backed and does not pretend non-stream inference is streaming', () => {
+ assert.match(engineerSource,/LIVE PIPELINE/);
+ assert.match(engineerSource,/event-backed · only observed stages appear/);
+ assert.match(engineerSource,/Model inference running/);
+ assert.match(engineerSource,/stream:false/);
+ assert.match(engineerSource,/Worker envelope decoded/);
+ assert.match(engineerSource,/Acceptance receipt bound/);
+ assert.match(engineerSource,/Artifact bundle ready/);
+ assert.doesNotMatch(engineerSource,/LLM HTTP stream data decoding/i);
 });
 test('lost heartbeat produces visible disconnection once', () => {
  const changes=[]; const p=session();p.onState=(...v)=>changes.push(v);p.lastSeen=Date.now()-16000;
