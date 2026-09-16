@@ -25,6 +25,8 @@ jobs:
         run: |
           python scripts/self_maintenance_study_v2.py \
             --output runs/self-maintenance-study/results.json
+      - name: Run documentation negative control and tamper stress
+        run: python scripts/self_maintenance_supplement.py
       - name: Run durable crash-recovery study
         run: |
           python - <<'PY'
