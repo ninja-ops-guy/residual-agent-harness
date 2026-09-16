@@ -155,11 +155,29 @@ def run_history(seed: int, *, steps: int = 100, lanes: int = 3) -> dict[str, Any
                 for model in lane_models:
                     _check_lane(journal, model)
                 journal.observations()
-        except Exception as exc:  # retained with seed and trace for exact replay
+        except Exception as exc:
             failure = f"{type(exc).__name__}: {exc}"
 
-        observations = [o.to_dict() for o in journal.observations()]
-        digest = hashlib.sha256(canonical(observations).encode("utf-8")).hexdigest()
+        observations = journal.observations()
+        # Observation IDs, timestamps and chain hashes are intentionally unique per
+        # execution. Replay identity therefore hashes the deterministic semantic
+        # payload stream rather than pretending the cryptographic journal bytes are
+        # deterministic across runs.
+        semantic_payloads = [o.payload for o in observations]
+        semantic_digest = hashlib.sha256(canonical(semantic_payloads).encode("utf-8")).hexdigest()
+        final_state = [
+            {
+                "task_id": lane.task_id,
+                "attempt_id": lane.contract.attempt_id if lane.contract else None,
+                "generation": lane.generation,
+                "state": lane.state,
+                "revoked": lane.revoked,
+            }
+            for lane in lane_models
+        ]
+        replay_digest = hashlib.sha256(
+            canonical({"trace": trace, "payloads": semantic_payloads, "final_state": final_state}).encode("utf-8")
+        ).hexdigest()
         return {
             "schema": "residual.qualification.history.v1",
             "seed": seed,
@@ -169,8 +187,10 @@ def run_history(seed: int, *, steps: int = 100, lanes: int = 3) -> dict[str, Any
             "result": "PASS" if failure is None else "FAIL",
             "failure": failure,
             "trace": trace,
+            "final_state": final_state,
             "observation_count": len(observations),
-            "observation_digest": digest,
+            "semantic_observation_digest": semantic_digest,
+            "replay_digest": replay_digest,
         }
 
 
