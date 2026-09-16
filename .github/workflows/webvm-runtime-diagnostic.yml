@@ -6,6 +6,7 @@ on:
       - 'demo/vm/runtime_campaign.py'
       - 'demo/vm/runtime_hammer.py'
       - 'demo/vm/runtime_recycle.py'
+      - 'demo/vm/runtime_worker_sleep_discriminator.py'
       - '.github/workflows/webvm-runtime-diagnostic.yml'
   workflow_dispatch:
     inputs:
@@ -109,6 +110,45 @@ jobs:
         with:
           name: webvm-runtime-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}
           path: runtime-diagnostic/
+          retention-days: 14
+          if-no-files-found: warn
+
+  worker-sleep-discriminator-live-main:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout diagnostic code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Resolve exact published main revision
+        id: main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin main
+          echo "sha=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Install browser
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Discriminate persistent-worker PyTime failure
+        env:
+          MAIN_SHA: ${{ steps.main.outputs.sha }}
+        run: |
+          set -euo pipefail
+          python demo/vm/runtime_worker_sleep_discriminator.py \
+            --url "https://ninja-ops-guy.github.io/residual-agent-harness/demo/" \
+            --expected-sha "$MAIN_SHA" \
+            --output runtime-worker-sleep-discriminator
+      - name: Retain worker-sleep discriminator evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webvm-worker-sleep-discriminator-${{ github.run_id }}-${{ github.run_attempt }}
+          path: runtime-worker-sleep-discriminator/
           retention-days: 14
           if-no-files-found: warn
 
