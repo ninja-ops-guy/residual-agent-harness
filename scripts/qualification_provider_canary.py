@@ -46,6 +46,19 @@ def adapter(provider: str, api_key: str | None, base_url: str | None):
     raise ValueError(f"unsupported canary provider: {provider}")
 
 
+def exact_canary_match(content: str) -> bool:
+    return content.strip() == CANARY
+
+
+def redact_error(exc: Exception, *, secrets: tuple[str | None, ...]) -> tuple[str, str]:
+    raw = str(exc)
+    redacted = raw
+    for secret in secrets:
+        if secret:
+            redacted = redacted.replace(secret, "<redacted>")
+    return redacted[:500], hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Qualify one real provider/backend through RESIDUAL's adapter contract")
     parser.add_argument("--provider", choices=["openai", "openai_compatible", "anthropic", "google", "ollama"], required=True)
@@ -84,9 +97,10 @@ def main(argv=None) -> int:
         response = client.chat(request)
         latency_ms = (time.perf_counter() - started) * 1000.0
         normalized = response.content.strip()
+        exact_match = exact_canary_match(response.content)
         reasons = []
-        if CANARY not in normalized:
-            reasons.append("canary token not observed in response")
+        if not exact_match:
+            reasons.append("response did not exactly match the canary token")
         if response.finish_reason in {"error", "unknown"}:
             reasons.append(f"unexpected finish_reason={response.finish_reason}")
         total_tokens = response.usage.get("total_tokens")
@@ -104,18 +118,21 @@ def main(argv=None) -> int:
             "response_length": len(response.content),
             "response_sha256": hashlib.sha256(response.content.encode("utf-8")).hexdigest(),
             "canary_observed": CANARY in normalized,
+            "canary_exact_match": exact_match,
             "reasons": reasons,
             "non_claim": "This proves one bounded live adapter execution and evidence completeness; it does not establish model quality or production reliability.",
         }
     except Exception as exc:
+        reason, error_sha256 = redact_error(exc, secrets=(key, args.base_url))
         report = {
             "schema": "residual.qualification.provider-canary.v1",
             "result": "FAIL",
             "provider": args.provider,
             "model_requested": args.model,
             "error_type": type(exc).__name__,
-            "reason": str(exc)[:500],
-            "non_claim": "A provider failure is retained rather than replaced by a scripted fallback.",
+            "error_sha256": error_sha256,
+            "reason": reason,
+            "non_claim": "A provider failure is retained rather than replaced by a scripted fallback; known credential/base-URL values are redacted from retained diagnostics.",
         }
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
