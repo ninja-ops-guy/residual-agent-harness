@@ -147,6 +147,25 @@ PR #134 is rebuilt directly on current main, but its first exact-head qualificat
 
 PR #134 remains held behind #139 acceptance/integration, refresh/requalification, independent adapter review and then fresh real-provider iPhone evidence.
 
+## PR #140 — browser-acceptance synchronization repair
+
+PR #140 is a focused one-file, three-line acceptance-harness repair based directly on `main@3a41dc1e...`. It does not change production Mission Control, WebVM runtime, onboarding, provider logic, Factory/M4 controls, evidence schemas or qualification thresholds.
+
+The retained PR #89 Pages/WebVM run `35112465799` still records a generated-artifact browser **FAIL** after the real guest worker completed the build and exposed the expected result. The Playwright trace showed the test sampling post-run navigation state before the UI's separate cleanup/unlock transition completed. PR #140 preserves the active-mission control-lock assertions and adds bounded waiting for the post-run unlock before retaining the existing idle-state assertions.
+
+Exact head **`36c596277b04c019fb9f0c74d8108aafed0e83de`** has all eight observed applicable workflows **PASS**:
+
+- Command Station — `35122315857`;
+- clean install — `35122315999`;
+- controller/provider contracts — `35122315909`;
+- Browser VM Demo CI — `35122316013`;
+- Control Plane — `35122315891`;
+- Factory ownership — `35122315921`;
+- measured-evaluation binding — `35122315912`;
+- Pages/WebVM — `35122316061`.
+
+No submitted PR review is recorded on #140. The green candidate therefore supports that the focused synchronization repair passes its exact-head qualification, but it does **not** erase #89's retained failure, qualify #89 itself, establish WebVM long-run reliability, or satisfy the required independent technical acceptance gate.
+
 ## Protected self-hosting / research-bundle milestone
 
 PR #132 remains a bounded research milestone rather than evidence that RESIDUAL autonomously builds or merges itself.
@@ -176,7 +195,8 @@ The larger 100-generation, 1,000-fault and 200-document-policy campaigns are con
 - **#139** — capable-runner M4 PASS; ownership/dependent gates intentionally FAIL closed pending independent protected-byte review and deliberate baseline handling.
 - **#134** — held behind #139, then refresh/requalification and independent provider-adapter review.
 - **#133** — diagnostic-only; a single process fails on positive sleep 273, while 272+2 and 200+200 split across fresh processes PASS. This supports a process-local sleep/timer-wait boundary that resets or is avoided by process replacement; its lower mechanism remains `UNKNOWN`.
-- **#89** — onboarding/Inspector candidate has a retained Pages/WebVM **FAIL** in run `35112465799`; no browser PASS claim.
+- **#140** — exact-head synchronization-repair workflows PASS, including Pages/WebVM and Browser VM Demo CI; no submitted independent review is recorded. It does not qualify #89 or erase #89's retained failure.
+- **#89** — onboarding/Inspector candidate retains Pages/WebVM **FAIL** run `35112465799`; refresh/requalification remains required after any accepted #140 integration. No browser qualification PASS is claimed for #89.
 - **#118** — observed exact-head workflow set PASS; genuinely independent technical acceptance remains required.
 - **#115** — observed exact-head workflow set PASS; procedure/simulation evidence is not bare-OS, actual recovery or elapsed-soak evidence; independent acceptance remains required.
 - **#131** — observed exact-head workflow set PASS; local SoakState persistence is not elapsed-soak evidence; independent acceptance remains required.
@@ -199,7 +219,7 @@ The project does **not** yet claim that:
 
 1. Resolve #139 without weakening the ownership gate: independent review → deliberate baseline advancement if accepted → fresh protected-state qualification.
 2. Refresh/requalify #134 afterward, then require independent adapter review before fresh live-provider evidence.
-3. Resolve #89's retained Pages/WebVM FAIL without weakening the browser gate.
+3. Obtain genuinely independent exact-head review for green PR #140; if accepted, integrate it and then refresh/requalify #89 while preserving the retained `35112465799` failure as historical evidence.
 4. Obtain independent acceptance for green current-main candidates #118, #115, #131 and #93.
 5. Continue #133 below Mission Control: compare alternate wait primitives, inspect timer/resource state near calls 272–273, repeat the fresh-process reset across several sequential processes, and compare alternate/minimal WebVM runtime builds while keeping the lower mechanism and historical-family relationship `UNKNOWN` until proven.
 6. Quantify WebVM reliability with a defined retained repeated-run campaign; keep #120/#126 open.
