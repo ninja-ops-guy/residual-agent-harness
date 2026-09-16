@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -66,11 +67,39 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
 
     def test_request_identity_and_mode_cannot_be_swapped(self):
         self.write_request('audit')
-        with self.assertRaises(ValueError):
+        with self.assertRaises(browser_worker.RequestAdmissionError):
             browser_worker.dispatch(
                 self.mid, 'build', mailbox=self.mailbox,
                 root=self.root, output_root=self.output,
             )
+
+    def test_only_typed_admission_failure_is_reusable(self):
+        kwargs = {'mailbox': self.mailbox, 'root': self.root, 'output_root': self.output}
+        with mock.patch.object(
+            browser_worker, 'dispatch',
+            side_effect=browser_worker.RequestAdmissionError('bad request'),
+        ):
+            self.assertEqual(browser_worker._dispatch_admitted(self.mid, 'audit', **kwargs), 64)
+        with mock.patch.object(browser_worker, 'dispatch', side_effect=TypeError('runtime corruption')):
+            with self.assertRaises(TypeError):
+                browser_worker._dispatch_admitted(self.mid, 'audit', **kwargs)
+
+    @unittest.skipUnless(os.name == 'posix', 'PID-file safety uses POSIX no-follow/link semantics')
+    def test_pid_file_never_follows_symlink_or_truncates_hardlink(self):
+        sentinel = self.root / 'sentinel'
+        sentinel.write_text('do-not-touch', encoding='ascii')
+        pid_file = self.root / 'worker.pid'
+
+        pid_file.symlink_to(sentinel)
+        with self.assertRaises(RuntimeError):
+            browser_worker._write_pid_file(pid_file)
+        self.assertEqual(sentinel.read_text(encoding='ascii'), 'do-not-touch')
+        pid_file.unlink()
+
+        os.link(sentinel, pid_file)
+        with self.assertRaises(RuntimeError):
+            browser_worker._write_pid_file(pid_file)
+        self.assertEqual(sentinel.read_text(encoding='ascii'), 'do-not-touch')
 
     def test_worker_module_does_not_spawn_subprocesses(self):
         source = Path(browser_worker.__file__).read_text(encoding='utf-8')
@@ -94,6 +123,15 @@ class PersistentWorkerHostWiringTests(unittest.TestCase):
         self.assertIn('RESIDUAL_WORKER_READY', source)
         self.assertIn('RESIDUAL_WORKER_RUN_', source)
         self.assertIn('/tmp/residual-workbench.pid', source)
+
+    def test_reused_worker_requires_fifo_and_process_identity(self):
+        source = self.source()
+        self.assertIn('[ -p /tmp/residual-workbench.fifo ]', source)
+        self.assertIn('[ ! -L /tmp/residual-workbench.pid ]', source)
+        self.assertIn("mapfile -d '' residual_worker_argv", source)
+        self.assertIn('/proc/$residual_worker_pid/cmdline', source)
+        self.assertIn('${residual_worker_argv[2]-}', source)
+        self.assertIn('residual.workbench.browser_worker', source)
 
     def test_per_mission_dispatch_contains_only_validated_identity_and_mode(self):
         source = self.source()
