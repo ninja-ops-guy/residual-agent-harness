@@ -8,10 +8,11 @@ mid-publication. Raw provider exception text never enters the guest ledger.
 """
 from __future__ import annotations
 
+import json
 import time
 import uuid
 
-from residual.core import canonical
+from residual.core import ContractError, canonical
 from residual.providers import ProviderError, Reply, Usage
 from .runner import MailboxProvider, MAX_REQUEST, MAX_RESPONSE, read_json
 
@@ -28,6 +29,17 @@ SAFE_BROWSER_ERRORS = {
     'provider_response_too_large',
     'browser_response_invalid',
 }
+
+
+class BrowserRuntimeCorruption(BaseException):
+    """Fail-closed browser-runtime corruption signal.
+
+    This deliberately does not inherit from ``Exception``. The core engine
+    converts ordinary provider ``Exception`` failures into typed provider
+    outcomes; an impossible CPython ``TypeError`` while reading an already-ready
+    browser mailbox response must instead cross that boundary and terminate the
+    persistent guest worker. No raw exception text is retained or projected.
+    """
 
 
 class BrowserMailboxProvider(MailboxProvider):
@@ -70,10 +82,15 @@ class BrowserMailboxProvider(MailboxProvider):
                 # candidate. A completed marker with a delayed body may recover.
                 time.sleep(0.05)
                 continue
-            except (OSError, ValueError, TypeError, UnicodeDecodeError, RecursionError):
-                # A completed marker should make these rare, but browser-backed
-                # filesystems can still transiently reject/tear a read. Keep the
-                # recovery bounded and expose only a safe typed failure.
+            except TypeError:
+                # The retained production corruption manifested as impossible
+                # CPython TypeErrors. This is not a malformed-provider response
+                # contract and must not leave a long-lived interpreter reusable.
+                raise BrowserRuntimeCorruption() from None
+            except (OSError, json.JSONDecodeError, UnicodeDecodeError, ContractError, RecursionError):
+                # These are bounded transport/input failures: browser-backed I/O,
+                # malformed/duplicate/non-finite JSON, text decoding, or an
+                # intentionally bounded deeply-nested provider response.
                 invalid_reads += 1
                 if invalid_reads >= 5:
                     raise ProviderError('browser_response_invalid')
