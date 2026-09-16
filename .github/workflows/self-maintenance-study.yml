@@ -25,6 +25,19 @@ jobs:
         run: |
           python scripts/self_maintenance_study.py \
             --output runs/self-maintenance-study/results.json
+      - name: Run durable crash-recovery study
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from residual.dsm.recovery import run_recovery_suite
+          result = run_recovery_suite()
+          out = Path('runs/self-maintenance-study/recovery.json')
+          out.write_text(json.dumps(result, indent=2, sort_keys=True) + '\n')
+          print(json.dumps(result, indent=2, sort_keys=True))
+          if not result['ok']:
+              raise SystemExit('recovery study failed')
+          PY
       - name: Record study identity
         if: always()
         run: |
