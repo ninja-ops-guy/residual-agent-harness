@@ -183,7 +183,7 @@ Canonical Factory swarm runtime merged under residual/factory/ (worker contract,
 
 ### M3 - Evidence Bus + Receipts (implemented)
 
-Canonical Factory evidence bus and evidence receipts merged under residual/factory/ with fixture test coverage. Git evidence semantics for the M4 integrator remain part of the open trust-boundary closure tracked in issue 63 (see family M4).
+Canonical Factory evidence bus and evidence receipts merged under residual/factory/ with fixture test coverage. The M4 integrator's Git evidence semantics are no longer an open issue #63 item; that closure is recorded under family M4. This M3 row does not itself assert live or production qualification.
 
 ### M4 - Deterministic Integrator + Scheduler Intelligence (implemented)
 
