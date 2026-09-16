@@ -41,7 +41,9 @@ def build_recovery_command(
 
     The two exported ``*_TEMPLATE`` values are fixed internal placeholders used
     only while generating the browser's JavaScript template. Arbitrary placeholder
-    strings are not accepted.
+    strings are not accepted. Template placeholders are deliberately shell-quoted
+    even though their literal bytes would otherwise be considered safe by shlex;
+    this preserves empty-string semantics after JavaScript replacement.
     """
     if (
         mission_id is not None
@@ -56,8 +58,16 @@ def build_recovery_command(
     fifo_q = _q(fifo)
     poison = _q(poison_file)
     active = _q(active_lock)
-    mission = _q(mission_id or "")
-    marker_q = _q(marker)
+    mission = (
+        f"'{MISSION_TEMPLATE}'"
+        if mission_id == MISSION_TEMPLATE
+        else _q(mission_id or "")
+    )
+    marker_q = (
+        f"'{MARKER_TEMPLATE}'"
+        if marker == MARKER_TEMPLATE
+        else _q(marker)
+    )
     module = _q(WORKER_MODULE)
 
     # The poison record is written first and deliberately retained. A page reload

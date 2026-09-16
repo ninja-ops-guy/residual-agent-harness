@@ -9,7 +9,11 @@ import tempfile
 import unittest
 
 from residual.workbench import browser_worker
-from residual.workbench.host_recovery import build_recovery_command
+from residual.workbench.host_recovery import (
+    MARKER_TEMPLATE,
+    MISSION_TEMPLATE,
+    build_recovery_command,
+)
 
 
 @unittest.skipUnless(os.name == 'posix', 'WebVM worker recovery uses POSIX process/filesystem semantics')
@@ -38,6 +42,7 @@ class WebVMWorkerRecoveryTests(unittest.TestCase):
     def run_worker_and_recovery(self, *, name: str, recovery_mission: str, active_value: str):
         pid_file, fifo, poison = self.paths(name)
         active = self.output / '.active'
+        # runner.execute writes this exact ID without a trailing newline.
         active.write_text(active_value, encoding='ascii')
         marker = 'RECOVERY_' + name.upper()
         command = build_recovery_command(
@@ -134,6 +139,28 @@ wait "$residual_test_worker" 2>/dev/null || true
             build_recovery_command(**kwargs, mission_id='bad;rm -rf /', marker='SAFE')
         with self.assertRaises(ValueError):
             build_recovery_command(**kwargs, mission_id=None, marker='BAD;echo injected')
+
+    def test_browser_template_placeholders_remain_quoted_when_mission_is_empty(self):
+        command = build_recovery_command(
+            pid_file=self.base / 'pid',
+            fifo=self.base / 'fifo',
+            poison_file=self.base / 'poison',
+            active_lock=self.output / '.active',
+            mission_id=MISSION_TEMPLATE,
+            marker=MARKER_TEMPLATE,
+        )
+        self.assertIn(f"'{MISSION_TEMPLATE}'", command)
+        self.assertIn(f"'{MARKER_TEMPLATE}'", command)
+        rendered = command.replace(MISSION_TEMPLATE, '').replace(MARKER_TEMPLATE, 'RECOVERY_TEMPLATE')
+        self.assertIn("[ -n '' ]", rendered)
+        syntax = subprocess.run(
+            ['bash', '-n', '-c', rendered],
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        self.assertEqual(syntax.returncode, 0, syntax.stderr)
 
 
 if __name__ == '__main__':
