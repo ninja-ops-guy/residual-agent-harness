@@ -55,6 +55,20 @@ Driver: `scripts/release/soak_run.py` (wraps `residual.soak`, SPEC-NINE-002).
 A `STOPPED` run exits 2. Automatic continuation after a STOP is intentionally
 refused; use a new evidence directory after the disposition is recorded.
 
+## Station identity key handling
+
+For a release-candidate run, do **not** place the Station HMAC key directly in a
+command-line argument. Put only the hexadecimal key in an owner-only regular
+file (for example mode `0600`) supplied by the deployment secret manager and
+use `--station-key-file`. The driver rejects symlinks and, on POSIX, rejects
+files with group/other permission bits. The secret file is not part of the
+retained evidence directory.
+
+`--station-key-hex` remains available for deterministic rehearsal/testing keys
+such as the fixed non-secret CI fixture. It is not the production secret path
+because command-line arguments may be exposed through process inspection and
+shell history.
+
 ## Artifact retention
 
 Everything under `--out` (default `runs/release-soak/`):
@@ -83,20 +97,34 @@ checkpoint is the authenticated resume boundary used by this procedure.
 ```bash
 python3 scripts/release/soak_run.py \
   --out runs/release-soak-rehearsal --days 30 --tasks-per-day 1000 \
-  --station-key-hex "$STATION_IDENTITY_KEY_HEX"
+  --station-key-hex 0011223344556677889900112233445566778899001122334455667788990011
 ```
 
-This command exercises the deterministic simulation schedule only. It does not
-by itself satisfy the elapsed 24h, 72h, or 30-day gates.
+This fixed key is a rehearsal fixture only. The command exercises the
+deterministic simulation schedule and does not satisfy elapsed gates.
+
+## Release-candidate secret transport
+
+```bash
+install -m 600 /secure/source/residual-station-key.hex /run/secrets/residual-station-key.hex
+python3 scripts/release/soak_run.py \
+  --out runs/release-soak-rc1 --days 30 --tasks-per-day 1000 \
+  --station-key-file /run/secrets/residual-station-key.hex
+```
+
+The current driver is still simulation-scoped, so this command structure only
+shows the approved secret transport. It does not turn simulator schedule days
+into elapsed or production evidence.
 
 ## Procedure validation vs final evidence
 
 Procedure tests may use reduced-load deterministic rehearsals to exercise
 pause/resume, stop criteria, checkpoint tamper detection, durable boundary
-writes and retention. Those runs are **not** elapsed soak evidence and cannot
-be cited as production or release reliability. A true elapsed soak must execute
-the selected production candidate through the actual Station/runtime path for
-the required wall-clock duration, retain exact revision/environment identities,
-and preserve the same fail-closed stop/evidence policy. Any live-provider or
-production substitution remains separate release-candidate work and must be
-retained at the exact qualified revision.
+writes, secret handling and retention. Those runs are **not** elapsed soak
+evidence and cannot be cited as production or release reliability. A true
+elapsed soak must execute the selected production candidate through the actual
+Station/runtime path for the required wall-clock duration, retain exact
+revision/environment identities, and preserve the same fail-closed
+stop/evidence policy. Any live-provider or production substitution remains
+separate release-candidate work and must be retained at the exact qualified
+revision.
