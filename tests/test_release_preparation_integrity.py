@@ -117,6 +117,28 @@ class SoakPolicyIntegrityTests(unittest.TestCase):
             self.assertTrue((root / "soak-checkpoint.json").is_file())
             self.assertTrue((root / "retention-manifest.json").is_file())
 
+    @unittest.skipUnless(os.name == "posix", "symlink regression is POSIX-specific")
+    def test_durable_replacements_do_not_follow_predictable_tmp_symlinks(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            sentinel = root / "sentinel.txt"
+            sentinel.write_text("unchanged", encoding="utf-8")
+
+            checkpoint_tmp = root / "soak-checkpoint.json.tmp"
+            checkpoint_tmp.symlink_to(sentinel)
+            soak_run._atomic_json(root / "soak-checkpoint.json", {"status": "ok"})
+            self.assertEqual(sentinel.read_text(encoding="utf-8"), "unchanged")
+            self.assertTrue(checkpoint_tmp.is_symlink())
+
+            state_tmp = root / "soak-state.json.tmp"
+            state_tmp.symlink_to(sentinel)
+            state = soak_run.SoakState(seed=1, tasks_per_day=40, total_days=2)
+            soak_run._save_state(state, root / "soak-state.json")
+            self.assertEqual(sentinel.read_text(encoding="utf-8"), "unchanged")
+            self.assertTrue(state_tmp.is_symlink())
+            saved = json.loads((root / "soak-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(saved["schema_version"], "residual.soak.state.v1")
+
     def test_station_key_file_supplies_secret_without_literal_cli_key(self):
         with tempfile.TemporaryDirectory() as d:
             path = Path(d) / "station-key.hex"
