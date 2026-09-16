@@ -83,7 +83,7 @@ Run `35122494248` showed positive-duration WebVM sleeps failing on the same call
 
 Observed guest monotonic time at failure ranged from about **0.65 s to 27.8 s**. The equivalent native 32-bit Linux CPython control passed all tested duration/iteration pairs. This rules out a simple elapsed-time/cumulative-requested-sleep threshold and weakens a generic 32-bit CPython explanation.
 
-### Clock-path discriminator — current strongest evidence
+### Clock-path discriminator
 
 Run **`35123030021`** on exact diagnostic head **`dc4d8d493003005de60e82a1659b12a76be9a453`** separates positive-duration sleep from zero-sleep and direct monotonic clock reads:
 
@@ -93,9 +93,21 @@ Run **`35123030021`** on exact diagnostic head **`dc4d8d493003005de60e82a1659b12
 - floating `time.clock_gettime(CLOCK_MONOTONIC)` × 2000 — **PASS**; artifact `10457349136`, SHA-256 `454f9ebefdc9ae4aeb86142765d00248b0e800f658d78a4f56fad89386eaefc4`;
 - `time.sleep(0.1)` × 320 — **FAIL at call 273** with the same `_PyTime_t` overflow; artifact `10457464261`, SHA-256 `b4487df7440931a3406d8a2351b4b5451f3e817e553ed1a0f5412cd7153f107d`.
 
-Native i386 controls are PASS.
+Native i386 controls are PASS. This narrows the symptom to the positive-duration sleep/timer-wait path rather than generic monotonic clock reads.
 
-For this narrow symptom, retained evidence therefore rules out as necessary explanations:
+### Process-scope discriminator — current strongest evidence
+
+Run **`35123647606`** on exact diagnostic head **`439e4b01823e818cda0fa07bcd24b076b9e00e64`** tests whether the positive-sleep boundary is guest-global or process-local. Mission Control is required absent in every arm.
+
+First-attempt results:
+
+- **single-273:** one guest CPython process requests 273 × `time.sleep(0.05)` and **FAILS at call 273** with the same `_PyTime_t` overflow; artifact `10457774977`, SHA-256 `5da071e58fdfe037015c7549a76f6a69a7671d11b8770fe6b69112d7386e1a37`;
+- **split-272-2:** process A completes **272/272 PASS** and exits; fresh process B completes **2/2 PASS**; classification `FRESH_PROCESS_RESETS_OR_AVOIDS_SLEEP_BOUNDARY`; artifact `10458028690`, SHA-256 `b6ff7da62f2c67ae9c2f836a991da9f964224b9020fee55006497fb518d85741`;
+- **split-200-200:** process A completes **200/200 PASS** and exits; fresh process B completes **200/200 PASS**; same reset/avoidance classification; artifact `10457909703`, SHA-256 `8fc6a97c52dfcd76fee24af09019281a6b1d62612d05c79d1792dbc87e7f0549`.
+
+The paired split/single results materially support a **process-local positive-duration sleep/timer-wait state or budget that resets or is avoided by fresh guest CPython process creation**. They rule out a guest-global accumulated positive-sleep counter that survives process replacement as a necessary explanation for this narrow symptom.
+
+For the call-273 `_PyTime_t` symptom, retained evidence now rules out as necessary explanations:
 
 - Mission Control/workbench logic;
 - the persistent browser worker;
@@ -104,13 +116,14 @@ For this narrow symptom, retained evidence therefore rules out as necessary expl
 - elapsed time or cumulative requested sleep;
 - generic 32-bit CPython behavior in the native control;
 - zero-duration `time.sleep()` call count;
-- direct monotonic clock reads, including nanosecond-returning clock paths.
+- direct monotonic clock reads;
+- a guest-global positive-sleep count that survives process replacement.
 
-The strongest supported classification is now a **WebVM-specific positive-duration `time.sleep()` / timer-wait path defect with a deterministic call-273 boundary under the published guest environment**.
+The strongest supported classification is now a **WebVM-specific, process-local positive-duration `time.sleep()` / timer-wait state boundary that fails on call 273 and resets or is avoided by fresh guest CPython process creation**.
 
-That is still **not root-cause proof**. The underlying timer/wait resource, emulation mechanism or accounting state responsible for the 273 boundary remains **UNKNOWN**. The relationship to the historical `_sha512`, impossible-constructor and `munmap_chunk()` corruption family also remains **UNKNOWN**. Long-run reliability remains unresolved.
+That remains **not root-cause proof**. The underlying timer/wait handle, emulation mechanism, resource accounting state or conversion path responsible for the per-process boundary remains **UNKNOWN**. The relationship to the historical `_sha512`, impossible-constructor and `munmap_chunk()` corruption family also remains **UNKNOWN**. Long-run reliability remains unresolved.
 
-The next useful discriminator is below the Python application layer: determine whether fresh sequential processes independently reset the ~272-successful-positive-sleep budget, compare positive sleep with alternate blocking/wait primitives, inspect any exposed timer/resource state around calls 272–273, and compare another/minimal WebVM runtime build if available. Do not patch Mission Control merely to hide the symptom and do not retry failures solely to obtain green.
+The next useful discriminator is below the Python application layer: compare positive sleep with alternate blocking/wait primitives, inspect any exposed timer/resource/handle state around calls 272–273, verify the reset over several sequential fresh processes, and compare another/minimal WebVM runtime build if available. Do not patch Mission Control merely to hide the symptom and do not retry failures solely to obtain green.
 
 ## Protected M4 test-race repair — PR #139
 
@@ -148,7 +161,7 @@ The larger 100-generation, 1,000-fault and 200-document-policy campaigns are con
 | --- | --- | --- |
 | Core harness | Implemented | Goal contracts, verifier-defined acceptance, brakes, receipts, cache binding, trace/audit and provider routing exist. |
 | Command Station | Implemented research/operations surface | Operational controls exist; deployment-specific production readiness remains separate. |
-| Mission Control / WebVM | Implemented product/demo surface; **reliability gate open** | #136 merged and passed first release attempt. #133 now isolates a deterministic positive-duration guest `time.sleep()` failure at call 273; lower mechanism and historical-family link remain `UNKNOWN`. |
+| Mission Control / WebVM | Implemented product/demo surface; **reliability gate open** | #136 merged and passed first release attempt. #133 now isolates a process-local positive-duration guest `time.sleep()` failure at call 273 that resets or is avoided by fresh process creation; lower mechanism and historical-family link remain `UNKNOWN`. |
 | Factory M2 | Implemented | Worker contracts, bounded runtime, isolated worktrees, journaled observations and host-owned termination exist. |
 | Factory M3 | Implemented | Station-issued receipts, artifact binding, evidence-bus handoff and integrity checks exist. |
 | Factory M4 | Implemented; capable-runner qualified | Not every-host or production qualification. Protected #139 review/baseline sequence remains open. |
@@ -162,7 +175,7 @@ The larger 100-generation, 1,000-fault and 200-document-policy campaigns are con
 
 - **#139** — capable-runner M4 PASS; ownership/dependent gates intentionally FAIL closed pending independent protected-byte review and deliberate baseline handling.
 - **#134** — held behind #139, then refresh/requalification and independent provider-adapter review.
-- **#133** — diagnostic-only; positive-duration sleep fails at call 273 while zero-sleep and direct monotonic reads pass. Lower timer/wait mechanism remains `UNKNOWN`.
+- **#133** — diagnostic-only; a single process fails on positive sleep 273, while 272+2 and 200+200 split across fresh processes PASS. This supports a process-local sleep/timer-wait boundary that resets or is avoided by process replacement; its lower mechanism remains `UNKNOWN`.
 - **#89** — onboarding/Inspector candidate has a retained Pages/WebVM **FAIL** in run `35112465799`; no browser PASS claim.
 - **#118** — observed exact-head workflow set PASS; genuinely independent technical acceptance remains required.
 - **#115** — observed exact-head workflow set PASS; procedure/simulation evidence is not bare-OS, actual recovery or elapsed-soak evidence; independent acceptance remains required.
@@ -176,7 +189,7 @@ The project does **not** yet claim that:
 - live heterogeneous models show materially higher `P(correct | accepted)` than raw worker correctness under matched capability;
 - the gain remains useful at nontrivial acceptance coverage;
 - the reliability gain is worth the orchestration tax;
-- the WebVM positive-sleep/timer-wait defect or historical corruption family has been root-caused;
+- the WebVM process-local positive-sleep/timer-wait defect or historical corruption family has been root-caused;
 - PR #132 proves autonomous recursive self-improvement or merge authority;
 - PR #136 had recorded genuinely independent technical acceptance before merge;
 - release/recovery qualification is complete;
@@ -188,7 +201,7 @@ The project does **not** yet claim that:
 2. Refresh/requalify #134 afterward, then require independent adapter review before fresh live-provider evidence.
 3. Resolve #89's retained Pages/WebVM FAIL without weakening the browser gate.
 4. Obtain independent acceptance for green current-main candidates #118, #115, #131 and #93.
-5. Continue #133 below Mission Control: discriminate fresh-process reset, alternate wait primitives and timer/resource state around positive sleep calls 272–273 while keeping deeper cause `UNKNOWN` until proven.
+5. Continue #133 below Mission Control: compare alternate wait primitives, inspect timer/resource state near calls 272–273, repeat the fresh-process reset across several sequential processes, and compare alternate/minimal WebVM runtime builds while keeping the lower mechanism and historical-family relationship `UNKNOWN` until proven.
 6. Quantify WebVM reliability with a defined retained repeated-run campaign; keep #120/#126 open.
 7. Execute true release/recovery qualification without converting rehearsal/simulation evidence into release PASS.
 8. Freeze live-evaluation workload, evidence path, metrics and analysis choices before confirmatory model results.
