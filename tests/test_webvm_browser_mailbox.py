@@ -124,32 +124,36 @@ class BrowserMailboxPublicationSourceTests(unittest.TestCase):
         self.assertIn('Invalid mailbox path', source)
         self.assertIn('-cancel\\\\.json', source)
 
-    def test_workbench_process_is_shell_child_not_second_host_run(self):
+    def test_workbench_uses_persistent_guest_worker_not_per_mission_python(self):
         source = self.source()
         self.assertNotIn('cx.run("/usr/bin/python3"', source)
-        self.assertIn('readData(command + "\\\\r");', source)
-        self.assertIn('echo RESIDUAL_HOST_RUN_${request.id}:$__residual_rc', source)
-        self.assertIn('residualShellCommandBusy', source)
+        self.assertNotIn('python3 -m ${entry}', source)
+        self.assertIn('python3 -m residual.workbench.browser_worker', source)
+        self.assertIn('RESIDUAL_WORKER_RUN_', source)
+        self.assertIn('/tmp/residual-workbench.fifo', source)
         self.assertIn('Guest command already active', source)
 
-    def test_terminal_input_is_queued_not_dropped_while_child_is_active(self):
+    def test_terminal_input_is_queued_not_dropped_while_worker_is_active(self):
         source = self.source()
         self.assertIn('var residualShellInputBuffer = "";', source)
         self.assertIn('residualShellInputBuffer += data;', source)
         self.assertIn('const queuedInput = residualShellInputBuffer;', source)
         self.assertIn('if (queuedInput) readData(queuedInput);', source)
-        flush = source.index('if (queuedInput) readData(queuedInput);')
-        finish = source.index('current.finish({status: Number(match[1])});')
-        self.assertLess(flush, finish)
-        self.assertNotIn('if (!residualShellCommandBusy) readData(data);', source)
+        self.assertIn('residualShellCommandBusy = true;', source)
 
-    def test_completion_frames_are_projected_before_shell_marker_resolution(self):
+    def test_completion_frames_are_projected_before_worker_marker_resolution(self):
         source = self.source()
         projection = 'residualWorkbench?.onOutput(out);'
-        marker = 'const marker = new RegExp('
+        marker = 'const normal = new RegExp('
         self.assertIn(projection, source)
         self.assertIn(marker, source)
         self.assertLess(source.index(projection), source.index(marker))
+
+    def test_worker_fatal_marker_poisoning_is_fail_closed(self):
+        source = self.source()
+        self.assertIn('RESIDUAL_WORKER_FATAL_', source)
+        self.assertIn('residualWorkerPoisoned = true;', source)
+        self.assertIn('!residualWorkerPoisoned', source)
 
 
 if __name__ == '__main__':
