@@ -49,20 +49,23 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
 
         def writer():
             try:
-                for command in commands:
+                for index, command in enumerate(commands):
                     deadline = time.monotonic() + 5.0
                     while self.control.exists():
                         if time.monotonic() >= deadline:
                             raise TimeoutError('worker control record was not consumed')
                         time.sleep(0.01)
                     self.control.write_text(command + '\n', encoding='ascii')
-                    # Wait until this exact publication is consumed before
-                    # publishing the next one; the worker may still be executing
-                    # the admitted mission, which intentionally tests queueing.
-                    while self.control.exists():
-                        if time.monotonic() >= deadline:
-                            raise TimeoutError('worker control record was not consumed')
-                        time.sleep(0.01)
+                    # Wait for consumption only when another command still needs
+                    # to be published. The final command may deliberately remain
+                    # unconsumed when the worker exits fail-closed; requiring its
+                    # consumption would turn that intended negative path into a
+                    # test-thread timeout rather than proving no later dispatch.
+                    if index + 1 < len(commands):
+                        while self.control.exists():
+                            if time.monotonic() >= deadline:
+                                raise TimeoutError('worker control record was not consumed')
+                            time.sleep(0.01)
             except BaseException as exc:  # surfaced in the test thread below
                 errors.append(exc)
 
