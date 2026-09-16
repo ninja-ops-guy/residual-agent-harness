@@ -47,7 +47,7 @@ def parse_command(line: str) -> tuple[str, str]:
     return mission_id, mode
 
 
-def _request(mailbox: Path, mission_id: str, mode: str):
+def _request(mailbox: Path, mission_id: str, mode: str) -> dict:
     path = mailbox / f"{mission_id}.json"
     # DataDevice.writeFile is awaited by the host before FIFO dispatch, but the
     # guest-side directory view can lag briefly. Retry only failures that are
@@ -65,11 +65,14 @@ def _request(mailbox: Path, mission_id: str, mode: str):
             time.sleep(0.05)
     if not isinstance(request, dict) or request.get("id") != mission_id or request.get("mode") != mode:
         raise RequestAdmissionError("mission request identity mismatch")
-    return path
+    # This exact validated object is passed forward; execution does not re-open
+    # the DataDevice request file and therefore cannot observe a different body
+    # after admission.
+    return request
 
 
 def dispatch(mission_id: str, mode: str, *, mailbox: Path, root: Path, output_root: Path) -> int:
-    request_path = _request(mailbox, mission_id, mode)
+    request = _request(mailbox, mission_id, mode)
     # Persistent execution deliberately bypasses the user-facing CLI main()
     # wrappers. Those wrappers translate broad Python exceptions (including
     # TypeError) into ordinary exit 1 for standalone usability. In a long-lived
@@ -77,13 +80,13 @@ def dispatch(mission_id: str, mode: str, *, mailbox: Path, root: Path, output_ro
     # escape so serve() can poison the worker and require guest restart.
     if mode == "build":
         return int(browser_build.persistent_build(
-            request_path=request_path,
+            request=request,
             mailbox=mailbox,
             root=root,
             output_root=output_root,
         ) or 0)
     return int(browser_run.persistent_run(
-        request_path=request_path,
+        request=request,
         mailbox=mailbox,
         root=root,
         output_root=output_root,
