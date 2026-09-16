@@ -8,7 +8,7 @@ import unittest
 from unittest import mock
 
 from residual.providers import ProviderError
-from residual.workbench.browser_mailbox import BrowserMailboxProvider
+from residual.workbench.browser_mailbox import BrowserMailboxProvider, BrowserRuntimeCorruption
 
 
 class BrowserMailboxProviderTests(unittest.TestCase):
@@ -107,6 +107,122 @@ class BrowserMailboxProviderTests(unittest.TestCase):
         self.assertEqual(reply.text, '{"updates":{},"requests":[]}')
         self.assertEqual(reply.usage.input_tokens, 5)
         self.assertEqual(reply.usage.output_tokens, 7)
+
+    def test_transient_browser_runtimeerror_after_ready_is_retried(self):
+        def respond(request):
+            self.publish(request, {
+                'request_id': request['request_id'],
+                'ok': True,
+                'text': '{"updates":{},"requests":[]}',
+                'usage': {'input_tokens': 11, 'output_tokens': 13},
+            })
+        provider = self.provider(respond)
+        original = __import__('residual.workbench.browser_mailbox', fromlist=['read_json']).read_json
+        calls = {'count': 0}
+        def flaky_read(path, limit):
+            calls['count'] += 1
+            if calls['count'] <= 2:
+                raise RuntimeError('browser runtime visibility fault')
+            return original(path, limit)
+        with mock.patch('residual.workbench.browser_mailbox.read_json', side_effect=flaky_read):
+            reply = provider.generate({'goal': 'build'}, 256)
+        self.assertEqual(calls['count'], 3)
+        self.assertEqual(reply.usage.input_tokens, 11)
+        self.assertEqual(reply.usage.output_tokens, 13)
+
+    def test_repeated_browser_runtimeerror_after_ready_poison_signal(self):
+        def respond(request):
+            self.publish(request, {
+                'request_id': request['request_id'],
+                'ok': True,
+                'text': '{"updates":{},"requests":[]}',
+                'usage': {},
+            })
+        provider = self.provider(respond)
+        with mock.patch(
+            'residual.workbench.browser_mailbox.read_json',
+            side_effect=RuntimeError('browser runtime visibility fault'),
+        ) as read:
+            with self.assertRaises(BrowserRuntimeCorruption):
+                provider.generate({'goal': 'build'}, 256)
+        self.assertEqual(read.call_count, 3)
+
+    def test_typeerror_after_ready_is_never_downgraded(self):
+        def respond(request):
+            self.publish(request, {
+                'request_id': request['request_id'],
+                'ok': True,
+                'text': '{"updates":{},"requests":[]}',
+                'usage': {},
+            })
+        provider = self.provider(respond)
+        with mock.patch(
+            'residual.workbench.browser_mailbox.read_json',
+            side_effect=TypeError('impossible constructor return'),
+        ) as read:
+            with self.assertRaises(BrowserRuntimeCorruption):
+                provider.generate({'goal': 'build'}, 256)
+        self.assertEqual(read.call_count, 1)
+
+    def test_transient_cancel_probe_runtimeerror_is_retried(self):
+        def respond(request):
+            self.publish(request, {
+                'request_id': request['request_id'],
+                'ok': True,
+                'text': '{"updates":{},"requests":[]}',
+                'usage': {},
+            })
+        attempts = {'count': 0}
+        def cancelled():
+            attempts['count'] += 1
+            if attempts['count'] == 1:
+                raise RuntimeError('browser runtime visibility fault')
+            return False
+        def emit(kind, data):
+            if kind == 'inference_requested':
+                respond(data)
+        provider = BrowserMailboxProvider('openai/gpt-5-nano', self.mid, self.mailbox, emit, cancelled)
+        reply = provider.generate({'goal': 'build'}, 256)
+        self.assertGreaterEqual(attempts['count'], 2)
+        self.assertEqual(reply.text, '{"updates":{},"requests":[]}')
+
+    def test_repeated_cancel_probe_runtimeerror_poison_signal(self):
+        def cancelled():
+            raise RuntimeError('browser runtime visibility fault')
+        provider = BrowserMailboxProvider(
+            'openai/gpt-5-nano', self.mid, self.mailbox, lambda kind, data: None, cancelled,
+        )
+        with self.assertRaises(BrowserRuntimeCorruption):
+            provider.generate({'goal': 'build'}, 256)
+
+    def test_repeated_oserror_after_ready_becomes_typed_mailbox_io(self):
+        def respond(request):
+            self.publish(request, {
+                'request_id': request['request_id'],
+                'ok': True,
+                'text': '{"updates":{},"requests":[]}',
+                'usage': {},
+            })
+        provider = self.provider(respond)
+        with (
+            mock.patch('residual.workbench.browser_mailbox._MAX_TRANSIENT_MAILBOX_FAULTS', 3),
+            mock.patch('residual.workbench.browser_mailbox.time.sleep'),
+            mock.patch('residual.workbench.browser_mailbox.read_json', side_effect=OSError('not visible')),
+        ):
+            with self.assertRaisesRegex(ProviderError, '^browser_mailbox_io$'):
+                provider.generate({'goal': 'build'}, 256)
+
+    def test_invalid_unicode_response_is_typed_not_generic(self):
+        def respond(request):
+            self.publish(request, {
+                'request_id': request['request_id'],
+                'ok': True,
+                'text': '\ud800',
+                'usage': {},
+            })
+        provider = self.provider(respond)
+        with self.assertRaisesRegex(ProviderError, '^browser_response_invalid$'):
+            provider.generate({'goal': 'build'}, 256)
 
 
 class BrowserMailboxPublicationSourceTests(unittest.TestCase):
