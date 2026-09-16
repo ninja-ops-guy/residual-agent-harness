@@ -26,7 +26,8 @@ def _q(value: str | Path) -> str:
 def build_recovery_command(
     *,
     pid_file: str | Path,
-    fifo: str | Path,
+    control_file: str | Path,
+    busy_file: str | Path,
     poison_file: str | Path,
     active_lock: str | Path,
     mission_id: str | None,
@@ -34,16 +35,15 @@ def build_recovery_command(
 ) -> str:
     """Return one fail-closed Bash command for a poisoned worker generation.
 
-    ``mission_id`` is optional for worker-start timeout. When supplied, the
-    active workspace lock is removed only if it is a regular, owner-controlled,
-    single-link file containing that exact mission ID. Mission output folders are
-    never deleted by recovery.
+    ``mission_id`` is optional for worker-start timeout. When supplied, both the
+    private worker busy marker and the authoritative workspace lock are removed
+    only if they contain that exact mission ID. Mission output folders are never
+    deleted by recovery.
 
-    The two exported ``*_TEMPLATE`` values are fixed internal placeholders used
-    only while generating the browser's JavaScript template. Arbitrary placeholder
-    strings are not accepted. Template placeholders are deliberately shell-quoted
-    even though their literal bytes would otherwise be considered safe by shlex;
-    this preserves empty-string semantics after JavaScript replacement.
+    The DataDevice-backed control record is a reserved dispatch queue slot. Once
+    the worker identity is dead it is safe to remove only when it is a regular,
+    owner-controlled singleton; this prevents a queued command from replaying
+    after an explicit guest reset. Unexpected file types leave recovery poisoned.
     """
     if (
         mission_id is not None
@@ -55,7 +55,8 @@ def build_recovery_command(
         raise ValueError("invalid recovery marker")
 
     pid = _q(pid_file)
-    fifo_q = _q(fifo)
+    control = _q(control_file)
+    busy = _q(busy_file)
     poison = _q(poison_file)
     active = _q(active_lock)
     mission = (
@@ -70,9 +71,7 @@ def build_recovery_command(
     )
     module = _q(WORKER_MODULE)
 
-    # The poison record is written first and deliberately retained. A page reload
-    # in the same guest therefore cannot reuse or start a worker after timeout;
-    # an explicit guest reset is required to clear /tmp and re-establish trust.
+    # Poison first. Page loss after this point cannot silently permit reuse.
     return " ".join([
         "residual_recovery_status=0;",
         f"residual_poison_tmp=$(mktemp {poison}.tmp.XXXXXX) || residual_recovery_status=70;",
@@ -82,15 +81,13 @@ def build_recovery_command(
         f"mv -f -- \"$residual_poison_tmp\" {poison} 2>/dev/null || residual_recovery_status=70;",
         "fi;",
         "residual_target_pid='';",
-        # Prefer the authoritative PID file when it is a safe owned singleton.
         f"if [ -f {pid} ] && [ ! -L {pid} ] && [ -O {pid} ] && [ \"$(stat -c %h {pid} 2>/dev/null)\" = 1 ] && read -r residual_pid < {pid} && [[ \"$residual_pid\" =~ ^[0-9]+$ ]]; then",
         "if [ -r \"/proc/$residual_pid/cmdline\" ]; then",
         "residual_worker_argv=(); mapfile -d '' residual_worker_argv < \"/proc/$residual_pid/cmdline\" 2>/dev/null || true;",
         f"if [ \"${{residual_worker_argv[1]-}}\" = '-m' ] && [ \"${{residual_worker_argv[2]-}}\" = {module} ]; then residual_target_pid=\"$residual_pid\"; fi;",
         "fi; fi;",
-        # Startup timeout can precede PID-file publication. Give the worker a
-        # bounded chance to publish it; the durable poison record fences any
-        # generation that materializes later.
+        # Startup timeout can precede PID-file publication. Give a bounded chance
+        # to publish identity; the poison record independently fences late start.
         "if [ -z \"$residual_target_pid\" ]; then",
         "for residual_wait in {1..50}; do",
         f"if [ -f {pid} ] && [ ! -L {pid} ] && [ -O {pid} ] && [ \"$(stat -c %h {pid} 2>/dev/null)\" = 1 ] && read -r residual_pid < {pid} && [[ \"$residual_pid\" =~ ^[0-9]+$ ]] && [ -r \"/proc/$residual_pid/cmdline\" ]; then",
@@ -101,8 +98,8 @@ def build_recovery_command(
         "kill -KILL \"$residual_target_pid\" 2>/dev/null || true;",
         "wait \"$residual_target_pid\" 2>/dev/null || true;",
         "fi;",
-        # Prove no matching persistent worker remains. This also catches a worker
-        # that materialized late without publishing the expected PID file.
+        # Prove there is no matching persistent worker, including a late process
+        # that never published the expected PID file.
         "residual_worker_live=0;",
         "for residual_cmdline in /proc/[0-9]*/cmdline; do",
         "[ -r \"$residual_cmdline\" ] || continue; residual_scan_argv=();",
@@ -111,15 +108,20 @@ def build_recovery_command(
         "done;",
         "if [ \"$residual_worker_live\" -ne 0 ]; then residual_recovery_status=70; fi;",
         "if [ \"$residual_recovery_status\" -eq 0 ]; then",
-        # Remove only safe control nodes after the worker identity is dead.
         f"if [ -e {pid} ] || [ -L {pid} ]; then if [ -f {pid} ] && [ ! -L {pid} ] && [ -O {pid} ] && [ \"$(stat -c %h {pid} 2>/dev/null)\" = 1 ]; then rm -f -- {pid}; else residual_recovery_status=70; fi; fi;",
-        f"if [ -e {fifo_q} ] || [ -L {fifo_q} ]; then if [ -p {fifo_q} ] && [ ! -L {fifo_q} ] && [ -O {fifo_q} ]; then rm -f -- {fifo_q}; else residual_recovery_status=70; fi; fi;",
+        # A queued control record must never replay after reset. It is reserved
+        # solely for this worker generation, so remove any safe regular singleton
+        # after worker death; unexpected types keep recovery fail-closed.
+        f"if [ -e {control} ] || [ -L {control} ]; then if [ -f {control} ] && [ ! -L {control} ] && [ -O {control} ] && [ \"$(stat -c %h {control} 2>/dev/null)\" = 1 ]; then rm -f -- {control}; else residual_recovery_status=70; fi; fi;",
         "fi;",
-        # runner.execute writes the mission ID without a trailing newline, so
-        # Bash read would return EOF/nonzero even after capturing it. Require the
-        # exact fixed byte length and use command substitution instead.
+        # Busy identity belongs to the admitted mission. Never clear a different
+        # mission's busy marker merely to obtain a green recovery result.
+        f"if [ \"$residual_recovery_status\" -eq 0 ] && [ -e {busy} ]; then",
+        f"if [ -n {mission} ] && [ -f {busy} ] && [ ! -L {busy} ] && [ -O {busy} ] && [ \"$(stat -c %h {busy} 2>/dev/null)\" = 1 ] && [ \"$(stat -c %s {busy} 2>/dev/null)\" = 34 ]; then residual_busy_id=$(cat -- {busy} 2>/dev/null) || residual_busy_id=''; if [ \"$residual_busy_id\" = {mission} ]; then rm -f -- {busy}; else residual_recovery_status=70; fi; else residual_recovery_status=70; fi;",
+        "fi;",
+        # runner.execute writes the mission ID without a trailing newline.
         f"if [ \"$residual_recovery_status\" -eq 0 ] && [ -n {mission} ] && [ -e {active} ]; then",
-        f"if [ -f {active} ] && [ ! -L {active} ] && [ -O {active} ] && [ \"$(stat -c %h {active} 2>/dev/null)\" = 1 ] && [ \"$(stat -c %s {active} 2>/dev/null)\" = 34 ]; then residual_active_id=$(cat -- {active} 2>/dev/null) || residual_active_id=''; if [ \"$residual_active_id\" = {mission} ]; then rm -f -- {active}; fi; fi;",
+        f"if [ -f {active} ] && [ ! -L {active} ] && [ -O {active} ] && [ \"$(stat -c %h {active} 2>/dev/null)\" = 1 ] && [ \"$(stat -c %s {active} 2>/dev/null)\" = 34 ]; then residual_active_id=$(cat -- {active} 2>/dev/null) || residual_active_id=''; if [ \"$residual_active_id\" = {mission} ]; then rm -f -- {active}; else residual_recovery_status=70; fi; else residual_recovery_status=70; fi;",
         "fi;",
         f"printf '%s:%s\\n' {marker_q} \"$residual_recovery_status\";",
     ])
