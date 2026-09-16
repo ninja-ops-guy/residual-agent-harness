@@ -166,8 +166,10 @@ def patch(text):
             };
             // A durable poison record always wins over reuse/start. Reuse only a
             // surviving worker whose PID file, FIFO, process and /proc argv all
-            // identify the expected long-lived module.
-            const command = `if [ -e /tmp/residual-workbench.poison ] || [ -L /tmp/residual-workbench.poison ]; then printf 'RESIDUAL_WORKER_%s\\n' POISONED; elif [ -f /tmp/residual-workbench.pid ] && [ ! -L /tmp/residual-workbench.pid ] && [ -O /tmp/residual-workbench.pid ] && [ -p /tmp/residual-workbench.fifo ] && read -r residual_worker_pid < /tmp/residual-workbench.pid && [[ "$residual_worker_pid" =~ ^[0-9]+$ ]] && kill -0 "$residual_worker_pid" 2>/dev/null && mapfile -d '' residual_worker_argv < "/proc/$residual_worker_pid/cmdline" && [ "\${residual_worker_argv[1]-}" = "-m" ] && [ "\${residual_worker_argv[2]-}" = "residual.workbench.browser_worker" ]; then echo RESIDUAL_WORKER_READY; else python3 -m residual.workbench.browser_worker --fifo /tmp/residual-workbench.fifo --pid-file /tmp/residual-workbench.pid --poison-file /tmp/residual-workbench.poison --mailbox /data --root /opt/residual --output-root /opt/residual/runs/missions & fi`;
+            // identify the expected long-lived module. The shell input deliberately
+            // does not contain the contiguous READY marker, so terminal echo cannot
+            // satisfy readiness before the condition/new worker actually succeeds.
+            const command = `if [ -e /tmp/residual-workbench.poison ] || [ -L /tmp/residual-workbench.poison ]; then printf 'RESIDUAL_WORKER_%s\\n' POISONED; elif [ -f /tmp/residual-workbench.pid ] && [ ! -L /tmp/residual-workbench.pid ] && [ -O /tmp/residual-workbench.pid ] && [ -p /tmp/residual-workbench.fifo ] && read -r residual_worker_pid < /tmp/residual-workbench.pid && [[ "$residual_worker_pid" =~ ^[0-9]+$ ]] && kill -0 "$residual_worker_pid" 2>/dev/null && mapfile -d '' residual_worker_argv < "/proc/$residual_worker_pid/cmdline" && [ "\${residual_worker_argv[1]-}" = "-m" ] && [ "\${residual_worker_argv[2]-}" = "residual.workbench.browser_worker" ]; then printf 'RESIDUAL_WORKER_%s\\n' READY; else python3 -m residual.workbench.browser_worker --fifo /tmp/residual-workbench.fifo --pid-file /tmp/residual-workbench.pid --poison-file /tmp/residual-workbench.poison --mailbox /data --root /opt/residual --output-root /opt/residual/runs/missions & fi`;
             readData(command + "\\r");
             return await promise;
         }

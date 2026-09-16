@@ -216,6 +216,12 @@ class PersistentWorkerHostWiringTests(unittest.TestCase):
         self.assertIn(r'\${residual_worker_argv[2]-}', source)
         self.assertIn('residual.workbench.browser_worker', source)
 
+    def test_reuse_shell_input_cannot_echo_the_ready_marker(self):
+        source = self.source()
+        self.assertNotIn('echo RESIDUAL_WORKER_READY', source)
+        self.assertIn("printf 'RESIDUAL_WORKER_%s", source)
+        self.assertIn("READY; else python3 -m residual.workbench.browser_worker", source)
+
     def test_per_mission_dispatch_contains_only_validated_identity_and_mode(self):
         source = self.source()
         self.assertIn("const command = `printf '%s\\\\n' '${request.id} ${request.mode}' > /tmp/residual-workbench.fifo`;", source)
