@@ -87,23 +87,25 @@ That clears the exact merged revision's first-attempt desktop+narrow release-pro
 
 The retained review record also does not show the independent-review gate described by PR #136 being satisfied before merge: the final owner-account audit explicitly stated that its `COMMENTED` review was not independent acceptance. The merge is therefore an accepted repository fact, while independent technical acceptance remains **unrecorded** in the retained review evidence; the post-merge PASS must not be relabeled as independent review.
 
-PR #134 remains open on an older base and must now be refreshed onto the integrated lifecycle runtime, requalified, and only then used for fresh real-provider iPhone evidence.
+Current integration candidates are now based on `main@3a41dc1e...`; their qualification remains candidate-specific and does not alter accepted-main claims:
 
-The other major integration candidates retain exact-head evidence for their own revisions, but `main` has advanced since those heads were based on `f1e62936...`:
-
-- **PR #118 — runtime/DSM closure:** head `334527da...` had its applicable exact-head workflows green on the prior accepted base. Historical first-attempt failures remain retained. Refresh/rebase onto `3a41dc1e...`, requalify, and obtain fresh independent technical acceptance before integration.
-- **PR #131 — core SoakState persistence:** head `368f3085...` had all seven applicable exact-head workflows green on the prior accepted base. This hardening does not create elapsed-soak evidence. Refresh/rebase, requalify and obtain independent acceptance before integration.
-- **PR #115 — release preparation:** head `b1ffbb48...` was already incompletely qualified on the prior base because controller/provider run `35087653566` was `CANCELLED`. Refresh onto current main and require a complete green exact-head workflow set plus independent review before integration.
+- **PR #118 — runtime/DSM closure:** current head `e0f042c6...` has all seven observed exact-head workflows **PASS**, including Pages/WebVM. Retained first-attempt failures remain evidence. Fresh genuinely independent technical acceptance is still required; cross-process/multi-host serialization, production process wiring, host-loss recovery, release/recovery and elapsed soak remain unproven.
+- **PR #115 — release preparation:** current head `f1862e15...` has all seven observed exact-head workflows **PASS**, including Release preparation procedures. Its blank-VM/recovery fixtures and two-simulated-day rehearsal remain procedure/simulation evidence only, not true bare-OS, production HTTPS, host-loss or elapsed-soak qualification. Independent technical acceptance is still required.
+- **PR #131 — core SoakState persistence:** current head `1c416970...` has all seven observed exact-head workflows **PASS**, including Pages/WebVM. This hardens local resumable-state persistence only; it does not establish elapsed soak or release readiness. Independent technical acceptance remains required.
+- **PR #93 — economics/observability:** current head `17189262...` has all eight applicable workflows **PASS**, including its economics/observability qualification and Pages/WebVM. Evidence remains development-fixture evidence only; no live SLO, real-model economics, production reliability, research or release claim follows. Independent acceptance remains required.
+- **PR #89 — onboarding/Inspector:** current head `2a4ce5dc...` has eight observed workflows **PASS**, but Pages/WebVM run `35112465799` is **FAIL** in generated desktop browser proof after guest attach, demo verification, warm reload, repository audit and cloud-network-failure preservation. The failed proof is retained as artifact `10453083802` (ZIP SHA-256 `8128c1c5d7a676cc486e0e9ab6ac9af718a6cb8aca0fadca963cdb8842198988`). No browser qualification PASS is claimed for this candidate.
+- **PR #134 / PR #139 — provider adapter vs protected M4 test repair:** #134 is held after its exact-head Command Station failure exposed a `/proc/<pid>/status` observation race in protected `tests/test_factory_m4_safety.py`. PR #139 isolates the one-file protected-test repair at `2d885527...`; its capable-runner M4 workflow passes, while Factory ownership and dependent qualification checks intentionally **FAIL closed** because the ownership baseline still pins the prior protected blob. Do not advance that pin or merge the protected repair without genuinely independent exact-head review and the deliberate ownership-baseline/qualification sequence.
 
 Before paper-facing live reliability claims, the priority gates are:
 
-1. refresh/requalify PR #134 on the integrated lifecycle runtime, then obtain fresh real-provider evidence;
-2. run a defined repeated-run WebVM reliability campaign while keeping #120/#126 evidence and failures visible;
-3. refresh/requalify #118, #131 and #115 against current main and preserve their component-level non-claims;
-4. complete release/recovery qualification;
-5. finish the remaining reproducibility/statistical work tracked by #35 and freeze the live evaluation protocol before confirmatory results;
-6. run fixed-model R0–R5, degradation and heterogeneous-routing studies;
-7. progress through elapsed 24h → 72h → 30-day soak only after shorter gates are clean.
+1. resolve PR #139 through independent review and deliberate protected ownership-baseline advancement/requalification before using it to refresh/requalify PR #134;
+2. resolve PR #89's current Pages/WebVM **FAIL** without weakening browser acceptance;
+3. obtain genuinely independent technical acceptance for the otherwise-green #118, #115, #131 and #93 candidates before integration;
+4. run a defined repeated-run WebVM reliability campaign while keeping #120/#126 evidence and failures visible;
+5. complete release/recovery qualification without converting rehearsal/simulation into PASS;
+6. finish the remaining reproducibility/statistical work tracked by #35 and freeze the live evaluation protocol before confirmatory results;
+7. run fixed-model R0–R5, degradation and heterogeneous-routing studies;
+8. progress through elapsed 24h → 72h → 30-day soak only after shorter gates are clean.
 
 ## Traceability
 
