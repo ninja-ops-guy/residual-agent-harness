@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/live-recursive-maintenance-study.yml'
       - 'scripts/live_recursive_maintenance_study.py'
+      - 'scripts/live_recursive_maintenance_harness_entry.py'
   workflow_dispatch:
 
 permissions:
@@ -45,9 +46,9 @@ jobs:
           npm ci
           npm run build
 
-      - name: Execute live repair and critic matrix
+      - name: Execute live repair and critic matrix through RESIDUAL provider adapter
         run: |
-          python scripts/live_recursive_maintenance_study.py \
+          PYTHONPATH="$PWD/scripts:$PWD" python scripts/live_recursive_maintenance_harness_entry.py \
             --repo . \
             --freellmapi-dir _freellmapi \
             --base f1e62936a7ce72b801c852c1d7428d4c6ed4152c \
