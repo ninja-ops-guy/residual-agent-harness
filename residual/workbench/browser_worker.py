@@ -16,7 +16,6 @@ import re
 import stat
 import time
 
-from residual.core import ContractError
 from . import browser_build, browser_run
 from .runner import MAX_REQUEST, read_json
 
@@ -28,6 +27,10 @@ FATAL_PREFIX = "RESIDUAL_WORKER_FATAL_"
 REJECTED = "RESIDUAL_WORKER_REJECTED:64"
 STOPPED = "RESIDUAL_WORKER_STOPPED"
 SHUTDOWN = "shutdown"
+
+
+class RequestAdmissionError(ValueError):
+    """Typed request/mailbox admission failure safe to report without reuse poison."""
 
 
 def parse_command(line: str) -> tuple[str, str]:
@@ -45,19 +48,20 @@ def parse_command(line: str) -> tuple[str, str]:
 def _request(mailbox: Path, mission_id: str, mode: str):
     path = mailbox / f"{mission_id}.json"
     # DataDevice.writeFile is awaited by the host before FIFO dispatch, but the
-    # guest-side directory view can lag briefly. Retry visibility only; the
-    # authoritative workbench parser still validates the full request contract.
+    # guest-side directory view can lag briefly. Retry visibility/contract
+    # failures only; unexpected runtime exceptions must escape and poison this
+    # long-lived interpreter rather than being downgraded to admission.
     deadline = time.monotonic() + 2.0
     while True:
         try:
             request = read_json(path, MAX_REQUEST)
             break
-        except (FileNotFoundError, OSError, ValueError, TypeError, UnicodeError, ContractError):
+        except (FileNotFoundError, OSError, ValueError, UnicodeError):
             if time.monotonic() >= deadline:
-                raise ValueError("mission request not visible") from None
+                raise RequestAdmissionError("mission request not visible") from None
             time.sleep(0.05)
     if not isinstance(request, dict) or request.get("id") != mission_id or request.get("mode") != mode:
-        raise ValueError("mission request identity mismatch")
+        raise RequestAdmissionError("mission request identity mismatch")
     return path
 
 
@@ -75,6 +79,24 @@ def dispatch(mission_id: str, mode: str, *, mailbox: Path, root: Path, output_ro
     return int(browser_run.main(["run", *common]) or 0)
 
 
+def _dispatch_admitted(
+    mission_id: str,
+    mode: str,
+    *,
+    mailbox: Path,
+    root: Path,
+    output_root: Path,
+) -> int:
+    try:
+        return dispatch(
+            mission_id, mode, mailbox=mailbox, root=root, output_root=output_root
+        )
+    except RequestAdmissionError:
+        # A typed mailbox/request admission failure is bounded and does not imply
+        # that the persistent interpreter itself is suspect.
+        return 64
+
+
 def _prepare_fifo(path: Path) -> None:
     if path.exists() or path.is_symlink():
         info = path.lstat()
@@ -84,10 +106,32 @@ def _prepare_fifo(path: Path) -> None:
     os.mkfifo(path, 0o600)
 
 
+def _write_pid_file(path: Path) -> None:
+    # Never follow a planted symlink or truncate a multiply-linked regular file.
+    # Open without O_TRUNC, validate the opened inode, then truncate/write it.
+    flags = os.O_WRONLY | os.O_CREAT
+    flags |= getattr(os, "O_NOFOLLOW", 0)
+    flags |= getattr(os, "O_NONBLOCK", 0)
+    try:
+        fd = os.open(path, flags, 0o600)
+    except OSError as exc:
+        raise RuntimeError("worker pid path is unsafe") from exc
+    try:
+        info = os.fstat(fd)
+        owned = not hasattr(os, "geteuid") or info.st_uid == os.geteuid()
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or not owned:
+            raise RuntimeError("worker pid path is unsafe")
+        os.fchmod(fd, 0o600)
+        os.ftruncate(fd, 0)
+        os.write(fd, (str(os.getpid()) + "\n").encode("ascii"))
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
 def serve(*, fifo: Path, pid_file: Path, mailbox: Path, root: Path, output_root: Path) -> int:
     _prepare_fifo(fifo)
-    pid_file.write_text(str(os.getpid()) + "\n", encoding="ascii")
-    os.chmod(pid_file, 0o600)
+    _write_pid_file(pid_file)
     print(READY, flush=True)
     try:
         while True:
@@ -104,20 +148,14 @@ def serve(*, fifo: Path, pid_file: Path, mailbox: Path, root: Path, output_root:
                         print(REJECTED, flush=True)
                         continue
                     try:
-                        status = dispatch(
+                        status = _dispatch_admitted(
                             mission_id, mode, mailbox=mailbox, root=root,
                             output_root=output_root,
                         )
-                    except (OSError, ValueError, TypeError, KeyError, ContractError):
-                        # Request/transport admission failed before a trustworthy
-                        # workbench result existed. Keep the worker alive and
-                        # expose only a fixed status marker, never raw exception text.
-                        status = 64
                     except BaseException:
-                        # An unexpected exception inside this long-lived process
-                        # may indicate interpreter corruption. Fail the worker
-                        # closed instead of processing another mission in a
-                        # potentially contaminated runtime.
+                        # Any exception that escaped typed request admission and
+                        # the existing workbench CLI contract is unexpected in a
+                        # persistent interpreter. Fail closed and require restart.
                         print(f"{FATAL_PREFIX}{mission_id}:70", flush=True)
                         return 70
                     print(f"{RUN_PREFIX}{mission_id}:{status}", flush=True)
@@ -126,7 +164,10 @@ def serve(*, fifo: Path, pid_file: Path, mailbox: Path, root: Path, output_root:
             try:
                 if not path.exists() and not path.is_symlink():
                     continue
-                if require_fifo and not stat.S_ISFIFO(path.lstat().st_mode):
+                info = path.lstat()
+                if require_fifo and not stat.S_ISFIFO(info.st_mode):
+                    continue
+                if not require_fifo and not stat.S_ISREG(info.st_mode):
                     continue
                 path.unlink()
             except OSError:
