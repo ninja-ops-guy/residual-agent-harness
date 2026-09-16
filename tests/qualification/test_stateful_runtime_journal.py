@@ -43,6 +43,14 @@ def make_contract(index: int, generation: int) -> WorkerContract:
     )
 
 
+def expect_journal_error(callable_) -> None:
+    try:
+        callable_()
+    except JournalError:
+        return
+    raise AssertionError("invalid lifecycle operation was accepted")
+
+
 if HYPOTHESIS_AVAILABLE:
     class RuntimeJournalMachine(RuleBasedStateMachine):
         """Model-check RuntimeJournal lifecycle invariants over generated operation sequences."""
@@ -67,8 +75,8 @@ if HYPOTHESIS_AVAILABLE:
         def claimable(self) -> bool:
             return self.state is None or self.state in {"VIOLATED", "FAILED", "CANCELLED", "AUDIT_FAILED", "PURGED"}
 
-        @rule()
         @precondition(lambda self: self.claimable)
+        @rule()
         def claim(self):
             self.index += 1
             self.generation += 1
@@ -80,59 +88,56 @@ if HYPOTHESIS_AVAILABLE:
             self.revoked = False
             assert self.journal.lease_state(contract) == "current"
 
-        @rule()
         @precondition(lambda self: self.contract is not None and self.state == "RESERVED" and not self.revoked)
+        @rule()
         def start(self):
             assert self.contract is not None
             self.journal.started(self.contract, 12345 + self.index)
             self.state = "RUNNING"
 
-        @rule()
         @precondition(lambda self: self.contract is not None and self.state in {"RESERVED", "RUNNING"} and not self.revoked)
+        @rule()
         def revoke(self):
             assert self.contract is not None
             self.journal.revoke(self.contract.attempt_id)
             self.revoked = True
             assert self.journal.lease_state(self.contract) == "revoked"
 
-        @rule()
         @precondition(lambda self: self.contract is not None and self.state in {"RESERVED", "RUNNING"})
+        @rule()
         def finish_failure(self):
             assert self.contract is not None
             self.journal.finish(self.contract, "FAILED", reason="stateful")
             self.state = "FAILED"
 
-        @rule()
         @precondition(lambda self: self.contract is not None and self.state in {"RESERVED", "RUNNING"} and not self.revoked)
+        @rule()
         def finish_candidate(self):
             assert self.contract is not None
             self.journal.finish(self.contract, "CANDIDATE", reason="stateful")
             self.state = "CANDIDATE"
 
-        @rule()
         @precondition(lambda self: self.contract is not None and self.state == "CANDIDATE")
+        @rule()
         def purge_candidate(self):
             assert self.contract is not None
             self.journal.mark_purged(self.contract.attempt_id)
             self.state = "PURGED"
 
-        @rule()
         @precondition(lambda self: self.contract is not None and self.state in {"RESERVED", "RUNNING"} and self.revoked)
+        @rule()
         def revoked_candidate_must_fail(self):
             assert self.contract is not None
-            with self.assertRaises(JournalError):
-                self.journal.finish(self.contract, "CANDIDATE")
+            expect_journal_error(lambda: self.journal.finish(self.contract, "CANDIDATE"))
 
-        @rule()
         @precondition(lambda self: self.contract is not None and self.state in {"CANDIDATE", "VIOLATED", "FAILED", "CANCELLED", "AUDIT_FAILED", "PURGED"})
-        def terminal_finish_is_idempotently_rejected(self):
+        @rule()
+        def terminal_finish_is_rejected(self):
             assert self.contract is not None
-            with self.assertRaises(JournalError):
-                self.journal.finish(self.contract, "FAILED")
+            expect_journal_error(lambda: self.journal.finish(self.contract, "FAILED"))
 
         @rule()
         def restart_and_replay(self):
-            # Re-opening the durable journal must preserve a valid observation chain and state.
             self.journal = RuntimeJournal(self.path, trace_id=self.trace_id)
             self.journal.observations()
 
@@ -149,9 +154,6 @@ if HYPOTHESIS_AVAILABLE:
             assert self.journal.lease_state(self.contract) == expected_lease
             for old in self.old_contracts[:-1]:
                 assert self.journal.lease_state(old) == "revoked"
-
-        # RuleBasedStateMachine provides unittest assertions, but type checkers do not know it.
-        assertRaises = unittest.TestCase.assertRaises
 
     RuntimeJournalStatefulTest = RuntimeJournalMachine.TestCase
     RuntimeJournalStatefulTest.settings = settings(max_examples=75, stateful_step_count=40, deadline=None)
