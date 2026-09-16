@@ -21,9 +21,10 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
         self.mid = 'm-' + 'a' * 32
 
     def write_request(self, mode):
+        request = {'id': self.mid, 'mode': mode}
         path = self.mailbox / f'{self.mid}.json'
-        path.write_text(json.dumps({'id': self.mid, 'mode': mode}))
-        return path
+        path.write_text(json.dumps(request))
+        return path, request
 
     def test_command_contract_is_exact_and_bounded(self):
         self.assertEqual(browser_worker.parse_command(f'{self.mid} build\n'), (self.mid, 'build'))
@@ -40,7 +41,7 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
         self.assertEqual(browser_worker.STOPPED, 'RESIDUAL_WORKER_STOPPED')
 
     def test_build_dispatch_reuses_fail_closed_in_process_entrypoint(self):
-        request = self.write_request('build')
+        _path, request = self.write_request('build')
         with mock.patch.object(browser_worker.browser_build, 'persistent_build', return_value=2) as entry:
             status = browser_worker.dispatch(
                 self.mid, 'build', mailbox=self.mailbox,
@@ -48,7 +49,7 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
             )
         self.assertEqual(status, 2)
         entry.assert_called_once_with(
-            request_path=request,
+            request=request,
             mailbox=self.mailbox,
             root=self.root,
             output_root=self.output,
@@ -57,7 +58,7 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
     def test_audit_and_live_dispatch_share_fail_closed_persistent_entrypoint(self):
         for mode in ('audit', 'live'):
             with self.subTest(mode=mode):
-                request = self.write_request(mode)
+                _path, request = self.write_request(mode)
                 with mock.patch.object(browser_worker.browser_run, 'persistent_run', return_value=0) as entry:
                     status = browser_worker.dispatch(
                         self.mid, mode, mailbox=self.mailbox,
@@ -65,11 +66,15 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
                     )
                 self.assertEqual(status, 0)
                 entry.assert_called_once_with(
-                    request_path=request,
+                    request=request,
                     mailbox=self.mailbox,
                     root=self.root,
                     output_root=self.output,
                 )
+
+    def test_admission_returns_exact_validated_request_object(self):
+        _path, expected = self.write_request('audit')
+        self.assertEqual(browser_worker._request(self.mailbox, self.mid, 'audit'), expected)
 
     def test_request_identity_and_mode_cannot_be_swapped(self):
         self.write_request('audit')
@@ -111,7 +116,7 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
                 browser_worker._request(self.mailbox, self.mid, 'audit')
 
     def test_persistent_run_does_not_mask_runtime_typeerror(self):
-        request = self.write_request('audit')
+        _path, request = self.write_request('audit')
         with mock.patch.object(
             browser_worker.browser_run.implementation,
             'execute',
@@ -119,14 +124,14 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
         ):
             with self.assertRaisesRegex(TypeError, 'impossible constructor return'):
                 browser_worker.browser_run.persistent_run(
-                    request_path=request,
+                    request=request,
                     mailbox=self.mailbox,
                     root=self.root,
                     output_root=self.output,
                 )
 
     def test_persistent_build_does_not_mask_runtime_typeerror(self):
-        request = self.write_request('build')
+        _path, request = self.write_request('build')
         with mock.patch.object(
             browser_worker.browser_build.implementation,
             'execute',
@@ -134,14 +139,14 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
         ):
             with self.assertRaisesRegex(TypeError, 'impossible constructor return'):
                 browser_worker.browser_build.persistent_build(
-                    request_path=request,
+                    request=request,
                     mailbox=self.mailbox,
                     root=self.root,
                     output_root=self.output,
                 )
 
     def test_typed_contract_failure_stays_bounded_in_persistent_entrypoint(self):
-        request = self.write_request('audit')
+        _path, request = self.write_request('audit')
         with mock.patch.object(
             browser_worker.browser_run.implementation,
             'execute',
@@ -149,7 +154,7 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
         ):
             self.assertEqual(
                 browser_worker.browser_run.persistent_run(
-                    request_path=request,
+                    request=request,
                     mailbox=self.mailbox,
                     root=self.root,
                     output_root=self.output,
