@@ -9,7 +9,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from residual.qualification.evidence import GateResult, load_envelope
+from residual.dsm.evidence import generate_evidence
+from residual.qualification.evidence import (
+    GateResult,
+    load_envelope,
+    new_envelope,
+    write_envelope,
+)
 from residual.qualification.failures import (
     FailureClass,
     FailureObservation,
@@ -21,6 +27,7 @@ REQUIRED_GATES = (
     "deterministic-regression",
     "stateful-runtime-journal",
     "distributed-history",
+    "dsm-fault-matrix",
     "mutation-canary",
     "coverage-strength",
     "m4-capability",
@@ -43,6 +50,41 @@ def _record(ledger: Path, gate: str, classification: FailureClass,
     ))
 
 
+def _dsm_gate(output_root: Path) -> Path:
+    """Run the repository's real DSM duplicate/delay/reorder/loss + recovery matrix."""
+    dsm_dir = output_root / "dsm"
+    artifact, _sha = generate_evidence(dsm_dir, ROOT)
+    raw = json.loads(artifact.read_text(encoding="utf-8"))
+    results = raw.get("results") or {}
+    fault = raw.get("fault_matrix") or {}
+    recovery = raw.get("recovery_suite") or {}
+    passed = bool(
+        results.get("ok")
+        and results.get("fault_matrix_ok")
+        and results.get("no_duplicate_accepted_transition")
+        and fault.get("all_converged")
+        and fault.get("all_idempotent")
+        and recovery.get("ok")
+    )
+    envelope = new_envelope(
+        "dsm-fault-matrix",
+        GateResult.PASS if passed else GateResult.FAIL,
+        root=ROOT,
+        command=["residual.dsm.evidence.generate_evidence"],
+        evidence_paths=[artifact],
+        notes=[
+            "real DSM fault matrix: duplicate, delayed, reordered, lost and combined delivery",
+            "recovery suite includes crash/restart/replay and duplicate accepted-transition checks",
+        ],
+        non_claims=[
+            "DSM qualification applies to the documented single-writer crash-stop boundary; it is not a split-brain consensus claim."
+        ],
+    )
+    path = dsm_dir / "dsm-fault-matrix.evidence.json"
+    write_envelope(envelope, path)
+    return path
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Aggregate Qualification v1 CI artifacts")
     parser.add_argument("--root", type=Path, required=True)
@@ -50,11 +92,13 @@ def main(argv=None) -> int:
     parser.add_argument("--failure-ledger", type=Path)
     args = parser.parse_args(argv)
 
+    args.output.parent.mkdir(parents=True, exist_ok=True)
     ledger = args.failure_ledger or args.output.with_name("failure-ledger.jsonl")
     ledger.parent.mkdir(parents=True, exist_ok=True)
-    ledger.unlink(missing_ok=True)
+    ledger.write_text("", encoding="utf-8")
 
-    evidence = sorted(args.root.rglob("*.evidence.json"))
+    dsm_evidence = _dsm_gate(args.output.parent)
+    evidence = sorted(args.root.rglob("*.evidence.json")) + [dsm_evidence]
     wheels = sorted(args.root.rglob("*.whl"))
     if len(wheels) != 1:
         _record(
@@ -80,6 +124,14 @@ def main(argv=None) -> int:
                 {"path": str(path), "error": f"{type(exc).__name__}: {exc}"},
             )
             continue
+        if envelope.gate_id in loaded:
+            _record(
+                ledger,
+                envelope.gate_id,
+                FailureClass.PROVENANCE_UNKNOWN,
+                "duplicate qualification gate evidence observed",
+                {"path": str(path)},
+            )
         loaded[envelope.gate_id] = envelope
 
     for gate in REQUIRED_GATES:
