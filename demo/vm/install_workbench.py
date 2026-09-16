@@ -19,7 +19,7 @@ def _javascript_shell_template(command: str) -> str:
 def patch(text):
     recovery = build_recovery_command(
         pid_file='/tmp/residual-workbench.pid',
-        control_file='/data/residual-worker.control',
+        control_file='/tmp/residual-workbench.control',
         busy_file='/tmp/residual-workbench.busy',
         poison_file='/tmp/residual-workbench.poison',
         active_lock='/opt/residual/runs/missions/.active',
@@ -170,7 +170,7 @@ def patch(text):
             // of work, so reuse fails closed rather than replaying/overlapping it.
             // The shell input deliberately composes READY so terminal echo cannot
             // satisfy readiness before the identity checks/new worker succeed.
-            const command = `if [ -e /tmp/residual-workbench.poison ] || [ -L /tmp/residual-workbench.poison ] || [ -e /tmp/residual-workbench.busy ] || [ -L /tmp/residual-workbench.busy ] || [ -e /data/residual-worker.control ] || [ -L /data/residual-worker.control ]; then printf 'RESIDUAL_WORKER_%s\\n' POISONED; elif [ -f /tmp/residual-workbench.pid ] && [ ! -L /tmp/residual-workbench.pid ] && [ -O /tmp/residual-workbench.pid ] && read -r residual_worker_pid < /tmp/residual-workbench.pid && [[ "$residual_worker_pid" =~ ^[0-9]+$ ]] && kill -0 "$residual_worker_pid" 2>/dev/null && mapfile -d '' residual_worker_argv < "/proc/$residual_worker_pid/cmdline" && [ "\${residual_worker_argv[1]-}" = "-m" ] && [ "\${residual_worker_argv[2]-}" = "residual.workbench.browser_worker" ]; then printf 'RESIDUAL_WORKER_%s\\n' READY; else python3 -m residual.workbench.browser_worker --control-file /data/residual-worker.control --pid-file /tmp/residual-workbench.pid --busy-file /tmp/residual-workbench.busy --poison-file /tmp/residual-workbench.poison --mailbox /data --root /opt/residual --output-root /opt/residual/runs/missions & fi`;
+            const command = `if [ -e /tmp/residual-workbench.poison ] || [ -L /tmp/residual-workbench.poison ] || [ -e /tmp/residual-workbench.busy ] || [ -L /tmp/residual-workbench.busy ] || [ -e /tmp/residual-workbench.control ] || [ -L /tmp/residual-workbench.control ]; then printf 'RESIDUAL_WORKER_%s\\n' POISONED; elif [ -f /tmp/residual-workbench.pid ] && [ ! -L /tmp/residual-workbench.pid ] && [ -O /tmp/residual-workbench.pid ] && read -r residual_worker_pid < /tmp/residual-workbench.pid && [[ "$residual_worker_pid" =~ ^[0-9]+$ ]] && kill -0 "$residual_worker_pid" 2>/dev/null && mapfile -d '' residual_worker_argv < "/proc/$residual_worker_pid/cmdline" && [ "\${residual_worker_argv[1]-}" = "-m" ] && [ "\${residual_worker_argv[2]-}" = "residual.workbench.browser_worker" ]; then printf 'RESIDUAL_WORKER_%s\\n' READY; else python3 -m residual.workbench.browser_worker --control-file /tmp/residual-workbench.control --pid-file /tmp/residual-workbench.pid --busy-file /tmp/residual-workbench.busy --poison-file /tmp/residual-workbench.poison --mailbox /data --root /opt/residual --output-root /opt/residual/runs/missions & fi`;
             readData(command + "\\r");
             return await promise;
         }
@@ -216,24 +216,13 @@ def patch(text):
                         finish: value => { clearTimeout(timeout); resolve(value); },
                         fail: error => { clearTimeout(timeout); reject(error); }
                     };
-                    // DataDevice is already the proven browser↔guest mailbox.
-                    // Publish a tiny regular control record only after the full
-                    // request body is visible. No prompt/source bytes enter a
-                    // shell command and no special-file primitive is required.
-                    residualDataDevice.writeFile(
-                        "/residual-worker.control",
-                        request.id + " " + request.mode + "\\n"
-                    ).catch(async error => {
-                        if (!residualShellRun || residualShellRun.missionId !== request.id) return;
-                        const current = residualShellRun;
-                        residualShellRun = null;
-                        residualWorkerReady = false;
-                        residualWorkerPoisoned = true;
-                        try { await terminateResidualWorker(request.id); } catch (_) {}
-                        residualShellCommandBusy = false;
-                        residualShellInputBuffer = "";
-                        current.fail(error);
-                    });
+                    // Request/provider payloads remain on DataDevice. The tiny
+                    // validated mission-id/mode control record is created by the
+                    // authoritative guest shell because DataDevice nodes do not
+                    // expose reliable POSIX regular-file/link metadata. Noclobber
+                    // gives create-only, symlink-safe publication at a private path.
+                    const controlCommand = `( set -C; umask 077; printf '%s %s\\n' '${request.id}' '${request.mode}' > /tmp/residual-workbench.control )`;
+                    readData(controlCommand + "\\r");
                 });
             }
         });""".replace('__RECOVERY_COMMAND__', recovery_js)

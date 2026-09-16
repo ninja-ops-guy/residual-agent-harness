@@ -262,7 +262,7 @@ class PersistentWorkerHostTimeoutTests(unittest.TestCase):
         self.assertIn('await terminateResidualWorker(null)', source)
         self.assertIn('/tmp/residual-workbench.poison', source)
         self.assertIn('/tmp/residual-workbench.busy', source)
-        self.assertIn('/data/residual-worker.control', source)
+        self.assertIn('/tmp/residual-workbench.control', source)
         self.assertIn('RESIDUAL_WORKER_POISONED', source)
         self.assertIn('--poison-file /tmp/residual-workbench.poison', source)
         self.assertIn('reset guest before retry', source)

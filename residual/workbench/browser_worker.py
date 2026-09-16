@@ -199,81 +199,34 @@ def _clear_exact_state(path: Path, expected: str) -> None:
     path.unlink()
 
 
-def _open_transport_control(path: Path) -> tuple[int, os.stat_result] | None:
-    """Open the fixed DataDevice control record without following links.
-
-    DataDevice files are created by the browser-side transport and can report a
-    UID different from the guest process. UID ownership is therefore not an
-    authority signal for this one fixed ingress path. File type, link count,
-    inode identity, size, grammar and mailbox request identity remain enforced.
-    """
-    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
-    try:
-        fd = os.open(path, flags)
-    except FileNotFoundError:
-        return None
-    except OSError as exc:
-        raise RuntimeError("worker control path is unsafe") from exc
-    info = os.fstat(fd)
-    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
-        os.close(fd)
-        raise RuntimeError("worker control path is unsafe")
-    return fd, info
-
-
-def _unlink_transport_control(path: Path, expected: os.stat_result | None = None) -> None:
-    """Remove only the same single-link regular transport inode."""
-    try:
-        current = path.lstat()
-    except FileNotFoundError:
-        return
-    if (
-        not stat.S_ISREG(current.st_mode)
-        or current.st_nlink != 1
-        or (
-            expected is not None
-            and (current.st_dev != expected.st_dev or current.st_ino != expected.st_ino)
-        )
-    ):
-        raise RuntimeError("worker control path is unsafe")
-    path.unlink()
-
-
 def _consume_control(path: Path) -> str | tuple[str, str] | None:
-    """Consume one complete DataDevice control record, or None while absent."""
-    opened = _open_transport_control(path)
-    if opened is None:
+    """Consume one complete regular control record, or return None while absent.
+
+    The guest shell publishes this owner-private record only after the browser
+    has awaited the complete DataDevice request body. A trailing newline prevents
+    a mid-publication partial command from becoming valid.
+    """
+    if not path.exists() and not path.is_symlink():
         return None
-    fd, info = opened
-    try:
-        if info.st_size > MAX_CONTROL:
-            invalid = True
-            raw_bytes = b""
-        else:
-            raw_bytes = os.read(fd, MAX_CONTROL + 1)
-            invalid = len(raw_bytes) > MAX_CONTROL
-    finally:
-        os.close(fd)
-    if invalid:
-        _unlink_transport_control(path, info)
+    safe, info = _owned_regular(path)
+    if not safe or info is None:
+        raise RuntimeError("worker control path is unsafe")
+    if info.st_size > MAX_CONTROL:
+        path.unlink()
         raise ValueError("invalid worker control record")
     try:
-        raw = raw_bytes.decode("ascii")
+        raw = path.read_text(encoding="ascii")
     except UnicodeError as exc:
-        _unlink_transport_control(path, info)
+        path.unlink()
         raise ValueError("invalid worker control record") from exc
     if not raw.endswith("\n"):
         return None
     line = raw[:-1]
     if line == SHUTDOWN:
-        _unlink_transport_control(path, info)
+        path.unlink()
         return SHUTDOWN
-    try:
-        command = parse_command(line)
-    except ValueError:
-        _unlink_transport_control(path, info)
-        raise
-    _unlink_transport_control(path, info)
+    command = parse_command(line)
+    path.unlink()
     return command
 
 
@@ -335,11 +288,7 @@ def serve(
     finally:
         # A stopped/dead worker cannot retain dispatch authority. Remove only safe
         # state nodes; poison is intentionally retained until explicit guest reset.
-        try:
-            _unlink_transport_control(control_file)
-        except (OSError, RuntimeError):
-            pass
-        for path in (pid_file, busy_file):
+        for path in (control_file, pid_file, busy_file):
             try:
                 if not path.exists() and not path.is_symlink():
                     continue
@@ -353,7 +302,7 @@ def serve(
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--control-file", type=Path, default=Path("/data") / CONTROL_NAME)
+    parser.add_argument("--control-file", type=Path, default=Path("/tmp/residual-workbench.control"))
     parser.add_argument("--pid-file", type=Path, default=Path("/tmp/residual-workbench.pid"))
     parser.add_argument("--busy-file", type=Path, default=Path("/tmp/residual-workbench.busy"))
     parser.add_argument("--poison-file", type=Path, default=Path("/tmp/residual-workbench.poison"))

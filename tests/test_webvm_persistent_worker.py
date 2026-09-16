@@ -68,13 +68,6 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
             browser_worker._consume_control(self.control)
         self.assertEqual(target.read_text(encoding='ascii'), f'{self.mid} audit\n')
 
-    @unittest.skipUnless(os.name == 'posix', 'DataDevice ownership model is POSIX-specific')
-    def test_datadevice_control_does_not_trust_guest_uid_ownership(self):
-        self.control.write_text(f'{self.mid} audit\n', encoding='ascii')
-        with mock.patch.object(browser_worker.os, 'geteuid', return_value=os.geteuid() + 1):
-            self.assertEqual(browser_worker._consume_control(self.control), (self.mid, 'audit'))
-        self.assertFalse(self.control.exists())
-
     def test_browser_entrypoints_do_not_mutate_core_provider_defaults(self):
         self.assertIsNot(runner.MailboxProvider, BrowserMailboxProvider)
         self.assertIs(conversation_build.MailboxProvider, runner.MailboxProvider)
@@ -243,13 +236,13 @@ class PersistentWorkerHostWiringTests(unittest.TestCase):
         self.assertIn('RESIDUAL_WORKER_READY', source)
         self.assertIn('RESIDUAL_WORKER_RUN_', source)
         self.assertIn('/tmp/residual-workbench.pid', source)
-        self.assertIn('--control-file /data/residual-worker.control', source)
+        self.assertIn('--control-file /tmp/residual-workbench.control', source)
         self.assertNotIn('/tmp/residual-workbench.fifo', source)
 
     def test_reused_worker_requires_idle_process_identity(self):
         source = self.source()
         self.assertIn('[ -e /tmp/residual-workbench.busy ]', source)
-        self.assertIn('[ -e /data/residual-worker.control ]', source)
+        self.assertIn('[ -e /tmp/residual-workbench.control ]', source)
         self.assertIn('[ ! -L /tmp/residual-workbench.pid ]', source)
         self.assertIn("mapfile -d '' residual_worker_argv", source)
         self.assertIn('/proc/$residual_worker_pid/cmdline', source)
@@ -263,10 +256,10 @@ class PersistentWorkerHostWiringTests(unittest.TestCase):
         self.assertIn("printf 'RESIDUAL_WORKER_%s", source)
         self.assertIn("READY; else python3 -m residual.workbench.browser_worker", source)
 
-    def test_per_mission_dispatch_uses_regular_datadevice_control_record(self):
+    def test_per_mission_dispatch_uses_owner_private_regular_control_record(self):
         source = self.source()
-        self.assertIn('"/residual-worker.control"', source)
-        self.assertIn('request.id + " " + request.mode + "\\\\n"', source)
+        self.assertIn("( set -C; umask 077; printf '%s %s\\\\n'", source)
+        self.assertIn("'> /tmp/residual-workbench.control", source)
         self.assertIn('Invalid mission ID', source)
         self.assertIn('Invalid mission mode', source)
         self.assertNotIn('request.prompt}', source)

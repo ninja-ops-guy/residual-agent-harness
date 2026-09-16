@@ -42,7 +42,7 @@ def build_recovery_command(
 
     The DataDevice-backed control record is a reserved dispatch queue slot. Once
     the worker identity is dead it is safe to remove only when it is a regular,
-    single-link regular DataDevice record at the fixed control path; this prevents a queued command from replaying
+    owner-controlled singleton; this prevents a queued command from replaying
     after an explicit guest reset. Unexpected file types leave recovery poisoned.
     """
     if (
@@ -112,7 +112,7 @@ def build_recovery_command(
         # A queued control record must never replay after reset. It is reserved
         # solely for this worker generation, so remove any safe regular singleton
         # after worker death; unexpected types keep recovery fail-closed.
-        f"if [ -e {control} ] || [ -L {control} ]; then if [ -f {control} ] && [ ! -L {control} ] && [ \"$(stat -c %h {control} 2>/dev/null)\" = 1 ]; then rm -f -- {control}; else residual_recovery_status=70; fi; fi;",
+        f"if [ -e {control} ] || [ -L {control} ]; then if [ -f {control} ] && [ ! -L {control} ] && [ -O {control} ] && [ \"$(stat -c %h {control} 2>/dev/null)\" = 1 ]; then rm -f -- {control}; else residual_recovery_status=70; fi; fi;",
         "fi;",
         # Busy identity belongs to the admitted mission. Never clear a different
         # mission's busy marker merely to obtain a green recovery result.
