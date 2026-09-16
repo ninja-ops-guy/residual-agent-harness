@@ -99,9 +99,9 @@ No aggregate Qualification v1 `PASS` is claimed. Virtual-day stress is not elaps
 Any candidate last qualified before `f6f9bad8...` must be refreshed/requalified before merge if current-main compatibility is part of its gate.
 
 - **#146** — independent-current-head review enforcement, refreshed onto exact current main at head `c416d408149408ff8668a48d6e73eb1f3bf6347e`. All six observed ordinary repository workflows are **PASS** on that head. The dedicated `Independent review gate` runs its 15 policy regression tests successfully, then correctly reports **BLOCKED** and exits nonzero because no independent human `APPROVED` review from a write-authorized reviewer is bound to the current head. This is expected fail-closed behavior, not a code-qualification PASS and not a defect waiver. #146 remains BLOCKED on the exact review condition it is designed to enforce; platform ruleset enforcement remains a separate maintainer action after accepted integration.
-- **#118** — historical green runtime/DSM candidate; refresh/requalify before merge and preserve earlier first-attempt failures.
-- **#115** — historical release-preparation evidence remains procedure/simulation evidence, not true blank-OS, host-loss or elapsed-soak proof; refresh/requalify before merge.
-- **#131** — historical SoakState persistence qualification is not elapsed soak; refresh/requalify before merge.
+- **#118** — runtime/DSM candidate refreshed onto current main at `ee81051220c616f8a605c948820d972177e19801`; all seven applicable workflows pass, including Pages, but zero reviews exist. Preserve earlier first-attempt failures and require genuine independent acceptance.
+- **#115** — release/recovery candidate refreshed onto current main at `27e6e3b790d950ad1e8dd3603569f2eb5090ada4`; all seven applicable workflows pass, including release procedures, but zero reviews exist. Evidence remains procedure/simulation evidence, not true blank-OS, host-loss or elapsed-soak proof.
+- **#131** — separate two-file SoakState persistence candidate refreshed onto current main at `0094dd4c27231f8c4f71161b9a82770a27c7aa7b`; all seven applicable workflows pass, including Pages, but zero reviews exist. This is not elapsed-soak evidence.
 - **#93** — retains an authoritative runtime-journal concurrency failure/protected dependency from its tested head; it is **NOT qualified** until that blocker is resolved and the lane is rebuilt/requalified.
 
 Do not merge any candidate from stale exact-head evidence.

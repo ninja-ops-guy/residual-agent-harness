@@ -57,7 +57,7 @@ Several open candidates were built on `main@f2d58e77...` and became stale when #
 - **#153** — consolidated WebVM acceptance-harness repairs refreshed onto current main at `35cbf2ba060bc04aabb6cfd10fbf90dc8dbccb77`; fresh exact-head qualification and genuinely independent review are required before integration, then #89 must be refreshed/requalified.
 - **#152** — Qualification v1 evidence-first testing framework; its prior exact-head evidence is historical after #156 and no aggregate release `PASS` is inherited.
 - **#146** — independent-current-head review gate refreshed onto current main at `c416d408149408ff8668a48d6e73eb1f3bf6347e`; fresh exact-head qualification and genuinely independent write-authorized acceptance remain required. Platform ruleset enforcement is a separate maintainer action.
-- **#118/#115/#131/#93** and other older lanes require current-main refresh before any merge claim. Historical `PASS` or `FAIL` remains bound to the exact head that produced it.
+- **#118** `ee81051220c616f8a605c948820d972177e19801`, **#115** `27e6e3b790d950ad1e8dd3603569f2eb5090ada4`, and **#131** `0094dd4c27231f8c4f71161b9a82770a27c7aa7b` are refreshed onto current main with all applicable exact-head workflows green, but each has zero reviews and remains blocked on genuine independent acceptance. #115's simulator is not elapsed soak; #131 remains the separate core persistence lane. **#93** remains unqualified on its retained failure/protected dependency.
 
 ## Design principles
 
