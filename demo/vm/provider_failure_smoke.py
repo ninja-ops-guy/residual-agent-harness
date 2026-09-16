@@ -19,7 +19,10 @@ window.puter = {
     }
   },
   ai: {
-    listModels: async () => [{id:'openai/gpt-5-nano',aliases:['gpt-5-nano']}],
+    listModels: async () => [
+      {id:'openai/gpt-5.4-nano',aliases:['gpt-5.4-nano']},
+      {id:'openai/gpt-5-nano',aliases:['gpt-5-nano']}
+    ],
     chat: async () => {
       window.__providerFixture.calls++;
       throw {code:'403', message:'fixture secret body must not cross the bridge'};
