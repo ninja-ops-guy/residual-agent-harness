@@ -180,7 +180,7 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     # Shut down the persistent worker cleanly before exercising the standalone
     # CLI. This proves the two interfaces independently and avoids concurrent
     # CPython interpreters in the WebVM guest during qualification.
-    await command_proof('read -r residual_worker_pid < /tmp/residual-workbench.pid && printf "shutdown\\n" > /tmp/residual-workbench.fifo && wait "$residual_worker_pid" && test ! -e /tmp/residual-workbench.pid && test ! -e /tmp/residual-workbench.fifo')
+    await command_proof('read -r residual_worker_pid < /tmp/residual-workbench.pid && ( set -C; umask 077; printf "shutdown\\n" > /tmp/residual-workbench.control ) && wait "$residual_worker_pid" && test ! -e /tmp/residual-workbench.pid && test ! -e /tmp/residual-workbench.control')
     # Preserve the original independent evidence-chain acceptance coverage while
     # avoiding one fresh interpreter per mission: verify build, follow-up, and
     # live-provider outputs together in one post-worker Python process.
