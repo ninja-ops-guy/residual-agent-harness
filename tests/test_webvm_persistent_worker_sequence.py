@@ -25,6 +25,7 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
         self.output = self.base / 'runs'; self.output.mkdir()
         self.fifo = self.base / 'worker.fifo'
         self.pid_file = self.base / 'worker.pid'
+        self.poison_file = self.base / 'worker.poison'
         (self.root / 'README.md').write_text('fresh second source\nsecond line\n', encoding='utf-8')
 
     def write_request(self, mission_id: str, *, mode: str, files: list[str], required: list[str] | None = None):
@@ -61,6 +62,16 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
         thread = threading.Thread(target=writer, name='persistent-worker-command-writer')
         thread.start()
         return thread, errors
+
+    def serve(self):
+        return browser_worker.serve(
+            fifo=self.fifo,
+            pid_file=self.pid_file,
+            poison_file=self.poison_file,
+            mailbox=self.mailbox,
+            root=self.root,
+            output_root=self.output,
+        )
 
     def test_bounded_live_failure_then_valid_live_mission_is_isolated(self):
         failed = 'm-' + 'a' * 32
@@ -108,13 +119,7 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
             contextlib.redirect_stdout(stdout),
             contextlib.redirect_stderr(stderr),
         ):
-            status = browser_worker.serve(
-                fifo=self.fifo,
-                pid_file=self.pid_file,
-                mailbox=self.mailbox,
-                root=self.root,
-                output_root=self.output,
-            )
+            status = self.serve()
         writer.join(timeout=5)
         self.assertFalse(writer.is_alive(), 'command writer did not finish')
         self.assertEqual(errors, [])
@@ -167,13 +172,7 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
             ) as persistent_run,
             contextlib.redirect_stdout(stdout),
         ):
-            status = browser_worker.serve(
-                fifo=self.fifo,
-                pid_file=self.pid_file,
-                mailbox=self.mailbox,
-                root=self.root,
-                output_root=self.output,
-            )
+            status = self.serve()
         writer.join(timeout=5)
         self.assertFalse(writer.is_alive(), 'command writer did not finish')
         self.assertEqual(errors, [])
@@ -205,13 +204,7 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
             mock.patch.object(browser_mailbox, 'read_json', side_effect=TypeError('impossible constructor return')),
             contextlib.redirect_stdout(stdout),
         ):
-            status = browser_worker.serve(
-                fifo=self.fifo,
-                pid_file=self.pid_file,
-                mailbox=self.mailbox,
-                root=self.root,
-                output_root=self.output,
-            )
+            status = self.serve()
         writer.join(timeout=5)
         self.assertFalse(writer.is_alive(), 'command writer did not finish')
         self.assertEqual(errors, [])
@@ -230,17 +223,18 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
 
 
 class PersistentWorkerHostTimeoutTests(unittest.TestCase):
-    def test_startup_and_mission_timeouts_terminate_only_verified_worker(self):
+    def test_host_wiring_uses_durable_bound_recovery(self):
         root = Path(__file__).resolve().parents[1]
         source = (root / 'demo/vm/install_workbench.py').read_text(encoding='utf-8')
-        self.assertIn('function terminateResidualWorker()', source)
-        self.assertGreaterEqual(source.count('terminateResidualWorker();'), 2)
-        self.assertIn('kill -KILL "$residual_worker_pid"', source)
-        self.assertIn('[ ! -L /tmp/residual-workbench.pid ]', source)
-        self.assertIn('[ -O /tmp/residual-workbench.pid ]', source)
-        self.assertIn("mapfile -d '' residual_worker_argv", source)
-        self.assertIn(r'\${residual_worker_argv[2]-}', source)
-        self.assertIn('residual.workbench.browser_worker', source)
+        self.assertIn('build_recovery_command', source)
+        self.assertIn('async function terminateResidualWorker(missionId)', source)
+        self.assertIn('residualWorkerRecovery', source)
+        self.assertIn('await terminateResidualWorker(request.id)', source)
+        self.assertIn('await terminateResidualWorker(null)', source)
+        self.assertIn('/tmp/residual-workbench.poison', source)
+        self.assertIn('RESIDUAL_WORKER_POISONED', source)
+        self.assertIn('--poison-file /tmp/residual-workbench.poison', source)
+        self.assertIn('reset guest before retry', source)
 
 
 if __name__ == '__main__':
