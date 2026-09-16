@@ -130,7 +130,7 @@ class BrowserMailboxPublicationSourceTests(unittest.TestCase):
         self.assertNotIn('python3 -m ${entry}', source)
         self.assertIn('python3 -m residual.workbench.browser_worker', source)
         self.assertIn('RESIDUAL_WORKER_RUN_', source)
-        self.assertIn('/data/residual-worker.control', source)
+        self.assertIn('/tmp/residual-workbench.control', source)
         self.assertIn('/tmp/residual-workbench.busy', source)
         self.assertNotIn('/tmp/residual-workbench.fifo', source)
         self.assertNotIn('mkfifo', source)
@@ -139,11 +139,14 @@ class BrowserMailboxPublicationSourceTests(unittest.TestCase):
     def test_worker_control_is_published_after_request_body(self):
         source = self.source()
         request_write = 'await residualDataDevice.writeFile(name, JSON.stringify(request));'
-        control_write = 'residualDataDevice.writeFile(\n                        "/residual-worker.control"'
+        control_publish = 'const controlCommand ='
+        control_dispatch = 'readData(controlCommand);'
         self.assertIn(request_write, source)
-        self.assertIn(control_write, source)
-        self.assertLess(source.index(request_write), source.index(control_write))
-        self.assertIn('request.id + " " + request.mode + "\\\\n"', source)
+        self.assertIn(control_publish, source)
+        self.assertIn(control_dispatch, source)
+        self.assertLess(source.index(request_write), source.index(control_publish))
+        self.assertLess(source.index(control_publish), source.index(control_dispatch))
+        self.assertIn("printf '%s %s\\\\n'", source)
 
     def test_terminal_input_is_queued_not_dropped_while_worker_is_active(self):
         source = self.source()
