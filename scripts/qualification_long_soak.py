@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from residual.qualification.evidence import GateResult, new_envelope, write_envelope
+from residual.qualification.evidence import GateResult, new_envelope, source_identity, write_envelope
 
 TIERS = {
     "24h": 24 * 60 * 60,
@@ -22,6 +22,19 @@ TIERS = {
 
 def now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def source_continuity_ok(start: dict, end: dict) -> bool:
+    return bool(
+        start.get("commit")
+        and start.get("tree")
+        and end.get("commit")
+        and end.get("tree")
+        and start.get("tracked_source_dirty") is False
+        and end.get("tracked_source_dirty") is False
+        and start.get("commit") == end.get("commit")
+        and start.get("tree") == end.get("tree")
+    )
 
 
 def main(argv=None) -> int:
@@ -37,9 +50,11 @@ def main(argv=None) -> int:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     report = args.output_dir / f"process-soak-{args.tier}.json"
     process_log = report.with_suffix(".process.log")
+    continuity_path = args.output_dir / f"process-soak-{args.tier}.source-continuity.json"
     evidence = args.output_dir / f"process-soak-{args.tier}.evidence.json"
     data_dir = args.output_dir / "station-data"
     started = now()
+    source_start = source_identity(ROOT)
     command = [
         sys.executable, str(ROOT / "scripts" / "qualification_process_soak.py"),
         "--duration-seconds", str(TIERS[args.tier]),
@@ -56,20 +71,37 @@ def main(argv=None) -> int:
         "--port", str(args.port), "--data", str(data_dir),
     ]
     proc = subprocess.run(command, cwd=ROOT, check=False)
+    source_end = source_identity(ROOT)
+    continuity_ok = source_continuity_ok(source_start, source_end)
+    continuity = {
+        "schema": "residual.qualification.source-continuity.v1",
+        "result": "PASS" if continuity_ok else "FAIL",
+        "start": source_start,
+        "end": source_end,
+    }
+    continuity_path.write_text(json.dumps(continuity, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
     result = GateResult.FAIL
     notes = [f"uninterrupted wall-clock tier={args.tier}"]
-    if report.exists():
+    report_pass = False
+    if report.is_file():
         try:
             payload = json.loads(report.read_text(encoding="utf-8"))
-            if proc.returncode == 0 and payload.get("result") == "PASS":
-                result = GateResult.PASS
+            report_pass = proc.returncode == 0 and payload.get("result") == "PASS"
         except Exception as exc:
             notes.append(f"unreadable soak report: {type(exc).__name__}")
     else:
-        notes.append("soak report missing")
+        notes.append("soak report missing or not a regular file")
+    if not process_log.is_file():
+        notes.append("process log missing or not a regular file")
+    if not continuity_ok:
+        notes.append("source commit/tree cleanliness or continuity was not established")
+    if report_pass and process_log.is_file() and continuity_ok:
+        result = GateResult.PASS
+
     envelope = new_envelope(
         f"process-soak-{args.tier}", result, root=ROOT, started_at=started,
-        command=command, evidence_paths=[report, process_log], notes=notes,
+        command=command, evidence_paths=[report, process_log, continuity_path], notes=notes,
         non_claims=["A completed tier applies only to the exact source/environment bound in this evidence."],
     )
     write_envelope(envelope, evidence)
