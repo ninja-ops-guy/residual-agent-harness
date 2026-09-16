@@ -15,8 +15,8 @@ Current `main` contains the core harness, Command Station, Factory M2/M3/M4, eva
 | Factory M2 worker contracts/runtime | Implemented under `residual/factory/` |
 | Factory M3 evidence bus/Station receipts | Implemented; trusted consumption/admission is the authority boundary |
 | Factory M4 deterministic integration/scheduler | Implemented and capable-runner qualified on named environments; every-host qualification is not claimed |
-| Mission Control/WebVM | Integrated through #145/#147; exact current-main browser qualification passes, but long-run reliability and historical root cause remain open |
-| Real Puter provider path | Transport/conformance hardening integrated; current-main follow-up #149 is exact-head green but independently unreviewed, and fresh real-account success is not yet retained |
+| Mission Control/WebVM | Integrated through #151; exact current-main automated/browser qualification passes, but independent review and long-run reliability remain open |
+| Real Puter provider path | Transport/live-pipeline hardening integrated; successful paid/live-provider acceptance on exact current main is still `UNKNOWN` |
 | Frozen evaluation framework | Implemented under `residual/eval/`; live confirmatory results remain future evidence |
 | Cluster / distributed / lifecycle / observability | Implemented development surfaces; deployment evidence remains environment-specific |
 | Self-maintenance research | Bounded proposal/verification evidence exists; no autonomous merge authority |
@@ -25,27 +25,27 @@ Issues #63 and #48 are closed. `implementation-status.yaml` records implementati
 
 ## Current main boundary — technically qualified, review-provisional
 
-Current `main` is **`0580c1e53ddb9163d2423d82c0bca846a6d68ba2`**, the merge of PR #147. Its observed automated/browser qualification is **PASS**, but independent technical acceptance remains review-provisional because merged PRs #145 and #147 have no submitted reviews in the retained GitHub review record.
+Current `main` is **`f2d58e779ad589fe1d08842c9efc40ec5214a213`**, tree **`c62cf2a5d8c4234edcd7e53e0faa8edeb94a1571`**, the merge of PR #151.
 
-PR #145 integrated a libc-relative polling mitigation for long-lived browser paths after retained diagnostics showed positive Python timed waits failing under WebVM. PR #147 tightened real Puter response transport/conformance and changed the visible default Mission Control model to `openai/gpt-5.4-nano`.
+All seven observed main-push workflows are **PASS** on that exact revision. M4 run `35149837820` used the real namespace-isolated path with **142 tests + 84 subtests, zero skips**. Pages run `35149837756` passed first-attempt generated and published desktop+narrow acceptance; retained proof artifact `10468668615` is hash-bound.
 
-Exact #145 and #147 candidate heads completed their observed applicable PR workflow sets **PASS**. Exact merged current main also passed its observed push qualification set; Pages run `35138502311` passed generated desktop+narrow proof, deployment, published real-guest execution and published narrow Chromium acceptance.
-
-This does not establish independent review, live Puter quality or long-run WebVM reliability. The retained real-account run before #147 remained **FAIL** as `provider_protocol_invalid`, and a successful post-#147 real-account run is not yet retained.
+GitHub records zero submitted reviews for #151, so the revision remains **review-provisional**. The provider portion of the post-merge browser proof used the SDK test double with `cloud_inference: NOT_RUN`; a successful paid/live Puter run on exact current main is **UNKNOWN / not retained**.
 
 ## Current build order
 
-1. **Close the governance enforcement gap.** Issue #144 remains open. Obtain independent post-merge technical review of the current #145/#147 integration, then finish PR #146/platform enforcement so future important merges cannot pass with zero qualifying approvals. #146 itself is currently red and based on older main.
-2. **Review the current-main provider-envelope follow-up before new live-provider claims.** PR #149 head `2b4c2d09...` ports the surviving nested `updates.build` guidance from closed-unmerged #143 onto `main@0580c1e5...`. All eight observed applicable exact-head workflows are **PASS**, including Browser VM Demo CI and Pages, but there are zero submitted reviews. Require independent technical acceptance before any integration; green CI is not real-account provider success. After any accepted integration, run and retain a fresh real-account Puter acceptance on the exact deployed revision and preserve `PASS`, `FAIL` or `UNKNOWN`.
-3. **Quantify WebVM reliability.** Issues #120/#126 remain open. #145 avoids the known Python timed-wait surface, but historical guest corruption is not root-caused. Run a predefined retained repeated-run campaign before claiming an acceptable failure rate.
-4. **Resolve the protected M4 test-race lane.** PR #139 requires genuinely independent exact-head review, deliberate ownership-baseline handling and fresh qualification. Do not advance the protected pin merely to obtain green CI.
-5. **Refresh/requalify #134 only after the protected sequence.** Its retained adapter tests and historical partial green evidence do not qualify it on current `main@0580c1e5...`.
-6. **Finish refreshed current-main candidates without inheriting historical qualification.** PR #140 is now refreshed at `205257e7...`: Browser VM Demo CI and the six non-Pages repository workflows observed so far are **PASS**, while Pages run `35147236161` remains **IN PROGRESS** and no submitted review is recorded. PR #131 is refreshed at `818af414...`: its six observed non-Pages workflows are **PASS**, while Pages run `35147159269` remains **IN PROGRESS** and no submitted review is recorded. Older-base #118, #115, #93 and other candidates still require refresh/requalification. PR #142 is closed unmerged and superseded by #145; PR #143 is closed unmerged and its surviving unique guidance has moved to #149.
-7. **Execute broader release/recovery qualification.** Exercise blank-environment setup and actual recovery without converting rehearsal or simulation into release `PASS`.
-8. **Freeze the confirmatory live-evaluation protocol before outcome access.** Lock exact source, workload, model/configuration, evidence path, verifier policy, metrics and analysis.
-9. **Run fixed-model R0–R5, degradation and heterogeneous-routing studies.** Preserve all negative, rejected and `UNKNOWN` results.
-10. **Run staged live fault and soak campaigns.** 24h → 72h → 30-day only after shorter gates are clean.
-11. **Promote paper claims only from retained exact-source evidence.**
+1. **Close the independent-review governance gap.** Issue #144 remains open. Retain a genuinely independent post-merge technical review of the #151 merged surface. PR #146 is now rebuilt on exact current main and implements the fail-closed repository check; after independent acceptance, the active ruleset still needs a maintainer change so approving review count is at least one and the new status is required.
+2. **Obtain fresh real-account provider evidence.** Run Puter against exact deployed `main@f2d58e77...`. Automated/provider-browser `PASS` is test-double/contract evidence only. Preserve live `PASS`, `FAIL` or `UNKNOWN` exactly.
+3. **Finish current-main WebVM acceptance repair #153.** It consolidates the closed-unmerged #140/#150 repairs into four harness files on current main. At the latest snapshot Factory ownership and Control Plane pass, Browser VM Demo/Pages are in progress, and several workflows are queued. Require complete exact-head qualification plus genuinely independent review before integration. Then refresh/requalify #89; its retained historical Pages failure remains authoritative.
+4. **Continue Qualification v1 #152 without promoting partial evidence.** The draft adds a fail-closed qualification manifest, stateful exploration, DSM/fault evidence, mutation canaries, exact-wheel qualification, multi-browser journeys and soak/canary tooling. Its current workflow set is partial/in progress. Virtual-day stress is not elapsed soak; planned 24h/72h/30d workflows are not evidence until actually completed.
+5. **Quantify WebVM reliability.** Issues #120/#126 remain open. #145 avoids the known process-local Python timed-wait trigger, but the historical corruption family is not root-caused. Run a predefined retained repeated-run campaign before claiming an acceptable recurrence rate.
+6. **Resolve the protected M4 test-race lane.** PR #139 requires genuinely independent exact-head review, deliberate ownership-baseline handling and fresh qualification. Do not advance the protected pin merely to obtain green CI.
+7. **Refresh/requalify #134 only after the protected sequence.** Its historical partial evidence does not qualify it on current main.
+8. **Refresh older integration candidates after #151.** #118, #115, #131 and #149 were last qualified on pre-#151 main; those exact-head results remain historical only. #93 remains red because of its retained runtime-journal concurrency failure and protected dependency.
+9. **Execute broader release/recovery qualification.** Exercise blank-environment setup and actual recovery without converting rehearsal or simulation into release `PASS`.
+10. **Freeze confirmatory evaluation before outcome access.** Lock exact source, workload, model/configuration, evidence path, verifier policy, metrics and analysis.
+11. **Run fixed-model R0–R5, degradation and heterogeneous-routing studies.** Preserve negative, rejected and `UNKNOWN` results.
+12. **Run staged live fault and soak campaigns.** 24h → 72h → 30-day only after shorter gates are clean.
+13. **Promote paper claims only from retained exact-source evidence.**
 
 ## Claim discipline
 
@@ -55,6 +55,7 @@ This does not establish independent review, live Puter quality or long-run WebVM
 - `BLOCKED` means a required capability/gate could not validly execute; it is not `PASS`.
 - Green automated provider/browser tests do not imply successful real-account provider inference.
 - A merged change with no independent submitted review does not retroactively acquire independent acceptance from CI.
+- Candidate qualification before a later `main` merge remains historical until the candidate is refreshed/requalified.
 
 ## Historical implementation material
 
