@@ -16,6 +16,7 @@ import re
 import stat
 import time
 
+from residual.core import ContractError
 from . import browser_build, browser_run
 from .runner import MAX_REQUEST, read_json
 
@@ -25,6 +26,8 @@ READY = "RESIDUAL_WORKER_READY"
 RUN_PREFIX = "RESIDUAL_WORKER_RUN_"
 FATAL_PREFIX = "RESIDUAL_WORKER_FATAL_"
 REJECTED = "RESIDUAL_WORKER_REJECTED:64"
+STOPPED = "RESIDUAL_WORKER_STOPPED"
+SHUTDOWN = "shutdown"
 
 
 def parse_command(line: str) -> tuple[str, str]:
@@ -49,7 +52,7 @@ def _request(mailbox: Path, mission_id: str, mode: str):
         try:
             request = read_json(path, MAX_REQUEST)
             break
-        except (FileNotFoundError, OSError, ValueError, TypeError, UnicodeError):
+        except (FileNotFoundError, OSError, ValueError, TypeError, UnicodeError, ContractError):
             if time.monotonic() >= deadline:
                 raise ValueError("mission request not visible") from None
             time.sleep(0.05)
@@ -88,10 +91,13 @@ def serve(*, fifo: Path, pid_file: Path, mailbox: Path, root: Path, output_root:
     print(READY, flush=True)
     try:
         while True:
-            # A shell builtin opens/writes/closes the FIFO once per mission.
+            # A shell builtin opens/writes/closes the FIFO once per request.
             # Reopen after EOF so the worker process itself stays alive.
             with fifo.open("r", encoding="ascii", errors="strict") as stream:
                 for line in stream:
+                    if line.strip() == SHUTDOWN:
+                        print(STOPPED, flush=True)
+                        return 0
                     try:
                         mission_id, mode = parse_command(line)
                     except (ValueError, UnicodeError):
@@ -102,7 +108,7 @@ def serve(*, fifo: Path, pid_file: Path, mailbox: Path, root: Path, output_root:
                             mission_id, mode, mailbox=mailbox, root=root,
                             output_root=output_root,
                         )
-                    except (OSError, ValueError, TypeError, KeyError):
+                    except (OSError, ValueError, TypeError, KeyError, ContractError):
                         # Request/transport admission failed before a trustworthy
                         # workbench result existed. Keep the worker alive and
                         # expose only a fixed status marker, never raw exception text.
