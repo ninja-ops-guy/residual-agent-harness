@@ -44,9 +44,11 @@ The original harness provides obligation DAGs, immutable evidence snapshots, ver
 
 `FAIL`, `UNKNOWN`, malformed output, verifier exceptions, provider errors and abstention never silently become success.
 
-### Command Station
+### Command Station and Mission Control
 
 Command Station exposes the harness as a self-hosted operations console with mission/spec import, run control, local/cloud execution, provider routing, observation traces, model management, HITL hooks, security inspection, downloadable evidence and source-release packaging.
+
+The browser Mission Control path supports multi-turn artifact conversations, explicit parent lineage, isolated previews, browser-local conversation restoration, optional provider connection, typed provider-failure reporting and real-guest acceptance checks. Generated preview artifacts remain outside repository mutation authority; repository-changing autonomous work still belongs behind Factory/M4 controls.
 
 Provider paths include OpenAI, OpenAI-compatible endpoints, Anthropic, Gemini, Azure, Bedrock and Ollama through bounded adapters. Local-first execution and cloud escalation are policy decisions rather than architectural assumptions.
 
@@ -66,11 +68,15 @@ The Factory runtime extends RESIDUAL into multi-worker execution:
 - sandbox/red-team, crypto, connector-conformance, SLO/alert and observability layers;
 - Studio/operator surfaces and executable onboarding paths.
 
-M2/M3/M4 are no longer paper-only concepts: the canonical implementations live under `residual/factory/` and related platform packages. However, **current M4 is not yet fully qualified for live/paper-facing claims**; issue #63 tracks accepted-tree binding, filesystem/link safety, verifier execution isolation and Git-evidence semantics that must be closed first.
+M2/M3/M4 are no longer paper-only concepts: the canonical implementations live under `residual/factory/` and related platform packages. The four original M4 trust-boundary defects tracked by issue #63 are closed, and the deterministic sandbox-timing/termination repair from PR #108 is merged.
+
+PR #109 is now also merged on accepted `main`. The accepted tree at **`22a5bae54ec12987ffd7a90d881fb4533c9b4b97`** received a fresh push-triggered capable-runner M4 qualification in run **`35036589940`** on Ubuntu 22.04 / Python 3.12.14: `blocked_capabilities` was empty, all 12 prerequisite capability checks passed, actual execution under `linux-userns-isolated-v1` passed, and **142 test cases plus 84 subtests passed with zero skips**. Retained artifact **`10423467722`** has ZIP SHA-256 **`18fbc15c5fb8b6dd2e1984e55a131530f38b0ea96860d1b86ccaf7d5a5812922`**.
+
+That is exact-tree qualification of the named M4 boundary on the named capable runner. It is **not** blanket production readiness, qualification of every host/kernel, release/recovery completion, elapsed soak evidence, live-model reliability evidence, or proof of the research hypothesis.
 
 ### Evaluation and soak infrastructure
 
-`residual/eval/` now provides the main frozen reliability-evaluation apparatus:
+`residual/eval/` provides the main frozen reliability-evaluation apparatus:
 
 - immutable hash-locked `FrozenWorkload` sets;
 - repeated configuration runs;
@@ -97,22 +103,26 @@ The project also contains soak infrastructure, but long-duration live qualificat
 
 ## Current status and qualification boundary
 
-A major integrated milestone at `412b66c35f7c0e1ac479fe60a5b7d33d5510e3af` recorded **1,033 tests plus 166 subtests green** with verifier v2 green and protected-path ownership checks. That evidence applies to that exact tree.
+Current accepted `main` is **`22a5bae54ec12987ffd7a90d881fb4533c9b4b97`**, the merge of PR #109. The merged tree is **`39599b2296fa8865ab1e0dabae333b9b6f933da8`**, the same source tree that had already passed the final pre-merge candidate qualification, and it has now also passed the fresh accepted-main M4 run described above.
 
-Current `main` has advanced beyond that point. Before starting paper-facing live reliability evaluation, the priority gates are:
+Other exact-main push workflows checked after the merge are green for Factory ownership, measured-evaluation binding, clean-install qualification, Command Station and controller/provider contracts. The exact-main Pages/WebVM run **`35036589868`** also completed **PASS**, including deployment, real guest execution and desktop/narrow browser acceptance. This clears the exact-revision deployment gate; it does not establish a long-run production failure rate.
 
-1. close **#63** — harden/qualify the current M4 trust boundary;
-2. close **#48** — reconcile stale `implementation-status.yaml` and regenerate the generated status document;
-3. classify the retained timing-sensitive Factory OS fail-then-pass behavior;
-4. freeze the live evaluation protocol before observing model results;
+Recent accepted WebVM/workbench milestones include PR #122 (real-provider reliability/UX), PR #124 (narrow immutable disk-chunk recovery), PR #125 (provider completion marker), and PR #127 (guest-shell mission dispatch). These are disjoint from Factory/M4 authority. Issue #120 remains open because intermittent WebVM delivery/guest-runtime failures must be measured over repeated runs rather than erased by a successful rerun or a single hardening patch.
+
+Before paper-facing live reliability evaluation, the priority gates are now:
+
+1. complete exact-head CI and independent technical review for the refreshed runtime/DSM closure candidate in PR #118 before integration;
+2. independently review the refreshed release-preparation candidate in PR #115, then execute blank-environment and recovery qualification on the accepted tree without broadening fixture claims;
+3. quantify WebVM reliability with a defined repeated-run campaign while issue #120 remains open;
+4. freeze the live evaluation protocol before observing confirmatory model results;
 5. run one fixed live model across R0–R5 and measure raw correctness, acceptance coverage, accepted correctness, AER/ASSR, latency, throughput and cost;
 6. only then progress to model-degradation, heterogeneous-routing and 24h → 72h → 30-day soak studies.
 
-See [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md) for the detailed current-state map and claim boundaries.
-
 ## Important traceability note
 
-`implementation-status.yaml` and `docs/status/IMPLEMENTATION_STATUS.md` currently contain stale pre-merge entries that still mark M2, M3, M4 and EVAL as `not_started`. That documentation drift is tracked by issue #48. Until it is reconciled, do **not** use those four generated rows as current-state evidence; use the exact code/tests, open qualification issues and [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md).
+Issue #48 is closed. `implementation-status.yaml` and its generated status documentation have been reconciled with the merged Factory/evaluation tree; M2, M3, M4 and EVAL are no longer represented by the old stale `not_started` rows.
+
+The manifest records **implementation status**, not production qualification. An `implemented` or `implemented_unverified` family does not convert missing release, recovery, live-provider, soak or research evidence into a pass.
 
 ## Quick start
 
@@ -227,7 +237,7 @@ Exact Factory/research claims should additionally retain commit/tree identity an
 
 RESIDUAL is an implemented research and engineering platform, not a universal proof system. A verifier proves only what its contract and evidence allow it to check. Receipts are evidence of checked acceptance under stated conditions, not certificates of arbitrary truth. Plugins and host integrations remain trusted code unless explicitly isolated by another boundary.
 
-The project does not currently claim a universal verifier, universally optimal scheduler, new foundation model, guaranteed token savings, guaranteed quality preservation, blanket production readiness, live proof of the central reliability hypothesis, or first-in-literature status.
+The project does not currently claim a universal verifier, universally optimal scheduler, new foundation model, guaranteed token savings, guaranteed quality preservation, blanket production readiness, namespace-qualified M4 on every supported host, completed release/recovery qualification, live proof of the central reliability hypothesis, completed long-duration soak, or first-in-literature status.
 
 ---
 

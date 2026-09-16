@@ -1,83 +1,137 @@
 # RESIDUAL current status
 
-_Implementation snapshot: 2026-09-14 at `5b89be1014de5e648f76a2bb8ada920871719f03`; live-evaluation gate correction checked against merged `main` at `90dd2f40bff916e8b50d1777bf35debc511e996f`._
+_Current-state check: 2026-09-15 against accepted `main` at `22a5bae54ec12987ffd7a90d881fb4533c9b4b97`._
 
-This page is the human-readable current-state summary for RESIDUAL. Historical roadmap documents and generated implementation tables may lag active integration work; when they disagree with this page, follow the code, tests, open qualification issues, and the machine-readable evidence produced by the current tree.
+This is the human-readable current-state summary for RESIDUAL. Exact code, exact-tree tests and retained machine-readable evidence remain more authoritative than prose. Historical results apply only to the revisions they name.
 
 ## Executive summary
 
-RESIDUAL has evolved from a verification-oriented agent harness into an evidence-first reliability and control plane for heterogeneous AI computation. The platform now spans requirement compilation, bounded execution, evidence/receipt handling, deterministic integration, cluster execution, lifecycle recovery, evaluation, observability, crypto/hardening, and operator-facing surfaces.
+RESIDUAL is an evidence-first reliability and control plane for heterogeneous AI computation. The platform spans requirement compilation, bounded worker execution, evidence/receipt handling, deterministic integration, lifecycle recovery, evaluation, observability and operator-facing surfaces.
 
 The central systems hypothesis remains:
 
 > AI reliability does not necessarily require making individual models reliable. Reliability can emerge from constraining, observing, verifying, and deterministically integrating unreliable computation.
 
-The repository contains substantial implementation and development evidence for the mechanisms required to test that hypothesis. It does **not** yet claim that the hypothesis has been proven on live heterogeneous model workloads.
+The repository contains substantial implementation and development evidence for the mechanisms required to test that hypothesis. It does **not** yet claim that the hypothesis has been proven on live heterogeneous model workloads, that WebVM hardening has established an acceptable long-run failure rate, that release/recovery qualification is complete, or that production soak targets have been met.
+
+## Accepted main
+
+Current accepted `main` is **`22a5bae54ec12987ffd7a90d881fb4533c9b4b97`**, the merge of PR #109. Its tree is **`39599b2296fa8865ab1e0dabae333b9b6f933da8`**.
+
+Important accepted milestones on the current tree:
+
+- **PR #108 / `0430f2fa...`** — deterministic sandbox-timing and termination repair: lease tri-state semantics, one wall-clock deadline owner, bounded lease-read contention, pending-reap ownership/recovery, typed timeout outcomes and receipt-v2 compatibility preservation.
+- **PR #121 / `1a52e9a2...`** — provenance-only finalization of the Factory ownership anchor after #108.
+- **PR #122 / `bc8b783d...`** — Mission Control real-provider reliability/UX hardening.
+- **PR #124 / `9d88195a...`** — narrowly scoped WebVM recovery for transient same-origin immutable disk-chunk failures.
+- **PR #125 / `70e701d5...`** — provider completion-marker publication on the WebVM/workbench surface.
+- **PR #127 / `7cf45ea8...`** — guest-shell dispatch for WebVM workbench missions.
+- **PR #109 / `22a5bae5...`** — M4 qualification runner prerequisites, protected lifecycle CLI-process repair, reviewed one-pin ownership advancement, and the capable-runner zero-skip qualification path now merged into accepted `main`.
+
+Issue #63 is closed: its accepted-tree, filesystem/link, verifier-isolation and Git-evidence implementation defects are no longer the active M4 blocker. Issue #48 is closed: `implementation-status.yaml` has been reconciled with the merged Factory/evaluation implementation.
+
+## Accepted-main M4 qualification
+
+The accepted main tree has now received a fresh post-merge capable-runner qualification rather than relying only on the pre-merge synthetic candidate.
+
+Push-triggered M4 run **`35036589940`** checked exact revision **`22a5bae54ec12987ffd7a90d881fb4533c9b4b97`** on Ubuntu 22.04 / Python 3.12.14 and completed **PASS**:
+
+- `blocked_capabilities` was empty;
+- all 12 prerequisite capability checks passed;
+- the composite sandbox profile reported `linux-userns-isolated-v1:ok`;
+- actual isolated execution returned status `pass`, reason `exit`, return code `0`, and boundary `linux-userns-isolated-v1`;
+- **142 pytest cases passed**;
+- **84 subtests passed**;
+- the zero-skip qualification assertion passed;
+- retained artifact **`10423467722`** has ZIP SHA-256 **`18fbc15c5fb8b6dd2e1984e55a131530f38b0ea96860d1b86ccaf7d5a5812922`**.
+
+The current accepted tree is the same tree hash (`39599b2296fa...`) as the final pre-merge #109 candidate, and the fresh push run independently confirms the merged revision.
+
+This is a real exact-tree M4 qualification result for the named runner/environment. It does **not** imply that every supported host is namespace-capable, that ordinary Ubuntu 24.04 capability skips are passes, or that release/recovery, soak, live-model or research gates are complete.
+
+## Current CI state
+
+At the latest exact-main snapshot after the #109 merge:
+
+- Factory ownership: **PASS**;
+- measured-evaluation acceptance binding: **PASS**;
+- clean-install qualification: **PASS**;
+- Command Station checks: **PASS**;
+- controller/provider contracts: **PASS**;
+- capable-runner M4 qualification: **PASS**;
+- exact-main Pages/WebVM run **`35036589868`**: **PASS**, including deployment, real guest execution and desktop/narrow browser acceptance.
+
+This clears the exact-revision deployment gate. It does **not** establish an acceptable long-run production failure rate; issue #120 remains the reliability tracker and historical failed attempts remain evidence.
+
+## Mission Control / WebVM reliability boundary
+
+The WebVM/workbench surface has materially improved through PRs #122, #124, #125 and #127. These changes remain disjoint from Factory/M4 authority and shared evidence schemas.
+
+Issue #120 remains the operational-reliability tracker for intermittent Pages/WebVM delivery and guest-runtime failures. Historical failed attempts remain evidence even when unchanged reruns pass. A successful exact-revision browser acceptance demonstrates that revision under that run; it does not establish an empirical long-run production failure rate.
+
+The project should continue to retain each recurrence with revision, run/attempt, stage and artifact identity. Hardening must not silently broaden retries to security-relevant or semantically different failure classes.
 
 ## Current implementation map
 
 | Area | Current state | Evidence / qualification boundary |
 | --- | --- | --- |
-| Core harness | Implemented | Goal contracts, verifier-defined acceptance, brakes, residual delegation, receipts, cache binding, trace/audit surfaces and provider routing are covered by the existing test corpus. |
-| Command Station | Implemented research/operations surface | Self-hosted run control, model/provider management, observations, HITL hooks, evidence download and operational UI are present. Deployment-specific production readiness still depends on the environment. |
-| Factory M2 — worker contract/runtime | Implemented | Real `WorkerContract`, bounded worker runtime, isolated worktrees, journaled observations, host-owned termination and sandbox enforcement exist under `residual/factory/`. Development fault-containment work has exercised real OS boundaries. |
-| Factory M3 — evidence bus/receipts | Implemented | Station-issued receipts, artifact binding, evidence-bus handoff and signature/integrity checks exist. Trust is enforced at the trusted consumption/admission boundary, not merely because bytes were stored. |
-| Factory M4 — deterministic integration/scheduler | Implemented but **not yet fully qualified for live claims** | Deterministic integration and scheduler code exist. Issue #63 tracks remaining accepted-tree binding, filesystem/link safety, verifier-execution isolation, and missing-Git-evidence semantics that must be closed before treating current M4 as a fully hardened trust boundary. |
-| Evaluation | Implemented | `residual/eval/` contains hash-locked `FrozenWorkload`, repeated-run execution, ablations, reporting, statistics, fault injection and measured Factory evaluation hooks. Live provider/model evidence remains the next research gate; the measured-evidence adapter in PR #71 still needs correction and independent requalification. |
-| Sandbox / red team | Implemented development surface | Bubblewrap/namespace/rlimit paths plus live containment tests and a receipted red-team corpus are present. cgroup-v2-specific enforcement depends on host capability. |
-| Cluster / distributed execution | Implemented development surface | Versioned wire schema, authenticated join/leave, heartbeats, task reassignment, local-first routing and cluster CLI exist. Some optional network transports degrade gracefully when optional dependencies are absent. |
-| Orchestration | Implemented | Intent schema, requirement DAG construction, ambiguity detection, deterministic plan hashes, partitioning and HITL approval gating exist. |
-| Lifecycle / gateway | Implemented | Deny-by-default side-effect gateway, lifecycle glue and deterministic resume/recovery mechanisms exist. |
-| Hardening / observability | Implemented development surface | KMS abstraction, encrypted backup/rotation, connector conformance, SLO/alert plumbing, trace↔receipt correlation, metrics and async I/O are present. |
-| Studio / product surfaces | Implemented development surface | No-build Studio frontend, evidence/requirement/swarm views and onboarding/demo paths exist. Some frontend contracts are intentionally local stubs around protected runtime interfaces. |
-| Research / reproducibility | Active | The IEEE-style paper, controlled evaluation framework, fault-containment experiments and claim/evidence discipline are in place. Live R0–R5 measurements are still required for the central empirical claim. |
+| Core harness | Implemented | Goal contracts, verifier-defined acceptance, brakes, residual delegation, receipts, cache binding, trace/audit surfaces and provider routing are covered by the repository test corpus. |
+| Command Station | Implemented research/operations surface | Self-hosted run control, model/provider management, observations, HITL hooks, evidence download and operational UI exist. Deployment-specific production readiness remains environment-dependent. |
+| Mission Control / WebVM | Implemented product/demo surface | Multi-turn artifact conversations, verified parent lineage, isolated preview, browser-local restoration, optional-provider transport, typed provider failures and bounded disk-chunk recovery exist. Issue #120 remains the reliability tracker. |
+| Factory M2 — worker contract/runtime | Implemented | Real `WorkerContract`, bounded worker runtime, isolated worktrees, journaled observations, host-owned termination and sandbox enforcement exist. |
+| Factory M3 — evidence bus/receipts | Implemented | Station-issued receipts, artifact binding, evidence-bus handoff and signature/integrity checks exist. |
+| Factory M4 — deterministic integration/scheduler | Implemented; **accepted-main capable-runner qualified** | #63 implementation gaps and #108 timing repair are merged. Accepted main `22a5bae...` passed all prerequisite probes, actual isolated execution and a zero-skip 142-case + 84-subtest M4 suite on the named Ubuntu 22.04 runner. This is not every-host or production qualification. |
+| Evaluation | Implemented development/research apparatus | Hash-locked workloads, repeated runs, ablations, reporting, statistics, fault injection and measured Factory hooks exist. CI binding is not live research evidence. |
+| Sandbox / red team | Implemented development surface | Namespace/rlimit/bubblewrap paths and adversarial tests exist. Host capability still determines whether specific kernel isolation paths can be qualified. |
+| Cluster / distributed execution | Implemented development surface | Versioned wire schema, authenticated membership, heartbeats, task reassignment, local-first routing and cluster CLI exist. Distributed guarantees remain narrower than fixture behavior. |
+| Lifecycle / gateway | Implemented | Deny-by-default side-effect gateway, lifecycle glue and deterministic resume/recovery mechanisms exist. Release/recovery qualification remains downstream. |
+| Hardening / observability | Implemented development surface | KMS abstraction, backup/rotation, connector conformance, SLO/alert plumbing, trace↔receipt correlation, metrics and async I/O are present. |
+| Research / reproducibility | Active | Working paper, controlled-evaluation framework, claim/evidence discipline and fault-containment tooling exist. Live R0–R5 and soak remain future evidence gates. |
 
-## Verified integration milestone
+## M4 claim boundary
 
-The large swarm integration milestone at commit `412b66c35f7c0e1ac479fe60a5b7d33d5510e3af` recorded a merged-tree verifier pass with:
+### Closed implementation work
 
-- 1,033 tests plus 166 subtests green;
-- verifier v2 green;
-- machine-checked ownership protection for M2–M4 paths;
-- prior failed verifier attempts retained rather than overwritten.
+The merged M4 path contains reviewed mechanisms for:
 
-`main` has advanced substantially beyond that commit. Those results remain valid evidence for that exact tree only; later commits do not automatically inherit them.
+- verified-tree/accepted-tree binding;
+- descriptor-relative/non-following filesystem handling and link/race defenses;
+- bounded verifier execution with explicit isolation semantics;
+- fail-closed Git evidence semantics where unavailable/incomparable evidence is not silently treated as absence;
+- deterministic timeout typing and preserved receipt-v2 signed serialization;
+- lease uncertainty distinct from revocation;
+- host-owned termination provenance and pending-reap recovery;
+- fail-closed capable-runner prerequisite probing and zero-skip qualification.
 
-## Current qualification blockers
+PR #108's retained contention evidence supports its named timing/termination tests under its measured conditions. It does not prove arbitrary workloads, every host or elapsed soak.
 
-### 1. M4 trust-boundary hardening — issue #63
+### Qualification state
 
-Before live qualification or paper-facing claims depend on current M4, close the following:
+Namespace-dependent M4 tests that skip because a host cannot provide the required isolation capability remain **UNKNOWN/BLOCKED**, not PASS. Earlier Ubuntu 24.04 hosted attempts remain retained BLOCKED evidence.
 
-1. **Accepted-tree binding:** verify and accept the same artifact tree, or explicitly authorize and re-verify any transformation.
-2. **Filesystem/link safety:** use non-following, descriptor-relative access with explicit regular-file/link policies and race-resistant handling.
-3. **Verifier execution isolation:** candidate-dependent project verification must run under a bounded verification execution boundary instead of inheriting unrestricted host authority.
-4. **Git evidence semantics:** distinguish proven absence from unavailable/corrupt/incomparable Git evidence; missing evidence must remain `UNKNOWN`/error, not silently become absence.
+The authoritative current accepted-main capable-runner result is run **`35036589940`** for revision `22a5bae...`: capability report PASS, isolated execution PASS, 142 tests + 84 subtests PASS, zero skips.
 
-### 2. Traceability reconciliation — issue #48
+Ubuntu 22.04 is a temporary compatibility target and still needs a migration path. The current result qualifies the named boundary on the named environment; it does not complete release, recovery, soak or research gates.
 
-`implementation-status.yaml` and the generated `docs/status/IMPLEMENTATION_STATUS.md` still contain pre-merge entries marking M2, M3, M4 and EVAL as `not_started`. That is stale relative to the current tree. Do not use those four entries as current-state evidence until #48 is reconciled and the generated status document is rebuilt from the corrected manifest.
+## Traceability status
 
-### 3. Clean-install qualification
+Issue #48 is closed. `implementation-status.yaml` is the machine-readable implementation manifest and includes implemented M2/M3/M4/EVAL families rather than the previous stale `not_started` rows. Its generated status document is derived from that manifest.
 
-A hardened clean-install qualification stack was developed with isolated wheel installation, `pip check`, `python -I`, installed CLI smoke tests, asset checks, Python 3.11/3.12/3.13 coverage and retained artifacts. Its branch validation also exposed two timing-sensitive Factory OS tests that failed once and passed unchanged on rerun. Treat that as unresolved reproducibility evidence until the race/flakiness source is classified rather than hiding it behind retries.
-
-### 4. Measured-evidence provenance — PR #71
-
-The reviewed Factory evaluation adapter has four unresolved integrity gaps: replayed evidence can count as independent repetitions; scheduler topology is not authenticated and bound to the run; measured task populations can differ from the frozen workload; and arbitrary verifier-boundary labels can be accepted when signed. Correct and requalify this path before using it for confirmatory data. Require fresh execution identities, replay rejection, authenticated run-bound scheduler evidence, an exact approved task mapping, and an independently qualified verifier policy/boundary. A recovered run is not a new repetition.
-
-This is separate from M4 isolation (#63), traceability (#48), and timing reproducibility. A protocol may instead explicitly exclude PR #71's adapter and qualify a different evidence path under the [live evaluation gate](evaluation.md#live-evaluation-gate); closing the other issues alone does not clear live evaluation.
+This reconciliation fixes implementation traceability; it does **not** promote implementation into live production or research qualification. Read status values together with exact-tree evidence and explicit non-claims.
 
 ## Research status
 
-### What is supported today
+### Supported today
 
-- The architecture cleanly separates generation authority from acceptance authority.
-- Bounded worker execution, evidence capture, independent verification and deterministic integration are implemented mechanisms rather than paper-only abstractions.
-- Controlled fault-containment work has exercised M2, M3 and M4 boundaries in development fixtures.
-- The repository contains an evaluation framework capable of preserving raw observations and recomputing paper-facing metrics.
+- Generation authority is separated from acceptance authority.
+- Bounded worker execution, evidence capture, independent verification and deterministic integration are implemented mechanisms.
+- The protected M4 implementation gaps tracked by #63 are closed, and #108's timing/termination repair is merged.
+- Accepted `main` now has a fresh capable-runner zero-skip M4 PASS under the named runner/environment.
+- The repository contains evaluation machinery capable of preserving raw observations and recomputing paper-facing metrics.
+- Mission Control exercises real guest workflows and optional provider transport while retaining explicit non-claims around semantic correctness and authority.
+- WebVM contains a narrowly scoped recovery path for the retained immutable disk-chunk transient-failure class.
 
-### What is not yet supported
+### Not yet supported
 
 The project does not yet claim, for live heterogeneous models, that:
 
@@ -85,32 +139,32 @@ The project does not yet claim, for live heterogeneous models, that:
 - the gain remains useful at nontrivial acceptance coverage;
 - the reliability gain is worth the orchestration tax in cost/latency/throughput;
 - lower-cost or weaker workers can be substituted without unacceptable verifier false-acceptance risk;
+- WebVM hardening has established an acceptable empirical recurrence rate;
+- release/recovery qualification is complete;
 - 24-hour, 72-hour or 30-day production soak targets have been satisfied.
 
-## Next gates
+## Current blockers and next gates
 
 The recommended order is:
 
-1. Close #63 and requalify the exact current M4 tree.
-2. Close #48 and regenerate the implementation-status documentation.
-3. Classify and fix the timing-sensitive Factory OS reproducibility failures.
-4. Correct and requalify PR #71's measured-evidence path, or explicitly exclude it and independently qualify the alternative specified by the live protocol.
-5. Freeze the live evaluation protocol, selected evidence path and workload before seeing model results.
-6. Run one fixed live model across R0–R5 configurations to measure `P(X)`, `P(A)`, `P(X|A)`, AER, ASSR, latency, throughput and cost.
-7. Run model-degradation and heterogeneous-routing studies.
-8. Run fault campaigns under live execution.
-9. Progress through 24-hour → 72-hour → 30-day soak only after shorter qualification gates are clean.
-10. Update the paper from retained artifacts only.
+1. **Review and integrate the refreshed runtime/DSM closure candidate.** PR #118 is based on accepted `main`; require terminal exact-head CI and independent technical acceptance before merge.
+2. **Review release preparation, then run release/recovery qualification.** PR #115 is refreshed onto accepted `main` with green procedure CI, but its implementer evidence still requires independent review. Exercise blank-environment setup, recovery and retained-evidence procedures without broadening fixture claims.
+3. **Quantify WebVM reliability.** Keep issue #120 open, retain every failed attempt, and run a defined repeated-run campaign; individual successful runs are not a production recurrence rate.
+4. **Freeze the live evaluation protocol.** Lock workload, evidence path, metrics, model/configuration and analysis choices before confirmatory model results.
+5. **Run one fixed live model across R0–R5.** Measure `P(X)`, `P(A)`, `P(X|A)`, AER/ASSR, verifier false acceptance/rejection/`UNKNOWN`, latency, throughput and cost.
+6. **Run model-degradation and heterogeneous-routing studies.** Preserve negative results and denominator discipline.
+7. **Progress through 24-hour → 72-hour → 30-day soak** only after shorter gates are clean.
+8. **Update the paper from retained artifacts only.** Do not present synthetic, historical or fixture evidence as live current-tree evidence.
 
 ## Documentation authority
 
-Use the following order when determining current truth:
+Use this order when determining current truth:
 
 1. exact code at the commit being discussed;
 2. tests, verifier output and retained machine-readable artifacts for that exact commit;
-3. open qualification/security issues that narrow claims;
+3. open qualification/security/reliability issues that narrow claims;
 4. this current-status document;
-5. generated implementation-status/roadmap summaries once they are reconciled;
-6. historical specs and snapshots for design intent, not current implementation claims.
+5. `implementation-status.yaml` and generated implementation summary for traceability;
+6. historical specs/snapshots for design intent, not current implementation claims.
 
-RESIDUAL's strongest claim is architectural until the live evaluation is complete: unreliable computation may be useful if its authority is constrained, its behavior is observable, its outputs are independently checked, and only evidence-backed results are allowed to become accepted state.
+RESIDUAL's strongest research claim remains architectural until live evaluation is complete: unreliable computation may be useful if its authority is constrained, its behavior is observable, its outputs are independently checked, and only evidence-backed results are allowed to become accepted state.
