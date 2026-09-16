@@ -190,17 +190,17 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
 
 
 class PersistentWorkerHostTimeoutTests(unittest.TestCase):
-    def test_startup_and_mission_timeouts_terminate_only_verified_worker(self):
+    def test_startup_and_mission_timeouts_use_durable_recovery_helper(self):
         root = Path(__file__).resolve().parents[1]
         source = (root / 'demo/vm/install_workbench.py').read_text(encoding='utf-8')
-        self.assertIn('function terminateResidualWorker()', source)
-        self.assertGreaterEqual(source.count('terminateResidualWorker();'), 2)
-        self.assertIn('kill -KILL "$residual_worker_pid"', source)
-        self.assertIn('[ ! -L /tmp/residual-workbench.pid ]', source)
-        self.assertIn('[ -O /tmp/residual-workbench.pid ]', source)
-        self.assertIn("mapfile -d '' residual_worker_argv", source)
-        self.assertIn(r'\${residual_worker_argv[2]-}', source)
-        self.assertIn('residual.workbench.browser_worker', source)
+        self.assertIn('async function terminateResidualWorker(missionId = "")', source)
+        self.assertGreaterEqual(source.count('await terminateResidualWorker('), 2)
+        self.assertIn('bash /opt/residual/demo/vm/terminate_worker.sh', source)
+        self.assertIn('RESIDUAL_WORKER_TERMINATED_', source)
+        self.assertIn('/opt/residual/runs/missions/.worker-poisoned', source)
+        self.assertIn('RESIDUAL_WORKER_POISONED', source)
+        self.assertIn('residual_worker_launch_pid=$!', source)
+        self.assertIn('Persistent guest mission timed out; termination status', source)
 
 
 if __name__ == '__main__':
