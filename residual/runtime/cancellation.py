@@ -4,6 +4,13 @@
 tracked worker process group within the configured budget. Outcomes are
 fail-closed: any surviving task or live process-group member makes the report
 ``cancelled=False``.
+
+POSIX group cancellation is a component-level primitive, not production worker
+wiring. A supplied process-group id is accepted only for a dedicated session
+created by the tracked leader (PID == PGID == SID at registration). This blocks
+callers from granting signal authority over an arbitrary existing process group.
+A cgroup or equivalent stable ownership boundary is still required before making
+a stronger cross-process/host ownership claim.
 """
 from __future__ import annotations
 
@@ -58,20 +65,46 @@ class CancellationController:
         task.add_done_callback(forget)
         return task
 
+    @staticmethod
+    def _validate_group_registration(process: Any, process_group_id: int) -> None:
+        """Require a dedicated POSIX session led by the tracked process.
+
+        The controller may need to terminate descendants after the leader exits,
+        so accepting an arbitrary caller-supplied PGID would grant signal
+        authority without proving ownership. Requiring PID == PGID == SID at
+        registration pins the authority to a session created by this leader.
+        """
+        if os.name != "posix" or not hasattr(os, "getpgid") or not hasattr(os, "getsid"):
+            raise ValueError("process-group cancellation requires POSIX session identity")
+        pid = getattr(process, "pid", None)
+        if not isinstance(pid, int) or isinstance(pid, bool) or pid <= 0:
+            raise ValueError("tracked process must expose a positive pid")
+        if pid != process_group_id:
+            raise ValueError("process_group_id must equal the tracked process pid")
+        try:
+            actual_group = os.getpgid(pid)
+            actual_session = os.getsid(pid)
+        except ProcessLookupError as exc:
+            raise ValueError("tracked process exited before group ownership was verified") from exc
+        if actual_group != process_group_id or actual_session != process_group_id:
+            raise ValueError("tracked process must lead a dedicated POSIX session/process group")
+
     def track_process(self, process: Any, *, name: str,
                       process_group_id: int | None = None) -> Any:
         """Track one worker process and, when supplied, its owned POSIX group.
 
-        The caller must create the process group/session; this controller never
-        guesses group ownership from a PID. A group id is therefore explicit
-        authority to signal that group during abort.
+        The caller must create a dedicated session (for example with
+        ``start_new_session=True``). The controller never guesses group
+        ownership from an unrelated PID and refuses arbitrary group ids.
         """
         if not name:
             raise ValueError("process name is required")
         if name in self._processes and self._processes[name] != (process, process_group_id):
             raise ValueError(f"process name already tracked: {name}")
-        if process_group_id is not None and (not isinstance(process_group_id, int) or process_group_id <= 0):
-            raise ValueError("process_group_id must be a positive integer")
+        if process_group_id is not None:
+            if not isinstance(process_group_id, int) or isinstance(process_group_id, bool) or process_group_id <= 0:
+                raise ValueError("process_group_id must be a positive integer")
+            self._validate_group_registration(process, process_group_id)
         self._processes[name] = (process, process_group_id)
         return process
 
