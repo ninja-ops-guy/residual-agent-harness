@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import signal
 import sys
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
@@ -83,6 +84,27 @@ def test_foreign_proc_namespace_uses_process_api():
         assert not CancellationController._group_has_live_members(999)
         scan.assert_not_called()
         probe.assert_called_once_with(999, 0)
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX group ownership validation")
+def test_process_group_registration_requires_dedicated_session_leader():
+    controller = CancellationController(CancellationBudget(1))
+    process = SimpleNamespace(pid=321, returncode=None)
+
+    with patch("residual.runtime.cancellation.os.getpgid", return_value=321), \
+            patch("residual.runtime.cancellation.os.getsid", return_value=321):
+        controller.track_process(process, name="owned", process_group_id=321)
+    assert controller._processes["owned"] == (process, 321)
+
+    other = SimpleNamespace(pid=400, returncode=None)
+    with pytest.raises(ValueError, match="must equal"):
+        controller.track_process(other, name="wrong-id", process_group_id=401)
+
+    with patch("residual.runtime.cancellation.os.getpgid", return_value=500), \
+            patch("residual.runtime.cancellation.os.getsid", return_value=777), \
+            pytest.raises(ValueError, match="dedicated POSIX session"):
+        controller.track_process(SimpleNamespace(pid=500, returncode=None),
+                                 name="foreign-session", process_group_id=500)
 
 
 @pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
