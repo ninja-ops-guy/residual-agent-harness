@@ -84,6 +84,26 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
             with self.assertRaises(TypeError):
                 browser_worker._dispatch_admitted(self.mid, 'audit', **kwargs)
 
+    def test_request_parse_typeerror_is_never_downgraded_to_admission(self):
+        # Both retained production corruptions surfaced as impossible TypeErrors
+        # from CPython internals. If one appears while read_json is executing, it
+        # must escape so serve() emits a fatal marker and terminates the worker.
+        with mock.patch.object(
+            browser_worker, 'read_json', side_effect=TypeError('impossible constructor return')
+        ):
+            with self.assertRaisesRegex(TypeError, 'impossible constructor return'):
+                browser_worker._request(self.mailbox, self.mid, 'audit')
+
+    def test_json_decode_failure_remains_typed_admission(self):
+        error = json.JSONDecodeError('partial request', '{', 1)
+        with (
+            mock.patch.object(browser_worker, 'read_json', side_effect=error),
+            mock.patch.object(browser_worker.time, 'monotonic', side_effect=[0.0, 3.0]),
+            mock.patch.object(browser_worker.time, 'sleep'),
+        ):
+            with self.assertRaises(browser_worker.RequestAdmissionError):
+                browser_worker._request(self.mailbox, self.mid, 'audit')
+
     @unittest.skipUnless(os.name == 'posix', 'PID-file safety uses POSIX no-follow/link semantics')
     def test_pid_file_never_follows_symlink_or_truncates_hardlink(self):
         sentinel = self.root / 'sentinel'
