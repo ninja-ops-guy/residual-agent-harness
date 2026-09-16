@@ -47,9 +47,13 @@ class WebVMSleepBackendTests(unittest.TestCase):
     def test_webvm_image_and_browser_proof_activate_and_cross_boundary(self):
         dockerfile = (ROOT / "demo/vm/Dockerfile").read_text(encoding="utf-8")
         smoke = (ROOT / "demo/vm/browser_smoke.py").read_text(encoding="utf-8")
+        self.assertIn(
+            "PYTHONUNBUFFERED=1 RESIDUAL_WEBVM_SLEEP_BACKEND=legacy-nanosleep",
+            dockerfile,
+        )
         self.assertIn("RESIDUAL_WEBVM_SLEEP_BACKEND=legacy-nanosleep", dockerfile)
         self.assertIn("webvm_sleep_backend_crosses_time64_boundary", smoke)
-        self.assertIn("range(300)", smoke)
+        self.assertIn("sleep(0.05) for _ in range(300)", smoke)
 
 
 if __name__ == "__main__":
