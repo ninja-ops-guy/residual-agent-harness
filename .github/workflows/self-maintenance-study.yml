@@ -1,0 +1,46 @@
+name: Self-maintenance study
+on:
+  push:
+    branches:
+      - research/self-maintenance-study-20260915
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  controlled-study:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install study dependencies
+        run: python -m pip install '.[factory]' pytest
+      - name: Run recursive-maintenance experiments
+        run: |
+          mkdir -p runs/self-maintenance-study
+          python -m pytest -q tests/test_self_maintenance_study.py \
+            --junitxml=runs/self-maintenance-study/junit.xml
+      - name: Record study identity
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os, platform, sys
+          from pathlib import Path
+          out = Path('runs/self-maintenance-study/metadata.json')
+          out.write_text(json.dumps({
+              'commit': os.environ.get('GITHUB_SHA'),
+              'ref': os.environ.get('GITHUB_REF'),
+              'python': sys.version,
+              'platform': platform.platform(),
+              'claim_scope': 'deterministic proof-of-mechanism; no live LLM competence claim'
+          }, indent=2))
+          PY
+      - name: Preserve study evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: self-maintenance-study
+          path: runs/self-maintenance-study/
+          if-no-files-found: error
+          retention-days: 30
