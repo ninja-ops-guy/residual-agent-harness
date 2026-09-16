@@ -150,7 +150,10 @@ class PersistentWorkerHostWiringTests(unittest.TestCase):
         self.assertIn('[ ! -L /tmp/residual-workbench.pid ]', source)
         self.assertIn("mapfile -d '' residual_worker_argv", source)
         self.assertIn('/proc/$residual_worker_pid/cmdline', source)
-        self.assertIn('${residual_worker_argv[2]-}', source)
+        # These occur inside a JavaScript template literal. The backslash is
+        # required so JavaScript emits a literal ${...} for Bash to expand.
+        self.assertIn(r'\${residual_worker_argv[1]-}', source)
+        self.assertIn(r'\${residual_worker_argv[2]-}', source)
         self.assertIn('residual.workbench.browser_worker', source)
 
     def test_per_mission_dispatch_contains_only_validated_identity_and_mode(self):
