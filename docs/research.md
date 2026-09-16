@@ -1,6 +1,6 @@
 # Research claim and prior art
 
-Date: 2026-09-14. Status: implemented research platform; central systems hypothesis not yet established by live-model evaluation.
+Date: 2026-09-15. Status: implemented research platform; central systems hypothesis not yet established by live-model evaluation.
 
 > **Current platform state:** [CURRENT_STATUS.md](CURRENT_STATUS.md)
 
@@ -71,36 +71,37 @@ A large integrated milestone at `412b66c35f7c0e1ac479fe60a5b7d33d5510e3af` recor
 
 Controlled development fault experiments against earlier M2/M3/M4 trees demonstrated containment in the declared fault matrices. Those are bounded fixture results and must not be generalized to production or arbitrary workloads.
 
+Accepted `main` at `22a5bae54ec12987ffd7a90d881fb4533c9b4b97` has a fresh post-merge capable-runner M4 qualification result from run `35036589940`: all prerequisite capability checks passed, actual `linux-userns-isolated-v1` execution passed, and 142 M4 cases plus 84 subtests completed with zero skips. That qualifies the named exact tree on the named Ubuntu 22.04 / Python 3.12 environment; it is not an every-host, production, soak or live-model research claim.
+
 ## Current blockers before stronger empirical claims
 
-### M4 qualification
+### M4 qualification boundary
 
-Issue #63 tracks four trust-boundary gaps that must be closed before current M4 should support live/paper-facing reliability claims:
+Issue #63 is closed. Its accepted-tree binding, filesystem/link-safety, verifier-isolation and Git-evidence implementation defects are no longer the active M4 blocker on accepted `main`.
 
-1. accepted-tree identity must remain bound to the artifact tree that was actually verified;
-2. filesystem writes must use race-resistant non-following traversal/policies;
-3. candidate-dependent verifier execution needs an explicit bounded verification execution boundary;
-4. unavailable/corrupt/incomparable Git evidence must remain `UNKNOWN`/error instead of being conflated with path absence.
+The authoritative accepted-main capable-runner result is run `35036589940` for revision `22a5bae54ec12987ffd7a90d881fb4533c9b4b97`. Historical hosts that cannot provide the required namespace boundary remain `UNKNOWN`/`BLOCKED`; a pass on the named Ubuntu 22.04 runner must not be generalized to every kernel or deployment.
 
-### Traceability drift
+### Traceability state
 
-Issue #48 tracks stale `implementation-status.yaml` entries that still mark M2/M3/M4/EVAL `not_started`. The code exists; the generated status view is stale. That documentation inconsistency must be reconciled before using the manifest as paper evidence.
+Issue #48 is closed. `implementation-status.yaml` now records M2, M3, M4 and EVAL as implemented rather than `not_started`, and the generated implementation-status view is derived from that reconciled manifest. Traceability closure does not promote fixture or CI evidence into live empirical evidence.
 
-### Reproducibility classification
+### Release, recovery and operational reliability
 
-Clean-install qualification work retained an initial Python 3.11 failure in two timing-sensitive Factory OS tests that passed unchanged on rerun. The source of that nondeterminism must be classified rather than hidden by retry policy.
+Release/recovery procedures still require downstream qualification on the accepted tree before they should support production-facing claims. Blank-environment setup, recovery and retained-evidence procedures should be exercised without converting fixture success into broader deployment guarantees.
+
+Issue #120 remains the operational-reliability tracker for intermittent Pages/WebVM delivery and guest-runtime failures. A successful exact-revision browser run is evidence for that run, not an empirical long-run failure rate. If WebVM is part of a research measurement path, its operational reliability must be quantified; otherwise the protocol should explicitly exclude that surface.
 
 ### Measured-evidence provenance
 
-PR #71's reviewed Factory adapter still permits replay to count as independent repetitions, unsigned/run-unbound topology, drift between measured and frozen task populations, and unqualified verifier-boundary labels. A signature over the resulting report does not repair invalid source evidence.
+PR #71 was closed unmerged and is not the current accepted live-evaluation path. Its review findings remain useful as requirements: a confirmatory evidence path must prevent replayed evidence from counting as independent repetitions, bind scheduler/topology evidence to the run, preserve the exact frozen workload-to-task population, and bind acceptance to an independently qualified verifier policy/execution boundary.
 
-Before using that adapter for confirmatory results, correct and independently requalify fresh execution/run binding, cross-repetition replay rejection, authenticated scheduler evidence over the run interval, the exact approved workload-to-task mapping, and the qualified verifier policy/execution boundary. Resume must preserve the original run identity rather than count recovered evidence as new execution. These measurement requirements remain separate from closing #63, #48 and the timing issue.
+A signature over a report does not repair invalid source evidence. Fresh execution identities, replay rejection, authenticated run-bound scheduler evidence, an exact approved task mapping, and a qualified verifier boundary remain requirements of whichever evidence path the live protocol selects. Resume may recover an existing run, but must not count it as new independent work.
 
-A live R0–R5 protocol can explicitly exclude this Factory adapter and use a different independently qualified evidence path. It must still satisfy the applicable guarantees in the [live evaluation gate](evaluation.md#live-evaluation-gate); a different path must not be assumed sound merely because PR #71 is not used.
+A live R0–R5 protocol may use a different independently qualified evidence path. It must still satisfy the applicable guarantees in the [live evaluation gate](evaluation.md#live-evaluation-gate); excluding PR #71 is not permission to omit evidence validation.
 
 ## Next confirmatory experiment
 
-After the blockers above are closed or explicitly excluded through a qualified alternative, freeze the implementation, selected execution/evidence adapter, model configuration, verifier revisions and policies, task corpus and mapping, prompts, inference settings, evaluation metrics and analysis code **before** observing live results. Retain the selected path's qualification evidence alongside the frozen protocol.
+After the remaining release/recovery and selected-evidence-path gates are satisfied or explicitly scoped out, freeze the implementation, selected execution/evidence adapter, model configuration, verifier revisions and policies, task corpus and mapping, prompts, inference settings, evaluation metrics and analysis code **before** observing live results. Retain the selected path's qualification evidence alongside the frozen protocol.
 
 The primary experiment should run one fixed model across R0–R5 configurations and retain raw observations sufficient to recompute:
 
