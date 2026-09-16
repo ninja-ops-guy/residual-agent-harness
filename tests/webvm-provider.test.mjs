@@ -80,6 +80,10 @@ test('provider progress text never includes an invalid model identifier', () => 
 test('Puter production request uses strict non-stream structured transport and safe stage telemetry', () => {
  assert.match(providerSource,/Browser transport requirement:/);
  assert.match(providerSource,/Use that function exactly once/);
+ assert.match(providerSource,/Arguments must contain only updates and requests/);
+ assert.match(providerSource,/updates\.build with summary and files/);
+ assert.match(providerSource,/never summary\/files at the top level/);
+ assert.match(providerSource,/empty requests array when no evidence pull is needed/);
  assert.match(providerSource,/strict:\s*true/);
  assert.match(providerSource,/stream:\s*false/);
  assert.match(providerSource,/progress\('model_selected'/);
