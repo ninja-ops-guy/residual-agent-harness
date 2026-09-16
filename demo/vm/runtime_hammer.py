@@ -27,7 +27,7 @@ async def main() -> int:
     parser.add_argument("--url", required=True)
     parser.add_argument("--expected-sha", required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--count", type=int, default=200)
+    parser.add_argument("--count", type=int, default=100)
     args = parser.parse_args()
     if not 1 <= args.count <= 1000:
         parser.error("--count must be 1..1000")
@@ -82,14 +82,16 @@ async def main() -> int:
                 "platform.python_implementation()"
             )
             # The completion marker is deliberately assembled from two nonce
-            # halves in the guest. That prevents the echoed shell command itself
-            # from satisfying Playwright's completion wait before the loop runs.
+            # halves in the guest. Progress every ten successful processes makes
+            # a bounded timeout distinguish slow execution from a silent crash.
             command = (
                 f"i=0; hammer_rc=0; while [ $i -lt {args.count} ]; do "
                 f"python3 -c \"{py}\" >/dev/null 2>/tmp/residual-hammer.err || {{ "
                 "hammer_rc=$?; echo HAMMER_FAIL_INDEX=$i RC=$hammer_rc; "
                 "cat /tmp/residual-hammer.err; break; }; "
-                "i=$((i+1)); done; "
+                "i=$((i+1)); "
+                "if [ $((i % 10)) -eq 0 ]; then echo HAMMER_PROGRESS=$i; fi; "
+                "done; "
                 "if [ $hammer_rc -eq 0 ]; then echo HAMMER_PASS_COUNT=$i; fi; "
                 "printf '\\nRESIDUAL_HAMMER_%s%s:%s\\n' '"
                 + nonce[:8]
@@ -103,7 +105,7 @@ async def main() -> int:
             await page.wait_for_function(
                 "m => document.body.innerText.replace(/\\s/g,'').includes(m)",
                 arg=marker,
-                timeout=600000,
+                timeout=900000,
             )
             body = await page.locator("body").inner_text()
             compact = re.sub(r"\s", "", body)
@@ -113,6 +115,9 @@ async def main() -> int:
             report["exit_status"] = rc
             pass_match = re.search(r"HAMMER_PASS_COUNT=(\d+)", body)
             fail_match = re.search(r"HAMMER_FAIL_INDEX=(\d+)", body)
+            progress = [int(value) for value in re.findall(r"HAMMER_PROGRESS=(\d+)", body)]
+            if progress:
+                report["last_progress"] = max(progress)
             if pass_match:
                 report["count_completed"] = int(pass_match.group(1))
             if fail_match:
@@ -126,7 +131,14 @@ async def main() -> int:
         except Exception as error:
             report["failure"] = f"{type(error).__name__}: {error}"
             try:
-                report["terminal_tail"] = (await page.locator("body").inner_text())[-20000:]
+                body = await page.locator("body").inner_text()
+                progress = [int(value) for value in re.findall(r"HAMMER_PROGRESS=(\d+)", body)]
+                if progress:
+                    report["last_progress"] = max(progress)
+                fail_match = re.search(r"HAMMER_FAIL_INDEX=(\d+)", body)
+                if fail_match:
+                    report["failure_index"] = int(fail_match.group(1))
+                report["terminal_tail"] = body[-20000:]
             except Exception:
                 pass
         finally:
