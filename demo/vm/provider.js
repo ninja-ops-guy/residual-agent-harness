@@ -25,7 +25,10 @@ async function resolveModel(requested) {
       const suffix = modelCatalog.filter(item => typeof item?.id === 'string' && item.id.endsWith('/' + requested));
       if (suffix.length === 1) return suffix[0].id;
     }
-    return null;
+    // Catalogs may lag provider routing. Never guess a replacement model: send
+    // the exact requested ID and let the actual inference call return a typed
+    // model error if it is unavailable.
+    return requested;
   } catch {
     return requested;
   }
