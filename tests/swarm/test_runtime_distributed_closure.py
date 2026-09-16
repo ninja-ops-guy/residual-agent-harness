@@ -89,6 +89,81 @@ def test_fencing_validation_is_held_through_authoritative_append(tmp_path, monke
         store.submit({**event, "event_id": "lease-write-stale", "now_ms": 1_002})
 
 
+def test_preopened_store_refreshes_before_duplicate_and_collision(tmp_path):
+    first = DistributedStateStore(tmp_path)
+    preopened = DistributedStateStore(tmp_path)
+    event = {
+        "event_id": "shared-key", "domain": "receipt.publication",
+        "entity": "task-a", "value": {"ok": True}, "writer": "verifier",
+    }
+
+    accepted = first.submit(event)
+    duplicate = preopened.submit(event)
+    assert accepted["disposition"] == "accepted"
+    assert duplicate == {**accepted, "disposition": "duplicate"}
+
+    with pytest.raises(Exception, match="transition key collision"):
+        preopened.submit({**event, "entity": "task-b"})
+    assert [t["event_id"] for t in first.accepted_transitions()] == ["shared-key"]
+
+
+def test_same_process_store_instances_serialize_shared_journal(tmp_path, monkeypatch):
+    first = DistributedStateStore(tmp_path)
+    second = DistributedStateStore(tmp_path)
+    entered_append = threading.Event()
+    release_append = threading.Event()
+    second_finished = threading.Event()
+    original_append = first.journal.append
+    results = []
+    errors = []
+
+    def blocked_append(*args, **kwargs):
+        entered_append.set()
+        assert release_append.wait(timeout=2.0)
+        return original_append(*args, **kwargs)
+
+    monkeypatch.setattr(first.journal, "append", blocked_append)
+
+    def submit(store, event, finished=None):
+        try:
+            results.append(store.submit(event))
+        except Exception as exc:  # surfaced below instead of lost in a thread
+            errors.append(exc)
+        finally:
+            if finished is not None:
+                finished.set()
+
+    event_a = {
+        "event_id": "concurrent-a", "domain": "receipt.publication",
+        "entity": "task-a", "value": 1, "writer": "verifier",
+    }
+    event_b = {
+        "event_id": "concurrent-b", "domain": "receipt.publication",
+        "entity": "task-b", "value": 2, "writer": "verifier",
+    }
+
+    writer_a = threading.Thread(target=submit, args=(first, event_a))
+    writer_a.start()
+    assert entered_append.wait(timeout=2.0)
+
+    writer_b = threading.Thread(target=submit, args=(second, event_b, second_finished))
+    writer_b.start()
+    assert not second_finished.wait(timeout=0.05), "sibling store bypassed process path lock"
+
+    release_append.set()
+    writer_a.join(timeout=2.0)
+    writer_b.join(timeout=2.0)
+    assert not writer_a.is_alive() and not writer_b.is_alive()
+    assert errors == []
+    assert sorted(r["seq"] for r in results) == [0, 1]
+
+    recovered = DistributedStateStore.recover(tmp_path)
+    transitions = recovered.accepted_transitions()
+    assert [t["seq"] for t in transitions] == [0, 1]
+    assert {t["event_id"] for t in transitions} == {"concurrent-a", "concurrent-b"}
+    assert recovered.journal.verify() == 2
+
+
 def test_replay_idempotence_uses_globally_unique_event_id(tmp_path):
     store = DistributedStateStore(tmp_path)
     event = {
