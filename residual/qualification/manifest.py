@@ -63,8 +63,9 @@ def aggregate_manifest(
             continue
         if envelope.result != GateResult.PASS:
             reasons.append(f"{gate}={envelope.result.value}")
-        if envelope.skip_count:
-            reasons.append(f"{gate} has {envelope.skip_count} skipped checks")
+        # Skip policy is enforced by the producing gate (for example --zero-skips).
+        # A general regression suite may legitimately contain capability skips, so
+        # aggregate qualification must not reinterpret informational skip counts.
         if envelope.unknown_count:
             reasons.append(f"{gate} has {envelope.unknown_count} UNKNOWN checks")
 
