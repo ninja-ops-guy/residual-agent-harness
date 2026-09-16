@@ -55,8 +55,20 @@ def command_run(args: argparse.Namespace) -> int:
     if args.unknown_count:
         result = GateResult.FAIL
         notes.append(f"required gate observed {args.unknown_count} UNKNOWN outcomes")
-    evidence = [args.log, *args.evidence_path]
-    if args.junit is not None and args.junit.exists():
+
+    required_files = list(args.evidence_path)
+    if args.junit is not None:
+        required_files.append(args.junit)
+    missing_required = [path for path in required_files if not path.is_file()]
+    if missing_required:
+        result = GateResult.FAIL
+        notes.append(
+            "required evidence missing or not a regular file: "
+            + ", ".join(str(path) for path in missing_required)
+        )
+
+    evidence = [args.log, *[path for path in args.evidence_path if path.is_file()]]
+    if args.junit is not None and args.junit.is_file():
         evidence.append(args.junit)
     envelope = new_envelope(
         args.gate_id, result, root=ROOT, started_at=started, command=command,
