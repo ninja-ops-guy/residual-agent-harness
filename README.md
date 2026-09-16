@@ -105,14 +105,14 @@ The project also contains soak infrastructure, but long-duration live qualificat
 
 Current accepted `main` is **`22a5bae54ec12987ffd7a90d881fb4533c9b4b97`**, the merge of PR #109. The merged tree is **`39599b2296fa8865ab1e0dabae333b9b6f933da8`**, the same source tree that had already passed the final pre-merge candidate qualification, and it has now also passed the fresh accepted-main M4 run described above.
 
-Other exact-main push workflows checked after the merge are green for Factory ownership, measured-evaluation binding, clean-install qualification, Command Station and controller/provider contracts. The exact-main Pages/WebVM run **`35036589868`** is still in progress at the latest documentation snapshot, so this README does **not** claim post-#109 live browser deployment qualification yet.
+Other exact-main push workflows checked after the merge are green for Factory ownership, measured-evaluation binding, clean-install qualification, Command Station and controller/provider contracts. The exact-main Pages/WebVM run **`35036589868`** also completed **PASS**, including deployment, real guest execution and desktop/narrow browser acceptance. This clears the exact-revision deployment gate; it does not establish a long-run production failure rate.
 
 Recent accepted WebVM/workbench milestones include PR #122 (real-provider reliability/UX), PR #124 (narrow immutable disk-chunk recovery), PR #125 (provider completion marker), and PR #127 (guest-shell mission dispatch). These are disjoint from Factory/M4 authority. Issue #120 remains open because intermittent WebVM delivery/guest-runtime failures must be measured over repeated runs rather than erased by a successful rerun or a single hardening patch.
 
 Before paper-facing live reliability evaluation, the priority gates are now:
 
-1. finish the exact-main Pages/WebVM acceptance for `22a5bae...` and retain any failure rather than weakening the gate;
-2. complete downstream release/recovery qualification on the accepted tree without broadening fixture claims;
+1. complete exact-head CI and independent technical review for the refreshed runtime/DSM closure candidate in PR #118 before integration;
+2. independently review the refreshed release-preparation candidate in PR #115, then execute blank-environment and recovery qualification on the accepted tree without broadening fixture claims;
 3. quantify WebVM reliability with a defined repeated-run campaign while issue #120 remains open;
 4. freeze the live evaluation protocol before observing confirmatory model results;
 5. run one fixed live model across R0–R5 and measure raw correctness, acceptance coverage, accepted correctness, AER/ASSR, latency, throughput and cost;
