@@ -2,9 +2,9 @@
 
 > **Current-state entry point:** [../CURRENT_STATUS.md](../CURRENT_STATUS.md)
 
-The documents under [`source/`](source/) preserve earlier design generations and should be treated as historical input unless a newer reconciliation document says otherwise. Checkmarks in those source documents mean **specified/documented**, not necessarily implemented or qualified on the current tree.
+The documents under [`source/`](source/) preserve earlier design generations and are historical input unless a newer reconciliation says otherwise. Checkmarks in those source documents mean **specified/documented**, not automatically implemented or qualified on the current tree.
 
-The project has moved well beyond the v0.3/v0.4 Command Station baseline. Current `main` contains the core harness, Command Station, Factory M2/M3/M4 implementation, evaluation infrastructure, sandbox/red-team tooling, cluster execution, orchestration, lifecycle/gateway controls, crypto/hardening, observability, connector conformance, Studio/product surfaces and research/reproducibility machinery.
+Current `main` contains the core harness, Command Station, Factory M2/M3/M4, evaluation infrastructure, sandbox/red-team tooling, cluster execution, orchestration, lifecycle/gateway controls, observability, product surfaces, WebVM/Mission Control and research/reproducibility machinery.
 
 ## Current capability map
 
@@ -12,44 +12,58 @@ The project has moved well beyond the v0.3/v0.4 Command Station baseline. Curren
 | --- | --- |
 | Core harness / verifier / receipts / residual delegation | Implemented and covered by the established test corpus |
 | Command Station | Implemented research/operations surface; deployment-specific production qualification still applies |
-| Factory M2 worker contracts/runtime | Implemented under `residual/factory/`; real OS-boundary development tests exist |
+| Factory M2 worker contracts/runtime | Implemented under `residual/factory/` |
 | Factory M3 evidence bus/Station receipts | Implemented; trusted consumption/admission is the authority boundary |
-| Factory M4 deterministic integration/scheduler | Implemented, but **current live qualification is blocked by issue #63** until accepted-tree binding, filesystem/link safety, verifier isolation and Git-evidence semantics are closed |
-| Frozen evaluation framework | Implemented under `residual/eval/`: hash-locked workload, repeated runs, ablations, stats/reporting, fault injection and Factory measurement hooks |
-| Sandbox / red-team | Implemented development surface; host capability determines whether cgroup-v2 enforcement is available |
-| Cluster / distributed execution | Implemented development surface with authenticated membership, heartbeat/reassignment and local-first routing |
-| Orchestration | Implemented intent schema, requirement DAG, ambiguity detection, partitioning, deterministic plan hash and HITL approval gate |
-| Lifecycle / side-effect gateway | Implemented deny-by-default gateway and deterministic resume/recovery mechanisms |
-| Crypto / conformance / SLO / observability | Implemented development surfaces; deployment evidence remains environment-specific |
-| Studio/product UI | Implemented development surface; some UI contract fixtures remain local stubs around protected runtime APIs |
-| Research paper + evidence program | Active; mechanism evidence exists, but live R0–R5 results are still required for the central reliability hypothesis |
+| Factory M4 deterministic integration/scheduler | Implemented and capable-runner qualified on named environments; every-host qualification is not claimed |
+| Mission Control/WebVM | Integrated through #145/#147; exact current-main browser qualification passes, but long-run reliability and historical root cause remain open |
+| Real Puter provider path | Transport/conformance hardening integrated; current-main follow-up #149 is exact-head green but independently unreviewed, and fresh real-account success is not yet retained |
+| Frozen evaluation framework | Implemented under `residual/eval/`; live confirmatory results remain future evidence |
+| Cluster / distributed / lifecycle / observability | Implemented development surfaces; deployment evidence remains environment-specific |
+| Self-maintenance research | Bounded proposal/verification evidence exists; no autonomous merge authority |
 
-## Important documentation caveat
+Issues #63 and #48 are closed. `implementation-status.yaml` records implementation presence; it must be read separately from qualification, release, provider and research evidence.
 
-`implementation-status.yaml` and the generated `docs/status/IMPLEMENTATION_STATUS.md` still contain pre-merge `not_started` entries for M2, M3, M4 and EVAL. That drift is tracked by **issue #48**. Until #48 is reconciled, use [`../CURRENT_STATUS.md`](../CURRENT_STATUS.md), the actual code/tests, and exact-commit verifier artifacts for current-state claims.
+## Current main boundary — technically qualified, review-provisional
+
+Current `main` is **`0580c1e53ddb9163d2423d82c0bca846a6d68ba2`**, the merge of PR #147. Its observed automated/browser qualification is **PASS**, but independent technical acceptance remains review-provisional because merged PRs #145 and #147 have no submitted reviews in the retained GitHub review record.
+
+PR #145 integrated a libc-relative polling mitigation for long-lived browser paths after retained diagnostics showed positive Python timed waits failing under WebVM. PR #147 tightened real Puter response transport/conformance and changed the visible default Mission Control model to `openai/gpt-5.4-nano`.
+
+Exact #145 and #147 candidate heads completed their observed applicable PR workflow sets **PASS**. Exact merged current main also passed its observed push qualification set; Pages run `35138502311` passed generated desktop+narrow proof, deployment, published real-guest execution and published narrow Chromium acceptance.
+
+This does not establish independent review, live Puter quality or long-run WebVM reliability. The retained real-account run before #147 remained **FAIL** as `provider_protocol_invalid`, and a successful post-#147 real-account run is not yet retained.
 
 ## Current build order
 
-The old build order is complete or superseded. The current sequence is:
+1. **Close the governance enforcement gap.** Issue #144 remains open. Obtain independent post-merge technical review of the current #145/#147 integration, then finish PR #146/platform enforcement so future important merges cannot pass with zero qualifying approvals. #146 itself is currently red and based on older main.
+2. **Review the current-main provider-envelope follow-up before new live-provider claims.** PR #149 head `2b4c2d09...` ports the surviving nested `updates.build` guidance from closed-unmerged #143 onto `main@0580c1e5...`. All eight observed applicable exact-head workflows are **PASS**, including Browser VM Demo CI and Pages, but there are zero submitted reviews. Require independent technical acceptance before any integration; green CI is not real-account provider success. After any accepted integration, run and retain a fresh real-account Puter acceptance on the exact deployed revision and preserve `PASS`, `FAIL` or `UNKNOWN`.
+3. **Quantify WebVM reliability.** Issues #120/#126 remain open. #145 avoids the known Python timed-wait surface, but historical guest corruption is not root-caused. Run a predefined retained repeated-run campaign before claiming an acceptable failure rate.
+4. **Resolve the protected M4 test-race lane.** PR #139 requires genuinely independent exact-head review, deliberate ownership-baseline handling and fresh qualification. Do not advance the protected pin merely to obtain green CI.
+5. **Refresh/requalify #134 only after the protected sequence.** Its retained adapter tests and historical partial green evidence do not qualify it on current `main@0580c1e5...`.
+6. **Finish refreshed current-main candidates without inheriting historical qualification.** PR #140 is now refreshed at `205257e7...`: Browser VM Demo CI and the six non-Pages repository workflows observed so far are **PASS**, while Pages run `35147236161` remains **IN PROGRESS** and no submitted review is recorded. PR #131 is refreshed at `818af414...`: its six observed non-Pages workflows are **PASS**, while Pages run `35147159269` remains **IN PROGRESS** and no submitted review is recorded. Older-base #118, #115, #93 and other candidates still require refresh/requalification. PR #142 is closed unmerged and superseded by #145; PR #143 is closed unmerged and its surviving unique guidance has moved to #149.
+7. **Execute broader release/recovery qualification.** Exercise blank-environment setup and actual recovery without converting rehearsal or simulation into release `PASS`.
+8. **Freeze the confirmatory live-evaluation protocol before outcome access.** Lock exact source, workload, model/configuration, evidence path, verifier policy, metrics and analysis.
+9. **Run fixed-model R0–R5, degradation and heterogeneous-routing studies.** Preserve all negative, rejected and `UNKNOWN` results.
+10. **Run staged live fault and soak campaigns.** 24h → 72h → 30-day only after shorter gates are clean.
+11. **Promote paper claims only from retained exact-source evidence.**
 
-1. **Close M4 trust-boundary gaps (#63).** Bind accepted state to the verified tree, harden filesystem writes, isolate candidate-dependent verification, and preserve `UNKNOWN` for missing Git evidence.
-2. **Reconcile traceability (#48).** Update M2/M3/M4/EVAL status, regenerate the generated status document, and add drift prevention.
-3. **Resolve Factory OS timing nondeterminism.** Determine whether the retained retry-only failures represent runtime races or test flakiness.
-4. **Qualify measured-evidence integrity (PR #71 or an explicit alternative).** The reviewed Factory adapter needs fresh run/execution binding, anti-replay across independent repetitions, authenticated run-bound scheduler/topology evidence, an exact workload-to-task mapping, and a qualified verifier policy/boundary. Correct and requalify it, or explicitly exclude it from the live protocol and independently qualify the chosen evidence path under the [live evaluation gate](../evaluation.md#live-evaluation-gate). Closing #63/#48/timing alone does not clear this gate.
-5. **Freeze the live evaluation protocol and selected evidence path.** Do not tune workloads/metrics after observing model outcomes.
-6. **Run R0–R5 with one fixed live model.** Measure raw correctness, acceptance coverage, accepted correctness, AER/ASSR, cost, latency and throughput.
-7. **Run model-degradation + heterogeneous-routing studies.** Test whether cheaper/weaker workers can contribute safely under the same acceptance boundary.
-8. **Run live fault campaigns and staged soak tests.** 24-hour → 72-hour → 30-day only after shorter gates are clean.
-9. **Promote paper claims only from retained evidence.** Negative, `UNKNOWN`, rejected and failed runs stay in the record.
+## Claim discipline
+
+- `PASS` means the named gate passed for the named revision/environment.
+- `FAIL` remains retained evidence; reruns do not erase it.
+- `UNKNOWN` means causality, evidence or qualification is unresolved.
+- `BLOCKED` means a required capability/gate could not validly execute; it is not `PASS`.
+- Green automated provider/browser tests do not imply successful real-account provider inference.
+- A merged change with no independent submitted review does not retroactively acquire independent acceptance from CI.
 
 ## Historical implementation material
 
 Useful background remains in:
 
-- [DELEGATION.md](DELEGATION.md) — earlier ownership/delegation model
-- [FOUNDATION-CONTRACT.md](FOUNDATION-CONTRACT.md) — shared interface constraints
-- [SPEC-RECONCILIATION.md](SPEC-RECONCILIATION.md) — corrections to earlier uploaded drafts
-- [TRACK-1-IMPLEMENTATION.md](TRACK-1-IMPLEMENTATION.md) — v0.4 receipt/registry foundation
-- [CONFLICT_RESOLUTIONS.md](CONFLICT_RESOLUTIONS.md) — binding decisions from earlier integration phases
+- [DELEGATION.md](DELEGATION.md)
+- [FOUNDATION-CONTRACT.md](FOUNDATION-CONTRACT.md)
+- [SPEC-RECONCILIATION.md](SPEC-RECONCILIATION.md)
+- [TRACK-1-IMPLEMENTATION.md](TRACK-1-IMPLEMENTATION.md)
+- [CONFLICT_RESOLUTIONS.md](CONFLICT_RESOLUTIONS.md)
 
-These documents are still useful for lineage, but they do not override current code, exact-commit evidence, open qualification issues, or [`../CURRENT_STATUS.md`](../CURRENT_STATUS.md).
+These documents do not override exact code, current workflow evidence, open issues or [`../CURRENT_STATUS.md`](../CURRENT_STATUS.md).
