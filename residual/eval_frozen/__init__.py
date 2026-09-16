@@ -14,6 +14,22 @@ from .runner import RunRecord, RunState, run_study, recompute_from_records
 from .metrics import SliceMetrics, compute_slice_metrics
 from .report import build_report, report_csv_rows, plotting_inputs
 from .evidence import build_evidence_artifact, write_evidence_artifact
+from .acceptance_binding import (
+    CHAIN_SCHEMA,
+    AcceptanceBindingError,
+    FreshRunRegistry,
+    MeasuredRunEvidence,
+    RunIdentityRecord,
+    SchedulerObservation,
+    SchedulerTopologyEvidence,
+    VerifierQualification,
+    WorkloadTaskMapping,
+    chain_fresh_record,
+    validate_and_issue_acceptance,
+    validate_prerequisites,
+    verify_acceptance_artifact,
+    verify_run_identity_chain,
+)
 
 __all__ = [
     "FrozenTask",
@@ -34,4 +50,18 @@ __all__ = [
     "plotting_inputs",
     "build_evidence_artifact",
     "write_evidence_artifact",
+    "AcceptanceBindingError",
+    "CHAIN_SCHEMA",
+    "FreshRunRegistry",
+    "MeasuredRunEvidence",
+    "RunIdentityRecord",
+    "SchedulerObservation",
+    "SchedulerTopologyEvidence",
+    "VerifierQualification",
+    "WorkloadTaskMapping",
+    "chain_fresh_record",
+    "validate_and_issue_acceptance",
+    "validate_prerequisites",
+    "verify_acceptance_artifact",
+    "verify_run_identity_chain",
 ]

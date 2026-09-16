@@ -1,10 +1,5 @@
 name: Clean install qualification
 
-# STAGED WORKFLOW. This file lives at ci/clean-install-qualification.yml
-# because it could not be written to .github/workflows/ from the authoring
-# automation (missing `workflow` scope). A maintainer must move it to
-# .github/workflows/clean-install-qualification.yml to activate it.
-
 on:
   pull_request:
   push:
@@ -25,7 +20,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Full history: the Factory ownership gate resolves blob SHAs at HEAD.
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -34,6 +28,7 @@ jobs:
       - name: Run clean-install qualification (fail-closed)
         run: |
           set -o pipefail
+          mkdir -p runs/clean-install
           python verifier/v3/qualify_clean_install.py \
             --source-root "$GITHUB_WORKSPACE" \
             --output "$GITHUB_WORKSPACE/runs/clean-install/report.json" \

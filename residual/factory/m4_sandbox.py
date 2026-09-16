@@ -17,7 +17,8 @@ by the kernel, not by environment hygiene:
   hostname is isolated;
 * ``RLIMIT_AS`` memory, ``RLIMIT_CPU`` CPU and a finite parent-side wall-clock
   deadline; bounded stdout/stderr capture with hashing;
-* deterministic typed outcomes: PASS / FAIL / UNKNOWN / ERROR.
+* deterministic typed outcomes: PASS / FAIL / TIMEOUT / UNKNOWN / ERROR
+  (TIMEOUT = parent-side wall-clock kill, deterministic returncode 124).
 
 If any prerequisite is missing (non-Linux platform, no ``unshare`` binary, or a
 failed capability probe) the runner FAILS CLOSED: :func:`run_isolated` returns
@@ -39,7 +40,7 @@ import sys
 import tempfile
 import time
 
-from ._isolated_child import SANDBOX_ERROR_EXIT, SANDBOX_ERROR_PREFIX
+from ._isolated_child import SANDBOX_ERROR_EXIT, SANDBOX_ERROR_PREFIX, SANDBOX_TIMEOUT_EXIT
 from .worker_contract import WorkerContractError
 
 
@@ -112,12 +113,13 @@ def require_isolation() -> None:
 
 @dataclass(frozen=True)
 class IsolatedResult:
-    status: str  # "pass" | "fail" | "unknown" | "error"
+    status: str  # "pass" | "fail" | "timeout" | "unknown" | "error"
     returncode: int | None
     stdout_sha256: str
     stderr_sha256: str
     reason: str  # exit | timeout | output_limit | sandbox_error | launch_failed | isolation_unavailable
     execution_boundary: str = SANDBOX_PROFILE
+    timed_out: bool = False  # parent-side wall-clock timeout (returncode 124)
 
 
 def _invalid(request: str) -> M4SandboxError:
@@ -254,6 +256,12 @@ def run_isolated(argv: tuple[str, ...], worktree: Path, *, timeout_s: float,
                 pass
             process.wait(timeout=10)
 
+        if reason_out == "timeout":
+            # Typed parent-side wall-clock timeout: deterministic returncode
+            # (SANDBOX_TIMEOUT_EXIT), never retyped as candidate FAIL/ERROR.
+            return IsolatedResult("timeout", SANDBOX_TIMEOUT_EXIT,
+                                  hashes[0].hexdigest(), hashes[1].hexdigest(),
+                                  reason_out, timed_out=True)
         if reason_out == "exit" and process.returncode == 0:
             status = "pass"
         elif reason_out == "exit" and process.returncode == SANDBOX_ERROR_EXIT:

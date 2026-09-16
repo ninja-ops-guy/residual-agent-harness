@@ -31,6 +31,7 @@ EXPECTED_CORE = frozenset({
     "residual/factory/runtime_journal.py",
     "residual/factory/runtime_workspace.py",
     "residual/factory/station_issuer.py",
+    "residual/factory/termination_provenance.py",
     "residual/factory/worker_contract.py",
 })
 
@@ -87,7 +88,7 @@ class FactoryOwnershipGateTests(unittest.TestCase):
 
     def test_core_set_matches_expected_trust_surface(self):
         self.assertEqual(gate.CORE_PROTECTED, EXPECTED_CORE)
-        self.assertEqual(len(gate.CORE_PROTECTED), 16)
+        self.assertEqual(len(gate.CORE_PROTECTED), 17)
 
     def test_repo_manifest_covers_core_set(self):
         repo_manifest = json.loads(
@@ -96,6 +97,13 @@ class FactoryOwnershipGateTests(unittest.TestCase):
         self.assertTrue(EXPECTED_CORE <= repo_manifest["files"].keys())
         self.assertTrue(repo_manifest["justification"].strip())
         self.assertEqual(len(repo_manifest["pinned_at"]), 40)
+
+    def test_repo_manifest_matches_committed_tree(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        manifest = repo_root / "verifier/v3/factory_ownership_baseline.json"
+        report, failures = gate.evaluate_ownership(repo_root, manifest)
+        self.assertEqual(failures, [], report)
+        self.assertEqual(report["checked"], len(json.loads(manifest.read_text())["files"]))
 
     def test_unchanged_tree_passes(self):
         report, failures = self.evaluate()

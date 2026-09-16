@@ -1,12 +1,3 @@
-# STAGED WORKFLOW - requires one manual step before the gate is enforced.
-#
-# The automation token used to author this PR lacks the `workflow` OAuth
-# scope, so GitHub rejects API writes under `.github/workflows/`. A
-# maintainer with a workflow-scoped token must move this file to
-# `.github/workflows/factory-ownership.yml` (no content changes needed).
-# Until then, run locally:
-#   python verifier/v3/check_factory_ownership.py
-
 name: Factory ownership gate
 
 on:

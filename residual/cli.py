@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from .config import build_harness, load_config
-from .core import ContractError, Task, digest, positive_int, strict_json
+from .core import ContractError, Task, canonical, digest, positive_int, strict_json
 from .demo import make_case
 from .engine import MODES
 from .evaluation import benchmark, markdown_report
@@ -111,15 +111,23 @@ def main(argv=None):
         try:
             result = harness.run(task)
             destination = Path(args.output)
+            # Capture identity before cleanup. Summary publication uses the
+            # exact persisted result, not a potentially stale memory alias.
+            expected_result_hash = digest(result)
             write_json(destination / "result.json", result)
             harness.ledger.write(destination / "trace.jsonl")
         finally:
             if harness.cache:
                 harness.cache.close()
-        print(json.dumps({"task_id": result["task_id"], "status": result["status"],
-                          "values": result["values"], "unresolved": result["unresolved"],
-                          "metrics": result["metrics"], "output": str(destination),
-                          "simulation": any(c["usage"]["source"] == "simulation" for c in result["calls"])}, indent=2))
+        result = strict_json((destination / "result.json").read_text(encoding="utf-8"))
+        if digest(result) != expected_result_hash:
+            raise ContractError("persisted result changed before summary publication")
+        # Use the same strict encoder as evidence hashing. Compact output keeps
+        # numeric serialization on that path; no values are clamped or replaced.
+        print(canonical({"task_id": result["task_id"], "status": result["status"],
+                         "values": result["values"], "unresolved": result["unresolved"],
+                         "metrics": result["metrics"], "output": str(destination),
+                         "simulation": any(c["usage"]["source"] == "simulation" for c in result["calls"])}))
         return 0 if result["success"] else 2
     except (ContractError, OSError, ValueError, TypeError, KeyError, ImportError, AttributeError) as exc:
         # Config exceptions can contain URLs/keys from custom plugins; default CLI avoids echoing them.
