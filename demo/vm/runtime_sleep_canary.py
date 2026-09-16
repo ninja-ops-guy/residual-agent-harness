@@ -140,18 +140,16 @@ async def main() -> int:
         )
 
         async def state() -> str:
-            token = "CANARYSTATE" + secrets.token_hex(4)
-            cmd = (
-                f"if grep -q '^PASS ' {CANARY_STATUS} 2>/dev/null; then echo {token}PASS; "
-                f"elif grep -q '^FAIL ' {CANARY_STATUS} 2>/dev/null; then echo {token}FAIL; "
-                f"else echo {token}MISSING; fi"
+            code = await guest(
+                f"if grep -q '^PASS ' {CANARY_STATUS} 2>/dev/null; then (exit 41); "
+                f"elif grep -q '^FAIL ' {CANARY_STATUS} 2>/dev/null; then (exit 42); "
+                f"else (exit 43); fi",
+                kind="canary-state",
+                expect_zero=False,
             )
-            await guest(cmd, kind="canary-state")
-            body = re.sub(r"\s", "", await page.locator("body").inner_text())
-            for value in ("PASS", "FAIL", "MISSING"):
-                if token + value in body:
-                    return value
-            return "UNREADABLE"
+            return {41: "PASS", 42: "FAIL", 43: "MISSING"}.get(
+                code, f"UNEXPECTED_EXIT_{code}"
+            )
 
         try:
             entry_response = await context.request.get(args.url, timeout=30000)
