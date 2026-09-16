@@ -17,17 +17,15 @@ def main(argv=None):
     return implementation.main(argv)
 
 
-def persistent_run(*, request_path: Path, mailbox: Path, root: Path, output_root: Path) -> int:
-    """Execute one browser mission without swallowing unexpected runtime exceptions.
+def persistent_run(*, request: dict, mailbox: Path, root: Path, output_root: Path) -> int:
+    """Execute the already-admitted request without masking runtime exceptions.
 
-    The persistent WebVM worker must be able to distinguish an ordinary typed
-    contract/deadline failure from interpreter corruption. In particular, do not
-    catch TypeError/ValueError/OSError here: retained production corruption has
-    surfaced as impossible TypeErrors inside CPython internals, and those signals
-    must escape to browser_worker so the worker is poisoned and restarted.
+    Admission reads and validates the request once in browser_worker. Reusing that
+    exact object avoids a second parse / request-file TOCTOU between identity
+    validation and execution. Do not catch TypeError/ValueError/OSError here:
+    retained corruption has surfaced as impossible TypeErrors inside CPython and
+    must escape so the persistent worker is poisoned and restarted.
     """
-    request = implementation.read_json(request_path)
-
     def stream(event):
         raw = canonical(event).encode()
         if len(raw) > implementation.MAX_RESULT:
