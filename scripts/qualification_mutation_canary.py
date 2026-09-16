@@ -24,8 +24,10 @@ MUTATIONS = (
     Mutation(
         "revoked-candidate-acceptance",
         "residual/factory/runtime_journal.py",
-        "if state == 'CANDIDATE' and row[1]:",
-        "if state == 'CANDIDATE' and not row[1]:",
+        """            if state == 'CANDIDATE' and row[1]:
+                raise JournalError("revoked attempt cannot produce a candidate")""",
+        """            if state == 'CANDIDATE' and not row[1]:
+                raise JournalError("revoked attempt cannot produce a candidate")""",
         ("tests/qualification/test_trust_boundary_canaries.py::test_revoked_attempt_can_never_publish_candidate",),
     ),
     Mutation(
@@ -38,18 +40,49 @@ MUTATIONS = (
     Mutation(
         "git-path-policy-bypass",
         "residual/factory/worker_contract.py",
-        "if any(part.lower() == \".git\" for part in path.split(\"/\")):\n            return False",
-        "if any(part.lower() == \".git\" for part in path.split(\"/\")):\n            return True",
+        """        if any(part.lower() == ".git" for part in path.split("/")):
+            return False
+        if any(_matches(path, item) for item in self.forbidden):""",
+        """        if any(part.lower() == ".git" for part in path.split("/")):
+            return True
+        if any(_matches(path, item) for item in self.forbidden):""",
         ("tests/qualification/test_trust_boundary_canaries.py::test_git_metadata_is_never_permitted_by_worker_path_policy",),
     ),
     Mutation(
         "forbidden-prefix-bypass",
         "residual/factory/worker_contract.py",
-        "if any(_matches(path, item) for item in self.forbidden):\n            return False",
-        "if any(_matches(path, item) for item in self.forbidden):\n            return True",
+        """        if any(part.lower() == ".git" for part in path.split("/")):
+            return False
+        if any(_matches(path, item) for item in self.forbidden):
+            return False
+        return any(_matches(path, item) for item in (self.allowed_outputs if write else self.inputs))""",
+        """        if any(part.lower() == ".git" for part in path.split("/")):
+            return False
+        if any(_matches(path, item) for item in self.forbidden):
+            return True
+        return any(_matches(path, item) for item in (self.allowed_outputs if write else self.inputs))""",
         ("tests/qualification/test_trust_boundary_canaries.py::test_forbidden_prefix_wins_over_read_allowlist",),
     ),
 )
+
+
+def mutation_site_count(mutation: Mutation, *, root: Path = ROOT) -> int:
+    return (root / mutation.path).read_text(encoding="utf-8").count(mutation.old)
+
+
+def validate_mutation_sites(*, root: Path = ROOT) -> list[dict[str, object]]:
+    """Return every mutation whose source selector is not exactly unique.
+
+    Mutation qualification is meaningful only when the intended semantic site is
+    unambiguous. A source refactor therefore fails this harness explicitly instead
+    of mutating whichever textual occurrence happens to come first.
+    """
+    invalid = []
+    for mutation in MUTATIONS:
+        count = mutation_site_count(mutation, root=root)
+        if count != 1:
+            invalid.append({"name": mutation.name, "path": mutation.path, "site_count": count})
+    return invalid
 
 
 def run_mutation(mutation: Mutation) -> dict:
@@ -57,7 +90,12 @@ def run_mutation(mutation: Mutation) -> dict:
     original = path.read_text(encoding="utf-8")
     count = original.count(mutation.old)
     if count != 1:
-        return {"name": mutation.name, "result": "ERROR", "reason": f"expected one mutation site, found {count}"}
+        return {
+            "name": mutation.name,
+            "path": mutation.path,
+            "result": "ERROR",
+            "reason": f"expected one scoped mutation site, found {count}",
+        }
     mutated = original.replace(mutation.old, mutation.new, 1)
     try:
         path.write_text(mutated, encoding="utf-8")
@@ -84,17 +122,30 @@ def main(argv=None) -> int:
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
 
-    results = [run_mutation(m) for m in MUTATIONS]
-    survivors = [r for r in results if r["result"] != "KILLED"]
-    report = {
-        "schema": "residual.qualification.mutation.v1",
-        "mutants": len(results),
-        "killed": len(results) - len(survivors),
-        "survived_or_error": len(survivors),
-        "mutation_score": (len(results) - len(survivors)) / len(results) if results else 0.0,
-        "result": "PASS" if not survivors else "FAIL",
-        "results": results,
-    }
+    invalid = validate_mutation_sites()
+    if invalid:
+        report = {
+            "schema": "residual.qualification.mutation.v1",
+            "mutants": len(MUTATIONS),
+            "killed": 0,
+            "survived_or_error": len(MUTATIONS),
+            "mutation_score": 0.0,
+            "result": "FAIL",
+            "harness_errors": invalid,
+            "results": [],
+        }
+    else:
+        results = [run_mutation(m) for m in MUTATIONS]
+        survivors = [r for r in results if r["result"] != "KILLED"]
+        report = {
+            "schema": "residual.qualification.mutation.v1",
+            "mutants": len(results),
+            "killed": len(results) - len(survivors),
+            "survived_or_error": len(survivors),
+            "mutation_score": (len(results) - len(survivors)) / len(results) if results else 0.0,
+            "result": "PASS" if not survivors else "FAIL",
+            "results": results,
+        }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2, sort_keys=True))
