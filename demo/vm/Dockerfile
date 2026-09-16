@@ -53,6 +53,7 @@ ENV HOME=/home/residual \
     EDITOR=vi \
     LANG=C \
     LC_ALL=C \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    RESIDUAL_WEBVM_SLEEP_BACKEND=legacy-nanosleep
 
 CMD ["/usr/local/bin/residual-demo-shell"]
