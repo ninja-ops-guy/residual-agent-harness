@@ -34,6 +34,7 @@ from pathlib import Path
 import shutil
 import stat
 import sys
+import tempfile
 import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
@@ -71,30 +72,35 @@ def _fsync_directory(path):
 
 
 def _durable_replace_text(path, text):
-    """Write+fsync a temp file, atomically replace, then fsync its directory."""
+    """Write+fsync an exclusive sibling temp, replace, then fsync the directory.
+
+    The temporary name is created atomically by ``mkstemp`` instead of using a
+    predictable ``<target>.tmp`` path.  This prevents a pre-planted temporary
+    symlink from redirecting/truncating another file before the final replace.
+    """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(path.name + ".tmp")
-    with open(tmp, "w", encoding="utf-8") as handle:
-        handle.write(text)
-        handle.flush()
-        os.fsync(handle.fileno())
-    os.replace(tmp, path)
-    _fsync_directory(path.parent)
-
-
-def _sync_existing_file(path):
-    """Flush an already-written file and its directory before checkpointing."""
-    path = Path(path)
-    with open(path, "rb") as handle:
-        os.fsync(handle.fileno())
-    _fsync_directory(path.parent)
+    fd, tmp_name = tempfile.mkstemp(
+        prefix=f".{path.name}.", suffix=".tmp", dir=str(path.parent), text=True)
+    tmp = Path(tmp_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(text)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(tmp, path)
+        _fsync_directory(path.parent)
+    except BaseException:
+        try:
+            tmp.unlink()
+        except FileNotFoundError:
+            pass
+        raise
 
 
 def _save_state(state, path):
-    """Use the existing state serializer, then make its replace durable."""
-    state.save(path)
-    _sync_existing_file(path)
+    """Serialize soak state through the same hardened durable replacement path."""
+    _atomic_json(path, state.to_dict())
 
 
 def _atomic_json(path, data):
