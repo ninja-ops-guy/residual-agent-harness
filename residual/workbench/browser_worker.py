@@ -24,6 +24,7 @@ from .runner import MAX_REQUEST, read_json
 MISSION_ID = re.compile(r"m-[0-9a-f]{32}\Z")
 MODES = {"audit", "live", "build"}
 READY = "RESIDUAL_WORKER_READY"
+POISONED = "RESIDUAL_WORKER_POISONED"
 RUN_PREFIX = "RESIDUAL_WORKER_RUN_"
 FATAL_PREFIX = "RESIDUAL_WORKER_FATAL_"
 REJECTED = "RESIDUAL_WORKER_REJECTED:64"
@@ -143,11 +144,37 @@ def _write_pid_file(path: Path) -> None:
         os.close(fd)
 
 
-def serve(*, fifo: Path, pid_file: Path, mailbox: Path, root: Path, output_root: Path) -> int:
+def _is_poisoned(path: Path) -> bool:
+    # Any existing node at the poison path is fail-closed. The host writes a
+    # private regular file, but a planted symlink or unexpected type must never
+    # be interpreted as permission to start/reuse a worker.
+    return path.exists() or path.is_symlink()
+
+
+def serve(
+    *,
+    fifo: Path,
+    pid_file: Path,
+    mailbox: Path,
+    root: Path,
+    output_root: Path,
+    poison_file: Path = Path("/tmp/residual-workbench.poison"),
+) -> int:
+    # A timeout poison record outlives page/JS state. This first check fences a
+    # generation that starts after the host has already timed out.
+    if _is_poisoned(poison_file):
+        print(POISONED, flush=True)
+        return 75
     _prepare_fifo(fifo)
     _write_pid_file(pid_file)
-    print(READY, flush=True)
     try:
+        # Close the race where timeout poisoning arrives after process start but
+        # before READY publication. The host will also kill a validated worker;
+        # this check independently prevents a late generation becoming reusable.
+        if _is_poisoned(poison_file):
+            print(POISONED, flush=True)
+            return 75
+        print(READY, flush=True)
         while True:
             # A shell builtin opens/writes/closes the FIFO once per request.
             # Reopen after EOF so the worker process itself stays alive.
@@ -192,13 +219,18 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fifo", type=Path, default=Path("/tmp/residual-workbench.fifo"))
     parser.add_argument("--pid-file", type=Path, default=Path("/tmp/residual-workbench.pid"))
+    parser.add_argument("--poison-file", type=Path, default=Path("/tmp/residual-workbench.poison"))
     parser.add_argument("--mailbox", type=Path, default=Path("/data"))
     parser.add_argument("--root", type=Path, default=Path("/opt/residual"))
     parser.add_argument("--output-root", type=Path, default=Path("/opt/residual/runs/missions"))
     args = parser.parse_args(argv)
     return serve(
-        fifo=args.fifo, pid_file=args.pid_file, mailbox=args.mailbox,
-        root=args.root, output_root=args.output_root,
+        fifo=args.fifo,
+        pid_file=args.pid_file,
+        poison_file=args.poison_file,
+        mailbox=args.mailbox,
+        root=args.root,
+        output_root=args.output_root,
     )
 
 
