@@ -22,33 +22,35 @@ These mechanisms make the systems hypothesis testable. They do **not** prove it.
 
 ## Current implementation boundary
 
-Current `main` is **`f2d58e779ad589fe1d08842c9efc40ec5214a213`**, the merge of PR #151. Its seven observed main-push workflows are **PASS** for their exact automated/browser scopes. M4 run `35149837820` completed the real namespace-isolated path with 142 tests + 84 subtests and zero skips; Pages run `35149837756` passed first-attempt generated and published desktop+narrow WebVM acceptance.
+Current `main` is **`f6f9bad84caccf68c7ab35e5788e756d12c55fb7`**, the merge of PR #156. Its seven observed main-push workflows are **PASS** for their exact automated/browser scopes. The capable-runner M4 workflow passed its fail-closed capability and zero-skip gate. Pages run `35158939226` passed on attempt 1 through generated and published desktop+narrow real-guest acceptance.
 
 This evidence is revision- and environment-bound. It is not independent review, confirmatory model research, every-host security qualification, live-provider quality or long-duration reliability evidence.
 
-PR #151 has zero submitted reviews, so current main is **technically qualified but review-provisional**. Earlier merged #145/#147 retain the same governance debt. Issue #144 and current-main PR #146 address future enforcement; that policy work does not retroactively rewrite missing pre-merge acceptance.
+PR #156 has zero submitted reviews, so current main is **technically qualified but review-provisional**. Earlier merged #136/#145/#147/#151 retain the same missing-independent-acceptance debt. Issue #144 and PR #146 address future enforcement; that policy work does not retroactively rewrite history.
 
 ## WebVM / provider evidence boundary
 
 Retained diagnostics isolate a WebVM-specific, process-local CPython positive-duration timed-wait failure affecting at least `time.sleep()` and `select.select()` while tested direct libc waits pass beyond the same narrow boundary. The lower-level CPython/glibc/WebVM cause and any relationship to earlier interpreter/allocator-corruption symptoms remain **UNKNOWN**.
 
-Merged #145 routes long-lived browser polling below that known Python timed-wait surface. PR #151 then strengthens provider transport and adds an event-backed live-pipeline projection. Exact automated CI/browser evidence is `PASS` for those tested scopes.
+Merged #145 routes long-lived browser polling below that known Python timed-wait surface. PR #151 added the event-backed live-pipeline projection and stricter provider transport. Fresh real-account evidence on that surface then produced two real `openai/gpt-5.4-nano` calls that both failed closed as `provider_protocol_invalid`, with no accepted obligation or artifact.
 
-The latest retained real-account provider path remains **FAIL** as `provider_protocol_invalid`, with no accepted obligation/artifact. The post-#151 browser proof records `cloud_inference: NOT_RUN` and uses the SDK test double. Successful paid/live Puter acceptance on exact current main is therefore **UNKNOWN / not established**.
+PR #156 repairs the identified worker-envelope conformance regression by removing provider-side strict structured-output mode for the dynamic obligation-key envelope and restoring exact nested build guidance. Exact automated CI/browser evidence is `PASS` for those tested scopes.
+
+The retained pre-#156 real-account path remains **FAIL**. A successful paid/live Puter acceptance on exact current main is **UNKNOWN / not established** until a fresh retained real-account run succeeds. Green SDK/contract/browser tests are not provider-quality evidence.
 
 Issues #120/#126 remain open because avoidance of a narrow trigger does not establish long-run recurrence rate or historical root cause.
 
 ## Qualification-methodology expansion
 
-Draft PR #152 proposes a stronger, unified qualification layer: fail-closed evidence manifests, generated lifecycle/state exploration, DSM fault evidence, mutation canaries, branch coverage, exact-wheel qualification, multi-browser journeys, process-soak tooling and manual live-provider/elapsed-soak workflows.
+PR #152 proposes a stronger, unified qualification layer: fail-closed evidence manifests, generated lifecycle/state exploration, DSM fault evidence, mutation canaries, branch coverage, exact-wheel qualification, multi-browser journeys, process-soak tooling and manual live-provider/elapsed-soak workflows.
 
-Its workflow set is still partial/in progress. The proposal itself is not qualification evidence. Virtual-day stress is not elapsed soak; planned 24h/72h/30d workflows produce no elapsed claim until the actual wall-clock runs complete; a live-provider canary would demonstrate one bounded execution path, not model quality.
+Its current head is based on pre-#156 main. Prior workflow outcomes remain exact-head history and do not qualify the candidate against current main. The proposal itself is not qualification evidence. Virtual-day stress is not elapsed soak; planned 24h/72h/30d workflows produce no elapsed claim until the actual wall-clock runs complete; a live-provider canary would demonstrate one bounded execution path, not model quality.
 
 ## Governance and evidence independence
 
-Issue #144 tracks the gap between the project's independent-review expectations and platform enforcement. PR #146 is rebuilt directly on current main and implements a fail-closed exact-head review check. The active ruleset still requires maintainer enforcement after the governance PR itself is independently accepted.
+Issue #144 tracks the gap between the project's independent-review expectations and platform enforcement. PR #146 implements a fail-closed exact-head review check, but #156 moved main after its current head. Refresh/requalification plus independent current-head acceptance are required before integration. The active ruleset still requires a maintainer enforcement change after the governance PR itself is accepted.
 
-Merged #151 has no submitted review. Its green CI remains valid automated evidence but must not be described as independent technical acceptance.
+Merged #156 has no submitted review. Its green CI remains valid automated evidence but must not be described as independent technical acceptance.
 
 ## Proposed contribution
 
@@ -87,7 +89,8 @@ Operational/reliability work that remains open must be scoped honestly:
 2. retain fresh exact-revision real-provider evidence if the protocol depends on that provider path;
 3. complete any required protected #139/#134 qualification sequence before using those adapter changes;
 4. resolve #144/#146 independent-review enforcement for research/release integrations that require independent acceptance;
-5. independently qualify whichever evidence path the live protocol selects rather than assuming green fixture CI is confirmatory evidence.
+5. independently qualify whichever evidence path the live protocol selects rather than assuming green fixture CI is confirmatory evidence;
+6. refresh any selected candidate after a later `main` move instead of inheriting stale-head qualification.
 
 ## Primary confirmatory experiment
 
@@ -109,6 +112,6 @@ A falsifying outcome is equally important: if accepted correctness does not mate
 
 ## What is deliberately not claimed
 
-The repository does not currently claim a new foundation model, a universal verifier/proof system, universally optimal routing, guaranteed token/cost savings, blanket production readiness, acceptable long-run WebVM reliability, successful post-#151 real-provider inference, independent approval of every merged production-readiness change, live-model proof of the central hypothesis, completed long-duration soak, autonomous recursive self-improvement, autonomous merge authority or first-in-literature status.
+The repository does not currently claim a new foundation model, a universal verifier/proof system, universally optimal routing, guaranteed token/cost savings, blanket production readiness, acceptable long-run WebVM reliability, successful post-#156 real-provider inference, independent approval of every merged production-readiness change, live-model proof of the central hypothesis, completed long-duration soak, autonomous recursive self-improvement, autonomous merge authority or first-in-literature status.
 
 Receipts establish that stated checks ran over stated evidence under stated identities/revisions. They do not certify arbitrary truth beyond those contracts.
