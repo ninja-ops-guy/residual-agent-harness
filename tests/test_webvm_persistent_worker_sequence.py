@@ -189,5 +189,19 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
         self.assertFalse(self.fifo.exists())
 
 
+class PersistentWorkerHostTimeoutTests(unittest.TestCase):
+    def test_startup_and_mission_timeouts_terminate_only_verified_worker(self):
+        root = Path(__file__).resolve().parents[1]
+        source = (root / 'demo/vm/install_workbench.py').read_text(encoding='utf-8')
+        self.assertIn('function terminateResidualWorker()', source)
+        self.assertGreaterEqual(source.count('terminateResidualWorker();'), 2)
+        self.assertIn('kill -KILL "$residual_worker_pid"', source)
+        self.assertIn('[ ! -L /tmp/residual-workbench.pid ]', source)
+        self.assertIn('[ -O /tmp/residual-workbench.pid ]', source)
+        self.assertIn("mapfile -d '' residual_worker_argv", source)
+        self.assertIn(r'\${residual_worker_argv[2]-}', source)
+        self.assertIn('residual.workbench.browser_worker', source)
+
+
 if __name__ == '__main__':
     unittest.main()
