@@ -1,0 +1,163 @@
+name: Inspector and onboarding qualification
+
+on:
+  pull_request:
+    paths:
+      - residual/onboarding.py
+      - residual/inspector.py
+      - residual/config.py
+      - residual/cli.py
+      - tests/test_freellmapi_onboarding.py
+      - tests/test_inspector.py
+      - tests/test_onboarding*.py
+      - docs/quickstart.md
+      - .github/workflows/inspector-onboarding.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  onboarding-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      RESIDUAL_HOME: ${{ github.workspace }}/runs/onboarding-home
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory]' pytest
+      - name: Execute integration and documented commands
+        run: |
+          set -o pipefail
+          mkdir -p runs/onboarding-qualification
+          python -m pytest tests/test_freellmapi_onboarding.py tests/test_inspector.py tests/test_onboarding.py tests/test_onboarding_studio.py -ra --junitxml=runs/onboarding-qualification/tests.xml 2>&1 | tee runs/onboarding-qualification/tests.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: onboarding-tests-${{ github.sha }}
+          path: runs/onboarding-qualification/
+          if-no-files-found: error
+
+  inspector-smoke:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory]'
+      - name: Install pinned Inspector and probe the unchanged host policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p runs/inspector-qualification
+          git rev-parse HEAD HEAD^{tree} > runs/inspector-qualification/source.txt
+          uname -a > runs/inspector-qualification/environment.txt
+          python --version >> runs/inspector-qualification/environment.txt
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq bubblewrap curl
+          bwrap --ro-bind /usr /usr --proc /proc --dev /dev /usr/bin/true
+          curl -fsSL -o "$RUNNER_TEMP/px0" https://github.com/px0-ai/px0/releases/download/v0.1.2/px0-0.1.2-linux-amd64
+          printf '%s  %s\n' 'c483293c67a63821712508931588d0495c336be5ace1e253b90624d3f5a06700' "$RUNNER_TEMP/px0" | sha256sum -c -
+          sudo install -m 0755 "$RUNNER_TEMP/px0" /usr/local/bin/px0
+          px0 -version > runs/inspector-qualification/version.txt
+      - name: Real read-only Inspector execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          WORK="$RUNNER_TEMP/inspector-repository"
+          git clone -q "$GITHUB_WORKSPACE" "$WORK"
+          RECEIPT="$GITHUB_WORKSPACE/runs/inspector-qualification/receipt.json"
+          residual inspector "$WORK" --no-open --receipt "$RECEIPT" > runs/inspector-qualification/stdout.log 2> runs/inspector-qualification/stderr.log &
+          INSPECTOR_PID=$!
+          trap 'kill "$INSPECTOR_PID" 2>/dev/null || true; wait "$INSPECTOR_PID" 2>/dev/null || true' EXIT
+          for _ in $(seq 1 100); do
+            if [ -s "$RECEIPT" ]; then break; fi
+            kill -0 "$INSPECTOR_PID"
+            sleep 0.1
+          done
+          export WORK RECEIPT
+          python - <<'PY'
+          import json, os, subprocess, urllib.request
+          from pathlib import Path
+          from residual.inspector import _sandbox_command
+          receipt = json.loads(Path(os.environ['RECEIPT']).read_text())
+          assert receipt['binary_qualified'] and receipt['sandboxed']
+          assert receipt['sandbox_backend'] == 'bubblewrap'
+          assert not receipt['telemetry_enabled']
+          assert receipt['url'].startswith('http://127.0.0.1:')
+          with urllib.request.urlopen(receipt['url'] + '/', timeout=5) as response:
+              assert response.status == 200
+          workspace = Path(os.environ['WORK'])
+          target = workspace / 'inspector-write-must-fail'
+          command, backend = _sandbox_command(Path('/usr/local/bin/px0'), workspace,
+                                               ['/usr/bin/touch', str(target)])
+          probe = subprocess.run(command, capture_output=True, text=True, timeout=10)
+          Path('runs/inspector-qualification/write-probe.log').write_text(probe.stdout + probe.stderr)
+          assert probe.returncode != 0 and not target.exists()
+          assert not subprocess.check_output(['git', '-C', str(workspace), 'status', '--porcelain', '--untracked-files=all']).strip()
+          assert subprocess.check_output(['git', '-C', str(workspace), 'rev-parse', 'HEAD^{tree}'], text=True).strip() == receipt['tree_hash']
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: inspector-smoke-${{ github.sha }}
+          path: runs/inspector-qualification/
+          if-no-files-found: error
+
+  freellmapi-service-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory]'
+      - name: Start and clean up the real pinned Docker service
+        run: |
+          mkdir -p runs/freellmapi-qualification
+          python - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          from residual.onboarding import ManagedPaths, start_service, FREELLMAPI_IMAGE, ensure_service_files, wait_for_http
+          root = Path(os.environ['RUNNER_TEMP']) / 'residual-service-smoke'
+          paths = ManagedPaths.from_value(root)
+          ensure_service_files(paths)
+          report = {'source_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+                    'image': FREELLMAPI_IMAGE, 'live_model_calls': 0, 'qualifies_provider_inference': False}
+          try:
+              ok, detail = start_service(paths)
+              ok = ok and wait_for_http('http://127.0.0.1:3001/', timeout=60)
+              report['service_ready'] = ok
+              report['detail'] = detail
+              assert ok, detail
+              ids = subprocess.check_output(['docker', 'compose', '-f', str(paths.compose), 'ps', '-q'], cwd=paths.service_dir, text=True).split()
+              assert len(ids) == 1
+              configuration = json.loads(subprocess.check_output(['docker', 'inspect', ids[0]], text=True))[0]
+              environment = dict(item.split('=', 1) for item in configuration['Config']['Env'] if '=' in item)
+              assert environment.get('FREEAPI_CONFIG_JSON', '') == ''
+              report['bootstrap_environment_scrubbed'] = True
+              report['image_identity'] = configuration['Image']
+          finally:
+              clean = subprocess.run(['docker', 'compose', '-f', str(paths.compose), 'down', '--volumes', '--remove-orphans'], cwd=paths.service_dir, capture_output=True, text=True, timeout=60)
+              report['cleanup_returncode'] = clean.returncode
+              Path('runs/freellmapi-qualification/report.json').write_text(json.dumps(report, indent=2) + '\n')
+              assert clean.returncode == 0
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: freellmapi-service-smoke-${{ github.sha }}
+          path: runs/freellmapi-qualification/
+          if-no-files-found: error

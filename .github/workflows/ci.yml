@@ -20,94 +20,12 @@ jobs:
       - name: Compile and test without model credentials
         run: |
           python -m compileall -q residual
-          python -m unittest discover -s tests -v
+          python scripts/qualification_unittest.py discover -s tests -v
       - name: Exercise packaged CLI
         run: |
           residual demo --output runs/ci-demo
           residual verify-trace runs/ci-demo/trace.jsonl --result runs/ci-demo/result.json
           residual run examples/incident/task.json --config examples/demo.toml --output runs/ci-task
-      - name: Real px0 read-only sandbox smoke
-        if: matrix.python == '3.13'
-        shell: bash
-        run: |
-          set -euo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq bubblewrap curl
-
-          # Ubuntu 24.04+ can deny unprivileged user namespaces through AppArmor.
-          # bubblewrap needs that kernel primitive to create its sandbox. The hosted
-          # runner is ephemeral, and we restore both knobs after the smoke test.
-          ORIG_APPARMOR_USERNS=$(sysctl -n kernel.apparmor_restrict_unprivileged_userns 2>/dev/null || true)
-          ORIG_UNPRIV_USERNS=$(sysctl -n kernel.unprivileged_userns_clone 2>/dev/null || true)
-          PID=""
-          restore_userns() {
-            if [ -n "$ORIG_APPARMOR_USERNS" ]; then
-              sudo sysctl -q -w kernel.apparmor_restrict_unprivileged_userns="$ORIG_APPARMOR_USERNS" >/dev/null || true
-            fi
-            if [ -n "$ORIG_UNPRIV_USERNS" ]; then
-              sudo sysctl -q -w kernel.unprivileged_userns_clone="$ORIG_UNPRIV_USERNS" >/dev/null || true
-            fi
-          }
-          cleanup() {
-            if [ -n "$PID" ]; then
-              kill "$PID" 2>/dev/null || true
-              wait "$PID" 2>/dev/null || true
-            fi
-            restore_userns
-          }
-          trap cleanup EXIT
-
-          if [ "$ORIG_APPARMOR_USERNS" = "1" ]; then
-            sudo sysctl -q -w kernel.apparmor_restrict_unprivileged_userns=0 >/dev/null
-          fi
-          if [ "$ORIG_UNPRIV_USERNS" = "0" ]; then
-            sudo sysctl -q -w kernel.unprivileged_userns_clone=1 >/dev/null
-          fi
-
-          # Fail early if the runner still cannot create a bubblewrap sandbox.
-          bwrap --ro-bind /usr /usr --proc /proc --dev /dev /usr/bin/true
-
-          PX0=/usr/local/bin/px0
-          sudo curl -fsSL -o "$PX0" https://github.com/px0-ai/px0/releases/download/v0.1.2/px0-0.1.2-linux-amd64
-          printf '%s  %s\n' 'c483293c67a63821712508931588d0495c336be5ace1e253b90624d3f5a06700' "$PX0" | sha256sum -c -
-          sudo chmod 0755 "$PX0"
-          "$PX0" -version | grep -F 'px0 0.1.2'
-          WORK="$HOME/residual-inspector-smoke"
-          rm -rf "$WORK"
-          git clone -q "$GITHUB_WORKSPACE" "$WORK"
-          RECEIPT=/tmp/residual-inspector-smoke-receipt.json
-          rm -f "$RECEIPT"
-          residual inspector "$WORK" --px0 "$PX0" --no-open --receipt "$RECEIPT" > /tmp/inspector.out 2> /tmp/inspector.err &
-          PID=$!
-          for _ in $(seq 1 50); do
-            if [ -s "$RECEIPT" ]; then break; fi
-            if ! kill -0 "$PID" 2>/dev/null; then
-              cat /tmp/inspector.out /tmp/inspector.err
-              exit 1
-            fi
-            sleep 0.1
-          done
-          if [ ! -s "$RECEIPT" ]; then
-            cat /tmp/inspector.out /tmp/inspector.err
-            exit 1
-          fi
-          python - <<'PY'
-          import json
-          import urllib.request
-          p = json.load(open('/tmp/residual-inspector-smoke-receipt.json'))
-          assert p['binary_qualified'] is True
-          assert p['sandboxed'] is True
-          assert p['sandbox_backend'] == 'bubblewrap'
-          assert p['telemetry_enabled'] is False
-          assert p['url'].startswith('http://127.0.0.1:')
-          with urllib.request.urlopen(p['url'] + '/', timeout=3) as r:
-              assert r.status == 200
-          PY
-          BEFORE=$(git -C "$WORK" status --porcelain --untracked-files=all)
-          test -z "$BEFORE"
-          cleanup
-          PID=""
-          trap - EXIT
       - name: Controller ablations
         run: python -m residual benchmark --cases 4 --output runs/ci-benchmark.json
       - name: Frozen adaptive assurance evaluation
@@ -125,5 +43,18 @@ jobs:
           path: |
             runs/ci-study/
             runs/ci-assurance-evidence.json
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: CIC grouping and feasibility comparison (scripted fixtures)
+        run: |
+          residual study freeze --suite examples/cic/suite.json --config examples/study-fixture.toml --modes residual structural cic --repeats 2 --output runs/ci-cic.lock.json
+          residual study run --lock runs/ci-cic.lock.json --output runs/ci-cic
+          residual study report runs/ci-cic
+      - name: Preserve CIC comparison evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cic-study-python-${{ matrix.python }}
+          path: runs/ci-cic/
           if-no-files-found: ignore
           retention-days: 14

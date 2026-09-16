@@ -1,0 +1,49 @@
+{
+  "schema_version": "residual.study-suite.v1",
+  "name": "cic-public-contract-stress-v1",
+  "evidence_level": "development_fixture",
+  "cases": [
+    {
+      "id": "weak-composition",
+      "family": "joint-contract",
+      "split": "evaluation",
+      "task": "weak-composition/task.json",
+      "grader": "weak-composition/grader.json"
+    },
+    {
+      "id": "frozen-dead-end",
+      "family": "frozen-prerequisite",
+      "split": "evaluation",
+      "task": "frozen-dead-end/task.json",
+      "grader": "frozen-dead-end/grader.json"
+    },
+    {
+      "id": "unsatisfiable",
+      "family": "infeasible-model",
+      "split": "evaluation",
+      "task": "unsatisfiable/task.json",
+      "grader": "unsatisfiable/grader.json"
+    },
+    {
+      "id": "sum-choice",
+      "family": "sum-contract",
+      "split": "evaluation",
+      "task": "sum-choice/task.json",
+      "grader": "sum-choice/grader.json"
+    },
+    {
+      "id": "independent",
+      "family": "independent-domains",
+      "split": "evaluation",
+      "task": "independent/task.json",
+      "grader": "independent/grader.json"
+    },
+    {
+      "id": "stronger-member-check",
+      "family": "incomplete-model",
+      "split": "evaluation",
+      "task": "stronger-member-check/task.json",
+      "grader": "stronger-member-check/grader.json"
+    }
+  ]
+}

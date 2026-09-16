@@ -111,6 +111,7 @@ class Task:
     goal: str
     artifacts: dict[str, Artifact]
     obligations: tuple[Obligation, ...]
+    structure: str | None = None
 
     def __post_init__(self):
         identifier(self.id)
@@ -122,6 +123,8 @@ class Task:
         for key, artifact in self.artifacts.items():
             if key != artifact.id:
                 raise ContractError("artifact key/id mismatch")
+        if self.structure is not None and (not isinstance(self.structure, str) or self.structure not in self.artifacts):
+            raise ContractError("unknown structural artifact")
         for o in self.obligations:
             if set(o.evidence) - self.artifacts.keys() or set(o.depends_on) - set(ids):
                 raise ContractError("unknown artifact or dependency")
@@ -145,7 +148,7 @@ class Task:
     def load(cls, path: str | Path) -> Task:
         path = Path(path).resolve()
         data = strict_json(path.read_text(encoding="utf-8"))
-        if set(data) - {"id", "goal", "artifacts", "obligations"}:
+        if set(data) - {"id", "goal", "artifacts", "obligations", "structure"}:
             raise ContractError("unknown task keys")
         artifacts = {}
         total = 0
@@ -174,7 +177,7 @@ class Task:
             for key in ("evidence", "depends_on"):
                 spec[key] = tuple(spec.get(key, []))
             obligations.append(Obligation(**spec))
-        return cls(data["id"], data["goal"], artifacts, tuple(obligations))
+        return cls(data["id"], data["goal"], artifacts, tuple(obligations), data.get("structure"))
 
 
 @dataclass(frozen=True)

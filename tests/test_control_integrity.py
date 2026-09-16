@@ -123,12 +123,14 @@ class LoopIntegrityTests(unittest.TestCase):
                 self.assertEqual(harness.calls, 1)
 
     def test_deadline_stops_before_second_pass(self):
+        # Ordering assertion only (calls == 1, ABORTED): the budget must be
+        # exceeded before a second pass starts. Wide margins, no wall ratio.
         class Slow(Harness):
             def run_pass(self, goal, number):
-                time.sleep(.01)
+                time.sleep(.2)
                 return super().run_pass(goal, number)
         harness = Slow()
-        result = loop(harness, spec(wall_clock_budget_s=.001)).run()
+        result = loop(harness, spec(wall_clock_budget_s=.05)).run()
         self.assertEqual(harness.calls, 1)
         self.assertEqual(result.outcome, RunOutcome.ABORTED)
 

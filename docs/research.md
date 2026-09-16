@@ -90,9 +90,17 @@ Issue #48 tracks stale `implementation-status.yaml` entries that still mark M2/M
 
 Clean-install qualification work retained an initial Python 3.11 failure in two timing-sensitive Factory OS tests that passed unchanged on rerun. The source of that nondeterminism must be classified rather than hidden by retry policy.
 
+### Measured-evidence provenance
+
+PR #71's reviewed Factory adapter still permits replay to count as independent repetitions, unsigned/run-unbound topology, drift between measured and frozen task populations, and unqualified verifier-boundary labels. A signature over the resulting report does not repair invalid source evidence.
+
+Before using that adapter for confirmatory results, correct and independently requalify fresh execution/run binding, cross-repetition replay rejection, authenticated scheduler evidence over the run interval, the exact approved workload-to-task mapping, and the qualified verifier policy/execution boundary. Resume must preserve the original run identity rather than count recovered evidence as new execution. These measurement requirements remain separate from closing #63, #48 and the timing issue.
+
+A live R0–R5 protocol can explicitly exclude this Factory adapter and use a different independently qualified evidence path. It must still satisfy the applicable guarantees in the [live evaluation gate](evaluation.md#live-evaluation-gate); a different path must not be assumed sound merely because PR #71 is not used.
+
 ## Next confirmatory experiment
 
-After the blockers above are closed, freeze the implementation, model configuration, verifier revisions, task corpus, prompts, inference settings and evaluation metrics **before** observing live results.
+After the blockers above are closed or explicitly excluded through a qualified alternative, freeze the implementation, selected execution/evidence adapter, model configuration, verifier revisions and policies, task corpus and mapping, prompts, inference settings, evaluation metrics and analysis code **before** observing live results. Retain the selected path's qualification evidence alongside the frozen protocol.
 
 The primary experiment should run one fixed model across R0–R5 configurations and retain raw observations sufficient to recompute:
 
