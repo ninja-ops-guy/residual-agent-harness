@@ -16,6 +16,14 @@ from residual.workbench import browser_mailbox, browser_run, browser_worker
 from residual.workbench.runner import verify_run
 
 
+WRITER_COMMAND_TIMEOUT = 5.0
+# The writer records its own TimeoutError at WRITER_COMMAND_TIMEOUT.  The test
+# must wait strictly longer than that deadline or it can race the diagnostic
+# path and report only "thread still alive" at the exact timeout boundary.
+# A real writer timeout still fails below because errors must remain empty.
+WRITER_JOIN_TIMEOUT = WRITER_COMMAND_TIMEOUT + 2.0
+
+
 class PersistentWorkerSequenceTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -51,7 +59,7 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
         def writer():
             try:
                 for index, command in enumerate(commands):
-                    deadline = time.monotonic() + 5.0
+                    deadline = time.monotonic() + WRITER_COMMAND_TIMEOUT
                     while self.control.exists():
                         if time.monotonic() >= deadline:
                             raise TimeoutError('worker control record was not consumed')
@@ -80,6 +88,11 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
         thread = threading.Thread(target=writer, name='persistent-worker-command-writer')
         thread.start()
         return thread, errors
+
+    def finish_writer(self, writer: threading.Thread, errors: list[BaseException]):
+        writer.join(timeout=WRITER_JOIN_TIMEOUT)
+        self.assertFalse(writer.is_alive(), 'command writer exceeded its own diagnostic deadline')
+        self.assertEqual(errors, [])
 
     def serve(self):
         return browser_worker.serve(
@@ -137,9 +150,7 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
             contextlib.redirect_stderr(stderr),
         ):
             status = self.serve()
-        writer.join(timeout=5)
-        self.assertFalse(writer.is_alive(), 'command writer did not finish')
-        self.assertEqual(errors, [])
+        self.finish_writer(writer, errors)
         self.assertEqual(status, 0)
 
         transcript = stdout.getvalue()
@@ -190,9 +201,7 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
             contextlib.redirect_stdout(stdout),
         ):
             status = self.serve()
-        writer.join(timeout=5)
-        self.assertFalse(writer.is_alive(), 'command writer did not finish')
-        self.assertEqual(errors, [])
+        self.finish_writer(writer, errors)
         self.assertEqual(status, 70)
         self.assertEqual(persistent_run.call_count, 1, 'fatal worker processed a later queued mission')
 
@@ -227,9 +236,7 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
             contextlib.redirect_stdout(stdout),
         ):
             status = self.serve()
-        writer.join(timeout=5)
-        self.assertFalse(writer.is_alive(), 'command writer did not finish')
-        self.assertEqual(errors, [])
+        self.finish_writer(writer, errors)
         self.assertEqual(status, 70)
 
         transcript = stdout.getvalue()
