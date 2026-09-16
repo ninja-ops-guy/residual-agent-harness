@@ -156,18 +156,23 @@ async def main() -> int:
             return code
 
         async def probe(label: str, *, tolerate_python_failure: bool = False) -> None:
+            # Keep shell probes deliberately small and bounded. Earlier diagnostic
+            # revisions recursively scanned library directories and called df;
+            # under the 32-bit CheerpX guest those diagnostics could themselves
+            # stall or return overflowed statfs values. Those observations are
+            # retained as diagnostic artifacts but are not used as root-cause
+            # evidence. Fixed-file hashing is enough to distinguish byte drift
+            # from execution-state failures without perturbing the workload.
             shell_command = (
                 "printf 'RUNTIME_PROBE_LABEL=%s\\n' '" + label + "'; "
                 "printf 'ARCH '; getconf LONG_BIT 2>/dev/null || true; "
-                "sha256sum /usr/bin/python3.11 "
+                "timeout 15s sha256sum /usr/bin/python3.11 "
                 "/usr/lib/python3.11/re/_parser.py /usr/lib/python3.11/re/_compiler.py "
-                "/usr/lib/python3.11/hashlib.py /usr/lib/python3.11/uuid.py /usr/lib/python3.11/platform.py; "
-                "find /usr/lib/i386-linux-gnu -maxdepth 1 -type f -name 'libpython3.11*.so*' -print0 2>/dev/null "
-                "| sort -z | xargs -0 -r sha256sum; "
-                "find /usr/lib/python3.11/lib-dynload -maxdepth 1 -type f -name '_sha512*.so' -print0 "
-                "| sort -z | xargs -0 -r sha256sum; "
-                "printf 'MEMINFO '; awk '/MemFree:|MemAvailable:|SwapFree:/{printf \"%s=%s \", $1, $2} END{print \"\"}' /proc/meminfo; "
-                "printf 'FILESYSTEM '; df -Pk / /opt/residual | tail -n +2 | tr '\\n' ';'; echo"
+                "/usr/lib/python3.11/hashlib.py /usr/lib/python3.11/uuid.py /usr/lib/python3.11/platform.py "
+                "|| echo PROBE_HASH_TIMEOUT=core; "
+                "for f in /usr/lib/python3.11/lib-dynload/_sha512*.so; do "
+                "if [ -e \"$f\" ]; then timeout 5s sha256sum \"$f\" || echo PROBE_HASH_TIMEOUT=_sha512; fi; "
+                "done; echo RUNTIME_PROBE_SHELL_DONE"
             )
             shell_rc = await run_guest(shell_command, kind="probe-shell")
             python_command = (
