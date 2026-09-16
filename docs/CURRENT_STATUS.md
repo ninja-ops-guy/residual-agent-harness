@@ -86,6 +86,8 @@ Issue #120 remains open for intermittent Pages/WebVM delivery and guest-runtime 
 
 The current interpretation is a guest/interpreter lifecycle risk, not a proven application-level defect. PR #136 is the current-main mitigation candidate. Its current head keeps Mission Control on one persistent in-guest Python worker, serializes missions, validates worker PID/FIFO identity, promotes impossible browser-mailbox `TypeError` corruption into a fatal non-reusable worker outcome, and adds durable poison/identity-bound timeout recovery that preserves incomplete mission evidence and fails closed when cleanup cannot be proven. Those changes harden the lifecycle boundary; they remain a candidate mitigation, **not** a proven root-cause fix or production reliability clearance.
 
+Fresh exact-head qualification for PR #136 is currently **FAIL** at the Pages/WebVM browser gate. Run `35067563563` tested synthetic merge `17af2517d52699b0fd46f94afa73932dbcd51e6e` for PR head `52e820e012403c189e93679f41129ee5cddee510`. The provider-contract tests and focused 79-test WebVM Python suite passed, and the desktop proof reached guest attachment, real demo verification, and warm reload. The persistent worker then failed to start in the actual WebVM guest because `os.mkfifo()` returned `OSError: [Errno 38] Function not implemented`; the desktop browser proof timed out and the narrow proof was not reached. The failed proof was retained as artifact `10434517793`, ZIP SHA-256 `f76b08416debf55dc225531bc47c696549318e1b011ca8ce6a73e58398f88c1e`. This is a candidate-transport qualification **FAIL** for #136, not an accepted-main regression and not proof of the historical corruption root cause.
+
 PR #134, which hardens the real browser provider adapter, remains held until the runtime lifecycle boundary is stabilized and production-qualified. Its provider-transport changes must be rebased/requalified after #126/#136 is resolved before fresh real-provider iPhone evidence is requested.
 
 ## Current implementation map
@@ -94,7 +96,7 @@ PR #134, which hardens the real browser provider adapter, remains held until the
 | --- | --- | --- |
 | Core harness | Implemented | Goal contracts, verifier-defined acceptance, brakes, residual delegation, receipts, cache binding, trace/audit surfaces and provider routing exist. |
 | Command Station | Implemented research/operations surface | Run control, provider/model management, observations, HITL hooks, evidence export and operational UI exist. Deployment-specific production readiness remains environment-dependent. |
-| Mission Control / WebVM | Implemented product/demo surface; **reliability gate open** | Real guest workflows, multi-turn artifact lineage and provider transport exist. #120/#126 remain open; #136 is pending qualification. |
+| Mission Control / WebVM | Implemented product/demo surface; **reliability gate open** | Real guest workflows, multi-turn artifact lineage and provider transport exist. #120/#126 remain open; #136 current head is **FAIL** at Pages/WebVM qualification because FIFO creation is unsupported in the generated guest. |
 | Factory M2 | Implemented | Worker contracts, bounded runtime, isolated worktrees, journaled observations and host-owned termination exist. |
 | Factory M3 | Implemented | Station-issued receipts, artifact binding, evidence-bus handoff and integrity checks exist. |
 | Factory M4 | Implemented; capable-runner qualified on named environments | Closed #63 implementation gaps, #108 timing repair, fail-closed prerequisite probing and zero-skip qualification path exist. Not every-host or production qualification. |
@@ -144,7 +146,7 @@ The project does not yet claim that:
 
 The recommended order is:
 
-1. **Stabilize WebVM guest lifecycle.** Qualify PR #136 on exact current main, obtain genuinely independent review, preserve every failed release attempt, and require the exact merged production revision to pass its first qualified desktop+narrow release attempt.
+1. **Repair and requalify the WebVM worker transport.** PR #136 head `52e820e...` is currently **FAIL** in run `35067563563`: the actual WebVM guest returns `ENOSYS` for `mkfifo`, so the desktop proof cannot start the persistent worker and the narrow proof is not reached. Preserve artifact `10434517793`, redesign the transport without weakening fail-closed mailbox/identity semantics, rerun exact-head full CI plus desktop+narrow proof, then obtain genuinely independent technical review. Only after merge should the exact production revision be required to pass its first qualified desktop+narrow release attempt.
 2. **Requalify the provider adapter only after lifecycle stabilization.** Refresh PR #134 onto the stable runtime, then run exact-head and production browser qualification before a fresh real-provider iPhone run.
 3. **Refresh pending runtime/release candidates.** Rebase/reconcile #118 and #115 onto current accepted main, rerun exact-head qualification, and preserve their independent-review requirements.
 4. **Execute release/recovery qualification.** Exercise blank-environment setup, recovery and retained-evidence procedures without converting rehearsal/simulation evidence into release PASS.
