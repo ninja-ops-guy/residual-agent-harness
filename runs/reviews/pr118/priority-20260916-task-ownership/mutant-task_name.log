@@ -1,0 +1,22 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/swarm/test_cancellation_ownership.py::test_task_name_cannot_replace_an_active_operation -q --tb=short
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______________ test_task_name_cannot_replace_an_active_operation _______________
+tests/swarm/test_cancellation_ownership.py:118: in test_task_name_cannot_replace_an_active_operation
+    asyncio.run(scenario())
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/swarm/test_cancellation_ownership.py:110: in scenario
+    with pytest.raises(ValueError, match="already tracked"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+=========================== short test summary info ============================
+FAILED tests/swarm/test_cancellation_ownership.py::test_task_name_cannot_replace_an_active_operation
+1 failed in 0.10s

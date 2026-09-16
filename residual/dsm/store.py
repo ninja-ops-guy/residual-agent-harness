@@ -7,7 +7,8 @@ An *event* is a proposed state transition:
      "writer_holder", "fencing_token", "now_ms"   (task.lease domain only)}
 
 Admission rules (evaluated in order, all fail closed):
-  1. dedupe      — a previously journaled event_id is a duplicate (R4).
+  1. dedupe      — an exact retry of a journaled event_id is a duplicate;
+                   reuse of that key with a changed payload is rejected (R4).
   2. ownership   — writer must be authoritative for the domain (R1).
   3. fencing     — task.lease writes need a live fencing token (R5).
   4. terminal    — task.terminal transitions must be legal; terminal
@@ -30,7 +31,9 @@ consensus protocol.
 """
 from __future__ import annotations
 
+from copy import deepcopy
 from pathlib import Path
+import threading
 
 from residual.core import ContractError
 
@@ -52,6 +55,9 @@ class DistributedStateStore:
         # NOTE: lease state is intentionally injectable; durability of the
         # lease table requires a consensus service (see docs/swarm/dsm-004.md).
         self.leases = leases or LeaseManager()
+        # Local admission serialization closes same-process dedupe/collision
+        # races. It is not a multi-process or distributed consensus primitive.
+        self._submit_lock = threading.RLock()
 
     # -- journal-derived views --------------------------------------------
     def _transition_records(self):
@@ -77,25 +83,37 @@ class DistributedStateStore:
         "accepted" or "duplicate". Raises a ContractError subclass on
         rejection (fail closed) and CrashError at the injected crash point.
         """
+        with self._submit_lock:
+            return self._submit_locked(deepcopy(event), crash_after=crash_after, time_ns=time_ns)
+
+    def _submit_locked(self, event, crash_after=None, time_ns=0):
         for field in ("event_id", "domain", "entity", "value", "writer"):
             if field not in event:
                 raise ContractError(f"event missing required field {field!r}")
 
-        # 1. idempotency (R4): a retry of an already-journaled event is a
-        #    duplicate, even if the first submit crashed before its ack.
+        # 1. idempotency (R4): only an exact retry is a duplicate. Reusing a
+        # transition key with different content is ambiguous and fails closed.
         existing = self._find(event["event_id"])
         if existing is not None:
+            existing_event = existing["payload"]["event"]
+            if existing_event != event:
+                raise ContractError(f"transition key collision for event_id {event['event_id']!r}")
             return {"seq": existing["seq"], "hash": existing["hash"],
                     "disposition": "duplicate"}
 
         # 2. authoritative ownership (R1)
         self.ownership.check_writer(event["domain"], event["writer"])
 
-        # 3. fencing (R5): lease-domain writes require a live fencing token
+        # 3/4 + commit. For lease-domain writes the local lease lock is held
+        # from validation through the authoritative journal append, preventing
+        # a same-process reassignment from racing between check and commit.
         if event["domain"] == "task.lease":
-            self.leases.check(event["entity"], event["writer_holder"],
-                              event["fencing_token"], event["now_ms"])
+            with self.leases.guard(event["entity"], event["writer_holder"],
+                                   event["fencing_token"], event["now_ms"]):
+                return self._validate_terminal_and_append(event, crash_after, time_ns)
+        return self._validate_terminal_and_append(event, crash_after, time_ns)
 
+    def _validate_terminal_and_append(self, event, crash_after, time_ns):
         # 4. terminal transition legality (R1/R6)
         if event["domain"] == "task.terminal":
             current = self.current_value("task.terminal", event["entity"], default=None)
