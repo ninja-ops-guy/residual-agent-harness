@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'demo/vm/runtime_campaign.py'
+      - 'demo/vm/runtime_hammer.py'
       - '.github/workflows/webvm-runtime-diagnostic.yml'
   workflow_dispatch:
     inputs:
@@ -11,11 +12,56 @@ on:
         description: 'Full Mission Control stress iterations against the published main artifact'
         required: false
         default: '1'
+      hammer_count:
+        description: 'Fresh CPython processes for the workload-free guest hammer'
+        required: false
+        default: '200'
 
 permissions:
   contents: read
 
 jobs:
+  python-hammer-live-main:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout diagnostic code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Resolve exact published main revision
+        id: main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin main
+          echo "sha=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Install browser
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Hammer fresh guest Python processes without Mission Control workload
+        env:
+          HAMMER_COUNT: ${{ github.event.inputs.hammer_count || '200' }}
+          MAIN_SHA: ${{ steps.main.outputs.sha }}
+        run: |
+          set -euo pipefail
+          python demo/vm/runtime_hammer.py \
+            --url "https://ninja-ops-guy.github.io/residual-agent-harness/demo/" \
+            --expected-sha "$MAIN_SHA" \
+            --output runtime-hammer \
+            --count "$HAMMER_COUNT"
+      - name: Retain hammer evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webvm-python-hammer-${{ github.run_id }}-${{ github.run_attempt }}
+          path: runtime-hammer/
+          retention-days: 14
+          if-no-files-found: warn
+
   diagnose-live-main:
     runs-on: ubuntu-latest
     timeout-minutes: 45
