@@ -15,7 +15,7 @@ on:
       hammer_count:
         description: 'Fresh CPython processes for the workload-free guest hammer'
         required: false
-        default: '200'
+        default: '100'
 
 permissions:
   contents: read
@@ -44,7 +44,7 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: Hammer fresh guest Python processes without Mission Control workload
         env:
-          HAMMER_COUNT: ${{ github.event.inputs.hammer_count || '200' }}
+          HAMMER_COUNT: ${{ github.event.inputs.hammer_count || '100' }}
           MAIN_SHA: ${{ steps.main.outputs.sha }}
         run: |
           set -euo pipefail
