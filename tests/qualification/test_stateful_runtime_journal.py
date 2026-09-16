@@ -156,7 +156,13 @@ if HYPOTHESIS_AVAILABLE:
                 assert self.journal.lease_state(old) == "revoked"
 
     RuntimeJournalStatefulTest = RuntimeJournalMachine.TestCase
-    RuntimeJournalStatefulTest.settings = settings(max_examples=75, stateful_step_count=40, deadline=None)
+    RuntimeJournalStatefulTest.settings = settings(
+        max_examples=75,
+        stateful_step_count=40,
+        deadline=None,
+        derandomize=True,
+        database=None,
+    )
 else:
     class RuntimeJournalStatefulTest(unittest.TestCase):
         @unittest.skip("qualification extra 'hypothesis' is not installed")
