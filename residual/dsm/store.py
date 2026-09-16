@@ -46,6 +46,25 @@ class CrashError(RuntimeError):
     """Simulated process death at an injected crash point."""
 
 
+# Stores opened on the same journal inside one Python process must share an
+# admission lock.  A per-instance lock leaves a stale-cache race where two
+# pre-opened Journal objects can both append seq=0/prev=GENESIS.  This registry
+# deliberately stops at the process boundary: multi-process/multi-host writers
+# still require an external serialization/consensus adapter.
+_PROCESS_PATH_LOCKS_GUARD = threading.Lock()
+_PROCESS_PATH_LOCKS: dict[str, threading.RLock] = {}
+
+
+def _process_path_lock(path: Path) -> threading.RLock:
+    key = str(path.resolve())
+    with _PROCESS_PATH_LOCKS_GUARD:
+        lock = _PROCESS_PATH_LOCKS.get(key)
+        if lock is None:
+            lock = threading.RLock()
+            _PROCESS_PATH_LOCKS[key] = lock
+        return lock
+
+
 class DistributedStateStore:
     def __init__(self, root, ownership=None, leases=None):
         self.root = Path(root)
@@ -55,13 +74,18 @@ class DistributedStateStore:
         # NOTE: lease state is intentionally injectable; durability of the
         # lease table requires a consensus service (see docs/swarm/dsm-004.md).
         self.leases = leases or LeaseManager()
-        # Local admission serialization closes same-process dedupe/collision
-        # races. It is not a multi-process or distributed consensus primitive.
-        self._submit_lock = threading.RLock()
+        # All stores targeting this journal in the current process share this
+        # lock. This closes same-process journal dedupe/collision/sequence races
+        # but is not a multi-process or distributed consensus primitive.
+        self._submit_lock = _process_path_lock(self.journal.path)
 
     # -- journal-derived views --------------------------------------------
     def _transition_records(self):
-        return [r for r in self.journal.replay(-1) if r["kind"] == "transition"]
+        # A sibling store may have appended since this instance was opened.
+        # Refresh under the shared path lock before projecting durable state.
+        with self._submit_lock:
+            self.journal.refresh()
+            return [r for r in self.journal.replay(-1) if r["kind"] == "transition"]
 
     def _find(self, event_id):
         for record in self._transition_records():
@@ -84,6 +108,9 @@ class DistributedStateStore:
         rejection (fail closed) and CrashError at the injected crash point.
         """
         with self._submit_lock:
+            # Re-read/verify the durable head while admission is serialized so
+            # pre-opened sibling stores cannot append against stale seq/head.
+            self.journal.refresh()
             return self._submit_locked(deepcopy(event), crash_after=crash_after, time_ns=time_ns)
 
     def _submit_locked(self, event, crash_after=None, time_ns=0):
@@ -106,7 +133,10 @@ class DistributedStateStore:
 
         # 3/4 + commit. For lease-domain writes the local lease lock is held
         # from validation through the authoritative journal append, preventing
-        # a same-process reassignment from racing between check and commit.
+        # a same-LeaseManager reassignment from racing between check and commit.
+        # Separate LeaseManager instances are not a fencing authority; callers
+        # that share a journal for task.lease writes must also share the same
+        # LeaseManager or use a consensus-backed implementation.
         if event["domain"] == "task.lease":
             with self.leases.guard(event["entity"], event["writer_holder"],
                                    event["fencing_token"], event["now_ms"]):
