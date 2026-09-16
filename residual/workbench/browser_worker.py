@@ -70,16 +70,24 @@ def _request(mailbox: Path, mission_id: str, mode: str):
 
 def dispatch(mission_id: str, mode: str, *, mailbox: Path, root: Path, output_root: Path) -> int:
     request_path = _request(mailbox, mission_id, mode)
-    common = [
-        "--request", str(request_path),
-        "--mailbox", str(mailbox),
-        "--root", str(root),
-        "--output-root", str(output_root),
-        "--stream",
-    ]
+    # Persistent execution deliberately bypasses the user-facing CLI main()
+    # wrappers. Those wrappers translate broad Python exceptions (including
+    # TypeError) into ordinary exit 1 for standalone usability. In a long-lived
+    # interpreter, the same TypeError is a retained corruption signal and must
+    # escape so serve() can poison the worker and require guest restart.
     if mode == "build":
-        return int(browser_build.main(common) or 0)
-    return int(browser_run.main(["run", *common]) or 0)
+        return int(browser_build.persistent_build(
+            request_path=request_path,
+            mailbox=mailbox,
+            root=root,
+            output_root=output_root,
+        ) or 0)
+    return int(browser_run.persistent_run(
+        request_path=request_path,
+        mailbox=mailbox,
+        root=root,
+        output_root=output_root,
+    ) or 0)
 
 
 def _dispatch_admitted(
@@ -157,8 +165,8 @@ def serve(*, fifo: Path, pid_file: Path, mailbox: Path, root: Path, output_root:
                         )
                     except BaseException:
                         # Any exception that escaped typed request admission and
-                        # the existing workbench CLI contract is unexpected in a
-                        # persistent interpreter. Fail closed and require restart.
+                        # the persistent workbench contract is unexpected in a
+                        # long-lived interpreter. Fail closed and require restart.
                         print(f"{FATAL_PREFIX}{mission_id}:70", flush=True)
                         return 70
                     print(f"{RUN_PREFIX}{mission_id}:{status}", flush=True)
