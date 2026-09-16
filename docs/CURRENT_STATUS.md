@@ -89,7 +89,15 @@ Issue #120 remains open for intermittent Pages/WebVM delivery and guest-runtime 
 
 The persistent-worker integration plus first-attempt post-merge browser PASS is meaningful mitigation/release evidence. The historical root cause remains **UNKNOWN**, and one qualified release attempt does not establish a long-run recurrence rate. Keep #120/#126 open until their own closure criteria are satisfied by retained evidence.
 
-PR #134 remains open on an older base. The lifecycle prerequisite has materially advanced because #136 is integrated and its first post-merge browser attempt passed, but #134 itself must still be refreshed/rebased onto current `main`, requalified, and separately accepted before any fresh real-provider iPhone result can be treated as evidence for that adapter lane.
+PR #134 is now rebuilt directly on current `main@3a41dc1e...`, but its first exact-head qualification attempt remains **FAIL** because Command Station run `35109573754` hit a `FileNotFoundError` observation race in protected `tests/test_factory_m4_safety.py` while reading `/proc/<pid>/status`. Its browser-mailbox tests passed in that failing job and the separate controller/provider lane passed; this does not convert the full workflow into PASS. PR #134 remains held behind the protected-test repair/requalification sequence before any fresh real-provider iPhone result can be treated as evidence for that adapter lane.
+
+## Protected M4 test-race repair — PR #139
+
+PR #139 isolates the protected one-file repair for the `/proc/<pid>/status` observation race at exact head `2d8855274ba3fe1d6af3296140d4a382680db3a7`. The test now reads the status once and treats `FileNotFoundError` as the child already being gone; otherwise the existing bounded loop still requires zombie-or-disappeared state. The timeout, loop bound and process-group assertion are unchanged.
+
+The capable-runner M4 prerequisite/qualification workflow on that head is **PASS** (`35111486331`), but Factory ownership (`35111486366`) and dependent clean-install, controller/provider, Command Station and measured-binding workflows are **FAIL** because the ownership baseline still pins the prior protected test blob. That is intentional fail-closed trust-boundary behavior, not a reason to weaken or silently advance the pin.
+
+Required sequence remains: genuinely independent review of exact `2d885527...` → deliberate protected ownership-baseline advancement if accepted → fresh qualification after that protected pin change → only then refresh/requalify PR #134. No ownership baseline or protected-byte claim is changed by this documentation update.
 
 ## Protected self-hosting / research-bundle milestone
 
@@ -126,12 +134,15 @@ The old documentation that described issue #63 as an open M4 closure gate is sta
 
 ## Open integration and release gates
 
-`main` advanced from `f1e62936...` to `3a41dc1e...` when PR #136 merged. Exact-head evidence retained for other open PRs remains valid for those exact heads, but those candidates are no longer based on the current accepted main and must not be described as current-main-qualified without refresh/requalification.
+Accepted `main` remains `3a41dc1e...`. Several open candidates have now been rebuilt on that exact base, but candidate qualification does not become accepted-main evidence until integration and any required post-merge gates are satisfied.
 
-- **PR #134 — real browser provider-adapter boundary.** Still open on an older base and explicitly held pending lifecycle stabilization. Refresh/rebase it onto `3a41dc1e...`, rerun exact-head provider/mailbox + full CI + generated Pages desktop/narrow proof + production desktop/narrow proof, then obtain fresh real-provider iPhone evidence. Current status: **BLOCKED pending refresh/requalification**; no live-provider quality PASS is claimed.
-- **PR #118 — runtime/DSM closure.** Head `334527da...` had its applicable exact-head workflow set **PASS** on the prior `f1e62936...` base, with retained first-attempt failures. Refresh/rebase onto current main, requalify and obtain genuinely independent technical acceptance. Cross-process/multi-host serialization, production process wiring, host-loss behavior, release/recovery and elapsed soak remain separate non-claims.
-- **PR #131 — core SoakState persistence hardening.** Head `368f3085...` had all seven applicable exact-head workflows **PASS** on the prior base. The change hardens local resumable-state persistence only; it does not establish elapsed soak or release readiness. Refresh/rebase, requalify and obtain independent acceptance before integration.
-- **PR #115 — release preparation.** Head `b1ffbb48...` was already incompletely qualified on the prior base because controller/provider run `35087653566` was **CANCELLED**, not PASS. Refresh onto current main and require a complete green exact-head workflow set plus independent review. True bare-OS install, production HTTPS release-host, host-loss recovery and elapsed soak remain unproven.
+- **PR #139 — protected M4 test-race repair.** Exact head `2d885527...` has capable-runner M4 **PASS**, while ownership and dependent qualification checks **FAIL closed** because the protected-byte baseline has not been advanced. Independent exact-head review and deliberate baseline/qualification handling are mandatory before merge.
+- **PR #134 — real browser provider-adapter boundary.** Current head `5006d441...` is directly based on current main but remains **BLOCKED/FAIL** on its first exact-head full-workflow attempt because of the protected test race above. Do not rerun merely to erase that retained failure; repair #139 must be accepted/integrated first, then #134 must be refreshed/requalified and independently reviewed before fresh live-provider iPhone evidence.
+- **PR #89 — onboarding/Inspector.** Current head `2a4ce5dc...` has eight observed workflows **PASS**, including Inspector/onboarding qualification and Factory runtime evidence, but Pages/WebVM run `35112465799` is **FAIL** at generated desktop browser proof after substantial earlier stages passed. Failure artifact `10453083802` has ZIP SHA-256 `8128c1c5d7a676cc486e0e9ab6ac9af718a6cb8aca0fadca963cdb8842198988`. No Pages/browser PASS is claimed for this candidate.
+- **PR #118 — runtime/DSM closure.** Current head `e0f042c6...` has all seven observed exact-head workflows **PASS**, including Pages/WebVM. Retained first-attempt failures stay in the record. Fresh genuinely independent technical acceptance remains required. Cross-process/multi-host serialization, production process wiring, host-loss behavior, release/recovery and elapsed soak remain separate non-claims.
+- **PR #115 — release preparation.** Current head `f1862e15...` has all seven observed exact-head workflows **PASS**, including Release preparation procedures. Its offline recovery fixtures and two-simulated-day soak rehearsal are procedure/simulation evidence only. True bare-OS install, production HTTPS release-host, actual host-loss recovery and elapsed soak remain unproven; independent acceptance remains required.
+- **PR #131 — core SoakState persistence hardening.** Current head `1c416970...` has all seven observed exact-head workflows **PASS**, including Pages/WebVM. The change hardens local resumable-state persistence only; it does not establish elapsed soak or release readiness. Independent acceptance remains required.
+- **PR #93 — orchestration economics/observability.** Current head `17189262...` has all eight applicable workflows **PASS**, including Economics and observability qualification and Pages/WebVM. Its retained/generated results remain **development-fixture evidence** and do not establish live SLOs, real-model economics, production reliability, confirmatory research or release readiness. Independent acceptance remains required.
 
 ## Research status
 
@@ -161,14 +172,16 @@ The project does not yet claim that:
 
 The recommended order is:
 
-1. **Refresh/requalify PR #134 on the integrated lifecycle runtime.** Require exact-head provider/mailbox tests, full CI, generated desktop+narrow browser proof and production desktop+narrow proof before any fresh real-provider iPhone run.
-2. **Quantify WebVM reliability.** Keep #120/#126 open, retain every failure, and run a defined repeated-run campaign; one successful first release attempt is not a long-run production failure rate. Preserve root cause as `UNKNOWN` until evidence establishes it.
-3. **Refresh the remaining integration candidates onto current main.** #118 and #131 had prior-base exact-head PASS evidence; #115 had an incomplete/cancelled exact-head gate. Rebase/refresh, requalify and obtain required independent reviews without broadening their claims.
-4. **Execute release/recovery qualification.** Exercise blank-environment setup, recovery and retained-evidence procedures without converting rehearsal/simulation evidence into release PASS.
-5. **Complete remaining reproducibility preparation.** Continue #35 work, freeze the live workload/evidence path/metrics/analysis choices before confirmatory model results, and publish negative/`UNKNOWN` outcomes.
-6. **Run fixed-model R0–R5**, followed by degradation and heterogeneous-routing studies.
-7. **Progress through elapsed 24h → 72h → 30-day soak** only after shorter gates are clean.
-8. **Update the paper only from frozen retained artifacts.**
+1. **Resolve the protected #139 gate without weakening it.** Obtain genuinely independent review of exact `2d885527...`; if accepted, deliberately advance the ownership baseline and requalify the resulting protected state. Do not change the pin merely to make CI green.
+2. **Refresh/requalify PR #134 after the protected repair is accepted.** Require exact-head provider/mailbox tests, full CI, generated desktop+narrow browser proof and production desktop+narrow proof before any fresh real-provider iPhone run.
+3. **Resolve PR #89's current Pages/WebVM FAIL.** Preserve retained artifact `10453083802`; diagnose the generated-browser failure without converting prior passed stages into overall PASS or weakening the browser gate.
+4. **Obtain independent acceptance for green current-main candidates.** #118, #115, #131 and #93 have green observed exact-head workflow sets but still require genuinely independent technical acceptance before integration.
+5. **Quantify WebVM reliability.** Keep #120/#126 open, retain every failure, and run a defined repeated-run campaign; one successful first release attempt is not a long-run production failure rate. Preserve root cause as `UNKNOWN` until evidence establishes it.
+6. **Execute release/recovery qualification.** Exercise blank-environment setup, actual recovery and retained-evidence procedures without converting rehearsal/simulation evidence into release PASS.
+7. **Complete remaining reproducibility preparation.** Continue #35 work, freeze the live workload/evidence path/metrics/analysis choices before confirmatory model results, and publish negative/`UNKNOWN` outcomes.
+8. **Run fixed-model R0–R5**, followed by degradation and heterogeneous-routing studies.
+9. **Progress through elapsed 24h → 72h → 30-day soak** only after shorter gates are clean.
+10. **Update the paper only from frozen retained artifacts.**
 
 ## Documentation authority
 
