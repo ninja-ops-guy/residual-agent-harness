@@ -19,6 +19,7 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
         self.root = Path(self.tmp.name)
         self.mailbox = self.root / 'mailbox'; self.mailbox.mkdir()
         self.output = self.root / 'runs'; self.output.mkdir()
+        self.control = self.mailbox / browser_worker.CONTROL_NAME
         self.mid = 'm-' + 'a' * 32
 
     def write_request(self, mode):
@@ -40,6 +41,23 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
     def test_shutdown_is_separate_from_mission_command_contract(self):
         self.assertEqual(browser_worker.SHUTDOWN, 'shutdown')
         self.assertEqual(browser_worker.STOPPED, 'RESIDUAL_WORKER_STOPPED')
+
+    def test_regular_control_record_requires_complete_newline(self):
+        self.control.write_text(f'{self.mid} audit', encoding='ascii')
+        self.assertIsNone(browser_worker._consume_control(self.control))
+        self.assertTrue(self.control.is_file())
+        self.control.write_text(f'{self.mid} audit\n', encoding='ascii')
+        self.assertEqual(browser_worker._consume_control(self.control), (self.mid, 'audit'))
+        self.assertFalse(self.control.exists())
+
+    @unittest.skipUnless(os.name == 'posix', 'control-path symlink safety is POSIX-specific')
+    def test_control_record_never_follows_symlink(self):
+        target = self.root / 'sentinel'
+        target.write_text(f'{self.mid} audit\n', encoding='ascii')
+        self.control.symlink_to(target)
+        with self.assertRaises(RuntimeError):
+            browser_worker._consume_control(self.control)
+        self.assertEqual(target.read_text(encoding='ascii'), f'{self.mid} audit\n')
 
     def test_browser_entrypoints_do_not_mutate_core_provider_defaults(self):
         self.assertIsNot(runner.MailboxProvider, BrowserMailboxProvider)
@@ -102,9 +120,6 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
                 browser_worker._dispatch_admitted(self.mid, 'audit', **kwargs)
 
     def test_request_parse_typeerror_is_never_downgraded_to_admission(self):
-        # Both retained production corruptions surfaced as impossible TypeErrors
-        # from CPython internals. If one appears while read_json is executing, it
-        # must escape so serve() emits a fatal marker and terminates the worker.
         with mock.patch.object(
             browser_worker, 'read_json', side_effect=TypeError('impossible constructor return')
         ):
@@ -187,15 +202,16 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
             browser_worker._write_pid_file(pid_file)
         self.assertEqual(sentinel.read_text(encoding='ascii'), 'do-not-touch')
 
-    def test_worker_module_does_not_spawn_subprocesses(self):
+    def test_worker_module_does_not_require_fifo_or_spawn_subprocesses(self):
         source = Path(browser_worker.__file__).read_text(encoding='utf-8')
         self.assertNotIn('subprocess', source)
         self.assertNotIn('os.system', source)
+        self.assertNotIn('os.mkfifo', source)
         self.assertIn('browser_build.persistent_build(', source)
         self.assertIn('browser_run.persistent_run(', source)
         self.assertNotIn('browser_build.main(common)', source)
         self.assertNotIn('browser_run.main(["run", *common])', source)
-        self.assertIn('line.strip() == SHUTDOWN', source)
+        self.assertIn("command == SHUTDOWN", source)
 
 
 class PersistentWorkerHostWiringTests(unittest.TestCase):
@@ -211,15 +227,16 @@ class PersistentWorkerHostWiringTests(unittest.TestCase):
         self.assertIn('RESIDUAL_WORKER_READY', source)
         self.assertIn('RESIDUAL_WORKER_RUN_', source)
         self.assertIn('/tmp/residual-workbench.pid', source)
+        self.assertIn('--control-file /data/residual-worker.control', source)
+        self.assertNotIn('/tmp/residual-workbench.fifo', source)
 
-    def test_reused_worker_requires_fifo_and_process_identity(self):
+    def test_reused_worker_requires_idle_process_identity(self):
         source = self.source()
-        self.assertIn('[ -p /tmp/residual-workbench.fifo ]', source)
+        self.assertIn('[ -e /tmp/residual-workbench.busy ]', source)
+        self.assertIn('[ -e /data/residual-worker.control ]', source)
         self.assertIn('[ ! -L /tmp/residual-workbench.pid ]', source)
         self.assertIn("mapfile -d '' residual_worker_argv", source)
         self.assertIn('/proc/$residual_worker_pid/cmdline', source)
-        # These occur inside a JavaScript template literal. The backslash is
-        # required so JavaScript emits a literal ${...} for Bash to expand.
         self.assertIn(r'\${residual_worker_argv[1]-}', source)
         self.assertIn(r'\${residual_worker_argv[2]-}', source)
         self.assertIn('residual.workbench.browser_worker', source)
@@ -230,12 +247,14 @@ class PersistentWorkerHostWiringTests(unittest.TestCase):
         self.assertIn("printf 'RESIDUAL_WORKER_%s", source)
         self.assertIn("READY; else python3 -m residual.workbench.browser_worker", source)
 
-    def test_per_mission_dispatch_contains_only_validated_identity_and_mode(self):
+    def test_per_mission_dispatch_uses_regular_datadevice_control_record(self):
         source = self.source()
-        self.assertIn("const command = `printf '%s\\\\n' '${request.id} ${request.mode}' > /tmp/residual-workbench.fifo`;", source)
+        self.assertIn('"/residual-worker.control"', source)
+        self.assertIn('request.id + " " + request.mode + "\\\\n"', source)
         self.assertIn('Invalid mission ID', source)
         self.assertIn('Invalid mission mode', source)
         self.assertNotIn('request.prompt}', source)
+        self.assertNotIn('mkfifo', source)
 
     def test_poisoned_worker_requires_restart(self):
         source = self.source()
