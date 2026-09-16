@@ -1,5 +1,6 @@
 """Real-file and driver regressions for release evidence integrity."""
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -93,6 +94,27 @@ class SoakPolicyIntegrityTests(unittest.TestCase):
             for record in [manifest, report["payload"], checkpoint["payload"]]:
                 self.assertEqual(record["execution_mode"], "simulation")
                 self.assertFalse(record["qualifies_elapsed_soak"])
+
+    @unittest.skipUnless(os.name == "posix", "directory fsync contract is POSIX-specific")
+    def test_stable_soak_boundaries_fsync_evidence(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            real_fsync = os.fsync
+            calls = []
+
+            def recording_fsync(fd):
+                calls.append(fd)
+                return real_fsync(fd)
+
+            with patch.object(soak_run.os, "fsync", side_effect=recording_fsync):
+                result = self.run_driver(root, max_days=1)
+
+            self.assertEqual(result["status"], "PAUSED")
+            self.assertGreaterEqual(len(calls), 6)
+            self.assertTrue((root / "soak-journal.jsonl").is_file())
+            self.assertTrue((root / "soak-state.json").is_file())
+            self.assertTrue((root / "soak-checkpoint.json").is_file())
+            self.assertTrue((root / "retention-manifest.json").is_file())
 
 
 if __name__ == "__main__":
