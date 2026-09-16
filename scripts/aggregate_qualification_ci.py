@@ -33,10 +33,8 @@ REQUIRED_GATES = (
 )
 
 
-def _record(ledger: Path | None, gate: str, classification: FailureClass,
+def _record(ledger: Path, gate: str, classification: FailureClass,
             summary: str, evidence: dict) -> None:
-    if ledger is None:
-        return
     append_failure(ledger, FailureObservation(
         gate_id=gate,
         classification=classification,
@@ -52,15 +50,15 @@ def main(argv=None) -> int:
     parser.add_argument("--failure-ledger", type=Path)
     args = parser.parse_args(argv)
 
+    ledger = args.failure_ledger or args.output.with_name("failure-ledger.jsonl")
+    ledger.parent.mkdir(parents=True, exist_ok=True)
+    ledger.unlink(missing_ok=True)
+
     evidence = sorted(args.root.rglob("*.evidence.json"))
     wheels = sorted(args.root.rglob("*.whl"))
-    if args.failure_ledger:
-        args.failure_ledger.parent.mkdir(parents=True, exist_ok=True)
-        args.failure_ledger.unlink(missing_ok=True)
-
     if len(wheels) != 1:
         _record(
-            args.failure_ledger,
+            ledger,
             "artifact-set",
             FailureClass.PROVENANCE_UNKNOWN,
             f"expected exactly one promoted wheel, found {len(wheels)}",
@@ -75,7 +73,7 @@ def main(argv=None) -> int:
             envelope = load_envelope(path)
         except Exception as exc:
             _record(
-                args.failure_ledger,
+                ledger,
                 "evidence-envelope",
                 FailureClass.PROVENANCE_UNKNOWN,
                 f"unreadable evidence envelope: {path}",
@@ -88,7 +86,7 @@ def main(argv=None) -> int:
         envelope = loaded.get(gate)
         if envelope is None:
             _record(
-                args.failure_ledger,
+                ledger,
                 gate,
                 FailureClass.PROVENANCE_UNKNOWN,
                 "required qualification evidence is missing",
@@ -102,7 +100,7 @@ def main(argv=None) -> int:
                 else FailureClass.UNCLASSIFIED
             )
             _record(
-                args.failure_ledger,
+                ledger,
                 gate,
                 classification,
                 "required qualification gate did not establish PASS",
@@ -119,7 +117,7 @@ def main(argv=None) -> int:
         manifest = aggregate_manifest(evidence, required_gates=REQUIRED_GATES, artifact_paths=wheels)
     except Exception as exc:
         _record(
-            args.failure_ledger,
+            ledger,
             "qualification-aggregate",
             FailureClass.PROVENANCE_UNKNOWN,
             "qualification evidence could not be aggregated",
