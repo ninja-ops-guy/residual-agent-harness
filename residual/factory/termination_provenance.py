@@ -147,6 +147,7 @@ class ProcessControl:
         self.requested_monotonic_ns: int | None = None
         self.termination_requested = threading.Event()
         self.stopped = threading.Event()
+        self.reap_timed_out = threading.Event()
         self._signal_sent = False
         self._waitid_code: int | None = None
         self._waitid_status: int | None = None
@@ -251,7 +252,23 @@ class ProcessControl:
                         self._signal_sent = True
                     except ProcessLookupError:
                         pass  # exit won the race; do not invent a delivered kill
-        self.reap(timeout=2.0)
+        # Reap OUTSIDE the state lock (reap() takes only _reap_lock): a stuck
+        # reap must never serialize a concurrent killer. A reap timeout is a
+        # typed condition, not an escaping exception: record reap_timed_out
+        # and, when no primary reason exists, the distinct reap_timeout reason.
+        # `stopped` is NOT set: it is evidence of an actually reaped process
+        # (see reap()), and this child may still be live. Callers needing
+        # completion must drive a follow-up reap/escalation; termination_record()
+        # continues to refuse an unreaped process.
+        try:
+            self.reap(timeout=2.0)
+        except subprocess.TimeoutExpired:
+            self.reap_timed_out.set()
+            with self._state_lock:
+                if self.reason is None:
+                    self.reason = ("resource", "reap_timeout", {"timeout_s": 2})
+                    self.requested_by = requester
+                    self.requested_monotonic_ns = self._clock_ns()
 
     def _exit_outcome(self) -> tuple[int | None, int | None, bool]:
         """Prefer typed waitid exit metadata and cross-check the consuming wait.

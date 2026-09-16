@@ -1,0 +1,84 @@
+{
+  "schema": "residual.priority-repair.validation.v1",
+  "lane": "118",
+  "recorded_commit": "3bfa21917878bd3cf17fdaa116422211dd1dc6ad",
+  "tracked_changes": [],
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "command": [
+    "tests/swarm/test_cancellation_ownership.py",
+    "tests/swarm/test_runtime_distributed_closure.py",
+    "tests/swarm/test_runtime005.py",
+    "tests/swarm/test_dsm.py"
+  ],
+  "positive_exit_code": 0,
+  "restored_exit_code": 0,
+  "mutations": [
+    {
+      "name": "exited_leader",
+      "path": "residual/runtime/cancellation.py",
+      "selector": "tests/swarm/test_cancellation_ownership.py::test_exited_leader_does_not_hide_live_descendant",
+      "before": "return (getattr(process, \"returncode\", None) is None or\n                (pgid is not None and os.name == \"posix\" and\n                 self._group_has_live_members(pgid)))",
+      "after": "return getattr(process, \"returncode\", None) is None",
+      "source_sha256": "f5742720f94cb12405134ffe73c740f89106bfdc939a4cf47048a48bf850e69c",
+      "mutant_sha256": "dd7cfb0d6796409d00f7c55894444726c43fdca7a1cfca0f001988c012bd9764",
+      "exit_code": 1,
+      "log": "mutant-exited_leader.log"
+    },
+    {
+      "name": "incomplete_probe",
+      "path": "residual/runtime/cancellation.py",
+      "selector": "tests/swarm/test_cancellation_ownership.py::test_unreadable_proc_cannot_prove_empty_group",
+      "before": "if not incomplete:",
+      "after": "if True:",
+      "source_sha256": "f5742720f94cb12405134ffe73c740f89106bfdc939a4cf47048a48bf850e69c",
+      "mutant_sha256": "e1d58990dce3f7c836a27cd2fd26cb36922df06d4d9ba31cac35db4d620838af",
+      "exit_code": 1,
+      "log": "mutant-incomplete_probe.log"
+    },
+    {
+      "name": "foreign_namespace",
+      "path": "residual/runtime/cancellation.py",
+      "selector": "tests/swarm/test_cancellation_ownership.py::test_foreign_proc_namespace_uses_process_api",
+      "before": "if (int(own_stat.split(\" \", 1)[0]) != os.getpid() or",
+      "after": "if False and (int(own_stat.split(\" \", 1)[0]) != os.getpid() or",
+      "source_sha256": "f5742720f94cb12405134ffe73c740f89106bfdc939a4cf47048a48bf850e69c",
+      "mutant_sha256": "514e12e3df5259c558912ad6b1696704c6a76e188a43f9e4f5348da9a4e96c30",
+      "exit_code": 1,
+      "log": "mutant-foreign_namespace.log"
+    },
+    {
+      "name": "finite_budget",
+      "path": "residual/runtime/cancellation.py",
+      "selector": "tests/swarm/test_cancellation_ownership.py::test_cancellation_requires_finite_deadline",
+      "before": "not math.isfinite(self.budget_s) or ",
+      "after": "",
+      "source_sha256": "f5742720f94cb12405134ffe73c740f89106bfdc939a4cf47048a48bf850e69c",
+      "mutant_sha256": "7c03671d5505a0d9aabcf281d554500d8614f39c0c72a981ff50f8656b501ebb",
+      "exit_code": 1,
+      "log": "mutant-finite_budget.log"
+    },
+    {
+      "name": "ownership_name",
+      "path": "residual/runtime/cancellation.py",
+      "selector": "tests/swarm/test_cancellation_ownership.py::test_process_name_cannot_replace_an_owned_process",
+      "before": "if name in self._processes and self._processes[name] != (process, process_group_id):",
+      "after": "if False:",
+      "source_sha256": "f5742720f94cb12405134ffe73c740f89106bfdc939a4cf47048a48bf850e69c",
+      "mutant_sha256": "5887ca7f77b95db9a5410fad351568037d362e5c0f00ce2cd1310fd8e9db1e3a",
+      "exit_code": 1,
+      "log": "mutant-ownership_name.log"
+    }
+  ],
+  "independent_review": false,
+  "claim_scope": "implementer regression evidence; no production, elapsed-soak or independent acceptance claim",
+  "files_sha256": {
+    "mutant-exited_leader.log": "16954bec10ff22a36aab6319dbff66989dabf0afe0c028b209b7d52fb2d87097",
+    "mutant-finite_budget.log": "698cce6036230b40de55b8ea70e16d7475f81b468468ebc3ca351c3b9913fce2",
+    "mutant-foreign_namespace.log": "bb4f1f35a993be7f9aa2382478bc3e54f9e361dc76aa22b43a0dc87b779897bf",
+    "mutant-incomplete_probe.log": "d317300f963871a172da8d9ad38c7a42c284ab75f4a49a9ada57a740e38b39ad",
+    "mutant-ownership_name.log": "a1863ef4c31b63344856fc657e91ebed1c63061b92b0b99024d0584f8df1e5d6",
+    "positive.log": "8476973888682a874e1bb7b687cc0d7bee52171a0d412839e40c7eeaafa0bf79",
+    "restored-positive.log": "44c85c21745a7007bc07eb9113dc8729f02be65592562bebfeda2aed1630dd72"
+  }
+}

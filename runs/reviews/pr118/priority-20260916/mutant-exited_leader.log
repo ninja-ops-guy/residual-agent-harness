@@ -1,0 +1,24 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/swarm/test_cancellation_ownership.py::test_exited_leader_does_not_hide_live_descendant -q --tb=short
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________ test_exited_leader_does_not_hide_live_descendant _______________
+tests/swarm/test_cancellation_ownership.py:59: in test_exited_leader_does_not_hide_live_descendant
+    asyncio.run(scenario())
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/swarm/test_cancellation_ownership.py:40: in scenario
+    assert controller.active_processes == ("worker",)
+E   AssertionError: assert () == ('worker',)
+E     
+E     Right contains one more item: 'worker'
+E     Use -v to get more diff
+=========================== short test summary info ============================
+FAILED tests/swarm/test_cancellation_ownership.py::test_exited_leader_does_not_hide_live_descendant
+1 failed in 0.16s

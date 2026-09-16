@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
+import math
 import os
 from pathlib import Path
 import signal
@@ -20,7 +21,7 @@ class CancellationBudget:
     budget_s: float
 
     def __post_init__(self):
-        if self.budget_s <= 0:
+        if not math.isfinite(self.budget_s) or self.budget_s <= 0:
             raise ValueError("cancellation budget must be positive")
 
 
@@ -59,6 +60,8 @@ class CancellationController:
         """
         if not name:
             raise ValueError("process name is required")
+        if name in self._processes and self._processes[name] != (process, process_group_id):
+            raise ValueError(f"process name already tracked: {name}")
         if process_group_id is not None and (not isinstance(process_group_id, int) or process_group_id <= 0):
             raise ValueError("process_group_id must be a positive integer")
         self._processes[name] = (process, process_group_id)
@@ -70,8 +73,14 @@ class CancellationController:
 
     @property
     def active_processes(self) -> tuple[str, ...]:
-        return tuple(sorted(name for name, (process, _pgid) in self._processes.items()
-                            if getattr(process, "returncode", None) is None))
+        return tuple(sorted(name for name, (process, pgid) in self._processes.items()
+                            if self._process_active(process, pgid)))
+
+    def _process_active(self, process: Any, pgid: int | None) -> bool:
+        # Leader exit does not discharge ownership of its surviving children.
+        return (getattr(process, "returncode", None) is None or
+                (pgid is not None and os.name == "posix" and
+                 self._group_has_live_members(pgid)))
 
     @staticmethod
     def _group_has_live_members(pgid: int) -> bool:
@@ -79,18 +88,31 @@ class CancellationController:
         proc = Path("/proc")
         if proc.is_dir():
             try:
+                # Some containers mount a /proc view from a different PID
+                # namespace. Its group numbers cannot qualify our process API.
+                own_stat = (proc / "self" / "stat").read_text()
+                own_fields = own_stat.rsplit(")", 1)[1].split()
+                if (int(own_stat.split(" ", 1)[0]) != os.getpid() or
+                        int(own_fields[2]) != os.getpgrp()):
+                    raise ValueError("proc namespace differs from process API")
+                incomplete = False
                 for entry in proc.iterdir():
                     if not entry.name.isdigit():
                         continue
                     try:
                         remainder = (entry / "stat").read_text().rsplit(")", 1)[1].split()
                         state, group = remainder[0], int(remainder[2])
+                    except FileNotFoundError:
+                        # A process disappearing during the scan is harmless.
+                        continue
                     except (OSError, ValueError, IndexError):
+                        incomplete = True
                         continue
                     if group == pgid and state != "Z":
                         return True
-                return False
-            except OSError:
+                if not incomplete:
+                    return False
+            except (OSError, ValueError, IndexError):
                 pass
         try:
             os.killpg(pgid, 0)
@@ -113,7 +135,7 @@ class CancellationController:
         deadline = loop.time() + self._budget.budget_s
         tasks = [(name, task) for name, task in sorted(self._tasks.items()) if not task.done()]
         processes = [(name, process, pgid) for name, (process, pgid) in sorted(self._processes.items())
-                     if getattr(process, "returncode", None) is None]
+                     if self._process_active(process, pgid)]
 
         for _name, task in tasks:
             task.cancel()

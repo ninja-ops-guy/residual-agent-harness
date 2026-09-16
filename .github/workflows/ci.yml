@@ -21,13 +21,14 @@ jobs:
       - name: Compile and test without model credentials
         run: |
           python -m compileall -q residual
-          python -m unittest discover -s tests -v
+          python scripts/qualification_unittest.py discover -s tests -v
       - name: Runtime and DSM integration regressions
         if: always()
         run: |
           set -o pipefail
           mkdir -p runs/runtime-dsm
           python -m pytest \
+            tests/swarm/test_cancellation_ownership.py \
             tests/swarm/test_runtime_distributed_closure.py \
             tests/swarm/test_runtime005.py \
             tests/swarm/test_dsm.py \

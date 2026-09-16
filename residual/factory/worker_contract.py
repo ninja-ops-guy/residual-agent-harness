@@ -245,6 +245,25 @@ class AttemptGuard:
         with self._lock:
             return {**self._counts, "reserved_tokens": sum(self._reservations.values())}
 
+    @property
+    def started_at(self) -> float | None:
+        """Monotonic start instant recorded by start(); None before it."""
+        with self._lock:
+            return self._started
+
+    @property
+    def deadline(self) -> float | None:
+        """The single wall-clock deadline owned by this guard (monotonic).
+
+        The watchdog reads a plain-float snapshot of this value AFTER
+        start() returns; it must never compute its own deadline or block on
+        this lock in its polling loop.
+        """
+        with self._lock:
+            if self._started is None:
+                return None
+            return self._started + self.contract.wall_clock_budget_s
+
     def _event(self, event: str, **data: Any) -> dict[str, Any]:
         return {"event": event, "schema_version": "factory-attempt-event-v1",
                 "task_id": self.contract.task_id, "worker_id": self.contract.worker_id,
