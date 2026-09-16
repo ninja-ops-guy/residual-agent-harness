@@ -71,7 +71,7 @@ A large integrated milestone at `412b66c35f7c0e1ac479fe60a5b7d33d5510e3af` recor
 
 Controlled development fault experiments against earlier M2/M3/M4 trees demonstrated containment in the declared fault matrices. Those are bounded fixture results and must not be generalized to production or arbitrary workloads.
 
-Current accepted `main` at `f1e62936a7ce72b801c852c1d7428d4c6ed4152c` has a post-merge capable-runner M4 qualification result from run `35046857256`: all prerequisite capability checks passed, actual `linux-userns-isolated-v1` execution passed, and 142 M4 cases plus 84 subtests completed with zero skips. That qualifies the named exact tree on the named Ubuntu 22.04 / Python 3.12 environment; it is not an every-host, production, soak or live-model research claim.
+Current accepted `main` is `3a41dc1e84335875537672a62340d9f8c7806417`. Its capable-runner M4 workflow completed **PASS** in run `35101404956`, and the other observed push-triggered ownership, measured-binding, clean-install, Station, controller/provider and Pages workflows also completed PASS on that exact revision. This qualifies only the named trees, workflows and environments; it is not every-host, production, soak or live-model research evidence.
 
 ## Current blockers before stronger empirical claims
 
@@ -79,17 +79,21 @@ Current accepted `main` at `f1e62936a7ce72b801c852c1d7428d4c6ed4152c` has a post
 
 Issue #63 is closed. Its accepted-tree binding, filesystem/link-safety, verifier-isolation and Git-evidence implementation defects are no longer the active M4 blocker on accepted `main`.
 
-The authoritative current-main capable-runner result is run `35046857256` for revision `f1e62936a7ce72b801c852c1d7428d4c6ed4152c`. Historical hosts that cannot provide the required namespace boundary remain `UNKNOWN`/`BLOCKED`; a pass on the named Ubuntu 22.04 runner must not be generalized to every kernel or deployment.
+The retained zero-skip capable-runner path remains scoped to the named qualification environment. Current `main@3a41dc1e...` passed that workflow in run `35101404956`. Historical hosts that cannot provide the required namespace boundary remain `UNKNOWN`/`BLOCKED`; a pass on the named Ubuntu 22.04 runner must not be generalized to every kernel or deployment.
 
 ### Traceability state
 
-Issue #48 is closed. `implementation-status.yaml` now records M2, M3, M4 and EVAL as implemented rather than `not_started`, and the generated implementation-status view is derived from that reconciled manifest. Traceability closure does not promote fixture or CI evidence into live empirical evidence.
+Issue #48 is closed. `implementation-status.yaml` records M2, M3, M4 and EVAL as implemented rather than `not_started`, and the generated implementation-status view is derived from that reconciled manifest. Traceability closure does not promote fixture or CI evidence into live empirical evidence.
 
 ### Release, recovery and operational reliability
 
-Release/recovery procedures still require downstream qualification on the accepted tree before they should support production-facing claims. Blank-environment setup, recovery and retained-evidence procedures should be exercised without converting fixture success into broader deployment guarantees.
+PR #136 is now integrated into accepted `main`. Its exact merged revision passed its first qualified public desktop+narrow WebVM release attempt on attempt 1 in run `35101404981`, with retained generated/browser/live proof artifacts. That is exact-revision release evidence, not an empirical long-run failure rate and not proof of the historical corruption root cause.
 
-Issue #120 remains the operational-reliability tracker for intermittent Pages/WebVM delivery and guest-runtime failures. A successful exact-revision browser run is evidence for that run, not an empirical long-run failure rate. If WebVM is part of a research measurement path, its operational reliability must be quantified; otherwise the protocol should explicitly exclude that surface.
+Issues #120 and #126 remain open. Root cause remains `UNKNOWN`; one successful first release attempt does not satisfy a defined repeated-run reliability campaign. If WebVM is part of a research measurement path, its operational failure rate must be quantified; otherwise the protocol should explicitly exclude that surface.
+
+The retained PR #136 review record also does not contain a genuinely independent pre-merge approval: the final owner-account technical audit explicitly stated it did not satisfy that gate. The repository merge and post-merge CI PASS are facts, but they must not be represented as independent trust-domain review evidence.
+
+Release/recovery procedures beyond this browser release proof still require downstream qualification on the accepted tree. Blank-environment setup, recovery and retained-evidence procedures should be exercised without converting fixture success into broader deployment guarantees.
 
 ### Measured-evidence provenance
 
@@ -101,7 +105,7 @@ A live R0–R5 protocol may use a different independently qualified evidence pat
 
 ## Next confirmatory experiment
 
-After the remaining release/recovery and selected-evidence-path gates are satisfied or explicitly scoped out, freeze the implementation, selected execution/evidence adapter, model configuration, verifier revisions and policies, task corpus and mapping, prompts, inference settings, evaluation metrics and analysis code **before** observing live results. Retain the selected path's qualification evidence alongside the frozen protocol.
+After the remaining release/recovery, operational-reliability and selected-evidence-path gates are satisfied or explicitly scoped out, freeze the implementation, selected execution/evidence adapter, model configuration, verifier revisions and policies, task corpus and mapping, prompts, inference settings, evaluation metrics and analysis code **before** observing live results. Retain the selected path's qualification evidence alongside the frozen protocol.
 
 The primary experiment should run one fixed model across R0–R5 configurations and retain raw observations sufficient to recompute:
 
@@ -128,6 +132,7 @@ The repository does not currently claim:
 - guaranteed token/cost savings;
 - guaranteed preservation of model quality;
 - production readiness for every deployment;
+- acceptable long-run WebVM reliability;
 - live-model proof of the reliability-from-unreliable-computation hypothesis;
 - first-in-literature status.
 
