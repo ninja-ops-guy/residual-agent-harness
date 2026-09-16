@@ -45,18 +45,22 @@ jobs:
         continue-on-error: true
         env:
           RESIDUAL_QUALIFICATION_LLM_API_KEY: ${{ secrets.RESIDUAL_QUALIFICATION_LLM_API_KEY }}
+          QUAL_PROVIDER: ${{ inputs.provider }}
+          QUAL_MODEL: ${{ inputs.model }}
+          QUAL_BASE_URL: ${{ inputs.base_url }}
+          QUAL_REQUIRE_USAGE: ${{ inputs.require_usage }}
         shell: bash
         run: |
           mkdir -p runs/provider-qualification
           args=(
-            --provider '${{ inputs.provider }}'
-            --model '${{ inputs.model }}'
+            --provider "$QUAL_PROVIDER"
+            --model "$QUAL_MODEL"
             --output runs/provider-qualification/provider-report.json
           )
-          if [ -n '${{ inputs.base_url }}' ]; then
-            args+=(--base-url '${{ inputs.base_url }}')
+          if [ -n "$QUAL_BASE_URL" ]; then
+            args+=(--base-url "$QUAL_BASE_URL")
           fi
-          if [ '${{ inputs.require_usage }}' = 'false' ]; then
+          if [ "$QUAL_REQUIRE_USAGE" = 'false' ]; then
             args+=(--no-require-usage)
           fi
           python scripts/qualification_provider_canary.py "${args[@]}"
