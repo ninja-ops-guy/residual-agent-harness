@@ -1,0 +1,3 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/test_release_preparation.py tests/test_release_preparation_integrity.py -q --tb=short
+........................                                            [100%]
+24 passed, 5 subtests passed in 9.59s
