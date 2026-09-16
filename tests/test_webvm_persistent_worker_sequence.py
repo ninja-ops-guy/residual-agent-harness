@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import io
 import json
+import os
 from pathlib import Path
 import tempfile
 import threading
@@ -55,7 +56,14 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
                         if time.monotonic() >= deadline:
                             raise TimeoutError('worker control record was not consumed')
                         time.sleep(0.01)
-                    self.control.write_text(command + '\n', encoding='ascii')
+                    # DataDevice publishes a complete record at the path. Use an
+                    # atomic regular-file publication here so the test does not
+                    # add a local truncate/write race absent from that contract.
+                    publish = self.mailbox / (
+                        f'.{browser_worker.CONTROL_NAME}.{threading.get_ident()}.{index}'
+                    )
+                    publish.write_text(command + '\n', encoding='ascii')
+                    os.replace(publish, self.control)
                     # Wait for consumption only when another command still needs
                     # to be published. The final command may deliberately remain
                     # unconsumed when the worker exits fail-closed; requiring its
