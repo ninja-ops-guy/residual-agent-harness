@@ -196,7 +196,12 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
         self.assertTrue(self.poison_file.is_file(), 'fatal worker did not durably poison generation')
         self.assertFalse(self.pid_file.exists())
         self.assertFalse(self.busy_file.exists())
-        self.assertFalse(self.control.exists())
+        if self.control.exists():
+            self.assertEqual(self.control.read_text(encoding='ascii'), f'{second} audit\n')
+        restart_stdout = io.StringIO()
+        with contextlib.redirect_stdout(restart_stdout):
+            self.assertEqual(self.serve(), 75)
+        self.assertIn(browser_worker.POISONED, restart_stdout.getvalue())
 
     def test_mailbox_typeerror_crosses_engine_boundary_and_kills_worker(self):
         first = 'm-' + 'f' * 32
@@ -230,7 +235,12 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
         self.assertTrue(self.poison_file.is_file())
         self.assertFalse(self.pid_file.exists())
         self.assertFalse(self.busy_file.exists())
-        self.assertFalse(self.control.exists())
+        if self.control.exists():
+            self.assertEqual(self.control.read_text(encoding='ascii'), f'{second} audit\n')
+        restart_stdout = io.StringIO()
+        with contextlib.redirect_stdout(restart_stdout):
+            self.assertEqual(self.serve(), 75)
+        self.assertIn(browser_worker.POISONED, restart_stdout.getvalue())
 
 
 class PersistentWorkerHostTimeoutTests(unittest.TestCase):

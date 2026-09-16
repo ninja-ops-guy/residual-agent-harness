@@ -199,33 +199,81 @@ def _clear_exact_state(path: Path, expected: str) -> None:
     path.unlink()
 
 
-def _consume_control(path: Path) -> str | tuple[str, str] | None:
-    """Consume one complete regular control record, or return None while absent.
+def _open_transport_control(path: Path) -> tuple[int, os.stat_result] | None:
+    """Open the fixed DataDevice control record without following links.
 
-    DataDevice publication is awaited by the host. Requiring a trailing newline
-    additionally prevents observing a mid-publication partial command as valid.
+    DataDevice files are created by the browser-side transport and can report a
+    UID different from the guest process. UID ownership is therefore not an
+    authority signal for this one fixed ingress path. File type, link count,
+    inode identity, size, grammar and mailbox request identity remain enforced.
     """
-    if not path.exists() and not path.is_symlink():
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
+    try:
+        fd = os.open(path, flags)
+    except FileNotFoundError:
         return None
-    safe, info = _owned_regular(path)
-    if not safe or info is None:
+    except OSError as exc:
+        raise RuntimeError("worker control path is unsafe") from exc
+    info = os.fstat(fd)
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+        os.close(fd)
         raise RuntimeError("worker control path is unsafe")
-    if info.st_size > MAX_CONTROL:
-        path.unlink()
+    return fd, info
+
+
+def _unlink_transport_control(path: Path, expected: os.stat_result | None = None) -> None:
+    """Remove only the same single-link regular transport inode."""
+    try:
+        current = path.lstat()
+    except FileNotFoundError:
+        return
+    if (
+        not stat.S_ISREG(current.st_mode)
+        or current.st_nlink != 1
+        or (
+            expected is not None
+            and (current.st_dev != expected.st_dev or current.st_ino != expected.st_ino)
+        )
+    ):
+        raise RuntimeError("worker control path is unsafe")
+    path.unlink()
+
+
+def _consume_control(path: Path) -> str | tuple[str, str] | None:
+    """Consume one complete DataDevice control record, or None while absent."""
+    opened = _open_transport_control(path)
+    if opened is None:
+        return None
+    fd, info = opened
+    try:
+        if info.st_size > MAX_CONTROL:
+            invalid = True
+            raw_bytes = b""
+        else:
+            raw_bytes = os.read(fd, MAX_CONTROL + 1)
+            invalid = len(raw_bytes) > MAX_CONTROL
+    finally:
+        os.close(fd)
+    if invalid:
+        _unlink_transport_control(path, info)
         raise ValueError("invalid worker control record")
     try:
-        raw = path.read_text(encoding="ascii")
+        raw = raw_bytes.decode("ascii")
     except UnicodeError as exc:
-        path.unlink()
+        _unlink_transport_control(path, info)
         raise ValueError("invalid worker control record") from exc
     if not raw.endswith("\n"):
         return None
     line = raw[:-1]
     if line == SHUTDOWN:
-        path.unlink()
+        _unlink_transport_control(path, info)
         return SHUTDOWN
-    command = parse_command(line)
-    path.unlink()
+    try:
+        command = parse_command(line)
+    except ValueError:
+        _unlink_transport_control(path, info)
+        raise
+    _unlink_transport_control(path, info)
     return command
 
 
@@ -287,7 +335,11 @@ def serve(
     finally:
         # A stopped/dead worker cannot retain dispatch authority. Remove only safe
         # state nodes; poison is intentionally retained until explicit guest reset.
-        for path in (control_file, pid_file, busy_file):
+        try:
+            _unlink_transport_control(control_file)
+        except (OSError, RuntimeError):
+            pass
+        for path in (pid_file, busy_file):
             try:
                 if not path.exists() and not path.is_symlink():
                     continue

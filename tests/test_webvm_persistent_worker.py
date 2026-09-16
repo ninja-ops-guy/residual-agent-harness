@@ -59,6 +59,22 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
             browser_worker._consume_control(self.control)
         self.assertEqual(target.read_text(encoding='ascii'), f'{self.mid} audit\n')
 
+    @unittest.skipUnless(os.name == 'posix', 'control-path hardlink safety is POSIX-specific')
+    def test_control_record_rejects_multiple_links(self):
+        target = self.root / 'linked-control'
+        target.write_text(f'{self.mid} audit\n', encoding='ascii')
+        os.link(target, self.control)
+        with self.assertRaises(RuntimeError):
+            browser_worker._consume_control(self.control)
+        self.assertEqual(target.read_text(encoding='ascii'), f'{self.mid} audit\n')
+
+    @unittest.skipUnless(os.name == 'posix', 'DataDevice ownership model is POSIX-specific')
+    def test_datadevice_control_does_not_trust_guest_uid_ownership(self):
+        self.control.write_text(f'{self.mid} audit\n', encoding='ascii')
+        with mock.patch.object(browser_worker.os, 'geteuid', return_value=os.geteuid() + 1):
+            self.assertEqual(browser_worker._consume_control(self.control), (self.mid, 'audit'))
+        self.assertFalse(self.control.exists())
+
     def test_browser_entrypoints_do_not_mutate_core_provider_defaults(self):
         self.assertIsNot(runner.MailboxProvider, BrowserMailboxProvider)
         self.assertIs(conversation_build.MailboxProvider, runner.MailboxProvider)
