@@ -95,7 +95,7 @@ Run **`35123030021`** on exact diagnostic head **`dc4d8d493003005de60e82a1659b12
 
 Native i386 controls are PASS. This narrows the symptom to the positive-duration sleep/timer-wait path rather than generic monotonic clock reads.
 
-### Process-scope discriminator — current strongest evidence
+### Process-scope discriminator
 
 Run **`35123647606`** on exact diagnostic head **`439e4b01823e818cda0fa07bcd24b076b9e00e64`** tests whether the positive-sleep boundary is guest-global or process-local. Mission Control is required absent in every arm.
 
@@ -107,6 +107,31 @@ First-attempt results:
 
 The paired split/single results materially support a **process-local positive-duration sleep/timer-wait state or budget that resets or is avoided by fresh guest CPython process creation**. They rule out a guest-global accumulated positive-sleep counter that survives process replacement as a necessary explanation for this narrow symptom.
 
+### libc-wrapper and raw-syscall discriminator — current strongest evidence
+
+Exact diagnostic head **`3bca5a7a3d298078d246c2184684137b78422546`** moved the discriminator below Python's public sleep API while keeping Mission Control absent.
+
+Run **`35125002000`** compared direct libc blocking calls with Python `time.sleep()` inside the same published WebVM environment:
+
+- libc `clock_nanosleep(CLOCK_MONOTONIC, relative)` × 300 — **PASS**; artifact `10459685522`, SHA-256 `d08bd5ab79b806993c9588223fa8a70f9b091f42fe4c507e6a156744f3aa1892`;
+- libc `clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME)` × 300 — **PASS**; artifact `10459850082`, SHA-256 `e40b6c6816a867cc7f69e8bade2c431c1697f895dca853d0608e87654989c4ab`;
+- libc `nanosleep(relative)` × 300 — **PASS**; artifact `10458882606`, SHA-256 `0671ddc434f241eb3d32bd7dfb4fabe3726a231c22a975a75118d87dc05c26d6`;
+- Python `time.sleep(0.05)` — **FAIL at call 273** with `OverflowError: timestamp too large to convert to C _PyTime_t`; artifact `10459610467`, SHA-256 `5236f39da50cc19b4aa09acef0f9413b3231d3823505f84d1339ab7be4f191b6`.
+
+The equivalent native i386 libc/Python control job passed.
+
+Run **`35125001828`** then probed raw i386 sleep syscall surfaces:
+
+- legacy raw `clock_nanosleep` relative — **PASS**;
+- legacy raw `clock_nanosleep` absolute — **PASS**;
+- raw time64 relative — **UNSUPPORTED**, immediately returning `ENOSYS` (`errno 38`), not a call-273 failure; artifact `10458857388`, SHA-256 `c1e61a7c84662261802a1c5ab833363bf4d0d60dad3bbadba34e08c3eb372b16`;
+- raw time64 absolute — **UNSUPPORTED** with the same unavailable-syscall classification; artifact `10458872292`, SHA-256 `e311994b6b9d15f2f974b740f3cb15ce2759bef281593743695f7a9bb155e7c7`;
+- native i386 raw controls — **PASS**.
+
+This materially narrows the defect: the tested direct libc sleep wrappers and legacy raw i386 `clock_nanosleep` path do not require the call-273 failure, while this WebVM guest does not expose the raw time64 syscall surface tested by the discriminator. That makes CPython/Python sleep behavior and its ABI/fallback interaction with the WebVM i386 environment a higher-value next target.
+
+It does **not** prove that time64 unavailability causes the Python failure. Direct libc wrappers continue to work, and Python sleep succeeds 272 times before the exception. The exact CPython/glibc/emulation state transition remains **UNKNOWN**.
+
 For the call-273 `_PyTime_t` symptom, retained evidence now rules out as necessary explanations:
 
 - Mission Control/workbench logic;
@@ -117,13 +142,15 @@ For the call-273 `_PyTime_t` symptom, retained evidence now rules out as necessa
 - generic 32-bit CPython behavior in the native control;
 - zero-duration `time.sleep()` call count;
 - direct monotonic clock reads;
-- a guest-global positive-sleep count that survives process replacement.
+- a guest-global positive-sleep count that survives process replacement;
+- failure of the tested direct libc `clock_nanosleep`/`nanosleep` wrappers;
+- unavailability of the legacy raw i386 `clock_nanosleep` surface.
 
-The strongest supported classification is now a **WebVM-specific, process-local positive-duration `time.sleep()` / timer-wait state boundary that fails on call 273 and resets or is avoided by fresh guest CPython process creation**.
+The strongest supported classification is now a **WebVM-specific, process-local Python positive-duration sleep failure at call 273 that is not reproduced by the tested direct libc sleep wrappers; the raw i386 time64 syscall surface is separately unavailable (`ENOSYS`) while the legacy raw surface works**.
 
-That remains **not root-cause proof**. The underlying timer/wait handle, emulation mechanism, resource accounting state or conversion path responsible for the per-process boundary remains **UNKNOWN**. The relationship to the historical `_sha512`, impossible-constructor and `munmap_chunk()` corruption family also remains **UNKNOWN**. Long-run reliability remains unresolved.
+That remains **not root-cause proof**. Whether the unavailable time64 surface participates in a CPython/glibc fallback or accounting defect is **UNKNOWN**. The relationship to the historical `_sha512`, impossible-constructor and `munmap_chunk()` corruption family also remains **UNKNOWN**. Long-run reliability remains unresolved.
 
-The next useful discriminator is below the Python application layer: compare positive sleep with alternate blocking/wait primitives, inspect any exposed timer/resource/handle state around calls 272–273, verify the reset over several sequential fresh processes, and compare another/minimal WebVM runtime build if available. Do not patch Mission Control merely to hide the symptom and do not retry failures solely to obtain green.
+The next useful discriminator is to inspect the exact CPython/glibc sleep fallback and ABI behavior around the unavailable time64 surface, retain several sequential fresh-process reproductions, and compare another/minimal WebVM runtime build if available. Do not patch Mission Control merely to hide the symptom and do not retry failures solely to obtain green.
 
 ## Protected M4 test-race repair — PR #139
 
@@ -180,7 +207,7 @@ The larger 100-generation, 1,000-fault and 200-document-policy campaigns are con
 | --- | --- | --- |
 | Core harness | Implemented | Goal contracts, verifier-defined acceptance, brakes, receipts, cache binding, trace/audit and provider routing exist. |
 | Command Station | Implemented research/operations surface | Operational controls exist; deployment-specific production readiness remains separate. |
-| Mission Control / WebVM | Implemented product/demo surface; **reliability gate open** | #136 merged and passed first release attempt. #133 now isolates a process-local positive-duration guest `time.sleep()` failure at call 273 that resets or is avoided by fresh process creation; lower mechanism and historical-family link remain `UNKNOWN`. |
+| Mission Control / WebVM | Implemented product/demo surface; **reliability gate open** | #136 merged and passed first release attempt. #133 now shows a process-local Python positive-duration `time.sleep()` failure at call 273, direct libc sleep wrappers PASS, legacy raw i386 sleep PASS, and raw time64 syscall probes UNSUPPORTED/`ENOSYS`; the causal mechanism and historical-family link remain `UNKNOWN`. |
 | Factory M2 | Implemented | Worker contracts, bounded runtime, isolated worktrees, journaled observations and host-owned termination exist. |
 | Factory M3 | Implemented | Station-issued receipts, artifact binding, evidence-bus handoff and integrity checks exist. |
 | Factory M4 | Implemented; capable-runner qualified | Not every-host or production qualification. Protected #139 review/baseline sequence remains open. |
@@ -194,7 +221,7 @@ The larger 100-generation, 1,000-fault and 200-document-policy campaigns are con
 
 - **#139** — capable-runner M4 PASS; ownership/dependent gates intentionally FAIL closed pending independent protected-byte review and deliberate baseline handling.
 - **#134** — held behind #139, then refresh/requalification and independent provider-adapter review.
-- **#133** — diagnostic-only; a single process fails on positive sleep 273, while 272+2 and 200+200 split across fresh processes PASS. This supports a process-local sleep/timer-wait boundary that resets or is avoided by process replacement; its lower mechanism remains `UNKNOWN`.
+- **#133** — diagnostic-only; Python positive sleep fails at call 273 in one process while fresh-process splits pass; direct libc sleep wrappers and legacy raw i386 `clock_nanosleep` pass, while raw time64 syscall probes are UNSUPPORTED with `ENOSYS`. This narrows the next investigation but does not prove the causal mechanism, which remains `UNKNOWN`.
 - **#140** — exact-head synchronization-repair workflows PASS, including Pages/WebVM and Browser VM Demo CI; no submitted independent review is recorded. It does not qualify #89 or erase #89's retained failure.
 - **#89** — onboarding/Inspector candidate retains Pages/WebVM **FAIL** run `35112465799`; refresh/requalification remains required after any accepted #140 integration. No browser qualification PASS is claimed for #89.
 - **#118** — observed exact-head workflow set PASS; genuinely independent technical acceptance remains required.
@@ -209,7 +236,7 @@ The project does **not** yet claim that:
 - live heterogeneous models show materially higher `P(correct | accepted)` than raw worker correctness under matched capability;
 - the gain remains useful at nontrivial acceptance coverage;
 - the reliability gain is worth the orchestration tax;
-- the WebVM process-local positive-sleep/timer-wait defect or historical corruption family has been root-caused;
+- the WebVM process-local Python sleep defect, its relationship to the unavailable raw time64 surface, or the historical corruption family has been root-caused;
 - PR #132 proves autonomous recursive self-improvement or merge authority;
 - PR #136 had recorded genuinely independent technical acceptance before merge;
 - release/recovery qualification is complete;
@@ -221,7 +248,7 @@ The project does **not** yet claim that:
 2. Refresh/requalify #134 afterward, then require independent adapter review before fresh live-provider evidence.
 3. Obtain genuinely independent exact-head review for green PR #140; if accepted, integrate it and then refresh/requalify #89 while preserving the retained `35112465799` failure as historical evidence.
 4. Obtain independent acceptance for green current-main candidates #118, #115, #131 and #93.
-5. Continue #133 below Mission Control: compare alternate wait primitives, inspect timer/resource state near calls 272–273, repeat the fresh-process reset across several sequential processes, and compare alternate/minimal WebVM runtime builds while keeping the lower mechanism and historical-family relationship `UNKNOWN` until proven.
+5. Continue #133 below Python `time.sleep()`: inspect CPython/glibc ABI and fallback behavior around the unavailable raw time64 syscall surface, repeat the fresh-process reset over several sequential processes, and compare alternate/minimal WebVM runtime builds while keeping causality and the historical-family relationship `UNKNOWN` until proven.
 6. Quantify WebVM reliability with a defined retained repeated-run campaign; keep #120/#126 open.
 7. Execute true release/recovery qualification without converting rehearsal/simulation evidence into release PASS.
 8. Freeze live-evaluation workload, evidence path, metrics and analysis choices before confirmatory model results.
