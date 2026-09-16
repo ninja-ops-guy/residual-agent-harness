@@ -1,4 +1,5 @@
 from __future__ import annotations
+from threading import RLock
 from .metrics import MetricsRegistry
 class ObservationMetricsBridge:
     def __init__(self,registry:MetricsRegistry): self.registry=registry
@@ -15,27 +16,34 @@ class ObservationMetricsBridge:
 
 
 class ReliabilityMetricsProjection:
-    """Project retained reliability observations into bounded metrics."""
+    """Project retained reliability observations into bounded metrics.
+
+    Every dynamic string label family is capped independently.  The lock makes
+    the cardinality decision itself atomic when multiple observation producers
+    project concurrently; metric-family locks alone cannot protect this set.
+    """
 
     def __init__(self, registry: MetricsRegistry, max_dynamic_values: int = 32):
         if type(max_dynamic_values) is not int or max_dynamic_values < 1:
             raise ValueError("max_dynamic_values must be positive")
         self.registry = registry
         self.max_dynamic_values = max_dynamic_values
-        self._seen = {"task_class": set(), "verifier_family": set()}
+        self._seen = {"task_class": set(), "verifier_family": set(), "topology": set()}
+        self._label_lock = RLock()
 
     def _bounded(self, family: str, value: str) -> str:
-        seen = self._seen[family]
-        if value in seen:
+        with self._label_lock:
+            seen = self._seen[family]
+            if value in seen:
+                return value
+            if len(seen) >= self.max_dynamic_values:
+                return "__other__"
+            seen.add(value)
             return value
-        if len(seen) >= self.max_dynamic_values:
-            return "__other__"
-        seen.add(value)
-        return value
 
     def observe(self, observation) -> None:
         task_class = self._bounded("task_class", observation.task_class)
-        topology = observation.topology
+        topology = self._bounded("topology", observation.topology)
         self.registry["residual_reliability_runs_total"].inc(
             (task_class, topology, observation.terminal_state))
         self.registry["residual_reliability_acceptance_total"].inc(
