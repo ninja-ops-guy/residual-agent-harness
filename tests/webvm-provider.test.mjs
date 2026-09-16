@@ -77,10 +77,15 @@ test('provider progress text never includes an invalid model identifier', () => 
  assert.equal(providerProgressMessage('model_selected','x;secret'),'Provider stage · model selected');
  assert.equal(providerProgressMessage('not_a_stage','openai/gpt-5.4-nano'),null);
 });
-test('Puter production request uses strict non-stream structured transport and safe stage telemetry', () => {
+test('Puter production request uses dynamic-envelope-safe non-stream structured transport and safe stage telemetry', () => {
  assert.match(providerSource,/Browser transport requirement:/);
  assert.match(providerSource,/Use that function exactly once/);
- assert.match(providerSource,/strict:\s*true/);
+ assert.match(providerSource,/Candidate values must be nested under updates using the obligation id/);
+ assert.match(providerSource,/updates\.build = \{summary, files\}/);
+ assert.match(providerSource,/never return summary\/files at the top level/);
+ assert.match(providerSource,/parameters:\s*RESPONSE_SCHEMA/);
+ assert.doesNotMatch(providerSource,/strict:\s*true/);
+ assert.match(providerSource,/dynamic obligation-id keys/);
  assert.match(providerSource,/stream:\s*false/);
  assert.match(providerSource,/progress\('model_selected'/);
  assert.match(providerSource,/progress\('request_dispatched'/);
