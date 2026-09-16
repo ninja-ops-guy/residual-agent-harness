@@ -1,11 +1,14 @@
 """Rejections that prevent misleading economics evidence."""
+from dataclasses import replace
 import subprocess
 from unittest.mock import patch
 
 import pytest
 
+from residual.assurance import ExecutionStrategy, OrchestrationTaxController
 from residual.core import ContractError
 from residual.eval_frozen.economics import fixture_observations, build_swarm5_evidence
+from residual.observability import MetricsRegistry, ReliabilityMetricsProjection
 from residual.observability.reliability import (
     CostAccounting, ReliabilityObservation, TimingBreakdown,
     build_reliability_report, pareto_inputs,
@@ -18,6 +21,47 @@ def test_nonfinite_measurements_are_refused_at_construction(value):
         TimingBreakdown(worker_execution_ms=value, wall_clock_ms=value)
     with pytest.raises(ContractError):
         CostAccounting(api_cost_usd=value)
+
+
+@pytest.mark.parametrize('field,value', [
+    ('cost', float('nan')), ('cost', float('inf')),
+    ('latency_ms', float('nan')), ('latency_ms', float('inf')),
+])
+def test_nonfinite_orchestration_outcomes_never_enter_learning_state(field, value):
+    controller = OrchestrationTaxController()
+    kwargs = {'success': True, 'cost': 0.01, 'latency_ms': 10.0}
+    kwargs[field] = value
+    with pytest.raises(ValueError, match='finite nonnegative'):
+        controller.observe({'task_class': 'fixture'}, ExecutionStrategy.DIRECT, **kwargs)
+    assert controller.retained_observations() == ()
+    assert controller._history == {}
+
+
+def test_replay_revalidates_typed_outcomes_before_learning():
+    controller = OrchestrationTaxController()
+    controller.observe({'task_class': 'fixture'}, ExecutionStrategy.DIRECT,
+                       success=True, cost=0.01, latency_ms=10.0)
+    raw = dict(controller.retained_observations()[0])
+    raw['latency_ms'] = float('nan')
+    with pytest.raises(ValueError, match='finite nonnegative'):
+        OrchestrationTaxController.replay([raw])
+
+    raw = dict(controller.retained_observations()[0])
+    raw['success'] = 'true'
+    with pytest.raises(ValueError, match='boolean'):
+        OrchestrationTaxController.replay([raw])
+
+
+def test_prometheus_projection_bounds_topology_cardinality():
+    first = fixture_observations('1' * 40, '2' * 40)[0]
+    registry = MetricsRegistry()
+    projection = ReliabilityMetricsProjection(registry, max_dynamic_values=1)
+    projection.observe(replace(first, topology='topology-a'))
+    projection.observe(replace(first, topology='topology-b'))
+    samples = registry['residual_reliability_runs_total'].samples()
+    topologies = {labels[1] for labels in samples}
+    assert topologies == {'topology-a', '__other__'}
+    assert 'topology-b' not in topologies
 
 
 def test_missing_observation_hash_cannot_disable_integrity_check():
