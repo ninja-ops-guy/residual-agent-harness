@@ -50,16 +50,24 @@ def test_manifest_fails_closed_on_non_pass_required_gate(tmp_path: Path, bad: Ga
     assert any(f"required={bad.value}" in reason for reason in manifest.reasons)
 
 
-def test_manifest_fails_closed_on_missing_skip_unknown_and_missing_artifact(tmp_path: Path):
+def test_manifest_fails_closed_on_missing_unknown_and_missing_artifact(tmp_path: Path):
     p = tmp_path / "gate.json"
     write_envelope(envelope("gate", skips=1, unknowns=2), p)
     manifest = aggregate_manifest([p], required_gates=["gate", "missing"],
                                   artifact_paths=[tmp_path / "missing.whl"])
     assert manifest.result == GateResult.FAIL
     assert "missing" in manifest.missing_gates
-    assert any("skipped" in r for r in manifest.reasons)
+    assert manifest.gates["gate"]["skip_count"] == 1  # retained but interpreted by producing gate
     assert any("UNKNOWN" in r for r in manifest.reasons)
     assert any("missing artifact" in r for r in manifest.reasons)
+
+
+def test_informational_skips_do_not_override_a_pass_gate(tmp_path: Path):
+    p = tmp_path / "gate.json"
+    write_envelope(envelope("general-regression", skips=3), p)
+    manifest = aggregate_manifest([p], required_gates=["general-regression"])
+    assert manifest.result == GateResult.PASS
+    assert manifest.gates["general-regression"]["skip_count"] == 3
 
 
 def test_manifest_rejects_cross_revision_evidence(tmp_path: Path):
