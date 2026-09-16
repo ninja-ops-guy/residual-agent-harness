@@ -21,10 +21,9 @@ def main(argv=None):
     return implementation.main(argv)
 
 
-def persistent_build(*, request_path: Path, mailbox: Path, root: Path, output_root: Path) -> int:
-    """Execute one browser build while preserving fatal runtime exceptions."""
-    request = implementation.read_json(request_path)
-    request['mode'] = 'build'
+def persistent_build(*, request: dict, mailbox: Path, root: Path, output_root: Path) -> int:
+    """Execute the already-admitted build request while preserving fatal errors."""
+    request = {**request, 'mode': 'build'}
 
     def stream(event):
         raw = canonical(event).encode()
