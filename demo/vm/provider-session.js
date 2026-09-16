@@ -19,6 +19,19 @@ export const RESPONSE_SCHEMA = {
     }}
   }
 };
+const PROTOCOL_REASONS = new Set([
+  'tool_call_count', 'tool_name', 'tool_arguments_empty', 'tool_arguments_not_json',
+  'content_missing', 'content_empty', 'content_not_json', 'envelope_shape'
+]);
+export class ProviderProtocolError extends Error {
+  constructor(reason) {
+    super('provider_protocol_invalid');
+    this.name = 'ProviderProtocolError';
+    this.code = 'provider_protocol_invalid';
+    this.reason = PROTOCOL_REASONS.has(reason) ? reason : 'envelope_shape';
+  }
+}
+export const protocolFailureReason = error => PROTOCOL_REASONS.has(error?.reason) ? error.reason : null;
 export function validInference(req) {
   return req && validRequest(req.request_id) && validModel(req.model) &&
     Number.isInteger(req.max_output_tokens) && req.max_output_tokens >= 1 && req.max_output_tokens <= 1536 &&
@@ -29,7 +42,20 @@ export function errorCode(error) {
   const code = error?.error || error?.code;
   return ['popup_blocked', 'auth_window_closed', 'not_available_in_app'].includes(code) ? code : 'provider_error';
 }
-export function providerFailureMessage(code) {
+function protocolReasonText(detail) {
+  const messages = {
+    tool_call_count: 'The model returned an unexpected number of tool calls.',
+    tool_name: 'The model called a tool other than residual_submit.',
+    tool_arguments_empty: 'The residual_submit tool call had no arguments.',
+    tool_arguments_not_json: 'The residual_submit arguments were not valid JSON.',
+    content_missing: 'The normalized provider response contained neither a usable tool call nor text.',
+    content_empty: 'The provider returned empty text instead of a worker envelope.',
+    content_not_json: 'The provider returned text that was not a JSON worker envelope.',
+    envelope_shape: 'The returned JSON did not have exactly the required updates/requests worker shape.'
+  };
+  return messages[detail] || '';
+}
+export function providerFailureMessage(code, detail = null) {
   const messages = {
     provider_model_unavailable: 'Provider connected, but the selected model is unavailable. Choose another model and retry.',
     provider_authorization_failed: 'Provider connected, but this model request was not authorized/allowed. Check account allowance or billing.',
@@ -41,14 +67,16 @@ export function providerFailureMessage(code) {
     provider_disconnected: 'Provider connection was lost before the request completed.',
     mission_cancelled: 'Provider authorization was revoked because the mission was cancelled.'
   };
-  return messages[code] || 'Provider failed with a bounded safe error code. No candidate was accepted.';
+  const base = messages[code] || 'Provider failed with a bounded safe error code. No candidate was accepted.';
+  const why = code === 'provider_protocol_invalid' ? protocolReasonText(detail) : '';
+  return why ? `${base} ${why}` : base;
 }
 export function textReply(result) {
   if (typeof result === 'string') return result;
   const content = result?.message?.content ?? result?.text ?? result?.content;
   if (typeof content === 'string') return content;
   if (Array.isArray(content)) return content.map(p => typeof p === 'string' ? p : (p?.text || '')).join('');
-  throw new Error('provider_response_invalid');
+  throw new ProviderProtocolError('content_missing');
 }
 export function validProtocolEnvelope(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
@@ -60,20 +88,29 @@ export function validProtocolEnvelope(value) {
     typeof r.obligation_id === 'string' && typeof r.artifact_id === 'string' &&
     Number.isInteger(r.start_line) && r.start_line >= 1 && Number.isInteger(r.end_line) && r.end_line >= 1);
 }
-function parseEnvelope(text) {
-  if (typeof text !== 'string' || !text.trim()) throw new Error('provider_protocol_invalid');
+function unwrapJsonFence(text) {
+  const trimmed = text.trim();
+  const fenced = trimmed.match(/^```(?:json)?\s*\r?\n([\s\S]*?)\r?\n```$/i);
+  return fenced ? fenced[1].trim() : trimmed;
+}
+function parseEnvelope(text, source = 'content') {
+  if (typeof text !== 'string' || !text.trim()) throw new ProviderProtocolError(`${source}_empty`);
   let value;
-  try { value = JSON.parse(text); } catch { throw new Error('provider_protocol_invalid'); }
-  if (!validProtocolEnvelope(value)) throw new Error('provider_protocol_invalid');
+  try { value = JSON.parse(unwrapJsonFence(text)); }
+  catch { throw new ProviderProtocolError(`${source}_not_json`); }
+  if (!validProtocolEnvelope(value)) throw new ProviderProtocolError('envelope_shape');
   return JSON.stringify(value);
 }
 export function protocolReply(result) {
   const calls = result?.message?.tool_calls;
-  if (Array.isArray(calls) && calls.length === 1 && calls[0]?.function?.name === 'residual_submit') {
-    const args = calls[0].function.arguments;
-    return parseEnvelope(typeof args === 'string' ? args : JSON.stringify(args));
+  if (Array.isArray(calls) && calls.length > 0) {
+    if (calls.length !== 1) throw new ProviderProtocolError('tool_call_count');
+    if (calls[0]?.function?.name !== 'residual_submit') throw new ProviderProtocolError('tool_name');
+    const args = calls[0]?.function?.arguments;
+    if (args === undefined || args === null || args === '') throw new ProviderProtocolError('tool_arguments_empty');
+    return parseEnvelope(typeof args === 'string' ? args : JSON.stringify(args), 'tool_arguments');
   }
-  return parseEnvelope(textReply(result));
+  return parseEnvelope(textReply(result), 'content');
 }
 export class ProviderSession {
   constructor(onState = () => {}) {
@@ -108,7 +145,7 @@ export class ProviderSession {
     if (message.kind === 'response' && validRequest(message.request_id)) {
       const entry = this.pending.get(message.request_id);
       if (entry && message.mission_id === entry.missionId) {
-        if (message.ok === false && typeof message.error === 'string') this.onState(this.ready ? 'connected' : 'disconnected', providerFailureMessage(message.error));
+        if (message.ok === false && typeof message.error === 'string') this.onState(this.ready ? 'connected' : 'disconnected', providerFailureMessage(message.error, message.detail));
         clearTimeout(entry.timer); this.pending.delete(message.request_id);
         entry.resolve(message);
       }
