@@ -57,7 +57,7 @@ jobs:
       - name: Test provider session contracts
         run: node --experimental-default-type=module --test tests/webvm-provider.test.mjs
       - name: Test publication contracts
-        run: python -m unittest -v tests.test_webvm_publication tests.test_webvm_cli_output tests.test_webvm_deployment_workflow tests.test_webvm_workbench
+        run: python -m unittest -v tests.test_webvm_publication tests.test_webvm_cli_output tests.test_webvm_deployment_workflow tests.test_webvm_workbench tests.test_webvm_browser_mailbox tests.test_webvm_persistent_worker
       - name: Build static site shell
         shell: bash
         run: |
