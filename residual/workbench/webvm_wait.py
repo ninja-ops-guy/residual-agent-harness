@@ -1,11 +1,11 @@
 """WebVM-specific polling wait backend.
 
 The deployed i386 WebVM runtime has a retained defect in the positive-duration
-``time.sleep``/time64 wait path.  Normal environments keep using Python's
-standard sleep.  The WebVM image opts into the legacy libc ``nanosleep`` ABI,
+``time.sleep``/time64 wait path. Normal environments keep using Python's
+standard sleep. The WebVM image opts into the legacy libc ``nanosleep`` ABI,
 which is independently qualified in the real guest before browser acceptance.
 
-This is a compatibility shim, not a trust-boundary change.  It does not convert
+This is a compatibility shim, not a trust-boundary change. It does not convert
 runtime failures into success: unsupported configuration and libc wait failures
 raise immediately.
 """
@@ -23,6 +23,10 @@ LEGACY_NANOSLEEP = "legacy-nanosleep"
 
 class _Timespec32(ctypes.Structure):
     _fields_ = [("tv_sec", ctypes.c_long), ("tv_nsec", ctypes.c_long)]
+
+
+_LIBC = None
+_NANOSLEEP = None
 
 
 def _timespec(seconds: float) -> _Timespec32:
@@ -43,15 +47,22 @@ def _timespec(seconds: float) -> _Timespec32:
     return _Timespec32(sec, nsec)
 
 
-def _legacy_nanosleep(seconds: float) -> None:
+def _nanosleep_function():
+    global _LIBC, _NANOSLEEP
     if ctypes.sizeof(ctypes.c_long) != 4:
         raise RuntimeError("legacy-nanosleep backend requires a 32-bit long ABI")
+    if _NANOSLEEP is None:
+        _LIBC = ctypes.CDLL(None, use_errno=True)
+        _NANOSLEEP = _LIBC.nanosleep
+        _NANOSLEEP.argtypes = [ctypes.POINTER(_Timespec32), ctypes.POINTER(_Timespec32)]
+        _NANOSLEEP.restype = ctypes.c_int
+    return _NANOSLEEP
+
+
+def _legacy_nanosleep(seconds: float) -> None:
     req = _timespec(seconds)
     rem = _Timespec32()
-    libc = ctypes.CDLL(None, use_errno=True)
-    nanosleep = libc.nanosleep
-    nanosleep.argtypes = [ctypes.POINTER(_Timespec32), ctypes.POINTER(_Timespec32)]
-    nanosleep.restype = ctypes.c_int
+    nanosleep = _nanosleep_function()
     while True:
         ctypes.set_errno(0)
         if int(nanosleep(ctypes.byref(req), ctypes.byref(rem))) == 0:
