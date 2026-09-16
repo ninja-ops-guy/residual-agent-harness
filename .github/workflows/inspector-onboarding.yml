@@ -64,7 +64,13 @@ jobs:
           python --version >> runs/inspector-qualification/environment.txt
           sudo apt-get update -qq
           sudo apt-get install -y -qq bubblewrap curl
-          bwrap --ro-bind /usr /usr --proc /proc --dev /dev /usr/bin/true
+          python - <<'PY'
+          import subprocess
+          from pathlib import Path
+          from residual.inspector import _sandbox_command
+          command, _ = _sandbox_command(Path('/usr/local/bin/px0'), Path.cwd(), ['/usr/bin/true'])
+          subprocess.run(command, check=True, timeout=10)
+          PY
           curl -fsSL -o "$RUNNER_TEMP/px0" https://github.com/px0-ai/px0/releases/download/v0.1.2/px0-0.1.2-linux-amd64
           printf '%s  %s\n' 'c483293c67a63821712508931588d0495c336be5ace1e253b90624d3f5a06700' "$RUNNER_TEMP/px0" | sha256sum -c -
           sudo install -m 0755 "$RUNNER_TEMP/px0" /usr/local/bin/px0
