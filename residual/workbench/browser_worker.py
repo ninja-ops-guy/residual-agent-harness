@@ -26,6 +26,7 @@ import time
 from residual.core import ContractError
 from . import browser_build, browser_run
 from .runner import MAX_REQUEST, read_json
+from .webvm_wait import sleep as webvm_sleep
 
 MISSION_ID = re.compile(r"m-[0-9a-f]{32}\Z")
 MODES = {"audit", "live", "build"}
@@ -71,7 +72,7 @@ def _request(mailbox: Path, mission_id: str, mode: str) -> dict:
         except (OSError, UnicodeError, json.JSONDecodeError, ContractError):
             if time.monotonic() >= deadline:
                 raise RequestAdmissionError("mission request not visible") from None
-            time.sleep(0.05)
+            webvm_sleep(0.05)
     if not isinstance(request, dict) or request.get("id") != mission_id or request.get("mode") != mode:
         raise RequestAdmissionError("mission request identity mismatch")
     return request
@@ -262,7 +263,7 @@ def serve(
                 print(REJECTED, flush=True)
                 continue
             if command is None:
-                time.sleep(0.05)
+                webvm_sleep(0.05)
                 continue
             if command == SHUTDOWN:
                 print(STOPPED, flush=True)
@@ -313,8 +314,8 @@ def main(argv=None) -> int:
     return serve(
         control_file=args.control_file,
         pid_file=args.pid_file,
-        busy_file=args.busy_file,
         poison_file=args.poison_file,
+        busy_file=args.busy_file,
         mailbox=args.mailbox,
         root=args.root,
         output_root=args.output_root,
