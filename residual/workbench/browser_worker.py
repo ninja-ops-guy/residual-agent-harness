@@ -1,8 +1,8 @@
 """Persistent Mission Control worker for the WebVM guest.
 
 The browser VM has shown corruption after repeatedly starting and tearing down
-CPython processes.  Mission Control therefore starts this worker once and sends
-only validated mission-id/mode pairs over a private FIFO.  Request bodies and
+CPython processes. Mission Control therefore starts this worker once and sends
+only validated mission-id/mode pairs over a private FIFO. Request bodies and
 provider responses continue to travel through the existing DataDevice mailbox;
 all task, verifier, evidence and result-binding logic remains authoritative in
 the existing workbench implementations.
@@ -14,7 +14,6 @@ import os
 from pathlib import Path
 import re
 import stat
-import sys
 import time
 
 from . import browser_build, browser_run
@@ -43,7 +42,7 @@ def parse_command(line: str) -> tuple[str, str]:
 def _request(mailbox: Path, mission_id: str, mode: str):
     path = mailbox / f"{mission_id}.json"
     # DataDevice.writeFile is awaited by the host before FIFO dispatch, but the
-    # guest-side directory view can lag briefly.  Retry visibility only; the
+    # guest-side directory view can lag briefly. Retry visibility only; the
     # authoritative workbench parser still validates the full request contract.
     deadline = time.monotonic() + 2.0
     while True:
@@ -82,8 +81,10 @@ def _prepare_fifo(path: Path) -> None:
     os.mkfifo(path, 0o600)
 
 
-def serve(*, fifo: Path, mailbox: Path, root: Path, output_root: Path) -> int:
+def serve(*, fifo: Path, pid_file: Path, mailbox: Path, root: Path, output_root: Path) -> int:
     _prepare_fifo(fifo)
+    pid_file.write_text(str(os.getpid()) + "\n", encoding="ascii")
+    os.chmod(pid_file, 0o600)
     print(READY, flush=True)
     try:
         while True:
@@ -115,21 +116,29 @@ def serve(*, fifo: Path, mailbox: Path, root: Path, output_root: Path) -> int:
                         return 70
                     print(f"{RUN_PREFIX}{mission_id}:{status}", flush=True)
     finally:
-        try:
-            if fifo.exists() and stat.S_ISFIFO(fifo.lstat().st_mode):
-                fifo.unlink()
-        except OSError:
-            pass
+        for path, require_fifo in ((fifo, True), (pid_file, False)):
+            try:
+                if not path.exists() and not path.is_symlink():
+                    continue
+                if require_fifo and not stat.S_ISFIFO(path.lstat().st_mode):
+                    continue
+                path.unlink()
+            except OSError:
+                pass
 
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fifo", type=Path, default=Path("/tmp/residual-workbench.fifo"))
+    parser.add_argument("--pid-file", type=Path, default=Path("/tmp/residual-workbench.pid"))
     parser.add_argument("--mailbox", type=Path, default=Path("/data"))
     parser.add_argument("--root", type=Path, default=Path("/opt/residual"))
     parser.add_argument("--output-root", type=Path, default=Path("/opt/residual/runs/missions"))
     args = parser.parse_args(argv)
-    return serve(fifo=args.fifo, mailbox=args.mailbox, root=args.root, output_root=args.output_root)
+    return serve(
+        fifo=args.fifo, pid_file=args.pid_file, mailbox=args.mailbox,
+        root=args.root, output_root=args.output_root,
+    )
 
 
 if __name__ == "__main__":
