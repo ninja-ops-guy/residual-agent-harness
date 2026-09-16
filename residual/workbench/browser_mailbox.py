@@ -30,10 +30,33 @@ SAFE_BROWSER_ERRORS = {
 }
 
 
+class BrowserRuntimeCorruption(BaseException):
+    """Fail-closed signal that must escape generic provider exception handling.
+
+    The retained WebVM corruption evidence surfaced as impossible ``TypeError``
+    instances from unrelated CPython internals.  In a persistent interpreter an
+    arbitrary TypeError on this browser-specific transport path must therefore
+    poison the worker rather than being normalized to a reusable provider error.
+    The fixed message deliberately contains no raw exception text.
+    """
+
+
 class BrowserMailboxProvider(MailboxProvider):
     """MailboxProvider with typed browser failures and two-phase publication."""
 
     def generate(self, packet, max_output_tokens):
+        try:
+            return self._generate(packet, max_output_tokens)
+        except BrowserRuntimeCorruption:
+            raise
+        except TypeError:
+            # ``residual.engine`` intentionally converts ordinary Exception
+            # subclasses from providers into ``provider_exception``.  Use a
+            # BaseException sentinel so the corruption class reaches the
+            # persistent worker, which emits a fatal marker and terminates.
+            raise BrowserRuntimeCorruption('browser_runtime_corruption') from None
+
+    def _generate(self, packet, max_output_tokens):
         if self.cancelled():
             raise ProviderError('mission_cancelled')
         rid = uuid.uuid4().hex
@@ -70,10 +93,10 @@ class BrowserMailboxProvider(MailboxProvider):
                 # candidate. A completed marker with a delayed body may recover.
                 time.sleep(0.05)
                 continue
-            except (OSError, ValueError, TypeError, UnicodeDecodeError, RecursionError):
-                # A completed marker should make these rare, but browser-backed
-                # filesystems can still transiently reject/tear a read. Keep the
-                # recovery bounded and expose only a safe typed failure.
+            except (OSError, ValueError, RecursionError):
+                # These are the actual browser-backed I/O / malformed-input
+                # classes.  Keep recovery bounded.  TypeError is intentionally
+                # excluded: it is a corruption-class signal for this runtime.
                 invalid_reads += 1
                 if invalid_reads >= 5:
                     raise ProviderError('browser_response_invalid')
