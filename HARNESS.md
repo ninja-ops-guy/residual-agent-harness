@@ -94,11 +94,11 @@ The core harness is now one layer of a larger system:
 - **Factory M2** provides bounded worker contracts/runtime and host-owned termination.
 - **Factory M3** provides Station-issued evidence/receipt handoff.
 - **Factory M4** provides deterministic integration/scheduler authority and a fail-closed capable-runner qualification path.
-- **Mission Control/WebVM** provides browser-facing guest workflows and artifact interaction, with an active reliability gate tracked separately from Factory/M4 trust.
+- **Mission Control/WebVM** provides browser-facing guest workflows and artifact interaction, with operational reliability tracked separately from Factory/M4 trust.
 - **Evaluation/research** provides frozen workloads, statistics, fault campaigns and artifact-derived reporting.
-- **Self-maintenance research** now includes a bounded controller and frozen research-bundle tooling from PR #132.
+- **Self-maintenance research** includes a bounded controller and frozen research-bundle tooling from PR #132.
 
-Current accepted `main` is `f1e62936a7ce72b801c852c1d7428d4c6ed4152c`. Exact-current-main Factory ownership, measured-binding, clean-install, capable-runner M4 workflow, Command Station, controller/provider and Pages workflows completed successfully after PR #132 merged. See `docs/CURRENT_STATUS.md` for run identities and the current non-claims.
+Current accepted `main` is `3a41dc1e84335875537672a62340d9f8c7806417`, the merge of PR #136. Exact-current-main Factory ownership, measured-binding, clean-install, capable-runner M4 workflow, Command Station, controller/provider and Pages workflows all completed **PASS**. Pages run `35101404981` also passed the first post-merge generated and published desktop+narrow WebVM acceptance on attempt 1. This exact-revision result does not establish long-run WebVM reliability, root-cause the historical guest corruption, qualify live-provider quality, or complete release/recovery or soak. See `docs/CURRENT_STATUS.md` for run identities, retained artifacts and current non-claims.
 
 ## Self-maintenance is bounded, not autonomous merge authority
 
