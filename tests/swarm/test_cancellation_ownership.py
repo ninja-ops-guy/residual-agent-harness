@@ -98,3 +98,41 @@ def test_process_name_cannot_replace_an_owned_process():
     with pytest.raises(ValueError, match="already tracked"):
         controller.track_process(second, name="worker")
     assert controller._processes["worker"][0] is first
+
+
+def test_task_name_cannot_replace_an_active_operation():
+    async def scenario():
+        controller = CancellationController(CancellationBudget(1))
+        first = asyncio.create_task(asyncio.Event().wait())
+        second = asyncio.create_task(asyncio.Event().wait())
+        try:
+            controller.track(first, name="worker")
+            with pytest.raises(ValueError, match="already tracked"):
+                controller.track(second, name="worker")
+            report = await controller.abort()
+            assert report.cancelled and report.propagated == 1
+            assert first.cancelled()
+        finally:
+            first.cancel(); second.cancel()
+            await asyncio.gather(first, second, return_exceptions=True)
+    asyncio.run(scenario())
+
+
+def test_old_task_callback_cannot_erase_its_replacement():
+    async def scenario():
+        controller = CancellationController(CancellationBudget(1))
+        first = asyncio.create_task(asyncio.sleep(0))
+        second = asyncio.create_task(asyncio.Event().wait())
+        # The replacement callback runs before the controller's old cleanup.
+        first.add_done_callback(lambda _: controller.track(second, name="worker"))
+        controller.track(first, name="worker")
+        try:
+            await first
+            assert controller.active == ("worker",)
+            report = await controller.abort()
+            assert report.cancelled and report.propagated == 1
+            assert second.cancelled()
+        finally:
+            second.cancel()
+            await asyncio.gather(second, return_exceptions=True)
+    asyncio.run(scenario())

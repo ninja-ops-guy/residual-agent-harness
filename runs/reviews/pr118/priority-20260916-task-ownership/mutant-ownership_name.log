@@ -1,0 +1,11 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/swarm/test_cancellation_ownership.py::test_process_name_cannot_replace_an_owned_process -q --tb=short
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______________ test_process_name_cannot_replace_an_owned_process _______________
+tests/swarm/test_cancellation_ownership.py:98: in test_process_name_cannot_replace_an_owned_process
+    with pytest.raises(ValueError, match="already tracked"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+=========================== short test summary info ============================
+FAILED tests/swarm/test_cancellation_ownership.py::test_process_name_cannot_replace_an_owned_process
+1 failed in 0.09s

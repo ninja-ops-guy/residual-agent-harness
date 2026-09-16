@@ -46,8 +46,16 @@ class CancellationController:
 
     def track(self, task: asyncio.Task, *, name: str | None = None) -> asyncio.Task:
         key = name or task.get_name()
+        existing = self._tasks.get(key)
+        if existing is not None and existing is not task and not existing.done():
+            raise ValueError(f"task name already tracked: {key}")
         self._tasks[key] = task
-        task.add_done_callback(lambda _t, k=key: self._tasks.pop(k, None))
+
+        def forget(completed):
+            if self._tasks.get(key) is completed:
+                self._tasks.pop(key, None)
+
+        task.add_done_callback(forget)
         return task
 
     def track_process(self, process: Any, *, name: str,

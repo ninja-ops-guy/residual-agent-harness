@@ -1,0 +1,24 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/swarm/test_cancellation_ownership.py::test_old_task_callback_cannot_erase_its_replacement -q --tb=short
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____________ test_old_task_callback_cannot_erase_its_replacement ______________
+tests/swarm/test_cancellation_ownership.py:138: in test_old_task_callback_cannot_erase_its_replacement
+    asyncio.run(scenario())
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/swarm/test_cancellation_ownership.py:131: in scenario
+    assert controller.active == ("worker",)
+E   AssertionError: assert () == ('worker',)
+E     
+E     Right contains one more item: 'worker'
+E     Use -v to get more diff
+=========================== short test summary info ============================
+FAILED tests/swarm/test_cancellation_ownership.py::test_old_task_callback_cannot_erase_its_replacement
+1 failed in 0.11s
