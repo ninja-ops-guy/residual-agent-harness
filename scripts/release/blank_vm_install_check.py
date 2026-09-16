@@ -43,6 +43,12 @@ and summary are create-only, and artifact downloads use an exclusive sibling
 temporary file before replacement. This prevents prior/symlinked state from
 being silently overwritten and cited as a fresh blank-VM run.
 
+The operator CLI requires an HTTPS artifact source for a release-path run.
+Non-HTTPS sources are available only with --allow-non-https-rehearsal and are
+machine-marked as not qualifying the release transport gate. Signed URL query
+parameters and URL userinfo are never retained verbatim: evidence stores a
+redacted display URL plus a SHA-256 binding to the exact URL used for fetch.
+
 Non-claims: this is an install qualification procedure for a release
 candidate. It certifies no release and no measured evaluation result.
 """
@@ -61,6 +67,7 @@ import sys
 import tempfile
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 
 ARTIFACT_EXTRAS = "factory,marketplace"
@@ -177,6 +184,49 @@ def sha256_file(path):
 
 def sha256_bytes(data):
     return hashlib.sha256(data).hexdigest()
+
+
+def _artifact_url_metadata(url):
+    """Return non-secret provenance for the exact artifact URL.
+
+    Query/fragment values and embedded credentials are excluded from the
+    display form. The exact URL remains bound by SHA-256 so evidence can be
+    correlated without persisting signed query material.
+    """
+    if not isinstance(url, str) or not url:
+        raise ValueError("artifact URL must be a nonempty string")
+    parsed = urllib.parse.urlsplit(url)
+    scheme = parsed.scheme.lower()
+    host = parsed.hostname or ""
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise ValueError("artifact URL contains an invalid port") from exc
+    if scheme in {"http", "https"} and not host:
+        raise ValueError("HTTP(S) artifact URL requires a host")
+    display_netloc = host
+    if port is not None:
+        display_netloc += f":{port}"
+    if scheme == "file":
+        display = urllib.parse.urlunsplit((scheme, "", parsed.path, "", ""))
+    else:
+        display = urllib.parse.urlunsplit((scheme, display_netloc, parsed.path, "", ""))
+    if parsed.query:
+        display += "?<redacted>"
+    release_https = (
+        scheme == "https" and bool(host)
+        and parsed.username is None and parsed.password is None
+    )
+    return {
+        "scheme": scheme,
+        "display_url": display,
+        "url_sha256": sha256_bytes(url.encode("utf-8")),
+        "https_release_transport": release_https,
+    }
+
+
+def _safe_url_error(exc, exact_url, display_url):
+    return str(exc).replace(exact_url, display_url)
 
 
 def _fsync_directory(path):
@@ -368,7 +418,11 @@ def check_fetch(log, logs_dir, work_dir, url, max_attempts=2):
     Path(logs_dir).mkdir(parents=True, exist_ok=True)
     work_dir = Path(work_dir)
     work_dir.mkdir(parents=True, exist_ok=True)
-    target = work_dir / Path(url.split("?")[0]).name
+    url_meta = _artifact_url_metadata(url)
+    target = work_dir / Path(urllib.parse.urlsplit(url).path).name
+    if not target.name:
+        log.emit("fetch_artifact", "FAIL", "artifact URL has no filename")
+        return None
     if target.exists() or target.is_symlink():
         log.emit(
             "fetch_artifact", "FAIL",
@@ -397,17 +451,19 @@ def check_fetch(log, logs_dir, work_dir, url, max_attempts=2):
                 tmp.unlink()
             except FileNotFoundError:
                 pass
-            log_path.write_text(f"fetch failed: {exc}\n", encoding="utf-8")
+            safe_error = _safe_url_error(exc, url, url_meta["display_url"])
+            log_path.write_text(f"fetch failed: {safe_error}\n", encoding="utf-8")
             recovery = ("re-fetch attempted" if attempt < max_attempts
                         else "recovery: verify network and artifact URL, "
                              "then re-run the whole procedure")
             log.emit("fetch_artifact", "FAIL",
-                     f"attempt {attempt}: {exc}", log_path=log_path,
+                     f"attempt {attempt}: {safe_error}", log_path=log_path,
                      recovery=recovery)
             continue
         log.emit("fetch_artifact", "PASS",
-                 f"{url} -> {target} ({target.stat().st_size} bytes, "
-                 f"attempt {attempt})", log_path=log_path)
+                 f"{url_meta['display_url']} -> {target} "
+                 f"({target.stat().st_size} bytes, attempt {attempt})",
+                 log_path=log_path)
         return target
     return None
 
@@ -545,6 +601,7 @@ def check_ownership(log, logs_dir, checkout):
 
 def run_procedure(*, artifact_url, expected_sha256, out_dir, work_dir,
                   python_override=None, checkout=None):
+    url_meta = _artifact_url_metadata(artifact_url)
     out_dir = _require_fresh_output_directory(out_dir)
     logs_dir = out_dir / "logs"
     work_dir = Path(work_dir)
@@ -586,7 +643,12 @@ def run_procedure(*, artifact_url, expected_sha256, out_dir, work_dir,
         "status": overall,
         "scope": "release-candidate blank-VM install procedure; "
                  "certifies no release",
-        "artifact_url": artifact_url,
+        "artifact_url": url_meta["display_url"],
+        "artifact_url_sha256": url_meta["url_sha256"],
+        "artifact_transport": {
+            "scheme": url_meta["scheme"],
+            "https_release_transport": url_meta["https_release_transport"],
+        },
         "expected_sha256": expected_sha256,
         "checks": statuses,
         "chain_head": log.chain_head,
@@ -618,7 +680,15 @@ def main(argv=None):
     parser.add_argument("--checkout", type=Path, default=None,
                         help="maintainer mode: checkout to run the #95 "
                              "ownership gate against")
+    parser.add_argument(
+        "--allow-non-https-rehearsal", action="store_true",
+        help="procedure/recovery rehearsal only: allow file/http source; evidence remains non-qualifying for the release transport gate")
     args = parser.parse_args(argv)
+    url_meta = _artifact_url_metadata(args.artifact_url)
+    if not url_meta["https_release_transport"] and not args.allow_non_https_rehearsal:
+        parser.error(
+            "release-path artifact URL must be HTTPS without embedded userinfo; "
+            "use --allow-non-https-rehearsal only for offline procedure tests")
     summary = run_procedure(
         artifact_url=args.artifact_url, expected_sha256=args.sha256,
         out_dir=args.out, work_dir=args.work_dir or args.out / "work",
