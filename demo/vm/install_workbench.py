@@ -10,7 +10,7 @@ def patch(text):
     text = replace_once(text, "<script>\n", "<script>\n\timport { mountMissionControl } from './mission-control-world.js';\n")
     text = replace_once(text, 'var residualBridgeBuffer = "";',
                         'var residualWorkbench = null;\n\tvar residualDataDevice = null;\n\tvar residualShellTail = "";\n\tvar residualShellReady = false;\n\tvar residualShellCommandBusy = false;\n\tvar residualShellRun = null;\n\tvar residualShellInputBuffer = "";\n\tvar residualWorkerReady = false;\n\tvar residualWorkerPoisoned = false;\n\tvar residualWorkerStart = null;\n\tvar residualBridgeBuffer = "";')
-    text = replace_once(text, 'const out = residualDecoder.decode(bytes, {stream:true});', '''const out = residualDecoder.decode(bytes, {stream:true});
+    text = replace_once(text, 'const out = residualDecoder.decode(bytes, {stream:true});', """const out = residualDecoder.decode(bytes, {stream:true});
         residualShellTail = (residualShellTail + out).slice(-4096).replace(/\\x1b\\[[0-9;?]*[A-Za-z]/g, "");
         if (residualShellTail.includes("residual@demo:~/residual-agent-harness$")) residualShellReady = true;
         // Project authoritative guest frames before resolving worker lifecycle
@@ -49,10 +49,10 @@ def patch(text):
                 if (queuedInput) readData(queuedInput);
                 current.finish({status: Number(match[1]), fatal: !!fatalMatch});
             }
-        }''')
+        }""")
     text = replace_once(text, 'var dataDevice = await CheerpX.DataDevice.create();',
                         'var dataDevice = await CheerpX.DataDevice.create();\n\t\tresidualDataDevice = dataDevice;')
-    text = replace_once(text, 'term.onData(readData);', '''term.onData(data => {
+    text = replace_once(text, 'term.onData(readData);', """term.onData(data => {
             // User/automation terminal input is queued while Mission Control is
             // starting or using its persistent worker. The worker itself runs in
             // the background; queuing prevents shell commands from racing its
@@ -85,10 +85,10 @@ def patch(text):
                 promise,
                 finish: () => { clearTimeout(timeout); resolveStart(); }
             };
-            // Reuse a surviving worker after a UI reload when possible. Both
-            // read and kill are Bash builtins, so this startup path creates at
-            // most one long-lived CPython process rather than one per mission.
-            const command = `if [ -r /tmp/residual-workbench.pid ] && read -r residual_worker_pid < /tmp/residual-workbench.pid && kill -0 "$residual_worker_pid" 2>/dev/null; then echo RESIDUAL_WORKER_READY; else python3 -m residual.workbench.browser_worker --fifo /tmp/residual-workbench.fifo --pid-file /tmp/residual-workbench.pid --mailbox /data --root /opt/residual --output-root /opt/residual/runs/missions & fi`;
+            // Reuse only a surviving worker whose PID file, FIFO, process,
+            // and /proc argv all identify the expected long-lived module. This
+            // prevents a stale/reused PID from being accepted as worker identity.
+            const command = `if [ -f /tmp/residual-workbench.pid ] && [ ! -L /tmp/residual-workbench.pid ] && [ -O /tmp/residual-workbench.pid ] && [ -p /tmp/residual-workbench.fifo ] && read -r residual_worker_pid < /tmp/residual-workbench.pid && [[ "$residual_worker_pid" =~ ^[0-9]+$ ]] && kill -0 "$residual_worker_pid" 2>/dev/null && mapfile -d '' residual_worker_argv < "/proc/$residual_worker_pid/cmdline" && [ "${residual_worker_argv[1]-}" = "-m" ] && [ "${residual_worker_argv[2]-}" = "residual.workbench.browser_worker" ]; then echo RESIDUAL_WORKER_READY; else python3 -m residual.workbench.browser_worker --fifo /tmp/residual-workbench.fifo --pid-file /tmp/residual-workbench.pid --mailbox /data --root /opt/residual --output-root /opt/residual/runs/missions & fi`;
             readData(command + "\\r");
             return await promise;
         }
@@ -136,7 +136,7 @@ def patch(text):
                     readData(command + "\\r");
                 });
             }
-        });''')
+        });""")
     start = text.index('\tasync function enableResidualCloud()')
     end = text.index('\n\tfunction writeData(', start)
     text = text[:start] + '\tfunction enableResidualCloud() { residualWorkbench?.connectProvider(); }\n' + text[end:]
