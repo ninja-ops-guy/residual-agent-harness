@@ -331,7 +331,11 @@ class FixtureSupervisorTests(unittest.TestCase):
             pid = int(pidfile.read_text())
             for _ in range(100):
                 status = Path(f'/proc/{pid}/status')
-                if not status.exists() or '\nState:\tZ' in status.read_text():
+                try:
+                    status_text = status.read_text()
+                except FileNotFoundError:
+                    break
+                if '\nState:\tZ' in status_text:
                     break
                 time.sleep(0.01)
             else:
