@@ -30,6 +30,17 @@ async function resolveModel(requested) {
     return requested;
   }
 }
+function transportMessages(messages) {
+  const note = '\n\nBrowser transport requirement: a residual_submit function is attached to this request. Use that function exactly once to return the required updates/requests worker envelope. Do not answer with prose or Markdown instead. Exact raw JSON is only a compatibility fallback if the provider does not expose tool calls.';
+  let annotated = false;
+  return messages.map(message => {
+    if (!annotated && message?.role === 'system') {
+      annotated = true;
+      return {...message, content: message.content + note};
+    }
+    return message;
+  });
+}
 if (!/^[a-f0-9]{64}$/.test(token)) {
   load.disabled = true; tell('Open provider setup from Mission Control. This tab has no connection channel.');
 } else {
@@ -85,11 +96,16 @@ async function receive(m) {
     tell(`Running ${g.used}/${g.max} authorized model calls with ${selectedModel}. Charges may apply even if the browser times out.`);
     const tools = [{type: 'function', function: {
       name: 'residual_submit',
-      description: 'Return the exact RESIDUAL worker envelope by calling this function exactly once. Do not return prose or Markdown instead. If the task cannot be solved, call it with empty updates and requests.',
+      description: 'Required response transport. Call this function exactly once with the exact RESIDUAL updates/requests worker envelope. Never substitute prose or Markdown. If the task cannot be solved, call it with empty updates and requests.',
       parameters: RESPONSE_SCHEMA
     }}];
+    const options = {model: selectedModel, max_tokens: m.max_output_tokens, stream: false, normalize: true, tools};
+    if (/^(?:openai\/)?gpt-/i.test(selectedModel)) {
+      options.temperature = 0;
+      options.verbosity = 'low';
+    }
     const result = await Promise.race([
-      sdk.ai.chat(m.messages, {model: selectedModel, max_tokens: m.max_output_tokens, stream: false, normalize: true, tools}),
+      sdk.ai.chat(transportMessages(m.messages), options),
       new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('provider_timeout')), 80000); })
     ]);
     if (grant !== g) return reply({ok: false, error: 'mission_cancelled'});
