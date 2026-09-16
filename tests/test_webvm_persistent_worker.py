@@ -28,9 +28,14 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
         for value in [
             '', 'bad build', f'{self.mid} shell', f'{self.mid} build extra',
             '../escape build', 'm-' + 'a' * 32 + ';rm build', 'x' * 97,
+            browser_worker.SHUTDOWN,
         ]:
             with self.subTest(value=value), self.assertRaises(ValueError):
                 browser_worker.parse_command(value)
+
+    def test_shutdown_is_separate_from_mission_command_contract(self):
+        self.assertEqual(browser_worker.SHUTDOWN, 'shutdown')
+        self.assertEqual(browser_worker.STOPPED, 'RESIDUAL_WORKER_STOPPED')
 
     def test_build_dispatch_reuses_in_process_entrypoint(self):
         request = self.write_request('build')
@@ -73,6 +78,7 @@ class PersistentBrowserWorkerTests(unittest.TestCase):
         self.assertNotIn('os.system', source)
         self.assertIn('browser_build.main(common)', source)
         self.assertIn('browser_run.main(["run", *common])', source)
+        self.assertIn('line.strip() == SHUTDOWN', source)
 
 
 class PersistentWorkerHostWiringTests(unittest.TestCase):
