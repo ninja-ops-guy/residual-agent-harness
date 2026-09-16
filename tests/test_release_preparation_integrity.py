@@ -47,6 +47,54 @@ class InstallIntegrityTests(unittest.TestCase):
                 bvic.CheckLog(path)
             self.assertEqual(before, path.read_bytes())
 
+    def test_empty_preexisting_log_is_also_rejected(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "checks.jsonl"
+            path.write_bytes(b"")
+            with self.assertRaisesRegex(RuntimeError, "existing|fresh"):
+                bvic.CheckLog(path)
+            self.assertEqual(path.read_bytes(), b"")
+
+    def test_run_procedure_refuses_nonempty_output_before_any_check(self):
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d) / "evidence"
+            out.mkdir()
+            sentinel = out / "summary.json"
+            sentinel.write_text("old-evidence", encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "fresh output"):
+                bvic.run_procedure(
+                    artifact_url="file:///does-not-matter.whl",
+                    expected_sha256="0" * 64,
+                    out_dir=out, work_dir=out / "work")
+            self.assertEqual(sentinel.read_text(encoding="utf-8"), "old-evidence")
+            self.assertFalse((out / "checks.jsonl").exists())
+
+    @unittest.skipUnless(os.name == "posix", "symlink regression is POSIX-specific")
+    def test_checklog_and_fetch_never_follow_preplanted_symlinks(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            sentinel = root / "sentinel.txt"
+            sentinel.write_text("unchanged", encoding="utf-8")
+
+            log_link = root / "checks.jsonl"
+            log_link.symlink_to(sentinel)
+            with self.assertRaises((FileExistsError, RuntimeError, OSError)):
+                bvic.CheckLog(log_link)
+            self.assertEqual(sentinel.read_text(encoding="utf-8"), "unchanged")
+            log_link.unlink()
+
+            log = bvic.CheckLog(root / "real-checks.jsonl")
+            work = root / "work"
+            work.mkdir()
+            source = root / "artifact.whl"
+            source.write_bytes(b"wheel")
+            target = work / source.name
+            target.symlink_to(sentinel)
+            self.assertIsNone(bvic.check_fetch(log, root / "logs", work, source.as_uri()))
+            self.assertEqual(sentinel.read_text(encoding="utf-8"), "unchanged")
+            self.assertTrue(target.is_symlink())
+            self.assertEqual(log.records[-1]["status"], "FAIL")
+
     def test_missing_or_malformed_digest_never_passes(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d); artifact = root / "artifact.whl"; artifact.write_bytes(b"wheel")
