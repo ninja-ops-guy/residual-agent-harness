@@ -55,7 +55,7 @@ def command_run(args: argparse.Namespace) -> int:
     if args.unknown_count:
         result = GateResult.FAIL
         notes.append(f"required gate observed {args.unknown_count} UNKNOWN outcomes")
-    evidence = [args.log]
+    evidence = [args.log, *args.evidence_path]
     if args.junit is not None and args.junit.exists():
         evidence.append(args.junit)
     envelope = new_envelope(
@@ -114,6 +114,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--output", type=Path, required=True)
     run.add_argument("--log", type=Path, required=True)
     run.add_argument("--junit", type=Path)
+    run.add_argument("--evidence-path", action="append", type=Path, default=[])
     run.add_argument("--zero-skips", action="store_true")
     run.add_argument("--unknown-count", type=int, default=0)
     run.add_argument("--non-claim", action="append", default=[])
