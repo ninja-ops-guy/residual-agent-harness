@@ -80,9 +80,11 @@ Keep #120/#126 open until a predefined retained repeated-run reliability campaig
 
 PR #89 retains an authoritative first-attempt narrow-browser **FAIL** caused by an acceptance-observation defect in terminal exit-marker parsing. That failure remains evidence and #89 is **NOT qualified**.
 
-PR #153 consolidates the bounded #140/#150 acceptance-harness repairs and is now refreshed onto exact current main at head `35cbf2ba060bc04aabb6cfd10fbf90dc8dbccb77`.
+PR #153 consolidates the bounded #140/#150 acceptance-harness repairs and is refreshed onto exact current main at head `35cbf2ba060bc04aabb6cfd10fbf90dc8dbccb77`.
 
-The prior #153 workflow results remain historical to the superseded head. Fresh full qualification and a genuinely independent technical review must bind to current head `35cbf2ba060bc04aabb6cfd10fbf90dc8dbccb77` before integration. Only after an accepted #153 integration should #89 be refreshed and requalified; #153 does not qualify #89 by itself.
+All **eight observed applicable workflows are PASS** on that exact head, including Browser VM Demo CI and Pages/WebVM. Those green results qualify only the focused acceptance-harness repair on that revision; they do not qualify #89, live-provider behavior, long-run WebVM reliability, blank-machine/recovery behavior, elapsed soak or research claims.
+
+The submitted owner-account COMMENT is bound to an earlier head and explicitly does **not** count as independent acceptance. No qualifying genuinely independent approval is bound to current head `35cbf2ba...`. PR #153 is therefore **technically qualified for its tested scope but BLOCKED on independent acceptance before integration**. Only after an accepted #153 integration should #89 be refreshed and requalified; #153 does not erase #89's retained failure or qualify #89 by itself.
 
 ## Qualification v1 — PR #152
 
@@ -96,7 +98,7 @@ No aggregate Qualification v1 `PASS` is claimed. Virtual-day stress is not elaps
 
 Any candidate last qualified before `f6f9bad8...` must be refreshed/requalified before merge if current-main compatibility is part of its gate.
 
-- **#146** — independent-current-head review enforcement, refreshed onto exact current main at head `c416d408149408ff8668a48d6e73eb1f3bf6347e`. Fresh exact-head qualification plus genuinely independent write-authorized approval are required before integration; platform ruleset enforcement remains a separate maintainer action.
+- **#146** — independent-current-head review enforcement, refreshed onto exact current main at head `c416d408149408ff8668a48d6e73eb1f3bf6347e`. All six observed ordinary repository workflows are **PASS** on that head. The dedicated `Independent review gate` runs its 15 policy regression tests successfully, then correctly reports **BLOCKED** and exits nonzero because no independent human `APPROVED` review from a write-authorized reviewer is bound to the current head. This is expected fail-closed behavior, not a code-qualification PASS and not a defect waiver. #146 remains BLOCKED on the exact review condition it is designed to enforce; platform ruleset enforcement remains a separate maintainer action after accepted integration.
 - **#118** — historical green runtime/DSM candidate; refresh/requalify before merge and preserve earlier first-attempt failures.
 - **#115** — historical release-preparation evidence remains procedure/simulation evidence, not true blank-OS, host-loss or elapsed-soak proof; refresh/requalify before merge.
 - **#131** — historical SoakState persistence qualification is not elapsed soak; refresh/requalify before merge.
@@ -137,7 +139,9 @@ PR #146 codifies a fail-closed repository-side independent-current-head review c
 
 Self/owner approval, bots, COMMENT-only review, stale-head approval, read-only review, missing permission evidence and green CI alone do not qualify.
 
-PR #146 is now refreshed onto `main@f6f9bad8...` at head `c416d408149408ff8668a48d6e73eb1f3bf6347e`; prior-head CI is historical, and fresh exact-head qualification plus genuinely independent write-authorized approval remain mandatory. Platform enforcement is also incomplete: the active repository ruleset must eventually require at least one approving review and the `independent-review` status check. The governance policy does not retroactively rewrite missing review history.
+PR #146 is refreshed onto `main@f6f9bad8...` at head `c416d408149408ff8668a48d6e73eb1f3bf6347e`. Six ordinary exact-head workflows are **PASS**. Its policy regression suite passes **15/15**, while the live `independent-review` gate is **BLOCKED** because GitHub records no qualifying independent current-head approval; the Actions job therefore concludes failure by design. This is correct fail-closed enforcement, not a `PASS` and not evidence that the review requirement may be waived.
+
+Platform enforcement is also incomplete: the active repository ruleset must eventually require at least one approving review and the `independent-review` status check. The governance policy does not retroactively rewrite missing review history.
 
 ## Research / release non-claims
 
@@ -156,10 +160,10 @@ The project does **not** yet claim that:
 
 ## Next production-readiness gates
 
-1. Obtain a genuinely independent post-merge technical review for exact current main / PR #156 and complete #144/#146 enforcement for future merges.
+1. Obtain a genuinely independent post-merge technical review for exact current main / PR #156 and complete #144/#146 enforcement for future merges. #146's ordinary exact-head workflows and policy tests pass; its live review gate remains correctly `BLOCKED` until a qualifying reviewer approves current head `c416d408...`.
 2. Run and retain a fresh paid/live Puter acceptance on exact deployed `f6f9bad8...`; preserve `PASS`, `FAIL` or `UNKNOWN` rather than inferring success from automated CI.
-3. Complete fresh qualification of refreshed #153 head `35cbf2ba060bc04aabb6cfd10fbf90dc8dbccb77`, preserve any first-attempt failure, require independent technical review before integration, then refresh/requalify #89.
-4. Refresh/requalify #152; complete fresh qualification and independent acceptance of refreshed #146 head `c416d408149408ff8668a48d6e73eb1f3bf6347e`. Do not promote stale-head partial/green evidence into current qualification.
+3. Obtain genuinely independent exact-head acceptance for technically qualified PR #153 at `35cbf2ba...`; if accepted and integrated, then refresh/requalify #89 while preserving its retained historical Pages failure.
+4. Refresh/requalify #152. Do not promote stale-head partial/green evidence into current qualification.
 5. Refresh/requalify other stale-base candidates before merge; preserve #93's retained red blocker until its protected dependency is resolved.
 6. Resolve #139 through independent protected-byte review → deliberate baseline handling → fresh qualification; only then refresh #134.
 7. Quantify WebVM reliability with a predefined retained repeated-run campaign; keep #120/#126 open until evidence supports closure.
