@@ -2,10 +2,16 @@
 
 The browser VM has shown corruption after repeatedly starting and tearing down
 CPython processes. Mission Control therefore starts this worker once and sends
-only validated mission-id/mode pairs over a private FIFO. Request bodies and
-provider responses continue to travel through the existing DataDevice mailbox;
-all task, verifier, evidence and result-binding logic remains authoritative in
-the existing workbench implementations.
+only validated mission-id/mode pairs through a tiny DataDevice-backed regular
+control record. Request bodies and provider responses continue to travel through
+the existing DataDevice mailbox; all task, verifier, evidence and result-binding
+logic remains authoritative in the existing workbench implementations.
+
+The control record deliberately avoids FIFOs and other special-file primitives:
+the production WebVM guest returns ENOSYS for ``mkfifo``. The host publishes the
+record only after the request body has been awaited, and the worker consumes the
+record before dispatch. A private busy marker fences page reload/reuse while a
+mission is active.
 """
 from __future__ import annotations
 
@@ -30,6 +36,8 @@ FATAL_PREFIX = "RESIDUAL_WORKER_FATAL_"
 REJECTED = "RESIDUAL_WORKER_REJECTED:64"
 STOPPED = "RESIDUAL_WORKER_STOPPED"
 SHUTDOWN = "shutdown"
+CONTROL_NAME = "residual-worker.control"
+MAX_CONTROL = 128
 
 
 class RequestAdmissionError(ValueError):
@@ -50,11 +58,11 @@ def parse_command(line: str) -> tuple[str, str]:
 
 def _request(mailbox: Path, mission_id: str, mode: str) -> dict:
     path = mailbox / f"{mission_id}.json"
-    # DataDevice.writeFile is awaited by the host before FIFO dispatch, but the
-    # guest-side directory view can lag briefly. Retry only failures that are
-    # explicitly expected at this admission boundary. Do not absorb arbitrary
-    # TypeError/ValueError: retained WebVM corruption has manifested as impossible
-    # Python constructor return values, and those must poison the worker.
+    # DataDevice.writeFile is awaited by the host before control publication, but
+    # the guest-side directory view can lag briefly. Retry only failures expected
+    # at this admission boundary. Do not absorb arbitrary TypeError/ValueError:
+    # retained WebVM corruption has manifested as impossible Python constructor
+    # return values, and those must poison the worker.
     deadline = time.monotonic() + 2.0
     while True:
         try:
@@ -66,9 +74,6 @@ def _request(mailbox: Path, mission_id: str, mode: str) -> dict:
             time.sleep(0.05)
     if not isinstance(request, dict) or request.get("id") != mission_id or request.get("mode") != mode:
         raise RequestAdmissionError("mission request identity mismatch")
-    # This exact validated object is passed forward; execution does not re-open
-    # the DataDevice request file and therefore cannot observe a different body
-    # after admission.
     return request
 
 
@@ -107,23 +112,44 @@ def _dispatch_admitted(
             mission_id, mode, mailbox=mailbox, root=root, output_root=output_root
         )
     except RequestAdmissionError:
-        # A typed mailbox/request admission failure is bounded and does not imply
-        # that the persistent interpreter itself is suspect.
         return 64
 
 
-def _prepare_fifo(path: Path) -> None:
-    if path.exists() or path.is_symlink():
+def _owned_regular(path: Path) -> tuple[bool, os.stat_result | None]:
+    try:
         info = path.lstat()
-        if not stat.S_ISFIFO(info.st_mode):
-            raise RuntimeError("worker control path is not a FIFO")
-        path.unlink()
-    os.mkfifo(path, 0o600)
+    except FileNotFoundError:
+        return False, None
+    owned = not hasattr(os, "geteuid") or info.st_uid == os.geteuid()
+    return stat.S_ISREG(info.st_mode) and info.st_nlink == 1 and owned, info
+
+
+def _write_private_file(path: Path, value: str, *, exclusive: bool = True) -> None:
+    """Create one owner-private regular state file without following links."""
+    flags = os.O_WRONLY | os.O_CREAT
+    if exclusive:
+        flags |= os.O_EXCL
+    flags |= getattr(os, "O_NOFOLLOW", 0)
+    try:
+        fd = os.open(path, flags, 0o600)
+    except OSError as exc:
+        raise RuntimeError(f"unsafe worker state path: {path.name}") from exc
+    try:
+        info = os.fstat(fd)
+        owned = not hasattr(os, "geteuid") or info.st_uid == os.geteuid()
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or not owned:
+            raise RuntimeError(f"unsafe worker state path: {path.name}")
+        os.fchmod(fd, 0o600)
+        if not exclusive:
+            os.ftruncate(fd, 0)
+        os.write(fd, value.encode("ascii"))
+        os.fsync(fd)
+    finally:
+        os.close(fd)
 
 
 def _write_pid_file(path: Path) -> None:
     # Never follow a planted symlink or truncate a multiply-linked regular file.
-    # Open without O_TRUNC, validate the opened inode, then truncate/write it.
     flags = os.O_WRONLY | os.O_CREAT
     flags |= getattr(os, "O_NOFOLLOW", 0)
     flags |= getattr(os, "O_NONBLOCK", 0)
@@ -145,70 +171,128 @@ def _write_pid_file(path: Path) -> None:
 
 
 def _is_poisoned(path: Path) -> bool:
-    # Any existing node at the poison path is fail-closed. The host writes a
-    # private regular file, but a planted symlink or unexpected type must never
-    # be interpreted as permission to start/reuse a worker.
+    # Any existing node at the poison path is fail-closed. The host/worker writes
+    # a private regular file, but an unexpected type never grants reuse authority.
     return path.exists() or path.is_symlink()
+
+
+def _poison(path: Path, mission_id: str) -> None:
+    if _is_poisoned(path):
+        return
+    _write_private_file(path, mission_id + "\n")
+
+
+def _write_busy(path: Path, mission_id: str) -> None:
+    _write_private_file(path, mission_id)
+
+
+def _clear_exact_state(path: Path, expected: str) -> None:
+    safe, info = _owned_regular(path)
+    if not safe or info is None:
+        if path.exists() or path.is_symlink():
+            raise RuntimeError(f"unsafe worker state path: {path.name}")
+        return
+    if info.st_size != len(expected.encode("ascii")):
+        raise RuntimeError(f"worker state identity mismatch: {path.name}")
+    if path.read_text(encoding="ascii") != expected:
+        raise RuntimeError(f"worker state identity mismatch: {path.name}")
+    path.unlink()
+
+
+def _consume_control(path: Path) -> str | tuple[str, str] | None:
+    """Consume one complete regular control record, or return None while absent.
+
+    DataDevice publication is awaited by the host. Requiring a trailing newline
+    additionally prevents observing a mid-publication partial command as valid.
+    """
+    if not path.exists() and not path.is_symlink():
+        return None
+    safe, info = _owned_regular(path)
+    if not safe or info is None:
+        raise RuntimeError("worker control path is unsafe")
+    if info.st_size > MAX_CONTROL:
+        path.unlink()
+        raise ValueError("invalid worker control record")
+    try:
+        raw = path.read_text(encoding="ascii")
+    except UnicodeError as exc:
+        path.unlink()
+        raise ValueError("invalid worker control record") from exc
+    if not raw.endswith("\n"):
+        return None
+    line = raw[:-1]
+    if line == SHUTDOWN:
+        path.unlink()
+        return SHUTDOWN
+    command = parse_command(line)
+    path.unlink()
+    return command
 
 
 def serve(
     *,
-    fifo: Path,
+    control_file: Path,
     pid_file: Path,
     mailbox: Path,
     root: Path,
     output_root: Path,
     poison_file: Path = Path("/tmp/residual-workbench.poison"),
+    busy_file: Path = Path("/tmp/residual-workbench.busy"),
 ) -> int:
-    # A timeout poison record outlives page/JS state. This first check fences a
-    # generation that starts after the host has already timed out.
+    # A timeout/corruption poison record outlives page/JS state and fences late
+    # worker generations before they publish PID/READY.
     if _is_poisoned(poison_file):
         print(POISONED, flush=True)
         return 75
-    _prepare_fifo(fifo)
+    # Never inherit stale control/busy state into a new trusted generation.
+    if control_file.exists() or control_file.is_symlink() or busy_file.exists() or busy_file.is_symlink():
+        print(POISONED, flush=True)
+        return 75
     _write_pid_file(pid_file)
     try:
-        # Close the race where timeout poisoning arrives after process start but
-        # before READY publication. The host will also kill a validated worker;
-        # this check independently prevents a late generation becoming reusable.
         if _is_poisoned(poison_file):
             print(POISONED, flush=True)
             return 75
         print(READY, flush=True)
         while True:
-            # A shell builtin opens/writes/closes the FIFO once per request.
-            # Reopen after EOF so the worker process itself stays alive.
-            with fifo.open("r", encoding="ascii", errors="strict") as stream:
-                for line in stream:
-                    if line.strip() == SHUTDOWN:
-                        print(STOPPED, flush=True)
-                        return 0
-                    try:
-                        mission_id, mode = parse_command(line)
-                    except (ValueError, UnicodeError):
-                        print(REJECTED, flush=True)
-                        continue
-                    try:
-                        status = _dispatch_admitted(
-                            mission_id, mode, mailbox=mailbox, root=root,
-                            output_root=output_root,
-                        )
-                    except BaseException:
-                        # Any exception that escaped typed request admission and
-                        # the persistent workbench contract is unexpected in a
-                        # long-lived interpreter. Fail closed and require restart.
-                        print(f"{FATAL_PREFIX}{mission_id}:70", flush=True)
-                        return 70
-                    print(f"{RUN_PREFIX}{mission_id}:{status}", flush=True)
+            try:
+                command = _consume_control(control_file)
+            except (ValueError, UnicodeError):
+                print(REJECTED, flush=True)
+                continue
+            if command is None:
+                time.sleep(0.05)
+                continue
+            if command == SHUTDOWN:
+                print(STOPPED, flush=True)
+                return 0
+            mission_id, mode = command
+            _write_busy(busy_file, mission_id)
+            try:
+                status = _dispatch_admitted(
+                    mission_id, mode, mailbox=mailbox, root=root,
+                    output_root=output_root,
+                )
+            except BaseException:
+                # Poison from inside the worker before emitting the fatal marker.
+                # This survives page loss and prevents a new generation from
+                # silently starting after an impossible runtime failure.
+                try:
+                    _poison(poison_file, mission_id)
+                finally:
+                    print(f"{FATAL_PREFIX}{mission_id}:70", flush=True)
+                return 70
+            _clear_exact_state(busy_file, mission_id)
+            print(f"{RUN_PREFIX}{mission_id}:{status}", flush=True)
     finally:
-        for path, require_fifo in ((fifo, True), (pid_file, False)):
+        # A stopped/dead worker cannot retain dispatch authority. Remove only safe
+        # state nodes; poison is intentionally retained until explicit guest reset.
+        for path in (control_file, pid_file, busy_file):
             try:
                 if not path.exists() and not path.is_symlink():
                     continue
-                info = path.lstat()
-                if require_fifo and not stat.S_ISFIFO(info.st_mode):
-                    continue
-                if not require_fifo and not stat.S_ISREG(info.st_mode):
+                safe, _ = _owned_regular(path)
+                if not safe:
                     continue
                 path.unlink()
             except OSError:
@@ -217,16 +301,18 @@ def serve(
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--fifo", type=Path, default=Path("/tmp/residual-workbench.fifo"))
+    parser.add_argument("--control-file", type=Path, default=Path("/data") / CONTROL_NAME)
     parser.add_argument("--pid-file", type=Path, default=Path("/tmp/residual-workbench.pid"))
+    parser.add_argument("--busy-file", type=Path, default=Path("/tmp/residual-workbench.busy"))
     parser.add_argument("--poison-file", type=Path, default=Path("/tmp/residual-workbench.poison"))
     parser.add_argument("--mailbox", type=Path, default=Path("/data"))
     parser.add_argument("--root", type=Path, default=Path("/opt/residual"))
     parser.add_argument("--output-root", type=Path, default=Path("/opt/residual/runs/missions"))
     args = parser.parse_args(argv)
     return serve(
-        fifo=args.fifo,
+        control_file=args.control_file,
         pid_file=args.pid_file,
+        busy_file=args.busy_file,
         poison_file=args.poison_file,
         mailbox=args.mailbox,
         root=args.root,
