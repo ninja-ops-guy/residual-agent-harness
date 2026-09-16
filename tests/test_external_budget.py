@@ -102,18 +102,21 @@ class ExternalBudgetTests(unittest.TestCase):
             suite_path.write_text(json.dumps({
                 "schema_version": "residual.external-suite.v1",
                 "name": "epsilon-budget",
-                "author": "external-evaluator",
-                "source_uri": "https://example.invalid/epsilon-budget",
-                "authored_at": "2026-09-16T00:00:00Z",
+                "provenance": {
+                    "evidence_level": "externally_authored",
+                    "author": "external-evaluator",
+                    "source_uri": "https://example.invalid/epsilon-budget",
+                    "authored_at": "2026-09-16T00:00:00Z",
+                },
                 "cases": [
                     {
-                        "case_id": "train-1", "split": "train", "capability": "text",
-                        "assurance": "routine", "difficulty": 0.1, "prompt": "q1",
+                        "id": "train-1", "split": "train", "capability": "text",
+                        "assurance": "routine", "required_pass_rate": 0.1, "prompt": "q1",
                         "grader": {"kind": "exact_text", "expected": "YES"},
                     },
                     {
-                        "case_id": "eval-1", "split": "evaluation", "capability": "text",
-                        "assurance": "routine", "difficulty": 0.1, "prompt": "q2",
+                        "id": "eval-1", "split": "evaluation", "capability": "text",
+                        "assurance": "routine", "required_pass_rate": 0.1, "prompt": "q2",
                         "grader": {"kind": "exact_text", "expected": "YES"},
                     },
                 ],
