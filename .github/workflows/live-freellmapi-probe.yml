@@ -1,0 +1,48 @@
+name: Live FreeLLMAPI probe
+
+on:
+  push:
+    branches: [research/live-freellmapi-recursive-maintenance]
+    paths:
+      - '.github/workflows/live-freellmapi-probe.yml'
+      - 'scripts/live_freellmapi_probe.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Checkout pinned FreeLLMAPI
+        uses: actions/checkout@v4
+        with:
+          repository: tashfeenahmed/freellmapi
+          ref: d0eeadfd3216c302b82d134b74f6d52d1987c4a4
+          path: _freellmapi
+      - name: Build FreeLLMAPI
+        working-directory: _freellmapi
+        run: |
+          npm ci
+          npm run build
+      - name: Run real routed completion
+        run: |
+          python scripts/live_freellmapi_probe.py \
+            --freellmapi-dir _freellmapi \
+            --output runs/live-freellmapi-probe
+      - name: Retain non-secret evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-freellmapi-probe
+          path: |
+            runs/live-freellmapi-probe/probe-result.json
+            runs/live-freellmapi-probe/server.log
+          retention-days: 30
+          if-no-files-found: error
