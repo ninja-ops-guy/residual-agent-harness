@@ -5,6 +5,7 @@ on:
     paths:
       - 'demo/vm/runtime_campaign.py'
       - 'demo/vm/runtime_hammer.py'
+      - 'demo/vm/runtime_recycle.py'
       - '.github/workflows/webvm-runtime-diagnostic.yml'
   workflow_dispatch:
     inputs:
@@ -16,6 +17,14 @@ on:
         description: 'Fresh CPython processes for the workload-free guest hammer'
         required: false
         default: '100'
+      recycle_cycles:
+        description: 'Audit cycles for the explicit-recycle diagnostic arm'
+        required: false
+        default: '10'
+      no_recycle_cycles:
+        description: 'Audit cycles for the long-lived no-recycle diagnostic arm'
+        required: false
+        default: '20'
 
 permissions:
   contents: read
@@ -100,5 +109,63 @@ jobs:
         with:
           name: webvm-runtime-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}
           path: runtime-diagnostic/
+          retention-days: 14
+          if-no-files-found: warn
+
+  recycle-comparison-live-main:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - mode: no-recycle
+            recycle_arg: ''
+            default_cycles: '20'
+          - mode: recycle
+            recycle_arg: '--recycle'
+            default_cycles: '10'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout diagnostic code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Resolve exact published main revision
+        id: main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin main
+          echo "sha=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Install browser
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Run paired lifecycle arm
+        env:
+          MAIN_SHA: ${{ steps.main.outputs.sha }}
+          MODE: ${{ matrix.mode }}
+          RECYCLE_ARG: ${{ matrix.recycle_arg }}
+          DEFAULT_CYCLES: ${{ matrix.default_cycles }}
+          RECYCLE_CYCLES: ${{ github.event.inputs.recycle_cycles || '10' }}
+          NO_RECYCLE_CYCLES: ${{ github.event.inputs.no_recycle_cycles || '20' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$MODE" = recycle ]; then CYCLES="$RECYCLE_CYCLES"; else CYCLES="$NO_RECYCLE_CYCLES"; fi
+          python demo/vm/runtime_recycle.py \
+            --url "https://ninja-ops-guy.github.io/residual-agent-harness/demo/" \
+            --expected-sha "$MAIN_SHA" \
+            --output "runtime-recycle-$MODE" \
+            --cycles "$CYCLES" \
+            $RECYCLE_ARG
+      - name: Retain lifecycle evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webvm-recycle-${{ matrix.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: runtime-recycle-${{ matrix.mode }}/
           retention-days: 14
           if-no-files-found: warn
