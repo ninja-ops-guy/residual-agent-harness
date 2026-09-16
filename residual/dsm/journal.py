@@ -25,8 +25,9 @@ class Journal:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         if not self.path.exists():
             self.path.touch()
-        self._records = self._load()
-        self.head = self._records[-1]["hash"] if self._records else GENESIS
+        self._records = []
+        self.head = GENESIS
+        self.refresh()
 
     def _load(self):
         records = []
@@ -43,6 +44,19 @@ class Journal:
             previous = expected
         return records
 
+    def refresh(self):
+        """Reload and verify durable state from disk.
+
+        ``DistributedStateStore`` calls this while holding its process-local
+        path lock before admission/read projection.  The journal itself does
+        not claim cross-process serialization; external writers still require
+        a stronger lock/consensus adapter.
+        """
+        records = self._load()
+        self._records = records
+        self.head = records[-1]["hash"] if records else GENESIS
+        return len(records)
+
     def __len__(self):
         return len(self._records)
 
@@ -55,7 +69,8 @@ class Journal:
         """Append and fsync a record. Returns the full record.
 
         The record is durable on disk before this method returns; callers must
-        not acknowledge a transition whose append has not returned.
+        not acknowledge a transition whose append has not returned. Callers
+        sharing this path must serialize and refresh before append.
         """
         body = {
             "seq": len(self._records),
