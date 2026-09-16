@@ -22,51 +22,42 @@ RESIDUAL spans a connected platform rather than a single agent loop:
 
 ## Current main — technically qualified, review-provisional
 
-Current `main` is **`f2d58e779ad589fe1d08842c9efc40ec5214a213`**, tree **`c62cf2a5d8c4234edcd7e53e0faa8edeb94a1571`**, the merge of PR #151.
+Current `main` is **`f6f9bad84caccf68c7ab35e5788e756d12c55fb7`**, tree **`9991788c5d59b8ccd3b18b10ad0d4a46098305df`**, the merge of PR #156.
 
-PR #151 adds an event-backed `LIVE PIPELINE` projection to Mission Control, tighter provider-stage telemetry, stricter Puter response transport and exact-model handling while preserving fail-closed worker-envelope acceptance. It changes no Factory/M4 trust-boundary implementation or shared evidence schema.
+PR #156 repairs the real Puter worker-envelope boundary after fresh real-account evidence showed two `openai/gpt-5.4-nano` calls fail closed as `provider_protocol_invalid`. The merge removes provider-side strict structured-output mode for the dynamic obligation-key envelope and restores explicit `updates.build = {summary, files}` guidance while keeping RESIDUAL's local parser/verifier authoritative. It changes no Factory/M4 trust-boundary implementation or shared evidence schema.
 
-The exact #151 candidate head completed all eight observed applicable pull-request workflows **PASS**. Exact merged main then completed all seven observed main-push qualification workflows **PASS**. M4 run **`35149837820`** executed the real `linux-userns-isolated-v1` path with `blocked_capabilities: []`, **142 tests + 84 subtests, zero skips**. Pages run **`35149837756`** passed its first-attempt generated and published desktop+narrow WebVM acceptance; retained live-proof artifact **`10468668615`** has SHA-256 **`5105cdda5d63eae0b97ed5953989cf8ce1616af6a28fa103940b0e4e28be2a1f`**.
+All seven observed post-merge `main` workflows are **PASS** on this exact revision. The capable-runner M4 prerequisite/qualification workflow passed its fail-closed capability and zero-skip gate. Pages run **`35158939226`** passed on attempt 1, including generated desktop+narrow proof, deployment, published real-guest execution and published narrow-Chromium acceptance.
 
-Those are exact-revision automated/browser `PASS` results. They do **not** establish independent technical acceptance, paid/live Puter quality, long-run WebVM reliability, blank-environment release qualification, actual host-loss recovery or elapsed soak.
+Those are exact-revision automated/browser results. They do **not** establish independent technical acceptance, paid/live Puter success, long-run WebVM reliability, blank-environment release qualification, actual host-loss recovery or elapsed soak.
 
-GitHub records **zero submitted reviews** for PR #151. The merge is therefore technically qualified but **review-provisional**. Green CI does not substitute for independent acceptance. Earlier merged #145/#147 carry the same governance debt.
+GitHub records **zero submitted reviews** for PR #156. Current main is therefore technically qualified but **review-provisional**. Missing pre-merge independent acceptance on #136/#145/#147/#151/#156 remains governance debt.
 
 ## Live-provider boundary
 
-The latest retained real-account provider evidence remains negative: after the WebVM polling path was stabilized, real Puter responses failed closed as `provider_protocol_invalid`; no obligation or artifact was accepted.
+The latest retained real-account evidence before #156 is **FAIL**: two real Puter calls returned `provider_protocol_invalid`, zero obligations were accepted, and no candidate reached verification. That failure is retained evidence and is not rewritten by the repair.
 
-PR #151 strengthens the transport and visible pipeline, but its post-merge browser proof records `cloud_inference: NOT_RUN` and uses the explicit SDK test double. A fresh successful paid/live Puter acceptance on exact `main@f2d58e77...` is therefore **UNKNOWN / NOT YET ESTABLISHED**.
+PR #156's merged revision has green provider-contract and browser/Pages qualification, but those automated paths are not a successful real-account provider run. A fresh successful paid/live Puter build on exact deployed `main@f6f9bad8...` is therefore **UNKNOWN / NOT YET RETAINED**.
 
-PR #149 retains additional nested `updates.build = {summary, files}` guidance, but it is based on the pre-#151 main and must be refreshed/requalified before it can support a current-main integration claim.
+Closed PRs #149 and #154 are superseded by #156 and should not be treated as active integration candidates.
 
 ## WebVM reliability boundary
 
-Issues #120 and #126 remain open. Retained diagnostics isolate a WebVM-specific, process-local CPython positive-duration timed-wait failure affecting at least `time.sleep()` and `select.select()` at call 273, while tested direct libc waits continue beyond that boundary. The exact CPython/glibc/WebVM mechanism and any relationship to earlier `_sha512`, impossible-constructor and allocator-corruption symptoms remain **UNKNOWN**.
-
-Merged #145 avoids the known Python timed-wait surface in long-lived browser polling. Avoidance of that trigger is not proof that the broader historical corruption family is root-caused or that its recurrence rate is acceptable.
-
-## Browser acceptance / onboarding boundary
-
-PR #89 retains a first-attempt narrow-browser **FAIL** caused by an acceptance-observation defect: whitespace normalization plus an unterminated greedy exit-marker parse could turn a real `:0` into synthetic `:03`. The failed run remains authoritative and #89 is not qualified.
-
-Closed-unmerged PRs #140 and #150 carried separate synchronization/parser repairs. Their work is now consolidated on current-main PR **#153**, which changes only the four acceptance-harness files needed for those repairs. Its current exact head is still qualifying; some workflows are green while Browser VM Demo/Pages remain in progress and other checks are queued. No submitted independent review is recorded. Do not inherit stale-branch green evidence into #153.
+Issues #120 and #126 remain open. Retained diagnostics isolate a WebVM-specific, process-local CPython positive-duration timed-wait failure affecting at least `time.sleep()` and `select.select()` around call 273, while tested direct libc waits continue beyond that boundary. Merged #145 routes long-lived browser polling below the known Python timed-wait surface, but avoidance of that trigger is not proof that the historical corruption family is root-caused or that its recurrence rate is acceptable.
 
 ## Factory / M4 boundary
 
-M2/M3/M4 are implemented. Issues #63 and #48 are closed, and `implementation-status.yaml` is the machine-readable implementation-presence manifest. Current M4 claims remain evidence- and environment-bound: capable-runner qualification is not every-host qualification, and unavailable namespace/capability execution remains `BLOCKED`/`UNKNOWN`, not `PASS`.
+M2/M3/M4 are implemented. Issues #63 and #48 are closed. Current M4 claims remain evidence- and environment-bound: capable-runner qualification is not every-host qualification, and unavailable namespace/capability execution remains `BLOCKED`/`UNKNOWN`, not `PASS`.
 
-PR #139 still changes a protected M4 qualification test. Its capable-runner evidence is not permission to advance the protected ownership baseline automatically. Required order remains: independent exact-head review → deliberate baseline decision → fresh qualification. Downstream #134 must then be refreshed and requalified against the resulting current main.
+PR #139 still changes a protected M4 qualification test. Required order remains: genuinely independent exact-head review → deliberate ownership-baseline decision if accepted → fresh qualification after any protected pin change → refresh/requalify downstream #134. This repository documentation does not advance protected bytes, ownership baselines, qualification anchors or evidence schemas.
 
-## Governance boundary
+## Current candidate boundary after #156
 
-Issue #144 remains open. PR #146 is refreshed directly onto `main@f2d58e77...` and implements a fail-closed independent-current-head review check. It passes only a human, non-author, current-head approval from a reviewer with write/admin authority. Platform ruleset enforcement still needs a maintainer change after the PR itself is independently accepted.
+Several open candidates were built on `main@f2d58e77...` and became stale when #156 merged:
 
-The policy does not rewrite history: missing pre-merge independent acceptance on #136/#145/#147/#151 remains governance debt.
-
-## Qualification-v1 candidate
-
-Draft PR #152 proposes a unified evidence-first qualification layer, generated lifecycle/state exploration, DSM fault-matrix binding, mutation canaries, branch coverage, exact-wheel qualification, multi-browser journeys and bounded process-soak tooling. It does **not** manufacture elapsed 24h/72h/30d evidence or replace existing M4/Pages gates. Its current CI is still partial/in progress, so no release-qualification `PASS` is claimed from #152.
+- **#153** — consolidated WebVM acceptance-harness repairs; refresh/requalification and genuinely independent current-head review are required before integration, then #89 must be refreshed/requalified.
+- **#152** — Qualification v1 evidence-first testing framework; its prior exact-head evidence is historical after #156 and no aggregate release `PASS` is inherited.
+- **#146** — independent-current-head review gate; must refresh/requalify and itself receive genuinely independent acceptance before integration. Platform ruleset enforcement remains a separate maintainer action.
+- **#118/#115/#131/#93** and other older lanes require current-main refresh before any merge claim. Historical `PASS` or `FAIL` remains bound to the exact head that produced it.
 
 ## Design principles
 
@@ -125,17 +116,17 @@ Paper-facing evaluation must preserve raw worker correctness `P(X)`, acceptance 
 
 ## Current priority gates
 
-1. Retain genuinely independent post-merge technical review for the #151 current-main surface and finish #144/#146 enforcement for future merges.
-2. Run and retain a fresh real-account Puter acceptance test on exact deployed `f2d58e77...`; do not infer live-provider success from SDK-test-double CI.
-3. Complete exact-head CI plus independent review for current-main PR #153 before using its consolidated WebVM harness repairs; then refresh/requalify #89.
-4. Keep #120/#126 open until a predefined retained reliability campaign or proven regression-tested root cause supports closure.
-5. Resolve #139 through independent protected-byte review, deliberate baseline handling and fresh qualification before refreshing #134.
-6. Refresh older open integration candidates after #151 before merging; their pre-#151 exact-head results remain historical to those heads.
+1. Retain genuinely independent post-merge technical review for the #156 current-main surface and finish #144/#146 enforcement for future merges.
+2. Run and retain a fresh real-account Puter acceptance test on exact deployed `f6f9bad8...`; do not infer live-provider success from green contract/browser CI.
+3. Refresh/requalify #153 on current main, preserve first-attempt evidence, require independent review before integration, then refresh/requalify #89.
+4. Refresh/requalify #152 and #146 after #156; do not inherit stale-head qualification.
+5. Keep #120/#126 open until a predefined reliability campaign or proven regression-tested root cause supports closure.
+6. Resolve #139 through independent protected-byte review, deliberate baseline handling and fresh qualification before refreshing #134.
 7. Complete release/recovery qualification without converting rehearsal or simulation into `PASS`.
-8. Freeze the confirmatory live-evaluation protocol before observing outcome data, then run R0–R5, degradation, heterogeneous-routing and staged 24h → 72h → 30-day soak studies.
+8. Freeze the confirmatory live-evaluation protocol before observing outcome data, then run R0–R5, degradation, heterogeneous routing and staged 24h → 72h → 30-day soak studies.
 
 ## Scope and non-claims
 
 RESIDUAL is an implemented research and engineering platform, not a universal proof system. A verifier establishes only the conditions encoded by its contract and evidence. Receipts are evidence of checked acceptance under stated identities and revisions, not certificates of arbitrary truth.
 
-The project does not currently claim universal correctness, a universal verifier, universally optimal scheduling, guaranteed token/cost savings, blanket production readiness, every-host M4 qualification, completed release/recovery qualification, acceptable long-run WebVM reliability, successful post-#151 real-provider inference, autonomous merge authority, completed long-duration soak, or live proof of the central research hypothesis.
+The project does not currently claim universal correctness, a universal verifier, universally optimal scheduling, guaranteed token/cost savings, blanket production readiness, every-host M4 qualification, completed release/recovery qualification, acceptable long-run WebVM reliability, successful post-#156 real-provider inference, autonomous merge authority, completed long-duration soak, or live proof of the central research hypothesis.
