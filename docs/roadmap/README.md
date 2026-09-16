@@ -14,9 +14,9 @@ The project has moved well beyond the v0.3/v0.4 Command Station baseline. Curren
 | Command Station | Implemented research/operations surface; deployment-specific production qualification still applies |
 | Factory M2 worker contracts/runtime | Implemented under `residual/factory/`; real OS-boundary development tests exist |
 | Factory M3 evidence bus/Station receipts | Implemented; trusted consumption/admission is the authority boundary |
-| Factory M4 deterministic integration/scheduler | Implemented, but **current live qualification is blocked by issue #63** until accepted-tree binding, filesystem/link safety, verifier isolation and Git-evidence semantics are closed |
+| Factory M4 deterministic integration/scheduler | Implemented and accepted-main capable-runner qualified on `22a5bae...`: all prerequisite probes, actual `linux-userns-isolated-v1` execution, and a zero-skip 142-case + 84-subtest M4 suite passed on the named Ubuntu 22.04 / Python 3.12 environment. This is not every-host or production qualification. |
 | Frozen evaluation framework | Implemented under `residual/eval/`: hash-locked workload, repeated runs, ablations, stats/reporting, fault injection and Factory measurement hooks |
-| Sandbox / red-team | Implemented development surface; host capability determines whether cgroup-v2 enforcement is available |
+| Sandbox / red-team | Implemented development surface; host capability determines whether specific kernel isolation paths can be qualified |
 | Cluster / distributed execution | Implemented development surface with authenticated membership, heartbeat/reassignment and local-first routing |
 | Orchestration | Implemented intent schema, requirement DAG, ambiguity detection, partitioning, deterministic plan hash and HITL approval gate |
 | Lifecycle / side-effect gateway | Implemented deny-by-default gateway and deterministic resume/recovery mechanisms |
@@ -26,21 +26,22 @@ The project has moved well beyond the v0.3/v0.4 Command Station baseline. Curren
 
 ## Important documentation caveat
 
-`implementation-status.yaml` and the generated `docs/status/IMPLEMENTATION_STATUS.md` still contain pre-merge `not_started` entries for M2, M3, M4 and EVAL. That drift is tracked by **issue #48**. Until #48 is reconciled, use [`../CURRENT_STATUS.md`](../CURRENT_STATUS.md), the actual code/tests, and exact-commit verifier artifacts for current-state claims.
+Issue #48 is closed. `implementation-status.yaml` now records M2, M3, M4 and EVAL as implemented, and `docs/status/IMPLEMENTATION_STATUS.md` is generated from that reconciled manifest. Read those implementation statuses together with exact-tree qualification evidence: implementation is not the same thing as production or live-research qualification.
+
+Issue #63 is also closed. Its accepted-tree binding, filesystem/link-safety, verifier-isolation and Git-evidence implementation defects are no longer the active M4 blocker. Historical namespace-capability failures remain `UNKNOWN`/`BLOCKED` for hosts that cannot execute the required boundary.
 
 ## Current build order
 
-The old build order is complete or superseded. The current sequence is:
+The old #63/#48 closure sequence is complete. The current sequence is:
 
-1. **Close M4 trust-boundary gaps (#63).** Bind accepted state to the verified tree, harden filesystem writes, isolate candidate-dependent verification, and preserve `UNKNOWN` for missing Git evidence.
-2. **Reconcile traceability (#48).** Update M2/M3/M4/EVAL status, regenerate the generated status document, and add drift prevention.
-3. **Resolve Factory OS timing nondeterminism.** Determine whether the retained retry-only failures represent runtime races or test flakiness.
-4. **Qualify measured-evidence integrity (PR #71 or an explicit alternative).** The reviewed Factory adapter needs fresh run/execution binding, anti-replay across independent repetitions, authenticated run-bound scheduler/topology evidence, an exact workload-to-task mapping, and a qualified verifier policy/boundary. Correct and requalify it, or explicitly exclude it from the live protocol and independently qualify the chosen evidence path under the [live evaluation gate](../evaluation.md#live-evaluation-gate). Closing #63/#48/timing alone does not clear this gate.
-5. **Freeze the live evaluation protocol and selected evidence path.** Do not tune workloads/metrics after observing model outcomes.
-6. **Run R0–R5 with one fixed live model.** Measure raw correctness, acceptance coverage, accepted correctness, AER/ASSR, cost, latency and throughput.
-7. **Run model-degradation + heterogeneous-routing studies.** Test whether cheaper/weaker workers can contribute safely under the same acceptance boundary.
-8. **Run live fault campaigns and staged soak tests.** 24-hour → 72-hour → 30-day only after shorter gates are clean.
-9. **Promote paper claims only from retained evidence.** Negative, `UNKNOWN`, rejected and failed runs stay in the record.
+1. **Review and integrate the refreshed runtime/DSM closure candidate.** PR #118 is based on accepted `main`; require terminal exact-head CI and independent technical acceptance before merge.
+2. **Review release preparation, then run release/recovery qualification.** PR #115 is refreshed onto accepted `main`; independently review its implementer evidence and then exercise blank-environment setup, recovery and retained-evidence procedures without broadening fixture claims.
+3. **Quantify WebVM reliability.** Keep issue #120 open, retain every failed attempt, and run a defined repeated-run campaign. A successful exact-revision browser run is not a production recurrence rate.
+4. **Freeze the live evaluation protocol and selected evidence path.** Lock workload, task mapping, run identity, model/configuration, verifier policy/boundary, scheduler/topology evidence, metrics and analysis before observing confirmatory model results.
+5. **Run R0–R5 with one fixed live model.** Measure raw correctness, acceptance coverage, accepted correctness, AER/ASSR, verifier false acceptance/rejection/`UNKNOWN`, cost, latency and throughput.
+6. **Run model-degradation + heterogeneous-routing studies.** Test whether cheaper/weaker workers can contribute safely under the same acceptance boundary.
+7. **Run live fault campaigns and staged soak tests.** 24-hour → 72-hour → 30-day only after shorter gates are clean.
+8. **Promote paper claims only from retained evidence.** Negative, `UNKNOWN`, rejected and failed runs stay in the record.
 
 ## Historical implementation material
 

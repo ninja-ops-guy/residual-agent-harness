@@ -1,24 +1,30 @@
-# RESIDUAL
+# RESIDUAL core harness
 
-**A hybrid agent harness that delegates the unresolved part of a task.**
+**A verifier-first harness that delegates the unresolved part of a task without giving the worker acceptance authority.**
 
-RESIDUAL decomposes a host-authored task into checked obligations. Local tools and
-models propose results; the controller accepts only results that pass their
-registered checks. A stronger model receives the remaining frontier, relevant
-dependency values, and concrete failure feedback. It can request exact evidence
-windows. Already accepted independent work stays outside that request.
+This document describes the original/core RESIDUAL harness interface. The repository has grown beyond this layer into Command Station, Factory M2/M3/M4, distributed/runtime surfaces, Mission Control/WebVM, evaluation infrastructure, and bounded self-maintenance research. For current repository-wide qualification claims, use [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md).
 
-Python 3.11+, **zero runtime dependencies**. Native **Ollama**, **OpenAI-compatible
-HTTP endpoints**, and **custom Python/SDK providers**. Both tiers can run locally.
+## Core model
 
-This is a research prototype with a runnable controller, real HTTP adapters, and
-adversarial contract tests. The included benchmark is a **scripted simulation**;
-it establishes controller behavior, not real LLM accuracy, token savings, or
-publication-level novelty. See [the research claim](docs/research.md).
+RESIDUAL decomposes a host-authored task into checked obligations. Local or remote workers propose results; the controller accepts only results that pass registered checks. Stronger or more expensive workers receive the remaining frontier, relevant dependency values, and concrete failure feedback rather than an unrestricted copy of every previously accepted result.
 
-## Run immediately
+```text
+Goal / task
+  ↓
+Obligation DAG + checks
+  ↓
+Worker proposal
+  ↓
+Independent verification
+  ├─ PASS → freeze accepted value + receipt
+  └─ FAIL / UNKNOWN → residual + counterexample → retry / escalate
+```
 
-From the repository root, without installation or credentials:
+The worker may be capable, weak, stochastic or wrong. The controller owns acceptance.
+
+## Run the core harness immediately
+
+From the repository root:
 
 ```bash
 python3 -m residual demo
@@ -27,132 +33,93 @@ python3 -m residual benchmark --output runs/benchmark.json
 python3 -m unittest discover -s tests -v
 ```
 
-Optional package installation:
+Optional editable installation:
 
 ```bash
 python3 -m pip install -e .
 residual demo
 ```
 
-The demo produces a checked error count, connection diagnosis, policy action,
-JSON usage report, and hash-linked trace. It labels its scripted workers as a
-simulation. No network requests or API keys are used by the demo workers.
+The built-in demo is scripted and credential-free. It demonstrates controller behavior and evidence handling; it is not a live-model accuracy benchmark.
 
-## Bring your models
+## Bring your own models
 
-Copy `examples/ollama-cloud.toml` to `config.local.toml`. Set the Ollama model to
-one you have installed, and set the expert model and provider's base URL. The
-compatible URL includes the API prefix, usually `/v1`; the adapter appends
-`/chat/completions`.
+The core harness supports bounded provider adapters including Ollama, OpenAI-compatible HTTP endpoints, and custom Python/SDK providers. Command Station adds broader provider-management surfaces; see [`README.md`](README.md) and [`START-HERE.md`](START-HERE.md) for the current platform-level provider list and setup flow.
+
+For a simple Ollama/OpenAI-compatible configuration, start from the examples under `examples/` and keep secrets in environment variables or the Station’s protected local settings rather than source control.
+
+Example:
 
 ```bash
 ollama serve
-# In another terminal, after editing config.local.toml:
 export RESIDUAL_EXPERT_API_KEY='your-provider-key'
 python3 -m residual run examples/incident/task.json --config config.local.toml
-python3 -m residual run examples/maintenance/task.json --config config.local.toml --output runs/maintenance
 ```
 
-For two local Ollama models, copy and edit `examples/ollama-only.toml`. Model names
-are explicit placeholders: the harness never downloads a model or substitutes a
-demo worker when a configured provider fails. `placement = "local"` is restricted
-to loopback HTTP endpoints. A remote or LAN endpoint must use `placement = "remote"`
-and HTTPS, so local-only evidence cannot be sent there accidentally.
+Configured provider failure does not silently substitute a demo worker. Placement/disclosure policies still govern what evidence may leave the local host.
 
-Native Ollama uses `/api/chat`, non-streaming responses, structured JSON output,
-and `options.num_predict`. Compatible providers use JSON mode by default; set
-`json_mode = false` if unsupported, or `output_token_field = "max_tokens"` for
-servers requiring that parameter. Local protocol and output verification still
-apply. Native provider-specific APIs, including Anthropic Messages, require a
-custom adapter or an OpenAI-compatible gateway. See [extension APIs](docs/extending.md).
-
-## What the controller changes
+## Core controller invariants
 
 | Mechanism | Implemented behavior |
 | --- | --- |
-| Residual frontier | Stronger models see only currently solvable, unaccepted obligations |
-| Independent checks | Model confidence and self-declared success never accept a result |
-| Counterexample feedback | A failed check supplies a code and bounded task-specific explanation |
-| Evidence pull | Workers request exact, hashed, permitted line windows |
-| Adaptive packet planning | Inline a small complete relevant artifact when cheaper than two framed seed requests |
-| Frozen accepted values | A later response cannot overwrite an accepted obligation |
-| Dependency receipts | Bind values to contracts, verifier revisions, evidence snapshots, and parent receipts |
-| Revalidated cache | Every cache hit is checked again; changed inputs invalidate the appropriate keys |
-| Explicit budgets | Reserve calls, request-body bytes, and per-call output caps before provider I/O |
-| Honest accounting | Reported usage, simulation estimates, missing usage, and configured prices remain distinct |
+| Residual frontier | Escalated workers receive unresolved, currently solvable obligations rather than already accepted independent work |
+| Independent checks | Model confidence and self-declared success do not accept a result |
+| Counterexample feedback | Failed checks provide bounded task-specific failure information |
+| Evidence pull | Workers request exact permitted evidence windows rather than arbitrary source access |
+| Frozen accepted values | Later responses cannot silently overwrite accepted obligations |
+| Dependency receipts | Accepted values bind to relevant contracts, evidence and parent receipts |
+| Revalidated cache | Cache hits are checked again against current inputs and verifier state |
+| Explicit budgets | Calls, request bytes and output limits are bounded before provider I/O |
+| Honest accounting | Reported usage, modeled estimates, unknown usage and configured prices remain distinct |
+| Claim discipline | `FAIL`, `UNKNOWN`, malformed output, verifier exceptions and provider errors do not become PASS |
 
-See [architecture and invariants](docs/architecture.md) for the trust boundaries
-and the limits of a passing check.
+See [`docs/architecture.md`](docs/architecture.md) for the current architecture and trust boundaries.
 
-## Measured controller behavior
+## Evaluation guidance
 
-Eight synthetic incident cases, identical checks and budgets, caches disabled:
+The historical synthetic incident benchmark remains useful as a controller regression fixture, not as evidence of live LLM reliability, real token savings or API cost. Current confirmatory research uses the evaluation and reproducibility materials under `docs/` and must bind results to exact retained artifacts and exact source revisions.
 
-| Policy | Cases passed | Expert calls | Modeled remote request bytes |
-| --- | ---: | ---: | ---: |
-| Full cloud | 8/8 | 24 | 1,044,858 |
-| Full-context cascade | 8/8 | 6 | 262,188 |
-| Adaptive residual | 8/8 | 12 | 37,368 |
-| Local only | 2/8 | 0 | 0 |
-| Fixed windows with no evidence pull | 2/8 | 24 | 68,448 |
+Start with:
 
-Residual used **85.7% fewer framed request bytes than the cascade**, with twice
-as many expert calls on this workload. **These are not measured model tokens or
-API bills.** The diagnosis fixture intentionally exercises escalation even
-though a task-specific deterministic solver could solve it locally.
+- [`docs/evaluation.md`](docs/evaluation.md)
+- [`docs/research.md`](docs/research.md)
+- [`docs/controlled-evaluation.md`](docs/controlled-evaluation.md)
+- [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md)
 
-The [size study](docs/scale-study.md) includes a failure of the fixed-window design:
-it used 29.5% more bytes than the cascade on tiny inputs. Adaptive packet planning
-reduced bytes by 32.9% on those same inputs. Raw run data, limitations, and the
-reproduction commands are in [evaluation](docs/evaluation.md).
+## Relationship to the broader platform
 
-## Your own tasks and evaluation
+The core harness is now one layer of a larger system:
 
-Tasks declare artifacts, obligations, dependencies, trusted checks, and optional
-local solvers. Artifacts are **local-only by default**. The incident example
-demonstrates bulk local work. The maintenance example checks a proposed action
-sequence against a state-transition model; it does not execute that sequence.
+- **Command Station** provides operator-facing mission/run/provider control.
+- **Factory M2** provides bounded worker contracts/runtime and host-owned termination.
+- **Factory M3** provides Station-issued evidence/receipt handoff.
+- **Factory M4** provides deterministic integration/scheduler authority and a fail-closed capable-runner qualification path.
+- **Mission Control/WebVM** provides browser-facing guest workflows and artifact interaction, with an active reliability gate tracked separately from Factory/M4 trust.
+- **Evaluation/research** provides frozen workloads, statistics, fault campaigns and artifact-derived reporting.
+- **Self-maintenance research** now includes a bounded controller and frozen research-bundle tooling from PR #132.
 
-```bash
-# Live evaluation: each case, mode, and repeat can invoke your configured models.
-python3 -m residual benchmark --config config.local.toml \
-  --task-suite examples/suite.json --modes cascade residual --repeats 3 \
-  --output runs/live-comparison.json
-```
+Current accepted `main` is `f1e62936a7ce72b801c852c1d7428d4c6ed4152c`. Exact-current-main Factory ownership, measured-binding, clean-install, capable-runner M4 workflow, Command Station, controller/provider and Pages workflows completed successfully after PR #132 merged. See `docs/CURRENT_STATUS.md` for run identities and the current non-claims.
 
-Live budgets apply **per run**, not to the entire benchmark. Price tables are
-optional and supplied by you. Missing usage stays unknown. Local electricity,
-hardware amortization, and operational effort are not included in cloud cost.
+## Self-maintenance is bounded, not autonomous merge authority
 
-## Prototype scope
+PR #132 retained one live external-model-authored research-bundle candidate and demonstrated that RESIDUAL can reconstruct, verify and classify a bounded maintenance proposal as `PR_READY` while retaining `merge_authorized=false`.
 
-- Host-authored DAGs and trusted Python plugins; no automatic task decomposition.
-- Checks establish their declared conditions, not universal correctness.
-- Accepted values are immutable within a run. Problems requiring backtracking
-  must be grouped into a single obligation or started as a new task snapshot.
-- No arbitrary shell tool, autonomous deployment, learned router, streaming,
-  distributed scheduler, model fine-tuning, or crash-resume service is included.
-- API adapters are tested over loopback HTTP fixtures. No live model evaluation
-  was performed in the development environment.
-- Hash chains detect alterations against a retained root; they are not signatures
-  and do not authenticate the machine that produced a result.
+That trial does **not** establish repeated autonomous recursive self-improvement, independent external reviewer actors, or autonomous repository merge authority. Its 100-generation, 1,000-fault and 200-document-policy campaigns are synthetic controller/policy stress experiments, not repeated live model-authored maintenance runs.
 
-## Publishing this repository
+## Current scope and non-claims
 
-The working tree is committed locally. The distributable ZIP includes a Git
-bundle containing that history. GitHub remote creation was unavailable in the
-development session. With Git and an authenticated GitHub CLI installed:
+A passing check establishes only its declared condition. A verifier is not a universal proof oracle. Plugins and host integrations remain trusted unless another boundary explicitly isolates them. Historical results remain tied to the exact revisions that produced them.
 
-```bash
-python3 scripts/publish.py --dry-run
-python3 scripts/publish.py --owner ninja-ops-guy
-```
+The repository does not currently claim:
 
-The script restores the bundled history if needed and creates a **private**
-`residual-agent-harness` repository. It refuses to reuse an existing origin or
-publish tracked edits that are not committed. If you create the empty repository
-through GitHub instead, the normal `git remote add origin ...` and `git push -u
-origin main` flow works from the committed checkout.
+- universal correctness of worker outputs;
+- a universally optimal scheduler or routing policy;
+- guaranteed token/cost savings;
+- blanket production readiness;
+- acceptable long-run WebVM failure rate;
+- every-host M4 qualification;
+- completed release/recovery or elapsed soak qualification;
+- proof of the central live-model reliability hypothesis;
+- autonomous recursive self-improvement or autonomous merge authority.
 
-No public license has been selected. The prototype remains private pending the
-owner's publication decision.
+For operational setup, use [`START-HERE.md`](START-HERE.md). For repository-wide status, use [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md).

@@ -12,9 +12,7 @@ RESIDUAL is the applied engineering system used to make that hypothesis testable
 
 ## Why this exists
 
-Most agent systems concentrate capability and authority inside the worker: give a model more context, tools, retries or autonomy and hope the resulting trajectory is correct. RESIDUAL separates capability from authority.
-
-A worker may be local or cloud-hosted, weak or strong, deterministic or stochastic. It may fail. The surrounding system is responsible for bounding what it can do, preserving evidence about what happened, independently deciding whether work is acceptable, and controlling what becomes durable system state.
+Most agent systems concentrate capability and authority inside the worker. RESIDUAL separates capability from authority.
 
 ```text
 Requirement / intent
@@ -36,83 +34,70 @@ The model is replaceable compute. The harness owns acceptance authority.
 
 ## What is implemented
 
-RESIDUAL now spans a connected platform rather than a single harness.
-
 ### Core harness
 
 The original harness provides obligation DAGs, immutable evidence snapshots, verifier-defined acceptance, counterexample-directed repair, residual delegation, evidence negotiation, receipt-bound caching, disclosure controls, budgets and tamper-evident traces.
 
 `FAIL`, `UNKNOWN`, malformed output, verifier exceptions, provider errors and abstention never silently become success.
 
-### Command Station
+### Command Station and Mission Control
 
 Command Station exposes the harness as a self-hosted operations console with mission/spec import, run control, local/cloud execution, provider routing, observation traces, model management, HITL hooks, security inspection, downloadable evidence and source-release packaging.
 
-Provider paths include OpenAI, OpenAI-compatible endpoints, Anthropic, Gemini, Azure, Bedrock and Ollama through bounded adapters. Local-first execution and cloud escalation are policy decisions rather than architectural assumptions.
+The browser Mission Control path supports multi-turn artifact conversations, explicit parent lineage, isolated previews, browser-local restoration, optional provider transport, typed provider failures and real-guest acceptance checks. Generated preview artifacts remain outside repository mutation authority; repository-changing autonomous work belongs behind explicit maintenance/Factory controls.
 
 ### Factory / Studio runtime
 
-The Factory runtime extends RESIDUAL into multi-worker execution:
+The Factory runtime extends RESIDUAL into multi-worker execution with frozen execution plans, immutable worker contracts, isolated worktrees, bounded runtime, host-owned termination, Station-issued receipts, evidence-bus handoff, deterministic integration, scheduler machinery, lifecycle recovery, side-effect gateways, cluster/distributed surfaces, observability and adversarial tests.
 
-- deterministic requirement compilation and frozen execution plans;
-- immutable worker contracts and isolated worktrees;
-- bounded runtime, host-owned termination and journaled observations;
-- Station-issued receipts and evidence/artifact binding;
-- evidence-bus handoff and trusted-consumption checks;
-- deterministic integration and scheduler machinery;
-- verifier-quality/adaptive-assurance components;
-- orchestration-tax learning and routing research interfaces;
-- cluster execution, lifecycle recovery and side-effect gateways;
-- sandbox/red-team, crypto, connector-conformance, SLO/alert and observability layers;
-- Studio/operator surfaces and executable onboarding paths.
+M2/M3/M4 are implemented under `residual/factory/` and related packages. Issues #63 and #48 are closed. PR #109 established the capable-runner M4 qualification path, and the previously accepted revision `22a5bae54ec12987ffd7a90d881fb4533c9b4b97` received a retained zero-skip qualification in run `35036589940`.
 
-M2/M3/M4 are no longer paper-only concepts: the canonical implementations live under `residual/factory/` and related platform packages. However, **current M4 is not yet fully qualified for live/paper-facing claims**; issue #63 tracks accepted-tree binding, filesystem/link safety, verifier execution isolation and Git-evidence semantics that must be closed first.
+Current accepted `main` is **`f1e62936a7ce72b801c852c1d7428d4c6ed4152c`** (tree **`733b28ab38fec71e8029250e858db486cea22dd8`**), the merge of PR #132. The exact-current-main push workflows are green for Factory ownership, measured-evaluation binding, clean install, Command Station, controller/provider contracts, the capable-runner M4 prerequisite/qualification workflow, and Pages/WebVM (`35046857227`). That is exact-tree evidence for the named workflows and environments; it is not blanket production readiness or every-host qualification.
+
+### Protected self-hosting and research bundles
+
+PR #132 merged a bounded self-maintenance/research experiment and frozen research-bundle tooling. The retained trial used exactly **one live external GPT-5.6 Sol worker** to author a four-file research-bundle candidate against a frozen base. RESIDUAL reconstructed that candidate, applied deterministic acceptance predicates, classified it `PR_READY`, and retained `merge_authorized=false`.
+
+The trial also retained controller/policy stress experiments (100-generation lineage, 1,000 synthetic fault trials, and 200 documentation-policy cases). Those are **not** 100 live model-authored generations, 1,000 autonomous self-modification attempts, independent trust-domain review, or evidence of autonomous merge authority. The merge of PR #132 was an external repository action; the self-maintenance controller itself has no merge-authorized path.
 
 ### Evaluation and soak infrastructure
 
-`residual/eval/` now provides the main frozen reliability-evaluation apparatus:
-
-- immutable hash-locked `FrozenWorkload` sets;
-- repeated configuration runs;
-- ablations;
-- statistics and comparison reports;
-- fault injection;
-- report/evidence reconstruction from retained observations;
-- measured Factory evaluation hooks.
-
-The project also contains soak infrastructure, but long-duration live qualification is still a future evidence gate rather than a completed claim.
+`residual/eval/` provides frozen workloads, repeated runs, ablations, statistics, fault injection, report reconstruction and measured Factory hooks. The repository also contains release/soak preparation, but live-model confirmatory evaluation and elapsed 24h → 72h → 30-day production soak remain future evidence gates.
 
 ## Design principles
 
-1. **Workers propose; acceptance is independent.** Generation and acceptance are separate authorities.
-2. **Unknown is not pass.** Missing or incomparable evidence remains visible.
-3. **Contracts precede execution.** Scope, tools, resources, dependencies, evidence and checks should be explicit before work starts.
-4. **Evidence survives handoffs.** Receipts bind accepted results to artifacts, dependencies, verifier revisions and relevant identities.
-5. **Escalate the residual, not the whole problem.** Preserve accepted independent work and transfer only unresolved obligations/evidence.
-6. **Integration is deterministic.** Stochastic workers do not get unilateral authority over accepted state.
-7. **Parallelism must earn its cost.** Swarms are evaluated against coordination tax, latency, rework, rejection and integration risk.
-8. **Verifier reliability is itself measured.** Assurance depends on verifier precision/recall/coverage, not merely verifier existence.
-9. **Local and cloud compute are interchangeable resources subject to policy.** Capability, cost, privacy, latency and observed quality all affect routing.
-10. **Claims require exact-tree evidence.** A passing historical commit does not automatically qualify later code.
+1. **Workers propose; acceptance is independent.**
+2. **UNKNOWN is not PASS.** Missing or incomparable evidence stays visible.
+3. **Contracts precede execution.** Scope, tools, resources, evidence and checks are explicit.
+4. **Evidence survives handoffs.** Receipts bind accepted results to artifacts and relevant identities.
+5. **Escalate the residual, not the whole problem.**
+6. **Integration is deterministic.** Stochastic workers do not get unilateral authority over durable state.
+7. **Parallelism must earn its cost.**
+8. **Verifier reliability is itself measured.**
+9. **Local and cloud compute are policy-governed resources.**
+10. **Claims require exact-tree evidence.** Historical green results do not automatically qualify later code.
 
 ## Current status and qualification boundary
 
-A major integrated milestone at `412b66c35f7c0e1ac479fe60a5b7d33d5510e3af` recorded **1,033 tests plus 166 subtests green** with verifier v2 green and protected-path ownership checks. That evidence applies to that exact tree.
+Current accepted `main` is `f1e62936a7ce72b801c852c1d7428d4c6ed4152c`. PR #132 changed research/self-maintenance surfaces, not protected Factory/M4 implementation, and the post-merge exact-main qualification workflows listed above completed successfully.
 
-Current `main` has advanced beyond that point. Before starting paper-facing live reliability evaluation, the priority gates are:
+The main unresolved operational reliability boundary is WebVM guest lifecycle stability. Issue #120 remains open for intermittent Pages/WebVM failures, and issue #126 has been reopened after retained production evidence showed later fresh guest Python processes failing inside the standard library after earlier mission steps had succeeded. PR #136 is the current persistent-worker mitigation candidate on `f1e629...`; its own description correctly treats that work as a lifecycle-risk mitigation, **not** a proven root-cause fix. PR #134 (real browser provider-adapter hardening) remains held until the runtime lifecycle boundary is stabilized and requalified.
 
-1. close **#63** — harden/qualify the current M4 trust boundary;
-2. close **#48** — reconcile stale `implementation-status.yaml` and regenerate the generated status document;
-3. classify the retained timing-sensitive Factory OS fail-then-pass behavior;
-4. freeze the live evaluation protocol before observing model results;
-5. run one fixed live model across R0–R5 and measure raw correctness, acceptance coverage, accepted correctness, AER/ASSR, latency, throughput and cost;
-6. only then progress to model-degradation, heterogeneous-routing and 24h → 72h → 30-day soak studies.
+Other integration candidates also need current-main discipline: PR #118 (runtime/DSM closure) and PR #115 (release preparation) are still based on the earlier `22a5bae...` main and require refresh/requalification plus independent review before integration.
 
-See [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md) for the detailed current-state map and claim boundaries.
+Before paper-facing live reliability claims, the priority gates are:
 
-## Important traceability note
+1. stabilize and independently qualify the WebVM lifecycle path (#126 / #136), retaining every failure rather than rerunning it away;
+2. rebase/requalify #134 only after the runtime release is stable, then obtain fresh real-provider evidence;
+3. refresh/requalify #118 and #115 against current accepted `main`, preserving their independent-review and release/recovery gates;
+4. complete release/recovery qualification and a defined WebVM reliability campaign;
+5. finish the remaining reproducibility/statistical work tracked by #35 and freeze the live evaluation protocol before confirmatory results;
+6. run fixed-model R0–R5, degradation and heterogeneous-routing studies;
+7. progress through elapsed 24h → 72h → 30-day soak only after shorter gates are clean.
 
-`implementation-status.yaml` and `docs/status/IMPLEMENTATION_STATUS.md` currently contain stale pre-merge entries that still mark M2, M3, M4 and EVAL as `not_started`. That documentation drift is tracked by issue #48. Until it is reconciled, do **not** use those four generated rows as current-state evidence; use the exact code/tests, open qualification issues and [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md).
+## Traceability
+
+Issue #48 is closed. `implementation-status.yaml` and `docs/status/IMPLEMENTATION_STATUS.md` describe implementation presence; they do **not** convert missing release, recovery, live-provider, soak or research evidence into PASS.
 
 ## Quick start
 
@@ -122,9 +107,7 @@ Windows: **Start-Station.cmd**
 macOS: **Start-Station.command**  
 Linux: `bash Start-Station.sh`
 
-With Docker running, the launcher builds the Station environment and serves the UI at `http://localhost:8765`. Model weights are downloaded on demand; this repository is not an offline model distribution.
-
-Native mode requires Python 3.11+ and Git:
+With Docker running, the launcher serves the Station UI at `http://localhost:8765`. Native mode requires Python 3.11+ and Git:
 
 ```bash
 python3 -m residual.station.server --open
@@ -132,11 +115,17 @@ python3 -m residual.station.server --open
 python3 -m residual serve --open
 ```
 
-See [`START-HERE.md`](START-HERE.md) for installation, GPU options, repositories, storage and troubleshooting.
+See [`START-HERE.md`](START-HERE.md) for installation, GPU options, storage and troubleshooting.
+
+### Core harness
+
+```bash
+python3 -m residual demo
+python3 -m residual verify-trace runs/latest/trace.jsonl --result runs/latest/result.json
+python3 -m residual benchmark --output runs/benchmark.json
+```
 
 ### Factory planning
-
-The Factory path is contract-first. Start with:
 
 - [`docs/factory/PLAN-CONTRACT.md`](docs/factory/PLAN-CONTRACT.md)
 - [`docs/factory/M2-EXECUTION.md`](docs/factory/M2-EXECUTION.md)
@@ -148,86 +137,34 @@ The Factory path is contract-first. Start with:
 | Layer | Responsibility | Trust boundary |
 | --- | --- | --- |
 | Requirement / plan | Convert intent into explicit obligations and dependencies | Frozen before execution |
-| Router / scheduler | Select direct, verified, swarm, ensemble, local or remote execution | Policy + observed performance |
-| Worker runtime | Produce candidate artifacts under bounded contracts | Untrusted computation |
-| Evidence bus | Preserve observations, artifacts, hashes, provenance and outcomes | Evidence/admission boundary |
-| Verifier layer | Evaluate candidate acceptance and surface counterexamples/`UNKNOWN` | Independent authority |
-| Integrator | Apply only eligible work and control ordered state transitions | Deterministic authority |
-| Receipt / audit | Bind accepted state to evidence, identities and revisions | Reproducibility + audit |
+| Router / scheduler | Select execution under policy and observed performance | Policy boundary |
+| Worker runtime | Produce candidates under bounded contracts | Untrusted computation |
+| Evidence bus | Preserve observations, artifacts, hashes and outcomes | Evidence/admission boundary |
+| Verifier layer | Evaluate acceptance and surface counterexamples/`UNKNOWN` | Independent authority |
+| Integrator | Apply eligible work and control state transitions | Deterministic authority |
+| Receipt / audit | Bind accepted state to evidence and revisions | Reproducibility/audit |
 | Evaluation | Measure component correctness vs accepted-state correctness | Independent research boundary |
 
 ## Research program
 
-The working paper, **“Reliability from Unreliable Computation: An Evidence-First Architecture for Verifiable Multi-Agent AI Systems,”** develops the system-level reliability hypothesis and defines experiments intended to falsify it.
+The working paper, **“Reliability from Unreliable Computation: An Evidence-First Architecture for Verifiable Multi-Agent AI Systems,”** develops a system-level hypothesis intended to be falsifiable. The repository does **not** claim the hypothesis is proven.
 
-The repository does **not** claim the hypothesis is already proven. The key live experiment must compare, under fixed worker/model capability:
-
-- raw worker correctness `P(X)`;
-- acceptance coverage `P(A)`;
-- accepted correctness `P(X|A)`;
-- Accepted Error Rate (AER) / accepted-system success;
-- false acceptance/rejection and verifier `UNKNOWN`;
-- cost, latency, throughput and orchestration overhead.
+Key confirmatory measures include raw worker correctness `P(X)`, acceptance coverage `P(A)`, accepted correctness `P(X|A)`, AER/ASSR, verifier false acceptance/rejection/`UNKNOWN`, cost, latency, throughput and orchestration overhead.
 
 Start with:
 
-- [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md) — current implementation/qualification state;
-- [`docs/research.md`](docs/research.md) — research claim, prior art and evidence boundaries;
-- [`docs/papers/reliability-from-unreliable-computation.md`](docs/papers/reliability-from-unreliable-computation.md) — IEEE-style working manuscript;
-- [`docs/controlled-evaluation.md`](docs/controlled-evaluation.md) — controlled study design;
-- [`docs/cic-integration.md`](docs/cic-integration.md) — opt-in CIC constraint grouping, bounded feasibility, and comparison fixtures;
-- [`docs/evaluation.md`](docs/evaluation.md) — evaluation/reproduction guidance.
-
-## Documentation map
-
-**Start / operate**
-- [`START-HERE.md`](START-HERE.md)
-- [`docs/quickstart.md`](docs/quickstart.md)
-- [`docs/faq.md`](docs/faq.md)
-
-**Current state**
 - [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md)
-- [`docs/roadmap/README.md`](docs/roadmap/README.md)
-
-**Understand the system**
-- [`docs/architecture.md`](docs/architecture.md)
-- [`docs/station/ARCHITECTURE.md`](docs/station/ARCHITECTURE.md)
-- [`docs/station/RUN-CONTROL.md`](docs/station/RUN-CONTROL.md)
-- [`docs/factory/PLAN-CONTRACT.md`](docs/factory/PLAN-CONTRACT.md)
-- [`docs/factory/M2-EXECUTION.md`](docs/factory/M2-EXECUTION.md)
-- [`docs/factory/M3-EVIDENCE-BUS.md`](docs/factory/M3-EVIDENCE-BUS.md)
-
-**Build / extend**
-- [`docs/extending.md`](docs/extending.md)
-- [`docs/module-tutorial.md`](docs/module-tutorial.md)
-- [`docs/station/SPECIFICATION.md`](docs/station/SPECIFICATION.md)
-- [`docs/studio/STUDIO_SPECS.md`](docs/studio/STUDIO_SPECS.md)
-
-**Research / validate**
 - [`docs/research.md`](docs/research.md)
+- [`docs/research/PROTECTED_SELF_HOSTING_TRIAL.md`](docs/research/PROTECTED_SELF_HOSTING_TRIAL.md)
+- [`docs/research/RESEARCH_BUNDLES.md`](docs/research/RESEARCH_BUNDLES.md)
 - [`docs/evaluation.md`](docs/evaluation.md)
-- [`docs/controlled-evaluation.md`](docs/controlled-evaluation.md)
-- [`docs/station/VALIDATION.md`](docs/station/VALIDATION.md)
-
-## Verification
-
-```bash
-python3 -m unittest discover -s tests -v
-node --check residual/station/static/app.js
-
-# optional browser QA
-npm install
-npx playwright install chromium
-npm run test:ui
-```
-
-Exact Factory/research claims should additionally retain commit/tree identity and the machine-readable evidence produced by the corresponding qualification run.
+- [`docs/papers/reliability-from-unreliable-computation.md`](docs/papers/reliability-from-unreliable-computation.md)
 
 ## Scope and non-claims
 
 RESIDUAL is an implemented research and engineering platform, not a universal proof system. A verifier proves only what its contract and evidence allow it to check. Receipts are evidence of checked acceptance under stated conditions, not certificates of arbitrary truth. Plugins and host integrations remain trusted code unless explicitly isolated by another boundary.
 
-The project does not currently claim a universal verifier, universally optimal scheduler, new foundation model, guaranteed token savings, guaranteed quality preservation, blanket production readiness, live proof of the central reliability hypothesis, or first-in-literature status.
+The project does not currently claim a universal verifier, universally optimal scheduler, guaranteed token savings, guaranteed quality preservation, blanket production readiness, every-host M4 qualification, completed release/recovery qualification, acceptable long-run WebVM failure rate, autonomous recursive self-improvement, autonomous merge authority, live proof of the central reliability hypothesis, completed long-duration soak, or first-in-literature status.
 
 ---
 

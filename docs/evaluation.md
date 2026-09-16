@@ -65,23 +65,26 @@ A system that rejects almost everything must not be described as reliable merely
 
 ## Live evaluation gate
 
-Do **not** start paper-facing live R0–R5 evaluation from current `main` until the following are closed or explicitly scoped out:
+Issue #63 and issue #48 are closed and are no longer active blockers. Accepted `main` at `22a5bae54ec12987ffd7a90d881fb4533c9b4b97` has a fresh capable-runner M4 qualification result from run `35036589940`: all prerequisite capability checks passed, actual `linux-userns-isolated-v1` execution passed, and 142 M4 cases plus 84 subtests completed with zero skips on the named Ubuntu 22.04 / Python 3.12 environment. That result qualifies the named exact tree and environment; it does not qualify every host or every possible live-evidence path.
 
-1. **Issue #63 — current M4 qualification:** accepted-tree binding, filesystem/link safety, verifier-execution isolation and Git-evidence `UNKNOWN` semantics.
-2. **Issue #48 — traceability reconciliation:** M2/M3/M4/EVAL are implemented in code but still shown as `not_started` in the stale generated implementation-status view.
-3. **Factory OS reproducibility classification:** timing-sensitive tests have exhibited a fail-then-pass-unchanged run and need root-cause classification.
-4. **Measured-evidence integrity — PR #71:** correct and requalify the selected live evidence path before using it for confirmatory claims. The reviewed Factory adapter still permits evidence replay across repetitions, unauthenticated/run-unbound scheduler topology, task-population drift from the frozen workload, and unqualified verifier-boundary labels.
+Before paper-facing live R0–R5 evaluation, the selected protocol still needs these gates to be satisfied or explicitly scoped out:
 
-For a protocol using the Factory adapter, require fresh execution identities bound to each experiment cell; reject reused evidence as an independent repetition; authenticate scheduler evidence over the complete run interval; validate the exact workload-to-Factory-task mapping; and pin an independently qualified verifier policy and execution boundary. Unknown policies/boundaries fail closed. Resume may recover an existing run, but must not count it as new work. Closing #63 does not by itself validate these measurement guarantees, and green fixture/package checks do not close them either.
+1. **Selected execution/evidence path:** bind the exact accepted commit, workload, task population, run identity, verifier policy/boundary and scheduler/topology evidence used for the experiment. A qualified M4 boundary does not automatically qualify a separate measurement adapter.
+2. **Release/recovery qualification:** exercise blank-environment setup, recovery and retained-evidence procedures on the accepted tree before using them as production-facing evidence.
+3. **Measured-evidence integrity:** PR #71 was closed unmerged and is not the accepted live-evaluation path. Whichever path is selected must reject replayed evidence as a new repetition, authenticate run-bound scheduler/topology evidence, preserve the exact frozen workload-to-task mapping and fail closed on unknown verifier policies/boundaries.
+4. **Operational surfaces used by the protocol:** issue #120 remains open for intermittent Pages/WebVM reliability. If WebVM is part of the measurement path, quantify its failure rate and retain every failed attempt; otherwise explicitly exclude that surface from the protocol.
+5. **Protocol freeze:** lock the exact commit, selected execution/evidence adapter, workload hash and task mapping, model/version, inference settings, verifier revisions, policies, prompts, metrics and analysis code before observing confirmatory model results.
 
-R0–R5 does not have to use PR #71's Factory adapter. A different evidence path is acceptable only when the protocol explicitly excludes that adapter and independently qualifies the applicable execution-identity, anti-replay, workload-population, acceptance and topology guarantees of its chosen path. Excluding an adapter is not permission to omit evidence validation.
+Fresh execution identities must bind each experiment cell. Reused evidence must not count as an independent repetition. Resume may recover an existing run, but must not count it as new work. A signature over a report does not repair invalid source evidence.
 
-Once those gates are clean, freeze the exact commit, selected execution/evidence adapter, workload hash and task mapping, model/version, inference settings, verifier revisions, policies, prompts, metrics and analysis code before collecting confirmatory data. Retain the qualification evidence with that frozen protocol.
+A different evidence path is acceptable only when the protocol independently qualifies the applicable execution-identity, anti-replay, workload-population, acceptance and topology guarantees of that path. Excluding PR #71 is not permission to omit evidence validation.
+
+Once those gates are clean, collect confirmatory data and retain the qualification evidence with the frozen protocol.
 
 ## Recommended qualification ladder
 
-1. **Clean-install qualification** — build/install wheel in an isolated environment, `pip check`, import-origin checks, packaged assets, installed CLI smoke and full source verifier gate.
-2. **Single live backend qualification** — run a known backend through the evaluation path and verify usage/latency/evidence completeness.
+1. **Clean-install qualification** — build/install wheel in an isolated environment, `pip check`, import-origin checks, packaged assets, installed CLI smoke and full source verifier gate. Re-run when the accepted tree changes materially.
+2. **Single live backend qualification** — run a known backend through the selected evaluation path and verify usage/latency/evidence completeness.
 3. **Frozen R0–R5 study** — same worker/model across configurations; at least three repeats per configuration/task grouping as specified by the research protocol.
 4. **Model degradation** — repeat with progressively weaker workers while preserving the same acceptance boundary.
 5. **Heterogeneous routing** — test local/remote/cheap/strong engines under the same verifier policy.
@@ -114,4 +117,4 @@ Each task/mode/repeat has its own budget. Provider prices are supplied by config
 
 ## Current empirical boundary
 
-The repository has strong development evidence for mechanisms and controlled fixture behavior. It does **not** yet have confirmatory live evidence that the reliability architecture materially increases `P(X|A)` over `P(X)` at useful coverage and acceptable orchestration tax. That is the next major scientific milestone.
+The repository has strong development evidence for mechanisms and controlled fixture behavior, plus an accepted-main capable-runner M4 qualification result for the named environment. It does **not** yet have confirmatory live evidence that the reliability architecture materially increases `P(X|A)` over `P(X)` at useful coverage and acceptable orchestration tax. That remains the next major scientific milestone.

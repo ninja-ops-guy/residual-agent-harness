@@ -515,9 +515,10 @@ families:
   keywords:
   - evidence bus
   notes: Canonical Factory evidence bus and evidence receipts merged under
-    residual/factory/ with fixture test coverage. Git evidence semantics
-    for the M4 integrator remain part of the open trust-boundary closure
-    tracked in issue 63 (see family M4).
+    residual/factory/ with fixture test coverage. The M4 integrator's Git
+    evidence semantics are no longer an open issue #63 item; that closure is
+    recorded under family M4. This M3 row does not itself assert live or
+    production qualification.
 - family: M4
   title: Deterministic Integrator + Scheduler Intelligence
   spec: harness_specs/M2_M3_M4_SPECS.md
