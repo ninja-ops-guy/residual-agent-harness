@@ -60,29 +60,29 @@ The built-in demo is scripted and credential-free. It demonstrates controller be
 
 ## Current repository boundary
 
-Current `main` is **`f2d58e779ad589fe1d08842c9efc40ec5214a213`**. PR #151 adds an event-backed Mission Control live-pipeline projection and stricter Puter transport while leaving the core harness acceptance authority and Factory/M4 evidence boundary unchanged.
+Current `main` is **`f6f9bad84caccf68c7ab35e5788e756d12c55fb7`**, the merge of PR #156. The underlying #151 live-pipeline work remains present; #156 specifically repairs real Puter worker-envelope conformance by removing provider-side strict structured-output mode for dynamic obligation keys and restoring explicit build-envelope nesting guidance.
 
-All seven observed main-push qualification workflows passed on that exact merged revision. Capable-runner M4 run `35149837820` completed **142 tests + 84 subtests, zero skips**, and Pages run `35149837756` passed first-attempt generated and published desktop+narrow real-guest acceptance. These are exact-revision automated/browser results, not every-host qualification or independent review.
+All seven observed main-push workflows passed on that exact merged revision. The capable-runner M4 workflow passed its fail-closed capability/zero-skip gate, and Pages run `35158939226` passed on attempt 1 through generated desktop+narrow proof, deployment, published real-guest execution and published narrow-Chromium acceptance.
 
-PR #151 has **zero submitted reviews**, so current main is technically qualified but **review-provisional**. Earlier merged #145/#147 also retain missing independent pre-merge acceptance as governance debt.
+These are exact-revision automated/browser results, not every-host qualification or independent review. PR #156 has **zero submitted reviews**, so current main is technically qualified but **review-provisional**.
 
-The post-merge browser proof used the explicit SDK test double and records `cloud_inference: NOT_RUN`. A fresh successful real-account Puter run on exact current main is therefore **UNKNOWN / not established**. The latest retained real-account path remains a fail-closed `provider_protocol_invalid` result with no accepted candidate.
+The latest retained real-account provider evidence before #156 is still **FAIL** as `provider_protocol_invalid`: two actual remote calls produced no accepted obligation or artifact. Green post-merge provider/browser CI is not a real-account provider success. A fresh successful paid/live Puter run on exact current main is **UNKNOWN / not retained**.
 
 Issues #120/#126 remain open. Retained WebVM diagnostics isolate a process-local CPython positive-duration timed-wait failure surface; the merged browser path avoids the known trigger, but the historical corruption-family root cause and acceptable recurrence rate remain **UNKNOWN**.
 
 ## Factory and governance boundaries
 
-Issues #63 and #48 are closed; M2/M3/M4 are implemented and the implementation manifest is no longer the old pre-merge status snapshot. M4 qualification remains evidence- and environment-bound. Namespace/capability-unavailable hosts are `BLOCKED`/`UNKNOWN`, not `PASS`.
+Issues #63 and #48 are closed; M2/M3/M4 are implemented and `implementation-status.yaml` is the implementation-presence manifest. M4 qualification remains evidence- and environment-bound. Namespace/capability-unavailable hosts are `BLOCKED`/`UNKNOWN`, not `PASS`.
 
-PR #139 still modifies a protected M4 qualification test. Independent exact-head review, deliberate ownership-baseline handling and fresh qualification remain mandatory before that repair can support downstream #134. This documentation does not modify protected bytes, ownership pins or evidence schemas.
+PR #139 still modifies a protected M4 qualification test. Independent exact-head review, deliberate ownership-baseline handling and fresh qualification remain mandatory before that repair can support downstream #134. This documentation does not modify protected bytes, ownership pins, qualification anchors or evidence schemas.
 
-Issue #144 tracks independent-review enforcement. PR #146 is rebuilt directly on current main and implements a fail-closed current-head review check, but platform ruleset enforcement still requires a maintainer action after independent acceptance.
+Issue #144 tracks independent-review enforcement. PR #146 implements a fail-closed current-head review check, but its present branch was based on pre-#156 main and must refresh/requalify before integration. Platform ruleset enforcement remains a separate maintainer action after independent acceptance.
 
 ## Browser acceptance and qualification work
 
-PR #89 retains an authoritative narrow-browser `FAIL` caused by a terminal-proof observation defect; that failure is not rerun away. Closed-unmerged #140/#150 are superseded by current-main PR #153, which consolidates their bounded acceptance-harness repairs. #153 is still qualifying and has no submitted independent review, so no `PASS` is inherited from the stale branches.
+PR #89 retains an authoritative narrow-browser `FAIL` caused by a terminal-proof observation defect; that failure is not rerun away. PR #153 consolidates the bounded #140/#150 acceptance-harness repairs, but #156 moved `main` after #153's current head. #153 must therefore refresh/requalify on current main and receive genuinely independent review before integration; only then should #89 be refreshed/requalified.
 
-Draft PR #152 builds a broader evidence-first qualification framework, but its workflows are still partial/in progress. The framework itself does not constitute completed release qualification or elapsed soak evidence.
+PR #152 builds a broader evidence-first Qualification v1 framework. Its prior exact-head evidence remains tied to its pre-#156 base. It must refresh/requalify; virtual-day stress is not elapsed soak and a planned live-provider canary is not model-quality evidence.
 
 ## Evaluation guidance
 
@@ -99,6 +99,6 @@ Start with:
 
 A passing check establishes only its declared condition. A verifier is not a universal proof oracle. Historical results remain tied to the exact revisions that produced them.
 
-The repository does not currently claim universal worker correctness, universally optimal scheduling, guaranteed token/cost savings, blanket production readiness, every-host M4 qualification, completed release/recovery or elapsed-soak qualification, acceptable long-run WebVM reliability, successful post-#151 real-provider inference, proof of the central live-model reliability hypothesis, autonomous recursive self-improvement or autonomous merge authority.
+The repository does not currently claim universal worker correctness, universally optimal scheduling, guaranteed token/cost savings, blanket production readiness, every-host M4 qualification, completed release/recovery or elapsed-soak qualification, acceptable long-run WebVM reliability, successful post-#156 real-provider inference, proof of the central live-model reliability hypothesis, autonomous recursive self-improvement or autonomous merge authority.
 
 For operational setup, use [`START-HERE.md`](START-HERE.md). For current repository-wide status, use [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md).
