@@ -59,9 +59,9 @@ At the latest exact-main snapshot after the #109 merge:
 - Command Station checks: **PASS**;
 - controller/provider contracts: **PASS**;
 - capable-runner M4 qualification: **PASS**;
-- exact-main Pages/WebVM run **`35036589868`**: **IN PROGRESS** at the latest check.
+- exact-main Pages/WebVM run **`35036589868`**: **PASS**, including deployment, real guest execution and desktop/narrow browser acceptance.
 
-Because the Pages run is still nonterminal, this document does **not** claim a post-#109 live browser deployment PASS. A later successful completion may clear that exact-revision deployment gate; a failure must be retained and classified rather than waived.
+This clears the exact-revision deployment gate. It does **not** establish an acceptable long-run production failure rate; issue #120 remains the reliability tracker and historical failed attempts remain evidence.
 
 ## Mission Control / WebVM reliability boundary
 
@@ -147,8 +147,8 @@ The project does not yet claim, for live heterogeneous models, that:
 
 The recommended order is:
 
-1. **Finish exact-main Pages/WebVM acceptance for `22a5bae...`.** Do not declare the browser deployment gate green while run `35036589868` is still in progress; retain and classify any failure.
-2. **Run downstream release/recovery qualification.** Exercise blank-environment setup, recovery and retained-evidence procedures on the accepted tree without broadening fixture claims.
+1. **Review and integrate the refreshed runtime/DSM closure candidate.** PR #118 is based on accepted `main`; require terminal exact-head CI and independent technical acceptance before merge.
+2. **Review release preparation, then run release/recovery qualification.** PR #115 is refreshed onto accepted `main` with green procedure CI, but its implementer evidence still requires independent review. Exercise blank-environment setup, recovery and retained-evidence procedures without broadening fixture claims.
 3. **Quantify WebVM reliability.** Keep issue #120 open, retain every failed attempt, and run a defined repeated-run campaign; individual successful runs are not a production recurrence rate.
 4. **Freeze the live evaluation protocol.** Lock workload, evidence path, metrics, model/configuration and analysis choices before confirmatory model results.
 5. **Run one fixed live model across R0–R5.** Measure `P(X)`, `P(A)`, `P(X|A)`, AER/ASSR, verifier false acceptance/rejection/`UNKNOWN`, latency, throughput and cost.
