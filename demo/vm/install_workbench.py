@@ -9,13 +9,31 @@ from qualify_webvm import replace_once
 def patch(text):
     text = replace_once(text, "<script>\n", "<script>\n\timport { mountMissionControl } from './mission-control-world.js';\n")
     text = replace_once(text, 'var residualBridgeBuffer = "";',
-                        'var residualWorkbench = null;\n\tvar residualDataDevice = null;\n\tvar residualShellTail = "";\n\tvar residualShellReady = false;\n\tvar residualShellCommandBusy = false;\n\tvar residualShellRun = null;\n\tvar residualShellInputBuffer = "";\n\tvar residualWorkerReady = false;\n\tvar residualWorkerPoisoned = false;\n\tvar residualWorkerStart = null;\n\tvar residualBridgeBuffer = "";')
+                        'var residualWorkbench = null;\n\tvar residualDataDevice = null;\n\tvar residualShellTail = "";\n\tvar residualShellReady = false;\n\tvar residualShellCommandBusy = false;\n\tvar residualShellRun = null;\n\tvar residualShellInputBuffer = "";\n\tvar residualWorkerReady = false;\n\tvar residualWorkerPoisoned = false;\n\tvar residualWorkerStart = null;\n\tvar residualWorkerTermination = null;\n\tvar residualBridgeBuffer = "";')
     text = replace_once(text, 'const out = residualDecoder.decode(bytes, {stream:true});', """const out = residualDecoder.decode(bytes, {stream:true});
         residualShellTail = (residualShellTail + out).slice(-4096).replace(/\\x1b\\[[0-9;?]*[A-Za-z]/g, "");
         if (residualShellTail.includes("residual@demo:~/residual-agent-harness$")) residualShellReady = true;
         // Project authoritative guest frames before resolving worker lifecycle
         // markers that may share the same terminal output chunk.
         residualWorkbench?.onOutput(out);
+        if (residualWorkerTermination) {
+            const marker = new RegExp("RESIDUAL_WORKER_TERMINATED_" + residualWorkerTermination.token + ":([0-9]+)");
+            const match = residualShellTail.match(marker);
+            if (match) {
+                const current = residualWorkerTermination;
+                residualWorkerTermination = null;
+                current.finish(Number(match[1]));
+            }
+        }
+        if (residualWorkerStart && residualShellTail.includes("RESIDUAL_WORKER_POISONED")) {
+            const current = residualWorkerStart;
+            residualWorkerStart = null;
+            residualWorkerReady = false;
+            residualWorkerPoisoned = true;
+            residualShellCommandBusy = false;
+            residualShellInputBuffer = "";
+            current.fail(new Error("Persistent guest worker is durably poisoned; reset required"));
+        }
         if (!residualWorkerPoisoned && residualShellTail.includes("RESIDUAL_WORKER_READY")) {
             residualWorkerReady = true;
             if (residualWorkerStart) {
@@ -63,13 +81,28 @@ def patch(text):
             }
             readData(data);
         });
-        function terminateResidualWorker() {
-            // A host-side timeout means the worker did not honor its own bounded
-            // mission lifecycle. Never leave that interpreter available for a
-            // page reload to rediscover. Signal only a PID whose file ownership,
-            // liveness and /proc argv still prove the expected worker identity.
-            const command = `if [ -f /tmp/residual-workbench.pid ] && [ ! -L /tmp/residual-workbench.pid ] && [ -O /tmp/residual-workbench.pid ] && read -r residual_worker_pid < /tmp/residual-workbench.pid && [[ "$residual_worker_pid" =~ ^[0-9]+$ ]] && kill -0 "$residual_worker_pid" 2>/dev/null && mapfile -d '' residual_worker_argv < "/proc/$residual_worker_pid/cmdline" && [ "\${residual_worker_argv[1]-}" = "-m" ] && [ "\${residual_worker_argv[2]-}" = "residual.workbench.browser_worker" ]; then kill -KILL "$residual_worker_pid" 2>/dev/null || true; fi`;
+        async function terminateResidualWorker(missionId = "") {
+            if (residualWorkerTermination) return await residualWorkerTermination.promise;
+            const token = missionId || "startup";
+            let resolveTermination;
+            const promise = new Promise(resolve => { resolveTermination = resolve; });
+            const timer = setTimeout(() => {
+                if (!residualWorkerTermination || residualWorkerTermination.token !== token) return;
+                residualWorkerTermination = null;
+                resolveTermination(9);
+            }, 15000);
+            residualWorkerTermination = {
+                token,
+                promise,
+                finish: status => { clearTimeout(timer); resolveTermination(status); }
+            };
+            // Write a durable poison marker first.  If the page disappears while
+            // termination is in progress, the next host refuses worker reuse.
+            // The marker is removed only after an identity-validated worker is
+            // proven dead and any matching workspace lock is reconciled.
+            const command = `residual_poison=/opt/residual/runs/missions/.worker-poisoned; residual_worker_status=3; residual_worker_pid=""; if [ -L "$residual_poison" ] || { [ -e "$residual_poison" ] && { [ ! -f "$residual_poison" ] || [ ! -O "$residual_poison" ]; }; }; then residual_worker_status=8; else umask 077; printf '%s\\n' '${token}' > "$residual_poison"; if [ -f /tmp/residual-workbench.pid ] && [ ! -L /tmp/residual-workbench.pid ] && [ -O /tmp/residual-workbench.pid ] && read -r residual_pid_file_value < /tmp/residual-workbench.pid && [[ "$residual_pid_file_value" =~ ^[0-9]+$ ]] && kill -0 "$residual_pid_file_value" 2>/dev/null && mapfile -d '' residual_worker_argv < "/proc/$residual_pid_file_value/cmdline" && [ "\${residual_worker_argv[1]-}" = "-m" ] && [ "\${residual_worker_argv[2]-}" = "residual.workbench.browser_worker" ]; then residual_worker_pid="$residual_pid_file_value"; elif [[ "\${residual_worker_launch_pid-}" =~ ^[0-9]+$ ]] && kill -0 "$residual_worker_launch_pid" 2>/dev/null && mapfile -d '' residual_worker_argv < "/proc/$residual_worker_launch_pid/cmdline" && [ "\${residual_worker_argv[1]-}" = "-m" ] && [ "\${residual_worker_argv[2]-}" = "residual.workbench.browser_worker" ]; then residual_worker_pid="$residual_worker_launch_pid"; fi; if [ -n "$residual_worker_pid" ]; then kill -KILL "$residual_worker_pid" 2>/dev/null || true; wait "$residual_worker_pid" 2>/dev/null || true; for residual_wait_i in {1..100}; do kill -0 "$residual_worker_pid" 2>/dev/null || break; sleep 0.05; done; if ! kill -0 "$residual_worker_pid" 2>/dev/null; then residual_worker_status=0; if [ -f /tmp/residual-workbench.pid ] && [ ! -L /tmp/residual-workbench.pid ] && [ -O /tmp/residual-workbench.pid ] && read -r residual_pid_file_value < /tmp/residual-workbench.pid && [ "$residual_pid_file_value" = "$residual_worker_pid" ]; then rm -f -- /tmp/residual-workbench.pid; fi; if [ -p /tmp/residual-workbench.fifo ] && [ -O /tmp/residual-workbench.fifo ]; then rm -f -- /tmp/residual-workbench.fifo; fi; if [ -n '${missionId}' ] && [ -f /opt/residual/runs/missions/.active ] && [ ! -L /opt/residual/runs/missions/.active ] && [ -O /opt/residual/runs/missions/.active ] && read -r residual_active_mid < /opt/residual/runs/missions/.active && [ "$residual_active_mid" = '${missionId}' ]; then rm -f -- /opt/residual/runs/missions/.active; fi; rm -f -- "$residual_poison"; unset residual_worker_launch_pid; fi; elif [ -z '${missionId}' ] && [[ "\${residual_worker_launch_pid-}" =~ ^[0-9]+$ ]] && ! kill -0 "$residual_worker_launch_pid" 2>/dev/null; then residual_worker_status=0; rm -f -- "$residual_poison"; unset residual_worker_launch_pid; fi; fi; printf '\\nRESIDUAL_WORKER_TERMINATED_${token}:%s\\n' "$residual_worker_status"`;
             readData(command + "\\r");
+            return await promise;
         }
         async function ensureResidualWorker() {
             if (residualWorkerPoisoned) throw new Error("Guest worker requires restart");
@@ -80,26 +113,25 @@ def patch(text):
             residualShellInputBuffer = "";
             let resolveStart, rejectStart;
             const promise = new Promise((resolve, reject) => { resolveStart = resolve; rejectStart = reject; });
-            const timeout = setTimeout(() => {
+            const timeout = setTimeout(async () => {
                 if (!residualWorkerStart) return;
-                terminateResidualWorker();
-                residualWorkerStart = null;
-                residualWorkerReady = false;
                 residualWorkerPoisoned = true;
+                residualWorkerReady = false;
+                const current = residualWorkerStart;
+                residualWorkerStart = null;
+                const terminationStatus = await terminateResidualWorker("");
                 residualShellCommandBusy = false;
                 residualShellInputBuffer = "";
-                rejectStart(new Error("Persistent guest worker did not become ready"));
+                current.fail(new Error("Persistent guest worker did not become ready; termination status " + terminationStatus));
             }, 60000);
             residualWorkerStart = {
                 promise,
-                finish: () => { clearTimeout(timeout); resolveStart(); }
+                finish: () => { clearTimeout(timeout); resolveStart(); },
+                fail: error => { clearTimeout(timeout); rejectStart(error); }
             };
-            // Reuse only a surviving worker whose PID file, FIFO, process,
-            // and /proc argv all identify the expected long-lived module. This
-            // prevents a stale/reused PID from being accepted as worker identity.
-            // The two \${...} expressions are intentionally escaped through
-            // this JavaScript template literal so Bash, not JavaScript, expands them.
-            const command = `if [ -f /tmp/residual-workbench.pid ] && [ ! -L /tmp/residual-workbench.pid ] && [ -O /tmp/residual-workbench.pid ] && [ -p /tmp/residual-workbench.fifo ] && read -r residual_worker_pid < /tmp/residual-workbench.pid && [[ "$residual_worker_pid" =~ ^[0-9]+$ ]] && kill -0 "$residual_worker_pid" 2>/dev/null && mapfile -d '' residual_worker_argv < "/proc/$residual_worker_pid/cmdline" && [ "\${residual_worker_argv[1]-}" = "-m" ] && [ "\${residual_worker_argv[2]-}" = "residual.workbench.browser_worker" ]; then echo RESIDUAL_WORKER_READY; else python3 -m residual.workbench.browser_worker --fifo /tmp/residual-workbench.fifo --pid-file /tmp/residual-workbench.pid --mailbox /data --root /opt/residual --output-root /opt/residual/runs/missions & fi`;
+            // A durable poison marker means a previous timeout could not prove
+            // cleanup.  Refuse reuse instead of silently reviving that generation.
+            const command = `if [ -e /opt/residual/runs/missions/.worker-poisoned ] || [ -L /opt/residual/runs/missions/.worker-poisoned ]; then echo RESIDUAL_WORKER_POISONED; elif [ -f /tmp/residual-workbench.pid ] && [ ! -L /tmp/residual-workbench.pid ] && [ -O /tmp/residual-workbench.pid ] && [ -p /tmp/residual-workbench.fifo ] && read -r residual_worker_pid < /tmp/residual-workbench.pid && [[ "$residual_worker_pid" =~ ^[0-9]+$ ]] && kill -0 "$residual_worker_pid" 2>/dev/null && mapfile -d '' residual_worker_argv < "/proc/$residual_worker_pid/cmdline" && [ "\${residual_worker_argv[1]-}" = "-m" ] && [ "\${residual_worker_argv[2]-}" = "residual.workbench.browser_worker" ]; then echo RESIDUAL_WORKER_READY; else python3 -m residual.workbench.browser_worker --fifo /tmp/residual-workbench.fifo --pid-file /tmp/residual-workbench.pid --mailbox /data --root /opt/residual --output-root /opt/residual/runs/missions & residual_worker_launch_pid=$!; fi`;
             readData(command + "\\r");
             return await promise;
         }
@@ -127,15 +159,15 @@ def patch(text):
                 residualShellTail = "";
                 residualShellInputBuffer = "";
                 return await new Promise((resolve, reject) => {
-                    const timeout = setTimeout(() => {
+                    const timeout = setTimeout(async () => {
                         if (!residualShellRun || residualShellRun.missionId !== request.id) return;
-                        terminateResidualWorker();
-                        residualShellRun = null;
                         residualWorkerReady = false;
                         residualWorkerPoisoned = true;
+                        residualShellRun = null;
+                        const terminationStatus = await terminateResidualWorker(request.id);
                         residualShellCommandBusy = false;
                         residualShellInputBuffer = "";
-                        reject(new Error("Persistent guest mission timed out; restart required"));
+                        reject(new Error("Persistent guest mission timed out; termination status " + terminationStatus + "; restart required"));
                     }, 330000);
                     residualShellRun = {
                         missionId: request.id,
