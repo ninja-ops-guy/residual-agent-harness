@@ -1,7 +1,8 @@
-import unittest
+import json
 import tempfile
-from pathlib import Path
+import unittest
 from dataclasses import replace
+from pathlib import Path
 from unittest.mock import patch
 
 from ai_providers.core import ChatResponse
@@ -90,6 +91,48 @@ class ExternalBudgetTests(unittest.TestCase):
         engines = tuple(replace(e, cost_per_task=5e-13) for e in self.engines())
         with self.assertRaises(EvidenceBudgetExceeded):
             ExternalEvidenceRunner(self.suite(), engines, maximum_budget_usd=0).run()
+        self.assertEqual(CountingProvider.calls, 0)
+
+    def test_preregistration_cannot_use_epsilon_to_freeze_overspend(self):
+        from residual.assurance.preregistered import preregister_from_files
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            suite_path = root / "suite.json"
+            engines_path = root / "engines.json"
+            suite_path.write_text(json.dumps({
+                "schema_version": "residual.external-suite.v1",
+                "name": "epsilon-budget",
+                "author": "external-evaluator",
+                "source_uri": "https://example.invalid/epsilon-budget",
+                "authored_at": "2026-09-16T00:00:00Z",
+                "cases": [
+                    {
+                        "case_id": "train-1", "split": "train", "capability": "text",
+                        "assurance": "routine", "difficulty": 0.1, "prompt": "q1",
+                        "grader": {"kind": "exact_text", "expected": "YES"},
+                    },
+                    {
+                        "case_id": "eval-1", "split": "evaluation", "capability": "text",
+                        "assurance": "routine", "difficulty": 0.1, "prompt": "q2",
+                        "grader": {"kind": "exact_text", "expected": "YES"},
+                    },
+                ],
+            }), encoding="utf-8")
+            engines_path.write_text(json.dumps({
+                "schema_version": "residual.external-engines.v1",
+                "engines": [
+                    {"provider": "openai", "model": "m1", "cost_per_task": 1e-13},
+                    {"provider": "ollama", "model": "m2", "cost_per_task": 1e-13},
+                ],
+            }), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "preregistered budget"):
+                preregister_from_files(
+                    study_id="epsilon-budget", registered_at="2026-09-16T00:00:00Z",
+                    suite_path=suite_path, engines_path=engines_path,
+                    hypotheses=("budget remains bounded",),
+                    primary_metric="market_success_rate", secondary_metrics=(),
+                    maximum_budget_usd=0.0, runner_revision="test-only", trials=1,
+                )
         self.assertEqual(CountingProvider.calls, 0)
 
     def test_failed_dispatch_keeps_its_reservation(self):
