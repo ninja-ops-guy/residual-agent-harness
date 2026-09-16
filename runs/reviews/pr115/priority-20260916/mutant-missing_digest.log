@@ -1,0 +1,15 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/test_release_preparation_integrity.py::InstallIntegrityTests::test_missing_or_malformed_digest_never_passes -q --tb=short
+.                                                                   [100%]
+=================================== FAILURES ===================================
+_ InstallIntegrityTests.test_missing_or_malformed_digest_never_passes (digest='') _
+tests/test_release_preparation_integrity.py:54: in test_missing_or_malformed_digest_never_passes
+    self.assertFalse(bvic.check_hash(log, root / "logs", artifact, digest))
+E   AssertionError: True is not false
+_ InstallIntegrityTests.test_missing_or_malformed_digest_never_passes (digest=None) _
+tests/test_release_preparation_integrity.py:54: in test_missing_or_malformed_digest_never_passes
+    self.assertFalse(bvic.check_hash(log, root / "logs", artifact, digest))
+E   AssertionError: True is not false
+=========================== short test summary info ============================
+SUBFAILED(digest='') tests/test_release_preparation_integrity.py::InstallIntegrityTests::test_missing_or_malformed_digest_never_passes
+SUBFAILED(digest=None) tests/test_release_preparation_integrity.py::InstallIntegrityTests::test_missing_or_malformed_digest_never_passes
+2 failed, 1 passed, 3 subtests passed in 0.08s

@@ -145,6 +145,9 @@ class SandboxResult:
     stderr: str
     duration_seconds: float
     truncated: bool = False
+    # Isolation strength that actually enforced this execution:
+    # "kernel" (namespaces/bwrap) or "best_effort" (rlimits + validation).
+    enforcement: str = "best_effort"
 
     @property
     def ok(self) -> bool:

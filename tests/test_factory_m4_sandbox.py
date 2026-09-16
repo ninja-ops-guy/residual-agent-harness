@@ -93,7 +93,11 @@ class IsolatedRunnerTests(unittest.TestCase):
         import time
         start = time.monotonic()
         result = self.check("while True: pass", timeout_s=3)
-        self.assertEqual(result.status, "fail")
+        # Typed TIMEOUT: distinct status, deterministic returncode 124, and
+        # the timed_out marker — never retyped as candidate FAIL or ERROR.
+        self.assertEqual(result.status, "timeout")
+        self.assertEqual(result.returncode, 124)
+        self.assertTrue(result.timed_out)
         self.assertEqual(result.reason, "timeout")
         self.assertLess(time.monotonic() - start, 15)
 
@@ -131,7 +135,9 @@ class IsolatedRunnerTests(unittest.TestCase):
             "while True: pass\n"
         )
         result = self.check(code, timeout_s=3)
-        self.assertEqual(result.status, "fail")
+        self.assertEqual(result.status, "timeout")
+        self.assertEqual(result.returncode, 124)
+        self.assertTrue(result.timed_out)
         self.assertEqual(result.reason, "timeout")
         time_sleeping = subprocess.run(
             ["sh", "-c", "ps -eo args | grep -c '[t]ime.sleep' || true"],

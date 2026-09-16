@@ -48,6 +48,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -176,6 +177,8 @@ class CheckLog:
     def __init__(self, path):
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        if self.path.exists() and self.path.stat().st_size:
+            raise RuntimeError("existing install evidence requires a fresh output directory")
         self._prev = "0" * 64  # genesis
         self.records = []
 
@@ -203,8 +206,17 @@ class CheckLog:
         return self._prev
 
 
-def verify_chain(path):
-    """Re-verify a hash-chained check log. Returns (ok, records, error)."""
+def verify_chain(path, *, expected_head=None, expected_count=None):
+    """Verify a complete log against an independently retained endpoint.
+
+    A chain's internal links cannot detect a removed or rewritten final record.
+    Callers must supply the head/count captured at finalization, not recompute
+    them from the file being verified. The summary itself needs trusted retention.
+    """
+    if (not isinstance(expected_head, str) or
+            not re.fullmatch(r"[0-9a-f]{64}", expected_head) or
+            type(expected_count) is not int or expected_count < 0):
+        return False, [], "trusted expected chain head and record count required"
     prev = "0" * 64
     records = []
     try:
@@ -218,10 +230,12 @@ def verify_chain(path):
             record = json.loads(line)
         except json.JSONDecodeError as exc:
             return False, records, f"line {lineno} not JSON: {exc}"
-        if record.get("prev_hash") != prev:
+        if not isinstance(record, dict) or record.get("prev_hash") != prev:
             return False, records, f"line {lineno} chain break"
         prev = sha256_bytes(line.encode("utf-8"))
         records.append(record)
+    if prev != expected_head or len(records) != expected_count:
+        return False, records, "chain endpoint/count mismatch"
     return True, records, ""
 
 
@@ -316,9 +330,14 @@ def check_fetch(log, logs_dir, work_dir, url, max_attempts=2):
 
 def check_hash(log, logs_dir, artifact, expected):
     Path(logs_dir).mkdir(parents=True, exist_ok=True)
+    if not isinstance(expected, str) or not re.fullmatch(r"[0-9a-fA-F]{64}", expected):
+        detail = "expected SHA-256 must be a nonempty 64-hex digest"
+        (logs_dir / "03-hash.log").write_text(detail + "\n", encoding="utf-8")
+        log.emit("verify_hash", "FAIL", detail, log_path=logs_dir / "03-hash.log")
+        return False
     actual = sha256_file(artifact)
     detail = f"sha256={actual}"
-    if expected and actual != expected.lower():
+    if actual != expected.lower():
         log.emit("verify_hash", "FAIL",
                  f"{detail} != expected {expected.lower()}; downloaded bytes "
                  "are not the published artifact; recovery: delete the file, "
@@ -378,6 +397,11 @@ def check_install(log, logs_dir, venv_dir, artifact):
     freeze = run_logged([str(exe), "-m", "pip", "freeze"],
                         logs_dir / "05-pip-freeze.log", env=clean_env(),
                         timeout=120)
+    if freeze is None or freeze.returncode:
+        log.emit("install_artifact", "FAIL",
+                 "pip freeze failed: dependency evidence was not retained",
+                 log_path=logs_dir / "05-pip-freeze.log")
+        return False
     log.emit("install_artifact", "PASS",
              f"installed {Path(str(artifact)).name}[{ARTIFACT_EXTRAS}]; "
              "pip check passed; freeze retained",
@@ -478,8 +502,14 @@ def run_procedure(*, artifact_url, expected_sha256, out_dir, work_dir,
         "expected_sha256": expected_sha256,
         "checks": statuses,
         "chain_head": log.chain_head,
+        "record_count": len(log.records),
         "log": str(log.path),
     }
+    ok, _, error = verify_chain(log.path, expected_head=log.chain_head,
+                                expected_count=len(log.records))
+    if not ok:
+        summary["status"] = "FAIL"
+        summary["evidence_integrity_error"] = error
     (out_dir / "summary.json").write_text(
         json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     return summary

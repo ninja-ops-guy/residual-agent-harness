@@ -1,0 +1,11 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/test_release_preparation_integrity.py::SoakPolicyIntegrityTests::test_resume_cannot_change_stop_policy -q --tb=short
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________ SoakPolicyIntegrityTests.test_resume_cannot_change_stop_policy ________
+tests/test_release_preparation_integrity.py:82: in test_resume_cannot_change_stop_policy
+    with self.assertRaisesRegex(RuntimeError, "configuration|policy"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: RuntimeError not raised
+=========================== short test summary info ============================
+FAILED tests/test_release_preparation_integrity.py::SoakPolicyIntegrityTests::test_resume_cannot_change_stop_policy
+1 failed in 0.08s

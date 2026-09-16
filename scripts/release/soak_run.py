@@ -27,9 +27,11 @@ import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from residual.soak import InjectionMix, SoakConfig, SoakHarness, SoakState  # noqa: E402
+from residual.soak.report import sign_report  # noqa: E402
 
-CHECKPOINT_SCHEMA = "residual.release-soak.checkpoint.v1"
-MANIFEST_SCHEMA = "residual.release-soak.retention.v2"
+CHECKPOINT_SCHEMA = "residual.release-soak.checkpoint.v2"
+MANIFEST_SCHEMA = "residual.release-soak.retention.v3"
+EXECUTION_SCOPE = {"execution_mode": "simulation", "qualifies_elapsed_soak": False}
 
 
 def _sha256_file(path):
@@ -118,10 +120,12 @@ def free_mb(path):
     return shutil.disk_usage(path).free // (1024 * 1024)
 
 
-def _checkpoint_payload(out_dir, journal, state, status):
+def _checkpoint_payload(out_dir, journal, state, status, policy):
     state_path = Path(out_dir) / "soak-state.json"
     return {
         "schema": CHECKPOINT_SCHEMA,
+        **EXECUTION_SCOPE,
+        "resume_policy": policy,
         "status": status,
         "journal_chain_head": journal.head,
         "journal_record_count": journal.count,
@@ -136,8 +140,8 @@ def _checkpoint_payload(out_dir, journal, state, status):
     }
 
 
-def write_checkpoint(out_dir, journal, state, station_key, status):
-    payload = _checkpoint_payload(out_dir, journal, state, status)
+def write_checkpoint(out_dir, journal, state, station_key, status, policy):
+    payload = _checkpoint_payload(out_dir, journal, state, status, policy)
     envelope = {
         "payload": payload,
         "hmac_sha256": hmac.new(station_key, _canonical(payload), hashlib.sha256).hexdigest(),
@@ -186,7 +190,7 @@ def verify_retention_manifest(out_dir, journal):
         manifest = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise RuntimeError(f"retention manifest unreadable: {exc}") from exc
-    if manifest.get("schema") not in ("residual.release-soak.retention.v1", MANIFEST_SCHEMA):
+    if manifest.get("schema") != MANIFEST_SCHEMA:
         raise RuntimeError(f"unsupported retention manifest schema: {manifest.get('schema')}")
     if manifest.get("journal_chain_head") != journal.head:
         raise RuntimeError("retention manifest journal head mismatch")
@@ -238,6 +242,14 @@ def run_soak(*, out_dir, days, tasks_per_day, seed, station_key,
 
     checkpoint = verify_checkpoint(out_dir, journal, station_key)
     verify_retention_manifest(out_dir, journal)
+    policy = {
+        "max_exceptions": max_exceptions,
+        "brake_fn_limit": brake_fn_limit,
+        "min_free_mb": min_free_mb,
+        "allow_below_minimum": allow_below_minimum,
+    }
+    if checkpoint is not None and checkpoint.get("resume_policy") != policy:
+        raise RuntimeError("resume policy configuration mismatch")
 
     config = SoakConfig(seed=seed, total_days=days,
                         tasks_per_day=tasks_per_day,
@@ -266,12 +278,13 @@ def run_soak(*, out_dir, days, tasks_per_day, seed, station_key,
         if checkpoint.get("status") == "COMPLETE":
             if not state.complete or not records or records[-1].get("type") != "COMPLETE":
                 raise RuntimeError("COMPLETE checkpoint does not match terminal state/journal")
-            return {"status": "COMPLETE", "days_completed": state.days_completed}
+            return {"status": "COMPLETE", "days_completed": state.days_completed, **EXECUTION_SCOPE}
     elif records:
         raise RuntimeError("existing soak journal has no trusted checkpoint")
 
     record_type = "START" if not records else "RESUME"
     journal.append(record_type, {
+        **EXECUTION_SCOPE,
         "config": {"days": days, "tasks_per_day": tasks_per_day,
                    "seed": seed, "max_days": max_days,
                    "below_minimum_load_rehearsal": allow_below_minimum},
@@ -281,14 +294,14 @@ def run_soak(*, out_dir, days, tasks_per_day, seed, station_key,
         "resumed_from_day": state.next_day,
     })
     state.save(harness.state_path)
-    write_checkpoint(out_dir, journal, state, station_key, "RUNNING")
+    write_checkpoint(out_dir, journal, state, station_key, "RUNNING", policy)
 
     def stop(reason_type, detail):
         journal.append("STOP", {"criterion": reason_type, "detail": detail})
         state.save(harness.state_path)
-        write_checkpoint(out_dir, journal, state, station_key, "STOPPED")
+        write_checkpoint(out_dir, journal, state, station_key, "STOPPED", policy)
         finalize(out_dir, journal, harness, status="STOPPED", stopped=reason_type)
-        return {"status": "STOPPED", "criterion": reason_type, "detail": detail}
+        return {"status": "STOPPED", "criterion": reason_type, "detail": detail, **EXECUTION_SCOPE}
 
     limit = state.total_days if max_days is None else min(state.total_days, max_days)
     while state.next_day < limit:
@@ -298,8 +311,8 @@ def run_soak(*, out_dir, days, tasks_per_day, seed, station_key,
         ok, _, error = journal.verify()
         if not ok:
             _atomic_json(out_dir / "evidence-chain-failure.json", {
-                "status": "STOPPED", "criterion": "evidence_chain_break", "detail": error})
-            return {"status": "STOPPED", "criterion": "evidence_chain_break", "detail": error}
+                "status": "STOPPED", "criterion": "evidence_chain_break", "detail": error, **EXECUTION_SCOPE})
+            return {"status": "STOPPED", "criterion": "evidence_chain_break", "detail": error, **EXECUTION_SCOPE}
         day = state.next_day
         try:
             day_metrics = harness.run_day(day)
@@ -309,7 +322,7 @@ def run_soak(*, out_dir, days, tasks_per_day, seed, station_key,
         state.next_day = day + 1
         journal.append("DAY", {"day": day, "metrics": day_metrics.to_dict()})
         state.save(harness.state_path)
-        write_checkpoint(out_dir, journal, state, station_key, "RUNNING")
+        write_checkpoint(out_dir, journal, state, station_key, "RUNNING", policy)
         rates = day_metrics.to_dict()["rates"]
         if state.metrics.unhandled_exceptions > max_exceptions:
             return stop("error_budget",
@@ -326,21 +339,23 @@ def run_soak(*, out_dir, days, tasks_per_day, seed, station_key,
             "rehearsal_cap": max_days,
         })
         state.save(harness.state_path)
-        write_checkpoint(out_dir, journal, state, station_key, "PAUSED")
+        write_checkpoint(out_dir, journal, state, station_key, "PAUSED", policy)
         finalize(out_dir, journal, harness, status="PAUSED", stopped=None, write_report=False)
-        return {"status": "PAUSED", "days_completed": state.days_completed}
+        return {"status": "PAUSED", "days_completed": state.days_completed, **EXECUTION_SCOPE}
 
     journal.append("COMPLETE", {"days_completed": state.days_completed})
     state.save(harness.state_path)
-    write_checkpoint(out_dir, journal, state, station_key, "COMPLETE")
+    write_checkpoint(out_dir, journal, state, station_key, "COMPLETE", policy)
     finalize(out_dir, journal, harness, status="COMPLETE", stopped=None)
-    return {"status": "COMPLETE", "days_completed": state.days_completed}
+    return {"status": "COMPLETE", "days_completed": state.days_completed, **EXECUTION_SCOPE}
 
 
 def finalize(out_dir, journal, harness, *, status, stopped, write_report=True):
     report_path = Path(out_dir) / "report.json"
     if write_report:
-        report = harness.report(signed=True)
+        payload = {**harness.report(signed=False), **EXECUTION_SCOPE,
+                   "schema_version": "residual.release-soak.rehearsal-report.v1"}
+        report = sign_report(payload, harness.station_key)
         report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     elif report_path.exists():
         report_path.unlink()
@@ -351,6 +366,7 @@ def finalize(out_dir, journal, harness, *, status, stopped, write_report=True):
             files[str(path.relative_to(out_dir))] = _sha256_file(path)
     manifest = {
         "schema": MANIFEST_SCHEMA,
+        **EXECUTION_SCOPE,
         "status": status,
         "stopped_on": stopped,
         "journal_chain_head": journal.head,
@@ -375,7 +391,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=Path("runs/release-soak"))
     parser.add_argument("--days", type=int, default=30,
-                        help="N9-R9 default: 30 consecutive days")
+                        help="simulated schedule days; no elapsed runtime qualification")
     parser.add_argument("--tasks-per-day", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=20260914)
     parser.add_argument("--station-key-hex", required=True, type=_station_key,

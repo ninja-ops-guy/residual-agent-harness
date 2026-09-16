@@ -94,9 +94,9 @@ class StartupOrderingTests(Fixture):
             if not release.wait(5):
                 raise RuntimeError('fixture persistence barrier timed out')
             original_started(contract, pid)
-        clock = lambda: 31_000_000_000 if entered.is_set() else 0
-        with patch.object(self.runtime, '_monotonic_ns', side_effect=clock), \
-             patch.object(self.journal, 'started', side_effect=started), \
+        clock = lambda: 31.0 if entered.is_set() else 0.0
+        self.runtime._clock = clock
+        with patch.object(self.journal, 'started', side_effect=started), \
              ThreadPoolExecutor(max_workers=1) as pool:
             c = self.contract(wall_clock_budget_s=30)
             future = pool.submit(self.runtime.run, self.plan, self.approval, c, "write_file('output.txt','no')")
@@ -139,19 +139,21 @@ class StartupWatchdogTests(Fixture):
 
     def test_pending_started_ack_skips_lease_read_only(self):
         control = self.control()
-        with patch.object(self.runtime, '_monotonic_ns', return_value=0), \
+        with patch.object(self.runtime, '_clock', return_value=0.0), \
              patch('residual.factory.runtime.Path.read_text', return_value='1 1'), \
-             patch.object(self.journal, 'lease_is_current') as lease:
-            self.runtime._watch(control, self.contract(), 0, OneWatchdogTick(), threading.Event())
+             patch.object(self.journal, 'lease_read') as lease:
+            self.runtime._watch(control, self.contract(), float('inf'), OneWatchdogTick(),
+                                threading.Event(), threading.Event())
         lease.assert_not_called()
         control.kill.assert_not_called()
 
     def test_pending_started_ack_does_not_disable_memory_enforcement(self):
         control = self.control()
-        with patch.object(self.runtime, '_monotonic_ns', return_value=0), \
+        with patch.object(self.runtime, '_clock', return_value=0.0), \
              patch('residual.factory.runtime.Path.read_text', return_value='10000000 10000000'), \
-             patch.object(self.journal, 'lease_is_current') as lease:
-            self.runtime._watch(control, self.contract(), 0, OneWatchdogTick(), threading.Event())
+             patch.object(self.journal, 'lease_read') as lease:
+            self.runtime._watch(control, self.contract(), float('inf'), OneWatchdogTick(),
+                                threading.Event(), threading.Event())
         lease.assert_not_called()
         self.assertEqual(control.kill.call_args.args[0][1], 'memory_limit_mb')
 
@@ -161,11 +163,16 @@ class StartupWatchdogTests(Fixture):
         ready.set()
         error = sqlite3.OperationalError('this text must not enter the ledger')
         error.sqlite_errorcode = sqlite3.SQLITE_BUSY
-        with patch.object(self.runtime, '_monotonic_ns', return_value=0), \
-             patch('residual.factory.runtime.Path.read_text', return_value='1 1'), \
-             patch.object(self.journal, 'lease_is_current', side_effect=error):
-            self.runtime._watch(control, self.contract(), 0, OneWatchdogTick(), ready)
+        # Fake clock: the first lease read happens inside the 2s window
+        # (ticks 0.0); the post-read check then jumps past the absolute
+        # deadline (5.0) so the test does not burn real time in backoff.
+        ticks = iter([0.0, 0.0, 5.0])
+        self.runtime._clock = lambda: next(ticks, 5.0)
+        with patch('residual.factory.runtime_journal.sqlite3.connect', side_effect=error), \
+             patch('residual.factory.runtime.Path.read_text', return_value='1 1'):
+            self.runtime._watch(control, self.contract(), float('inf'), OneWatchdogTick(),
+                                threading.Event(), ready)
         control.kill.assert_called_once_with(
-            ('lease', 'lease_generation', {'reason':'revoked_or_unavailable',
+            ('lease', 'lease_unreadable', {'reason':'revoked_or_unavailable',
                                          'read_error_type':'OperationalError',
                                          'sqlite_errorcode':sqlite3.SQLITE_BUSY}), requester='watchdog')

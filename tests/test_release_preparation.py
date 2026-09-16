@@ -30,7 +30,8 @@ class CheckLogTests(unittest.TestCase):
             log = bvic.CheckLog(Path(d) / "checks.jsonl")
             log.emit("a", "PASS", "ok")
             log.emit("b", "FAIL", "bad")
-            ok, records, error = bvic.verify_chain(log.path)
+            ok, records, error = bvic.verify_chain(
+                log.path, expected_head=log.chain_head, expected_count=len(log.records))
             self.assertTrue(ok, error)
             self.assertEqual([r["check_id"] for r in records], ["a", "b"])
             lines = log.path.read_text().splitlines()
@@ -38,7 +39,8 @@ class CheckLogTests(unittest.TestCase):
             first["status"] = "FAIL"
             lines[0] = json.dumps(first, sort_keys=True)
             log.path.write_text("\n".join(lines) + "\n")
-            ok, _, error = bvic.verify_chain(log.path)
+            ok, _, error = bvic.verify_chain(
+                log.path, expected_head=log.chain_head, expected_count=len(log.records))
             self.assertFalse(ok)
             self.assertIn("chain break", error)
 
@@ -65,7 +67,9 @@ class MissingPythonTests(unittest.TestCase):
             self.assertEqual(summary["checks"]["python_probe"], "FAIL")
             self.assertEqual(summary["checks"]["fetch_artifact"], "SKIP")
             self.assertEqual(summary["checks"]["install_artifact"], "SKIP")
-            ok, _, error = bvic.verify_chain(out / "checks.jsonl")
+            ok, _, error = bvic.verify_chain(
+                out / "checks.jsonl", expected_head=summary["chain_head"],
+                expected_count=summary["record_count"])
             self.assertTrue(ok, error)
 
     def test_real_interpreter_probe_passes(self):

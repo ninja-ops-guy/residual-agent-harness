@@ -5,7 +5,7 @@ on:
     paths:
       - scripts/release/**
       - docs/release/**
-      - tests/test_release_preparation.py
+      - tests/test_release_preparation*.py
       - .github/workflows/release-preparation.yml
   workflow_dispatch:
 
@@ -29,11 +29,11 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p runs/release-preparation
-          python -m pytest tests/test_release_preparation.py -v 2>&1 | tee runs/release-preparation/tests.txt
+          python -m pytest tests/test_release_preparation.py tests/test_release_preparation_integrity.py -v 2>&1 | tee runs/release-preparation/tests.txt
       - name: Recovery scenarios (offline fixtures)
         run: |
           python scripts/release/recovery_check.py --out runs/release-preparation/recovery
-      - name: Soak driver rehearsal (2 days, reduced load, flagged)
+      - name: Soak driver rehearsal (2 simulated days, reduced load)
         run: |
           python scripts/release/soak_run.py \
             --out runs/release-preparation/soak-rehearsal \

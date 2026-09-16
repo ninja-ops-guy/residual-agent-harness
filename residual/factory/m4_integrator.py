@@ -130,8 +130,16 @@ class VerificationResult:
     stderr_sha256: str
     termination_reason: str = "exit"
     execution_boundary: str = "trusted_fixture_unsandboxed"
+    timed_out: bool = False
 
     def to_dict(self) -> dict[str, object]:
+        # Schema-explicit v2 serialization: the signed payload byte set is
+        # FROZEN. The typed timeout flag (timed_out, added by the sandbox
+        # timing work) is a runtime attribute only; it is encoded in the
+        # payload through the already-versioned v2 fields
+        # status == 'timeout', termination_reason == 'timeout' and the
+        # deterministic returncode (124). Adding the flag here would mutate
+        # canonical v2 signed bytes in place (review blocker, PR #108).
         return {
             "name": self.name,
             "category": self.category,
@@ -429,6 +437,7 @@ class DeterministicIntegrator:
             results.append(VerificationResult(
                 check.name, check.category, process.status, process.returncode,
                 process.stdout_sha256, process.stderr_sha256, process.reason, boundary,
+                timed_out=process.timed_out,
             ))
             if process.status != "pass":
                 break
