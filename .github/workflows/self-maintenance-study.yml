@@ -16,11 +16,15 @@ jobs:
           python-version: '3.12'
       - name: Install study dependencies
         run: python -m pip install '.[factory]' pytest
-      - name: Run recursive-maintenance experiments
+      - name: Run recursive-maintenance contract tests
         run: |
           mkdir -p runs/self-maintenance-study
           python -m pytest -q tests/test_self_maintenance_study.py \
             --junitxml=runs/self-maintenance-study/junit.xml
+      - name: Run quantitative recursive-maintenance study
+        run: |
+          python scripts/self_maintenance_study.py \
+            --output runs/self-maintenance-study/results.json
       - name: Record study identity
         if: always()
         run: |
