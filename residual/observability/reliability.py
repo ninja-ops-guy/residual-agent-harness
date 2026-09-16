@@ -6,18 +6,20 @@ is never used to make a control decision or to reconstruct a report.
 from __future__ import annotations
 
 from dataclasses import dataclass, fields
+import math
 from typing import Mapping, Sequence
 
 from ..core import ContractError, canonical, digest, identifier, strict_json
 
 
 OBSERVATION_SCHEMA = "residual.reliability-observation.v1"
-REPORT_SCHEMA = "residual.reliability-report.v1"
+REPORT_SCHEMA = "residual.reliability-report.v2"
 AGGREGATE_PRECISION = 9
 
 
 def _nonnegative(value: object, name: str) -> float:
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+    if (isinstance(value, bool) or not isinstance(value, (int, float))
+            or not math.isfinite(value) or value < 0):
         raise ContractError(f"{name} must be a nonnegative number")
     return float(value)
 
@@ -218,11 +220,13 @@ class ReliabilityObservation:
     def from_dict(cls, raw: Mapping[str, object]) -> "ReliabilityObservation":
         value = strict_json(canonical(dict(raw)))
         claimed = value.pop("observation_sha256", None)
+        if not isinstance(claimed, str) or len(claimed) != 64:
+            raise ContractError("reliability observation hash required")
         timing = TimingBreakdown.from_dict(value.pop("timing"))
         cost = CostAccounting.from_dict(value.pop("cost"))
         value["engine_mix"] = tuple(value["engine_mix"])
         result = cls(timing=timing, cost=cost, **value)
-        if claimed is not None and claimed != result.observation_sha256:
+        if claimed != result.observation_sha256:
             raise ContractError("reliability observation hash mismatch")
         return result
 
@@ -263,7 +267,10 @@ def _aggregate(rows: Sequence[ReliabilityObservation]) -> dict[str, object]:
         "acceptance_coverage": _rate(len(accepted), n),
         "false_rejection_rate": _rate(sum(not r.accepted for r in correct), len(correct)),
         "fcr": _rate(sum(r.fault_caught is True for r in faults), len(faults)),
-        "throughput_runs_per_sec": _stable(n / total_wall_seconds) if total_wall_seconds else None,
+        # Summed per-run latency cannot establish elapsed time under concurrency.
+        "throughput_runs_per_sec": None,
+        "throughput_unavailable_reason": "no_retained_measurement_window",
+        "serial_service_rate_runs_per_sec": _stable(n / total_wall_seconds) if total_wall_seconds else None,
         "latency_ms_mean": _stable(sum(latency) / n),
         "latency_ms_min": _stable(min(latency)),
         "latency_ms_max": _stable(max(latency)),
@@ -329,6 +336,9 @@ def build_reliability_report(
 def pareto_inputs(report: Mapping[str, object]) -> dict[str, object]:
     if report.get("schema_version") != REPORT_SCHEMA:
         raise ContractError("invalid reliability report")
+    body = {key: value for key, value in report.items() if key != "report_sha256"}
+    if report.get("report_sha256") != digest(body):
+        raise ContractError("reliability report hash mismatch")
     points = []
     for row in report["aggregates"]:  # type: ignore[index]
         points.append({

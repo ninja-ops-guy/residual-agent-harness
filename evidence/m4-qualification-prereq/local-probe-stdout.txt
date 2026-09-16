@@ -1,0 +1,1 @@
+Raw CLI stdout of `python -m residual.factory.m4_qualification_prereq --revision eefee6ac005c93278f483e002e38a768920f0fae` (exit code 0). The JSON body is identical to local-probe-report.json; see that file for the machine-readable report.

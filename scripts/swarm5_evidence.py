@@ -21,14 +21,19 @@ def git(root: Path, *args: str) -> str:
     ).stdout.strip()
 
 
-def main() -> int:
+def main(argv=None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, default=Path("runs/swarm5"))
     parser.add_argument("--commit", help="tested implementation commit; defaults to HEAD")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     root = ROOT
-    commit = args.commit or git(root, "rev-parse", "HEAD")
+    commit = git(root, "rev-parse", "--verify", "--end-of-options",
+                 f"{args.commit or 'HEAD'}^{{commit}}")
     tree = git(root, "rev-parse", f"{commit}^{{tree}}")
+    if tree != git(root, "rev-parse", "HEAD^{tree}"):
+        raise ValueError("claimed commit tree differs from the executing checkout")
+    if git(root, "diff", "--name-only", "HEAD", "--"):
+        raise ValueError("tracked source changed after the claimed commit")
     evidence = build_swarm5_evidence(commit, tree)
     output = args.output if args.output.is_absolute() else root / args.output
     output.mkdir(parents=True, exist_ok=True)

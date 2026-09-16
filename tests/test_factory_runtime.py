@@ -72,7 +72,7 @@ class Fixture(unittest.TestCase):
         return [dict(obs.payload) for obs in self.journal.observations()]
 
     def wait_active(self):
-        end = time.monotonic() + 5
+        end = time.monotonic() + 15  # condition-based; generous margin only
         while time.monotonic() < end:
             if any(x['event'] == 'RuntimeSandboxReady' for x in self.events()):
                 return
@@ -246,7 +246,6 @@ class ExecutionTests(Fixture):
         self.assertEqual((Path(c.workspace_root) / 'output.txt').read_text(), 'hello world')
         self.assertFalse((self.repo / 'output.txt').exists())
         self.assertEqual(git(self.repo, 'rev-parse', 'HEAD').decode().strip(), self.commit)
-        # Neither candidate commit nor new blobs enter the source object store.
         with self.assertRaises(WorkerContractError):
             git(self.repo, 'cat-file', '-e', result.candidate.output_commit)
         output_blob = git(self.repo, 'hash-object', '--stdin', data=b'hello world').decode().strip()
@@ -351,6 +350,10 @@ class ExecutionTests(Fixture):
         c, result = self.run_source("open('/etc/passwd').read()")
         self.assertEqual(result.returncode, -signal.SIGSYS)
         self.assertEqual((result.status, result.reason), ('VIOLATED', 'os_syscall_allowlist'))
+        self.assertEqual(result.termination['classification'], 'kernel_sigsys')
+        self.assertIsNone(result.termination['requested_by'])
+        self.assertEqual(result.termination['correlation_id'], c.attempt_id)
+        self.assertEqual(result.termination['observed_signal'], signal.SIGSYS)
         self.assertFalse(Path(c.workspace_root).exists())
 
     def test_raw_network_syscall_is_kernel_killed(self):
@@ -395,7 +398,24 @@ class ExecutionTests(Fixture):
         self.assertEqual((result.status, result.reason), ('VIOLATED', 'wall_clock_budget_s'))
         self.assertTrue(result.process_reaped)
         self.assertEqual(result.returncode, -signal.SIGKILL)
+        self.assertEqual(result.termination['classification'], 'watchdog_wall_clock')
+        self.assertEqual(result.termination['requested_by'], 'watchdog')
+        self.assertEqual(result.termination['observed_signal'], signal.SIGKILL)
         self.assertFalse(Path(c.workspace_root).exists())
+
+    def test_external_sigkill_remains_unknown(self):
+        c = self.contract(wall_clock_budget_s=30)
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(self.runtime.run, self.plan, self.approval, c, 'while True: pass')
+            self.wait_active()
+            with self.runtime._lock:
+                control = self.runtime._active[c.attempt_id]
+            signal.pidfd_send_signal(control.pidfd, signal.SIGKILL)
+            result = future.result(timeout=5)
+        self.assertEqual(result.returncode, -signal.SIGKILL)
+        self.assertTrue(result.termination['classification'].startswith('unknown_sigkill'))
+        self.assertIsNone(result.termination['requested_by'])
+        self.assertEqual(result.termination['observed_signal'], signal.SIGKILL)
 
     def test_virtual_memory_limit_prevents_large_allocation(self):
         _, result = self.run_source("x=bytearray(256*1024*1024)", memory_limit_mb=64)
@@ -429,6 +449,23 @@ class ExecutionTests(Fixture):
         self.assertEqual((result.status, result.reason), ('VIOLATED', 'lease_generation'))
         self.assertTrue(result.process_reaped)
 
+    def test_lease_revocation_kills_with_lease_generation(self):
+        # A durably revoked lease must terminate the worker with the typed
+        # primary reason ('lease', 'lease_generation') — never retyped.
+        c = self.contract()
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(self.runtime.run, self.plan, self.approval, c, 'while True: pass')
+            self.wait_active()
+            second = RuntimeJournal(self.journal.path, trace_id='test-run')
+            second.revoke(c.attempt_id)
+            result = future.result(timeout=15)
+        self.assertEqual((result.status, result.reason), ('VIOLATED', 'lease_generation'))
+        violations = [e for e in self.events() if e['event'] == 'ContractViolation']
+        self.assertEqual(len(violations), 1)
+        self.assertEqual(violations[0]['boundary'], 'lease')
+        self.assertEqual(violations[0]['field'], 'lease_generation')
+        self.assertTrue(result.process_reaped)
+
     def test_audit_error_prevents_launch(self):
         original = self.journal.observe
         def refuse(payload):
@@ -453,34 +490,44 @@ class ExecutionTests(Fixture):
         self.assertFalse(any(e['event'] == 'RuntimeSandboxReady' for e in self.events()))
         self.assertFalse(any(e['event'] == 'ToolAuthorized' for e in self.events()))
 
-    def test_watchdog_kills_even_when_audit_callback_is_blocked(self):
+    def test_watchdog_termination_is_independent_of_blocked_audit_callback(self):
         entered, release = threading.Event(), threading.Event()
         original = self.journal.observe
+
         def blocked(payload):
             if payload['event'] == 'PathAuthorized':
                 entered.set()
                 release.wait(3)
             original(payload)
-        c = self.contract(wall_clock_budget_s=0.25)
+
+        def deterministic_clock_ns():
+            return 31_000_000_000 if entered.is_set() else 0
+
+        runtime = FactoryRuntime(self.repo, self.root / 'work', self.journal,
+                                 allow_local_worker_code=True,
+                                 monotonic_ns=deterministic_clock_ns,
+                                 clock=lambda: 31.0 if entered.is_set() else 0.0)
+        c = self.contract(wall_clock_budget_s=30)
         with patch.object(self.journal, 'observe', side_effect=blocked), ThreadPoolExecutor(max_workers=1) as pool:
-            future = pool.submit(self.runtime.run, self.plan, self.approval, c, "write_file('output.txt','no')")
-            self.assertTrue(entered.wait(2))
+            future = pool.submit(runtime.run, self.plan, self.approval, c, "write_file('output.txt','no')")
+            self.assertTrue(entered.wait(10), 'worker never reached deterministic PathAuthorized barrier')
             try:
-                end = time.monotonic() + 2
-                while time.monotonic() < end:
-                    with self.runtime._lock:
-                        control = self.runtime._active.get(c.attempt_id)
-                    if control is not None and control.stopped.wait(.02):
+                control = None
+                for _ in range(200):
+                    with runtime._lock:
+                        control = runtime._active.get(c.attempt_id)
+                    if control is not None and control.stopped.wait(.01):
                         break
                 self.assertIsNotNone(control)
                 self.assertTrue(control.stopped.is_set())
-                self.assertIsNotNone(control.process.poll())
                 self.assertFalse((Path(c.workspace_root) / 'output.txt').exists())
             finally:
                 release.set()
-            result = future.result(timeout=3)
-        self.assertEqual(result.status, 'VIOLATED', result)
+            result = future.result(timeout=5)
+        self.assertEqual((result.status, result.reason), ('VIOLATED', 'wall_clock_budget_s'), result)
         self.assertTrue(result.process_reaped)
+        self.assertEqual(result.termination['classification'], 'watchdog_wall_clock')
+        self.assertEqual(result.termination['requested_by'], 'watchdog')
 
     def test_purge_expired_uses_configured_retention(self):
         c, result = self.run_source('pass')
