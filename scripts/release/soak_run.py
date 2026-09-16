@@ -17,6 +17,11 @@ On POSIX hosts, journal records, state replacements, checkpoints, reports, and
 retention manifests are fsynced (including the containing directory after
 replace/unlink) before a boundary is treated as stable. This is local
 crash-durability hardening, not replicated durability or host-loss recovery.
+
+For a real release-candidate run, provide the Station HMAC identity through a
+permission-restricted secret file. ``--station-key-hex`` remains available only
+for deterministic rehearsal/testing keys because command-line arguments are
+not an appropriate secret transport.
 """
 from __future__ import annotations
 
@@ -27,6 +32,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import stat
 import sys
 import time
 
@@ -432,6 +438,31 @@ def _station_key(value):
     return key
 
 
+def _station_key_file(value):
+    """Read a Station key without placing secret material in argv.
+
+    POSIX release runs require an owner-only regular file (no symlink and no
+    group/other permission bits). The file contains only the hexadecimal key.
+    """
+    path = Path(value)
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        fd = os.open(str(path), flags)
+    except OSError as exc:
+        raise argparse.ArgumentTypeError(f"station key file cannot be opened safely: {exc}") from exc
+    try:
+        metadata = os.fstat(fd)
+        if not stat.S_ISREG(metadata.st_mode):
+            raise argparse.ArgumentTypeError("station key file must be a regular file")
+        if os.name == "posix" and metadata.st_mode & 0o077:
+            raise argparse.ArgumentTypeError("station key file must not grant group/other permissions")
+        with os.fdopen(fd, "r", encoding="utf-8", closefd=False) as handle:
+            text = handle.read().strip()
+    finally:
+        os.close(fd)
+    return _station_key(text)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=Path("runs/release-soak"))
@@ -439,8 +470,13 @@ def main(argv=None):
                         help="simulated schedule days; no elapsed runtime qualification")
     parser.add_argument("--tasks-per-day", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=20260914)
-    parser.add_argument("--station-key-hex", required=True, type=_station_key,
-                        help="Station identity HMAC key (hex) for report/checkpoint signing")
+    key_group = parser.add_mutually_exclusive_group(required=True)
+    key_group.add_argument(
+        "--station-key-file", type=_station_key_file,
+        help="owner-only file containing the Station identity HMAC key in hex; required transport for real release-candidate use")
+    key_group.add_argument(
+        "--station-key-hex", type=_station_key,
+        help="rehearsal/testing only: literal HMAC key hex (visible in process arguments)")
     parser.add_argument("--max-exceptions", type=int, default=0)
     parser.add_argument("--brake-fn-limit", type=float, default=0.01)
     parser.add_argument("--min-free-mb", type=int, default=512)
@@ -449,9 +485,10 @@ def main(argv=None):
     parser.add_argument("--allow-below-minimum", action="store_true",
                         help="rehearsal only: permit < 1000 tasks/day; recorded in evidence")
     args = parser.parse_args(argv)
+    station_key = args.station_key_file if args.station_key_file is not None else args.station_key_hex
     result = run_soak(
         out_dir=args.out, days=args.days, tasks_per_day=args.tasks_per_day,
-        seed=args.seed, station_key=args.station_key_hex,
+        seed=args.seed, station_key=station_key,
         max_exceptions=args.max_exceptions,
         brake_fn_limit=args.brake_fn_limit, min_free_mb=args.min_free_mb,
         max_days=args.max_days, allow_below_minimum=args.allow_below_minimum)
