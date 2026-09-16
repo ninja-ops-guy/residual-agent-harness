@@ -11,9 +11,9 @@ from __future__ import annotations
 
 import json
 import os
+import tempfile
 from dataclasses import dataclass, field
 from typing import Any, Dict, List
-import tempfile
 
 from .metrics import SoakMetrics
 
@@ -64,15 +64,14 @@ class SoakState:
     def save(self, path: str) -> None:
         """Atomically replace state without following a predictable temp path.
 
-        The temporary file is created exclusively in the destination directory,
-        so a pre-planted ``<state>.tmp`` symlink cannot redirect or truncate an
-        unrelated file before replacement.  The file is flushed and fsynced
-        before the atomic replace; on POSIX the containing directory is fsynced
-        after the rename so the new directory entry is durable.
+        The temporary file is created exclusively in the existing destination
+        directory, so a pre-planted ``<state>.tmp`` symlink cannot redirect or
+        truncate an unrelated file before replacement. The file is flushed and
+        fsynced before the atomic replace; on POSIX the containing directory is
+        fsynced after the rename so the new directory entry is durable.
         """
         target = os.fspath(path)
         directory = os.path.dirname(os.path.abspath(target)) or "."
-        os.makedirs(directory, exist_ok=True)
         fd, tmp = tempfile.mkstemp(
             prefix=f".{os.path.basename(target)}.", suffix=".tmp", dir=directory, text=True)
         try:
