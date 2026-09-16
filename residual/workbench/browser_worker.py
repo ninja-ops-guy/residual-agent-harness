@@ -10,12 +10,14 @@ the existing workbench implementations.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 from pathlib import Path
 import re
 import stat
 import time
 
+from residual.core import ContractError
 from . import browser_build, browser_run
 from .runner import MAX_REQUEST, read_json
 
@@ -48,15 +50,16 @@ def parse_command(line: str) -> tuple[str, str]:
 def _request(mailbox: Path, mission_id: str, mode: str):
     path = mailbox / f"{mission_id}.json"
     # DataDevice.writeFile is awaited by the host before FIFO dispatch, but the
-    # guest-side directory view can lag briefly. Retry visibility/contract
-    # failures only; unexpected runtime exceptions must escape and poison this
-    # long-lived interpreter rather than being downgraded to admission.
+    # guest-side directory view can lag briefly. Retry only failures that are
+    # explicitly expected at this admission boundary. Do not absorb arbitrary
+    # TypeError/ValueError: retained WebVM corruption has manifested as impossible
+    # Python constructor return values, and those must poison the worker.
     deadline = time.monotonic() + 2.0
     while True:
         try:
             request = read_json(path, MAX_REQUEST)
             break
-        except (FileNotFoundError, OSError, ValueError, UnicodeError):
+        except (OSError, UnicodeError, json.JSONDecodeError, ContractError):
             if time.monotonic() >= deadline:
                 raise RequestAdmissionError("mission request not visible") from None
             time.sleep(0.05)
