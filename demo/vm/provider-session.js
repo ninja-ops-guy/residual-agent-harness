@@ -126,16 +126,35 @@ export function protocolReply(result) {
   }
   return parseEnvelope(textReply(result), 'content');
 }
+function providerOverlay(url) {
+  if (typeof document === 'undefined') return null;
+  document.getElementById('residual-provider-overlay')?.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'residual-provider-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:1000;background:#000;display:flex;flex-direction:column;color:#39ff68;font:14px monospace';
+  const bar = document.createElement('div');
+  bar.style.cssText = 'display:flex;gap:8px;align-items:center;padding:10px;border-bottom:1px solid #245833';
+  const title = document.createElement('strong'); title.textContent = 'CONNECT PROVIDER';
+  const spacer = document.createElement('span'); spacer.style.flex = '1';
+  const external = document.createElement('button'); external.type = 'button'; external.textContent = 'Open separately';
+  const close = document.createElement('button'); close.type = 'button'; close.textContent = 'Back to Mission Control';
+  for (const button of [external, close]) button.style.cssText = 'font:inherit;color:#d1ffdb;background:#07100a;border:1px solid #2a6940;border-radius:8px;padding:8px';
+  external.onclick = () => window.open(url.href, '_blank', 'noopener,noreferrer');
+  close.onclick = () => overlay.remove();
+  bar.append(title, spacer, external, close);
+  const frame = document.createElement('iframe'); frame.src = url.href; frame.title = 'Provider setup'; frame.style.cssText = 'border:0;flex:1;width:100%;background:#000';
+  overlay.append(bar, frame); document.body.append(overlay); return overlay;
+}
 export class ProviderSession {
   constructor(onState = () => {}) {
     this.onState = onState; this.channel = null; this.pending = new Map();
-    this.connected = false; this.lastSeen = 0; this.grant = null; this.generation = 0;
+    this.connected = false; this.lastSeen = 0; this.grant = null; this.generation = 0; this.overlay = null;
   }
   get ready() { return this.connected && Date.now() - this.lastSeen < 15000; }
   checkConnection() {
     if (this.connected && !this.ready) {
       this.connected = false;
-      this.onState('disconnected', 'Provider tab stopped responding. Reopen setup or return to that tab. No new requests are authorized.');
+      this.onState('disconnected', 'Provider stopped responding. Reopen provider setup. No new requests are authorized.');
     }
   }
   open() {
@@ -146,15 +165,17 @@ export class ProviderSession {
     this.channel.onmessage = event => this.receive(event.data);
     const url = new URL('../provider/', location.href);
     url.hash = token;
-    window.open(url.href, '_blank', 'noopener,noreferrer');
-    this.onState('connecting', 'Complete provider setup in the new tab. Allow popups for this site if it did not open.');
+    this.overlay = providerOverlay(url);
+    if (!this.overlay) window.open(url.href, '_blank', 'noopener,noreferrer');
+    this.onState('connecting', this.overlay ? 'Provider setup is open inside Mission Control. Your prompt remains here and unsent.' : 'Complete provider setup, then return to Mission Control.');
     return url.href;
   }
   receive(message) {
     if (!message || message.protocol !== PROTOCOL || !bounded(message)) return;
     if (message.kind === 'state') {
       this.connected = message.connected === true; this.lastSeen = Date.now();
-      this.onState(this.ready ? 'connected' : 'disconnected', this.ready ? 'Provider signed in. Model access and billing are checked on each run.' : 'Provider not signed in. Open setup to continue.');
+      if (this.ready && this.overlay) { this.overlay.remove(); this.overlay = null; }
+      this.onState(this.ready ? 'connected' : 'disconnected', this.ready ? 'Provider signed in. Returned to Mission Control; model access and billing are checked on each run.' : 'Provider not signed in. Open setup to continue.');
       return;
     }
     if (message.kind === 'progress' && validRequest(message.request_id) && validId(message.mission_id)) {
@@ -206,5 +227,5 @@ export class ProviderSession {
     this.pending.clear();
     this.channel?.postMessage({protocol: PROTOCOL, kind: 'revoke'});
   }
-  close() { this.end(); this.channel?.close(); this.channel = null; this.connected = false; this.generation++; }
+  close() { this.end(); this.channel?.close(); this.channel = null; this.connected = false; this.overlay?.remove(); this.overlay = null; this.generation++; }
 }
