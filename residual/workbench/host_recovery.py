@@ -105,10 +105,11 @@ def build_recovery_command(
         f"if [ -e {pid} ] || [ -L {pid} ]; then if [ -f {pid} ] && [ ! -L {pid} ] && [ -O {pid} ] && [ \"$(stat -c %h {pid} 2>/dev/null)\" = 1 ]; then rm -f -- {pid}; else residual_recovery_status=70; fi; fi;",
         f"if [ -e {fifo_q} ] || [ -L {fifo_q} ]; then if [ -p {fifo_q} ] && [ ! -L {fifo_q} ] && [ -O {fifo_q} ]; then rm -f -- {fifo_q}; else residual_recovery_status=70; fi; fi;",
         "fi;",
-        # Recover only this mission's cooperative workspace lock. Never delete the
-        # incomplete mission folder and never clear another mission's lock.
+        # runner.execute writes the mission ID without a trailing newline, so
+        # Bash read would return EOF/nonzero even after capturing it. Require the
+        # exact fixed byte length and use command substitution instead.
         f"if [ \"$residual_recovery_status\" -eq 0 ] && [ -n {mission} ] && [ -e {active} ]; then",
-        f"if [ -f {active} ] && [ ! -L {active} ] && [ -O {active} ] && [ \"$(stat -c %h {active} 2>/dev/null)\" = 1 ] && read -r residual_active_id < {active} && [ \"$residual_active_id\" = {mission} ]; then rm -f -- {active}; fi;",
+        f"if [ -f {active} ] && [ ! -L {active} ] && [ -O {active} ] && [ \"$(stat -c %h {active} 2>/dev/null)\" = 1 ] && [ \"$(stat -c %s {active} 2>/dev/null)\" = 34 ]; then residual_active_id=$(cat -- {active} 2>/dev/null) || residual_active_id=''; if [ \"$residual_active_id\" = {mission} ]; then rm -f -- {active}; fi; fi;",
         "fi;",
         f"printf '%s:%s\\n' {marker_q} \"$residual_recovery_status\";",
     ])
