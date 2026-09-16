@@ -1,4 +1,5 @@
 """Real-file and driver regressions for release evidence integrity."""
+import argparse
 import json
 import os
 from pathlib import Path
@@ -115,6 +116,24 @@ class SoakPolicyIntegrityTests(unittest.TestCase):
             self.assertTrue((root / "soak-state.json").is_file())
             self.assertTrue((root / "soak-checkpoint.json").is_file())
             self.assertTrue((root / "retention-manifest.json").is_file())
+
+    def test_station_key_file_supplies_secret_without_literal_cli_key(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "station-key.hex"
+            expected = bytes.fromhex("11" * 32)
+            path.write_text(expected.hex() + "\n", encoding="utf-8")
+            if os.name == "posix":
+                path.chmod(0o600)
+            self.assertEqual(soak_run._station_key_file(path), expected)
+
+    @unittest.skipUnless(os.name == "posix", "permission check is POSIX-specific")
+    def test_station_key_file_rejects_group_or_other_permissions(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "station-key.hex"
+            path.write_text("22" * 32, encoding="utf-8")
+            path.chmod(0o644)
+            with self.assertRaisesRegex(argparse.ArgumentTypeError, "permissions"):
+                soak_run._station_key_file(path)
 
 
 if __name__ == "__main__":
