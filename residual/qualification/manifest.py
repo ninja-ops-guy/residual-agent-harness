@@ -43,6 +43,17 @@ def aggregate_manifest(
     if len(commits) != 1 or None in commits or len(trees) != 1 or None in trees:
         raise ValueError("qualification evidence is not bound to one commit/tree")
 
+    unclean = sorted(
+        envelope.gate_id
+        for envelope in envelopes
+        if envelope.source.get("tracked_source_dirty") is not False
+    )
+    if unclean:
+        raise ValueError(
+            "qualification evidence source cleanliness is not established for: "
+            + ", ".join(unclean)
+        )
+
     commit = next(iter(commits))
     tree = next(iter(trees))
     by_gate: dict[str, EvidenceEnvelope] = {}
