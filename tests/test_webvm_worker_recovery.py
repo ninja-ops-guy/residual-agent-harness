@@ -40,7 +40,14 @@ class WebVMWorkerRecoveryTests(unittest.TestCase):
             control_dir / 'worker.poison',
         )
 
-    def run_worker_and_recovery(self, *, name: str, recovery_mission: str, active_value: str):
+    def run_worker_and_recovery(
+        self,
+        *,
+        name: str,
+        recovery_mission: str,
+        active_value: str,
+        expected_status: int = 0,
+    ):
         pid_file, control, busy, poison = self.paths(name)
         active = self.output / '.active'
         active.write_text(active_value, encoding='ascii')
@@ -84,11 +91,15 @@ wait "$residual_test_worker" 2>/dev/null || true
             check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn(f'{marker}:0', result.stdout, result.stdout + result.stderr)
+        self.assertIn(
+            f'{marker}:{expected_status}',
+            result.stdout,
+            result.stdout + result.stderr,
+        )
         self.assertTrue(poison.is_file(), 'durable timeout poison was not retained')
-        self.assertFalse(pid_file.exists(), 'worker PID file survived successful recovery')
-        self.assertFalse(control.exists(), 'worker control record survived successful recovery')
-        self.assertFalse(busy.exists(), 'worker busy marker survived successful recovery')
+        self.assertFalse(pid_file.exists(), 'worker PID file survived recovery')
+        self.assertFalse(control.exists(), 'worker control record survived recovery')
+        self.assertFalse(busy.exists(), 'worker busy marker survived recovery')
         return active, poison, pid_file, control, busy
 
     def test_timeout_recovery_kills_worker_recovers_matching_lock_and_fences_restart(self):
@@ -125,7 +136,10 @@ wait "$residual_test_worker" 2>/dev/null || true
         timed_out = 'm-' + 'b' * 32
         other = 'm-' + 'c' * 32
         active, _, _, _, _ = self.run_worker_and_recovery(
-            name='mismatch', recovery_mission=timed_out, active_value=other,
+            name='mismatch',
+            recovery_mission=timed_out,
+            active_value=other,
+            expected_status=70,
         )
         self.assertTrue(active.is_file(), 'recovery removed a different mission lock')
         self.assertEqual(active.read_text(encoding='ascii'), other)
