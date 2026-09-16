@@ -4,6 +4,10 @@ from pathlib import Path
 import shutil
 import sys
 from qualify_webvm import replace_once
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 from residual.workbench.host_recovery import build_recovery_command
 
 
