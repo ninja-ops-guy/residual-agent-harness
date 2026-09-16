@@ -51,6 +51,7 @@ class StationOnboardingUITests(unittest.TestCase):
         self.assertIn("repeating-linear-gradient", theme)
         self.assertIn(".first-run-dialog", theme)
         self.assertIn("--sans:var(--mono)", theme)
+        self.assertIn('body:has(#first-run[open]) #main [data-action="demo"]{visibility:hidden}', theme)
 
     def test_station_serves_onboarding_assets_with_csp(self):
         with tempfile.TemporaryDirectory() as root:
