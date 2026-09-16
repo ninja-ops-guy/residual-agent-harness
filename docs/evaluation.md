@@ -47,13 +47,13 @@ A system that rejects nearly everything must not be described as reliable merely
 
 ## Current integration evidence is not confirmatory evidence
 
-Current `main` is **`f2d58e779ad589fe1d08842c9efc40ec5214a213`**, the merge of PR #151. Its seven observed main-push qualification workflows are **PASS** for their named exact-revision scopes. Capable-runner M4 run `35149837820` completed the real namespace-isolated path with 142 tests + 84 subtests and zero skips. Pages run `35149837756` passed first-attempt generated and published desktop+narrow WebVM acceptance.
+Current `main` is **`f6f9bad84caccf68c7ab35e5788e756d12c55fb7`**, the merge of PR #156. Its seven observed main-push qualification workflows are **PASS** for their named exact-revision scopes. The capable-runner M4 workflow passed its fail-closed capability and zero-skip gate. Pages run `35158939226` passed on attempt 1 through generated desktop+narrow proof, deployment, published real-guest execution and published narrow-Chromium acceptance.
 
 This is useful mechanism/integration evidence. It is **not** independent approval, a live R0–R5 result, model-quality evidence, production-reliability evidence or a paper-facing effect size.
 
-PR #151 has zero submitted reviews, so current main is **review-provisional** despite green automated evidence.
+PR #156 has zero submitted reviews, so current main is **review-provisional** despite green automated evidence.
 
-The latest retained real-account provider path remains **FAIL** as `provider_protocol_invalid`; no candidate was accepted. The post-#151 browser proof uses the explicit SDK test double and records `cloud_inference: NOT_RUN`. Successful paid/live provider inference on exact current main therefore remains **UNKNOWN / not yet retained**.
+The latest retained real-account provider evidence before #156 is **FAIL** as `provider_protocol_invalid`: two real `openai/gpt-5.4-nano` calls produced zero accepted obligations and no candidate reached verification. PR #156 repairs the identified worker-envelope conformance regression, but green post-merge contract/browser CI is not a real-account provider success. Successful paid/live provider inference on exact current main remains **UNKNOWN / not yet retained**.
 
 If a study depends on the real-provider path, collect and retain fresh exact-revision provider evidence before treating that path as qualified for the study.
 
@@ -74,9 +74,9 @@ A protocol may exclude WebVM, but exclusion must be explicit before outcome acce
 
 ## Current acceptance-harness gate
 
-PR #89 retains an authoritative first-attempt narrow-browser `FAIL` caused by an observation/parser defect. Closed-unmerged #140/#150 no longer represent the current integration candidate. Their bounded repairs are consolidated in current-main PR #153.
+PR #89 retains an authoritative first-attempt narrow-browser `FAIL` caused by an observation/parser defect. PR #153 consolidates the bounded #140/#150 repairs, but its current head is based on pre-#156 main.
 
-PR #153 is still qualifying on its exact head. At the latest snapshot Factory ownership and Control Plane are `PASS`, Browser VM Demo and Pages are `IN PROGRESS`, and other required checks remain queued. No independent submitted review is recorded. Therefore #153 is **not yet a qualified evidence path**, and its stale-branch predecessor results cannot be promoted to current-head evidence.
+Therefore #153's previous exact-head workflow results remain historical evidence only. It must refresh onto current main, run its complete qualification set again, preserve any first-attempt failure, and obtain genuinely independent exact-head review before integration. After an accepted #153 merge, #89 must itself be refreshed/requalified; #153 does not qualify #89 by inheritance.
 
 ## Protected Factory/M4 evidence path
 
@@ -93,22 +93,22 @@ Do not convert `BLOCKED`/`UNKNOWN` capability states into `PASS`.
 
 ## Qualification v1 candidate
 
-Draft PR #152 proposes a broader fail-closed qualification methodology, including source-bound evidence manifests, stateful lifecycle exploration, DSM fault evidence, mutation canaries, branch coverage, exact-wheel qualification, multi-browser journeys and process/elapsed-soak tooling.
+PR #152 proposes a broader fail-closed qualification methodology, including source-bound evidence manifests, stateful lifecycle exploration, DSM fault evidence, mutation canaries, branch coverage, exact-wheel qualification, multi-browser journeys and process/elapsed-soak tooling.
 
-Its current workflow set is only partially complete. Some existing gates are green, while Pages/Factory runtime remain in progress and several required jobs are queued. No aggregate `PASS` is claimed.
+Its current head was built before #156. Any prior green or partial workflow evidence remains bound to that exact head and does not constitute current-main qualification. Refresh/requalification is required before integration.
 
 Important interpretation boundaries remain:
 
 - virtual-day stress is fixture stress, not elapsed wall-clock soak;
 - planned 24h/72h/30d workflows are not evidence until those runs actually complete;
 - a live-provider canary proves at most one bounded adapter execution/evidence path, not provider/model quality;
-- the new framework does not replace existing capable-runner M4, ownership or Pages acceptance gates.
+- the framework does not replace existing capable-runner M4, ownership or Pages acceptance gates.
 
 ## Governance / independent-review gate
 
-Issue #144 tracks the independent-review enforcement gap. PR #146 is rebuilt directly on current main and implements a fail-closed exact-current-head review checker. Platform ruleset enforcement still requires a maintainer change after #146 itself is independently accepted.
+Issue #144 tracks the independent-review enforcement gap. PR #146 implements a fail-closed exact-current-head review checker, but its current head predates #156 and must refresh/requalify before integration. Platform ruleset enforcement still requires a maintainer change after #146 itself is independently accepted.
 
-Merged #151 has no submitted review. Its automated qualification remains valid evidence but must not be labeled independent acceptance. For release/paper evidence that requires independent technical acceptance, retain that evidence explicitly.
+Merged #156 has no submitted review. Its automated qualification remains valid evidence but must not be labeled independent acceptance. For release/paper evidence that requires independent technical acceptance, retain that evidence explicitly.
 
 ## Live confirmatory evaluation gate
 
