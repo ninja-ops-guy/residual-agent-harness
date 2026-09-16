@@ -188,6 +188,46 @@ class PersistentWorkerSequenceTests(unittest.TestCase):
         self.assertFalse(self.pid_file.exists())
         self.assertFalse(self.fifo.exists())
 
+    def test_mailbox_typeerror_crosses_engine_boundary_and_kills_worker(self):
+        first = 'm-' + 'f' * 32
+        second = 'm-' + '1' * 32
+        rid = '2' * 32
+        self.write_request(first, mode='live', files=['README.md'])
+        self.write_request(second, mode='audit', files=['README.md'])
+        # Make the browser response visible so the real BrowserMailboxProvider
+        # reaches read_json(), then inject the retained impossible TypeError there.
+        (self.mailbox / f'{first}-{rid}.json.ready').write_text('1', encoding='ascii')
+
+        writer, errors = self.start_writer([f'{first} live', f'{second} audit'])
+        stdout = io.StringIO()
+        with (
+            mock.patch.object(browser_mailbox.uuid, 'uuid4', return_value=SimpleNamespace(hex=rid)),
+            mock.patch.object(browser_mailbox, 'read_json', side_effect=TypeError('impossible constructor return')),
+            contextlib.redirect_stdout(stdout),
+        ):
+            status = browser_worker.serve(
+                fifo=self.fifo,
+                pid_file=self.pid_file,
+                mailbox=self.mailbox,
+                root=self.root,
+                output_root=self.output,
+            )
+        writer.join(timeout=5)
+        self.assertFalse(writer.is_alive(), 'command writer did not finish')
+        self.assertEqual(errors, [])
+        self.assertEqual(status, 70)
+
+        transcript = stdout.getvalue()
+        self.assertIn(f'{browser_worker.FATAL_PREFIX}{first}:70', transcript)
+        self.assertNotIn(f'{browser_worker.RUN_PREFIX}{first}:', transcript)
+        self.assertNotIn(f'{browser_worker.RUN_PREFIX}{second}:', transcript)
+        self.assertTrue((self.output / first).is_dir(), 'incomplete failed mission evidence was discarded')
+        self.assertFalse((self.output / first / 'result.json').exists())
+        self.assertFalse((self.output / second).exists())
+        self.assertFalse((self.output / '.active').exists(), 'Python finally did not release mission lock')
+        self.assertFalse(self.pid_file.exists())
+        self.assertFalse(self.fifo.exists())
+
 
 class PersistentWorkerHostTimeoutTests(unittest.TestCase):
     def test_startup_and_mission_timeouts_terminate_only_verified_worker(self):
