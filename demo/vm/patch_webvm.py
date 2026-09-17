@@ -12,6 +12,24 @@ from pathlib import Path
 from harden_serviceworker import harden as harden_serviceworker
 
 
+IOS_WEBKIT_PREFLIGHT = r'''<script data-residual-ios-webkit-preflight>
+(() => {
+  try {
+    const params = new URLSearchParams(location.search);
+    if (params.get("full_vm") === "1") return;
+    const ua = navigator.userAgent || "";
+    const platform = navigator.platform || "";
+    const ios = /iPhone|iPad|iPod/.test(ua) ||
+      (platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if (!ios) return;
+    const target = new URL("../walkthrough/", location.href);
+    target.searchParams.set("platform", "ios-webkit");
+    location.replace(target.href);
+  } catch (_) {}
+})();
+</script>'''
+
+
 def require_once(text: str, needle: str, label: str) -> None:
     count = text.count(needle)
     if count != 1:
@@ -190,8 +208,13 @@ def patch_index(path: Path) -> None:
         raise SystemExit("unexpected eager Puter SDK reference in built index")
     marker = "<head>"
     require_once(text, marker, "WebVM built index head marker")
+    additions = []
+    if "data-residual-ios-webkit-preflight" not in text:
+        additions.append(IOS_WEBKIT_PREFLIGHT)
     if 'name="theme-color"' not in text:
-        text = text.replace(marker, '<head>\n<meta name="theme-color" content="#000000">', 1)
+        additions.append('<meta name="theme-color" content="#000000">')
+    if additions:
+        text = text.replace(marker, marker + "\n" + "\n".join(additions), 1)
     path.write_text(text)
 
 
