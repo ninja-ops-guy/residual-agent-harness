@@ -11,7 +11,10 @@ on:
       - 'residual/**'
       - 'pyproject.toml'
       - 'tests/test_webvm_*.py'
+      - 'tests/test_provider_release_guardrails.py'
       - 'tests/webvm-provider.test.mjs'
+      - 'AGENTS.md'
+      - 'docs/release/DEMO_REGRESSION_GUARDRAILS.md'
       - 'examples/onboarding/cloud_demo.sh'
       - '.github/workflows/pages.yml'
   pull_request:
@@ -21,7 +24,10 @@ on:
       - 'residual/**'
       - 'pyproject.toml'
       - 'tests/test_webvm_*.py'
+      - 'tests/test_provider_release_guardrails.py'
       - 'tests/webvm-provider.test.mjs'
+      - 'AGENTS.md'
+      - 'docs/release/DEMO_REGRESSION_GUARDRAILS.md'
       - 'examples/onboarding/cloud_demo.sh'
       - 'tests/test_webvm_publication.py'
       - '.github/workflows/pages.yml'
@@ -56,8 +62,8 @@ jobs:
           node-version: '22'
       - name: Test provider session contracts
         run: node --experimental-default-type=module --test tests/webvm-provider.test.mjs
-      - name: Test publication contracts
-        run: python -m unittest -v tests.test_webvm_publication tests.test_webvm_cli_output tests.test_webvm_deployment_workflow tests.test_webvm_workbench tests.test_webvm_browser_mailbox tests.test_webvm_persistent_worker
+      - name: Test publication contracts and release guardrails
+        run: python -m unittest -v tests.test_webvm_publication tests.test_provider_release_guardrails tests.test_webvm_cli_output tests.test_webvm_deployment_workflow tests.test_webvm_workbench tests.test_webvm_browser_mailbox tests.test_webvm_persistent_worker
       - name: Build static site shell
         shell: bash
         run: |
