@@ -48,6 +48,7 @@ def patch(text):
         if (residualShellTail.includes("RESIDUAL_WORKER_POISONED")) {
             residualWorkerReady = false;
             residualWorkerPoisoned = true;
+            residualVmState = "VM WORKER POISONED · RESTART REQUIRED";
             if (residualWorkerStart) {
                 const current = residualWorkerStart;
                 residualWorkerStart = null;
@@ -58,6 +59,7 @@ def patch(text):
         }
         if (!residualWorkerPoisoned && residualShellTail.includes("RESIDUAL_WORKER_READY")) {
             residualWorkerReady = true;
+            residualVmState = "VM READY · WORKER READY";
             if (residualWorkerStart) {
                 const current = residualWorkerStart;
                 residualWorkerStart = null;
@@ -82,6 +84,7 @@ def patch(text):
                     // state bound to this mission/generation.
                     residualWorkerReady = false;
                     residualWorkerPoisoned = true;
+                    residualVmState = "VM WORKER POISONED · RESTART REQUIRED";
                     (async () => {
                         try { await terminateResidualWorker(current.missionId); } catch (_) {}
                         residualShellCommandBusy = false;
@@ -153,6 +156,7 @@ def patch(text):
                 residualWorkerStart = null;
                 residualWorkerReady = false;
                 residualWorkerPoisoned = true;
+                residualVmState = "VM WORKER POISONED · RESTART REQUIRED";
                 (async () => {
                     try { await terminateResidualWorker(null); } catch (_) {}
                     residualShellCommandBusy = false;
@@ -176,6 +180,8 @@ def patch(text):
         }
         residualWorkbench = mountMissionControl({
             ready: () => !!cx && !!residualDataDevice && residualShellReady && !residualShellCommandBusy && !residualWorkerPoisoned,
+            health: () => residualWorkerPoisoned ? "poisoned" : (!!cx && !!residualDataDevice && residualShellReady && !residualShellCommandBusy ? "ready" : "starting"),
+            restart: () => residualRestartGuest(),
             focus: () => term.focus(),
             mailbox: async (path, text) => {
                 const response = /^\\/m-[a-f0-9]{32}-[a-f0-9]{32}\\.json$/.test(path);
@@ -204,6 +210,7 @@ def patch(text):
                         residualShellRun = null;
                         residualWorkerReady = false;
                         residualWorkerPoisoned = true;
+                        residualVmState = "VM WORKER POISONED · RESTART REQUIRED";
                         (async () => {
                             try { await terminateResidualWorker(request.id); } catch (_) {}
                             residualShellCommandBusy = false;
