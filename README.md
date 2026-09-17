@@ -32,17 +32,23 @@ Those are exact-revision automated/browser results. They do **not** establish in
 
 GitHub records **zero submitted reviews** for PR #156. Current main is therefore technically qualified but **review-provisional**. Missing pre-merge independent acceptance on #136/#145/#147/#151/#156 remains governance debt.
 
-## Live-provider boundary
+## Live-provider and WebVM production boundary
 
-The latest retained real-account evidence before #156 is **FAIL**: two real Puter calls returned `provider_protocol_invalid`, zero obligations were accepted, and no candidate reached verification. That failure is retained evidence and is not rewritten by the repair.
+Earlier retained real-account evidence before #156 is **FAIL** at the provider-envelope boundary: two real Puter calls returned `provider_protocol_invalid`, zero obligations were accepted, and no candidate reached verification. That evidence remains authoritative history.
 
-PR #156's merged revision has green provider-contract and browser/Pages qualification, but those automated paths are not a successful real-account provider run. A fresh successful paid/live Puter build on exact deployed `main@f6f9bad8...` is therefore **UNKNOWN / NOT YET RETAINED**.
+Fresh post-#156 iPhone/WebKit public-demo evidence advanced the failure boundary but did **not** produce a successful end-to-end live mission. The browser reported **`Provider connected`**, while the Linux guest exposed **`RESIDUAL_WORKER_POISONED`** and Mission Control remained at **`GUEST STARTING`** with no supported recovery path. The observed public-demo attempt is therefore an end-to-end **FAIL** at the guest-recovery/product boundary. Because no valid live candidate completed the normal RESIDUAL verifier path, successful paid/live Puter candidate execution on exact current main remains **UNKNOWN**, not `PASS`.
 
-Closed PRs #149 and #154 are superseded by #156 and should not be treated as active integration candidates.
+The poison fence itself remains intentional fail-closed behavior. The lower-level cause of the production guest poison remains **UNKNOWN**.
+
+PR #158 explored clearing a proven-recovered generation's poison tombstone, but its exact head `ac637711...` is **FAIL**: Controller/provider contracts, Command Station and Pages are red, and Python 3.11 retained two regressions requiring the durable timeout poison to remain present. Do not treat #158 as qualified.
+
+PR #159 instead preserves the old poison fence and adds whole-guest recovery by rotating to a fresh browser-session WebVM writable overlay. Exact head **`5c33f31d234e3be315a052109fe270d3b70276c5`** has all eight observed applicable workflows **PASS**, including Browser VM Demo CI and generated desktop+narrow Pages proof. The browser acceptance deliberately reproduces the poisoned state, requires `GUEST FAILED · RESTART REQUIRED`, rotates the overlay, proves poison/PID/control/busy/active-lock state does not carry into the replacement guest, then completes a real local repository audit. Cloud inference remains test-double coverage. The only submitted review is an owner `COMMENTED` handoff explicitly marked **not independent acceptance**, so #159 remains **BLOCKED on genuinely independent technical review** before integration. After any accepted merge, production Pages and a fresh real-account iPhone/WebKit mission are still required before claiming the public provider demo fixed.
 
 ## WebVM reliability boundary
 
 Issues #120 and #126 remain open. Retained diagnostics isolate a WebVM-specific, process-local CPython positive-duration timed-wait failure affecting at least `time.sleep()` and `select.select()` around call 273, while tested direct libc waits continue beyond that boundary. Merged #145 routes long-lived browser polling below the known Python timed-wait surface, but avoidance of that trigger is not proof that the historical corruption family is root-caused or that its recurrence rate is acceptable.
+
+The fresh poisoned-guest production evidence is additional reliability evidence, not proof that the timed-wait defect and poison event share one cause. Their relationship remains **UNKNOWN**.
 
 ## Factory / M4 boundary
 
@@ -52,12 +58,12 @@ PR #139 still changes a protected M4 qualification test. Required order remains:
 
 ## Current candidate boundary after #156
 
-Several open candidates were built on `main@f2d58e77...` and became stale when #156 merged:
-
-- **#153** — consolidated WebVM acceptance-harness repairs refreshed onto current main at `35cbf2ba060bc04aabb6cfd10fbf90dc8dbccb77`; fresh exact-head qualification and genuinely independent review are required before integration, then #89 must be refreshed/requalified.
+- **#159** — fresh-overlay poisoned-guest recovery, exact head `5c33f31d...`: all eight observed applicable workflows **PASS**; owner COMMENT is not independent acceptance; **BLOCKED** on genuinely independent review, then post-merge production Pages + fresh real-account iPhone/WebKit validation.
+- **#158** — alternative in-console provider/recovery approach, exact head `ac637711...`: **FAIL** on Controller/provider contracts, Command Station and Pages; retained Python 3.11 regressions show durable poison was removed where existing tests require it to remain. Not qualified.
+- **#153** — consolidated WebVM acceptance-harness repairs at `35cbf2ba...`: all eight observed applicable exact-head workflows **PASS**, but no qualifying independent current-head approval; blocked before integration, then #89 must be refreshed/requalified.
 - **#152** — Qualification v1 evidence-first testing framework; its prior exact-head evidence is historical after #156 and no aggregate release `PASS` is inherited.
-- **#146** — independent-current-head review gate refreshed onto current main at `c416d408149408ff8668a48d6e73eb1f3bf6347e`; fresh exact-head qualification and genuinely independent write-authorized acceptance remain required. Platform ruleset enforcement is a separate maintainer action.
-- **#118** `ee81051220c616f8a605c948820d972177e19801`, **#115** `27e6e3b790d950ad1e8dd3603569f2eb5090ada4`, and **#131** `0094dd4c27231f8c4f71161b9a82770a27c7aa7b` are refreshed onto current main with all applicable exact-head workflows green, but each has zero reviews and remains blocked on genuine independent acceptance. #115's simulator is not elapsed soak; #131 remains the separate core persistence lane. **#93** remains unqualified on its retained failure/protected dependency.
+- **#146** — independent-current-head review gate at `c416d408...`: ordinary workflows and policy regressions pass, while the live independent-review gate correctly remains **BLOCKED** without a qualifying current-head human approval. Platform ruleset enforcement is a separate maintainer action.
+- **#118** `ee81051220c616f8a605c948820d972177e19801`, **#115** `27e6e3b790d950ad1e8dd3603569f2eb5090ada4`, and **#131** `0094dd4c27231f8c4f71161b9a82770a27c7aa7b` are refreshed onto current main with applicable exact-head workflows green, but each remains blocked on genuine independent acceptance. #115's simulator is not elapsed soak; #131 remains the separate core persistence lane. **#93** remains unqualified on its retained failure/protected dependency.
 
 ## Design principles
 
@@ -116,17 +122,18 @@ Paper-facing evaluation must preserve raw worker correctness `P(X)`, acceptance 
 
 ## Current priority gates
 
-1. Retain genuinely independent post-merge technical review for the #156 current-main surface and finish #144/#146 enforcement for future merges.
-2. Run and retain a fresh real-account Puter acceptance test on exact deployed `f6f9bad8...`; do not infer live-provider success from green contract/browser CI.
-3. Complete fresh qualification of refreshed #153 head `35cbf2ba060bc04aabb6cfd10fbf90dc8dbccb77`, preserve first-attempt evidence, require independent review before integration, then refresh/requalify #89.
-4. Refresh/requalify #152; complete fresh qualification and independent acceptance of refreshed #146 head `c416d408149408ff8668a48d6e73eb1f3bf6347e`. Do not inherit stale-head qualification.
-5. Keep #120/#126 open until a predefined reliability campaign or proven regression-tested root cause supports closure.
-6. Resolve #139 through independent protected-byte review, deliberate baseline handling and fresh qualification before refreshing #134.
-7. Complete release/recovery qualification without converting rehearsal or simulation into `PASS`.
-8. Freeze the confirmatory live-evaluation protocol before observing outcome data, then run R0–R5, degradation, heterogeneous routing and staged 24h → 72h → 30-day soak studies.
+1. Obtain genuinely independent exact-head review for technically green #159; if accepted, integrate without weakening poison semantics, then require first-attempt production Pages and a fresh real-account iPhone/WebKit mission before claiming the public demo recovered.
+2. Preserve #158 as exact-head **FAIL** evidence unless it is materially revised and requalified; do not waive the durable-poison regressions.
+3. Retain genuinely independent post-merge technical review for the #156 current-main surface and finish #144/#146 enforcement for future merges.
+4. Obtain genuinely independent acceptance for #153 before integration, then refresh/requalify #89 while retaining its historical Pages failure.
+5. Refresh/requalify #152. Do not inherit stale-head qualification.
+6. Keep #120/#126 open until a predefined reliability campaign or proven regression-tested root cause supports closure.
+7. Resolve #139 through independent protected-byte review, deliberate baseline handling and fresh qualification before refreshing #134.
+8. Complete release/recovery qualification without converting rehearsal or simulation into `PASS`.
+9. Freeze the confirmatory live-evaluation protocol before observing outcome data, then run R0–R5, degradation, heterogeneous routing and staged 24h → 72h → 30-day soak studies.
 
 ## Scope and non-claims
 
 RESIDUAL is an implemented research and engineering platform, not a universal proof system. A verifier establishes only the conditions encoded by its contract and evidence. Receipts are evidence of checked acceptance under stated identities and revisions, not certificates of arbitrary truth.
 
-The project does not currently claim universal correctness, a universal verifier, universally optimal scheduling, guaranteed token/cost savings, blanket production readiness, every-host M4 qualification, completed release/recovery qualification, acceptable long-run WebVM reliability, successful post-#156 real-provider inference, autonomous merge authority, completed long-duration soak, or live proof of the central research hypothesis.
+The project does not currently claim universal correctness, a universal verifier, universally optimal scheduling, guaranteed token/cost savings, blanket production readiness, every-host M4 qualification, completed release/recovery qualification, acceptable long-run WebVM reliability, successful post-#156 end-to-end real-provider execution, root cause of the poisoned-guest production failure, autonomous merge authority, completed long-duration soak, or live proof of the central research hypothesis.
