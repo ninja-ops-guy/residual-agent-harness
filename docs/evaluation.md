@@ -67,10 +67,10 @@ A system that rejects almost everything must not be described as reliable merely
 
 Do **not** start paper-facing live R0–R5 evaluation from current `main` until the following are closed or explicitly scoped out:
 
-1. **Issue #63 — current M4 qualification:** accepted-tree binding, filesystem/link safety, verifier-execution isolation and Git-evidence `UNKNOWN` semantics.
-2. **Issue #48 — traceability reconciliation:** M2/M3/M4/EVAL are implemented in code but still shown as `not_started` in the stale generated implementation-status view.
+1. **Merged M4 qualification:** PR #81 is present in main at `de9c9fa`. Retain independent audit and namespace-enabled qualification of the exact merged commit/tree for accepted-tree binding, filesystem/link safety, verifier-execution isolation and Git-evidence `UNKNOWN` semantics; merging alone does not establish this evidence.
+2. **Traceability verification:** PR #77 is present in main at `31cd2bf`; the manifest maps M2/M3/EVAL to implemented code and M4 to `implemented_unverified`. Run the status checker on the qualified tree; this mapping does not establish trust-boundary closure.
 3. **Factory OS reproducibility classification:** timing-sensitive tests have exhibited a fail-then-pass-unchanged run and need root-cause classification.
-4. **Measured-evidence integrity — PR #71:** correct and requalify the selected live evidence path before using it for confirmatory claims. The reviewed Factory adapter still permits evidence replay across repetitions, unauthenticated/run-unbound scheduler topology, task-population drift from the frozen workload, and unqualified verifier-boundary labels.
+4. **Measured-evidence integrity — PR #71:** correct and requalify the selected live evidence path before using it for confirmatory claims. The earlier reviewed Factory adapter permitted evidence replay across repetitions, unauthenticated/run-unbound scheduler topology, task-population drift from the frozen workload, and unqualified verifier-boundary labels.
 
 For a protocol using the Factory adapter, require fresh execution identities bound to each experiment cell; reject reused evidence as an independent repetition; authenticate scheduler evidence over the complete run interval; validate the exact workload-to-Factory-task mapping; and pin an independently qualified verifier policy and execution boundary. Unknown policies/boundaries fail closed. Resume may recover an existing run, but must not count it as new work. Closing #63 does not by itself validate these measurement guarantees, and green fixture/package checks do not close them either.
 

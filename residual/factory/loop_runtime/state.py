@@ -56,6 +56,11 @@ class VerificationResultRef:
     evidence_root: str | None
     receipt_ref: str | None = None
 
+    def __post_init__(self) -> None:
+        # Type annotations alone do not constrain deserialized adapter values.
+        # Unknown upstream states must be explicitly mapped to UNKNOWN.
+        object.__setattr__(self, "status", VerificationStatus(self.status))
+
 
 @dataclass(frozen=True)
 class FactoryResultSet:
@@ -70,6 +75,9 @@ class FactoryResultSet:
     cost: Decimal = Decimal("0")
 
     def __post_init__(self) -> None:
+        verification_ids = [item.verification_id for item in self.verification_results]
+        if len(verification_ids) != len(set(verification_ids)):
+            raise ValueError("duplicate verification result id")
         ids = [obligation.id for obligation in self.residual_obligations]
         if len(ids) != len(set(ids)):
             raise ValueError("duplicate residual obligation id")
