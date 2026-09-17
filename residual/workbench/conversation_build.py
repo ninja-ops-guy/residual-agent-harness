@@ -29,6 +29,7 @@ CID = re.compile(r"c-[0-9a-f]{32}\Z")
 TRACE_ROOT = re.compile(r"[0-9a-f]{64}\Z")
 MAX_PRIOR_TOTAL_BYTES = 80000
 MAX_LINEAGE_DEPTH = 16
+MAX_BUILD_OUTPUT_TOKENS = 8192
 
 
 def _id(value, pattern, label, *, optional=False):
@@ -205,8 +206,8 @@ def make_task(request: dict, root: Path, prior_bundle=None, parent_binding=None)
                     "\nRequired literal text somewhere in the summary or generated files: " + canonical(required))
     obligation = Obligation("build", instruction, "workbench:build", tuple(provider_evidence),
                             parameters={"required_text": required, "paths": paths, "prior_paths": prior_paths}, cloud=consent)
-    calls, tokens = request.get("max_calls", 2), request.get("max_output_tokens", 1536)
-    if type(calls) is not int or not 1 <= calls <= 3 or type(tokens) is not int or not 256 <= tokens <= 1536:
+    calls, tokens = request.get("max_calls", 2), request.get("max_output_tokens", MAX_BUILD_OUTPUT_TOKENS)
+    if type(calls) is not int or not 1 <= calls <= 3 or type(tokens) is not int or not 256 <= tokens <= MAX_BUILD_OUTPUT_TOKENS:
         raise ContractError("mission budget outside public workbench bounds")
     model = request.get("model", "gpt-5-nano")
     if not isinstance(model, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:/-]{0,95}", model):
@@ -303,7 +304,7 @@ def main(argv=None, *, mailbox_provider_type=MailboxProvider):
     parser.add_argument("--files", nargs="*", default=[])
     parser.add_argument("--model", default="gpt-5-nano")
     parser.add_argument("--max-calls", type=int, default=2)
-    parser.add_argument("--max-output-tokens", type=int, default=1536)
+    parser.add_argument("--max-output-tokens", type=int, default=MAX_BUILD_OUTPUT_TOKENS)
     parser.add_argument("--conversation-id")
     parser.add_argument("--parent-mission-id")
     parser.add_argument("--stream", action="store_true")
