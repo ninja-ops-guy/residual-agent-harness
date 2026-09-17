@@ -28,7 +28,7 @@ def patch(text):
     )
     recovery_js = _javascript_shell_template(recovery)
 
-    text = replace_once(text, "<script>\n", "<script>\n\timport { mountMissionControl } from './mission-control-world.js';\n")
+    text = replace_once(text, "<script>\n", "<script>\n\timport { mountMissionControl } from './mission-control-diagnostics.js';\n")
     text = replace_once(text, 'var residualBridgeBuffer = "";',
                         'var residualWorkbench = null;\n\tvar residualDataDevice = null;\n\tvar residualShellTail = "";\n\tvar residualShellReady = false;\n\tvar residualShellCommandBusy = false;\n\tvar residualShellRun = null;\n\tvar residualShellInputBuffer = "";\n\tvar residualWorkerReady = false;\n\tvar residualWorkerPoisoned = false;\n\tvar residualWorkerStart = null;\n\tvar residualWorkerRecovery = null;\n\tvar residualWorkerRecoverySeq = 0;\n\tvar residualBridgeBuffer = "";')
     output_patch = """const out = residualDecoder.decode(bytes, {stream:true});
@@ -48,6 +48,7 @@ def patch(text):
         if (residualShellTail.includes("RESIDUAL_WORKER_POISONED")) {
             residualWorkerReady = false;
             residualWorkerPoisoned = true;
+            residualVmState = "VM WORKER POISONED · RESTART REQUIRED";
             if (residualWorkerStart) {
                 const current = residualWorkerStart;
                 residualWorkerStart = null;
@@ -58,6 +59,7 @@ def patch(text):
         }
         if (!residualWorkerPoisoned && residualShellTail.includes("RESIDUAL_WORKER_READY")) {
             residualWorkerReady = true;
+            residualVmState = "VM READY · WORKER READY";
             if (residualWorkerStart) {
                 const current = residualWorkerStart;
                 residualWorkerStart = null;
@@ -82,6 +84,7 @@ def patch(text):
                     // state bound to this mission/generation.
                     residualWorkerReady = false;
                     residualWorkerPoisoned = true;
+                    residualVmState = "VM WORKER POISONED · RESTART REQUIRED";
                     (async () => {
                         try { await terminateResidualWorker(current.missionId); } catch (_) {}
                         residualShellCommandBusy = false;
@@ -153,6 +156,7 @@ def patch(text):
                 residualWorkerStart = null;
                 residualWorkerReady = false;
                 residualWorkerPoisoned = true;
+                residualVmState = "VM WORKER POISONED · RESTART REQUIRED";
                 (async () => {
                     try { await terminateResidualWorker(null); } catch (_) {}
                     residualShellCommandBusy = false;
@@ -176,6 +180,8 @@ def patch(text):
         }
         residualWorkbench = mountMissionControl({
             ready: () => !!cx && !!residualDataDevice && residualShellReady && !residualShellCommandBusy && !residualWorkerPoisoned,
+            health: () => residualWorkerPoisoned ? "poisoned" : (!!cx && !!residualDataDevice && residualShellReady && !residualShellCommandBusy ? "ready" : "starting"),
+            restart: () => residualRestartGuest(),
             focus: () => term.focus(),
             mailbox: async (path, text) => {
                 const response = /^\\/m-[a-f0-9]{32}-[a-f0-9]{32}\\.json$/.test(path);
@@ -204,6 +210,7 @@ def patch(text):
                         residualShellRun = null;
                         residualWorkerReady = false;
                         residualWorkerPoisoned = true;
+                        residualVmState = "VM WORKER POISONED · RESTART REQUIRED";
                         (async () => {
                             try { await terminateResidualWorker(request.id); } catch (_) {}
                             residualShellCommandBusy = false;
@@ -242,7 +249,7 @@ def patch(text):
 def install(source: Path, site: Path):
     source.write_text(patch(source.read_text()))
     here = Path(__file__).resolve().parent
-    for name in ('mission-control.js', 'mission-control-engineer.js', 'mission-control-world.js', 'mission-preview.js', 'provider-session.js'):
+    for name in ('mission-control.js', 'mission-control-engineer.js', 'mission-control-world.js', 'mission-control-diagnostics.js', 'mission-preview.js', 'provider-session.js'):
         shutil.copyfile(here / name, source.parent / name)
     provider = site / 'provider'; provider.mkdir(parents=True, exist_ok=True)
     for src, dst in [('provider.html', 'index.html'), ('provider.js', 'provider.js'), ('provider-session.js', 'provider-session.js')]:

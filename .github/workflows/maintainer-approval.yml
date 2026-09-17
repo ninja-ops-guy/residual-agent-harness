@@ -1,0 +1,34 @@
+name: Maintainer approval gate
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+  issue_comment:
+    types: [created, edited]
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+
+jobs:
+  maintainer-approval:
+    name: maintainer-approval
+    if: >-
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Unit-test maintainer approval policy
+        run: python -m unittest discover -s tests -p 'test_maintainer_approval_gate.py' -q
+      - name: Require explicit exact-head maintainer approval
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python scripts/check_maintainer_approval.py
