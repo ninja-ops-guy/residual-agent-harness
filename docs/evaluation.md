@@ -2,7 +2,7 @@
 
 > **Current platform state:** [CURRENT_STATUS.md](CURRENT_STATUS.md)
 
-RESIDUAL now has two evaluation layers: the original controller benchmark/study path and the newer `residual/eval/` package used for frozen reliability experiments over the Factory/runtime stack. Both remain useful, but they answer different questions.
+RESIDUAL has two evaluation layers: the original controller benchmark/study path and the frozen reliability-evaluation apparatus under `residual/eval/`. Both are useful, but they answer different questions and must not be mixed into one claim.
 
 ## Offline verification
 
@@ -11,10 +11,9 @@ python3 -m unittest discover -s tests -v
 python3 -m residual demo --output runs/demo
 python3 -m residual verify-trace runs/demo/trace.jsonl --result runs/demo/result.json
 python3 -m residual run examples/incident/task.json --config examples/demo.toml --output runs/incident
-python3 -m examples.python_api
 ```
 
-HTTP contract tests exercise native Ollama/OpenAI-compatible transport behavior including framing, output caps, usage parsing, redirect refusal, malformed responses, header-confined credentials and missing usage. They do **not** establish live model quality merely because transport tests pass.
+Transport/contract tests prove the behavior they exercise. They do **not** establish live model quality merely because an adapter or browser workflow is green.
 
 ## Original scripted controller experiments
 
@@ -23,34 +22,17 @@ python3 -m residual benchmark --cases 8 --noise-lines 256 --output docs/benchmar
 python3 -m scripts.scale_study
 ```
 
-The scripted benchmark remains useful for deterministic controller/evidence behavior. It does not demonstrate that cloud reasoning is necessary, that real models preserve quality, or that simulated request-byte savings predict live billed cost.
+The scripted benchmark is useful for deterministic controller/evidence regression. It does not demonstrate that cloud reasoning is necessary, that real models preserve quality, or that simulated request-byte savings predict live billed cost.
 
-| Mode | Local tools/model | Expert evidence | Purpose |
-| --- | --- | --- | --- |
-| `local_only` | Enabled | No expert | Establish local fixture baseline |
-| `full_cloud` | Disabled | All permitted task evidence | Isolate broad expert processing |
-| `cascade` | Enabled | All permitted task evidence | Simple fallback after local attempts |
-| `residual_fixed` | Enabled | Failed frontier + fixed evidence capsule/pulls | Isolate residual transfer |
-| `residual` | Enabled | Failed frontier + adaptive packet/pulls | Default residual design |
-| `no_pull` | Enabled | Seed evidence only | Missing-evidence ablation |
+Failures, abstentions and missing usage remain in denominators. Missing provider usage remains unknown rather than being reported as zero-cost evidence.
 
-Failures, abstentions and missing usage remain in denominators. Missing provider usage must remain unknown rather than being reported as zero-cost evidence.
+## Frozen reliability evaluation
 
-## Frozen reliability evaluation (`residual/eval/`)
+The research apparatus includes immutable workload definitions, repeated configuration runs, ablations, statistics/comparison reports, fault injection, evidence/report reconstruction and Factory measurement hooks.
 
-The current research path is the hash-locked evaluation package under `residual/eval/`. It includes:
+Paper-facing metrics include:
 
-- immutable `FrozenWorkload` task sets;
-- repeated configuration runs;
-- ablation definitions;
-- statistics and comparison reports;
-- fault injection;
-- evidence/report reconstruction from retained observations;
-- measured Factory evaluation hooks.
-
-The central reliability experiment holds worker/model capability constant while progressively changing the surrounding acceptance architecture. The paper-facing metrics are:
-
-- `P(X)` — raw worker/candidate correctness;
+- `P(X)` — raw candidate correctness;
 - `P(A)` — acceptance coverage;
 - `P(X|A)` — accepted correctness;
 - Accepted Error Rate (AER);
@@ -58,60 +40,124 @@ The central reliability experiment holds worker/model capability constant while 
 - false acceptance and false rejection;
 - verifier rejection / `UNKNOWN` rates;
 - throughput and latency;
-- orchestration overhead and rework/conflict cost;
+- orchestration/rework/conflict overhead;
 - monetary/token/GPU cost where directly measurable.
 
-A system that rejects almost everything must not be described as reliable merely because accepted error is low. Reliability results must always be interpreted with acceptance coverage and efficiency.
+A system that rejects nearly everything must not be described as reliable merely because accepted error is low. Report acceptance coverage alongside accepted correctness.
 
-## Live evaluation gate
+## Current integration evidence is not confirmatory evidence
 
-Do **not** start paper-facing live R0–R5 evaluation from current `main` until the following are closed or explicitly scoped out:
+Current `main` is **`160c01a1b1933ee10c82dcf30b1674a17f7560ff`** and includes merged #169 after the accepted provider-transport path through #173.
 
-1. **Issue #63 — current M4 qualification:** accepted-tree binding, filesystem/link safety, verifier-execution isolation and Git-evidence `UNKNOWN` semantics.
-2. **Issue #48 — traceability reconciliation:** M2/M3/M4/EVAL are implemented in code but still shown as `not_started` in the stale generated implementation-status view.
-3. **Factory OS reproducibility classification:** timing-sensitive tests have exhibited a fail-then-pass-unchanged run and need root-cause classification.
-4. **Measured-evidence integrity — PR #71:** correct and requalify the selected live evidence path before using it for confirmatory claims. The reviewed Factory adapter still permits evidence replay across repetitions, unauthenticated/run-unbound scheduler topology, task-population drift from the frozen workload, and unqualified verifier-boundary labels.
+#169 adds privacy-safe local diagnostics and sanitized triage bundles without changing authoritative guest trace/`verify-trace` evidence, provider routing, mission authority or qualification semantics. Its exact final head completed qualification and received a maintainer attestation before merge.
 
-For a protocol using the Factory adapter, require fresh execution identities bound to each experiment cell; reject reused evidence as an independent repetition; authenticate scheduler evidence over the complete run interval; validate the exact workload-to-Factory-task mapping; and pin an independently qualified verifier policy and execution boundary. Unknown policies/boundaries fail closed. Resume may recover an existing run, but must not count it as new work. Closing #63 does not by itself validate these measurement guarantees, and green fixture/package checks do not close them either.
+All seven observed exact-current-main `push` workflows completed **PASS**. Pages/WebVM run `35182396521` passed on attempt 1 through provider/publication contracts, generated desktop+narrow real-browser proof, deployment, published real-guest execution, published narrow-Chromium acceptance and retained live-acceptance proof.
 
-R0–R5 does not have to use PR #71's Factory adapter. A different evidence path is acceptable only when the protocol explicitly excludes that adapter and independently qualifies the applicable execution-identity, anti-replay, workload-population, acceptance and topology guarantees of its chosen path. Excluding an adapter is not permission to omit evidence validation.
+This is mechanism/integration/browser evidence. It is **not** a live R0–R5 result, paid/live provider/model quality evidence, long-run production-reliability evidence, independent scientific validation or a paper-facing effect size.
 
-Once those gates are clean, freeze the exact commit, selected execution/evidence adapter, workload hash and task mapping, model/version, inference settings, verifier revisions, policies, prompts, metrics and analysis code before collecting confirmatory data. Retain the qualification evidence with that frozen protocol.
+The earlier `main@2b7cb626...` retained Controller/provider run `35172926291` as **FAIL** in Python 3.12 on the protected M4 `/proc/<pid>/status` observation race. That exact-revision failure remains in the evidence record. A later green workflow does not erase it or establish root cause.
+
+## Live-provider boundary
+
+Fresh retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice. Both separately counted calls failed closed as `provider_protocol_invalid`; no candidate crossed the protocol boundary (`candidate_rejections=0`, `verification_elapsed_ms=0`). Candidate correctness and semantic verification therefore remain **UNKNOWN**.
+
+The retained mission also shows a 1536-token provider-output limit for a browser build that required the complete generated file bundle. That observation does not establish truncation as the sole cause of the invalid protocol responses.
+
+PR #176 proposes a bounded build-only ceiling/default of 8192 while retaining 1536 for non-build/source-grounded live mode and classifying normalized `finish_reason=length` as `provider_protocol_invalid / response_truncated`. Its current head is diverged from current main, so its existing exact-head CI and maintainer attestation are historical to that candidate. Refresh/current-main qualification is required before integration, and a new retained real-account iPhone/WebKit mission is required after any accepted merge before successful paid/live Puter execution can become `PASS`.
+
+If a study depends on the real-provider path, do not substitute green provider-contract or Pages/browser CI for fresh exact-revision provider evidence.
+
+## WebVM-dependent evaluation gate
+
+Issues #120/#126 remain open. Retained diagnostics isolate a process-local CPython positive-duration timed-wait failure under WebVM. Merged #145 avoids the known Python timed-wait surface in long-lived browser polling; merged #169 improves local triage evidence, but the historical guest-corruption root cause and long-run recurrence rate remain **UNKNOWN**. The later poisoned-guest event is additional reliability evidence and has not been proven to share the same cause.
+
+For a confirmatory protocol that depends on WebVM:
+
+1. freeze the exact source and deployed revision;
+2. retain browser/runtime qualification artifacts for that exact revision;
+3. define a repeated-run reliability campaign in advance;
+4. preserve every first-attempt `FAIL`/`UNKNOWN` rather than rerunning it away;
+5. report operational failure/missingness separately from model correctness;
+6. do not describe a narrow mitigation or added telemetry as proof that the broader corruption family is fixed.
+
+A protocol may exclude WebVM, but exclusion must be explicit before outcome access.
+
+## Protected Factory/M4 evidence path
+
+Issues #63/#48 are closed. M4 remains evidence- and environment-bound rather than universally qualified.
+
+The historical `2b7cb626...` Controller/provider failure re-exposed the protected M4 `/proc` observation race. PR #139 is the isolated protected-test repair lane. If a selected evidence path depends on that repair or downstream #134, preserve the complete sequence:
+
+1. evaluate the protected change under the applicable trust-boundary review policy;
+2. make any ownership-baseline advancement deliberately, not merely to obtain green;
+3. run fresh qualification after a protected pin change;
+4. refresh/requalify dependent work against the new accepted revision.
+
+Do not convert `BLOCKED`/`UNKNOWN` capability states into `PASS`.
+
+## Qualification v1 and inference-economics candidates
+
+PR #152 proposes a broader fail-closed qualification methodology, including source-bound evidence manifests, stateful lifecycle exploration, DSM fault evidence, mutation canaries, branch coverage, exact-wheel qualification, multi-browser journeys and process/elapsed-soak tooling. Any result from an older base is historical to that exact head and does not constitute current-main qualification.
+
+Interpretation boundaries:
+
+- virtual-day stress is fixture stress, not elapsed wall-clock soak;
+- planned 24h/72h/30d workflows are not evidence until those runs actually complete;
+- a live-provider canary proves at most one bounded adapter execution/evidence path, not provider/model quality;
+- the framework does not replace capable-runner M4, ownership or Pages acceptance gates.
+
+Draft #177 is the development-only IE-001 prototype qualification candidate. The branch reports 203 focused prototype tests passing plus Q1–Q10/exact-head repository and maintainer-governance evidence, but Q11 genuinely independent current-head technical review remains pending. It is not final IE-001 qualification, production runtime evidence, a real-provider/GPU benchmark or a paper-facing result. The branch also predates current #169 main, so current-main qualification is not inherited.
+
+Draft #178 is documentation-only follow-on implementation backlog for IE-002 through IE-007. It explicitly distinguishes prototype evidence from production qualification and makes no speedup/cost/routing/GPU/paper claim. Draft #175 remains specification-only OpenViking/context-provider planning.
+
+## Governance and evaluation independence
+
+Merged #168 establishes repository merge control as automated qualification plus exact-head maintainer attestation. This is **maintainer-reviewed with automated qualification**, not independent human assurance.
+
+For release or paper claims that require independent technical/scientific validation, retain that validation separately. Repository merge permission is not a substitute for external evidence required by a claim.
+
+## Live confirmatory evaluation gate
+
+Before paper-facing R0–R5 outcome collection:
+
+1. freeze exact source commit/tree and execution environment;
+2. freeze the selected evidence/execution adapter and task mapping;
+3. freeze workload hashes, model/version, inference settings and prompts;
+4. freeze verifier revisions, policies and acceptance boundary;
+5. freeze metrics, missingness handling, statistical tests and analysis code;
+6. independently qualify the selected evidence path to the degree required by the scientific claim;
+7. retain any WebVM/provider/release qualification required by that selected path;
+8. preserve negative, rejected, `UNKNOWN`, missing and failed cells in the evidence package.
+
+Green fixture/package checks do not substitute for this freeze/qualification sequence.
 
 ## Recommended qualification ladder
 
-1. **Clean-install qualification** — build/install wheel in an isolated environment, `pip check`, import-origin checks, packaged assets, installed CLI smoke and full source verifier gate.
-2. **Single live backend qualification** — run a known backend through the evaluation path and verify usage/latency/evidence completeness.
-3. **Frozen R0–R5 study** — same worker/model across configurations; at least three repeats per configuration/task grouping as specified by the research protocol.
-4. **Model degradation** — repeat with progressively weaker workers while preserving the same acceptance boundary.
-5. **Heterogeneous routing** — test local/remote/cheap/strong engines under the same verifier policy.
-6. **Fault campaign** — worker termination, stale telemetry, network interruption, cluster reassignment, invalid receipts, verifier failure and restart/recovery cases.
-7. **24-hour soak** — resource growth, queue behavior, recovery, evidence completeness and state drift.
-8. **72-hour soak** — only after the 24-hour run is clean.
-9. **30-day soak** — long-duration operational evidence after shorter gates are stable.
-
-## Live benchmark example
-
-For the original benchmark CLI, edit a model configuration and supply credential environment variables. The harness does not silently fall back to a scripted model after a live-provider failure.
-
-```bash
-python3 -m residual benchmark --config config.local.toml \
-  --task-suite examples/suite.json --modes cascade residual_fixed residual \
-  --repeats 3 --output runs/live-benchmark.json
-```
-
-Each task/mode/repeat has its own budget. Provider prices are supplied by configuration and are not treated as timeless constants. Cost-per-success must include unsuccessful runs, and cost remains unknown when required usage/price data are incomplete.
+1. **Clean install** — installed package/import/asset/CLI checks on the exact revision.
+2. **Selected backend/evidence path** — prove execution identity, anti-replay, workload mapping, evidence completeness and verifier boundary.
+3. **Environment-specific runtime qualification** — WebVM/provider/cluster path only if the study uses it.
+4. **Frozen R0–R5 study** — one fixed model under the preregistered schedule.
+5. **Model degradation** — progressively weaker workers, unchanged acceptance policy.
+6. **Heterogeneous routing** — mixed local/remote/cheap/strong workers under the same evidence boundary.
+7. **Fault campaign** — worker termination, stale telemetry, network interruption, invalid receipts, verifier failure and recovery cases.
+8. **24-hour soak** — only after shorter qualification is clean.
+9. **72-hour soak** — only after the 24-hour run is clean.
+10. **30-day soak** — long-duration operational evidence after shorter gates are stable.
 
 ## Interpretation rules
 
-- Never compare scripted-worker latency with live network/model latency as if they were the same measurement.
+- `PASS` is scoped to the named revision/environment/gate.
+- `FAIL` remains evidence even if a later revision passes.
+- `UNKNOWN` means causality/evidence/qualification is unresolved.
+- `BLOCKED` means the required gate could not validly execute; it is not `PASS`.
+- Never compare scripted-worker latency with live provider/network latency as the same measurement.
 - Do not infer model quality from transport conformance.
 - Do not infer production readiness from fixture CI.
-- Preserve `FAIL`, `UNKNOWN`, rejected and abstained runs in denominators.
-- Keep worker correctness independent from controller acceptance so `P(X)` and `P(X|A)` can be estimated separately.
-- Retain exact commit/tree identity, workload hash, model/config identifiers and raw observations for every paper-facing result.
-- Negative or null results belong in the evidence package; do not tune the frozen protocol after observing them.
+- Do not inherit qualification from a predecessor branch after `main` materially moves.
+- Keep worker correctness independent from controller acceptance so `P(X)` and `P(X|A)` remain estimable.
+- Retain exact commit/tree, workload hash, model/config identity and raw observations for every paper-facing result.
+- Negative/null results belong in the evidence package; do not tune the frozen protocol after observing them.
 
 ## Current empirical boundary
 
-The repository has strong development evidence for mechanisms and controlled fixture behavior. It does **not** yet have confirmatory live evidence that the reliability architecture materially increases `P(X|A)` over `P(X)` at useful coverage and acceptable orchestration tax. That is the next major scientific milestone.
+The repository has strong development evidence for mechanisms and exact-revision integration. It does **not** yet have confirmatory live evidence that the reliability architecture materially increases `P(X|A)` over `P(X)` at useful coverage and acceptable orchestration tax. That remains the major scientific milestone.
