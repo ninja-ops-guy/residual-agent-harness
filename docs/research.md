@@ -22,9 +22,7 @@ Current `main` is **`dcf1e5071deb624c637aa72df575089435d72ac9`**, produced by me
 
 #189 accepts a static Pages isolation-boundary repair that keeps the optional `/provider/` helper outside COOP/COEP response rewriting while preserving `/demo/` and heavyweight WebVM isolation. Its exact-head PR workflows, including Pages, were PASS before merge.
 
-The first exact-current-main post-#189 push/deployment workflows were still queued at the latest observation. Therefore post-merge production qualification and provider-helper behavior remain pending/UNKNOWN rather than inferred PASS.
-
-These are mechanism/integration/browser results. They are not paper-facing effect sizes, paid/live provider success, model-quality evidence, physical heavyweight-WebVM reliability evidence, or long-duration reliability evidence.
+The first exact-current-main post-#189 push set has now completed **PASS on attempt 1** for Factory ownership, measured-evaluation binding, M4 runner prerequisites, clean install, Controller/provider, Command Station, and Pages/deployment. This is exact-revision automated mechanism/integration/deployment evidence for those named workflows. It does not establish universal/capable-runner M4 qualification, production provider-helper SDK/sign-in behavior, paid/live provider success, physical heavyweight-WebVM reliability, long-duration reliability, or a paper-facing effect size.
 
 ## WebVM / provider research boundary
 
@@ -32,7 +30,9 @@ Retained diagnostics isolate a WebVM-specific, process-local CPython positive-du
 
 Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice. Both counted calls failed closed as `provider_protocol_invalid`; no candidate crossed the protocol boundary, so candidate correctness and semantic verification remain **UNKNOWN**.
 
-#179 changed the bounded build-output path but did not prove truncation caused the historical invalid responses. #183 changed provider-session lifecycle handling but did not establish live semantic success. #189 repairs a separately observed provider-helper COI/CORP publication failure but still requires merged-revision production deployment and retained real-account evidence before live-provider success can be claimed.
+#179 changed the bounded build-output path but did not prove truncation caused the historical invalid responses. #183 changed provider-session lifecycle handling but did not establish live semantic success. #189 repairs a separately observed provider-helper COI/CORP publication failure. The exact-current-main Pages/deployment workflow is now PASS, but provider-helper SDK/sign-in behavior and live-provider success still require retained production evidence and must not be inferred from automated deployment CI.
+
+PR #190 has been refreshed onto exact current main at head `3a9ea3c2e6a36889f1fa71eb8a4e17c427c13261`. It remains an unaccepted provider-session recovery candidate; fresh exact-head qualification/governance and any required post-merge production retest remain separate gates.
 
 The #186 iOS/WebKit fallback remains accepted. It routes unsupported/unqualified iOS WebKit to the lightweight walkthrough before heavyweight guest boot. This is not physical heavyweight-WebVM reliability evidence. Published physical-device validation remains open, and the lower-level WebKit process-kill mechanism remains **UNKNOWN**.
 
@@ -45,6 +45,8 @@ Merged #168 establishes the repository's solo-maintainer merge-control model:
 `implementation → automated qualification/review → exact-head maintainer attestation → merge`
 
 This should be described as **maintainer-reviewed with automated qualification**, not independent human assurance. A paper-facing security, release or scientific claim may still require evidence independent of the implementer/maintainer.
+
+PR #191 was closed unmerged; its proposed automated PR Agent workflow is not part of accepted governance or research-evidence policy.
 
 ## Factory / protected evidence boundary
 
@@ -65,8 +67,6 @@ The candidate exercises existing `QuarantineStore` / `ProposedAction`, immutable
 PR #152 proposes a broader Qualification v1 layer. Any prior result on an older base remains historical to that head. Virtual-day stress is not elapsed wall-clock soak; planned 24h/72h/30d workflows create no elapsed claim until the actual runs complete.
 
 PRs #160–#167 are inference-engineering specifications. PR #177 remains a development-only IE-001 prototype qualification candidate. Its prior focused PASS/maintainer evidence is historical to its candidate head and must be reconciled/refreshed against the current IE-001 contract and applicable current-main qualification before final IE-001 qualification is claimed.
-
-PR #190 is a provider-session recovery candidate based on the #187 merge before #189 and must be refreshed/requalified before integration. PR #191 is an unaccepted automated PR-review workflow candidate and is not part of the repository governance model until merged/qualified.
 
 ## Proposed contribution
 
@@ -101,6 +101,6 @@ A positive result requires `P(X|A)` to improve meaningfully over `P(X)` without 
 
 ## What is deliberately not claimed
 
-The repository does not currently claim a new foundation model, a universal verifier/proof system, universally optimal routing, guaranteed token/cost savings, blanket production readiness, successful exact-current-main real-provider inference, physical heavyweight-WebVM iPhone reliability, acceptable long-run WebVM reliability, independent human assurance from the solo-maintainer merge model, final IE-001 qualification, accepted AQ-GOV-001 results, live-model proof of the central hypothesis, completed long-duration soak, autonomous recursive self-improvement, autonomous merge authority or first-in-literature status.
+The repository does not currently claim a new foundation model, a universal verifier/proof system, universally optimal routing, guaranteed token/cost savings, blanket production readiness, successful exact-current-main real-provider inference, verified production provider-helper SDK/sign-in behavior, physical heavyweight-WebVM iPhone reliability, acceptable long-run WebVM reliability, independent human assurance from the solo-maintainer merge model, final IE-001 qualification, accepted AQ-GOV-001 results, live-model proof of the central hypothesis, completed long-duration soak, autonomous recursive self-improvement, autonomous merge authority or first-in-literature status.
 
 Receipts establish that stated checks ran over stated evidence under stated identities/revisions. They do not certify arbitrary truth beyond those contracts.
