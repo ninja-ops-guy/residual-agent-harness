@@ -67,7 +67,7 @@ The adapter SHALL target documented public capabilities rather than OpenViking i
 | L2 detail | final content | explicit promotion |
 | retrieval trace | attribution | evidence input |
 | session usage | telemetry | informational |
-| session commit | memory proposal | certification required |
+| session commit/extract | memory proposal | certification required |
 | cases/trajectories/experiences | task history | outcome preserved |
 | HTTP server | external integration | preferred boundary |
 
@@ -94,8 +94,6 @@ Workers SHALL receive a bounded immutable `ContextPackage` rather than unrestric
 A versioned package SHOULD include package/mission/contract identity, repository revision, provider and retrieval IDs, budget ceilings/usage, and entries containing provider reference, L0/L1/L2 level, exact content digest, source revision, trust classification, historical outcome, retrieval reason, and token/byte cost.
 
 The package SHALL become immutable at dispatch. Additional context requires a new package or explicit append artifact with a new digest. The package digest SHALL be recorded in execution evidence.
-
-Example shape:
 
 ```json
 {
@@ -128,101 +126,252 @@ Candidates SHOULD bind content digest, originating mission/worker, provider extr
 
 Certification is revocable. Repository changes, failed requalification, contradictory/revoked evidence, or changed invariants MAY invalidate memory. Invalidated memory remains auditable but MUST NOT be returned as current verified truth. Prefer compact references to authoritative evidence over duplicating evidence bodies.
 
-## 9. Trajectory memory
+## 9. Trajectory memory and swarm isolation
 
 RESIDUAL MAY persist accepted repairs, rejected trajectories, verifier failures, regression causes, successful tool sequences, incident resolutions, and StationReceipts. Accepted, rejected, and failed outcomes MUST remain distinguishable at storage and retrieval. Historical failure MUST NOT be silently transformed into recommended truth.
 
-## 10. Swarm isolation
-
 OpenViking configuration MUST NOT grant unrestricted shared memory. Retrieval SHALL respect WorkerContract, mission/project isolation, provider ACLs, and RESIDUAL policy. Cross-worker learning occurs through certified artifacts, not implicit mutable shared state.
 
-## 11. Evidence and replay
+## 10. Evidence and replay
 
 For each injected item, Evidence Fabric SHOULD reconstruct:
 
 `query -> provider trace -> candidate -> promotion -> exact bytes/digest -> worker input -> execution -> verifier result`
 
-Evidence SHOULD include query/intent identity, provider, traversal trace, selected/rejected references where practical, L0->L1->L2 decisions, context cost, provider failures/fallbacks, and memory writes/promotions.
-
-Frozen replay SHALL operate without OpenViking: no live retrieval or memory mutation, package digest must validate, worker-visible context must match the recorded package, and evidence must identify replay mode. This separates reproducible qualification from live retrieval quality.
+Frozen replay SHALL operate without OpenViking: no live retrieval or memory mutation, package digest must validate, worker-visible context must match the recorded package, and evidence must identify replay mode.
 
 Command Station SHOULD later provide a Context Inspector explaining why each item was selected, its source/revision/trust/outcome, level transitions, cost, package digest, and supporting evidence.
 
-## 12. Failure semantics
+## 11. Failure semantics and threat model
 
 The integration SHALL fail closed for authority and fail soft for optional context. Outage, malformed response, stale reference, budget overflow, ACL denial, timeout, or memory-write failure MUST NOT weaken RESIDUAL controls. Native/no-provider fallback SHALL be explicit in evidence.
 
-## 13. Threat model
-
-Executable negative-path tests SHALL cover at least:
-
-1. prompt injection in retrieved content attempting to change authority;
-2. memory poisoning from malicious/erroneous execution content;
-3. cross-mission leakage;
-4. cross-worker leakage;
-5. stale revision presented as current state;
-6. outcome laundering of rejected/failed trajectories;
-7. provider equivocation where a reference changes content;
-8. budget amplification via excessive queries/L2 reads;
-9. availability coupling to optional context;
-10. credential/secret ingestion;
-11. namespace/alias confusion;
-12. provider memory attempting self-certification.
+Executable negative-path tests SHALL cover prompt injection, memory poisoning, cross-mission leakage, cross-worker leakage, stale revision confusion, outcome laundering, provider equivocation, budget amplification, availability coupling, credential/secret ingestion, namespace confusion, and memory self-certification.
 
 Retrieved content is data. It cannot grant tools, expand scope, modify policy, certify memory, or override WorkerContract/invariants.
 
-## 14. Security, privacy, and licensing
+## 12. Security, privacy, and licensing
 
 Secrets MUST NOT be written to provider context by default. Credentials use normal RESIDUAL secret/config mechanisms. Reads/writes SHALL be scope checked and auditable.
 
-OpenViking's main project currently uses AGPLv3. Distribution/deployment implications SHALL be reviewed before implementation. The initial architecture SHOULD therefore favor an independently deployed OpenViking service behind a provider-neutral adapter rather than copied implementation code. This requirement is architectural guidance, not legal advice.
+OpenViking's main project currently uses AGPLv3. Distribution/deployment implications SHALL be reviewed before implementation. The initial architecture SHOULD favor an independently deployed OpenViking service behind a provider-neutral adapter rather than copied implementation code. This is architectural guidance, not legal advice.
 
-## 15. Proposed implementation sequence
+# Implementation-ready PR specifications
 
-- **OV1 — Context Provider Contract:** interfaces, fake provider, ContextPackage schema, deterministic budgets, failure semantics, provenance.
-- **OV2 — OpenViking Adapter:** optional HTTP integration, health, configuration, namespace mapping, authentication, timeout/fallback.
-- **OV3 — Progressive Loading:** bounded L0/L1/L2 selection, promotion evidence, cost accounting, deterministic tie-breaks.
-- **OV4 — Evidence-Aware Memory Gate:** candidate schema, classifications, evidence binding, invalidation/expiry, promotion policy.
-- **OV5 — Trajectory Memory:** accepted/rejected/failed execution experience with outcome-safe retrieval.
-- **OV6 — Swarm Context Sharing:** scoped certified context exchange preserving WorkerContract isolation.
-- **OV7 — Context Inspector:** Command Station provenance, traces, transitions, cost, memory state, replay/evidence links.
+The following PRs are **future implementation units**. They are specified now but SHALL be implemented later from then-current `main`. Each PR MUST be independently reviewable and MUST NOT rely on a later PR to preserve safety.
 
-Each implementation PR SHALL begin from then-current `main`, remain independently reviewable, and preserve the protected trust boundary.
+## OV1 — Context Provider Contract
 
-## 16. Deterministic qualification fixture
+### Objective
 
-OV2/OV3 SHOULD add a small fixture corpus containing architecture docs, revision-distinct similar files, one accepted repair, one rejected repair, a malicious prompt-injection document, stale memory, a secret-like value that ingestion policy must exclude, and cross-worker/cross-mission resources.
+Create the provider-neutral RESIDUAL boundary without connecting OpenViking or changing provider-off runtime behavior.
 
-Qualification SHALL prove correct L0/L1/L2 promotion, revision binding, outcome preservation, secret exclusion, scope isolation, timeout fallback, deterministic budget behavior, and replay without a live provider.
+### Required interfaces
 
-## 17. Acceptance tests
+```python
+class ContextProvider(Protocol):
+    async def health(self) -> ProviderHealth: ...
+    async def search(self, request: ContextSearchRequest) -> ContextSearchResult: ...
+    async def abstract(self, ref: ContextRef) -> ContextItem: ...
+    async def overview(self, ref: ContextRef) -> ContextItem: ...
+    async def read(self, ref: ContextRef) -> ContextItem: ...
+    async def trace(self, retrieval_id: str) -> RetrievalTrace: ...
+    async def propose_memory(self, candidate: MemoryCandidate) -> MemoryProposalResult: ...
+    async def commit_memory(self, certified: CertifiedMemory) -> MemoryCommitResult: ...
+```
 
-Implementation SHALL eventually prove:
+Exact language/module placement MAY follow current RESIDUAL conventions, but semantics are normative.
 
-1. provider-off behavior remains equivalent to current RESIDUAL behavior;
-2. outage cannot bypass or weaken control-plane decisions;
-3. provider context cannot override invariants or WorkerContract restrictions;
-4. rejected L0/L1 candidates never trigger L2 reads;
-5. budget exhaustion deterministically stops additional loading;
-6. every injected item has provenance, retrieval identity, revision, and digest;
-7. prompt injection cannot grant authority/tools or self-certify memory;
-8. unverified memory cannot become VERIFIED_FACT/INVARIANT without RESIDUAL certification;
-9. rejected/failed trajectories retain outcome labels;
-10. cross-worker/cross-mission retrieval is denied outside scope;
-11. timeout produces bounded fallback plus evidence;
-12. memory-write failure cannot alter mission acceptance;
-13. frozen ContextPackage replay reproduces worker-visible context without OpenViking;
-14. changed provider content is detected by digest/version evidence;
-15. stale revision context is marked stale or rejected according to policy;
-16. secret-like fixture content is excluded from durable provider memory;
-17. Context Inspector explains the complete selection/provenance chain for a qualified demonstration.
+### Required schemas
 
-## 18. Qualification gates and exit criteria
+`ProviderHealth`, `ContextScope`, `ContextBudget`, `ContextSearchRequest`, `ContextRef`, `ContextItem`, `ContextSearchResult`, `RetrievalTrace`, `ContextPackage`, `ContextPackageEntry`, `MemoryCandidate`, `CertifiedMemory`, and typed provider errors.
 
-No implementation enters the release path until current production-readiness gates remain green, protected trust-boundary tests pass, provider-off equivalence is demonstrated, provider-failure and context-authority negative suites pass, provenance/replay tests pass, and licensing review is recorded before shipping OpenViking-backed functionality.
+All externally persisted schemas SHALL carry `schema_version`.
 
-The integration is qualified only when OpenViking is optional/replaceable, outside the authority chain, bounded and replayable, memory is evidence-aware and revocable, swarm isolation holds, provider outages cannot break optional-context missions, Context Inspector exposes the retrieval/evidence chain, and all relevant regression/trust-boundary/qualification suites pass.
+### Fake provider
 
-## 19. Deferred implementation rule
+OV1 SHALL include a deterministic fake provider capable of scripted hits, delays, malformed responses, changed content, scope violations, and failures. Qualification tests MUST NOT require OpenViking.
 
-This PR is specification-only. It SHALL NOT introduce an OpenViking runtime dependency or change production behavior. Implementation begins only after active production-readiness/convergence work permits it, through the independently qualified OV1-OV7 sequence above.
+### Suggested tests
+
+- `test_context_provider_off_is_noop`
+- `test_context_package_digest_is_stable`
+- `test_context_package_immutable_after_dispatch`
+- `test_context_scope_rejects_cross_worker_ref`
+- `test_context_budget_rejects_overflow`
+- `test_provider_error_is_typed_and_bounded`
+- `test_equal_rank_uses_deterministic_tiebreak`
+- `test_context_item_requires_provenance`
+
+### Merge gate
+
+Provider-off equivalence, protected trust-boundary suite unchanged/green, deterministic schema serialization, fake-provider negative paths green. **No OpenViking dependency is permitted in OV1.**
+
+### Depends on
+
+None.
+
+---
+
+## OV2 — OpenViking Adapter
+
+### Objective
+
+Implement an optional external OpenViking provider using documented HTTP/API semantics only.
+
+### Required configuration
+
+Configuration SHOULD include `enabled`, endpoint/base URL, credential reference, connect/read timeout, maximum request count, allowed URI roots, user/tenant mapping, and fallback policy. Secrets MUST be referenced rather than serialized into evidence.
+
+### Adapter mapping
+
+- provider health -> OpenViking service health/initialization probe;
+- `search` -> `find` or `search(mode=list)` according to explicit RESIDUAL request semantics;
+- `abstract` -> L0 abstract operation;
+- `overview` -> L1 overview operation;
+- `read` -> L2/full content operation;
+- `trace` -> documented retrieval-observability surface when available;
+- memory proposal -> session extraction/commit output imported only as an untrusted proposal.
+
+OpenViking session context assembly MAY be measured experimentally but MUST NOT bypass RESIDUAL final budget and provenance checks.
+
+### URI rules
+
+The adapter SHALL canonicalize `viking://` references, bind them to RESIDUAL scope, reject unauthorized roots/aliases, and never infer authorization solely from provider success.
+
+### Suggested tests
+
+- `test_openviking_disabled_makes_no_network_call`
+- `test_openviking_health_timeout_is_bounded`
+- `test_openviking_uri_is_rebound_to_residual_scope`
+- `test_openviking_alias_cannot_escape_scope`
+- `test_openviking_malformed_result_rejected`
+- `test_openviking_credential_never_enters_evidence`
+- `test_openviking_outage_falls_back_when_optional`
+- `test_openviking_required_context_failure_is_explicit`
+
+### Merge gate
+
+OV1 green; deterministic fixture service or recorded contract fixture green; provider-off equivalence green; outage/malformed/timeout/ACL suites green; license/deployment review recorded before release enablement.
+
+### Depends on
+
+OV1.
+
+---
+
+## OV3 — Progressive Context Loading
+
+### Objective
+
+Implement RESIDUAL-owned L0 -> L1 -> L2 promotion with deterministic budgets and complete promotion evidence.
+
+### Promotion state machine
+
+```text
+DISCOVERED(L0)
+  -> REJECTED
+  -> PROMOTED_L1
+       -> REJECTED
+       -> PROMOTED_L2
+            -> INJECTED
+            -> REJECTED
+```
+
+Every transition SHALL have a reason code. No L2 read may occur without a recorded L1-or-policy promotion decision except for an explicitly specified direct-L2 resource type.
+
+### Budget contract
+
+Budget SHALL bound at least tokens/bytes, candidate count, L1 count, L2 count, per-source contribution, provider requests, and deadline. Exhaustion is a normal deterministic terminal condition, not an exception that triggers unbounded retry.
+
+Tie-break order SHOULD be explicit, e.g. effective score descending, authority/trust policy, canonical provider reference, then stable digest/identity.
+
+### Suggested tests
+
+- `test_l0_rejection_prevents_l1_and_l2_reads`
+- `test_l1_rejection_prevents_l2_read`
+- `test_l2_budget_is_hard_ceiling`
+- `test_provider_order_does_not_change_equal_rank_selection`
+- `test_promotion_reason_recorded_for_every_transition`
+- `test_stale_revision_rejected_or_marked_by_policy`
+- `test_provider_equivocation_detected_by_digest`
+- `test_frozen_package_replay_never_contacts_provider`
+
+### Merge gate
+
+OV1+OV2 green; deterministic corpus produces identical selected package across repeated runs; replay reproduces worker-visible bytes; no protected authority regression.
+
+### Depends on
+
+OV1, OV2.
+
+---
+
+## OV4 — Evidence-Aware Memory Gate
+
+### Objective
+
+Create the only supported path from provider-extracted memory into durable RESIDUAL-qualified memory.
+
+### Memory state machine
+
+```text
+PROPOSED -> REJECTED
+         -> OBSERVATION
+         -> EXPERIENCE
+         -> HEURISTIC
+         -> VERIFIED_FACT
+
+INVARIANT is not a provider promotion target.
+It requires an explicit RESIDUAL policy/specification path outside model extraction.
+
+Any certified state -> INVALIDATED -> SUPERSEDED/ARCHIVED
+```
+
+### Certification rules
+
+A promotion decision SHALL bind evidence IDs, repository revisions, verifier/receipt status, policy version, certifier identity/type, timestamps, and invalidation triggers. Provider confidence is metadata, never authority.
+
+Memory writes MUST be post-acceptance side effects unless a future independently reviewed specification says otherwise; failure to write memory MUST NOT alter mission acceptance.
+
+### Suggested tests
+
+- `test_provider_memory_defaults_non_authoritative`
+- `test_memory_cannot_self_certify`
+- `test_model_extraction_cannot_create_invariant`
+- `test_verified_fact_requires_qualifying_evidence`
+- `test_failed_requalification_invalidates_memory`
+- `test_repository_revision_change_triggers_staleness`
+- `test_memory_write_failure_does_not_change_receipt`
+- `test_secret_like_content_rejected_from_memory`
+
+### Merge gate
+
+Memory poisoning suite green; invalidation/revocation replayable; no provider path can emit authoritative invariant; acceptance outcome independent from memory persistence.
+
+### Depends on
+
+OV1; OV2 for live OpenViking qualification. Can be developed against fake provider before OV2 merges.
+
+---
+
+## OV5 — Trajectory Memory
+
+### Objective
+
+Persist and retrieve execution experience without laundering failures into success or turning historical correlation into authority.
+
+### Trajectory schema
+
+Each stored trajectory SHOULD include mission/worker IDs, repository revision, problem/failure signature, bounded action/tool summary, evidence/receipt references, terminal outcome (`ACCEPTED`, `REJECTED`, `FAILED`, `ABORTED`), verifier summary, regression status, timestamps, and supersession/invalidation metadata.
+
+Raw secrets and unnecessarily large transcripts SHOULD NOT be copied into trajectory memory.
+
+### Retrieval policy
+
+Results SHALL preserve outcome. Failed/rejected trajectories may be retrieved as warnings or counterexamples but MUST NOT be rendered as accepted recommendations. Ranking MAY consider historical success but cannot replace current verification.
+
+### Suggested tests
+
+- `test_rejected_trajectory_remains_rejected_after_roundtrip`
+- `test_failed_trajectory
