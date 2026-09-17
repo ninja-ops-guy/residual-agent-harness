@@ -14,51 +14,52 @@ RESIDUAL spans a connected platform rather than a single agent loop:
 
 - **Core harness:** obligation DAGs, verifier-defined acceptance, residual delegation, evidence negotiation, receipts, bounded budgets, cache revalidation and tamper-evident traces.
 - **Command Station:** self-hosted mission/run control, provider/model management, observations, HITL hooks, evidence export and operational UI.
-- **Mission Control / WebVM:** browser-facing real-guest workflows, artifact conversations, provider transport, persistent guest-worker execution, fail-closed runtime handling, fresh-overlay poisoned-guest recovery, and privacy-safe local diagnostic bundles.
+- **Mission Control / WebVM:** browser-facing real-guest workflows, artifact conversations, provider transport, persistent guest-worker execution, fail-closed runtime handling, fresh-overlay poisoned-guest recovery, privacy-safe local diagnostics, and an iOS/WebKit pre-boot walkthrough fallback.
 - **Factory M2/M3/M4:** bounded worker contracts/runtime, Station-issued evidence/receipts, trusted handoff, deterministic integration/scheduling and capable-runner qualification machinery.
 - **Evaluation/research:** frozen workloads, ablations, statistics, fault injection, reproducible evidence bundles, observability/economics tooling and bounded self-maintenance research.
 
 `FAIL`, `UNKNOWN`, `BLOCKED`, malformed output, verifier exceptions, provider failures and abstention do not silently become `PASS`.
 
-## Current main — automated/browser qualification is green
+## Current main
 
-Current `main` is **`160c01a1b1933ee10c82dcf30b1674a17f7560ff`**. It merges **#169**, the privacy-safe demo diagnostics lane, on top of the accepted provider-transport work through #173.
+Current `main` is **`dcf1e5071deb624c637aa72df575089435d72ac9`**, created by merged **#189** on top of merged **#187**.
 
-#169 adds local-first session/run/event diagnostics, a bounded session-local diagnostic buffer, sanitized downloadable triage bundles, and bounded service-worker retry/exhaustion events. The retained guest trace and `verify-trace` remain authoritative execution evidence. Diagnostics do not schedule, retry, terminate, authorize, alter provider routing, modify evidence, or determine mission success.
+Since the prior release-stabilization merge #185:
 
-The final #169 head `fb767dc9682533a6092eb36de783e15a3bd47c13` completed exact-head qualification and received an exact-head maintainer attestation before merge. That is **maintainer-reviewed with automated qualification**, not independent human assurance.
+- **#187** accepted the focused protected M4 safety-test repair for the `/proc/<pid>/status` exit-observation race and deliberately advanced the corresponding Factory ownership-baseline pin. It changes test observation semantics only; it does not establish a runtime termination defect or universal M4 qualification.
+- **#189** accepted a Pages/WebVM isolation-boundary fix that keeps the optional `/provider/` helper outside COOP/COEP response rewriting while leaving `/demo/` and the heavyweight WebVM isolation boundary unchanged.
 
-All seven observed `push` workflows on exact current main completed **PASS**:
+PR #187 exact-head automated qualification and maintainer approval were PASS before merge. PR #189 exact-head Factory ownership, clean install, measured binding, Control Plane, Controller/provider, Command Station, Browser VM Demo, Pages and maintainer approval were PASS before merge.
 
-- Factory ownership gate — run `35182396486`;
-- clean-install qualification — run `35182396556`;
-- measured-evaluation acceptance binding — run `35182396462`;
-- M4 qualification runner prerequisites — run `35182396481`;
-- Controller/provider contracts — run `35182396520`;
-- Command Station checks — run `35182396476`;
-- GitHub Pages/WebVM deployment — run `35182396521`.
+### Current-main qualification boundary
 
-Pages/WebVM run `35182396521` passed on attempt 1 through provider/publication contract checks, generated desktop+narrow real-browser proof, deployment, published real-guest execution, published narrow-Chromium acceptance and retained live-acceptance proof.
+The first post-#189 push workflows on exact `main@dcf1e507...` were still queued at the latest observation. Therefore the accepted bytes are on main, but **post-merge qualification/deployment for #189 is not yet claimed PASS** in this document.
 
-Those results qualify their exact automated/browser/deployment scopes. They do **not** establish successful paid/live Puter inference, model quality, acceptable long-run WebVM reliability, blank-environment release qualification or elapsed soak.
+Historical retained failures remain evidence. In particular, Controller/provider run `35263782697` on `main@e996b585...` remains **FAIL** in Python 3.13. #187 diagnoses and repairs that protected-test observation race, but the historical failure is not erased.
+
+These engineering/browser results do not establish paid/live provider success, physical heavy-WebVM iPhone reliability, blank-environment release qualification, host-loss recovery, elapsed soak, or the central research hypothesis.
 
 ## Live-provider and WebVM boundary
 
-Fresh retained real-account iPhone/WebKit + Puter evidence from mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice, but both separately counted calls ended `provider_protocol_invalid`. No candidate crossed the protocol boundary (`candidate_rejections=0`, `verification_elapsed_ms=0`). The retained build mission was limited to 1536 provider-output tokens while requiring the complete generated file bundle inside the worker envelope.
+Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice, but both counted calls ended `provider_protocol_invalid`. No candidate crossed the protocol boundary; candidate correctness and semantic verification remain **UNKNOWN**.
 
-That mission is retained **FAIL/BLOCKED** evidence for the live-provider path. Semantic verification never ran, so model/candidate correctness remains **UNKNOWN**. It does not establish that output length was the sole cause of the protocol failure.
+Merged #179 raised the browser build-only provider-output ceiling/default to 8192 tokens while preserving the 1536-token non-build/source-grounded bound and fail-closed truncation handling. Merged #183 repaired a bounded provider-session lifecycle case. Merged #189 repairs the provider helper's COI/CORP publication boundary. None of those changes, by itself, is retained proof of successful paid/live Puter inference.
 
-PR **#176** proposes a bounded build-only output ceiling/default increase to 8192 tokens, preserves 1536 for non-build/source-grounded live mode, and maps provider truncation to `provider_protocol_invalid / response_truncated`. Its current head was built from pre-#169 main and is now diverged from current main, so its earlier exact-head evidence and maintainer attestation are historical only until the branch is refreshed and requalified. Even after any accepted merge, a fresh real-account iPhone/WebKit mission is still required before claiming live-provider success.
+A fresh exact-current-main production Pages deployment and a retained real-account mission are required before live-provider success can become PASS. The provider helper must load/sign in and the mission must cross provider protocol validation into normal candidate/verifier/receipt handling.
 
-Issues **#120** and **#126** remain open. The historical timed-wait/runtime-corruption family and the production poisoned-guest event are reliability evidence; a shared root cause and acceptable long-run recurrence rate remain **UNKNOWN**.
+The accepted #186 fallback routes detected iPhone/iPadOS WebKit to the lightweight walkthrough before heavyweight WebVM boot. Dedicated preflight coverage is not proof that heavyweight WebVM is reliable on physical iPhone Safari; physical-device validation and the lower-level WebKit crash cause remain open/UNKNOWN.
+
+Issues **#120** and **#126** remain open. Historical timed-wait/runtime-corruption evidence, poisoned-guest behavior, and physical iPhone/WebKit failure do not yet establish a shared root cause or acceptable long-run recurrence rate.
 
 ## Factory / M4 boundary
 
-M2/M3/M4 are implemented. Issues **#63** and **#48** are closed. `implementation-status.yaml` is an implementation-presence manifest; implementation is not equivalent to every-host or production qualification.
+M2/M3/M4 are implemented. `implementation-status.yaml` is an implementation-presence manifest; implementation is not equivalent to every-host or production qualification.
 
-The prior `main@2b7cb626...` Controller/provider run retained a Python 3.12 **FAIL** on the protected M4 `/proc/<pid>/status` observation race. The green current-main run does not erase that evidence or prove the race fixed. PR **#139** remains the isolated protected-byte repair lane. If accepted, it must follow the deliberate protected review/ownership-baseline/fresh-qualification sequence before downstream **#134** is refreshed.
+The #185 protected runtime-journal bytes and ownership-baseline update remain accepted. #187 additionally accepts the protected test-only `/proc` race repair and its ownership pin. Those accepted bytes do **not** clear unrelated protected work or turn hosted/prerequisite CI into universal capable-runner M4 qualification.
 
-This documentation does not modify protected Factory/M4 implementation or tests, ownership baselines, qualification anchors or evidence schemas.
+PR **#139** and downstream **#134** remain a separate protected-byte sequence and must be re-evaluated against current main rather than inferred cleared by #187.
+
+This documentation does not modify Factory/M4 implementation or tests, ownership baselines, qualification anchors, protected bytes, or evidence schemas.
 
 ## Governance boundary
 
@@ -96,17 +97,18 @@ python3 -m residual benchmark --output runs/benchmark.json
 
 ## Current priority gates
 
-1. Refresh/requalify #176 on current main, then retain a new real-account iPhone/WebKit mission after any accepted merge; live-provider success remains `UNKNOWN` until positive retained evidence exists.
-2. Resolve the protected M4 observation race through #139's protected-byte and ownership-baseline sequence, then freshly requalify downstream #134 where that dependency applies.
-3. Keep #120/#126 open until a predefined reliability campaign or proven regression-tested root cause supports closure.
-4. Refresh/requalify broader Qualification v1 work (#152) against current main; stale-head results are not inherited.
-5. Complete true release/recovery qualification and staged elapsed 24h → 72h → 30-day soak without treating simulation as elapsed evidence.
-6. Freeze the confirmatory live-evaluation protocol before outcome access, then run R0–R5, degradation and heterogeneous-routing studies.
-
-Draft **#177** is an IE-001 inference-economics prototype qualification candidate. Its focused suite reports 203 passes and its exact-head repository workflows were reported green, but Q11 genuinely independent current-head technical review remains pending and its branch predates current main; it is **not final IE-001 qualification**. Draft **#178** is documentation-only follow-on backlog for IE-002 through IE-007 and makes no runtime/performance claim. Draft **#175** remains specification-only OpenViking/context-provider planning.
+1. Let the first exact-current-main post-#189 workflow/deployment set complete; retain any first-attempt failure rather than rerunning it away.
+2. Verify the production provider helper after the merged #189 Pages deployment; SDK/sign-in availability is not yet claimed PASS from pre-merge CI alone.
+3. Refresh/requalify open #190 against current main before merge, then retest provider-session recovery on the deployed revision.
+4. Retain a fresh real-account Puter build before claiming live-provider PASS, or explicitly exclude that claim.
+5. Physically validate the accepted #186 mobile fallback without broadening it into a heavy-WebVM reliability claim.
+6. Complete true blank-environment install, recovery/host-loss qualification, and selected elapsed soak for the exact release artifact.
+7. Continue #120/#126 long-run WebVM reliability work and the separate #139→ownership-baseline→#134 protected sequence.
+8. Refresh/requalify broader Qualification v1 work (#152) and IE-001 candidate #177 before current claims use them.
+9. Freeze the confirmatory live-evaluation protocol before outcome access, then run R0–R5, degradation and heterogeneous-routing studies.
 
 ## Scope and non-claims
 
 RESIDUAL is an implemented research and engineering platform, not a universal proof system. A verifier establishes only the conditions encoded by its contract and evidence. Receipts are evidence of checked acceptance under stated identities and revisions, not certificates of arbitrary truth.
 
-The project does not currently claim universal correctness, a universal verifier, blanket production readiness, every-host M4 qualification, completed release/recovery qualification, acceptable long-run WebVM reliability, successful current-main end-to-end paid/live provider execution, root cause of the historical browser-runtime corruption family, autonomous merge authority, completed long-duration soak, final IE-001 qualification, or live proof of the central research hypothesis.
+The project does not currently claim universal correctness, a universal verifier, blanket production readiness, every-host M4 qualification, completed blank-environment/recovery/elapsed-soak qualification, acceptable long-run WebVM reliability, successful exact-current-main paid/live provider execution, physical heavy-WebVM iPhone reliability, root cause of the historical browser-runtime corruption family, autonomous merge authority, final IE-001 qualification, or live proof of the central research hypothesis.
