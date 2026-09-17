@@ -265,3 +265,178 @@ The OpenViking integration is considered qualified only when:
 ## 19. Deferred implementation rule
 
 This PR intentionally specifies future work only. It SHOULD NOT introduce runtime dependencies or alter production behavior. Implementation SHALL begin from the then-current main branch after the active production-readiness/convergence work is complete and SHALL be split into independently reviewable PRs following the sequence above.
+
+## 20. OpenViking capability mapping
+
+The adapter design SHALL target documented OpenViking capabilities rather than internal implementation details. Current OpenViking architecture exposes filesystem-style context operations, semantic search/find, session management, resource ingestion, progressive L0/L1/L2 representations, retrieval observability, and HTTP deployment.
+
+The intended RESIDUAL mapping is:
+
+| OpenViking capability | RESIDUAL use | Boundary |
+| --- | --- | --- |
+| `viking://` URI | Stable provider reference | Never treated as RESIDUAL authority |
+| `search` / `find` | Candidate context discovery | Context Broker only |
+| `abstract` / L0 | Cheap relevance filtering | Budgeted |
+| `overview` / L1 | Navigation and selection | Budgeted |
+| L2/full read | Final worker context | Explicit promotion required |
+| retrieval observer/trace | Evidence attribution | Imported as provider evidence |
+| session usage records | Context-use telemetry | Informational only |
+| session commit | Candidate memory extraction | Certification gate required |
+| cases/trajectories/experiences | Historical task learning | Outcome labels preserved |
+| HTTP server | External provider boundary | Preferred integration mode |
+
+RESIDUAL MUST NOT depend on undocumented OpenViking internals for correctness.
+
+## 21. Namespace and identity mapping
+
+RESIDUAL SHALL define its own logical context identity and map it to provider namespaces. A provider URI is not sufficient by itself to establish tenant, mission, worker, repository, revision, or trust identity.
+
+A context request SHOULD carry at minimum:
+
+- `mission_id`
+- `worker_id`
+- `worker_contract_id`
+- `repository_id`
+- `repository_revision`
+- `tenant_or_operator_scope`
+- `allowed_context_scopes`
+- `context_budget`
+- `provider_policy_id`
+
+A returned provider reference SHALL be rebound to these RESIDUAL identities before it may enter a ContextPackage.
+
+The adapter MUST reject namespace confusion, traversal outside allowed scopes, ambiguous aliases, and provider results whose effective scope cannot be established.
+
+## 22. ContextPackage normative schema
+
+The first implementation SHOULD define a versioned, serializable schema similar to:
+
+```json
+{
+  "schema_version": "1",
+  "package_id": "ctxpkg-...",
+  "mission_id": "...",
+  "worker_contract_id": "...",
+  "repository_revision": "...",
+  "provider": "openviking",
+  "retrieval_id": "...",
+  "budget": {
+    "max_tokens": 0,
+    "used_tokens": 0,
+    "max_l2_items": 0
+  },
+  "entries": [
+    {
+      "provider_ref": "viking://...",
+      "level": "L0|L1|L2",
+      "content_digest": "sha256:...",
+      "source_revision": "...",
+      "trust": "UNTRUSTED|HISTORICAL|VERIFIED",
+      "outcome": "UNKNOWN|ACCEPTED|REJECTED|FAILED",
+      "reason": "...",
+      "cost": {"tokens": 0, "bytes": 0}
+    }
+  ]
+}
+```
+
+The final package SHALL be immutable after worker dispatch. Any later context acquisition requires a new package or an explicit append event with a new digest and evidence record.
+
+The package digest SHALL be included in the worker execution evidence so replay can prove which context was actually supplied.
+
+## 23. Deterministic budgeting and promotion policy
+
+OpenViking may perform retrieval and reranking, but RESIDUAL SHALL own the final injection budget.
+
+The Context Broker SHOULD implement deterministic ceilings for:
+
+- total context tokens/bytes;
+- maximum candidate count;
+- maximum L1 promotions;
+- maximum L2 promotions;
+- per-source contribution;
+- per-context-type contribution;
+- retrieval wall-clock deadline;
+- provider request count.
+
+If two candidates have equal effective rank at a budget boundary, RESIDUAL SHALL apply a documented deterministic tie-breaker so replay does not depend on incidental provider ordering.
+
+Provider-side context assembly MAY later be used as an optimization, but its output MUST still pass RESIDUAL-side budget, provenance, authority, and scope validation.
+
+## 24. Memory lifecycle and invalidation
+
+Memory certification is not a one-time trust conversion. Certified memories SHALL remain bound to their evidence and validity conditions.
+
+A candidate memory SHOULD include:
+
+- candidate ID and content digest;
+- originating mission and worker;
+- provider extraction metadata;
+- source repository revision(s);
+- supporting Evidence Fabric IDs;
+- verifier/receipt references;
+- classification;
+- confidence metadata if available;
+- creation time;
+- expiration policy;
+- invalidation triggers;
+- supersedes/superseded-by relationships;
+- outcome state.
+
+Repository changes, failed requalification, contradictory evidence, revoked evidence, or changed protected invariants MAY invalidate previously certified memory.
+
+Invalidated memory MUST remain auditable but MUST NOT be returned as current VERIFIED_FACT or INVARIANT context.
+
+RESIDUAL SHOULD favor storing compact references to authoritative evidence over duplicating large evidence bodies into provider memory.
+
+## 25. Threat model
+
+The integration SHALL explicitly defend against at least the following classes:
+
+1. **Prompt injection through retrieved content** — retrieved instructions attempt to modify worker authority or policy.
+2. **Memory poisoning** — malicious or erroneous execution content becomes durable memory and influences later missions.
+3. **Cross-mission leakage** — context from one mission appears in another without policy authorization.
+4. **Cross-worker leakage** — a worker retrieves context outside its WorkerContract scope.
+5. **Stale-context confusion** — context from an old repository revision is presented as current state.
+6. **Outcome laundering** — a rejected or failed trajectory is retrieved without its failure status.
+7. **Provider equivocation** — the same reference returns different content without version/digest evidence.
+8. **Budget amplification** — provider behavior causes unbounded L2 reads, query expansion, or token consumption.
+9. **Availability coupling** — provider outage blocks missions that should not require provider context.
+10. **Credential/secret ingestion** — secrets are indexed or persisted into provider storage.
+11. **Namespace alias confusion** — provider aliases resolve into unauthorized scopes.
+12. **Memory self-certification** — provider-generated text claims VERIFIED_FACT/INVARIANT status without RESIDUAL evidence.
+
+Each threat SHALL have at least one executable negative-path test before the corresponding feature is considered qualified.
+
+## 26. Replay and provenance protocol
+
+A qualified execution SHALL be replayable without requiring the provider to return the same live search result later.
+
+For every injected item RESIDUAL SHOULD retain enough evidence to reconstruct:
+
+`query -> provider trace -> candidate -> promotion -> exact injected bytes/digest -> worker input -> execution -> verifier result`
+
+Replay mode SHALL support a frozen ContextPackage. In frozen replay:
+
+- OpenViking MUST NOT be contacted;
+- no new retrieval or memory mutation occurs;
+- package digest must validate;
+- worker-visible context must match the recorded package;
+- evidence SHALL identify the run as replay rather than live retrieval.
+
+This separates reproducible qualification from live retrieval quality.
+
+## 27. OpenViking-specific qualification fixture
+
+A later adapter PR SHOULD ship a small deterministic fixture corpus containing:
+
+- architecture documentation;
+- two similar but revision-distinct source files;
+- an accepted historical repair;
+- a rejected historical repair;
+- a deliberately malicious prompt-injection document;
+- a stale memory candidate;
+- a secret-like value that ingestion policy must exclude;
+- cross-worker and cross-mission resources.
+
+Qualification SHALL prove correct L0/L1
