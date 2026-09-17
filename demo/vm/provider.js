@@ -21,28 +21,12 @@ async function resolveModel(requested) {
     if (!Array.isArray(modelCatalog)) return requested;
     const exact = modelCatalog.find(item => item?.id === requested || (Array.isArray(item?.aliases) && item.aliases.includes(requested)));
     if (exact?.id) return exact.id;
-    if (!requested.includes('/')) {
-      const suffix = modelCatalog.filter(item => typeof item?.id === 'string' && item.id.endsWith('/' + requested));
-      if (suffix.length === 1) return suffix[0].id;
-    }
-    // Catalogs may lag provider routing. Never guess a replacement model: send
-    // the exact requested ID and let the actual inference call return a typed
-    // model error if it is unavailable.
+    // Catalogs can lag routing. Never silently substitute another model: send
+    // the exact requested ID and let Puter's inference call classify availability.
     return requested;
   } catch {
     return requested;
   }
-}
-function transportMessages(messages) {
-  const note = '\n\nBrowser transport requirement: a residual_submit function is attached to this request. Use that function exactly once to return the required updates/requests worker envelope. Candidate values must be nested under updates using the obligation id. For a build obligation, return updates.build = {summary, files} inside the envelope; never return summary/files at the top level. Use requests: [] when no evidence pull is needed. Do not answer with prose or Markdown instead. Exact raw JSON is only a compatibility fallback if the provider does not expose tool calls.';
-  let annotated = false;
-  return messages.map(message => {
-    if (!annotated && message?.role === 'system') {
-      annotated = true;
-      return {...message, content: message.content + note};
-    }
-    return message;
-  });
 }
 if (!/^[a-f0-9]{64}$/.test(token)) {
   load.disabled = true; tell('Open provider setup from Mission Control. This tab has no connection channel.');
@@ -101,21 +85,30 @@ async function receive(m) {
     tell(`Running ${g.used}/${g.max} authorized model calls with ${selectedModel}. Charges may apply even if the browser times out.`);
     const tools = [{type: 'function', function: {
       name: 'residual_submit',
-      description: 'Required response transport. Call this function exactly once with the exact RESIDUAL worker envelope containing only updates and requests. Put every candidate under updates keyed by its obligation id; for a build obligation use updates.build with summary and files, never summary/files at the top level. Use an empty requests array when no evidence pull is needed. Never substitute prose or Markdown. If the task cannot be solved, call it with empty updates and requests.',
+      description: 'Submit a RESIDUAL worker envelope. Arguments must be one object with exactly updates and requests. Put candidate values under updates keyed by obligation id; build candidates use updates.build = {summary, files}. Use requests: [] when no evidence pull is needed.',
       parameters: RESPONSE_SCHEMA
     }}];
-    // Do not enable vendor strict-schema mode here. `updates` intentionally has
-    // dynamic obligation-id keys; RESIDUAL performs the authoritative envelope
-    // and candidate validation after the provider response crosses the bridge.
+    // Puter documents messages + model/max_tokens/stream/normalize/tools. Keep the
+    // original harness messages unchanged: the tool description/schema owns the
+    // browser transport contract, while RESIDUAL validates the returned envelope.
     const options = {model: selectedModel, max_tokens: m.max_output_tokens, stream: false, normalize: true, tools};
     progress('request_dispatched', selectedModel);
     const result = await Promise.race([
-      sdk.ai.chat(transportMessages(m.messages), options),
+      sdk.ai.chat(m.messages, options),
       new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('provider_timeout')), 80000); })
     ]);
     progress('response_received', selectedModel);
     if (grant !== g) return reply({ok: false, error: 'mission_cancelled'});
-    const text = protocolReply(result), u = result?.usage || {};
+    let text;
+    try { text = protocolReply(result); }
+    catch (error) {
+      const detail = protocolFailureReason(error);
+      progress('protocol_rejected', selectedModel);
+      reply({ok:false,error:'provider_protocol_invalid',...(detail ? {detail} : {})});
+      tell(providerFailureMessage('provider_protocol_invalid', detail));
+      return;
+    }
+    const u = result?.usage || {};
     progress('envelope_decoded', selectedModel);
     if (new TextEncoder().encode(text).length > 48000) return reply({ok: false, error: 'provider_response_too_large'});
     const integer = n => Number.isInteger(n) && n >= 0 ? n : null;
@@ -123,9 +116,8 @@ async function receive(m) {
     tell('Structured model response returned to the guest. RESIDUAL—not this provider tab—checks the candidate.');
   } catch (error) {
     const code = safeFailure(error);
-    const detail = code === 'provider_protocol_invalid' ? protocolFailureReason(error) : null;
-    reply({ok: false, error: code, ...(detail ? {detail} : {})});
-    tell(providerFailureMessage(code, detail));
+    reply({ok: false, error: code});
+    tell(providerFailureMessage(code));
   } finally { clearTimeout(timer); busy = false; state(); }
 }
 window.addEventListener('pagehide', () => { send({kind: 'state', connected: false}); channel?.close(); });
