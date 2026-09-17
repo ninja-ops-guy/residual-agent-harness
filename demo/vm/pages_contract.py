@@ -11,6 +11,15 @@ from pathlib import Path
 
 IOS_PREFLIGHT_MARKER = "data-residual-ios-webkit-preflight"
 IOS_PREFLIGHT_OPEN = f"<script {IOS_PREFLIGHT_MARKER}>"
+IOS_PREFLIGHT_REQUIRED = (
+    'params.get("full_vm") === "1"',
+    "iPhone|iPad|iPod",
+    'platform === "MacIntel"',
+    "maxTouchPoints > 1",
+    'new URL("../walkthrough/", location.href)',
+    'target.searchParams.set("platform", "ios-webkit")',
+    "location.replace(target.href)",
+)
 
 
 class EntryParser(HTMLParser):
@@ -33,12 +42,17 @@ def validate_pages_config(config: dict) -> None:
 
 
 def _without_ios_preflight(html: str) -> str:
+    if html.count(IOS_PREFLIGHT_OPEN) > 1:
+        raise ValueError("Generated WebVM entry contains multiple iOS WebKit preflight scripts.")
     start = html.find(IOS_PREFLIGHT_OPEN)
     if start < 0:
         return html
     end = html.find("</script>", start)
     if end < 0:
         raise ValueError("The iOS WebKit preflight script is malformed.")
+    script = html[start:end + len("</script>")]
+    if any(required not in script for required in IOS_PREFLIGHT_REQUIRED):
+        raise ValueError("The iOS WebKit preflight script is not the bounded walkthrough gate.")
     return html[:start] + html[end + len("</script>"):]
 
 
