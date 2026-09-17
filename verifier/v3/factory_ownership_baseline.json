@@ -27,7 +27,7 @@
     "tests/test_factory_m4_attribution.py": "8d9d67eac156144cbd201a6e63de4c67bc5ef895",
     "tests/test_factory_m4_canonical_api.py": "5996d0e4292452f089587d826b1d66e23b305840",
     "tests/test_factory_m4_evidence.py": "013dc8b7fdbfb6c280472cdbf621062bc1960bd1",
-    "tests/test_factory_m4_fs_redteam.py": "324ce0ddd84855a21547057774c8c7565f26648b4",
+    "tests/test_factory_m4_fs_redteam.py": "324ce0ddd84855a2151cf3354c7c7565f26648b4",
     "tests/test_factory_m4_git_evidence.py": "af7cd769c0d0b71421547057774e85ff85e9256b",
     "tests/test_factory_m4_integrator.py": "f33ce7bfc32a04c8a5eaf9aa8cd6547f3ea17fe5",
     "tests/test_factory_m4_safety.py": "b13fdb1af9bfca2eb8b73889a1f89eac6c0498a5",
