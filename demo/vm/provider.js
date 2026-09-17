@@ -1,4 +1,4 @@
-import {PROTOCOL, RESPONSE_SCHEMA, validId, validInference, validModel, bounded, errorCode, protocolReply, protocolFailureReason, providerFailureMessage} from './provider-session.js';
+import {PROTOCOL, RESPONSE_SCHEMA, validId, validInference, validModel, bounded, errorCode, protocolReply, protocolFailureReason, providerFailureMessage, providerTransportAfterFailure} from './provider-session.js';
 const status = document.getElementById('status'), load = document.getElementById('load'), sign = document.getElementById('signin');
 const token = location.hash.slice(1);
 history.replaceState(null, '', location.pathname);
@@ -33,8 +33,10 @@ async function resolveModel(requested) {
     return requested;
   }
 }
-function transportMessages(messages) {
-  const note = '\n\nBrowser transport requirement: a residual_submit function is attached to this request. Use that function exactly once to return the required updates/requests worker envelope. Candidate values must be nested under updates using the obligation id. For a build obligation, return updates.build = {summary, files} inside the envelope; never return summary/files at the top level. Use requests: [] when no evidence pull is needed. Do not answer with prose or Markdown instead. Exact raw JSON is only a compatibility fallback if the provider does not expose tool calls.';
+function transportMessages(messages, transport = 'tool') {
+  const note = transport === 'json'
+    ? '\n\nBrowser compatibility transport: the previous counted provider response violated the RESIDUAL worker protocol, so tool calling is disabled for this retry. Return exactly one raw JSON object as the entire response with exactly two top-level keys: updates and requests. Candidate values must be nested under updates using the obligation id. For a build obligation, return updates.build = {summary, files}; never return summary/files at the top level. Use requests: [] when no evidence pull is needed. Do not return prose, Markdown, code fences, commentary, or any keys outside the required envelope.'
+    : '\n\nBrowser transport requirement: a residual_submit function is attached to this request. Use that function exactly once to return the required updates/requests worker envelope. Candidate values must be nested under updates using the obligation id. For a build obligation, return updates.build = {summary, files} inside the envelope; never return summary/files at the top level. Use requests: [] when no evidence pull is needed. Do not answer with prose or Markdown instead. Exact raw JSON is only a compatibility fallback if the provider does not expose tool calls.';
   let annotated = false;
   return messages.map(message => {
     if (!annotated && message?.role === 'system') {
@@ -82,7 +84,7 @@ async function receive(m) {
   if (!m || m.protocol !== PROTOCOL || !bounded(m)) return;
   if (m.kind === 'revoke') { grant = null; return; }
   if (m.kind === 'grant' && validId(m.mission_id) && validModel(m.model) && Number.isInteger(m.max_calls) && m.max_calls >= 1 && m.max_calls <= 3 && !busy && sdk?.auth?.isSignedIn()) {
-    grant = {id: m.mission_id, model: m.model, max: m.max_calls, used: 0, seen: new Set(), expires: Date.now() + 240000}; return;
+    grant = {id: m.mission_id, model: m.model, max: m.max_calls, used: 0, seen: new Set(), expires: Date.now() + 240000, transport: 'tool'}; return;
   }
   if (m.kind !== 'request' || !validInference(m) || !validId(m.mission_id)) return;
   const reply = data => send({kind: 'response', mission_id: m.mission_id, request_id: m.request_id, ...data});
@@ -107,10 +109,15 @@ async function receive(m) {
     // Do not enable vendor strict-schema mode here. `updates` intentionally has
     // dynamic obligation-id keys; RESIDUAL performs the authoritative envelope
     // and candidate validation after the provider response crosses the bridge.
-    const options = {model: selectedModel, max_tokens: m.max_output_tokens, stream: false, normalize: true, tools};
+    // Puter's public browser SDK currently forwards `tools` but not a caller's
+    // `tool_choice`, so a model can still decline the optional function. A
+    // protocol-invalid first response therefore arms JSON-only transport for a
+    // later RESIDUAL-counted retry instead of hiding another provider call here.
+    const options = {model: selectedModel, max_tokens: m.max_output_tokens, stream: false, normalize: true};
+    if (g.transport === 'tool') options.tools = tools;
     progress('request_dispatched', selectedModel);
     const result = await Promise.race([
-      sdk.ai.chat(transportMessages(m.messages), options),
+      sdk.ai.chat(transportMessages(m.messages, g.transport), options),
       new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('provider_timeout')), 80000); })
     ]);
     progress('response_received', selectedModel);
@@ -124,8 +131,13 @@ async function receive(m) {
   } catch (error) {
     const code = safeFailure(error);
     const detail = code === 'provider_protocol_invalid' ? protocolFailureReason(error) : null;
+    const previousTransport = g.transport;
+    g.transport = providerTransportAfterFailure(g.transport, code);
     reply({ok: false, error: code, ...(detail ? {detail} : {})});
-    tell(providerFailureMessage(code, detail));
+    const message = providerFailureMessage(code, detail);
+    tell(g.transport !== previousTransport
+      ? `${message} If RESIDUAL issues another counted retry, the bridge will use exact raw-JSON compatibility transport; no extra provider call was started here.`
+      : message);
   } finally { clearTimeout(timer); busy = false; state(); }
 }
 window.addEventListener('pagehide', () => { send({kind: 'state', connected: false}); channel?.close(); });
