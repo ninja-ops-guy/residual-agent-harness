@@ -27,9 +27,10 @@ class IOSWebKitPreflightTests(unittest.TestCase):
         self.assertLess(out.index(marker), out.index('src="./_app/immutable/entry/start.js"'))
         for expected in (
             "iPhone", "iPad", "iPod", "MacIntel", "maxTouchPoints",
-            "full_vm", "../demo.html", "ios-webkit", "location.replace",
+            "full_vm", "../walkthrough/", "ios-webkit", "location.replace",
         ):
             self.assertIn(expected, out)
+        self.assertNotIn('new URL("../demo.html"', out)
         validate_entry_html(out)
 
     def test_explicit_full_vm_override_is_preserved_for_debugging(self):
