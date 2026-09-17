@@ -10,7 +10,7 @@ The documents under [`source/`](source/) preserve earlier design generations and
 | --- | --- |
 | Core harness / verifier / receipts / residual delegation | Implemented and covered by the established test corpus |
 | Command Station | Implemented; latest exact-current-main run is **PASS**, while historical exact-revision failures remain retained evidence |
-| Factory M2/M3/M4 | Implemented; exact-revision/environment qualification and protected-byte governance remain authoritative |
+| Factory M2/M3/M4 | Implemented; exact-revision/environment qualification and protected-byte governance remain authoritative; #187 is an unaccepted protected-test race-repair candidate |
 | Mission Control/WebVM lifecycle | #159 recovery, #153 browser acceptance proof, #169 diagnostics, #179 build-output handling, #183 provider-session lifecycle, and #185/#186 iOS fallback integration are on main; long-run and physical heavy-WebVM reliability remain unqualified |
 | iOS/WebKit release behavior | Accepted #186 fallback routes the unsupported/unqualified iOS WebKit profile to the walkthrough before heavyweight boot; current preflight CI is PASS, physical-device validation remains open |
 | Frozen evaluation framework | Implemented research apparatus; CI binding is not confirmatory live-model evidence |
@@ -40,7 +40,9 @@ Latest observed applicable current-main runs are PASS:
 - iOS WebKit preflight — `35264069648`
 - Deploy GitHub Pages — `35263783090`, attempt 1
 
-Retain the earlier same-SHA **Controller/provider FAIL** run `35263782697` in Python 3.13. The later same-SHA PASS does not erase it, and the exact cause remains **UNKNOWN** from the retained evidence reviewed here.
+Retain the earlier same-SHA **Controller/provider FAIL** run `35263782697` in Python 3.13. The later same-SHA PASS does not erase it. Retained evidence plus focused PR **#187** now identify the failure mechanism as a protected-test `/proc/<pid>/status` observation race: existence was checked separately from `read_text()`, allowing expected child exit between the two operations to raise `ProcessLookupError`. This is a diagnosis of the CI/test failure, not proof of a runtime termination defect.
+
+PR #187 head `6a5ee753abe6137214f3ee17c8bcc4a85c4f3461` changes only the protected M4 safety test and its ownership-baseline pin. Observed exact-head Factory ownership, measured binding, M4 runner-prerequisite, clean-install, Control Plane, Controller/provider and Command Station workflows are **PASS**; maintainer approval is **FAIL/BLOCKED** pending exact-head attestation. Hosted/prerequisite PASS is not a substitute for any capable-runner M4 qualification required by the PR's policy, and #187 remains unaccepted until merged.
 
 The prior `main@2e1341c9...` Command Station run `35219212073` also remains historical FAIL evidence. Current-main Command Station is PASS; that does not rewrite the older result.
 
@@ -62,14 +64,14 @@ PR **#177 remains a candidate**. Its prior focused PASS/maintainer evidence is b
 
 ## Current build order
 
-1. **Preserve the same-SHA Controller/provider FAIL.** Keep run `35263782697` as retained evidence and keep its cause UNKNOWN unless retained evidence identifies it.
+1. **Close the retained Controller/provider test race without erasing the failure.** Preserve run `35263782697` as retained evidence. Review #187 as the focused protected-test repair; require its protected ownership-baseline review, applicable exact-head/capable-runner qualification, and exact-head maintainer attestation before merge.
 2. **Physically validate the accepted #186 fallback after publication.** Do not broaden walkthrough success into a heavy-WebVM reliability claim.
 3. **Retest the live-provider semantic boundary on exact deployed current main.** Historical mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` remains `FAIL/BLOCKED`; paid/live provider success stays UNKNOWN until a valid candidate crosses protocol validation and proceeds through normal verifier/receipt handling, or the release claim explicitly excludes it.
 4. **Execute true blank-environment installation for the exact release artifact.** Rehearsal/procedure evidence is not release PASS.
 5. **Retain recovery/host-loss evidence for the selected deployment mode.** Do not promote simulation into real-environment claims.
 6. **Complete the selected elapsed-soak tier.** Simulation is not elapsed wall-clock soak; retain first failures rather than green-only summaries.
 7. **Continue #120/#126 WebVM reliability work.** Do not infer long-run reliability from isolated Pages/preflight success or from the iOS walkthrough fallback.
-8. **Keep the older protected #139→ownership-baseline→#134 sequence separate.** The accepted #185 runtime-journal history does not clear the older protected M4 observation-race lineage.
+8. **Keep the separate #139→ownership-baseline→#134 sequence independent.** #187 addresses the newly diagnosed protected-test observation race and must not be used to clear unrelated protected M4/dependent hardening work.
 9. **Refresh/requalify #152 before using it as current release evidence.** Older aggregate qualification does not automatically qualify current main.
 10. **Reconcile/refresh #177 against the current IE-001 contract before final qualification.** Prior prototype evidence remains historical to that candidate head.
 11. **Freeze and run confirmatory research only after operational claims are bounded.** Lock workload, models/configuration, verifier policy, evidence path, metrics and analysis before R0–R5/degradation/heterogeneous-routing outcome access.
@@ -82,6 +84,7 @@ Any claim touching ownership baselines, qualification anchors, protected Factory
 
 ## Planning and prototype work
 
+- **#187** — focused protected M4 safety-test `/proc` race repair plus deliberate ownership-baseline pin advance; observed technical workflows PASS, maintainer approval BLOCKED, unaccepted until merge.
 - **#160/#161/#162/#163/#164/#166/#167** — IE-001→IE-007 specification/test-planning branches; no accepted production/performance/research claim.
 - **#180** — narrow generated-build consistency candidate; unaccepted until applicable refresh/requalification.
 - **#177** — IE-001 prototype candidate; reconcile/refresh before final qualification.
