@@ -13,7 +13,7 @@ The documents under [`source/`](source/) preserve earlier design generations and
 | Factory M2/M3/M4 | Implemented; #187 protected test-only `/proc` observation repair and ownership-pin advance are accepted, but universal/capable-runner qualification is not implied |
 | Mission Control/WebVM lifecycle | #159 recovery, #153 browser acceptance, #169 diagnostics, #179 build-output handling, #183 provider-session lifecycle, #185/#186 iOS fallback, and #189 provider-helper COI boundary are on main; long-run and physical heavyweight-WebVM reliability remain unqualified |
 | iOS/WebKit release behavior | #186 fallback routes the unsupported/unqualified iOS WebKit profile to the walkthrough before heavyweight boot; physical-device validation remains open |
-| Provider helper publication | #189 fixes the static Pages COI/CORP boundary; post-merge production verification is pending |
+| Provider helper publication | #189 static Pages COI/CORP boundary is accepted and exact-current-main Pages/deployment is PASS; retained manual production SDK/sign-in verification remains UNKNOWN |
 | Frozen evaluation framework | Implemented research apparatus; CI binding is not confirmatory live-model evidence |
 | Release/recovery/soak | True blank-environment install, recovery/host-loss evidence and selected elapsed soak remain gates |
 | Live provider acceptance | Historical retained Puter failure remains **FAIL/BLOCKED**; exact-current-main paid/live provider success remains **UNKNOWN** until retained candidate→verifier→receipt evidence exists |
@@ -42,14 +42,24 @@ Exact-head Factory ownership, clean install, measured binding, Control Plane, Co
 
 ## Exact-current-main qualification
 
-The first exact-current-main push/deployment workflows after #189 were **still queued at the latest observation**. Do not call current main post-merge-qualified on the basis of pre-merge #189 CI.
+The first exact-current-main push set after #189 completed **PASS on attempt 1** for:
+
+- Factory ownership gate `35279264442`;
+- measured evaluation acceptance binding `35279264666`;
+- M4 qualification runner prerequisites `35279264635`;
+- clean install qualification `35279264767`;
+- Controller/provider contracts `35279264540`;
+- Command Station checks `35279264513`;
+- Deploy GitHub Pages `35279264564`.
 
 Required interpretation:
 
 - accepted bytes on main: **PASS**;
 - #189 exact-head pre-merge technical qualification: **PASS within named workflows**;
-- first merged-sha workflow/deployment set: **PENDING**;
-- production provider-helper SDK/sign-in verification after #189: **UNKNOWN** until retained evidence exists.
+- first merged-sha automated workflow/deployment set: **PASS within the seven named workflows**;
+- capable-runner/every-host M4 qualification: **not established by the hosted/prerequisite workflow set**;
+- production provider-helper SDK/sign-in behavior: **UNKNOWN** until retained manual production verification exists;
+- paid/live provider semantic success: **UNKNOWN** until retained exact-revision candidate→verifier→receipt evidence exists.
 
 Historical Controller/provider run `35263782697` on `main@e996b585...` remains retained **FAIL** in Python 3.13. #187 diagnoses/repairs that protected-test observation race; the historical failure is not erased.
 
@@ -61,23 +71,24 @@ This is a supported-device fallback contract, not proof that heavyweight WebVM i
 
 ## Current build order
 
-1. **Complete the first post-#189 merged-sha workflow/deployment observation.** Retain any first-attempt failure rather than rerunning it away.
-2. **Verify the provider helper in production after #189 deploys.** SDK load and sign-in availability must be observed on the merged revision before that boundary becomes PASS.
-3. **Refresh/requalify #190 against current main.** Its recorded base is the #187 merge before #189; do not integrate stale-head session recovery without fresh exact-head qualification.
-4. **Retest the live-provider semantic boundary on the exact deployed current main.** Historical mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` remains `FAIL/BLOCKED`; paid/live provider success stays UNKNOWN until a candidate crosses protocol validation and proceeds through normal verifier/receipt handling.
-5. **Physically validate the accepted #186 fallback.** Do not broaden fallback success into a heavyweight-WebVM reliability claim.
-6. **Execute true blank-environment installation and recovery/host-loss qualification for the exact release artifact.**
-7. **Complete the selected elapsed-soak tier.** Simulation is not elapsed wall-clock soak.
-8. **Continue #120/#126 WebVM reliability work.** Do not infer long-run reliability from isolated Pages/preflight success.
-9. **Keep #139→ownership-baseline→#134 independent.** #187 does not automatically clear that older protected sequence.
-10. **Refresh/requalify #152 and #177 before current release/research claims use them.**
-11. **Freeze and run confirmatory research only after operational claims are bounded.**
+1. **Verify the provider helper in production on exact current main.** Automated Pages/deployment is PASS, but SDK load and sign-in availability need retained manual production evidence before that boundary becomes PASS.
+2. **Complete #190 qualification/governance on its refreshed current-main head.** It is no longer stale-base, but it remains unaccepted; after any merge, retest provider-session recovery on the deployed revision.
+3. **Retest the live-provider semantic boundary on the exact deployed current main.** Historical mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` remains `FAIL/BLOCKED`; paid/live provider success stays UNKNOWN until a candidate crosses protocol validation and proceeds through normal verifier/receipt handling.
+4. **Physically validate the accepted #186 fallback.** Do not broaden fallback success into a heavyweight-WebVM reliability claim.
+5. **Execute true blank-environment installation and recovery/host-loss qualification for the exact release artifact.**
+6. **Complete the selected elapsed-soak tier.** Simulation is not elapsed wall-clock soak.
+7. **Continue #120/#126 WebVM reliability work.** Do not infer long-run reliability from isolated Pages/preflight success.
+8. **Keep #139→ownership-baseline→#134 independent.** #187 does not automatically clear that older protected sequence.
+9. **Refresh/requalify #152 and #177 before current release/research claims use them.**
+10. **Freeze and run confirmatory research only after operational claims are bounded.**
 
 ## Planning and prototype work
 
 - **#188** — additive AQ-GOV-001 unanimous-consensus authority-escalation lab; unaccepted research candidate, no kernel/container/hypervisor/broker escape claim.
-- **#190** — provider BroadcastChannel recovery candidate; based on pre-#189 main and requires refresh/requalification.
-- **#191** — automated PR-review workflow candidate; unaccepted and not governance until merged/qualified.
+- **#190** — provider BroadcastChannel recovery candidate; refreshed onto current main at `3a9ea3c2e6a36889f1fa71eb8a4e17c427c13261`, with fresh exact-head qualification/governance still required before acceptance.
+- **#193** — interactive setup-script candidate; unaccepted and not current operator/install behavior until merged/qualified.
+- **#194** — completed-draft visibility/reopen candidate for Command Station; unaccepted and not current accepted UI behavior until merged/qualified.
+- **#191** — closed unmerged; its automated PR-review workflow is not repository governance.
 - **#160/#161/#162/#163/#164/#166/#167** — IE-001→IE-007 specification/test-planning branches; no accepted production/performance/research claim.
 - **#177** — IE-001 prototype candidate; reconcile/refresh before final qualification.
 - **#178** — documentation-only IE-002→IE-007 implementation backlog; no runtime speedup/token/cost/routing/GPU claim.
