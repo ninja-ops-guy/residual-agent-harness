@@ -47,6 +47,17 @@ class WebVMPublicationTests(unittest.TestCase):
         self.assertNotIn("location.replace", html)
         self.assertIn("GitHub Actions", html)
 
+    def test_provider_helper_bypasses_cross_origin_isolation_headers(self):
+        worker = (Path(__file__).resolve().parents[1] / "site/coi-serviceworker.js").read_text()
+        provider_scope = 'new URL("provider/", self.registration.scope).pathname'
+        bypass = 'requestUrl.origin === self.location.origin && requestUrl.pathname.startsWith(providerScopePath)'
+        raw_fetch = 'event.respondWith(fetch(r));'
+        coep_header = 'newHeaders.set("Cross-Origin-Embedder-Policy"'
+        self.assertIn(provider_scope, worker)
+        self.assertIn(bypass, worker)
+        self.assertIn(raw_fetch, worker)
+        self.assertLess(worker.index(bypass), worker.index(coep_header))
+
 
 if __name__ == '__main__':
     unittest.main()

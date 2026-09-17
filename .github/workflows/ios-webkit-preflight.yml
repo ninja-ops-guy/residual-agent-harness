@@ -1,0 +1,95 @@
+name: iOS WebKit preflight
+
+on:
+  pull_request:
+    paths:
+      - 'demo/vm/patch_webvm.py'
+      - 'demo/vm/pages_contract.py'
+      - 'demo/vm/ios_webkit_preflight_smoke.py'
+      - 'tests/test_webvm_ios_preflight.py'
+      - 'site/demo.html'
+      - '.github/workflows/ios-webkit-preflight.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'demo/vm/patch_webvm.py'
+      - 'demo/vm/pages_contract.py'
+      - 'demo/vm/ios_webkit_preflight_smoke.py'
+      - 'tests/test_webvm_ios_preflight.py'
+      - 'site/demo.html'
+      - '.github/workflows/ios-webkit-preflight.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ios-webkit-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout RESIDUAL
+        uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test preflight publication contract
+        run: python -m unittest -v tests.test_webvm_ios_preflight
+      - name: Checkout pinned WebVM runtime
+        uses: actions/checkout@v4
+        with:
+          repository: leaningtech/webvm
+          ref: 388d0adeb319d9ad605a5ec0485777cff5430c88
+          path: _webvm
+      - name: Build real WebVM entry without a guest disk
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > _webvm/config_github_terminal.js <<'EOF'
+          export const diskImageUrl = "residual-demo-must-not-load.ext2";
+          export const residualCacheId = "residual-ios-preflight";
+          export const diskImageType = "github";
+          export const printIntro = false;
+          export const needsDisplay = false;
+          export const cmd = "/bin/false";
+          export const args = [];
+          export const opts = {env:["HOME=/tmp","TERM=xterm"],cwd:"/",uid:1000,gid:1000};
+          EOF
+          python demo/vm/patch_webvm.py app _webvm/src/app.html
+          cd _webvm
+          npm install
+          WEBVM_MODE=github npm run build
+          cd ..
+          rm -rf _ios-preview
+          mkdir -p _ios-preview/demo _ios-preview/walkthrough
+          cp -a _webvm/build/. _ios-preview/demo/
+          cp site/demo.html _ios-preview/walkthrough/index.html
+          python demo/vm/patch_webvm.py index _ios-preview/demo/index.html
+          python demo/vm/pages_contract.py --demo-dir _ios-preview/demo
+      - name: Install WebKit
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps webkit
+      - name: Prove iPhone profile escapes before WebVM boot
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ios-webkit-evidence
+          python -m http.server 8766 --bind 127.0.0.1 --directory _ios-preview > ios-webkit-evidence/http-server.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8766/demo/ >/dev/null && break || sleep 0.2; done
+          python demo/vm/ios_webkit_preflight_smoke.py \
+            --url http://127.0.0.1:8766/demo/ \
+            --output ios-webkit-evidence/iphone
+      - name: Retain iOS WebKit proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-webkit-preflight-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ios-webkit-evidence/
+          retention-days: 7
+          if-no-files-found: warn

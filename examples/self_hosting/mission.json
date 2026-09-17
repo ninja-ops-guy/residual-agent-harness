@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "mission_id": "issue-35-protected-self-hosting",
+  "base_commit": "22a5bae54ec12987ffd7a90d881fb4533c9b4b97",
+  "issue_ref": "#35",
+  "objective": "Add clean-checkout, hash-validated research evidence bundles whose paper metrics are derived from frozen artifacts rather than copied by hand.",
+  "proposer": "gpt-5.6-sol-interactive-worker",
+  "writable_paths": ["residual/research_bundle.py","scripts/research_bundle.py","tests/test_research_bundle.py","docs/research/RESEARCH_BUNDLES.md"],
+  "allowed_actions": ["file.write","git.commit","pull_request.create"],
+  "explicitly_forbidden_actions": ["git.merge","git.push.main","branch_protection.write","trust_boundary.write","policy_authority.write","self.approve"],
+  "independent_verifiers": ["scope-and-authority","behavior-and-hidden-acceptance","documentation-structure"],
+  "publication_policy": "candidate may become PR-ready; merge/approval remain external"
+}

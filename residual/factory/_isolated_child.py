@@ -29,6 +29,10 @@ MS_REMOUNT = 32
 
 SANDBOX_ERROR_PREFIX = "M4SANDBOX-ERROR:"
 SANDBOX_ERROR_EXIT = 125
+# Deterministic parent-side wall-clock timeout marker. Distinct from the
+# M4SANDBOX-ERROR exit (125 = sandbox ERROR) and from candidate exit codes
+# (FAIL): a timeout is a third typed terminal outcome.
+SANDBOX_TIMEOUT_EXIT = 124
 
 _LIBC = ctypes.CDLL(None, use_errno=True)
 
