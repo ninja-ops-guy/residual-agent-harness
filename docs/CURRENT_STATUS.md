@@ -13,7 +13,9 @@ Current `main` advanced from `e996b585...` through two accepted merges:
 
 Current `main` is **`dcf1e5071deb624c637aa72df575089435d72ac9`**, the merge commit for #189. Its parent `8592ba3b331c4d9cc16e038d0e9d7cdbfa6fbf24` is the #187 merge.
 
-Successful paid/live Puter execution on exact current main remains **UNKNOWN / not established**. Physical heavyweight-WebVM reliability on iPhone/Safari remains **UNKNOWN / unqualified**. Blank-environment install, host-loss/recovery evidence, selected elapsed soak, and confirmatory R0–R5 research remain open.
+The first exact-current-main push set after #189 has now completed **PASS on attempt 1** for all seven observed workflows: Factory ownership, measured-evaluation binding, M4 runner prerequisites, clean install, Controller/provider, Command Station, and Pages/deployment. This closes the prior post-merge CI/deployment **PENDING** state for those named workflows only.
+
+Successful paid/live Puter execution on exact current main remains **UNKNOWN / not established**. Production provider-helper SDK/sign-in behavior remains **UNKNOWN** until retained manual production evidence exists. Physical heavyweight-WebVM reliability on iPhone/Safari remains **UNKNOWN / unqualified**. Blank-environment install, host-loss/recovery evidence, selected elapsed soak, and confirmatory R0–R5 research remain open.
 
 ## Accepted protected Factory change: #187
 
@@ -43,14 +45,24 @@ Exact-head #189 PR workflows were PASS for Factory ownership, clean install, mea
 
 ## Exact-current-main qualification
 
-The first post-merge push workflows for exact `main@dcf1e507...` were **still queued at the latest observation**. Therefore:
+The first post-merge push workflows for exact `main@dcf1e507...` have completed as follows, all on **attempt 1**:
+
+- Factory ownership gate `35279264442` — **PASS**;
+- measured evaluation acceptance binding `35279264666` — **PASS**;
+- M4 qualification runner prerequisites `35279264635` — **PASS**;
+- clean install qualification `35279264767` — **PASS**;
+- Controller/provider contracts `35279264540` — **PASS**;
+- Command Station checks `35279264513` — **PASS**;
+- Deploy GitHub Pages `35279264564` — **PASS**.
+
+Required interpretation:
 
 - accepted code state: **PASS / on main**;
-- pre-merge exact-head #189 technical qualification: **PASS within the named workflows**;
-- first post-merge #189 current-main workflow/deployment set: **PENDING / not yet qualified PASS**;
-- production provider-helper SDK/sign-in behavior after #189: **UNKNOWN until retained post-deploy verification exists**.
-
-Do not convert the pre-merge Pages PASS into a post-merge production PASS. The first production Pages attempt on the merged SHA remains an explicit gate.
+- #189 exact-head pre-merge technical qualification: **PASS within the named workflows**;
+- first merged-sha automated workflow/deployment set: **PASS within the seven named workflows**;
+- universal/capable-runner M4 qualification: **not established by this hosted/prerequisite set**;
+- production provider-helper SDK/sign-in behavior after #189: **UNKNOWN until retained manual production verification exists**;
+- paid/live Puter semantic success: **UNKNOWN** until retained real-account evidence crosses the provider protocol boundary and proceeds through normal candidate/verifier/receipt handling.
 
 Historical retained evidence remains visible. Controller/provider run `35263782697` on `main@e996b585...` is retained **FAIL** in Python 3.13. #187 identifies and repairs that protected-test observation race; the historical FAIL is not erased by the later repair or by same-SHA rerun success.
 
@@ -75,13 +87,13 @@ The accepted #186 fallback detects iPhone/iPad/iPod and iPadOS WebKit before hea
 
 This is a fallback contract, not proof that heavyweight WebVM is reliable on physical iPhone Safari. Published physical-device validation remains open, and the lower-level WebKit process-kill cause remains **UNKNOWN**.
 
-## Open provider-session candidate: #190
+## Provider-session candidate: #190
 
 PR **#190** proposes recovery of the Mission Control provider BroadcastChannel token from same-tab `sessionStorage` after Mission Control reload/discard so it can reattach to the surviving provider setup tab.
 
 The candidate changes browser session ownership/recovery only and explicitly does not claim live Puter success, provider quality, physical-iPhone reliability, blank-environment qualification, elapsed soak, or production reliability.
 
-Its recorded base is `main@8592ba3b...`, before #189. It therefore requires refresh/reconciliation against current main and fresh exact-head qualification before integration. It is **unaccepted**.
+#190 has now been refreshed onto exact current `main@dcf1e507...` at head `3a9ea3c2e6a36889f1fa71eb8a4e17c427c13261`. Fresh exact-head PR workflows are running/completing on that refreshed head; observed Control Plane, browser proof, and Python qualification jobs are PASS. Treat the candidate as **unaccepted** until the complete applicable exact-head qualification set and maintainer governance are satisfied. If accepted, production provider-session recovery must still be retested after merge.
 
 ## WebVM reliability boundary
 
@@ -103,7 +115,9 @@ The separate #139→ownership-baseline→#134 protected sequence remains indepen
 - **#160/#161/#162/#163/#164/#166/#167** — IE-001→IE-007 specification/test-planning branches; no accepted runtime/performance/cost/research claim.
 - **#177** — IE-001 prototype candidate; prior evidence remains bound to its candidate head and needs reconciliation/requalification against current main/current IE-001 contract.
 - **#152** — Qualification v1 framework candidate; older results must be refreshed before current release claims use them.
-- **#191** — automated PR-review workflow candidate; unaccepted and not part of repository governance until merged and qualified.
+- **#193** — interactive setup-script candidate; unaccepted and not current operator/install behavior until merged/qualified.
+- **#194** — Command Station completed-draft visibility/reopen candidate; unaccepted and not current accepted UI behavior until merged/qualified.
+- **#191** — closed unmerged; its proposed automated PR Agent workflow is not part of accepted repository governance.
 
 Merged #168 continues to define normal repository merge control as:
 
@@ -116,30 +130,29 @@ This is maintainer-reviewed with automated qualification, not independent human 
 The project does **not** yet claim that:
 
 - the historical Controller/provider FAIL is erased by #187;
-- #187 establishes every-host/capable-runner M4 qualification;
-- #189 is post-merge production-qualified before its exact merged-sha workflows/deployment complete;
-- #189 proves Puter SDK/sign-in or live inference works in production until retained post-deploy evidence exists;
+- #187 or current hosted/prerequisite CI establishes every-host/capable-runner M4 qualification;
+- the post-#189 Pages PASS proves Puter SDK/sign-in works in production without retained manual verification;
+- #189 proves successful paid/live inference;
 - #186 proves heavyweight WebVM reliability on physical iPhone Safari;
 - WebVM long-run reliability is acceptable or the historical corruption family is root-caused;
 - blank-environment install/recovery qualification is complete;
 - simulated soak is equivalent to elapsed 24h/72h/30d operation;
-- #190/#188/#191 are accepted capability;
+- #190/#188/#193/#194 are accepted capability;
 - #177 has final IE-001 qualification;
 - the solo-maintainer model supplies independent human assurance;
 - confirmatory live-model evaluation has established the central reliability hypothesis.
 
 ## Next gates
 
-1. Observe the first exact-current-main post-#189 workflow/deployment set and retain any first-attempt failure.
-2. Verify the production provider helper after the merged #189 Pages deployment: SDK load and sign-in availability must be retained evidence, not inferred from pre-merge CI.
-3. Refresh/requalify #190 against current main before integration, then retest provider-session recovery after deployment.
-4. Retain a fresh real-account Puter mission on the exact deployed accepted revision before claiming live-provider PASS, or explicitly exclude that claim.
-5. Validate the accepted #186 iOS/WebKit fallback on a physical device without turning fallback success into a heavyweight-WebVM claim.
-6. Execute true blank-environment install and recovery/host-loss qualification for the exact release artifact.
-7. Complete the selected elapsed soak tier with retained first-failure evidence.
-8. Continue #120/#126 reliability work and the separate #139→ownership-baseline→#134 protected sequence.
-9. Refresh/requalify #152 and #177 before current release/research claims use them.
-10. Freeze and run confirmatory R0–R5/degradation/heterogeneous-routing studies only under the stated research protocol.
+1. Verify the production provider helper on the exact deployed current-main revision: SDK load and sign-in availability must be retained evidence, not inferred from automated Pages PASS.
+2. Complete #190's applicable exact-head qualification and maintainer governance; if accepted, retest provider-session recovery on the merged/deployed revision.
+3. Retain a fresh real-account Puter mission on the exact deployed accepted revision before claiming live-provider PASS, or explicitly exclude that claim.
+4. Validate the accepted #186 iOS/WebKit fallback on a physical device without turning fallback success into a heavyweight-WebVM claim.
+5. Execute true blank-environment install and recovery/host-loss qualification for the exact release artifact.
+6. Complete the selected elapsed soak tier with retained first-failure evidence.
+7. Continue #120/#126 reliability work and the separate #139→ownership-baseline→#134 protected sequence.
+8. Refresh/requalify #152 and #177 before current release/research claims use them.
+9. Freeze and run confirmatory R0–R5/degradation/heterogeneous-routing studies only under the stated research protocol.
 
 ## Documentation authority
 
