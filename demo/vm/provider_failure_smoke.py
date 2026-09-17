@@ -53,6 +53,10 @@ async def provider_failure_acceptance(page, context, args, report, command_proof
         await page.locator('#mc-run').click()
     provider = await info.value
     await provider.wait_for_load_state('domcontentloaded')
+    assert not await provider.evaluate('window.crossOriginIsolated'), (
+        'provider helper inherited the WebVM COOP/COEP isolation boundary'
+    )
+    report['provider_helper_isolation'] = 'PASS_NON_ISOLATED'
     assert await page.locator('#mc-prompt').input_value() == prompt
     assert await page.locator('#mc-chat .bubble.user').count() == users_before
     assert 'prompt is still in the composer' in (await page.locator('#mc-chat').inner_text()).lower()
