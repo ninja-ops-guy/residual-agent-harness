@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {ProviderSession, PROTOCOL, RESPONSE_SCHEMA, validInference, protocolReply, validProtocolEnvelope, protocolFailureReason, providerFailureMessage, providerProgressMessage, errorCode} from '../demo/vm/provider-session.js';
+import {ProviderSession, PROTOCOL, RESPONSE_SCHEMA, validInference, protocolReply, validProtocolEnvelope, protocolFailureReason, providerFailureMessage, providerProgressMessage, providerTransportAfterFailure, errorCode} from '../demo/vm/provider-session.js';
 const mid = 'm-'+'a'.repeat(32), rid = 'b'.repeat(32);
 const request = {request_id:rid, model:'gpt-5-nano', max_output_tokens:256, messages:[{role:'user',content:'Untrusted prompt'}]};
 const providerSource=readFileSync(new URL('../demo/vm/provider.js',import.meta.url),'utf8');
@@ -62,6 +62,13 @@ test('provider response detail is visible to the session without changing the sa
  assert.equal((await result).error,'provider_protocol_invalid');
  assert.match(changes.at(-1)[1],/not a JSON worker envelope/); p.close();
 });
+test('provider protocol failure arms JSON compatibility transport only for a later counted retry', () => {
+ assert.equal(providerTransportAfterFailure('tool','provider_protocol_invalid'),'json');
+ assert.equal(providerTransportAfterFailure('tool','provider_timeout'),'tool');
+ assert.equal(providerTransportAfterFailure('tool','provider_authorization_failed'),'tool');
+ assert.equal(providerTransportAfterFailure('json','provider_protocol_invalid'),'json');
+ assert.equal(providerTransportAfterFailure('unexpected','provider_protocol_invalid'),'json');
+});
 test('provider progress is correlated to the live request and exposes only bounded stages', async () => {
  const changes=[]; const p=session(); p.onState=(...v)=>changes.push(v); p.begin(mid,1,request.model); const result=p.infer(mid,request);
  p.receive({protocol:PROTOCOL,kind:'progress',mission_id:mid,request_id:rid,stage:'request_dispatched',model:request.model});
@@ -77,16 +84,30 @@ test('provider progress text never includes an invalid model identifier', () => 
  assert.equal(providerProgressMessage('model_selected','x;secret'),'Provider stage · model selected');
  assert.equal(providerProgressMessage('not_a_stage','openai/gpt-5.4-nano'),null);
 });
-test('Puter production request uses strict non-stream structured transport and safe stage telemetry', () => {
+test('Puter production request uses bounded counted fallback without weakening the worker envelope', () => {
  assert.match(providerSource,/Browser transport requirement:/);
+ assert.match(providerSource,/Browser compatibility transport:/);
+ assert.match(providerSource,/previous counted provider response violated the RESIDUAL worker protocol/);
  assert.match(providerSource,/Use that function exactly once/);
- assert.match(providerSource,/strict:\s*true/);
+ assert.match(providerSource,/Candidate values must be nested under updates using the obligation id/);
+ assert.match(providerSource,/updates\.build = \{summary, files\}/);
+ assert.match(providerSource,/never return summary\/files at the top level/);
+ assert.match(providerSource,/parameters:\s*RESPONSE_SCHEMA/);
+ assert.doesNotMatch(providerSource,/strict:\s*true/);
+ assert.match(providerSource,/dynamic obligation-id keys/);
  assert.match(providerSource,/stream:\s*false/);
+ assert.match(providerSource,/normalize:\s*true/);
+ assert.match(providerSource,/transport:\s*'tool'/);
+ assert.match(providerSource,/if \(g\.transport === 'tool'\) options\.tools = tools/);
+ assert.match(providerSource,/providerTransportAfterFailure\(g\.transport, code\)/);
+ assert.match(providerSource,/transportMessages\(m\.messages, g\.transport\)/);
+ assert.match(providerSource,/no extra provider call was started here/);
+ assert.equal((providerSource.match(/sdk\.ai\.chat\(/g)||[]).length,1,'bridge must not hide a second provider call inside one counted request');
+ assert.doesNotMatch(providerSource,/tool_choice\s*:/);
  assert.match(providerSource,/progress\('model_selected'/);
  assert.match(providerSource,/progress\('request_dispatched'/);
  assert.match(providerSource,/progress\('response_received'/);
  assert.match(providerSource,/progress\('envelope_decoded'/);
- assert.match(providerSource,/sdk\.ai\.chat\(transportMessages\(m\.messages\), options\)/);
  assert.doesNotMatch(providerSource,/options\.temperature/);
  assert.doesNotMatch(providerSource,/options\.verbosity/);
 });
