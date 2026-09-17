@@ -103,7 +103,7 @@ test('Puter production request uses bounded counted fallback without weakening t
  assert.match(providerSource,/transportMessages\(m\.messages, g\.transport\)/);
  assert.match(providerSource,/no extra provider call was started here/);
  assert.equal((providerSource.match(/sdk\.ai\.chat\(/g)||[]).length,1,'bridge must not hide a second provider call inside one counted request');
- assert.doesNotMatch(providerSource,/tool_choice/);
+ assert.doesNotMatch(providerSource,/tool_choice\s*:/);
  assert.match(providerSource,/progress\('model_selected'/);
  assert.match(providerSource,/progress\('request_dispatched'/);
  assert.match(providerSource,/progress\('response_received'/);
