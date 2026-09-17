@@ -14,6 +14,16 @@ if (typeof window === 'undefined') {
     self.addEventListener("fetch", function (event) {
         const r = event.request;
         if (r.cache === "only-if-cached" && r.mode !== "same-origin") return;
+        const requestUrl = new URL(r.url);
+        const providerScopePath = new URL("provider/", self.registration.scope).pathname;
+        // The optional provider helper must stay outside the WebVM isolation
+        // boundary so third-party provider SDKs can load normally. Keep the
+        // exemption same-origin and scoped only to /provider/; the demo/VM
+        // remains COOP/COEP isolated.
+        if (requestUrl.origin === self.location.origin && requestUrl.pathname.startsWith(providerScopePath)) {
+            event.respondWith(fetch(r));
+            return;
+        }
         const request = (coepCredentialless && r.mode === "no-cors") ? new Request(r, {credentials: "omit"}) : r;
         event.respondWith(fetch(request).then((response) => {
             if (response.status === 0) return response;

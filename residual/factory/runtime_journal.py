@@ -99,11 +99,25 @@ class RuntimeJournal:
             db.execute("COMMIT")
         self.observations()  # refuse a corrupt persisted chain on restart
 
-    # Readers get a longer bounded budget than writers: an expected
-    # observation/status read must not fail merely because a writer holds a
-    # transaction briefly (CI contention). Writers fail fast as before.
+    # Readers get a longer bounded budget than individual writer connection
+    # attempts. A writer may retry only transaction *admission* for genuine
+    # SQLITE_BUSY/SQLITE_LOCKED contention; once a transaction is admitted,
+    # body/commit errors remain fail-closed and are never replayed.
     READ_CONNECT_TIMEOUT_S = 5.0
     WRITE_CONNECT_TIMEOUT_S = 0.2
+    WRITE_TRANSACTION_TIMEOUT_S = 1.0
+
+    @staticmethod
+    def _is_lock_contention(exc: sqlite3.OperationalError) -> bool:
+        code = getattr(exc, 'sqlite_errorcode', None)
+        # SQLite extended result codes carry the primary code in the low byte.
+        # Missing-code adapters are accepted only for the exact standard lock
+        # messages; arbitrary OperationalError values are never retried.
+        return ((type(code) is int and (code & 0xff) in
+                 (sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED)) or
+                (code is None and str(exc) in
+                 ('database is locked', 'database table is locked',
+                  'database schema is locked')))
 
     @contextmanager
     def _connect(self, *, write: bool = False,
@@ -158,16 +172,7 @@ class RuntimeJournal:
                         db.row_factory = row_factory
                     return db.execute(query, params).fetchall()
             except sqlite3.OperationalError as exc:
-                code = getattr(exc, 'sqlite_errorcode', None)
-                # SQLite extended result codes carry the primary code in the
-                # low byte. Missing-code errors from connection adapters are
-                # retried only for the exact standard lock messages.
-                locked = ((type(code) is int and (code & 0xff) in
-                           (sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED)) or
-                          (code is None and str(exc) in
-                           ('database is locked', 'database table is locked',
-                            'database schema is locked')))
-                if not locked:
+                if not self._is_lock_contention(exc):
                     raise
                 last_error = exc
                 remaining = deadline - time.monotonic()
@@ -176,16 +181,70 @@ class RuntimeJournal:
                 time.sleep(min(delay, remaining))
                 delay = min(delay * 2, 0.2)
 
+    def _open_write_transaction(self, deadline: float) -> sqlite3.Connection:
+        """Open and admit one FULL-synchronous writer before ``deadline``.
+
+        This helper owns no application mutation. It configures the connection
+        and acquires ``BEGIN IMMEDIATE`` only. That makes admission safe to
+        retry for transient lock contention without ever replaying a journal
+        append/update or an ambiguous COMMIT.
+        """
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise sqlite3.OperationalError('writer transaction deadline exhausted')
+        timeout = min(self.WRITE_CONNECT_TIMEOUT_S, remaining)
+        db = sqlite3.connect(self.path, timeout=timeout, isolation_level=None)
+        try:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise sqlite3.OperationalError('writer transaction deadline exhausted')
+            db.execute(f"PRAGMA busy_timeout={int(min(timeout, remaining) * 1000)}")
+            db.execute("PRAGMA synchronous=FULL")
+            db.execute("PRAGMA foreign_keys=ON")
+            db.execute("BEGIN IMMEDIATE")
+            return db
+        except BaseException:
+            db.close()
+            raise
+
     @contextmanager
     def _transaction(self) -> Iterator[sqlite3.Connection]:
-        with self._lock, self._connect(write=True) as db:
-            db.execute("BEGIN IMMEDIATE")
+        # Same-process writers are serialized by _lock. Cross-connection
+        # reader/schema activity may still produce transient BUSY/LOCKED at
+        # writer admission (observed under Python 3.11 CI readiness polling).
+        # Retry only the mutation-free admission phase under one bounded
+        # deadline. Once admitted, never replay body or COMMIT work.
+        with self._lock:
+            deadline = time.monotonic() + self.WRITE_TRANSACTION_TIMEOUT_S
+            delay = 0.01
+            last_error = None
+            while True:
+                try:
+                    db = self._open_write_transaction(deadline)
+                    break
+                except sqlite3.OperationalError as exc:
+                    if not self._is_lock_contention(exc):
+                        raise
+                    last_error = exc
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise last_error
+                    time.sleep(min(delay, remaining))
+                    delay = min(delay * 2, 0.1)
             try:
                 yield db
                 db.execute("COMMIT")
             except BaseException:
-                db.execute("ROLLBACK")
+                try:
+                    db.execute("ROLLBACK")
+                except sqlite3.Error:
+                    # Preserve the original application/audit failure. The
+                    # connection is discarded below, so no ambiguous state is
+                    # reused by this RuntimeJournal instance.
+                    pass
                 raise
+            finally:
+                db.close()
 
     def _append(self, db: sqlite3.Connection, payload: dict[str, Any]) -> None:
         # Round trip to detach mutable input and reject non-finite/duplicate JSON.

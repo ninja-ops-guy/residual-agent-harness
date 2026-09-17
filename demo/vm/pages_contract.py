@@ -9,6 +9,19 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 
+IOS_PREFLIGHT_MARKER = "data-residual-ios-webkit-preflight"
+IOS_PREFLIGHT_OPEN = f"<script {IOS_PREFLIGHT_MARKER}>"
+IOS_PREFLIGHT_REQUIRED = (
+    'params.get("full_vm") === "1"',
+    "iPhone|iPad|iPod",
+    'platform === "MacIntel"',
+    "maxTouchPoints > 1",
+    'new URL("../walkthrough/", location.href)',
+    'target.searchParams.set("platform", "ios-webkit")',
+    "location.replace(target.href)",
+)
+
+
 class EntryParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__()
@@ -28,10 +41,26 @@ def validate_pages_config(config: dict) -> None:
         raise ValueError("Pages source must be GitHub Actions, not Deploy from a branch. Change repository Settings > Pages > Build and deployment > Source > GitHub Actions.")
 
 
+def _without_ios_preflight(html: str) -> str:
+    if html.count(IOS_PREFLIGHT_OPEN) > 1:
+        raise ValueError("Generated WebVM entry contains multiple iOS WebKit preflight scripts.")
+    start = html.find(IOS_PREFLIGHT_OPEN)
+    if start < 0:
+        return html
+    end = html.find("</script>", start)
+    if end < 0:
+        raise ValueError("The iOS WebKit preflight script is malformed.")
+    script = html[start:end + len("</script>")]
+    if any(required not in script for required in IOS_PREFLIGHT_REQUIRED):
+        raise ValueError("The iOS WebKit preflight script is not the bounded walkthrough gate.")
+    return html[:start] + html[end + len("</script>"):]
+
+
 def validate_entry_html(html: str) -> None:
     entry = EntryParser()
     entry.feed(html)
-    if entry.refresh or "location.replace(" in html or "location.assign(" in html:
+    redirect_scope = _without_ios_preflight(html)
+    if entry.refresh or "location.replace(" in redirect_scope or "location.assign(" in redirect_scope:
         raise ValueError("The WebVM entry is a redirect, not a generated VM application.")
     if entry.eager_optional:
         raise ValueError("Optional cloud/analytics script is eagerly loaded.")
@@ -57,7 +86,10 @@ def main() -> None:
         print("Pages publishing source: workflow")
     if args.demo_dir:
         index = args.demo_dir / "index.html"
-        validate_entry_html(index.read_text())
+        html = index.read_text()
+        validate_entry_html(html)
+        if IOS_PREFLIGHT_MARKER not in html:
+            raise ValueError("Generated WebVM entry is missing the iOS WebKit preflight gate.")
         if args.commit:
             if not args.webvm_commit or not args.disk:
                 parser.error("identity requires --webvm-commit and --disk")

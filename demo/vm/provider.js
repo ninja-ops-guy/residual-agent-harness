@@ -1,8 +1,17 @@
 import {PROTOCOL, RESPONSE_SCHEMA, validId, validInference, validModel, bounded, errorCode, protocolReply, protocolFailureReason, providerFailureMessage, providerTransportAfterFailure} from './provider-session.js';
 const status = document.getElementById('status'), load = document.getElementById('load'), sign = document.getElementById('signin');
-const token = location.hash.slice(1);
-history.replaceState(null, '', location.pathname);
-let channel, sdk, grant = null, busy = false, modelCatalog = null;
+const CHANNEL_TOKEN_KEY = 'residual.provider.channel.v1';
+const hashToken = location.hash.slice(1);
+let token = /^[a-f0-9]{64}$/.test(hashToken) ? hashToken : '', recovered = false;
+try {
+  if (token) sessionStorage.setItem(CHANNEL_TOKEN_KEY, token);
+  else {
+    const stored = sessionStorage.getItem(CHANNEL_TOKEN_KEY) || '';
+    if (/^[a-f0-9]{64}$/.test(stored)) { token = stored; recovered = true; }
+  }
+} catch {}
+if (location.hash) history.replaceState(null, '', location.pathname);
+let channel, sdk, grant = null, busy = false, modelCatalog = null, sdkLoadPromise = null;
 const tell = text => { status.textContent = text; };
 const send = msg => channel?.postMessage({protocol: PROTOCOL, ...msg});
 function state() { send({kind: 'state', connected: !!sdk?.auth?.isSignedIn?.()}); }
@@ -38,17 +47,32 @@ function transportMessages(messages, transport = 'tool') {
     return message;
   });
 }
-if (!/^[a-f0-9]{64}$/.test(token)) { load.disabled = true; tell('Open provider setup from Mission Control. This tab has no connection channel.'); }
+if (!token) { load.disabled = true; tell('Open provider setup from Mission Control. This tab has no connection channel.'); }
 else { channel = new BroadcastChannel(`${PROTOCOL}:${token}`); channel.onmessage = event => receive(event.data); setInterval(state, 3000); state(); }
-load.addEventListener('click', () => {
-  load.disabled = true; tell('Loading provider SDK…');
-  const script = document.createElement('script'); script.src = 'https://js.puter.com/v2/'; script.async = true;
-  let settled = false;
-  const fail = () => { if (settled) return; settled = true; clearTimeout(timer); script.remove(); load.disabled = false; tell('SDK could not load. Check content blockers/network and retry. Nothing was sent for inference.'); };
-  const timer = setTimeout(fail, 10000); script.onerror = fail;
-  script.onload = () => { if (settled) return; if (!window.puter?.auth || !window.puter?.ai) return fail(); settled = true; clearTimeout(timer); sdk = window.puter; modelCatalog = null; sign.disabled = false; tell('SDK loaded. Click Sign in to open authorization. No inference has run.'); state(); };
-  document.head.appendChild(script);
-});
+function loadSdk(restoring = false) {
+  if (sdk?.auth && sdk?.ai) { state(); return Promise.resolve(sdk); }
+  if (sdkLoadPromise) return sdkLoadPromise;
+  load.disabled = true; tell(restoring ? 'Restoring provider session…' : 'Loading provider SDK…');
+  sdkLoadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script'); script.src = 'https://js.puter.com/v2/'; script.async = true;
+    let settled = false;
+    const fail = () => { if (settled) return; settled = true; clearTimeout(timer); script.remove(); load.disabled = false; sdkLoadPromise = null; tell('SDK could not load. Check content blockers/network and retry. Nothing was sent for inference.'); reject(new Error('sdk_load_failed')); };
+    const timer = setTimeout(fail, 10000); script.onerror = fail;
+    script.onload = () => {
+      if (settled) return;
+      if (!window.puter?.auth || !window.puter?.ai) return fail();
+      settled = true; clearTimeout(timer); sdk = window.puter; modelCatalog = null; sdkLoadPromise = null;
+      const signedIn = !!sdk.auth.isSignedIn?.();
+      sign.disabled = signedIn;
+      load.disabled = true;
+      tell(signedIn ? 'Connected. Provider session restored; return to Mission Control. Model availability and billing are checked on each run.' : 'SDK loaded. Click Sign in to open authorization. No inference has run.');
+      state(); resolve(sdk);
+    };
+    document.head.appendChild(script);
+  });
+  return sdkLoadPromise;
+}
+load.addEventListener('click', () => { loadSdk(false).catch(() => {}); });
 sign.addEventListener('click', () => {
   if (!sdk || busy) return;
   sign.disabled = true; tell('Waiting for authorization. Allow the popup or close it to cancel.');
@@ -56,10 +80,11 @@ sign.addEventListener('click', () => {
   catch (error) { sign.disabled = false; tell(`Sign-in failed: ${errorCode(error)}. Retry using this button.`); return; }
   let timer;
   Promise.race([auth, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('timeout')), 60000); })])
-    .then(() => { if (!sdk.auth.isSignedIn()) throw new Error('not_signed_in'); tell('Connected. Return to Mission Control; keep this tab open. Model availability and billing are checked on each run.'); })
-    .catch(error => tell(`Sign-in did not complete: ${errorCode(error)}. Check popup permission, then retry. No inference was requested.`))
-    .finally(() => { clearTimeout(timer); sign.disabled = false; state(); });
+    .then(() => { if (!sdk.auth.isSignedIn()) throw new Error('not_signed_in'); sign.disabled = true; tell('Connected. Return to Mission Control; keep this tab open. Model availability and billing are checked on each run.'); })
+    .catch(error => { sign.disabled = false; tell(`Sign-in did not complete: ${errorCode(error)}. Check popup permission, then retry. No inference was requested.`); })
+    .finally(() => { clearTimeout(timer); state(); });
 });
+if (recovered) loadSdk(true).catch(() => {});
 async function receive(m) {
   if (!m || m.protocol !== PROTOCOL || !bounded(m)) return;
   if (m.kind === 'revoke') { grant = null; return; }
@@ -108,4 +133,6 @@ async function receive(m) {
     tell(providerFailureMessage(code));
   } finally { clearTimeout(timer); busy = false; state(); }
 }
-window.addEventListener('pagehide', () => { send({kind: 'state', connected: false}); channel?.close(); });
+window.addEventListener('pagehide', event => { if (event.persisted) return; send({kind: 'state', connected: false}); channel?.close(); });
+window.addEventListener('pageshow', () => state());
+document.addEventListener('visibilitychange', () => { if (!document.hidden) state(); });
