@@ -12,120 +12,45 @@ test('bounded request contract rejects malformed role, id, model and token budge
  assert.equal(validInference(request),true);
  for (const change of [{messages:[{role:'root',content:'bad'}]}, {request_id:'../escape'}, {model:'x;alert(1)'}, {max_output_tokens:1537}, {max_output_tokens:true}, {messages:[{role:'user',content:'x'.repeat(65536)}]}]) assert.equal(!!validInference({...request,...change}),false);
 });
-test('no inference without a live connection and explicit grant', async () => {
- const p = session(); assert.equal((await p.infer(mid,request)).error,'provider_disconnected'); p.close();
-});
+test('no inference without a live connection and explicit grant', async () => { const p = session(); assert.equal((await p.infer(mid,request)).error,'provider_disconnected'); p.close(); });
 test('reply correlation and single-call budget', async () => {
  const p=session(); p.begin(mid,1,request.model); const result=p.infer(mid,request);
- p.receive({protocol:PROTOCOL, kind:'response', mission_id:'m-'+'c'.repeat(32), request_id:rid,ok:true,text:'wrong'});
- assert.equal(p.pending.size,1);
+ p.receive({protocol:PROTOCOL, kind:'response', mission_id:'m-'+'c'.repeat(32), request_id:rid,ok:true,text:'wrong'}); assert.equal(p.pending.size,1);
  p.receive({protocol:PROTOCOL,kind:'response',mission_id:mid,request_id:rid,ok:true,text:'accepted'});
- assert.equal((await result).text,'accepted'); assert.equal(p.pending.size,0);
- assert.equal((await p.infer(mid,{...request,request_id:'d'.repeat(32)})).error,'provider_budget_exhausted'); p.close();
+ assert.equal((await result).text,'accepted'); assert.equal(p.pending.size,0); assert.equal((await p.infer(mid,{...request,request_id:'d'.repeat(32)})).error,'provider_budget_exhausted'); p.close();
 });
-test('duplicate requests cannot consume another model call', async () => {
- const p=session(); p.begin(mid,3,request.model); const result=p.infer(mid,request);
- assert.equal((await p.infer(mid,request)).error,'provider_budget_exhausted');
- p.end(); assert.equal((await result).error,'mission_cancelled'); p.close();
-});
+test('duplicate requests cannot consume another model call', async () => { const p=session(); p.begin(mid,3,request.model); const result=p.infer(mid,request); assert.equal((await p.infer(mid,request)).error,'provider_budget_exhausted'); p.end(); assert.equal((await result).error,'mission_cancelled'); p.close(); });
 test('heartbeat expiry blocks grants', () => { const p=session();p.lastSeen=Date.now()-16000;assert.equal(p.ready,false);assert.throws(()=>p.begin(mid,1,request.model));p.close(); });
 test('model selection is bound to grant', async () => { const p=session();p.begin(mid,1,request.model);assert.equal((await p.infer(mid,{...request,model:'other'})).error,'provider_budget_exhausted');p.close(); });
-test('errors are mapped to safe codes, not arbitrary server bodies', () => {
- assert.equal(errorCode({error:'popup_blocked'}),'popup_blocked');assert.equal(errorCode({msg:'private token',error:'secret'}),'provider_error');
-});
-test('protocol tool schema is strict at the top level', () => {
- assert.deepEqual(RESPONSE_SCHEMA.required,['updates','requests']); assert.equal(RESPONSE_SCHEMA.additionalProperties,false);
-});
-test('tool-call responses are converted to the exact RESIDUAL envelope', () => {
- const envelope={updates:{answer:{text:'ok',citations:[]}},requests:[]};
- const result={message:{tool_calls:[{function:{name:'residual_submit',arguments:JSON.stringify(envelope)}}]}};
- assert.equal(protocolReply(result),JSON.stringify(envelope)); assert.equal(validProtocolEnvelope(envelope),true);
-});
-test('plain and single fenced JSON envelopes normalize to the exact worker envelope', () => {
- const envelope={updates:{answer:{text:'ok',citations:[]}},requests:[]};
- assert.equal(protocolReply({message:{content:JSON.stringify(envelope)}}),JSON.stringify(envelope));
- assert.equal(protocolReply({message:{content:`\`\`\`json\n${JSON.stringify(envelope)}\n\`\`\``}}),JSON.stringify(envelope));
-});
+test('errors are mapped to safe codes, not arbitrary server bodies', () => { assert.equal(errorCode({error:'popup_blocked'}),'popup_blocked');assert.equal(errorCode({msg:'private token',error:'secret'}),'provider_error'); });
+test('protocol tool schema is strict at the top level', () => { assert.deepEqual(RESPONSE_SCHEMA.required,['updates','requests']); assert.equal(RESPONSE_SCHEMA.additionalProperties,false); });
+test('tool-call responses are converted to the exact RESIDUAL envelope', () => { const envelope={updates:{answer:{text:'ok',citations:[]}},requests:[]}; const result={message:{tool_calls:[{function:{name:'residual_submit',arguments:JSON.stringify(envelope)}}]}}; assert.equal(protocolReply(result),JSON.stringify(envelope)); assert.equal(validProtocolEnvelope(envelope),true); });
+test('plain and single fenced JSON envelopes normalize to the exact worker envelope', () => { const envelope={updates:{answer:{text:'ok',citations:[]}},requests:[]}; assert.equal(protocolReply({message:{content:JSON.stringify(envelope)}}),JSON.stringify(envelope)); assert.equal(protocolReply({message:{content:`\`\`\`json\n${JSON.stringify(envelope)}\n\`\`\``}}),JSON.stringify(envelope)); });
 test('protocol failures stay fail-closed but expose only bounded structural reasons', () => {
- let error;
- try { protocolReply({message:{content:'Here is your answer'}}); } catch (value) { error=value; }
- assert.equal(error?.code,'provider_protocol_invalid');
- assert.equal(protocolFailureReason(error),'content_not_json');
- assert.match(providerFailureMessage(error.code, protocolFailureReason(error)),/not a JSON worker envelope/);
- assert.throws(()=>protocolReply({message:{content:JSON.stringify({updates:{}})}}),/provider_protocol_invalid/);
- assert.throws(()=>protocolReply({message:{tool_calls:[{function:{name:'other',arguments:'{}'}}]}}),/provider_protocol_invalid/);
- assert.throws(()=>protocolReply({message:{tool_calls:[{function:{name:'residual_submit',arguments:'{}'}},{function:{name:'residual_submit',arguments:'{}'}}]}}),/provider_protocol_invalid/);
+ let error; try { protocolReply({message:{content:'Here is your answer'}}); } catch (value) { error=value; }
+ assert.equal(error?.code,'provider_protocol_invalid'); assert.equal(protocolFailureReason(error),'content_not_json'); assert.match(providerFailureMessage(error.code, protocolFailureReason(error)),/not a JSON worker envelope/);
+ assert.throws(()=>protocolReply({message:{content:JSON.stringify({updates:{}})}}),/provider_protocol_invalid/); assert.throws(()=>protocolReply({message:{tool_calls:[{function:{name:'other',arguments:'{}'}}]}}),/provider_protocol_invalid/); assert.throws(()=>protocolReply({message:{tool_calls:[{function:{name:'residual_submit',arguments:'{}'}},{function:{name:'residual_submit',arguments:'{}'}}]}}),/provider_protocol_invalid/);
 });
-test('provider response detail is visible to the session without changing the safe error code', async () => {
- const changes=[]; const p=session(); p.onState=(...v)=>changes.push(v); p.begin(mid,1,request.model); const result=p.infer(mid,request);
- p.receive({protocol:PROTOCOL,kind:'response',mission_id:mid,request_id:rid,ok:false,error:'provider_protocol_invalid',detail:'content_not_json'});
- assert.equal((await result).error,'provider_protocol_invalid');
- assert.match(changes.at(-1)[1],/not a JSON worker envelope/); p.close();
-});
-test('provider protocol failure arms JSON compatibility transport only for a later counted retry', () => {
- assert.equal(providerTransportAfterFailure('tool','provider_protocol_invalid'),'json');
- assert.equal(providerTransportAfterFailure('tool','provider_timeout'),'tool');
- assert.equal(providerTransportAfterFailure('tool','provider_authorization_failed'),'tool');
- assert.equal(providerTransportAfterFailure('json','provider_protocol_invalid'),'json');
- assert.equal(providerTransportAfterFailure('unexpected','provider_protocol_invalid'),'json');
-});
+test('provider response detail is visible to the session without changing the safe error code', async () => { const changes=[]; const p=session(); p.onState=(...v)=>changes.push(v); p.begin(mid,1,request.model); const result=p.infer(mid,request); p.receive({protocol:PROTOCOL,kind:'response',mission_id:mid,request_id:rid,ok:false,error:'provider_protocol_invalid',detail:'content_not_json'}); assert.equal((await result).error,'provider_protocol_invalid'); assert.match(changes.at(-1)[1],/not a JSON worker envelope/); p.close(); });
+test('provider protocol failure arms JSON compatibility transport only for a later counted retry', () => { assert.equal(providerTransportAfterFailure('tool','provider_protocol_invalid'),'json'); assert.equal(providerTransportAfterFailure('tool','provider_timeout'),'tool'); assert.equal(providerTransportAfterFailure('tool','provider_authorization_failed'),'tool'); assert.equal(providerTransportAfterFailure('json','provider_protocol_invalid'),'json'); assert.equal(providerTransportAfterFailure('unexpected','provider_protocol_invalid'),'json'); });
 test('provider progress is correlated to the live request and exposes only bounded stages', async () => {
  const changes=[]; const p=session(); p.onState=(...v)=>changes.push(v); p.begin(mid,1,request.model); const result=p.infer(mid,request);
- p.receive({protocol:PROTOCOL,kind:'progress',mission_id:mid,request_id:rid,stage:'request_dispatched',model:request.model});
- assert.equal(changes.at(-1)[0],'connected'); assert.match(changes.at(-1)[1],/Provider stage · request dispatched/); assert.equal(changes.at(-1)[2].stage,'request_dispatched');
- const before=changes.length;
- p.receive({protocol:PROTOCOL,kind:'progress',mission_id:'m-'+'c'.repeat(32),request_id:rid,stage:'response_received',model:request.model});
- p.receive({protocol:PROTOCOL,kind:'progress',mission_id:mid,request_id:rid,stage:'private_raw_body',model:request.model});
- assert.equal(changes.length,before);
- p.end(); assert.equal((await result).error,'mission_cancelled'); p.close();
+ p.receive({protocol:PROTOCOL,kind:'progress',mission_id:mid,request_id:rid,stage:'request_dispatched',model:request.model}); assert.equal(changes.at(-1)[0],'connected'); assert.match(changes.at(-1)[1],/Provider stage · request dispatched/); assert.equal(changes.at(-1)[2].stage,'request_dispatched');
+ const before=changes.length; p.receive({protocol:PROTOCOL,kind:'progress',mission_id:'m-'+'c'.repeat(32),request_id:rid,stage:'response_received',model:request.model}); p.receive({protocol:PROTOCOL,kind:'progress',mission_id:mid,request_id:rid,stage:'private_raw_body',model:request.model}); assert.equal(changes.length,before); p.end(); assert.equal((await result).error,'mission_cancelled'); p.close();
 });
-test('provider progress text never includes an invalid model identifier', () => {
- assert.match(providerProgressMessage('model_selected','openai/gpt-5.4-nano'),/gpt-5\.4-nano/);
- assert.equal(providerProgressMessage('model_selected','x;secret'),'Provider stage · model selected');
- assert.equal(providerProgressMessage('not_a_stage','openai/gpt-5.4-nano'),null);
-});
-test('Puter production request uses bounded counted fallback without weakening the worker envelope', () => {
- assert.match(providerSource,/Browser transport requirement:/);
+test('provider progress text never includes an invalid model identifier', () => { assert.match(providerProgressMessage('model_selected','openai/gpt-5.4-nano'),/gpt-5\.4-nano/); assert.equal(providerProgressMessage('model_selected','x;secret'),'Provider stage · model selected'); assert.equal(providerProgressMessage('not_a_stage','openai/gpt-5.4-nano'),null); });
+test('Puter normal tool request preserves harness messages and counted JSON fallback remains bounded', () => {
+ assert.doesNotMatch(providerSource,/Browser transport requirement:/);
  assert.match(providerSource,/Browser compatibility transport:/);
  assert.match(providerSource,/previous counted provider response violated the RESIDUAL worker protocol/);
- assert.match(providerSource,/Use that function exactly once/);
- assert.match(providerSource,/Candidate values must be nested under updates using the obligation id/);
- assert.match(providerSource,/updates\.build = \{summary, files\}/);
- assert.match(providerSource,/never return summary\/files at the top level/);
- assert.match(providerSource,/parameters:\s*RESPONSE_SCHEMA/);
- assert.doesNotMatch(providerSource,/strict:\s*true/);
- assert.match(providerSource,/dynamic obligation-id keys/);
- assert.match(providerSource,/stream:\s*false/);
- assert.match(providerSource,/normalize:\s*true/);
- assert.match(providerSource,/transport:\s*'tool'/);
- assert.match(providerSource,/if \(g\.transport === 'tool'\) options\.tools = tools/);
- assert.match(providerSource,/providerTransportAfterFailure\(g\.transport, code\)/);
- assert.match(providerSource,/transportMessages\(m\.messages, g\.transport\)/);
- assert.match(providerSource,/no extra provider call was started here/);
- assert.equal((providerSource.match(/sdk\.ai\.chat\(/g)||[]).length,1,'bridge must not hide a second provider call inside one counted request');
- assert.doesNotMatch(providerSource,/tool_choice\s*:/);
- assert.match(providerSource,/progress\('model_selected'/);
- assert.match(providerSource,/progress\('request_dispatched'/);
- assert.match(providerSource,/progress\('response_received'/);
- assert.match(providerSource,/progress\('envelope_decoded'/);
- assert.doesNotMatch(providerSource,/options\.temperature/);
- assert.doesNotMatch(providerSource,/options\.verbosity/);
+ assert.match(providerSource,/transport === 'json' \? transportMessages\(m\.messages, 'json'\) : m\.messages/);
+ assert.match(providerSource,/parameters:\s*RESPONSE_SCHEMA/); assert.doesNotMatch(providerSource,/strict:\s*true/);
+ assert.match(providerSource,/stream:\s*false/); assert.match(providerSource,/normalize:\s*true/); assert.match(providerSource,/transport:\s*'tool'/);
+ assert.match(providerSource,/if \(g\.transport === 'tool'\) options\.tools = tools/); assert.match(providerSource,/providerTransportAfterFailure\(g\.transport, code\)/); assert.match(providerSource,/no extra provider call was started here/);
+ assert.equal((providerSource.match(/sdk\.ai\.chat\(/g)||[]).length,1,'bridge must not hide a second provider call inside one counted request'); assert.doesNotMatch(providerSource,/tool_choice\s*:/);
+ assert.match(providerSource,/progress\('model_selected'/); assert.match(providerSource,/progress\('request_dispatched'/); assert.match(providerSource,/progress\('response_received'/); assert.match(providerSource,/progress\('protocol_rejected'/); assert.match(providerSource,/progress\('envelope_decoded'/);
+ assert.doesNotMatch(providerSource,/endsWith\('\/' \+ requested\)/); assert.doesNotMatch(providerSource,/options\.temperature/); assert.doesNotMatch(providerSource,/options\.verbosity/);
 });
-test('Mission Control uses a current tool-capable Puter default while keeping model choice visible', () => {
- assert.match(engineerSource,/q\('model'\)\.value='openai\/gpt-5\.4-nano'/);
- assert.match(engineerSource,/if\(q\('model'\)\.value==='gpt-5-nano'\)/);
-});
-test('chat pipeline animation is explicitly event-backed and does not pretend non-stream inference is streaming', () => {
- assert.match(engineerSource,/LIVE PIPELINE/);
- assert.match(engineerSource,/event-backed · only observed stages appear/);
- assert.match(engineerSource,/Model inference running/);
- assert.match(engineerSource,/stream:false/);
- assert.match(engineerSource,/Worker envelope decoded/);
- assert.match(engineerSource,/Acceptance receipt bound/);
- assert.match(engineerSource,/Artifact bundle ready/);
- assert.doesNotMatch(engineerSource,/LLM HTTP stream data decoding/i);
-});
-test('lost heartbeat produces visible disconnection once', () => {
- const changes=[]; const p=session();p.onState=(...v)=>changes.push(v);p.lastSeen=Date.now()-16000;
- p.checkConnection();p.checkConnection();assert.equal(p.connected,false);assert.equal(changes.length,1);assert.equal(changes[0][0],'disconnected');p.close();
-});
+test('Mission Control uses a current tool-capable Puter default while keeping model choice visible', () => { assert.match(engineerSource,/q\('model'\)\.value='openai\/gpt-5\.4-nano'/); assert.match(engineerSource,/if\(q\('model'\)\.value==='gpt-5-nano'\)/); });
+test('chat pipeline animation is explicitly event-backed and does not pretend non-stream inference is streaming', () => { assert.match(engineerSource,/LIVE PIPELINE/); assert.match(engineerSource,/event-backed · only observed stages appear/); assert.match(engineerSource,/Model inference running/); assert.match(engineerSource,/stream:false/); assert.match(engineerSource,/Worker envelope decoded/); assert.match(engineerSource,/Acceptance receipt bound/); assert.match(engineerSource,/Artifact bundle ready/); assert.doesNotMatch(engineerSource,/LLM HTTP stream data decoding/i); });
+test('lost heartbeat produces visible disconnection once', () => { const changes=[]; const p=session();p.onState=(...v)=>changes.push(v);p.lastSeen=Date.now()-16000;p.checkConnection();p.checkConnection();assert.equal(p.connected,false);assert.equal(changes.length,1);assert.equal(changes[0][0],'disconnected');p.close(); });
