@@ -24,7 +24,7 @@ const PROTOCOL_REASONS = new Set([
   'content_missing', 'content_empty', 'content_not_json', 'envelope_shape'
 ]);
 const PROVIDER_PROGRESS_STAGES = new Set([
-  'model_selected', 'request_dispatched', 'response_received', 'envelope_decoded'
+  'model_selected', 'request_dispatched', 'response_received', 'protocol_rejected', 'envelope_decoded'
 ]);
 export class ProviderProtocolError extends Error {
   constructor(reason) {
@@ -47,27 +47,27 @@ export function errorCode(error) {
 }
 function protocolReasonText(detail) {
   const messages = {
-    tool_call_count: 'The model returned an unexpected number of tool calls.',
-    tool_name: 'The model called a tool other than residual_submit.',
+    tool_call_count: 'The model returned multiple tool calls where one RESIDUAL envelope was expected.',
+    tool_name: 'The model requested a different tool instead of returning a RESIDUAL envelope.',
     tool_arguments_empty: 'The residual_submit tool call had no arguments.',
     tool_arguments_not_json: 'The residual_submit arguments were not valid JSON.',
-    content_missing: 'The normalized provider response contained neither a usable tool call nor text.',
-    content_empty: 'The provider returned empty text instead of a worker envelope.',
-    content_not_json: 'The provider returned text that was not a JSON worker envelope.',
-    envelope_shape: 'The returned JSON did not have exactly the required updates/requests worker shape.'
+    content_missing: 'Puter returned a normalized model response with neither a usable tool call nor text.',
+    content_empty: 'The model returned empty text instead of a worker envelope.',
+    content_not_json: 'The model returned text, but it was not a JSON worker envelope.',
+    envelope_shape: 'The model response did not have exactly the required updates/requests worker shape.'
   };
   return messages[detail] || '';
 }
 export function providerFailureMessage(code, detail = null) {
   const messages = {
-    provider_model_unavailable: 'Provider connected, but the selected model is unavailable. Choose another model and retry.',
-    provider_authorization_failed: 'Provider connected, but this model request was not authorized/allowed. Check account allowance or billing.',
-    provider_protocol_invalid: 'Provider returned a response, but it violated the RESIDUAL worker protocol. No candidate was accepted.',
-    provider_timeout: 'Provider request timed out. No candidate was accepted; a timed-out remote request may still be billed.',
-    provider_request_failed: 'Provider request failed before a usable candidate was returned. No candidate was accepted.',
-    provider_response_too_large: 'Provider response exceeded the browser bridge limit. No candidate was accepted.',
+    provider_model_unavailable: 'Puter connected, but the selected model is unavailable. Choose another model and retry.',
+    provider_authorization_failed: 'Puter connected, but this model request was not authorized/allowed. Check account allowance or billing.',
+    provider_protocol_invalid: 'Puter served the model response, but the model did not return a valid RESIDUAL worker envelope. No candidate was accepted.',
+    provider_timeout: 'Puter model request timed out. No candidate was accepted; a timed-out remote request may still be billed.',
+    provider_request_failed: 'Puter request failed before a model response was available. No candidate was accepted.',
+    provider_response_too_large: 'Model response exceeded the browser bridge limit. No candidate was accepted.',
     provider_budget_exhausted: 'Provider call budget was exhausted. RESIDUAL refused another dispatch.',
-    provider_disconnected: 'Provider connection was lost before the request completed.',
+    provider_disconnected: 'Puter connection was lost before the request completed.',
     mission_cancelled: 'Provider authorization was revoked because the mission was cancelled.'
   };
   const base = messages[code] || 'Provider failed with a bounded safe error code. No candidate was accepted.';
@@ -80,8 +80,9 @@ export function providerProgressMessage(stage, model = null) {
   const messages = {
     model_selected: `Provider stage · model selected${suffix}`,
     request_dispatched: `Provider stage · request dispatched${suffix}`,
-    response_received: `Provider stage · response received${suffix}`,
-    envelope_decoded: `Provider stage · envelope decoded${suffix}`
+    response_received: `Provider stage · model response received${suffix}`,
+    protocol_rejected: `Provider stage · model response rejected by RESIDUAL protocol${suffix}`,
+    envelope_decoded: `Provider stage · RESIDUAL envelope decoded${suffix}`
   };
   return messages[stage];
 }
@@ -118,11 +119,21 @@ function parseEnvelope(text, source = 'content') {
 export function protocolReply(result) {
   const calls = result?.message?.tool_calls;
   if (Array.isArray(calls) && calls.length > 0) {
-    if (calls.length !== 1) throw new ProviderProtocolError('tool_call_count');
-    if (calls[0]?.function?.name !== 'residual_submit') throw new ProviderProtocolError('tool_name');
-    const args = calls[0]?.function?.arguments;
-    if (args === undefined || args === null || args === '') throw new ProviderProtocolError('tool_arguments_empty');
-    return parseEnvelope(typeof args === 'string' ? args : JSON.stringify(args), 'tool_arguments');
+    const residualCalls = calls.filter(call => call?.function?.name === 'residual_submit');
+    if (residualCalls.length === 1) {
+      const args = residualCalls[0]?.function?.arguments;
+      if (args === undefined || args === null || args === '') throw new ProviderProtocolError('tool_arguments_empty');
+      return parseEnvelope(typeof args === 'string' ? args : JSON.stringify(args), 'tool_arguments');
+    }
+    if (residualCalls.length > 1) throw new ProviderProtocolError('tool_call_count');
+    // Some models may return unrelated tool calls plus a valid text envelope.
+    // Puter's documented function calling is model-directed, so accept the
+    // compatibility text path only when it independently validates exactly.
+    try { return parseEnvelope(textReply(result), 'content'); }
+    catch (error) {
+      if (protocolFailureReason(error) === 'content_missing') throw new ProviderProtocolError('tool_name');
+      throw error;
+    }
   }
   return parseEnvelope(textReply(result), 'content');
 }

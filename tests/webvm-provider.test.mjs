@@ -46,15 +46,29 @@ test('plain and single fenced JSON envelopes normalize to the exact worker envel
  assert.equal(protocolReply({message:{content:JSON.stringify(envelope)}}),JSON.stringify(envelope));
  assert.equal(protocolReply({message:{content:`\`\`\`json\n${JSON.stringify(envelope)}\n\`\`\``}}),JSON.stringify(envelope));
 });
-test('protocol failures stay fail-closed but expose only bounded structural reasons', () => {
+test('model-directed unrelated tool call can fall back only to independently valid text envelope', () => {
+ const envelope={updates:{answer:{text:'ok',citations:[]}},requests:[]};
+ const result={message:{tool_calls:[{function:{name:'other',arguments:'{}'}}],content:JSON.stringify(envelope)}};
+ assert.equal(protocolReply(result),JSON.stringify(envelope));
+ assert.throws(()=>protocolReply({message:{tool_calls:[{function:{name:'other',arguments:'{}'}}]}}),/provider_protocol_invalid/);
+});
+test('one residual_submit is accepted even if provider returns unrelated tool metadata beside it', () => {
+ const envelope={updates:{answer:{text:'ok',citations:[]}},requests:[]};
+ const result={message:{tool_calls:[{function:{name:'other',arguments:'{}'}},{function:{name:'residual_submit',arguments:JSON.stringify(envelope)}}]}};
+ assert.equal(protocolReply(result),JSON.stringify(envelope));
+});
+test('multiple residual_submit calls remain fail-closed', () => {
+ assert.throws(()=>protocolReply({message:{tool_calls:[{function:{name:'residual_submit',arguments:'{}'}},{function:{name:'residual_submit',arguments:'{}'}}]}}),/provider_protocol_invalid/);
+});
+test('protocol failures identify model-envelope rejection rather than Puter transport failure', () => {
  let error;
  try { protocolReply({message:{content:'Here is your answer'}}); } catch (value) { error=value; }
  assert.equal(error?.code,'provider_protocol_invalid');
  assert.equal(protocolFailureReason(error),'content_not_json');
- assert.match(providerFailureMessage(error.code, protocolFailureReason(error)),/not a JSON worker envelope/);
+ const message=providerFailureMessage(error.code, protocolFailureReason(error));
+ assert.match(message,/Puter served the model response/);
+ assert.match(message,/not a JSON worker envelope/);
  assert.throws(()=>protocolReply({message:{content:JSON.stringify({updates:{}})}}),/provider_protocol_invalid/);
- assert.throws(()=>protocolReply({message:{tool_calls:[{function:{name:'other',arguments:'{}'}}]}}),/provider_protocol_invalid/);
- assert.throws(()=>protocolReply({message:{tool_calls:[{function:{name:'residual_submit',arguments:'{}'}},{function:{name:'residual_submit',arguments:'{}'}}]}}),/provider_protocol_invalid/);
 });
 test('provider response detail is visible to the session without changing the safe error code', async () => {
  const changes=[]; const p=session(); p.onState=(...v)=>changes.push(v); p.begin(mid,1,request.model); const result=p.infer(mid,request);
@@ -66,6 +80,8 @@ test('provider progress is correlated to the live request and exposes only bound
  const changes=[]; const p=session(); p.onState=(...v)=>changes.push(v); p.begin(mid,1,request.model); const result=p.infer(mid,request);
  p.receive({protocol:PROTOCOL,kind:'progress',mission_id:mid,request_id:rid,stage:'request_dispatched',model:request.model});
  assert.equal(changes.at(-1)[0],'connected'); assert.match(changes.at(-1)[1],/Provider stage · request dispatched/); assert.equal(changes.at(-1)[2].stage,'request_dispatched');
+ p.receive({protocol:PROTOCOL,kind:'progress',mission_id:mid,request_id:rid,stage:'protocol_rejected',model:request.model});
+ assert.match(changes.at(-1)[1],/rejected by RESIDUAL protocol/);
  const before=changes.length;
  p.receive({protocol:PROTOCOL,kind:'progress',mission_id:'m-'+'c'.repeat(32),request_id:rid,stage:'response_received',model:request.model});
  p.receive({protocol:PROTOCOL,kind:'progress',mission_id:mid,request_id:rid,stage:'private_raw_body',model:request.model});
@@ -77,23 +93,21 @@ test('provider progress text never includes an invalid model identifier', () => 
  assert.equal(providerProgressMessage('model_selected','x;secret'),'Provider stage · model selected');
  assert.equal(providerProgressMessage('not_a_stage','openai/gpt-5.4-nano'),null);
 });
-test('Puter production request uses dynamic-envelope-safe non-stream structured transport and safe stage telemetry', () => {
- assert.match(providerSource,/Browser transport requirement:/);
- assert.match(providerSource,/Use that function exactly once/);
- assert.match(providerSource,/Candidate values must be nested under updates using the obligation id/);
- assert.match(providerSource,/updates\.build = \{summary, files\}/);
- assert.match(providerSource,/never return summary\/files at the top level/);
+test('Puter production request uses documented unchanged-message normalized non-stream transport', () => {
+ assert.doesNotMatch(providerSource,/Browser transport requirement:/);
+ assert.doesNotMatch(providerSource,/transportMessages\(/);
  assert.match(providerSource,/parameters:\s*RESPONSE_SCHEMA/);
  assert.doesNotMatch(providerSource,/strict:\s*true/);
- assert.match(providerSource,/dynamic obligation-id keys/);
  assert.match(providerSource,/stream:\s*false/);
- assert.match(providerSource,/progress\('model_selected'/);
- assert.match(providerSource,/progress\('request_dispatched'/);
- assert.match(providerSource,/progress\('response_received'/);
- assert.match(providerSource,/progress\('envelope_decoded'/);
- assert.match(providerSource,/sdk\.ai\.chat\(transportMessages\(m\.messages\), options\)/);
+ assert.match(providerSource,/normalize:\s*true/);
+ assert.match(providerSource,/sdk\.ai\.chat\(m\.messages, options\)/);
+ assert.match(providerSource,/progress\('protocol_rejected'/);
  assert.doesNotMatch(providerSource,/options\.temperature/);
  assert.doesNotMatch(providerSource,/options\.verbosity/);
+});
+test('model resolution never suffix-substitutes a different catalog id', () => {
+ assert.doesNotMatch(providerSource,/endsWith\('\/' \+ requested\)/);
+ assert.match(providerSource,/Never silently substitute another model/);
 });
 test('Mission Control uses a current tool-capable Puter default while keeping model choice visible', () => {
  assert.match(engineerSource,/q\('model'\)\.value='openai\/gpt-5\.4-nano'/);
