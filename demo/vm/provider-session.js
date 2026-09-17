@@ -35,6 +35,10 @@ export class ProviderProtocolError extends Error {
   }
 }
 export const protocolFailureReason = error => PROTOCOL_REASONS.has(error?.reason) ? error.reason : null;
+export function providerTransportAfterFailure(current, code) {
+  const mode = current === 'json' ? 'json' : 'tool';
+  return mode === 'tool' && code === 'provider_protocol_invalid' ? 'json' : mode;
+}
 export function validInference(req) {
   return req && validRequest(req.request_id) && validModel(req.model) &&
     Number.isInteger(req.max_output_tokens) && req.max_output_tokens >= 1 && req.max_output_tokens <= 1536 &&
