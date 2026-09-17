@@ -48,7 +48,9 @@ Latest observed runs on exact `main@e996b585...` include:
 | iOS WebKit preflight | **PASS** — run `35264069648` |
 | Deploy GitHub Pages | **PASS** — run `35263783090`, attempt 1 |
 
-A prior Controller/provider run on the **same SHA**, run **`35263782697`**, is retained **FAIL** in its Python 3.13 job. A later same-SHA run passed. The exact cause of the earlier failure is **UNKNOWN** from the retained evidence reviewed here. Do not erase that failure or claim a code-level fix merely because the later run is green.
+A prior Controller/provider run on the **same SHA**, run **`35263782697`**, is retained **FAIL** in its Python 3.13 job. A later same-SHA run passed. Retained failure evidence and the focused #187 repair now identify the failure mechanism as a protected-test `/proc/<pid>/status` observation race: the test checked existence and then opened the status file, allowing the expected child exit between those operations to raise `ProcessLookupError`. This diagnoses the CI/test failure; it does **not** establish a runtime termination defect, and the retained FAIL is not erased by the later same-SHA PASS.
+
+PR **#187** is the focused test-only candidate for that race. It performs one status read, treats only `FileNotFoundError` / `ProcessLookupError` as the successful disappeared-process outcome, preserves the bounded polling/failure condition for a live non-zombie child, and advances the protected ownership pin for that one test blob. Its exact head `6a5ee753abe6137214f3ee17c8bcc4a85c4f3461` currently has **PASS** for Factory ownership, measured binding, M4 runner prerequisites, clean install, Control Plane, Controller/provider, and Command Station, while the exact-head maintainer approval gate is **FAIL/BLOCKED** pending attestation. These candidate results do not make #187 accepted main and do not substitute for any capable-runner M4 qualification required by its merge policy.
 
 The older `main@2e1341c9...` Command Station run `35219212073` also remains historical **FAIL** evidence for the readiness-polling/concurrent-writer case. Current-main Command Station is now PASS, but historical failures remain part of the evidence record.
 
@@ -92,7 +94,7 @@ Merged #159, #153, #169, #179, #183, and #185/#186 are bounded improvements. Non
 
 M2/M3/M4 are implemented. `implementation-status.yaml` remains an implementation-presence manifest, not a release-qualification manifest.
 
-The #185 runtime-journal/ownership-baseline change is now accepted main. Keep it distinct from the older protected `/proc/<pid>/status` observation-race history. PR #139 remains the isolated protected repair lane for that older issue where applicable, and dependent #134 work must still respect its own protected-byte/ownership-baseline sequence.
+The #185 runtime-journal/ownership-baseline change is now accepted main. Keep it distinct from the protected `/proc/<pid>/status` test-observation race diagnosed above. PR #187 is the focused candidate for that specific test race and deliberately advances the ownership pin for `tests/test_factory_m4_safety.py`; because it touches a protected test blob and the ownership baseline, it requires its own protected-byte review, exact-head qualification, and maintainer governance before merge. The separate #139→ownership-baseline→#134 protected sequence remains independent and must not be treated as cleared by #187.
 
 A green current Factory lane does not retroactively erase retained exact-revision failures or establish universal every-host M4 qualification.
 
@@ -111,6 +113,7 @@ PR #177 remains a prototype candidate. Its previous focused PASS/maintainer evid
 ## Other active work
 
 - **#120 / #126** — long-run WebVM reliability/root-cause work remains open.
+- **#187** — focused protected-test `/proc` race repair; technical exact-head workflows observed PASS, maintainer approval **BLOCKED**, protected ownership-baseline advance unaccepted until merge.
 - **#139 / #134** — separate protected M4 repair/dependent hardening sequence remains open.
 - **#152** — Qualification v1 evidence must be refreshed against the applicable current/release lineage before current release claims use it.
 - **#177** — IE-001 prototype candidate; final qualification remains unclaimed.
@@ -121,7 +124,8 @@ PR #177 remains a prototype candidate. Its previous focused PASS/maintainer evid
 
 The project does **not** yet claim that:
 
-- the earlier same-SHA Controller/provider failure is erased by the later PASS;
+- the diagnosed same-SHA Controller/provider test race is erased by the later PASS or fixed on accepted main;
+- #187 is accepted or provides universal/capable-runner M4 qualification merely because its observed hosted workflows are green;
 - #185/#186 proves heavyweight WebVM reliability on physical iPhone Safari;
 - paid/live Puter succeeds end to end on exact current main;
 - WebVM long-run reliability is acceptable or the historical corruption family is root-caused;
@@ -134,12 +138,12 @@ The project does **not** yet claim that:
 
 ## Next gates
 
-1. Preserve Controller/provider run `35263782697` as retained same-SHA **FAIL** evidence and keep its exact cause **UNKNOWN** unless retained evidence identifies it.
+1. Preserve Controller/provider run `35263782697` as retained same-SHA **FAIL** evidence. Review #187 as the focused protected-test diagnosis/repair, but do not treat it as accepted until its protected ownership-baseline change, applicable exact-head/capable-runner qualification, and exact-head maintainer attestation satisfy policy.
 2. Validate the accepted #186 iOS/WebKit fallback on a physical device after publication; do not turn fallback success into a heavy-WebVM reliability claim.
 3. Retain a fresh real-account Puter mission on the exact deployed accepted revision before claiming live-provider PASS, or explicitly exclude live-provider success from the release claim.
 4. Execute true blank-environment install and recovery/host-loss qualification for the exact release artifact.
 5. Complete the selected elapsed soak tier with retained first-failure evidence.
-6. Continue #120/#126 reliability work and the separate #139→ownership-baseline→#134 protected sequence without conflating them with the accepted #185 runtime-journal change.
+6. Continue #120/#126 reliability work and the separate #139→ownership-baseline→#134 protected sequence without conflating them with #187 or the accepted #185 runtime-journal change.
 7. Refresh/requalify #152 before using it as current release evidence.
 8. Reconcile/refresh #177 against the current IE-001 contract and current-main governance before final IE-001 qualification.
 9. Freeze and run confirmatory R0–R5/degradation/heterogeneous-routing studies only under the stated research protocol.
