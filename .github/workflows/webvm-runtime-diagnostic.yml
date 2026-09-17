@@ -1,0 +1,252 @@
+name: WebVM runtime diagnostic
+
+on:
+  pull_request:
+    paths:
+      - 'demo/vm/runtime_campaign.py'
+      - 'demo/vm/runtime_hammer.py'
+      - 'demo/vm/runtime_recycle.py'
+      - 'demo/vm/runtime_worker_sleep_discriminator.py'
+      - 'demo/vm/runtime_sleep_canary.py'
+      - '.github/workflows/webvm-runtime-diagnostic.yml'
+  workflow_dispatch:
+    inputs:
+      iterations:
+        description: 'Full Mission Control stress iterations against the published main artifact'
+        required: false
+        default: '1'
+      hammer_count:
+        description: 'Fresh CPython processes for the workload-free guest hammer'
+        required: false
+        default: '100'
+      recycle_cycles:
+        description: 'Audit cycles for the explicit-recycle diagnostic arm'
+        required: false
+        default: '10'
+      no_recycle_cycles:
+        description: 'Audit cycles for the long-lived no-recycle diagnostic arm'
+        required: false
+        default: '20'
+
+permissions:
+  contents: read
+
+jobs:
+  python-hammer-live-main:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout diagnostic code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Resolve exact published main revision
+        id: main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin main
+          echo "sha=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Install browser
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Hammer fresh guest Python processes without Mission Control workload
+        env:
+          HAMMER_COUNT: ${{ github.event.inputs.hammer_count || '100' }}
+          MAIN_SHA: ${{ steps.main.outputs.sha }}
+        run: |
+          set -euo pipefail
+          python demo/vm/runtime_hammer.py \
+            --url "https://ninja-ops-guy.github.io/residual-agent-harness/demo/" \
+            --expected-sha "$MAIN_SHA" \
+            --output runtime-hammer \
+            --count "$HAMMER_COUNT"
+      - name: Retain hammer evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webvm-python-hammer-${{ github.run_id }}-${{ github.run_attempt }}
+          path: runtime-hammer/
+          retention-days: 14
+          if-no-files-found: warn
+
+  diagnose-live-main:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout diagnostic code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Resolve exact published main revision
+        id: main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin main
+          echo "sha=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Install browser
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Stress published WebVM guest and retain runtime probes
+        env:
+          ITERATIONS: ${{ github.event.inputs.iterations || '1' }}
+          MAIN_SHA: ${{ steps.main.outputs.sha }}
+        run: |
+          set -euo pipefail
+          python demo/vm/runtime_campaign.py \
+            --url "https://ninja-ops-guy.github.io/residual-agent-harness/demo/" \
+            --expected-sha "$MAIN_SHA" \
+            --output runtime-diagnostic \
+            --iterations "$ITERATIONS"
+      - name: Retain diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webvm-runtime-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}
+          path: runtime-diagnostic/
+          retention-days: 14
+          if-no-files-found: warn
+
+  worker-sleep-discriminator-live-main:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout diagnostic code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Resolve exact published main revision
+        id: main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin main
+          echo "sha=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Install browser
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Discriminate persistent-worker PyTime failure
+        env:
+          MAIN_SHA: ${{ steps.main.outputs.sha }}
+        run: |
+          set -euo pipefail
+          python demo/vm/runtime_worker_sleep_discriminator.py \
+            --url "https://ninja-ops-guy.github.io/residual-agent-harness/demo/" \
+            --expected-sha "$MAIN_SHA" \
+            --output runtime-worker-sleep-discriminator
+      - name: Retain worker-sleep discriminator evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webvm-worker-sleep-discriminator-${{ github.run_id }}-${{ github.run_attempt }}
+          path: runtime-worker-sleep-discriminator/
+          retention-days: 14
+          if-no-files-found: warn
+
+  sleep-canary-live-main:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout diagnostic code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Resolve exact published main revision
+        id: main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin main
+          echo "sha=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Install browser
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Run independent long-lived sleep canary beside worker
+        env:
+          MAIN_SHA: ${{ steps.main.outputs.sha }}
+        run: |
+          set -euo pipefail
+          python demo/vm/runtime_sleep_canary.py \
+            --url "https://ninja-ops-guy.github.io/residual-agent-harness/demo/" \
+            --expected-sha "$MAIN_SHA" \
+            --output runtime-sleep-canary \
+            --observation-seconds 130
+      - name: Retain sleep-canary evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webvm-sleep-canary-${{ github.run_id }}-${{ github.run_attempt }}
+          path: runtime-sleep-canary/
+          retention-days: 14
+          if-no-files-found: warn
+
+  recycle-comparison-live-main:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - mode: no-recycle
+            recycle_arg: ''
+            default_cycles: '20'
+          - mode: recycle
+            recycle_arg: '--recycle'
+            default_cycles: '10'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout diagnostic code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Resolve exact published main revision
+        id: main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin main
+          echo "sha=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Install browser
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Run paired lifecycle arm
+        env:
+          MAIN_SHA: ${{ steps.main.outputs.sha }}
+          MODE: ${{ matrix.mode }}
+          RECYCLE_ARG: ${{ matrix.recycle_arg }}
+          DEFAULT_CYCLES: ${{ matrix.default_cycles }}
+          RECYCLE_CYCLES: ${{ github.event.inputs.recycle_cycles || '10' }}
+          NO_RECYCLE_CYCLES: ${{ github.event.inputs.no_recycle_cycles || '20' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$MODE" = recycle ]; then CYCLES="$RECYCLE_CYCLES"; else CYCLES="$NO_RECYCLE_CYCLES"; fi
+          python demo/vm/runtime_recycle.py \
+            --url "https://ninja-ops-guy.github.io/residual-agent-harness/demo/" \
+            --expected-sha "$MAIN_SHA" \
+            --output "runtime-recycle-$MODE" \
+            --cycles "$CYCLES" \
+            $RECYCLE_ARG
+      - name: Retain lifecycle evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webvm-recycle-${{ matrix.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: runtime-recycle-${{ matrix.mode }}/
+          retention-days: 14
+          if-no-files-found: warn

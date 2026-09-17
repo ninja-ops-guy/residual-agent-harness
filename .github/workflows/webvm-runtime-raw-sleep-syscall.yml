@@ -1,0 +1,112 @@
+name: WebVM raw clock nanosleep syscall discriminator
+
+on:
+  pull_request:
+    paths:
+      - 'demo/vm/runtime_raw_sleep_syscall.py'
+      - '.github/workflows/webvm-runtime-raw-sleep-syscall.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  raw-sleep-live-main:
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [legacy-rel, legacy-abs, time64-rel, time64-abs]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout diagnostic code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Resolve exact published main revision
+        id: main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin main
+          echo "sha=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Install browser
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Run raw i386 clock_nanosleep discriminator
+        env:
+          MAIN_SHA: ${{ steps.main.outputs.sha }}
+        run: |
+          set -euo pipefail
+          python demo/vm/runtime_raw_sleep_syscall.py \
+            --url "https://ninja-ops-guy.github.io/residual-agent-harness/demo/" \
+            --expected-sha "$MAIN_SHA" \
+            --output "runtime-raw-sleep-${{ matrix.mode }}" \
+            --mode "${{ matrix.mode }}" \
+            --iterations 300 \
+            --sleep-seconds 0.05
+      - name: Retain raw syscall evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webvm-runtime-raw-sleep-${{ matrix.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: runtime-raw-sleep-${{ matrix.mode }}/
+          retention-days: 14
+          if-no-files-found: warn
+
+  native-i386-raw-controls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Run equivalent raw syscall controls outside WebVM
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --platform linux/386 i386/debian:bookworm-slim sh -lc '
+            apt-get update >/dev/null && apt-get install -y --no-install-recommends python3 >/dev/null &&
+            python3 - <<"PY"
+          import ctypes, time
+          CLOCK_MONOTONIC = 1
+          TIMER_ABSTIME = 1
+          class TS32(ctypes.Structure):
+              _fields_ = [("tv_sec", ctypes.c_long), ("tv_nsec", ctypes.c_long)]
+          class TS64(ctypes.Structure):
+              _fields_ = [("tv_sec", ctypes.c_longlong), ("tv_nsec", ctypes.c_longlong)]
+          libc = ctypes.CDLL(None, use_errno=True)
+          libc.syscall.restype = ctypes.c_long
+          def call(nr, *args):
+              ctypes.set_errno(0)
+              rc = int(libc.syscall(ctypes.c_long(nr), *args))
+              return rc, ctypes.get_errno()
+          def gettime(bits):
+              TS, nr = (TS32, 265) if bits == 32 else (TS64, 403)
+              ts = TS()
+              rc, err = call(nr, ctypes.c_int(CLOCK_MONOTONIC), ctypes.byref(ts))
+              assert rc == 0, (bits, rc, err)
+              assert 0 <= ts.tv_nsec < 1_000_000_000
+              return int(ts.tv_sec), int(ts.tv_nsec)
+          def add(sec, nsec, seconds):
+              nsec += int(seconds * 1_000_000_000)
+              return sec + nsec // 1_000_000_000, nsec % 1_000_000_000
+          for bits in (32, 64):
+              sec, nsec = gettime(bits)
+              raw = sec + nsec / 1_000_000_000
+              assert abs(raw - time.monotonic()) < 5, (bits, raw, time.monotonic())
+              for absolute in (False, True):
+                  TS = TS32 if bits == 32 else TS64
+                  nr = 267 if bits == 32 else 407
+                  for count in range(1, 301):
+                      if absolute:
+                          sec, nsec = gettime(bits)
+                          sec, nsec = add(sec, nsec, 0.05)
+                      else:
+                          sec, nsec = 0, 50_000_000
+                      req = TS(sec, nsec)
+                      rc, err = call(nr, ctypes.c_int(CLOCK_MONOTONIC), ctypes.c_int(TIMER_ABSTIME if absolute else 0), ctypes.byref(req), ctypes.c_void_p(0))
+                      assert rc == 0, (bits, absolute, count, rc, err, sec, nsec)
+                  print("NATIVE_RAW_PASS", bits, "abs" if absolute else "rel", count)
+          PY
+          '
