@@ -1,0 +1,63 @@
+name: WebVM runtime sleep isolation discriminator
+
+on:
+  pull_request:
+    paths:
+      - 'demo/vm/runtime_sleep_isolation.py'
+      - '.github/workflows/webvm-runtime-sleep-isolation.yml'
+  workflow_dispatch:
+    inputs:
+      sleeps:
+        description: 'Number of 50 ms sleeps per no-worker arm'
+        required: false
+        default: '400'
+
+permissions:
+  contents: read
+
+jobs:
+  sleep-isolation-live-main:
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [foreground, background]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout diagnostic code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Resolve exact published main revision
+        id: main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin main
+          echo "sha=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Install browser
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Run no-worker sleep isolation arm
+        env:
+          MAIN_SHA: ${{ steps.main.outputs.sha }}
+          SLEEPS: ${{ github.event.inputs.sleeps || '400' }}
+        run: |
+          set -euo pipefail
+          python demo/vm/runtime_sleep_isolation.py \
+            --url "https://ninja-ops-guy.github.io/residual-agent-harness/demo/" \
+            --expected-sha "$MAIN_SHA" \
+            --output "runtime-sleep-isolation-${{ matrix.mode }}" \
+            --mode "${{ matrix.mode }}" \
+            --sleeps "$SLEEPS"
+      - name: Retain no-worker sleep evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webvm-runtime-sleep-isolation-${{ matrix.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: runtime-sleep-isolation-${{ matrix.mode }}/
+          retention-days: 14
+          if-no-files-found: warn
