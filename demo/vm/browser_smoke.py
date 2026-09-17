@@ -115,7 +115,7 @@ async def main() -> int:
             await stage("warm_reload_and_verify_passed")
             assert not report["optional_requests"], "cloud SDK loaded without opt-in"
             await workbench_acceptance(page, context, args, report, command_proof, stage)
-            await provider_failure_acceptance(page, context, args, report, stage)
+            await provider_failure_acceptance(page, context, args, report, command_proof, stage)
             assert not report["errors"], "unhandled browser JavaScript error"
             report["status"] = "PASS"
         except Exception as error:
