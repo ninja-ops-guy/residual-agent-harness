@@ -49,6 +49,14 @@ PR **#186 merged into `release/stabilization-2026-09-17`**, not main. It routes 
 
 The release claim remains narrow: this is a supported-device fallback. It does **not** establish that heavyweight WebVM is reliable on physical iPhone Safari, and physical-device validation of the published RC remains required.
 
+## Inference-economics planning refresh
+
+Draft specification PRs **#160, #161, #162, #163, #164, #166, and #167** have been refreshed onto accepted `main@2e1341c99fd7b72452e3b8c5278b1f557871b783` and stage corrected integration-authority contracts for the IE-001→IE-007 program. These remain specification/test-planning branches only; they do not establish accepted runtime capability, performance improvement, cost reduction, scheduling/routing safety, or research results.
+
+PR #160 now reconciles its original Q11 language with merged solo-maintainer governance #168. The repository-wide normal merge control is `automated qualification/review appropriate to scope -> exact-head maintainer attestation -> merge`. Independent human or third-party review remains valuable evidence and may still be claim-specific, but it is not the generic repository-wide merge prerequisite.
+
+PR **#177 remains a candidate**. Its existing focused PASS evidence and exact-head maintainer gate are bound to its current prototype head, but that branch/body predates the refreshed #160 contract and still describes independent Q11 review as a universal pending gate. Before final IE-001 qualification, reconcile/refresh #177 against the revised current contract and applicable current-main governance, then requalify the resulting exact head. Do not broaden its prior evidence into final qualification.
+
 ## Current build order
 
 1. **Preserve the exact-current-main Command Station FAIL.** Do not rerun unchanged main merely to obtain green. The failing test identity is now known; keep the original run as retained evidence.
@@ -64,7 +72,7 @@ The release claim remains narrow: this is a supported-device fallback. It does *
 11. **Continue #120/#126 WebVM reliability work.** Do not infer long-run reliability from isolated Pages/browser success or from the iOS walkthrough fallback.
 12. **Keep the older protected #139→ownership-baseline→#134 sequence separate.** The #185 runtime-journal protected change is a different trust-boundary history and does not clear the older protected M4 observation-race lineage.
 13. **Refresh/requalify #152 before using it as release evidence.** Older aggregate qualification does not automatically qualify the current RC.
-14. **Keep #177 scoped as a candidate.** The focused prototype suite previously reported 203 PASS, but Q11 genuinely independent current-head review remains pending; do not claim final IE-001 qualification.
+14. **Reconcile/refresh #177 against the revised #160 contract before final IE-001 qualification.** Prior 203-PASS prototype evidence remains historical to that candidate head; under merged #168, independent human review is not a generic repository-wide merge prerequisite unless a claim-specific rule requires it.
 15. **Freeze and run confirmatory research only after release claims are bounded.** Lock workload, models/configuration, verifier policy, evidence path, metrics and analysis before R0–R5/degradation/heterogeneous-routing outcome access.
 
 ## Release promotion rule
@@ -75,8 +83,9 @@ Any change touching ownership baselines, qualification anchors, protected Factor
 
 ## Planning and prototype work
 
+- **#160/#161/#162/#163/#164/#166/#167** — refreshed IE-001→IE-007 specification/test-planning branches with corrected integration-authority contracts; no accepted production/performance/research claim.
 - **#180** — narrow generated-build consistency candidate; unaccepted until refreshed/requalified on the applicable lineage.
-- **#177** — IE-001 prototype qualification candidate; no final Q11 qualification.
+- **#177** — IE-001 prototype qualification candidate; must be reconciled/refreshed against revised #160/current governance before final qualification is claimed.
 - **#178** — documentation-only IE-002→IE-007 implementation backlog; no runtime speedup/token/cost/routing/GPU claim.
 - **#175** — specification-only OpenViking/context-provider proposal; no accepted runtime dependency.
 - **#152** — Qualification v1 framework; refresh required before current release use.
