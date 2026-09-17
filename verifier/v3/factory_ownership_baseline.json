@@ -1,7 +1,7 @@
 {
-  "pinned_at": "61dcc46e61df2375ab36f567c08de7faf488c2e3",
-  "pinned_at_note": "Release-stabilization protected-byte candidate for PR #185. The runtime journal change was exercised on the exact candidate lineage before this deliberate baseline advance; this metadata records the reviewed source identity and does not claim release readiness, production reliability, elapsed soak, live-provider success, or research evidence.",
-  "justification": "PR #185 release stabilization advances exactly one previously accepted protected blob: residual/factory/runtime_journal.py. The change adds a bounded one-second retry budget only for mutation-free writer transaction admission when SQLite reports genuine BUSY/LOCKED contention. Once BEGIN IMMEDIATE succeeds, journal mutation and COMMIT are never replayed; non-contention OperationalError remains immediately fail-closed; persistent contention remains bounded and raises. On candidate 61dcc46e61df2375ab36f567c08de7faf488c2e3, Python 3.11 executed 1,089 repository tests: the original readiness-polling/concurrent-writer regression passed, the three new writer-admission regressions passed, and the only failure was the expected ownership mismatch for this blob. The old /proc termination assertion also passed. This deliberate pin advancement preserves the ownership checker, all other protected blob pins, M4/verifier/evidence authority, UNKNOWN/BLOCKED semantics, and requires fresh exact-head qualification after the pin change.",
+  "pinned_at": "ef56050de08b90a63762a29843b113f665696535",
+  "pinned_at_note": "Protected-test race repair candidate. The pin records the exact test-only source identity before this deliberate baseline advance; it does not claim release readiness, production reliability, elapsed soak, live-provider success, host-loss recovery, blank-environment qualification, or research evidence.",
+  "justification": "This focused change advances exactly one protected test blob: tests/test_factory_m4_safety.py. The process-group termination assertion previously checked /proc/<pid>/status existence and then opened it, allowing the expected child exit between those operations to raise ProcessLookupError and spuriously fail qualification. The repair performs one status read and treats only FileNotFoundError or ProcessLookupError as the successful disappeared-process outcome; a readable non-zombie child still must disappear within the same bounded polling window or the test fails. Runtime code, trust-boundary semantics, capability probes, UNKNOWN/BLOCKED handling, zero-skip qualification, and every other protected blob remain unchanged. Fresh exact-head protected-owner, capable-runner, and repository qualification are required.",
   "files": {
     "residual/factory/__init__.py": "09d3bdec9c3b244e4050e3fb3c40e251d78fb88c",
     "residual/factory/_isolated_child.py": "96456c4130ad4f0b867145ae2c30a47f1e8b6c0f",
@@ -30,7 +30,7 @@
     "tests/test_factory_m4_fs_redteam.py": "324ce0ddd84855a2151cf3354c7c7565f26648b4",
     "tests/test_factory_m4_git_evidence.py": "af7cd769c0d0b71421547057774e85ff85e9256b",
     "tests/test_factory_m4_integrator.py": "f33ce7bfc32a04c8a5eaf9aa8cd6547f3ea17fe5",
-    "tests/test_factory_m4_safety.py": "b13fdb1af9bfca2eb8b73889a1f89eac6c0498a5",
+    "tests/test_factory_m4_safety.py": "20149c70340a440ffbb629b214f4ff83106fc763",
     "tests/test_factory_m4_sandbox.py": "230035adb86436b385cb09f41cf84149738412ef",
     "tests/test_factory_m4_scheduler.py": "dde093171a7c8475f4617ff0e4422c4b532cb8b6",
     "tests/test_factory_m4_tree_binding.py": "6f2511d08ff882058a83214530048ba8c5027fa7",
