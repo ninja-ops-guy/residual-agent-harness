@@ -6,6 +6,7 @@ import unittest
 VM_DIR = Path(__file__).resolve().parents[1] / "demo" / "vm"
 sys.path.insert(0, str(VM_DIR))
 
+from pages_contract import validate_entry_html  # noqa: E402
 from patch_webvm import patch_index  # noqa: E402
 
 
@@ -19,21 +20,28 @@ class IOSWebKitPreflightTests(unittest.TestCase):
 
     def test_ios_preflight_runs_before_webvm_application_script(self):
         out = self.patched(
-            '<!doctype html><html><head><script type="module" src="/_app/webvm.js"></script></head><body></body></html>'
+            '<!doctype html><html><head><script type="module" src="./_app/immutable/entry/start.js"></script></head><body></body></html>'
         )
         marker = 'data-residual-ios-webkit-preflight'
         self.assertIn(marker, out)
-        self.assertLess(out.index(marker), out.index('src="/_app/webvm.js"'))
+        self.assertLess(out.index(marker), out.index('src="./_app/immutable/entry/start.js"'))
         for expected in (
             "iPhone", "iPad", "iPod", "MacIntel", "maxTouchPoints",
             "full_vm", "../demo.html", "ios-webkit", "location.replace",
         ):
             self.assertIn(expected, out)
+        validate_entry_html(out)
 
     def test_explicit_full_vm_override_is_preserved_for_debugging(self):
-        out = self.patched('<html><head></head><body></body></html>')
+        out = self.patched('<html><head><script>import("./_app/immutable/entry/start.js")</script></head><body></body></html>')
         self.assertIn('params.get("full_vm") === "1"', out)
         self.assertIn('if (!ios) return;', out)
+        validate_entry_html(out)
+
+    def test_unmarked_redirect_still_fails_closed(self):
+        html = '<html><head></head><body><script>import("./_app/immutable/entry/start.js");location.replace("./")</script></body></html>'
+        with self.assertRaisesRegex(ValueError, "redirect"):
+            validate_entry_html(html)
 
     def test_index_patch_is_idempotent(self):
         with tempfile.TemporaryDirectory() as folder:
