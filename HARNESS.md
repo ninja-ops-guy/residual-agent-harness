@@ -66,11 +66,9 @@ Current `main` is **`dcf1e5071deb624c637aa72df575089435d72ac9`**, produced by me
 
 #189 accepted a GitHub Pages isolation-boundary repair that keeps the optional `/provider/` helper outside COOP/COEP response rewriting while preserving `/demo/` and heavyweight WebVM isolation. Its exact-head PR workflows, including Pages, were PASS before merge.
 
-The first exact-current-main post-#189 push/deployment workflows were still queued at the latest observation. Therefore post-merge production qualification for #189 remains **PENDING**, not PASS by inference from pre-merge CI.
+The first exact-current-main push set on `main@dcf1e507...` completed **PASS on attempt 1** for Factory ownership, measured-evaluation binding, M4 runner prerequisites, clean install, Controller/provider, Command Station, and Pages/deployment. That is exact-revision automated CI/deployment evidence for those named workflows; it is not universal capable-runner M4 qualification or live-provider/physical-device/recovery/soak evidence.
 
 Historical Controller/provider run `35263782697` on `main@e996b585...` remains retained **FAIL** in Python 3.13. #187 diagnoses and repairs the protected-test observation race behind that failure; the historical evidence remains retained.
-
-These results are scoped engineering/browser evidence. They do not establish paid/live model quality, physical heavyweight-WebVM iPhone reliability, long-run WebVM reliability, blank-environment qualification, host-loss recovery, or elapsed soak.
 
 ## Live provider / WebVM boundary
 
@@ -78,7 +76,9 @@ Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440
 
 Merged #179 changed the bounded browser build-output path; merged #183 repaired provider-session lifecycle behavior; merged #189 repairs the provider helper's COI/CORP publication boundary. None is, by itself, retained proof of successful live Puter inference.
 
-Successful paid/live provider execution on exact current main remains **UNKNOWN / not established** until the merged revision deploys, the provider helper is retained as loading/sign-in capable, and a fresh mission crosses provider protocol validation into normal verification/receipts.
+The exact-current-main Pages/deployment workflow is PASS, but production provider-helper SDK/sign-in behavior and successful paid/live provider execution remain **UNKNOWN / not established** until retained production evidence exists. A fresh mission must cross provider protocol validation into normal verification/receipts before live-provider success becomes PASS.
+
+PR #190 has now been refreshed onto exact current main at head `3a9ea3c2e6a36889f1fa71eb8a4e17c427c13261`. It remains an **unaccepted candidate** and must complete applicable exact-head qualification and maintainer governance before integration; if accepted, provider-session recovery still requires post-merge production retest.
 
 The #186 fallback remains accepted: detected iOS/iPadOS WebKit is routed to the lightweight walkthrough before heavyweight guest boot. This is not a PASS claim for heavyweight WebVM on physical iPhone Safari; physical validation and the lower-level WebKit process-kill cause remain open/UNKNOWN.
 
@@ -100,6 +100,8 @@ Merged #168 establishes the repository's solo-maintainer approval model:
 
 It explicitly does **not** represent independent human assurance. A specific release, security or research claim may still require independent or third-party evidence.
 
+PR #191 was closed unmerged, so its proposed automated PR Agent workflow is not accepted repository governance.
+
 ## Evaluation guidance
 
 The scripted benchmark remains useful as a controller regression fixture, not as evidence of live LLM reliability, token savings or API cost. Confirmatory research must bind results to exact source, workload, execution identity, verifier policy and retained artifacts.
@@ -111,12 +113,12 @@ Start with:
 - [`docs/controlled-evaluation.md`](docs/controlled-evaluation.md)
 - [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md)
 
-PR #177 remains an IE-001 prototype candidate, not final qualification. PR #188 is an additive consensus-authority escalation lab candidate, not accepted research evidence. PR #190 is a provider-channel recovery candidate based on the pre-#189 main and requires refresh/requalification. PR #191 is an unaccepted automated PR-review workflow candidate.
+PR #177 remains an IE-001 prototype candidate, not final qualification. PR #188 is an additive consensus-authority escalation lab candidate, not accepted research evidence. PR #190 is a refreshed current-main provider-channel recovery candidate, not accepted capability.
 
 ## Current scope and non-claims
 
 A passing check establishes only its declared condition. Historical results remain tied to the exact revisions that produced them.
 
-The repository does not currently claim universal worker correctness, guaranteed savings, blanket production readiness, every-host M4 qualification, completed blank-environment/recovery/elapsed-soak qualification, acceptable long-run WebVM reliability, successful exact-current-main paid/live provider execution, physical heavyweight-WebVM iPhone reliability, root cause of the poisoned-guest/browser-runtime failure family, final IE-001 qualification, proof of the central live-model reliability hypothesis, autonomous recursive self-improvement or autonomous merge authority.
+The repository does not currently claim universal worker correctness, guaranteed savings, blanket production readiness, every-host M4 qualification, completed blank-environment/recovery/elapsed-soak qualification, acceptable long-run WebVM reliability, successful exact-current-main paid/live provider execution, verified production provider-helper sign-in behavior, physical heavyweight-WebVM iPhone reliability, root cause of the poisoned-guest/browser-runtime failure family, final IE-001 qualification, proof of the central live-model reliability hypothesis, autonomous recursive self-improvement or autonomous merge authority.
 
 For operational setup, use [`START-HERE.md`](START-HERE.md). For current repository-wide status, use [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md).
