@@ -28,7 +28,7 @@ def patch(text):
     )
     recovery_js = _javascript_shell_template(recovery)
 
-    text = replace_once(text, "<script>\n", "<script>\n\timport { mountMissionControl } from './mission-control-world.js';\n")
+    text = replace_once(text, "<script>\n", "<script>\n\timport { mountMissionControl } from './mission-control-diagnostics.js';\n")
     text = replace_once(text, 'var residualBridgeBuffer = "";',
                         'var residualWorkbench = null;\n\tvar residualDataDevice = null;\n\tvar residualShellTail = "";\n\tvar residualShellReady = false;\n\tvar residualShellCommandBusy = false;\n\tvar residualShellRun = null;\n\tvar residualShellInputBuffer = "";\n\tvar residualWorkerReady = false;\n\tvar residualWorkerPoisoned = false;\n\tvar residualWorkerStart = null;\n\tvar residualWorkerRecovery = null;\n\tvar residualWorkerRecoverySeq = 0;\n\tvar residualBridgeBuffer = "";')
     output_patch = """const out = residualDecoder.decode(bytes, {stream:true});
@@ -138,7 +138,7 @@ def patch(text):
             const command = `__RECOVERY_COMMAND__`
                 .replaceAll("__RESIDUAL_MISSION_ID__", missionId || "")
                 .replaceAll("__RESIDUAL_RECOVERY_MARKER__", marker);
-            readData(command + "\\r");
+            readData(command + "\r");
             return await promise;
         }
         async function ensureResidualWorker() {
@@ -175,7 +175,7 @@ def patch(text):
             // The shell input deliberately composes READY so terminal echo cannot
             // satisfy readiness before the identity checks/new worker succeed.
             const command = `if [ -e /tmp/residual-workbench.poison ] || [ -L /tmp/residual-workbench.poison ] || [ -e /tmp/residual-workbench.busy ] || [ -L /tmp/residual-workbench.busy ] || [ -e /tmp/residual-workbench.control ] || [ -L /tmp/residual-workbench.control ]; then printf 'RESIDUAL_WORKER_%s\\n' POISONED; elif [ -f /tmp/residual-workbench.pid ] && [ ! -L /tmp/residual-workbench.pid ] && [ -O /tmp/residual-workbench.pid ] && read -r residual_worker_pid < /tmp/residual-workbench.pid && [[ "$residual_worker_pid" =~ ^[0-9]+$ ]] && kill -0 "$residual_worker_pid" 2>/dev/null && mapfile -d '' residual_worker_argv < "/proc/$residual_worker_pid/cmdline" && [ "\${residual_worker_argv[1]-}" = "-m" ] && [ "\${residual_worker_argv[2]-}" = "residual.workbench.browser_worker" ]; then printf 'RESIDUAL_WORKER_%s\\n' READY; else python3 -m residual.workbench.browser_worker --control-file /tmp/residual-workbench.control --pid-file /tmp/residual-workbench.pid --busy-file /tmp/residual-workbench.busy --poison-file /tmp/residual-workbench.poison --mailbox /data --root /opt/residual --output-root /opt/residual/runs/missions & fi`;
-            readData(command + "\\r");
+            readData(command + "\r");
             return await promise;
         }
         residualWorkbench = mountMissionControl({
@@ -184,8 +184,8 @@ def patch(text):
             restart: () => residualRestartGuest(),
             focus: () => term.focus(),
             mailbox: async (path, text) => {
-                const response = /^\\/m-[a-f0-9]{32}-[a-f0-9]{32}\\.json$/.test(path);
-                const cancel = /^\\/m-[a-f0-9]{32}-cancel\\.json$/.test(path);
+                const response = /^\/m-[a-f0-9]{32}-[a-f0-9]{32}\.json$/.test(path);
+                const cancel = /^\/m-[a-f0-9]{32}-cancel\.json$/.test(path);
                 if (!response && !cancel) throw new Error("Invalid mailbox path");
                 // Publish provider responses in two phases. Cancellation is a
                 // one-file signal and therefore does not need a ready marker.
@@ -229,7 +229,7 @@ def patch(text):
                     // expose reliable POSIX regular-file/link metadata. Noclobber
                     // gives create-only, symlink-safe publication at a private path.
                     const controlCommand = `( set -C; umask 077; printf '%s %s\\n' '${request.id}' '${request.mode}' > /tmp/residual-workbench.control )`;
-                    readData(controlCommand + "\\r");
+                    readData(controlCommand + "\r");
                 });
             }
         });""".replace('__RECOVERY_COMMAND__', recovery_js)
@@ -249,7 +249,7 @@ def patch(text):
 def install(source: Path, site: Path):
     source.write_text(patch(source.read_text()))
     here = Path(__file__).resolve().parent
-    for name in ('mission-control.js', 'mission-control-engineer.js', 'mission-control-world.js', 'mission-preview.js', 'provider-session.js'):
+    for name in ('mission-control.js', 'mission-control-engineer.js', 'mission-control-world.js', 'mission-control-diagnostics.js', 'mission-preview.js', 'provider-session.js'):
         shutil.copyfile(here / name, source.parent / name)
     provider = site / 'provider'; provider.mkdir(parents=True, exist_ok=True)
     for src, dst in [('provider.html', 'index.html'), ('provider.js', 'provider.js'), ('provider-session.js', 'provider-session.js')]:
