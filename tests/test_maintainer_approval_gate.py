@@ -30,13 +30,27 @@ class MaintainerApprovalGateTests(unittest.TestCase):
         comments = [comment(10, "solo", f"{APPROVE_PREFIX} {HEAD}")]
         self.assertEqual(current_head_approvers(HEAD, comments, {"solo": "write"}), ["solo"])
 
+    def test_maintain_role_qualifies(self):
+        comments = [comment(10, "solo", f"{APPROVE_PREFIX} {HEAD}")]
+        self.assertEqual(current_head_approvers(HEAD, comments, {"solo": "maintain"}), ["solo"])
+
     def test_admin_maintainer_qualifies(self):
         comments = [comment(10, "solo", f"{APPROVE_PREFIX} {HEAD}")]
         self.assertEqual(current_head_approvers(HEAD, comments, {"solo": "admin"}), ["solo"])
 
-    def test_read_only_user_does_not_qualify(self):
-        comments = [comment(10, "reader", f"{APPROVE_PREFIX} {HEAD}")]
-        self.assertEqual(current_head_approvers(HEAD, comments, {"reader": "read"}), [])
+    def test_triage_and_read_only_users_do_not_qualify(self):
+        comments = [
+            comment(10, "triager", f"{APPROVE_PREFIX} {HEAD}"),
+            comment(11, "reader", f"{APPROVE_PREFIX} {HEAD}"),
+        ]
+        self.assertEqual(
+            current_head_approvers(
+                HEAD,
+                comments,
+                {"triager": "triage", "reader": "read"},
+            ),
+            [],
+        )
 
     def test_bot_does_not_qualify(self):
         comments = [comment(10, "residual-bot[bot]", f"{APPROVE_PREFIX} {HEAD}", "Bot")]
