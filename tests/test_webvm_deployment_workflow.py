@@ -4,12 +4,16 @@ from __future__ import annotations
 import os
 import re
 import subprocess
+import sys
 import tempfile
 import textwrap
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'demo' / 'vm'))
+from terminal_proof import PROOF_TERMINATOR, parse_exit_marker, proof_pattern
+
 WORKFLOW = (ROOT / '.github/workflows/pages.yml').read_text()
 
 
@@ -17,6 +21,28 @@ def step(name: str) -> str:
     marker = '      - name: ' + name + '\n'
     assert WORKFLOW.count(marker) == 1, f'missing/duplicated workflow step {name}'
     return WORKFLOW.split(marker, 1)[1].split('      - ', 1)[0]
+
+
+class TerminalProofMarkerTests(unittest.TestCase):
+    def test_narrow_rendering_cannot_extend_zero_exit_code_with_later_digit(self):
+        prefix = 'RESIDUAL_E2E_3d6840b33599abaa:'
+        body = f'{prefix}0{PROOF_TERMINATOR}\n3b1dabf36a61db7e5 next terminal content'
+        marker, code = parse_exit_marker(body, prefix)
+        self.assertEqual(marker, prefix + '0' + PROOF_TERMINATOR)
+        self.assertEqual(code, 0)
+
+    def test_terminal_line_wrap_inside_marker_is_tolerated(self):
+        prefix = 'RESIDUAL_E2E_1234567890abcdef:'
+        body = 'RESIDUAL_E2E_12345678\n90abcdef:\n13\n:END\n'
+        marker, code = parse_exit_marker(body, prefix)
+        self.assertEqual(marker, prefix + '13' + PROOF_TERMINATOR)
+        self.assertEqual(code, 13)
+
+    def test_unterminated_exit_code_is_not_accepted(self):
+        prefix = 'RESIDUAL_E2E_1234567890abcdef:'
+        with self.assertRaisesRegex(AssertionError, 'guest exit marker disappeared'):
+            parse_exit_marker(prefix + '0\n3', prefix)
+        self.assertIsNone(proof_pattern(prefix).search(prefix + '03'))
 
 
 class DeploymentWorkflowTests(unittest.TestCase):
