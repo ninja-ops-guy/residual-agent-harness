@@ -114,13 +114,21 @@ The older protected `/proc/<pid>/status` observation-race evidence remains histo
 
 The release-stabilization lane now introduces a **different protected Factory change** in `runtime_journal.py` plus an ownership-baseline update. Do not conflate those two protected histories, and do not infer that one green lane clears the other.
 
+## Inference-economics planning refresh
+
+Draft specification PRs **#160, #161, #162, #163, #164, #166, and #167** were refreshed onto accepted `main@2e1341c99fd7b72452e3b8c5278b1f557871b783` and now stage corrected integration-authority contracts for the IE-001→IE-007 program. These branches remain **specification/test-planning only**; they do not establish production scheduling, routing, provider, verifier, performance, cost, or research claims.
+
+PR #160 now includes an IE governance addendum reconciling its original Q11 wording with merged solo-maintainer governance #168. The repository-wide normal merge control is `automated qualification/review appropriate to scope -> exact-head maintainer attestation -> merge`; independent human/third-party review is recorded separately when it actually occurs or when a claim-specific rule requires it. This governance correction does not weaken M4, first-failure, UNKNOWN/BLOCKED, live-provider, production, soak, protected-byte, or research evidence requirements.
+
+PR **#177 remains a prototype candidate, not final IE-001 qualification**. Its current branch/body predates the refreshed #160 contract and still describes independent Q11 review as a pending universal gate. Before final IE-001 qualification, #177 must be reconciled/refreshed against the revised current contract and applicable current-main qualification/governance; its prior focused PASS evidence and maintainer gate are historical to that candidate head and do not automatically qualify the refreshed contract.
+
 ## Other active work
 
 - **#185** — draft release-stabilization lane; current exact head has technical success plus maintainer gate **FAIL/BLOCKED**, and it contains a protected Factory blob + ownership-baseline change requiring deliberate trust-boundary handling.
 - **#186** — merged into #185's stabilization lineage; iOS/WebKit safe walkthrough fallback, not physical heavy-WebVM reliability proof.
 - **#182** — closed unmerged; superseded by #186 for release stabilization.
 - **#180** — narrow generated-build consistency candidate; unaccepted and stale to current accepted/release lineages until refreshed/requalified.
-- **#177** — IE-001 prototype candidate; focused suite previously reported 203 PASS, but Q11 genuinely independent current-head review remains pending and final qualification is not claimed.
+- **#177** — IE-001 prototype candidate; focused suite previously reported 203 PASS, but the branch must now be reconciled/refreshed against the revised #160 contract/current governance before final qualification is claimed.
 - **#178** — documentation-only IE-002→IE-007 backlog; no runtime speedup/token/cost/routing/GPU claim.
 - **#175** — specification-only OpenViking/context-provider proposal; no accepted runtime dependency.
 - **#152** — Qualification v1 framework; historical aggregate evidence must be refreshed against the applicable release lineage, and simulated time is not elapsed soak.
@@ -155,7 +163,7 @@ The project does **not** yet claim that:
 7. Execute true blank-environment install and recovery/host-loss qualification for the exact RC artifact.
 8. Complete the selected elapsed soak tier with retained first-failure evidence.
 9. Continue #120/#126 reliability work and the separate #139→ownership-baseline→#134 protected sequence without conflating them with the #185 runtime-journal change.
-10. Refresh/requalify #152 and keep #177 at candidate status until its independent-review gate is satisfied.
+10. Refresh/requalify #152 and reconcile/refresh #177 against the revised #160 IE-001 contract and current-main governance before any final IE-001 qualification claim; independent review is not a repository-wide merge prerequisite under #168 unless a claim-specific rule requires it.
 11. Freeze and run confirmatory R0–R5/degradation/heterogeneous-routing studies only under the stated research protocol.
 
 ## Documentation authority
