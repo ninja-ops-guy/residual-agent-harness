@@ -1,0 +1,58 @@
+name: WebVM runtime sleep canary discriminator
+
+on:
+  pull_request:
+    paths:
+      - 'demo/vm/runtime_sleep_canary.py'
+      - '.github/workflows/webvm-runtime-sleep-canary.yml'
+  workflow_dispatch:
+    inputs:
+      observation_seconds:
+        description: 'Bounded observation window after the first Mission Control audit'
+        required: false
+        default: '130'
+
+permissions:
+  contents: read
+
+jobs:
+  sleep-canary-live-main:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout diagnostic code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Resolve exact published main revision
+        id: main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin main
+          echo "sha=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Install browser
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Run independent long-lived sleep canary beside first Mission Control worker
+        env:
+          MAIN_SHA: ${{ steps.main.outputs.sha }}
+          OBSERVATION_SECONDS: ${{ github.event.inputs.observation_seconds || '130' }}
+        run: |
+          set -euo pipefail
+          python demo/vm/runtime_sleep_canary.py \
+            --url "https://ninja-ops-guy.github.io/residual-agent-harness/demo/" \
+            --expected-sha "$MAIN_SHA" \
+            --output runtime-sleep-canary \
+            --observation-seconds "$OBSERVATION_SECONDS"
+      - name: Retain sleep-canary discriminator evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webvm-runtime-sleep-canary-${{ github.run_id }}-${{ github.run_attempt }}
+          path: runtime-sleep-canary/
+          retention-days: 14
+          if-no-files-found: warn

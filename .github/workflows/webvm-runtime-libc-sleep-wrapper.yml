@@ -1,0 +1,102 @@
+name: WebVM libc sleep wrapper discriminator
+
+on:
+  pull_request:
+    paths:
+      - 'demo/vm/runtime_libc_sleep_wrapper.py'
+      - '.github/workflows/webvm-runtime-libc-sleep-wrapper.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  libc-sleep-live-main:
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [clock-rel, clock-abs, nanosleep-rel, python-sleep]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout diagnostic code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Resolve exact published main revision
+        id: main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin main
+          echo "sha=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Install browser
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Compare libc wrappers with Python sleep
+        env:
+          MAIN_SHA: ${{ steps.main.outputs.sha }}
+        run: |
+          set -euo pipefail
+          python demo/vm/runtime_libc_sleep_wrapper.py \
+            --url "https://ninja-ops-guy.github.io/residual-agent-harness/demo/" \
+            --expected-sha "$MAIN_SHA" \
+            --output "runtime-libc-sleep-${{ matrix.mode }}" \
+            --mode "${{ matrix.mode }}" \
+            --iterations 300 \
+            --sleep-seconds 0.05
+      - name: Retain libc wrapper evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webvm-runtime-libc-sleep-${{ matrix.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: runtime-libc-sleep-${{ matrix.mode }}/
+          retention-days: 14
+          if-no-files-found: warn
+
+  native-i386-libc-controls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Run equivalent libc and Python sleep controls outside WebVM
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --platform linux/386 i386/debian:bookworm-slim sh -lc '
+            apt-get update >/dev/null && apt-get install -y --no-install-recommends python3 >/dev/null &&
+            python3 - <<"PY"
+          import ctypes, time
+          CLOCK_MONOTONIC = 1
+          TIMER_ABSTIME = 1
+          class TS(ctypes.Structure):
+              _fields_ = [("tv_sec", ctypes.c_long), ("tv_nsec", ctypes.c_long)]
+          libc = ctypes.CDLL(None, use_errno=True)
+          libc.clock_nanosleep.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.POINTER(TS), ctypes.c_void_p]
+          libc.clock_nanosleep.restype = ctypes.c_int
+          libc.nanosleep.argtypes = [ctypes.POINTER(TS), ctypes.POINTER(TS)]
+          libc.nanosleep.restype = ctypes.c_int
+          for mode in ("clock-rel", "clock-abs", "nanosleep-rel", "python-sleep"):
+              for count in range(1, 301):
+                  if mode == "clock-rel":
+                      req = TS(0, 50_000_000)
+                      rc = libc.clock_nanosleep(CLOCK_MONOTONIC, 0, ctypes.byref(req), None)
+                      assert rc == 0, (mode, count, rc, ctypes.get_errno())
+                  elif mode == "clock-abs":
+                      now = time.monotonic()
+                      deadline = now + 0.05
+                      sec = int(deadline)
+                      req = TS(sec, int((deadline - sec) * 1_000_000_000))
+                      rc = libc.clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, ctypes.byref(req), None)
+                      assert rc == 0, (mode, count, rc, ctypes.get_errno())
+                  elif mode == "nanosleep-rel":
+                      req = TS(0, 50_000_000); rem = TS()
+                      rc = libc.nanosleep(ctypes.byref(req), ctypes.byref(rem))
+                      assert rc == 0, (mode, count, rc, ctypes.get_errno())
+                  else:
+                      time.sleep(0.05)
+              print("NATIVE_LIBC_PASS", mode, count)
+          PY
+          '

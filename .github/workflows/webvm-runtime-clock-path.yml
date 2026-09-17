@@ -1,0 +1,99 @@
+name: WebVM runtime clock path discriminator
+
+on:
+  pull_request:
+    paths:
+      - 'demo/vm/runtime_clock_path.py'
+      - '.github/workflows/webvm-runtime-clock-path.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  clock-path-live-main:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: sleep-zero
+            mode: sleep-zero
+            iterations: '400'
+          - label: sleep-100ms-long
+            mode: sleep-100ms
+            iterations: '320'
+          - label: monotonic-ns
+            mode: monotonic-ns
+            iterations: '2000'
+          - label: clock-gettime-ns
+            mode: clock-gettime-ns
+            iterations: '2000'
+          - label: clock-gettime-float
+            mode: clock-gettime-float
+            iterations: '2000'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout diagnostic code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Resolve exact published main revision
+        id: main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin main
+          echo "sha=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Install browser
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Run direct clock/sleep path discriminator
+        env:
+          MAIN_SHA: ${{ steps.main.outputs.sha }}
+        run: |
+          set -euo pipefail
+          python demo/vm/runtime_clock_path.py \
+            --url "https://ninja-ops-guy.github.io/residual-agent-harness/demo/" \
+            --expected-sha "$MAIN_SHA" \
+            --output "runtime-clock-path-${{ matrix.label }}" \
+            --mode "${{ matrix.mode }}" \
+            --iterations "${{ matrix.iterations }}"
+      - name: Retain clock-path evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webvm-runtime-clock-path-${{ matrix.label }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: runtime-clock-path-${{ matrix.label }}/
+          retention-days: 14
+          if-no-files-found: warn
+
+  native-i386-sleep-controls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Run zero and long 100 ms controls outside WebVM
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --platform linux/386 i386/debian:bookworm-slim sh -lc '
+            apt-get update >/dev/null && apt-get install -y --no-install-recommends python3 >/dev/null &&
+            python3 - <<"PY"
+          import time
+          for sleep_s, limit in ((0.0, 400), (0.1, 320)):
+              for count in range(1, limit + 1):
+                  time.sleep(sleep_s)
+              print("NATIVE_I386_SLEEP_PASS", sleep_s, count)
+          for name, fn in (
+              ("monotonic_ns", time.monotonic_ns),
+              ("clock_gettime_ns", lambda: time.clock_gettime_ns(time.CLOCK_MONOTONIC)),
+              ("clock_gettime_float", lambda: time.clock_gettime(time.CLOCK_MONOTONIC)),
+          ):
+              for count in range(1, 2001):
+                  fn()
+              print("NATIVE_I386_CLOCK_PASS", name, count)
+          PY
+          '
