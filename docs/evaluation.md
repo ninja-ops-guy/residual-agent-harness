@@ -47,68 +47,62 @@ A system that rejects nearly everything must not be described as reliable merely
 
 ## Current integration evidence is not confirmatory evidence
 
-Current `main` is **`160c01a1b1933ee10c82dcf30b1674a17f7560ff`** and includes merged #169 after the accepted provider-transport path through #173.
+Current `main` is **`dcf1e5071deb624c637aa72df575089435d72ac9`**, created by merged #189 on top of merged #187.
 
-#169 adds privacy-safe local diagnostics and sanitized triage bundles without changing authoritative guest trace/`verify-trace` evidence, provider routing, mission authority or qualification semantics. Its exact final head completed qualification and received a maintainer attestation before merge.
+#187 accepted the protected M4 safety-test `/proc/<pid>/status` observation repair and corresponding ownership pin. Its exact-head automated qualification and maintainer approval were PASS before merge. That is scoped protected-test evidence, not a universal every-host M4 claim.
 
-All seven observed exact-current-main `push` workflows completed **PASS**. Pages/WebVM run `35182396521` passed on attempt 1 through provider/publication contracts, generated desktop+narrow real-browser proof, deployment, published real-guest execution, published narrow-Chromium acceptance and retained live-acceptance proof.
+#189 accepted a Pages isolation-boundary repair that keeps `/provider/` outside COOP/COEP response rewriting while preserving `/demo/` and heavyweight WebVM isolation. Its exact-head Factory ownership, clean install, measured binding, Control Plane, Controller/provider, Command Station, Browser VM Demo, Pages and maintainer approval workflows were PASS before merge.
 
-This is mechanism/integration/browser evidence. It is **not** a live R0–R5 result, paid/live provider/model quality evidence, long-run production-reliability evidence, independent scientific validation or a paper-facing effect size.
+The first exact-current-main post-#189 push/deployment workflows were **still queued at the latest observation**. Therefore post-merge current-main qualification/deployment is **PENDING**, not inferred PASS from pre-merge CI.
 
-The earlier `main@2b7cb626...` retained Controller/provider run `35172926291` as **FAIL** in Python 3.12 on the protected M4 `/proc/<pid>/status` observation race. That exact-revision failure remains in the evidence record. A later green workflow does not erase it or establish root cause.
+Historical Controller/provider run `35263782697` on `main@e996b585...` remains retained **FAIL** in Python 3.13. #187 diagnoses/repairs the protected-test observation race, but the historical failure stays in the evidence record.
+
+This is mechanism/integration/browser evidence. It is **not** a live R0–R5 result, paid/live provider/model-quality evidence, physical heavyweight-WebVM reliability evidence, long-run production-reliability evidence, independent scientific validation or a paper-facing effect size.
 
 ## Live-provider boundary
 
-Fresh retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice. Both separately counted calls failed closed as `provider_protocol_invalid`; no candidate crossed the protocol boundary (`candidate_rejections=0`, `verification_elapsed_ms=0`). Candidate correctness and semantic verification therefore remain **UNKNOWN**.
+Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice. Both counted calls failed closed as `provider_protocol_invalid`; no candidate crossed the protocol boundary, so candidate correctness and semantic verification remain **UNKNOWN**.
 
-The retained mission also shows a 1536-token provider-output limit for a browser build that required the complete generated file bundle. That observation does not establish truncation as the sole cause of the invalid protocol responses.
+#179 changed the bounded build path and truncation classification but did not prove truncation caused the historical failures. #183 addresses provider-session lifecycle behavior but does not itself constitute live semantic acceptance evidence. #189 repairs the provider helper's static COI/CORP publication boundary but still requires exact-merged-revision deployment and retained production verification.
 
-PR #176 proposes a bounded build-only ceiling/default of 8192 while retaining 1536 for non-build/source-grounded live mode and classifying normalized `finish_reason=length` as `provider_protocol_invalid / response_truncated`. Its current head is diverged from current main, so its existing exact-head CI and maintainer attestation are historical to that candidate. Refresh/current-main qualification is required before integration, and a new retained real-account iPhone/WebKit mission is required after any accepted merge before successful paid/live Puter execution can become `PASS`.
+Successful paid/live Puter execution on exact current main remains **UNKNOWN / not established** until a fresh retained real-account mission crosses provider protocol validation and proceeds through normal verifier/receipt handling. If a study depends on the real-provider path, do not substitute green provider-contract, browser, or pre-merge Pages CI for fresh exact-revision provider evidence.
 
-If a study depends on the real-provider path, do not substitute green provider-contract or Pages/browser CI for fresh exact-revision provider evidence.
+PR #190 proposes additional provider-channel recovery after Mission Control reload. Its recorded base predates #189 and it must be refreshed/requalified before any evaluation path relies on it.
 
 ## WebVM-dependent evaluation gate
 
-Issues #120/#126 remain open. Retained diagnostics isolate a process-local CPython positive-duration timed-wait failure under WebVM. Merged #145 avoids the known Python timed-wait surface in long-lived browser polling; merged #169 improves local triage evidence, but the historical guest-corruption root cause and long-run recurrence rate remain **UNKNOWN**. The later poisoned-guest event is additional reliability evidence and has not been proven to share the same cause.
+Issues #120/#126 remain open. Retained diagnostics isolate a process-local CPython positive-duration timed-wait failure under WebVM. Existing recovery, diagnostics, provider-session handling, iOS fallback, and #189 provider-helper publication repair are bounded mitigations/controls; none proves the historical guest-corruption root cause or an acceptable long-run recurrence rate.
+
+The #186 fallback is accepted. It establishes only that the unsupported/unqualified iOS WebKit profile is routed to the lightweight walkthrough before heavyweight guest/disk boot. That result must **not** be reported as physical heavyweight-WebVM reliability.
 
 For a confirmatory protocol that depends on WebVM:
 
 1. freeze the exact source and deployed revision;
 2. retain browser/runtime qualification artifacts for that exact revision;
-3. define a repeated-run reliability campaign in advance;
-4. preserve every first-attempt `FAIL`/`UNKNOWN` rather than rerunning it away;
+3. preserve first-attempt `FAIL`/`UNKNOWN` evidence rather than rerunning it away;
+4. define a repeated-run reliability campaign in advance;
 5. report operational failure/missingness separately from model correctness;
-6. do not describe a narrow mitigation or added telemetry as proof that the broader corruption family is fixed.
+6. do not describe a safe fallback, provider-session repair, publication-boundary fix or added telemetry as proof that the broader corruption family is fixed.
 
 A protocol may exclude WebVM, but exclusion must be explicit before outcome access.
 
 ## Protected Factory/M4 evidence path
 
-Issues #63/#48 are closed. M4 remains evidence- and environment-bound rather than universally qualified.
+M4 remains evidence- and environment-bound rather than universally qualified.
 
-The historical `2b7cb626...` Controller/provider failure re-exposed the protected M4 `/proc` observation race. PR #139 is the isolated protected-test repair lane. If a selected evidence path depends on that repair or downstream #134, preserve the complete sequence:
+The #185 protected runtime-journal bytes and ownership-baseline advance remain accepted. #187 additionally accepts the protected test observation repair and its ownership pin. Their accepted behavior is limited to the reviewed changes.
 
-1. evaluate the protected change under the applicable trust-boundary review policy;
-2. make any ownership-baseline advancement deliberately, not merely to obtain green;
-3. run fresh qualification after a protected pin change;
-4. refresh/requalify dependent work against the new accepted revision.
+The separate #139→ownership-baseline→#134 sequence remains independent. If a selected evidence path depends on those candidates, preserve the complete protected review/pin/requalification sequence. Do not convert `BLOCKED`/`UNKNOWN` capability states into `PASS`.
 
-Do not convert `BLOCKED`/`UNKNOWN` capability states into `PASS`.
+## Qualification and research candidates
 
-## Qualification v1 and inference-economics candidates
+PR #152 proposes a broader fail-closed qualification methodology. Any result from an older base is historical to that exact head and does not constitute current-main qualification.
 
-PR #152 proposes a broader fail-closed qualification methodology, including source-bound evidence manifests, stateful lifecycle exploration, DSM fault evidence, mutation canaries, branch coverage, exact-wheel qualification, multi-browser journeys and process/elapsed-soak tooling. Any result from an older base is historical to that exact head and does not constitute current-main qualification.
+PR #177 remains a development-only IE-001 prototype qualification candidate. Its prior evidence is historical to its candidate head and must be reconciled/refreshed against current main/current IE-001 policy before final qualification is claimed.
 
-Interpretation boundaries:
+PR #188 is an additive AQ-GOV-001 consensus-authority escalation lab candidate. Until merged and qualified, it is not accepted research evidence; even if green, its scope does not prove kernel/container/hypervisor/broker escape resistance.
 
-- virtual-day stress is fixture stress, not elapsed wall-clock soak;
-- planned 24h/72h/30d workflows are not evidence until those runs actually complete;
-- a live-provider canary proves at most one bounded adapter execution/evidence path, not provider/model quality;
-- the framework does not replace capable-runner M4, ownership or Pages acceptance gates.
-
-Draft #177 is the development-only IE-001 prototype qualification candidate. The branch reports 203 focused prototype tests passing plus Q1–Q10/exact-head repository and maintainer-governance evidence, but Q11 genuinely independent current-head technical review remains pending. It is not final IE-001 qualification, production runtime evidence, a real-provider/GPU benchmark or a paper-facing result. The branch also predates current #169 main, so current-main qualification is not inherited.
-
-Draft #178 is documentation-only follow-on implementation backlog for IE-002 through IE-007. It explicitly distinguishes prototype evidence from production qualification and makes no speedup/cost/routing/GPU/paper claim. Draft #175 remains specification-only OpenViking/context-provider planning.
+PR #191 is an unaccepted automated PR-review workflow candidate and is not part of the repository's evaluation/governance evidence until merged and qualified.
 
 ## Governance and evaluation independence
 
@@ -125,33 +119,22 @@ Before paper-facing R0–R5 outcome collection:
 3. freeze workload hashes, model/version, inference settings and prompts;
 4. freeze verifier revisions, policies and acceptance boundary;
 5. freeze metrics, missingness handling, statistical tests and analysis code;
-6. independently qualify the selected evidence path to the degree required by the scientific claim;
-7. retain any WebVM/provider/release qualification required by that selected path;
-8. preserve negative, rejected, `UNKNOWN`, missing and failed cells in the evidence package.
+6. preserve and explicitly scope retained exact-revision failures for the selected evidence path;
+7. independently qualify the selected evidence path to the degree required by the scientific claim;
+8. retain any WebVM/provider/release qualification required by that selected path;
+9. preserve negative, rejected, `UNKNOWN`, missing and failed cells in the evidence package.
 
 Green fixture/package checks do not substitute for this freeze/qualification sequence.
-
-## Recommended qualification ladder
-
-1. **Clean install** — installed package/import/asset/CLI checks on the exact revision.
-2. **Selected backend/evidence path** — prove execution identity, anti-replay, workload mapping, evidence completeness and verifier boundary.
-3. **Environment-specific runtime qualification** — WebVM/provider/cluster path only if the study uses it.
-4. **Frozen R0–R5 study** — one fixed model under the preregistered schedule.
-5. **Model degradation** — progressively weaker workers, unchanged acceptance policy.
-6. **Heterogeneous routing** — mixed local/remote/cheap/strong workers under the same evidence boundary.
-7. **Fault campaign** — worker termination, stale telemetry, network interruption, invalid receipts, verifier failure and recovery cases.
-8. **24-hour soak** — only after shorter qualification is clean.
-9. **72-hour soak** — only after the 24-hour run is clean.
-10. **30-day soak** — long-duration operational evidence after shorter gates are stable.
 
 ## Interpretation rules
 
 - `PASS` is scoped to the named revision/environment/gate.
-- `FAIL` remains evidence even if a later revision passes.
+- `FAIL` remains evidence even if a sibling job, rerun or later revision passes.
 - `UNKNOWN` means causality/evidence/qualification is unresolved.
 - `BLOCKED` means the required gate could not validly execute; it is not `PASS`.
 - Never compare scripted-worker latency with live provider/network latency as the same measurement.
 - Do not infer model quality from transport conformance.
+- Do not infer physical iOS reliability from browser preflight alone.
 - Do not infer production readiness from fixture CI.
 - Do not inherit qualification from a predecessor branch after `main` materially moves.
 - Keep worker correctness independent from controller acceptance so `P(X)` and `P(X|A)` remain estimable.
@@ -160,4 +143,4 @@ Green fixture/package checks do not substitute for this freeze/qualification seq
 
 ## Current empirical boundary
 
-The repository has strong development evidence for mechanisms and exact-revision integration. It does **not** yet have confirmatory live evidence that the reliability architecture materially increases `P(X|A)` over `P(X)` at useful coverage and acceptable orchestration tax. That remains the major scientific milestone.
+The repository has strong development evidence for mechanisms and exact-revision integration, plus retained failure history that must remain visible. It does **not** yet have confirmatory live evidence that the reliability architecture materially increases `P(X|A)` over `P(X)` at useful coverage and acceptable orchestration tax. That remains the major scientific milestone.
