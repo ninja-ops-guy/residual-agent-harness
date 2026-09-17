@@ -1,0 +1,3 @@
+# Stop Authoring
+
+Qualification next.
