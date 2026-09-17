@@ -24,13 +24,9 @@ These mechanisms make the systems hypothesis testable. They do **not** prove it.
 
 Current `main` is **`2b7cb626a9a327cf56ede847fa4e6ae6cdf9243f`**.
 
-Recent merged mechanisms include:
+Recent merged mechanisms include #159 fresh-overlay poisoned-guest recovery, #168 solo-maintainer repository governance, and #153 bounded WebVM terminal-proof/control-unlock synchronization.
 
-- #159 fresh-overlay recovery for a poisoned Mission Control guest while preserving the durable poison fence;
-- #168 solo-maintainer repository governance with automated qualification plus exact-head maintainer attestation;
-- #153 bounded WebVM terminal-proof parsing and post-run control-unlock synchronization.
-
-The final #153 candidate had its observed exact-head qualification set green and an exact-head maintainer attestation. The merged revision is nevertheless **not fully green**: current-main Pages run `35172926305` is **PASS`, but Controller/provider run `35172926291` is **FAIL** in Python 3.12 on the protected M4 `/proc/<pid>/status` observation race. That retained first main failure must stay in the evidence record.
+The final #153 candidate had its observed exact-head qualification set green and an exact-head maintainer attestation. The merged revision is nevertheless **not fully green**: current-main Pages run `35172926305` is **PASS**, but Controller/provider run `35172926291` is **FAIL** in Python 3.12 on the protected M4 `/proc/<pid>/status` observation race. That retained first main failure stays in the evidence record.
 
 This is mechanism/integration evidence. It is not a paper-facing effect size, independent human assurance, every-host security qualification, model-quality evidence or long-duration reliability evidence.
 
@@ -58,7 +54,7 @@ This governance change does not erase claim-specific requirements for independen
 
 ## Factory / protected evidence boundary
 
-Issues #63 and #48 are closed and M2/M3/M4 are implemented. M4 remains environment- and exact-revision-bound rather than universally qualified.
+Issues #63/#48 are closed and M2/M3/M4 are implemented. M4 remains environment- and exact-revision-bound rather than universally qualified.
 
 Current-main Controller/provider CI re-exposes the known protected M4 test observation race. PR #139 remains the isolated protected repair lane. If a selected research evidence path depends on #139 or downstream #134, preserve the complete protected-byte sequence: review the protected change under the applicable policy, make any ownership-baseline change deliberately, run fresh qualification after the pin change, then refresh/requalify dependent work. `BLOCKED`/`UNKNOWN` capability states do not become `PASS`.
 
@@ -69,6 +65,8 @@ PR #152 proposes a broader Qualification v1 layer: source-bound evidence manifes
 Any prior result on an older base remains historical to that head. #152 must be refreshed/requalified against current main before it can support a current release claim. Virtual-day stress is not elapsed wall-clock soak; planned 24h/72h/30d workflows create no elapsed claim until the actual runs complete.
 
 PRs #160–#167 are inference-engineering proposals/specifications unless their implementations later land and are qualified. They are not current empirical evidence.
+
+Draft #169 adds privacy-safe, local-first demo diagnostic telemetry on current main. Its stated trust boundary is observational only; retained guest trace/`verify-trace` remain authoritative. Its qualification is still in progress and the maintainer-approval gate is not satisfied on the current draft head, so it is not accepted-main evidence.
 
 ## Proposed contribution
 
@@ -111,21 +109,9 @@ At minimum:
 
 ## Primary confirmatory experiment
 
-Run one fixed model across frozen R0–R5 configurations and retain raw observations sufficient to recompute:
+Run one fixed model across frozen R0–R5 configurations and retain raw observations sufficient to recompute raw correctness `P(X)`, acceptance coverage `P(A)`, accepted correctness `P(X|A)`, AER/ASSR, false acceptance/rejection, verifier rejection/`UNKNOWN`, latency, throughput, rework/conflicts and directly measurable monetary/token/GPU cost.
 
-- raw correctness `P(X)`;
-- acceptance coverage `P(A)`;
-- accepted correctness `P(X|A)`;
-- Accepted Error Rate (AER);
-- accepted-system success / ASSR;
-- false acceptance and false rejection;
-- verifier rejection / `UNKNOWN` rates;
-- latency, throughput, rework/conflicts;
-- monetary/token/GPU cost where directly measurable.
-
-A positive result requires `P(X|A)` to improve meaningfully over `P(X)` without collapsing `P(A)` toward zero. Then test model degradation and heterogeneous routing under the same acceptance boundary.
-
-A falsifying result is equally important: if accepted correctness does not materially improve, or the improvement is dominated by rejection, verifier leakage, cost or latency, the hypothesis is not supported for the tested domain.
+A positive result requires `P(X|A)` to improve meaningfully over `P(X)` without collapsing `P(A)` toward zero. A falsifying result is equally important: if accepted correctness does not materially improve, or improvement is dominated by rejection, verifier leakage, cost or latency, the hypothesis is not supported for the tested domain.
 
 ## What is deliberately not claimed
 
