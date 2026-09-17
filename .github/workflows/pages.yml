@@ -32,9 +32,6 @@ permissions:
 
 concurrency:
   group: pages-${{ github.event_name == 'pull_request' && github.event.pull_request.number || 'production' }}
-  # Intermediate PR heads are disposable; only the newest candidate needs the
-  # expensive desktop+narrow proof. Production remains non-cancelling so a
-  # newer push cannot erase a failing release attempt.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -245,7 +242,6 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
         with:
-          # Consume the build job's actual artifact, including on deploy-only retries.
           artifact_name: ${{ needs.build-and-browser-proof.outputs.pages-artifact-name }}
       - name: Install browser for live acceptance
         run: |
@@ -261,6 +257,12 @@ jobs:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
           python demo/vm/browser_smoke.py --url "${PAGE_URL%/}/demo/" --expected-sha "$GITHUB_SHA" --output live-browser-evidence/narrow --mobile
+      - name: Verify published provider can load real Puter SDK
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          python demo/vm/provider_sdk_smoke.py --page-url "$PAGE_URL" --output live-provider-evidence/desktop
+          python demo/vm/provider_sdk_smoke.py --page-url "$PAGE_URL" --output live-provider-evidence/narrow --mobile
       - name: Retain live acceptance proof
         if: always()
         uses: actions/upload-artifact@v4
@@ -268,6 +270,7 @@ jobs:
           name: webvm-live-proof-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             live-browser-evidence/
+            live-provider-evidence/
             pages-config.json
           retention-days: 7
           if-no-files-found: warn
