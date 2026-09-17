@@ -2,7 +2,7 @@
 
 > **Current platform state:** [CURRENT_STATUS.md](CURRENT_STATUS.md)
 
-RESIDUAL has two evaluation layers: the original controller benchmark/study path and the newer frozen reliability-evaluation apparatus under `residual/eval/`. Both are useful, but they answer different questions and must not be mixed into one claim.
+RESIDUAL has two evaluation layers: the original controller benchmark/study path and the frozen reliability-evaluation apparatus under `residual/eval/`. Both are useful, but they answer different questions and must not be mixed into one claim.
 
 ## Offline verification
 
@@ -22,13 +22,13 @@ python3 -m residual benchmark --cases 8 --noise-lines 256 --output docs/benchmar
 python3 -m scripts.scale_study
 ```
 
-The scripted benchmark remains useful for deterministic controller/evidence regression. It does not demonstrate that cloud reasoning is necessary, that real models preserve quality, or that simulated request-byte savings predict live billed cost.
+The scripted benchmark is useful for deterministic controller/evidence regression. It does not demonstrate that cloud reasoning is necessary, that real models preserve quality, or that simulated request-byte savings predict live billed cost.
 
 Failures, abstentions and missing usage remain in denominators. Missing provider usage remains unknown rather than being reported as zero-cost evidence.
 
 ## Frozen reliability evaluation
 
-The current research apparatus includes immutable workload definitions, repeated configuration runs, ablations, statistics/comparison reports, fault injection, evidence/report reconstruction and Factory measurement hooks.
+The research apparatus includes immutable workload definitions, repeated configuration runs, ablations, statistics/comparison reports, fault injection, evidence/report reconstruction and Factory measurement hooks.
 
 Paper-facing metrics include:
 
@@ -47,21 +47,34 @@ A system that rejects nearly everything must not be described as reliable merely
 
 ## Current integration evidence is not confirmatory evidence
 
-Current `main` is **`f6f9bad84caccf68c7ab35e5788e756d12c55fb7`**, the merge of PR #156. Its seven observed main-push qualification workflows are **PASS** for their named exact-revision scopes. The capable-runner M4 workflow passed its fail-closed capability and zero-skip gate. Pages run `35158939226` passed on attempt 1 through generated desktop+narrow proof, deployment, published real-guest execution and published narrow-Chromium acceptance.
+Current `main` is **`2b7cb626a9a327cf56ede847fa4e6ae6cdf9243f`**.
 
-This is useful mechanism/integration evidence. It is **not** independent approval, a live R0–R5 result, model-quality evidence, production-reliability evidence or a paper-facing effect size.
+Recent merges include #159 fresh-overlay poisoned-guest recovery, #168 solo-maintainer governance and #153 browser terminal-proof/control-unlock acceptance repair. The final #153 candidate had its observed applicable exact-head workflows green and an exact-head maintainer attestation.
 
-PR #156 has zero submitted reviews, so current main is **review-provisional** despite green automated evidence.
+The resulting current-main push is **not fully green**. Retained current-main outcomes include:
 
-The latest retained real-account provider evidence before #156 is **FAIL** as `provider_protocol_invalid`: two real `openai/gpt-5.4-nano` calls produced zero accepted obligations and no candidate reached verification. PR #156 repairs the identified worker-envelope conformance regression, but green post-merge contract/browser CI is not a real-account provider success. Successful paid/live provider inference on exact current main remains **UNKNOWN / not yet retained**.
+- measured-evaluation binding — **PASS** (`35172926292`);
+- Command Station — **PASS** (`35172926302`);
+- Pages/WebVM — **PASS** (`35172926305`, attempt 1);
+- Controller/provider contracts — **FAIL** (`35172926291`).
 
-If a study depends on the real-provider path, collect and retain fresh exact-revision provider evidence before treating that path as qualified for the study.
+The Controller/provider failure is in the Python 3.12 full-suite lane on the protected M4 safety test `test_timeout_kills_process_group_not_only_parent`: `/proc/<pid>/status` disappeared between `exists()` and `read_text()`, raising `FileNotFoundError`. Python 3.11 passed; Python 3.13 was cancelled after the matrix failure. The exact main workflow remains **FAIL**. A successful sibling or later candidate must not erase that first observed main result.
+
+This is mechanism/integration evidence. It is **not** a live R0–R5 result, provider/model quality evidence, production-reliability evidence, independent scientific validation or a paper-facing effect size.
+
+## Live-provider boundary
+
+A retained post-#156 iPhone/WebKit public-demo mission reached `Provider connected` but exposed `RESIDUAL_WORKER_POISONED` while Mission Control remained at `GUEST STARTING`. That mission is **FAIL** at the guest-recovery/product boundary. No valid paid/live candidate completed the normal verifier/receipt path.
+
+#159 provides a fresh-overlay recovery path while preserving the poison fence. Its browser proof uses provider test-double coverage and a real local audit; it does not establish real-provider/model quality. The first production Pages run after #159 retained a separate narrow-browser parser failure; #153 repairs that acceptance boundary and current-main Pages is now green.
+
+A successful paid/live Puter mission on exact current main remains **UNKNOWN / not yet established**. If a study depends on the real-provider path, collect and retain fresh exact-revision provider evidence before treating that path as qualified for the study.
 
 ## WebVM-dependent evaluation gate
 
-Issues #120 and #126 remain open. Retained diagnostics isolate a process-local CPython positive-duration timed-wait failure under WebVM. Merged #145 avoids the known Python timed-wait surface in long-lived browser polling, but the historical guest-corruption root cause and long-run recurrence rate remain **UNKNOWN**.
+Issues #120/#126 remain open. Retained diagnostics isolate a process-local CPython positive-duration timed-wait failure under WebVM. Merged #145 avoids the known Python timed-wait surface in long-lived browser polling, but the historical guest-corruption root cause and long-run recurrence rate remain **UNKNOWN**. The later poisoned-guest event is additional reliability evidence and has not been proven to share the same cause.
 
-For any confirmatory protocol that depends on WebVM:
+For a confirmatory protocol that depends on WebVM:
 
 1. freeze the exact source and deployed revision;
 2. retain browser/runtime qualification artifacts for that exact revision;
@@ -72,22 +85,16 @@ For any confirmatory protocol that depends on WebVM:
 
 A protocol may exclude WebVM, but exclusion must be explicit before outcome access.
 
-## Current acceptance-harness gate
-
-PR #89 retains an authoritative first-attempt narrow-browser `FAIL` caused by an observation/parser defect. PR #153 consolidates the bounded #140/#150 repairs and is now refreshed onto exact current main at head `35cbf2ba060bc04aabb6cfd10fbf90dc8dbccb77`.
-
-#153's previous exact-head workflow results remain historical evidence only. Current head `35cbf2ba060bc04aabb6cfd10fbf90dc8dbccb77` must run its complete qualification set, preserve any first-attempt failure, and obtain genuinely independent exact-head review before integration. After an accepted #153 merge, #89 must itself be refreshed/requalified; #153 does not qualify #89 by inheritance.
-
 ## Protected Factory/M4 evidence path
 
-Issues #63 and #48 are closed, so the old evaluation gate that treated them as present-tense blockers is obsolete. M4 remains evidence- and environment-bound rather than universally qualified.
+Issues #63/#48 are closed. M4 remains evidence- and environment-bound rather than universally qualified.
 
-PR #139 is a protected-test repair lane. If a selected evidence path depends on that repair or downstream #134, require the complete sequence:
+Current-main ordinary CI re-exposes the protected M4 `/proc` observation race. PR #139 is the isolated protected-test repair lane. If a selected evidence path depends on that repair or downstream #134, preserve the complete sequence:
 
-1. independent exact-head technical review;
-2. deliberate ownership-baseline decision;
-3. fresh qualification after any protected pin change;
-4. refresh/requalification of dependent work against current main.
+1. evaluate the protected change under the applicable trust-boundary review policy;
+2. make any ownership-baseline advancement deliberately, not merely to obtain green;
+3. run fresh qualification after a protected pin change;
+4. refresh/requalify dependent work against the new accepted revision.
 
 Do not convert `BLOCKED`/`UNKNOWN` capability states into `PASS`.
 
@@ -95,20 +102,20 @@ Do not convert `BLOCKED`/`UNKNOWN` capability states into `PASS`.
 
 PR #152 proposes a broader fail-closed qualification methodology, including source-bound evidence manifests, stateful lifecycle exploration, DSM fault evidence, mutation canaries, branch coverage, exact-wheel qualification, multi-browser journeys and process/elapsed-soak tooling.
 
-Its current head was built before #156. Any prior green or partial workflow evidence remains bound to that exact head and does not constitute current-main qualification. Refresh/requalification is required before integration.
+Any result from an older base is historical to that exact head and does not constitute current-main qualification. Refresh/requalification is required before integration.
 
-Important interpretation boundaries remain:
+Interpretation boundaries:
 
 - virtual-day stress is fixture stress, not elapsed wall-clock soak;
 - planned 24h/72h/30d workflows are not evidence until those runs actually complete;
 - a live-provider canary proves at most one bounded adapter execution/evidence path, not provider/model quality;
-- the framework does not replace existing capable-runner M4, ownership or Pages acceptance gates.
+- the framework does not replace capable-runner M4, ownership or Pages acceptance gates.
 
-## Governance / independent-review gate
+## Governance and evaluation independence
 
-Issue #144 tracks the independent-review enforcement gap. PR #146 implements a fail-closed exact-current-head review checker and is now refreshed onto exact current main at head `c416d408149408ff8668a48d6e73eb1f3bf6347e`; fresh qualification and independent write-authorized acceptance are still required. Platform ruleset enforcement still requires a maintainer change after #146 is integrated.
+Merged #168 establishes repository merge control as automated qualification plus exact-head maintainer attestation. This is **maintainer-reviewed with automated qualification**, not independent human assurance. #146's generic repository-wide independent-human gate was closed unmerged/superseded.
 
-Merged #156 has no submitted review. Its automated qualification remains valid evidence but must not be labeled independent acceptance. For release/paper evidence that requires independent technical acceptance, retain that evidence explicitly.
+For release or paper claims that require independent technical/scientific validation, retain that validation separately. Repository merge permission is not a substitute for external evidence required by a claim.
 
 ## Live confirmatory evaluation gate
 
@@ -119,7 +126,7 @@ Before paper-facing R0–R5 outcome collection:
 3. freeze workload hashes, model/version, inference settings and prompts;
 4. freeze verifier revisions, policies and acceptance boundary;
 5. freeze metrics, missingness handling, statistical tests and analysis code;
-6. independently qualify the selected evidence path;
+6. independently qualify the selected evidence path to the degree required by the scientific claim;
 7. retain any WebVM/provider/release qualification required by that selected path;
 8. preserve negative, rejected, `UNKNOWN`, missing and failed cells in the evidence package.
 
