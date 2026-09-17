@@ -44,6 +44,12 @@ class IOSWebKitPreflightTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "redirect"):
             validate_entry_html(html)
 
+    def test_marked_preflight_cannot_redirect_back_to_live_vm(self):
+        out = self.patched('<html><head><script>import("./_app/immutable/entry/start.js")</script></head><body></body></html>')
+        tampered = out.replace('../walkthrough/', '../demo.html')
+        with self.assertRaisesRegex(ValueError, "bounded walkthrough gate"):
+            validate_entry_html(tampered)
+
     def test_index_patch_is_idempotent(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / "index.html"
