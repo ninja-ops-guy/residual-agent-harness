@@ -1,9 +1,0 @@
-{
-  "schema_version": "residual.provider-protocol-retry-fixture.v1",
-  "authority": "test-double-only",
-  "first_counted_call": "provider_protocol_invalid",
-  "next_transport": "raw_json",
-  "hidden_provider_retry_allowed": false,
-  "worker_envelope_validation_weakened": false,
-  "live_provider_success_claimed": false
-}
