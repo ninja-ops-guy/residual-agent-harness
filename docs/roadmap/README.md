@@ -9,83 +9,82 @@ The documents under [`source/`](source/) preserve earlier design generations and
 | Capability | Current status |
 | --- | --- |
 | Core harness / verifier / receipts / residual delegation | Implemented and covered by the established test corpus |
-| Command Station | Implemented; exact-current-main push qualification remains mixed because run `35219212073` is retained **FAIL** on Python 3.11 |
+| Command Station | Implemented; latest exact-current-main run is **PASS**, while historical exact-revision failures remain retained evidence |
 | Factory M2/M3/M4 | Implemented; exact-revision/environment qualification and protected-byte governance remain authoritative |
-| Mission Control/WebVM lifecycle | #159 fresh-overlay recovery, #153 browser acceptance proof, #169 diagnostics, #179 bounded build-output handling and #183 provider-session lifecycle recovery are merged on main; physical iPhone heavy-WebVM reliability remains unqualified |
-| iOS/WebKit release behavior | #182 is closed unmerged; #186 supersedes it on the release-stabilization branch with a pre-boot walkthrough fallback, not a heavy-WebVM reliability claim |
+| Mission Control/WebVM lifecycle | #159 recovery, #153 browser acceptance proof, #169 diagnostics, #179 build-output handling, #183 provider-session lifecycle, and #185/#186 iOS fallback integration are on main; long-run and physical heavy-WebVM reliability remain unqualified |
+| iOS/WebKit release behavior | Accepted #186 fallback routes the unsupported/unqualified iOS WebKit profile to the walkthrough before heavyweight boot; current preflight CI is PASS, physical-device validation remains open |
 | Frozen evaluation framework | Implemented research apparatus; CI binding is not confirmatory live-model evidence |
-| Release/recovery/soak | Active stabilization work; true blank-environment install, recovery/host-loss evidence and selected elapsed soak remain gates |
-| Live provider acceptance | Historical retained Puter failure remains **FAIL/BLOCKED**; final-RC paid/live provider success remains **UNKNOWN** unless retained evidence crosses candidate→verifier→receipt |
+| Release/recovery/soak | True blank-environment install, recovery/host-loss evidence and selected elapsed soak remain gates |
+| Live provider acceptance | Historical retained Puter failure remains **FAIL/BLOCKED**; exact-current-main paid/live provider success remains **UNKNOWN** until retained candidate→verifier→receipt evidence exists |
 
 `implementation-status.yaml` records implementation presence and remains current for that purpose. It is not a release-qualification manifest.
 
 ## Accepted main
 
-Current `main` is **`2e1341c99fd7b72452e3b8c5278b1f557871b783`**.
+Current `main` is **`e996b58566847e88153e6e5196625d52b93e081a`**, created by merged **#185** from final candidate head `068954dd6c1c9a56c9a18fbbce67b1504e2c4b7d`.
 
-Recent accepted sequence includes #159, #168, #153, #171/#173, #169, #179 and #183. The final #183 candidate head completed its observed exact-head PR qualification and maintainer gate before merge.
+The merge accepts the stabilization lineage's protected `residual/factory/runtime_journal.py` writer-admission change, corresponding `verifier/v3/factory_ownership_baseline.json` advance, and #186 iOS/WebKit pre-boot walkthrough fallback. The final candidate received exact-head maintainer attestation before merge.
 
-Exact merged-main qualification is **not all-green**. Six of seven observed push workflows are PASS. Command Station run `35219212073`, attempt 1, remains **FAIL** on Python 3.11. The failure is now identified to `test_sandbox_timing_determinism.JournalContentionReadTests.test_readiness_polling_survives_concurrent_writer`, which observed `AUDIT_FAILED`/`OperationalError`; Python 3.12, Python 3.13, browser and Docker passed. Deploy GitHub Pages run `35219212133`, attempt 1, is PASS.
+The protected runtime-journal change remains narrowly scoped: bounded retry applies only to mutation-free SQLite writer transaction admission on genuine BUSY/LOCKED contention. Once transaction admission succeeds, journal mutation and COMMIT are not replayed. Acceptance of these bytes does not imply universal Factory/M4 qualification or erase unrelated historical failures.
 
-This retained main failure is not erased by later green candidate work.
+## Exact-current-main qualification
 
-## Release stabilization — PR #185
+Latest observed applicable current-main runs are PASS:
 
-Draft **#185** is now the isolated release-candidate integration lane. It started from exact current main and intentionally keeps release-critical fixes off `main` until one final exact stabilization head satisfies the retained exit criteria.
+- Factory ownership gate — `35264069644`
+- Clean install qualification — `35264069698`
+- Measured evaluation acceptance binding — `35264069745`
+- M4 qualification runner prerequisites — `35264069726`
+- Controller and provider contracts — `35264069649`
+- Command Station checks — `35264069706`
+- iOS WebKit preflight — `35264069648`
+- Deploy GitHub Pages — `35263783090`, attempt 1
 
-Current stabilization head: **`068954dd6c1c9a56c9a18fbbce67b1504e2c4b7d`**.
+Retain the earlier same-SHA **Controller/provider FAIL** run `35263782697` in Python 3.13. The later same-SHA PASS does not erase it, and the exact cause remains **UNKNOWN** from the retained evidence reviewed here.
 
-On that exact head GitHub reports 15 successful workflow runs and one failed workflow run. The failed workflow is the **maintainer approval gate**, so the candidate remains **BLOCKED** for promotion. Command Station is PASS on the stabilization head, but that is candidate evidence only.
+The prior `main@2e1341c9...` Command Station run `35219212073` also remains historical FAIL evidence. Current-main Command Station is PASS; that does not rewrite the older result.
 
-The stabilization lineage includes a protected change to `residual/factory/runtime_journal.py` plus an advance of `verifier/v3/factory_ownership_baseline.json`. The change introduces bounded retry only for mutation-free writer transaction admission on genuine SQLite BUSY/LOCKED contention; journal mutation and COMMIT are not replayed after transaction admission.
+## iOS/WebKit accepted fallback
 
-Because that diff changes a protected Factory blob and an ownership baseline, green CI does **not** make it automatically mergeable. Deliberate protected-byte review, ownership-baseline review, fresh exact-head qualification after the pin change, and exact-head maintainer attestation remain required.
+PR #182 is closed unmerged and superseded. PR **#186** was integrated through #185 and is now on main.
 
-## iOS/WebKit stabilization — #186
+The accepted behavior detects iPhone/iPad/iPod and iPadOS WebKit before heavyweight guest/disk boot and routes that profile to `/walkthrough/?platform=ios-webkit`, preserving desktop WebVM behavior and `?full_vm=1` as an explicit diagnostic override.
 
-PR **#182 is closed unmerged and superseded**.
+Dedicated current-main iOS WebKit preflight is **PASS**. The claim remains narrow: this is a supported-device fallback contract, not proof that heavyweight WebVM is reliable on physical iPhone Safari. Published physical-device validation and the lower-level process-kill cause remain open/UNKNOWN.
 
-PR **#186 merged into `release/stabilization-2026-09-17`**, not main. It routes detected iPhone/iPadOS WebKit to the lightweight walkthrough before heavyweight guest/disk boot, while preserving desktop WebVM behavior and retaining `?full_vm=1` as an explicit diagnostic override.
+## Inference-economics planning
 
-The release claim remains narrow: this is a supported-device fallback. It does **not** establish that heavyweight WebVM is reliable on physical iPhone Safari, and physical-device validation of the published RC remains required.
+Draft specification PRs **#160, #161, #162, #163, #164, #166, and #167** stage corrected integration-authority contracts for IE-001→IE-007. They remain specification/test-planning branches only; they do not establish accepted runtime capability, performance improvement, cost reduction, scheduling/routing safety, or research results.
 
-## Inference-economics planning refresh
+Merged #168 defines normal repository merge control as `automated qualification/review appropriate to scope -> exact-head maintainer attestation -> merge`. Independent human or third-party review remains useful and may be claim-specific, but is not the generic repository-wide merge prerequisite.
 
-Draft specification PRs **#160, #161, #162, #163, #164, #166, and #167** have been refreshed onto accepted `main@2e1341c99fd7b72452e3b8c5278b1f557871b783` and stage corrected integration-authority contracts for the IE-001→IE-007 program. These remain specification/test-planning branches only; they do not establish accepted runtime capability, performance improvement, cost reduction, scheduling/routing safety, or research results.
-
-PR #160 now reconciles its original Q11 language with merged solo-maintainer governance #168. The repository-wide normal merge control is `automated qualification/review appropriate to scope -> exact-head maintainer attestation -> merge`. Independent human or third-party review remains valuable evidence and may still be claim-specific, but it is not the generic repository-wide merge prerequisite.
-
-PR **#177 remains a candidate**. Its existing focused PASS evidence and exact-head maintainer gate are bound to its current prototype head, but that branch/body predates the refreshed #160 contract and still describes independent Q11 review as a universal pending gate. Before final IE-001 qualification, reconcile/refresh #177 against the revised current contract and applicable current-main governance, then requalify the resulting exact head. Do not broaden its prior evidence into final qualification.
+PR **#177 remains a candidate**. Its prior focused PASS/maintainer evidence is bound to its candidate head and must be reconciled/refreshed against the current IE-001 contract and applicable current-main qualification before final IE-001 qualification is claimed.
 
 ## Current build order
 
-1. **Preserve the exact-current-main Command Station FAIL.** Do not rerun unchanged main merely to obtain green. The failing test identity is now known; keep the original run as retained evidence.
-2. **Complete #185 protected-byte review.** Review the `runtime_journal.py` candidate and the corresponding Factory ownership-baseline advance as trust-boundary changes. Do not auto-merge them from technical CI alone.
-3. **Finish exact-head stabilization qualification.** One final RC head must satisfy all applicable required CI, capable-runner M4, Factory ownership, measured binding and generated browser/Pages proof before promotion.
-4. **Resolve the maintainer gate on the final exact head.** Current #185 maintainer approval is `FAIL/BLOCKED`; only an exact-head attestation after the final qualifying head is appropriate.
-5. **Physically validate the #186 mobile fallback after publication.** Keep physical heavy-WebVM reliability and lower-level WebKit process-kill cause UNKNOWN unless retained device evidence proves otherwise.
-6. **Retest #183 provider-session lifecycle separately.** Follow-up/reload recovery on a physical device is distinct from the WebVM runtime gate.
-7. **Retest the live-provider semantic boundary on the final accepted/deployed RC lineage.** Historical mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` remains `FAIL/BLOCKED`; paid/live provider success remains UNKNOWN until a valid candidate crosses protocol validation and proceeds through normal verifier/receipt handling, or the release claim explicitly excludes it.
-8. **Execute true blank-environment installation for the exact RC artifact.** Rehearsal/procedure evidence is not production release PASS.
-9. **Retain recovery/host-loss evidence for the selected deployment mode.** Do not promote simulated recovery into real-environment claims.
-10. **Complete the selected elapsed-soak tier.** Simulation is not elapsed wall-clock soak; retain first failures rather than green-only summaries.
-11. **Continue #120/#126 WebVM reliability work.** Do not infer long-run reliability from isolated Pages/browser success or from the iOS walkthrough fallback.
-12. **Keep the older protected #139→ownership-baseline→#134 sequence separate.** The #185 runtime-journal protected change is a different trust-boundary history and does not clear the older protected M4 observation-race lineage.
-13. **Refresh/requalify #152 before using it as release evidence.** Older aggregate qualification does not automatically qualify the current RC.
-14. **Reconcile/refresh #177 against the revised #160 contract before final IE-001 qualification.** Prior 203-PASS prototype evidence remains historical to that candidate head; under merged #168, independent human review is not a generic repository-wide merge prerequisite unless a claim-specific rule requires it.
-15. **Freeze and run confirmatory research only after release claims are bounded.** Lock workload, models/configuration, verifier policy, evidence path, metrics and analysis before R0–R5/degradation/heterogeneous-routing outcome access.
+1. **Preserve the same-SHA Controller/provider FAIL.** Keep run `35263782697` as retained evidence and keep its cause UNKNOWN unless retained evidence identifies it.
+2. **Physically validate the accepted #186 fallback after publication.** Do not broaden walkthrough success into a heavy-WebVM reliability claim.
+3. **Retest the live-provider semantic boundary on exact deployed current main.** Historical mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` remains `FAIL/BLOCKED`; paid/live provider success stays UNKNOWN until a valid candidate crosses protocol validation and proceeds through normal verifier/receipt handling, or the release claim explicitly excludes it.
+4. **Execute true blank-environment installation for the exact release artifact.** Rehearsal/procedure evidence is not release PASS.
+5. **Retain recovery/host-loss evidence for the selected deployment mode.** Do not promote simulation into real-environment claims.
+6. **Complete the selected elapsed-soak tier.** Simulation is not elapsed wall-clock soak; retain first failures rather than green-only summaries.
+7. **Continue #120/#126 WebVM reliability work.** Do not infer long-run reliability from isolated Pages/preflight success or from the iOS walkthrough fallback.
+8. **Keep the older protected #139→ownership-baseline→#134 sequence separate.** The accepted #185 runtime-journal history does not clear the older protected M4 observation-race lineage.
+9. **Refresh/requalify #152 before using it as current release evidence.** Older aggregate qualification does not automatically qualify current main.
+10. **Reconcile/refresh #177 against the current IE-001 contract before final qualification.** Prior prototype evidence remains historical to that candidate head.
+11. **Freeze and run confirmatory research only after operational claims are bounded.** Lock workload, models/configuration, verifier policy, evidence path, metrics and analysis before R0–R5/degradation/heterogeneous-routing outcome access.
 
-## Release promotion rule
+## Release evidence rule
 
-Do not merge release-hardening commits from #185 piecemeal into main merely because isolated tests are green. Promotion should occur only when one final exact stabilization head satisfies the chosen release tier, the retained evidence package is reviewable, release notes match the evidence, and exact-head maintainer attestation exists.
+A merge onto main establishes that the accepted bytes are part of the repository. It does not automatically establish every release claim associated with them.
 
-Any change touching ownership baselines, qualification anchors, protected Factory/M4 bytes, verifier authority, evidence schemas, or equivalent trust-boundary material requires the applicable deliberate review. Documentation must not silently convert those changes into accepted facts.
+Any claim touching ownership baselines, qualification anchors, protected Factory/M4 bytes, verifier authority, evidence schemas, physical-device reliability, live-provider success, recovery or soak must remain scoped to retained evidence. Historical `FAIL`, `UNKNOWN`, and `BLOCKED` results remain visible even when later exact-head runs pass.
 
 ## Planning and prototype work
 
-- **#160/#161/#162/#163/#164/#166/#167** — refreshed IE-001→IE-007 specification/test-planning branches with corrected integration-authority contracts; no accepted production/performance/research claim.
-- **#180** — narrow generated-build consistency candidate; unaccepted until refreshed/requalified on the applicable lineage.
-- **#177** — IE-001 prototype qualification candidate; must be reconciled/refreshed against revised #160/current governance before final qualification is claimed.
+- **#160/#161/#162/#163/#164/#166/#167** — IE-001→IE-007 specification/test-planning branches; no accepted production/performance/research claim.
+- **#180** — narrow generated-build consistency candidate; unaccepted until applicable refresh/requalification.
+- **#177** — IE-001 prototype candidate; reconcile/refresh before final qualification.
 - **#178** — documentation-only IE-002→IE-007 implementation backlog; no runtime speedup/token/cost/routing/GPU claim.
 - **#175** — specification-only OpenViking/context-provider proposal; no accepted runtime dependency.
 - **#152** — Qualification v1 framework; refresh required before current release use.
@@ -103,4 +102,4 @@ Useful background remains in:
 - [TRACK-1-IMPLEMENTATION.md](TRACK-1-IMPLEMENTATION.md)
 - [CONFLICT_RESOLUTIONS.md](CONFLICT_RESOLUTIONS.md)
 
-These documents remain useful for lineage, but they do not override current code, exact-commit evidence, retained failures, release-stabilization policy, current governance or [`../CURRENT_STATUS.md`](../CURRENT_STATUS.md).
+These documents remain useful for lineage, but they do not override current code, exact-commit evidence, retained failures, current governance or [`../CURRENT_STATUS.md`](../CURRENT_STATUS.md).
