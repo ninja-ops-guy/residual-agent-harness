@@ -1,7 +1,7 @@
 {
-  "pinned_at": "0430f2fa2d107fe48d26ae84a3c1550af029cb52",
-  "pinned_at_note": "Accepted squash anchor for PR #108. The protected blob set was reviewed and merged on this exact main commit; this metadata records the accepted source identity and does not claim namespace qualification, production readiness, soak completion, or research evidence.",
-  "justification": "PR #108 was squash-merged after fresh current-main CI, protected-tree review, receipt-v2 compatibility review, and the retained normal/CPU/I/O/combined termination matrix. The exact protected blob pins below are unchanged from the reviewed repair candidate: declared subprocess timeouts are restored; watchdog wall/memory enforcement remains live during lease contention; pending reaps retain ownership and UNKNOWN state until consuming reap; real SQLite diagnostics are preserved; reader retry budgets are bounded by remaining time; and the original receipt-v2 safety assertion is preserved. This update changes only the baseline provenance anchor from the pre-acceptance review commit to the accepted squash commit and does not weaken the ownership checker, security controls, evidence schema, or qualification gates.",
+  "pinned_at": "61dcc46e61df2375ab36f567c08de7faf488c2e3",
+  "pinned_at_note": "Release-stabilization protected-byte candidate for PR #185. The runtime journal change was exercised on the exact candidate lineage before this deliberate baseline advance; this metadata records the reviewed source identity and does not claim release readiness, production reliability, elapsed soak, live-provider success, or research evidence.",
+  "justification": "PR #185 release stabilization advances exactly one previously accepted protected blob: residual/factory/runtime_journal.py. The change adds a bounded one-second retry budget only for mutation-free writer transaction admission when SQLite reports genuine BUSY/LOCKED contention. Once BEGIN IMMEDIATE succeeds, journal mutation and COMMIT are never replayed; non-contention OperationalError remains immediately fail-closed; persistent contention remains bounded and raises. On candidate 61dcc46e61df2375ab36f567c08de7faf488c2e3, Python 3.11 executed 1,089 repository tests: the original readiness-polling/concurrent-writer regression passed, the three new writer-admission regressions passed, and the only failure was the expected ownership mismatch for this blob. The old /proc termination assertion also passed. This deliberate pin advancement preserves the ownership checker, all other protected blob pins, M4/verifier/evidence authority, UNKNOWN/BLOCKED semantics, and requires fresh exact-head qualification after the pin change.",
   "files": {
     "residual/factory/__init__.py": "09d3bdec9c3b244e4050e3fb3c40e251d78fb88c",
     "residual/factory/_isolated_child.py": "96456c4130ad4f0b867145ae2c30a47f1e8b6c0f",
@@ -15,7 +15,7 @@
     "residual/factory/m4_sandbox.py": "58b322358c74a6072b621d7ab87b468c26be0448",
     "residual/factory/m4_scheduler.py": "91b9b4faf048242c4df39ff800b1ed544a8a0f63",
     "residual/factory/runtime.py": "933886e02a824cbc24fb79d8b1154ff4acbd9df9",
-    "residual/factory/runtime_journal.py": "9a90b6d3a83de96a5c7f76f92d104b64332367ab",
+    "residual/factory/runtime_journal.py": "c707da37652e7a993b04ee58c43c85ac5c39cf0a",
     "residual/factory/runtime_workspace.py": "71391f79ca8d0e2d3f15f78def2a5eb716cadc6e",
     "residual/factory/station_issuer.py": "4db9231b966cb83373010118f4506ac7a41cdada",
     "residual/factory/termination_provenance.py": "fa40f38e5bcab48457f40c27ba1964f199bd544f",
