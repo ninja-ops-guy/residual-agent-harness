@@ -1,0 +1,10 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/test_release_preparation_integrity.py::InstallIntegrityTests::test_freeze_failure_is_not_install_pass -q --tb=short
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________ InstallIntegrityTests.test_freeze_failure_is_not_install_pass _________
+tests/test_release_preparation_integrity.py:64: in test_freeze_failure_is_not_install_pass
+    self.assertFalse(bvic.check_install(log, root / "logs", root / "venv", root / "wheel"))
+E   AssertionError: True is not false
+=========================== short test summary info ============================
+FAILED tests/test_release_preparation_integrity.py::InstallIntegrityTests::test_freeze_failure_is_not_install_pass
+1 failed in 0.07s

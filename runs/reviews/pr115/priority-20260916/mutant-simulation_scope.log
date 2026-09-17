@@ -1,0 +1,10 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/test_release_preparation_integrity.py::SoakPolicyIntegrityTests::test_machine_readable_report_cannot_claim_elapsed_soak -q --tb=short
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_ SoakPolicyIntegrityTests.test_machine_readable_report_cannot_claim_elapsed_soak _
+tests/test_release_preparation_integrity.py:95: in test_machine_readable_report_cannot_claim_elapsed_soak
+    self.assertFalse(record["qualifies_elapsed_soak"])
+E   AssertionError: True is not false
+=========================== short test summary info ============================
+FAILED tests/test_release_preparation_integrity.py::SoakPolicyIntegrityTests::test_machine_readable_report_cannot_claim_elapsed_soak
+1 failed in 0.08s

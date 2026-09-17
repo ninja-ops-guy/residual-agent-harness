@@ -1,0 +1,10 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/test_release_preparation_integrity.py::InstallIntegrityTests::test_retained_endpoint_rejects_truncated_and_changed_tail -q --tb=short
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_ InstallIntegrityTests.test_retained_endpoint_rejects_truncated_and_changed_tail _
+tests/test_release_preparation_integrity.py:32: in test_retained_endpoint_rejects_truncated_and_changed_tail
+    self.assertFalse(bvic.verify_chain(log.path, **endpoint)[0])
+E   AssertionError: True is not false
+=========================== short test summary info ============================
+FAILED tests/test_release_preparation_integrity.py::InstallIntegrityTests::test_retained_endpoint_rejects_truncated_and_changed_tail
+1 failed in 0.07s
