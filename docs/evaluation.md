@@ -53,21 +53,21 @@ Current `main` is **`dcf1e5071deb624c637aa72df575089435d72ac9`**, created by mer
 
 #189 accepted a Pages isolation-boundary repair that keeps `/provider/` outside COOP/COEP response rewriting while preserving `/demo/` and heavyweight WebVM isolation. Its exact-head Factory ownership, clean install, measured binding, Control Plane, Controller/provider, Command Station, Browser VM Demo, Pages and maintainer approval workflows were PASS before merge.
 
-The first exact-current-main post-#189 push/deployment workflows were **still queued at the latest observation**. Therefore post-merge current-main qualification/deployment is **PENDING**, not inferred PASS from pre-merge CI.
+The first exact-current-main post-#189 push set completed **PASS on attempt 1** for Factory ownership (`35279264442`), measured-evaluation binding (`35279264666`), M4 runner prerequisites (`35279264635`), clean install (`35279264767`), Controller/provider (`35279264540`), Command Station (`35279264513`), and Pages/deployment (`35279264564`). This is exact-revision automated integration/deployment evidence for those named workflows; it is not universal/capable-runner M4 qualification or confirmatory research evidence.
 
 Historical Controller/provider run `35263782697` on `main@e996b585...` remains retained **FAIL** in Python 3.13. #187 diagnoses/repairs the protected-test observation race, but the historical failure stays in the evidence record.
 
-This is mechanism/integration/browser evidence. It is **not** a live R0–R5 result, paid/live provider/model-quality evidence, physical heavyweight-WebVM reliability evidence, long-run production-reliability evidence, independent scientific validation or a paper-facing effect size.
+This is mechanism/integration/browser evidence. It is **not** a live R0–R5 result, paid/live provider/model-quality evidence, retained manual provider-helper SDK/sign-in evidence, physical heavyweight-WebVM reliability evidence, long-run production-reliability evidence, independent scientific validation or a paper-facing effect size.
 
 ## Live-provider boundary
 
 Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice. Both counted calls failed closed as `provider_protocol_invalid`; no candidate crossed the protocol boundary, so candidate correctness and semantic verification remain **UNKNOWN**.
 
-#179 changed the bounded build path and truncation classification but did not prove truncation caused the historical failures. #183 addresses provider-session lifecycle behavior but does not itself constitute live semantic acceptance evidence. #189 repairs the provider helper's static COI/CORP publication boundary but still requires exact-merged-revision deployment and retained production verification.
+#179 changed the bounded build path and truncation classification but did not prove truncation caused the historical failures. #183 addresses provider-session lifecycle behavior but does not itself constitute live semantic acceptance evidence. #189 repairs the provider helper's static COI/CORP publication boundary. The exact merged-revision Pages/deployment workflow is PASS, but retained production verification of provider-helper SDK/sign-in behavior and successful live inference are still required.
 
-Successful paid/live Puter execution on exact current main remains **UNKNOWN / not established** until a fresh retained real-account mission crosses provider protocol validation and proceeds through normal verifier/receipt handling. If a study depends on the real-provider path, do not substitute green provider-contract, browser, or pre-merge Pages CI for fresh exact-revision provider evidence.
+Successful paid/live Puter execution on exact current main remains **UNKNOWN / not established** until a fresh retained real-account mission crosses provider protocol validation and proceeds through normal verifier/receipt handling. If a study depends on the real-provider path, do not substitute green provider-contract, browser, or Pages CI for fresh exact-revision provider evidence.
 
-PR #190 proposes additional provider-channel recovery after Mission Control reload. Its recorded base predates #189 and it must be refreshed/requalified before any evaluation path relies on it.
+PR #190 has been refreshed onto exact current main at head `3a9ea3c2e6a36889f1fa71eb8a4e17c427c13261`. It remains an unaccepted provider-channel recovery candidate and must satisfy its complete applicable exact-head qualification/governance before any evaluation path relies on it; post-merge production retest remains separate if accepted.
 
 ## WebVM-dependent evaluation gate
 
@@ -102,7 +102,7 @@ PR #177 remains a development-only IE-001 prototype qualification candidate. Its
 
 PR #188 is an additive AQ-GOV-001 consensus-authority escalation lab candidate. Until merged and qualified, it is not accepted research evidence; even if green, its scope does not prove kernel/container/hypervisor/broker escape resistance.
 
-PR #191 is an unaccepted automated PR-review workflow candidate and is not part of the repository's evaluation/governance evidence until merged and qualified.
+PR #191 was closed unmerged. Its proposed automated PR-review workflow is not part of the repository's accepted evaluation/governance evidence.
 
 ## Governance and evaluation independence
 
