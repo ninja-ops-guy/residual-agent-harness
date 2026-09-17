@@ -1,0 +1,3 @@
+# Close
+
+Authoring phase closed.
