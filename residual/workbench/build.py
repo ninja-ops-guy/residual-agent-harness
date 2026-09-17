@@ -28,6 +28,7 @@ from .runner import (MailboxProvider, ObservedHarness, WorkbenchDeadline, read_j
 MAX_BUILD_FILES = 8
 MAX_BUILD_FILE_BYTES = 48000
 MAX_BUILD_TOTAL_BYTES = 128000
+MAX_BUILD_OUTPUT_TOKENS = 8192
 SAFE_PATH = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/-]{0,119}\Z")
 ID = re.compile(r"m-[0-9a-f]{32}\Z")
 
@@ -123,8 +124,8 @@ def make_build_task(request: dict, root: Path):
                    "\nRequired literal text somewhere in the summary or generated files: " + canonical(required))
     obligation = Obligation("build", instruction, "workbench:build", tuple(artifacts),
                             parameters={"required_text": required, "paths": paths}, cloud=consent)
-    calls, tokens = request.get("max_calls", 2), request.get("max_output_tokens", 1536)
-    if type(calls) is not int or not 1 <= calls <= 3 or type(tokens) is not int or not 256 <= tokens <= 1536:
+    calls, tokens = request.get("max_calls", 2), request.get("max_output_tokens", MAX_BUILD_OUTPUT_TOKENS)
+    if type(calls) is not int or not 1 <= calls <= 3 or type(tokens) is not int or not 256 <= tokens <= MAX_BUILD_OUTPUT_TOKENS:
         raise ContractError("mission budget outside public workbench bounds")
     model = request.get("model", "gpt-5-nano")
     if not isinstance(model, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:/-]{0,95}", model):
@@ -228,7 +229,7 @@ def main(argv=None):
     parser.add_argument("--files", nargs="*", default=[])
     parser.add_argument("--model", default="gpt-5-nano")
     parser.add_argument("--max-calls", type=int, default=2)
-    parser.add_argument("--max-output-tokens", type=int, default=1536)
+    parser.add_argument("--max-output-tokens", type=int, default=MAX_BUILD_OUTPUT_TOKENS)
     parser.add_argument("--stream", action="store_true")
     args = parser.parse_args(argv)
     if bool(args.request) == bool(args.prompt):
