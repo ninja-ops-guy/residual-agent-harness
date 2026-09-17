@@ -93,7 +93,7 @@ PR **#190** proposes recovery of the Mission Control provider BroadcastChannel t
 
 The candidate changes browser session ownership/recovery only and explicitly does not claim live Puter success, provider quality, physical-iPhone reliability, blank-environment qualification, elapsed soak, or production reliability.
 
-#190 has now been refreshed onto exact current `main@dcf1e507...` at head `3a9ea3c2e6a36889f1fa71eb8a4e17c427c13261`. Fresh exact-head PR workflows are running/completing on that refreshed head; observed Control Plane, browser proof, and Python qualification jobs are PASS. Treat the candidate as **unaccepted** until the complete applicable exact-head qualification set and maintainer governance are satisfied. If accepted, production provider-session recovery must still be retested after merge.
+#190 has now been refreshed onto exact current `main@dcf1e507...` at head `3a9ea3c2e6a36889f1fa71eb8a4e17c427c13261`. Its observed exact-head technical workflows are **PASS** for Control Plane, Factory ownership, Browser VM Demo, measured-evaluation binding, clean install, Controller/provider, Command Station, and Pages/browser proof. Its maintainer approval gate is **FAIL/BLOCKED** because the exact head lacks explicit maintainer approval. The candidate therefore remains **unaccepted**. If accepted later, production provider-session recovery must still be retested after merge.
 
 ## WebVM reliability boundary
 
@@ -145,7 +145,7 @@ The project does **not** yet claim that:
 ## Next gates
 
 1. Verify the production provider helper on the exact deployed current-main revision: SDK load and sign-in availability must be retained evidence, not inferred from automated Pages PASS.
-2. Complete #190's applicable exact-head qualification and maintainer governance; if accepted, retest provider-session recovery on the merged/deployed revision.
+2. Supply exact-head maintainer attestation for #190 if the candidate is otherwise accepted for integration; if it later merges, retest provider-session recovery on the merged/deployed revision.
 3. Retain a fresh real-account Puter mission on the exact deployed accepted revision before claiming live-provider PASS, or explicitly exclude that claim.
 4. Validate the accepted #186 iOS/WebKit fallback on a physical device without turning fallback success into a heavyweight-WebVM claim.
 5. Execute true blank-environment install and recovery/host-loss qualification for the exact release artifact.
