@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail closed unless a write/admin maintainer explicitly approves the exact PR head.
+"""Fail closed unless a write-capable maintainer explicitly approves the exact PR head.
 
 This gate is designed for solo-maintainer repositories. It does not claim or
 simulate independent human review. Approval is an explicit PR conversation
@@ -19,7 +19,7 @@ from typing import Any
 
 APPROVE_PREFIX = "RESIDUAL-MAINTAINER-APPROVAL:"
 REVOKE_PREFIX = "RESIDUAL-MAINTAINER-REVOKE:"
-WRITE_PERMISSIONS = {"admin", "write"}
+WRITE_PERMISSIONS = {"admin", "maintain", "write"}
 COMMENTS_PER_PAGE = 100
 MAX_COMMENT_PAGES = 100
 
@@ -39,7 +39,7 @@ def current_head_approvers(
     comments: Iterable[dict[str, Any]],
     permissions: dict[str, str],
 ) -> list[str]:
-    """Return write/admin humans whose latest exact-head command is approval."""
+    """Return write-capable humans whose latest exact-head command is approval."""
     latest: dict[str, tuple[int, str]] = {}
     for comment in comments:
         user = comment.get("user") or {}
@@ -73,7 +73,7 @@ def evaluate(
     approvers = current_head_approvers(head_sha, comments, permissions)
     if not approvers:
         return False, (
-            "no exact-head maintainer attestation from a write/admin human; "
+            "no exact-head maintainer attestation from a write-capable human; "
             f"add a PR comment exactly: {APPROVE_PREFIX} {head_sha}"
         )
     return True, f"exact-head maintainer approval: {', '.join(approvers)}"
@@ -152,7 +152,7 @@ def github_permission(repository: str, login: str, token: str) -> str:
     if not isinstance(data, dict):
         raise RuntimeError(f"permission response for {login} is not an object")
     permission = str(data.get("permission") or "none").lower()
-    if permission not in {"admin", "write", "read", "none"}:
+    if permission not in {"admin", "maintain", "write", "triage", "read", "none"}:
         raise RuntimeError(f"unknown repository permission for {login}: {permission}")
     return permission
 
