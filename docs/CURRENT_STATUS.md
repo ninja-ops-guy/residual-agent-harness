@@ -1,116 +1,253 @@
 # RESIDUAL current status
 
-_Implementation snapshot: 2026-09-14 at `5b89be1014de5e648f76a2bb8ada920871719f03`; live-evaluation gate correction checked against merged `main` at `90dd2f40bff916e8b50d1777bf35debc511e996f`._
+_Current-state check: 2026-09-17 UTC against current `main` at `f6f9bad84caccf68c7ab35e5788e756d12c55fb7`._
 
-This page is the human-readable current-state summary for RESIDUAL. Historical roadmap documents and generated implementation tables may lag active integration work; when they disagree with this page, follow the code, tests, open qualification issues, and the machine-readable evidence produced by the current tree.
+This is the human-readable current-state summary for RESIDUAL. Exact code, exact-head workflow output, retained machine-readable artifacts, submitted review records and explicit open issues are more authoritative than prose. Historical results apply only to the revisions they name.
 
 ## Executive summary
 
-RESIDUAL has evolved from a verification-oriented agent harness into an evidence-first reliability and control plane for heterogeneous AI computation. The platform now spans requirement compilation, bounded execution, evidence/receipt handling, deterministic integration, cluster execution, lifecycle recovery, evaluation, observability, crypto/hardening, and operator-facing surfaces.
+RESIDUAL is an evidence-first reliability and control plane for heterogeneous AI computation. The repository contains substantial implementation and qualification evidence for bounded execution, evidence/receipt handling, deterministic integration, lifecycle recovery, evaluation, observability, operator surfaces, browser/WebVM execution and bounded self-maintenance research.
 
-The central systems hypothesis remains:
+Current `main` is **technically qualified for its observed automated/browser scopes but review-provisional**. PR #156 repaired the real Puter worker-envelope boundary after live-account `provider_protocol_invalid` failures. Its exact merged revision passed the observed main-push qualification set, but no submitted independent review exists for #156.
 
-> AI reliability does not necessarily require making individual models reliable. Reliability can emerge from constraining, observing, verifying, and deterministically integrating unreliable computation.
+Fresh post-#156 iPhone/WebKit evidence now provides a newer live product result: the browser reached **`Provider connected`**, but the Linux guest emitted **`RESIDUAL_WORKER_POISONED`** and Mission Control remained at **`GUEST STARTING`** with no supported recovery path. That public-demo attempt is an end-to-end **FAIL** at the guest-recovery/product boundary. It does not prove a provider-model failure, because no valid candidate completed the normal RESIDUAL verifier path; successful paid/live Puter candidate execution remains **UNKNOWN**. The lower-level cause of the poisoned guest also remains **UNKNOWN**.
 
-The repository contains substantial implementation and development evidence for the mechanisms required to test that hypothesis. It does **not** yet claim that the hypothesis has been proven on live heterogeneous model workloads.
+The project does **not** claim that the central live-model reliability hypothesis is proven, that WebVM has an acceptable long-run failure rate, that the historical guest-corruption family has been root-caused, that end-to-end real Puter execution is qualified on current main, that blank-machine/recovery qualification is complete, or that elapsed production soak targets have been met.
 
-## Current implementation map
+## Current main — technically qualified, review-provisional
 
-| Area | Current state | Evidence / qualification boundary |
-| --- | --- | --- |
-| Core harness | Implemented | Goal contracts, verifier-defined acceptance, brakes, residual delegation, receipts, cache binding, trace/audit surfaces and provider routing are covered by the existing test corpus. |
-| Command Station | Implemented research/operations surface | Self-hosted run control, model/provider management, observations, HITL hooks, evidence download and operational UI are present. Deployment-specific production readiness still depends on the environment. |
-| Factory M2 — worker contract/runtime | Implemented | Real `WorkerContract`, bounded worker runtime, isolated worktrees, journaled observations, host-owned termination and sandbox enforcement exist under `residual/factory/`. Development fault-containment work has exercised real OS boundaries. |
-| Factory M3 — evidence bus/receipts | Implemented | Station-issued receipts, artifact binding, evidence-bus handoff and signature/integrity checks exist. Trust is enforced at the trusted consumption/admission boundary, not merely because bytes were stored. |
-| Factory M4 — deterministic integration/scheduler | Implemented but **not yet fully qualified for live claims** | Deterministic integration and scheduler code exist. Issue #63 tracks remaining accepted-tree binding, filesystem/link safety, verifier-execution isolation, and missing-Git-evidence semantics that must be closed before treating current M4 as a fully hardened trust boundary. |
-| Evaluation | Implemented | `residual/eval/` contains hash-locked `FrozenWorkload`, repeated-run execution, ablations, reporting, statistics, fault injection and measured Factory evaluation hooks. Live provider/model evidence remains the next research gate; the measured-evidence adapter in PR #71 still needs correction and independent requalification. |
-| Sandbox / red team | Implemented development surface | Bubblewrap/namespace/rlimit paths plus live containment tests and a receipted red-team corpus are present. cgroup-v2-specific enforcement depends on host capability. |
-| Cluster / distributed execution | Implemented development surface | Versioned wire schema, authenticated join/leave, heartbeats, task reassignment, local-first routing and cluster CLI exist. Some optional network transports degrade gracefully when optional dependencies are absent. |
-| Orchestration | Implemented | Intent schema, requirement DAG construction, ambiguity detection, deterministic plan hashes, partitioning and HITL approval gating exist. |
-| Lifecycle / gateway | Implemented | Deny-by-default side-effect gateway, lifecycle glue and deterministic resume/recovery mechanisms exist. |
-| Hardening / observability | Implemented development surface | KMS abstraction, encrypted backup/rotation, connector conformance, SLO/alert plumbing, trace↔receipt correlation, metrics and async I/O are present. |
-| Studio / product surfaces | Implemented development surface | No-build Studio frontend, evidence/requirement/swarm views and onboarding/demo paths exist. Some frontend contracts are intentionally local stubs around protected runtime interfaces. |
-| Research / reproducibility | Active | The IEEE-style paper, controlled evaluation framework, fault-containment experiments and claim/evidence discipline are in place. Live R0–R5 measurements are still required for the central empirical claim. |
+Current `main` is **`f6f9bad84caccf68c7ab35e5788e756d12c55fb7`**, tree **`9991788c5d59b8ccd3b18b10ad0d4a46098305df`**, the merge of PR #156.
 
-## Verified integration milestone
+PR #156 followed fresh real-account evidence on the #151 surface where two actual remote calls to `openai/gpt-5.4-nano` both failed closed as `provider_protocol_invalid`, with zero accepted obligations and no candidate reaching verification. The repair:
 
-The large swarm integration milestone at commit `412b66c35f7c0e1ac479fe60a5b7d33d5510e3af` recorded a merged-tree verifier pass with:
+- removes provider-side `strict: true` structured-output mode from the dynamic obligation-key worker envelope;
+- retains the exact tool schema and RESIDUAL's fail-closed local parser/verifier as the acceptance authority;
+- restores explicit obligation-key nesting guidance;
+- explicitly requires build output under `updates.build = {summary, files}`;
+- explicitly requires `requests: []` when no evidence pull is needed;
+- preserves grant/model binding, call budget, non-stream transport, progress telemetry, mailbox and verifier semantics.
 
-- 1,033 tests plus 166 subtests green;
-- verifier v2 green;
-- machine-checked ownership protection for M2–M4 paths;
-- prior failed verifier attempts retained rather than overwritten.
+No Factory/M4 trust-boundary implementation, ownership baseline or shared evidence schema changed in #156.
 
-`main` has advanced substantially beyond that commit. Those results remain valid evidence for that exact tree only; later commits do not automatically inherit them.
+### Exact merged-main qualification
 
-## Current qualification blockers
+All **seven observed main-push workflows passed** on exact `main@f6f9bad8...`:
 
-### 1. M4 trust-boundary hardening — issue #63
+- measured-evaluation acceptance binding — `35158939300` — **PASS**;
+- Factory ownership — `35158939411` — **PASS**;
+- controller/provider contracts — `35158939242` — **PASS**;
+- Command Station — `35158939291` — **PASS**;
+- clean install — `35158939243` — **PASS**;
+- capable-runner M4 prerequisite/qualification — `35158939207` — **PASS**;
+- Pages/WebVM — `35158939226` — **PASS**.
 
-Before live qualification or paper-facing claims depend on current M4, close the following:
+The M4 workflow passed its fail-closed capability probe and zero-skip qualification gate. Pages run `35158939226` completed on **attempt 1**: generated desktop+narrow browser proof passed, deployment passed, published real-guest execution passed, published narrow-Chromium acceptance passed, and live acceptance proof was retained.
 
-1. **Accepted-tree binding:** verify and accept the same artifact tree, or explicitly authorize and re-verify any transformation.
-2. **Filesystem/link safety:** use non-following, descriptor-relative access with explicit regular-file/link policies and race-resistant handling.
-3. **Verifier execution isolation:** candidate-dependent project verification must run under a bounded verification execution boundary instead of inheriting unrestricted host authority.
-4. **Git evidence semantics:** distinguish proven absence from unavailable/corrupt/incomparable Git evidence; missing evidence must remain `UNKNOWN`/error, not silently become absence.
+These are revision- and environment-bound `PASS` results. They do **not** establish independent technical review, every-host M4 capability, paid/live-provider quality, long-run WebVM reliability, release/recovery qualification, elapsed soak or confirmatory research claims.
 
-### 2. Traceability reconciliation — issue #48
+GitHub records **zero submitted reviews** for PR #156. Current main therefore remains **review-provisional**. Green CI is not independent acceptance. Missing pre-merge independent acceptance on #136/#145/#147/#151/#156 remains governance debt.
 
-`implementation-status.yaml` and the generated `docs/status/IMPLEMENTATION_STATUS.md` still contain pre-merge entries marking M2, M3, M4 and EVAL as `not_started`. That is stale relative to the current tree. Do not use those four entries as current-state evidence until #48 is reconciled and the generated status document is rebuilt from the corrected manifest.
+## Live real-provider and production WebVM boundary
 
-### 3. Clean-install qualification
+### Retained pre-#156 provider failure
 
-A hardened clean-install qualification stack was developed with isolated wheel installation, `pip check`, `python -I`, installed CLI smoke tests, asset checks, Python 3.11/3.12/3.13 coverage and retained artifacts. Its branch validation also exposed two timing-sensitive Factory OS tests that failed once and passed unchanged on rerun. Treat that as unresolved reproducibility evidence until the race/flakiness source is classified rather than hiding it behind retries.
+The earlier retained real-account provider evidence is authoritative **FAIL** evidence:
 
-### 4. Measured-evidence provenance — PR #71
+- two actual remote calls were made to `openai/gpt-5.4-nano`;
+- both returned `provider_protocol_invalid`;
+- zero obligations were accepted;
+- no candidate reached verification.
 
-The reviewed Factory evaluation adapter has four unresolved integrity gaps: replayed evidence can count as independent repetitions; scheduler topology is not authenticated and bound to the run; measured task populations can differ from the frozen workload; and arbitrary verifier-boundary labels can be accepted when signed. Correct and requalify this path before using it for confirmatory data. Require fresh execution identities, replay rejection, authenticated run-bound scheduler evidence, an exact approved task mapping, and an independently qualified verifier policy/boundary. A recovered run is not a new repetition.
+That failure is not erased by #156. PR #156's post-merge provider-contract/browser/Pages qualification is **PASS for its tested automated scope**, but automated provider tests are not a real-account Puter success.
 
-This is separate from M4 isolation (#63), traceability (#48), and timing reproducibility. A protocol may instead explicitly exclude PR #71's adapter and qualify a different evidence path under the [live evaluation gate](evaluation.md#live-evaluation-gate); closing the other issues alone does not clear live evaluation.
+### Fresh post-#156 real-device failure
 
-## Research status
+Fresh iPhone/WebKit public-demo evidence after #156 moved the observed failure boundary:
 
-### What is supported today
+- the provider UI reached **`Provider connected`**;
+- the Linux guest emitted **`RESIDUAL_WORKER_POISONED`**;
+- Mission Control remained **`GUEST STARTING`**;
+- no supported recovery path returned the browser session to a usable guest;
+- no valid live candidate completed the normal verifier/receipt path.
 
-- The architecture cleanly separates generation authority from acceptance authority.
-- Bounded worker execution, evidence capture, independent verification and deterministic integration are implemented mechanisms rather than paper-only abstractions.
-- Controlled fault-containment work has exercised M2, M3 and M4 boundaries in development fixtures.
-- The repository contains an evaluation framework capable of preserving raw observations and recomputing paper-facing metrics.
+The correct classification is:
 
-### What is not yet supported
+- current-main automated provider/browser qualification: **PASS** for the tested automated scope;
+- earlier real-account provider-envelope result: **FAIL**;
+- fresh post-#156 end-to-end public-demo result: **FAIL** at the guest-recovery/product boundary;
+- successful paid/live Puter candidate execution and verification on exact current main: **UNKNOWN**;
+- lower-level cause of the production guest poison: **UNKNOWN**.
 
-The project does not yet claim, for live heterogeneous models, that:
+Do not describe the public real-provider demo as fixed from current-main CI alone.
 
-- `P(correct | accepted)` is materially greater than raw worker correctness under matched model capability;
-- the gain remains useful at nontrivial acceptance coverage;
-- the reliability gain is worth the orchestration tax in cost/latency/throughput;
-- lower-cost or weaker workers can be substituted without unacceptable verifier false-acceptance risk;
-- 24-hour, 72-hour or 30-day production soak targets have been satisfied.
+## Poisoned-guest recovery candidates
 
-## Next gates
+### PR #158 — clear poison after proven recovery: exact-head FAIL
 
-The recommended order is:
+PR #158 (`ac637711cf9ec5ba3f6283f4484f9823d92b763b`) combines in-console provider setup with a recovery change that removes the poison tombstone after worker death/state cleanup is considered proven.
 
-1. Close #63 and requalify the exact current M4 tree.
-2. Close #48 and regenerate the implementation-status documentation.
-3. Classify and fix the timing-sensitive Factory OS reproducibility failures.
-4. Correct and requalify PR #71's measured-evidence path, or explicitly exclude it and independently qualify the alternative specified by the live protocol.
-5. Freeze the live evaluation protocol, selected evidence path and workload before seeing model results.
-6. Run one fixed live model across R0–R5 configurations to measure `P(X)`, `P(A)`, `P(X|A)`, AER, ASSR, latency, throughput and cost.
-7. Run model-degradation and heterogeneous-routing studies.
-8. Run fault campaigns under live execution.
-9. Progress through 24-hour → 72-hour → 30-day soak only after shorter qualification gates are clean.
-10. Update the paper from retained artifacts only.
+Exact-head workflow state is **not qualified**:
+
+- clean install — **PASS**;
+- measured binding — **PASS**;
+- Factory ownership — **PASS**;
+- Control Plane — **PASS**;
+- Browser VM Demo CI — **PASS**;
+- controller/provider contracts — **FAIL** (`35163658277`);
+- Command Station — **FAIL** (`35163658222`);
+- Pages/WebVM — **FAIL** (`35163658236`).
+
+The authoritative Python 3.11 controller/provider failure ran 1,061 tests and retained **2 failures, 22 skips**. Both failures are directly about durable poison retention:
+
+- `test_recovery_removes_safe_queued_control_after_worker_death` expected the poison file to remain and observed it missing;
+- `test_timeout_recovery_kills_worker_recovers_matching_lock_and_fences_restart` failed because the durable timeout poison was not retained.
+
+This is an exact-head **FAIL**. Do not waive it or infer that #158 is safe because some browser-focused jobs are green.
+
+### PR #159 — replace poisoned guest with fresh overlay: technically green, review BLOCKED
+
+PR #159 (`5c33f31d234e3be315a052109fe270d3b70276c5`) preserves the old poisoned guest and its durable fence, then adds recovery by replacing the whole writable WebVM guest overlay:
+
+- host-visible state becomes `starting`, `ready` or `poisoned`;
+- poisoned sessions render `GUEST FAILED · RESTART REQUIRED` rather than indefinite `GUEST STARTING`;
+- `Restart guest` is available only for a poisoned, idle session;
+- the current provider grant/session is ended before restart so a remote call is not replayed;
+- a browser-session overlay generation is rotated and the page reloads;
+- normal reloads retain the same overlay generation;
+- the old poison file is not deleted or interpreted as reusable state.
+
+The changed files are limited to WebVM/demo and a focused regression test; no Factory/M4 protected implementation/test/schema, ownership pin, shared evidence schema, verifier, provider acceptance semantics or qualification threshold changes.
+
+All **eight observed applicable workflows are PASS** on exact head `5c33f31d...`:
+
+- measured binding — `35165844021` — **PASS**;
+- Control Plane — `35165843890` — **PASS**;
+- Factory ownership — `35165844001` — **PASS**;
+- clean install — `35165844069` — **PASS**;
+- Browser VM Demo CI — `35165844052` — **PASS**;
+- controller/provider contracts — `35165843976` — **PASS**;
+- Command Station — `35165844005` — **PASS**;
+- Pages/WebVM — `35165843944` — **PASS**.
+
+Pages generated desktop+narrow proof passed. The browser acceptance deliberately reproduces the durable poisoned-worker boundary, requires `GUEST FAILED · RESTART REQUIRED`, rotates to a fresh browser-session overlay, proves poison/PID/control/busy/active-lock state did not carry into the replacement guest, and then completes a real local repository audit.
+
+This is **browser/guest recovery evidence only**. Cloud inference remains test-double coverage and no real Puter success is created by #159.
+
+GitHub records one submitted review on #159: an owner `COMMENTED` handoff explicitly labeled **not independent acceptance**. Therefore #159 is technically green for its tested exact-head scopes but **BLOCKED on genuinely independent technical review**. If independently accepted and merged, the exact merged revision must still pass production Pages and then a fresh real-account iPhone/WebKit build before the public provider demo can be called fixed.
+
+## WebVM reliability boundary
+
+Issues **#120** and **#126** remain open.
+
+Diagnostic work retains reproducible evidence for a WebVM-specific, process-local CPython positive-duration timed-wait failure affecting at least `time.sleep()` and `select.select()` around call 273. Tested direct libc waits continue beyond that narrow boundary, and fresh process creation resets or avoids the observed symptom.
+
+Merged #145 routes long-lived browser polling below that known Python timed-wait surface. Avoiding the trigger is not root-cause proof. The exact CPython/glibc/WebVM mechanism, relationship to earlier `_sha512`/impossible-constructor/allocator-corruption symptoms, and acceptable production recurrence rate remain **UNKNOWN**.
+
+The fresh poisoned-guest event is additional production reliability evidence. It has **not** been shown to share the timed-wait root cause, so that relationship remains **UNKNOWN**.
+
+Keep #120/#126 open until a predefined retained repeated-run reliability campaign or a proven regression-tested root cause supports closure.
+
+## Browser acceptance / onboarding
+
+PR #89 retains an authoritative first-attempt narrow-browser **FAIL** caused by an acceptance-observation defect in terminal exit-marker parsing. That failure remains evidence and #89 is **NOT qualified**.
+
+PR #153 consolidates the bounded #140/#150 acceptance-harness repairs and is refreshed onto exact current main at head `35cbf2ba060bc04aabb6cfd10fbf90dc8dbccb77`.
+
+All **eight observed applicable workflows are PASS** on that exact head, including Browser VM Demo CI and Pages/WebVM. Those green results qualify only the focused acceptance-harness repair on that revision; they do not qualify #89, live-provider behavior, long-run WebVM reliability, blank-machine/recovery behavior, elapsed soak or research claims.
+
+No qualifying genuinely independent approval is bound to current head `35cbf2ba...`. PR #153 is therefore **technically qualified for its tested scope but BLOCKED on independent acceptance before integration**. Only after an accepted #153 integration should #89 be refreshed and requalified; #153 does not erase #89's retained failure or qualify #89 by itself.
+
+## Qualification v1 — PR #152
+
+PR #152 proposes a unified evidence-first qualification layer over the existing repository gates. It adds fail-closed qualification manifests/evidence envelopes, generated lifecycle exploration, RuntimeJournal state-machine testing, DSM fault-matrix binding, mutation canaries, branch coverage, exact-wheel qualification, multi-browser journeys, bounded process-soak tooling and manual elapsed-soak/live-provider workflows.
+
+Its current head `2a70f38751f843d577ae0492c281262546d6cc43` was built on pre-#156 main. Any earlier green or partial workflow evidence remains exact-head history and **does not qualify #152 against current main**.
+
+No aggregate Qualification v1 `PASS` is claimed. Virtual-day stress is not elapsed wall-clock soak; a live-provider canary would prove only one bounded adapter execution path, not model quality; 24h/72h/30d evidence does not exist until those wall-clock runs actually complete.
+
+## Other integration candidates after #156
+
+- **#146** — independent-current-head review enforcement at `c416d408149408ff8668a48d6e73eb1f3bf6347e`. Six observed ordinary repository workflows are **PASS**. Its 15 policy regressions pass, while the live independent-review gate correctly reports **BLOCKED** because no qualifying independent current-head approval exists. This is expected fail-closed behavior, not a code-qualification waiver. Platform ruleset enforcement remains a separate maintainer action after accepted integration.
+- **#118** — runtime/DSM candidate at `ee81051220c616f8a605c948820d972177e19801`; applicable exact-head workflows pass, but zero reviews exist. Preserve earlier first-attempt failures and require genuine independent acceptance.
+- **#115** — release/recovery candidate at `27e6e3b790d950ad1e8dd3603569f2eb5090ada4`; applicable exact-head workflows pass, but zero reviews exist. Evidence remains procedure/simulation evidence, not true blank-OS, host-loss or elapsed-soak proof.
+- **#131** — separate two-file SoakState persistence candidate at `0094dd4c27231f8c4f71161b9a82770a27c7aa7b`; applicable exact-head workflows pass, but zero reviews exist. This is not elapsed-soak evidence.
+- **#93** — retains an authoritative runtime-journal concurrency failure/protected dependency from its tested head; it is **NOT qualified** until that blocker is resolved and the lane is rebuilt/requalified.
+
+Do not merge any candidate from stale or incomplete exact-head evidence.
+
+## Factory / M4 protected boundary
+
+M2/M3/M4 are implemented. Issues #63 and #48 are closed. Current M4 claims remain environment-bound: capable-runner qualification is not every-host qualification, and namespace/capability-unavailable hosts remain `BLOCKED`/`UNKNOWN`, not `PASS`.
+
+### PR #139 — protected test repair
+
+PR #139 changes protected `tests/test_factory_m4_safety.py` to close a `/proc/<pid>/status` observation race without weakening the termination property.
+
+Ownership/dependent gates correctly fail closed while the baseline pins the prior protected test blob. A same-author/owner COMMENT is not independent acceptance.
+
+Required sequence remains:
+
+1. genuinely independent review of the exact protected head;
+2. deliberate ownership-baseline decision if accepted;
+3. fresh qualification after any protected pin change;
+4. only then refresh/requalify downstream #134 against the resulting current main.
+
+This documentation update changes no protected byte, ownership pin, qualification anchor, evidence schema or qualification threshold.
+
+### PR #134 — provider-adapter lane
+
+PR #134 remains downstream of #139 and behind current main. Its retained first-attempt failure remains evidence. Adapter-specific tests passing in that run do not turn the full workflow into `PASS`.
+
+Do not advance #134 until #139 completes the independent protected-byte sequence, then refresh/requalify #134 against current main before any integration or new live-provider acceptance request.
+
+## Governance / independent review
+
+Issue **#144** remains open.
+
+PR #146 codifies a fail-closed repository-side independent-current-head review check. The intended gate accepts only a human, non-author reviewer with write/admin permission who approved the exact current PR head and has not subsequently invalidated that approval.
+
+Self/owner approval, bots, COMMENT-only review, stale-head approval, read-only review, missing permission evidence and green CI alone do not qualify.
+
+Platform enforcement is incomplete: the active repository ruleset must eventually require at least one approving review and the `independent-review` status check. The governance policy does not retroactively rewrite missing review history.
+
+## Research / release non-claims
+
+The project does **not** yet claim that:
+
+- live heterogeneous models materially improve `P(correct | accepted)` over raw worker correctness at useful coverage;
+- the gain is worth orchestration cost/latency/throughput;
+- current end-to-end real Puter execution succeeds on `main@f6f9bad8...`;
+- the production poisoned-guest cause is known;
+- the WebVM timed-wait defect or historical corruption family has been root-caused;
+- long-run WebVM failure rate is acceptable;
+- release/recovery qualification is complete;
+- a true blank-machine release installation has passed;
+- actual host-loss recovery has passed;
+- 24-hour, 72-hour or 30-day elapsed production soak targets have been met;
+- bounded self-maintenance evidence proves autonomous recursive self-improvement or merge authority.
+
+## Next production-readiness gates
+
+1. Obtain genuinely independent exact-head technical review for #159. If accepted, integrate without weakening the durable poison boundary, then require first-attempt production Pages and a fresh real-account iPhone/WebKit mission before claiming the public provider demo recovered.
+2. Preserve #158 as exact-head **FAIL** evidence unless materially revised and fully requalified; do not waive its durable-poison regressions.
+3. Retain independent post-merge technical review for exact current main / PR #156 and complete #144/#146 enforcement for future merges.
+4. Obtain genuinely independent exact-head acceptance for #153; if accepted and integrated, refresh/requalify #89 while preserving its retained historical Pages failure.
+5. Refresh/requalify #152. Do not promote stale-head partial/green evidence into current qualification.
+6. Resolve #139 through independent protected-byte review → deliberate baseline handling → fresh qualification; only then refresh #134.
+7. Quantify WebVM reliability with a predefined retained repeated-run campaign; keep #120/#126 open until evidence supports closure.
+8. Complete true blank-environment release/recovery qualification without converting rehearsal/simulation into release `PASS`.
+9. Freeze live-evaluation source, workload, model/configuration, evidence path, verifier policy, metrics and analysis before confirmatory outcome access.
+10. Progress through elapsed 24h → 72h → 30-day soak only after shorter gates are clean.
 
 ## Documentation authority
 
-Use the following order when determining current truth:
+Use this order when determining current truth:
 
-1. exact code at the commit being discussed;
-2. tests, verifier output and retained machine-readable artifacts for that exact commit;
-3. open qualification/security issues that narrow claims;
+1. exact code at the revision being discussed;
+2. exact-head tests, workflow output and retained machine-readable artifacts;
+3. submitted exact-head review records and open qualification/security/reliability/governance issues;
 4. this current-status document;
-5. generated implementation-status/roadmap summaries once they are reconciled;
-6. historical specs and snapshots for design intent, not current implementation claims.
+5. `implementation-status.yaml` and its generated implementation summary for implementation-presence traceability;
+6. historical specs/snapshots for design intent, not current qualification claims.
 
-RESIDUAL's strongest claim is architectural until the live evaluation is complete: unreliable computation may be useful if its authority is constrained, its behavior is observable, its outputs are independently checked, and only evidence-backed results are allowed to become accepted state.
+RESIDUAL's strongest research claim remains architectural until confirmatory live evaluation is complete: unreliable computation may be useful if its authority is constrained, its behavior is observable, its outputs are independently checked, and only evidence-backed results are allowed to become accepted state.

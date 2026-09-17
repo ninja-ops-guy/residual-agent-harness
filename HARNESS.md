@@ -1,24 +1,28 @@
-# RESIDUAL
+# RESIDUAL core harness
 
-**A hybrid agent harness that delegates the unresolved part of a task.**
+**A verifier-first harness that delegates unresolved work without giving the worker acceptance authority.**
 
-RESIDUAL decomposes a host-authored task into checked obligations. Local tools and
-models propose results; the controller accepts only results that pass their
-registered checks. A stronger model receives the remaining frontier, relevant
-dependency values, and concrete failure feedback. It can request exact evidence
-windows. Already accepted independent work stays outside that request.
+This document describes the original/core RESIDUAL harness layer. The repository has expanded into Command Station, Factory M2/M3/M4, distributed/runtime surfaces, Mission Control/WebVM, evaluation infrastructure and bounded self-maintenance research. For repository-wide qualification claims, use [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md).
 
-Python 3.11+, **zero runtime dependencies**. Native **Ollama**, **OpenAI-compatible
-HTTP endpoints**, and **custom Python/SDK providers**. Both tiers can run locally.
+## Core model
 
-This is a research prototype with a runnable controller, real HTTP adapters, and
-adversarial contract tests. The included benchmark is a **scripted simulation**;
-it establishes controller behavior, not real LLM accuracy, token savings, or
-publication-level novelty. See [the research claim](docs/research.md).
+RESIDUAL decomposes a host-authored task into checked obligations. Local or remote workers propose results; the controller accepts only results that pass registered checks. Stronger or more expensive workers receive the unresolved frontier, relevant dependency values and bounded failure/evidence context rather than unilateral authority over accepted state.
 
-## Run immediately
+```text
+Goal / task
+  ↓
+Obligation DAG + checks
+  ↓
+Worker proposal
+  ↓
+Independent verification
+  ├─ PASS → freeze accepted value + receipt
+  └─ FAIL / UNKNOWN → residual + counterexample → retry / escalate
+```
 
-From the repository root, without installation or credentials:
+The worker may be capable, weak, stochastic or wrong. The controller owns acceptance.
+
+## Run the core harness
 
 ```bash
 python3 -m residual demo
@@ -27,132 +31,84 @@ python3 -m residual benchmark --output runs/benchmark.json
 python3 -m unittest discover -s tests -v
 ```
 
-Optional package installation:
+The built-in demo is scripted and credential-free. It demonstrates controller behavior and evidence handling; it is not a live-model accuracy benchmark.
 
-```bash
-python3 -m pip install -e .
-residual demo
-```
-
-The demo produces a checked error count, connection diagnosis, policy action,
-JSON usage report, and hash-linked trace. It labels its scripted workers as a
-simulation. No network requests or API keys are used by the demo workers.
-
-## Bring your models
-
-Copy `examples/ollama-cloud.toml` to `config.local.toml`. Set the Ollama model to
-one you have installed, and set the expert model and provider's base URL. The
-compatible URL includes the API prefix, usually `/v1`; the adapter appends
-`/chat/completions`.
-
-```bash
-ollama serve
-# In another terminal, after editing config.local.toml:
-export RESIDUAL_EXPERT_API_KEY='your-provider-key'
-python3 -m residual run examples/incident/task.json --config config.local.toml
-python3 -m residual run examples/maintenance/task.json --config config.local.toml --output runs/maintenance
-```
-
-For two local Ollama models, copy and edit `examples/ollama-only.toml`. Model names
-are explicit placeholders: the harness never downloads a model or substitutes a
-demo worker when a configured provider fails. `placement = "local"` is restricted
-to loopback HTTP endpoints. A remote or LAN endpoint must use `placement = "remote"`
-and HTTPS, so local-only evidence cannot be sent there accidentally.
-
-Native Ollama uses `/api/chat`, non-streaming responses, structured JSON output,
-and `options.num_predict`. Compatible providers use JSON mode by default; set
-`json_mode = false` if unsupported, or `output_token_field = "max_tokens"` for
-servers requiring that parameter. Local protocol and output verification still
-apply. Native provider-specific APIs, including Anthropic Messages, require a
-custom adapter or an OpenAI-compatible gateway. See [extension APIs](docs/extending.md).
-
-## What the controller changes
+## Core controller invariants
 
 | Mechanism | Implemented behavior |
 | --- | --- |
-| Residual frontier | Stronger models see only currently solvable, unaccepted obligations |
-| Independent checks | Model confidence and self-declared success never accept a result |
-| Counterexample feedback | A failed check supplies a code and bounded task-specific explanation |
-| Evidence pull | Workers request exact, hashed, permitted line windows |
-| Adaptive packet planning | Inline a small complete relevant artifact when cheaper than two framed seed requests |
-| Frozen accepted values | A later response cannot overwrite an accepted obligation |
-| Dependency receipts | Bind values to contracts, verifier revisions, evidence snapshots, and parent receipts |
-| Revalidated cache | Every cache hit is checked again; changed inputs invalidate the appropriate keys |
-| Explicit budgets | Reserve calls, request-body bytes, and per-call output caps before provider I/O |
-| Honest accounting | Reported usage, simulation estimates, missing usage, and configured prices remain distinct |
+| Residual frontier | Escalated workers receive unresolved, currently solvable obligations rather than already accepted independent work |
+| Independent checks | Model confidence and self-declared success do not accept a result |
+| Counterexample feedback | Failed checks provide bounded task-specific failure information |
+| Evidence pull | Workers request permitted evidence windows rather than arbitrary source access |
+| Frozen accepted values | Later responses cannot silently overwrite accepted obligations |
+| Dependency receipts | Accepted values bind to relevant contracts, evidence and parent receipts |
+| Revalidated cache | Cache hits are checked again against current inputs and verifier state |
+| Explicit budgets | Calls, request bytes and output limits are bounded before provider I/O |
+| Honest accounting | Reported usage, modeled estimates and unknown usage remain distinct |
+| Claim discipline | `FAIL`, `UNKNOWN`, malformed output, verifier exceptions and provider errors do not become `PASS` |
 
-See [architecture and invariants](docs/architecture.md) for the trust boundaries
-and the limits of a passing check.
+## Relationship to the broader platform
 
-## Measured controller behavior
+- **Command Station** provides operator-facing mission/run/provider control.
+- **Factory M2** provides bounded worker contracts/runtime and host-owned termination.
+- **Factory M3** provides Station-issued evidence/receipt handoff.
+- **Factory M4** provides deterministic integration/scheduler authority and capable-runner qualification machinery.
+- **Mission Control/WebVM** provides browser-facing real-guest workflows, artifact interaction and provider transport.
+- **Evaluation/research** provides frozen workloads, statistics, fault campaigns, evidence bundles and economics/observability surfaces.
+- **Self-maintenance research** includes bounded proposal/verification tooling with no autonomous merge authority.
 
-Eight synthetic incident cases, identical checks and budgets, caches disabled:
+## Current repository boundary
 
-| Policy | Cases passed | Expert calls | Modeled remote request bytes |
-| --- | ---: | ---: | ---: |
-| Full cloud | 8/8 | 24 | 1,044,858 |
-| Full-context cascade | 8/8 | 6 | 262,188 |
-| Adaptive residual | 8/8 | 12 | 37,368 |
-| Local only | 2/8 | 0 | 0 |
-| Fixed windows with no evidence pull | 2/8 | 24 | 68,448 |
+Current `main` is **`f6f9bad84caccf68c7ab35e5788e756d12c55fb7`**, the merge of PR #156. The underlying #151 live-pipeline work remains present; #156 specifically repairs real Puter worker-envelope conformance by removing provider-side strict structured-output mode for dynamic obligation keys and restoring explicit build-envelope nesting guidance.
 
-Residual used **85.7% fewer framed request bytes than the cascade**, with twice
-as many expert calls on this workload. **These are not measured model tokens or
-API bills.** The diagnosis fixture intentionally exercises escalation even
-though a task-specific deterministic solver could solve it locally.
+All seven observed main-push workflows passed on that exact merged revision. The capable-runner M4 workflow passed its fail-closed capability/zero-skip gate, and Pages run `35158939226` passed on attempt 1 through generated desktop+narrow proof, deployment, published real-guest execution and published narrow-Chromium acceptance.
 
-The [size study](docs/scale-study.md) includes a failure of the fixed-window design:
-it used 29.5% more bytes than the cascade on tiny inputs. Adaptive packet planning
-reduced bytes by 32.9% on those same inputs. Raw run data, limitations, and the
-reproduction commands are in [evaluation](docs/evaluation.md).
+These are exact-revision automated/browser results, not every-host qualification or independent review. PR #156 has **zero submitted reviews**, so current main is technically qualified but **review-provisional**.
 
-## Your own tasks and evaluation
+## Live provider / WebVM boundary
 
-Tasks declare artifacts, obligations, dependencies, trusted checks, and optional
-local solvers. Artifacts are **local-only by default**. The incident example
-demonstrates bulk local work. The maintenance example checks a proposed action
-sequence against a state-transition model; it does not execute that sequence.
+Earlier pre-#156 real-account evidence remains **FAIL** as `provider_protocol_invalid`, with no accepted obligation or artifact.
 
-```bash
-# Live evaluation: each case, mode, and repeat can invoke your configured models.
-python3 -m residual benchmark --config config.local.toml \
-  --task-suite examples/suite.json --modes cascade residual --repeats 3 \
-  --output runs/live-comparison.json
-```
+Fresh post-#156 iPhone/WebKit public-demo evidence reached **`Provider connected`** but then exposed **`RESIDUAL_WORKER_POISONED`** in the Linux guest while Mission Control remained at **`GUEST STARTING`**. No supported recovery path allowed the mission to complete. The observed end-to-end live demo is therefore **FAIL** at the guest-recovery/product boundary. Because no valid candidate completed RESIDUAL's normal verifier path, successful paid/live Puter candidate execution remains **UNKNOWN**.
 
-Live budgets apply **per run**, not to the entire benchmark. Price tables are
-optional and supplied by you. Missing usage stays unknown. Local electricity,
-hardware amortization, and operational effort are not included in cloud cost.
+The poison fence is deliberate fail-closed behavior; the lower-level cause of the production poison remains **UNKNOWN**.
 
-## Prototype scope
+PR #158 attempts to clear a poison tombstone after a proven recovery, but its exact head `ac637711...` is **FAIL**. Controller/provider contracts, Command Station and Pages are red; the Python 3.11 suite retained two failures because the implementation removed durable poison state that existing recovery tests require to remain. Do not treat #158 as qualified.
 
-- Host-authored DAGs and trusted Python plugins; no automatic task decomposition.
-- Checks establish their declared conditions, not universal correctness.
-- Accepted values are immutable within a run. Problems requiring backtracking
-  must be grouped into a single obligation or started as a new task snapshot.
-- No arbitrary shell tool, autonomous deployment, learned router, streaming,
-  distributed scheduler, model fine-tuning, or crash-resume service is included.
-- API adapters are tested over loopback HTTP fixtures. No live model evaluation
-  was performed in the development environment.
-- Hash chains detect alterations against a retained root; they are not signatures
-  and do not authenticate the machine that produced a result.
+PR #159 takes a different approach: preserve the old poison fence and recover by replacing the whole writable WebVM guest overlay. Exact head **`5c33f31d234e3be315a052109fe270d3b70276c5`** has all eight observed applicable workflows **PASS**, including Browser VM Demo CI and generated desktop+narrow Pages proof. The browser proof deliberately recreates the poison boundary, requires `GUEST FAILED · RESTART REQUIRED`, rotates to a fresh overlay, proves poison/PID/control/busy/active-lock state does not carry over, and completes a real local repository audit. Cloud inference remains a test double. The only submitted review is the owner's `COMMENTED` handoff and explicitly does not count as independent acceptance, so #159 is **BLOCKED** pending genuinely independent exact-head review. A merged deployment and fresh real-account iPhone/WebKit build would still be required before claiming the public demo fixed.
 
-## Publishing this repository
+Issues #120/#126 remain open. Retained timed-wait diagnostics and the fresh poison event are both reliability evidence; their relationship and the historical corruption-family root cause remain **UNKNOWN**.
 
-The working tree is committed locally. The distributable ZIP includes a Git
-bundle containing that history. GitHub remote creation was unavailable in the
-development session. With Git and an authenticated GitHub CLI installed:
+## Factory and governance boundaries
 
-```bash
-python3 scripts/publish.py --dry-run
-python3 scripts/publish.py --owner ninja-ops-guy
-```
+Issues #63 and #48 are closed; M2/M3/M4 are implemented and `implementation-status.yaml` is the implementation-presence manifest. M4 qualification remains evidence- and environment-bound. Namespace/capability-unavailable hosts are `BLOCKED`/`UNKNOWN`, not `PASS`.
 
-The script restores the bundled history if needed and creates a **private**
-`residual-agent-harness` repository. It refuses to reuse an existing origin or
-publish tracked edits that are not committed. If you create the empty repository
-through GitHub instead, the normal `git remote add origin ...` and `git push -u
-origin main` flow works from the committed checkout.
+PR #139 still modifies a protected M4 qualification test. Independent exact-head review, deliberate ownership-baseline handling and fresh qualification remain mandatory before that repair can support downstream #134. This documentation does not modify protected bytes, ownership pins, qualification anchors or evidence schemas.
 
-No public license has been selected. The prototype remains private pending the
-owner's publication decision.
+Issue #144 tracks independent-review enforcement. PR #146 is refreshed onto current main at `c416d408149408ff8668a48d6e73eb1f3bf6347e`; ordinary workflows and policy regressions pass, while the live independent-review gate correctly remains `BLOCKED` until a qualifying write-authorized human approves that exact head. Platform ruleset enforcement remains a separate maintainer action after accepted integration.
+
+## Browser acceptance and qualification work
+
+PR #89 retains an authoritative narrow-browser `FAIL` caused by a terminal-proof observation defect; that failure is not rerun away. PR #153 consolidates the bounded #140/#150 repairs on exact current main at `35cbf2ba060bc04aabb6cfd10fbf90dc8dbccb77`. All eight observed applicable workflows pass, but no qualifying independent current-head approval exists, so #153 remains blocked before integration. Only then should #89 be refreshed/requalified.
+
+PR #152 builds a broader evidence-first Qualification v1 framework. Its prior exact-head evidence remains tied to its pre-#156 base. It must refresh/requalify; virtual-day stress is not elapsed soak and a planned live-provider canary is not model-quality evidence.
+
+## Evaluation guidance
+
+The scripted benchmark remains useful as a controller regression fixture, not as evidence of live LLM reliability, token savings or API cost. Confirmatory research must bind results to exact source, workload, execution identity, verifier policy and retained artifacts.
+
+Start with:
+
+- [`docs/evaluation.md`](docs/evaluation.md)
+- [`docs/research.md`](docs/research.md)
+- [`docs/controlled-evaluation.md`](docs/controlled-evaluation.md)
+- [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md)
+
+## Current scope and non-claims
+
+A passing check establishes only its declared condition. A verifier is not a universal proof oracle. Historical results remain tied to the exact revisions that produced them.
+
+The repository does not currently claim universal worker correctness, universally optimal scheduling, guaranteed token/cost savings, blanket production readiness, every-host M4 qualification, completed release/recovery or elapsed-soak qualification, acceptable long-run WebVM reliability, successful post-#156 end-to-end real-provider execution, root cause of the poisoned-guest production failure, proof of the central live-model reliability hypothesis, autonomous recursive self-improvement or autonomous merge authority.
+
+For operational setup, use [`START-HERE.md`](START-HERE.md). For current repository-wide status, use [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md).
