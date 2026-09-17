@@ -72,7 +72,7 @@ This is a supported-device fallback contract, not proof that heavyweight WebVM i
 ## Current build order
 
 1. **Verify the provider helper in production on exact current main.** Automated Pages/deployment is PASS, but SDK load and sign-in availability need retained manual production evidence before that boundary becomes PASS.
-2. **Complete #190 qualification/governance on its refreshed current-main head.** It is no longer stale-base, but it remains unaccepted; after any merge, retest provider-session recovery on the deployed revision.
+2. **Resolve #190's governance blocker.** Its refreshed current-main technical workflows are PASS, but the exact-head maintainer approval gate is **FAIL/BLOCKED** pending explicit approval. If accepted and merged later, retest provider-session recovery on the deployed revision.
 3. **Retest the live-provider semantic boundary on the exact deployed current main.** Historical mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` remains `FAIL/BLOCKED`; paid/live provider success stays UNKNOWN until a candidate crosses protocol validation and proceeds through normal verifier/receipt handling.
 4. **Physically validate the accepted #186 fallback.** Do not broaden fallback success into a heavyweight-WebVM reliability claim.
 5. **Execute true blank-environment installation and recovery/host-loss qualification for the exact release artifact.**
@@ -85,7 +85,7 @@ This is a supported-device fallback contract, not proof that heavyweight WebVM i
 ## Planning and prototype work
 
 - **#188** — additive AQ-GOV-001 unanimous-consensus authority-escalation lab; unaccepted research candidate, no kernel/container/hypervisor/broker escape claim.
-- **#190** — provider BroadcastChannel recovery candidate; refreshed onto current main at `3a9ea3c2e6a36889f1fa71eb8a4e17c427c13261`, with fresh exact-head qualification/governance still required before acceptance.
+- **#190** — provider BroadcastChannel recovery candidate; refreshed onto current main at `3a9ea3c2e6a36889f1fa71eb8a4e17c427c13261`. Observed technical workflows are PASS; maintainer approval is **FAIL/BLOCKED** pending exact-head attestation, so the candidate remains unaccepted.
 - **#193** — interactive setup-script candidate; unaccepted and not current operator/install behavior until merged/qualified.
 - **#194** — completed-draft visibility/reopen candidate for Command Station; unaccepted and not current accepted UI behavior until merged/qualified.
 - **#191** — closed unmerged; its automated PR-review workflow is not repository governance.
