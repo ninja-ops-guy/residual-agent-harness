@@ -5,6 +5,7 @@ this test process only; the shipped app has no fixture or fallback switch.
 """
 import re
 import secrets
+import shlex
 
 SDK_FIXTURE = r'''
 window.__providerFixture = {signedIn:false, calls:0, gesture:false};
@@ -69,6 +70,12 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await page.screenshot(path=str(args.output / 'mission-chat-audit.png'))
     assert not report['optional_requests'], 'provider network initialized before opt-in'
 
+    # Prove Mission Control has exactly one live worker after its first mission.
+    # The PID snapshot uses Bash builtins only and does not start another Python.
+    await page.locator('#mc-terminal').click()
+    await command_proof('read -r residual_worker_pid < /tmp/residual-workbench.pid && kill -0 "$residual_worker_pid" && printf "%s\\n" "$residual_worker_pid" > /tmp/residual-worker-first.pid')
+    await page.locator('#mc-mission').click()
+
     async with context.expect_page() as info:
         await page.locator('#mc-connect').click()
     provider = await info.value
@@ -82,7 +89,7 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await provider.wait_for_function("() => document.querySelector('#status').textContent.includes('could not load')")
     assert report['optional_requests'], 'explicit SDK load did not attempt a network request'
     await page.locator('#mc-terminal').click()
-    await command_proof('true')
+    await command_proof('read -r residual_worker_pid < /tmp/residual-workbench.pid && read -r residual_worker_first < /tmp/residual-worker-first.pid && test "$residual_worker_pid" = "$residual_worker_first" && kill -0 "$residual_worker_pid"')
     await stage('cloud_network_failure_preserves_guest')
 
     await provider.unroute('https://js.puter.com/v2/**')
@@ -105,7 +112,9 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     assert await page.locator('#mc-new-chat').is_disabled()
     assert await page.locator('#mc-history').is_disabled()
     await page.wait_for_function("() => document.querySelector('#mc-verdict').textContent.includes('CODE CORRECTNESS: UNKNOWN') && !document.querySelector('#mc-result').hidden", timeout=120000)
+    await page.wait_for_function("() => !document.querySelector('#mc-new-chat').disabled && !document.querySelector('#mc-history').disabled", timeout=20000)
     assert not await page.locator('#mc-new-chat').is_disabled()
+    assert not await page.locator('#mc-history').is_disabled()
     assert 'PASSED' in await page.locator('#mc-verdict').inner_text()
     assert 'index.html' in await page.locator('#mc-artifact-list').inner_text()
     assert 'Calculator deliverable' in await page.locator('#mc-answer').inner_text()
@@ -118,7 +127,7 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     first_mid = build_path.rsplit('/', 1)[-1]
     await page.screenshot(path=str(args.output / 'mission-chat-build-preview.png'))
     await page.locator('#mc-terminal').click()
-    await command_proof(f'test -s {build_path}/artifacts/index.html && grep -q Calculator {build_path}/artifacts/index.html && grep -q "\\\"executed\\\":false" {build_path}/artifacts/manifest.json && python3 -m residual verify-trace {build_path}/trace.jsonl --result {build_path}/result.json')
+    await command_proof(f'test -s {build_path}/artifacts/index.html && grep -q Calculator {build_path}/artifacts/index.html && grep -q "\\\"executed\\\":false" {build_path}/artifacts/manifest.json && read -r residual_worker_pid < /tmp/residual-workbench.pid && read -r residual_worker_first < /tmp/residual-worker-first.pid && test "$residual_worker_pid" = "$residual_worker_first" && kill -0 "$residual_worker_pid"')
     report['workbench_build_artifacts'] = 'PASS_WITH_SDK_TEST_DOUBLE_NOT_EXECUTED'
     report['workbench_interactive_preview'] = 'PASS_SANDBOXED_CALCULATOR_INTERACTION_WITH_TEST_DOUBLE_ARTIFACT'
     await stage('workbench_generated_artifacts_saved_previewed_and_verified')
@@ -130,6 +139,7 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     assert await page.locator('#mc-history').is_disabled()
     assert await page.locator('#mc-detach').is_disabled()
     await page.wait_for_function("() => document.querySelector('#mc-session').textContent.includes('REV 2') && document.querySelector('#mc-answer').textContent.includes('dark mode')", timeout=120000)
+    await page.wait_for_function("() => !document.querySelector('#mc-new-chat').disabled && !document.querySelector('#mc-history').disabled && !document.querySelector('#mc-detach').disabled", timeout=20000)
     assert not await page.locator('#mc-new-chat').is_disabled()
     assert not await page.locator('#mc-history').is_disabled()
     assert not await page.locator('#mc-detach').is_disabled()
@@ -143,7 +153,7 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await page.locator('button[data-tab="files"]').click()
     await page.wait_for_function("() => document.querySelector('#mc-preview-status').textContent.includes('RUNTIME SMOKE: PASS')", timeout=20000)
     await page.locator('#mc-terminal').click()
-    await command_proof(f'grep -q "\\\"conversation_id\\\":\\\"{conversation_id}\\\"" {second_path}/summary.json && grep -q "\\\"parent_mission_id\\\":\\\"{first_mid}\\\"" {second_path}/summary.json && grep -q "\\\"revision\\\":2" {second_path}/summary.json && python3 -m residual verify-trace {second_path}/trace.jsonl --result {second_path}/result.json')
+    await command_proof(f'grep -q "\\\"conversation_id\\\":\\\"{conversation_id}\\\"" {second_path}/summary.json && grep -q "\\\"parent_mission_id\\\":\\\"{first_mid}\\\"" {second_path}/summary.json && grep -q "\\\"revision\\\":2" {second_path}/summary.json && read -r residual_worker_pid < /tmp/residual-workbench.pid && read -r residual_worker_first < /tmp/residual-worker-first.pid && test "$residual_worker_pid" = "$residual_worker_first" && kill -0 "$residual_worker_pid"')
     report['workbench_conversation_continuity'] = 'PASS_SAME_SESSION_PARENT_BUNDLE_FROZEN_AND_REVISION_BOUND'
     report['workbench_preview_runtime_smoke'] = 'PASS_NO_STARTUP_JS_ERRORS_SEMANTIC_CORRECTNESS_UNKNOWN'
     report['workbench_active_mission_navigation_lock'] = 'PASS'
@@ -166,10 +176,26 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     path = re.search(r'/opt/residual/runs/missions/m-[a-f0-9]{32}', await page.locator('#mc-path').inner_text()).group()
     await page.screenshot(path=str(args.output / 'mission-chat-provider-contract.png'))
     await page.locator('#mc-terminal').click()
-    await command_proof(f'test -s {path}/answer.md && python3 -m residual verify-trace {path}/trace.jsonl --result {path}/result.json')
+    await command_proof(f'test -s {path}/answer.md && read -r residual_worker_pid < /tmp/residual-workbench.pid && read -r residual_worker_first < /tmp/residual-worker-first.pid && test "$residual_worker_pid" = "$residual_worker_first" && kill -0 "$residual_worker_pid"')
     report['workbench_provider_contract'] = 'PASS_WITH_SDK_TEST_DOUBLE'
+    report['workbench_persistent_worker'] = 'PASS_SAME_PID_ACROSS_AUDIT_BUILD_FOLLOWUP_LIVE'
     await stage('workbench_real_guest_provider_transport_contract_passed')
 
+    # Shut down the persistent worker cleanly before exercising the standalone
+    # CLI. This proves the two interfaces independently and avoids concurrent
+    # CPython interpreters in the WebVM guest during qualification.
+    await command_proof('read -r residual_worker_pid < /tmp/residual-workbench.pid && ( set -C; umask 077; printf "shutdown\\n" > /tmp/residual-workbench.control ) && wait "$residual_worker_pid" && test ! -e /tmp/residual-workbench.pid && test ! -e /tmp/residual-workbench.control')
+    # Preserve the original independent evidence-chain acceptance coverage while
+    # avoiding one fresh interpreter per mission: verify build, follow-up, and
+    # live-provider outputs together in one post-worker Python process.
+    verify_code = (
+        'from pathlib import Path; from residual.workbench.runner import verify_run; '
+        f'verify_run(Path({build_path!r})); '
+        f'verify_run(Path({second_path!r})); '
+        f'verify_run(Path({path!r}))'
+    )
+    await command_proof('python3 -c ' + shlex.quote(verify_code))
+    report['workbench_external_trace_verification'] = 'PASS_BUILD_FOLLOWUP_LIVE_AFTER_WORKER_SHUTDOWN'
     await command_proof('python3 -m residual.workbench audit --stream --files residual/cli.py')
     await page.locator('#mc-mission').click()
     assert 'deterministic source inventory' in await page.locator('#mc-verdict').inner_text()
@@ -179,7 +205,12 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await page.reload(wait_until='domcontentloaded')
     await page.locator('#mc-terminal').click()
     await page.wait_for_function("() => document.body.innerText.replace(/\\s/g,'').includes('residual@demo:~/residual-agent-harness$')", timeout=120000)
-    await command_proof(f'test -s {path}/answer.md && test -s {second_path}/artifacts/index.html && python3 -m residual verify-trace {path}/trace.jsonl --result {path}/result.json && python3 -m residual verify-trace {second_path}/trace.jsonl --result {second_path}/result.json')
+    await command_proof(
+        f'test -s {path}/answer.md && '
+        f'test -s {build_path}/artifacts/index.html && '
+        f'test -s {second_path}/artifacts/index.html && '
+        'python3 -c ' + shlex.quote(verify_code)
+    )
     await page.locator('#mc-mission').click()
     chat_text = await page.locator('#mc-chat').inner_text()
     assert 'Build a calculator' in chat_text
