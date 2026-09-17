@@ -29,6 +29,33 @@ def patch_source(path: Path) -> None:
 	var residualCloudLabel = "ENABLE CLOUD ✦";
 	var residualCloudSdkPromise = null;
 	var residualVmState = "VM BOOTING…";
+	const residualGuestGenerationKey = "residual.guest.generation.v1";
+	function residualGuestGeneration()
+	{
+		try
+		{
+			const value = sessionStorage.getItem(residualGuestGenerationKey);
+			return /^[0-9a-f]{16}$/.test(value || "") ? value : "base";
+		}
+		catch(_)
+		{
+			return "base";
+		}
+	}
+	function residualRestartGuest()
+	{
+		const next = crypto.randomUUID().replaceAll("-", "").slice(0, 16);
+		try
+		{
+			sessionStorage.setItem(residualGuestGenerationKey, next);
+		}
+		catch(_)
+		{
+			throw new Error("Guest restart storage unavailable");
+		}
+		residualVmState = "VM RESTARTING · FRESH OVERLAY…";
+		location.reload();
+	}
 	function residualDecode64url(s)
 	{
 		s=s.replace(/-/g,"+").replace(/_/g,"/");
