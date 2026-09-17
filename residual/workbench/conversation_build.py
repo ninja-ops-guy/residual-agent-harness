@@ -29,6 +29,7 @@ CID = re.compile(r"c-[0-9a-f]{32}\Z")
 TRACE_ROOT = re.compile(r"[0-9a-f]{64}\Z")
 MAX_PRIOR_TOTAL_BYTES = 80000
 MAX_LINEAGE_DEPTH = 16
+MAX_BUILD_OUTPUT_TOKENS = 8192
 
 
 def _id(value, pattern, label, *, optional=False):
@@ -205,8 +206,8 @@ def make_task(request: dict, root: Path, prior_bundle=None, parent_binding=None)
                     "\nRequired literal text somewhere in the summary or generated files: " + canonical(required))
     obligation = Obligation("build", instruction, "workbench:build", tuple(provider_evidence),
                             parameters={"required_text": required, "paths": paths, "prior_paths": prior_paths}, cloud=consent)
-    calls, tokens = request.get("max_calls", 2), request.get("max_output_tokens", 1536)
-    if type(calls) is not int or not 1 <= calls <= 3 or type(tokens) is not int or not 256 <= tokens <= 1536:
+    calls, tokens = request.get("max_calls", 2), request.get("max_output_tokens", MAX_BUILD_OUTPUT_TOKENS)
+    if type(calls) is not int or not 1 <= calls <= 3 or type(tokens) is not int or not 256 <= tokens <= MAX_BUILD_OUTPUT_TOKENS:
         raise ContractError("mission budget outside public workbench bounds")
     model = request.get("model", "gpt-5-nano")
     if not isinstance(model, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:/-]{0,95}", model):
@@ -218,7 +219,8 @@ def make_task(request: dict, root: Path, prior_bundle=None, parent_binding=None)
 
 
 def execute(request: dict, *, root: Path, output_root: Path, mailbox: Path | None = None,
-            config: dict | None = None, observer=None):
+            config: dict | None = None, observer=None,
+            mailbox_provider_type=MailboxProvider):
     output_root.mkdir(parents=True, exist_ok=True)
     conversation_id = request.get("conversation_id") if isinstance(request, dict) else None
     conversation_id = _id(conversation_id, CID, "conversation identity")
@@ -260,7 +262,10 @@ def execute(request: dict, *, root: Path, output_root: Path, mailbox: Path | Non
             if mailbox is None or request.get("cloud_consent") is not True:
                 raise ContractError("browser build missions require explicit cloud consent and a provider mailbox")
             registry = Registry(); register_build(registry)
-            harness = ObservedHarness(registry, MailboxProvider(model, task.id, mailbox, emit, cancelled), None, limits=limits)
+            harness = ObservedHarness(
+                registry, mailbox_provider_type(model, task.id, mailbox, emit, cancelled),
+                None, limits=limits,
+            )
         harness.projected, harness.emit = 0, emit
         if isinstance(harness.local, MailboxProvider):
             delegate = harness.local.emit
@@ -287,7 +292,7 @@ def execute(request: dict, *, root: Path, output_root: Path, mailbox: Path | Non
         lock.unlink(missing_ok=True)
 
 
-def main(argv=None):
+def main(argv=None, *, mailbox_provider_type=MailboxProvider):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("prompt", nargs="?")
     parser.add_argument("--request", type=Path)
@@ -299,7 +304,7 @@ def main(argv=None):
     parser.add_argument("--files", nargs="*", default=[])
     parser.add_argument("--model", default="gpt-5-nano")
     parser.add_argument("--max-calls", type=int, default=2)
-    parser.add_argument("--max-output-tokens", type=int, default=1536)
+    parser.add_argument("--max-output-tokens", type=int, default=MAX_BUILD_OUTPUT_TOKENS)
     parser.add_argument("--conversation-id")
     parser.add_argument("--parent-mission-id")
     parser.add_argument("--stream", action="store_true")
@@ -325,7 +330,8 @@ def main(argv=None):
             summary = execute(request, root=args.root, output_root=args.output_root,
                               mailbox=args.mailbox,
                               config=load_config(args.config) if args.config else None,
-                              observer=stream if args.stream else None)
+                              observer=stream if args.stream else None,
+                              mailbox_provider_type=mailbox_provider_type)
         finally:
             signal.alarm(0); signal.signal(signal.SIGALRM, previous)
         print(canonical({"status": summary["status"], "output": summary["output"], "simulation": False,
