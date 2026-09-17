@@ -2,9 +2,7 @@
 
 > **Current-state entry point:** [../CURRENT_STATUS.md](../CURRENT_STATUS.md)
 
-The documents under [`source/`](source/) preserve earlier design generations and should be treated as historical input unless a newer reconciliation document says otherwise. Checkmarks in those source documents mean **specified/documented**, not necessarily implemented or qualified on the current tree.
-
-The project has moved well beyond the v0.3/v0.4 Command Station baseline. Current `main` contains the core harness, Command Station, Factory M2/M3/M4 implementation, evaluation infrastructure, sandbox/red-team tooling, cluster execution, orchestration, lifecycle/gateway controls, crypto/hardening, observability, connector conformance, Studio/product surfaces and research/reproducibility machinery.
+The documents under [`source/`](source/) preserve earlier design generations and are historical input unless a newer reconciliation says otherwise. Checkmarks in those source documents mean **specified/documented**, not automatically implemented or qualified on the current tree.
 
 ## Current capability map
 
@@ -12,44 +10,71 @@ The project has moved well beyond the v0.3/v0.4 Command Station baseline. Curren
 | --- | --- |
 | Core harness / verifier / receipts / residual delegation | Implemented and covered by the established test corpus |
 | Command Station | Implemented research/operations surface; deployment-specific production qualification still applies |
-| Factory M2 worker contracts/runtime | Implemented under `residual/factory/`; real OS-boundary development tests exist |
-| Factory M3 evidence bus/Station receipts | Implemented; trusted consumption/admission is the authority boundary |
-| Factory M4 deterministic integration/scheduler | Implemented, but **current live qualification is blocked by issue #63** until accepted-tree binding, filesystem/link safety, verifier isolation and Git-evidence semantics are closed |
-| Frozen evaluation framework | Implemented under `residual/eval/`: hash-locked workload, repeated runs, ablations, stats/reporting, fault injection and Factory measurement hooks |
-| Sandbox / red-team | Implemented development surface; host capability determines whether cgroup-v2 enforcement is available |
-| Cluster / distributed execution | Implemented development surface with authenticated membership, heartbeat/reassignment and local-first routing |
-| Orchestration | Implemented intent schema, requirement DAG, ambiguity detection, partitioning, deterministic plan hash and HITL approval gate |
-| Lifecycle / side-effect gateway | Implemented deny-by-default gateway and deterministic resume/recovery mechanisms |
-| Crypto / conformance / SLO / observability | Implemented development surfaces; deployment evidence remains environment-specific |
-| Studio/product UI | Implemented development surface; some UI contract fixtures remain local stubs around protected runtime APIs |
-| Research paper + evidence program | Active; mechanism evidence exists, but live R0–R5 results are still required for the central reliability hypothesis |
+| Factory M2 worker contracts/runtime | Implemented under `residual/factory/` |
+| Factory M3 evidence bus/Station receipts | Implemented; trusted admission remains the authority boundary |
+| Factory M4 deterministic integration/scheduler | Implemented; qualification remains exact-revision/environment bound rather than every-host |
+| Mission Control/WebVM lifecycle | #159 fresh-overlay recovery, #153 browser acceptance proof, #171/#173 bounded provider transport, and #169 privacy-safe local diagnostics are merged; current-main Pages/browser qualification passes, while live paid-provider success remains `UNKNOWN` |
+| Frozen evaluation framework | Implemented research apparatus; CI binding is not confirmatory live-model evidence |
+| Sandbox / red-team | Implemented development surface; host capability determines which kernel isolation paths can be qualified |
+| Cluster / distributed execution | Implemented development surface; production guarantees remain narrower than fixtures |
+| Lifecycle / side-effect gateway | Implemented deny-by-default controls and deterministic recovery mechanisms |
+| Research/reproducibility | Active; live R0–R5 and elapsed soak remain future evidence gates |
 
-## Important documentation caveat
+Issues **#63** and **#48** are closed. `implementation-status.yaml` records M2/M3/M4/EVAL implementation presence and remains current for that purpose.
 
-`implementation-status.yaml` and the generated `docs/status/IMPLEMENTATION_STATUS.md` still contain pre-merge `not_started` entries for M2, M3, M4 and EVAL. That drift is tracked by **issue #48**. Until #48 is reconciled, use [`../CURRENT_STATUS.md`](../CURRENT_STATUS.md), the actual code/tests, and exact-commit verifier artifacts for current-state claims.
+## Current main
+
+Current `main` is **`160c01a1b1933ee10c82dcf30b1674a17f7560ff`**.
+
+Recent material sequence:
+
+1. **#159 merged** — poison remains fenced; a failed Mission Control guest is recovered by rotating to a fresh browser-session writable overlay.
+2. **#168 merged** — repository governance changed to solo-maintainer approval with automated qualification plus exact-head maintainer attestation. This is not independent human assurance.
+3. **#153 merged** — WebVM terminal proof uses an unambiguous bounded marker and browser acceptance waits for the separate post-run control-unlock transition.
+4. **#171/#173 merged** — bounded provider-protocol compatibility remains separately counted, normal Puter tool transport preserves original harness messages, and `protocol_rejected` separates provider transport success from RESIDUAL envelope rejection.
+5. **#169 merged** — local-first privacy-safe diagnostic telemetry and sanitized triage bundles were added without changing authoritative guest evidence, provider routing, mission authority or qualification semantics.
+
+The final #169 head `fb767dc9682533a6092eb36de783e15a3bd47c13` completed exact-head qualification and received an exact-head maintainer attestation before merge.
+
+All seven observed current-main `push` workflows completed **PASS**. Pages/WebVM run `35182396521` passed on attempt 1 through provider/publication contracts, generated desktop+narrow proof, deployment, published real-guest execution, published narrow-Chromium acceptance and retained live-acceptance proof. This is exact-revision automated/browser evidence, not a live paid-provider/model result.
+
+The prior `main@2b7cb626...` Controller/provider **FAIL** on the protected M4 `/proc/<pid>/status` observation race remains retained historical evidence. A later green run does not prove the race fixed.
 
 ## Current build order
 
-The old build order is complete or superseded. The current sequence is:
+1. **Repair the live build-provider boundary without broadening claims.** Fresh real iPhone/WebKit mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice but both counted calls ended `provider_protocol_invalid`; no candidate crossed the protocol boundary and semantic verification did not run. Treat the result as retained `FAIL/BLOCKED`; candidate correctness remains `UNKNOWN`.
+2. **Refresh/requalify #176 on current main.** #176 proposes a build-only output ceiling/default of 8192 while keeping non-build/source-grounded live mode at 1536 and failing closed on provider truncation. Its current head is diverged from current main; prior CI/attestation are historical. After any accepted merge, require post-merge Pages proof plus a new real iPhone/WebKit mission before claiming the live path fixed.
+3. **Resolve the protected M4 observation-race gate without weakening trust boundaries.** PR #139 isolates the repair. Review the protected byte change, deliberately handle the ownership baseline only if accepted, and run fresh qualification after any pin advancement.
+4. **Requalify downstream provider-adapter work only after the protected sequence where applicable.** #134 remains downstream of #139 for that protected dependency.
+5. **Continue WebVM reliability work.** Keep #120/#126 open. The positive-duration Python timed-wait boundary, older runtime corruption and the production poisoned-guest event have not been proven to share one cause. Run a defined repeated-run campaign and preserve failures rather than inferring reliability from isolated green deployments.
+6. **Refresh/requalify Qualification v1 (#152).** Older aggregate evidence does not automatically qualify current main. Keep virtual/simulated days separate from elapsed wall-clock soak.
+7. **Finish release/recovery qualification.** Exercise true blank-environment install, recovery and retained-evidence procedures. Procedure fixtures and simulations are not production release `PASS`.
+8. **Keep IE-001 evidence scoped.** Draft #177 reports 203 focused prototype tests passing plus green exact-head repository qualification/governance on its branch, but Q11 genuinely independent current-head technical review remains pending and the branch predates current main. Do not call IE-001 finally qualified or production-integrated.
+9. **Freeze the confirmatory live evaluation before outcome access.** Lock workload, task mapping, run identity, model/configuration, verifier policy, evidence path, metrics and analysis choices.
+10. **Run fixed-model R0–R5, degradation and heterogeneous-routing studies.** Report raw correctness, acceptance coverage, accepted correctness, AER/ASSR, verifier false acceptance/rejection/`UNKNOWN`, cost, latency and throughput.
+11. **Run live fault campaigns and staged elapsed soak.** 24-hour → 72-hour → 30-day only after shorter gates are clean.
+12. **Promote paper claims only from retained evidence.** Negative, `UNKNOWN`, rejected and failed runs stay in the record.
 
-1. **Close M4 trust-boundary gaps (#63).** Bind accepted state to the verified tree, harden filesystem writes, isolate candidate-dependent verification, and preserve `UNKNOWN` for missing Git evidence.
-2. **Reconcile traceability (#48).** Update M2/M3/M4/EVAL status, regenerate the generated status document, and add drift prevention.
-3. **Resolve Factory OS timing nondeterminism.** Determine whether the retained retry-only failures represent runtime races or test flakiness.
-4. **Qualify measured-evidence integrity (PR #71 or an explicit alternative).** The reviewed Factory adapter needs fresh run/execution binding, anti-replay across independent repetitions, authenticated run-bound scheduler/topology evidence, an exact workload-to-task mapping, and a qualified verifier policy/boundary. Correct and requalify it, or explicitly exclude it from the live protocol and independently qualify the chosen evidence path under the [live evaluation gate](../evaluation.md#live-evaluation-gate). Closing #63/#48/timing alone does not clear this gate.
-5. **Freeze the live evaluation protocol and selected evidence path.** Do not tune workloads/metrics after observing model outcomes.
-6. **Run R0–R5 with one fixed live model.** Measure raw correctness, acceptance coverage, accepted correctness, AER/ASSR, cost, latency and throughput.
-7. **Run model-degradation + heterogeneous-routing studies.** Test whether cheaper/weaker workers can contribute safely under the same acceptance boundary.
-8. **Run live fault campaigns and staged soak tests.** 24-hour → 72-hour → 30-day only after shorter gates are clean.
-9. **Promote paper claims only from retained evidence.** Negative, `UNKNOWN`, rejected and failed runs stay in the record.
+## Governance note
+
+Merged #168 supersedes #146's proposed generic repository-wide independent-human gate. The repository merge-control model is automated qualification plus exact-head maintainer attestation. Use wording such as **maintainer-reviewed with automated qualification** unless another human actually supplied independent review.
+
+This does not erase claim-specific requirements for independent/third-party security review, research validation, release evidence or protected-byte handling.
+
+## Planning and prototype work
+
+PRs #160–#167 are inference-engineering specifications unless their implementations later land and requalify. Draft **#177** is the IE-001 development-only prototype qualification candidate; it is not production runtime and does not have final Q11 qualification. Draft **#178** is a documentation-only dependency-ordered IE-002→IE-007 implementation backlog and explicitly makes no runtime speedup, token/cost, routing, GPU or paper-facing claims. Draft **#175** is a specification-only OpenViking/context-provider proposal with no runtime dependency or accepted implementation claim.
+
+Planning artifacts and prototype-only candidates should not be counted as accepted production capability or used as a reason to change `implementation-status.yaml` by themselves.
 
 ## Historical implementation material
 
 Useful background remains in:
 
-- [DELEGATION.md](DELEGATION.md) — earlier ownership/delegation model
-- [FOUNDATION-CONTRACT.md](FOUNDATION-CONTRACT.md) — shared interface constraints
-- [SPEC-RECONCILIATION.md](SPEC-RECONCILIATION.md) — corrections to earlier uploaded drafts
-- [TRACK-1-IMPLEMENTATION.md](TRACK-1-IMPLEMENTATION.md) — v0.4 receipt/registry foundation
-- [CONFLICT_RESOLUTIONS.md](CONFLICT_RESOLUTIONS.md) — binding decisions from earlier integration phases
+- [DELEGATION.md](DELEGATION.md)
+- [FOUNDATION-CONTRACT.md](FOUNDATION-CONTRACT.md)
+- [SPEC-RECONCILIATION.md](SPEC-RECONCILIATION.md)
+- [TRACK-1-IMPLEMENTATION.md](TRACK-1-IMPLEMENTATION.md)
+- [CONFLICT_RESOLUTIONS.md](CONFLICT_RESOLUTIONS.md)
 
-These documents are still useful for lineage, but they do not override current code, exact-commit evidence, open qualification issues, or [`../CURRENT_STATUS.md`](../CURRENT_STATUS.md).
+These documents remain useful for lineage, but they do not override current code, exact-commit evidence, retained failures, current governance or [`../CURRENT_STATUS.md`](../CURRENT_STATUS.md).

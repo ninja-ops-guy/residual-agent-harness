@@ -266,7 +266,8 @@ def verify_run(folder: Path):
 
 
 def execute(request: dict, *, root: Path, output_root: Path, mailbox: Path | None = None,
-            config: dict | None = None, observer=None):
+            config: dict | None = None, observer=None,
+            mailbox_provider_type=MailboxProvider):
     task, paths, mode, model, limits = make_task(request, root)
     output_root.mkdir(parents=True, exist_ok=True)
     # Cooperative single-workspace admission, not a multi-tenant security boundary.
@@ -303,7 +304,7 @@ def execute(request: dict, *, root: Path, output_root: Path, mailbox: Path | Non
             if mode == 'live':
                 if mailbox is None or request.get('cloud_consent') is not True:
                     raise ContractError('live browser missions require explicit cloud consent and a provider mailbox')
-                provider = MailboxProvider(model, task.id, mailbox, emit, cancelled)
+                provider = mailbox_provider_type(model, task.id, mailbox, emit, cancelled)
             harness = ObservedHarness(registry, provider, None, limits=limits)
         harness.projected, harness.emit = 0, emit
         # Provider dispatch events already exist in the ledger; flush them before I/O.
@@ -335,7 +336,7 @@ def execute(request: dict, *, root: Path, output_root: Path, mailbox: Path | Non
         lock.unlink(missing_ok=True)
 
 
-def main(argv=None):
+def main(argv=None, *, mailbox_provider_type=MailboxProvider):
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
     for name in ('run', 'audit'):
@@ -371,7 +372,8 @@ def main(argv=None):
             summary = execute(request, root=args.root, output_root=args.output_root,
                               mailbox=getattr(args, 'mailbox', None),
                               config=load_config(args.config) if getattr(args, 'config', None) else None,
-                              observer=stream if args.stream else None)
+                              observer=stream if args.stream else None,
+                              mailbox_provider_type=mailbox_provider_type)
         finally:
             signal.alarm(0); signal.signal(signal.SIGALRM, previous)
         print(canonical({'status': summary['status'], 'output': summary['output'], 'simulation': False,

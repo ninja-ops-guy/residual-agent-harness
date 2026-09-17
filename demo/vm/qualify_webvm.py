@@ -24,8 +24,15 @@ def qualify(text: str) -> str:
     old = '\t\tif(out.includes("RESIDUAL BOOT: guest process attached")) residualVmState = "VM READY · GUEST ATTACHED";\n\t\tresidualBridgeBuffer += out;'
     new = '\t\tresidualBridgeBuffer += out;\n\t\tif(residualBridgeBuffer.includes("RESIDUAL BOOT: guest process attached")) residualVmState = "VM READY · GUEST ATTACHED";\n\t\tif(residualBridgeBuffer.length > 1048576) { residualBridgeBuffer = ""; residualVmState = "VM BRIDGE ERROR · console line too large"; return; }'
     text = replace_once(text, old, new)
-    text = replace_once(text, 'CheerpX.IDBDevice.create(cacheId)',
-                        'CheerpX.IDBDevice.create(configObj.residualCacheId || cacheId)')
+    # Normal reloads keep the same overlay so a user's guest artifacts survive.
+    # An explicit poisoned-guest restart changes only the browser-session suffix,
+    # forcing a fresh writable overlay without deleting poison inside the old
+    # guest or weakening the worker's durable fail-closed fence.
+    text = replace_once(
+        text,
+        'CheerpX.IDBDevice.create(cacheId)',
+        'CheerpX.IDBDevice.create((configObj.residualCacheId || cacheId) + "-g-" + residualGuestGeneration())',
+    )
     old_bar = 'position:fixed;top:0.35rem;left:15rem;right:24rem;z-index:60;display:flex;align-items:center;gap:0.5rem;pointer-events:none;font-family:monospace;font-size:11px;color:#39ff68'
     new_bar = 'position:fixed;box-sizing:border-box;top:2.5rem;left:0;right:0;z-index:60;display:flex;flex-wrap:wrap;align-items:center;gap:0.5rem;padding:0.5rem;background:#000;border-bottom:1px solid #39ff68;pointer-events:none;font-family:monospace;font-size:11px;color:#39ff68'
     text = replace_once(text, old_bar, new_bar)
