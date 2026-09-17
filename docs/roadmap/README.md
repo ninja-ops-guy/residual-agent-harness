@@ -4,8 +4,6 @@
 
 The documents under [`source/`](source/) preserve earlier design generations and are historical input unless a newer reconciliation says otherwise. Checkmarks in those source documents mean **specified/documented**, not automatically implemented or qualified on the current tree.
 
-Current `main` contains the core harness, Command Station, Factory M2/M3/M4, evaluation infrastructure, sandbox/red-team tooling, cluster execution, orchestration, lifecycle/gateway controls, observability, product surfaces, WebVM/Mission Control and research/reproducibility machinery.
-
 ## Current capability map
 
 | Capability | Current status |
@@ -13,55 +11,52 @@ Current `main` contains the core harness, Command Station, Factory M2/M3/M4, eva
 | Core harness / verifier / receipts / residual delegation | Implemented and covered by the established test corpus |
 | Command Station | Implemented research/operations surface; deployment-specific production qualification still applies |
 | Factory M2 worker contracts/runtime | Implemented under `residual/factory/` |
-| Factory M3 evidence bus/Station receipts | Implemented; trusted consumption/admission is the authority boundary |
-| Factory M4 deterministic integration/scheduler | Implemented and capable-runner qualified on named environments; every-host qualification is not claimed |
-| Mission Control/WebVM | Integrated through #156; exact current-main automated/browser qualification passes, but fresh post-#156 iPhone/WebKit evidence retains an end-to-end poisoned-guest **FAIL** and long-run reliability remains open |
-| Real Puter provider path | #156 repairs the earlier worker-envelope failure; fresh production evidence reached `Provider connected` but no valid candidate completed because the guest was poisoned. Successful paid/live candidate execution remains `UNKNOWN` |
-| Poisoned-guest recovery | #159 exact head is technically green for browser/guest recovery but `BLOCKED` on independent review; #158 exact head is `FAIL` because durable-poison regressions failed |
-| Frozen evaluation framework | Implemented under `residual/eval/`; live confirmatory results remain future evidence |
-| Cluster / distributed / lifecycle / observability | Implemented development surfaces; deployment evidence remains environment-specific |
-| Self-maintenance research | Bounded proposal/verification evidence exists; no autonomous merge authority |
+| Factory M3 evidence bus/Station receipts | Implemented; trusted admission remains the authority boundary |
+| Factory M4 deterministic integration/scheduler | Implemented; qualification remains exact-revision/environment bound rather than every-host |
+| Mission Control/WebVM lifecycle | #159 fresh-overlay poisoned-guest recovery and #153 browser acceptance proof are merged; current-main Pages passes, but live paid-provider success remains `UNKNOWN` and reliability issues remain open |
+| Frozen evaluation framework | Implemented research apparatus; CI binding is not confirmatory live-model evidence |
+| Sandbox / red-team | Implemented development surface; host capability determines which kernel isolation paths can be qualified |
+| Cluster / distributed execution | Implemented development surface; production guarantees remain narrower than fixtures |
+| Lifecycle / side-effect gateway | Implemented deny-by-default controls and deterministic recovery mechanisms |
+| Research/reproducibility | Active; live R0–R5 and elapsed soak remain future evidence gates |
 
-Issues #63 and #48 are closed. `implementation-status.yaml` records implementation presence; it must be read separately from qualification, release, provider and research evidence.
+Issues **#63** and **#48** are closed. `implementation-status.yaml` records M2/M3/M4/EVAL implementation presence and remains current for that purpose.
 
-## Current main boundary — technically qualified, review-provisional
+## Current main
 
-Current `main` is **`f6f9bad84caccf68c7ab35e5788e756d12c55fb7`**, tree **`9991788c5d59b8ccd3b18b10ad0d4a46098305df`**, the merge of PR #156.
+Current `main` is **`2b7cb626a9a327cf56ede847fa4e6ae6cdf9243f`**.
 
-All seven observed main-push workflows are **PASS** on that exact revision. The M4 prerequisite/qualification workflow passed its fail-closed capability and zero-skip gate. Pages run `35158939226` passed on attempt 1 through generated desktop+narrow proof, deployment, published real-guest execution and published narrow-Chromium acceptance.
+The recent sequence is:
 
-GitHub records zero submitted reviews for #156, so the revision remains **review-provisional**.
+1. **#159 merged** — poison remains fenced; a failed Mission Control guest is recovered by rotating to a fresh browser-session writable overlay.
+2. **#168 merged** — repository governance changed to solo-maintainer approval with automated qualification plus exact-head maintainer attestation. This is not independent human assurance.
+3. **#153 merged** — WebVM terminal proof now uses an unambiguous bounded marker and browser acceptance waits for the separate post-run control-unlock transition.
 
-The provider/recovery evidence is now more specific than the earlier snapshot: pre-#156 real-account provider-envelope evidence remains **FAIL** as `provider_protocol_invalid`; fresh post-#156 iPhone/WebKit evidence reaches **`Provider connected`** but then records **`RESIDUAL_WORKER_POISONED`** with Mission Control stuck at **`GUEST STARTING`**. The public demo attempt is therefore end-to-end **FAIL** at the guest-recovery/product boundary. Successful paid/live candidate execution remains **UNKNOWN** because no valid candidate completed the normal verifier path. The lower-level poison cause remains **UNKNOWN**.
+The final #153 candidate was green for its applicable exact-head workflows and had the required maintainer attestation. The merged `main` revision is nevertheless **not fully green**: Pages run `35172926305` is **PASS**, while Controller/provider run `35172926291` is **FAIL** in Python 3.12 because the protected M4 `/proc/<pid>/status` observation race raised `FileNotFoundError`. Preserve that first observed main failure.
 
 ## Current build order
 
-1. **Review the technically green whole-guest poison recovery, PR #159.** Exact head `5c33f31d234e3be315a052109fe270d3b70276c5` has all eight observed applicable workflows **PASS**, including Browser VM Demo CI and generated desktop+narrow Pages proof. The browser proof deliberately recreates the durable poison boundary, requires `GUEST FAILED · RESTART REQUIRED`, rotates to a fresh browser-session writable overlay, proves poison/PID/control/busy/active-lock state does not carry into the replacement guest, then completes a real local repository audit. Cloud inference remains a test double. The only submitted review is an owner `COMMENTED` handoff explicitly marked not independent acceptance, so #159 is **BLOCKED** until a genuinely independent exact-head reviewer approves it. If accepted and merged, require first-attempt production Pages and a fresh real-account iPhone/WebKit mission before claiming the public demo fixed.
-2. **Preserve PR #158 as exact-head FAIL unless it is materially revised.** Head `ac637711...` has clean-install, measured-binding, ownership, Control Plane and Browser VM Demo CI green, but Controller/provider contracts, Command Station and Pages are **FAIL**. The authoritative Python 3.11 run retains two failures because durable poison was removed where the existing recovery contract requires it to remain. Do not waive these failures or merge from partial green evidence.
-3. **Close the independent-review governance gap.** Issue #144 remains open. Retain a genuinely independent post-merge technical review of the #156 merged surface. PR #146 is at `c416d408149408ff8668a48d6e73eb1f3bf6347e`; ordinary workflows and its 15 policy regressions pass, while the live `independent-review` gate correctly reports **BLOCKED** because no qualifying independent current-head human approval exists. After accepted integration, the active ruleset still needs a maintainer change so approving review count is at least one and the new status is required.
-4. **Obtain independent acceptance for technically qualified WebVM harness repair #153.** It consolidates the closed-unmerged #140/#150 repairs and is based on exact current main at `35cbf2ba060bc04aabb6cfd10fbf90dc8dbccb77`. All eight observed applicable exact-head workflows are **PASS**, including Browser VM Demo CI and Pages/WebVM. Require a genuinely independent current-head approval before integration, then refresh/requalify #89; its retained historical Pages failure remains authoritative.
-5. **Refresh/requalify Qualification v1 #152.** The framework adds fail-closed qualification manifests, stateful exploration, DSM/fault evidence, mutation canaries, exact-wheel qualification, multi-browser journeys and soak/canary tooling. Its pre-#156 results are historical only. Virtual-day stress is not elapsed soak; planned 24h/72h/30d workflows are not evidence until actually completed.
-6. **Quantify WebVM reliability.** Issues #120/#126 remain open. #145 avoids the known process-local Python timed-wait trigger, but the historical corruption family is not root-caused, and the fresh poisoned-guest production failure adds a separate unresolved reliability observation. Their relationship remains `UNKNOWN`. Run a predefined retained repeated-run campaign before claiming an acceptable recurrence rate.
-7. **Resolve the protected M4 test-race lane.** PR #139 requires genuinely independent exact-head review, deliberate ownership-baseline handling and fresh qualification. Do not advance the protected pin merely to obtain green CI.
-8. **Refresh/requalify #134 only after the protected sequence.** Its historical partial evidence does not qualify it on current main.
-9. **Independently review other refreshed integration candidates.** #118 `ee81051220c616f8a605c948820d972177e19801`, #115 `27e6e3b790d950ad1e8dd3603569f2eb5090ada4`, and #131 `0094dd4c27231f8c4f71161b9a82770a27c7aa7b` have applicable exact-head workflows green but remain blocked on genuine independent acceptance. #115 remains procedure/simulation evidence rather than elapsed soak; #131 stays separate. #93 remains red because of its retained runtime-journal concurrency failure and protected dependency.
-10. **Execute broader release/recovery qualification.** Exercise blank-environment setup and actual recovery without converting rehearsal or simulation into release `PASS`.
-11. **Freeze confirmatory evaluation before outcome access.** Lock exact source, workload, model/configuration, evidence path, verifier policy, metrics and analysis.
-12. **Run fixed-model R0–R5, degradation and heterogeneous-routing studies.** Preserve negative, rejected and `UNKNOWN` results.
-13. **Run staged live fault and soak campaigns.** 24h → 72h → 30-day only after shorter gates are clean.
-14. **Promote paper claims only from retained exact-source evidence.**
+1. **Resolve the protected M4 observation-race gate without weakening trust boundaries.** Current-main Controller/provider CI is red on `test_timeout_kills_process_group_not_only_parent`. PR #139 isolates the protected repair. Review the protected byte change, deliberately handle the ownership baseline only if accepted, and run fresh qualification after any pin advancement. Do not change the baseline merely to make CI green.
+2. **Requalify downstream provider-adapter work only after the protected sequence.** #134 remains downstream of #139. A passing browser/provider sibling lane cannot substitute for a red full-workflow qualification.
+3. **Obtain fresh real-account production evidence on the merged browser surface.** #159 now provides a supported fresh-overlay restart and #153 repairs the retained narrow-browser proof parser defect. Current-main Pages is green, but successful paid/live Puter execution on real iPhone/WebKit remains `UNKNOWN` until a retained mission completes the normal verifier/receipt path.
+4. **Continue WebVM reliability work.** Keep #120/#126 open. The historical positive-duration Python timed-wait boundary, older runtime corruption and the production poisoned-guest event have not been proven to share one cause. Run a defined repeated-run campaign and preserve failures rather than inferring reliability from isolated green deployments.
+5. **Refresh/requalify Qualification v1 (#152).** Its older aggregate evidence does not automatically qualify current main. Keep virtual/simulated days separate from elapsed wall-clock soak.
+6. **Finish release/recovery qualification.** Exercise true blank-environment install, recovery and retained-evidence procedures. Procedure fixtures and simulations are not production release `PASS`.
+7. **Freeze the confirmatory live evaluation before outcome access.** Lock workload, task mapping, run identity, model/configuration, verifier policy, evidence path, metrics and analysis choices.
+8. **Run fixed-model R0–R5.** Measure raw correctness, acceptance coverage, accepted correctness, AER/ASSR, verifier false acceptance/rejection/`UNKNOWN`, cost, latency and throughput.
+9. **Run degradation and heterogeneous-routing studies.** Test whether weaker/cheaper workers can contribute safely under the same acceptance boundary.
+10. **Run live fault campaigns and staged elapsed soak.** 24-hour → 72-hour → 30-day only after shorter gates are clean.
+11. **Promote paper claims only from retained evidence.** Negative, `UNKNOWN`, rejected and failed runs stay in the record.
 
-## Claim discipline
+## Governance note
 
-- `PASS` means the named gate passed for the named revision/environment.
-- `FAIL` remains retained evidence; later repairs or reruns do not erase it.
-- `UNKNOWN` means causality, evidence or qualification is unresolved.
-- `BLOCKED` means a required capability/gate could not validly execute; it is not `PASS`.
-- A connected provider is not proof that a live candidate completed or passed verification.
-- Green automated provider/browser tests do not imply successful real-account provider inference.
-- A merged change with no independent submitted review does not retroactively acquire independent acceptance from CI.
-- Candidate qualification before a later `main` merge remains historical until the candidate is refreshed/requalified.
-- Protected ownership baselines and qualification anchors are deliberate trust-boundary decisions, not CI-green switches.
+Merged #168 supersedes #146's proposed generic repository-wide independent-human gate. The repository merge-control model is now automated qualification plus exact-head maintainer attestation. Use wording such as **maintainer-reviewed with automated qualification** unless another human actually supplied independent review.
+
+This does not erase claim-specific requirements for independent/third-party security review, research validation, release evidence or protected-byte handling.
+
+## Planning-only inference work
+
+PRs #160–#167 are inference-engineering proposals/specifications unless their implementations later land and requalify. They should not be counted as implemented capability, benchmark evidence or a reason to change `implementation-status.yaml` today.
 
 ## Historical implementation material
 
@@ -73,4 +68,4 @@ Useful background remains in:
 - [TRACK-1-IMPLEMENTATION.md](TRACK-1-IMPLEMENTATION.md)
 - [CONFLICT_RESOLUTIONS.md](CONFLICT_RESOLUTIONS.md)
 
-These documents do not override exact code, current workflow evidence, open issues or [`../CURRENT_STATUS.md`](../CURRENT_STATUS.md).
+These documents remain useful for lineage, but they do not override current code, exact-commit evidence, retained failures, current governance or [`../CURRENT_STATUS.md`](../CURRENT_STATUS.md).
