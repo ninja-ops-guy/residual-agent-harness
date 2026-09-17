@@ -21,6 +21,14 @@ from .worker_contract import AttemptGuard, WorkerContract, WorkerContractError, 
 MAX_FILE_BYTES = 1024 * 1024
 
 
+class GitOperationTimeout(WorkerContractError):
+    """A managed Git operation exceeded its bounded wall-clock timeout.
+
+    Typed distinctly from generic WorkerContractError so callers can tell a
+    deterministic timeout apart from a Git failure without parsing text.
+    """
+
+
 def git(repository: Path, *arguments: str, data: bytes | None = None,
         extra_env: dict[str, str] | None = None) -> bytes:
     env = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8",
@@ -30,8 +38,11 @@ def git(repository: Path, *arguments: str, data: bytes | None = None,
     command = ["git", "-c", f"core.hooksPath={os.devnull}", "-c", "core.fsmonitor=false",
                "-c", "submodule.recurse=false", "-c", "commit.gpgSign=false",
                "-C", str(repository), *arguments]
-    result = subprocess.run(command, input=data, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                            timeout=20, env=env, check=False)
+    try:
+        result = subprocess.run(command, input=data, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                timeout=20, env=env, check=False)
+    except subprocess.TimeoutExpired as exc:
+        raise GitOperationTimeout("managed Git operation timed out") from exc
     if result.returncode:
         # Git diagnostics can contain private paths/configuration. Do not propagate them.
         raise WorkerContractError("managed Git operation failed")

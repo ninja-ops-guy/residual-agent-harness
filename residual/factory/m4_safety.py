@@ -20,6 +20,7 @@ import time
 import uuid
 
 from .worker_contract import WorkerContractError
+from ._isolated_child import SANDBOX_TIMEOUT_EXIT
 
 
 class M4SafetyError(WorkerContractError):
@@ -179,11 +180,12 @@ def snapshot(worktree: Path) -> dict[str, tuple[str, int, str]]:
 
 @dataclass(frozen=True)
 class FixtureProcessResult:
-    status: str
+    status: str  # 'pass' | 'fail' | 'timeout' | 'unknown'
     returncode: int | None
     stdout_sha256: str
     stderr_sha256: str
     reason: str
+    timed_out: bool = False
 
 
 def run_trusted_fixture(argv: tuple[str, ...], worktree: Path, *,
@@ -251,5 +253,14 @@ def run_trusted_fixture(argv: tuple[str, ...], worktree: Path, *,
         for stream in (process.stdout, process.stderr):
             stream.close()
         process.wait(timeout=5)
+    if reason == 'timeout':
+        # Typed parent-side wall-clock timeout, matching the isolated lane:
+        # the deterministic returncode is SANDBOX_TIMEOUT_EXIT (124) in BOTH
+        # lanes — the child's killed signal returncode is discarded, since the
+        # parent deadline break is the authoritative outcome here.
+        return FixtureProcessResult('timeout', SANDBOX_TIMEOUT_EXIT,
+                                    hashes[0].hexdigest(), hashes[1].hexdigest(),
+                                    reason, timed_out=True)
     status = 'pass' if reason == 'exit' and process.returncode == 0 else 'fail'
-    return FixtureProcessResult(status, process.returncode, hashes[0].hexdigest(), hashes[1].hexdigest(), reason)
+    return FixtureProcessResult(status, process.returncode, hashes[0].hexdigest(),
+                                hashes[1].hexdigest(), reason)

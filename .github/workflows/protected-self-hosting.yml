@@ -1,0 +1,47 @@
+name: Protected self-hosting trial
+on:
+  push:
+    branches:
+      - research/protected-self-hosting-trial-20260915
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  protected-self-hosting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install qualification dependencies
+        run: python -m pip install '.[factory]' pytest
+      - name: Unit-test self-maintenance and evidence bundle primitives
+        run: python -m pytest -q tests/test_self_maintenance.py tests/test_research_bundle.py
+      - name: Execute protected self-hosting experiment
+        run: |
+          python scripts/protected_self_hosting_trial.py \
+            --base 22a5bae54ec12987ffd7a90d881fb4533c9b4b97 \
+            --output runs/protected-self-hosting \
+            --generations 100 \
+            --fault-trials 1000 \
+            --doc-cases 200
+      - name: Record execution identity and workflow authority
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os, platform, sys
+          from pathlib import Path
+          out = Path('runs/protected-self-hosting/execution-metadata.json'); out.parent.mkdir(parents=True, exist_ok=True)
+          out.write_text(json.dumps({'head_commit': os.environ.get('GITHUB_SHA'),'ref': os.environ.get('GITHUB_REF'),'python': sys.version,'platform': platform.platform(),'github_token_permissions': {'contents':'read','unspecified_scopes':'none'},'candidate_merge_authority': False,'generator':'GPT-5.6 Sol interactive external worker','internal_provider_backed_generation': False}, indent=2, sort_keys=True) + '\n')
+          PY
+      - name: Preserve self-hosting evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: protected-self-hosting-evidence
+          path: runs/protected-self-hosting/
+          if-no-files-found: error
+          retention-days: 30

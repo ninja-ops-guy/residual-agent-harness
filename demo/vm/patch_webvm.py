@@ -9,6 +9,26 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+from harden_serviceworker import harden as harden_serviceworker
+
+
+IOS_WEBKIT_PREFLIGHT = r'''<script data-residual-ios-webkit-preflight>
+(() => {
+  try {
+    const params = new URLSearchParams(location.search);
+    if (params.get("full_vm") === "1") return;
+    const ua = navigator.userAgent || "";
+    const platform = navigator.platform || "";
+    const ios = /iPhone|iPad|iPod/.test(ua) ||
+      (platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if (!ios) return;
+    const target = new URL("../walkthrough/", location.href);
+    target.searchParams.set("platform", "ios-webkit");
+    location.replace(target.href);
+  } catch (_) {}
+})();
+</script>'''
+
 
 def require_once(text: str, needle: str, label: str) -> None:
     count = text.count(needle)
@@ -27,6 +47,33 @@ def patch_source(path: Path) -> None:
 	var residualCloudLabel = "ENABLE CLOUD ✦";
 	var residualCloudSdkPromise = null;
 	var residualVmState = "VM BOOTING…";
+	const residualGuestGenerationKey = "residual.guest.generation.v1";
+	function residualGuestGeneration()
+	{
+		try
+		{
+			const value = sessionStorage.getItem(residualGuestGenerationKey);
+			return /^[0-9a-f]{16}$/.test(value || "") ? value : "base";
+		}
+		catch(_)
+		{
+			return "base";
+		}
+	}
+	function residualRestartGuest()
+	{
+		const next = crypto.randomUUID().replaceAll("-", "").slice(0, 16);
+		try
+		{
+			sessionStorage.setItem(residualGuestGenerationKey, next);
+		}
+		catch(_)
+		{
+			throw new Error("Guest restart storage unavailable");
+		}
+		residualVmState = "VM RESTARTING · FRESH OVERLAY…";
+		location.reload();
+	}
 	function residualDecode64url(s)
 	{
 		s=s.replace(/-/g,"+").replace(/_/g,"/");
@@ -161,8 +208,13 @@ def patch_index(path: Path) -> None:
         raise SystemExit("unexpected eager Puter SDK reference in built index")
     marker = "<head>"
     require_once(text, marker, "WebVM built index head marker")
+    additions = []
+    if "data-residual-ios-webkit-preflight" not in text:
+        additions.append(IOS_WEBKIT_PREFLIGHT)
     if 'name="theme-color"' not in text:
-        text = text.replace(marker, '<head>\n<meta name="theme-color" content="#000000">', 1)
+        additions.append('<meta name="theme-color" content="#000000">')
+    if additions:
+        text = text.replace(marker, marker + "\n" + "\n".join(additions), 1)
     path.write_text(text)
 
 
@@ -172,6 +224,7 @@ def patch_serviceworker(path: Path) -> None:
     require_once(text, old, "WebVM service-worker fetch failure hook")
     new = '''\tcatch (e) {\n\t\tconsole.warn("Serviceworker fetch failed:", request.url, e);\n\t\treturn Response.error();\n\t}\n\tif (r.status === 0) {'''
     path.write_text(text.replace(old, new, 1))
+    harden_serviceworker(path)
 
 
 def main() -> None:
