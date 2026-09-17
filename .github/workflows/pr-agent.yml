@@ -1,0 +1,27 @@
+name: PR Agent Review
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  pr_agent:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.sender.type != 'Bot' }}
+    steps:
+      - name: PR Agent
+        uses: The-PR-Agent/pr-agent@v0.45.0
+        env:
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTION_AUTO_REVIEW: true
+          GITHUB_ACTION_AUTO_IMPROVE: true
+          GITHUB_ACTION_AUTO_DESCRIBE: true
+          GITHUB_ACTION_AUTO_ASK: true
+          GITHUB_ACTION_CONFIG_FILE: .pr_agent.toml

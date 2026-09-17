@@ -1,0 +1,27 @@
+[pr_agent]
+model = "gpt-4o"
+fallback_models = ["gpt-4o-mini"]
+
+[pr_agent.review]
+require_score_threshold = 0
+require_all_thresholds = false
+inline_code_comments = true
+persistent_comment = true
+extra_instructions = "Focus on correctness, security, and test coverage. Be concise but thorough. Flag any hardcoded secrets, SQL injection, XSS, or missing error handling."
+
+[pr_agent.describe]
+publish_description = true
+add_original_user_description = true
+keep_existing_description = false
+extra_instructions = "Summarize the PR's purpose, key changes, and testing approach in 2-3 sentences."
+
+[pr_agent.improve]
+publish_suggestions = true
+extra_instructions = "Suggest only actionable improvements. Prioritize security, performance, and maintainability."
+
+[pr_agent.ask]
+publish_answers = true
+
+[pr_agent.code_suggestions]
+publish_suggestions = true
+extra_instructions = "Provide specific, actionable code suggestions with file and line references."
