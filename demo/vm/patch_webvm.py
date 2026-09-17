@@ -22,7 +22,7 @@ IOS_WEBKIT_PREFLIGHT = r'''<script data-residual-ios-webkit-preflight>
     const ios = /iPhone|iPad|iPod/.test(ua) ||
       (platform === "MacIntel" && navigator.maxTouchPoints > 1);
     if (!ios) return;
-    const target = new URL("../demo.html", location.href);
+    const target = new URL("../walkthrough/", location.href);
     target.searchParams.set("platform", "ios-webkit");
     location.replace(target.href);
   } catch (_) {}
