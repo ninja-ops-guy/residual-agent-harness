@@ -34,7 +34,7 @@ The merged #133 diff also removed the previously accepted #132 protected self-ho
 
 ### Current-main qualification boundary
 
-The first seven ordinary `push` workflows for exact `main@b3f00af...` were **queued/pending** at the latest observation. No PASS is inherited from predecessor main or from #133's candidate head.
+Six of the seven ordinary first-attempt `push` workflows on exact `main@b3f00af...` have completed **PASS**: Factory ownership (`35288585067`), M4 runner prerequisites (`35288584989`), measured-evaluation binding (`35288585010`), clean install (`35288585050`), Controller/provider (`35288584962`), and Command Station (`35288585136`). Pages/deployment run `35288585007` is still **IN PROGRESS**, so the exact-current-main deployment set remains **PENDING** rather than all-green.
 
 On #133's exact final candidate head, the ordinary Factory ownership, measured-binding, Browser VM Demo, Control Plane, clean-install, Command Station, Controller/provider, Pages, and maintainer-approval workflows completed **PASS**. Multiple WebVM discriminator workflows intentionally completed **FAIL** because they successfully reproduced the runtime defect under test; those retained diagnostic failures are evidence, not failures to rerun away.
 
@@ -94,7 +94,7 @@ python3 -m residual benchmark --output runs/benchmark.json
 
 ## Current priority gates
 
-1. Complete the first exact-current-main workflow/deployment set for `b3f00af...`; preserve any first failure rather than inheriting predecessor PASS.
+1. Complete Pages/deployment run `35288585007` for exact `main@b3f00af...`; preserve any first failure rather than inheriting predecessor PASS.
 2. Decide whether #133's removal of accepted #132 self-hosting/research-bundle tooling is intentional retirement or an integration regression; restore/reintroduce only through a focused reviewed change if needed.
 3. Continue #120/#126 WebVM reliability work from the #133 evidence without promoting the narrowed diagnosis into root-cause proof.
 4. Refresh/requalify stale candidates, including #190, #152, and #177, after the material `main` move before current claims use them.
