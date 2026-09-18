@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import PurePosixPath
 
+import pytest
 from hypothesis import given, settings, strategies as st
 
 from residual.core import ContractError
