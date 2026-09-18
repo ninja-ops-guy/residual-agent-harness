@@ -56,6 +56,9 @@ class RecursiveImprovementTests(unittest.TestCase):
             "# Roadmap\n\nCurrent " + chr(96) + "main" + chr(96) + " is **" + chr(96) + self.baseline + chr(96) + "**.\n\n"
             "## Current build order\n\n1. Repair health\n2. Improve throughput\n"
         )
+        (self.repo / "docs/CURRENT_STATUS.md").write_text(
+            "# Status\n\nCurrent " + chr(96) + "main" + chr(96) + " is **" + chr(96) + self.baseline + chr(96) + "**.\n"
+        )
         subprocess.run(["git", "add", "."], cwd=self.repo, check=True)
         subprocess.run(["git", "commit", "-m", "status"], cwd=self.repo, check=True, capture_output=True)
 
@@ -86,8 +89,11 @@ class RecursiveImprovementTests(unittest.TestCase):
         b = doctor_repository(self.repo)
         self.assertEqual(a["report_sha256"], b["report_sha256"])
         self.assertEqual(a["roadmap_delta_commits"], 1)
+        self.assertEqual(a["current_status_delta_commits"], 1)
         self.assertEqual(len(a["roadmap_items"]), 2)
-        self.assertIn("roadmap_status_lag", {f["code"] for f in a["findings"]})
+        codes = {f["code"] for f in a["findings"]}
+        self.assertIn("roadmap_status_lag", codes)
+        self.assertIn("current_status_status_lag", codes)
 
     def test_doctor_detects_dirty_checkout(self):
         (self.repo / "scratch.txt").write_text("dirty")
@@ -118,9 +124,10 @@ class RecursiveImprovementTests(unittest.TestCase):
 
     def test_raw_status_input_changes_report_identity(self):
         status = self.repo / "docs/CURRENT_STATUS.md"
-        status.write_text("# changed status one\n")
+        original = status.read_text()
+        status.write_text(original + "\nNote: one\n")
         before = doctor_repository(self.repo)
-        status.write_text("# changed status two\n")
+        status.write_text(original + "\nNote: two\n")
         after = doctor_repository(self.repo)
         self.assertEqual(before["head"], after["head"])
         self.assertEqual(before["dirty"], after["dirty"])
