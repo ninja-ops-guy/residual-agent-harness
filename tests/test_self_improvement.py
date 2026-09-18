@@ -105,6 +105,19 @@ class RecursiveImprovementTests(unittest.TestCase):
         self.assertTrue(report["dirty"])
         self.assertIn("checkout_dirty", {f["code"] for f in report["findings"]})
 
+    def test_doctor_prefers_descendant_origin_main_over_stale_local_main(self):
+        source = self.git("rev-parse", "HEAD")
+        (self.repo / "remote-main.txt").write_text("advance remote main\n")
+        subprocess.run(["git", "add", "."], cwd=self.repo, check=True)
+        subprocess.run(["git", "commit", "-m", "remote-main"], cwd=self.repo, check=True, capture_output=True)
+        remote = self.git("rev-parse", "HEAD")
+        subprocess.run(["git", "update-ref", "refs/remotes/origin/main", remote],
+                       cwd=self.repo, check=True, capture_output=True)
+        subprocess.run(["git", "reset", "--hard", source], cwd=self.repo, check=True, capture_output=True)
+        report = doctor_repository(self.repo)
+        self.assertEqual(report["main_head"], remote)
+        self.assertEqual(report["source_main_state"], "behind_main")
+
     def test_doctor_blocks_source_that_falls_behind_main(self):
         subprocess.run(["git", "checkout", "-b", "work"], cwd=self.repo, check=True, capture_output=True)
         subprocess.run(["git", "checkout", "main"], cwd=self.repo, check=True, capture_output=True)
