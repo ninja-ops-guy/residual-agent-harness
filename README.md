@@ -31,7 +31,7 @@ Accepted changes since the previous documented snapshot include:
 - **#218** — bounded Station repair-loop remediation. Repair attempts may receive the previous failed candidate's declared writable files as bounded context while each new attempt still starts from a clean baseline worktree; repair-context hashes are retained, the runner contract separates the transport JSON envelope from file-language content, and Mission Control/Store share a bounded five-attempt ceiling. This does **not** weaken verifier, review, receipt, integration, quarantine, promotion, Factory/M4, or acceptance authority.
 - **#201** — frontend/guided-provider UX. The public site now separates guided proof from the interactive WebVM lab, animates real RESIDUAL CLI commands with reduced-motion support, and Mission Control keeps Puter setup inline while allowing Puter's secure authorization popup under explicit user gesture. Provider loading remains lazy, credentials stay outside RESIDUAL, and protocol handling remains fail-closed.
 
-PR #201's exact head `4e172aed...` completed **PASS** for Control Plane, Factory ownership, measured-evaluation binding, clean install, Browser VM Demo, Pages, Command Station, Controller/provider, and maintainer approval before merge. Exact merged `main@260b5f9...` ordinary push qualification is **PENDING** at this status check and must not inherit predecessor-main PASS automatically.
+PR #201's exact head `4e172aed...` completed **PASS** for Control Plane, Factory ownership, measured-evaluation binding, clean install, Browser VM Demo, Pages, Command Station, Controller/provider, and maintainer approval before merge. Exact merged `main@260b5f9...` has now settled its seven ordinary push workflows: six completed successfully, while **Deploy GitHub Pages run `35340104722` is FAIL in live-acceptance scope**. The Pages artifact build/browser proof and deployment itself succeeded; the published desktop acceptance then timed out waiting for the embedded provider frame to expose the expected `could not load` status after artifact identity, guest boot, demo verification, warm reload, and repository audit had already passed. This does not establish a paid/live Puter semantic failure or success; the retained provider path in that proof used a test-double SDK rather than real Puter login/inference.
 
 Historical failures remain evidence even when later revisions pass.
 
@@ -100,7 +100,7 @@ python3 -m residual benchmark --output runs/benchmark.json
 
 ## Current priority gates
 
-1. Complete exact-merged-SHA post-#201 qualification; preserve any failure rather than inheriting the green PR head.
+1. Repair and requalify the exact-`260b5f9...` Pages live-acceptance failure. Preserve run `35340104722` as the first authoritative merged-SHA FAIL; do not relabel the six successful ordinary push workflows or the earlier green #201 PR head as a Pages PASS.
 2. Repair and requalify the #207/#208 accounting/release-ordering defects before making stronger fail-closed budget/release claims; later M6 repair-loop success does not clear those independent authority defects.
 3. Extend M6 validation from the single bounded #220 PASS to preregistered repeated/self-discovery experiments while preserving #203/#204/#215/#217 negative cells and without granting autonomous merge authority.
 4. Retain a fresh real-account Puter candidate→verifier→receipt success on the accepted deployed revision, or keep live-provider success `UNKNOWN`.
