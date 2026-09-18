@@ -332,12 +332,9 @@ def main() -> int:
         "baseline_commit":"60d0c5a8fc2044a22619248292ce89c9b43edd37",
         "source_evidence":[r["evidence_sha256"] for r in RUNS],
         "sample_count":len(RUNS),
-        "metric_catalog":[
-            "shipping_task_success_rate","provider_timeout_rate","mean_runner_attempts",
-            "mean_first_request_bytes","context_bytes_success_mean","context_bytes_non_success_mean",
-            "mean_wall_clock_s","successful_mean_wall_clock_s","identical_failure_repeats_total",
-            "mean_reported_tokens_per_run","context_bytes_non_success_max",
-        ],
+        "metric_catalog":[d.metric_id for d in registry.definitions],
+        "metric_registry_revision":registry.revision,
+        "metric_registry_sha256":registry.registry_sha256,
         "metrics":aggregate_metrics(),
         "protected_invariant_catalog":sorted(ALLOWED_INVARIANTS),
         "scope":"Aggregate M6 self-development/shipping measurements enriched by closing admitted MeasurementGap 007J",
@@ -371,7 +368,12 @@ def main() -> int:
 
         query=model_call(
             station.store,pid,"scientist",
-            {"metric_catalog":snapshot["metric_catalog"],"scope":snapshot["scope"],
+            {"metric_catalog":[{"metric_id":d.metric_id,"description":d.description,
+                                "unit":d.unit,"aggregation":d.aggregation,
+                                "population":d.population,"directionality":d.directionality}
+                               for d in registry.definitions],
+             "scope":snapshot["scope"],
+             "metric_registry_sha256":registry.registry_sha256,
              "protected_invariant_catalog":snapshot["protected_invariant_catalog"]},
             QUERY_SYSTEM,QUERY_SCHEMA,"local",TASK_ID,
             extensions=station.extensions(pid),
