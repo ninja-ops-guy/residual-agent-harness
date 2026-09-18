@@ -1214,3 +1214,89 @@ independent review
 ```
 
 This preserves the Scientist's epistemic agency while keeping evidence truth and availability under deterministic host control.
+
+
+## 30. Active Evidence Use and Role Decomposition: M6-SPEC-007N and 007O
+
+### 007N — active evidence query
+
+007N changed the Scientist from passive snapshot reading to explicit evidence selection.
+
+Before seeing values, the Scientist selected:
+
+- `shipping_task_success_rate`;
+- `provider_timeout_rate`;
+- `mean_wall_clock_s`;
+- `successful_mean_wall_clock_s`.
+
+The host returned exact values. The Scientist subsequently requested `mean_runner_attempts` and `mean_first_request_bytes`; the EvidenceResolver returned both. A later request repeated `mean_runner_attempts` and was classified as stagnation.
+
+No false MeasurementGap was emitted.
+
+The experiment showed that active evidence selection improves focus but does not by itself solve a mode-selection problem: a combined `ImprovementSpec | EvidenceRequest` Scientist can repeatedly choose the lower-commitment evidence-request branch.
+
+A provenance-display defect was also found: the initial active-evidence history stored a mutable dictionary reference, so later resolver additions appeared retroactively in that history object. The separate evidence-query record preserved the original selected IDs. Later apparatus copies evidence snapshots before recording them.
+
+### 007O — split Hypothesis Scientist and Measurement Planner
+
+007O separated hypothesis formation from measurement planning.
+
+The Evidence Scout first selected five metrics, including success rate, timeout rate, wall-clock metrics, and repeated-failure count.
+
+The Hypothesis Scientist then returned `insufficient_evidence`, grounded in:
+
+`mean_wall_clock_s = 696.4382`
+
+It did not directly request a metric.
+
+A separate Measurement Planner requested a baseline wall-clock measurement. The host classified the requested identifier as absent, the branch-aware reviewer approved the resulting MeasurementGap, and RESIDUAL issued receipt:
+
+`674513d7e3b82c747bdbea408094ad2c08342943bb05a544e29a6d07727a5359`
+
+The workflow therefore completed successfully.
+
+### Post-hoc semantic audit
+
+The successful workflow is not sufficient to establish semantic adequacy.
+
+The requested metric identifier was:
+
+`mean_wall_clock_s_basline`
+
+The identifier is misspelled and its population/aggregation semantics are undefined. Moreover, the Scientist had already inspected:
+
+`successful_mean_wall_clock_s = 786.123333`
+
+which may overlap with the intended concept of a normal successful baseline.
+
+The reviewer declared the requested measurement nonredundant without having a metric-definition registry capable of establishing that claim.
+
+Accordingly, the 007O receipt remains integrity-valid for the recorded decision, but the research conclusion is downgraded to **UNKNOWN** under external audit.
+
+This follows a core RESIDUAL distinction:
+
+> receipt integrity and semantic adequacy are separate properties.
+
+Issue #265 tracks the resulting requirement for a versioned discovery Metric Registry.
+
+### Metric Registry requirement
+
+A discovery metric must bind more than a name and value.
+
+At minimum the registry should define:
+
+- canonical metric ID;
+- description;
+- unit;
+- aggregation semantics;
+- observation population/unit;
+- valid domain;
+- directionality or interpretation;
+- collection/implementation reference;
+- revision/content hash.
+
+New measurable axes should be proposed through a typed `MetricDefinitionProposal`, not an unconstrained string.
+
+Exact duplicates can be rejected mechanically. Likely semantic overlap should be presented to independent review together with the existing metric definitions. Ambiguous metric semantics yield UNKNOWN.
+
+This directly addresses the EvidenceSnapshot-dimensionality concern: recursive discovery requires a governed mechanism for expanding what the system can measure without silently creating duplicate, ambiguous, or incomparable dimensions.
