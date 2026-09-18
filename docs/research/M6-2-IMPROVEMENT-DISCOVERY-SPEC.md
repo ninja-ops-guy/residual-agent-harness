@@ -102,6 +102,13 @@ Reject if:
 
 Return a structured pass/fail result and deterministic reason codes.
 
+The verifier MUST additionally enforce lessons from M6-EPI-001:
+- acceptance criteria use a structured, mechanically evaluable schema rather than free-form prose;
+- protected invariants come from a versioned closed vocabulary or registered invariant IDs, not arbitrary metric names;
+- MeasurementGap.preserve_invariants is non-empty and uses the same invariant vocabulary;
+- evidence_snapshot_hash exactly matches the snapshot under analysis;
+- ImprovementSpec target/preserve metrics exist in the snapshot or are explicitly identified as post-intervention metrics with a defined measurement source.
+
 ### ledger.py
 
 Append-only experiment ledger linking hashes:
@@ -126,9 +133,11 @@ The M6.2 foundation MUST NOT:
 3. Scientist cannot create a valid spec with an unmeasured baseline claim.
 4. When a required axis is absent, Scientist can emit a MeasurementGap instead of fabricating a baseline.
 5. MeasurementGap cannot be converted into an ImprovementSpec until the requested metric has been mechanically collected.
-6. Protected-target attempts fail mechanically before implementation.
-7. Ledger tampering or broken hash lineage fails verification.
-8. Existing Station/Controller/provider qualification remains green.
+6. Free-form prose acceptance criteria fail validation; acceptance must be mechanically evaluable.
+7. Empty or unknown protected-invariant identifiers fail validation.
+8. Protected-target attempts fail mechanically before implementation.
+9. Ledger tampering or broken hash lineage fails verification.
+10. Existing Station/Controller/provider qualification remains green.
 
 ## Next experiment
 
