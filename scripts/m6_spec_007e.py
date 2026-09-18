@@ -216,14 +216,14 @@ def main() -> int:
     with tempfile.TemporaryDirectory() as root:
         root=Path(root)
         src=root/"repo"
-        ws.init_repo(src,{"README.md":"# M6-SPEC-007D typed discovery fixture\n"})
+        ws.init_repo(src,{"README.md":"# M6-SPEC-007E typed repair fixture\n"})
         station=Station(root/"station")
         save_settings(station.store,{
             "local":{"kind":"ollama","model":a.model,"base_url":a.base_url,"output_token_field":"max_tokens"},
             "review_placement":"local","workers":1,"max_output_tokens":900,
             "batch_max_passes":5,"batch_token_budget":30000,"batch_wall_clock_s":1500,
         })
-        manifest={"name":"M6-SPEC-007D Typed Discovery","goal":"Originate and admit one evidence-grounded improvement proposal.","tasks":[{
+        manifest={"name":"M6-SPEC-007E Typed Repair","goal":"Originate and admit one evidence-grounded improvement proposal.","tasks":[{
             "id":"m6-discover-007d","title":"Typed discovery","instruction":"typed structured proposal",
             "files":[],"context":[],"depends_on":[],"route":"local","checks":[]
         }]}
@@ -251,7 +251,6 @@ def main() -> int:
                 "proposal":proposal,
                 "proposal_sha256":hashlib.sha256(proposal_json.encode()).hexdigest(),
                 "mechanical_errors":errors,
-            "attempts":attempts,
             })
             if not errors:
                 break
@@ -281,12 +280,13 @@ def main() -> int:
 
         evidence={
             "schema_version":1,
-            "experiment":"M6-SPEC-007D",
+            "experiment":"M6-SPEC-007E",
             "snapshot":snapshot,
             "proposal":proposal,
             "proposal_canonical_json":proposal_json,
             "proposal_sha256":hashlib.sha256(proposal_json.encode()).hexdigest(),
             "mechanical_errors":errors,
+            "attempts":attempts,
             "review":review,
             "admitted":admitted,
             "admission_receipt":receipt,
@@ -298,7 +298,7 @@ def main() -> int:
             ],
         }
         out.write_text(json.dumps(evidence,indent=2,sort_keys=True)+"\n")
-        print("M6_SPEC_007D_EVIDENCE="+json.dumps(evidence,sort_keys=True,separators=(",",":")))
+        print("M6_SPEC_007E_EVIDENCE="+json.dumps(evidence,sort_keys=True,separators=(",",":")))
         return 0 if admitted else 1
 
 if __name__=="__main__":
