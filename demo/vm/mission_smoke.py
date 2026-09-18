@@ -91,6 +91,7 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await page.locator('#mc-terminal').click()
     await command_proof('read -r residual_worker_pid < /tmp/residual-workbench.pid && read -r residual_worker_first < /tmp/residual-worker-first.pid && test "$residual_worker_pid" = "$residual_worker_first" && kill -0 "$residual_worker_pid"')
     await stage('cloud_network_failure_preserves_guest')
+    await page.locator('#mc-mission').click()
 
     await page.unroute('https://js.puter.com/v2/**')
     await page.route('https://js.puter.com/v2/**', lambda route: route.fulfill(status=200, content_type='text/javascript', body=SDK_FIXTURE))
