@@ -151,6 +151,24 @@ def doctor_repository(repo="."):
     if dirty:
         findings.append({"code": "checkout_dirty", "severity": "warning",
                          "summary": "Checkout has uncommitted or untracked changes.", "evidence": {}})
+    if not _is_ancestor(root, main, head):
+        if _is_ancestor(root, head, main):
+            source_main_state = "behind_main"
+            findings.append({
+                "code": "source_behind_main", "severity": "error",
+                "summary": "The inspected source revision does not contain repository main.",
+                "evidence": {"head": head, "main": main},
+            })
+        else:
+            source_main_state = "diverged_from_main"
+            findings.append({
+                "code": "source_diverged_from_main", "severity": "error",
+                "summary": "The inspected source revision has diverged from repository main.",
+                "evidence": {"head": head, "main": main},
+            })
+    else:
+        source_main_state = "contains_main"
+
     roadmap_state, delta = compare_recorded_main(root, recorded, main)
     append_snapshot_finding(findings, "Roadmap", "roadmap", roadmap_state, recorded, main, delta)
     status_state, status_delta = compare_recorded_main(root, status_recorded, main)
@@ -163,9 +181,12 @@ def doctor_repository(repo="."):
     inputs = {"roadmap_sha256": file_digest(roadmap),
               "current_status_sha256": file_digest(current_status),
               "mission_sha256": file_digest(root / "docs/self-improvement/MISSION.md"),
+              "controller_sha256": file_digest(root / "residual/self_improvement.py"),
+              "safety_regression_sha256": file_digest(root / "tests/test_self_improvement.py"),
               "factory_ownership_sha256": file_digest(root / "verifier/v3/factory_ownership_baseline.json")}
     report = {"schema_version": 1, "repository_root": str(root), "head": head, "main_head": main,
-              "branch": branch, "dirty": dirty, "roadmap_recorded_main": recorded,
+              "branch": branch, "dirty": dirty, "source_main_state": source_main_state,
+              "roadmap_recorded_main": recorded,
               "roadmap_delta_commits": delta, "current_status_recorded_main": status_recorded,
               "current_status_delta_commits": status_delta,
               "roadmap_items": queue, "findings": findings,
@@ -305,6 +326,8 @@ def build_station_spec(report, plan, doc, repo):
         code_paths = [path for path in c["files"] if requires_frozen_command(path)]
         if code_paths and not c["evaluator_files"]:
             raise ContractError("Executable-code candidates require external frozen evaluator files")
+        if not code_paths and c["evaluator_files"]:
+            raise ContractError("Non-executable candidates must not declare executable evaluator files")
         derived_checks = governor_evaluator_checks(c["evaluator_files"]) if code_paths else []
         for path in c["files"]:
             if path in write_owners:
@@ -336,7 +359,7 @@ def build_station_spec(report, plan, doc, repo):
 
 
 
-def planning_station_spec(report, plan, route="local"):
+def planning_station_spec(report, plan, route="local", allow_executable=False):
     if route not in {"local", "cloud"}:
         raise ContractError("Planner route must be local or cloud")
     health_payload = json.dumps({
@@ -349,6 +372,13 @@ def planning_station_spec(report, plan, route="local"):
         "plan_sha256": plan["plan_sha256"],
         "queue": [item for item in plan["queue"] if item["source"] == "roadmap"],
     }, ensure_ascii=False, allow_nan=False)
+    executable_policy = (
+        "Executable-code candidates may be proposed only with at least one existing tests/test_*.py evaluator. "
+        "Candidates MUST NOT author command checks; the Mission Governor derives executable pytest checks from evaluator_files after admission. "
+        "Include deterministic non-command checks such as exists or python_compile as appropriate."
+        if allow_executable else
+        "Executable verification is not authorized for this generation. Propose only non-executable documentation/data changes; evaluator_files must be empty."
+    )
     proposal_root = "docs/self-improvement/proposals/"
     health_file = proposal_root + "health.json"
     roadmap_file = proposal_root + "roadmap.json"
@@ -402,12 +432,8 @@ def planning_station_spec(report, plan, route="local"):
                 "evaluator_files. Writable scopes must not overlap. Protected Factory, Station, verifier, "
                 "workflow, swarm, evidence, scheduler, integrator, frozen-evaluation and ownership-manifest "
                 "surfaces are out of scope. Current status, roadmap, M7 mission policy, M7 safety regression and "
-                "generation-history files are also read-only authority inputs. Executable-code candidates must declare "
-                "at least one existing tests/test_*.py evaluator file that is not writable by any candidate. "
-                "Candidates MUST NOT author command checks; the Mission Governor derives executable pytest checks "
-                "from evaluator_files after admission. Include deterministic non-command checks such as exists or "
-                "python_compile as appropriate. Documentation-only "
-                "work may use deterministic exists/contains/json_valid checks. Use explicit dependencies if a "
+                "generation-history files are also read-only authority inputs. " + executable_policy + " "
+                "Documentation-only work may use deterministic exists/contains/json_valid checks. Use explicit dependencies if a "
                 "candidate reads a file written by another candidate. Preserve historical FAIL/BLOCKED/UNKNOWN "
                 "evidence and make no production-readiness claims. The deterministic Mission Governor will reject "
                 "anything outside this contract. All candidate route values must be " + route + "."
@@ -457,11 +483,11 @@ def assert_managed_source(station, pid, expected_head):
     return managed_repo
 
 
-def originate_candidates(repo, station_data, route="local", allow_cloud=False):
+def originate_candidates(repo, station_data, route="local", allow_cloud=False, allow_command_checks=False):
     report, plan = ready_report(repo)
     if route == "cloud" and not allow_cloud:
         raise ContractError("Cloud origination requires explicit cloud permission")
-    spec = planning_station_spec(report, plan, route)
+    spec = planning_station_spec(report, plan, route, allow_executable=allow_command_checks)
     from residual.station.service import Station
     station = Station(station_data)
     pid = station.create(spec, source=report["repository_root"], allow_cloud=allow_cloud,
@@ -477,6 +503,7 @@ def originate_candidates(repo, station_data, route="local", allow_cloud=False):
         "planner_spec_sha256": hashlib.sha256(spec.encode()).hexdigest(),
         "planner_project_id": pid,
         "planner_route": route,
+        "planner_allows_executable": allow_command_checks,
         "batch": batch,
         "proposal": None,
         "proposal_sha256": None,
@@ -495,6 +522,11 @@ def originate_candidates(repo, station_data, route="local", allow_cloud=False):
         proposal = validate_candidate_doc(strict_json(raw))
         if any(candidate.get("route") != route for candidate in proposal["candidates"]):
             raise ContractError("Generated candidate routes must match the authorized planner route")
+        if not allow_command_checks and any(
+            requires_frozen_command(path)
+            for candidate in proposal["candidates"] for path in candidate.get("files", [])
+        ):
+            raise ContractError("Generated executable candidates require explicit command-check permission")
         build_station_spec(report, plan, proposal, report["repository_root"])
     except (ContractError, ValueError, TypeError, KeyError):
         station.store.event(pid, "project.note", {
@@ -514,7 +546,13 @@ def originate_candidates(repo, station_data, route="local", allow_cloud=False):
 
 def execute_candidate_doc(report, plan, candidate_doc, station_data,
                           allow_cloud=False, allow_command_checks=False):
-    spec = build_station_spec(report, plan, validate_candidate_doc(candidate_doc), report["repository_root"])
+    candidate_doc = validate_candidate_doc(candidate_doc)
+    spec = build_station_spec(report, plan, candidate_doc, report["repository_root"])
+    if not allow_command_checks and any(
+        requires_frozen_command(path)
+        for candidate in candidate_doc["candidates"] for path in candidate["files"]
+    ):
+        raise ContractError("Executable self-improvement requires explicit command-check permission")
     from residual.station.service import Station
     station = Station(station_data)
     source_tree = git(report["repository_root"], "rev-parse", report["head"] + "^{tree}")
@@ -556,7 +594,9 @@ def execute_candidate_doc(report, plan, candidate_doc, station_data,
 
 
 def run_cycle(repo, station_data, route="local", allow_cloud=False, allow_command_checks=False):
-    origin = originate_candidates(repo, station_data, route=route, allow_cloud=allow_cloud)
+    origin = originate_candidates(
+        repo, station_data, route=route, allow_cloud=allow_cloud,
+        allow_command_checks=allow_command_checks)
     if origin["proposal"] is None:
         return {"mission_id": MISSION_ID, "generation": origin["generation"],
                 "origin": origin, "execution": None}
@@ -659,7 +699,10 @@ def revision_main(argv=None):
         print(canonical(report) if args.json else json.dumps(report, indent=2))
         return 2 if args.strict and report["findings"] else 0
     except (ContractError, OSError, ValueError, TypeError, KeyError):
-        print("residual revision: repository health could not be validated", file=sys.stderr)
+        message = ("improvement generation could not be validated or executed"
+                   if getattr(args, "improve", False)
+                   else "repository health could not be validated")
+        print("residual revision: " + message, file=sys.stderr)
         return 1
 
 
@@ -674,6 +717,7 @@ def self_improve_main(argv=None):
     originate.add_argument("--station-data", required=True)
     originate.add_argument("--route", choices=["local", "cloud"], default="local")
     originate.add_argument("--allow-cloud", action="store_true")
+    originate.add_argument("--allow-command-checks", action="store_true")
     run = sub.add_parser("run")
     run.add_argument("--repo", default=".")
     run.add_argument("--candidates", required=True)
@@ -708,7 +752,8 @@ def self_improve_main(argv=None):
             return 0
         if args.command == "originate":
             result = originate_candidates(
-                args.repo, args.station_data, route=args.route, allow_cloud=args.allow_cloud)
+                args.repo, args.station_data, route=args.route, allow_cloud=args.allow_cloud,
+                allow_command_checks=args.allow_command_checks)
             print(json.dumps(result, indent=2))
             control = result["batch"].get("control", {})
             return 0 if result["proposal"] is not None and control.get("outcome") == "success" else 2
