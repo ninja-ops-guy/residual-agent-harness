@@ -9,6 +9,7 @@ This measures fail-closed repair overhead, not process-crash/lease-expiry recove
 """
 from __future__ import annotations
 
+import json
 import statistics
 import tempfile
 import threading
