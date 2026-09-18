@@ -604,6 +604,73 @@ class DerivationGraph:
             active.append(edge_id)
         return tuple(sorted(active))
 
+    def execution_binding_node(
+        self,
+        *,
+        snapshot_node_id: str,
+        environment_context_id: str,
+        input_artifact_commitments: Mapping[str,str],
+        challenge_policy_id: str,
+    ) -> DerivationNode:
+        snapshot=self._nodes.get(snapshot_node_id)
+        environment=self._nodes.get(environment_context_id)
+        if snapshot is None or snapshot.node_type != NodeType.DERIVATION_SNAPSHOT:
+            raise ContractError("execution binding requires DerivationSnapshot")
+        if environment is None or environment.node_type != NodeType.ENVIRONMENT_CONTEXT:
+            raise ContractError("execution binding requires EnvironmentContext")
+        root=digest({
+            "semantic_snapshot_root":snapshot.payload.get("graph_root"),
+            "environment_context":environment.node_id,
+            "input_artifact_commitments":dict(sorted(input_artifact_commitments.items())),
+        })
+        return DerivationNode(
+            NodeType.EXECUTION_BINDING,
+            Author.HOST,
+            {
+                "execution_root":root,
+                "semantic_snapshot_id":snapshot_node_id,
+                "environment_context_id":environment_context_id,
+                "input_artifact_commitments":dict(sorted(input_artifact_commitments.items())),
+            },
+            challenge_policy_id=challenge_policy_id,
+        )
+
+    def quiescence_certificate_node(
+        self,
+        *,
+        scope: str,
+        evidence_root: str,
+        metric_theory_root: str,
+        search_policy_revision: str,
+        search_budget: Mapping[str,Any],
+        evaluated_candidates: int,
+        admissible_candidates: int,
+        exhaustive_under_policy: bool,
+    ) -> DerivationNode:
+        if not scope or not search_policy_revision:
+            raise ContractError("quiescence scope and search policy are required")
+        if evaluated_candidates < 0 or admissible_candidates < 0:
+            raise ContractError("candidate counts must be >= 0")
+        if admissible_candidates != 0 or not exhaustive_under_policy:
+            raise ContractError(
+                "quiescence requires zero admissible candidates and exhausted declared search policy"
+            )
+        return DerivationNode(
+            NodeType.QUIESCENCE_CERTIFICATE,
+            Author.HOST,
+            {
+                "scope":scope,
+                "evidence_root":evidence_root,
+                "metric_theory_root":metric_theory_root,
+                "search_policy_revision":search_policy_revision,
+                "search_budget":dict(search_budget),
+                "evaluated_candidates":evaluated_candidates,
+                "admissible_candidates":0,
+                "exhaustive_under_policy":True,
+                "claim":"relative_quiescence_not_global_optimum",
+            },
+        )
+
     def execution_root(
         self,
         *,
@@ -709,6 +776,15 @@ class DerivationGraph:
                 self.challenge_policy_for(node_id)
             except ContractError as exc:
                 findings.append(f"semantic node {node_id} challenge governance invalid: {exc}")
+            authored=[
+                e for e in self._edges.values()
+                if e.source==node_id and e.edge_type==EdgeType.AUTHORED_UNDER
+                and self._nodes[e.target].node_type==NodeType.ENVIRONMENT_CONTEXT
+            ]
+            if len(authored)!=1:
+                findings.append(
+                    f"semantic node {node_id} must have exactly one authorship environment"
+                )
         if self.unresolved_challenges(required_semantic):
             findings.append("required semantic subgraph has unresolved challenge")
 
