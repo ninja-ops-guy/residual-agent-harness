@@ -1051,3 +1051,85 @@ M6-SPEC-007I therefore keeps the 007H Scientist contract and mechanical verifier
   `149c1f56e32d8f23df2f53b739bfafb4e4567138bf3e796c9831ffc2c9d9552f`
 
 The retained evidence payload contains a stale internal `experiment: M6-SPEC-007D` label inherited from the base apparatus. The authoritative workflow, PR, evidence marker, script hash, and artifact identify the run as 007H. The stale field is retained as research evidence rather than rewritten; later apparatus corrects it prospectively.
+
+
+## 28. M6-SPEC-007I and 007J — From Apparatus Failure to First Formally Admitted Autonomous Discovery
+
+M6-SPEC-007I was intended to test branch-aware semantic review, but a stale task identifier remained in the experiment apparatus. The manifest created `m6-discover-007i` while the Scientist usage receipt attempted to bind to `m6-discover-007d`. Station rejected the mismatched identity with `ContractError: Task was not found`.
+
+007I is therefore classified as an apparatus identity failure. It produced no usable experiment proposal and is not evidence about the Scientist or reviewer.
+
+M6-SPEC-007J corrected the apparatus prospectively by defining one authoritative task identity and using it for the manifest, Scientist, reviewer, and receipt.
+
+### Result
+
+M6-SPEC-007J succeeded.
+
+With no supplied improvement question, target metric, intervention, or hypothesis, the Scientist autonomously produced:
+
+- observed metric: `context_bytes_non_success_mean`;
+- observed value: **31,629.0**;
+- missing metric: `context_bytes_non_success_max`;
+- question: whether a particular failure scenario is driving the high average non-success context size;
+- proposed measurement: collect the maximum non-success context size;
+- protected invariants: M4, evidence integrity, verification integrity, and promotion authority;
+- exact EvidenceSnapshot binding;
+- human approval retained.
+
+The deterministic verifier returned **zero errors**.
+
+The independent branch-aware reviewer approved the proposal and found that:
+
+- the anomaly was meaningful and evidence-bound;
+- the missing measurement was genuinely absent and nonredundant;
+- the proposed measurement was mechanically collectible;
+- collecting it could materially resolve the uncertainty;
+- the preserved authority/integrity invariants were appropriate.
+
+RESIDUAL then issued admission receipt:
+
+`09f3bbc0dba17ca7344b485cf4a8757dc11382e0ac2f6b46ece8fb7f74bd80c9`
+
+Proposal SHA-256:
+
+`3876881dc9dd662197217337c0b5ae7fd20f626e4221e82cfc24154437779d23`
+
+Evidence artifact SHA-256:
+
+`ea74dce1d0706a880566e694d872c76e305b8d28da0eee4dd89801e1232ad26e`
+
+### Metrics
+
+- Scientist: **761 input / 251 output tokens**
+- Scientist request: **4,327 bytes**
+- Scientist elapsed: **110.713 s**
+- reviewer: **956 input / 108 output tokens**
+- reviewer request: **3,475 bytes**
+- reviewer elapsed: **97.896 s**
+- total reported tokens: **2,076**
+
+### Research significance
+
+M6-SPEC-007J is the first experiment in the series to demonstrate the complete bounded discovery-admission path:
+
+```text
+retained self-development evidence
+        ↓
+Scientist selects an epistemic objective
+        ↓
+typed proposal
+        ↓
+deterministic evidence admission
+        ↓
+independent branch-aware semantic review
+        ↓
+cryptographic admission receipt
+```
+
+The admitted result is a MeasurementGap rather than an ImprovementSpec.
+
+That distinction matters. The system did not force an intervention hypothesis from insufficient evidence. It concluded that one additional measurement was required first.
+
+Therefore M6-008 remains blocked.
+
+The correct next operation is evidence acquisition: collect `context_bytes_non_success_max` from the hash-bound retained source evidence, produce an enriched EvidenceSnapshot, and invoke the Scientist again. Only a subsequently admitted ImprovementSpec may advance to autonomous candidate implementation.
