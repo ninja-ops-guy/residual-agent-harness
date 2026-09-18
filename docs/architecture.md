@@ -6,16 +6,21 @@ solver, and an explicit remote-disclosure policy.
 
 ```mermaid
 flowchart TD
-    T["Task contract"] --> F["Ready frontier"]
-    F --> L["Cache and local workers"]
-    L --> V["Host checks"]
-    V -->|pass| A["Accepted receipts"]
+    T["Obligation contract<br/>instruction · evidence · dependencies · verifier revision"] --> F["Ready frontier"]
+    F --> C["Revalidate cached proposal"]
+    C -->|not accepted| L["Optional local solver / bounded local-model loop"]
+    C -->|PASS| A["Accepted value + receipt"]
+    L --> V{"Host verifier"}
+    V -->|PASS| A
+    V -->|FAIL| X["Counterexample / verifier feedback"]
+    V -->|UNKNOWN / exception / malformed| N["No acceptance"]
+    X --> R["Residual packet compiler"]
+    N --> R
+    R --> E["Expert provider"]
+    E -->|candidate| V
+    E -->|scoped evidence request| W["Permitted immutable evidence windows"]
+    W --> R
     A --> F
-    V -->|unresolved| R["Residual packet compiler"]
-    R --> X["Expert model"]
-    X -->|candidate| V
-    X -->|evidence request| E["Scoped evidence windows"]
-    E --> R
 ```
 
 ## Frontier and acceptance
