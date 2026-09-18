@@ -11,9 +11,11 @@ from .service import (
     CopilotMissionRecord,
     CopilotMissionStore,
     CopilotStudioService,
+    MissionEvidenceRef,
     OIDCBearerAuthenticator,
 )
 from .http import CopilotHTTPAdapter, HTTPResponse
+from .persistence import SQLiteCopilotMissionStore
 
 __all__ = [
     "CopilotAPIError",
@@ -24,6 +26,8 @@ __all__ = [
     "CopilotMissionRecord",
     "CopilotMissionStore",
     "CopilotStudioService",
+    "MissionEvidenceRef",
+    "SQLiteCopilotMissionStore",
     "OIDCBearerAuthenticator",
     "CopilotHTTPAdapter",
     "HTTPResponse",
