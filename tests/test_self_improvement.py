@@ -161,6 +161,12 @@ class RecursiveImprovementTests(unittest.TestCase):
         manifest = parse_spec(build_station_spec(report, mission_plan(report), doc, self.repo))
         self.assertEqual(manifest["tasks"][0]["checks"][0]["argv"][-1], "tests/frozen_eval.py")
 
+    def test_execution_config_candidate_requires_frozen_evaluator(self):
+        report = doctor_repository(self.repo)
+        doc = self.candidate(["pyproject.toml"], [])
+        with self.assertRaises(ContractError):
+            build_station_spec(report, mission_plan(report), doc, self.repo)
+
     def test_code_candidate_requires_frozen_command_evaluator(self):
         report = doctor_repository(self.repo)
         doc = self.candidate(["residual/example.py"], [])
@@ -302,7 +308,8 @@ class RecursiveImprovementTests(unittest.TestCase):
         }
         with patch("residual.self_improvement.run_cycle", side_effect=[first, second]) as cycle:
             result = run_lineage(self.repo, self.repo / ".station", generations=3)
-        self.assertEqual(result["completed_generations"], 2)
+        self.assertEqual(result["attempted_generations"], 2)
+        self.assertEqual(result["accepted_generations"], 1)
         self.assertEqual(result["stop_reason"], "origination_incomplete")
         self.assertEqual(cycle.call_args_list[1].args[0], next_repo)
 
