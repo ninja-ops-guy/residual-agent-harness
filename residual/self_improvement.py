@@ -614,8 +614,21 @@ def revision_main(argv=None):
     d.add_argument("--repo", default=".")
     d.add_argument("--json", action="store_true")
     d.add_argument("--strict", action="store_true")
+    d.add_argument("--improve", action="store_true")
+    d.add_argument("--station-data", default=".residual/self-improve")
+    d.add_argument("--generations", type=int, default=1)
+    d.add_argument("--route", choices=["local", "cloud"], default="local")
+    d.add_argument("--allow-cloud", action="store_true")
+    d.add_argument("--allow-command-checks", action="store_true")
     args = p.parse_args(argv)
     try:
+        if args.improve:
+            result = run_lineage(
+                args.repo, args.station_data, generations=args.generations, route=args.route,
+                allow_cloud=args.allow_cloud, allow_command_checks=args.allow_command_checks)
+            print(json.dumps(result, indent=2))
+            history = result["history"]
+            return 0 if history and history[-1]["accepted_successor"] else 2
         report = doctor_repository(args.repo)
         print(canonical(report) if args.json else json.dumps(report, indent=2))
         return 2 if args.strict and report["findings"] else 0
