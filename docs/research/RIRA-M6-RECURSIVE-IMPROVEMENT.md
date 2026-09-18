@@ -839,3 +839,53 @@ admission receipt
 The model will no longer be asked to hand-author JSON source text. The scientific question therefore becomes whether the structured proposal is admissible, rather than whether the model can place punctuation correctly.
 
 This is the precise boundary between observed autonomous discovery and formally admitted autonomous discovery.
+
+
+## 24. M6-SPEC-007D — Typed Representation Solves Serialization, Exposes Epistemic Error
+
+M6-SPEC-007D removed hand-authored JSON source from the Scientist task. The model returned a typed object under a response schema; RESIDUAL then serialized the object canonically and applied the same deterministic admission semantics.
+
+The representation layer succeeded immediately:
+
+- request bytes: **3,755**
+- input tokens: **700**
+- output tokens: **209**
+- Scientist elapsed time: **95.275 s**
+- structured response parse: **successful**
+- canonical serialization: **successful**
+
+The Scientist returned a `measurement_gap` bound to the exact EvidenceSnapshot hash and preserved all registered invariants.
+
+However, the proposal claimed that `provider_timeout_rate` was missing even though the snapshot explicitly contained:
+
+```text
+provider_timeout_rate = 0.2
+```
+
+The deterministic verifier rejected the proposal with:
+
+```text
+missing_metric is not actually missing
+```
+
+No semantic reviewer was invoked and no admission receipt was issued.
+
+### Interpretation
+
+M6-SPEC-007D cleanly separates the representation problem from the epistemic problem.
+
+The 007C failure was mostly interface-level: the underlying improvement direction was coherent but the model repeatedly malformed JSON punctuation.
+
+The 007D failure is materially different. The model successfully expressed a typed proposal but misread the evidence state and asserted that a measured metric was absent.
+
+This is precisely the class of error the M6.2 architecture is designed to catch mechanically.
+
+The result supports three conclusions:
+
+1. typed structured output is the correct representation boundary for the Scientist;
+2. deterministic evidence admission remains necessary even when structured output is schema-valid;
+3. a typed response schema cannot substitute for epistemic verification.
+
+M6-SPEC-007E therefore keeps typed output and the same evidence, but adds bounded repair from deterministic verifier findings. A mechanically rejected proposal may be revised using the explicit admission error, while the verifier itself remains immutable.
+
+The next stage remains blocked until a proposal is both mechanically admissible and independently semantically approved.
