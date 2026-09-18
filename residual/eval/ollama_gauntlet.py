@@ -772,6 +772,7 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
                 "status": "FAIL",
                 "reason": f"{type(exc).__name__}: {exc}",
             }
+        result = {**result, "suite": name}
         suites.append(result)
 
     capture("provider_live", lambda: provider_live_suite(
@@ -898,6 +899,7 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
             },
         },
     }
+    report["report_sha256"] = digest(report)
     (output / "gauntlet-report.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return report
