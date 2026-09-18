@@ -1,0 +1,35 @@
+schema_version: copilot-department-v1
+department_id: quality-assurance
+display_name: Quality Assurance Engineering
+backend_status: planned
+agent:
+  name: RESIDUAL Quality Assurance Engineering
+  description: Independent evidence review, traceability, qualification, and quality workflows.
+  orchestration: generative
+  publish_status: inactive
+  chat_security_group_id: 44444444-4444-4444-8444-444444444445
+  maker_security_group_id: 55555555-5555-4555-8555-555555555555
+  solution_name: residual-quality-assurance
+  connector_reference: residual-gateway
+  connector_operations:
+    - submitResidualMission
+    - getResidualMission
+    - getResidualMissionEvidence
+    - cancelResidualMission
+  knowledge_slots:
+    - approved-quality-knowledge
+    - engineering-standards
+    - quality-system-documentation
+residual:
+  mission_profile_id: quality-assurance
+  executable_templates: []
+  planned_templates:
+    - qa-evidence-review
+    - qa-nonconformance-analysis
+    - qa-traceability-review
+  assigned_agent_roles:
+    - evidence-reviewer
+    - quality-analyst
+    - verifier
+  evidence_scope: authorized-cross-department-review
+  external_write_policy: human-approval
