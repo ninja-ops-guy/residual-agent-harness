@@ -542,15 +542,19 @@ def main() -> int:
             break
 
         proposal_json=canonical(admitted_proposal or proposal)
-        verifier_revision=digest({"experiment":"M6-SPEC-007Q","rules":"split-scientist-planner-admission-v1"})
+        binding=admission_binding(
+            evidence_snapshot_hash=sh,
+            registry=registry,
+            verifier_rules={"experiment":"M6-SPEC-007Q","rules":"registry-aware-discovery-v1"},
+        )
         receipt=None
         if admitted:
             receipt=StationReceipt(
                 task_id=TASK_ID,
-                cache_key=digest({"snapshot_hash":sh,"proposal":admitted_proposal}),
+                cache_key=binding["cache_key"],
                 value_hash=digest(admitted_proposal),
                 verifier_name="m6:admission",
-                verifier_revision=verifier_revision,
+                verifier_revision=binding["verifier_revision"],
                 verdict=CheckResult.PASS,
                 engine_name="residual-m6",
                 engine_version="007q",
@@ -563,7 +567,7 @@ def main() -> int:
             "evidence_query":query,
             "selected_evidence_final":selected_evidence,
             "scientist_outputs":scientist_outputs,
-            "measurement_planner_outputs":planner_outputs,
+            "measurement_planner_outputs":planner_outputs,\n            "metric_assessments":metric_assessments,
             "evidence_resolution_history":resolution_history,
             "proposal":admitted_proposal or proposal,
             "proposal_canonical_json":proposal_json,
