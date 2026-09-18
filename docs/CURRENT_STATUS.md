@@ -14,7 +14,7 @@ Exact current main has **six successful ordinary push workflows** in their named
 
 PR **#253** is now **closed unmerged**. Open **#260** is its current-main replacement, rebuilt directly on exact `main@3cff6bcd...`. #260's exact head has the applicable technical workflows **PASS**, including Browser VM Demo CI and Deploy GitHub Pages. Its exact-head maintainer approval gate remains **FAIL / pending matching attestation**. PR-head Pages PASS is not production evidence; if #260 is accepted, the resulting merged SHA requires its own first published Pages acceptance attempt.
 
-The M6.2 evidence also changed materially. **#257 / M6-SPEC-007J is the first retained bounded autonomous-discovery PASS at formal admission in this sequence**: a genuinely absent measurement was proposed, semantic review approved it, and an admission/verification receipt was issued. Follow-up cells #259/#262/#263 still **FAIL** because the Scientist repeatedly requests metrics that the host already exposes or resolves. Therefore one bounded admission path is established, while **general autonomous discovery and recursive self-improvement remain UNKNOWN / not established**.
+The M6.2 evidence also changed materially. **#257 / M6-SPEC-007J is the first retained bounded autonomous-discovery PASS at formal admission in this sequence**: a genuinely absent measurement was proposed, semantic review approved it, and an admission/verification receipt was issued. Follow-up cells #259/#262/#263 still **FAIL** because the Scientist repeatedly requests metrics that the host already exposes or resolves. **#264 / M6-SPEC-007O then completed its split-role workflow and issued a receipt, but post-hoc semantic audit downgraded the research conclusion to UNKNOWN** because the admitted metric ID `mean_wall_clock_s_basline` is misspelled/undefined and may overlap an already-inspected successful wall-clock metric. Receipt integrity does not establish semantic correctness. Issue #265 and open spec PR #266 now define a versioned Metric Registry as a prerequisite for calling future MeasurementGap admissions nonredundant. Therefore one bounded admission path remains established in #257, while **general autonomous discovery and recursive self-improvement remain UNKNOWN / not established**.
 
 ## Accepted current-main sequence
 
@@ -86,7 +86,7 @@ Experiment execution/evidence-sufficiency fork: **PASS in bounded research scope
 
 ## Autonomous discovery — M6-SPEC-007 series
 
-The retained sequence now separates execution, representation, evidence-grounding, semantic-review, and evidence-use failures rather than flattening them into one claim.
+The retained sequence now separates execution, representation, evidence-grounding, semantic-review, evidence-use, and metric-identity failures rather than flattening them into one claim.
 
 ### #244 / 007 and #246 / 007B
 
@@ -177,6 +177,18 @@ Final retained evidence:
 
 Status: **FAIL in bounded active-evidence-query discovery scope**.
 
+### #264 / 007O — workflow PASS, research conclusion UNKNOWN
+
+The split-role architecture separated evidence scouting, hypothesis formation, measurement planning, and host evidence resolution. The workflow completed: Evidence Scout selected five metrics; Hypothesis Scientist returned `insufficient_evidence`; Measurement Planner proposed a new baseline metric; the host classified it absent; branch-aware review approved it; and receipt `674513d7e3b82c747bdbea408094ad2c08342943bb05a544e29a6d07727a5359` was issued.
+
+Post-hoc semantic audit found that the requested metric ID, `mean_wall_clock_s_basline`, is misspelled/undefined and may overlap the already-inspected `successful_mean_wall_clock_s=786.123333`. Because the EvidenceSnapshot carries IDs/values but no governed metric definitions, the reviewer's claim that the gap was genuinely absent and nonredundant cannot be established from retained evidence.
+
+Retained artifact ID `10559527734`, ZIP SHA-256 `7a28d6367d91af99dca8ea1a66c0128b136665955a3d273d86a5afb988df895e`.
+
+Status: **workflow PASS; research conclusion UNKNOWN pending metric-identity/semantic validation**. The receipt proves integrity/context of the recorded decision, not semantic correctness, and must not be used as authority to advance the recursive loop.
+
+Issue **#265** now requires a versioned discovery Metric Registry. Open spec PR **#266** defines typed `MetricDefinition` / `MetricDefinitionProposal` contracts, registry/evidence revision binding, canonical naming and duplicate gates, semantic-overlap review, and fail-closed `UNKNOWN` behavior. #266 is trust-infrastructure design only; it does not authorize M6-008 or metric registration.
+
 ### Discovery interpretation
 
 The correct current claim is:
@@ -186,9 +198,10 @@ The correct current claim is:
 - deterministic present-vs-missing admission rejects false MeasurementGaps;
 - semantic review can reject syntactically/mechanically plausible but scientifically weak proposals;
 - **one bounded genuinely absent MeasurementGap was formally admitted in #257 / 007J — PASS in that exact scope**;
-- closing that gap and adding deterministic EvidenceResolver/active evidence selection did **not** make subsequent Scientist behavior reliable; #259/#262/#263 remain bounded FAILs.
+- closing that gap and adding deterministic EvidenceResolver/active evidence selection did **not** make subsequent Scientist behavior reliable; #259/#262/#263 remain bounded FAILs;
+- #264 shows that an integrity-valid receipt can still leave the scientific claim **UNKNOWN** when metric identity/semantics are not governed strongly enough.
 
-Therefore **general autonomous improvement discovery remains UNKNOWN / not established**, and general recursive self-improvement remains **UNKNOWN / not established**.
+Therefore **general autonomous improvement discovery remains UNKNOWN / not established**, general recursive self-improvement remains **UNKNOWN / not established**, and **M6-008 remains BLOCKED pending the Metric Registry/semantic-identity requirement**.
 
 ## Independent stress/governance defects
 
@@ -200,10 +213,11 @@ A later repair/self-host or discovery PASS does not clear an independent governa
 
 1. **#260** — technically green on exact PR head, but maintainer approval remains pending; if merged, the resulting merged SHA still requires its own first production Pages acceptance.
 2. **#243** — technically green production `ImprovementSpec` candidate remains unaccepted pending exact-head maintainer approval; current bytes include human hardening beyond #231-generated source.
-3. **Autonomous discovery** — #257 is a bounded formal-admission PASS, but #259/#262/#263 retain follow-up FAILs; general discovery/self-improvement remains UNKNOWN.
-4. **Accounting/release ordering** — #207/#212 negative evidence remains unresolved.
-5. **Paid/live provider success** — exact-current-main real-account candidate→verifier→receipt success remains UNKNOWN.
-6. **Qualification breadth** — true blank-environment installation, recovery/host-loss, selected elapsed soak, every-host M4, and physical heavyweight-WebVM iPhone reliability remain unestablished.
+3. **Autonomous discovery** — #257 is a bounded formal-admission PASS, #259/#262/#263 retain follow-up FAILs, and #264 is UNKNOWN after post-hoc metric-identity audit; general discovery/self-improvement remains UNKNOWN.
+4. **Metric semantics / M6-008** — issue #265 and spec PR #266 require a versioned Metric Registry before future MeasurementGap admissions can claim nonredundancy; M6-008 remains BLOCKED.
+5. **Accounting/release ordering** — #207/#212 negative evidence remains unresolved.
+6. **Paid/live provider success** — exact-current-main real-account candidate→verifier→receipt success remains UNKNOWN.
+7. **Qualification breadth** — true blank-environment installation, recovery/host-loss, selected elapsed soak, every-host M4, and physical heavyweight-WebVM iPhone reliability remain unestablished.
 
 ## Scope and non-claims
 
