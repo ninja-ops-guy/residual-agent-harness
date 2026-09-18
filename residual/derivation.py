@@ -399,6 +399,38 @@ class DerivationGraph:
                     changed = True
         return result
 
+    def resolve_historical_handle(
+        self,
+        *,
+        author_node_id: str,
+        invocation_id: str,
+        handle: str,
+    ) -> DerivationNode:
+        if author_node_id not in self._nodes:
+            raise ContractError("unknown author node")
+        matches: list[DerivationNode] = []
+        for edge in self._edges.values():
+            if edge.edge_type != EdgeType.CITES_HANDLE or edge.source != author_node_id:
+                continue
+            if edge.predicate.get("invocation_id") != invocation_id:
+                continue
+            if edge.predicate.get("handle") != handle:
+                continue
+            resolution=self._nodes[edge.target]
+            targets=[
+                e for e in self._edges.values()
+                if e.edge_type == EdgeType.RESOLVES_TO and e.source == resolution.node_id
+            ]
+            if len(targets) != 1:
+                raise ContractError("historical capability resolution is not unique")
+            fact=self._nodes[targets[0].target]
+            if fact.node_type != NodeType.EVIDENCE_FACT:
+                raise ContractError("historical capability did not resolve to EvidenceFact")
+            matches.append(fact)
+        if len(matches) != 1:
+            raise ContractError("historical handle resolution is missing or ambiguous")
+        return matches[0]
+
     def unresolved_challenges(self, node_ids: Iterable[str]) -> tuple[str, ...]:
         targets=set(node_ids)
         active: list[str]=[]
