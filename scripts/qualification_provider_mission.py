@@ -74,7 +74,7 @@ def run_mission(*, provider: str, model: str, base_url: str | None, root: Path) 
         "review_placement": "cloud",
         "max_output_tokens": 4096,
     })
-    pid = station.create(SPEC, allow_cloud=True, commands=True)
+    pid = station.create(SPEC, allow_cloud=True, commands=True)["project_id"]
     try:
         station.triage(pid)
         if station.store.task(pid, "LIVE-1")["state"] != "ready":

@@ -229,7 +229,10 @@ def run_mutation(mutation: Mutation) -> dict:
     finally:
         path.write_text(original, encoding="utf-8")
 
-    killed = proc.returncode != 0
+    # Only pytest exit code 1 (tests ran and failed) is evidence the suite killed the
+    # mutant. Exit codes 2-5 (collection error, usage error, missing test node)
+    # are harness failures, not kills — counting them would manufacture PASS.
+    killed = proc.returncode == 1
     return {
         "name": mutation.name,
         "path": mutation.path,
