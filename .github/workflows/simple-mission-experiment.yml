@@ -1,0 +1,19 @@
+name: Simple mission experiment
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  simple-mission:
+    if: github.head_ref == 'experiment/simple-spec-mission-smoke'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install RESIDUAL
+        run: python -m pip install -e '.[factory]'
+      - name: Execute simple live mission
+        run: python -m unittest tests.test_simple_mission_smoke.SimpleMissionSmoke.test_live_simple_spec_executes_end_to_end -v
