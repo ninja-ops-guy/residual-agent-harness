@@ -300,7 +300,7 @@ class FlowCompiler:
                 "human-gate",
                 "Resolve plan ambiguity",
                 StageKind.HUMAN_GATE,
-                requirement_ids=tuple(f.requirement_id for f in plan.ambiguity.flags),
+                requirement_ids=tuple(sorted({f.requirement_id for f in plan.ambiguity.flags})),
                 depends_on=("prepare",),
                 capability=CapabilityGrant(tools=("hitl.approve",)),
                 budget=StageBudget(max_tokens=0, max_seconds=3600, max_attempts=1),
