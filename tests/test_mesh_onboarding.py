@@ -79,11 +79,16 @@ def test_first_node_can_form_standalone_cluster():
 
 def test_duplicate_cluster_node_id_is_rejected():
     a = cluster_node("same")
-    duplicate = cluster_node("same", key="mesh-onboarding-key")
+    duplicate = ClusterNode(
+        "same", Capability(models=("qwen",), tokens_per_second=10.0, context_window=8192),
+        "mesh-onboarding-key", address="loopback://same-duplicate",
+    )
+    duplicate.open()
     try:
         result = duplicate.join(bootstrap_address=a.address)
         assert result["joined"] is False
         assert result["bootstrap"] is None
+        assert a.registry.get("same").address == a.address
     finally:
         a.close(); duplicate.close()
 
