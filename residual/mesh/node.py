@@ -55,8 +55,12 @@ class MeshMessage:
         try:
             object.__setattr__(self, "kind", MeshMessageKind(self.kind))
             object.__setattr__(self, "payload", freeze(self.payload))
+            if self.kind is MeshMessageKind.CHAT and self.payload:
+                raise ContractError("chat messages cannot carry structured payload")
             if len(json.dumps(self.payload).encode()) > 24000 or len(self.content.encode()) > 8000:
                 raise ValueError()
+        except ContractError:
+            raise
         except (ValueError, TypeError, AttributeError):
             raise ContractError("invalid or oversized mesh message") from None
 
@@ -183,6 +187,50 @@ class MeshNode:
         )
         self.chat.append(signed_msg)
         return signed_msg
+
+    def sync_history(self, messages) -> int:
+        """Verify and append an authoritative history snapshot/catch-up.
+
+        The caller must admit the identities referenced by the snapshot first.
+        Existing local history must be an exact prefix; this method never chooses
+        between forks or silently truncates local history.
+        """
+        incoming = tuple(messages)
+        local = self.chat.messages
+        if len(incoming) < len(local):
+            raise ContractError("history prefix is shorter than local history")
+        for index, existing in enumerate(local):
+            candidate = incoming[index]
+            if candidate.hash != existing.hash or candidate.signature != existing.signature:
+                raise ContractError("history prefix conflicts with local history")
+
+        appended = 0
+        for msg in incoming[len(local):]:
+            if not isinstance(msg, MeshMessage):
+                raise ContractError("history contains an invalid mesh message")
+            if msg.author_id in self._revoked:
+                raise ContractError("history author is revoked")
+            author = self.identity if msg.author_id == self.identity.device_id else self.peers.get(msg.author_id)
+            if author is None:
+                raise ContractError("unknown history author")
+            data = json.dumps({
+                "message_id": msg.message_id,
+                "author_id": msg.author_id,
+                "timestamp_ns": msg.timestamp_ns,
+                "kind": msg.kind.value,
+                "content": msg.content,
+                "payload": msg.payload,
+                "prev_hash": msg.prev_hash,
+            }, sort_keys=True).encode()
+            try:
+                valid = self._verify(author.public_key, data, msg.signature) is True
+            except Exception:
+                valid = False
+            if not valid:
+                raise ContractError("history message signature verification failed")
+            self.chat.append(msg)
+            appended += 1
+        return appended
 
     def receive_message(self, msg: MeshMessage) -> bool:
         """Verify and append a message from a peer."""
