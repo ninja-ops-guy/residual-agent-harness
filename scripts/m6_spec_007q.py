@@ -417,7 +417,8 @@ def main() -> int:
                 admitted_proposal=proposal
                 review=model_call(
                     station.store,pid,"reviewer",
-                    {"evidence_snapshot":snapshot,"proposal":admitted_proposal},
+                    {"evidence_snapshot":snapshot,"proposal":admitted_proposal,
+                     "registered_metric_definitions":[d.to_dict() for d in registry.definitions]},
                     IMPROVEMENT_REVIEW_SYSTEM,REVIEW_SCHEMA,"local",TASK_ID,
                     extensions=station.extensions(pid),
                 )
