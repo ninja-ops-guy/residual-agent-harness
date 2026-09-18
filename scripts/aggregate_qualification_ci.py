@@ -48,6 +48,7 @@ REQUIRED_GATES = (
     "webvm-provider-protocol-fuzz",
     "qualification-selftests",
     "active-http-soak",
+    "macos-lifecycle",
 )
 
 
