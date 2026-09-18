@@ -93,6 +93,16 @@ class CopilotMissionRecord:
     def __post_init__(self):
         if self.state not in STATE_TRANSITIONS:
             raise ContractError("invalid Copilot mission state")
+        if not isinstance(self.template_inputs, dict):
+            raise ContractError("authorized template inputs must be an object")
+        try:
+            object.__setattr__(
+                self, "template_inputs", freeze(self.template_inputs)
+            )
+        except (TypeError, ValueError):
+            raise ContractError(
+                "authorized template inputs must be finite JSON"
+            ) from None
 
     def bind_evidence(self, ref: str) -> MissionEvidenceRef:
         return MissionEvidenceRef(
