@@ -673,3 +673,43 @@ The series of real-repository shipping attempts produced several process lessons
 7. **Promote exact accepted bytes.** Once RESIDUAL has produced a reviewed and receipted artifact, productionization should preserve its identity rather than silently hand-editing the candidate.
 
 Together, these results suggest that autonomous recursive improvement requires not only coding and hypothesis generation, but a trustworthy experiment-operations layer capable of preserving provenance and classifying failure modes correctly.
+
+
+## 20. M6-SHIP-004 — Minimal-Context Shipping Replication
+
+M6-SHIP-004 repeated the real-repository ImprovementSpec task with the immutable external verifier but removed unrelated read-only source files from model context.
+
+The first runner request shrank from 32,652 bytes in M6-SHIP-003 to 7,663 bytes. The Qwen2.5-Coder 7B call completed in 275.152 seconds instead of timing out at the 300-second adapter boundary.
+
+The full mission ultimately succeeded after five bounded passes.
+
+- outcome: **success**
+- implementation attempts: **5**
+- model calls: **6** (5 runner + 1 reviewer)
+- reported tokens: **16,558**
+- input tokens: **14,005**
+- output tokens: **2,553**
+- mission wall clock: **1,163.466 s**
+- review: **approved**
+- receipt hash: `b6e678480c9cdbfa802696bb977849bdef139ccf005142d661de824e56e31e7c`
+- release export: **successful**
+- generated source SHA-256: `6556120bc6c370b198b16dc964745ae0dcb05d0b4328f39e3aadcfd77ec39fec`
+- evidence artifact SHA-256: `7a6b9b31c9ca7116a73ea49ea9ba85c71a7ecd24097942e86af9b0aaf70ced69`
+
+### Repair sequence
+
+1. Candidate used an invalid `dataclasses.frozen` import.
+2. A repair response failed write-scope validation rather than producing a usable replacement.
+3. The invalid `frozen` import persisted.
+4. The dataclass construction was corrected, but required `json`/hash imports were missing.
+5. The missing imports were added and the unchanged verifier passed.
+
+This experiment demonstrates two separate properties.
+
+First, context minimization can be the difference between an executable local-model experiment and a transport timeout.
+
+Second, repair efficiency remains stochastic and imperfect even when sufficient evidence is available. The successful exact-main replication M6-ROADMAP-001B completed the same roadmap contract in a single implementation attempt, while M6-SHIP-004 required the entire five-attempt envelope.
+
+Therefore context minimization should be treated as an execution-reliability requirement, not as a guarantee of reasoning quality.
+
+The production artifact continues to use the cleaner exact-main M6-ROADMAP-001B provenance rather than substituting the later five-attempt candidate merely because it also passed.
