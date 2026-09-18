@@ -31,4 +31,15 @@ __all__ = [
     "OIDCBearerAuthenticator",
     "CopilotHTTPAdapter",
     "HTTPResponse",
+    "ApprovedRepository",
+    "CopilotFactoryHandoff",
+    "FirmwareFactoryAdapter",
+    "ResourceCatalog",
 ]
+
+from .factory_handoff import (
+    ApprovedRepository,
+    CopilotFactoryHandoff,
+    FirmwareFactoryAdapter,
+    ResourceCatalog,
+)
