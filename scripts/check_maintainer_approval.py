@@ -8,6 +8,7 @@ attestation bound to the exact current head SHA.
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import os
 import sys
@@ -103,7 +104,13 @@ def _github_request(url: str, token: str, payload: dict[str, Any] | None = None)
             return json.load(response)
     except urllib.error.HTTPError as exc:
         raise RuntimeError(f"GitHub API HTTP {exc.code} for {url}") from exc
-    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+    except (
+        urllib.error.URLError,
+        TimeoutError,
+        http.client.HTTPException,
+        json.JSONDecodeError,
+        UnicodeError,
+    ) as exc:
         raise RuntimeError(f"could not read GitHub data: {exc}") from exc
 
 
