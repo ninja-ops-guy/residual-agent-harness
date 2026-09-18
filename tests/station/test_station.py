@@ -136,6 +136,30 @@ class StationTests(unittest.TestCase):
         findings = [e for e in self.s.store.events(self.pid) if e["event_type"] == "task.finding"]
         self.assertTrue(any(e["data"].get("message") == "Repair context bound to prior candidate" for e in findings))
 
+    def test_identical_failed_candidates_are_classified_as_stagnation(self):
+        self.s.triage(self.pid)
+        failed = {"files": {"station/health.py": "def status(services):\n    return 'ready'\n"}}
+
+        first = self.s.prepare(self.pid, "one", "OPS-101")
+        self.s.finish(first, failed)
+        self.assertEqual(self.s.store.task(self.pid, "OPS-101")["state"], "repair_required")
+        self.assertEqual(self.s.store.task(self.pid, "OPS-101").get("identical_failure_repeats"), 0)
+
+        second = self.s.prepare(self.pid, "two", "OPS-101")
+        self.s.finish(second, failed)
+        self.assertEqual(self.s.store.task(self.pid, "OPS-101")["state"], "repair_required")
+        self.assertEqual(self.s.store.task(self.pid, "OPS-101")["identical_failure_repeats"], 1)
+
+        third = self.s.prepare(self.pid, "three", "OPS-101")
+        self.s.finish(third, failed)
+        task = self.s.store.task(self.pid, "OPS-101")
+        self.assertEqual(task["state"], "blocked")
+        self.assertEqual(task["attempt"], 3)
+        self.assertEqual(task["identical_failure_repeats"], 2)
+        self.assertIsNone(self.s.prepare(self.pid, "four", "OPS-101"))
+        findings = [e for e in self.s.store.events(self.pid) if e["event_type"] == "task.finding"]
+        self.assertTrue(any(e["data"].get("message") == "Repeated identical failed candidate classified as stagnation" for e in findings))
+
     def test_batch_can_repair_on_fourth_attempt_without_weakening_checks(self):
         manifest = {
             "schema_version": 1,
