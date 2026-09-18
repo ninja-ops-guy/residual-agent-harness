@@ -34,10 +34,30 @@ class MeshMessageKind(str, Enum):
 class MeshIdentity:
     device_id: str
     display_name: str
-    public_key: str            # hex-encoded public key
+    public_key: str            # encoded public identity material
     capabilities: tuple[str, ...]
     address: str
     joined_at_ns: int
+
+    def __post_init__(self):
+        if not isinstance(self.device_id, str) or not 0 < len(self.device_id) <= 200:
+            raise ContractError("invalid mesh device identity")
+        if not isinstance(self.display_name, str) or not 0 < len(self.display_name) <= 200:
+            raise ContractError("invalid mesh display name")
+        if not isinstance(self.public_key, str) or not 0 < len(self.public_key) <= 4096:
+            raise ContractError("invalid mesh public identity")
+        if not isinstance(self.address, str) or len(self.address) > 1000:
+            raise ContractError("invalid mesh address")
+        if type(self.joined_at_ns) is not int or self.joined_at_ns < 0:
+            raise ContractError("invalid mesh join timestamp")
+        if not isinstance(self.capabilities, (tuple, list)):
+            raise ContractError("mesh capabilities must be a sequence")
+        capabilities = tuple(self.capabilities)
+        if any(not isinstance(value, str) or not 0 < len(value) <= 200 for value in capabilities):
+            raise ContractError("invalid mesh capability")
+        if len(set(capabilities)) != len(capabilities):
+            raise ContractError("mesh capabilities must be unique")
+        object.__setattr__(self, "capabilities", capabilities)
 
 
 @dataclass(frozen=True)
@@ -54,6 +74,22 @@ class MeshMessage:
     def __post_init__(self):
         try:
             object.__setattr__(self, "kind", MeshMessageKind(self.kind))
+            if not isinstance(self.message_id, str) or not 0 < len(self.message_id) <= 200:
+                raise ContractError("invalid mesh message id")
+            if not isinstance(self.author_id, str) or not 0 < len(self.author_id) <= 200:
+                raise ContractError("invalid mesh message author")
+            if type(self.timestamp_ns) is not int or self.timestamp_ns < 0:
+                raise ContractError("invalid mesh message timestamp")
+            if not isinstance(self.content, str):
+                raise ContractError("mesh message content must be text")
+            if not isinstance(self.signature, str) or len(self.signature) > 8192:
+                raise ContractError("invalid mesh message signature")
+            if self.prev_hash != "GENESIS" and (
+                not isinstance(self.prev_hash, str)
+                or len(self.prev_hash) != 64
+                or any(ch not in "0123456789abcdef" for ch in self.prev_hash)
+            ):
+                raise ContractError("invalid mesh previous hash")
             object.__setattr__(self, "payload", freeze(self.payload))
             if self.kind is MeshMessageKind.CHAT and self.payload:
                 raise ContractError("chat messages cannot carry structured payload")
@@ -83,12 +119,18 @@ class MeshChat:
 
     def __init__(self):
         self._messages: list[MeshMessage] = []
+        self._ids: set[str] = set()
         self._head = "GENESIS"
 
     def append(self, msg: MeshMessage) -> None:
+        if not isinstance(msg, MeshMessage):
+            raise ContractError("chat accepts MeshMessage objects only")
+        if msg.message_id in self._ids:
+            raise ContractError("duplicate mesh message id")
         if msg.prev_hash != self._head:
             raise ContractError(f"chain break: expected prev_hash {self._head}, got {msg.prev_hash}")
         self._messages.append(msg)
+        self._ids.add(msg.message_id)
         self._head = msg.hash
 
     @property
@@ -101,11 +143,13 @@ class MeshChat:
 
     def verify(self) -> bool:
         prev = "GENESIS"
+        seen: set[str] = set()
         for msg in self._messages:
-            if msg.prev_hash != prev:
+            if msg.message_id in seen or msg.prev_hash != prev:
                 return False
+            seen.add(msg.message_id)
             prev = msg.hash
-        return prev == self._head
+        return prev == self._head and seen == self._ids
 
 
 class MeshNode:
@@ -209,8 +253,12 @@ class MeshNode:
                 raise ContractError("history prefix conflicts with local history")
 
         pending = []
+        seen_ids = {msg.message_id for msg in local}
         expected_head = self.chat.head_hash
         for msg in incoming[len(local):]:
+            if msg.message_id in seen_ids:
+                raise ContractError("duplicate mesh message id in history")
+            seen_ids.add(msg.message_id)
             if msg.author_id in self._revoked:
                 raise ContractError("history author is revoked")
             author = self.identity if msg.author_id == self.identity.device_id else self.peers.get(msg.author_id)

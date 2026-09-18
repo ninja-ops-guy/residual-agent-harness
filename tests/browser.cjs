@@ -66,7 +66,10 @@ async function main(){
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:path.join(out,'07-mobile-overview.png'),fullPage:true});
   await page.locator('[data-view="board"]').click();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:path.join(out,'08-mobile-board.png'),fullPage:true});checks.push('390px mobile mission switching, navigation and board have no horizontal overflow');
   await page.locator('.task-card').first().click();await page.locator('.receipt-hash').waitFor();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert(await page.locator('.receipt-hash').evaluate(el=>el.scrollWidth<=el.clientWidth));await page.getByRole('button',{name:'Close dialog',exact:true}).click();checks.push('Mobile task receipt wraps without overflow');
-  await page.locator('[data-view="diagnostics"]').click();await page.getByRole('button',{name:'↻ Inspect',exact:true}).click();await page.getByText('SQLite WAL',{exact:true}).waitFor();checks.push('Diagnostics inspect live runtime');
+  await page.locator('[data-view="diagnostics"]').click();
+  await page.locator('#worker-telemetry').filter({hasText:'No remote worker telemetry is recorded'}).waitFor();
+  checks.push('Diagnostics worker telemetry is explicit when no remote worker receipts exist');
+  await page.getByRole('button',{name:'↻ Inspect',exact:true}).click();await page.getByText('SQLite WAL',{exact:true}).waitFor();checks.push('Diagnostics inspect live runtime');
   await page.getByRole('button',{name:'Inspect trace',exact:true}).click();await page.locator('#observation-summary').filter({hasText:'CHAIN VERIFIED'}).waitFor();
   assert(await page.locator('.observation-row').count()>0);await page.locator('.observation-row').first().click();await page.getByRole('heading',{name:'Observation evidence',exact:true}).waitFor();await page.getByRole('button',{name:'Close dialog',exact:true}).click();
   await page.locator('#observation-kind').selectOption('state.transition');await page.waitForFunction(()=>[...document.querySelectorAll('.observation-row')].every(el=>el.textContent.includes('state.transition')));

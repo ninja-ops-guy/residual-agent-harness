@@ -19,6 +19,8 @@ from .observability import ObservationStore
 
 
 MAX_TASK_ATTEMPTS = 5
+WORKER_REGISTRY_MAX = 1024
+WORKER_REGISTRY_TTL_S = 7 * 24 * 60 * 60
 
 
 def now():
@@ -48,6 +50,7 @@ class Store(ObservationStore):
             CREATE TABLE IF NOT EXISTS settings(id TEXT PRIMARY KEY, value TEXT);
             CREATE TABLE IF NOT EXISTS cursors(project TEXT, reader TEXT, seq INTEGER, PRIMARY KEY(project,reader));
             CREATE TABLE IF NOT EXISTS submissions(id TEXT PRIMARY KEY, value TEXT);
+            CREATE TABLE IF NOT EXISTS workers(id TEXT PRIMARY KEY, value TEXT);
             """)
             self.init_observations(c)
         self.settings({"session_token": secrets.token_urlsafe(32), "worker_token": secrets.token_urlsafe(32)}, defaults=True)
@@ -210,10 +213,19 @@ class Store(ObservationStore):
                 if not (expired or interrupted):
                     continue
                 prior = t["state"]
+                prior_owner = t.get("owner")
+                prior_worker_id = t.get("worker_instance_id")
                 t.update(state="blocked", owner=None, lease=None, lease_until=0,
                          findings=["Interrupted work requires re-triage. Existing evidence is retained."])
                 self._write_task(c, row["project"], t)
-                self._event(c, self._project(c, row["project"]), "worker.expired", "coordinator", t, {"from": prior})
+                if prior_worker_id:
+                    worker_row = c.execute("SELECT value FROM workers WHERE id=?", (prior_worker_id,)).fetchone()
+                    if worker_row:
+                        worker = json.loads(worker_row[0])
+                        worker.update(state="expired", task_id=None)
+                        c.execute("UPDATE workers SET value=? WHERE id=?", (canonical(worker), prior_worker_id))
+                self._event(c, self._project(c, row["project"]), "worker.expired", "coordinator", t,
+                            {"from": prior, "owner": prior_owner, "worker_id": prior_worker_id})
             if startup:
                 for r in c.execute("SELECT id,value FROM jobs").fetchall():
                     j = json.loads(r["value"])
@@ -269,6 +281,77 @@ class Store(ObservationStore):
     def jobs(self):
         with self.connect() as c:
             return [json.loads(r[0]) for r in c.execute("SELECT value FROM jobs ORDER BY rowid DESC LIMIT 40")]
+
+    def worker_register(self, worker_id, name, provider_kind, model, placement):
+        stamp, epoch = now(), time.time()
+        with self.transaction() as c:
+            row = c.execute("SELECT value FROM workers WHERE id=?", (worker_id,)).fetchone()
+            if row is None:
+                stale = []
+                for existing in c.execute("SELECT id,value FROM workers").fetchall():
+                    try:
+                        value = json.loads(existing["value"])
+                        if epoch - float(value.get("last_seen_epoch", epoch)) > WORKER_REGISTRY_TTL_S:
+                            stale.append(existing["id"])
+                    except (ValueError, TypeError, KeyError):
+                        stale.append(existing["id"])
+                for stale_id in stale:
+                    c.execute("DELETE FROM workers WHERE id=?", (stale_id,))
+                count = c.execute("SELECT count(*) FROM workers").fetchone()[0]
+                if count >= WORKER_REGISTRY_MAX:
+                    raise ContractError("Worker registry capacity reached; rotate/prune stale experiment instances")
+            prior = json.loads(row[0]) if row else {}
+            record = {
+                "worker_id": worker_id,
+                "name": name,
+                "provider_kind": provider_kind,
+                "model": model,
+                "placement": placement,
+                "registered_at": prior.get("registered_at", stamp),
+                "last_seen_at": stamp,
+                "last_seen_epoch": epoch,
+                "state": "idle",
+                "project_id": prior.get("project_id"),
+                "task_id": None,
+                "claims": int(prior.get("claims", 0)),
+                "completed": int(prior.get("completed", 0)),
+                "failed": int(prior.get("failed", 0)),
+            }
+            c.execute("INSERT OR REPLACE INTO workers VALUES(?,?)", (worker_id, canonical(record)))
+            return record
+
+    def worker_touch(self, worker_id, *, state=None, project_id=None, task_id=None,
+                     claim=False, completed=False, failed=False):
+        with self.transaction() as c:
+            row = c.execute("SELECT value FROM workers WHERE id=?", (worker_id,)).fetchone()
+            if not row:
+                raise ContractError("Worker instance is not registered")
+            record = json.loads(row[0])
+            record["last_seen_at"] = now()
+            record["last_seen_epoch"] = time.time()
+            if state is not None:
+                record["state"] = state
+            if project_id is not None:
+                record["project_id"] = project_id
+            if task_id is not None or state == "idle":
+                record["task_id"] = task_id
+            record["claims"] = int(record.get("claims", 0)) + int(bool(claim))
+            record["completed"] = int(record.get("completed", 0)) + int(bool(completed))
+            record["failed"] = int(record.get("failed", 0)) + int(bool(failed))
+            c.execute("UPDATE workers SET value=? WHERE id=?", (canonical(record), worker_id))
+            return record
+
+    def workers(self, project_id=None):
+        current = time.time()
+        with self.connect() as c:
+            rows = [json.loads(row[0]) for row in c.execute("SELECT value FROM workers ORDER BY id")]
+        result = []
+        for record in rows:
+            if project_id is not None and record.get("project_id") != project_id:
+                continue
+            age = max(0.0, current - float(record.get("last_seen_epoch", current)))
+            result.append({**record, "last_seen_age_s": age})
+        return result
 
     def reserve_call(self, pid, role, placement, request_bytes, task_id=None):
         with self.transaction() as c:

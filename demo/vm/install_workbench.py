@@ -181,6 +181,15 @@ def patch(text):
         residualWorkbench = mountMissionControl({
             ready: () => !!cx && !!residualDataDevice && residualShellReady && !residualShellCommandBusy && !residualWorkerPoisoned,
             health: () => residualWorkerPoisoned ? "poisoned" : (!!cx && !!residualDataDevice && residualShellReady && !residualShellCommandBusy ? "ready" : "starting"),
+            workerStatus: () => ({
+                available: true,
+                ready: residualWorkerReady,
+                poisoned: residualWorkerPoisoned,
+                shell_busy: residualShellCommandBusy,
+                mission_active: !!residualShellRun,
+                start_in_progress: !!residualWorkerStart,
+                recovery_in_progress: !!residualWorkerRecovery
+            }),
             restart: () => residualRestartGuest(),
             focus: () => term.focus(),
             mailbox: async (path, text) => {
@@ -249,7 +258,7 @@ def patch(text):
 def install(source: Path, site: Path):
     source.write_text(patch(source.read_text()))
     here = Path(__file__).resolve().parent
-    for name in ('mission-control.js', 'mission-control-engineer.js', 'mission-control-world.js', 'mission-control-diagnostics.js', 'mission-preview.js', 'provider-session.js'):
+    for name in ('mission-control.js', 'mission-control-engineer.js', 'mission-control-world.js', 'mission-control-commands.js', 'mission-control-diagnostics.js', 'mission-preview.js', 'provider-session.js'):
         shutil.copyfile(here / name, source.parent / name)
     provider = site / 'provider'; provider.mkdir(parents=True, exist_ok=True)
     for src, dst in [('provider.html', 'index.html'), ('provider.js', 'provider.js'), ('provider-session.js', 'provider-session.js')]:

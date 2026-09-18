@@ -37,3 +37,89 @@ Central budgets cover station-issued calls. Independently operated workers must 
 ## Modular providers (0.3)
 
 The same runner now accepts `--kind openai`, `anthropic`, `google`, `azure`, or `bedrock`, in addition to Ollama and compatible servers. Set `--placement remote` and use a cloud-enabled mission for cloud inference. Azure accepts `--api-version` and requires `--base-url`; Bedrock accepts `--region` and AWS environment credentials. Provider-specific environment variables are listed in [MODULAR-LAYERS.md](MODULAR-LAYERS.md). The worker has no automatic provider failover; the coordinator's UI routes apply to coordinator-owned inference. Worker receipts remain explicitly `worker_reported`.
+
+
+## Reproducible distributed experiments
+
+The repository also includes controlled loopback benchmarks for separating worker parallelism from coordinator/integration overhead:
+
+```bash
+residual experiment distributed --workers 1 2 4 --tasks 8 --work-ms 40 --repeats 3 --output runs/distributed.json
+
+residual experiment pipeline --workers 1 2 4 --width 4 --depth 2 --work-ms 40 --repeats 3 --output runs/pipeline.json
+```
+
+The first workload contains independent tasks. The pipeline workload contains dependency-gated lanes, so later work becomes claimable only after its prerequisite is reviewed and integrated.
+
+Both use the real Station HTTP worker, lease, submission, candidate-worktree, deterministic-check, review and integration paths. The worker provider is a controlled synthetic latency fixture and every worker is a loopback thread. These results are development measurements, not physical-network or live-model performance claims.
+
+See [Mesh, Distributed Workflow, and Mission Control Experiments](../mesh/EXPERIMENTS.md) for metrics, evidence boundaries and the physical multi-host experiment protocol.
+
+
+## Per-worker experiment telemetry
+
+For a loaded project, the Station exposes:
+
+```text
+GET /api/projects/<PROJECT_ID>/workers
+```
+
+and renders the same information under **Diagnostics → Distributed worker telemetry**.
+
+Remote worker receipts include a bounded self-reported `elapsed_ms` for the provider call, plus model, placement, request bytes and reported token counts. The aggregate groups those receipts with task-claim and lease-expiry events using the worker label supplied to `residual worker --name`.
+
+The label is authenticated only through the shared worker token. Treat it as an experiment label, not a cryptographic node identity.
+
+For physical experiments, give every machine a stable unique `--name`, for example:
+
+```bash
+residual worker \
+  --station https://station.example.test \
+  --project p-YOURPROJECT \
+  --name lab-4070-a \
+  --kind ollama \
+  --model qwen2.5-coder:7b
+```
+
+Use `elapsed_ms` to separate worker inference from the rest of the workflow, but retain Station claim/check/review/integration timestamps and network RTT as separate measurements.
+
+
+## Worker instance registry
+
+Current RESIDUAL workers register an ephemeral process instance before polling for work.
+
+Each registry row contains:
+
+- `worker_id`: process-instance identifier;
+- `name`: the operator-supplied worker label;
+- provider kind, model and local/remote placement;
+- server-observed registration and last-seen timestamps;
+- current advisory state (`idle` or `working`);
+- last project/task association;
+- claim, completion and failed-candidate counters.
+
+The default `worker_id` is generated per worker process. For controlled physical experiments you may provide a stable experiment identifier:
+
+```bash
+export RESIDUAL_WORKER_ID=worker-lab-4070-a
+
+residual worker \
+  --station https://station.example.test \
+  --project p-YOURPROJECT \
+  --name lab-4070-a \
+  --kind ollama \
+  --model qwen2.5-coder:7b
+```
+
+or use `--worker-id worker-lab-4070-a`.
+
+The registry is **observability, not authorization**. Worker IDs, names and model metadata are self-reported by a process that already holds the shared worker token. A process with that token can choose another label. Candidate verification, review and integration remain on the Station.
+
+Operator surfaces:
+
+```text
+GET /api/workers
+GET /api/projects/<PROJECT_ID>/workers
+```
+
+The project endpoint combines current registered instances with event-derived historical performance aggregates.

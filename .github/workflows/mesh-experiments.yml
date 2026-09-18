@@ -1,0 +1,196 @@
+name: Mesh and Mission Control experiments
+
+on:
+  pull_request:
+    paths:
+      - 'residual/mesh/**'
+      - 'residual/cluster/**'
+      - 'residual/experiments/**'
+      - 'residual/station/**'
+      - 'demo/vm/mission-control-*.js'
+      - 'demo/vm/install_workbench.py'
+      - 'tests/test_mesh_*.py'
+      - 'tests/test_distributed_experiments.py'
+      - 'tests/test_distributed_straggler_experiment.py'
+      - 'tests/test_distributed_pipeline_experiment.py'
+      - 'tests/test_distributed_recovery_experiment.py'
+      - 'tests/test_distributed_lease_recovery.py'
+      - 'tests/test_distributed_experiment_matrix.py'
+      - 'tests/test_station_mesh_bridge.py'
+      - 'tests/test_station_service_structure.py'
+      - 'tests/test_station_mesh_bridge_experiment.py'
+      - 'tests/mission-control-commands.test.mjs'
+      - '.github/workflows/mesh-experiments.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install
+        run: python -m pip install -e '.[test]'
+      - name: Focused distributed and mesh contracts
+        run: >-
+          python -m pytest -q
+          tests/test_mesh_onboarding.py
+          tests/test_mesh_session.py
+          tests/test_mesh_transport_faults.py
+          tests/test_cluster.py
+          tests/test_distributed_experiments.py
+          tests/test_distributed_straggler_experiment.py
+          tests/test_distributed_pipeline_experiment.py
+          tests/test_distributed_recovery_experiment.py
+          tests/test_distributed_lease_recovery.py
+          tests/test_distributed_experiment_matrix.py
+          tests/test_station_mesh_bridge.py
+          tests/test_station_service_structure.py
+          tests/test_station_mesh_bridge_experiment.py
+          tests/station/test_station.py::HTTPTests::test_remote_candidate_submission_is_idempotent_and_unable_to_approve
+          tests/station/test_station.py::HTTPTests::test_remote_worker_elapsed_ms_receipt_is_strictly_bounded
+          tests/station/test_station.py::StationTests::test_lease_expiry_and_restart_recovery_preserve_evidence
+          tests/station/test_station.py::StationTests::test_worker_registry_is_bounded_and_prunes_stale_instances
+      - name: Compile
+        run: python -m compileall -q residual
+
+  mission-control-commands:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Typed Mission Control command tests
+        run: node --test tests/mission-control-commands.test.mjs
+      - name: Syntax check browser modules
+        run: |
+          node --input-type=module --check < demo/vm/mission-control-commands.js
+          node --input-type=module --check < demo/vm/mission-control-world.js
+
+  benchmark-evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install
+        run: python -m pip install -e '.[test]'
+      - name: Mesh protocol/session benchmark
+        run: >-
+          residual experiment mesh
+          --messages 500
+          --peers 4
+          --repeats 2
+          --output runs/mesh-experiment.json
+      - name: Distributed Station worker benchmark
+        run: >-
+          residual experiment distributed
+          --workers 1 2 4
+          --tasks 8
+          --work-ms 40
+          --repeats 2
+          --output runs/distributed-experiment.json
+      - name: Dependency-gated distributed pipeline benchmark
+        run: >-
+          residual experiment pipeline
+          --workers 1 2 4
+          --width 4
+          --depth 2
+          --work-ms 40
+          --repeats 2
+          --output runs/pipeline-experiment.json
+      - name: Fail-closed distributed repair benchmark
+        run: >-
+          residual experiment recovery
+          --bad-ms 20
+          --good-ms 40
+          --repeats 2
+          --output runs/recovery-experiment.json
+      - name: Station mesh observability bridge benchmark
+        run: >-
+          residual experiment bridge
+          --members 2 4 8
+          --repeats 2
+          --output runs/bridge-experiment.json
+      - name: Expired-lease distributed recovery benchmark
+        run: >-
+          residual experiment lease-recovery
+          --work-ms 40
+          --repeats 2
+          --output runs/lease-recovery-experiment.json
+      - name: Heterogeneous-worker straggler benchmark
+        run: >-
+          residual experiment straggler
+          --latencies-ms 20 20 200
+          --tasks 12
+          --repeats 2
+          --output runs/straggler-experiment.json
+      - name: Mesh delivery-fault benchmark
+        run: >-
+          residual experiment transport-faults
+          --messages 100
+          --scenarios clean duplicate reverse gap partition
+          --repeats 2
+          --output runs/transport-faults-experiment.json
+      - name: Summarize benchmark evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          mesh=json.loads(Path('runs/mesh-experiment.json').read_text())
+          faults=json.loads(Path('runs/transport-faults-experiment.json').read_text())
+          dist=json.loads(Path('runs/distributed-experiment.json').read_text())
+          straggler=json.loads(Path('runs/straggler-experiment.json').read_text())
+          pipeline=json.loads(Path('runs/pipeline-experiment.json').read_text())
+          recovery=json.loads(Path('runs/recovery-experiment.json').read_text())
+          lease=json.loads(Path('runs/lease-recovery-experiment.json').read_text())
+          bridge=json.loads(Path('runs/bridge-experiment.json').read_text())
+          print('MESH', json.dumps(mesh['summary'], sort_keys=True))
+          print('TRANSPORT_FAULTS', json.dumps(faults['summary'], sort_keys=True))
+          print('DISTRIBUTED', json.dumps(dist['summary'], sort_keys=True))
+          print('STRAGGLER', json.dumps(straggler['summary'], sort_keys=True))
+          print('PIPELINE', json.dumps(pipeline['summary'], sort_keys=True))
+          print('RECOVERY', json.dumps(recovery['summary'], sort_keys=True))
+          print('LEASE_RECOVERY', json.dumps(lease['summary'], sort_keys=True))
+          print('BRIDGE', json.dumps(bridge['summary'], sort_keys=True))
+          assert all(row['all_integrated'] for row in dist['summary'])
+          assert straggler['summary']['all_integrated']
+          assert straggler['summary']['registered_worker_instances_min'] == 3
+          assert all(row['all_integrated'] for row in pipeline['summary'])
+          assert recovery['summary']['all_recovered_and_integrated']
+          assert recovery['summary']['all_failures_retained_findings']
+          assert lease['summary']['all_integrated']
+          assert lease['summary']['all_stale_results_rejected']
+          assert lease['summary']['all_expirations_attributed']
+          assert lease['summary']['all_expired_instances_marked']
+          assert lease['summary']['all_healthy_instances_idle']
+          assert all(row['all_converged'] for row in bridge['summary'])
+          assert all(row['station_authority_preserved'] for row in bridge['summary'])
+          assert mesh['summary']['produce_median_messages_s'] > 0
+          assert mesh['summary']['catchup_median_messages_s'] > 0
+          assert all(row['all_converged'] for row in faults['summary'])
+          assert all(row['all_replays_idempotent'] for row in faults['summary'])
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mesh-distributed-experiment-evidence
+          path: |
+            runs/mesh-experiment.json
+            runs/transport-faults-experiment.json
+            runs/distributed-experiment.json
+            runs/straggler-experiment.json
+            runs/pipeline-experiment.json
+            runs/recovery-experiment.json
+            runs/lease-recovery-experiment.json
+            runs/bridge-experiment.json
+          retention-days: 14
