@@ -257,6 +257,85 @@ class DerivationGraphTests(unittest.TestCase):
         g=DerivationGraph([human,spec,action,challenge],edges)
         self.assertEqual(g.validity()[action.node_id],Validity.CHALLENGED)
 
+    def test_temporal_admission_record_preserves_then_current_challenge_changes_state(self):
+        nodes,edges,spec,metric=admissible_fixture()
+        before=DerivationGraph(nodes,edges)
+        decision=before.admission_decision_node(spec.node_id,event_index=50)
+        self.assertEqual(decision.payload["verdict"],"admitted")
+        self.assertEqual(decision.payload["evaluated_graph_root"],before.graph_root)
+
+        challenge=node(NodeType.CHALLENGE,Author.REVIEWER,reason="later semantic objection")
+        after=DerivationGraph(
+            nodes+[challenge,decision],
+            edges+[
+                edge(EdgeType.CHALLENGES,challenge,metric,reason="later evidence"),
+                edge(EdgeType.ADMITTED_FROM,decision,spec,evaluated_event=50),
+            ],
+        )
+        ok,_=after.improvement_admissible(spec.node_id)
+        self.assertFalse(ok)
+        self.assertEqual(decision.payload["verdict"],"admitted")
+
+    def test_explicit_revocation_marks_future_execution_authorization_revoked(self):
+        human=node(NodeType.HUMAN_DECISION,Author.HUMAN,decision="cosign")
+        spec=node(NodeType.IMPROVEMENT_SPEC,Author.PLANNER,intent="x",mechanism="y",predicted_effects={},verification_plan={},preservation_criteria={},rollback_plan={})
+        action=node(NodeType.EXECUTION_ACTION,Author.HOST,action="stage")
+        revoke=node(NodeType.REVOCATION,Author.HUMAN,reason="withdraw future authority")
+        g=DerivationGraph(
+            [human,spec,action,revoke],
+            [
+                edge(EdgeType.AUTHORIZES,human,action,scope="tier2"),
+                edge(EdgeType.IMPLEMENTS,action,spec),
+                edge(EdgeType.REVOKES,revoke,human,reason="revoked"),
+            ],
+        )
+        self.assertEqual(g.validity()[human.node_id],Validity.AUTHORIZATION_REVOKED)
+        self.assertEqual(g.validity()[action.node_id],Validity.AUTHORIZATION_REVOKED)
+
+    def test_execution_binding_is_explicit_and_challengeable(self):
+        policy=node(NodeType.CHALLENGE_POLICY,Author.HOST,policy_id="m6-semantic-v1")
+        snapshot=node(NodeType.DERIVATION_SNAPSHOT,Author.HOST,graph_root="a"*64)
+        env=node(NodeType.ENVIRONMENT_CONTEXT,Author.HOST,observed_environment_hash="b"*64)
+        base=DerivationGraph([policy,snapshot,env],[])
+        binding=base.execution_binding_node(
+            snapshot_node_id=snapshot.node_id,
+            environment_context_id=env.node_id,
+            input_artifact_commitments={"repo":"c"*64},
+            challenge_policy_id="m6-semantic-v1",
+        )
+        challenge=node(NodeType.CHALLENGE,Author.REVIEWER,reason="undeclared input artifact")
+        g=DerivationGraph(
+            [policy,snapshot,env,binding,challenge],
+            [
+                edge(EdgeType.GOVERNED_BY,binding,policy),
+                edge(EdgeType.EXECUTES,binding,snapshot),
+                edge(EdgeType.UNDER_ENVIRONMENT,binding,env),
+                edge(EdgeType.CHALLENGES,challenge,binding,reason="binding mismatch"),
+            ],
+        )
+        self.assertEqual(g.validity()[binding.node_id],Validity.CHALLENGED)
+
+    def test_relative_quiescence_requires_exhausted_policy_and_zero_admissible_specs(self):
+        g=DerivationGraph([node(NodeType.EVIDENCE_FACT,Author.HOST,value=1)],[])
+        cert=g.quiescence_certificate_node(
+            scope="m6-current-roadmap",
+            evidence_root="a"*64,
+            metric_theory_root="b"*64,
+            search_policy_revision="scientist-search-v1",
+            search_budget={"max_candidates":100},
+            evaluated_candidates=100,
+            admissible_candidates=0,
+            exhaustive_under_policy=True,
+        )
+        self.assertEqual(cert.payload["claim"],"relative_quiescence_not_global_optimum")
+        with self.assertRaisesRegex(ContractError,"quiescence requires"):
+            g.quiescence_certificate_node(
+                scope="m6-current-roadmap",evidence_root="a"*64,
+                metric_theory_root="b"*64,search_policy_revision="v1",
+                search_budget={"max_candidates":100},evaluated_candidates=10,
+                admissible_candidates=0,exhaustive_under_policy=False,
+            )
+
     def test_env002_semantic_root_stable_execution_root_environment_bound(self):
         evidence=node(NodeType.EVIDENCE_FACT,Author.HOST,value=1)
         g=DerivationGraph([evidence],[])
