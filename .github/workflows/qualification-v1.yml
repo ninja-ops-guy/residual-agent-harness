@@ -474,9 +474,41 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+
+  fault-injection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: Persistence and I/O crash-point fault injection
+        run: |
+          mkdir -p runs/qualification-v1
+          python scripts/qualification_v1.py run \
+            --gate-id persistence-fault-injection \
+            --output runs/qualification-v1/fault-injection.evidence.json \
+            --log runs/qualification-v1/fault-injection.log \
+            --junit runs/qualification-v1/fault-injection.xml \
+            --zero-skips \
+            -- python -m pytest tests/qualification/test_fault_injection.py -q \
+               --junitxml=runs/qualification-v1/fault-injection.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-fault-injection-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
   aggregate:
     if: always()
-    needs: [deterministic, discovery, m4, artifacts, browser, concurrency, protocol-fuzz, toxic-provider, active-workload, browser-adversarial, redteam, windows-lifecycle]
+    needs: [deterministic, discovery, m4, artifacts, browser, concurrency, protocol-fuzz, toxic-provider, active-workload, browser-adversarial, redteam, windows-lifecycle, fault-injection]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
