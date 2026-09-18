@@ -281,10 +281,9 @@ def _author_source(engine: ProviderExecutionEngine, case: LiveCase,
     if not isinstance(result.candidate, str) or not result.candidate.strip():
         raise ValueError("authoring model returned empty/non-text worker source")
     source = result.candidate.strip()
-    if source.startswith("'''") or source.endswith("'''"):
-        raise ValueError("authoring model returned quoted wrapper")
-    if source.startswith("~~~") or source.endswith("~~~"):
-        raise ValueError("authoring model returned fenced source")
+    fence = chr(96) * 3
+    if source.startswith(fence) or source.endswith(fence):
+        raise ValueError("authoring model returned Markdown-fenced source")
     if result.token_usage is None:
         raise ValueError("provider did not report token usage")
     return source, int(result.token_usage), int(result.wall_clock_ms or 0)
