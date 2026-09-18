@@ -111,6 +111,88 @@ class FactoryBindingTests(unittest.TestCase):
         self.assertEqual(result["wall_clock_seconds_mean"], 2.5)
         self.assertEqual(result["unsafe_acceptances"], 0)
 
+
+    def test_frozen_source_corpus_is_hash_bound_and_provenanced(self):
+        authored_source = "write_file('answer-001.txt','42')"
+        with patch.object(g, "_author_source", return_value=(authored_source, 11, 7)):
+            result = g.author_frozen_source_corpus(
+                provider="ollama", model="tiny:test", cases=g.DEFAULT_CASES[:1],
+            )
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["metadata"][0]["source_origin"], "paired_corpus_authoring")
+        self.assertEqual(
+            result["metadata"][0]["source_sha256"],
+            __import__("hashlib").sha256(authored_source.encode()).hexdigest(),
+        )
+        self.assertEqual(
+            result["source_corpus_sha256"],
+            g.digest({"arith-01": authored_source}),
+        )
+
+    def test_paired_scheduler_reuses_identical_source_corpus_for_all_strategies(self):
+        frozen = {
+            "status": "PASS",
+            "provider": "ollama",
+            "model": "tiny:test",
+            "sources": {"arith-01": "write_file('answer-001.txt','42')"},
+            "metadata": [{"case_id": "arith-01", "source_sha256": "a" * 64,
+                          "tokens": 11, "wall_clock_ms": 7, "error": None}],
+            "source_corpus_sha256": "b" * 64,
+            "author_tokens": 11,
+            "author_wall_clock_ms": 7,
+        }
+        timings = {"single": 4.0, "fixed": 2.0, "dynamic": 3.0}
+
+        def fake_run(**kwargs):
+            strategy = kwargs["strategy"]
+            wall = timings[strategy]
+            return {
+                "suite": f"factory_live_{strategy}",
+                "status": "PASS",
+                "wall_clock_seconds_mean": wall,
+                "verified_useful_throughput_per_second": 5.0 / wall,
+            }
+
+        with patch.object(g, "author_frozen_source_corpus", return_value=frozen), \
+             patch.object(g, "factory_live_repeated_suite", side_effect=fake_run) as run:
+            result = g.factory_paired_scheduler_suite(
+                provider="ollama", model="tiny:test", output_root=Path("/tmp/unused"),
+                repeats=3, cases=g.DEFAULT_CASES[:1],
+            )
+
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["source_corpus_sha256"], "b" * 64)
+        self.assertEqual(result["speedup_vs_single"]["fixed"], 2.0)
+        self.assertAlmostEqual(result["speedup_vs_single"]["dynamic"], 4.0 / 3.0)
+        self.assertEqual(len(run.call_args_list), 3)
+        for call in run.call_args_list:
+            self.assertEqual(call.kwargs["preauthored_sources"], frozen["sources"])
+            self.assertEqual(call.kwargs["source_corpus_sha256"], "b" * 64)
+            self.assertEqual(call.kwargs["run_label"], "paired")
+
+    def test_gauntlet_rejects_zero_repeats_before_creating_output(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "bad"
+            with self.assertRaisesRegex(ValueError, "positive integer"):
+                g.run_gauntlet(output=out, provider="ollama", model="tiny:test", repeats=0)
+            self.assertFalse(out.exists())
+
+    def test_gauntlet_report_hash_binds_report_body(self):
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(g, "provider_live_suite",
+                          return_value={"suite": "provider_live", "status": "PASS"}), \
+             patch.object(g, "provider_scaling_suite",
+                          return_value={"suite": "provider_scaling", "status": "PASS", "points": []}), \
+             patch.object(g, "cluster_loopback_suite",
+                          return_value={"suite": "cluster_loopback", "status": "PASS"}):
+            report = g.run_gauntlet(
+                output=Path(tmp) / "run", provider="ollama", model="tiny:test",
+                repeats=1, include_factory=False,
+            )
+        body = dict(report)
+        recorded = body.pop("report_sha256")
+        self.assertEqual(recorded, g.digest(body))
+
     def test_contracts_bind_exact_plan_and_provider_engine(self):
         cases = g.DEFAULT_CASES[:2]
         plan = g._plan_for_cases(cases)
