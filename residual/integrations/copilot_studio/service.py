@@ -1,9 +1,8 @@
 """Authority-bound Copilot Studio mission service.
 
-The service is transport agnostic.  It validates an end-user bearer token via an
-injected OIDC client, derives authority only from verified claims, and compiles a
-RESIDUAL control-plane Mission/MissionRevision.  It does not execute Factory
-workers yet; a later integration layer consumes the prepared mission.
+The service validates an end-user bearer identity, derives authority only from
+verified claims, and compiles a RESIDUAL control-plane Mission/MissionRevision.
+It deliberately stops before Factory execution.
 """
 from __future__ import annotations
 
@@ -69,8 +68,14 @@ class CopilotMissionStore:
         self._records: dict[str, CopilotMissionRecord] = {}
         self._requests: dict[tuple[str, str, str], str] = {}
 
-    def create(self, record: CopilotMissionRecord) -> tuple[CopilotMissionRecord, bool]:
-        key = (record.mission.tenant_id, record.mission.principal_id, record.request_id)
+    def create(
+        self, record: CopilotMissionRecord
+    ) -> tuple[CopilotMissionRecord, bool]:
+        key = (
+            record.mission.tenant_id,
+            record.mission.principal_id,
+            record.request_id,
+        )
         with self._lock:
             existing_id = self._requests.get(key)
             if existing_id is not None:
@@ -81,58 +86,89 @@ class CopilotMissionStore:
                         "idempotency_conflict",
                         "request_id was already used with a different request",
                     )
+                if existing.revision.policy_hash != record.revision.policy_hash:
+                    raise CopilotAPIError(
+                        409,
+                        "policy_changed",
+                        "authorization policy changed since the original request",
+                    )
+                if existing.claims_hash != record.claims_hash:
+                    raise CopilotAPIError(
+                        409,
+                        "identity_changed",
+                        "verified identity claims changed since the original request",
+                    )
                 return existing, False
             if record.mission.mission_id in self._records:
-                raise CopilotAPIError(409, "mission_conflict", "mission identity collision")
+                raise CopilotAPIError(
+                    409, "mission_conflict", "mission identity collision"
+                )
             self._records[record.mission.mission_id] = record
             self._requests[key] = record.mission.mission_id
             return record, True
 
-    def visible(self, mission_id: str, principal: VerifiedPrincipal) -> CopilotMissionRecord:
+    def visible(
+        self, mission_id: str, principal: VerifiedPrincipal
+    ) -> CopilotMissionRecord:
         with self._lock:
             record = self._records.get(mission_id)
-            # Return not-found for ownership mismatches to avoid existence leaks.
             if (
                 record is None
                 or record.mission.tenant_id != principal.tenant_id
                 or record.mission.principal_id != principal.subject
             ):
-                raise CopilotAPIError(404, "mission_not_found", "mission was not found")
+                raise CopilotAPIError(
+                    404, "mission_not_found", "mission was not found"
+                )
             return record
 
-    def cancel(self, mission_id: str, principal: VerifiedPrincipal) -> CopilotMissionRecord:
+    def cancel(
+        self, mission_id: str, principal: VerifiedPrincipal
+    ) -> CopilotMissionRecord:
         with self._lock:
             record = self.visible(mission_id, principal)
-            if record.state in {"cancel_requested", "cancelled", "complete", "failed"}:
+            if record.state in {
+                "cancel_requested", "cancelled", "complete", "failed"
+            }:
                 return record
             updated = replace(record, state="cancel_requested")
             self._records[mission_id] = updated
             return updated
 
-    def attach_evidence(self, mission_id: str, evidence_refs: tuple[str, ...]) -> CopilotMissionRecord:
-        """Internal executor hook; not exposed as a user-controlled endpoint."""
+    def attach_evidence(
+        self, mission_id: str, evidence_refs: tuple[str, ...]
+    ) -> CopilotMissionRecord:
         if not isinstance(evidence_refs, tuple) or any(
-            not isinstance(ref, str) or not ref.strip() or len(ref) > 512 for ref in evidence_refs
+            not isinstance(ref, str) or not ref.strip() or len(ref) > 512
+            for ref in evidence_refs
         ):
             raise ContractError("evidence references must be nonempty strings")
         with self._lock:
             record = self._records.get(mission_id)
             if record is None:
                 raise ContractError("unknown mission")
-            updated = replace(record, evidence_refs=record.evidence_refs + evidence_refs)
+            updated = replace(
+                record, evidence_refs=record.evidence_refs + evidence_refs
+            )
             self._records[mission_id] = updated
             return updated
 
     def set_state(self, mission_id: str, state: str) -> CopilotMissionRecord:
-        """Internal executor hook with deliberately small transition vocabulary."""
-        if state not in {"prepared", "running", "approval_required", "complete", "failed", "cancelled"}:
+        if state not in {
+            "prepared", "running", "approval_required", "complete",
+            "failed", "cancelled"
+        }:
             raise ContractError("invalid Copilot mission state")
         with self._lock:
             record = self._records.get(mission_id)
             if record is None:
                 raise ContractError("unknown mission")
-            if record.state == "cancel_requested" and state not in {"cancelled", "failed"}:
-                raise ContractError("cancel-requested mission cannot resume")
+            if record.state == "cancel_requested" and state not in {
+                "cancelled", "failed"
+            }:
+                raise ContractError(
+                    "cancel-requested mission cannot resume"
+                )
             updated = replace(record, state=state)
             self._records[mission_id] = updated
             return updated
@@ -152,22 +188,31 @@ class CopilotStudioService:
         store: CopilotMissionStore | None = None,
     ):
         if not hasattr(authenticator, "authenticate"):
-            raise ContractError("Copilot Studio service requires a bearer authenticator")
+            raise ContractError(
+                "Copilot Studio service requires a bearer authenticator"
+            )
+        if not isinstance(policy, FirmwarePolicy):
+            raise ContractError(
+                "Copilot Studio service requires an explicit FirmwarePolicy"
+            )
         self.authenticator = authenticator
-        self.policy = policy or FirmwarePolicy()
+        self.policy = policy
         self.store = store or CopilotMissionStore()
 
     def _principal(self, token: str, now: int) -> VerifiedPrincipal:
         if not isinstance(token, str) or not token:
-            raise CopilotAPIError(401, "authentication_failed", "authentication is required")
+            raise CopilotAPIError(
+                401, "authentication_failed", "authentication is required"
+            )
         try:
             identity = self.authenticator.authenticate(token, now=now)
             return VerifiedPrincipal.from_identity(identity)
         except CopilotAPIError:
             raise
         except Exception:
-            # Token/parser/key-provider details must never be reflected to Copilot.
-            raise CopilotAPIError(401, "authentication_failed", "authentication failed") from None
+            raise CopilotAPIError(
+                401, "authentication_failed", "authentication failed"
+            ) from None
 
     @staticmethod
     def _compile(
@@ -211,7 +256,9 @@ class CopilotStudioService:
             )
             for capability in decision.capabilities
         )
-        revision_id = "rev-" + digest({"mission_id": mission_id, "plan_hash": plan_hash})[:32]
+        revision_id = "rev-" + digest(
+            {"mission_id": mission_id, "plan_hash": plan_hash}
+        )[:32]
         mission = Mission(
             mission_id=mission_id,
             principal_id=principal.subject,
@@ -248,18 +295,27 @@ class CopilotStudioService:
         record, _created = self.store.create(candidate)
         return record.response()
 
-    def get(self, token: str, mission_id: str, *, now: int) -> dict[str, Any]:
+    def get(
+        self, token: str, mission_id: str, *, now: int
+    ) -> dict[str, Any]:
         principal = self._principal(token, now)
+        self.policy.authorize_principal(principal)
         return self.store.visible(mission_id, principal).response()
 
-    def evidence(self, token: str, mission_id: str, *, now: int) -> dict[str, Any]:
+    def evidence(
+        self, token: str, mission_id: str, *, now: int
+    ) -> dict[str, Any]:
         principal = self._principal(token, now)
+        self.policy.authorize_principal(principal)
         record = self.store.visible(mission_id, principal)
         return {
             "mission_id": record.mission.mission_id,
             "evidence": [{"ref": ref} for ref in record.evidence_refs],
         }
 
-    def cancel(self, token: str, mission_id: str, *, now: int) -> dict[str, Any]:
+    def cancel(
+        self, token: str, mission_id: str, *, now: int
+    ) -> dict[str, Any]:
         principal = self._principal(token, now)
+        self.policy.authorize_principal(principal)
         return self.store.cancel(mission_id, principal).response()
