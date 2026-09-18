@@ -861,3 +861,151 @@ The canonical question becomes:
 rather than:
 
 > Which pipeline step produced this output?
+
+
+## 24. Semantic Challengeability Is a Schema Invariant
+
+The derivation graph MUST mechanically distinguish formalized facts from challengeable semantic judgments.
+
+The semantic node classes are Question, Finding, MetricDecision, SemanticReview, ImprovementSpec, and model-authored portions of MetricResolution.
+
+Every challengeable node binds a Host-selected challenge_policy_id. A semantic node cannot set challengeable=false.
+
+A future Challenge node targets the semantic node's immutable node ID. The semantic node does not contain a forward pointer to a future challenge subgraph, because that would make an immutable node depend on unknown future state.
+
+The challenge surface is: semantic node ID + challenge_policy_id -> append-only Challenge node -> CHALLENGES edge.
+
+The Host admission predicate MUST reject a candidate whose required semantic subgraph contains an unresolved Challenge.
+
+Absence of an open challenge does not prove scientific truth. It means only that the candidate has satisfied the currently defined admission protocol.
+
+## 25. Invocation Handles and Persistent Resolution
+
+Invocation-scoped handles MUST NOT become persistent evidence identities.
+
+A model may author an opaque handle such as ev_3.
+
+The persistent graph records two separate artifacts:
+
+1. the model-authored semantic node, including the opaque handle exactly as the model saw/authored it;
+2. a Host-authored capability-resolution node/edge that binds that invocation handle to the immutable EvidenceFact used at authoring time.
+
+The resolution edge is not part of the model output contract.
+
+Replay MUST use the stored Host resolution. It MUST NOT resolve ev_3 against a current capability table.
+
+Thus the durable relationship is:
+
+model node -> CITES_HANDLE(ev_3) -> Host resolution -> RESOLVES_TO -> EvidenceFact.
+
+Capability handles are names in an invocation namespace, not durable graph identifiers.
+
+## 26. Admission Is Protocol Admissibility, Not Scientific Truth
+
+The ImprovementSpec graph predicate is a necessary structural condition for protocol admission.
+
+Protocol admission additionally requires:
+
+- all required semantic nodes to be challengeable under the active challenge policy;
+- no unresolved Challenge on any required semantic node/edge;
+- semantic Reviewer verdict VALID;
+- all mechanically expressible semantic invariants PASS;
+- Environment Contract qualified;
+- Human COSIGN exact to the candidate graph/spec content.
+
+Even this conjunction means "admissible under the declared M6 protocol", not "scientifically true."
+
+A scientifically nonsensical proposal can still evade every finite reviewer/checker. The architecture guarantee is that semantic judgments remain attributable and challengeable rather than being promoted to deterministic fact by a valid receipt.
+
+## 27. Composite Metric Expressions
+
+The measurement theory SHALL support structured metric expressions in addition to atomic metrics.
+
+Initial expression language:
+
+MetricExpr := Atomic(metric_id) | And(MetricExpr, ...) | Or(MetricExpr, ...) | Not(MetricExpr) | Compare(MetricExpr, operator, threshold).
+
+Claim types MAY impose expression-shape constraints.
+
+For example, "tail performance under load" may require the conjunction of a p99 latency threshold, a throughput floor, and an error-rate ceiling.
+
+Composite refinement MUST NOT be inferred by independently comparing atomic metrics and averaging or voting over pairwise results.
+
+The deterministic checker may prove composite refinement only through explicit expression rules whose preconditions are satisfied, including compatible expression topology, compatible units/operators, formally established child relations, and no weakening child relation unless an explicit higher-level rule permits it.
+
+Otherwise the relation is UNKNOWN and requires semantic review.
+
+## 28. Replay Boundary
+
+Replay is formally divided into two classes.
+
+Deterministic replay may execute without new model/human authorship:
+
+- Host handle resolution from stored resolution edges;
+- canonicalization/content hashing;
+- graph validation;
+- capability checks;
+- formal semantic-invariant checks;
+- metric lifecycle/refinement checks;
+- environment-contract comparison;
+- challenge propagation;
+- admission-predicate recomputation.
+
+Authorship replay requires a new invocation and creates a new graph node:
+
+- Scientist finding generation;
+- Planner metric decision;
+- Reviewer semantic judgment;
+- Human decision.
+
+A prior probabilistic output may be replayed as historical input to deterministic checks, but RESIDUAL MUST NOT describe reusing it as a new model inference.
+
+"Replayable re-derivation" therefore means deterministic consequences can be recomputed from retained authored nodes. A challenged semantic conclusion cannot be replaced without new authorship/evidence.
+
+## 29. Authorization Roots and Execution Subgraphs
+
+Human COSIGN has two distinct graph roles.
+
+For admission history, the ImprovementSpec binds to the exact HumanDecision that co-signed it.
+
+For execution accountability, the HumanDecision is an authorization root for subsequent action nodes.
+
+Add an ExecutionAction node, an AUTHORIZES edge from HumanDecision to ExecutionAction, and an IMPLEMENTS edge from ExecutionAction to ImprovementSpec.
+
+An ExecutionAction is valid only when its authorizing HumanDecision is COSIGN and unchallenged, its implemented ImprovementSpec is protocol-admissible and unchallenged, and the action capability/risk tier is within the authorization scope.
+
+Challenge or revocation of the authorization invalidates dependent execution actions without deleting their historical records.
+
+The graph therefore distinguishes why the spec was admitted from what was actually done under that authorization.
+
+## 30. Environment-Bound Graph Claims
+
+Graph structural identity and experiment scientific claims are distinct.
+
+A pure semantic DAG has an insertion-order-independent root independent of runtime.
+
+An executed experiment additionally binds an immutable EnvironmentFact/EnvironmentVerdict node and produces an execution root:
+
+execution_root = H(derivation_graph_root, environment_contract_hash, observed_environment_hash, input_artifact_commitments).
+
+DG-001 canonical-root claims apply to the same semantic DAG. Claims about an actual experiment apply to the execution root.
+
+A queued/delayed run MUST record queue latency and observed environment. A REQUIRED_EXACT environment mismatch prevents the execution subgraph from satisfying admission even though the underlying semantic DAG remains well formed.
+
+This makes backlog/environment drift a scientific variable rather than an operational footnote.
+
+## 31. New Precision Experiments
+
+CH-001 — mandatory challengeability: constructing a semantic node without the active challenge policy, or explicitly marking it non-challengeable, must be rejected.
+
+HR-001 — persistent handle resolution: after a semantic node cites ev_3 and the Host binds it to EvidenceFact A, expiration/change of the live capability table must not alter historical replay resolution.
+
+CA-001 — challenge-aware admission: adding an unresolved Challenge to an otherwise complete admission subgraph must make protocol admission false; resolving/superseding the challenge may permit recomputation without deleting history.
+
+MX-001 — composite metric refinement: valid conjunction refinement passes; a child coarsening, incompatible topology, or incompatible unit produces UNKNOWN/REJECT according to the formal rule.
+
+RP-001 — replay boundary: deterministic graph replay requires no new model calls; replacement of a challenged Scientist/Reviewer node requires a new invocation and new node.
+
+AU-001 — authorization-root execution: an ExecutionAction depends on Human COSIGN and admitted ImprovementSpec; challenge/revocation invalidates the execution node while retaining history.
+
+ENV-002 — semantic root vs execution root: identical semantic DAGs have identical semantic roots across environments, while execution roots differ with environment commitments; REQUIRED_EXACT drift blocks execution admission without changing the semantic root.
