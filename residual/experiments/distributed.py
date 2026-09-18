@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from residual.core import ContractError, canonical, digest
-from residual.mesh import MeshIdentity, MeshMessageKind, MeshNode
+from residual.mesh import MeshIdentity, MeshMessageKind, MeshNode, MeshSession
 from residual.providers import Reply, Usage
 from residual.station.server import Server
 from residual.station.service import Station
@@ -274,8 +274,8 @@ def _mesh_pair():
     return a, b
 
 
-def run_mesh_protocol_benchmark(*, messages: int = 1000, repeats: int = 3) -> dict[str, Any]:
-    if not 1 <= messages <= 10000 or repeats < 1:
+def run_mesh_protocol_benchmark(*, messages: int = 1000, repeats: int = 3, peers: int = 4) -> dict[str, Any]:
+    if not 1 <= messages <= 10000 or repeats < 1 or not 2 <= peers <= 16:
         raise ValueError("invalid mesh benchmark bounds")
     runs = []
     for repeat in range(repeats):
@@ -300,6 +300,34 @@ def run_mesh_protocol_benchmark(*, messages: int = 1000, repeats: int = 3) -> di
             "head_hash": a.chat.head_hash,
         })
 
+    keys = {f"pk-{index}": hashlib.sha256(f"peer-{index}".encode()).digest() for index in range(peers)}
+    def session_verify(public_key, data, signature):
+        key = keys.get(public_key)
+        return bool(key) and hmac.compare_digest(
+            hmac.new(key, data, hashlib.sha256).hexdigest(), signature
+        )
+    session = MeshSession("benchmark-room")
+    session_nodes = []
+    for index in range(peers):
+        key = keys[f"pk-{index}"]
+        member = MeshNode(
+            MeshIdentity(
+                f"dev-{index}", f"P{index}", f"pk-{index}", ("chat",),
+                f"loopback://peer-{index}", time.time_ns(),
+            ),
+            lambda data, key=key: hmac.new(key, data, hashlib.sha256).hexdigest(),
+            session_verify,
+        )
+        session.join(member)
+        session_nodes.append(member)
+    fanout_started = time.perf_counter_ns()
+    for index in range(messages):
+        _, receipt = session.chat("dev-0", f"fanout-{index}")
+        if not receipt.converged:
+            raise RuntimeError("mesh fanout benchmark diverged")
+    fanout_ms = (time.perf_counter_ns() - fanout_started) / 1_000_000.0
+    fanout_deliveries = messages * peers
+
     LoopbackTransport.reset_registry()
     a = ClusterNode("a", Capability(models=("fixture",), tokens_per_second=1.0), "key")
     b = ClusterNode("b", Capability(models=("fixture",), tokens_per_second=1.0), "key")
@@ -320,11 +348,14 @@ def run_mesh_protocol_benchmark(*, messages: int = 1000, repeats: int = 3) -> di
         "simulation": False,
         "messages": messages,
         "repeats": repeats,
+        "peers": peers,
         "runs": runs,
         "summary": {
             "produce_median_messages_s": statistics.median(r["produce_messages_s"] for r in runs),
             "catchup_median_messages_s": statistics.median(r["catchup_messages_s"] for r in runs),
             "verified_join_ms": join_ms,
+            "fanout_ms": fanout_ms,
+            "fanout_message_deliveries_s": fanout_deliveries / (fanout_ms / 1000.0),
         },
         "claim_boundary": (
             "Measures real in-process signing, hashing, append, catch-up verification, "
@@ -332,7 +363,7 @@ def run_mesh_protocol_benchmark(*, messages: int = 1000, repeats: int = 3) -> di
             "relay, encryption/rekeying, or divergent-history consensus."
         ),
         "benchmark_hash": digest({
-            "kind": "mesh-protocol", "messages": messages, "repeats": repeats
+            "kind": "mesh-protocol", "messages": messages, "repeats": repeats, "peers": peers
         }),
     }
 
@@ -360,6 +391,7 @@ def main(argv=None) -> int:
     mesh = sub.add_parser("mesh", help="Benchmark signed mesh history and cluster join")
     mesh.add_argument("--messages", type=int, default=1000)
     mesh.add_argument("--repeats", type=int, default=3)
+    mesh.add_argument("--peers", type=int, default=4)
     mesh.add_argument("--output")
 
     args = parser.parse_args(argv)
@@ -372,7 +404,7 @@ def main(argv=None) -> int:
                 repeats=args.repeats,
             )
         else:
-            report = run_mesh_protocol_benchmark(messages=args.messages, repeats=args.repeats)
+            report = run_mesh_protocol_benchmark(messages=args.messages, repeats=args.repeats, peers=args.peers)
         _write(args.output, report)
         return 0
     except (ContractError, OSError, ValueError, RuntimeError) as exc:
