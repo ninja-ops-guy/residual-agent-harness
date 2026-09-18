@@ -15,7 +15,7 @@ SPEC = """# Real-model simple mission
 
 Implement a tiny calculator module from this behavioral specification. The implementation is not prescribed.
 
-\`\`\`json
+```json
 {
   "schema_version": 1,
   "name": "Real Model Calculator Mission",
@@ -44,7 +44,7 @@ Implement a tiny calculator module from this behavioral specification. The imple
     }
   ]
 }
-\`\`\`
+```
 """
 
 
