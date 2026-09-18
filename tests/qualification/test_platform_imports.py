@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import re
+import ast
 import subprocess
 import sys
 from pathlib import Path
@@ -10,15 +10,17 @@ from residual.factory import m4_protocol
 
 def test_linux_child_protocol_literals_match_platform_neutral_host_constants():
     child = (Path(__file__).resolve().parents[2] / "residual" / "factory" / "_isolated_child.py").read_text(encoding="utf-8")
-    expected = {
-        "SANDBOX_ERROR_PREFIX": repr(m4_protocol.SANDBOX_ERROR_PREFIX),
-        "SANDBOX_ERROR_EXIT": str(m4_protocol.SANDBOX_ERROR_EXIT),
-        "SANDBOX_TIMEOUT_EXIT": str(m4_protocol.SANDBOX_TIMEOUT_EXIT),
+    values = {}
+    for node in ast.parse(child).body:
+        if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+            name = node.targets[0].id
+            if name in {"SANDBOX_ERROR_PREFIX", "SANDBOX_ERROR_EXIT", "SANDBOX_TIMEOUT_EXIT"}:
+                values[name] = ast.literal_eval(node.value)
+    assert values == {
+        "SANDBOX_ERROR_PREFIX": m4_protocol.SANDBOX_ERROR_PREFIX,
+        "SANDBOX_ERROR_EXIT": m4_protocol.SANDBOX_ERROR_EXIT,
+        "SANDBOX_TIMEOUT_EXIT": m4_protocol.SANDBOX_TIMEOUT_EXIT,
     }
-    for name, literal in expected.items():
-        match = re.search(rf"^{name}\s*=\s*(.+?)\s*$", child, re.MULTILINE)
-        assert match is not None, name
-        assert match.group(1) == literal, (name, match.group(1), literal)
 
 
 def test_host_factory_import_does_not_import_linux_isolated_child():
