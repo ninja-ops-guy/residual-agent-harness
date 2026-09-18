@@ -194,6 +194,50 @@ The receipt must not be used as scientific authority to advance the recursive lo
 
 Issue **#265** records the required remediation: a versioned discovery Metric Registry. Open spec PR **#266** defines typed `MetricDefinition` and `MetricDefinitionProposal` contracts; registry/evidence revision binding; deterministic naming, identity, and exact-duplicate gates; semantic-overlap review; executable negative paths; and fail-closed `UNKNOWN` behavior when semantics are missing or ambiguous. #266 is trust-infrastructure design only and does not authorize metric registration or M6-008.
 
+### #270 / Metric Registry implementation — technical PASS, unaccepted
+
+Open PR **#270**, stacked on unapproved spec PR #266, implements the versioned/content-addressed Metric Registry trust boundary without changing StationReceipt v2. Its exact head `ee879417bb66de9bcb3a5681e1be93417750456c` is green across the reported Command Station Python 3.11/3.12/3.13 discovery, wheel build, Docker, browser UI, Control Plane, clean install, Factory ownership, controller/provider contracts, and measured-evaluation acceptance checks. A dedicated downstream M6-SPEC-007P also ran the 16 focused registry tests plus three preregistered controls successfully.
+
+Status: **PASS in implementation/qualification scope on the open stacked PR; production acceptance remains UNKNOWN / unaccepted**. The registry is not accepted on `main`, does not authorize metric registration, and does not unblock M6-008 by itself.
+
+### #272 / 007Q — apparatus FAIL before model execution
+
+The registry-aware discovery experiment passed all 16 focused registry tests but failed `py_compile` before model execution because the generated import edit contained literal escaped newline characters. No Scientist, Planner, reviewer, proposal, or admission event occurred.
+
+Status: **FAIL in experiment-execution/apparatus scope; registry-aware discovery was not exercised**. The exact head was not rerun for green.
+
+### #273 / 007R — provenance-transcription FAIL
+
+The corrected apparatus passed syntax, registry tests/preflight, Ollama setup, and Evidence Scout. The Scientist produced a grounded `insufficient_evidence` observation but copied the 64-hex EvidenceSnapshot identity incorrectly. Deterministic verification rejected `evidence_snapshot_hash mismatch` before the Planner or reviewer ran. No receipt was issued.
+
+Retained evidence: 2 model calls, 1,538 reported tokens; artifact ID `10562515080`; ZIP SHA-256 `a0f86bb813f903696f95a1c1bb3aafa79c328d59f7d1874f798978659ff96e7e`.
+
+Status: **FAIL in bounded provenance-transcription/mechanical-verification scope**. The result supports moving immutable provenance out of model-authored schemas; it does not establish general discovery failure.
+
+### #274 / 007S — registry/receipt binding PASS
+
+All seven preregistered deterministic binding controls passed after the 16 focused registry tests. Changing `mean_wall_clock_s` semantics while preserving the metric ID and revision label changed the registry content hash and both admission/verifier bindings, causing the old receipt context match to fail. Direct registry-hash tampering and a seconds→milliseconds unit mismatch were also rejected.
+
+Retained artifact ID `10560939948`, ZIP SHA-256 `2a9a7e7a63c381e3b48577e2bfc393fc19c43be45a48f593f073e2e66f575ea1`.
+
+Status: **PASS in bounded registry/receipt binding-control scope**. StationReceipt v2 remained unchanged; this does not register a metric or grant implementation/promotion authority.
+
+### #277 / 007T — host provenance envelope PASS; Planner transcription FAIL
+
+The independent host-provenance change worked: the model-authored Scientist/Planner schemas contained no snapshot hash, registry hash, or human-gate field, and the host attached those facts deterministically. The Scientist proposal then passed mechanical verification with the exact host-bound identity.
+
+The Planner failed at a different transcription boundary by proposing already-registered `context_bytes_non_success_mean` while re-authoring an observation value that actually belonged to `context_bytes_success_mean`. Deterministic verification stopped the run before registry assessment/review. No receipt was issued.
+
+Retained evidence: 3 model calls, 4,306 reported tokens; artifact ID `10562057488`; ZIP SHA-256 `fa2b2329473e38bccc5d8b74ac44cd985857bc699367a34efbdfbeb348602ef6`.
+
+Status: **host provenance envelope PASS in its bounded mechanism scope; overall experiment FAIL at Planner transcription**. M6-008 remains blocked.
+
+### #286 / 007U — result pending
+
+#286 further minimizes the Measurement Planner output so the host carries forward the verified Scientist observation, preservation invariants, provenance, registry identity, and human gate. At this status check there is no authoritative owner result comment yet; only an external Vercel rate-limit notification is retained.
+
+Status: **UNKNOWN / pending authoritative experiment result**. External preview-service rate limiting is not research evidence.
+
 ### Current discovery interpretation
 
 The series now separates several failure layers:
@@ -205,10 +249,13 @@ The series now separates several failure layers:
 5. **#257 — formal admission:** one genuinely absent MeasurementGap passed deterministic/semantic admission and received a receipt.
 6. **#259/#262/#263 — post-admission evidence use:** after the missing measurement was closed and host-side resolution improved, the Scientist still failed to use resolved measurements coherently and repeated present requests.
 7. **#264 — metric identity/semantics:** the split-role workflow completed and issued an integrity-valid receipt, but post-hoc audit could not establish that the admitted metric was semantically distinct/nonredundant, so the research claim is **UNKNOWN** rather than PASS.
+8. **#270/#274 — registry trust mechanism:** the open implementation and bounded negative controls provide positive evidence that metric semantics can be content-addressed and bound into admission/receipt context without changing StationReceipt v2; acceptance on `main` remains unestablished.
+9. **#272/#273/#277 — registry-aware discovery apparatus/transcription:** one apparatus failure and two fail-closed transcription-boundary failures show that moving immutable provenance to the host removes one failure class but does not yet make Planner behavior reliable.
+10. **#286 — minimized Planner envelope:** authoritative result remains **UNKNOWN / pending**.
 
-The deterministic checker/resolver is doing useful work: it prevents plausible-sounding but evidence-contradicted MeasurementGaps from becoming accepted merely because output is well formed. The #257 PASS remains meaningful positive evidence that this boundary can admit one defensible autonomous gap proposal. The later FAIL/UNKNOWN cells show that proposal admission is not equivalent to reliable evidence-driven scientific iteration, and that receipt integrity is not a substitute for governed scientific semantics.
+The deterministic checker/resolver is doing useful work: it prevents plausible-sounding but evidence-contradicted MeasurementGaps from becoming accepted merely because output is well formed. The #257 PASS remains meaningful positive evidence that this boundary can admit one defensible autonomous gap proposal. #274 provides bounded positive evidence for the new registry/receipt binding mechanism. The later FAIL/UNKNOWN cells show that proposal admission and trustworthy metric identity are not equivalent to reliable evidence-driven scientific iteration.
 
-Therefore **general autonomous improvement discovery remains UNKNOWN / not established**, **general recursive self-improvement remains UNKNOWN / not established**, and **M6-008 remains BLOCKED pending the Metric Registry requirement**.
+Therefore **general autonomous improvement discovery remains UNKNOWN / not established**, **general recursive self-improvement remains UNKNOWN / not established**, and **M6-008 remains BLOCKED pending acceptance of the Metric Registry trust boundary and a valid registry-aware discovery result**.
 
 ## Deterministic stress evidence
 
@@ -237,4 +284,4 @@ These remain governance defects until a current-base repair is accepted and the 
 
 RESIDUAL's central research direction is that system-level reliability can emerge from constraining, observing, verifying, and deterministically integrating unreliable model computation rather than assuming each model call is reliable.
 
-Current evidence supports parts of the mechanism, including bounded verification, rejection, evidence resolution, and one bounded autonomous formal-admission PASS. It does **not** yet establish the broad hypothesis across repeated live-model tasks, environments, champion/challenger comparisons, or full autonomous improvement cycles. The #264 audit further shows that scientific semantics themselves must be versioned and governed before a successful control-plane decision can be promoted into a research claim.
+Current evidence supports parts of the mechanism, including bounded verification, rejection, evidence resolution, one bounded autonomous formal-admission PASS, and bounded registry/receipt semantic-binding controls. It does **not** yet establish the broad hypothesis across repeated live-model tasks, environments, champion/challenger comparisons, or full autonomous improvement cycles. The #264 audit and the subsequent registry-aware failures show that scientific semantics and provenance must be governed without pushing immutable identity or already-verified context back onto the model as transcription work.
