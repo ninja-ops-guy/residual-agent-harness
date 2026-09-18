@@ -19,6 +19,8 @@ from .observability import ObservationStore
 
 
 MAX_TASK_ATTEMPTS = 5
+WORKER_REGISTRY_MAX = 1024
+WORKER_REGISTRY_TTL_S = 7 * 24 * 60 * 60
 
 
 def now():
@@ -212,11 +214,18 @@ class Store(ObservationStore):
                     continue
                 prior = t["state"]
                 prior_owner = t.get("owner")
+                prior_worker_id = t.get("worker_instance_id")
                 t.update(state="blocked", owner=None, lease=None, lease_until=0,
                          findings=["Interrupted work requires re-triage. Existing evidence is retained."])
                 self._write_task(c, row["project"], t)
+                if prior_worker_id:
+                    worker_row = c.execute("SELECT value FROM workers WHERE id=?", (prior_worker_id,)).fetchone()
+                    if worker_row:
+                        worker = json.loads(worker_row[0])
+                        worker.update(state="expired", task_id=None)
+                        c.execute("UPDATE workers SET value=? WHERE id=?", (canonical(worker), prior_worker_id))
                 self._event(c, self._project(c, row["project"]), "worker.expired", "coordinator", t,
-                            {"from": prior, "owner": prior_owner})
+                            {"from": prior, "owner": prior_owner, "worker_id": prior_worker_id})
             if startup:
                 for r in c.execute("SELECT id,value FROM jobs").fetchall():
                     j = json.loads(r["value"])
@@ -277,6 +286,20 @@ class Store(ObservationStore):
         stamp, epoch = now(), time.time()
         with self.transaction() as c:
             row = c.execute("SELECT value FROM workers WHERE id=?", (worker_id,)).fetchone()
+            if row is None:
+                stale = []
+                for existing in c.execute("SELECT id,value FROM workers").fetchall():
+                    try:
+                        value = json.loads(existing["value"])
+                        if epoch - float(value.get("last_seen_epoch", epoch)) > WORKER_REGISTRY_TTL_S:
+                            stale.append(existing["id"])
+                    except (ValueError, TypeError, KeyError):
+                        stale.append(existing["id"])
+                for stale_id in stale:
+                    c.execute("DELETE FROM workers WHERE id=?", (stale_id,))
+                count = c.execute("SELECT count(*) FROM workers").fetchone()[0]
+                if count >= WORKER_REGISTRY_MAX:
+                    raise ContractError("Worker registry capacity reached; rotate/prune stale experiment instances")
             prior = json.loads(row[0]) if row else {}
             record = {
                 "worker_id": worker_id,

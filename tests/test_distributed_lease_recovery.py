@@ -11,11 +11,16 @@ def test_lease_expiry_recovery_rejects_stale_worker_and_reintegrates():
     assert run["attempts"]==2
     assert run["expired_event_count"]==1
     assert run["expired_worker_expirations"]==1
+    assert run["expired_worker_instance_state"]=="expired"
+    assert run["expired_worker_instance_id"].startswith("w-")
+    assert run["healthy_worker_instance_state"]=="idle"
     assert run["healthy_inference_median_ms"]==0.0
     summary=report["summary"]
     assert summary["all_integrated"] is True
     assert summary["all_stale_results_rejected"] is True
     assert summary["all_expirations_attributed"] is True
+    assert summary["all_expired_instances_marked"] is True
+    assert summary["all_healthy_instances_idle"] is True
     assert summary["attempts"]==[2]
     assert "Only lease time passage is fault-injected" in report["claim_boundary"]
 

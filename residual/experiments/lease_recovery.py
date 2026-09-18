@@ -205,6 +205,7 @@ def _trial(work_ms: float) -> dict[str, Any]:
             final = station.store.project(pid)["tasks"][0]
             metrics = station.worker_metrics(pid)
             by_worker = {row["worker"]: row for row in metrics["workers"]}
+            by_instance_name = {row["name"]: row for row in metrics["instances"]}
             return {
                 "claim_ms": (claimed - started) / 1_000_000.0,
                 "fault_injection_ms": (injected - claimed) / 1_000_000.0,
@@ -218,6 +219,9 @@ def _trial(work_ms: float) -> dict[str, Any]:
                 "expired_event_count": len(expired_events),
                 "worker_metrics": metrics,
                 "expired_worker_expirations": by_worker["crashed-worker"]["expirations"],
+                "expired_worker_instance_state": by_instance_name["crashed-worker"]["state"],
+                "expired_worker_instance_id": by_instance_name["crashed-worker"]["worker_id"],
+                "healthy_worker_instance_state": by_instance_name["healthy-reclaimer"]["state"],
                 "healthy_inference_median_ms": by_worker["healthy-reclaimer"]["inference_latency"]["median_ms"],
             }
         finally:
@@ -256,6 +260,8 @@ def run_station_lease_recovery_benchmark(*, work_ms: float = 40.0, repeats: int 
             "all_integrated": all(row["all_integrated"] for row in recoveries),
             "all_stale_results_rejected": all(row["stale_result_rejected"] for row in recoveries),
             "all_expirations_attributed": all(row["expired_worker_expirations"] == 1 for row in recoveries),
+            "all_expired_instances_marked": all(row["expired_worker_instance_state"] == "expired" for row in recoveries),
+            "all_healthy_instances_idle": all(row["healthy_worker_instance_state"] == "idle" for row in recoveries),
             "attempts": sorted({row["attempts"] for row in recoveries}),
         },
         "claim_boundary": (

@@ -347,6 +347,7 @@ class HTTPTests(unittest.TestCase):
         work = self.request("/api/worker/claim", {
             "project_id": pid, "task_id": "OPS-101", "name": "machine2", "worker_id": worker_id,
         }, headers)["work"]
+        self.assertEqual(self.s.store.task(pid, "OPS-101").get("worker_instance_id"), worker_id)
         usage = {"input_tokens": 11, "output_tokens": 7, "cached_input_tokens": 0, "cache_write_input_tokens": 0,
                  "source": "worker_reported", "placement": "local", "role": "remote_runner",
                  "model": "fixture-model", "request_bytes": 321, "elapsed_ms": 12.5}
@@ -381,6 +382,20 @@ class HTTPTests(unittest.TestCase):
             self.request("/api/worker/result", {**data, "response": {"files": {}}}, headers)
         with self.assertRaises(urllib.error.HTTPError):
             self.request(f"/api/projects/{pid}/task", {"task_id": "OPS-101", "action": "integrate"}, {**headers, "X-Station-Token": ""})
+
+    def test_worker_registry_is_bounded_and_prunes_stale_instances(self):
+        with patch("residual.station.store.WORKER_REGISTRY_MAX", 2), patch("residual.station.store.WORKER_REGISTRY_TTL_S", 1):
+            self.s.store.worker_register("worker-a", "A", "ollama", "m", "local")
+            self.s.store.worker_register("worker-b", "B", "ollama", "m", "local")
+            with self.s.store.transaction() as connection:
+                row = connection.execute("SELECT value FROM workers WHERE id='worker-a'").fetchone()
+                value = json.loads(row[0])
+                value["last_seen_epoch"] = 0
+                connection.execute("UPDATE workers SET value=? WHERE id='worker-a'", (canonical(value),))
+            self.s.store.worker_register("worker-c", "C", "ollama", "m", "local")
+            self.assertEqual([w["worker_id"] for w in self.s.store.workers()], ["worker-b", "worker-c"])
+            with self.assertRaisesRegex(ContractError, "registry capacity"):
+                self.s.store.worker_register("worker-d", "D", "ollama", "m", "local")
 
     def test_remote_worker_elapsed_ms_receipt_is_strictly_bounded(self):
         pid = self.s.create(demo_spec(), demo=True)["project_id"]

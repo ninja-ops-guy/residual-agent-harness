@@ -262,6 +262,7 @@ class Handler(BaseHTTPRequestHandler):
                 return {"work": None}
             t = work["task"]
             if worker_id is not None:
+                s.store.update_task(work["project_id"], t["id"], worker_instance_id=worker_id)
                 s.store.worker_touch(worker_id, state="working", project_id=work["project_id"],
                                      task_id=t["id"], claim=True)
             return {"work": {"project_id": work["project_id"], "task_id": t["id"], "attempt": t["attempt"], "lease": work["lease"], "packet": work["packet"], "allow_cloud": s.store.project(work["project_id"])["allow_cloud"]}}

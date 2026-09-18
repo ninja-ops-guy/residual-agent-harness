@@ -54,6 +54,7 @@ jobs:
           tests/station/test_station.py::HTTPTests::test_remote_candidate_submission_is_idempotent_and_unable_to_approve
           tests/station/test_station.py::HTTPTests::test_remote_worker_elapsed_ms_receipt_is_strictly_bounded
           tests/station/test_station.py::StationTests::test_lease_expiry_and_restart_recovery_preserve_evidence
+          tests/station/test_station.py::StationTests::test_worker_registry_is_bounded_and_prunes_stale_instances
       - name: Compile
         run: python -m compileall -q residual
 
@@ -147,6 +148,8 @@ jobs:
           assert lease['summary']['all_integrated']
           assert lease['summary']['all_stale_results_rejected']
           assert lease['summary']['all_expirations_attributed']
+          assert lease['summary']['all_expired_instances_marked']
+          assert lease['summary']['all_healthy_instances_idle']
           assert all(row['all_converged'] for row in bridge['summary'])
           assert all(row['station_authority_preserved'] for row in bridge['summary'])
           assert mesh['summary']['produce_median_messages_s'] > 0
