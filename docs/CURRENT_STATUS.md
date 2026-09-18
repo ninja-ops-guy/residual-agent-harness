@@ -14,7 +14,7 @@ Meaningful accepted changes since `main@4608afabf5de4c87d77aaf149dfc12538d364f43
 - **#218** applied bounded M6 repair-loop lessons to Station: prior failed-candidate writable-file content can be supplied as bounded repair context while each new candidate still starts from a clean baseline worktree; repair-context hashes are retained; the runner contract separates its JSON transport envelope from file-language content; and Mission Control/Store share a bounded five-attempt ceiling. The PR does not weaken deterministic checks, review, receipt, integration, quarantine, promotion, Factory/M4, or verifier authority.
 - **#201** merged as current main and accepts the guided frontend/provider UX: guided proof is separated from the interactive WebVM lab, the site animates real RESIDUAL CLI commands with reduced-motion support, and Mission Control keeps Puter setup inline rather than opening a separate RESIDUAL provider tab. Puter's own secure authorization popup may still appear; authorization remains tied to explicit user gesture, credentials remain outside RESIDUAL, provider loading remains lazy, and protocol validation remains fail-closed.
 
-PR #201's exact head `4e172aed91d5105e750835e14289e002e109c41a` completed **PASS** for Control Plane, Factory ownership, measured-evaluation binding, clean install, Browser VM Demo, Pages, Command Station, Controller/provider, and maintainer approval before merge. Exact merged `main@260b5f9...` ordinary push qualification is **PENDING** at this status check and must not inherit predecessor-main or PR-head PASS automatically.
+PR #201's exact head `4e172aed91d5105e750835e14289e002e109c41a` completed **PASS** for Control Plane, Factory ownership, measured-evaluation binding, clean install, Browser VM Demo, Pages, Command Station, Controller/provider, and maintainer approval before merge. Exact merged `main@260b5f9...` has now settled its seven ordinary push workflows: six completed successfully, while **Deploy GitHub Pages run `35340104722` is FAIL in live-acceptance scope**. Its artifact build/browser proof and the deployment itself succeeded; the published desktop acceptance then timed out waiting for `#mc-provider-frame` to expose the expected `#status` text `could not load`, after served-artifact identity, guest attachment/shell readiness, real demo verification, warm reload, and repository audit had already passed. This is a retained Pages/browser-proof failure, not evidence of paid/live Puter semantic success or failure; that retained provider proof used a test-double SDK rather than real Puter login/inference.
 
 New research evidence is also material: draft #220 M6-SPEC-006 retained a bounded exact-head **PASS** on the corrected #218 runtime using local Qwen2.5-Coder 7B. Attempts 1 and 2 were rejected by the frozen checks; attempt 3 passed 2/2 checks, independent Station review approved it, 1/1 integrated, a verification receipt was issued, and release export completed. This single successful trial does not erase earlier M6 failures or establish general autonomous self-maintenance reliability.
 
@@ -92,23 +92,37 @@ The accepted browser/frontend change:
 - keeps credentials outside RESIDUAL and provider loading lazy;
 - preserves fail-closed provider protocol handling and credentialless provider-frame boundaries.
 
-PR-head qualification on exact `4e172aed...` was **PASS** for Control Plane, Factory ownership, measured binding, clean install, Browser VM Demo, Pages, Command Station, Controller/provider, and maintainer approval. The merged exact main SHA is different, so post-merge qualification remains **PENDING** until its exact-SHA push workflows settle.
+PR-head qualification on exact `4e172aed...` was **PASS** for Control Plane, Factory ownership, measured binding, clean install, Browser VM Demo, Pages, Command Station, Controller/provider, and maintainer approval. The exact merged-main push set has since settled: six of seven ordinary workflows succeeded, while Pages/live acceptance **FAILed** on run `35340104722` at the provider-frame failure-state expectation after the deployment and earlier real-guest proof stages succeeded.
 
 Claim discipline:
 
 - accepted guided/inline frontend bytes: **PASS / on main**;
 - exact PR-head automated qualification: **PASS for the named PR workflows**;
-- exact merged-SHA post-#201 push qualification: **PENDING**;
+- exact merged-SHA post-#201 push qualification: **FAIL in Pages live-acceptance scope; six other ordinary push workflows succeeded**;
 - successful paid/live Puter candidate→verifier→receipt path: **UNKNOWN / not established**;
 - physical iPhone heavyweight-WebVM reliability: **UNKNOWN / unqualified**.
 
 ## Exact-current-main qualification boundary
 
-Exact `main@260b5f9e20bf70a6b9ca087bc91e22a009ed77b9` has seven ordinary `push` workflows created after #201 merged. At this status check, the set is still **PENDING**; at least Pages/deployment remains in progress. Do not inherit the green `4e172aed...` PR-head workflows or predecessor-main `d665b18...` push results as merged-SHA qualification.
+Exact `main@260b5f9e20bf70a6b9ca087bc91e22a009ed77b9` has completed its seven ordinary `push` workflows after #201 merged. Six are successful. The sole workflow failure is **Deploy GitHub Pages run `35340104722`**.
+
+The Pages result must be interpreted at the step boundary rather than flattened into a broader failure claim:
+
+- `build-and-browser-proof`: **PASS**;
+- GitHub Pages deployment action: **PASS**;
+- published desktop live acceptance: **FAIL**;
+- served artifact identity: **PASS**;
+- guest attached / shell ready: **PASS**;
+- real demo verification and finite metrics: **PASS**;
+- warm reload and verification: **PASS**;
+- workbench real-repository audit: **PASS**;
+- embedded provider-frame failure-state expectation: **FAIL** after a 30-second timeout waiting for `#status` containing `could not load`.
+
+The retained live proof identifies its provider evidence as `REAL_GUEST_WITH_TEST_DOUBLE_SDK_NOT_PAID_INFERENCE` and its authorization evidence as `USER_GESTURE_AND_POPUP_CONTRACT_TEST_DOUBLE_NOT_REAL_PUTER_LOGIN`. Therefore the Pages failure does **not** establish a paid/live provider semantic failure, and it cannot establish paid/live provider success either.
 
 Required interpretation:
 
-- exact-current-main named automated push gates: **PENDING until the exact-SHA set completes**;
+- exact-current-main named automated push gates: **six PASS/success, one FAIL — Pages live acceptance**;
 - #201 exact PR-head workflows: **PASS in their named scope**;
 - historical exact-revision FAIL results: **still retained evidence**;
 - universal/capable-runner M4 qualification: **not established**;
@@ -245,7 +259,7 @@ This documentation branch changes no Factory/M4 implementation or tests, ownersh
 
 ## Current priority blockers
 
-1. Let exact `main@260b5f9...` post-#201 push qualification settle; preserve any first exact-SHA failure rather than inheriting PR-head PASS.
+1. Repair and requalify the exact `main@260b5f9...` Pages live-acceptance failure from run `35340104722`; preserve that first exact-SHA FAIL rather than inheriting the green #201 PR-head Pages result.
 2. Refresh/rebase, review, and requalify the #207/#208 accounting/release-ordering repair path on current main; #214 is stale-base and unaccepted, and #212's missing-usage case remains a retained FAIL.
 3. Preserve #220 as one bounded M6 PASS while continuing preregistered repeated/self-discovery validation; do not erase #203/#204/#215/#217 or claim general autonomous self-maintenance.
 4. Re-run a valid #206 repair-pressure intervention; A4 remains BLOCKED, while A5/A6 remain negative cells.
