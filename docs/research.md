@@ -16,11 +16,11 @@ The key empirical distinction is between raw worker correctness `P(X)` and accep
 
 ## Current accepted engineering boundary
 
-Current `main` is **`d665b188ccc5bb659fb37bc52ac387ab4d85f976`**.
+Current `main` is **`260b5f9e20bf70a6b9ca087bc91e22a009ed77b9`**.
 
-Merged #200 hardens the native setup path; merged #205 restores the private provider channel across Mission Control reload/remount with validated session-scoped state; merged #218 applies bounded Station repair-loop remediation by carrying content-bound prior-candidate context into repair attempts while preserving clean baseline worktrees, clarifying transport-versus-file-language contracts, and unifying the bounded attempt ceiling at five. These are accepted engineering changes, not scientific results.
+Merged #200 hardens the native setup path; merged #205 restores the private provider channel across Mission Control reload/remount with validated session-scoped state; merged #218 applies bounded Station repair-loop remediation by carrying content-bound prior-candidate context into repair attempts while preserving clean baseline worktrees, clarifying transport-versus-file-language contracts, and unifying the bounded attempt ceiling at five; merged #201 accepts the guided frontend/provider UX with inline RESIDUAL-side Puter setup, explicit user-gesture authorization, lazy loading, credential separation, and fail-closed protocol handling. These are accepted engineering changes, not scientific results.
 
-For exact `main@d665b18...`, seven observed ordinary `push` workflows completed **PASS on attempt 1**: Factory ownership, M4 runner prerequisites, measured-evaluation binding, clean install, Controller/provider, Command Station, and Pages/deployment. This is scoped mechanism/integration evidence only. It does not establish every-host M4 qualification, successful live Puter inference, long-run WebVM reliability, physical-device reliability, general autonomous self-maintenance, or a paper-facing effect size.
+PR #201's exact head `4e172aed...` completed **PASS** for Control Plane, Factory ownership, measured-evaluation binding, clean install, Browser VM Demo, Pages, Command Station, Controller/provider, and maintainer approval before merge. Exact merged `main@260b5f9...` ordinary push qualification is **PENDING** at this status check; those current-main results must not inherit PR-head or predecessor-main qualification.
 
 ## Real-model experiment evidence: #202
 
@@ -112,7 +112,7 @@ A green research workflow means the apparatus executed and retained artifacts; i
 
 ## Open governance repair candidate: #214
 
-Draft #214 targets #208 by mirroring token/deadline state into Station before review/integration and tightening release eligibility around successful run control. It remains unaccepted and is still based on predecessor `main@4608afa...` at head `d3e8a5ec...`. Because accepted main moved through #218 to `d665b18...`, #214 must be refreshed/requalified before acceptance.
+Draft #214 targets #208 by mirroring token/deadline state into Station before review/integration and tightening release eligibility around successful run control. It remains unaccepted and is still based on predecessor `main@4608afa...` at head `d3e8a5ec...`. Because accepted main moved through #218/#201 to `260b5f9...`, #214 must be refreshed/requalified before acceptance.
 
 Therefore the #207/#212 accounting-ordering defect remains an accepted-main **FAIL/open blocker**. #218/#220 repair-loop success is independent and must not be used as evidence that the authority-ordering problem is fixed.
 
@@ -122,7 +122,7 @@ Retained diagnostics isolate a WebVM-specific, process-local CPython positive-du
 
 Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice. Both counted calls failed closed as `provider_protocol_invalid`; no candidate crossed the protocol boundary, so candidate correctness and semantic verification remain **UNKNOWN**.
 
-#179, #183, #189 and #205 repair bounded build-output, provider-session, publication and reload-recovery surfaces. None alone establishes live semantic success. Fresh retained exact-deployed-revision candidate→verifier→receipt evidence remains required.
+#179, #183, #189, #205 and #201 repair or improve bounded build-output, provider-session, publication, reload-recovery and inline setup/authorization surfaces. None alone establishes live semantic success. Fresh retained exact-deployed-revision candidate→verifier→receipt evidence remains required.
 
 The #186 iOS/WebKit fallback remains accepted. It is not physical heavyweight-WebVM reliability evidence. Issues #120/#126 remain open because bounded mitigations and individual green runs do not establish long-run recurrence rate or root cause.
 
