@@ -8,6 +8,7 @@ attestation bound to the exact current head SHA.
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import os
 import sys
@@ -79,23 +80,73 @@ def evaluate(
     return True, f"exact-head maintainer approval: {', '.join(approvers)}"
 
 
-def _github_json(url: str, token: str) -> Any:
+STATUS_CONTEXT = "maintainer-approval"
+VALID_STATUS_STATES = {"pending", "success", "failure", "error"}
+
+
+def _github_request(url: str, token: str, payload: dict[str, Any] | None = None) -> Any:
+    body = None
+    if payload is not None:
+        body = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         url,
+        data=body,
         headers={
             "Accept": "application/vnd.github+json",
             "Authorization": f"Bearer {token}",
             "X-GitHub-Api-Version": "2022-11-28",
             "User-Agent": "residual-maintainer-approval-gate",
         },
+        method="POST" if payload is not None else "GET",
     )
     try:
         with urllib.request.urlopen(req, timeout=20) as response:
             return json.load(response)
     except urllib.error.HTTPError as exc:
         raise RuntimeError(f"GitHub API HTTP {exc.code} for {url}") from exc
-    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+    except (
+        urllib.error.URLError,
+        TimeoutError,
+        http.client.HTTPException,
+        json.JSONDecodeError,
+        UnicodeError,
+    ) as exc:
         raise RuntimeError(f"could not read GitHub data: {exc}") from exc
+
+
+def _github_json(url: str, token: str) -> Any:
+    return _github_request(url, token)
+
+
+def publish_head_status(
+    repository: str,
+    head_sha: str,
+    state: str,
+    description: str,
+    token: str,
+    target_url: str = "",
+    request_fn: Any = None,
+) -> Any:
+    """Create the protected `maintainer-approval` commit status on the exact head SHA.
+
+    Branch protection evaluates commit statuses attached to the PR head SHA.
+    An `issue_comment` workflow run is itself attached to the default-branch
+    event SHA, so the gate MUST explicitly publish its result onto the exact
+    current PR head SHA via the commit-statuses API (#268).
+    """
+    if state not in VALID_STATUS_STATES:
+        raise RuntimeError(f"invalid commit status state: {state}")
+    if not head_sha or len(head_sha) != 40:
+        raise RuntimeError(f"refusing to publish status on non-SHA ref: {head_sha!r}")
+    request = request_fn or _github_request
+    body: dict[str, Any] = {
+        "state": state,
+        "context": STATUS_CONTEXT,
+        "description": description[:140],
+    }
+    if target_url:
+        body["target_url"] = target_url
+    return request(f"https://api.github.com/repos/{repository}/statuses/{head_sha}", token, body)
 
 
 def github_pr(repository: str, pr_number: int, token: str) -> dict[str, Any]:
@@ -189,6 +240,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--comments-json", help="offline comments instead of GitHub API")
     parser.add_argument("--permissions-json", help="offline login->permission mapping")
     parser.add_argument("--head-sha", help="offline/current head override")
+    parser.add_argument(
+        "--publish-status",
+        action="store_true",
+        help="publish the gate result as the protected commit status on the exact PR head SHA",
+    )
+    parser.add_argument("--target-url", default=os.environ.get("GATE_TARGET_URL", ""))
     args = parser.parse_args(argv)
 
     if not args.event:
@@ -229,6 +286,24 @@ def main(argv: list[str] | None = None) -> int:
             raise RuntimeError("permissions input must be an object")
 
         ok, detail = evaluate(head_sha, comments, {str(k): str(v) for k, v in permissions.items()})
+
+        if args.publish_status:
+            if not repository:
+                raise RuntimeError("repository is required to publish the head status")
+            if not token:
+                raise RuntimeError("GITHUB_TOKEN is required to publish the head status")
+            publish_head_status(
+                repository,
+                head_sha,
+                "success" if ok else "failure",
+                detail,
+                token,
+                target_url=args.target_url,
+            )
+            print(
+                f"published '{STATUS_CONTEXT}' status "
+                f"({'success' if ok else 'failure'}) on exact PR head {head_sha}"
+            )
     except (OSError, ValueError, RuntimeError, json.JSONDecodeError) as exc:
         print(f"BLOCKED: {exc}", file=sys.stderr)
         return 2
