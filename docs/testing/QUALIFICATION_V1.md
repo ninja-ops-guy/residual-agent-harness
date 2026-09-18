@@ -155,3 +155,62 @@ A rerun creates a linked observation; it never overwrites the original failure.
 - `.github/workflows/qualification-provider-canary.yml` — bounded real provider qualification.
 
 The implementation lives primarily under `residual/qualification/`, `scripts/qualification_*.py`, and `tests/qualification/`.
+
+
+## Adversarial production-readiness wave
+
+Qualification v1 also runs independent bug-discovery lanes. These lanes are intentionally
+fanned out: a failure in one lane must not suppress evidence from the others. The final
+manifest, not individual job control flow, owns the fail-closed release decision.
+
+Required adversarial gates:
+
+- **real-concurrency** — synchronized thread races against the real RuntimeJournal/SQLite
+  authority boundary: duplicate claims, revoke-vs-candidate publication, duplicate terminal
+  writes, and reopen/read pressure after lease revocation;
+- **protocol-fuzz** — deterministic Hypothesis property campaigns over workspace/path policy,
+  including forbidden-prefix precedence and case-insensitive Git metadata denial;
+- **webvm-provider-protocol-fuzz** — deterministic malformed browser-provider envelopes;
+  every accepted response must normalize to the exact RESIDUAL protocol and rejected inputs
+  may fail only through the bounded protocol error;
+- **toxic-provider-matrix** — local OpenAI-compatible fault server covering rate-limit, 5xx,
+  malformed/duplicate-key JSON, oversized responses, truncation, counted failover and
+  retained-evidence secret redaction;
+- **browser-adversarial-recovery** — real Station HTTP + local provider + Chromium journey
+  for Q-UX-CHAT-003, Q-UX-JOBS-002 and Q-UX-REPAIR-001. It does not intercept /api/jobs:
+  queued model messages must be acknowledged, generated drafts must survive reload, and a
+  genuine failed remote-worker candidate must expose repair controls and recover through
+  review/integration;
+- **active-workload** — repeated create → triage → intentional verification failure → repair
+  → review → integrate → export → reopen cycles;
+- **persistence-fault-injection** — database/event write failure, ENOSPC artifact creation,
+  interrupted async jobs, artifact tamper, and SIGKILL during an uncommitted SQLite write;
+- **redteam-zero-skip** — the security/red-team corpus is required to execute on the capable
+  Linux qualification host rather than silently converting unavailable enforcement into a
+  release PASS;
+- **windows-lifecycle** — Windows Station lifecycle/restart qualification catches path,
+  subprocess, Git, SQLite and quoting behavior not represented by Linux-only CI.
+
+### Discovery adequacy
+
+The seeded lifecycle explorer is state-aware. It selects only meaningful transitions or
+expected-invalid operations rather than spending random budget on impossible NOOP actions.
+The campaign reports action/outcome counts and fails its discovery-adequacy result if any
+required lifecycle family is never exercised.
+
+### Mutation provenance
+
+Every semantic mutant runs with an isolated Python bytecode cache. Before pytest may count
+a mutant as killed or surviving, a child interpreter records module.__file__ and SHA-256
+and proves they match the exact mutated source bytes. This prevents equal-size/close-mtime
+source edits from accidentally executing stale bytecode.
+
+Mutation canaries now cover both Factory authority rules and Station product invariants,
+including failed-check admission, dependency dispatch, paused dispatch, artifact integrity,
+moving-base integration and candidate/review binding.
+
+### Bug-yield rule
+
+Discovery jobs preserve first failures and continue sibling probes. The final aggregator
+collects every gate envelope and fails closed on any required non-PASS/missing/UNKNOWN
+evidence. A green regression suite therefore cannot mask an adversarial discovery failure.
