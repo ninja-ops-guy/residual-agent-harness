@@ -46,7 +46,7 @@ residual-gauntlet \
   --output runs/hybrid-gauntlet
 ~~~
 
-Credentials remain environment-owned by the existing provider registry. The cloud lane performs genuine provider calls and, when Factory is enabled, cloud-model worker authoring followed by local bounded Factory execution. That is evidence for a **hybrid execution path**, not proof of WAN mesh performance.
+Credentials remain environment-owned by the existing provider registry. The cloud lane performs genuine provider calls and, when Factory is enabled, cloud-model worker authoring followed by local bounded Factory execution. It also runs a heterogeneous provider failover experiment: a cluster routes one live task through local Ollama, injects loss of that local worker, and reassigns a second in-flight task through the configured cloud provider. The cluster transport for this experiment is still loopback, so this is evidence for provider heterogeneity and host-owned failover semantics—not WAN latency or physical multi-host performance.
 
 ## Suites
 
@@ -120,6 +120,17 @@ Creates a real three-node in-process cluster using RESIDUAL's versioned authenti
 
 This is intentionally labeled `cluster_loopback`. It does **not** claim WAN, physical multi-host, or cloud-network performance.
 
+### hybrid_provider_failover
+
+When `--cloud-provider` and `--cloud-model` are supplied, the gauntlet creates a coordinator plus two real provider-backed cluster workers sharing an abstract capability:
+
+- a local Ollama-backed node;
+- a cloud-provider-backed node.
+
+The coordinator first routes a genuine model request to the local worker. It then injects an in-flight local-node failure and lets RESIDUAL's actual failure-detection/reassignment path route a genuine second request to the cloud worker. Provider/model identity, response hash, token usage, latency, failure receipt, and final assigned node are retained.
+
+The evidence level is `hybrid_provider_live_loopback`: compute/provider placement is heterogeneous and live; network transport remains in-process.
+
 ## Claim-level output
 
 `gauntlet-report.json` contains a `hypotheses` object.
@@ -148,6 +159,7 @@ The result distinguishes:
 
 - loopback cluster control-plane evidence;
 - optional cloud authoring + local Factory execution;
+- optional live local-Ollama to cloud-provider cluster failover over loopback;
 - WAN/physical mesh performance, which remains false until actually measured.
 
 ## Evidence hierarchy
@@ -159,6 +171,7 @@ The result distinguishes:
 | `factory_live_paired` | one hash-bound source corpus executed unchanged across scheduler strategies |
 | `control_probe` | deterministic negative-path enforcement probe |
 | `cluster_loopback` | real cluster code and wire semantics in one process |
+| `hybrid_provider_live_loopback` | real local + cloud provider execution with cluster failover over loopback transport |
 | `NOT_TESTED` | environment needed for the claim was unavailable |
 
 No scripted fixture should be cited as live-model evidence.
