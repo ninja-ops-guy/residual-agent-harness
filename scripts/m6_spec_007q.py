@@ -284,28 +284,38 @@ def verify_selected(proposal: dict, selected: dict) -> list[str]:
     return errors
 
 
-def verify_request(request: dict, snapshot: dict, selected: dict) -> list[str]:
+def verify_planner(request: dict, snapshot: dict, selected: dict, registry) -> list[str]:
     errors=[]
-    metrics=snapshot["metrics"]
     if request.get("evidence_snapshot_hash") != snapshot["snapshot_hash"]:
-        errors.append("request evidence hash mismatch")
+        errors.append("planner evidence hash mismatch")
+    if request.get("metric_registry_sha256") != registry.registry_sha256:
+        errors.append("planner registry hash mismatch")
     if request.get("human_approval_required") is not True:
-        errors.append("request human approval not retained")
+        errors.append("planner human approval not retained")
     obs=request.get("observation")
     if not isinstance(obs,dict) or obs.get("observed_metric") not in selected:
         errors.append("planner observation was not actively inspected")
     elif obs.get("observed_value") != selected[obs["observed_metric"]]:
         errors.append("planner observation value mismatch")
-    requested=request.get("requested_metric")
-    if not isinstance(requested,str) or not requested.strip():
-        errors.append("planner requested_metric missing")
-    for name in ("question","why_needed","proposed_measurement"):
-        value=request.get(name)
-        if not isinstance(value,str) or len(value.strip())<20:
-            errors.append(f"planner {name} not substantive")
     inv=request.get("preserve_invariants")
     if not isinstance(inv,list) or not inv or any(x not in ALLOWED_INVARIANTS for x in inv):
         errors.append("invalid planner invariants")
+    if request.get("type")=="existing_metric_request":
+        for name in ("question","why_needed"):
+            value=request.get(name)
+            if not isinstance(value,str) or len(value.strip())<20:
+                errors.append(f"planner {name} not substantive")
+        requested=request.get("requested_metric_id")
+        if not isinstance(requested,str) or not requested.strip():
+            errors.append("requested_metric_id missing")
+    elif request.get("type")=="new_metric_proposal":
+        reason=request.get("reason_existing_registry_insufficient")
+        if not isinstance(reason,str) or len(reason.strip())<30:
+            errors.append("new metric insufficiency reason not substantive")
+        if not isinstance(request.get("definition"),dict):
+            errors.append("new metric definition missing")
+    else:
+        errors.append("unknown planner request type")
     return errors
 
 
