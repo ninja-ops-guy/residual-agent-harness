@@ -98,12 +98,22 @@ def _summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _model_inventory(adapter, provider: str) -> list[str]:
+    """Discover models when supported; explicit model execution is authoritative."""
+    try:
+        return adapter.list_models()
+    except ProviderError as exc:
+        if provider != "ollama" and exc.code == "not_implemented":
+            return []
+        raise
+
+
 def provider_live_suite(*, provider: str, model: str, repeats: int,
                         cases: Iterable[LiveCase] = DEFAULT_CASES) -> dict[str, Any]:
     if repeats < 1:
         raise ValueError("repeats must be >= 1")
     adapter = DEFAULT_REGISTRY.get(provider)
-    models = adapter.list_models()
+    models = _model_inventory(adapter, provider)
     if provider == "ollama" and model not in models:
         raise ProviderError(provider=provider, code="model_not_found")
     rows: list[dict[str, Any]] = []
