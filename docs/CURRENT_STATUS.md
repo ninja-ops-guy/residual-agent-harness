@@ -14,7 +14,7 @@ Current `main` advanced from the previously documented `dcf1e507...` through thr
 
 There is also a material integration/status caveat: #133 removed the accepted #132 protected self-hosting/research-bundle implementation, workflow, tests, example, and dedicated research docs. Earlier review records explicitly called those deletions an integration blocker for a supposedly diagnostic-only PR. The deletion nevertheless landed on main. Therefore #132 remains retained historical evidence, but its tooling is **not current accepted capability**. Whether the deletion represents intended retirement or an integration regression is unresolved and should be handled explicitly rather than inferred from the merge.
 
-Six of the seven ordinary first-attempt `push` workflows on exact current main have completed **PASS**. Pages/deployment remains **IN PROGRESS**, so the current merged revision is not yet an all-green deployment set.
+All seven ordinary first-attempt `push` workflows on exact current main completed **PASS**, including Pages/deployment on attempt 1.
 
 Paid/live Puter success, physical heavyweight-WebVM iPhone reliability, blank-environment install, host-loss/recovery evidence, selected elapsed soak, universal/capable-runner M4 qualification, and confirmatory R0–R5 research remain unestablished.
 
@@ -85,7 +85,7 @@ This documentation update does not restore, rewrite, or alter any of those imple
 
 ## Exact-current-main qualification
 
-Six of seven ordinary first-attempt `push` workflows on exact `main@b3f00af...` are **PASS**:
+All seven ordinary first-attempt `push` workflows on exact `main@b3f00af...` are **PASS**:
 
 | Workflow | Exact-current-main outcome |
 | --- | --- |
@@ -95,19 +95,18 @@ Six of seven ordinary first-attempt `push` workflows on exact `main@b3f00af...` 
 | Clean install qualification | **PASS** — run `35288585050` |
 | Controller and provider contracts | **PASS** — run `35288584962` |
 | Command Station checks | **PASS** — run `35288585136` |
-| Deploy GitHub Pages | **IN PROGRESS / PENDING** — run `35288585007` |
+| Deploy GitHub Pages | **PASS** — run `35288585007`, attempt 1 |
 
 Claim discipline at this snapshot:
 
 - accepted bytes on main: **PASS / merged**;
-- six named current-main ordinary workflows above: **PASS within their exact scopes**;
-- exact-current-main Pages/deployment: **PENDING**;
+- seven named current-main ordinary workflows above: **PASS within their exact scopes**;
 - #133 exact-candidate ordinary technical workflows: **PASS within their named scopes**;
 - #133 discriminator FAILs: **retained FAIL evidence by design**;
 - universal/capable-runner M4 qualification: **not established**;
 - production WebVM long-run reliability: **not established**.
 
-Historical exact-main results remain bound to their named revisions. The first post-#189 `main@dcf1e507...` seven-workflow set had completed PASS on attempt 1, but that does not automatically qualify `b3f00af...` after #188/#194/#133 materially changed the tree.
+Historical exact-main results remain bound to their named revisions. The first post-#189 `main@dcf1e507...` seven-workflow set also completed PASS on attempt 1, but the current statement is based on fresh exact-current-main results rather than inherited qualification.
 
 ## Live-provider evidence
 
@@ -172,7 +171,7 @@ This is maintainer-reviewed with automated qualification, not independent human 
 
 The project does **not** yet claim that:
 
-- exact-current-main Pages/deployment has passed after #133; run `35288585007` remains PENDING at this snapshot;
+- current-main ordinary workflow PASS establishes every-host/capable-runner M4 qualification or broader production readiness;
 - intentional #133 diagnostic FAILs are ordinary qualification PASSes;
 - #133 establishes the exact lower-level WebVM/CPython root cause;
 - #133 proves long-run WebVM reliability or a production fix;
@@ -182,23 +181,21 @@ The project does **not** yet claim that:
 - #186 proves heavyweight WebVM reliability on physical iPhone Safari;
 - blank-environment install/recovery qualification is complete;
 - simulated soak is equivalent to elapsed 24h/72h/30d operation;
-- current hosted/prerequisite CI establishes every-host/capable-runner M4 qualification;
 - #190/#193/#152/#177 are accepted current-main capability;
 - the solo-maintainer model supplies independent human assurance;
 - confirmatory live-model evaluation has established the central reliability hypothesis.
 
 ## Next gates
 
-1. Complete and retain Pages/deployment run `35288585007` on exact `main@b3f00af...`; do not inherit predecessor PASS or rerun a first failure away.
-2. Make an explicit disposition for the #133 removal of #132 self-hosting/research-bundle tooling: intentional retirement vs focused restoration/reintroduction. Do not let docs silently decide that implementation question.
-3. Continue #120/#126 from the #133 discriminators until a lower-level cause or predefined reliability campaign justifies a stronger operational claim.
-4. Refresh/requalify #190, #193, #152, and #177 as applicable after the material main move.
-5. Retain a fresh real-account Puter candidate→verifier→receipt success before claiming live-provider PASS.
-6. Validate the accepted #186 fallback on a physical device without turning fallback success into a heavyweight-WebVM claim.
-7. Execute true blank-environment install and recovery/host-loss qualification for the exact release artifact.
-8. Complete the selected elapsed-soak tier with retained first-failure evidence.
-9. Preserve the separate #139→ownership-baseline→fresh-qualification→#134 protected sequence.
-10. Freeze and run confirmatory R0–R5/degradation/heterogeneous-routing studies only under the stated research protocol.
+1. Make an explicit disposition for the #133 removal of #132 self-hosting/research-bundle tooling: intentional retirement vs focused restoration/reintroduction. Do not let docs silently decide that implementation question.
+2. Continue #120/#126 from the #133 discriminators until a lower-level cause or predefined reliability campaign justifies a stronger operational claim.
+3. Refresh/requalify #190, #193, #152, and #177 as applicable after the material main move.
+4. Retain a fresh real-account Puter candidate→verifier→receipt success before claiming live-provider PASS.
+5. Validate the accepted #186 fallback on a physical device without turning fallback success into a heavyweight-WebVM claim.
+6. Execute true blank-environment install and recovery/host-loss qualification for the exact release artifact.
+7. Complete the selected elapsed-soak tier with retained first-failure evidence.
+8. Preserve the separate #139→ownership-baseline→fresh-qualification→#134 protected sequence.
+9. Freeze and run confirmatory R0–R5/degradation/heterogeneous-routing studies only under the stated research protocol.
 
 ## Documentation authority
 
