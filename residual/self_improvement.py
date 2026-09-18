@@ -77,6 +77,16 @@ def main_head(repo, fallback):
     return fallback
 
 
+def _is_ancestor(repo, ancestor, descendant):
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(repo), "merge-base", "--is-ancestor", ancestor, descendant],
+            capture_output=True, text=True, timeout=15, check=False)
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise ContractError("Git history could not be compared") from exc
+    return result.returncode == 0
+
+
 def roadmap_items(text):
     marker = "## Current build order"
     if marker not in text:
