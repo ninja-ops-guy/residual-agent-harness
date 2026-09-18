@@ -50,7 +50,7 @@ export function mountMissionControl(host) {
   }
   element.querySelectorAll('[data-tab]').forEach(button => button.onclick = () => selectTab(button.dataset.tab));
   function connectProvider() { selectTab('chat'); $('provider-guide').hidden = false; $('provider-start').focus(); }
-  async function startProviderSetup() { $('provider-start').disabled = true; try { await provider.open(); } catch { $('provider-start').disabled = false; $('provider-guide-state').textContent = 'Setup did not complete. Nothing was sent; retry when ready.'; } }
+  async function startProviderSetup() { $('provider-start').disabled = true; try { await provider.open(); } catch { $('provider-start').disabled = false; } }
   function runtimeHealth() { const value = typeof host.health === 'function' ? host.health() : (host.ready() ? 'ready' : 'starting'); return value === 'ready' || value === 'poisoned' ? value : 'starting'; }
   function guestReady() { return runtimeHealth() === 'ready'; }
   $('connect').onclick = connectProvider;
