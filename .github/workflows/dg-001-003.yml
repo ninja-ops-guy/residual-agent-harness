@@ -1,0 +1,22 @@
+name: DG-001-003 derivation graph controls
+on:
+  pull_request:
+    branches:
+      - m6/derivation-graph-core
+permissions:
+  contents: read
+jobs:
+  derivation-controls:
+    if: github.head_ref == 'experiment/dg-001-003-derivation-controls'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install RESIDUAL
+        run: python -m pip install -e .
+      - name: Syntax-check graph core
+        run: python -m py_compile residual/derivation.py tests/test_derivation.py
+      - name: Run authoritative DG controls
+        run: python -m unittest tests.test_derivation -v
