@@ -713,3 +713,26 @@ Second, repair efficiency remains stochastic and imperfect even when sufficient 
 Therefore context minimization should be treated as an execution-reliability requirement, not as a guarantee of reasoning quality.
 
 The production artifact continues to use the cleaner exact-main M6-ROADMAP-001B provenance rather than substituting the later five-attempt candidate merely because it also passed.
+
+
+## 21. M6-SPEC-007 — First Autonomous Discovery Attempt
+
+M6-SPEC-007 was the first trial in which RESIDUAL received measured M6 history without being given an improvement question, target metric, intervention, or hypothesis.
+
+The model-visible EvidenceSnapshot contained both aggregate measurements and full per-run rows for five retained M6 development/shipping runs.
+
+The first Scientist call timed out at the Ollama adapter's 300-second boundary before returning a proposal.
+
+- request bytes: **15,566**
+- passes: **1**
+- proposal produced: **no**
+- outcome: **aborted**
+- brake: **usage_unknown_or_invalid**
+- EvidenceSnapshot hash: `55bb8dfd86be33329ea145ee1a25e16feec65fe03fc69ef2f03b058c4a399e50`
+- retained artifact SHA-256: `c322faeaa8e499a730b8038ff6da90c4de22785755d88356583da2ddae1bb3e7`
+
+This result is classified as an **experiment-execution failure**, not an epistemic failure. No hypothesis or MeasurementGap was produced, so the trial provides no evidence about whether the Scientist can originate a defensible improvement objective.
+
+The follow-up, M6-SPEC-007B, preserves the same aggregate measurements, provenance hashes, no-supplied-hypothesis condition, deterministic checker, review, receipt, and authority boundaries while removing verbose per-run rows from model-visible context.
+
+This follows the experimental-competence rule established earlier: reduce unnecessary context before interpreting a provider timeout as a failure of reasoning.
