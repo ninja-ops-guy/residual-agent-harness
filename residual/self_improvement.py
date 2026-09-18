@@ -184,6 +184,27 @@ def load_candidates(path):
     return validate_candidate_doc(value)
 
 
+def validate_frozen_commands(command_checks, evaluator_files):
+    if not command_checks:
+        return
+    evaluators = set(evaluator_files)
+    referenced = set()
+    for check in command_checks:
+        argv = check.get("argv") if isinstance(check, dict) else None
+        if not isinstance(argv, list) or any(not isinstance(arg, str) for arg in argv):
+            raise ContractError("Self-improvement command checks require an explicit argument array")
+        if len(argv) >= 4 and argv[:3] == ["{python}", "-m", "pytest"]:
+            for evaluator in evaluators:
+                if any(arg == evaluator or arg.startswith(evaluator + "::") for arg in argv[3:]):
+                    referenced.add(evaluator)
+        elif len(argv) >= 2 and argv[0] == "{python}" and argv[1] in evaluators:
+            referenced.add(argv[1])
+        else:
+            raise ContractError("Self-improvement commands may only run declared frozen evaluators")
+    if referenced != evaluators:
+        raise ContractError("Every frozen evaluator must be bound to a self-improvement command check")
+
+
 def build_station_spec(report, plan, doc, repo):
     root = Path(repo).resolve()
     tasks = []
@@ -228,6 +249,7 @@ def build_station_spec(report, plan, doc, repo):
             raise ContractError("Command checks require external frozen evaluator files")
         if code_paths and (not command_checks or not c["evaluator_files"]):
             raise ContractError("Executable-code candidates require command checks and external frozen evaluator files")
+        validate_frozen_commands(command_checks, c["evaluator_files"])
         for path in c["files"]:
             if path in write_owners:
                 raise ContractError("Candidate writable scopes must not overlap")
