@@ -250,6 +250,29 @@ def test_oversized_chat_and_payload_are_rejected():
         MeshMessage("m", "a", 1, MeshMessageKind.TASK_PROPOSAL,
                     payload={"blob": "x" * 24001})
 
+def test_large_backlog_catchup_preserves_exact_chain():
+    nodes = mesh_nodes("a", "b"); a, b = nodes["a"], nodes["b"]; b.connect_peer(a.identity)
+    for index in range(128):
+        a.send_message(MeshMessageKind.CHAT, content=f"message-{index}")
+    assert b.sync_history(a.chat.messages) == 128
+    assert len(b.chat.messages) == 128
+    assert b.chat.head_hash == a.chat.head_hash
+    assert b.chat.verify()
+
+
+def test_concurrent_same_head_messages_are_detected_as_fork_not_auto_merged():
+    nodes = mesh_nodes("a", "b"); a, b = nodes["a"], nodes["b"]
+    a.connect_peer(b.identity); b.connect_peer(a.identity)
+    seed = a.send_message(MeshMessageKind.CHAT, content="seed")
+    assert b.receive_message(seed)
+    left = a.send_message(MeshMessageKind.CHAT, content="left")
+    right = b.send_message(MeshMessageKind.CHAT, content="right")
+    assert left.prev_hash == right.prev_hash
+    assert a.receive_message(right) is False
+    assert b.receive_message(left) is False
+    assert a.chat.head_hash != b.chat.head_hash
+    assert a.chat.verify() and b.chat.verify()
+
 def test_three_member_conversation_replays_then_continues():
     nodes = mesh_nodes("a", "b", "c"); a,b,c = nodes["a"],nodes["b"],nodes["c"]
     a.connect_peer(b.identity); b.connect_peer(a.identity)
