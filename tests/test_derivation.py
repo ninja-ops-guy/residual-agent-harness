@@ -186,6 +186,20 @@ class DerivationGraphTests(unittest.TestCase):
         self.assertFalse(ok)
         self.assertTrue(any("challenge" in x or "measured_by" in x for x in findings))
 
+    def test_ca001_superseded_challenge_stops_active_invalidation(self):
+        evidence=node(NodeType.EVIDENCE_FACT,Author.HOST,value=1)
+        finding=node(NodeType.FINDING,Author.SCIENTIST,claim="A")
+        challenge=node(NodeType.CHALLENGE,Author.REVIEWER,reason="open objection")
+        resolution=node(NodeType.SUPERSESSION,Author.HOST,reason="challenge resolved under policy")
+        edges=[
+            edge(EdgeType.SUPPORTED_BY,finding,evidence),
+            edge(EdgeType.CHALLENGES,challenge,finding,reason="semantic"),
+            edge(EdgeType.SUPERSEDES,resolution,challenge,policy="m6-semantic-v1"),
+        ]
+        g=DerivationGraph([evidence,finding,challenge,resolution],edges)
+        self.assertEqual(g.validity()[challenge.node_id],Validity.SUPERSEDED)
+        self.assertEqual(g.validity()[finding.node_id],Validity.VALID)
+
     def test_hr001_persistent_handle_resolution_is_graph_bound(self):
         evidence=node(NodeType.EVIDENCE_FACT,Author.HOST,value={"metric":"p99","value":240})
         resolution=node(NodeType.CAPABILITY_RESOLUTION,Author.HOST,invocation_id="inv-a",handle="ev_3")
