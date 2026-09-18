@@ -61,7 +61,7 @@ The built-in demo is scripted and credential-free. It demonstrates controller be
 
 ## Current repository boundary
 
-Current `main` is **`de7d9774cfd63c77ef5645ca43aa0be1a604887f`**, produced by merged PR **#248**.
+Current `main` is **`3cff6bcd52e352a6ba048c958949a7bbb2a039eb`**, produced by merged PR **#197** on top of #248.
 
 Merged **#200** hardens native setup defaults: persistent XDG locations, loopback Station binding, opt-in shell convenience, bounded venv repair, and constrained shell-rc edits. This is accepted onboarding behavior, not blank-environment qualification.
 
@@ -75,11 +75,13 @@ Merged **#233** preserves actionable Station repair failure context and explicit
 
 Merged **#248** qualifies a more explicit provider-load lifecycle on the accepted frontend path: load generations advance monotonically, state transitions are explicit, activation remains bound to the intended credentialless provider frame, and the negative network path must show that a load was actually requested before failing closed. It does not establish real Puter login or paid/live semantic inference.
 
-Exact merged `main@de7d9774...` has six successful ordinary push workflows and one **FAIL**: Deploy GitHub Pages run `35363306307`. Generated desktop+narrow artifact proof and deployment passed. Published desktop acceptance reached real guest/demo verification, warm reload, repository audit, artifact/revision checks, provider transport, conversation reload and guided-provider draft preservation, then timed out because the provider frame's sign-in button remained disabled.
+Merged **#197** hardens the PR Agent as advisory review through workflow/configuration changes only. It does not modify runtime behavior, provider semantics, Factory/M4, verifier authority, evidence schemas, or acceptance authority.
 
-The retained report says `cloud_inference: NOT_RUN` and identifies the provider path as a test double rather than paid inference. Its Playwright trace shows `Load Puter` was clicked while the new frame still reported `Not connected. No provider SDK has been loaded.`; by the terminal failure snapshot the frame reported `Bridge ready. Load Puter when you are ready` while sign-in was still disabled. This supports a repository/UI bootstrap-race diagnosis, not a Puter outage or inference-quality claim.
+Exact current `main@3cff6bcd...` has six successful ordinary push workflows in their named scopes. The newest retained **production Pages acceptance** remains run `35363306307` on its parent `main@de7d9774...`, and remains **FAIL**. Generated desktop+narrow proof and deployment passed; published acceptance later timed out because provider sign-in remained disabled. Retained evidence records `cloud_inference: NOT_RUN` and identifies the path as a test double rather than paid inference.
 
-Open **#253** contains the focused fail-closed bootstrap repair. Its applicable exact-head technical workflows currently pass, including Browser VM Demo CI and Deploy GitHub Pages; the exact-head maintainer approval gate remains **FAIL / pending matching attestation**. It is unaccepted until normal governance completes, and any merge must receive a new first production Pages attempt on the resulting merged SHA.
+The trace for that production failure supports a repository/UI provider-bootstrap race. It does not establish a Puter outage, a real authentication failure, model-quality failure, or paid/live inference result.
+
+PR **#253** is closed unmerged. Its current-main replacement, open **#260**, is rebuilt directly on exact `main@3cff6bcd...`. #260's applicable exact-head technical workflows are **PASS**, including Browser VM Demo CI and Deploy GitHub Pages; its exact-head maintainer approval gate is **FAIL / pending matching attestation**. PR-head Pages PASS is not production proof. If #260 is accepted, the resulting merged SHA requires its own first published Pages acceptance attempt.
 
 Historical failures remain retained evidence rather than being erased by later PASS results.
 
@@ -107,14 +109,16 @@ Recent research evidence remains mixed:
 - #203/#204 and #215/#217 remain retained M6 **FAIL** results.
 - #220 M6-SPEC-006 remains a bounded exact-head **PASS** on the corrected #218 runtime. It does not establish general repair reliability or autonomous self-maintenance.
 - #231 M6-ROADMAP-001B is a bounded research **PASS** against a detached clean copy of exact `main@260b5f9...`: one implementation attempt, 3/3 immutable checks PASS, independent local review APPROVED, exact reviewed head integrated, verification receipt issued, and release export succeeded.
-- Production PR **#243** remains open. Its current source derives from #231 but adds maintainer hardening that recursively freezes the `acceptance` graph and therefore no longer claims byte-for-byte identity with the generated source. Its applicable technical PR-head workflows pass, including Pages, while the exact-head maintainer approval gate is **FAIL / pending matching attestation**. Accepted production behavior remains **UNKNOWN / unaccepted**.
+- Production PR **#243** remains open. Its current source derives from #231 but adds maintainer hardening that recursively freezes the `acceptance` graph and therefore no longer claims byte-for-byte identity with the generated source. Its applicable technical PR-head workflows pass while the exact-head maintainer approval gate is **FAIL / pending matching attestation**. Accepted production behavior remains **UNKNOWN / unaccepted**.
 - #232 M6-EPI-001 completed both experiment arms after one repair but surfaced stricter verifier requirements. That is useful research evidence, not production qualification.
-- #244 and #246 both timed out at the provider before any autonomous discovery proposal was produced: **FAIL in experiment-execution scope / discovery not reached**.
-- #249 reached discovery without provider timeout but **FAILed in bounded discovery qualification scope** after malformed/repeated/truncated candidates exhausted its five-pass limit.
-- #250, #251, #252 and #254 moved the Scientist output to typed structured proposals. Their authoritative experiment workflows still **FAILed mechanical admission** because each proposed a `MeasurementGap` for a metric already present in the frozen evidence snapshot. #251 repeated the same rejected proposal over three repair attempts; #254 reproduced the same class of evidence-grounding failure with `qwen2.5:7b`. No semantic review approval or admission receipt was issued.
+- #244/#246 failed before discovery because of provider timeout. #249 reached discovery but malformed/repeated/truncated candidates exhausted its bounded repair budget. #250/#251/#252/#254 moved to typed structured proposals but still **FAILed** deterministic admission because they described already-measured metrics as missing.
+- **#255 / M6-SPEC-007H** reached semantic review with a genuinely absent-metric-shaped MeasurementGap but was rejected for causal overclaim, non-falsifiable acceptance, and preservation-criteria defects: bounded **FAIL**, no receipt.
+- **#256 / 007I** and **#258 / 007K** are experiment-apparatus **FAILs** (stale task ID and pre-model variable-name defect). They do not test the Scientist hypothesis to a proposal.
+- **#257 / M6-SPEC-007J** is a bounded autonomous-discovery **PASS at formal admission**. Local `qwen2.5:7b` proposed a MeasurementGap for genuinely absent `context_bytes_non_success_max`; semantic review approved it and receipt `09f3bbc0dba17ca7344b485cf4a8757dc11382e0ac2f6b46ece8fb7f74bd80c9` was issued. This is one bounded admission path, not general autonomous discovery.
+- **#259 / 007L**, **#262 / 007M**, and **#263 / 007N** are bounded **FAILs** after closing the admitted gap and adding host evidence resolution/active evidence selection. The host exposed/resolved present measurements, but the Scientist kept requesting metrics already present and eventually repeated already-resolved requests. No later admission receipt was issued.
 - #207 campaign B still retains independent accounting/release authority-ordering defects. Later repair/self-host PASS results do not clear them.
 
-The newer typed-output trials show a meaningful narrowing: malformed JSON can be eliminated while evidence-grounded semantic admission can still fail. General autonomous improvement discovery remains **UNKNOWN / not established**.
+The latest evidence narrows the claim: one bounded autonomous MeasurementGap admission has **PASSed**, but follow-up evidence-use/repair remains unreliable. General autonomous improvement discovery and recursive self-improvement remain **UNKNOWN / not established**.
 
 ## Governance boundary
 
