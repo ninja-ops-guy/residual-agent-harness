@@ -17,7 +17,7 @@ SPEC = """# Simple calculator mission
 
 Implement the smallest possible calculator module and prove it works with deterministic checks.
 
-\`\`\`json
+```json
 {
   "schema_version": 1,
   "name": "Simple Calculator Smoke Mission",
@@ -45,7 +45,7 @@ Implement the smallest possible calculator module and prove it works with determ
     }
   ]
 }
-\`\`\`
+```
 """
 
 
