@@ -1,0 +1,67 @@
+name: PR Agent advisory review
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: pr-agent-${{ github.event.pull_request.number || github.event.issue.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  pr-agent:
+    if: >-
+      github.event.sender.type != 'Bot' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository) &&
+      (github.event_name != 'issue_comment' ||
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
+                github.event.comment.author_association))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Require configured OpenAI secret
+        shell: bash
+        env:
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY || secrets.OPENAI_API_KEY }}
+        run: |
+          if [[ -z "${OPENAI_KEY:-}" ]]; then
+            echo "::error::Repository Actions secret OPENAI_KEY or OPENAI_API_KEY is missing or empty."
+            exit 1
+          fi
+
+      - name: Run advisory PR review
+        uses: The-PR-Agent/pr-agent@f3b385ea2927247ddcff2fe252472380b9c8f5fc # v0.45.0
+        env:
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY || secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTION_CONFIG.AUTO_REVIEW: "true"
+          GITHUB_ACTION_CONFIG.HANDLE_PUSH_TRIGGER: "true"
+          GITHUB_ACTION_CONFIG.PUSH_COMMANDS: '["/review"]'
+          GITHUB_ACTION_CONFIG.AUTO_DESCRIBE: "false"
+          GITHUB_ACTION_CONFIG.AUTO_IMPROVE: "false"
+          CONFIG.MODEL: "gpt-4o"
+          CONFIG.FALLBACK_MODELS: '["gpt-4o-mini"]'
+          CONFIG.PROPAGATE_TOOL_ERRORS: "true"
+
+      - name: Verify advisory review was published
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+        run: |
+          run_started_at="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --jq .run_started_at)"
+          published="$(
+            gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --paginate               --jq "[.[] | select(.user.login == \"github-actions[bot]\") | select(.updated_at >= \"$run_started_at\")] | length"
+          )"
+          if [[ "$published" -lt 1 ]]; then
+            echo "::error::PR Agent returned without publishing an advisory review; inspect provider/tool logs."
+            exit 1
+          fi
