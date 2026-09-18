@@ -547,6 +547,59 @@ def run_cycle(repo, station_data, route="local", allow_cloud=False, allow_comman
             "origin": origin, "execution": execution}
 
 
+def run_lineage(repo, station_data, generations=3, route="local",
+                allow_cloud=False, allow_command_checks=False):
+    if type(generations) is not int or not 1 <= generations <= 10:
+        raise ContractError("Experimental lineage must contain 1-10 bounded generations")
+    governor_sha256 = file_digest(Path(__file__))
+    current_source = str(Path(repo).resolve())
+    history = []
+    stop_reason = "max_generations"
+    for ordinal in range(1, generations + 1):
+        cycle = run_cycle(
+            current_source, station_data, route=route, allow_cloud=allow_cloud,
+            allow_command_checks=allow_command_checks)
+        origin = cycle["origin"]
+        execution = cycle["execution"]
+        entry = {
+            "ordinal": ordinal,
+            "generation": cycle["generation"],
+            "source_repo": current_source,
+            "source_head": origin["source_head"],
+            "source_report_sha256": origin["source_report_sha256"],
+            "plan_sha256": origin["plan_sha256"],
+            "planner_project_id": origin["planner_project_id"],
+            "proposal_sha256": origin["proposal_sha256"],
+            "execution_project_id": execution["project_id"] if execution else None,
+            "accepted_successor": bool(execution and execution.get("accepted_successor")),
+            "successor_head": execution.get("successor_head") if execution else None,
+            "successor_tree": execution.get("successor_tree") if execution else None,
+            "export": execution.get("export") if execution else None,
+        }
+        history.append(entry)
+        if execution is None:
+            stop_reason = "origination_incomplete"
+            break
+        if not execution.get("accepted_successor"):
+            stop_reason = "execution_incomplete_or_no_delta"
+            break
+        successor_repo = execution.get("successor_repo")
+        if not successor_repo or Path(successor_repo).resolve() == Path(current_source).resolve():
+            raise ContractError("Experimental lineage successor source is invalid")
+        current_source = successor_repo
+    return {
+        "mission_id": MISSION_ID,
+        "mode": "experimental_lineage",
+        "governor_sha256": governor_sha256,
+        "requested_generations": generations,
+        "completed_generations": len(history),
+        "stop_reason": stop_reason,
+        "initial_source_repo": str(Path(repo).resolve()),
+        "final_candidate_repo": current_source,
+        "history": history,
+    }
+
+
 def execute_generation(repo, candidates, station_data, allow_cloud=False, allow_command_checks=False):
     report, plan = ready_report(repo)
     return execute_candidate_doc(
@@ -594,6 +647,13 @@ def self_improve_main(argv=None):
     cycle.add_argument("--route", choices=["local", "cloud"], default="local")
     cycle.add_argument("--allow-cloud", action="store_true")
     cycle.add_argument("--allow-command-checks", action="store_true")
+    lineage = sub.add_parser("lineage")
+    lineage.add_argument("--repo", default=".")
+    lineage.add_argument("--station-data", required=True)
+    lineage.add_argument("--generations", type=int, default=3)
+    lineage.add_argument("--route", choices=["local", "cloud"], default="local")
+    lineage.add_argument("--allow-cloud", action="store_true")
+    lineage.add_argument("--allow-command-checks", action="store_true")
     args = p.parse_args(argv)
     try:
         if args.command == "plan":
@@ -622,6 +682,13 @@ def self_improve_main(argv=None):
             if execution is None:
                 return 2
             return 0 if execution.get("accepted_successor") else 2
+        if args.command == "lineage":
+            result = run_lineage(
+                args.repo, args.station_data, generations=args.generations, route=args.route,
+                allow_cloud=args.allow_cloud, allow_command_checks=args.allow_command_checks)
+            print(json.dumps(result, indent=2))
+            history = result["history"]
+            return 0 if history and history[-1]["accepted_successor"] else 2
         result = execute_generation(args.repo, args.candidates, args.station_data,
                                     args.allow_cloud, args.allow_command_checks)
         print(json.dumps(result, indent=2))
