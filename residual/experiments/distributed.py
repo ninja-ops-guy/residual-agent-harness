@@ -452,6 +452,12 @@ def main(argv=None) -> int:
     straggler.add_argument("--repeats", type=int, default=3)
     straggler.add_argument("--output")
 
+    transport = sub.add_parser("transport-faults", help="Benchmark duplicate/reordered/partitioned mesh delivery")
+    transport.add_argument("--messages", type=int, default=100)
+    transport.add_argument("--scenarios", nargs="+", default=["clean","duplicate","reverse","gap","partition"])
+    transport.add_argument("--repeats", type=int, default=3)
+    transport.add_argument("--output")
+
     mesh = sub.add_parser("mesh", help="Benchmark signed mesh history and cluster join")
     mesh.add_argument("--messages", type=int, default=1000)
     mesh.add_argument("--repeats", type=int, default=3)
@@ -509,6 +515,13 @@ def main(argv=None) -> int:
             report = run_straggler_benchmark(
                 latencies_ms=tuple(args.latencies_ms),
                 tasks=args.tasks,
+                repeats=args.repeats,
+            )
+        elif args.experiment == "transport-faults":
+            from residual.experiments.transport_faults import run_mesh_transport_fault_benchmark
+            report = run_mesh_transport_fault_benchmark(
+                messages=args.messages,
+                scenarios=tuple(args.scenarios),
                 repeats=args.repeats,
             )
         else:

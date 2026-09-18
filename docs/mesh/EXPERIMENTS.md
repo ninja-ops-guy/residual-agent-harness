@@ -328,6 +328,7 @@ These remain typed UI/runtime operations. They do not expose arbitrary shell exe
 The focused experiment workflow retains:
 
 - `mesh-experiment.json`;
+- `transport-faults-experiment.json`;
 - `distributed-experiment.json`;
 - `straggler-experiment.json`;
 - `pipeline-experiment.json`;
@@ -433,3 +434,30 @@ Station workflow-event mirroring into `MeshSession` is idempotent by the **full 
 A peer can post text that resembles a Station-event marker, but it cannot suppress the real Station event because peer-authored markers are ignored for mirror deduplication.
 
 This allows a bridge process to retry an overlapping event window after a lost cursor without duplicating the room transcript.
+
+
+## Transport-fault protocol experiment
+
+The synchronous in-process room is intentionally not treated as network evidence. A deterministic delivery-fault harness feeds the real signed messages through actual `MeshNode.receive_message()` admission under controlled schedules:
+
+```bash
+residual experiment transport-faults \
+  --messages 100 \
+  --scenarios clean duplicate reverse gap partition \
+  --repeats 3 \
+  --output runs/transport-faults.json
+```
+
+Scenarios:
+
+- **clean** — ordered single delivery;
+- **duplicate** — every signed message is delivered twice;
+- **reverse** — the authored chain is delivered newest-first;
+- **gap** — only alternating messages arrive before catch-up;
+- **partition** — no live messages arrive before reconciliation.
+
+The experiment records accepted/rejected live deliveries, pre-sync head/count, verified catch-up size/time, final convergence and idempotent replay.
+
+A fault scenario passes qualification only if the receiver ends on the sender's exact verified head after `sync_history()`. Rejected out-of-order or duplicate delivery is expected protocol behavior, not a failure to hide.
+
+This harness does not emulate bandwidth, sockets, RTT, relay encryption, group re-keying, forward secrecy or consensus. Its purpose is to verify that the message/chain layer behaves safely when transport does not provide perfect ordered exactly-once delivery.

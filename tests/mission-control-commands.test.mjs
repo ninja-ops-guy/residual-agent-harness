@@ -135,6 +135,8 @@ test('mesh and experiment commands preserve browser isolation boundary',async()=
   assert.match(matrix.text,/residual experiment matrix/);
   const straggler=await executeMissionCommand('/experiment straggler',x.api);
   assert.match(straggler.text,/residual experiment straggler/);
+  const faults=await executeMissionCommand('/experiment transport-faults',x.api);
+  assert.match(faults.text,/residual experiment transport-faults/);
   const bridge=await executeMissionCommand('/experiment bridge',x.api);
   assert.match(bridge.text,/residual experiment bridge/);
 });

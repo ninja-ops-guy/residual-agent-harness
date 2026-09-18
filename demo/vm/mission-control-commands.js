@@ -26,6 +26,7 @@ const HELP=[
   "/experiment lease-recovery    show expired-lease recovery benchmark",
   "/experiment matrix            show worker/latency sweep command",
   "/experiment straggler         show heterogeneous-worker benchmark command",
+  "/experiment transport-faults  show duplicate/reorder/partition mesh benchmark",
   "/experiment bridge            show Station↔mesh observability benchmark",
   "/terminal                      alias for /tab terminal"
 ].join("\n");
@@ -125,8 +126,9 @@ export async function executeMissionCommand(input,api){
     if(kind==="lease-recovery")return result("Native benchmark: residual experiment lease-recovery --work-ms 40 --repeats 3 --output runs/lease-recovery.json");
     if(kind==="matrix")return result("Native benchmark: residual experiment matrix --workers 1 2 4 --latencies-ms 0 40 200 --tasks 8 --pipeline-width 4 --pipeline-depth 2 --repeats 3 --output runs/matrix.json");
     if(kind==="straggler")return result("Native benchmark: residual experiment straggler --latencies-ms 20 20 200 --tasks 12 --repeats 3 --output runs/straggler.json");
+    if(kind==="transport-faults")return result("Native benchmark: residual experiment transport-faults --messages 100 --scenarios clean duplicate reverse gap partition --repeats 3 --output runs/transport-faults.json");
     if(kind==="bridge")return result("Native benchmark: residual experiment bridge --members 2 4 8 --repeats 3 --output runs/bridge.json");
-    return result("Usage: /experiment distributed|mesh|pipeline|recovery|lease-recovery|matrix|straggler|bridge");
+    return result("Usage: /experiment distributed|mesh|pipeline|recovery|lease-recovery|matrix|straggler|transport-faults|bridge");
   }
   return result(`Unknown command: /${command}\n\n${HELP}`);
 }
