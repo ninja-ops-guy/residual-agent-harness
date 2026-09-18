@@ -28,6 +28,7 @@ class RecursiveImprovementTests(unittest.TestCase):
         subprocess.run(["git", "config", "user.name", "Test"], cwd=self.repo, check=True)
         required = {
             "docs/CURRENT_STATUS.md": "# status\n",
+            "docs/evaluator.md": "# frozen evaluator\n",
             "residual/goalspec.py": "GOAL = True\n",
             "residual/loop.py": "LOOP = True\n",
             "residual/station/service.py": "STATION = True\n",
@@ -167,10 +168,10 @@ class RecursiveImprovementTests(unittest.TestCase):
 
     def test_generation_cannot_modify_another_candidates_evaluator(self):
         report = doctor_repository(self.repo)
-        a = self.candidate(["docs/a.md"], ["docs/CURRENT_STATUS.md"])["candidates"][0]
-        b = self.candidate(["docs/CURRENT_STATUS.md"], [])["candidates"][0]
+        a = self.candidate(["docs/a.md"], ["docs/evaluator.md"])["candidates"][0]
+        b = self.candidate(["docs/evaluator.md"], [])["candidates"][0]
         b["id"] = "SI-002"
-        b["checks"] = [{"kind": "exists", "path": "docs/CURRENT_STATUS.md"}]
+        b["checks"] = [{"kind": "exists", "path": "docs/evaluator.md"}]
         doc = {"schema_version": 1, "candidates": [a, b]}
         with self.assertRaises(ContractError):
             build_station_spec(report, mission_plan(report), doc, self.repo)
@@ -187,6 +188,15 @@ class RecursiveImprovementTests(unittest.TestCase):
         doc["candidates"][0]["checks"] = [{"kind": "command", "argv": ["python", "tests/frozen_eval.py"]}]
         with self.assertRaises(ContractError):
             build_station_spec(report, mission_plan(report), doc, self.repo)
+
+    def test_mission_policy_and_history_are_not_autonomous_writes(self):
+        report = doctor_repository(self.repo)
+        for path in ("docs/CURRENT_STATUS.md", "docs/roadmap/README.md",
+                     "docs/self-improvement/MISSION.md",
+                     "docs/self-improvement/generations/0002.json"):
+            doc = self.candidate([path], [])
+            with self.assertRaises(ContractError):
+                build_station_spec(report, mission_plan(report), doc, self.repo)
 
     def test_protected_path_fails_closed(self):
         report = doctor_repository(self.repo)
