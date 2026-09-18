@@ -84,6 +84,7 @@ class CopilotMissionRecord:
     claims_hash: str
     profile_id: str
     template_id: str
+    template_inputs: Any
     state: str
     risk: str
     approval_required: bool
@@ -92,6 +93,16 @@ class CopilotMissionRecord:
     def __post_init__(self):
         if self.state not in STATE_TRANSITIONS:
             raise ContractError("invalid Copilot mission state")
+        if not isinstance(self.template_inputs, dict):
+            raise ContractError("authorized template inputs must be an object")
+        try:
+            object.__setattr__(
+                self, "template_inputs", freeze(self.template_inputs)
+            )
+        except (TypeError, ValueError):
+            raise ContractError(
+                "authorized template inputs must be finite JSON"
+            ) from None
 
     def bind_evidence(self, ref: str) -> MissionEvidenceRef:
         return MissionEvidenceRef(
@@ -373,6 +384,7 @@ class CopilotStudioService:
             claims_hash=principal.claims_hash,
             profile_id=decision.profile_id,
             template_id=decision.template_id,
+            template_inputs=request.inputs,
             state="prepared",
             risk=decision.risk,
             approval_required=decision.approval_required,
