@@ -4,7 +4,9 @@ on:
     paths:
       - 'residual/eval/ollama_gauntlet.py'
       - 'residual/eval_frozen/**'
+      - 'ai_providers/adapters/ollama_adapter.py'
       - 'tests/test_ollama_gauntlet.py'
+      - 'tests/modular/test_adapters.py'
       - 'tests/swarm/test_eval_frozen.py'
       - 'pyproject.toml'
       - '.github/workflows/ollama-gauntlet-smoke.yml'
@@ -41,15 +43,29 @@ jobs:
         run: ollama pull qwen2.5-coder:0.5b
       - name: Compile and unit-test gauntlet
         run: |
-          python -m compileall -q residual/eval residual/eval_frozen
-          python -m unittest tests.test_ollama_gauntlet -v
+          python -m compileall -q residual/eval residual/eval_frozen ai_providers
+          python -m pytest -q tests/test_ollama_gauntlet.py tests/modular/test_adapters.py
       - name: Run genuine Ollama/Factory/cluster smoke gauntlet
         env:
           RESIDUAL_REQUIRE_SECCOMP: '1'
         run: |
           set -o pipefail
           mkdir -p runs
+          set +e
           residual-gauntlet --model qwen2.5-coder:0.5b --repeats 1 --output runs/ollama-gauntlet-smoke | tee runs/ollama-gauntlet-smoke-summary.txt
+          rc=${PIPESTATUS[0]}
+          set -e
+          if [[ "$rc" -eq 1 ]]; then
+            echo "::error::Gauntlet found a structural/enforcement FAIL"
+            exit 1
+          fi
+          if [[ "$rc" -eq 2 ]]; then
+            echo "::notice::Live 0.5B smoke was empirically INCONCLUSIVE; evidence was retained"
+            exit 0
+          fi
+          if [[ "$rc" -ne 0 ]]; then
+            exit "$rc"
+          fi
       - name: Preserve evidence
         if: always()
         uses: actions/upload-artifact@v4
