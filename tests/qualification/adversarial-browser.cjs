@@ -162,7 +162,7 @@ async function main(){
     await card.click();await page.getByRole('button',{name:'Integrate verified change',exact:true}).click();
     await waitTask(page,pid,'OPS-101','integrated');
     await page.reload();await page.locator('.task-card').filter({hasText:'OPS-101'}).waitFor();
-    assert((await page.locator('.task-card').filter({hasText:'OPS-101'}).innerText()).includes('integrated');
+    assert((await page.locator('.task-card').filter({hasText:'OPS-101'}).innerText()).includes('integrated'));
 
     assert.deepEqual(errors,[]);
     const result={passed:true,checks:[
