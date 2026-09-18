@@ -351,6 +351,7 @@ def main() -> int:
     }
     sh=hashlib.sha256(canonical(raw).encode()).hexdigest()
     snapshot={**raw,"snapshot_hash":sh}
+    registry.validate_snapshot_binding(snapshot)
 
     with tempfile.TemporaryDirectory() as root:
         root=Path(root)
