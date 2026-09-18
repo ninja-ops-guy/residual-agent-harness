@@ -222,8 +222,32 @@ class Station:
                 self.store.event(pid, "checks.completed", {"head_commit": head, "passed": sum(c["passed"] for c in checks), "total": len(checks), "evidence": artifact["id"]}, t["id"])
                 if not all(c["passed"] for c in checks):
                     fields["findings"] = [f"{c['id']}: {c['detail'][:500]}" for c in checks if not c["passed"]]
-                    self.store.transition(pid, t["id"], "repair_required", lease=lease, fields=fields)
+                    failure_signature = [f"{c['id']}:{c['kind']}" for c in checks if not c["passed"]]
+                    repeated = (
+                        current.get("last_failed_patch_sha") == patch["sha256"]
+                        and current.get("last_failure_signature") == failure_signature
+                    )
+                    repeat_count = current.get("identical_failure_repeats", 0) + 1 if repeated else 0
+                    fields.update(
+                        last_failed_patch_sha=patch["sha256"],
+                        last_failure_signature=failure_signature,
+                        identical_failure_repeats=repeat_count,
+                    )
+                    if repeat_count >= 2:
+                        fields["findings"].append(
+                            "Stagnated: identical candidate and failing checks repeated; change context, model, or acceptance diagnostics before retrying"
+                        )
+                        self.store.event(pid, "task.finding", {
+                            "message": "Repeated identical failed candidate classified as stagnation",
+                            "candidate_patch_sha256": patch["sha256"],
+                            "failing_checks": failure_signature,
+                            "identical_failure_repeats": repeat_count,
+                        }, t["id"])
+                        self.store.transition(pid, t["id"], "blocked", lease=lease, fields=fields)
+                    else:
+                        self.store.transition(pid, t["id"], "repair_required", lease=lease, fields=fields)
                 else:
+                    fields.update(identical_failure_repeats=0)
                     self.store.transition(pid, t["id"], "local_verified", lease=lease, fields=fields)
                     self.store.transition(pid, t["id"], "review_ready")
                 if usage:
