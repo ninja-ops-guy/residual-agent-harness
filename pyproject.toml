@@ -20,6 +20,7 @@ residual = "residual.cli:main"
 residual-station = "residual.station.server:main"
 residual-worker = "residual.station.worker:main"
 residual-module = "residual.marketplace.cli:main"
+residual-gauntlet = "residual.eval.ollama_gauntlet:main"
 
 [project.entry-points."residual.modules"]
 netops = "residual.modules.netops:NetOpsModule"
