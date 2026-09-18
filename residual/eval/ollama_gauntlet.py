@@ -19,6 +19,7 @@ import shutil
 import statistics
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
@@ -104,7 +105,7 @@ def provider_live_suite(*, provider: str, model: str, repeats: int,
     adapter = DEFAULT_REGISTRY.get(provider)
     models = adapter.list_models()
     if provider == "ollama" and model not in models:
-        raise ValueError(f"Ollama model is not installed: {model}")
+        raise ProviderError(provider=provider, code="model_not_found")
     rows: list[dict[str, Any]] = []
     for case in cases:
         for repeat in range(repeats):
@@ -143,6 +144,78 @@ def provider_live_suite(*, provider: str, model: str, repeats: int,
         "available_models": models,
         "summary": _summary(rows),
         "observations": rows,
+    }
+
+
+def provider_scaling_suite(*, provider: str, model: str, repeats: int,
+                           cases: tuple[LiveCase, ...] = DEFAULT_CASES,
+                           concurrencies: tuple[int, ...] = (1, 2, 4, 8)) -> dict[str, Any]:
+    """Measure the real provider saturation curve without attributing it to RESIDUAL."""
+    if repeats < 1:
+        raise ValueError("repeats must be >= 1")
+    adapter = DEFAULT_REGISTRY.get(provider)
+    models = adapter.list_models()
+    if provider == "ollama" and model not in models:
+        raise ProviderError(provider=provider, code="model_not_found")
+
+    work = [(case, repeat) for case in cases for repeat in range(repeats)]
+    rows = []
+    for concurrency in concurrencies:
+        capacity = min(concurrency, len(work))
+        started = time.monotonic()
+        observations = []
+
+        def execute(item):
+            case, repeat = item
+            req = ChatRequest(
+                model=model,
+                messages=(
+                    Message(Role.SYSTEM, "Return only the requested answer. No explanation."),
+                    Message(Role.USER, case.prompt),
+                ),
+                temperature=0.0,
+                max_tokens=128,
+                seed=repeat,
+            )
+            call_started = time.perf_counter_ns()
+            response = adapter.chat(req)
+            elapsed_ms = (time.perf_counter_ns() - call_started) / 1_000_000
+            usage = response.usage or {}
+            return {
+                "case_id": case.case_id,
+                "repeat": repeat,
+                "correct": _exact(response.content, case.expected),
+                "latency_ms": round(elapsed_ms, 3),
+                "input_tokens": int(usage.get("prompt_tokens", 0)),
+                "output_tokens": int(usage.get("completion_tokens", 0)),
+            }
+
+        with ThreadPoolExecutor(max_workers=capacity) as pool:
+            futures = [pool.submit(execute, item) for item in work]
+            for future in as_completed(futures):
+                observations.append(future.result())
+        wall = time.monotonic() - started
+        summary = _summary(observations)
+        rows.append({
+            "concurrency": concurrency,
+            "effective_capacity": capacity,
+            "wall_clock_seconds": wall,
+            "requests_per_second": len(observations) / wall if wall > 0 else None,
+            "summary": summary,
+        })
+    baseline = rows[0]["requests_per_second"]
+    for row in rows:
+        current = row["requests_per_second"]
+        row["throughput_speedup_vs_1"] = (
+            current / baseline if current is not None and baseline else None
+        )
+    return {
+        "suite": "provider_scaling",
+        "evidence_level": "provider_live",
+        "status": "PASS",
+        "provider": provider,
+        "model": model,
+        "points": rows,
     }
 
 
@@ -351,13 +424,14 @@ def _execute_strategy(runtime: FactoryRuntime, plan: ExecutionPlan, approval: Fr
 
 def factory_live_suite(*, provider: str, model: str, output_root: Path,
                        strategy: str, cases: tuple[LiveCase, ...] = DEFAULT_CASES,
-                       fixed_capacity: int = 4, dynamic_max: int = 8) -> dict[str, Any]:
+                       fixed_capacity: int = 4, dynamic_max: int = 8,
+                       trial: int = 0) -> dict[str, Any]:
     """Run real model-authored code through the real Factory boundary and M3 issuer."""
     if sys.platform != "linux":
         return {"suite": f"factory_live_{strategy}", "evidence_level": "factory_live",
                 "status": "NOT_TESTED", "reason": "FactoryRuntime requires Linux"}
     safe_provider = provider.replace("/", "_").replace(":", "_")
-    run_root = output_root / f"factory-{safe_provider}-{strategy}"
+    run_root = output_root / f"factory-{safe_provider}-{strategy}-trial-{trial:03d}"
     run_root.mkdir(parents=True, exist_ok=False)
     repository, commit = _init_repo(run_root)
     journal = RuntimeJournal(run_root / "state" / "journal.db",
@@ -377,7 +451,7 @@ def factory_live_suite(*, provider: str, model: str, output_root: Path,
     engine_id = engine.engine_id
     contracts = _contracts_for_cases(
         cases=cases, plan=plan, input_commit=commit, work_root=run_root / "work",
-        engine_id=engine_id, attempt_prefix=strategy,
+        engine_id=engine_id, attempt_prefix=f"{strategy}{trial:03d}",
     )
 
     authored: list[dict[str, Any]] = []
@@ -460,8 +534,9 @@ def factory_live_suite(*, provider: str, model: str, output_root: Path,
     return {
         "suite": f"factory_live_{strategy}",
         "evidence_level": "factory_live",
-        "status": "PASS" if unsafe_acceptances == 0 else "FAIL",
+        "status": ("FAIL" if unsafe_acceptances else ("PASS" if accepted else "INCONCLUSIVE")),
         "strategy": strategy,
+        "trial": trial,
         "provider": provider,
         "model": model,
         "plan_hash": plan.graph_hash,
@@ -481,6 +556,85 @@ def factory_live_suite(*, provider: str, model: str, output_root: Path,
         "workers_detail": rows,
         "receipt_hashes": [r.receipt_hash for r in receipts],
         "output_dir": str(run_root),
+    }
+
+
+def factory_live_repeated_suite(*, provider: str, model: str, output_root: Path,
+                                strategy: str, repeats: int,
+                                cases: tuple[LiveCase, ...] = DEFAULT_CASES,
+                                fixed_capacity: int = 4,
+                                dynamic_max: int = 8) -> dict[str, Any]:
+    """Repeat the full model-authoring + Factory execution experiment."""
+    if repeats < 1:
+        raise ValueError("repeats must be >= 1")
+    trials = []
+    for trial in range(repeats):
+        result = factory_live_suite(
+            provider=provider,
+            model=model,
+            output_root=output_root,
+            strategy=strategy,
+            cases=cases,
+            fixed_capacity=fixed_capacity,
+            dynamic_max=dynamic_max,
+            trial=trial,
+        )
+        trials.append(result)
+        if result.get("status") == "NOT_TESTED":
+            break
+
+    tested = [r for r in trials if r.get("status") != "NOT_TESTED"]
+    if not tested:
+        return {
+            "suite": f"factory_live_{strategy}",
+            "evidence_level": "factory_live",
+            "status": "NOT_TESTED",
+            "strategy": strategy,
+            "provider": provider,
+            "model": model,
+            "trials": trials,
+        }
+
+    wall = [float(r["wall_clock_seconds"]) for r in tested
+            if r.get("wall_clock_seconds") is not None]
+    total_accepted = sum(int(r.get("accepted") or 0) for r in tested)
+    total_workers = sum(int(r.get("workers") or 0) for r in tested)
+    unsafe = sum(int(r.get("unsafe_acceptances") or 0) for r in tested)
+    author_tokens = sum(int(r.get("author_tokens") or 0) for r in tested)
+    if unsafe:
+        status = "FAIL"
+    elif total_accepted == 0:
+        status = "INCONCLUSIVE"
+    elif any(r.get("status") == "FAIL" for r in tested):
+        status = "FAIL"
+    elif any(r.get("status") == "INCONCLUSIVE" for r in tested):
+        status = "INCONCLUSIVE"
+    else:
+        status = "PASS"
+
+    wall_total = sum(wall)
+    return {
+        "suite": f"factory_live_{strategy}",
+        "evidence_level": "factory_live",
+        "status": status,
+        "strategy": strategy,
+        "provider": provider,
+        "model": model,
+        "repeat_count": len(tested),
+        "workers": total_workers,
+        "accepted": total_accepted,
+        "rejected_or_failed": total_workers - total_accepted,
+        "unsafe_acceptances": unsafe,
+        "unsafe_acceptance_rate": unsafe / total_accepted if total_accepted else None,
+        "wall_clock_seconds_total": wall_total,
+        "wall_clock_seconds_mean": round(statistics.fmean(wall), 6) if wall else None,
+        "wall_clock_seconds_p50": _percentile(wall, 0.50),
+        "wall_clock_seconds_p95": _percentile(wall, 0.95),
+        "verified_useful_throughput_per_second": (
+            total_accepted / wall_total if wall_total > 0 else None
+        ),
+        "author_tokens": author_tokens,
+        "trials": trials,
     }
 
 
@@ -533,7 +687,7 @@ def factory_control_suite(*, output_root: Path) -> dict[str, Any]:
             status = "EXCEPTION"
             reason = type(exc).__name__
             termination = None
-        passed = status == "CANDIDATE" if expected == "CANDIDATE" else status != "CANDIDATE"
+        passed = status == expected
         rows.append({
             "probe": name, "status": status, "reason": reason,
             "termination": termination, "expected": expected, "passed": passed,
@@ -592,12 +746,15 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
 
     capture("provider_live", lambda: provider_live_suite(
         provider=provider, model=model, repeats=repeats))
+    capture("provider_scaling", lambda: provider_scaling_suite(
+        provider=provider, model=model, repeats=repeats))
     capture("cluster_loopback", lambda: cluster_loopback_suite(model=model))
     if include_factory:
         capture("factory_control", lambda: factory_control_suite(output_root=output))
         for strategy in ("single", "fixed", "dynamic"):
-            capture(f"factory_live_{strategy}", lambda strategy=strategy: factory_live_suite(
-                provider=provider, model=model, output_root=output, strategy=strategy))
+            capture(f"factory_live_{strategy}", lambda strategy=strategy: factory_live_repeated_suite(
+                provider=provider, model=model, output_root=output, strategy=strategy,
+                repeats=repeats))
     if cloud_provider or cloud_model:
         if not (cloud_provider and cloud_model):
             suites.append({"suite": "cloud_provider_live", "status": "NOT_TESTED",
@@ -606,9 +763,9 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
             capture("cloud_provider_live", lambda: provider_live_suite(
                 provider=cloud_provider, model=cloud_model, repeats=repeats))
             if include_factory:
-                capture("factory_cloud_dynamic", lambda: factory_live_suite(
+                capture("factory_cloud_dynamic", lambda: factory_live_repeated_suite(
                     provider=cloud_provider, model=cloud_model, output_root=output,
-                    strategy="dynamic"))
+                    strategy="dynamic", repeats=repeats))
 
     end = _now_ns()
     evaluated = [s for s in suites if s.get("status") != "NOT_TESTED"]
@@ -616,8 +773,8 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
 
     by_name = {str(s.get("suite")): s for s in suites}
     factory_local = {key: by_name.get(f"factory_live_{key}") for key in ("single", "fixed", "dynamic")}
-    timing = {key: value.get("wall_clock_seconds") for key, value in factory_local.items()
-              if isinstance(value, dict) and value.get("wall_clock_seconds") is not None}
+    timing = {key: value.get("wall_clock_seconds_mean") for key, value in factory_local.items()
+              if isinstance(value, dict) and value.get("wall_clock_seconds_mean") is not None}
     throughput = {key: value.get("verified_useful_throughput_per_second")
                   for key, value in factory_local.items()
                   if isinstance(value, dict) and value.get("verified_useful_throughput_per_second") is not None}
@@ -632,17 +789,18 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
     control = by_name.get("factory_control", {})
     live_factory_rows = [value for value in factory_local.values()
                          if isinstance(value, dict) and value.get("status") != "NOT_TESTED"]
+    live_factory_passes = [value for value in live_factory_rows if value.get("status") == "PASS"]
     unsafe = sum(int(row.get("unsafe_acceptances") or 0) for row in live_factory_rows)
     safety_status = "NOT_TESTED"
     if control.get("status") == "FAIL" or unsafe:
         safety_status = "FAIL"
-    elif control.get("status") == "PASS" and live_factory_rows:
+    elif control.get("status") == "PASS" and live_factory_passes:
         safety_status = "SUPPORTED"
     elif control.get("status") == "PASS":
         safety_status = "PARTIAL"
 
     efficiency_status = "NOT_TESTED"
-    if len(timing) == 3:
+    if len(timing) == 3 and all(factory_local[k].get("status") == "PASS" for k in factory_local):
         if speedups and max(speedups.values()) > 1.0:
             efficiency_status = "SUPPORTED_FOR_THIS_WORKLOAD"
         else:
@@ -663,7 +821,8 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
             "wall_clock_seconds": timing,
             "verified_throughput_per_second": throughput,
             "speedup_vs_single": speedups,
-            "scope": "governed Factory scheduling; not an uncontrolled-swarm baseline",
+            "provider_saturation_curve": by_name.get("provider_scaling", {}).get("points"),
+            "scope": "governed Factory scheduling; provider saturation reported separately; not an uncontrolled-swarm baseline",
         },
         "hybrid_cloud_mesh": {
             "status": hybrid_status,
