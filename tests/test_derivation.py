@@ -56,13 +56,23 @@ def admissible_fixture(include_human=True):
         filing_window_events=None,
         allow_withdrawal=True,
     )
-    nodes=[evidence,finding,metric,resolution,metric_review,invariant,review,env,spec,policy]
+    author_env=node(
+        NodeType.ENVIRONMENT_CONTEXT,Author.HOST,
+        runner="github-actions",queue_latency_s=120,
+        model_runtime="qwen2.5:7b",status="observed",
+    )
+    nodes=[evidence,finding,metric,resolution,metric_review,invariant,review,env,spec,policy,author_env]
     edges=[
         edge(EdgeType.GOVERNED_BY,finding,policy),
         edge(EdgeType.GOVERNED_BY,metric,policy),
         edge(EdgeType.GOVERNED_BY,metric_review,policy),
         edge(EdgeType.GOVERNED_BY,review,policy),
         edge(EdgeType.GOVERNED_BY,spec,policy),
+        edge(EdgeType.AUTHORED_UNDER,finding,author_env),
+        edge(EdgeType.AUTHORED_UNDER,metric,author_env),
+        edge(EdgeType.AUTHORED_UNDER,metric_review,author_env),
+        edge(EdgeType.AUTHORED_UNDER,review,author_env),
+        edge(EdgeType.AUTHORED_UNDER,spec,author_env),
         edge(EdgeType.SUPPORTED_BY,finding,evidence,required=True),
         edge(EdgeType.RESOLVES_TO,metric,resolution,required=True),
         edge(EdgeType.REVIEWED_BY,metric,metric_review,required=True),
