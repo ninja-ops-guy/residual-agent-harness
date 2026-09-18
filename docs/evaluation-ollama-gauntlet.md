@@ -59,15 +59,20 @@ Runs frozen deterministic answer cases through the real provider adapter and rec
 - real wall-clock latency;
 - provider-reported input/output token counts.
 
+### provider_scaling
+
+Runs the same live provider workload at concurrency 1, 2, 4, and 8. This isolates Ollama/provider saturation from RESIDUAL scheduling overhead and records real request throughput, latency, correctness, and speedup versus concurrency 1.
+
 ### factory_control
 
-Uses deterministic negative-path worker source to isolate the enforcement layer from model quality. It probes:
+Uses deterministic negative-path worker source to isolate the enforcement layer from model quality. A probe only passes when the runtime returns the exact expected terminal state; an unexpected exception is a test failure. It probes:
 
 - permitted output;
 - forbidden write;
 - forbidden read;
 - file-write budget exhaustion;
-- wall-clock timeout.
+- wall-clock timeout;
+- attempted write through `.git`.
 
 A negative-path probe passes only when it does **not** become a Factory `CANDIDATE`.
 
@@ -122,12 +127,13 @@ Primary metric:
 
 ### Scheduler efficiency
 
-When all three local Factory strategies execute, the report compares:
+`--repeats` repeats the full model-authoring + Factory experiment for each strategy; single runs are not promoted into a performance claim. When all three local Factory strategies execute, the report compares:
 
-- wall-clock seconds;
-- verified useful throughput;
-- fixed-vs-single speedup;
-- dynamic-vs-single speedup.
+- Factory-only wall-clock mean/p50/p95;
+- Factory-only verified useful throughput and scheduler speedup;
+- end-to-end time including model authoring;
+- end-to-end verified useful throughput and speedup;
+- the independent provider concurrency saturation curve.
 
 This comparison is explicitly scoped to **governed Factory scheduling**. It is not by itself an uncontrolled external swarm baseline.
 
