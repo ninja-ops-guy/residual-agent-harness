@@ -52,9 +52,9 @@ A generated export is a candidate successor. It is not accepted main and is not 
 
 A candidate may not write any external evaluator file used to certify that candidate, and no other candidate in the same generation may write it either. Candidate writable scopes may not overlap. If one candidate reads another candidate's generated file, it must declare that writer as a dependency.
 
-Executable-code and execution-configuration candidates require command checks plus existing external evaluator files. M7 accepts only frozen-evaluator command shapes using the Station interpreter placeholder: {python} -m pytest <declared-evaluator> or {python} <declared-evaluator>. Model-authored shell, -c, arbitrary executables and unrelated commands are rejected before Station execution. The Station check contract is generated before execution and is immutable for that generation.
+Executable-code candidates require existing frozen Python evaluators under tests/test_*.py. ImprovementCandidates are not permitted to author executable command checks at all. After deterministic admission, the Mission Governor derives the pytest command for each declared evaluator and inserts it into the immutable Station check contract. This removes model-authored argv from the recursive control path.
 
-Changing a frozen evaluator requires a separate externally governed mission rather than the generation it certifies.
+Test-runner and import-control surfaces such as pytest configuration, conftest.py, tests/__init__.py, sitecustomize.py, usercustomize.py, and the mission's own safety regression are protected from autonomous writes. Changing a frozen evaluator or evaluator-control surface requires a separate externally governed mission rather than the generation it certifies.
 
 ## Candidate contract
 
