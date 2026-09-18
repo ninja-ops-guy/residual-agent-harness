@@ -191,15 +191,15 @@ class TestLiveHarnessBinding(unittest.TestCase):
                 ),
             ),
         )
-        result, token = self.backend().run_harness(Harness(registry, None, None), task, run_id="r-pass")
+        backend = self.backend()
+        result, token = backend.run_harness(Harness(registry, None, None), task, run_id="r-pass")
         self.assertTrue(result["success"])
         self.assertEqual(token["verdicts"]["CORE-OBLIGATION:answer"], "PASS")
         self.assertEqual(token["verdicts"]["CORE-RUN-OUTCOME"], "PASS")
         self.assertTrue(result["station_receipts"])
-        self.assertTrue(
-            any(e["kind"] == "core.run.bound" for e in self.backend().events("never")),
-            "anti-vacuity guard is exercised in the dedicated event assertions below",
-        )
+        events = backend.events("r-pass")
+        self.assertTrue(any(e["kind"] == "core.run.bound" for e in events))
+        self.assertTrue(any(e["kind"] == "attestation.issued" for e in events))
 
     def test_real_harness_fail_remains_fail_and_aborts_attested_run(self):
         registry = Registry()
