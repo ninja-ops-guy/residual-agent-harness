@@ -73,20 +73,38 @@ Do not average away or overwrite the earlier negative cell because a later exper
 
 Draft #203 and #204 first-authoritative M6 self-maintenance trials both remain **FAIL** with 0/1 integrated and no verification receipt/release. Model size alone did not convert the frozen self-maintenance contract into a PASS.
 
+Draft #215 (M6-SPEC-003) added prior-candidate repair context and retained its binding hashes on repair attempts, but the authoritative 1.5B-model trial still finished **FAIL** at 0/1 integrated with no review/receipt/release. Draft #217 (M6-SPEC-004) additionally clarified transport JSON versus file-language source while leaving acceptance policy unchanged; its authoritative workflow also finished **FAIL** at 0/1 integrated after three passes. These are retained negative intervention results, not evidence of autonomous self-maintenance.
+
 ## Deterministic stress evidence and governance ordering
 
-Draft #207 campaign B intentionally probes conditions that a stronger fail-closed claim must survive. Its retained results are mixed:
+Draft #206 Campaign A has completed its authoritative corrected exact-head runs against frozen baseline `699e286...`. The earlier apparatus revision is explicitly invalid because it would have tested GitHub's synthetic pull-request merge commit. Workflow-level `success` in the corrected campaign means the scenario executed and evidence was retained; it is not a scenario-level PASS.
+
+Its retained outcomes include:
+
+- **STRESS-A4 — BLOCKED / invalid for repair-pressure qualification:** 0 faults were injected; the provider/structured-output call failed, usage became unknown, run control aborted after one pass, and 0/1 integrated. The intended intervention never executed.
+- **STRESS-A5 — FAIL / incomplete:** 3/6 DAG tasks integrated before `no_runnable_tasks` escalation; DAG-D remained under repair, downstream tasks did not complete, and no release export was attempted.
+- **STRESS-A6 — FAIL in scope:** three frozen Qwen2.5-Coder 7B trials produced 0 successes and accepted rate 0.0; each ended 0/1 integrated after the max-iteration brake.
+
+Those cells are configuration/revision bound. They do not establish a universal model or orchestration failure, but they must remain negative/blocked evidence for the campaign that actually ran.
+
+Draft #207 Campaign B intentionally probes conditions that a stronger fail-closed claim must survive. Its retained results are mixed:
 
 - **STRESS-B1 — FAIL:** final token-budget exhaustion was observed after accepted integration/release had already occurred. This exposes an ordering defect for the stronger claim that exhausted budget state always prevents accepted output materialization.
 - **STRESS-B2 — scoped PASS:** the early-convergence control completed 2/2 without the budget/max-iteration trips under study.
 - **STRESS-B3 — FAIL:** terminal verifier failure aborted with 0 integrated, but a non-empty release was materialized afterward. This exposes a release-eligibility ordering defect.
 - **STRESS-B4 — containment PASS / recovery FAIL:** injected corrupt candidates were rejected and none integrated, but the task did not recover to successful completion within the frozen pass budget.
 
-A workflow-level `success` for this research campaign means the experiment executed and retained its evidence. It does **not** mean the individual stress scenario passed.
+Draft #212 Campaign C extends this with deterministic failure/recovery cases:
 
-Until the B1/B3 ordering defects are repaired and requalified, do not make a stronger blanket claim that budget exhaustion or terminal verifier failure always prevents later accepted release materialization across the tested control surface.
+- malformed runner JSON: **PASS for fail-closed containment** in that exact scenario; all three outputs were rejected before review/integration;
+- invalid reviewer schema: **PASS for fail-closed containment** in that exact scenario; no integration/receipt occurred;
+- reviewer denial then approval: **PASS for the bounded recovery path**, integrating on attempt 2;
+- transient HTTP 500: no integration, but no alternate failover candidate existed and unknown usage aborted the run, so retry/failover success remains **UNKNOWN / not established**;
+- missing usage: **FAIL for accounting-before-authority** because a valid candidate integrated and received a receipt before the later `usage_unknown_or_invalid` host abort. This corroborates #208 beyond the numeric-over-budget case.
 
-Draft #206 campaign A remains **PENDING / in progress** at the latest observation. Do not infer any scenario result before its retained campaign workflow completes.
+A workflow-level `success` for a research campaign means the experiment executed and retained its evidence. It does **not** mean each stress scenario passed.
+
+Draft #214 is an unaccepted candidate repair for #208. Its observed technical workflows are green, but exact-head maintainer approval remains **BLOCKED/FAIL**. Until a repair is accepted and the affected #207/#212 scenarios are requalified, do not make a stronger blanket claim that budget exhaustion, unknown usage, or terminal verifier failure always prevents later accepted-state/release materialization across the tested control surface.
 
 ## Live-provider boundary
 
@@ -136,11 +154,11 @@ Before paper-facing R0–R5 outcome collection:
 3. freeze workload hashes, model/version, inference settings and prompts;
 4. freeze verifier revisions, policies and acceptance boundary;
 5. freeze metrics, missingness handling, statistical tests and analysis code;
-6. preserve and explicitly scope retained exact-revision failures and mixed cells for the selected evidence path;
-7. repair/requalify any #207 governance-ordering defect required by that path;
+6. preserve and explicitly scope retained exact-revision failures, blocked interventions and mixed cells for the selected evidence path;
+7. repair/requalify any #207/#208 governance-ordering defect required by that path, including the missing-usage case reproduced by #212;
 8. independently qualify the selected evidence path to the degree required by the scientific claim;
 9. retain any WebVM/provider/release qualification required by that selected path;
-10. preserve negative, rejected, `UNKNOWN`, missing and failed cells in the evidence package.
+10. preserve negative, rejected, `UNKNOWN`, `BLOCKED`, missing and failed cells in the evidence package.
 
 Green fixture/package checks do not substitute for this freeze/qualification sequence.
 
