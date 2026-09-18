@@ -29,6 +29,7 @@ from residual.station.service import Station
 from residual.station.worker import WorkerClient
 from residual.cluster import Capability, ClusterNode, LoopbackTransport
 from residual.experiments.pipeline import run_station_pipeline_benchmark
+from residual.experiments.recovery import run_station_recovery_benchmark
 
 
 SCHEMA = "residual.distributed-experiment.v1"
@@ -397,6 +398,12 @@ def main(argv=None) -> int:
     pipeline.add_argument("--repeats", type=int, default=1)
     pipeline.add_argument("--output")
 
+    recovery = sub.add_parser("recovery", help="Benchmark fail-closed remote-worker repair recovery")
+    recovery.add_argument("--bad-ms", type=float, default=20.0)
+    recovery.add_argument("--good-ms", type=float, default=40.0)
+    recovery.add_argument("--repeats", type=int, default=3)
+    recovery.add_argument("--output")
+
     mesh = sub.add_parser("mesh", help="Benchmark signed mesh history and cluster join")
     mesh.add_argument("--messages", type=int, default=1000)
     mesh.add_argument("--repeats", type=int, default=3)
@@ -418,6 +425,12 @@ def main(argv=None) -> int:
                 width=args.width,
                 depth=args.depth,
                 work_ms=args.work_ms,
+                repeats=args.repeats,
+            )
+        elif args.experiment == "recovery":
+            report = run_station_recovery_benchmark(
+                bad_ms=args.bad_ms,
+                good_ms=args.good_ms,
                 repeats=args.repeats,
             )
         else:
