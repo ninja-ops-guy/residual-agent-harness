@@ -71,7 +71,7 @@ Since `main@dcf1e507...`:
 
 #133 also removed accepted #132 self-hosting/research-bundle bytes. Earlier review records identified those deletions as incompatible with the PR's diagnostic-only description. Current documentation therefore does not count those removed bytes as implemented capability and does not assume the removal was an intended retirement decision.
 
-The first seven ordinary `push` workflows on exact merged `main@b3f00af...` were **PENDING/queued** at the latest observation. Candidate-head PASS results are not inherited by the merge SHA.
+Six of seven ordinary first-attempt `push` workflows on exact merged `main@b3f00af...` are **PASS**: Factory ownership, M4 runner prerequisites, measured-evaluation binding, clean install, Controller/provider, and Command Station. Pages/deployment run `35288585007` remains **IN PROGRESS**, so the merged-sha deployment set is still **PENDING**.
 
 On #133's exact final candidate head, Factory ownership, measured binding, Browser VM Demo, Control Plane, clean install, Controller/provider, Command Station, Pages, and the maintainer approval gate were **PASS**. Several diagnostic workflows intentionally ended **FAIL** after reproducing the failure being studied; those are retained diagnostic outcomes, not qualification passes and not failures to erase by rerun.
 
