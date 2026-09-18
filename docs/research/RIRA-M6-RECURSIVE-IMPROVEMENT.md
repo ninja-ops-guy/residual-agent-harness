@@ -889,3 +889,52 @@ The result supports three conclusions:
 M6-SPEC-007E therefore keeps typed output and the same evidence, but adds bounded repair from deterministic verifier findings. A mechanically rejected proposal may be revised using the explicit admission error, while the verifier itself remains immutable.
 
 The next stage remains blocked until a proposal is both mechanically admissible and independently semantically approved.
+
+
+## 25. M6-SPEC-007E — Typed Repair Cannot Correct a Mechanically Known Epistemic Error
+
+M6-SPEC-007E retained the typed representation from 007D and added a bounded three-attempt repair loop driven by deterministic verifier findings.
+
+The first proposal again emitted a MeasurementGap for `provider_timeout_rate`, despite the EvidenceSnapshot measuring that metric at `0.2`.
+
+The verifier returned an explicit correction:
+
+```text
+missing_metric 'provider_timeout_rate' is already measured at 0.2;
+choose improvement_spec or a genuinely absent metric
+```
+
+The same finding was then included in attempts two and three together with the previous typed proposal.
+
+All three attempts returned the exact same proposal.
+
+- Scientist calls: **3**
+- reported tokens: **3,112**
+- proposal SHA-256 on every attempt:
+  `1cccd1ac661b621a9a3b0e88b2220f1d34d44ea0768a37cbb652bfcd75c31268`
+- mechanical admission: **failed**
+- semantic review reached: **no**
+- admission receipt: **none**
+- evidence artifact SHA-256:
+  `b705aabb937a361d13293d3d9d44c7c62258dd42bb9d809c54b0e1f0fb25554e`
+
+### Interpretation
+
+This result reveals an important distinction between **repairable reasoning** and **mechanically knowable constraints**.
+
+The fact that `provider_timeout_rate` is already present in the EvidenceSnapshot does not require model reasoning. It is an exact machine-known property.
+
+Asking the model to remember and obey that fact through free-text repair feedback wastes inference and permits repeated epistemic error.
+
+The resulting design rule is:
+
+> If a proposal property can be constrained directly from trusted evidence, encode that constraint into the structured response contract before generation and verify it again afterward.
+
+M6-SPEC-007F therefore makes the Scientist schema evidence-aware:
+
+- observation and declared target/preserve metric IDs are constrained to measured metric IDs;
+- protected invariants are constrained to the registered invariant vocabulary;
+- MeasurementGap is prevented from naming already-measured metric IDs where the structured-output implementation supports the constraint;
+- deterministic post-generation verification remains authoritative.
+
+The model still chooses the improvement objective. The system merely prevents structurally impossible claims from occupying the proposal space.
