@@ -94,6 +94,11 @@ class ClusterNode:
         """
         peers = ([bootstrap_address] if bootstrap_address
                  else self.discovery.discover())
+        self.registry.upsert(NodeRecord(
+            node_id=self.node_id, address=self.address,
+            capability=self.capability, is_local=True,
+            schema_versions=tuple(supported_versions()),
+        ))
         self.negotiated_version = None
         joined_to = None
         if not peers and bootstrap_address is None:
