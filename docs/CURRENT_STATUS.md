@@ -17,6 +17,8 @@ Neither merge changes protected Factory/M4 implementation, ownership-baseline sc
 
 The exact-current-main Actions query for `4608afa...` returned a completed run set with no pending, cancelled, or failing conclusion observed; a sampled Controller/provider run completed **PASS on attempt 1**. These are scoped automated results only. They do not establish every-host/capable-runner M4 qualification, blank-environment install, host-loss recovery, elapsed soak, live-provider semantic success, physical heavyweight-WebVM iPhone reliability, or confirmatory research.
 
+Since the prior status refresh, accepted `main` has not moved. New research evidence has, however, closed several previously pending experiment cells: #206 Campaign A completed with BLOCKED/FAIL outcomes in its repair/DAG/reliability scenarios, #212 reproduced the accounting-before-authority defect for missing usage while also retaining bounded fail-closed/recovery controls, and #215/#217 retained additional failed M6 self-maintenance trials. Draft #214 is a candidate repair for #208; it is not accepted main behavior.
+
 ## Accepted #200 setup hardening
 
 #200 is now accepted main behavior.
@@ -89,7 +91,7 @@ A later distinct exact-head experiment on `03c77d12...` retained a bounded **PAS
 
 The later PASS does **not** erase the earlier FAIL and does not establish general DAG/recovery reliability, production readiness, or provider-independent model quality.
 
-## Retained M6 self-host experiments: #203 and #204
+## Retained M6 self-host experiments: #203, #204, #215 and #217
 
 Draft #203 first-authoritative ImprovementSpec self-host trial remains **FAIL**: 0/1 integrated, three attempts, max-iteration escalation, no verification receipt, and no release.
 
@@ -102,7 +104,31 @@ Draft #204 repeated the bounded research question with Qwen2.5-Coder 7B. Its fir
 - verification receipt: absent;
 - release: absent.
 
-Observed candidate defects changed across attempts, but the stronger model did not establish the requested contract within the frozen pass budget. This is negative research evidence, not proof of autonomous recursive self-improvement.
+Observed candidate defects changed across attempts, but the stronger model did not establish the requested contract within the frozen pass budget.
+
+M6-SPEC-003 on draft #215 added prior-candidate repair context. The intervention was exercised and repair-context hashes were retained on attempts 2 and 3, but the first authoritative run remains **FAIL**: 0/1 integrated, three calls, no review/verification receipt/release/promotion. Retained candidates showed transport/source conflation rather than a successful `ImprovementSpec` implementation.
+
+M6-SPEC-004 on draft #217 retained prior-candidate context and explicitly separated transport JSON from file-language content without changing acceptance policy. Its authoritative exact-head workflow retained evidence but the experiment remains **FAIL**: 0/1 integrated, three passes, max-iteration escalation, no review/receipt/release. The generated source changed from the M6-SPEC-003 data-object failure mode, but still failed checks: attempt 1 had an indentation error; attempts 2 and 3 imported a nonexistent `dataclasses.frozen` symbol.
+
+The implementation candidate underlying the repair-context work (#213) remains unaccepted. These are negative research results, not proof of autonomous recursive self-improvement and not restoration of removed #132 capability.
+
+## Deterministic stress campaign A: #206
+
+Draft #206 Campaign A has completed its authoritative corrected exact-head runs at `e173719...` against frozen baseline `699e286...`. The earlier apparatus revision is explicitly invalid because it would have used GitHub's synthetic pull-request merge commit; only the corrected exact-head campaign is used for claims below. Workflow `success` means the experiment executed and retained artifacts, not that each scenario passed.
+
+### STRESS-A4 — repair pressure: BLOCKED / invalid intervention
+
+The retained run recorded 0 injected faults. Its single provider call ended in a model-connection/structured-output failure, usage became unknown, run control aborted on `usage_unknown_or_invalid`, 0/1 integrated, and no verification receipt was produced. The intended repair-pressure intervention was not exercised, so this scenario is **BLOCKED / invalid for repair-pressure qualification**, not PASS.
+
+### STRESS-A5 — DAG pressure: FAIL / incomplete
+
+The retained six-task DAG integrated 3/6 tasks across five passes, then escalated on `no_runnable_tasks`. DAG-A/B/C integrated with receipts; DAG-D remained `repair_required`; DAG-E/F did not complete; no release export was attempted. This is **FAIL / incomplete for that frozen DAG-pressure scenario**, not evidence of general DAG reliability.
+
+### STRESS-A6 — real-model reliability: FAIL in scope
+
+Three frozen Qwen2.5-Coder 7B trials produced 0 successes and accepted rate 0.0. Each ended 0/1 integrated after the three-pass max-iteration brake. This is **FAIL for that exact model/spec/baseline campaign** and must not be generalized into a blanket model-quality claim.
+
+Campaign A also retained bounded control/injection artifacts. They do not erase the BLOCKED/FAIL cells above.
 
 ## Deterministic stress campaign B: #207
 
@@ -131,6 +157,20 @@ Two deterministic corrupt candidates were injected and rejected; `corrupted_cand
 - general repair reliability: **UNKNOWN / not established**.
 
 These negative findings must remain visible and should drive a focused implementation/requalification sequence before stronger governance claims are made.
+
+## Deterministic failure matrix: #212
+
+Draft #212 Campaign C retained five deliberately different failure/recovery paths:
+
+- malformed runner JSON was rejected three times with no review/integration: **PASS for fail-closed containment in that exact scenario**;
+- invalid reviewer schema was rejected three times while the valid candidate stayed `review_ready`, with no integration/receipt: **PASS for fail-closed containment in that exact scenario**;
+- reviewer denial followed by a repaired runner/reviewer cycle integrated on attempt 2: **PASS for that bounded recovery path**;
+- a transient HTTP 500 was marked retryable but had no alternate failover candidate; the call ended, usage became unknown, and the host budget aborted with no integration. Provider retry/failover success therefore remains **UNKNOWN / not established**;
+- missing usage allowed a valid runner and reviewer result to integrate and receive a receipt before the host later aborted on `usage_unknown_or_invalid`: **FAIL for the stronger accounting-before-authority claim**, corroborating #208 beyond the numeric over-budget case.
+
+## #214 governance repair candidate: BLOCKED / unaccepted
+
+Draft #214 targets #208 by moving token/deadline checks ahead of Station review/integration authority effects and tightening release eligibility around successful run control. On its observed exact head, the ordinary technical workflows are green, but the maintainer approval gate remains **FAIL/BLOCKED** and the PR is still draft/unaccepted. Therefore no accepted-main claim is changed: the #207/#212 ordering defect remains open until a repair is accepted and the applicable scenarios are requalified.
 
 ## WebVM runtime diagnostics and #133/#132 discrepancy
 
@@ -170,15 +210,17 @@ This documentation branch changes no Factory/M4 implementation or tests, ownersh
 
 ## Current priority blockers
 
-1. Repair and requalify the #207 STRESS-B1 budget-ordering and STRESS-B3 post-verifier-failure release defects before claiming stronger fail-closed governance.
-2. Retain a fresh exact-current-deployed-revision real-account Puter candidate→verifier→receipt success, or keep live-provider success UNKNOWN.
-3. Physically validate the accepted #186 fallback without broadening it into a heavyweight-WebVM reliability claim.
-4. Complete true blank-environment installation, recovery/host-loss qualification, and selected elapsed soak.
-5. Continue #120/#126 WebVM root-cause and long-run reliability work.
-6. Resolve the #133/#132 retirement-versus-restoration discrepancy explicitly.
-7. Keep #139→ownership-baseline→fresh-qualification→#134 independent.
-8. Refresh broader stale candidates such as #152/#177 before current claims use them.
-9. Freeze the confirmatory R0–R5 protocol before paper-facing outcome collection.
+1. Repair and requalify the #207/#208 accounting/release-ordering failures, including #212's missing-usage case. #214 is only a draft candidate until accepted and requalified.
+2. Re-run a valid #206 repair-pressure intervention; A4 is BLOCKED because its intended fault was not injected. Preserve A5/A6 negative results rather than treating later experiments as erasure.
+3. Continue bounded M6 repair research without promoting #213/#215/#217 into accepted self-maintenance capability; M6-SPEC-003 and -004 both remain retained FAIL results.
+4. Retain a fresh exact-current-deployed-revision real-account Puter candidate→verifier→receipt success, or keep live-provider success UNKNOWN.
+5. Physically validate the accepted #186 fallback without broadening it into a heavyweight-WebVM reliability claim.
+6. Complete true blank-environment installation, recovery/host-loss qualification, and selected elapsed soak.
+7. Continue #120/#126 WebVM root-cause and long-run reliability work.
+8. Resolve the #133/#132 retirement-versus-restoration discrepancy explicitly.
+9. Keep #139→ownership-baseline→fresh-qualification→#134 independent.
+10. Refresh broader stale candidates such as #152/#177 before current claims use them.
+11. Freeze the confirmatory R0–R5 protocol before paper-facing outcome collection.
 
 ## Documentation scope
 
