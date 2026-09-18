@@ -45,8 +45,8 @@ BLOCKING_HEALTH_CODES = {
     "roadmap_queue_missing", "required_path_missing",
 }
 REQUIRED = ("docs/roadmap/README.md", "docs/CURRENT_STATUS.md", "docs/self-improvement/MISSION.md",
-            "residual/goalspec.py", "residual/loop.py", "residual/station/service.py",
-            "residual/station/control.py", "tests/test_self_improvement.py",
+            "residual/goalspec.py", "residual/loop.py", "residual/self_improvement.py", "residual/cli.py",
+            "residual/station/service.py", "residual/station/control.py", "tests/test_self_improvement.py",
             "verifier/v3/factory_ownership_baseline.json")
 
 
@@ -182,6 +182,7 @@ def doctor_repository(repo="."):
               "current_status_sha256": file_digest(current_status),
               "mission_sha256": file_digest(root / "docs/self-improvement/MISSION.md"),
               "controller_sha256": file_digest(root / "residual/self_improvement.py"),
+              "cli_sha256": file_digest(root / "residual/cli.py"),
               "safety_regression_sha256": file_digest(root / "tests/test_self_improvement.py"),
               "factory_ownership_sha256": file_digest(root / "verifier/v3/factory_ownership_baseline.json")}
     report = {"schema_version": 1, "repository_root": str(root), "head": head, "main_head": main,
