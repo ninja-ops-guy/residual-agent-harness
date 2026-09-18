@@ -26,6 +26,32 @@ def edge(kind, source, target, **predicate):
     return DerivationEdge(kind, source.node_id, target.node_id, predicate)
 
 
+def policy_node():
+    return node(
+        NodeType.CHALLENGE_POLICY,Author.HOST,
+        policy_id="m6-semantic-v1",
+        eligible_challenger_roles=["reviewer","human"],
+        allowed_grounds=["semantic","evidence","framing","authorization"],
+        resolution_authority_roles=["human"],
+        filing_window_events=None,
+        allow_withdrawal=True,
+        revision="1",
+    )
+
+
+def challenge_node(target, challenge_id, *, role="reviewer", ground="semantic", filed_event=1, reason="challenge"):
+    return node(
+        NodeType.CHALLENGE,
+        Author.REVIEWER if role=="reviewer" else Author.HUMAN,
+        challenge_id=challenge_id,
+        policy_id=target.challenge_policy_id,
+        challenger_role=role,
+        ground=ground,
+        filed_event=filed_event,
+        reason=reason,
+    )
+
+
 def admissible_fixture(include_human=True):
     evidence=node(NodeType.EVIDENCE_FACT,Author.HOST,metric="latency_p99_ms",value=240)
     finding=node(NodeType.FINDING,Author.SCIENTIST,claim="p99 tail latency is elevated")
@@ -47,15 +73,7 @@ def admissible_fixture(include_human=True):
         preservation_criteria={"correctness":"no regression"},
         rollback_plan={"action":"revert"},
     )
-    policy=node(
-        NodeType.CHALLENGE_POLICY,Author.HOST,
-        policy_id="m6-semantic-v1",
-        eligible_challenger_roles=["reviewer","human"],
-        allowed_grounds=["semantic","evidence","framing","authorization"],
-        resolution_authority_roles=["human"],
-        filing_window_events=None,
-        allow_withdrawal=True,
-    )
+    policy=policy_node()
     author_env=node(
         NodeType.ENVIRONMENT_CONTEXT,Author.HOST,
         runner="github-actions",queue_latency_s=120,
@@ -130,14 +148,14 @@ class DerivationGraphTests(unittest.TestCase):
         finding_a=node(NodeType.FINDING,Author.SCIENTIST,claim="A")
         finding_b=node(NodeType.FINDING,Author.SCIENTIST,claim="B")
         review_a=node(NodeType.SEMANTIC_REVIEW,Author.REVIEWER,verdict="valid")
-        challenge=node(NodeType.CHALLENGE,Author.REVIEWER,reason="A is framed badly")
+        policy=policy_node()\n        challenge=challenge_node(review_a,"ch-dg002",reason="A is framed badly")
         edges=[
             edge(EdgeType.SUPPORTED_BY,finding_a,evidence,required=True),
             edge(EdgeType.SUPPORTED_BY,finding_b,evidence,required=True),
             edge(EdgeType.REVIEWED_BY,finding_a,review_a,required=True),
             edge(EdgeType.CHALLENGES,challenge,review_a,reason="semantic"),
         ]
-        g=DerivationGraph([evidence,finding_a,finding_b,review_a,challenge],edges)
+        edges.append(edge(EdgeType.GOVERNED_BY,review_a,policy))\n        g=DerivationGraph([evidence,finding_a,finding_b,review_a,challenge,policy],edges)
         states=g.validity()
         self.assertEqual(states[review_a.node_id],Validity.CHALLENGED)
         self.assertEqual(states[finding_a.node_id],Validity.CHALLENGED)
@@ -149,9 +167,9 @@ class DerivationGraphTests(unittest.TestCase):
         finding=node(NodeType.FINDING,Author.SCIENTIST,claim="A")
         support=edge(EdgeType.SUPPORTED_BY,finding,evidence,required=True)
         before=DerivationGraph([evidence,finding],[support])
-        challenge=node(NodeType.CHALLENGE,Author.REVIEWER,reason="challenge")
+        policy=policy_node()\n        challenge=challenge_node(finding,"ch-append",reason="challenge")
         challenge_edge=edge(EdgeType.CHALLENGES,challenge,finding,reason="new evidence")
-        after=DerivationGraph([evidence,finding,challenge],[support,challenge_edge])
+        after=DerivationGraph([evidence,finding,challenge,policy],[support,challenge_edge,edge(EdgeType.GOVERNED_BY,finding,policy)])
         self.assertIn(finding.node_id,after.nodes)
         self.assertNotEqual(before.graph_root,after.graph_root)
 
@@ -202,7 +220,7 @@ class DerivationGraphTests(unittest.TestCase):
 
     def test_ca001_open_challenge_blocks_complete_spec(self):
         nodes,edges,spec,metric=admissible_fixture()
-        challenge=node(NodeType.CHALLENGE,Author.REVIEWER,reason="metric rationale disputed")
+        challenge=challenge_node(metric,"ch-ca001",reason="metric rationale disputed")
         nodes.append(challenge)
         edges.append(edge(EdgeType.CHALLENGES,challenge,metric,reason="wrong lens"))
         g=DerivationGraph(nodes,edges)
@@ -213,14 +231,14 @@ class DerivationGraphTests(unittest.TestCase):
     def test_ca001_superseded_challenge_stops_active_invalidation(self):
         evidence=node(NodeType.EVIDENCE_FACT,Author.HOST,value=1)
         finding=node(NodeType.FINDING,Author.SCIENTIST,claim="A")
-        challenge=node(NodeType.CHALLENGE,Author.REVIEWER,reason="open objection")
+        policy=policy_node()\n        challenge=challenge_node(finding,"ch-resolve",reason="open objection")
         resolution=node(NodeType.SUPERSESSION,Author.HOST,reason="challenge resolved under policy")
         edges=[
             edge(EdgeType.SUPPORTED_BY,finding,evidence),
             edge(EdgeType.CHALLENGES,challenge,finding,reason="semantic"),
             edge(EdgeType.SUPERSEDES,resolution,challenge,policy="m6-semantic-v1"),
         ]
-        g=DerivationGraph([evidence,finding,challenge,resolution],edges)
+        edges.append(edge(EdgeType.GOVERNED_BY,finding,policy))\n        g=DerivationGraph([evidence,finding,challenge,resolution,policy],edges)
         self.assertEqual(g.validity()[challenge.node_id],Validity.SUPERSEDED)
         self.assertEqual(g.validity()[finding.node_id],Validity.VALID)
 
@@ -248,14 +266,14 @@ class DerivationGraphTests(unittest.TestCase):
         human=node(NodeType.HUMAN_DECISION,Author.HUMAN,decision="cosign")
         spec=node(NodeType.IMPROVEMENT_SPEC,Author.PLANNER,intent="x",mechanism="y",predicted_effects={},verification_plan={},preservation_criteria={},rollback_plan={})
         action=node(NodeType.EXECUTION_ACTION,Author.HOST,action="stage candidate")
-        challenge=node(NodeType.CHALLENGE,Author.HUMAN,reason="authorization revoked")
+        revoke=node(NodeType.REVOCATION,Author.HUMAN,reason="authorization revoked")
         edges=[
             edge(EdgeType.AUTHORIZES,human,action,scope="tier2"),
             edge(EdgeType.IMPLEMENTS,action,spec),
-            edge(EdgeType.CHALLENGES,challenge,human,reason="revoked"),
+            edge(EdgeType.REVOKES,revoke,human,reason="revoked"),
         ]
-        g=DerivationGraph([human,spec,action,challenge],edges)
-        self.assertEqual(g.validity()[action.node_id],Validity.CHALLENGED)
+        g=DerivationGraph([human,spec,action,revoke],edges)
+        self.assertEqual(g.validity()[action.node_id],Validity.AUTHORIZATION_REVOKED)
 
     def test_temporal_admission_record_preserves_then_current_challenge_changes_state(self):
         nodes,edges,spec,metric=admissible_fixture()
@@ -264,7 +282,7 @@ class DerivationGraphTests(unittest.TestCase):
         self.assertEqual(decision.payload["verdict"],"admitted")
         self.assertEqual(decision.payload["evaluated_graph_root"],before.graph_root)
 
-        challenge=node(NodeType.CHALLENGE,Author.REVIEWER,reason="later semantic objection")
+        challenge=challenge_node(metric,"ch-temporal",filed_event=51,reason="later semantic objection")
         after=DerivationGraph(
             nodes+[challenge,decision],
             edges+[
@@ -293,7 +311,7 @@ class DerivationGraphTests(unittest.TestCase):
         self.assertEqual(g.validity()[action.node_id],Validity.AUTHORIZATION_REVOKED)
 
     def test_execution_binding_is_explicit_and_challengeable(self):
-        policy=node(NodeType.CHALLENGE_POLICY,Author.HOST,policy_id="m6-semantic-v1")
+        policy=policy_node()
         snapshot=node(NodeType.DERIVATION_SNAPSHOT,Author.HOST,graph_root="a"*64)
         env=node(NodeType.ENVIRONMENT_CONTEXT,Author.HOST,observed_environment_hash="b"*64)
         base=DerivationGraph([policy,snapshot,env],[])
@@ -303,7 +321,7 @@ class DerivationGraphTests(unittest.TestCase):
             input_artifact_commitments={"repo":"c"*64},
             challenge_policy_id="m6-semantic-v1",
         )
-        challenge=node(NodeType.CHALLENGE,Author.REVIEWER,reason="undeclared input artifact")
+        challenge=challenge_node(binding,"ch-binding",reason="undeclared input artifact")
         g=DerivationGraph(
             [policy,snapshot,env,binding,challenge],
             [
