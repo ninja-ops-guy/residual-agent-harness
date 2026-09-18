@@ -8,7 +8,9 @@ on:
     paths:
       - 'residual/orchestrator/**'
       - 'tests/test_orca_derived_flow.py'
+      - 'tests/test_orca_flow_benchmark.py'
       - 'scripts/orca_flow_smoke.py'
+      - 'scripts/orca_flow_benchmark.py'
       - 'docs/specs/orca-derived-flow-runtime.md'
       - '.github/workflows/orca-derived-flow.yml'
 
@@ -30,7 +32,25 @@ jobs:
         run: python -m pip install -e '.[test]'
       - name: Compile
         run: python -m compileall -q residual
-      - name: Focused integration tests
-        run: python -m pytest -q tests/test_orca_derived_flow.py tests/test_orchestrator_plan.py
+      - name: Focused integration and benchmark-contract tests
+        run: >-
+          python -m pytest -q
+          tests/test_orca_derived_flow.py
+          tests/test_orca_flow_benchmark.py
+          tests/test_orchestrator_plan.py
       - name: Credential-free smoke
         run: python scripts/orca_flow_smoke.py
+      - name: Development performance benchmark
+        if: matrix.python == '3.13'
+        run: >-
+          python scripts/orca_flow_benchmark.py
+          --iterations 500
+          --output runs/orca-flow-benchmark.json
+      - name: Preserve benchmark evidence
+        if: matrix.python == '3.13' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: orca-flow-benchmark-python-3.13
+          path: runs/orca-flow-benchmark.json
+          if-no-files-found: ignore
+          retention-days: 14
