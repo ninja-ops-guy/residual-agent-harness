@@ -42,7 +42,7 @@ class RecursiveImprovementTests(unittest.TestCase):
         subprocess.run(["git", "commit", "-m", "baseline"], cwd=self.repo, check=True, capture_output=True)
         self.baseline = self.git("rev-parse", "HEAD")
         roadmap.write_text(
-            "# Roadmap\n\nCurrent main is **" + chr(96) + self.baseline + chr(96) + "**.\n\n"
+            "# Roadmap\n\nCurrent " + chr(96) + "main" + chr(96) + " is **" + chr(96) + self.baseline + chr(96) + "**.\n\n"
             "## Current build order\n\n1. Repair health\n2. Improve throughput\n"
         )
         subprocess.run(["git", "add", "."], cwd=self.repo, check=True)
