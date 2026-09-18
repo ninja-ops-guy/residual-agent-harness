@@ -24,7 +24,7 @@ Since the previously documented `dcf1e507...` state:
 - **#194 is accepted/on main.** It repairs persistence/reopening of completed generated-spec drafts in Command Station. This is product/state behavior, not scientific outcome evidence.
 - **#133 is accepted/on main as runtime diagnostic apparatus.** Retained evidence narrows one WebVM failure family to a WebVM-specific CPython positive-duration timeout/wait conversion path affecting at least `time.sleep()` and empty `select.select()`. Tested direct libc wait controls continue beyond the same narrow boundary. Exact lower-level CPython/i386 ABI/emulation cause remains **UNKNOWN**.
 
-The first seven ordinary `push` workflows on exact current main were **PENDING/queued** at the latest observation. Candidate-head or predecessor-main PASS is not inherited by this merged revision.
+Six of seven ordinary first-attempt `push` workflows on exact current main have completed **PASS**: Factory ownership, M4 runner prerequisites, measured-evaluation binding, clean install, Controller/provider, and Command Station. Pages/deployment run `35288585007` remains **IN PROGRESS / PENDING**. These are integration/qualification observations, not scientific outcome evidence.
 
 ## #133 diagnostic research boundary
 
