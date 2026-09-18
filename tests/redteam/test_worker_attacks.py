@@ -6,8 +6,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import sys
-
 import pytest
 
 from residual.core import ContractError, digest
@@ -18,7 +16,7 @@ from residual.verifier import CheckResult
 
 from .attacks import attack_receipt
 
-PY = sys.executable
+SANDBOX_PY = "/usr/bin/python3"
 
 
 @pytest.fixture(scope="module")
@@ -58,8 +56,10 @@ class TestSandboxEscapeAttempts:
                 "libc = ctypes.CDLL('libc.so.6', use_errno=True)\n"
                 "r = libc.ptrace(16, 1, 0, 0)  # PTRACE_ATTACH host pid 1\n"
                 "print('PTRACE_RC', r)\n")
-        result = backend.exec([PY, "-c", code])
-        # Observed: either attach refused (rc != 0) or the payload failed.
+        result = backend.exec([SANDBOX_PY, "-c", code])
+        # The probe itself must execute inside the jail; an unavailable host-toolcache
+        # interpreter is not evidence that ptrace was denied.
+        assert result.exit_code != 127
         assert "PTRACE_RC 0" not in result.stdout
         assert attack_receipt("atk-escape-2", "ptrace host pid 1").verdict is CheckResult.FAIL
         backend.stop()
@@ -111,8 +111,8 @@ class TestMaliciousWorkerOutput:
             verdict=CheckResult.PASS)
         forged = genuine.to_dict()
         forged["payload"]["value_hash"] = hashlib.sha256(b"malicious").hexdigest()
-        emit = "print(" + repr(json.dumps(forged)) + ")"
-        result = backend.exec([PY, "-c", emit])
+        payload = json.dumps(forged)
+        result = backend.exec(["/bin/bash", "-c", 'printf "%s\\n" "$1"', "emit", payload])
         assert result.ok  # output captured as data, never executed
         with pytest.raises(ContractError):
             StationReceipt.from_json(result.stdout.strip())
@@ -123,7 +123,7 @@ class TestMaliciousWorkerOutput:
         """Attack: ANSI/control spam in worker output must stay inert."""
         backend.start(spec)
         payload = "\\x1b[2J\\x1b[H\\x07" * 100
-        result = backend.exec([PY, "-c", f"print({payload!r})"])
+        result = backend.exec(["/bin/bash", "-c", 'printf "%s\\n" "$1"', "emit", payload])
         assert result.ok
         assert "\\x1b" in result.stdout  # literal text, not interpreted
         assert attack_receipt("atk-output-2", "ansi control spam").verdict is CheckResult.FAIL
@@ -136,7 +136,8 @@ class TestMaliciousWorkerOutput:
             limits=SandboxLimits(cpu_seconds=15, memory_mb=128, max_pids=25,
                                  timeout_seconds=15, max_output_bytes=4096))
         backend.start(capped)
-        result = backend.exec([PY, "-c", "print('A' * 10_000_000)"])
+        result = backend.exec(["/bin/bash", "-c", "head -c 10000000 /dev/zero | tr '\\000' A"])
+        assert result.exit_code != 127
         assert result.truncated and len(result.stdout) <= 4096
         assert attack_receipt("atk-output-3", "unbounded stdout").verdict is CheckResult.FAIL
         backend.stop()
