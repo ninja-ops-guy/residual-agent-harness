@@ -17,10 +17,18 @@ ROADMAP_HEAD = re.compile("Current " + chr(96) + r"main" + chr(96) + r" is \*\*"
 PROTECTED_PREFIXES = (
     ".github/workflows/", "residual/factory/", "residual/station/", "verifier/",
     "residual/swarm/", "residual/evidence/", "residual/scheduler/", "residual/integrator/",
-    "residual/eval_frozen/",
+    "residual/eval_frozen/", "docs/self-improvement/generations/",
 )
-PROTECTED_EXACT = {"residual/goalspec.py", "residual/loop.py", "residual/receipts.py",
-                   "verifier/v3/factory_ownership_baseline.json"}
+PROTECTED_EXACT = {
+    "residual/goalspec.py", "residual/loop.py", "residual/receipts.py",
+    "verifier/v3/factory_ownership_baseline.json",
+    "docs/CURRENT_STATUS.md", "docs/roadmap/README.md", "docs/self-improvement/MISSION.md",
+    "tests/test_self_improvement.py",
+}
+EXECUTABLE_CONFIG_NAMES = {
+    "pyproject.toml", "package.json", "package-lock.json", "Dockerfile",
+    "compose.yaml", "compose.yml", "docker-compose.yml", "Makefile",
+}
 REQUIRED = ("docs/roadmap/README.md", "docs/CURRENT_STATUS.md", "residual/goalspec.py",
             "residual/loop.py", "residual/station/service.py", "residual/station/control.py",
             "verifier/v3/factory_ownership_baseline.json")
@@ -243,8 +251,11 @@ def build_station_spec(report, plan, doc, repo):
             raise ContractError("Frozen evaluator file is missing")
         command_checks = [check for check in c["checks"]
                           if isinstance(check, dict) and check.get("kind") == "command"]
-        code_paths = [path for path in c["files"]
-                      if Path(path).suffix.lower() in {".py", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".sh", ".ps1"}]
+        code_paths = [
+            path for path in c["files"]
+            if (Path(path).suffix.lower() in {".py", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".sh", ".ps1"}
+                or Path(path).name in EXECUTABLE_CONFIG_NAMES)
+        ]
         if command_checks and not c["evaluator_files"]:
             raise ContractError("Command checks require external frozen evaluator files")
         if code_paths and (not command_checks or not c["evaluator_files"]):
