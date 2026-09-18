@@ -12,12 +12,15 @@ This mission does not create a second implementation authority. Station task sta
 
     residual revision doctor
     residual revision doctor --json
+    residual revision doctor --improve --station-data .residual/self-improve
+    residual revision doctor --improve --generations 3 --station-data .residual/self-improve
     residual self-improve plan --candidates docs/self-improvement/candidates.json
     residual self-improve originate --station-data .residual/self-improve
     residual self-improve run --candidates docs/self-improvement/candidates.json --station-data .residual/self-improve
     residual self-improve cycle --station-data .residual/self-improve
+    residual self-improve lineage --generations 3 --station-data .residual/self-improve
 
-Revision Doctor and self-improve plan are read-only. originate creates a Station-managed planning project with two independent scouts (health and roadmap) and a dependent composer. The composer has proposal authority only: its candidate manifest is retained as an artifact and must pass the deterministic Mission Governor before it can execute. run executes an explicit validated candidate manifest. cycle chains origination and execution only when source HEAD, source-report identity and mission-plan identity are unchanged between the two stages.
+Revision Doctor and self-improve plan are read-only unless the operator explicitly supplies --improve. That flag enters the same governed lineage runtime rather than adding a separate repair authority. originate creates a Station-managed planning project with two independent scouts (health and roadmap) and a dependent composer. The composer has proposal authority only: its candidate manifest is retained as an artifact and must pass the deterministic Mission Governor before it can execute. run executes an explicit validated candidate manifest. cycle chains one origination and execution only when source HEAD, source-report identity and mission-plan identity are unchanged between the two stages. lineage repeats that cycle for a bounded 1-10 generations.
 
 All execution occurs in Station-managed clones. Every managed clone must prove that its HEAD is exactly the doctor-certified source HEAD before a worker runs.
 
@@ -82,6 +85,8 @@ Failures and UNKNOWN/BLOCKED states remain evidence. A later successful generati
 ## Recursive improvement
 
 The same mission can propose improvements to its planning, routing, prompts, heuristics, tests, benchmarks, or implementation. The frozen-evaluator rule prevents one generation from redefining the evidence that certifies itself.
+
+Experimental lineage mode turns an accepted Station successor into the source repository for the next generation, entirely inside the Station data area. The original checkout is not rewritten. The M7 governor module loaded by the initiating process remains frozen for the whole lineage even if a candidate edits residual/self_improvement.py; that edited controller cannot grant itself more authority during the lineage that created it. Each generation must produce a different Git tree or successor export is withheld. A lineage stops on incomplete origination, failed/incomplete execution, no-op output, or the configured generation bound.
 
 When accepted M6 Scientist primitives land on main, Scientist-originated ImprovementSpecs can feed the same candidate queue. Until then, open research PRs remain research and are not imported as production authority.
 
