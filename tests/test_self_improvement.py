@@ -280,6 +280,7 @@ class RecursiveImprovementTests(unittest.TestCase):
             def event(self, pid, event_type, data):
                 calls["event"] = {"event_type": event_type, "data": data}
         class FakeStation:
+            repo = self.repo
             def __init__(self, root):
                 calls["root"] = str(root)
                 self.store = FakeStore()
@@ -288,6 +289,12 @@ class RecursiveImprovementTests(unittest.TestCase):
                 calls["source"] = source
                 return {"project_id": "p-test"}
             def batch(self, pid):
+                target = self.repo / "docs/self-improvement/OPERATIONS.md"
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text("Generation promotion checklist\nexport\n")
+                subprocess.run(["git", "add", "."], cwd=self.repo, check=True)
+                subprocess.run(["git", "commit", "-m", "candidate-output"], cwd=self.repo,
+                               check=True, capture_output=True)
                 return {"integrated": 1, "total": 1, "control": {"outcome": "success"}}
             def export(self, pid):
                 return {"id": "export-test"}
@@ -295,6 +302,8 @@ class RecursiveImprovementTests(unittest.TestCase):
         with patch("residual.station.service.Station", FakeStation):
             result = execute_generation(self.repo, candidate, self.repo / ".station")
         self.assertEqual(calls["source"], str(self.repo.resolve()))
+        self.assertTrue(result["meaningful_delta"])
+        self.assertTrue(result["accepted_successor"])
         self.assertEqual(result["export"]["id"], "export-test")
 
 
