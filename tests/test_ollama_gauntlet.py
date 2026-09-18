@@ -81,6 +81,7 @@ class ClusterSuiteTests(unittest.TestCase):
         self.assertEqual(result["initial_route"], "remote-fast")
         self.assertIn("remote-fast", result["failed_nodes"])
         self.assertTrue(result["failure_receipt_captured"])
+        self.assertFalse(result["rogue_with_wrong_key_admitted"])
         self.assertEqual(result["after_failure"]["state"], "completed")
         self.assertNotEqual(result["after_failure"]["assigned_node"], "remote-fast")
 
