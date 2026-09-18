@@ -151,6 +151,7 @@ class FactoryBindingTests(unittest.TestCase):
                 "status": "PASS",
                 "wall_clock_seconds_mean": wall,
                 "verified_useful_throughput_per_second": 5.0 / wall,
+                "trials": [{"input_commit": "c" * 40}],
             }
 
         with patch.object(g, "author_frozen_source_corpus", return_value=frozen), \
@@ -162,6 +163,8 @@ class FactoryBindingTests(unittest.TestCase):
 
         self.assertEqual(result["status"], "PASS")
         self.assertEqual(result["source_corpus_sha256"], "b" * 64)
+        self.assertTrue(result["input_identity_paired"])
+        self.assertEqual(result["paired_input_commits"], ["c" * 40])
         self.assertEqual(result["speedup_vs_single"]["fixed"], 2.0)
         self.assertAlmostEqual(result["speedup_vs_single"]["dynamic"], 4.0 / 3.0)
         self.assertEqual(len(run.call_args_list), 3)
@@ -169,6 +172,14 @@ class FactoryBindingTests(unittest.TestCase):
             self.assertEqual(call.kwargs["preauthored_sources"], frozen["sources"])
             self.assertEqual(call.kwargs["source_corpus_sha256"], "b" * 64)
             self.assertEqual(call.kwargs["run_label"], "paired")
+
+    def test_fixture_git_identity_is_deterministic_across_fresh_repositories(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _, first = g._init_repo(root / "one")
+            _, second = g._init_repo(root / "two")
+        self.assertEqual(first, second)
+        self.assertEqual(len(first), 40)
 
     def test_gauntlet_rejects_zero_repeats_before_creating_output(self):
         with tempfile.TemporaryDirectory() as tmp:
