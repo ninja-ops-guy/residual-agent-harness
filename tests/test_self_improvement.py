@@ -97,13 +97,16 @@ class RecursiveImprovementTests(unittest.TestCase):
         self.assertEqual(manifest["tasks"][0]["id"], "SI-001")
 
     def test_raw_status_input_changes_report_identity(self):
-        before = doctor_repository(self.repo)["report_sha256"]
         status = self.repo / "docs/CURRENT_STATUS.md"
-        status.write_text("# changed status\n")
-        subprocess.run(["git", "add", "."], cwd=self.repo, check=True)
-        subprocess.run(["git", "commit", "-m", "status-input"], cwd=self.repo, check=True, capture_output=True)
-        after = doctor_repository(self.repo)["report_sha256"]
-        self.assertNotEqual(before, after)
+        status.write_text("# changed status one\n")
+        before = doctor_repository(self.repo)
+        status.write_text("# changed status two\n")
+        after = doctor_repository(self.repo)
+        self.assertEqual(before["head"], after["head"])
+        self.assertEqual(before["dirty"], after["dirty"])
+        self.assertEqual(before["findings"], after["findings"])
+        self.assertNotEqual(before["inputs"]["current_status_sha256"], after["inputs"]["current_status_sha256"])
+        self.assertNotEqual(before["report_sha256"], after["report_sha256"])
 
     def test_command_check_requires_external_evaluator(self):
         report = doctor_repository(self.repo)
