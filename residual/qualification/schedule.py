@@ -74,6 +74,40 @@ def _check_lane(journal: RuntimeJournal, lane: _Lane) -> None:
             raise AssertionError(f"stale lease regained authority: {stale.attempt_id}")
 
 
+
+REQUIRED_HISTORY_ACTIONS = (
+    "claim", "start", "revoke", "finish_candidate", "finish_failed",
+    "purge", "restart", "stale_probe", "duplicate_finish", "duplicate_claim",
+)
+
+
+def _available_actions(lane: _Lane) -> tuple[str, ...]:
+    """Choose only actions that exercise a meaningful transition or rejection.
+
+    The earlier random explorer spent substantial budget selecting impossible
+    actions and recording NOOP. Discovery qualification should spend its budget
+    on state edges, stale-authority probes and expected rejections instead.
+    """
+    actions = ["restart"]
+    if lane.claimable:
+        actions.append("claim")
+    if lane.contract is not None:
+        actions.append("duplicate_claim")
+        if lane.history:
+            actions.append("stale_probe")
+        if lane.state == "RESERVED" and not lane.revoked:
+            actions.append("start")
+        if lane.state in {"RESERVED", "RUNNING"}:
+            actions.extend(("finish_candidate", "finish_failed"))
+            if not lane.revoked:
+                actions.append("revoke")
+        if lane.state in {"CANDIDATE", "VIOLATED", "FAILED", "CANCELLED", "AUDIT_FAILED"}:
+            actions.append("purge")
+        if lane.state in {"CANDIDATE", "VIOLATED", "FAILED", "CANCELLED", "AUDIT_FAILED", "PURGED"}:
+            actions.append("duplicate_finish")
+    return tuple(actions)
+
+
 def run_history(seed: int, *, steps: int = 100, lanes: int = 3) -> dict[str, Any]:
     """Run a deterministic interleaving against the real RuntimeJournal.
 
@@ -91,11 +125,8 @@ def run_history(seed: int, *, steps: int = 100, lanes: int = 3) -> dict[str, Any
         try:
             for step in range(steps):
                 lane = rng.choice(lane_models)
-                action = rng.choice((
-                    "claim", "start", "revoke", "finish_candidate", "finish_failed",
-                    "purge", "restart", "stale_probe", "duplicate_finish", "duplicate_claim",
-                ))
-                outcome = "NOOP"
+                action = rng.choice(_available_actions(lane))
+                outcome = "UNHANDLED"
                 contract = lane.contract
                 if action == "claim" and lane.claimable:
                     contract = _contract(lane)
@@ -178,6 +209,14 @@ def run_history(seed: int, *, steps: int = 100, lanes: int = 3) -> dict[str, Any
         replay_digest = hashlib.sha256(
             canonical({"trace": trace, "payloads": semantic_payloads, "final_state": final_state}).encode("utf-8")
         ).hexdigest()
+        action_counts = {action: 0 for action in REQUIRED_HISTORY_ACTIONS}
+        outcome_counts: dict[str, int] = {}
+        for item in trace:
+            action_counts[item["action"]] = action_counts.get(item["action"], 0) + 1
+            outcome_counts[item["outcome"]] = outcome_counts.get(item["outcome"], 0) + 1
+        unhandled = [item for item in trace if item["outcome"] == "UNHANDLED"]
+        if unhandled and failure is None:
+            failure = f"explorer selected {len(unhandled)} unhandled applicable action(s)"
         return {
             "schema": "residual.qualification.history.v1",
             "seed": seed,
@@ -189,6 +228,8 @@ def run_history(seed: int, *, steps: int = 100, lanes: int = 3) -> dict[str, Any
             "trace": trace,
             "final_state": final_state,
             "observation_count": len(observations),
+            "action_counts": action_counts,
+            "outcome_counts": outcome_counts,
             "semantic_observation_digest": semantic_digest,
             "replay_digest": replay_digest,
         }
@@ -198,14 +239,30 @@ def run_campaign(*, start_seed: int, seeds: int, steps: int, lanes: int = 3) -> 
     histories = [run_history(seed, steps=steps, lanes=lanes)
                  for seed in range(start_seed, start_seed + seeds)]
     failed = [h for h in histories if h["result"] != "PASS"]
+    action_counts = {action: 0 for action in REQUIRED_HISTORY_ACTIONS}
+    outcome_counts: dict[str, int] = {}
+    for history in histories:
+        for action, count in history.get("action_counts", {}).items():
+            action_counts[action] = action_counts.get(action, 0) + int(count)
+        for outcome, count in history.get("outcome_counts", {}).items():
+            outcome_counts[outcome] = outcome_counts.get(outcome, 0) + int(count)
+    missing_actions = [action for action in REQUIRED_HISTORY_ACTIONS if action_counts.get(action, 0) == 0]
+    adequacy_ok = not missing_actions and outcome_counts.get("UNHANDLED", 0) == 0
     return {
         "schema": "residual.qualification.history-campaign.v1",
         "start_seed": start_seed,
         "seed_count": seeds,
         "steps_per_seed": steps,
         "lanes": lanes,
-        "result": "PASS" if not failed else "FAIL",
+        "result": "PASS" if not failed and adequacy_ok else "FAIL",
         "failures": failed,
+        "discovery_adequacy": {
+            "result": "PASS" if adequacy_ok else "FAIL",
+            "required_actions": list(REQUIRED_HISTORY_ACTIONS),
+            "missing_actions": missing_actions,
+            "action_counts": action_counts,
+            "outcome_counts": outcome_counts,
+        },
         "histories": histories,
     }
 
