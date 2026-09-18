@@ -84,6 +84,7 @@ class CopilotMissionRecord:
     claims_hash: str
     profile_id: str
     template_id: str
+    template_inputs: Any
     state: str
     risk: str
     approval_required: bool
@@ -373,6 +374,7 @@ class CopilotStudioService:
             claims_hash=principal.claims_hash,
             profile_id=decision.profile_id,
             template_id=decision.template_id,
+            template_inputs=request.inputs,
             state="prepared",
             risk=decision.risk,
             approval_required=decision.approval_required,
