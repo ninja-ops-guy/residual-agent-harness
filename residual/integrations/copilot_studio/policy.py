@@ -106,7 +106,7 @@ class FirmwarePolicy:
     def policy_hash(self) -> str:
         return digest({
             "profile_id": self.profile_id,
-            "allowed_groups": sorted(self.allowed_groups),
+            "allowed_tenants": sorted(self.allowed_tenants),\n            "allowed_groups": sorted(self.allowed_groups),
             "risk_ceiling": self.risk_ceiling,
             "allow": sorted(self.allowed_capabilities),
             "deny": sorted(self.denied_capabilities),
