@@ -13,6 +13,7 @@ from residual.iam.crypto import jwt_encode, rsa_generate_keypair
 from residual.iam.oidc import OIDCClient, OIDCSettings
 from residual.iam.saml import Identity
 from residual.integrations.copilot_studio import (
+    CopilotAPIError,
     CopilotHTTPAdapter,
     CopilotMissionStore,
     CopilotStudioService,
@@ -323,6 +324,49 @@ def test_subject_scopes_idempotency_and_visibility():
             404, "mission_not_found"
         )
     assert len(store.records) == 2
+
+
+def test_execution_candidate_reauthorizes_claims_policy_and_state():
+    auth, store, service, http = harness()
+    mission = post(http).body["mission_id"]
+    candidate = service.execution_candidate("alice", mission, now=NOW)
+    assert candidate.mission.mission_id == mission
+
+    auth.identities["alice"] = identity(
+        groups=(GROUP_FW, GROUP_MECH)
+    )
+    with pytest.raises(CopilotAPIError) as changed_claims:
+        service.execution_candidate("alice", mission, now=NOW)
+    assert changed_claims.value.code == "identity_changed"
+
+    auth.identities["alice"] = identity()
+    changed_service = CopilotStudioService(
+        auth,
+        policy=FirmwarePolicy(
+            allowed_tenants=(TENANT_A,),
+            allowed_groups=(GROUP_FW, GROUP_MECH),
+            required_scopes=("access_as_user",),
+            allowed_clients=(CLIENT,),
+        ),
+        store=store,
+    )
+    with pytest.raises(CopilotAPIError) as changed_policy:
+        changed_service.execution_candidate("alice", mission, now=NOW)
+    assert changed_policy.value.code == "policy_changed"
+
+    store.set_state(mission, "running")
+    with pytest.raises(CopilotAPIError) as wrong_state:
+        service.execution_candidate("alice", mission, now=NOW)
+    assert wrong_state.value.code == "mission_not_prepared"
+
+
+def test_execution_candidate_rechecks_department_membership():
+    auth, _store, service, http = harness()
+    mission = post(http).body["mission_id"]
+    auth.identities["alice"] = identity(groups=(GROUP_MECH,))
+    with pytest.raises(CopilotAPIError) as denied:
+        service.execution_candidate("alice", mission, now=NOW)
+    assert denied.value.code == "department_denied"
 
 
 def test_department_membership_is_rechecked_on_every_operation():
