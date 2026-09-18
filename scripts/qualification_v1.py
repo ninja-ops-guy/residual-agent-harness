@@ -15,7 +15,6 @@ sys.path.insert(0, str(ROOT))
 from residual.qualification.evidence import GateResult, new_envelope, write_envelope
 from residual.qualification.failures import FailureClass, FailureObservation, append_failure
 from residual.qualification.manifest import aggregate_manifest, write_manifest
-from residual.qualification.schedule import run_campaign, run_history, write_campaign
 
 
 def now() -> str:
@@ -81,6 +80,7 @@ def command_run(args: argparse.Namespace) -> int:
 
 
 def history_run(args: argparse.Namespace) -> int:
+    from residual.qualification.schedule import run_campaign, run_history, write_campaign
     started = now()
     report = run_campaign(start_seed=args.start_seed, seeds=args.seeds, steps=args.steps, lanes=args.lanes)
 
