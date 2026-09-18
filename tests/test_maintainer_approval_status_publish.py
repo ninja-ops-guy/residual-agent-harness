@@ -10,6 +10,7 @@ protection (not the default-branch event SHA of an issue_comment run).
 from __future__ import annotations
 
 import contextlib
+import http.client
 import io
 import json
 import os
@@ -27,6 +28,17 @@ REPO = "ninja-ops-guy/residual-agent-harness"
 
 def comment(cid, login, body, user_type="User"):
     return {"id": cid, "body": body, "user": {"login": login, "type": user_type}}
+
+
+class GitHubRequestFailureTests(unittest.TestCase):
+    def test_malformed_http_response_is_normalized_as_blocked_error(self):
+        with mock.patch.object(
+            gate.urllib.request,
+            'urlopen',
+            side_effect=http.client.BadStatusLine('malformed response'),
+        ):
+            with self.assertRaisesRegex(RuntimeError, 'could not read GitHub data'):
+                gate._github_request('https://api.github.com/example', 'tok')
 
 
 class PublishHeadStatusUnitTests(unittest.TestCase):
