@@ -75,6 +75,41 @@ def roadmap_items(text):
     return out
 
 
+def compare_recorded_main(root, recorded, main):
+    if recorded is None:
+        return "missing", None
+    if not git(root, "rev-parse", "--verify", recorded + "^{commit}", allow_fail=True):
+        return "unavailable", None
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(root), "merge-base", "--is-ancestor", recorded, main],
+            capture_output=True, text=True, timeout=15, check=False)
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise ContractError("Git history could not be compared") from exc
+    if result.returncode:
+        return "diverged", None
+    delta = int(git(root, "rev-list", "--count", recorded + ".." + main) or "0")
+    return ("lag" if delta else "current"), delta
+
+
+def append_snapshot_finding(findings, label, code_prefix, state, recorded, main, delta):
+    if state == "missing":
+        findings.append({"code": code_prefix + "_identity_missing", "severity": "warning",
+                         "summary": label + " main snapshot is not parseable.", "evidence": {}})
+    elif state == "unavailable":
+        findings.append({"code": code_prefix + "_identity_unavailable", "severity": "warning",
+                         "summary": label + " snapshot commit is unavailable.",
+                         "evidence": {"recorded_main": recorded}})
+    elif state == "diverged":
+        findings.append({"code": code_prefix + "_identity_diverged", "severity": "error",
+                         "summary": label + " recorded main is not an ancestor of repository main.",
+                         "evidence": {"recorded_main": recorded, "main": main}})
+    elif state == "lag":
+        findings.append({"code": code_prefix + "_status_lag", "severity": "warning",
+                         "summary": label + " status snapshot trails repository main.",
+                         "evidence": {"recorded_main": recorded, "main": main, "commits": delta}})
+
+
 def doctor_repository(repo="."):
     requested = Path(repo).resolve()
     if not requested.is_dir():
@@ -88,6 +123,10 @@ def doctor_repository(repo="."):
     text = roadmap.read_text(encoding="utf-8") if roadmap.is_file() else ""
     match = ROADMAP_HEAD.search(text)
     recorded = match.group(1) if match else None
+    current_status = root / "docs/CURRENT_STATUS.md"
+    status_text = current_status.read_text(encoding="utf-8") if current_status.is_file() else ""
+    status_match = ROADMAP_HEAD.search(status_text)
+    status_recorded = status_match.group(1) if status_match else None
     findings = []
     missing = [p for p in REQUIRED if not (root / p).is_file()]
     if missing:
@@ -96,37 +135,24 @@ def doctor_repository(repo="."):
     if dirty:
         findings.append({"code": "checkout_dirty", "severity": "warning",
                          "summary": "Checkout has uncommitted or untracked changes.", "evidence": {}})
-    delta = None
-    if recorded is None:
-        findings.append({"code": "roadmap_identity_missing", "severity": "warning",
-                         "summary": "Roadmap accepted-main snapshot is not parseable.", "evidence": {}})
-    elif not git(root, "rev-parse", "--verify", recorded + "^{commit}", allow_fail=True):
-        findings.append({"code": "roadmap_identity_unavailable", "severity": "warning",
-                         "summary": "Roadmap snapshot commit is unavailable.", "evidence": {"roadmap_main": recorded}})
-    else:
-        ancestor = subprocess.run(["git", "-C", str(root), "merge-base", "--is-ancestor", recorded, main],
-                                  capture_output=True, timeout=15, check=False)
-        if ancestor.returncode:
-            findings.append({"code": "roadmap_identity_diverged", "severity": "error",
-                             "summary": "Roadmap snapshot is not an ancestor of main.",
-                             "evidence": {"roadmap_main": recorded, "main": main}})
-        else:
-            delta = int(git(root, "rev-list", "--count", recorded + ".." + main) or "0")
-            if delta:
-                findings.append({"code": "roadmap_status_lag", "severity": "warning",
-                                 "summary": "Roadmap status snapshot trails main.",
-                                 "evidence": {"roadmap_main": recorded, "main": main, "commits": delta}})
+    roadmap_state, delta = compare_recorded_main(root, recorded, main)
+    append_snapshot_finding(findings, "Roadmap", "roadmap", roadmap_state, recorded, main, delta)
+    status_state, status_delta = compare_recorded_main(root, status_recorded, main)
+    append_snapshot_finding(
+        findings, "Current status", "current_status", status_state, status_recorded, main, status_delta)
     queue = roadmap_items(text)
     if not queue:
         findings.append({"code": "roadmap_queue_missing", "severity": "warning",
                          "summary": "Current build order was not found.", "evidence": {}})
     inputs = {"roadmap_sha256": file_digest(roadmap),
-              "current_status_sha256": file_digest(root / "docs/CURRENT_STATUS.md"),
+              "current_status_sha256": file_digest(current_status),
               "mission_sha256": file_digest(root / "docs/self-improvement/MISSION.md"),
               "factory_ownership_sha256": file_digest(root / "verifier/v3/factory_ownership_baseline.json")}
     report = {"schema_version": 1, "repository_root": str(root), "head": head, "main_head": main,
               "branch": branch, "dirty": dirty, "roadmap_recorded_main": recorded,
-              "roadmap_delta_commits": delta, "roadmap_items": queue, "findings": findings,
+              "roadmap_delta_commits": delta, "current_status_recorded_main": status_recorded,
+              "current_status_delta_commits": status_delta,
+              "roadmap_items": queue, "findings": findings,
               "inputs": inputs}
     report["report_sha256"] = digest({k: v for k, v in report.items() if k != "repository_root"})
     return report
