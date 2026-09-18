@@ -37,6 +37,9 @@
     "Factory ownership-manifest paths plus M7/Station/verifier/governance surfaces are blocked from autonomous writes.",
     "Every managed Station clone is checked against the doctor-certified source HEAD before execution.",
     "Cycle execution revalidates source HEAD, source report identity, and mission plan identity after origination.",
-    "Production merge remains external governed authority."
+    "Production merge remains external governed authority.",
+    "No-op successful batches are not exported as successors; accepted generations must change the Git tree.",
+    "Bounded experimental lineage can feed an accepted Station successor into the next generation without modifying the original checkout.",
+    "The initiating M7 governor implementation remains frozen for an experimental lineage even if candidate source edits the future controller."
   ]
 }
