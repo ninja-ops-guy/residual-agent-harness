@@ -617,9 +617,44 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+
+  macos-lifecycle:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: macOS clean lifecycle and restart qualification
+        run: |
+          mkdir -p runs/qualification-v1
+          python scripts/qualification_v1.py run \
+            --gate-id macos-lifecycle \
+            --output runs/qualification-v1/macos.evidence.json \
+            --log runs/qualification-v1/macos.log \
+            --junit runs/qualification-v1/macos.xml \
+            --zero-skips \
+            -- python -m pytest \
+               tests/station/test_station.py::StationTests::test_full_demo_real_git_tests_review_and_release \
+               tests/station/test_station.py::StationTests::test_lease_expiry_and_restart_recovery_preserve_evidence \
+               tests/qualification/test_active_workload.py -q \
+               --junitxml=runs/qualification-v1/macos.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-macos-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
   aggregate:
     if: always()
-    needs: [deterministic, discovery, m4, artifacts, browser, concurrency, protocol-fuzz, toxic-provider, active-workload, active-http-soak, browser-adversarial, redteam, windows-lifecycle, fault-injection, webvm-protocol-fuzz, qualification-selftests]
+    needs: [deterministic, discovery, m4, artifacts, browser, concurrency, protocol-fuzz, toxic-provider, active-workload, active-http-soak, browser-adversarial, redteam, windows-lifecycle, macos-lifecycle, fault-injection, webvm-protocol-fuzz, qualification-selftests]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
