@@ -180,6 +180,16 @@ def test_out_of_order_history_fails_closed():
     with pytest.raises(ContractError, match="chain break"):
         b.sync_history((two, one))
 
+def test_peer_cannot_reuse_local_device_identity():
+    a = mesh_nodes("a")["a"]
+    impostor = MeshIdentity(
+        device_id=a.identity.device_id, display_name="impostor",
+        public_key="different-key", capabilities=(),
+        address="loopback://impostor", joined_at_ns=time.time_ns(),
+    )
+    with pytest.raises(ContractError, match="local device identity"):
+        a.connect_peer(impostor)
+
 def test_key_pinning_blocks_silent_identity_replacement():
     b = mesh_nodes("b")["b"]; original = identity("a"); b.connect_peer(original)
     replacement = MeshIdentity(device_id=original.device_id, display_name="A replaced",
