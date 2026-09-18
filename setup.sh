@@ -7,13 +7,13 @@
 set -euo pipefail
 
 REPO_DIR="$(cd -- "$(dirname -- "\${BASH_SOURCE[0]}")" && pwd)"
-DATA_HOME="\${XDG_DATA_HOME:-$HOME/.local/share}"
-STATE_HOME="\${XDG_STATE_HOME:-$HOME/.local/state}"
-VENV_DIR="\${RESIDUAL_VENV:-$DATA_HOME/residual/venv}"
-DATA_DIR="\${RESIDUAL_DATA:-$STATE_HOME/residual/station}"
-HOST="\${RESIDUAL_HOST:-127.0.0.1}"
-PORT="\${RESIDUAL_PORT:-8765}"
-SETTINGS_FILE="\${RESIDUAL_SETTINGS:-$HOME/.residual-settings}"
+DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+VENV_DIR="${RESIDUAL_VENV:-$DATA_HOME/residual/venv}"
+DATA_DIR="${RESIDUAL_DATA:-$STATE_HOME/residual/station}"
+HOST="${RESIDUAL_HOST:-127.0.0.1}"
+PORT="${RESIDUAL_PORT:-8765}"
+SETTINGS_FILE="${RESIDUAL_SETTINGS:-$HOME/.residual-settings}"
 
 PATH_BEGIN="# BEGIN residual-agent-harness PATH"
 PATH_END="# END residual-agent-harness PATH"
@@ -75,9 +75,9 @@ VENV_PY="$VENV_DIR/bin/python"
 info "Installing residual-agent-harness (editable)"
 "$VENV_PY" -m pip install -e "$REPO_DIR"
 
-if [ -n "\${ZSH_VERSION:-}" ]; then
+if [ -n "${ZSH_VERSION:-}" ]; then
   RC_FILE="$HOME/.zshrc"
-elif [ -n "\${BASH_VERSION:-}" ]; then
+elif [ -n "${BASH_VERSION:-}" ]; then
   RC_FILE="$HOME/.bashrc"
 else
   RC_FILE="$HOME/.profile"
