@@ -447,3 +447,91 @@ M6.2 tests whether RESIDUAL can move from executing a supplied ImprovementSpec t
 The authority invariant remains unchanged:
 
 > **RESIDUAL may discover, propose, implement, and evaluate a successor. It may not appoint that successor.**
+
+
+## 14. M6-EPI-001 — Evidence Sufficiency vs. Measurement Gap
+
+M6-EPI-001 tested the evidence-dimensionality concern directly using two controlled EvidenceSnapshots.
+
+The sufficient arm contained `repair_attempts_mean = 2.4`, `task_success_rate = 0.72`, and `verification_failures = 14`. The insufficient arm deliberately omitted `repair_attempts_mean` while retaining a question that required it.
+
+Both tasks initially failed their semantic checks and succeeded after one bounded repair. The final batch integrated 2/2 tasks in two passes, using six local model calls and 7,417 reported tokens over 499.011 seconds.
+
+The sufficient arm produced an improvement proposal bound to the exact snapshot hash and used the measured baseline value 2.4. The insufficient arm produced a MeasurementGap identifying exactly `repair_attempts_mean` as absent and did **not** fabricate a numeric baseline, hypothesis, or acceptance criterion.
+
+This supports the feasibility of the epistemic fork:
+
+```text
+required dimension measured  -> candidate ImprovementSpec
+required dimension absent    -> MeasurementGap
+```
+
+However, the experiment also demonstrated why the Scientist cannot validate its own output. The sufficient proposal expressed acceptance as free-form prose and confused a preservation metric with a protected invariant. The MeasurementGap left its preserve-invariants set empty. Those outputs passed the intentionally narrow experimental checks but are not acceptable production contracts.
+
+The production HypothesisVerifier specification was therefore strengthened to require structured mechanically evaluable acceptance criteria, a versioned invariant vocabulary, non-empty MeasurementGap preservation invariants, and exact EvidenceSnapshot binding.
+
+Evidence artifact SHA-256: `ed9b1f790039629d2d9dd5bd52f0ef37cd505835e1c08f3ff6094e574fa49008`.
+
+## 15. M6-SHIP-001 — First Real-Repository Roadmap Shipping Attempt
+
+M6-SHIP-001 moved beyond the empty experimental repository. RESIDUAL imported a clean clone of the actual repository and was assigned the first M6.2 roadmap deliverable: implement the production `residual/improvement/spec.py` contract while receiving read-only context from existing core code.
+
+The attempt failed closed after all five bounded repair attempts.
+
+The generated module was close to correct. It validated blank fields, serialized tuple fields as lists, defensively copied the acceptance mapping, and was frozen. Its critical defect was:
+
+```python
+def canonical_json(self) -> bytes:
+    return canonical(self.to_dict()).encode()
+```
+
+The contract required `canonical_json()` to return text. The behavioral check correctly rejected the candidate.
+
+The more important process finding was that the check used a bare assertion. The retained diagnostic was only an `AssertionError` line number. Attempts 2 through 5 received the same prior candidate plus the same opaque finding and reproduced the exact same candidate patch hash:
+
+`1cf89833ff7a6c2d8bfeb6f5b9f2c1d1ec402082427b475f4911d39882a88881`
+
+The system did not falsely accept the candidate, but it spent the full repair budget without changing state.
+
+M6-SHIP-001 therefore produced two new engineering requirements:
+
+1. **Repair evidence quality matters.** Deterministic checks intended to drive automated repair should emit explicit expected/actual diagnostics rather than bare assertions.
+2. **Stagnation should be classified.** Repeated identical candidate+failure states should become deterministic repeated-failure evidence rather than consuming every remaining attempt as though progress occurred.
+
+Issue #235 tracks repeated-candidate stagnation detection.
+
+M6-SHIP-002 preserves the same roadmap contract and acceptance semantics while changing only the diagnostic quality of the deterministic test. This tests whether precise failure evidence is sufficient to convert the stagnant loop into corrective repair.
+
+## 16. Updated Research Implication
+
+The M6 program now exposes three distinct requirements for autonomous recursive improvement:
+
+- **development competence:** the system can modify and repair code;
+- **epistemic competence:** the system can distinguish measured evidence from missing evidence;
+- **experimental competence:** the evaluator provides diagnostics rich enough to drive correction and detects when the repair process is no longer making progress.
+
+A recursive system that lacks any one of these can remain bounded and safe yet fail to improve effectively.
+
+The emerging closed loop is therefore:
+
+```text
+measure
+  ↓
+detect sufficiency or MeasurementGap
+  ↓
+form falsifiable hypothesis
+  ↓
+implement candidate
+  ↓
+verify with actionable evidence
+  ↓
+repair while progress exists
+  ↓
+classify stagnation if progress stops
+  ↓
+review + receipt
+  ↓
+champion/challenger comparison
+  ↓
+external promotion
+```
