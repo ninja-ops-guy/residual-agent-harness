@@ -105,7 +105,8 @@ def append_snapshot_finding(findings, label, code_prefix, state, recorded, main,
                          "summary": label + " recorded main is not an ancestor of repository main.",
                          "evidence": {"recorded_main": recorded, "main": main}})
     elif state == "lag":
-        findings.append({"code": code_prefix + "_status_lag", "severity": "warning",
+        lag_code = code_prefix + ("_lag" if code_prefix.endswith("_status") else "_status_lag")
+        findings.append({"code": lag_code, "severity": "warning",
                          "summary": label + " status snapshot trails repository main.",
                          "evidence": {"recorded_main": recorded, "main": main, "commits": delta}})
 
