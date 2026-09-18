@@ -94,15 +94,25 @@ The lean evidence snapshot reduced the first request from 15,566 to 12,927 bytes
 
 Status: **FAIL in experiment-execution scope / discovery not reached**.
 
-The retained result narrows the next intervention: the Scientist needs output-contract semantics and externally authoritative checking, but does not need the full immutable verifier source in model context.
+The retained result narrowed the next intervention: the Scientist needs output-contract semantics and externally authoritative checking, but does not need the full immutable verifier source in model context.
 
 ### #249 / M6-SPEC-007C
 
-At this status check there is no authoritative result comment or retained outcome. Therefore the discovery outcome is **UNKNOWN / pending**.
+Authoritative run **`35354978034`** cleared the earlier provider-timeout barrier and exercised the discovery path with local Qwen2.5-Coder 7B. The frozen evidence snapshot remained bound to exact `main@60d0c5a8...` and no improvement question, target metric, intervention, or hypothesis was supplied.
 
-The intended intervention keeps aggregate measurements, source hashes, no-supplied-hypothesis constraints, and exact external checker semantics while removing full checker source from the model context. The external checker remains authoritative.
+Retained outcome:
 
-No claim of autonomous improvement discovery should be made until a retained run produces a defensible, verifier-accepted ImprovementSpec from evidence without a supplied hypothesis.
+- all five local model calls completed; there was no provider timeout;
+- attempts 1–4 generated `ImprovementSpec`-shaped candidates, but each was malformed JSON because the `operator` member syntax was invalid, so both the JSON-validity check and external checker failed;
+- attempts 3 and 4 repeated previously failed candidate patches and accepted #233 repeated-patch detection recorded those repeats;
+- attempt 5 produced a truncated model output and no new candidate;
+- the run escalated at the frozen five-pass `max_iteration` brake after 12,840 reported tokens and 752.384 seconds;
+- final result: **0 integrated**, `proposal: null`, no approved review, no verification receipt, and no release files;
+- retained artifact ID **`10551768764`**, ZIP SHA-256 **`50398a007fb67aee739d81b9b726ebf0d5caf0a45fac1599b74cc31ae40ff782`**.
+
+Status: **FAIL in bounded autonomous-discovery qualification scope**. This is materially different from #244/#246 because discovery execution was reached; however, no mechanically admissible, verifier-accepted proposal survived the frozen budget. The result is negative evidence for the current output-contract/repair path, not proof that the broader Scientist hypothesis is false.
+
+General autonomous improvement discovery remains **UNKNOWN / not established** until a retained run produces a defensible verifier-accepted proposal from evidence without a supplied hypothesis.
 
 ## Deterministic stress evidence
 
@@ -149,7 +159,7 @@ Until those conditions are met, broad recursive/self-improvement claims remain *
 2. Implement and qualify EvidenceSnapshot and MeasurementGap contracts.
 3. Implement the Scientist as analysis-only, without Git/write/integration/promotion authority.
 4. Implement deterministic HypothesisVerifier rejection cases identified by #232.
-5. Resolve #249 from retained evidence; keep #244/#246 as execution failures before discovery.
+5. Use #249's retained malformed/repeated/truncated proposal evidence to harden the output contract and repair path without moving checker authority into the model.
 6. Build the experiment ledger and champion/challenger evaluator.
 7. Repeat autonomous discovery trials with frozen evidence and external checking.
 8. Preserve earlier negative cells and independent #207/#212 authority-ordering defects.
@@ -157,4 +167,4 @@ Until those conditions are met, broad recursive/self-improvement claims remain *
 
 ## Non-claims
 
-Nothing in #220, #231, #232, #244, #246, or the open #243/#249 work establishes universal model reliability, production readiness, autonomous merge authority, general recursive self-improvement, or successful paid/live provider execution.
+Nothing in #220, #231, #232, #244, #246, #249, or the open #243 work establishes universal model reliability, production readiness, autonomous merge authority, general recursive self-improvement, or successful paid/live provider execution.
