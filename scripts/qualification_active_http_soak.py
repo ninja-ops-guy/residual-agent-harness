@@ -11,7 +11,12 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from scripts.qualification_process_soak import fd_count, rss_bytes, slope_per_hour, terminate
+if __package__:
+    from scripts.qualification_process_soak import fd_count, rss_bytes, slope_per_hour, terminate
+else:
+    # Direct-script execution sets sys.path[0] to scripts/, so import the
+    # sibling module without requiring the repository root to be importable.
+    from qualification_process_soak import fd_count, rss_bytes, slope_per_hour, terminate
 
 
 def request(url: str, path: str, *, token: str | None = None, body=None, timeout: float = 10.0):
