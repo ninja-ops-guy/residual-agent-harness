@@ -112,6 +112,19 @@ class FactoryBindingTests(unittest.TestCase):
         self.assertEqual(result["unsafe_acceptances"], 0)
 
 
+    def test_wilson_interval_reports_uncertainty_for_zero_events(self):
+        interval = g._wilson_interval(0, 100)
+        self.assertIsNotNone(interval)
+        self.assertEqual(interval["low"], 0.0)
+        self.assertGreater(interval["high"], 0.0)
+        self.assertLess(interval["high"], 0.05)
+
+    def test_exact_sign_test_requires_repeated_directional_evidence(self):
+        stats = g._ratio_stats([2.0, 1.5, 1.25, 1.1, 1.01])
+        self.assertEqual(stats["non_ties"], 5)
+        self.assertEqual(stats["wins"], 5)
+        self.assertAlmostEqual(stats["one_sided_sign_p"], 0.03125)
+
     def test_frozen_source_corpus_is_hash_bound_and_provenanced(self):
         authored_source = "write_file('answer-001.txt','42')"
         with patch.object(g, "_author_source", return_value=(authored_source, 11, 7)):
@@ -151,7 +164,8 @@ class FactoryBindingTests(unittest.TestCase):
                 "status": "PASS",
                 "wall_clock_seconds_mean": wall,
                 "verified_useful_throughput_per_second": 5.0 / wall,
-                "trials": [{"input_commit": "c" * 40}],
+                "trials": [{"input_commit": "c" * 40,
+                            "wall_clock_seconds": wall, "accepted": 5}],
             }
 
         with patch.object(g, "author_frozen_source_corpus", return_value=frozen), \
@@ -167,6 +181,9 @@ class FactoryBindingTests(unittest.TestCase):
         self.assertEqual(result["paired_input_commits"], ["c" * 40])
         self.assertEqual(result["speedup_vs_single"]["fixed"], 2.0)
         self.assertAlmostEqual(result["speedup_vs_single"]["dynamic"], 4.0 / 3.0)
+        self.assertEqual(
+            result["paired_statistics"]["fixed"]["verified_throughput_ratio"]["median"], 2.0
+        )
         self.assertEqual(len(run.call_args_list), 3)
         for call in run.call_args_list:
             self.assertEqual(call.kwargs["preauthored_sources"], frozen["sources"])
