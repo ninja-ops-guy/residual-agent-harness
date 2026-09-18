@@ -1,0 +1,63 @@
+name: Ollama gauntlet smoke
+on:
+  pull_request:
+    paths:
+      - 'residual/eval/ollama_gauntlet.py'
+      - 'residual/eval_frozen/**'
+      - 'tests/test_ollama_gauntlet.py'
+      - 'tests/swarm/test_eval_frozen.py'
+      - 'pyproject.toml'
+      - '.github/workflows/ollama-gauntlet-smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ollama-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install RESIDUAL and Factory dependencies
+        run: |
+          python -m pip install -e '.[factory]' pytest
+          sudo apt-get update -qq
+          sudo apt-get install -y libseccomp2
+      - name: Install and start Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          nohup ollama serve > "$RUNNER_TEMP/ollama.log" 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:11434/api/tags >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/ollama.log"
+          exit 1
+      - name: Pull pinned smoke model
+        run: ollama pull qwen2.5:0.5b
+      - name: Compile and unit-test gauntlet
+        run: |
+          python -m compileall -q residual/eval residual/eval_frozen
+          python -m unittest tests.test_ollama_gauntlet -v
+      - name: Run genuine Ollama/Factory/cluster smoke gauntlet
+        env:
+          RESIDUAL_REQUIRE_SECCOMP: '1'
+        run: |
+          set -o pipefail
+          mkdir -p runs
+          residual-gauntlet --model qwen2.5:0.5b --repeats 1 --output runs/ollama-gauntlet-smoke | tee runs/ollama-gauntlet-smoke-summary.txt
+      - name: Preserve evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ollama-gauntlet-smoke-${{ github.sha }}
+          path: |
+            runs/ollama-gauntlet-smoke/
+            runs/ollama-gauntlet-smoke-summary.txt
+            ${{ runner.temp }}/ollama.log
+          if-no-files-found: ignore
+          retention-days: 14
