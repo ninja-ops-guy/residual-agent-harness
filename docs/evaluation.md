@@ -55,7 +55,7 @@ Since the previously documented `dcf1e507...` state:
 - #194 merged completed-draft visibility/reopen behavior in Command Station;
 - #133 merged WebVM runtime discriminator tooling and also removed the previously accepted #132 self-hosting/research-bundle surface.
 
-The first seven ordinary `push` workflows on exact current main were **PENDING/queued** at the latest observation. Do not inherit predecessor-main or candidate-head PASS.
+Six of seven ordinary first-attempt `push` workflows on exact current main have completed **PASS**: Factory ownership, M4 runner prerequisites, measured-evaluation binding, clean install, Controller/provider, and Command Station. Pages/deployment run `35288585007` remains **IN PROGRESS / PENDING**. Do not inherit predecessor-main or candidate-head PASS for the remaining deployment gate.
 
 On the exact #133 final candidate head, ordinary Factory ownership, measured-evaluation binding, Browser VM Demo, Control Plane, clean install, Controller/provider, Command Station, Pages, and maintainer approval completed **PASS**. Several WebVM discriminator workflows intentionally completed **FAIL** after reproducing the runtime defect being studied. Those retained FAILs are experimental observations, not qualification PASSes and not flaky failures to erase through rerun.
 
