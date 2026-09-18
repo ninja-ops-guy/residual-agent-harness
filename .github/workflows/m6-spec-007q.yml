@@ -1,0 +1,72 @@
+name: M6-SPEC-007Q registry-aware discovery
+on:
+  pull_request:
+    branches:
+      - m6/metric-registry-impl
+permissions:
+  contents: read
+jobs:
+  m6-spec-007q:
+    if: github.head_ref == 'experiment/m6-spec-007q-registry-aware-discovery'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      OLLAMA_HOST: 127.0.0.1:11458
+      OLLAMA_NO_CLOUD: "1"
+      OLLAMA_MODEL: qwen2.5:7b
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install RESIDUAL
+        run: python -m pip install -e '.[factory]'
+      - name: Qualify Metric Registry
+        run: python -m unittest tests.test_discovery_metrics -v
+      - name: Syntax-check experiment
+        run: python -m py_compile scripts/m6_spec_007q.py
+      - name: Preflight registry-bound snapshot
+        run: |
+          python - <<'PY'
+          from residual.discovery_metrics import load_metric_registry
+          r=load_metric_registry("residual/discovery_metric_registry.json")
+          assert len(r.definitions)==11
+          assert r.resolve("context_bytes_non_success_max").unit=="bytes"
+          print(r.revision, r.registry_sha256)
+          PY
+      - name: Install Ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+      - name: Start dedicated Ollama endpoint
+        run: |
+          nohup ollama serve > /tmp/ollama-m6-spec-007q.log 2>&1 &
+          echo $! > /tmp/ollama-m6-spec-007q.pid
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:11458/api/tags >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ollama-m6-spec-007q.log
+          exit 1
+      - name: Pull analysis model
+        run: ollama pull "$OLLAMA_MODEL"
+      - name: Record runtime identity
+        run: |
+          ollama --version
+          ollama list | tee /tmp/ollama-models-m6-spec-007q.txt
+          sha256sum scripts/m6_spec_007q.py residual/discovery_metric_registry.json | tee /tmp/m6-spec-007q-input-sha256.txt
+      - name: Execute authoritative registry-aware discovery trial
+        run: python scripts/m6_spec_007q.py --model "$OLLAMA_MODEL" --base-url http://127.0.0.1:11458 --output runs/m6-spec-007q/evidence.json
+      - name: Retain evidence
+        if: always()
+        run: |
+          test ! -f runs/m6-spec-007q/evidence.json || cat runs/m6-spec-007q/evidence.json
+          tail -300 /tmp/ollama-m6-spec-007q.log || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m6-spec-007q-registry-aware-evidence
+          path: |
+            runs/m6-spec-007q
+            /tmp/ollama-m6-spec-007q.log
+            /tmp/ollama-m6-spec-007q.pid
+            /tmp/ollama-models-m6-spec-007q.txt
+            /tmp/m6-spec-007q-input-sha256.txt
