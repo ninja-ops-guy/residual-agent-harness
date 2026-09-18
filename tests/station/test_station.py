@@ -18,7 +18,7 @@ from residual.core import ContractError, canonical
 from residual.station.contracts import event_validate, parse_spec, sha
 from residual.station.models import StationProvider, public_settings, save_settings, model_call
 from residual.station.server import Server
-from residual.station.service import Station, demo_spec, DEMO_FILES
+from residual.station.service import Station, demo_spec, DEMO_FILES, _repair_detail
 from residual.station.store import Store
 from residual.station import workspace as ws
 
@@ -135,6 +135,28 @@ class StationTests(unittest.TestCase):
         self.assertTrue(repair["packet"]["repair_findings"])
         findings = [e for e in self.s.store.events(self.pid) if e["event_type"] == "task.finding"]
         self.assertTrue(any(e["data"].get("message") == "Repair context bound to prior candidate" for e in findings))
+
+    def test_repair_detail_retains_terminal_root_cause_within_bound(self):
+        detail = "Traceback context " + ("x" * 1200) + "\nTypeError: non-default argument 'acceptance' follows default argument"
+        summary = _repair_detail(detail)
+        self.assertLessEqual(len(summary), 500)
+        self.assertIn("middle omitted", summary)
+        self.assertIn("TypeError: non-default argument 'acceptance' follows default argument", summary)
+
+    def test_repeated_failed_patch_is_explicit_repair_finding(self):
+        self.s.triage(self.pid)
+        failed = {"files": {"station/health.py": "def status(services):\n    return 'ready'\n"}}
+        first = self.s.prepare(self.pid, "one", "OPS-101")
+        self.s.finish(first, failed)
+        second = self.s.prepare(self.pid, "two", "OPS-101")
+        self.s.finish(second, failed)
+        task = self.s.store.task(self.pid, "OPS-101")
+        self.assertEqual(task["state"], "repair_required")
+        self.assertTrue(any("exactly repeated a previously failed patch" in finding for finding in task["findings"]))
+        events = [e for e in self.s.store.events(self.pid) if e["event_type"] == "task.finding"]
+        repeated = [e for e in events if e["data"].get("message") == "Repeated failed candidate detected"]
+        self.assertEqual(len(repeated), 1)
+        self.assertRegex(repeated[0]["data"]["patch_sha256"], r"^[a-f0-9]{64}$")
 
     def test_batch_can_repair_on_fourth_attempt_without_weakening_checks(self):
         manifest = {
