@@ -220,6 +220,37 @@ def test_cancelled_or_running_record_cannot_be_reprepared():
             FirmwareFactoryAdapter(catalog()).prepare(modified)
 
 
+def test_reconstructed_inputs_cannot_escape_original_copilot_plan_binding():
+    item = record()
+    expanded_catalog = catalog(
+        profiles=frozenset({"default-analysis", "secondary-analysis"})
+    )
+    forged = replace(
+        item,
+        template_inputs={
+            "repository_id": "firmware-main",
+            "analysis_profile_id": "secondary-analysis",
+        },
+    )
+    with pytest.raises(
+        ContractError,
+        match="authorized template inputs do not match Copilot plan binding",
+    ):
+        FirmwareFactoryAdapter(expanded_catalog).prepare(forged)
+
+
+def test_reconstructed_claim_or_profile_binding_is_rejected():
+    item = record()
+    with pytest.raises(ContractError, match="claims binding"):
+        FirmwareFactoryAdapter(catalog()).prepare(
+            replace(item, claims_hash="f" * 64)
+        )
+    with pytest.raises(ContractError, match="capability resource"):
+        FirmwareFactoryAdapter(catalog()).prepare(
+            replace(item, profile_id="another-profile")
+        )
+
+
 def test_authority_expansion_is_rejected_even_if_record_is_reconstructed():
     item = record()
     original = item.revision.capability_grants
