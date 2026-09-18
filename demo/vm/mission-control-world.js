@@ -1,5 +1,6 @@
 import {mountMissionControl as mountBase} from './mission-control-engineer.js';
 import {renderPreview} from './mission-preview.js';
+import {executeMissionCommand} from './mission-control-commands.js';
 
 const CURRENT='residual.chat.current.v2', INDEX='residual.chat.index.v2';
 const cid=()=> 'c-'+crypto.randomUUID().replaceAll('-','');
@@ -32,11 +33,62 @@ export function mountMissionControl(host){
   setBusy=value=>{busy=!!value;status()};
   function fillHistory(){history.replaceChildren();for(const item of index()){const o=document.createElement('option');o.value=item.id;o.textContent=item.title||item.id.slice(-6);o.selected=item.id===state.id;history.append(o)}if(![...history.options].some(o=>o.value===state.id)){const o=document.createElement('option');o.value=state.id;o.textContent='Current chat';o.selected=true;history.prepend(o)}}
   function clearBackground(){const result=root.querySelector('#mc-result'),artifacts=root.querySelector('#mc-artifacts'),events=root.querySelector('#mc-events'),count=root.querySelector('#mc-count'),runState=root.querySelector('#mc-run-state'),preview=root.querySelector('#mc-preview'),previewStatus=root.querySelector('#mc-preview-status');if(result)result.hidden=true;if(artifacts)artifacts.hidden=true;if(events)events.replaceChildren();if(count)count.textContent='0';if(runState)runState.textContent='Browser-local conversation restored. Guest traces remain authoritative evidence.';if(preview){preview.hidden=true;preview.replaceChildren()}if(previewStatus)previewStatus.textContent='No live mission preview yet.'}
-  function restore(){clearBackground();chat.replaceChildren();const prompt=root.querySelector('#mc-prompt');if(prompt)prompt.value='';if(!state.turns.length)bubble(chat,'assistant','Give the harness a job. Follow up naturally; accepted build artifacts stay attached to this conversation until you detach them or start a new chat.');for(const turn of state.turns){const node=bubble(chat,turn.role,turn.text);if(turn.role==='assistant'&&turn.mission_id===state.lastBuildMission&&state.lastBundle){const shell=document.createElement('div');shell.className='preview-shell';node.append(shell);renderPreview(shell,state.lastBundle,{frameId:'mc-restored-preview-frame'});const note=document.createElement('div');note.className='muted';note.textContent='Restored browser-local preview cache · verify guest Evidence/Terminal before treating it as authoritative.';node.append(note)}}if(state.turns.length)bubble(chat,'system','Session transcript restored from this browser. Mission evidence and lineage authority remain in verified guest traces.');chat.scrollTop=chat.scrollHeight;status();fillHistory()}
+  function restore(){clearBackground();chat.replaceChildren();const prompt=root.querySelector('#mc-prompt');if(prompt)prompt.value='';if(!state.turns.length)bubble(chat,'assistant','Give the harness a job. Follow up naturally; accepted build artifacts stay attached to this conversation until you detach them or start a new chat. Type /help for console commands.');for(const turn of state.turns){const node=bubble(chat,turn.role,turn.text);if(turn.role==='assistant'&&turn.mission_id===state.lastBuildMission&&state.lastBundle){const shell=document.createElement('div');shell.className='preview-shell';node.append(shell);renderPreview(shell,state.lastBundle,{frameId:'mc-restored-preview-frame'});const note=document.createElement('div');note.className='muted';note.textContent='Restored browser-local preview cache · verify guest Evidence/Terminal before treating it as authoritative.';node.append(note)}}if(state.turns.length)bubble(chat,'system','Session transcript restored from this browser. Mission evidence and lineage authority remain in verified guest traces.');chat.scrollTop=chat.scrollHeight;status();fillHistory()}
   create.onclick=()=>{if(busy)return;state=fresh();pending.clear();save(state,'New conversation');restore()};
   detach.onclick=()=>{if(busy)return;state.continueFrom=null;save(state);status();bubble(chat,'system','Next build starts a fresh artifact while this conversation remains visible.')};
   history.onchange=()=>{if(busy||!validCid(history.value))return;state=load(history.value);pending.clear();save(state);restore()};
   restore();
+  const commandForm=root.querySelector('#mc-form'), commandPrompt=root.querySelector('#mc-prompt');
+  function commandReply(text){bubble(chat,'system',text);chat.scrollTop=chat.scrollHeight}
+  const commandApi={
+    async status(){
+      let health='unknown';try{health=typeof host.health==='function'?host.health():(host.ready?.()?'ready':'starting')}catch{health='error'}
+      return {
+        guest:health,
+        mission_active:busy,
+        conversation:state.id,
+        revision:state.revision,
+        attached_parent:state.continueFrom,
+        mode:root.querySelector('#mc-mode')?.value||null,
+        call_budget:Number(root.querySelector('#mc-budget')?.value||0),
+        model:root.querySelector('#mc-model')?.value||null,
+        output_tokens:Number(root.querySelector('#mc-tokens')?.value||0),
+        evidence_events:Number(root.querySelector('#mc-count')?.textContent||0)
+      };
+    },
+    async tab(name){root.querySelector(`[data-tab="${name}"]`)?.click()},
+    async mode(value){const el=root.querySelector('#mc-mode');el.value=value;el.dispatchEvent(new Event('change',{bubbles:true}));return el.value},
+    async budget(value){root.querySelector('#mc-budget').value=String(value)},
+    async model(value){root.querySelector('#mc-model').value=value},
+    async outputTokens(value){const el=root.querySelector('#mc-tokens'),max=Number(el.max||8192),selected=Math.min(value,max);el.value=String(selected);return selected},
+    async busy(){return busy},
+    async newChat(){create.click()},
+    async detach(){const changed=!!state.continueFrom;detach.click();return changed},
+    async history(){return index()},
+    async clear(){state.turns=[];save(state);restore()},
+    async stop(){const button=root.querySelector('#mc-stop');if(!button||button.disabled)return false;button.click();return true},
+    async restart(){const button=root.querySelector('#mc-restart');if(!button||button.hidden||button.disabled)return false;button.click();return true},
+    async connect(){base.connectProvider()},
+    async meshStatus(){
+      if(typeof host.meshStatus==='function')return await host.meshStatus();
+      return {
+        attached:false,
+        browser_lab:'isolated',
+        detail:'This Mission Control browser guest is not attached to a native multi-device mesh.',
+        native_status:'residual cluster status --json',
+        experiments:'residual experiment mesh --messages 1000 --repeats 3'
+      };
+    }
+  };
+  commandForm.addEventListener('submit',async event=>{
+    const value=commandPrompt.value.trim();
+    if(!value.startsWith('/')||value.startsWith('//'))return;
+    event.preventDefault();event.stopImmediatePropagation();
+    const outcome=await executeMissionCommand(value,commandApi);
+    if(!outcome.handled)return;
+    commandPrompt.value='';
+    commandReply(outcome.text);
+  },true);
   function capture(event){
     if(!event||!pending.has(event.mission_id))return;
     if(event.kind==='mission_error'){append(state,{role:'assistant',text:'Mission failed without a verified result. Open Activity for the failure explanation.',mission_id:event.mission_id,status:'INCOMPLETE'});pending.delete(event.mission_id);setBusy(false);fillHistory();return}
