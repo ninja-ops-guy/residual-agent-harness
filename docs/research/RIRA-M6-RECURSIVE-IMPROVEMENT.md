@@ -1534,3 +1534,32 @@ It should not claim a proof of scientific truth.
 The current M6-008 boundary is consequently:
 
 > No candidate has yet produced a complete, unchallenged, environmentally qualified, independently reviewed, exactly human-co-signed ImprovementSpec derivation subgraph satisfying all formal admission predicates.
+
+
+## 34. Governance, Time, and Termination of the Derivation Graph
+
+The derivation graph is append-only, so semantic validity must be treated as time-indexed rather than eternal.
+
+Challengeability now includes a governed ChallengePolicy defining eligible challengers, permitted grounds, resolution authority, filing bounds, withdrawal behavior, and explicit supersession rules. Conflicting active terminal resolutions fail closed to UNKNOWN rather than using implicit last-writer-wins behavior.
+
+ImprovementSpec admission is recorded as an AdmissionDecision over a specific graph root and challenge frontier. A later challenge does not rewrite the historical fact that the spec was admitted at event T; it changes current admissibility at T+1.
+
+Human authorization follows the same append-only rule. Revocation does not delete a prior COSIGN or historical ExecutionAction. It marks the authorization and dependent future/repeat execution state AUTHORIZATION_REVOKED.
+
+The semantic-to-execution correspondence is also challengeable through an explicit ExecutionBinding joining a DerivationSnapshot, EnvironmentContext, and declared input-artifact commitments.
+
+Probabilistic authorship context is now part of the derivation. Required Scientist, Planner, Reviewer, and ImprovementSpec semantic nodes bind through AUTHORED_UNDER edges to EnvironmentContext, allowing queue/runtime/context conditions to remain visible as possible confounds without assuming that they caused a reasoning error.
+
+Composite metric refinement has also been tightened. The checker now distinguishes a mechanically established non-strict REFINEMENT from STRICT_REFINEMENT. Child strictness does not automatically imply composite strictness because redundant conjunction/disjunction terms can preserve extensional equality. The formal system is sound-but-incomplete for its supported structural fragment; UNKNOWN means unproved, not undecidable.
+
+Finally, recursive improvement does not claim convergence to a globally optimal fixed point.
+
+RESIDUAL instead defines bounded improvement episodes. A relative QuiescenceCertificate may be issued only when a declared finite search policy has been exhausted under bound evidence and metric-theory roots with zero admissible ImprovementSpecs.
+
+The certificate means:
+
+> no admissible improvement was found in this declared search space under this evidence, theory, policy, and budget.
+
+It does not mean that the system cannot be improved further.
+
+This provides a formal termination condition while preserving the open-world nature of software evolution and scientific discovery.
