@@ -8,16 +8,18 @@ This document describes the original/core RESIDUAL harness layer. The repository
 
 RESIDUAL decomposes a host-authored task into checked obligations. Local or remote workers propose results; the controller accepts only results that pass registered checks. Stronger or more expensive workers receive the unresolved frontier, relevant dependency values and bounded failure/evidence context rather than unilateral authority over accepted state.
 
-```text
-Goal / task
-  ↓
-Obligation DAG + checks
-  ↓
-Worker proposal
-  ↓
-Independent verification
-  ├─ PASS → freeze accepted value + receipt
-  └─ FAIL / UNKNOWN → residual + counterexample → retry / escalate
+```mermaid
+flowchart TD
+    G["Host-authored goal / task"] --> D["Obligation DAG + registered checks"]
+    D --> F["Ready unresolved frontier"]
+    F --> P["Local or remote worker proposal"]
+    P --> V{"Host verifier verdict"}
+    V -->|PASS| A["Freeze accepted value + receipt"]
+    A --> D
+    V -->|FAIL| C["Bounded counterexample / repair context"]
+    V -->|UNKNOWN / malformed / provider error| U["No acceptance"]
+    C --> F
+    U --> F
 ```
 
 The worker may be capable, weak, stochastic or wrong. The controller owns acceptance.
@@ -59,13 +61,17 @@ The built-in demo is scripted and credential-free. It demonstrates controller be
 
 ## Current repository boundary
 
-Current `main` is **`4608afabf5de4c87d77aaf149dfc12538d364f43`**.
+Current `main` is **`260b5f9e20bf70a6b9ca087bc91e22a009ed77b9`**.
 
 Merged **#200** hardens native setup defaults: persistent XDG locations, loopback Station binding, opt-in shell convenience, bounded venv repair, and constrained shell-rc edits. This is accepted onboarding behavior, not blank-environment qualification.
 
 Merged **#205** restores the private provider channel across Mission Control reload/remount by validating and reusing a session-scoped channel token, and clears it on explicit close. This is accepted lifecycle behavior, not live-provider semantic evidence.
 
-The exact-current-main Actions set observed for `4608afa...` is complete with no pending, cancelled, or failing run in the retained exact-SHA query; the sampled Controller/provider workflow is **PASS on attempt 1**. Treat those results as exact-revision automated evidence only. They do not establish universal/capable-runner M4 qualification, live Puter success, physical-device reliability, recovery/soak, or confirmatory research.
+Merged **#218** applies bounded repair-loop lessons to Station. A repair attempt may receive the previous failed candidate's declared writable files as bounded context, with retained file hashes, while the next candidate still starts from a clean baseline worktree. The runner contract explicitly separates its JSON transport envelope from literal file-language content, and Mission Control/Store use a shared five-attempt ceiling. The change does not grant workers review, receipt, integration, promotion, verifier, or Factory/M4 authority.
+
+Merged **#201** accepts the guided frontend/provider UX: the public site separates guided proof from the interactive WebVM lab, Mission Control keeps Puter setup inline rather than opening a separate RESIDUAL provider tab, authorization remains attached to explicit user gesture, credentials remain outside RESIDUAL, and provider protocol validation remains fail-closed. Puter's own secure authorization popup may still appear.
+
+PR #201's exact head `4e172aed...` completed **PASS** for Control Plane, Factory ownership, measured-evaluation binding, clean install, Browser VM Demo, Pages, Command Station, Controller/provider, and maintainer approval before merge. Exact merged `main@260b5f9...` has now completed its seven ordinary push workflows: six succeeded, while **Deploy GitHub Pages run `35340104722` is FAIL in live-acceptance scope**. Its artifact build/browser proof and deployment succeeded, then the published desktop proof timed out waiting for the embedded provider frame's expected `could not load` state after the real guest/demo/warm-reload/repository-audit stages had passed. That browser-proof failure is not evidence of paid/live Puter semantic success or failure; the provider path in the retained proof used a test-double SDK.
 
 Historical failures remain retained evidence rather than being erased by later PASS results.
 
@@ -73,7 +79,7 @@ Historical failures remain retained evidence rather than being erased by later P
 
 Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice. Both counted calls failed closed as `provider_protocol_invalid`; no candidate crossed the protocol boundary, so candidate correctness and semantic verification remain **UNKNOWN**.
 
-Merged #179, #183, #189 and #205 repair bounded build-output, provider-session, publication, and reload-recovery surfaces. None is retained proof of successful paid/live Puter inference. A fresh exact-deployed-revision real-account mission must reach normal candidate/verifier/receipt handling before live-provider success becomes `PASS`.
+Merged #179, #183, #189, #205 and #201 repair or improve bounded build-output, provider-session, publication, reload-recovery, and inline setup/authorization surfaces. None is retained proof of successful paid/live Puter inference. A fresh exact-deployed-revision real-account mission must reach normal candidate/verifier/receipt handling before live-provider success becomes `PASS`.
 
 The #186 fallback remains accepted: detected iOS/iPadOS WebKit is routed to the lightweight walkthrough before heavyweight guest boot. Physical heavyweight-WebVM reliability and the lower-level process-kill cause remain **UNKNOWN / unqualified**. Issues #120/#126 remain open.
 
@@ -90,11 +96,12 @@ This documentation does not alter Factory/M4 implementation/tests, ownership bas
 Recent research evidence must remain mixed:
 
 - #202: earlier retained heterogeneous-DAG **FAIL**; later bounded corrected exact-head **PASS** with real local models and forced repair. Neither result erases the other.
-- #203: first authoritative M6 ImprovementSpec self-host trial **FAIL**.
-- #204: stronger-model M6-SPEC-002 authoritative trial **FAIL**, 0/1 integrated and no verification receipt/release.
-- #207 campaign B: retained negative control evidence shows a budget-exhaustion ordering case in which integration/release preceded final exhausted-budget accounting, and a verifier-failure case in which a non-empty release still materialized after abort. These are governance defects, not PASSes. The repeated-repair case contained injected corrupt candidates but did not recover to success within the pass budget.
+- #203/#204: first authoritative M6 ImprovementSpec self-host trials remain **FAIL** with 0/1 integrated and no verification receipt/release.
+- #215/#217: M6-SPEC-003/-004 remain retained **FAIL** results even though they exercised prior-candidate repair context and transport/source clarification.
+- #220: M6-SPEC-006 on the corrected #218 runtime is a bounded exact-head **PASS** with local Qwen2.5-Coder 7B. Attempts 1 and 2 were rejected by the frozen checks; attempt 3 passed 2/2 checks, Station review approved it, 1/1 integrated, a verification receipt was issued, and release export completed. This single successful intervention does not erase the earlier FAIL cells or establish general autonomous self-maintenance/reliability.
+- #207 campaign B: retained negative control evidence still shows a budget-exhaustion ordering case in which integration/release preceded final exhausted-budget accounting, and a verifier-failure case in which a non-empty release materialized after abort. Those are independent governance defects and are not cleared by #218/#220.
 
-These observations do not establish autonomous recursive self-improvement or production reliability.
+These observations do not establish general autonomous recursive self-improvement or production reliability.
 
 ## Governance boundary
 
@@ -119,6 +126,6 @@ Start with:
 
 A passing check establishes only its declared condition. Historical results remain tied to the exact revisions that produced them.
 
-The repository does not currently claim universal worker correctness, guaranteed savings, blanket production readiness, every-host M4 qualification, completed blank-environment/recovery/elapsed-soak qualification, acceptable long-run WebVM reliability, successful exact-current-main paid/live provider execution, physical heavyweight-WebVM iPhone reliability, autonomous recursive self-improvement, autonomous merge authority, or proof of the central live-model reliability hypothesis.
+The repository does not currently claim universal worker correctness, guaranteed savings, blanket production readiness, every-host M4 qualification, completed blank-environment/recovery/elapsed-soak qualification, acceptable long-run WebVM reliability, successful exact-current-main paid/live provider execution, physical heavyweight-WebVM iPhone reliability, general autonomous recursive self-improvement, autonomous merge authority, or proof of the central live-model reliability hypothesis.
 
 For operational setup, use [`START-HERE.md`](START-HERE.md). For current repository-wide status, use [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md).
