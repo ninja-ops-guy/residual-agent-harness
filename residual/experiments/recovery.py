@@ -21,7 +21,54 @@ from residual.station.server import Server
 from residual.station.service import Station
 from residual.station.worker import WorkerClient
 
-from .distributed import SyntheticWorkerProvider, _station_spec
+
+
+class HealthyRepairProvider:
+    placement = "local"
+    model = "synthetic-healthy-worker-v1"
+
+    def __init__(self, work_ms: float):
+        self.work_ms = float(work_ms)
+
+    def wire_size(self, packet: dict, max_tokens: int) -> int:
+        return len(canonical({"packet": packet, "max_tokens": max_tokens}).encode())
+
+    def generate(self, packet: dict, max_output_tokens: int) -> Reply:
+        if self.work_ms:
+            time.sleep(self.work_ms / 1000.0)
+        task_id = packet["task_id"]
+        return Reply(
+            canonical({"files": {
+                path: f"RESULT {task_id}\n"
+                for path in packet["writable_files"]
+            }}),
+            Usage(input_tokens=8, output_tokens=4, source="reported"),
+            elapsed_ms=self.work_ms,
+            finish_reason="stop",
+        )
+
+
+def _station_spec() -> str:
+    manifest = {
+        "schema_version": 1,
+        "name": "Distributed recovery benchmark",
+        "goal": "Measure fail-closed repair recovery through the real Station worker path.",
+        "tasks": [{
+            "id": "REC-001",
+            "title": "Recover a verifier-failing distributed candidate",
+            "instruction": "Write the deterministic result for REC-001.",
+            "files": ["recovery/result.txt"],
+            "context": [],
+            "depends_on": [],
+            "route": "local",
+            "checks": [
+                {"kind": "exists", "path": "recovery/result.txt"},
+                {"kind": "contains", "path": "recovery/result.txt", "text": "RESULT REC-001"},
+            ],
+        }],
+    }
+    fence = chr(96) * 3
+    return "# Distributed recovery benchmark\n\n" + fence + "json\n" + json.dumps(manifest) + "\n" + fence + "\n"
 
 
 class VerifierFailingProvider:
@@ -51,7 +98,7 @@ class VerifierFailingProvider:
 
 def _new_station(tmp: str):
     station = Station(tmp)
-    pid = station.create(_station_spec(1), demo=True)["project_id"]
+    pid = station.create(_station_spec(), demo=True)["project_id"]
     station.triage(pid)
     token = station.store.settings()["worker_token"]
     station.store.settings({"remote_workers_enabled": True})
@@ -73,7 +120,7 @@ def _baseline(*, good_ms: float) -> dict[str, Any]:
         try:
             client = WorkerClient(url, token)
             started = time.perf_counter_ns()
-            if not client.run_once(pid, "healthy-baseline", SyntheticWorkerProvider(good_ms), max_tokens=256):
+            if not client.run_once(pid, "healthy-baseline", HealthyRepairProvider(good_ms), max_tokens=256):
                 raise RuntimeError("baseline worker did not claim task")
             candidate_done = time.perf_counter_ns()
             task = station.store.project(pid)["tasks"][0]
