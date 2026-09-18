@@ -324,8 +324,10 @@ def main() -> int:
     ap.add_argument("--model",default="qwen2.5:7b")
     ap.add_argument("--base-url",default="http://127.0.0.1:11446")
     ap.add_argument("--output",default="runs/m6-spec-007q/evidence.json")
+    ap.add_argument("--registry",default="residual/discovery_metric_registry.json")
     a=ap.parse_args()
     out=Path(a.output); out.parent.mkdir(parents=True,exist_ok=True)
+    registry=load_metric_registry(a.registry)
 
     raw={
         "schema_version":1,
@@ -385,6 +387,7 @@ def main() -> int:
 
         scientist_outputs=[]
         planner_outputs=[]
+        metric_assessments=[]
         resolution_history=[{"status":"actively_selected","metrics":dict(selected_evidence)}]
         proposal=None
         admitted_proposal=None
