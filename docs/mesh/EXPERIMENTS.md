@@ -255,3 +255,82 @@ Useful next steps after the loopback suite is stable:
 12. live-model quality/cost comparison.
 
 Any experiment involving failures must retain the first authoritative failure and must not rerun merely to obtain a green sample.
+
+
+## Recovery benchmark
+
+Fail-closed repair overhead can be measured independently:
+
+```bash
+residual experiment recovery \
+  --bad-ms 20 \
+  --good-ms 40 \
+  --repeats 3 \
+  --output runs/recovery.json
+```
+
+The first remote worker submits a real verifier-failing candidate. The Station retains the failure as repair context, a healthy worker reclaims the `repair_required` task, and normal review/integration must still complete. This measures verifier-driven repair overhead; it does not simulate process death or lease expiry.
+
+## Station ↔ mesh observability bridge
+
+The experimental `StationMeshBridge` mirrors Station workflow facts into a `MeshSession` as signed **inert chat summaries**. Verified peer chat may enter Station only as a `project.note`.
+
+It cannot claim tasks, approve reviews, mutate candidates, or integrate code.
+
+Bridge performance:
+
+```bash
+residual experiment bridge \
+  --members 2 4 8 \
+  --repeats 3 \
+  --output runs/bridge.json
+```
+
+Measured values include event-mirroring latency, messages/s, replica-updates/s, peer-note round-trip latency, room convergence, and proof that Station task state remains unchanged by chat.
+
+## Worker/latency experiment matrix
+
+Use the matrix runner to determine where scaling stops being useful:
+
+```bash
+residual experiment matrix \
+  --workers 1 2 4 \
+  --latencies-ms 0 40 200 \
+  --tasks 8 \
+  --pipeline-width 4 \
+  --pipeline-depth 2 \
+  --repeats 3 \
+  --output runs/matrix.json
+```
+
+The matrix composes independent-worker, dependency-pipeline, and optional recovery measurements over the same synthetic latency grid. It is intended to distinguish model-latency-bound behavior from control-plane/integration-bound behavior.
+
+## Additional Mission Control console commands
+
+Mission Control also supports direct typed controls:
+
+```text
+/worker status
+/chat
+/activity
+/evidence
+/files
+/cancel
+/experiment recovery
+/experiment bridge
+/experiment matrix
+```
+
+These remain typed UI/runtime operations. They do not expose arbitrary shell execution through chat.
+
+## Evidence retained by the experiment workflow
+
+The focused experiment workflow retains:
+
+- `mesh-experiment.json`;
+- `distributed-experiment.json`;
+- `pipeline-experiment.json`;
+- `recovery-experiment.json`;
+- `bridge-experiment.json`.
+
+Raw speedup is evidence, not a merge gate. Integrity, successful verification/integration, convergence, and authority preservation are gates.

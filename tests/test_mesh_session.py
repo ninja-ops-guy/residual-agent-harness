@@ -110,6 +110,19 @@ def test_leave_disconnects_member_without_erasing_history():
     assert session.status()["message_count"]==1
 
 
+def test_membership_epoch_binds_delivery_receipts():
+    nodes=compatible_nodes("a","b")
+    session=MeshSession("room")
+    assert session.status()["membership_epoch"]==0
+    assert session.join(nodes["a"])["membership_epoch"]==1
+    assert session.join(nodes["b"])["membership_epoch"]==2
+    _,receipt=session.chat("dev-a","epoch-bound")
+    assert receipt.membership_epoch==2
+    assert receipt.to_dict()["membership_epoch"]==2
+    assert session.leave("dev-b")["membership_epoch"]==3
+    assert session.status()["membership_epoch"]==3
+
+
 def test_duplicate_member_and_unknown_author_fail_closed():
     nodes=compatible_nodes("a")
     session=MeshSession("room")

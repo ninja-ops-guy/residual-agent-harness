@@ -23,7 +23,8 @@ function api(overrides={}){
     stop:async()=>(calls.push(['stop']),true),
     restart:async()=>(calls.push(['restart']),true),
     connect:async()=>calls.push(['connect']),
-    meshStatus:async()=>({attached:false,browser_lab:'isolated'})
+    meshStatus:async()=>({attached:false,browser_lab:'isolated'}),
+    workerStatus:async()=>({available:true,ready:true,poisoned:false})
   };
   return {api:{...base,...overrides},calls};
 }
@@ -85,6 +86,20 @@ test('conversation commands are explicit and non-destructive to guest evidence',
   assert.deepEqual(x.calls,[['new'],['detach'],['clear']]);
 });
 
+test('direct tab aliases, cancel and worker status remain typed controls',async()=>{
+  const x=api();
+  await executeMissionCommand('/activity',x.api);
+  await executeMissionCommand('/evidence',x.api);
+  await executeMissionCommand('/files',x.api);
+  await executeMissionCommand('/chat',x.api);
+  const worker=await executeMissionCommand('/worker status',x.api);
+  assert.match(worker.text,/"ready": true/);
+  await executeMissionCommand('/cancel',x.api);
+  assert.deepEqual(x.calls,[
+    ['tab','activity'],['tab','evidence'],['tab','files'],['tab','chat'],['stop']
+  ]);
+});
+
 test('stop restart connect and terminal call only explicit adapter methods',async()=>{
   const x=api();
   await executeMissionCommand('/stop',x.api);
@@ -127,4 +142,5 @@ test('Mission Control world intercepts slash commands before mission submission'
   assert.match(world,/value\.startsWith\('\/'\)/);
   assert.match(world,/host\.meshStatus/);
   assert.match(install,/mission-control-commands\.js/);
+  assert.match(install,/workerStatus:/);
 });

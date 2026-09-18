@@ -181,6 +181,15 @@ def patch(text):
         residualWorkbench = mountMissionControl({
             ready: () => !!cx && !!residualDataDevice && residualShellReady && !residualShellCommandBusy && !residualWorkerPoisoned,
             health: () => residualWorkerPoisoned ? "poisoned" : (!!cx && !!residualDataDevice && residualShellReady && !residualShellCommandBusy ? "ready" : "starting"),
+            workerStatus: () => ({
+                available: true,
+                ready: residualWorkerReady,
+                poisoned: residualWorkerPoisoned,
+                shell_busy: residualShellCommandBusy,
+                mission_active: !!residualShellRun,
+                start_in_progress: !!residualWorkerStart,
+                recovery_in_progress: !!residualWorkerRecovery
+            }),
             restart: () => residualRestartGuest(),
             focus: () => term.focus(),
             mailbox: async (path, text) => {

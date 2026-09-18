@@ -43,8 +43,10 @@ export function mountMissionControl(host){
   const commandApi={
     async status(){
       let health='unknown';try{health=typeof host.health==='function'?host.health():(host.ready?.()?'ready':'starting')}catch{health='error'}
+      let worker=null;try{worker=typeof host.workerStatus==='function'?await host.workerStatus():null}catch{worker={available:false,error:'worker_status_unavailable'}}
       return {
         guest:health,
+        worker,
         mission_active:busy,
         conversation:state.id,
         revision:state.revision,
@@ -69,6 +71,10 @@ export function mountMissionControl(host){
     async stop(){const button=root.querySelector('#mc-stop');if(!button||button.disabled)return false;button.click();return true},
     async restart(){const button=root.querySelector('#mc-restart');if(!button||button.hidden||button.disabled)return false;button.click();return true},
     async connect(){base.connectProvider()},
+    async workerStatus(){
+      if(typeof host.workerStatus==='function')return await host.workerStatus();
+      return {available:false,detail:'Persistent guest worker status is not exposed by this host.'};
+    },
     async meshStatus(){
       if(typeof host.meshStatus==='function')return await host.meshStatus();
       return {

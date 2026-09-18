@@ -21,6 +21,7 @@ class DeliveryReceipt:
     acknowledged: tuple[str, ...]
     rejected: tuple[str, ...]
     converged: bool
+    membership_epoch: int
     head_hash: str | None
 
     def to_dict(self) -> dict[str, Any]:
@@ -30,6 +31,7 @@ class DeliveryReceipt:
             "acknowledged": list(self.acknowledged),
             "rejected": list(self.rejected),
             "converged": self.converged,
+            "membership_epoch": self.membership_epoch,
             "head_hash": self.head_hash,
         }
 
@@ -43,6 +45,7 @@ class MeshSession:
         self.session_id = session_id.strip()
         self._nodes: dict[str, MeshNode] = {}
         self._degraded = False
+        self._membership_epoch = 0
 
     @property
     def members(self) -> tuple[str, ...]:
@@ -94,12 +97,14 @@ class MeshSession:
         else:
             appended = 0
         self._nodes[device_id] = node
+        self._membership_epoch += 1
         return {
             "session_id": self.session_id,
             "device_id": device_id,
             "members": list(self.members),
             "history_appended": appended,
             "head_hash": node.chat.head_hash,
+            "membership_epoch": self._membership_epoch,
             "converged": self.converged(),
         }
 
@@ -110,12 +115,14 @@ class MeshSession:
                 peer.disconnect_peer(device_id)
                 node.disconnect_peer(peer_id)
         del self._nodes[device_id]
+        self._membership_epoch += 1
         if self._nodes and len(set(self.heads().values())) == 1:
             self._degraded = False
         return {
             "session_id": self.session_id,
             "device_id": device_id,
             "members": list(self.members),
+            "membership_epoch": self._membership_epoch,
             "converged": self.converged(),
         }
 
@@ -149,6 +156,7 @@ class MeshSession:
             acknowledged=tuple(sorted(acknowledged)),
             rejected=tuple(sorted(rejected)),
             converged=converged,
+            membership_epoch=self._membership_epoch,
             head_hash=message.hash if converged else None,
         )
         return message, receipt
@@ -176,6 +184,7 @@ class MeshSession:
             "session_id": self.session_id,
             "members": list(self.members),
             "member_count": len(self._nodes),
+            "membership_epoch": self._membership_epoch,
             "heads": self.heads(),
             "converged": self.converged(),
             "degraded": self._degraded,

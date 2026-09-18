@@ -1,9 +1,6 @@
 name: Mesh and Mission Control experiments
 
 on:
-  push:
-    branches:
-      - feature/mesh-mission-control-experiments
   pull_request:
     paths:
       - 'residual/mesh/**'

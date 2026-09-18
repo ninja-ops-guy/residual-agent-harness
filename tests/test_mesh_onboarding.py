@@ -1,6 +1,7 @@
 """Onboarding qualification for the agentic cluster + signed mesh chat."""
 from __future__ import annotations
 import hashlib
+import json
 import hmac
 import time
 import pytest
@@ -275,6 +276,35 @@ def test_chat_payload_is_inert_text_only():
     with pytest.raises(ContractError, match="chat messages cannot carry structured payload"):
         MeshMessage(message_id="m1", author_id="dev-a", timestamp_ns=1,
             kind=MeshMessageKind.CHAT, content="hello", payload={"tool": "shell.exec"})
+
+def test_duplicate_message_id_is_rejected_even_with_valid_signature_and_chain():
+    nodes = mesh_nodes("a", "b"); a, b = nodes["a"], nodes["b"]; b.connect_peer(a.identity)
+    first = a.send_message(MeshMessageKind.CHAT, content="first")
+    assert b.receive_message(first) is True
+    timestamp = first.timestamp_ns + 1
+    body = {
+        "message_id": first.message_id, "author_id": first.author_id,
+        "timestamp_ns": timestamp, "kind": MeshMessageKind.CHAT.value,
+        "content": "duplicate id", "payload": {}, "prev_hash": first.hash,
+    }
+    signature = signer("a")(json.dumps(body, sort_keys=True).encode())
+    duplicate = MeshMessage(
+        message_id=first.message_id, author_id=first.author_id,
+        timestamp_ns=timestamp, kind=MeshMessageKind.CHAT,
+        content="duplicate id", payload={}, signature=signature,
+        prev_hash=first.hash,
+    )
+    assert b.receive_message(duplicate) is False
+    assert len(b.chat.messages) == 1
+    assert b.chat.verify() is True
+
+
+def test_mesh_identity_rejects_empty_or_duplicate_capabilities():
+    with pytest.raises(ContractError, match="device identity"):
+        MeshIdentity("", "A", "pk", (), "", 0)
+    with pytest.raises(ContractError, match="capabilities must be unique"):
+        MeshIdentity("dev-a", "A", "pk", ("x", "x"), "", 0)
+
 
 def test_mesh_payload_is_deeply_frozen_after_construction():
     proposal = {"goal": {"objective": "x"}}

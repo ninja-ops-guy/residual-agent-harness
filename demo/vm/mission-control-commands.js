@@ -3,7 +3,9 @@ const MODEL=/^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,95}$/;
 const HELP=[
   "/help                         show this command reference",
   "/status                       show guest, mission and chat state",
+  "/worker status                show persistent guest-worker state",
   "/tab chat|activity|evidence|files|terminal",
+  "/chat /activity /evidence /files  direct tab aliases",
   "/mode build|live|audit        change execution mode",
   "/budget 1|2|3                 set bounded provider-call budget",
   "/model <id>                   select provider model",
@@ -12,7 +14,7 @@ const HELP=[
   "/detach                       next build starts a fresh artifact lineage",
   "/history                       list recent browser-local conversations",
   "/clear                         clear visible/browser-local transcript only",
-  "/stop                          request cancellation of the active mission",
+  "/stop /cancel                  request cancellation of the active mission",
   "/restart                       restart a poisoned idle guest",
   "/connect                       open guided provider setup",
   "/mesh status                  show mesh attachment/control boundary",
@@ -45,7 +47,14 @@ export async function executeMissionCommand(input,api){
 
   if(command==="help"||command==="commands")return result(HELP);
   if(command==="terminal"){await api.tab("terminal");return result("Terminal view selected.");}
+  if(["chat","activity","evidence","files"].includes(command)&&args.length===0){
+    await api.tab(command);return result(`View switched to ${command}.`);
+  }
   if(command==="status")return result(asText(await api.status()));
+  if(command==="worker"){
+    if((args[0]||"").toLowerCase()!=="status")return result("Usage: /worker status");
+    return result(asText(await api.workerStatus()));
+  }
 
   if(command==="tab"){
     const tab=(args[0]||"").toLowerCase();
@@ -90,7 +99,7 @@ export async function executeMissionCommand(input,api){
     if(await api.busy())return result("A mission is active. Visible history is not cleared mid-run.");
     await api.clear();return result("Visible/browser-local transcript cleared. Guest traces and artifacts were not deleted.");
   }
-  if(command==="stop"){
+  if(command==="stop"||command==="cancel"){
     const requested=await api.stop();return result(requested?"Stop requested. Already-dispatched provider work may still incur usage.":"No active mission to stop.");
   }
   if(command==="restart"){
