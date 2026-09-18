@@ -79,10 +79,18 @@ class MeshSession:
         if self._nodes:
             self._require_converged()
             reference = self._nodes[sorted(self._nodes)[0]]
-            for peer in self._nodes.values():
-                peer.connect_peer(node.identity)
-                node.connect_peer(peer.identity)
-            appended = node.sync_history(reference.chat.messages)
+            connected: list[MeshNode] = []
+            try:
+                for peer in self._nodes.values():
+                    peer.connect_peer(node.identity)
+                    node.connect_peer(peer.identity)
+                    connected.append(peer)
+                appended = node.sync_history(reference.chat.messages)
+            except Exception:
+                for peer in connected:
+                    peer.disconnect_peer(device_id)
+                    node.disconnect_peer(peer.identity.device_id)
+                raise
         else:
             appended = 0
         self._nodes[device_id] = node
