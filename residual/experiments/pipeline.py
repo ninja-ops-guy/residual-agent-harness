@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import math
 import statistics
 import tempfile
 import threading
@@ -193,6 +194,8 @@ def _trial(*, workers: int, width: int, depth: int, work_ms: float) -> dict[str,
                 "reported_worker_calls": station.metrics(pid)["calls"],
                 "critical_path_work_ms": depth * work_ms,
                 "serial_worker_work_ms": task_count * work_ms,
+                "synthetic_scheduling_lower_bound_ms": max(depth, math.ceil(task_count / workers)) * work_ms,
+                "observed_overhead_above_synthetic_floor_ms": wall_ms - (max(depth, math.ceil(task_count / workers)) * work_ms),
             }
         finally:
             server.shutdown()
@@ -230,13 +233,18 @@ def run_station_pipeline_benchmark(
         group = [row for row in runs if row["workers"] == workers]
         wall = statistics.median(row["wall_ms"] for row in group)
         speedup = baseline / wall if wall else 0.0
+        worker_multiplier = workers / baseline_workers
         summary.append({
             "workers": workers,
+            "relative_worker_multiplier": worker_multiplier,
             "wall_median_ms": wall,
             "speedup_vs_min_workers": speedup,
-            "parallel_efficiency": speedup / workers,
+            "parallel_efficiency": speedup / worker_multiplier,
             "throughput_median_tasks_s": statistics.median(
                 row["throughput_tasks_s"] for row in group
+            ),
+            "observed_overhead_above_synthetic_floor_median_ms": statistics.median(
+                row["observed_overhead_above_synthetic_floor_ms"] for row in group
             ),
             "workers_used_min": min(row["workers_used"] for row in group),
             "all_integrated": all(row["all_integrated"] for row in group),
