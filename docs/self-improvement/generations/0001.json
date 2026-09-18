@@ -33,13 +33,14 @@
     "Two independent Station scout tasks feed one dependent candidate composer.",
     "Generated proposals have proposal authority only and are retained as Station artifacts before deterministic admission.",
     "Candidate writable scopes may not overlap and generation-wide frozen evaluator files cannot be writable.",
-    "Executable code and execution-config candidates require declared frozen evaluators and constrained repository-interpreter commands.",
+    "Executable-code candidates declare frozen tests/test_*.py evaluators; the Mission Governor derives pytest commands and rejects all model-authored executable checks.",
     "Factory ownership-manifest paths plus M7/Station/verifier/governance surfaces are blocked from autonomous writes.",
     "Every managed Station clone is checked against the doctor-certified source HEAD before execution.",
     "Cycle execution revalidates source HEAD, source report identity, and mission plan identity after origination.",
     "Production merge remains external governed authority.",
     "No-op successful batches are not exported as successors; accepted generations must change the Git tree.",
     "Bounded experimental lineage can feed an accepted Station successor into the next generation without modifying the original checkout.",
-    "The initiating M7 governor implementation remains frozen for an experimental lineage even if candidate source edits the future controller."
+    "The initiating M7 governor implementation remains frozen for an experimental lineage even if candidate source edits the future controller.",
+    "Pytest/import-control surfaces (pytest configuration, conftest.py, tests/__init__.py and Python site customization hooks) are protected from autonomous writes."
   ]
 }
