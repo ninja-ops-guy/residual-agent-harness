@@ -372,3 +372,126 @@ The planned M6-SPEC-007 experiment will provide RESIDUAL with a hash-bound evide
 The central authority invariant remains unchanged:
 
 > **RESIDUAL may discover, propose, implement, and evaluate a successor candidate. It may not redefine the protected evaluator or appoint the successor.**
+
+
+# 12. Production Roadmap Experiment: Shipping ImprovementSpec With RESIDUAL
+
+The first M6.2 roadmap deliverable was deliberately moved from an isolated self-hosting fixture into the actual repository workflow: RESIDUAL was asked to create the production `residual/improvement/ImprovementSpec` package, under a write scope limited to two new files.
+
+## 12.1 M6-ROADMAP-001 — Failed Repair Due to Evidence Truncation
+
+The first productionization trial ran against the repository checkout on the experiment branch. The implementation model produced a plausible dataclass, but Python import failed with:
+
+`TypeError: non-default argument 'acceptance' follows default argument`
+
+The full check artifact retained that terminal exception. However, the repair packet was built from only the first 500 characters of the check detail. The terminal exception occurred after that boundary and was therefore absent from `repair_findings`.
+
+Across attempts 1–4, the model returned the exact same failed patch SHA:
+
+`01a5bedbd31ccd28953a64268b866e0035e0cbc14402d4dd1c1c3a3861a5e25d`
+
+The run eventually escalated after five passes.
+
+Measurements:
+
+- outcome: escalated;
+- integrated: 0 / 1;
+- attempts: 5;
+- provider calls: 5;
+- reported tokens: 12,341;
+- wall clock: 776.938 s.
+
+This failure exposed two process defects:
+
+1. repair feedback should preserve the terminal/root failure reason, not merely the beginning of a traceback;
+2. exact repetition of a previously failed patch should be detected and surfaced as explicit stagnation evidence.
+
+A dedicated repair-diagnostics change was opened to preserve both the beginning and terminal tail within the historic bounded feedback size and to identify repeated failed patch hashes.
+
+### Methodological issue
+
+The workflow also revealed that using `source=repo_root` from an experiment PR clones the experiment branch, not a byte-identical main tree. Although write scoping prevented candidate modification of the apparatus, this contaminated baseline identity with research-only files.
+
+The corrective methodology is to materialize a detached exact-main worktree outside the experiment source tree and give that worktree to Station.
+
+## 12.2 M6-ROADMAP-001B — Exact-Main Successful Replication
+
+A separate preregistered replication used an exact detached source tree at:
+
+`260b5f9e20bf70a6b9ca087bc91e22a009ed77b9`
+
+The evidence recorded:
+
+`source_head == baseline_sha`
+
+The same task, model, and acceptance checks then succeeded on the first implementation attempt.
+
+Measurements:
+
+| Measurement | M6-ROADMAP-001B |
+|---|---:|
+| Outcome | success |
+| Attempts | 1 |
+| Integrated | 1 / 1 |
+| Frozen checks | 3 / 3 |
+| Provider calls | 2 |
+| Reported tokens | 4,384 |
+| Wall clock | 435.182 s |
+| Reviewer | approved |
+| Verification receipt | issued |
+| Release export | successful |
+
+Receipt hash:
+
+`880fbacee5fdfb13aded09e2297c14d7006f4da2c208ac292f8283a936199695`
+
+Generated file hashes:
+
+- `residual/improvement/__init__.py`: `3981e064c31f85763e872c47129975a61cc8d6ab8e00f1851d216eeb269ba623`
+- `residual/improvement/spec.py`: `0bdcb3b7f86aad5d684f7437df88f3342055bbc08a9df6b51cbe859656ca7616`
+
+This demonstrates that RESIDUAL can apply the M6 repair/development pathway to a real pinned repository rather than only an empty experimental repository.
+
+## 12.3 Independent Post-Run Review Found an Identity-Mutability Gap
+
+The successful candidate used a frozen dataclass but stored `acceptance` as a mutable dictionary. Python dataclass freezing prevents field reassignment; it does not recursively freeze objects stored inside fields.
+
+Therefore a caller could potentially mutate acceptance data after SHA-256 computation, making the semantic object differ from the content previously identified by that hash.
+
+The original deterministic tests verified that mutating the dictionary returned by `to_dict()` did not alter the top-level acceptance value, but they did not verify:
+
+- mutation of the caller-owned input dictionary after construction;
+- direct mutation through `spec.acceptance`;
+- nested mapping or sequence mutation;
+- strict JSON rejection of NaN/Infinity and unsupported objects.
+
+The model reviewer also approved the candidate, demonstrating an important limitation:
+
+> **A semantic reviewer is not a substitute for an explicit invariant test when the invariant is part of the trust model.**
+
+The candidate is therefore retained as a successful implementation of the original frozen contract, but is not considered production-ready for content-addressed recursive-improvement identity.
+
+## 12.4 M6-ROADMAP-001C — Immutable Identity Hardening
+
+A new preregistered trial strengthens the contract before shipment. It requires acceptance data to become deeply immutable inside ImprovementSpec, detached from caller-owned input, strictly JSON-compatible, and fully thawed only in detached `to_dict()` output.
+
+The SHA-256 identity must remain unchanged after attempted mutation through:
+
+- the original caller input;
+- the public acceptance view;
+- nested acceptance mappings/sequences;
+- nested `to_dict()` output.
+
+This trial also uses the repaired failure-feedback/stagnation diagnostics derived from M6-ROADMAP-001.
+
+**Status:** in progress at the time of this paper revision.
+
+## 12.5 Process Lessons
+
+The productionization series adds several lessons beyond M6-SPEC-006:
+
+1. **Repository identity must be part of experimental evidence.** A source checkout is not equivalent to a declared baseline unless its HEAD is measured.
+2. **Repair evidence quality matters as much as repair context.** Supplying the prior candidate is insufficient if the root failure reason is truncated away.
+3. **Repeated candidate identity is a measurable stagnation signal.** Exact patch hashes provide a cheap, deterministic way to detect wasted repair attempts.
+4. **Successful tests are only as strong as the invariants they encode.** Independent review can miss trust-model properties that were never formalized as checks.
+5. **Content-addressed contracts require deep immutability, not merely frozen field assignment.**
