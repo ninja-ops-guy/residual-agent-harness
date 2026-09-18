@@ -119,6 +119,31 @@ class SimpleMissionSmoke(unittest.TestCase):
                 result = station.batch(pid)
                 project = station.store.project(pid)
                 task = project["tasks"][0]
+                diagnostic = {
+                    "result": result,
+                    "task": {
+                        "state": task["state"],
+                        "attempt": task["attempt"],
+                        "findings": task["findings"],
+                        "checks_result": task["checks_result"],
+                        "review": task.get("review"),
+                        "head_commit": task.get("head_commit"),
+                    },
+                    "provider_call_count": len(FakeOllama.calls),
+                    "events": [
+                        {
+                            "type": event["event_type"],
+                            "task_id": event["task_id"],
+                            "data": event["data"],
+                        }
+                        for event in station.store.events(pid, 0, 500)
+                        if event["event_type"] in {
+                            "task.transition", "task.finding", "usage.recorded",
+                            "checks.completed", "review.completed", "integration.completed", "project.note"
+                        }
+                    ],
+                }
+                print("SIMPLE_MISSION_DIAGNOSTIC=" + canonical(diagnostic))
 
                 self.assertEqual(result["integrated"], 1)
                 self.assertEqual(result["total"], 1)
