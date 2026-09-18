@@ -82,7 +82,7 @@ def post(http, token="alice", payload=None):
 
 def test_authorized_firmware_request_compiles_residual_authority():
     _auth, store, _service, http = harness()
-    response = post(http)
+    response = post(http, token="opaque-bearer-token")
     assert response.status == 202
     record = store.records[0]
     assert record.state == "prepared"
