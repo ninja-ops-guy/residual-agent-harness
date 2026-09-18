@@ -218,6 +218,22 @@ class StationTests(unittest.TestCase):
         with self.assertRaises(ContractError):
             self.s.integrate(self.pid, "OPS-101")
 
+        # An amended candidate commit with a clean worktree and passing checks
+        # evades the review-receipt comparison, the accumulated-check rerun and
+        # the dirty-tree recheck; only the candidate-binding guard in
+        # integrate() can catch it.
+        pid2 = self.s.create(demo_spec(), demo=True)["project_id"]
+        self.s.triage(pid2); self.s.run_one(pid2, "OPS-101"); self.s.review(pid2, "OPS-101")
+        task2 = self.s.store.task(pid2, "OPS-101")
+        health = Path(task2["candidate_dir"], "station/health.py")
+        health.write_text(health.read_text() + "\n# amended after review\n")
+        ws.git(task2["candidate_dir"], "add", "station/health.py")
+        ws.git(task2["candidate_dir"], "commit", "--amend", "--no-edit")
+        self.assertEqual(ws.git(task2["candidate_dir"], "status", "--porcelain"), "")
+        self.assertNotEqual(ws.git(task2["candidate_dir"], "rev-parse", "HEAD"), task2["head_commit"])
+        with self.assertRaises(ContractError):
+            self.s.integrate(pid2, "OPS-101")
+
     def test_moving_base_invalidates_review(self):
         self.s.triage(self.pid)
         self.s.run_one(self.pid, "OPS-101"); self.s.run_one(self.pid, "OPS-102")
@@ -226,6 +242,20 @@ class StationTests(unittest.TestCase):
         with self.assertRaises(ContractError):
             self.s.integrate(self.pid, "OPS-102")
         self.assertEqual(self.s.store.task(self.pid, "OPS-102")["state"], "repair_required")
+
+        # A base that moved yet still permits a fast-forward merge evades the
+        # non-ff merge failure and the review-receipt comparison; only the
+        # stale-base guard in integrate() can catch it.
+        pid2 = self.s.create(demo_spec(), demo=True)["project_id"]
+        self.s.triage(pid2)
+        self.s.run_one(pid2, "OPS-101"); self.s.review(pid2, "OPS-101")
+        p2 = self.s.store.project(pid2)
+        t2 = self.s.store.task(pid2, "OPS-101")
+        ws.git(p2["repo"], "merge", "--ff-only", t2["head_commit"])
+        self.assertNotEqual(ws.git(p2["repo"], "rev-parse", "HEAD"), t2["base_commit"])
+        with self.assertRaises(ContractError):
+            self.s.integrate(pid2, "OPS-101")
+        self.assertEqual(self.s.store.task(pid2, "OPS-101")["state"], "repair_required")
 
     def test_disjoint_refresh_rechecks_and_reviews_new_commit(self):
         self.s.triage(self.pid)
