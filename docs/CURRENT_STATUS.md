@@ -10,11 +10,11 @@ Current `main` is **`3cff6bcd52e352a6ba048c958949a7bbb2a039eb`**, produced by me
 
 #197 hardens the PR Agent as advisory review through `.github` workflow/configuration changes only. It does **not** change RESIDUAL runtime behavior, provider behavior, verifier authority, Factory/M4 implementation, evidence schemas, protected bytes, or acceptance authority.
 
-Exact current main has **six successful ordinary push workflows** in their named scopes. The newest retained **production Pages acceptance** remains first attempt `35363306307` on parent `main@de7d9774...` and remains **FAIL**. Its generated desktop+narrow proof and deployment passed; published acceptance later timed out because provider sign-in stayed disabled in the guided-provider flow. The retained report records `cloud_inference: NOT_RUN` and a test-double provider path. The retained trace supports a repository/UI provider-bootstrap race, not a Puter outage, real-authentication failure, model-quality failure, or paid/live inference result.
+Exact current main has **six successful ordinary push workflows** in their named scopes, but it does **not** have an authoritative production Pages qualification attempt. Issue **#267** records the trigger gap: the Pages workflow's push `paths:` filter allowed #197 to advance `main` without starting the required production Pages run. The newest retained production Pages acceptance therefore remains first attempt `35363306307` on parent `main@de7d9774...` and remains **FAIL**. That parent result cannot qualify `main@3cff6bcd...`; exact-current-main production Pages qualification is **UNKNOWN / BLOCKED by missing authoritative attempt**, not PASS. Open **#276** contains the staged trigger repair and requires a maintainer workflow-file move before it can take effect.
 
-PR **#253** is now **closed unmerged**. Open **#260** is its current-main replacement, rebuilt directly on exact `main@3cff6bcd...`. #260's exact head has the applicable technical workflows **PASS**, including Browser VM Demo CI and Deploy GitHub Pages. Its exact-head maintainer approval gate remains **FAIL / pending matching attestation**. PR-head Pages PASS is not production evidence; if #260 is accepted, the resulting merged SHA requires its own first published Pages acceptance attempt.
+PR **#260** remains the focused provider-bootstrap repair on exact current main. Its applicable technical exact-head workflows, including PR-head Pages, are **PASS**, but it is **HOLD / unaccepted**. Issue **#268** establishes a separate maintainer-approval event-wiring defect: a valid approval comment can pass an `issue_comment` run without publishing the required status on the exact PR head. Open **#275** stages the exact-head status-publishing fix and also requires a maintainer workflow-file move. PR-head Pages PASS is not production proof, and a comment-only approval run is not a substitute for the protected exact-head status.
 
-The M6.2 evidence also changed materially. **#257 / M6-SPEC-007J is the first retained bounded autonomous-discovery PASS at formal admission in this sequence**: a genuinely absent measurement was proposed, semantic review approved it, and an admission/verification receipt was issued. Follow-up cells #259/#262/#263 still **FAIL** because the Scientist repeatedly requests metrics that the host already exposes or resolves. **#264 / M6-SPEC-007O then completed its split-role workflow and issued a receipt, but post-hoc semantic audit downgraded the research conclusion to UNKNOWN** because the admitted metric ID `mean_wall_clock_s_basline` is misspelled/undefined and may overlap an already-inspected successful wall-clock metric. Receipt integrity does not establish semantic correctness. Issue #265 and open spec PR #266 now define a versioned Metric Registry as a prerequisite for calling future MeasurementGap admissions nonredundant. Therefore one bounded admission path remains established in #257, while **general autonomous discovery and recursive self-improvement remain UNKNOWN / not established**.
+The M6.2 discovery evidence also advanced. **#257 / M6-SPEC-007J remains the first retained bounded autonomous-discovery PASS at formal admission**. #264 later showed that an integrity-valid receipt can still leave the scientific conclusion **UNKNOWN** when metric identity/semantics are not governed. Open **#270**, stacked on unapproved #266, now implements the proposed versioned/content-addressed Metric Registry and is technically green in its reported exact-head qualification scope; production acceptance remains **UNKNOWN / unaccepted**. **#274 / M6-SPEC-007S is a bounded PASS for registry/receipt semantic-binding controls.** Registry-aware discovery attempts #272, #273, and #277 retain apparatus/transcription FAILs; #277 positively demonstrates host-owned provenance binding while the overall experiment still FAILs at Planner transcription. #286 is pending with no authoritative result. General autonomous discovery and recursive self-improvement therefore remain **UNKNOWN / not established**, and **M6-008 remains BLOCKED** pending acceptance of the metric-semantics trust boundary and a valid registry-aware discovery result.
 
 ## Accepted current-main sequence
 
@@ -40,7 +40,9 @@ Retained production Pages run **`35363306307`** on `main@de7d9774...` remains au
 
 The failure trace supports a deterministic repository/UI bootstrap race in which provider loading could be clicked before the intended bridge-backed handler was ready. It does not support a broader provider, authentication, model-quality, WebVM, Factory, or M4 failure claim.
 
-Open **#260** applies the focused fail-closed bootstrap guard to current main. On its exact head, Controller/provider contracts, Command Station checks, Control Plane, Factory ownership, measured-evaluation binding, clean install, Browser VM Demo CI, and Deploy GitHub Pages are **PASS**. Maintainer approval remains **FAIL / pending matching attestation**. The prior #253 results are historical and are not reused for #260 qualification.
+There is **no authoritative production Pages run for exact `main@3cff6bcd...`**. Issue **#267** identifies the cause: `.github/workflows/pages.yml` filters `push` by paths, and #197 changed paths outside that filter. Therefore current-main production qualification is **UNKNOWN / BLOCKED by missing required attempt**. Open **#276** stages a workflow that removes only that push-path bypass while preserving non-cancelling production attempts, generated desktop+narrow proof, deployment, published re-verification, exact revision identity, and retained artifacts. The staged workflow is not active on main yet.
+
+Open **#260** applies the focused fail-closed provider-bootstrap guard to current main. On its exact head, Controller/provider contracts, Command Station checks, Control Plane, Factory ownership, measured-evaluation binding, clean install, Browser VM Demo CI, and Deploy GitHub Pages are **PASS**. However, issue **#268** records that the maintainer-approval `issue_comment` path does not reliably publish the protected status onto the exact PR head. Open **#275** stages an exact-head status-publishing repair; until that governed path is accepted and a genuine current-head maintainer approval produces the required status, #260 remains **HOLD / unaccepted**.
 
 Historical real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice, but both counted calls failed closed as `provider_protocol_invalid`. No candidate crossed the protocol boundary. Exact-current-main paid/live candidate→verifier→receipt success remains **UNKNOWN / not established**.
 
@@ -76,7 +78,7 @@ Status: **PASS in that bounded research experiment**. General self-shipping reli
 
 Production PR **#243** remains open. Its source derives from #231, but independent review found mutable nested `acceptance` state and the current head adds maintainer deep-immutability hardening plus production tests. The current production candidate therefore does **not** claim byte-for-byte identity with the RESIDUAL-generated #231 source.
 
-Applicable technical PR-head workflows are **PASS**. Exact-head maintainer approval remains **FAIL / pending matching attestation**. Accepted production behavior on main remains **UNKNOWN / unaccepted**.
+Applicable technical PR-head workflows are **PASS**. Accepted production behavior on main remains **UNKNOWN / unaccepted**. Maintainer-approval handling is additionally subject to the repository-level #268 exact-head status-wiring defect until that governance repair is accepted.
 
 ### #232 — evidence-sufficiency fork
 
@@ -86,7 +88,7 @@ Experiment execution/evidence-sufficiency fork: **PASS in bounded research scope
 
 ## Autonomous discovery — M6-SPEC-007 series
 
-The retained sequence now separates execution, representation, evidence-grounding, semantic-review, evidence-use, and metric-identity failures rather than flattening them into one claim.
+The retained sequence separates execution, representation, evidence-grounding, semantic-review, evidence-use, metric-identity, provenance, and Planner-transcription failures rather than flattening them into one claim.
 
 ### #244 / 007 and #246 / 007B
 
@@ -187,7 +189,51 @@ Retained artifact ID `10559527734`, ZIP SHA-256 `7a28d6367d91af99dca8ea1a66c0128
 
 Status: **workflow PASS; research conclusion UNKNOWN pending metric-identity/semantic validation**. The receipt proves integrity/context of the recorded decision, not semantic correctness, and must not be used as authority to advance the recursive loop.
 
-Issue **#265** now requires a versioned discovery Metric Registry. Open spec PR **#266** defines typed `MetricDefinition` / `MetricDefinitionProposal` contracts, registry/evidence revision binding, canonical naming and duplicate gates, semantic-overlap review, and fail-closed `UNKNOWN` behavior. #266 is trust-infrastructure design only; it does not authorize M6-008 or metric registration.
+Issue **#265** requires a versioned discovery Metric Registry. Open spec PR **#266** defines typed `MetricDefinition` / `MetricDefinitionProposal` contracts, registry/evidence revision binding, canonical naming and duplicate gates, semantic-overlap review, and fail-closed `UNKNOWN` behavior. #266 is trust-infrastructure design only.
+
+### #270 / Metric Registry implementation — technical PASS, unaccepted
+
+Open **#270**, stacked on #266, implements immutable/content-addressed metric definitions and registry identity, duplicate/ambiguity handling, snapshot/unit validation, and binding helpers using existing StationReceipt v2 rather than changing the protected receipt schema. The owner-retained qualification report records the exact head green across the relevant Command Station Python 3.11/3.12/3.13 discovery, wheel build, Docker, browser UI, Control Plane, clean install, Factory ownership, controller/provider contracts, and measured-evaluation acceptance checks; downstream 007P also passed the 16 focused registry tests plus three preregistered controls.
+
+Status: **PASS in bounded implementation/qualification scope on the open stacked PR; production acceptance UNKNOWN / unaccepted**. This does not register a metric, authorize promotion, or unblock M6-008 by itself.
+
+### #272 / 007Q — apparatus FAIL before model execution
+
+The registry-aware trial passed 16 focused registry tests but failed syntax compilation before model execution because the generated import edit contained literal escaped newline characters. No Scientist, Planner, reviewer, proposal, or admission event occurred.
+
+Status: **FAIL in experiment-execution/apparatus scope; registry-aware discovery not exercised**.
+
+### #273 / 007R — provenance-transcription FAIL
+
+The corrected apparatus passed syntax, registry tests/preflight, Ollama setup, and Evidence Scout. The Scientist generated a grounded `insufficient_evidence` observation but copied the EvidenceSnapshot hash incorrectly. Deterministic verification rejected `evidence_snapshot_hash mismatch` before Planner/reviewer execution; no receipt was issued.
+
+Retained artifact ID `10562515080`, ZIP SHA-256 `a0f86bb813f903696f95a1c1bb3aafa79c328d59f7d1874f798978659ff96e7e`.
+
+Status: **FAIL in bounded provenance-transcription/mechanical-verification scope**.
+
+### #274 / 007S — registry/receipt binding PASS
+
+All seven preregistered binding controls passed after the 16 focused registry tests. Changing metric semantics under the same metric ID and revision label changed the registry content hash and admission/verifier bindings, invalidated the old receipt context, and registry-hash/unit tampering failed closed. StationReceipt v2 remained unchanged.
+
+Retained artifact ID `10560939948`, ZIP SHA-256 `2a9a7e7a63c381e3b48577e2bfc393fc19c43be45a48f593f073e2e66f575ea1`.
+
+Status: **PASS in bounded registry/receipt binding-control scope**. No metric registration, implementation acceptance, or promotion authority follows from this result.
+
+### #277 / 007T — host provenance PASS; Planner transcription FAIL
+
+The host-provenance intervention worked: immutable snapshot/registry/human-gate facts were removed from model-authored schemas and attached deterministically by the host. The Scientist's host-bound proposal then passed mechanical verification with exact identity, eliminating the #273 provenance-transcription failure class.
+
+The Planner failed at a different transcription boundary by proposing already-registered `context_bytes_non_success_mean` while re-authoring an observation value belonging to `context_bytes_success_mean`. Deterministic verification stopped before registry assessment/review. No receipt was issued.
+
+Retained artifact ID `10562057488`, ZIP SHA-256 `fa2b2329473e38bccc5d8b74ac44cd985857bc699367a34efbdfbeb348602ef6`.
+
+Status: **host provenance mechanism PASS in bounded scope; overall experiment FAIL at Planner transcription**.
+
+### #286 / 007U — pending
+
+#286 further minimizes Planner authorship so verified Scientist context and immutable provenance are carried forward by the host. At this check there is no authoritative owner result comment; the only retained PR comment is an external Vercel rate-limit notification.
+
+Status: **UNKNOWN / pending authoritative experiment result**. External preview-service rate limiting is not research evidence.
 
 ### Discovery interpretation
 
@@ -198,26 +244,39 @@ The correct current claim is:
 - deterministic present-vs-missing admission rejects false MeasurementGaps;
 - semantic review can reject syntactically/mechanically plausible but scientifically weak proposals;
 - **one bounded genuinely absent MeasurementGap was formally admitted in #257 / 007J — PASS in that exact scope**;
-- closing that gap and adding deterministic EvidenceResolver/active evidence selection did **not** make subsequent Scientist behavior reliable; #259/#262/#263 remain bounded FAILs;
-- #264 shows that an integrity-valid receipt can still leave the scientific claim **UNKNOWN** when metric identity/semantics are not governed strongly enough.
+- #264 exposed that receipt integrity alone does not govern metric semantics;
+- #270/#274 provide positive bounded evidence for content-addressed metric identity and receipt-context binding, but #270 is unaccepted and stacked on unapproved #266;
+- #272 failed before model execution, #273 failed closed on model-copied provenance, and #277 showed host provenance fixes that class while still failing at Planner transcription;
+- #286 remains UNKNOWN pending an authoritative result.
 
-Therefore **general autonomous improvement discovery remains UNKNOWN / not established**, general recursive self-improvement remains **UNKNOWN / not established**, and **M6-008 remains BLOCKED pending the Metric Registry/semantic-identity requirement**.
+Therefore **general autonomous improvement discovery remains UNKNOWN / not established**, general recursive self-improvement remains **UNKNOWN / not established**, and **M6-008 remains BLOCKED pending acceptance of the Metric Registry trust boundary and a valid registry-aware discovery result**.
 
 ## Independent stress/governance defects
 
 Draft #207 campaign B and #212 retain negative authority-ordering evidence, including budget/accounting and release-after-terminal-verifier-failure cases. Those defects remain **FAIL/open** until a current-base repair is accepted and the relevant scenarios are requalified.
 
+Open draft **#288** is a current-main candidate repair for the pre-dispatch budget/accounting authority defect. It adds host-owned admission before runner/reviewer dispatch, conservative unknown-usage behavior, post-dispatch authority rechecks, and exact-head/spec-bound export gating, with five local negative regressions reported green on its head. It is **not accepted evidence on main**: exact-head CI/review remains the next gate, and it does not clear #207/#212 until the relevant scenarios are requalified after acceptance.
+
 A later repair/self-host or discovery PASS does not clear an independent governance failure.
+
+## Repository governance blockers
+
+- **#267 / #276 — production Pages trigger:** current main has no authoritative production Pages attempt because path filtering skipped #197. Missing qualification remains **UNKNOWN / BLOCKED**, never PASS. #276 is an open staged workflow repair requiring a maintainer move into `.github/workflows/`.
+- **#268 / #275 — maintainer approval status:** a valid approval comment does not reliably publish the required status on the exact PR head. #275 is an open staged repair; no branch-protection bypass is authorized. Until accepted, affected PRs remain HOLD when the protected head status is unsatisfied.
+
+These are governance/qualification defects, not evidence of Factory/M4, provider-model, or research-hypothesis failure.
 
 ## Current unresolved blockers
 
-1. **#260** — technically green on exact PR head, but maintainer approval remains pending; if merged, the resulting merged SHA still requires its own first production Pages acceptance.
-2. **#243** — technically green production `ImprovementSpec` candidate remains unaccepted pending exact-head maintainer approval; current bytes include human hardening beyond #231-generated source.
-3. **Autonomous discovery** — #257 is a bounded formal-admission PASS, #259/#262/#263 retain follow-up FAILs, and #264 is UNKNOWN after post-hoc metric-identity audit; general discovery/self-improvement remains UNKNOWN.
-4. **Metric semantics / M6-008** — issue #265 and spec PR #266 require a versioned Metric Registry before future MeasurementGap admissions can claim nonredundancy; M6-008 remains BLOCKED.
-5. **Accounting/release ordering** — #207/#212 negative evidence remains unresolved.
-6. **Paid/live provider success** — exact-current-main real-account candidate→verifier→receipt success remains UNKNOWN.
-7. **Qualification breadth** — true blank-environment installation, recovery/host-loss, selected elapsed soak, every-host M4, and physical heavyweight-WebVM iPhone reliability remain unestablished.
+1. **Exact-current-main production Pages qualification** — issue #267: no authoritative Pages run exists for `main@3cff6bcd...`; status is **UNKNOWN / BLOCKED**. #276 is an open staged fix and is not active on main.
+2. **Exact-head maintainer approval publication** — issue #268: protected approval status wiring is defective. #275 is open/staged; no bypass is authorized.
+3. **#260** — technically green provider-bootstrap candidate remains **HOLD / unaccepted** pending a valid governed exact-head maintainer status; if eventually accepted, its merged main SHA still requires its own first production Pages attempt.
+4. **#243** — technically green production `ImprovementSpec` candidate remains unaccepted; current bytes include human hardening beyond #231-generated source, and acceptance remains subject to exact-head governance.
+5. **Autonomous discovery** — #257 is a bounded formal-admission PASS; #274 is a bounded registry/receipt binding PASS; later registry-aware discovery cells still contain apparatus/transcription FAILs and #286 is UNKNOWN. General discovery/self-improvement remains UNKNOWN.
+6. **Metric semantics / M6-008** — #265/#266 define the requirement and #270 is technically green but unaccepted; M6-008 remains BLOCKED pending accepted trust infrastructure plus a valid registry-aware discovery result.
+7. **Accounting/release ordering** — #207/#212 negative evidence remains unresolved on main. Draft #288 is a repair candidate only; it has not cleared the retained failures.
+8. **Paid/live provider success** — exact-current-main real-account candidate→verifier→receipt success remains UNKNOWN.
+9. **Qualification breadth** — true blank-environment installation, recovery/host-loss, selected elapsed soak, every-host M4, and physical heavyweight-WebVM iPhone reliability remain unestablished.
 
 ## Scope and non-claims
 
