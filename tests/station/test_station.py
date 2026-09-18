@@ -119,6 +119,21 @@ class StationTests(unittest.TestCase):
         with self.assertRaises(ContractError):
             self.s.review(self.pid, "OPS-101")
 
+    def test_repair_attempt_receives_previous_candidate_without_mutating_fresh_baseline(self):
+        self.s.triage(self.pid)
+        work = self.s.prepare(self.pid, "one", "OPS-101")
+        failed = "def status(services):\n    return 'ready'\n"
+        self.s.finish(work, {"files": {"station/health.py": failed}})
+        self.assertEqual(self.s.store.task(self.pid, "OPS-101")["state"], "repair_required")
+
+        repair = self.s.prepare(self.pid, "two", "OPS-101")
+        self.assertEqual(repair["packet"]["prior_candidate_files"]["station/health.py"], failed)
+        self.assertEqual(
+            repair["packet"]["files"]["station/health.py"],
+            'def status(services):\n    return "unknown"\n',
+        )
+        self.assertTrue(repair["packet"]["repair_findings"])
+
     def test_write_scope_and_symlink_are_enforced(self):
         self.s.triage(self.pid)
         work = self.s.prepare(self.pid, "one", "OPS-101")
