@@ -42,28 +42,49 @@ A later distinct exact-head run on `03c77d12...` is a bounded **PASS** using rea
 
 The later PASS does **not** erase the earlier FAIL. It establishes one bounded successful experiment on that exact revision/configuration, not general DAG reliability, provider-independent model quality, or production readiness.
 
-## M6 self-maintenance experiments: #203 and #204
+## M6 self-maintenance experiments: #203, #204, #215 and #217
 
 Draft #203's first-authoritative ImprovementSpec self-host trial remains **FAIL**: 0/1 integrated, three attempts, max-iteration escalation, no verification receipt and no release.
 
 Draft #204 repeated the bounded trial with Qwen2.5-Coder 7B. Its first-authoritative M6-SPEC-002 run also remains **FAIL**: 0/1 integrated, three passes, max-iteration escalation, no verification receipt and no release. The stronger model changed the observed candidate defects but did not satisfy the frozen contract within the pass budget.
 
-These are useful negative results. They do **not** establish autonomous recursive self-improvement and do not restore previously removed #132 self-maintenance tooling as current accepted capability.
+Draft #215 (M6-SPEC-003) exercised prior-candidate repair context with Qwen2.5-Coder 1.5B. Repair-context hashes were retained on attempts 2 and 3, but the authoritative run still finished **FAIL** with 0/1 integrated, no review, verification receipt, release or promotion. The retained candidates showed transport/source conflation: the model placed data-object content into the Python-file value rather than producing the required Python source.
 
-## Deterministic stress evidence: #206 and #207
+Draft #217 (M6-SPEC-004) then explicitly separated the outer transport JSON contract from file-language content while retaining prior-candidate context and leaving acceptance policy unchanged. The authoritative workflow retained evidence but the experiment itself remains **FAIL**: 0/1 integrated, three passes, max-iteration escalation, no review/receipt/release. The first candidate had an indentation error; attempts 2 and 3 compiled but failed import because they tried `from dataclasses import dataclass, frozen`. The clarification changed the failure shape but did not satisfy the frozen contract within the pass budget.
 
-Draft #206 preregisters stress campaign A against a frozen baseline. At the latest observation its dedicated campaign workflow is still **PENDING / in progress**. No scenario outcome from that campaign is promoted before the retained run completes.
+The implementation candidate underlying the repair-context work (#213) remains unaccepted. These experiments are useful negative results; they do **not** establish autonomous recursive self-improvement or restore previously removed #132 self-maintenance tooling as current accepted capability.
 
-Draft #207 deterministic campaign B has completed its research workflow and retained mixed scenario-level evidence:
+## Deterministic stress evidence: #206, #207 and #212
+
+Draft #206 Campaign A is now complete at its corrected exact experiment head `e173719...` against frozen baseline `699e286...`. The earlier apparatus revision is explicitly invalid because it would have tested GitHub's synthetic merge commit; only the corrected exact-head runs are used here. Workflow-level success means the experiments executed and retained artifacts, not that the scenarios passed.
+
+Retained Campaign A evidence is mixed and negative where stated:
+
+- **STRESS-A4 repair pressure — BLOCKED / invalid for the intended intervention:** 0 faults were injected; the single provider call ended in model-connection/structured-output failure, usage became unknown, the host budget aborted after one pass, and 0/1 integrated. The intended repair-pressure fault was therefore not exercised and cannot be called PASS.
+- **STRESS-A5 DAG pressure — FAIL / incomplete:** 3/6 tasks integrated across five passes before `no_runnable_tasks` escalation; DAG-A/B/C retained receipts, DAG-D remained `repair_required`, DAG-E/F did not complete, and no release export was attempted.
+- **STRESS-A6 reliability — FAIL in the frozen campaign:** Qwen2.5-Coder 7B completed 0/3 successful trials, accepted rate 0.0, with each trial ending 0/1 integrated after the three-pass max-iteration brake. This is scoped to that exact baseline/spec/model configuration and is not a general model-quality claim.
+- Campaign A also retained its bounded control/injection artifacts. Those artifacts do not override the blocked/failed cells above or establish general repair/DAG/reliability success.
+
+Draft #207 deterministic Campaign B retained mixed scenario-level evidence:
 
 - **STRESS-B1 — FAIL:** token-budget exhaustion was recorded only after accepted integration/release had already occurred. This falsifies the stronger ordering claim for that exact scenario.
 - **STRESS-B2 — PASS within the control:** the early-convergence control completed 2/2 tasks without the budget/max-iteration trips under study.
 - **STRESS-B3 — FAIL:** a terminal verifier failure aborted the batch with 0 integrated, yet a non-empty release was still materialized afterward. This is a fail-closed release-eligibility defect for that exact scenario.
 - **STRESS-B4 — mixed:** injected corrupt candidates were rejected and none integrated, which is a bounded containment **PASS**; however, the task did not recover to successful completion within the frozen pass budget, so recovery-to-success is **FAIL / not achieved** and general repair reliability remains **UNKNOWN**.
 
-A green research workflow means the apparatus executed and retained artifacts; it does not convert scenario-level FAIL evidence into PASS.
+Draft #212 Campaign C adds a deterministic failure matrix. Its authoritative retained results are also mixed:
 
-The #207 findings are currently more important than another favorable demonstration because they identify control-ordering conditions that must be repaired/requalified before stronger fail-closed governance claims are made.
+- malformed runner JSON was rejected on all three calls with no review/integration: **PASS for fail-closed containment in that exact scenario**;
+- an invalid reviewer schema kept the candidate at `review_ready` through three invalid reviews with no integration/receipt: **PASS for fail-closed containment in that exact scenario**;
+- reviewer denial followed by approval recovered and integrated on attempt 2: **PASS for that bounded recovery path**;
+- a transient HTTP 500 was marked retryable, but with no alternate failover candidate the call ended and unknown usage caused a host-budget abort: no integration occurred, but provider retry/failover success is **not established**;
+- missing usage allowed a valid runner/reviewer result to integrate and receive a receipt before the host later aborted on `usage_unknown_or_invalid`: **FAIL for the stronger accounting-before-authority claim** and a direct corroboration of #208.
+
+A green research workflow means the apparatus executed and retained artifacts; it does not convert scenario-level FAIL/BLOCKED evidence into PASS.
+
+## Open governance repair candidate: #214
+
+Draft #214 targets #208 by mirroring token/deadline state into Station before review/integration and tightening release eligibility around successful run control. Its observed exact-head technical workflows are green, but its maintainer approval gate remains **BLOCKED/FAIL** and the PR is unaccepted. Therefore the #207/#212 accounting-ordering defect remains an accepted-main **FAIL/open blocker** until a repair is merged and independently requalified in the applicable scenarios.
 
 ## WebVM / provider research boundary
 
@@ -107,13 +128,13 @@ Before paper-facing outcome collection, freeze exact source, execution/evidence 
 
 At minimum:
 
-1. preserve exact-revision failures and mixed results rather than treating later PASSes as erasure;
-2. repair/requalify any #207 governance-ordering defect required by the chosen path;
+1. preserve exact-revision failures, blocked interventions and mixed results rather than treating later PASSes as erasure;
+2. repair/requalify the #207/#208 accounting/release-ordering defects, including the missing-usage case reproduced by #212, if the chosen path depends on those authority effects;
 3. resolve or explicitly exclude #120/#126 for any WebVM-dependent protocol;
 4. retain fresh exact-revision live-provider evidence if the protocol depends on that provider path;
 5. complete any protected #139/#134 sequence required by the selected evidence path;
 6. independently qualify the selected evidence path to the degree required by the paper claim;
-7. freeze the protocol before outcome access and retain negative, rejected, `UNKNOWN`, failed and missing cells.
+7. freeze the protocol before outcome access and retain negative, rejected, `UNKNOWN`, `BLOCKED`, failed and missing cells.
 
 ## Primary confirmatory experiment
 
