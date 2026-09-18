@@ -17,6 +17,7 @@ from ...factory.compiler import RequirementCompiler
 from ...factory.models import ExecutionPlan
 from ...factory.worker_contract import WorkerContract
 from .contracts import external_id
+from .policy import FirmwarePolicy
 from .service import CopilotMissionRecord
 
 
@@ -175,15 +176,18 @@ class FirmwareFactoryAdapter:
         self,
         catalog: ResourceCatalog,
         *,
+        policy: FirmwarePolicy,
         workspace_root: str = "/var/lib/residual/copilot",
     ):
         if not isinstance(catalog, ResourceCatalog):
             raise ContractError("FirmwareFactoryAdapter requires a ResourceCatalog")
+        if not isinstance(policy, FirmwarePolicy):
+            raise ContractError("FirmwareFactoryAdapter requires the active FirmwarePolicy")
         self.catalog = catalog
+        self.policy = policy
         self.workspace_root = _absolute_posix(workspace_root)
 
-    @staticmethod
-    def _assert_record_authority(record: CopilotMissionRecord) -> None:
+    def _assert_record_authority(self, record: CopilotMissionRecord) -> None:
         if not isinstance(record, CopilotMissionRecord):
             raise ContractError("CopilotMissionRecord required")
         if record.state != "prepared":
@@ -194,6 +198,10 @@ class FirmwareFactoryAdapter:
             )
         if record.revision.mission_id != record.mission.mission_id:
             raise ContractError("Copilot revision does not match mission id")
+        if record.revision.policy_hash != self.policy.policy_hash:
+            raise ContractError(
+                "Copilot mission policy is stale for the active Factory policy"
+            )
         actions = {grant.action for grant in record.revision.capability_grants}
         if actions != FirmwareFactoryAdapter.required_capabilities:
             raise ContractError("Copilot capability set does not match Factory profile")
