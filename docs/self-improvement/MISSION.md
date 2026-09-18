@@ -13,7 +13,7 @@ This mission does not create a second implementation authority. Station task sta
     residual revision doctor
     residual revision doctor --json
     residual self-improve plan --candidates docs/self-improvement/candidates.json
-    residual self-improve run --candidates docs/self-improvement/candidates.json --station-data .residual-self-improve
+    residual self-improve run --candidates docs/self-improvement/candidates.json --station-data .residual/self-improve
 
 Revision Doctor is read-only. self-improve plan is read-only. self-improve run refuses a dirty source checkout or a blocking health error, validates every candidate, clones the source into a Station-managed workspace, and delegates implementation, checking, review, integration, and export to Station.
 
