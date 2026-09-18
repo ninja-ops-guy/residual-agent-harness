@@ -18,6 +18,7 @@ on:
       - 'tests/test_distributed_recovery_experiment.py'
       - 'tests/test_distributed_experiment_matrix.py'
       - 'tests/test_station_mesh_bridge.py'
+      - 'tests/test_station_mesh_bridge_experiment.py'
       - 'tests/mission-control-commands.test.mjs'
       - '.github/workflows/mesh-experiments.yml'
 
@@ -48,6 +49,7 @@ jobs:
           tests/test_distributed_recovery_experiment.py
           tests/test_distributed_experiment_matrix.py
           tests/test_station_mesh_bridge.py
+          tests/test_station_mesh_bridge_experiment.py
       - name: Compile
         run: python -m compileall -q residual
 
@@ -105,6 +107,12 @@ jobs:
           --good-ms 40
           --repeats 2
           --output runs/recovery-experiment.json
+      - name: Station mesh observability bridge benchmark
+        run: >-
+          residual experiment bridge
+          --members 2 4 8
+          --repeats 2
+          --output runs/bridge-experiment.json
       - name: Summarize benchmark evidence
         run: |
           python - <<'PY'
@@ -114,14 +122,18 @@ jobs:
           dist=json.loads(Path('runs/distributed-experiment.json').read_text())
           pipeline=json.loads(Path('runs/pipeline-experiment.json').read_text())
           recovery=json.loads(Path('runs/recovery-experiment.json').read_text())
+          bridge=json.loads(Path('runs/bridge-experiment.json').read_text())
           print('MESH', json.dumps(mesh['summary'], sort_keys=True))
           print('DISTRIBUTED', json.dumps(dist['summary'], sort_keys=True))
           print('PIPELINE', json.dumps(pipeline['summary'], sort_keys=True))
           print('RECOVERY', json.dumps(recovery['summary'], sort_keys=True))
+          print('BRIDGE', json.dumps(bridge['summary'], sort_keys=True))
           assert all(row['all_integrated'] for row in dist['summary'])
           assert all(row['all_integrated'] for row in pipeline['summary'])
           assert recovery['summary']['all_recovered_and_integrated']
           assert recovery['summary']['all_failures_retained_findings']
+          assert all(row['all_converged'] for row in bridge['summary'])
+          assert all(row['station_authority_preserved'] for row in bridge['summary'])
           assert mesh['summary']['produce_median_messages_s'] > 0
           assert mesh['summary']['catchup_median_messages_s'] > 0
           PY
@@ -134,4 +146,5 @@ jobs:
             runs/distributed-experiment.json
             runs/pipeline-experiment.json
             runs/recovery-experiment.json
+            runs/bridge-experiment.json
           retention-days: 14
