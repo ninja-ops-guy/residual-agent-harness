@@ -338,12 +338,20 @@ class HTTPTests(unittest.TestCase):
         self.s.triage(pid)
         self.s.store.settings({"remote_workers_enabled": True})
         headers = {"Authorization": "Bearer " + self.s.store.settings()["worker_token"]}
-        work = self.request("/api/worker/claim", {"project_id": pid, "task_id": "OPS-101", "name": "machine2"}, headers)["work"]
+        worker_id = "worker-machine2"
+        registered = self.request("/api/worker/register", {
+            "worker_id": worker_id, "name": "machine2", "provider_kind": "ollama",
+            "model": "fixture-model", "placement": "local",
+        }, headers)
+        self.assertEqual(registered["worker_id"], worker_id)
+        work = self.request("/api/worker/claim", {
+            "project_id": pid, "task_id": "OPS-101", "name": "machine2", "worker_id": worker_id,
+        }, headers)["work"]
         usage = {"input_tokens": 11, "output_tokens": 7, "cached_input_tokens": 0, "cache_write_input_tokens": 0,
                  "source": "worker_reported", "placement": "local", "role": "remote_runner",
                  "model": "fixture-model", "request_bytes": 321, "elapsed_ms": 12.5}
-        data = {"project_id": pid, "task_id": "OPS-101", "lease": work["lease"], "submission_id": "submission-1",
-                "response": {"files": DEMO_FILES["OPS-101"]}, "usage": usage}
+        data = {"project_id": pid, "task_id": "OPS-101", "lease": work["lease"], "worker_id": worker_id,
+                "submission_id": "submission-1", "response": {"files": DEMO_FILES["OPS-101"]}, "usage": usage}
         result = self.request("/api/worker/result", data, headers)
         self.assertEqual(result["state"], "review_ready")
         self.assertEqual(result, self.request("/api/worker/result", data, headers))
@@ -356,6 +364,18 @@ class HTTPTests(unittest.TestCase):
         self.assertEqual(workers["totals"]["inference_elapsed_ms"], 12.5)
         self.assertEqual(workers["workers"][0]["worker"], "machine2")
         self.assertEqual(workers["workers"][0]["inference_latency"]["median_ms"], 12.5)
+        self.assertEqual(len(workers["instances"]), 1)
+        instance = workers["instances"][0]
+        self.assertEqual(instance["worker_id"], worker_id)
+        self.assertEqual(instance["state"], "idle")
+        self.assertEqual(instance["claims"], 1)
+        self.assertEqual(instance["completed"], 1)
+        self.assertEqual(instance["failed"], 0)
+        self.assertEqual(instance["project_id"], pid)
+        self.assertIsNone(instance["task_id"])
+        global_workers = self.request("/api/workers")
+        self.assertEqual(global_workers["workers"][0]["worker_id"], worker_id)
+        self.assertIn("self-reported", global_workers["identity_note"])
         self.assertIn("not cryptographic node identities", workers["identity_note"])
         with self.assertRaises(urllib.error.HTTPError):
             self.request("/api/worker/result", {**data, "response": {"files": {}}}, headers)

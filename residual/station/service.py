@@ -497,6 +497,7 @@ class Station:
         return {
             "project_id": pid,
             "workers": rows,
+            "instances": self.store.workers(project_id=pid),
             "totals": {
                 "workers_seen": len(rows),
                 "claims": sum(row["claims"] for row in rows),

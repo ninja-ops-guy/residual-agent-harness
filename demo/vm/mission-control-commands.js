@@ -4,6 +4,7 @@ const HELP=[
   "/help                         show this command reference",
   "/status                       show guest, mission and chat state",
   "/worker status                show persistent guest-worker state",
+  "/workers                      show native distributed-worker registry if attached",
   "/tab chat|activity|evidence|files|terminal",
   "/chat /activity /evidence /files  direct tab aliases",
   "/mode build|live|audit        change execution mode",
@@ -56,6 +57,7 @@ export async function executeMissionCommand(input,api){
     if((args[0]||"").toLowerCase()!=="status")return result("Usage: /worker status");
     return result(asText(await api.workerStatus()));
   }
+  if(command==="workers")return result(asText(await api.workers()));
 
   if(command==="tab"){
     const tab=(args[0]||"").toLowerCase();

@@ -24,7 +24,8 @@ function api(overrides={}){
     restart:async()=>(calls.push(['restart']),true),
     connect:async()=>calls.push(['connect']),
     meshStatus:async()=>({attached:false,browser_lab:'isolated'}),
-    workerStatus:async()=>({available:true,ready:true,poisoned:false})
+    workerStatus:async()=>({available:true,ready:true,poisoned:false}),
+    workers:async()=>({available:true,workers:[{worker_id:'w-1',state:'idle'}]})
   };
   return {api:{...base,...overrides},calls};
 }
@@ -98,6 +99,13 @@ test('direct tab aliases, cancel and worker status remain typed controls',async(
   assert.deepEqual(x.calls,[
     ['tab','activity'],['tab','evidence'],['tab','files'],['tab','chat'],['stop']
   ]);
+});
+
+test('workers command uses the typed registry adapter',async()=>{
+  const x=api();
+  const result=await executeMissionCommand('/workers',x.api);
+  assert.match(result.text,/w-1/);
+  assert.match(result.text,/idle/);
 });
 
 test('stop restart connect and terminal call only explicit adapter methods',async()=>{

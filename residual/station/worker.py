@@ -11,14 +11,14 @@ import urllib.request
 import uuid
 from dataclasses import asdict
 
-from residual.core import ContractError, canonical, strict_json
+from residual.core import ContractError, canonical, identifier, strict_json
 from residual.providers import NoRedirect
 from .models import StationProvider
 from .service import FILES_SCHEMA, RUNNER_SYSTEM
 
 
 class WorkerClient:
-    def __init__(self, station, token):
+    def __init__(self, station, token, worker_id=None):
         url = urllib.parse.urlsplit(station)
         if url.scheme != "https" and not (url.scheme == "http" and url.hostname in {"localhost", "127.0.0.1", "::1"}):
             raise ContractError("Use HTTPS for remote stations or a loopback SSH tunnel")
@@ -27,6 +27,8 @@ class WorkerClient:
         if not token:
             raise ContractError("Set RESIDUAL_WORKER_TOKEN from Diagnostics → Connect another runner")
         self.base, self.token = station.rstrip("/"), token
+        self.worker_id = identifier(worker_id or ("w-" + uuid.uuid4().hex[:16]))
+        self._registration = None
         self.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
 
     def request(self, route, data):
@@ -38,12 +40,31 @@ class WorkerClient:
                 raise ContractError("Worker packet is too large")
             return strict_json(value.decode())
 
+    def register(self, name, provider):
+        metadata = (
+            name,
+            str(getattr(provider, "kind", "synthetic")),
+            str(getattr(provider, "model", "unknown")),
+            str(getattr(provider, "placement", "local")),
+        )
+        if metadata == self._registration:
+            return
+        self.request("register", {
+            "worker_id": self.worker_id,
+            "name": metadata[0],
+            "provider_kind": metadata[1],
+            "model": metadata[2],
+            "placement": metadata[3],
+        })
+        self._registration = metadata
+
     def run_once(self, project, name, provider, max_tokens=4096):
-        work = self.request("claim", {"project_id": project, "name": name}).get("work")
+        self.register(name, provider)
+        work = self.request("claim", {"project_id": project, "name": name, "worker_id": self.worker_id}).get("work")
         if not work:
             return False
         stop = threading.Event()
-        envelope = {"project_id": project, "task_id": work["task_id"], "lease": work["lease"]}
+        envelope = {"project_id": project, "task_id": work["task_id"], "lease": work["lease"], "worker_id": self.worker_id}
         def heartbeat():
             while not stop.wait(60):
                 try:
@@ -82,6 +103,8 @@ def main(argv=None):
     p.add_argument("--station", required=True)
     p.add_argument("--project", required=True)
     p.add_argument("--name", default="remote-runner")
+    p.add_argument("--worker-id", default=os.environ.get("RESIDUAL_WORKER_ID", ""),
+                   help="Optional stable experiment label for this worker process")
     p.add_argument("--kind", choices=["ollama", "openai_compatible", "openai", "anthropic", "google", "azure", "bedrock"], default="ollama")
     p.add_argument("--model", default="qwen2.5-coder:7b")
     p.add_argument("--base-url", default="")
@@ -93,7 +116,7 @@ def main(argv=None):
     args = p.parse_args(argv)
     if not 1 <= args.poll_seconds <= 300:
         p.error("poll-seconds must be 1–300")
-    client = WorkerClient(args.station, os.environ.get("RESIDUAL_WORKER_TOKEN", ""))
+    client = WorkerClient(args.station, os.environ.get("RESIDUAL_WORKER_TOKEN", ""), args.worker_id or None)
     provider = StationProvider({"kind": args.kind, "model": args.model, "base_url": args.base_url, "placement": args.placement, "region": args.region, "api_version": args.api_version},
                                RUNNER_SYSTEM, FILES_SCHEMA, os.environ.get("RESIDUAL_RUNNER_API_KEY"))
     print("Runner connected. Waiting for ready tasks; polling does not invoke an LLM.", flush=True)

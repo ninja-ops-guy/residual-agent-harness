@@ -380,3 +380,17 @@ These names are experiment labels authenticated only by the shared worker token.
 Command Station Diagnostics displays the same telemetry table and repeats the identity warning.
 
 For physical multi-host studies, combine worker-reported inference latency with Station workflow timestamps rather than treating either alone as end-to-end latency.
+
+
+## Registered-worker completeness check
+
+The independent distributed benchmark now verifies two different worker populations:
+
+1. **requested/registered instances** — WorkerClient process instances that registered and polled the project;
+2. **workers used** — labels that actually claimed one or more tasks.
+
+A run with `--workers 4` must retain four registered instances even if scheduling causes fewer than four to win tasks. This prevents a benchmark from silently reporting a nominal four-worker configuration when fewer processes actually participated in the control plane.
+
+The report also retains aggregate worker-reported inference elapsed time. This makes it possible to separate synthetic/provider work from Station coordination and integration time in the same experiment.
+
+Mission Control exposes `/workers` as a typed registry query. In the browser lab it truthfully reports that no native Station registry is attached unless the host supplies a worker-metrics bridge.

@@ -48,6 +48,7 @@ class Store(ObservationStore):
             CREATE TABLE IF NOT EXISTS settings(id TEXT PRIMARY KEY, value TEXT);
             CREATE TABLE IF NOT EXISTS cursors(project TEXT, reader TEXT, seq INTEGER, PRIMARY KEY(project,reader));
             CREATE TABLE IF NOT EXISTS submissions(id TEXT PRIMARY KEY, value TEXT);
+            CREATE TABLE IF NOT EXISTS workers(id TEXT PRIMARY KEY, value TEXT);
             """)
             self.init_observations(c)
         self.settings({"session_token": secrets.token_urlsafe(32), "worker_token": secrets.token_urlsafe(32)}, defaults=True)
@@ -271,6 +272,63 @@ class Store(ObservationStore):
     def jobs(self):
         with self.connect() as c:
             return [json.loads(r[0]) for r in c.execute("SELECT value FROM jobs ORDER BY rowid DESC LIMIT 40")]
+
+    def worker_register(self, worker_id, name, provider_kind, model, placement):
+        stamp, epoch = now(), time.time()
+        with self.transaction() as c:
+            row = c.execute("SELECT value FROM workers WHERE id=?", (worker_id,)).fetchone()
+            prior = json.loads(row[0]) if row else {}
+            record = {
+                "worker_id": worker_id,
+                "name": name,
+                "provider_kind": provider_kind,
+                "model": model,
+                "placement": placement,
+                "registered_at": prior.get("registered_at", stamp),
+                "last_seen_at": stamp,
+                "last_seen_epoch": epoch,
+                "state": "idle",
+                "project_id": prior.get("project_id"),
+                "task_id": None,
+                "claims": int(prior.get("claims", 0)),
+                "completed": int(prior.get("completed", 0)),
+                "failed": int(prior.get("failed", 0)),
+            }
+            c.execute("INSERT OR REPLACE INTO workers VALUES(?,?)", (worker_id, canonical(record)))
+            return record
+
+    def worker_touch(self, worker_id, *, state=None, project_id=None, task_id=None,
+                     claim=False, completed=False, failed=False):
+        with self.transaction() as c:
+            row = c.execute("SELECT value FROM workers WHERE id=?", (worker_id,)).fetchone()
+            if not row:
+                raise ContractError("Worker instance is not registered")
+            record = json.loads(row[0])
+            record["last_seen_at"] = now()
+            record["last_seen_epoch"] = time.time()
+            if state is not None:
+                record["state"] = state
+            if project_id is not None:
+                record["project_id"] = project_id
+            if task_id is not None or state == "idle":
+                record["task_id"] = task_id
+            record["claims"] = int(record.get("claims", 0)) + int(bool(claim))
+            record["completed"] = int(record.get("completed", 0)) + int(bool(completed))
+            record["failed"] = int(record.get("failed", 0)) + int(bool(failed))
+            c.execute("UPDATE workers SET value=? WHERE id=?", (canonical(record), worker_id))
+            return record
+
+    def workers(self, project_id=None):
+        current = time.time()
+        with self.connect() as c:
+            rows = [json.loads(row[0]) for row in c.execute("SELECT value FROM workers ORDER BY id")]
+        result = []
+        for record in rows:
+            if project_id is not None and record.get("project_id") != project_id:
+                continue
+            age = max(0.0, current - float(record.get("last_seen_epoch", current)))
+            result.append({**record, "last_seen_age_s": age})
+        return result
 
     def reserve_call(self, pid, role, placement, request_bytes, task_id=None):
         with self.transaction() as c:

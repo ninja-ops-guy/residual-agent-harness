@@ -82,3 +82,44 @@ residual worker \
 ```
 
 Use `elapsed_ms` to separate worker inference from the rest of the workflow, but retain Station claim/check/review/integration timestamps and network RTT as separate measurements.
+
+
+## Worker instance registry
+
+Current RESIDUAL workers register an ephemeral process instance before polling for work.
+
+Each registry row contains:
+
+- `worker_id`: process-instance identifier;
+- `name`: the operator-supplied worker label;
+- provider kind, model and local/remote placement;
+- server-observed registration and last-seen timestamps;
+- current advisory state (`idle` or `working`);
+- last project/task association;
+- claim, completion and failed-candidate counters.
+
+The default `worker_id` is generated per worker process. For controlled physical experiments you may provide a stable experiment identifier:
+
+```bash
+export RESIDUAL_WORKER_ID=worker-lab-4070-a
+
+residual worker \
+  --station https://station.example.test \
+  --project p-YOURPROJECT \
+  --name lab-4070-a \
+  --kind ollama \
+  --model qwen2.5-coder:7b
+```
+
+or use `--worker-id worker-lab-4070-a`.
+
+The registry is **observability, not authorization**. Worker IDs, names and model metadata are self-reported by a process that already holds the shared worker token. A process with that token can choose another label. Candidate verification, review and integration remain on the Station.
+
+Operator surfaces:
+
+```text
+GET /api/workers
+GET /api/projects/<PROJECT_ID>/workers
+```
+
+The project endpoint combines current registered instances with event-derived historical performance aggregates.

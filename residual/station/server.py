@@ -14,7 +14,7 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from residual.core import ContractError, canonical, strict_json
+from residual.core import ContractError, canonical, identifier, strict_json
 from .contracts import bounded, parse_spec
 from .models import model_call, public_settings, save_settings, credentials_for
 from residual.modular import normalize_profile, make_adapter
@@ -115,6 +115,9 @@ class Handler(BaseHTTPRequestHandler):
                     return self.respond({"projects": self.station.store.list_projects()})
                 if path == "/api/jobs":
                     return self.respond({"jobs": self.station.store.jobs()})
+                if path == "/api/workers":
+                    return self.respond({"workers": self.station.store.workers(),
+                                         "identity_note": "Worker IDs and names are self-reported under the shared worker token."})
                 if path == "/api/models":
                     return self.respond(self.station.ollama.status())
                 if path == "/api/settings":
@@ -239,19 +242,42 @@ class Handler(BaseHTTPRequestHandler):
                 s.store.settings({"worker_token": secrets.token_urlsafe(32)})
             s.store.settings({"remote_workers_enabled": enabled})
             return {"enabled": enabled, "token": s.store.settings()["worker_token"] if enabled else None}
+        if path == "/api/worker/register":
+            worker_id = identifier(data.get("worker_id"))
+            name = bounded(data.get("name"), "Runner name", 60)
+            provider_kind = bounded(data.get("provider_kind"), "Provider kind", 60)
+            model = bounded(data.get("model"), "Model", 200)
+            placement = data.get("placement")
+            if placement not in {"local", "remote"}:
+                raise ContractError("Invalid worker placement")
+            return s.store.worker_register(worker_id, name, provider_kind, model, placement)
         if path == "/api/worker/claim":
             name = bounded(data.get("name"), "Runner name", 60)
+            worker_id = data.get("worker_id")
+            if worker_id is not None:
+                worker_id = identifier(worker_id)
+                s.store.worker_touch(worker_id, state="idle", project_id=data["project_id"])
             work = s.prepare(data["project_id"], "remote:" + name, data.get("task_id"))
             if not work:
                 return {"work": None}
             t = work["task"]
+            if worker_id is not None:
+                s.store.worker_touch(worker_id, state="working", project_id=work["project_id"],
+                                     task_id=t["id"], claim=True)
             return {"work": {"project_id": work["project_id"], "task_id": t["id"], "attempt": t["attempt"], "lease": work["lease"], "packet": work["packet"], "allow_cloud": s.store.project(work["project_id"])["allow_cloud"]}}
         if path == "/api/worker/heartbeat":
             s.store.heartbeat(data["project_id"], data["task_id"], data["lease"])
+            worker_id = data.get("worker_id")
+            if worker_id is not None:
+                s.store.worker_touch(identifier(worker_id), state="working",
+                                     project_id=data["project_id"], task_id=data["task_id"])
             return {"ok": True}
         if path == "/api/worker/result":
             # Remote workers submit candidates only; the coordinator owns testing and approval.
             pid, tid = data["project_id"], data["task_id"]
+            worker_id = data.get("worker_id")
+            if worker_id is not None:
+                worker_id = identifier(worker_id)
             with s.project_lock(pid):
                 from .contracts import sha
                 sid = bounded(data.get("submission_id"), "Submission ID", 100)
@@ -262,6 +288,8 @@ class Handler(BaseHTTPRequestHandler):
                     previous = json.loads(previous[0])
                     if previous["fingerprint"] != fingerprint:
                         raise ContractError("Submission ID already belongs to another payload")
+                    if worker_id is not None:
+                        s.store.worker_touch(worker_id, state="idle", project_id=pid)
                     return previous["result"]
                 t = s.store.task(pid, tid)
                 work = {"project_id": pid, "task": t, "lease": data["lease"]}
@@ -281,6 +309,10 @@ class Handler(BaseHTTPRequestHandler):
                     if elapsed is not None:
                         usage["elapsed_ms"] = float(elapsed)
                 result = s.finish(work, data["response"], usage)
+                if worker_id is not None:
+                    s.store.worker_touch(worker_id, state="idle", project_id=pid,
+                                         completed=result.get("state") == "review_ready",
+                                         failed=result.get("state") != "review_ready")
                 with s.store.transaction() as c:
                     c.execute("INSERT INTO submissions VALUES(?,?)", (sid, canonical({"fingerprint": fingerprint, "result": result})))
                 return result

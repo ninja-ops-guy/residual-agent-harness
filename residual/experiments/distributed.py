@@ -158,6 +158,7 @@ def _trial(*, workers: int, tasks: int, work_ms: float) -> dict[str, Any]:
             project = station.store.project(pid)
             if any(task["state"] != "integrated" for task in project["tasks"]):
                 raise RuntimeError("full distributed workflow did not integrate")
+            worker_metrics = station.worker_metrics(pid)
             events = station.store.events(pid, 0, 100000)
             candidate_ms = (candidate_finished - candidate_started) / 1_000_000.0
             integration_ms = (integration_finished - integration_started) / 1_000_000.0
@@ -179,6 +180,8 @@ def _trial(*, workers: int, tasks: int, work_ms: float) -> dict[str, Any]:
                 "event_head": events[-1]["hash"] if events else None,
                 "all_integrated": True,
                 "reported_worker_calls": station.metrics(pid)["calls"],
+                "registered_worker_instances": len(worker_metrics["instances"]),
+                "worker_inference_elapsed_ms": worker_metrics["totals"]["inference_elapsed_ms"],
                 "project_id": pid,
             }
         finally:
@@ -237,6 +240,8 @@ def run_station_distributed_benchmark(
                 r["candidate_throughput_tasks_s"] for r in group
             ),
             "workers_used_min": min(r["workers_used"] for r in group),
+            "registered_worker_instances_min": min(r["registered_worker_instances"] for r in group),
+            "worker_inference_elapsed_median_ms": statistics.median(r["worker_inference_elapsed_ms"] for r in group),
             "all_integrated": all(r["all_integrated"] for r in group),
         })
 

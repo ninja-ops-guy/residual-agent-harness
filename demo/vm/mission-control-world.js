@@ -75,6 +75,15 @@ export function mountMissionControl(host){
       if(typeof host.workerStatus==='function')return await host.workerStatus();
       return {available:false,detail:'Persistent guest worker status is not exposed by this host.'};
     },
+    async workers(){
+      if(typeof host.workerMetrics==='function')return await host.workerMetrics();
+      return {
+        available:false,
+        detail:'This browser Mission Control is not attached to the native Command Station worker registry.',
+        native_surface:'Command Station → Diagnostics → Distributed worker telemetry',
+        api:'GET /api/projects/<PROJECT_ID>/workers'
+      };
+    },
     async meshStatus(){
       if(typeof host.meshStatus==='function')return await host.meshStatus();
       return {
