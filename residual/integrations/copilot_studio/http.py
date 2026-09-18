@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from ...core import ContractError, strict_json
-from .contracts import CopilotAPIError
+from .contracts import CopilotAPIError, external_id
 from .service import CopilotStudioService
 
 
@@ -70,7 +70,10 @@ class CopilotHTTPAdapter:
             if verb == "POST" and path == "/v1/copilot/missions":
                 payload = self._json_body(body)
                 if isinstance(payload, dict) and isinstance(payload.get("request_id"), str):
-                    request_id = payload["request_id"][:128]
+                    try:
+                        request_id = external_id(payload["request_id"], "request_id")
+                    except CopilotAPIError:
+                        request_id = None
                 return HTTPResponse(202, self.service.submit(token, payload, now=now))
 
             match = _MISSION_PATH.fullmatch(path)
