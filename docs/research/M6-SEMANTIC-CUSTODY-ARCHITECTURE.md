@@ -1009,3 +1009,216 @@ RP-001 — replay boundary: deterministic graph replay requires no new model cal
 AU-001 — authorization-root execution: an ExecutionAction depends on Human COSIGN and admitted ImprovementSpec; challenge/revocation invalidates the execution node while retaining history.
 
 ENV-002 — semantic root vs execution root: identical semantic DAGs have identical semantic roots across environments, while execution roots differ with environment commitments; REQUIRED_EXACT drift blocks execution admission without changing the semantic root.
+
+
+## 32. Governed Challenge Protocol
+
+Challengeability is not complete until challenge processing is governed.
+
+A versioned ChallengePolicy is a Host-governed graph object defining:
+
+- policy_id and revision;
+- eligible challenger roles;
+- allowed challenge grounds;
+- resolution authority roles;
+- filing window expressed in attested event sequence or, where an attested clock exists, bounded time;
+- whether withdrawal is allowed;
+- escalation policy.
+
+Every semantic node's challenge_policy_id MUST resolve to the policy active for that node.
+
+Challenge grounds are typed. Initial grounds include semantic correctness, evidence relevance, framing, metric appropriateness, authorization, and environment/binding integrity.
+
+A challenge resolution is append-only and may be UPHELD, REJECTED, or WITHDRAWN when the active policy permits withdrawal.
+
+There is no implicit last-writer-wins rule for conflicting resolutions. Two active incompatible terminal resolutions make the challenged state UNKNOWN and block admission. A correction must explicitly supersede the prior resolution under the policy.
+
+Challenge filing windows do not erase later objections from history. A late objection may still be recorded, but whether it has admission/promotion effect is determined by the policy bound to the original semantic node.
+
+## 33. Composite Refinement Soundness Boundary
+
+The MetricExpr checker is intentionally sound-but-incomplete for a restricted structural fragment.
+
+The implementation SHALL distinguish:
+
+- EXACTLY_EQUIVALENT;
+- REFINEMENT, meaning mechanically established no-weaker-than/subset relation without a strictness witness;
+- STRICT_REFINEMENT, only when strictness itself is formally established;
+- COARSENING;
+- INCOMPARABLE;
+- UNKNOWN.
+
+A crucial correction is that child-level strictness does not automatically prove strictness of a conjunction or disjunction. Redundant children can make the composed expressions extensionally equal.
+
+For aligned positive monotone conjunction/disjunction structures, pairwise child equivalence/refinement can prove only composite REFINEMENT unless an explicit witness rule proves strictness.
+
+Negation reverses a proven refinement direction.
+
+Threshold ordering is mechanically interpreted only when the compared expression is the exact same semantic quantity. Cross-metric order-preserving transformations require a separately formalized rule.
+
+The paper SHALL make a soundness claim only for implemented rules:
+
+> Every non-UNKNOWN relation returned by the checker follows from the declared structural semantics and registered atomic relations.
+
+It SHALL NOT claim completeness, and SHALL NOT claim that every UNKNOWN case is genuinely undecidable. UNKNOWN means only that the current formal system has not proved the relation.
+
+## 34. Challengeable Execution Binding
+
+The correspondence between a semantic derivation and an execution is itself a claim.
+
+The graph therefore adds:
+
+- DerivationSnapshot: a Host commitment to a semantic graph root before execution;
+- EnvironmentContext: the observed execution/authorship context;
+- ExecutionBinding: a challengeable Host claim binding the snapshot, environment, and declared input artifacts.
+
+Edges:
+
+- ExecutionBinding EXECUTES DerivationSnapshot;
+- ExecutionBinding UNDER_ENVIRONMENT EnvironmentContext.
+
+The ExecutionBinding carries the derived execution root.
+
+A challenge alleging undeclared inputs, wrong source tree, or environment misbinding targets the ExecutionBinding rather than mutating the semantic graph or EnvironmentContext.
+
+This avoids treating the hash formula itself as proof that the declared execution correspondence was complete.
+
+## 35. Revocation Semantics
+
+Revocation is append-only.
+
+A HumanDecision COSIGN is never deleted.
+
+A later Revocation node REVOKES the HumanDecision.
+
+Current-state evaluation marks that authorization AUTHORIZATION_REVOKED and propagates the state to dependent ExecutionAction nodes.
+
+Historical execution nodes remain present and continue to show that an action occurred while the authorization was previously active.
+
+Revocation therefore means:
+
+- no new action may begin under that authorization;
+- already-recorded actions are not erased;
+- repeat/retry operations require a currently valid authorization;
+- audit can distinguish historically authorized execution from currently reusable authority.
+
+## 36. Temporal Admission
+
+"Admissible" is time-indexed state, not an eternal property.
+
+An AdmissionDecision node records:
+
+- target ImprovementSpec;
+- evaluated semantic graph root;
+- attested event index/time context;
+- active challenge frontier at evaluation;
+- admission findings;
+- verdict.
+
+A challenge filed later does not rewrite the historical AdmissionDecision.
+
+Instead, the graph can answer two different questions:
+
+1. Was the spec admitted under the graph state that existed at event T?
+2. Is the spec currently admissible under the latest challenge/environment/authorization state?
+
+The first is historical fact. The second is recomputed current state.
+
+Execution policy may additionally require that authorization/admission still be current at execution start.
+
+## 37. Authorship Environment
+
+Environment is relevant not only to execution but also to probabilistic authorship.
+
+Every semantic node required for ImprovementSpec admission SHALL have exactly one AUTHORED_UNDER edge to an EnvironmentContext.
+
+EnvironmentContext may bind:
+
+- model/runtime identity;
+- provider/runtime version;
+- queue latency;
+- runner/runtime load where observable;
+- relevant context-size/resource conditions;
+- invocation configuration.
+
+This does not mean queue latency is assumed to affect reasoning quality.
+
+It makes that potential confound observable and challengeable instead of silently losing it.
+
+A semantic challenge may therefore cite degraded authorship context as a ground, subject to the active ChallengePolicy.
+
+## 38. Recursive-Improvement Termination
+
+RESIDUAL does not claim convergence to a globally optimal or final self.
+
+In a changing software system, evidence distribution, roadmap, environment, and metric theory can all change; a universal fixed point is generally not available.
+
+Instead, recursive improvement is divided into bounded improvement episodes.
+
+An episode terminates on one of:
+
+- relative quiescence;
+- resource/search budget exhaustion;
+- safety stop;
+- environment invalidation;
+- human stop;
+- governance stop.
+
+Relative quiescence has a formal certificate and requires:
+
+- a declared scope;
+- bound evidence root;
+- bound metric-theory root;
+- bound search-policy revision;
+- declared finite search budget/candidate space;
+- exhaustive completion under that declared policy;
+- zero currently admissible ImprovementSpecs.
+
+The resulting claim is:
+
+> no admissible improvement was found in the declared search space under this evidence, theory, policy, and budget.
+
+It is explicitly not:
+
+> the system cannot be improved further.
+
+Any change to evidence, metric theory, roadmap scope, search policy, environment, or governance invalidates the applicability of the old quiescence certificate to the new episode.
+
+This provides a formal stopping condition without making an unjustified convergence-to-optimum claim.
+
+## 39. Additional Experiments
+
+CP-001 — challenge governance:
+- unauthorized challenger rejected;
+- unsupported ground rejected;
+- filing-window violation rejected;
+- unauthorized resolver rejected;
+- withdrawal obeys policy;
+- conflicting active terminal resolutions yield UNKNOWN.
+
+TA-001 — temporal admission:
+- create an admitted synthetic spec at event T;
+- append a challenge at T+1;
+- historical AdmissionDecision remains ADMITTED for T;
+- current admission recomputation becomes false.
+
+EB-001 — execution binding challenge:
+- construct a valid DerivationSnapshot/EnvironmentContext/ExecutionBinding;
+- challenge undeclared input binding;
+- ExecutionBinding becomes CHALLENGED while semantic snapshot remains unchanged.
+
+RV-002 — explicit revocation:
+- execute under valid Human COSIGN;
+- append Revocation;
+- historical action remains recorded;
+- authorization and dependent future/repeat action eligibility become AUTHORIZATION_REVOKED.
+
+AC-001 — authorship context:
+- bind Scientist/Planner/Reviewer nodes to EnvironmentContext;
+- omit one required AUTHORED_UNDER edge;
+- ImprovementSpec admission must fail structurally.
+
+QC-001 — relative quiescence:
+- exhausted declared search with zero admissible candidates produces a QuiescenceCertificate;
+- non-exhausted search or any admissible candidate cannot produce one;
+- changing evidence/theory/search-policy root starts a new episode rather than extending the old certificate.
