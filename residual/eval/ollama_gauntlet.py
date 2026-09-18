@@ -173,6 +173,56 @@ def _model_inventory(adapter, provider: str) -> list[str]:
         raise
 
 
+def _provider_model_identity(adapter, provider: str, model: str) -> dict[str, Any]:
+    """Bind evidence to immutable provider metadata when the adapter exposes it."""
+    identity: dict[str, Any] = {"provider": provider, "requested_model": model}
+    resolver = getattr(adapter, "model_identity", None)
+    if callable(resolver):
+        identity["immutable"] = resolver(model)
+    else:
+        identity["immutable"] = None
+    return identity
+
+
+def _response_diagnostics(response) -> dict[str, Any]:
+    """Retain only known non-secret provider timing counters."""
+    raw = response.raw if isinstance(response.raw, dict) else {}
+    timing = {}
+    for key in ("total_duration", "load_duration", "prompt_eval_duration", "eval_duration"):
+        value = raw.get(key)
+        if type(value) is int and value >= 0:
+            timing[f"{key}_ns"] = value
+    eval_ns = timing.get("eval_duration_ns")
+    completion = int((response.usage or {}).get("completion_tokens", 0))
+    if eval_ns and completion:
+        timing["completion_tokens_per_second"] = completion / (eval_ns / 1_000_000_000)
+    return timing
+
+
+def _source_identity() -> dict[str, Any]:
+    """Identify exact executing source without leaking local paths."""
+    source_file = Path(__file__).resolve()
+    identity: dict[str, Any] = {
+        "gauntlet_file_sha256": hashlib.sha256(source_file.read_bytes()).hexdigest(),
+        "git_head": None,
+        "git_tree": None,
+        "tracked_dirty": None,
+        "tracked_status_sha256": None,
+    }
+    root = source_file.parents[2]
+    try:
+        identity["git_head"] = git(root, "rev-parse", "HEAD").decode().strip()
+        identity["git_tree"] = git(root, "rev-parse", "HEAD^{tree}").decode().strip()
+        status = git(root, "status", "--porcelain", "--untracked-files=no")
+        identity["tracked_dirty"] = bool(status.strip())
+        if status:
+            identity["tracked_status_sha256"] = hashlib.sha256(status).hexdigest()
+    except Exception:
+        # A wheel/install without .git remains identifiable by the module digest.
+        pass
+    return identity
+
+
 def provider_live_suite(*, provider: str, model: str, repeats: int,
                         cases: Iterable[LiveCase] = DEFAULT_CASES) -> dict[str, Any]:
     if repeats < 1:
@@ -181,6 +231,7 @@ def provider_live_suite(*, provider: str, model: str, repeats: int,
     models = _model_inventory(adapter, provider)
     if provider == "ollama" and model not in models:
         raise ProviderError(provider=provider, code="model_not_found")
+    model_identity = _provider_model_identity(adapter, provider, model)
     rows: list[dict[str, Any]] = []
     for case in cases:
         for repeat in range(repeats):
@@ -209,6 +260,7 @@ def provider_live_suite(*, provider: str, model: str, repeats: int,
                 "latency_ms": round(latency_ms, 3),
                 "input_tokens": int(usage.get("prompt_tokens", 0)),
                 "output_tokens": int(usage.get("completion_tokens", 0)),
+                "provider_timings": _response_diagnostics(response),
             })
     return {
         "suite": "provider_live",
@@ -217,6 +269,7 @@ def provider_live_suite(*, provider: str, model: str, repeats: int,
         "provider": provider,
         "requested_model": model,
         "available_models": models,
+        "model_identity": model_identity,
         "summary": _summary(rows),
         "observations": rows,
     }
@@ -232,6 +285,28 @@ def provider_scaling_suite(*, provider: str, model: str, repeats: int,
     models = _model_inventory(adapter, provider)
     if provider == "ollama" and model not in models:
         raise ProviderError(provider=provider, code="model_not_found")
+
+    if not cases:
+        raise ValueError("provider scaling requires at least one case")
+    model_identity = _provider_model_identity(adapter, provider, model)
+    warm_case = cases[0]
+    warm_req = ChatRequest(
+        model=model,
+        messages=(
+            Message(Role.SYSTEM, "Return only the requested answer. No explanation."),
+            Message(Role.USER, warm_case.prompt),
+        ),
+        temperature=0.0,
+        max_tokens=128,
+        seed=0,
+    )
+    warm_started = time.perf_counter_ns()
+    warm_response = adapter.chat(warm_req)
+    warmup = {
+        "latency_ms": round((time.perf_counter_ns() - warm_started) / 1_000_000, 3),
+        "provider_timings": _response_diagnostics(warm_response),
+        "correct": _exact(warm_response.content, warm_case.expected),
+    }
 
     work = [(case, repeat) for case in cases for repeat in range(repeats)]
     rows = []
@@ -263,6 +338,7 @@ def provider_scaling_suite(*, provider: str, model: str, repeats: int,
                 "latency_ms": round(elapsed_ms, 3),
                 "input_tokens": int(usage.get("prompt_tokens", 0)),
                 "output_tokens": int(usage.get("completion_tokens", 0)),
+                "provider_timings": _response_diagnostics(response),
             }
 
         with ThreadPoolExecutor(max_workers=capacity) as pool:
@@ -290,6 +366,8 @@ def provider_scaling_suite(*, provider: str, model: str, repeats: int,
         "status": "PASS",
         "provider": provider,
         "model": model,
+        "model_identity": model_identity,
+        "warmup": warmup,
         "points": rows,
     }
 
@@ -392,6 +470,7 @@ class _ProviderClusterNode(ClusterNode):
             "content_sha256": hashlib.sha256(response.content.encode("utf-8")).hexdigest(),
             "latency_ms": round(elapsed_ms, 3),
             "usage": dict(response.usage or {}),
+            "provider_timings": _response_diagnostics(response),
         })
         return response.content
 
@@ -1150,6 +1229,10 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
         "model": model,
         "ollama_host": os.environ.get("OLLAMA_HOST", "http://localhost:11434"),
         "git_available": shutil.which("git") is not None,
+        "machine": platform.machine(),
+        "processor": platform.processor(),
+        "cpu_count": os.cpu_count(),
+        "source_identity": _source_identity(),
     }
 
     def capture(name: str, fn):
