@@ -1,0 +1,197 @@
+{
+  "amendment_rule": "Any change to items, splits, hashes, or arms requires a new manifest_id, a retained copy of this version, and occurs only before confirmatory observation; otherwise the affected results are exploratory.",
+  "arms": [
+    {
+      "config_id": "R0",
+      "config_sha256": "d1c9ca98ce01181acf38ab8ff14dfbbc0aa023a6c29988edee8b8f0f7c859595",
+      "control_layers": [],
+      "label": "raw unconstrained execution"
+    },
+    {
+      "config_id": "R1",
+      "config_sha256": "c133ee053128930c0b3dac5ab95a8659bc36059da18692cc3b532d411501a921",
+      "control_layers": [
+        "orchestration"
+      ],
+      "label": "orchestrated decomposition"
+    },
+    {
+      "config_id": "R2",
+      "config_sha256": "25adf920e3da6c8708950412f69a520b050b8dd090713400180cfb0dc44a5161",
+      "control_layers": [
+        "orchestration",
+        "contracts"
+      ],
+      "label": "contracted worker interface"
+    },
+    {
+      "config_id": "R3",
+      "config_sha256": "9409a10f1872c1886c8469e2f0a8c4b9f54460e772dcfdfc50e3ab19b30ecc50",
+      "control_layers": [
+        "orchestration",
+        "contracts",
+        "constraints",
+        "observation",
+        "verification"
+      ],
+      "label": "constrained + observed + verified"
+    },
+    {
+      "config_id": "R4",
+      "config_sha256": "dffa788fe60948940417fe90a10783ed0dc4d4f5034c9c29eda32e8aa41866cc",
+      "control_layers": [
+        "orchestration",
+        "contracts",
+        "constraints",
+        "observation",
+        "verification",
+        "deterministic_integration"
+      ],
+      "label": "COVD: R3 + deterministic integration"
+    },
+    {
+      "config_id": "R5",
+      "config_sha256": "9d26a0c0699b8d1654308241e0abee594a9e0141f2604d7ada344f561fa915e9",
+      "control_layers": [
+        "orchestration",
+        "contracts",
+        "constraints",
+        "observation",
+        "verification",
+        "deterministic_integration",
+        "dynamic_swarm"
+      ],
+      "label": "dynamic swarm orchestration"
+    }
+  ],
+  "frozen_workload": {
+    "reference": "residual.eval_frozen (merged PR #86)",
+    "schema_version": "residual.frozen-workload.v1",
+    "seed": 20240517,
+    "workload_name": "eval001-development-fixture",
+    "workload_sha256": "9feafda5b3bf7fcfe5fb16422b003195be47a204de00f2894f4caeee8166b248"
+  },
+  "items": [
+    {
+      "content_sha256": "51d7635f14c0d2ef9f9f7944828957797e3af91a3b78774fe73524c21dcd3fc4",
+      "family": "arithmetic",
+      "fault_label": null,
+      "provenance": {
+        "authored_in": "residual/eval_frozen/workload.py::development_workload",
+        "introduced_by": "PR #86 (merged, residual/eval_frozen frozen R0-R5 harness)",
+        "public_exposure": "public repository; contamination-safe claims require a separately authored private held-out set (launch gate)"
+      },
+      "split": "held_out",
+      "task_id": "arith-01"
+    },
+    {
+      "content_sha256": "8cc0cccc17f0a8813676e3600b9f9db5f870a48ee1d43a1f24843c6f1c14c848",
+      "family": "arithmetic",
+      "fault_label": null,
+      "provenance": {
+        "authored_in": "residual/eval_frozen/workload.py::development_workload",
+        "introduced_by": "PR #86 (merged, residual/eval_frozen frozen R0-R5 harness)",
+        "public_exposure": "public repository; contamination-safe claims require a separately authored private held-out set (launch gate)"
+      },
+      "split": "held_out",
+      "task_id": "arith-02"
+    },
+    {
+      "content_sha256": "dba2356388bb953fa692c48a1c679f7ea69c7909c8693def4066d2eaecd724d0",
+      "family": "arithmetic",
+      "fault_label": "injected_wrong_operand",
+      "provenance": {
+        "authored_in": "residual/eval_frozen/workload.py::development_workload",
+        "introduced_by": "PR #86 (merged, residual/eval_frozen frozen R0-R5 harness)",
+        "public_exposure": "public repository; contamination-safe claims require a separately authored private held-out set (launch gate)"
+      },
+      "split": "held_out",
+      "task_id": "arith-03"
+    },
+    {
+      "content_sha256": "6acb808bd40f4a9befddc73f26788a78a843c86ef736085db78cf81b7d3541a0",
+      "family": "reverse",
+      "fault_label": null,
+      "provenance": {
+        "authored_in": "residual/eval_frozen/workload.py::development_workload",
+        "introduced_by": "PR #86 (merged, residual/eval_frozen frozen R0-R5 harness)",
+        "public_exposure": "public repository; contamination-safe claims require a separately authored private held-out set (launch gate)"
+      },
+      "split": "held_out",
+      "task_id": "rev-01"
+    },
+    {
+      "content_sha256": "527729e36e474ccaab0830fb8b585c15e5ff3b6168a353e20bade6a9952df6cb",
+      "family": "reverse",
+      "fault_label": null,
+      "provenance": {
+        "authored_in": "residual/eval_frozen/workload.py::development_workload",
+        "introduced_by": "PR #86 (merged, residual/eval_frozen frozen R0-R5 harness)",
+        "public_exposure": "public repository; contamination-safe claims require a separately authored private held-out set (launch gate)"
+      },
+      "split": "held_out",
+      "task_id": "rev-02"
+    },
+    {
+      "content_sha256": "8c8f2c0062439bdfc0ef67a0478789dbb7c0cfdc0874be9f14d8c629a26c1a8b",
+      "family": "reverse",
+      "fault_label": "injected_truncation",
+      "provenance": {
+        "authored_in": "residual/eval_frozen/workload.py::development_workload",
+        "introduced_by": "PR #86 (merged, residual/eval_frozen frozen R0-R5 harness)",
+        "public_exposure": "public repository; contamination-safe claims require a separately authored private held-out set (launch gate)"
+      },
+      "split": "held_out",
+      "task_id": "rev-03"
+    },
+    {
+      "content_sha256": "0bbd56932518bb8e01459ccdbe8f12f28757207e7e15d5ee310369dbae926932",
+      "family": "arithmetic",
+      "fault_label": null,
+      "provenance": {
+        "authored_in": "residual/eval_frozen/workload.py::development_workload",
+        "introduced_by": "PR #86 (merged, residual/eval_frozen frozen R0-R5 harness)",
+        "public_exposure": "public repository; contamination-safe claims require a separately authored private held-out set (launch gate)"
+      },
+      "split": "development",
+      "task_id": "arith-04"
+    },
+    {
+      "content_sha256": "28ce6cb68daff749d3d9d692f9093f9658fccbaad22a862fab5ecd6794b68828",
+      "family": "reverse",
+      "fault_label": null,
+      "provenance": {
+        "authored_in": "residual/eval_frozen/workload.py::development_workload",
+        "introduced_by": "PR #86 (merged, residual/eval_frozen frozen R0-R5 harness)",
+        "public_exposure": "public repository; contamination-safe claims require a separately authored private held-out set (launch gate)"
+      },
+      "split": "development",
+      "task_id": "rev-04"
+    }
+  ],
+  "leakage_rule": "A task_id appears in exactly one split. Development items and public fixtures never join held-out denominators after any result is observed.",
+  "manifest_id": "r0-r5-consolidated-corpus-v1",
+  "manifest_sha256": "bd0458ae4279303520e52a13012134ae6b17e09354521af3c051a090a5927724",
+  "schema_version": "residual.corpus-manifest.v1",
+  "splits": {
+    "development": {
+      "role": "train/selection smoke; never enters confirmatory denominators",
+      "task_ids": [
+        "arith-04",
+        "rev-04"
+      ]
+    },
+    "held_out": {
+      "role": "confirmatory evaluation slice",
+      "task_ids": [
+        "arith-01",
+        "arith-02",
+        "arith-03",
+        "rev-01",
+        "rev-02",
+        "rev-03"
+      ]
+    }
+  },
+  "status": "frozen_preparation_no_results"
+}
