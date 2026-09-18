@@ -197,6 +197,14 @@ class DerivationGraphTests(unittest.TestCase):
         g=DerivationGraph([evidence,resolution,finding],edges)
         replay=DerivationGraph(list(g.nodes.values()),list(g.edges.values()))
         self.assertEqual(g.graph_root,replay.graph_root)
+        resolved=replay.resolve_historical_handle(
+            author_node_id=finding.node_id,invocation_id="inv-a",handle="ev_3"
+        )
+        self.assertEqual(resolved.node_id,evidence.node_id)
+        with self.assertRaisesRegex(ContractError,"missing or ambiguous"):
+            replay.resolve_historical_handle(
+                author_node_id=finding.node_id,invocation_id="inv-b",handle="ev_3"
+            )
 
     def test_au001_challenged_authorization_invalidates_execution(self):
         human=node(NodeType.HUMAN_DECISION,Author.HUMAN,decision="cosign")
