@@ -35,12 +35,7 @@ class PolicyDecision:
 
 
 class FirmwarePolicy:
-    """Fail-closed department policy.
-
-    Group identifiers are opaque configuration values.  Production deployments
-    should replace the example display name with stable Entra group object IDs
-    or app-role values exported by their managed solution.
-    """
+    """Fail-closed policy for the first Firmware Engineering pilot."""
 
     profile_id = "firmware-engineering"
     risk_ceiling = "medium"
@@ -86,11 +81,18 @@ class FirmwarePolicy:
         ),
     }
 
-    def __init__(self, allowed_groups: tuple[str, ...] = ("Engineering-Firmware",)):
+    def __init__(self, *, allowed_tenants: tuple[str, ...], allowed_groups: tuple[str, ...]):
+        if not isinstance(allowed_tenants, tuple) or not allowed_tenants or any(
+            not isinstance(tenant, str) or not tenant.strip() or len(tenant) > 128
+            for tenant in allowed_tenants
+        ):
+            raise ContractError("firmware policy requires at least one allowed Entra tenant")
         if not isinstance(allowed_groups, tuple) or not allowed_groups or any(
-            not isinstance(group, str) or not group.strip() for group in allowed_groups
+            not isinstance(group, str) or not group.strip() or len(group) > 256
+            for group in allowed_groups
         ):
             raise ContractError("firmware policy requires at least one allowed Entra group")
+        self.allowed_tenants = frozenset(allowed_tenants)
         self.allowed_groups = frozenset(allowed_groups)
         if self.allowed_capabilities & self.denied_capabilities:
             raise ContractError("firmware policy allow/deny sets overlap")
@@ -106,7 +108,8 @@ class FirmwarePolicy:
     def policy_hash(self) -> str:
         return digest({
             "profile_id": self.profile_id,
-            "allowed_tenants": sorted(self.allowed_tenants),\n            "allowed_groups": sorted(self.allowed_groups),
+            "allowed_tenants": sorted(self.allowed_tenants),
+            "allowed_groups": sorted(self.allowed_groups),
             "risk_ceiling": self.risk_ceiling,
             "allow": sorted(self.allowed_capabilities),
             "deny": sorted(self.denied_capabilities),
@@ -120,21 +123,35 @@ class FirmwarePolicy:
             },
         })
 
-    def authorize(self, principal: VerifiedPrincipal, request: MissionRequest) -> PolicyDecision:
+    def authorize_principal(self, principal: VerifiedPrincipal) -> None:
+        if principal.tenant_id not in self.allowed_tenants:
+            raise CopilotAPIError(
+                403, "tenant_denied", "the signed-in tenant is not authorized"
+            )
         if not self.allowed_groups.intersection(principal.groups):
-            raise CopilotAPIError(403, "department_denied", "the signed-in identity is not authorized for this department")
+            raise CopilotAPIError(
+                403,
+                "department_denied",
+                "the signed-in identity is not authorized for this department",
+            )
+
+    def authorize(
+        self, principal: VerifiedPrincipal, request: MissionRequest
+    ) -> PolicyDecision:
+        self.authorize_principal(principal)
         template = self.templates.get(request.template_id)
         if template is None:
-            raise CopilotAPIError(403, "template_denied", "the requested mission template is not authorized")
-        # Re-check invariants at authorization time rather than relying solely on
-        # constructor validation; a deployment cannot widen authority by mutating
-        # caller input because capabilities never come from the request.
+            raise CopilotAPIError(
+                403, "template_denied", "the requested mission template is not authorized"
+            )
         if (
             not template.capabilities <= self.allowed_capabilities
             or template.capabilities & self.denied_capabilities
             or RISK_ORDER[template.risk] > RISK_ORDER[self.risk_ceiling]
         ):
-            raise CopilotAPIError(403, "policy_denied", "the requested mission exceeds the department policy")
+            raise CopilotAPIError(
+                403, "policy_denied", "the requested mission exceeds the department policy"
+            )
         return PolicyDecision(
             profile_id=self.profile_id,
             template_id=template.template_id,
