@@ -192,16 +192,34 @@ class FirmwareFactoryAdapter:
             raise ContractError(
                 "this Factory adapter only supports firmware repository analysis"
             )
+        if record.revision.mission_id != record.mission.mission_id:
+            raise ContractError("Copilot revision does not match mission id")
         actions = {grant.action for grant in record.revision.capability_grants}
         if actions != FirmwareFactoryAdapter.required_capabilities:
             raise ContractError("Copilot capability set does not match Factory profile")
+        expected_plan_hash = digest({
+            "template_id": record.template_id,
+            "objective": record.revision.objective,
+            "inputs": record.template_inputs,
+            "capabilities": sorted(actions),
+        })
+        if record.revision.plan_hash != expected_plan_hash:
+            raise ContractError(
+                "authorized template inputs do not match Copilot plan binding"
+            )
         for grant in record.revision.capability_grants:
             if grant.subject != record.mission.principal_id:
                 raise ContractError("capability subject does not match mission owner")
+            if grant.resource != record.profile_id:
+                raise ContractError("capability resource does not match mission profile")
             if grant.scope.get("mission_id") != record.mission.mission_id:
                 raise ContractError("capability scope does not match mission id")
             if grant.scope.get("tenant_id") != record.mission.tenant_id:
                 raise ContractError("capability scope does not match tenant")
+            if grant.scope.get("template_id") != record.template_id:
+                raise ContractError("capability scope does not match mission template")
+            if grant.constraints.get("claims_hash") != record.claims_hash:
+                raise ContractError("capability claims binding does not match mission")
 
     def prepare(self, record: CopilotMissionRecord) -> CopilotFactoryHandoff:
         self._assert_record_authority(record)
