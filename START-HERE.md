@@ -2,6 +2,20 @@
 
 Your local agent workshop: Markdown missions, parallel runners, LDD events, review gates, and Ollama in one retro interface.
 
+## Fastest native setup
+
+Current `main` includes the accepted #193 interactive setup script. On macOS/Linux (or another Bash-capable environment) with Python 3.11+ available:
+
+```bash
+bash setup.sh
+```
+
+The script creates or reuses a dedicated virtual environment at `/tmp/residual-venv` by default, installs this checkout in editable mode, adds the venv `bin` directory to your shell PATH, and prints the exact Command Station serve command and local URL. The locations can be overridden with `RESIDUAL_VENV`, `RESIDUAL_DATA`, `RESIDUAL_HOST`, and `RESIDUAL_PORT`.
+
+On first run it optionally installs a shell `residual` macro. When enabled, typing `residual` with no arguments starts the Station on `0.0.0.0:8765` using `/tmp/residual-station-data`; `residual <args>` still passes through to the real CLI. The toggle is stored in `~/.residual-settings` as `serve_macro=true/false`. Non-interactive setup defaults the macro prompt to enabled. The script attempts to open `http://localhost:8765` and otherwise prints the link.
+
+This is an operator-convenience path, not proof of true blank-environment release qualification. It still requires a usable host Python 3.11+ installation and normal OS/network prerequisites.
+
 ## Fastest start: complete Docker runtime
 
 1. Install and start [Docker Desktop](https://www.docker.com/products/docker-desktop/), or Docker Engine with Compose on Linux.
@@ -23,7 +37,7 @@ For Apple Silicon GPU acceleration, use native mode and the native Ollama runtim
 
 ## Native mode
 
-Requires Python 3.11+ and Git. No pip packages are needed to run the station.
+Requires Python 3.11+ and Git. No pip packages are needed to run the station directly from a complete source checkout.
 
 ```bash
 python3 -m residual.station.server --open
@@ -49,8 +63,9 @@ Python 3.11 should be a current patch release (tar extraction uses the standard 
 ## Storage and stopping
 
 - Native: `~/.residual/station`, or `--data PATH`. API keys stay in the local settings database; protect this directory and your OS account.
+- `setup.sh`: defaults to `/tmp/residual-station-data` for the auto-serve macro unless `RESIDUAL_DATA` overrides it.
 - Docker: the `residual-station_station-data` named volume persists projects, keys, events, Ollama models, and candidates. `docker compose stop` preserves it. Do not delete that volume if you want to keep your work.
-- The browser interface is served at localhost. The default configuration does not expose it to the internet.
+- The browser interface is served at localhost by the packaged launchers. If you use the #193 setup macro, it binds the Station to `0.0.0.0` by default; use `RESIDUAL_HOST=127.0.0.1` before setup if you want loopback-only binding.
 - Downloading a model can take several minutes and several GB. Repeating a failed model pull lets Ollama reuse previously downloaded layers.
 - Setup/playground calls are separate from per-project accounting. Project call counts, reported tokens, unknown usage, and request bytes are visible in Diagnostics.
 
