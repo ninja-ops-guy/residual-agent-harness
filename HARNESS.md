@@ -8,16 +8,18 @@ This document describes the original/core RESIDUAL harness layer. The repository
 
 RESIDUAL decomposes a host-authored task into checked obligations. Local or remote workers propose results; the controller accepts only results that pass registered checks. Stronger or more expensive workers receive the unresolved frontier, relevant dependency values and bounded failure/evidence context rather than unilateral authority over accepted state.
 
-```text
-Goal / task
-  ↓
-Obligation DAG + checks
-  ↓
-Worker proposal
-  ↓
-Independent verification
-  ├─ PASS → freeze accepted value + receipt
-  └─ FAIL / UNKNOWN → residual + counterexample → retry / escalate
+```mermaid
+flowchart TD
+    G["Host-authored goal / task"] --> D["Obligation DAG + registered checks"]
+    D --> F["Ready unresolved frontier"]
+    F --> P["Local or remote worker proposal"]
+    P --> V{"Host verifier verdict"}
+    V -->|PASS| A["Freeze accepted value + receipt"]
+    A --> D
+    V -->|FAIL| C["Bounded counterexample / repair context"]
+    V -->|UNKNOWN / malformed / provider error| U["No acceptance"]
+    C --> F
+    U --> F
 ```
 
 The worker may be capable, weak, stochastic or wrong. The controller owns acceptance.
