@@ -41,7 +41,7 @@ MANIFEST = {
         {
             "id": "STATS-002",
             "title": "Implement clamped mean",
-            "instruction": "Create stats.py with mean_clamped(values, low, high). Import and use math_core.clamp for every input, then return the arithmetic mean of the clamped values. Raise ValueError for an empty input sequence. Do not duplicate the clamp implementation.",
+            "instruction": "Create stats.py with mean_clamped(values, low, high). Use exactly `from math_core import clamp`, call `clamp(value, low, high)` for every input, then return the arithmetic mean of the clamped values. If values is empty, raise ValueError before computing the mean. Do not duplicate the clamp implementation.",
             "files": ["stats.py"],
             "context": ["math_core.py"],
             "depends_on": ["CORE-001"],
@@ -87,7 +87,7 @@ FENCE = chr(96) * 3
 SPEC = (
     "# Real-model dependency DAG mission\n\n"
     "The implementation model receives only this specification and dependency context. "
-    "One STATS-002 candidate is deliberately fault-injected after model generation so RESIDUAL must exercise its repair loop.\n\n"
+    "One CORE-001 candidate is deliberately fault-injected after model generation so RESIDUAL must exercise its repair loop.\n\n"
     + FENCE + "json\n"
     + json.dumps(MANIFEST, indent=2)
     + "\n" + FENCE + "\n"
@@ -180,7 +180,7 @@ def main() -> int:
         repair_transitions = [
             event for event in events
             if event["event_type"] == "task.transition"
-            and event["task_id"] == "STATS-002"
+            and event["task_id"] == "CORE-001"
             and event["data"].get("to") == "repair_required"
         ]
 
@@ -240,7 +240,7 @@ def main() -> int:
 
         fault_events = [
             event for event in proxy_events
-            if event.get("event") == "fault_injected" and event.get("task_id") == "STATS-002"
+            if event.get("event") == "fault_injected" and event.get("task_id") == "CORE-001"
         ]
         all_integrated = result["integrated"] == 3 and all(task["state"] == "integrated" for task in tasks.values())
         all_checks_pass = all(
@@ -254,7 +254,7 @@ def main() -> int:
             and routed_reviewer_models == [args.reviewer_model]
             and args.runner_model != args.reviewer_model
         )
-        repair_exercised = tasks["STATS-002"]["attempt"] >= 2 and len(repair_transitions) >= 1 and len(fault_events) == 1
+        repair_exercised = tasks["CORE-001"]["attempt"] >= 2 and len(repair_transitions) >= 1 and len(fault_events) == 1
         release_ok = set(["math_core.py", "stats.py", "report.py"]).issubset(release_files)
 
         success = all((
