@@ -1,0 +1,64 @@
+name: M6-SPEC-005 post-remediation validation
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  m6-spec-005:
+    if: github.head_ref == 'experiment/m6-spec-005-post-remediation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      OLLAMA_HOST: 127.0.0.1:11434
+      OLLAMA_MODEL: qwen2.5-coder:7b
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install RESIDUAL
+        run: python -m pip install -e '.[factory]'
+      - name: Verify remediation regressions
+        run: |
+          python -m unittest \
+            tests.station.test_station.StationTests.test_repair_attempt_receives_previous_candidate_without_mutating_fresh_baseline \
+            tests.station.test_station.StationTests.test_batch_can_repair_on_fourth_attempt_without_weakening_checks -v
+      - name: Install Ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+      - name: Establish owned Ollama process
+        run: |
+          pkill -f "ollama serve" || true
+          sleep 1
+          OLLAMA_HOST=127.0.0.1:11434 nohup ollama serve > /tmp/ollama-m6-005.log 2>&1 &
+          echo $! > /tmp/ollama-m6-005.pid
+          for i in {1..45}; do
+            if curl -fsS http://127.0.0.1:11434/api/tags >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ollama-m6-005.log
+          exit 1
+      - name: Pull recommended coding model
+        run: ollama pull "$OLLAMA_MODEL"
+      - name: Record runtime identity
+        run: |
+          cat /tmp/ollama-m6-005.pid
+          ollama --version
+          ollama list | tee /tmp/ollama-models-m6-005.txt
+      - name: Execute authoritative M6-SPEC-005 trial
+        run: python scripts/m6_improvementspec_experiment.py --model "$OLLAMA_MODEL" --base-url http://127.0.0.1:11434 --output runs/m6-spec-005/evidence.json
+      - name: Retain evidence
+        if: always()
+        run: |
+          test ! -f runs/m6-spec-005/evidence.json || cat runs/m6-spec-005/evidence.json
+          echo "--- ollama log ---"
+          tail -300 /tmp/ollama-m6-005.log || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m6-spec-005-post-remediation-evidence
+          path: |
+            runs/m6-spec-005
+            /tmp/ollama-m6-005.log
+            /tmp/ollama-m6-005.pid
+            /tmp/ollama-models-m6-005.txt
