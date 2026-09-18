@@ -537,6 +537,8 @@ def factory_live_suite(*, provider: str, model: str, output_root: Path,
         json.dumps(receipt_docs, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     accepted = len(receipts)
     total = len(cases)
+    author_seconds = sum(x["wall_clock_ms"] for x in authored) / 1000.0
+    end_to_end_seconds = author_seconds + elapsed_s
     return {
         "suite": f"factory_live_{strategy}",
         "evidence_level": "factory_live",
@@ -557,6 +559,8 @@ def factory_live_suite(*, provider: str, model: str, output_root: Path,
         "verified_useful_throughput_per_second": accepted / elapsed_s if elapsed_s > 0 else None,
         "author_tokens": sum(x["tokens"] for x in authored),
         "author_wall_clock_ms": sum(x["wall_clock_ms"] for x in authored),
+        "end_to_end_seconds": end_to_end_seconds,
+        "end_to_end_verified_throughput_per_second": (accepted / end_to_end_seconds if end_to_end_seconds > 0 else None),
         "waves": waves,
         "authored": authored,
         "workers_detail": rows,
@@ -604,6 +608,8 @@ def factory_live_repeated_suite(*, provider: str, model: str, output_root: Path,
 
     wall = [float(r["wall_clock_seconds"]) for r in tested
             if r.get("wall_clock_seconds") is not None]
+    end_to_end = [float(r["end_to_end_seconds"]) for r in tested
+                  if r.get("end_to_end_seconds") is not None]
     total_accepted = sum(int(r.get("accepted") or 0) for r in tested)
     total_workers = sum(int(r.get("workers") or 0) for r in tested)
     unsafe = sum(int(r.get("unsafe_acceptances") or 0) for r in tested)
@@ -620,6 +626,7 @@ def factory_live_repeated_suite(*, provider: str, model: str, output_root: Path,
         status = "PASS"
 
     wall_total = sum(wall)
+    end_to_end_total = sum(end_to_end)
     return {
         "suite": f"factory_live_{strategy}",
         "evidence_level": "factory_live",
@@ -639,6 +646,11 @@ def factory_live_repeated_suite(*, provider: str, model: str, output_root: Path,
         "wall_clock_seconds_p95": _percentile(wall, 0.95),
         "verified_useful_throughput_per_second": (
             total_accepted / wall_total if wall_total > 0 else None
+        ),
+        "end_to_end_seconds_total": end_to_end_total,
+        "end_to_end_seconds_mean": (round(statistics.fmean(end_to_end), 6) if end_to_end else None),
+        "end_to_end_verified_throughput_per_second": (
+            total_accepted / end_to_end_total if end_to_end_total > 0 else None
         ),
         "author_tokens": author_tokens,
         "trials": trials,
@@ -778,6 +790,7 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
     end = _now_ns()
     evaluated = [s for s in suites if s.get("status") != "NOT_TESTED"]
     failed = [s for s in evaluated if s.get("status") == "FAIL"]
+    inconclusive = [s for s in evaluated if s.get("status") == "INCONCLUSIVE"]
 
     by_name = {str(s.get("suite")): s for s in suites}
     factory_local = {key: by_name.get(f"factory_live_{key}") for key in ("single", "fixed", "dynamic")}
@@ -786,13 +799,25 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
     throughput = {key: value.get("verified_useful_throughput_per_second")
                   for key, value in factory_local.items()
                   if isinstance(value, dict) and value.get("verified_useful_throughput_per_second") is not None}
+    end_to_end_timing = {key: value.get("end_to_end_seconds_mean") for key, value in factory_local.items()
+                         if isinstance(value, dict) and value.get("end_to_end_seconds_mean") is not None}
+    end_to_end_throughput = {key: value.get("end_to_end_verified_throughput_per_second")
+                            for key, value in factory_local.items()
+                            if isinstance(value, dict) and value.get("end_to_end_verified_throughput_per_second") is not None}
     speedups = {}
+    end_to_end_speedups = {}
     single_time = timing.get("single")
     if single_time:
         for key in ("fixed", "dynamic"):
             candidate = timing.get(key)
             if candidate:
                 speedups[key] = single_time / candidate
+    single_e2e = end_to_end_timing.get("single")
+    if single_e2e:
+        for key in ("fixed", "dynamic"):
+            candidate = end_to_end_timing.get(key)
+            if candidate:
+                end_to_end_speedups[key] = single_e2e / candidate
 
     control = by_name.get("factory_control", {})
     live_factory_rows = [value for value in factory_local.values()
@@ -808,8 +833,8 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
         safety_status = "PARTIAL"
 
     efficiency_status = "NOT_TESTED"
-    if len(timing) == 3 and all(factory_local[k].get("status") == "PASS" for k in factory_local):
-        if speedups and max(speedups.values()) > 1.0:
+    if len(end_to_end_timing) == 3 and all(factory_local[k].get("status") == "PASS" for k in factory_local):
+        if end_to_end_speedups and max(end_to_end_speedups.values()) > 1.0:
             efficiency_status = "SUPPORTED_FOR_THIS_WORKLOAD"
         else:
             efficiency_status = "NOT_SUPPORTED_FOR_THIS_WORKLOAD"
@@ -828,7 +853,10 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
             "status": efficiency_status,
             "wall_clock_seconds": timing,
             "verified_throughput_per_second": throughput,
-            "speedup_vs_single": speedups,
+            "scheduler_speedup_vs_single": speedups,
+            "end_to_end_seconds_mean": end_to_end_timing,
+            "end_to_end_verified_throughput_per_second": end_to_end_throughput,
+            "end_to_end_speedup_vs_single": end_to_end_speedups,
             "provider_saturation_curve": by_name.get("provider_scaling", {}).get("points"),
             "scope": "governed Factory scheduling; provider saturation reported separately; not an uncontrolled-swarm baseline",
         },
@@ -848,10 +876,11 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
         "suites": suites,
         "hypotheses": hypotheses,
         "overall": {
-            "status": "FAIL" if failed else ("PASS" if evaluated else "NOT_TESTED"),
+            "status": ("FAIL" if failed else ("INCONCLUSIVE" if inconclusive else ("PASS" if evaluated else "NOT_TESTED"))),
             "evaluated_suites": len(evaluated),
             "not_tested_suites": sum(1 for s in suites if s.get("status") == "NOT_TESTED"),
             "failed_suites": len(failed),
+            "inconclusive_suites": len(inconclusive),
             "claim_boundaries": {
                 "safety": "supported only by executed enforcement/acceptance suites",
                 "efficiency": "requires successful live single/fixed/dynamic comparisons",
@@ -890,7 +919,11 @@ def main(argv: list[str] | None = None) -> int:
         "not_tested_suites": report["overall"]["not_tested_suites"],
         "failed_suites": report["overall"]["failed_suites"],
     }, indent=2))
-    return 1 if report["overall"]["status"] == "FAIL" else 0
+    if report["overall"]["status"] == "FAIL":
+        return 1
+    if report["overall"]["status"] == "INCONCLUSIVE":
+        return 2
+    return 0
 
 
 if __name__ == "__main__":
