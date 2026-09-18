@@ -72,7 +72,7 @@ Unknown fields, protected writable paths, missing evaluator files, evaluator/wri
 
 ## Health Director / Revision Doctor
 
-The bootstrap doctor records exact HEAD, known main identity, whether the source contains that main revision, branch, dirty state, roadmap and current-status snapshot identities, snapshot lag, current build-order items, and structured findings. The report binds the raw roadmap, current-status, M7 mission policy, M7 controller, M7 safety regression, and Factory ownership-manifest bytes while excluding the machine-specific repository path from its identity. A source that is behind or diverged from known main is blocking.
+The bootstrap doctor records exact HEAD, known main identity, whether the source contains that main revision, branch, dirty state, roadmap and current-status snapshot identities, snapshot lag, current build-order items, and structured findings. The report binds the raw roadmap, current-status, M7 mission policy, M7 controller, CLI dispatch surface, M7 safety regression, and Factory ownership-manifest bytes while excluding the machine-specific repository path from its identity. A source that is behind or diverged from known main is blocking.
 
 A roadmap SHA is treated as a historical status snapshot. If it is an ancestor of current main, lag is a warning to reconcile evidence; the doctor does not rewrite the SHA and does not turn later commits into an implicit PASS. A divergent snapshot is blocking.
 
