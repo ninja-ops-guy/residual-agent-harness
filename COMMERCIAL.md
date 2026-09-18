@@ -38,3 +38,7 @@ For commercial licensing inquiries: [GitHub Issues](https://github.com/ninja-ops
 ## MIT Conversion
 
 Under the current BSL parameters in `LICENSE`, the Change Date is **2029-09-18**, after which the Licensed Work becomes available under the MIT License as specified there.
+
+## License Effective Boundary
+
+The BSL-1.1 terms introduced by this change apply to repository versions distributed from the commit that adopts this license onward. Earlier repository versions remain subject to the license terms, if any, that applied to those versions when distributed. This change does not retroactively relicense copies of earlier versions already distributed under different terms.
