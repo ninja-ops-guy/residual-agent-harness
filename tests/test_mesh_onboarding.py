@@ -109,6 +109,8 @@ def test_leave_then_rejoin_restores_membership():
         assert a.registry.get("b") is None
         assert b.join(bootstrap_address=a.address)["joined"] is True
         assert a.registry.get("b") is not None
+        assert b.registry.get("b") is not None
+        assert b.registry.get("b").is_local is True
     finally:
         a.close(); b.close()
 
