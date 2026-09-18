@@ -113,7 +113,8 @@ def doctor_repository(repo="."):
                          "summary": "Current build order was not found.", "evidence": {}})
     inputs = {"roadmap_sha256": file_digest(roadmap),
               "current_status_sha256": file_digest(root / "docs/CURRENT_STATUS.md"),
-              "mission_sha256": file_digest(root / "docs/self-improvement/MISSION.md")}
+              "mission_sha256": file_digest(root / "docs/self-improvement/MISSION.md"),
+              "factory_ownership_sha256": file_digest(root / "verifier/v3/factory_ownership_baseline.json")}
     report = {"schema_version": 1, "repository_root": str(root), "head": head, "main_head": main,
               "branch": branch, "dirty": dirty, "roadmap_recorded_main": recorded,
               "roadmap_delta_commits": delta, "roadmap_items": queue, "findings": findings,
@@ -327,7 +328,7 @@ def planning_station_spec(report, plan, route="local"):
                 "work may use deterministic exists/contains/json_valid checks. Use explicit dependencies if a "
                 "candidate reads a file written by another candidate. Preserve historical FAIL/BLOCKED/UNKNOWN "
                 "evidence and make no production-readiness claims. The deterministic Mission Governor will reject "
-                "anything outside this contract."
+                "anything outside this contract. All candidate route values must be " + route + "."
             ),
             "depends_on": ["SI_HEALTH_SCOUT", "SI_ROADMAP_SCOUT"],
             "files": [candidate_file],
@@ -389,6 +390,7 @@ def originate_candidates(repo, station_data, route="local", allow_cloud=False):
         "plan_sha256": plan["plan_sha256"],
         "planner_spec_sha256": hashlib.sha256(spec.encode()).hexdigest(),
         "planner_project_id": pid,
+        "planner_route": route,
         "batch": batch,
         "proposal": None,
         "proposal_sha256": None,
@@ -405,6 +407,8 @@ def originate_candidates(repo, station_data, route="local", allow_cloud=False):
     artifact = station.store.add_artifact(pid, "PROPOSED-CANDIDATES.json", raw, "self-improvement-proposal")
     try:
         proposal = validate_candidate_doc(strict_json(raw))
+        if any(candidate.get("route") != route for candidate in proposal["candidates"]):
+            raise ContractError("Generated candidate routes must match the authorized planner route")
         build_station_spec(report, plan, proposal, report["repository_root"])
     except (ContractError, ValueError, TypeError, KeyError):
         station.store.event(pid, "project.note", {
