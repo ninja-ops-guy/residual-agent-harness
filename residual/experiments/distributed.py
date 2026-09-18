@@ -14,6 +14,7 @@ import argparse
 import hashlib
 import hmac
 import json
+import math
 import statistics
 import tempfile
 import threading
@@ -170,6 +171,8 @@ def _trial(*, workers: int, tasks: int, work_ms: float) -> dict[str, Any]:
                 "integration_tail_ms": integration_ms,
                 "full_workflow_ms": total_ms,
                 "candidate_throughput_tasks_s": tasks / (candidate_ms / 1000.0),
+                "synthetic_scheduling_lower_bound_ms": math.ceil(tasks / workers) * work_ms,
+                "candidate_overhead_above_synthetic_floor_ms": candidate_ms - (math.ceil(tasks / workers) * work_ms),
                 "worker_distribution": distribution,
                 "workers_used": sum(1 for value in counts if value),
                 "events": len(events),
@@ -207,17 +210,29 @@ def run_station_distributed_benchmark(
     baseline_workers = min(worker_counts)
     baseline_runs = [r for r in runs if r["workers"] == baseline_workers]
     baseline_candidate = statistics.median(r["candidate_wall_ms"] for r in baseline_runs)
+    baseline_full = statistics.median(r["full_workflow_ms"] for r in baseline_runs)
     for workers in worker_counts:
         group = [r for r in runs if r["workers"] == workers]
         candidate = statistics.median(r["candidate_wall_ms"] for r in group)
         full = statistics.median(r["full_workflow_ms"] for r in group)
-        speedup = baseline_candidate / candidate if candidate else 0.0
+        candidate_speedup = baseline_candidate / candidate if candidate else 0.0
+        full_speedup = baseline_full / full if full else 0.0
+        worker_multiplier = workers / baseline_workers
         summaries.append({
             "workers": workers,
+            "relative_worker_multiplier": worker_multiplier,
             "candidate_wall_median_ms": candidate,
             "full_workflow_median_ms": full,
-            "candidate_speedup_vs_min_workers": speedup,
-            "parallel_efficiency": speedup / workers if workers else 0.0,
+            "candidate_speedup_vs_min_workers": candidate_speedup,
+            "full_workflow_speedup_vs_min_workers": full_speedup,
+            "candidate_parallel_efficiency": candidate_speedup / worker_multiplier,
+            "full_workflow_parallel_efficiency": full_speedup / worker_multiplier,
+            "integration_tail_fraction": statistics.median(
+                r["integration_tail_ms"] / r["full_workflow_ms"] for r in group
+            ),
+            "candidate_overhead_above_synthetic_floor_median_ms": statistics.median(
+                r["candidate_overhead_above_synthetic_floor_ms"] for r in group
+            ),
             "candidate_throughput_median_tasks_s": statistics.median(
                 r["candidate_throughput_tasks_s"] for r in group
             ),
@@ -328,7 +343,8 @@ def run_mesh_protocol_benchmark(*, messages: int = 1000, repeats: int = 3, peers
         if not receipt.converged:
             raise RuntimeError("mesh fanout benchmark diverged")
     fanout_ms = (time.perf_counter_ns() - fanout_started) / 1_000_000.0
-    fanout_deliveries = messages * peers
+    fanout_remote_deliveries = messages * (peers - 1)
+    fanout_replica_updates = messages * peers
 
     LoopbackTransport.reset_registry()
     a = ClusterNode("a", Capability(models=("fixture",), tokens_per_second=1.0), "key")
@@ -357,7 +373,8 @@ def run_mesh_protocol_benchmark(*, messages: int = 1000, repeats: int = 3, peers
             "catchup_median_messages_s": statistics.median(r["catchup_messages_s"] for r in runs),
             "verified_join_ms": join_ms,
             "fanout_ms": fanout_ms,
-            "fanout_message_deliveries_s": fanout_deliveries / (fanout_ms / 1000.0),
+            "fanout_remote_deliveries_s": fanout_remote_deliveries / (fanout_ms / 1000.0),
+            "fanout_replica_updates_s": fanout_replica_updates / (fanout_ms / 1000.0),
         },
         "claim_boundary": (
             "Measures real in-process signing, hashing, append, catch-up verification, "
