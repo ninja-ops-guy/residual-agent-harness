@@ -70,11 +70,17 @@ def git(repo, *args, allow_fail=False):
 
 
 def main_head(repo, fallback):
-    for ref in ("refs/heads/main", "refs/remotes/origin/main"):
-        value = git(repo, "rev-parse", "--verify", ref, allow_fail=True)
-        if re.fullmatch(r"[0-9a-f]{40}", value):
-            return value
-    return fallback
+    local = git(repo, "rev-parse", "--verify", "refs/heads/main", allow_fail=True)
+    remote = git(repo, "rev-parse", "--verify", "refs/remotes/origin/main", allow_fail=True)
+    local = local if re.fullmatch(r"[0-9a-f]{40}", local) else None
+    remote = remote if re.fullmatch(r"[0-9a-f]{40}", remote) else None
+    if local and remote:
+        if _is_ancestor(repo, local, remote):
+            return remote
+        if _is_ancestor(repo, remote, local):
+            return local
+        raise ContractError("Known local and remote main revisions have diverged")
+    return local or remote or fallback
 
 
 def _is_ancestor(repo, ancestor, descendant):
