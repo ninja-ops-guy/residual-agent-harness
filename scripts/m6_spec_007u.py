@@ -107,32 +107,35 @@ PLANNER_SCHEMA = {
     "oneOf":[
         {"type":"object","properties":{
             "type":{"const":"existing_metric_request"},
-            "observation":{"type":"object","properties":{"observed_metric":{"type":"string"},"observed_value":{"type":"number"}},"required":["observed_metric","observed_value"],"additionalProperties":False},
-            "question":{"type":"string"},"requested_metric_id":{"type":"string"},"why_needed":{"type":"string"},
-            "preserve_invariants":{"type":"array","items":{"type":"string"},"minItems":1}},
-         "required":["type","observation","question","requested_metric_id","why_needed","preserve_invariants"],"additionalProperties":False},
+            "question":{"type":"string"},
+            "requested_metric_id":{"type":"string"},
+            "why_needed":{"type":"string"}},
+         "required":["type","question","requested_metric_id","why_needed"],
+         "additionalProperties":False},
         {"type":"object","properties":{
             "type":{"const":"new_metric_proposal"},
-            "observation":{"type":"object","properties":{"observed_metric":{"type":"string"},"observed_value":{"type":"number"}},"required":["observed_metric","observed_value"],"additionalProperties":False},
             "definition":{"type":"object","properties":{
                 "metric_id":{"type":"string"},"description":{"type":"string"},"unit":{"type":"string"},
                 "aggregation":{"type":"string"},"population":{"type":"string"},"valid_domain":{"type":"string"},
                 "directionality":{"type":"string","enum":["lower_is_better","higher_is_better","target","contextual"]},
                 "collection_method":{"type":"string"},"implementation_ref":{"type":"string"},"revision":{"type":"string"}},
-                "required":["metric_id","description","unit","aggregation","population","valid_domain","directionality","collection_method","implementation_ref","revision"],"additionalProperties":False},
-            "reason_existing_registry_insufficient":{"type":"string"},
-            "preserve_invariants":{"type":"array","items":{"type":"string"},"minItems":1}},
-         "required":["type","observation","definition","reason_existing_registry_insufficient","preserve_invariants"],"additionalProperties":False}
+                "required":["metric_id","description","unit","aggregation","population","valid_domain","directionality","collection_method","implementation_ref","revision"],
+                "additionalProperties":False},
+            "reason_existing_registry_insufficient":{"type":"string"}},
+         "required":["type","definition","reason_existing_registry_insufficient"],
+         "additionalProperties":False}
     ]
 }
 
 PLANNER_SYSTEM = """Act only as the Measurement Planner after the Hypothesis Scientist has declared evidence insufficient.
+The insufficiency packet already contains a mechanically verified observation and preservation invariants. Do not restate them.
 You receive exact inspected evidence and versioned Metric Registry definitions.
 If a registered metric already expresses the evidence you need, return existing_metric_request with that exact metric ID.
-Only if no registered definition expresses the needed measurable axis may you return new_metric_proposal, and then define it completely with a deterministic population and collection method.
+Only if no registered definition expresses the needed measurable axis may you return new_metric_proposal with a complete deterministic MetricDefinition.
 Do not use vague populations such as normal, typical, usual, or representative conditions. Do not invent a near-alias of an existing metric.
 Do not claim nonredundancy; the host and independent reviewer decide it.
-Snapshot/registry identity and human-gate provenance are host-owned and intentionally absent from your output schema.\nDo not propose code or an intervention. Return only the typed request."""
+All causal context, preservation invariants, snapshot/registry identity, and human-gate provenance are host-carried and intentionally absent from your output schema.
+Do not propose code or an intervention. Return only the typed request."""
 
 REVIEW_SCHEMA = {
     "type": "object",
@@ -442,6 +445,8 @@ def main() -> int:
             )
             request={
                 **model_request,
+                "observation":proposal["observation"],
+                "preserve_invariants":proposal["preserve_invariants"],
                 "evidence_snapshot_hash":snapshot["snapshot_hash"],
                 "metric_registry_sha256":registry.registry_sha256,
                 "human_approval_required":True,
