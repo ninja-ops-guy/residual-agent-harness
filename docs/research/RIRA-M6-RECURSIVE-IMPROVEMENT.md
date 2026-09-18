@@ -992,3 +992,62 @@ Provider-side schema enforcement is an optimization and interface aid, not a tru
 The repeated MeasurementGap behavior also raises a model-role question. The Scientist experiments through 007F used `qwen2.5-coder:7b`, a model selected originally for implementation work rather than evidence analysis.
 
 M6-SPEC-007G therefore changes only the analysis model role to general `qwen2.5:7b` while preserving the evidence, typed proposal contract, deterministic verifier, semantic reviewer, and human promotion boundary.
+
+
+## 27. M6-SPEC-007H — First Mechanically Admissible Autonomous Discovery Proposal
+
+M6-SPEC-007H separated a measured anomaly from the missing evidence needed to explain it.
+
+The Scientist autonomously produced:
+
+- observed metric: `context_bytes_non_success_mean`;
+- observed value: **31,629.0**, exactly matching the EvidenceSnapshot;
+- missing metric: `context_bytes_total_mean`, absent from the EvidenceSnapshot;
+- question: whether the large non-success context mean reflects a real anomaly or incomplete baseline information;
+- proposed measurement: collect total context-byte mean;
+- protected invariants: M4, evidence integrity, verification integrity, and promotion authority;
+- exact EvidenceSnapshot hash;
+- human approval retained.
+
+The deterministic verifier returned **zero mechanical errors**.
+
+This is the first M6-SPEC-007-series proposal to cross mechanical evidence admission.
+
+The independent semantic reviewer then rejected the proposal, and no admission receipt was issued.
+
+### Reviewer-contract finding
+
+The rejection is useful but reveals a semantic-review mismatch.
+
+The reviewer demanded:
+
+- evidence for a causal relationship;
+- a falsifiable causal acceptance criterion;
+- preservation criteria tied to a proposed intervention.
+
+Those requirements are appropriate for an ImprovementSpec, but a MeasurementGap exists specifically because the evidence required to form such a causal hypothesis is not yet available.
+
+A MeasurementGap should instead be reviewed for:
+
+1. whether its observed anomaly is meaningful and exactly evidence-bound;
+2. whether the requested measurement is genuinely absent and nonredundant;
+3. whether the proposed measurement is mechanically collectible;
+4. whether collecting it could resolve the stated uncertainty;
+5. whether authority and integrity invariants remain protected.
+
+M6-SPEC-007I therefore keeps the 007H Scientist contract and mechanical verifier but makes semantic review branch-aware.
+
+### Metrics
+
+- Scientist request: **4,327 bytes**
+- Scientist tokens: **761 input / 280 output**
+- Scientist elapsed: **111.416 s**
+- reviewer tokens: **914 input / 111 output**
+- reviewer elapsed: **90.253 s**
+- mechanical admission: **PASS**
+- semantic review: **REJECT**
+- admission receipt: **none**
+- evidence artifact SHA-256:
+  `149c1f56e32d8f23df2f53b739bfafb4e4567138bf3e796c9831ffc2c9d9552f`
+
+The retained evidence payload contains a stale internal `experiment: M6-SPEC-007D` label inherited from the base apparatus. The authoritative workflow, PR, evidence marker, script hash, and artifact identify the run as 007H. The stale field is retained as research evidence rather than rewritten; later apparatus corrects it prospectively.
