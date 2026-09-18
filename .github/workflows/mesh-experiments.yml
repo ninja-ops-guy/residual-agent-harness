@@ -56,8 +56,8 @@ jobs:
         run: node --test tests/mission-control-commands.test.mjs
       - name: Syntax check browser modules
         run: |
-          node --check demo/vm/mission-control-commands.js
-          node --check demo/vm/mission-control-world.js
+          node --input-type=module --check < demo/vm/mission-control-commands.js
+          node --input-type=module --check < demo/vm/mission-control-world.js
 
   benchmark-evidence:
     runs-on: ubuntu-latest
