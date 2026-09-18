@@ -24,10 +24,28 @@ def load_module():
 def test_every_mutation_selector_identifies_exactly_one_semantic_site():
     module = load_module()
     assert module.validate_mutation_sites(root=ROOT) == []
-    assert len(module.MUTATIONS) >= 4
+    assert len(module.MUTATIONS) >= 10
     assert {m.name for m in module.MUTATIONS} >= {
         "revoked-candidate-acceptance",
         "candidate-lease-resurrection",
         "git-path-policy-bypass",
         "forbidden-prefix-bypass",
+        "failed-checks-reach-review",
+        "dependency-dispatch-bypass",
+        "pause-dispatch-bypass",
+        "artifact-integrity-bypass",
+        "moving-base-review-bypass",
+        "candidate-review-binding-bypass",
     }
+    assert all(m.module for m in module.MUTATIONS)
+
+
+def test_source_proof_rejects_wrong_expected_hash():
+    module = load_module()
+    mutation = module.MUTATIONS[0]
+    import os
+    import tempfile
+    with tempfile.TemporaryDirectory(prefix="mutation-proof-test-") as cache:
+        proof = module._source_proof(mutation, "0" * 64, env={**os.environ, "PYTHONPYCACHEPREFIX": cache})
+    assert proof["returncode"] != 0
+    assert proof.get("ok") is False
