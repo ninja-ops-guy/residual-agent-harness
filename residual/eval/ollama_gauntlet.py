@@ -293,8 +293,13 @@ def _init_repo(root: Path) -> tuple[Path, str]:
     git(repository, "init")
     (repository / "README.fixture").write_text("RESIDUAL gauntlet fixture\n", encoding="utf-8")
     git(repository, "add", ".")
+    fixed_git_env = {
+        "GIT_AUTHOR_DATE": "2000-01-01T00:00:00Z",
+        "GIT_COMMITTER_DATE": "2000-01-01T00:00:00Z",
+    }
     git(repository, "-c", "user.name=Residual Gauntlet",
-        "-c", "user.email=gauntlet@localhost", "commit", "-m", "gauntlet fixture")
+        "-c", "user.email=gauntlet@localhost", "commit", "-m", "gauntlet fixture",
+        extra_env=fixed_git_env)
     commit = git(repository, "rev-parse", "HEAD").decode().strip()
     return repository, commit
 
@@ -771,10 +776,18 @@ def factory_paired_scheduler_suite(*, provider: str, model: str,
             source_corpus_sha256=authored["source_corpus_sha256"],
             run_label="paired",
         )
+    paired_input_commits = sorted({
+        trial["input_commit"]
+        for value in strategies.values()
+        for trial in value.get("trials", [])
+        if trial.get("input_commit")
+    })
     if any(value.get("status") == "FAIL" for value in strategies.values()):
         status = "FAIL"
     elif any(value.get("status") != "PASS" for value in strategies.values()):
         status = "INCONCLUSIVE"
+    elif len(paired_input_commits) != 1:
+        status = "FAIL"
     else:
         status = "PASS"
     timing = {
@@ -801,6 +814,8 @@ def factory_paired_scheduler_suite(*, provider: str, model: str,
         "model": model,
         "repeat_count": repeats,
         "source_corpus_sha256": authored["source_corpus_sha256"],
+        "paired_input_commits": paired_input_commits,
+        "input_identity_paired": len(paired_input_commits) == 1,
         "source_authoring": {
             "tokens": authored["author_tokens"],
             "wall_clock_ms": authored["author_wall_clock_ms"],
