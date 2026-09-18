@@ -64,7 +64,13 @@ def run_live_worker(task: FrozenTask, repeat: int, *, provider: str,
 def probe_provider(*, provider: str, model: str) -> dict[str, object]:
     """Fail closed unless the requested provider/model is genuinely reachable."""
     adapter = DEFAULT_REGISTRY.get(provider)
-    models = adapter.list_models()
+    try:
+        models = adapter.list_models()
+    except ProviderError as exc:
+        if provider != "ollama" and exc.code == "not_implemented":
+            models = []
+        else:
+            raise
     if provider == "ollama" and model not in models:
         raise ProviderError(provider=provider, code="model_not_found")
     return {"provider": provider, "model": model, "available_models": models}
