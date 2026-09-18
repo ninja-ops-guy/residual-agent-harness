@@ -1394,3 +1394,61 @@ Evidence artifact SHA-256:
 StationReceipt v2 itself was not modified.
 
 The result establishes that discovery receipts can remain tied to metric semantics through existing receipt identities rather than weakening or expanding the protected receipt schema.
+
+
+## 32. Host-Owned Provenance: M6-SPEC-007T
+
+M6-SPEC-007T removed immutable provenance fields from model-authored Scientist and Measurement Planner schemas.
+
+The model no longer authored:
+
+- EvidenceSnapshot hash;
+- Metric Registry hash/revision;
+- human-gate flag.
+
+The trusted host attached those values after structured model output and before the unchanged mechanical verifier.
+
+### Result
+
+The host provenance envelope worked.
+
+The Hypothesis Scientist produced `insufficient_evidence` grounded in the actively inspected evidence. The host attached the exact 64-hex EvidenceSnapshot identity and human gate. Mechanical verification passed, eliminating the hash-transcription failure seen in 007R.
+
+The Measurement Planner then exposed the next transcription boundary.
+
+It proposed a new metric definition for the already registered:
+
+`context_bytes_non_success_mean`
+
+but re-authored the observation as:
+
+`context_bytes_non_success_mean = 6270.666667`
+
+The value 6,270.666667 belongs to `context_bytes_success_mean`, not the non-success mean.
+
+The deterministic Planner verifier rejected the request because the re-authored observation was not one of the actively inspected evidence bindings.
+
+No registry assessment, semantic review, or receipt followed.
+
+### Architectural implication
+
+Once a causal/epistemic observation has been mechanically verified at one stage, a downstream model should not be asked to transcribe it again.
+
+The next Planner contract therefore carries forward through the host envelope:
+
+- verified observation;
+- preservation invariants;
+- snapshot identity;
+- registry identity;
+- human gate.
+
+The Measurement Planner should author only what is new at its boundary:
+
+- the registered metric it wants to inspect, or
+- the complete definition of a genuinely new measurable axis.
+
+This continues the M6 design trend toward **models authoring semantic choices while the host authors identity, provenance, and already-verified state**.
+
+Evidence artifact SHA-256:
+
+`fa2b2329473e38bccc5d8b74ac44cd985857bc699367a34efbdfbeb348602ef6`
