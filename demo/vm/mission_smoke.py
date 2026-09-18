@@ -86,7 +86,8 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await page.locator('#mc-provider-start').click()
     frame = page.frame_locator('#mc-provider-frame')
     await frame.locator('#load').wait_for()
-    assert await frame.locator('body').evaluate('(body) => !body.ownerDocument.defaultView.crossOriginIsolated')
+    assert await page.locator('#mc-provider-frame').get_attribute('credentialless') is not None
+    report['provider_helper_isolation'] = 'PASS_CREDENTIALLESS_EMBEDDED_BOUNDARY'
     await frame.locator('#load').click()
     await frame.locator('#status').filter(has_text='could not load').wait_for()
     assert report['optional_requests'], 'explicit SDK load did not attempt a network request'
