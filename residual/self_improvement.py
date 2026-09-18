@@ -13,7 +13,7 @@ from residual.core import ContractError, canonical, strict_json
 from residual.station.contracts import parse_spec, path_ok
 
 MISSION_ID = "residual-self-improvement"
-ROADMAP_HEAD = re.compile(r"Current .main. is .{2}.([0-9a-f]{40}).{3}")
+ROADMAP_HEAD = re.compile("Current " + chr(96) + r"main" + chr(96) + r" is \*\*" + chr(96) + r"([0-9a-f]{40})" + chr(96) + r"\*\*\.")
 PROTECTED_PREFIXES = (".github/workflows/", "residual/factory/", "residual/station/", "verifier/")
 PROTECTED_EXACT = {"residual/goalspec.py", "residual/loop.py", "residual/receipts.py",
                    "verifier/v3/factory_ownership_baseline.json"}
