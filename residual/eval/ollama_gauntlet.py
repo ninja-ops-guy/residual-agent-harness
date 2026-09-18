@@ -229,7 +229,7 @@ def provider_scaling_suite(*, provider: str, model: str, repeats: int,
     if repeats < 1:
         raise ValueError("repeats must be >= 1")
     adapter = DEFAULT_REGISTRY.get(provider)
-    models = adapter.list_models()
+    models = _model_inventory(adapter, provider)
     if provider == "ollama" and model not in models:
         raise ProviderError(provider=provider, code="model_not_found")
 
@@ -310,12 +310,18 @@ def cluster_loopback_suite(*, model: str) -> dict[str, Any]:
         "remote-backup", Capability((model,), 20.0, 8192, 8_000_000_000, 1, 2), key,
         heartbeat_interval_ns=1, failure_timeout_ns=10,
     )
-    nodes = (local, remote_fast, remote_backup)
+    rogue = ClusterNode(
+        "rogue", Capability((model,), 100.0, 8192, 8_000_000_000, 1, 8), "wrong-cluster-key",
+        heartbeat_interval_ns=1, failure_timeout_ns=10,
+    )
+    nodes = (local, remote_fast, remote_backup, rogue)
     try:
         for node in nodes:
             node.open()
         remote_fast.join(local.address)
         remote_backup.join(local.address)
+        rogue.join(local.address)
+        rogue_admitted = local.registry.get("rogue") is not None
 
         initial = local.registry.route(model)
         initial_id = initial.node_id if initial else None
@@ -334,8 +340,9 @@ def cluster_loopback_suite(*, model: str) -> dict[str, Any]:
         return {
             "suite": "cluster_loopback",
             "evidence_level": "cluster_loopback",
-            "status": "PASS" if captured and "remote-fast" in failed else "FAIL",
+            "status": ("PASS" if captured and "remote-fast" in failed and not rogue_admitted else "FAIL"),
             "wan_claim": False,
+            "rogue_with_wrong_key_admitted": rogue_admitted,
             "initial_route": initial_id,
             "failed_nodes": failed,
             "before_failure": before,
