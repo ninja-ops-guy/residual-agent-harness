@@ -2,6 +2,8 @@ version: 1
 profile_id: firmware-engineering
 display_name: Firmware Engineering
 entra:
+  allowed_tenants:
+    - tenant-a
   allowed_groups:
     - Engineering-Firmware
 mission:
