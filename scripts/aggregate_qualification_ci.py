@@ -47,6 +47,7 @@ REQUIRED_GATES = (
     "persistence-fault-injection",
     "webvm-provider-protocol-fuzz",
     "qualification-selftests",
+    "active-http-soak",
 )
 
 
