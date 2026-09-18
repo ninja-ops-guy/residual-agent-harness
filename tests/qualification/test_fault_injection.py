@@ -121,3 +121,11 @@ def test_corrupt_station_database_fails_closed_without_silent_reset(tmp_path):
 
     assert database.read_bytes() == corrupted
     assert b"retained-corruption-marker" in database.read_bytes()
+
+
+def test_store_connection_context_closes_underlying_sqlite_handle(tmp_path):
+    station = Station(tmp_path / "station")
+    with station.store.connect() as connection:
+        connection.execute("SELECT 1").fetchone()
+    with pytest.raises(sqlite3.ProgrammingError, match="closed"):
+        connection.execute("SELECT 1")
