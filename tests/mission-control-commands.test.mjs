@@ -102,6 +102,8 @@ test('mesh and experiment commands preserve browser isolation boundary',async()=
   assert.match(dist.text,/residual experiment distributed/);
   const proto=await executeMissionCommand('/experiment mesh',x.api);
   assert.match(proto.text,/residual experiment mesh/);
+  const pipeline=await executeMissionCommand('/experiment pipeline',x.api);
+  assert.match(pipeline.text,/residual experiment pipeline/);
 });
 
 test('unknown command is inert and returns help',async()=>{
