@@ -158,7 +158,7 @@ def _recovery(*, bad_ms: float, good_ms: float) -> dict[str, Any]:
             if not findings:
                 raise RuntimeError("failed candidate did not retain repair findings")
 
-            if not healthy.run_once(pid, "healthy-repair", SyntheticWorkerProvider(good_ms), max_tokens=256):
+            if not healthy.run_once(pid, "healthy-repair", HealthyRepairProvider(good_ms), max_tokens=256):
                 raise RuntimeError("healthy worker did not reclaim repair task")
             repaired_at = time.perf_counter_ns()
             repaired = station.store.project(pid)["tasks"][0]
