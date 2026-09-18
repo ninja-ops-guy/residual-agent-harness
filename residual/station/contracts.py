@@ -74,7 +74,9 @@ def parse_spec(markdown):
         task.setdefault("route", "local")
         for key in ("files", "context"):
             value = task.setdefault(key, [])
-            if not isinstance(value, list) or len(value) > 30 or len(set(value)) != len(value):
+            if (not isinstance(value, list) or len(value) > 30
+                    or any(not isinstance(p, str) for p in value)
+                    or len(set(value)) != len(value)):
                 raise ContractError(f"{key} must contain at most 30 unique paths")
             for p in value:
                 path_ok(p)
