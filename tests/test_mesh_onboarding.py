@@ -173,6 +173,29 @@ def test_sync_history_rejects_invalid_signature():
     with pytest.raises(ContractError, match="signature"):
         b.sync_history((bad,))
 
+def test_invalid_history_snapshot_does_not_partially_advance_head():
+    nodes = mesh_nodes("a", "b"); a, b = nodes["a"], nodes["b"]; b.connect_peer(a.identity)
+    one = a.send_message(MeshMessageKind.CHAT, content="one")
+    two = a.send_message(MeshMessageKind.CHAT, content="two")
+    bad_two = MeshMessage(
+        message_id=two.message_id, author_id=two.author_id,
+        timestamp_ns=two.timestamp_ns, kind=two.kind, content=two.content,
+        payload=two.payload, signature="bad", prev_hash=two.prev_hash,
+    )
+    with pytest.raises(ContractError, match="signature"):
+        b.sync_history((one, bad_two))
+    assert b.chat.messages == ()
+    assert b.chat.head_hash == "GENESIS"
+
+
+def test_code_like_chat_remains_inert_text():
+    nodes = mesh_nodes("a", "b"); a, b = nodes["a"], nodes["b"]; b.connect_peer(a.identity)
+    text = "```python\\nprint(42)\\n```"
+    msg = a.send_message(MeshMessageKind.CHAT, content=text)
+    assert msg.payload == {}
+    assert b.receive_message(msg) is True
+    assert b.chat.messages[-1].content == text
+
 def test_out_of_order_history_fails_closed():
     nodes = mesh_nodes("a", "b"); a, b = nodes["a"], nodes["b"]; b.connect_peer(a.identity)
     one = a.send_message(MeshMessageKind.CHAT, content="one")
