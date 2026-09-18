@@ -96,6 +96,22 @@ class RecursiveImprovementTests(unittest.TestCase):
         manifest = parse_spec(spec)
         self.assertEqual(manifest["tasks"][0]["id"], "SI-001")
 
+    def test_raw_status_input_changes_report_identity(self):
+        before = doctor_repository(self.repo)["report_sha256"]
+        status = self.repo / "docs/CURRENT_STATUS.md"
+        status.write_text("# changed status\n")
+        subprocess.run(["git", "add", "."], cwd=self.repo, check=True)
+        subprocess.run(["git", "commit", "-m", "status-input"], cwd=self.repo, check=True, capture_output=True)
+        after = doctor_repository(self.repo)["report_sha256"]
+        self.assertNotEqual(before, after)
+
+    def test_command_check_requires_external_evaluator(self):
+        report = doctor_repository(self.repo)
+        doc = self.candidate()
+        doc["candidates"][0]["checks"] = [{"kind": "command", "argv": ["python", "-m", "pytest"]}]
+        with self.assertRaises(ContractError):
+            build_station_spec(report, mission_plan(report), doc, self.repo)
+
     def test_candidate_cannot_modify_its_evaluator(self):
         report = doctor_repository(self.repo)
         doc = self.candidate(["tests/frozen_eval.py"], ["tests/frozen_eval.py"])
