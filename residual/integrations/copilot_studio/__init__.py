@@ -1,8 +1,7 @@
 """Microsoft Copilot Studio integration boundary.
 
 This package intentionally does not reimplement Copilot Studio orchestration,
-knowledge, Entra authentication UX, or Power Platform governance.  It accepts a
-verified end-user bearer identity and compiles only bounded RESIDUAL authority.
+knowledge, Entra authentication UX, or Power Platform governance.
 """
 
 from .contracts import CopilotAPIError, MissionRequest, VerifiedPrincipal
@@ -16,6 +15,12 @@ from .service import (
 )
 from .http import CopilotHTTPAdapter, HTTPResponse
 from .persistence import SQLiteCopilotMissionStore
+from .factory_handoff import (
+    ApprovedRepository,
+    CopilotFactoryHandoff,
+    FirmwareFactoryAdapter,
+    ResourceCatalog,
+)
 
 __all__ = [
     "CopilotAPIError",
@@ -36,10 +41,3 @@ __all__ = [
     "FirmwareFactoryAdapter",
     "ResourceCatalog",
 ]
-
-from .factory_handoff import (
-    ApprovedRepository,
-    CopilotFactoryHandoff,
-    FirmwareFactoryAdapter,
-    ResourceCatalog,
-)
