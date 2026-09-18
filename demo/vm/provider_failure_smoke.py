@@ -15,7 +15,7 @@ window.puter = {
     signIn: () => {
       window.__providerFixture.gesture = navigator.userActivation.isActive;
       if (!window.__providerFixture.gesture) return Promise.reject({error:'popup_blocked'});
-      window.__providerFixture.signedIn = true; return Promise.resolve({});
+      window.__providerFixture.signedIn = true; return Promise.resolue({});
     }
   },
   ai: {
@@ -54,7 +54,9 @@ async def provider_failure_acceptance(page, context, args, report, command_proof
     assert await page.locator('#mc-prompt').input_value() == prompt
     assert await page.locator('#mc-chat .bubble.user').count() == users_before
     assert 'prompt is still in the composer' in (await page.locator('#mc-chat').inner_text()).lower()
-    assert 'guided puter setup opened here' in (await page.locator('#mc-provider-gate-status').inner_text()).lower()
+    gate_status = (await page.locator('#mc-provider-gate-status').inner_text()).lower()
+    assert 'guided puter setup is open here' in gate_status
+    assert 'preserved and unsent' in gate_status
     report['workbench_guided_provider_discovery'] = 'PASS_PROMPT_PRESERVED_NO_INFERENCE'
     report['provider_setup_surface'] = 'PASS_INLINE_GUIDE_NO_RESIDUAL_HELPER_TAB'
     await stage('guided_provider_setup_preserves_unsent_prompt')
@@ -148,7 +150,8 @@ async def provider_failure_acceptance(page, context, args, report, command_proof
         'test ! -e /opt/residual/runs/missions/.active'
     )
     await page.locator('#mc-mission').click()
-    await page.wait_for_function("() => document.querySelector('#mc-runtime').textContent === 'LINUX · READY'", timeout=20000)
+    await page.wait_for_function(
+        "() => document.querySelector('#mc-runtime').textContent === 'LINUX · READY'", timeout=20000)
     await page.get_by_text('Run controls', exact=True).click()
     await page.locator('#mc-mode').select_option('audit')
     await page.locator('#mc-prompt').fill('Verify the restarted guest can execute a real repository audit')

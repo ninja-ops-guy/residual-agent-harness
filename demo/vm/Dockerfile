@@ -25,7 +25,7 @@ RUN python3 -m pip install --break-system-packages --no-deps -e /opt/residual \
       'printf "\\033[1;32mRESIDUAL // LIVE SYSTEM\\033[0m\\n"' \
       'printf "Disposable browser VM · Debian · Python 3 · repository preloaded\\n\\n"' \
       'printf "Try:\\n  mission audit --stream --files README.md residual/cli.py\\n  demo  # scripted tutorial\\n  verify-demo\\n  mission --help   # live workbench usage\\n\\n"' \
-      'printf "LIVE PROMPTS: use Mission Control and its separate provider setup tab. Authentication stays outside the VM.\\n\\n"' \
+      'printf "LIVE PROMPTS: use Mission Control and its embedded provider setup panel. Authentication stays outside the VM.\\n\\n"' \
       'printf "Inspect the actual repo, traces, receipts, and verifier output.\\n\\n"' \
       >> /home/residual/.bashrc \
     && printf '%s\n' 'if [ -f ~/.bashrc ]; then . ~/.bashrc; fi' > /home/residual/.bash_profile \
