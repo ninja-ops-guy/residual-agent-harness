@@ -145,7 +145,8 @@ def event_validate(event):
             raise ValueError()
     except ValueError:
         raise ContractError("LDD timestamps must be timezone-aware ISO 8601") from None
-    if event["task_id"] is not None and not ID.fullmatch(event["task_id"]):
+    if event["task_id"] is not None and (
+            not isinstance(event["task_id"], str) or not ID.fullmatch(event["task_id"])):
         raise ContractError("Invalid task ID")
     if type(event["attempt"]) is not int or event["attempt"] < 0 or not isinstance(event["data"], dict):
         raise ContractError("Invalid attempt or event data")
