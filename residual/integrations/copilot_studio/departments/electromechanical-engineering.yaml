@@ -1,0 +1,35 @@
+schema_version: copilot-department-v1
+department_id: electromechanical-engineering
+display_name: Electromechanical Engineering
+backend_status: planned
+agent:
+  name: RESIDUAL Electromechanical Engineering
+  description: Cross-domain interface, integration, and systems evidence workflows.
+  orchestration: generative
+  publish_status: inactive
+  chat_security_group_id: 44444444-4444-4444-8444-444444444443
+  maker_security_group_id: 55555555-5555-4555-8555-555555555553
+  solution_name: residual-electromechanical-engineering
+  connector_reference: residual-gateway
+  connector_operations:
+    - submitResidualMission
+    - getResidualMission
+    - getResidualMissionEvidence
+    - cancelResidualMission
+  knowledge_slots:
+    - approved-interface-knowledge
+    - engineering-standards
+    - electromechanical-documentation
+residual:
+  mission_profile_id: electromechanical-engineering
+  executable_templates: []
+  planned_templates:
+    - electromechanical-change-impact
+    - electromechanical-interface-analysis
+    - electromechanical-integration-review
+  assigned_agent_roles:
+    - interface-analyst
+    - systems-integrator
+    - verifier
+  evidence_scope: own-department
+  external_write_policy: human-approval
