@@ -191,13 +191,15 @@ class MeshNode:
         return signed_msg
 
     def sync_history(self, messages) -> int:
-        """Verify and append an authoritative history snapshot/catch-up.
+        """Verify then atomically append an authoritative history catch-up.
 
-        The caller must admit the identities referenced by the snapshot first.
-        Existing local history must be an exact prefix; this method never chooses
-        between forks or silently truncates local history.
+        The caller must admit identities referenced by the snapshot first.
+        Existing local history must be an exact prefix. The complete new suffix
+        is authenticated and chain-checked before the local head advances.
         """
         incoming = tuple(messages)
+        if any(not isinstance(msg, MeshMessage) for msg in incoming):
+            raise ContractError("history contains an invalid mesh message")
         local = self.chat.messages
         if len(incoming) < len(local):
             raise ContractError("history prefix is shorter than local history")
@@ -206,15 +208,16 @@ class MeshNode:
             if candidate.hash != existing.hash or candidate.signature != existing.signature:
                 raise ContractError("history prefix conflicts with local history")
 
-        appended = 0
+        pending = []
+        expected_head = self.chat.head_hash
         for msg in incoming[len(local):]:
-            if not isinstance(msg, MeshMessage):
-                raise ContractError("history contains an invalid mesh message")
             if msg.author_id in self._revoked:
                 raise ContractError("history author is revoked")
             author = self.identity if msg.author_id == self.identity.device_id else self.peers.get(msg.author_id)
             if author is None:
                 raise ContractError("unknown history author")
+            if msg.prev_hash != expected_head:
+                raise ContractError(f"history chain break: expected prev_hash {expected_head}, got {msg.prev_hash}")
             data = json.dumps({
                 "message_id": msg.message_id,
                 "author_id": msg.author_id,
@@ -230,9 +233,12 @@ class MeshNode:
                 valid = False
             if not valid:
                 raise ContractError("history message signature verification failed")
+            pending.append(msg)
+            expected_head = msg.hash
+
+        for msg in pending:
             self.chat.append(msg)
-            appended += 1
-        return appended
+        return len(pending)
 
     def receive_message(self, msg: MeshMessage) -> bool:
         """Verify and append a message from a peer."""
