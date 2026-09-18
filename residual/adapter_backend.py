@@ -185,6 +185,7 @@ class LiveCoreResidualBackend:
         self._terminal: set[str] = set()
         self._verdicts: dict[str, dict[str, str]] = {}
         self._verify_event_chains()
+        self._restore_runtime_state()
 
     @property
     def gate_set_hash(self) -> str:
@@ -213,6 +214,32 @@ class LiveCoreResidualBackend:
                 raise LedgerWriteError(f"hash-chain verification failed for {run_id} at seq {seq}")
             heads[run_id] = event_digest
             seqs[run_id] = seq
+
+    def _restore_runtime_state(self) -> None:
+        rows = self._conn.execute(
+            "SELECT run_id,kind,payload_json FROM events ORDER BY run_id,seq"
+        ).fetchall()
+        for run_id, kind, payload_json in rows:
+            payload = json.loads(payload_json)
+            if kind == "run.started":
+                self._started.add(run_id)
+            elif kind == "module.called":
+                gate_id = payload.get("gate_id")
+                verdict = payload.get("verdict")
+                if gate_id and verdict in VALID_VERDICTS:
+                    self._verdicts.setdefault(run_id, {})[gate_id] = verdict
+            elif kind == "gate.fired":
+                gate_id = payload.get("gate_id")
+                verdict = payload.get("verdict")
+                if gate_id and verdict in VALID_VERDICTS:
+                    self._verdicts.setdefault(run_id, {})[gate_id] = verdict
+            elif kind == "run.completed":
+                self._terminal.add(run_id)
+                outcome = payload.get("outcome")
+                if outcome in _VALID_OUTCOMES:
+                    self._verdicts.setdefault(run_id, {})["CORE-RUN-OUTCOME"] = {
+                        "success": "PASS", "error": "FAIL", "aborted": "BLOCKED"
+                    }[outcome]
 
     def _append_event(
         self, run_id: str, domain: str, kind: str, payload: dict, *, event_id: str | None = None
@@ -321,6 +348,7 @@ class LiveCoreResidualBackend:
                 "module": module,
                 "call_id": call_id,
                 "inputs_digest": inputs_digest,
+                "gate_id": decision.gate_id,
                 "verdict": decision.verdict,
                 "core_evidence": decision.evidence,
             },
@@ -529,6 +557,7 @@ class LiveCoreResidualBackend:
                     "module": f"obligation:{obligation_id}",
                     "call_id": f"harness:{obligation_id}",
                     "inputs_digest": digest({"task_id": task.id, "obligation_id": obligation_id}),
+                    "gate_id": decision.gate_id,
                     "verdict": decision.verdict,
                     "core_evidence": decision.evidence,
                 },
