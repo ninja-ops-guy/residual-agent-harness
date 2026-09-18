@@ -3,9 +3,11 @@ export const PROTOCOL = 'residual.provider.v1';
 export const MAX_WIRE = 65536;
 export const MAX_PROVIDER_OUTPUT_TOKENS = 8192;
 export const PROVIDER_LIVENESS_MS = 300000;
+export const PROVIDER_CHANNEL_TOKEN_KEY = 'residual.provider.channel.v1';
 export const validId = value => typeof value === 'string' && /^m-[a-f0-9]{32}$/.test(value);
 export const validRequest = value => typeof value === 'string' && /^[a-f0-9]{32}$/.test(value);
 export const validModel = value => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,95}$/.test(value);
+export const validChannelToken = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
 export const bounded = value => { try { return new TextEncoder().encode(JSON.stringify(value)).length <= MAX_WIRE; } catch { return false; } };
 export const RESPONSE_SCHEMA = {
   type: 'object', additionalProperties: false, required: ['updates', 'requests'],
@@ -43,14 +45,30 @@ export function validProtocolEnvelope(value) { if(!value||typeof value!=='object
 function unwrapJsonFence(text) { const trimmed=text.trim(); const fenced=trimmed.match(/^```(?:json)?\s*\r?\n([\s\S]*?)\r?\n```$/i); return fenced?fenced[1].trim():trimmed; }
 function parseEnvelope(text,source='content') { if(typeof text!=='string'||!text.trim())throw new ProviderProtocolError(`${source}_empty`); let value; try{value=JSON.parse(unwrapJsonFence(text));}catch{throw new ProviderProtocolError(`${source}_not_json`);} if(!validProtocolEnvelope(value))throw new ProviderProtocolError('envelope_shape'); return JSON.stringify(value); }
 export function protocolReply(result) { if(result?.finish_reason==='length')throw new ProviderProtocolError('response_truncated'); const calls=result?.message?.tool_calls; if(Array.isArray(calls)&&calls.length>0){if(calls.length!==1)throw new ProviderProtocolError('tool_call_count');if(calls[0]?.function?.name!=='residual_submit')throw new ProviderProtocolError('tool_name');const args=calls[0]?.function?.arguments;if(args===undefined||args===null||args==='')throw new ProviderProtocolError('tool_arguments_empty');return parseEnvelope(typeof args==='string'?args:JSON.stringify(args),'tool_arguments');} return parseEnvelope(textReply(result),'content'); }
+function readStoredChannelToken() {
+  try { const token=globalThis.sessionStorage?.getItem(PROVIDER_CHANNEL_TOKEN_KEY)||''; return validChannelToken(token)?token:''; }
+  catch { return ''; }
+}
+function storeChannelToken(token) {
+  try { if(validChannelToken(token)) globalThis.sessionStorage?.setItem(PROVIDER_CHANNEL_TOKEN_KEY,token); }
+  catch {}
+}
+function clearStoredChannelToken(token) {
+  try { if(!token||globalThis.sessionStorage?.getItem(PROVIDER_CHANNEL_TOKEN_KEY)===token) globalThis.sessionStorage?.removeItem(PROVIDER_CHANNEL_TOKEN_KEY); }
+  catch {}
+}
 export class ProviderSession {
-  constructor(onState=()=>{}) { this.onState=onState;this.channel=null;this.pending=new Map();this.connected=false;this.lastSeen=0;this.grant=null;this.generation=0; }
+  constructor(onState=()=>{}) {
+    this.onState=onState;this.channel=null;this.pending=new Map();this.connected=false;this.lastSeen=0;this.grant=null;this.generation=0;this.token=readStoredChannelToken();
+    if(this.token)this.attach(this.token);
+  }
   get ready(){return this.connected&&Date.now()-this.lastSeen<PROVIDER_LIVENESS_MS;}
   checkConnection(){if(this.connected&&!this.ready){this.connected=false;this.onState('disconnected','Provider tab has not responded recently. Reopen setup if it was closed; a suspended mobile tab can reconnect without changing provider authorization. No new requests are authorized while disconnected.');}}
-  open(){this.close();const bytes=crypto.getRandomValues(new Uint8Array(32));const token=[...bytes].map(b=>b.toString(16).padStart(2,'0')).join('');this.channel=new BroadcastChannel(`${PROTOCOL}:${token}`);this.channel.onmessage=event=>this.receive(event.data);const url=new URL('../provider/',location.href);url.hash=token;window.open(url.href,'_blank','noopener,noreferrer');this.onState('connecting','Complete provider setup in the new tab. Allow popups for this site if it did not open.');return url.href;}
+  attach(token){if(!validChannelToken(token))throw new Error('Invalid provider channel token.');this.channel?.close();this.token=token;storeChannelToken(token);this.channel=new BroadcastChannel(`${PROTOCOL}:${token}`);this.channel.onmessage=event=>this.receive(event.data);}
+  open(){this.end();const token=this.token||[...crypto.getRandomValues(new Uint8Array(32))].map(b=>b.toString(16).padStart(2,'0')).join('');this.attach(token);const url=new URL('../provider/',location.href);url.hash=token;window.open(url.href,'_blank','noopener,noreferrer');this.onState('connecting','Complete provider setup in the new tab. Allow popups for this site if it did not open.');return url.href;}
   receive(message){if(!message||message.protocol!==PROTOCOL||!bounded(message))return;this.lastSeen=Date.now();if(message.kind==='state'){this.connected=message.connected===true;this.onState(this.ready?'connected':'disconnected',this.ready?'Provider signed in. Model access and billing are checked on each run.':'Provider not signed in. Open setup to continue.');return;}if(message.kind==='progress'&&validRequest(message.request_id)&&validId(message.mission_id)){const entry=this.pending.get(message.request_id),text=providerProgressMessage(message.stage,message.model);if(entry&&entry.missionId===message.mission_id&&text)this.onState(this.ready?'connected':'disconnected',text,{kind:'provider_progress',stage:message.stage,mission_id:message.mission_id,request_id:message.request_id,model:validModel(message.model)?message.model:null});return;}if(message.kind==='response'&&validRequest(message.request_id)){const entry=this.pending.get(message.request_id);if(entry&&message.mission_id===entry.missionId){if(message.ok===false&&typeof message.error==='string')this.onState(this.ready?'connected':'disconnected',providerFailureMessage(message.error,message.detail));clearTimeout(entry.timer);this.pending.delete(message.request_id);entry.resolve(message);}}}
   begin(missionId,calls,model){if(!this.ready||!validId(missionId)||!validModel(model)||!Number.isInteger(calls)||calls<1||calls>3)throw new Error('Provider is not connected or budget is invalid.');this.grant={missionId,calls,model,used:0,seen:new Set()};this.channel.postMessage({protocol:PROTOCOL,kind:'grant',mission_id:missionId,max_calls:calls,model});}
   async infer(missionId,req){const g=this.grant;if(!this.ready||!g||g.missionId!==missionId)return{ok:false,error:'provider_disconnected',request_id:req.request_id};if(!validInference(req)||req.model!==g.model||g.seen.has(req.request_id)||g.used>=g.calls)return{ok:false,error:'provider_budget_exhausted',request_id:req.request_id};g.used++;g.seen.add(req.request_id);return new Promise(resolve=>{const timer=setTimeout(()=>{this.pending.delete(req.request_id);const response={ok:false,request_id:req.request_id,error:'provider_timeout'};this.onState(this.ready?'connected':'disconnected',providerFailureMessage(response.error));resolve(response);},85000);this.pending.set(req.request_id,{resolve,timer,missionId});this.channel.postMessage({protocol:PROTOCOL,kind:'request',mission_id:missionId,...req});});}
   end(){this.grant=null;for(const[id,entry]of this.pending){clearTimeout(entry.timer);entry.resolve({ok:false,request_id:id,error:'mission_cancelled'});}this.pending.clear();this.channel?.postMessage({protocol:PROTOCOL,kind:'revoke'});}
-  close(){this.end();this.channel?.close();this.channel=null;this.connected=false;this.generation++;}
+  close(){this.end();this.channel?.close();this.channel=null;this.connected=false;clearStoredChannelToken(this.token);this.token='';this.generation++;}
 }
