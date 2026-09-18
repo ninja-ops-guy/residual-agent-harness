@@ -5,67 +5,6 @@ on:
 permissions:
   contents: read
 jobs:
-  simple-mission:
-    if: github.head_ref == 'experiment/simple-spec-mission-smoke'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install RESIDUAL
-        run: python -m pip install -e '.[factory]'
-      - name: Execute deterministic-provider live mission
-        run: python -m unittest tests.test_simple_mission_smoke.SimpleMissionSmoke.test_live_simple_spec_executes_end_to_end -v
-
-  real-model-mission:
-    if: github.head_ref == 'experiment/simple-spec-mission-smoke'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      OLLAMA_HOST: 127.0.0.1:11434
-      OLLAMA_MODEL: qwen2.5-coder:1.5b
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install RESIDUAL
-        run: python -m pip install -e '.[factory]'
-      - name: Install Ollama
-        run: curl -fsSL https://ollama.com/install.sh | sh
-      - name: Start Ollama
-        run: |
-          nohup ollama serve > /tmp/ollama.log 2>&1 &
-          for i in {1..30}; do
-            if curl -fsS http://127.0.0.1:11436/api/tags >/dev/null; then
-              exit 0
-            fi
-            sleep 1
-          done
-          cat /tmp/ollama.log
-          exit 1
-      - name: Pull real local model
-        run: ollama pull "$OLLAMA_MODEL"
-      - name: Execute real-model RESIDUAL mission
-        run: |
-          python scripts/real_model_mission.py             --model "$OLLAMA_MODEL"             --output runs/real-model-mission/evidence.json
-      - name: Show retained evidence
-        if: always()
-        run: |
-          if [ -f runs/real-model-mission/evidence.json ]; then
-            cat runs/real-model-mission/evidence.json
-          fi
-          echo "--- ollama log ---"
-          tail -200 /tmp/ollama.log || true
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: real-model-mission-evidence
-          path: |
-            runs/real-model-mission
-            /tmp/ollama.log
-
   dag-real-model-mission:
     if: github.head_ref == 'experiment/simple-spec-mission-smoke'
     runs-on: ubuntu-latest
