@@ -21,6 +21,7 @@ const HELP=[
   "/experiment pipeline          show dependency-DAG benchmark command",
   "/experiment recovery          show fail-closed repair benchmark command",
   "/experiment matrix            show worker/latency sweep command",
+  "/experiment bridge            show Station↔mesh observability benchmark",
   "/terminal                      alias for /tab terminal"
 ].join("\n");
 
@@ -109,7 +110,8 @@ export async function executeMissionCommand(input,api){
     if(kind==="pipeline")return result("Native benchmark: residual experiment pipeline --workers 1 2 4 --width 4 --depth 2 --work-ms 40 --repeats 3 --output runs/pipeline.json");
     if(kind==="recovery")return result("Native benchmark: residual experiment recovery --bad-ms 20 --good-ms 40 --repeats 3 --output runs/recovery.json");
     if(kind==="matrix")return result("Native benchmark: residual experiment matrix --workers 1 2 4 --latencies-ms 0 40 200 --tasks 8 --pipeline-width 4 --pipeline-depth 2 --repeats 3 --output runs/matrix.json");
-    return result("Usage: /experiment distributed|mesh|pipeline|recovery|matrix");
+    if(kind==="bridge")return result("Native benchmark: residual experiment bridge --members 2 4 8 --repeats 3 --output runs/bridge.json");
+    return result("Usage: /experiment distributed|mesh|pipeline|recovery|matrix|bridge");
   }
   return result(`Unknown command: /${command}\n\n${HELP}`);
 }
