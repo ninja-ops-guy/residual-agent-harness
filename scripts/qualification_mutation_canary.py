@@ -121,7 +121,7 @@ MUTATIONS = (
         "candidate-review-binding-bypass",
         "residual/station/service.py",
         "residual.station.service",
-        "    def review(",
+        "    def integrate(",
         """if ws.git(t["candidate_dir"], "rev-parse", "HEAD") != t["head_commit"] or ws.git(t["candidate_dir"], "status", "--porcelain"):""",
         """if False and (ws.git(t["candidate_dir"], "rev-parse", "HEAD") != t["head_commit"] or ws.git(t["candidate_dir"], "status", "--porcelain")):""",
         ("tests/station/test_station.py::StationTests::test_approval_cannot_survive_changed_candidate",),
