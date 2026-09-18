@@ -166,16 +166,21 @@ def protected(path, ownership_paths=()):
             or any(path.startswith(p) for p in PROTECTED_PREFIXES))
 
 
+def validate_candidate_doc(value):
+    if not isinstance(value, dict) or set(value) != {"schema_version", "candidates"}:
+        raise ContractError("Candidate manifest fields are invalid")
+    candidates = value.get("candidates")
+    if value.get("schema_version") != 1 or not isinstance(candidates, list) or not 1 <= len(candidates) <= 12:
+        raise ContractError("Candidate manifest schema is invalid")
+    return value
+
+
 def load_candidates(path):
     try:
         value = strict_json(Path(path).read_text(encoding="utf-8"))
     except OSError as exc:
         raise ContractError("Candidate manifest could not be read") from exc
-    if not isinstance(value, dict) or set(value) != {"schema_version", "candidates"}:
-        raise ContractError("Candidate manifest fields are invalid")
-    if value["schema_version"] != 1 or not isinstance(value["candidates"], list) or not value["candidates"]:
-        raise ContractError("Candidate manifest schema is invalid")
-    return value
+    return validate_candidate_doc(value)
 
 
 def build_station_spec(report, plan, doc, repo):
@@ -183,6 +188,10 @@ def build_station_spec(report, plan, doc, repo):
     tasks = []
     allowed = {"id", "title", "instruction", "files", "context", "depends_on", "checks", "route", "evaluator_files"}
     ownership_paths = factory_protected_paths(root)
+    write_owners = {}
+    evaluator_paths = set()
+    candidate_meta = {}
+    seen_ids = set()
     for c in doc["candidates"]:
         if not isinstance(c, dict) or set(c) != allowed:
             raise ContractError("ImprovementCandidate fields are invalid")
@@ -193,6 +202,9 @@ def build_station_spec(report, plan, doc, repo):
                 or not isinstance(c["instruction"], str) or not c["files"] or not c["checks"]
                 or c["route"] not in {"local", "cloud"}):
             raise ContractError("ImprovementCandidate is incomplete")
+        if c["id"] in seen_ids:
+            raise ContractError("ImprovementCandidate IDs must be unique")
+        seen_ids.add(c["id"])
         if any(not isinstance(p, str) for p in c["files"] + c["context"] + c["evaluator_files"]):
             raise ContractError("Candidate paths must be strings")
         if any(not isinstance(dep, str) for dep in c["depends_on"]):
@@ -215,6 +227,12 @@ def build_station_spec(report, plan, doc, repo):
             raise ContractError("Command checks require external frozen evaluator files")
         if code_paths and (not command_checks or not c["evaluator_files"]):
             raise ContractError("Executable-code candidates require command checks and external frozen evaluator files")
+        for path in c["files"]:
+            if path in write_owners:
+                raise ContractError("Candidate writable scopes must not overlap")
+            write_owners[path] = c["id"]
+        evaluator_paths.update(c["evaluator_files"])
+        candidate_meta[c["id"]] = (tuple(c["context"]), frozenset(c["depends_on"]))
         instruction = c["instruction"] + (
             "\n\nGeneration rules: modify only writable files; evaluator files and checks are immutable; "
             "preserve historical FAIL/BLOCKED/UNKNOWN evidence.")
@@ -222,6 +240,13 @@ def build_station_spec(report, plan, doc, repo):
                       "depends_on": c["depends_on"], "files": c["files"],
                       "context": list(dict.fromkeys(c["context"] + c["evaluator_files"])),
                       "checks": c["checks"], "route": c["route"]})
+    if set(write_owners) & evaluator_paths:
+        raise ContractError("Generation evaluator files must remain immutable across all candidates")
+    for candidate_id, (context, dependencies) in candidate_meta.items():
+        for path in context:
+            owner = write_owners.get(path)
+            if owner and owner != candidate_id and owner not in dependencies:
+                raise ContractError("Generated-file context requires an explicit dependency on its writer")
     manifest = {"schema_version": 1, "name": "RESIDUAL self-improvement " + plan["generation"],
                 "goal": "Improve RESIDUAL from " + report["head"] + " without crossing frozen evaluation or trust boundaries.",
                 "tasks": tasks}
