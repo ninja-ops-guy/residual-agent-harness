@@ -41,16 +41,19 @@ The surfaces share evidence-first authority rules, but they are not one mandator
 
 ## Current main
 
-Current `main` is **`260b5f9e20bf70a6b9ca087bc91e22a009ed77b9`**.
+Current `main` is **`60d0c5a8fc2044a22619248292ce89c9b43edd37`**.
 
-Accepted changes since the previous documented snapshot include:
+Accepted changes in the current documented sequence include:
 
 - **#200** — native setup hardening. The setup path defaults to persistent XDG state, binds Station to `127.0.0.1`, makes the convenience shell macro opt-in, uses bounded venv repair, and constrains shell startup-file edits. This is onboarding hardening, **not** blank-environment qualification or a portability proof.
 - **#205** — WebVM provider-channel recovery. Mission Control restores the private provider channel token from `sessionStorage` across reload/remount, validates it fail-closed, reuses it only for the active browser session, and clears it on explicit close. This is accepted provider-session lifecycle behavior, **not** retained proof of live Puter inference.
 - **#218** — bounded Station repair-loop remediation. Repair attempts may receive the previous failed candidate's declared writable files as bounded context while each new attempt still starts from a clean baseline worktree; repair-context hashes are retained, the runner contract separates the transport JSON envelope from file-language content, and Mission Control/Store share a bounded five-attempt ceiling. This does **not** weaken verifier, review, receipt, integration, quarantine, promotion, Factory/M4, or acceptance authority.
-- **#201** — frontend/guided-provider UX. The public site now separates guided proof from the interactive WebVM lab, animates real RESIDUAL CLI commands with reduced-motion support, and Mission Control keeps Puter setup inline while allowing Puter's secure authorization popup under explicit user gesture. Provider loading remains lazy, credentials stay outside RESIDUAL, and protocol handling remains fail-closed.
+- **#201** — frontend/guided-provider UX. The public site separates guided proof from the interactive WebVM lab, animates real RESIDUAL CLI commands with reduced-motion support, and Mission Control keeps Puter setup inline while allowing Puter's secure authorization popup under explicit user gesture. Provider loading remains lazy, credentials stay outside RESIDUAL, and protocol handling remains fail-closed.
+- **#233** — Station repair diagnostics. Failed attempts retain an actionable failure tail and repeated failed patches are detected explicitly so a repair loop does not silently lose the root cause or treat an identical failed patch as progress. The change does not grant worker, review, receipt, integration, promotion, verifier, or Factory/M4 authority.
 
-PR #201's exact head `4e172aed...` completed **PASS** for Control Plane, Factory ownership, measured-evaluation binding, clean install, Browser VM Demo, Pages, Command Station, Controller/provider, and maintainer approval before merge. Exact merged `main@260b5f9...` has now settled its seven ordinary push workflows: six completed successfully, while **Deploy GitHub Pages run `35340104722` is FAIL in live-acceptance scope**. The Pages artifact build/browser proof and deployment itself succeeded; the published desktop acceptance then timed out waiting for the embedded provider frame to expose the expected `could not load` status after artifact identity, guest boot, demo verification, warm reload, and repository audit had already passed. This does not establish a paid/live Puter semantic failure or success; the retained provider path in that proof used a test-double SDK rather than real Puter login/inference.
+PR #233's exact head `8801d5e0...` completed **PASS** for Deploy GitHub Pages, Control Plane, clean install, Factory ownership, measured-evaluation binding, Controller/provider, Command Station, and the exact-head maintainer approval gate before merge.
+
+Exact merged `main@60d0c5a8...` has seven ordinary push workflows: six completed successfully, while **Deploy GitHub Pages run `35349614961` is FAIL in published live-acceptance scope**. The Pages artifact build/browser proof and deployment itself succeeded. Published desktop acceptance then passed served-artifact identity, guest attachment/shell readiness, real demo verification, warm reload, and repository audit, before timing out waiting for the embedded provider frame to expose the expected `could not load` status. The retained provider path was `REAL_GUEST_WITH_TEST_DOUBLE_SDK_NOT_PAID_INFERENCE`, so this failure establishes neither paid/live Puter semantic success nor paid/live Puter semantic failure.
 
 Historical failures remain evidence even when later revisions pass.
 
@@ -58,7 +61,7 @@ Historical failures remain evidence even when later revisions pass.
 
 Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice, but both counted calls ended `provider_protocol_invalid`. No candidate crossed the protocol boundary; candidate correctness and semantic verification remain **UNKNOWN**.
 
-Merged #179 changed the bounded build-output path, #183 repaired provider-session lifecycle behavior, #189 repaired the provider-helper publication boundary, #205 restores the provider channel across Mission Control reload/remount, and #201 moves provider setup into the Mission Control experience while retaining Puter's secure authorization boundary. None of those changes, by itself, is retained proof of successful paid/live Puter inference. A fresh real-account mission on the accepted deployed revision must cross provider protocol validation and proceed through normal candidate/verifier/receipt handling before live-provider success can become `PASS`.
+Merged #179, #183, #189, #205 and #201 repair or improve bounded build-output, provider-session, publication, reload-recovery, and inline setup/authorization surfaces. None is retained proof of successful paid/live Puter inference. A fresh real-account mission on the accepted deployed revision must cross provider protocol validation and proceed through normal candidate/verifier/receipt handling before live-provider success can become `PASS`.
 
 The accepted #186 fallback routes detected iPhone/iPadOS WebKit to the lightweight walkthrough before heavyweight WebVM boot. This is not proof that heavyweight WebVM is reliable on physical iPhone Safari. Issues #120/#126 and long-run WebVM reliability remain open.
 
@@ -73,11 +76,13 @@ Accepted #185/#187 protected-byte and ownership-baseline changes retain their ex
 Research results are revision-bound and deliberately mixed:
 
 - Draft #202 retains an earlier heterogeneous-DAG **FAIL** and a later distinct exact-head bounded **PASS** using real local models for a three-task DAG with forced repair. The later PASS does not erase the earlier FAIL or establish general DAG/recovery reliability.
-- Draft #203 M6 ImprovementSpec self-host trial 1 remains **FAIL**.
-- Draft #204 stronger-model M6-SPEC-002 authoritative trial remains **FAIL**: 0/1 integrated, three passes, max-iteration escalation, no verification receipt or release.
-- Draft #215/#217 M6-SPEC-003/-004 remain retained **FAIL** results despite exercising repair context and transport/source clarification.
-- Draft #220 M6-SPEC-006 is a bounded **PASS** on the corrected #218 runtime using local Qwen2.5-Coder 7B: attempts 1 and 2 were rejected by the frozen checks, attempt 3 passed 2/2 checks, independent Station review approved it, 1/1 integrated, a verification receipt was issued, and release export completed. The retained workflow run and artifact are bound to exact experiment head `7971a057...`. This single PASS does **not** erase prior M6 failures or establish general autonomous self-maintenance/reliability.
-- Draft #207 deterministic stress campaign B retained important negative governance evidence: one budget-exhaustion case observed accepted integration/release before final exhausted-budget accounting, and one terminal verifier-failure case still materialized a non-empty release. Those authority-ordering defects remain open until an accepted repair is requalified.
+- Draft #203/#204 and #215/#217 remain retained M6 **FAIL** results.
+- Draft #220 M6-SPEC-006 remains a bounded **PASS** on the corrected #218 runtime using local Qwen2.5-Coder 7B: attempts 1 and 2 were rejected, attempt 3 passed the frozen checks, independent Station review approved it, 1/1 integrated, a verification receipt was issued, and release export completed. This does not establish general autonomous self-maintenance.
+- **#231 / M6-ROADMAP-001B** is a research **PASS** against a detached clean copy of exact `main@260b5f9...`: one implementation attempt, 3/3 immutable checks PASS, independent local review APPROVED, exact reviewed head integrated, a verification receipt was issued, and release export succeeded. The exact generated `ImprovementSpec` bytes are proposed for production in **#243**, which remains open and unmerged; therefore the production contract is **not yet accepted main behavior**.
+- **#232 / M6-EPI-001** completed its two-arm research experiment successfully after one repair per arm, but it also exposed verifier requirements: the insufficient-evidence arm left `preserve_invariants` empty, while the sufficient arm used free-form acceptance prose and conflated a performance metric with a protected invariant. Those outputs are research findings, not proof that the production HypothesisVerifier exists or is qualified.
+- **#244 / M6-SPEC-007** and **#246 / M6-SPEC-007B** both failed before autonomous discovery began because the local provider timed out at roughly 300 seconds before a proposal was produced. They are **FAIL in experiment-execution scope / discovery not reached**, not evidence that the Scientist hypothesis failed. #246 reduced the first request from 15,566 to 12,927 bytes but still timed out.
+- **#249 / M6-SPEC-007C** is pending with no authoritative result retained at this status check, so its discovery outcome remains **UNKNOWN**.
+- Draft #207 campaign B retains negative governance evidence: budget/release authority-ordering defects remain open until an accepted repair is requalified.
 
 These are research/development observations, not production qualification. See [`docs/research.md`](docs/research.md) and [`docs/evaluation.md`](docs/evaluation.md).
 
@@ -119,15 +124,16 @@ python3 -m residual benchmark --output runs/benchmark.json
 
 ## Current priority gates
 
-1. Repair and requalify the exact-`260b5f9...` Pages live-acceptance failure. Preserve run `35340104722` as the first authoritative merged-SHA FAIL; do not relabel the six successful ordinary push workflows or the earlier green #201 PR head as a Pages PASS.
-2. Repair and requalify the #207/#208 accounting/release-ordering defects before making stronger fail-closed budget/release claims; later M6 repair-loop success does not clear those independent authority defects.
-3. Extend M6 validation from the single bounded #220 PASS to preregistered repeated/self-discovery experiments while preserving #203/#204/#215/#217 negative cells and without granting autonomous merge authority.
-4. Retain a fresh real-account Puter candidate→verifier→receipt success on the accepted deployed revision, or keep live-provider success `UNKNOWN`.
-5. Physically validate the #186 mobile fallback without broadening it into a heavyweight-WebVM reliability claim.
-6. Complete true blank-environment installation, recovery/host-loss qualification, and selected elapsed soak for the exact release artifact.
-7. Continue #120/#126 long-run WebVM reliability work and the separate #139→ownership-baseline→#134 protected sequence.
-8. Resolve the #133/#132 retirement-versus-restoration discrepancy explicitly rather than reconstructing capability in prose.
-9. Freeze the confirmatory live-evaluation protocol before outcome access, then run R0–R5 and the planned degradation/routing studies.
+1. Repair and requalify the exact-`60d0c5a8...` Pages live-acceptance failure. Preserve run `35349614961` as the current merged-SHA FAIL; do not relabel the six successful ordinary push workflows or the green #233 PR head as a Pages PASS.
+2. Review and qualify production PR #243 before calling the generated `ImprovementSpec` accepted main behavior. Its current technical PR-head workflows are green, while the exact-head maintainer approval gate is **FAIL/pending attestation**.
+3. Continue the remaining M6.2 contracts — EvidenceSnapshot, MeasurementGap, Scientist, deterministic HypothesisVerifier, experiment ledger, and champion/challenger evaluation — while preserving #231/#232 as bounded research evidence and #244/#246 as execution failures before discovery.
+4. Resolve M6-SPEC-007C (#249) from retained evidence; until an authoritative result exists, autonomous discovery remains **UNKNOWN / not established**.
+5. Repair and requalify the #207/#208 accounting/release-ordering defects before making stronger fail-closed budget/release claims.
+6. Retain a fresh real-account Puter candidate→verifier→receipt success on the accepted deployed revision, or keep live-provider success `UNKNOWN`.
+7. Physically validate the #186 mobile fallback without broadening it into a heavyweight-WebVM reliability claim.
+8. Complete true blank-environment installation, recovery/host-loss qualification, and selected elapsed soak for the exact release artifact.
+9. Continue #120/#126 long-run WebVM reliability work and the separate #139→ownership-baseline→#134 protected sequence.
+10. Freeze the confirmatory live-evaluation protocol before outcome access, then run R0–R5 and the planned degradation/routing studies.
 
 ## Scope and non-claims
 
