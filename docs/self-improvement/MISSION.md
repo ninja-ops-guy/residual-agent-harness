@@ -54,7 +54,7 @@ A candidate may not write any external evaluator file used to certify that candi
 
 Executable-code candidates require existing frozen Python evaluators under tests/test_*.py. ImprovementCandidates are not permitted to author executable command checks at all. After deterministic admission, the Mission Governor derives the pytest command for each declared evaluator and inserts it into the immutable Station check contract. The evaluator starts Python in isolated mode, disables third-party pytest plugin autoload before importing pytest, and only then exposes the candidate repository to the test process. This removes model-authored argv and repository-level pytest bootstrap shadowing from the recursive control path.
 
-Test-runner and import-control surfaces such as pytest configuration, conftest.py, tests/__init__.py, sitecustomize.py, usercustomize.py, and the mission's own safety regression are protected from autonomous writes. Changing a frozen evaluator or evaluator-control surface requires a separate externally governed mission rather than the generation it certifies.
+The entire tests/ tree is read-only to autonomous M7 generations, as are pytest configuration and Python import-control surfaces such as sitecustomize.py, usercustomize.py, and pytest.py. A generation may consume frozen tests but cannot rewrite a test in Generation N and nominate that weakened test as evidence in Generation N+1. Changing tests or evaluator-control surfaces requires a separate externally governed mission.
 
 ## Candidate contract
 
