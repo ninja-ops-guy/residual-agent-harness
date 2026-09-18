@@ -41,6 +41,7 @@
     "No-op successful batches are not exported as successors; accepted generations must change the Git tree.",
     "Bounded experimental lineage can feed an accepted Station successor into the next generation without modifying the original checkout.",
     "The initiating M7 governor implementation remains frozen for an experimental lineage even if candidate source edits the future controller.",
-    "Pytest/import-control surfaces (pytest configuration, conftest.py, tests/__init__.py and Python site customization hooks) are protected from autonomous writes."
+    "Pytest/import-control surfaces (pytest configuration, conftest.py, tests/__init__.py and Python site customization hooks) are protected from autonomous writes.",
+    "Governor-derived pytest starts under Python isolated mode with third-party plugin autoload disabled before the candidate repository is added to the evaluator path."
   ]
 }
