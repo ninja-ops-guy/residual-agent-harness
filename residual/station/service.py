@@ -184,6 +184,9 @@ class Station:
                 if prior_path.is_dir():
                     previous = ws.context_files(prior_path, t)
                     prior_candidate_files = {name: previous[name] for name in t["files"] if previous.get(name) is not None}
+                    if prior_candidate_files:
+                        hashes = {name: sha(value) for name, value in sorted(prior_candidate_files.items())}
+                        self.store.event(pid, "task.finding", {"message": "Repair context bound to prior candidate", "file_hashes": hashes}, t["id"])
             self.store.update_task(pid, t["id"], base_commit=base, candidate_dir=str(folder), head_commit=None)
             packet = {"project_goal": p["goal"], "task_id": t["id"], "instruction": t["instruction"],
                       "writable_files": t["files"], "files": files, "checks": t["checks"],
