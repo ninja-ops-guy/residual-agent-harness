@@ -121,9 +121,7 @@ PLANNER_SCHEMA = {
                 "collection_method":{"type":"string"},"implementation_ref":{"type":"string"},"revision":{"type":"string"}},
                 "required":["metric_id","description","unit","aggregation","population","valid_domain","directionality","collection_method","implementation_ref","revision"],"additionalProperties":False},
             "reason_existing_registry_insufficient":{"type":"string"},
-            "preserve_invariants":{"type":"array","items":{"type":"string"},"minItems":1},
-            "evidence_snapshot_hash":{"type":"string"},"metric_registry_sha256":{"type":"string"},
-            "human_approval_required":{"const":True}},
+            "preserve_invariants":{"type":"array","items":{"type":"string"},"minItems":1}},
          "required":["type","observation","definition","reason_existing_registry_insufficient","preserve_invariants"],"additionalProperties":False}
     ]
 }
