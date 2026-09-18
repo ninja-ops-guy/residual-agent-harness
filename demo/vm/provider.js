@@ -1,6 +1,6 @@
 import {PROTOCOL, RESPONSE_SCHEMA, validId, validInference, validModel, bounded, errorCode, protocolReply, protocolFailureReason, providerFailureMessage, providerTransportAfterFailure} from './provider-session.js';
 const status = document.getElementById('status'), load = document.getElementById('load'), sign = document.getElementById('signin');
-let channel, sdk, grant = null, busy = false, modelCatalog = null, sdkLoadPromise = null;
+let channel, sdk, grant = null, busy = false, modelCatalog = null, sdkLoadPromise = null, loadGeneration = 0;
 const tell = text => { status.textContent = text; };
 const send = msg => channel?.postMessage({protocol: PROTOCOL, ...msg});
 function state() { send({kind: 'state', connected: !!sdk?.auth?.isSignedIn?.()}); }
@@ -45,18 +45,22 @@ function transportMessages(messages, transport = 'tool') {
 }
 setInterval(state, 3000);
 function loadSdk(restoring = false) {
+  const generation = ++loadGeneration;
+  document.documentElement.dataset.providerLoadGeneration = String(generation);
+  document.documentElement.dataset.providerLoadState = 'requested';
   if (sdk?.auth && sdk?.ai) { state(); return Promise.resolve(sdk); }
   if (sdkLoadPromise) return sdkLoadPromise;
-  load.disabled = true; tell(restoring ? 'Restoring provider session…' : 'Loading provider SDK…');
+  load.disabled = true; document.documentElement.dataset.providerLoadState = 'loading'; tell(restoring ? 'Restoring provider session…' : 'Loading provider SDK…');
   sdkLoadPromise = new Promise((resolve, reject) => {
     const script = document.createElement('script'); script.src = 'https://js.puter.com/v2/'; script.async = true;
     let settled = false;
-    const fail = () => { if (settled) return; settled = true; clearTimeout(timer); script.remove(); load.disabled = false; sdkLoadPromise = null; tell('SDK could not load. Check content blockers/network and retry. Nothing was sent for inference.'); reject(new Error('sdk_load_failed')); };
+    const fail = () => { if (settled) return; settled = true; clearTimeout(timer); script.remove(); load.disabled = false; sdkLoadPromise = null; document.documentElement.dataset.providerLoadState = 'failed'; tell('SDK could not load. Check content blockers/network and retry. Nothing was sent for inference.'); reject(new Error('sdk_load_failed')); };
     const timer = setTimeout(fail, 10000); script.onerror = fail;
     script.onload = () => {
       if (settled) return;
       if (!window.puter?.auth || !window.puter?.ai) return fail();
       settled = true; clearTimeout(timer); sdk = window.puter; modelCatalog = null; sdkLoadPromise = null;
+      document.documentElement.dataset.providerLoadState = 'loaded';
       const signedIn = !!sdk.auth.isSignedIn?.();
       sign.disabled = signedIn;
       load.disabled = true;
