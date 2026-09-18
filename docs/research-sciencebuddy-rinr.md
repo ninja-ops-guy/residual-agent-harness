@@ -99,3 +99,38 @@ ScienceBuddy keeps the online service running while background improvement proce
 10. Keep any future model-weight learning behind a separate interface and qualification boundary.
 
 These changes are specified in `docs/specs/SPEC-M6-RINR-001.md`.
+
+
+## Second-pass findings: additional mechanisms worth carrying into RESIDUAL
+
+A closer reading of the implementation appendix adds five useful design constraints that are easy to miss from the high-level recursive-in-recursive diagram.
+
+### Separate diagnostic feedback from optimization/acceptance reward
+
+ScienceBuddy explicitly separates a bounded feedback-interpreter signal from the trajectory reward used for optimization. User replies can diagnose a procedural weakness without becoming correctness labels.
+
+**RESIDUAL application:** operator/user/reviewer feedback should feed the Scientist's diagnosis, while promotion continues to depend on frozen evaluators, verifiers, receipts, and regression gates.
+
+### Require fresh re-execution after every procedure change
+
+Historical interactions are used for task definition and diagnosis, but policy learning uses fresh rollouts and harness comparisons execute the actual candidate.
+
+**RESIDUAL application:** old traces can generate an ImprovementTask, but cannot prove that a changed procedure works. Parent and candidate should generate fresh, version-bound trajectories under the same evaluation contract.
+
+### Distill procedures, not answers
+
+ScienceBuddy's proposer is instructed not to encode task-specific answers, numerical results, or sample IDs into reusable skills.
+
+**RESIDUAL application:** add a task-local quarantine/generalization classifier so self-improvement converts repeated failure evidence into reusable procedures without turning the harness into a cache of benchmark answers.
+
+### Use different metrics for procedural quality and capability breadth
+
+The paper uses first-response accuracy for harness adaptation and pass@4 problem coverage for model learning. These answer different questions.
+
+**RESIDUAL application:** track first-pass quality, bounded-repair efficiency, problem coverage, accepted-state reliability, regression preservation, and cost separately. A procedure that reduces retries is different from a solver/model change that expands the set of solvable problems.
+
+### Maintain a champion, but avoid false causal attribution
+
+The appendix retains all versions and rejected edits, while deployment follows the selected/best procedure. It also warns that the observed harness gains are the combined effect of successive edits; individual skills were not separately isolated.
+
+**RESIDUAL application:** keep a best-so-far champion procedure and a diagnostic archive of rejected candidates. Periodically run removal/ablation tests before claiming that one accumulated skill caused an improvement; track harness size to detect accretion.
