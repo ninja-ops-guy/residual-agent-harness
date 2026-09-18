@@ -253,7 +253,7 @@ def governor_evaluator_checks(evaluator_files):
             raise ContractError("Executable-code evaluators must be Python test files under tests/")
         checks.append({
             "kind": "command",
-            "argv": ["{python}", "-m", "pytest", evaluator],
+            "argv": ["{python}", "-I", "-c", "import os,sys; os.environ['PYTEST_DISABLE_PLUGIN_AUTOLOAD']='1'; import pytest; sys.path.insert(0,'.'); raise SystemExit(pytest.main(['-q',sys.argv[1]]))", evaluator],
             "timeout": 120,
         })
     return checks
