@@ -27,7 +27,7 @@ from typing import Any, Iterable
 
 from ai_providers import ChatRequest, Message, Role, DEFAULT_REGISTRY, ProviderError
 from residual.cluster.capabilities import Capability
-from residual.cluster.node import ClusterNode
+from residual.cluster.node import ClusterNode, ClusterTask
 from residual.cluster.transport import LoopbackTransport
 from residual.core import digest
 from residual.engines.provider_bridge import ProviderEngineConfig, ProviderExecutionEngine
@@ -349,6 +349,162 @@ def cluster_loopback_suite(*, model: str) -> dict[str, Any]:
             "after_failure": after,
             "failure_receipt_captured": captured,
             "capacity": local.registry.aggregate_capacity(),
+        }
+    finally:
+        for node in reversed(nodes):
+            try:
+                node.close()
+            except Exception:
+                pass
+        LoopbackTransport.reset_registry()
+
+
+
+class _ProviderClusterNode(ClusterNode):
+    """Cluster node whose task hook is backed by a real configured AI provider."""
+
+    def __init__(self, *args, provider: str, provider_model: str, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.provider_kind = provider
+        self.provider_model = provider_model
+        self.executions: list[dict[str, Any]] = []
+
+    def run_task(self, task: ClusterTask) -> str:
+        prompt = str(task.goal_spec.get("prompt", "Return exactly RESIDUAL_OK."))
+        adapter = DEFAULT_REGISTRY.get(self.provider_kind)
+        req = ChatRequest(
+            model=self.provider_model,
+            messages=(
+                Message(Role.SYSTEM, "Return only the requested answer. No explanation."),
+                Message(Role.USER, prompt),
+            ),
+            temperature=0.0,
+            max_tokens=64,
+        )
+        started = time.perf_counter_ns()
+        response = adapter.chat(req)
+        elapsed_ms = (time.perf_counter_ns() - started) / 1_000_000
+        self.executions.append({
+            "task_id": task.task_id,
+            "provider": self.provider_kind,
+            "requested_model": self.provider_model,
+            "response_model": response.model,
+            "content_sha256": hashlib.sha256(response.content.encode("utf-8")).hexdigest(),
+            "latency_ms": round(elapsed_ms, 3),
+            "usage": dict(response.usage or {}),
+        })
+        return response.content
+
+
+def hybrid_provider_failover_suite(*, local_provider: str, local_model: str,
+                                   cloud_provider: str, cloud_model: str) -> dict[str, Any]:
+    """Exercise real heterogeneous provider execution with host-owned cluster failover.
+
+    Transport remains loopback, so this is evidence for provider heterogeneity and
+    routing/failover semantics, not WAN latency or physical multi-host behavior.
+    """
+    LoopbackTransport.reset_registry()
+    local_adapter = DEFAULT_REGISTRY.get(local_provider)
+    local_models = _model_inventory(local_adapter, local_provider)
+    if local_provider == "ollama" and local_model not in local_models:
+        raise ProviderError(provider=local_provider, code="model_not_found")
+    # Constructing the cloud adapter here fails early on malformed configuration.
+    DEFAULT_REGISTRY.get(cloud_provider)
+
+    key = "gauntlet-hybrid-provider-key"
+    abstract_capability = "residual-gauntlet-worker"
+    coordinator = ClusterNode(
+        "hybrid-coordinator", Capability((), 0.0, 0, 0, 0, 1), key,
+        heartbeat_interval_ns=1, failure_timeout_ns=10,
+    )
+    local_worker = _ProviderClusterNode(
+        "hybrid-local",
+        Capability((abstract_capability,), 50.0, 8192, 8_000_000_000, 1, 1),
+        key,
+        heartbeat_interval_ns=1,
+        failure_timeout_ns=10,
+        provider=local_provider,
+        provider_model=local_model,
+    )
+    cloud_worker = _ProviderClusterNode(
+        "hybrid-cloud",
+        Capability((abstract_capability,), 20.0, 8192, 0, 0, 1),
+        key,
+        heartbeat_interval_ns=1,
+        failure_timeout_ns=10,
+        provider=cloud_provider,
+        provider_model=cloud_model,
+    )
+    nodes = (coordinator, local_worker, cloud_worker)
+    try:
+        for node in nodes:
+            node.open()
+        local_worker.join(coordinator.address)
+        cloud_worker.join(coordinator.address)
+
+        local_task = coordinator.submit_task(
+            {"prompt": "Return exactly RESIDUAL_LOCAL_OK."},
+            required_model=abstract_capability,
+        )
+        local_execution_observed = (
+            local_task.state == "completed"
+            and local_task.assigned_node == "hybrid-local"
+            and bool(local_worker.executions)
+        )
+
+        # Inject an in-flight assignment at the exact failure boundary so the
+        # real reassign path invokes the cloud-backed node.
+        failover_task = ClusterTask(
+            task_id="hybrid-failover-task",
+            goal_spec={"prompt": "Return exactly RESIDUAL_CLOUD_OK."},
+            required_model=abstract_capability,
+            assigned_node="hybrid-local",
+            state="assigned",
+        )
+        coordinator.tasks[failover_task.task_id] = failover_task
+        local_record = coordinator.registry.get("hybrid-local")
+        if local_record is None:
+            raise RuntimeError("local hybrid worker was not admitted to cluster")
+        local_record.last_heartbeat_ns = 0
+        failed = coordinator.detect_failures(
+            now_ns=coordinator.failure_timeout_ns + 100
+        )
+
+        cloud_execution_observed = (
+            failover_task.state == "completed"
+            and failover_task.assigned_node == "hybrid-cloud"
+            and bool(cloud_worker.executions)
+        )
+        failure_receipt = any(
+            receipt.get("task_id") == failover_task.task_id
+            and receipt.get("outcome") == "node_failed"
+            for receipt in coordinator.receipts
+        )
+        status = (
+            "PASS"
+            if local_execution_observed
+            and cloud_execution_observed
+            and failure_receipt
+            and "hybrid-local" in failed
+            else "FAIL"
+        )
+        return {
+            "suite": "hybrid_provider_failover",
+            "evidence_level": "hybrid_provider_live_loopback",
+            "status": status,
+            "wan_claim": False,
+            "physical_multi_host_claim": False,
+            "local_provider": local_provider,
+            "local_model": local_model,
+            "cloud_provider": cloud_provider,
+            "cloud_model": cloud_model,
+            "local_execution_observed": local_execution_observed,
+            "cloud_execution_observed": cloud_execution_observed,
+            "failed_nodes": failed,
+            "failure_receipt_captured": failure_receipt,
+            "failover_assigned_node": failover_task.assigned_node,
+            "local_executions": local_worker.executions,
+            "cloud_executions": cloud_worker.executions,
         }
     finally:
         for node in reversed(nodes):
@@ -1047,6 +1203,9 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
                 capture("factory_cloud_dynamic", lambda: factory_live_repeated_suite(
                     provider=cloud_provider, model=cloud_model, output_root=output,
                     strategy="dynamic", repeats=repeats))
+            capture("hybrid_provider_failover", lambda: hybrid_provider_failover_suite(
+                local_provider=provider, local_model=model,
+                cloud_provider=cloud_provider, cloud_model=cloud_model))
 
     end = _now_ns()
     evaluated = [s for s in suites if s.get("status") != "NOT_TESTED"]
@@ -1132,7 +1291,10 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
 
     cluster = by_name.get("cluster_loopback", {})
     hybrid_status = "NOT_TESTED"
-    if cloud_provider and cloud_model and by_name.get("factory_cloud_dynamic", {}).get("status") == "PASS":
+    hybrid_provider = by_name.get("hybrid_provider_failover", {})
+    if hybrid_provider.get("status") == "PASS":
+        hybrid_status = "LIVE_HETEROGENEOUS_PROVIDER_FAILOVER_OVER_LOOPBACK"
+    elif cloud_provider and cloud_model and by_name.get("factory_cloud_dynamic", {}).get("status") == "PASS":
         hybrid_status = "PARTIAL_LOCAL_RUNTIME_CLOUD_AUTHORING"
     elif cluster.get("status") == "PASS":
         hybrid_status = "CONTROL_PLANE_ONLY"
@@ -1178,6 +1340,8 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
             "cluster_loopback_status": cluster.get("status"),
             "wan_mesh_measured": False,
             "cloud_authoring_configured": bool(cloud_provider and cloud_model),
+            "heterogeneous_provider_failover_status": hybrid_provider.get("status"),
+            "heterogeneous_provider_failover": hybrid_provider,
         },
     }
 
