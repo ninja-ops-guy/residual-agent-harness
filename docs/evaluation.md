@@ -47,11 +47,11 @@ A system that rejects nearly everything must not be described as reliable merely
 
 ## Current integration evidence is not confirmatory evidence
 
-Current `main` is **`d665b188ccc5bb659fb37bc52ac387ab4d85f976`**.
+Current `main` is **`260b5f9e20bf70a6b9ca087bc91e22a009ed77b9`**.
 
-Merged #200 hardens the native setup path. Merged #205 restores the session-scoped private provider channel after Mission Control reload/remount. Merged #218 applies bounded repair-loop remediation: content-bound prior-candidate context may be supplied to a repair attempt while the new candidate still starts from a clean baseline worktree, the runner contract separates transport JSON from file-language content, and Mission Control/Store share a five-attempt ceiling. These are accepted engineering behaviors, not model-quality or scientific evidence.
+Merged #200 hardens the native setup path. Merged #205 restores the session-scoped private provider channel after Mission Control reload/remount. Merged #218 applies bounded repair-loop remediation: content-bound prior-candidate context may be supplied to a repair attempt while the new candidate still starts from a clean baseline worktree, the runner contract separates transport JSON from file-language content, and Mission Control/Store share a five-attempt ceiling. Merged #201 accepts the guided frontend/provider UX with inline RESIDUAL-side Puter setup, explicit user-gesture authorization, lazy loading, credential separation, and fail-closed protocol behavior. These are accepted engineering behaviors, not model-quality or scientific evidence.
 
-For exact `main@d665b18...`, seven observed ordinary `push` workflows completed **PASS on attempt 1**: Factory ownership, M4 runner prerequisites, measured-evaluation binding, clean install, Controller/provider, Command Station, and Pages/deployment. This is exact-revision automated integration evidence for the gates that actually ran. It is **not** universal/capable-runner M4 qualification, true blank-environment qualification, paid/live provider/model-quality evidence, physical-device reliability evidence, long-run production-reliability evidence, general autonomous self-maintenance evidence, independent scientific validation, or a paper-facing effect size.
+PR #201's exact head `4e172aed...` completed **PASS** for Control Plane, Factory ownership, measured-evaluation binding, clean install, Browser VM Demo, Pages, Command Station, Controller/provider, and maintainer approval before merge. Exact merged `main@260b5f9...` ordinary push qualification is **PENDING** at this status check; PR-head and predecessor-main PASS are not substitutes for merged-SHA qualification.
 
 Historical exact-revision failures remain in the evidence record even where later revisions pass.
 
@@ -106,13 +106,13 @@ The correct next research move is repeated/preregistered validation, not retroac
 
 ## Deterministic stress evidence and governance ordering
 
-Draft #206 Campaign A completed its authoritative corrected exact-head runs against frozen baseline `699e286...`. The earlier apparatus revision is explicitly invalid because it would have tested GitHub's synthetic pull-request merge commit. Workflow-level `success` in the corrected campaign means the scenario executed and evidence was retained; it is not a scenario-level PASS.
+Draft #206 Campaign A completed its authoritative corrected exact-head runs against frozen baseline `699e286...`. Workflow-level `success` means the scenario executed and evidence was retained; it is not a scenario-level PASS.
 
 Its retained outcomes include:
 
-- **STRESS-A4 — BLOCKED / invalid for repair-pressure qualification:** 0 faults were injected; the provider/structured-output call failed, usage became unknown, run control aborted after one pass, and 0/1 integrated. The intended intervention never executed.
+- **STRESS-A4 — BLOCKED / invalid for repair-pressure qualification:** 0 faults were injected; the intended intervention never executed.
 - **STRESS-A5 — FAIL / incomplete:** 3/6 DAG tasks integrated before `no_runnable_tasks` escalation; downstream tasks did not complete and no release export was attempted.
-- **STRESS-A6 — FAIL in scope:** three frozen Qwen2.5-Coder 7B trials produced 0 successes and accepted rate 0.0; each ended 0/1 integrated after the max-iteration brake.
+- **STRESS-A6 — FAIL in scope:** three frozen Qwen2.5-Coder 7B trials produced 0 successes and accepted rate 0.0.
 
 Those cells are configuration/revision bound and remain negative/blocked evidence. #220 is a different corrected-runtime fixed-spec experiment and does not replace them.
 
@@ -128,18 +128,24 @@ Draft #212 Campaign C extends this with deterministic failure/recovery cases:
 - malformed runner JSON: **PASS for fail-closed containment** in that exact scenario;
 - invalid reviewer schema: **PASS for fail-closed containment** in that exact scenario;
 - reviewer denial then approval: **PASS for the bounded recovery path**, integrating on attempt 2;
-- transient HTTP 500: no integration, but no alternate failover candidate existed and unknown usage aborted the run, so retry/failover success remains **UNKNOWN / not established**;
+- transient HTTP 500: no integration, but retry/failover success remains **UNKNOWN / not established**;
 - missing usage: **FAIL for accounting-before-authority** because a valid candidate integrated and received a receipt before the later `usage_unknown_or_invalid` host abort, corroborating #208.
 
 A workflow-level `success` for a research campaign means the experiment executed and retained its evidence. It does **not** mean each stress scenario passed.
 
-Draft #214 is an unaccepted candidate repair for #208, but its head `d3e8a5ec...` is still based on predecessor `main@4608afa...`. Current accepted main moved to `d665b18...` through #218, so #214 now requires refresh/rebase plus exact-current-head qualification before acceptance. Until a repair is accepted and the affected #207/#212 scenarios are requalified, do not make a stronger blanket claim that budget exhaustion, unknown usage, or terminal verifier failure always prevents later accepted-state/release materialization across the tested control surface.
+Draft #214 is an unaccepted candidate repair for #208, but its head `d3e8a5ec...` is still based on predecessor `main@4608afa...`. Current accepted main moved to `260b5f9...` through #218/#201, so #214 now requires refresh/rebase plus exact-current-head qualification before acceptance. Until a repair is accepted and the affected #207/#212 scenarios are requalified, do not make a stronger blanket claim that budget exhaustion, unknown usage, or terminal verifier failure always prevents later accepted-state/release materialization across the tested control surface.
+
+## Frontend/provider evaluation boundary
+
+Accepted #201 changes the browser/user-experience path, not the scientific evidence boundary. Its exact PR head passed Browser VM Demo and Pages alongside the ordinary controller/provider and Station gates, but the exact merged SHA still requires its own post-merge push qualification.
+
+The inline provider flow may use Puter's secure authorization popup; keeping RESIDUAL-side setup within Mission Control is not equivalent to successful provider inference. Likewise, command animation and guided proof improve onboarding but are not model-quality or reliability measurements.
 
 ## Live-provider boundary
 
 Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice. Both counted calls failed closed as `provider_protocol_invalid`; no candidate crossed the protocol boundary, so candidate correctness and semantic verification remain **UNKNOWN**.
 
-#179, #183, #189 and #205 repair bounded build-output, provider-session, publication and reload-recovery behavior. None itself constitutes live semantic acceptance evidence.
+#179, #183, #189, #205 and #201 repair or improve bounded build-output, provider-session, publication, reload-recovery and inline setup/authorization behavior. None itself constitutes live semantic acceptance evidence.
 
 Successful paid/live Puter execution on exact current main remains **UNKNOWN / not established** until a fresh retained real-account mission crosses provider protocol validation and proceeds through normal verifier/receipt handling. If a study depends on the real-provider path, do not substitute green provider-contract, browser, Pages or lifecycle CI for fresh exact-revision provider evidence.
 
@@ -156,7 +162,7 @@ For a confirmatory protocol that depends on WebVM:
 3. preserve first-attempt `FAIL`/`UNKNOWN` evidence rather than rerunning it away;
 4. define a repeated-run reliability campaign in advance;
 5. report operational failure/missingness separately from model correctness;
-6. do not describe a safe fallback, provider-session repair, publication-boundary fix or added telemetry as proof that the broader corruption family is fixed.
+6. do not describe a safe fallback, provider-session repair, publication-boundary fix, inline provider UX or added telemetry as proof that the broader corruption family is fixed.
 
 A protocol may exclude WebVM, but exclusion must be explicit before outcome access.
 
@@ -202,7 +208,7 @@ Green fixture/package checks do not substitute for this freeze/qualification seq
 - Do not infer model quality from transport conformance.
 - Do not infer physical iOS reliability from browser preflight alone.
 - Do not infer production readiness from fixture CI.
-- Do not inherit qualification from a predecessor branch after `main` materially moves.
+- Do not inherit qualification from a predecessor branch or PR head after `main` materially moves.
 - Keep worker correctness independent from controller acceptance so `P(X)` and `P(X|A)` remain estimable.
 - Retain exact commit/tree, workload hash, model/config identity and raw observations for every paper-facing result.
 - Negative/null results belong in the evidence package; do not tune the frozen protocol after observing them.
