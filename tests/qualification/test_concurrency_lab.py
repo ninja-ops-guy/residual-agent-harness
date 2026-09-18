@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import concurrent.futures
+import multiprocessing
 import threading
 from pathlib import Path
 
@@ -8,6 +9,8 @@ import pytest
 
 from residual.factory.runtime_journal import JournalError, RuntimeJournal
 from residual.factory.worker_contract import WorkerContract
+from residual.station.service import Station, demo_spec
+from residual.station.store import Store
 
 
 def contract(index: int) -> WorkerContract:
@@ -143,3 +146,41 @@ def test_revoked_lease_never_resurrects_during_concurrent_restart_reads(tmp_path
     assert violations == []
     assert journal.lease_state(candidate) == "revoked"
     journal.observations()
+
+
+def _process_claim(root: str, pid: str, owner: str, start, output) -> None:
+    store = Store(root)
+    start.wait()
+    try:
+        task = store.claim(pid, owner, "OPS-101")
+        output.put(("PASS", task["id"] if task else None))
+    except Exception as exc:
+        output.put(("ERROR", f"{type(exc).__name__}: {exc}"))
+
+
+def test_station_claim_is_exclusive_across_separate_processes(tmp_path: Path):
+    root = tmp_path / "station"
+    station = Station(root)
+    pid = station.create(demo_spec(), demo=True)["project_id"]
+    station.triage(pid)
+
+    context = multiprocessing.get_context("spawn")
+    start = context.Event()
+    output = context.Queue()
+    processes = [
+        context.Process(target=_process_claim, args=(str(root), pid, f"process-{index}", start, output))
+        for index in range(8)
+    ]
+    for process in processes:
+        process.start()
+    start.set()
+    results = [output.get(timeout=20) for _ in processes]
+    for process in processes:
+        process.join(timeout=20)
+        assert process.exitcode == 0
+
+    assert [value for status, value in results if status == "PASS" and value == "OPS-101"] == ["OPS-101"]
+    assert not [value for status, value in results if status == "ERROR"]
+    task = Store(root).task(pid, "OPS-101")
+    assert task["state"] == "running"
+    assert task["attempt"] == 1
