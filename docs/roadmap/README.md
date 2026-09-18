@@ -54,20 +54,25 @@ Research branches remain outside accepted production capability unless explicitl
 - **#202** — an earlier heterogeneous real-model DAG run remains **FAIL**; a later distinct exact-head run is a bounded **PASS** with 3/3 tasks integrated, retained receipts, dependency lineage, deliberate repair pressure, and release export. The later PASS does not erase the earlier FAIL or establish general DAG/recovery reliability.
 - **#203** — first-authoritative M6 ImprovementSpec self-host trial remains **FAIL**.
 - **#204** — stronger-model M6-SPEC-002 authoritative trial remains **FAIL**: 0/1 integrated, max-iteration escalation, no verification receipt and no release.
-- **#206** — M6 stress campaign A remains **PENDING** at the latest observation; its dedicated workflow is still in progress and no result is promoted here.
-- **#207** — deterministic stress campaign B retained mixed results. STRESS-B1 is **FAIL** because exhausted-budget accounting was observed only after accepted integration/release; STRESS-B2 is a scoped **PASS** early-convergence control; STRESS-B3 is **FAIL** because a non-empty release materialized after terminal verifier failure; STRESS-B4 contains corrupt candidates in the exact scenario but does not recover to task success within the frozen pass budget.
+- **#206** — Campaign A is complete at its corrected exact experiment head. STRESS-A4 is **BLOCKED / invalid for its intended repair-pressure intervention** because 0 faults were injected before an unknown-usage abort; STRESS-A5 is **FAIL / incomplete** at 3/6 integrated with no release; STRESS-A6 is **FAIL in scope** at 0/3 successful Qwen2.5-Coder 7B trials. Workflow-level success only establishes that evidence was retained.
+- **#207** — deterministic Campaign B retained mixed results. STRESS-B1 is **FAIL** because exhausted-budget accounting was observed only after accepted integration/release; STRESS-B2 is a scoped **PASS** early-convergence control; STRESS-B3 is **FAIL** because a non-empty release materialized after terminal verifier failure; STRESS-B4 contains corrupt candidates in the exact scenario but does not recover to task success within the frozen pass budget.
+- **#212** — deterministic Campaign C adds bounded containment/recovery PASS cells for malformed runner output, invalid reviewer schema, and denial→approval recovery, while the missing-usage case is a **FAIL** for accounting-before-authority because integration plus a receipt occurred before the later `usage_unknown_or_invalid` abort. The transient-500 case did not establish provider failover success.
+- **#213/#215/#217** — repair-context and transport/source-clarity work remains unaccepted research/development. M6-SPEC-003 and M6-SPEC-004 both remain authoritative **FAIL** results with 0/1 integrated and no receipt/release.
+- **#214** — draft repair candidate for #208. Observed exact-head technical workflows are green, but maintainer attestation is **BLOCKED/FAIL**; no accepted-main fix claim is made until merge plus applicable requalification.
 
 ## Current build order
 
-1. **Repair and requalify the #207 governance-ordering failures.** Budget exhaustion and terminal verifier failure must block release/accepted-state materialization before stronger fail-closed claims are made.
-2. **Retain fresh exact-current-deployed live-provider evidence.** A real-account Puter mission must cross protocol validation into ordinary candidate/verifier/receipt handling before live-provider success can become PASS.
-3. **Physically validate the #186 iOS fallback** without broadening fallback success into heavyweight-WebVM reliability.
-4. **Execute true blank-environment installation, recovery/host-loss qualification, and selected elapsed soak** for the exact release artifact.
-5. **Continue #120/#126 WebVM reliability work** and preserve historical negative evidence.
-6. **Resolve the #133/#132 retirement-versus-restoration discrepancy** explicitly rather than reconstructing absent capability in prose.
-7. **Keep #139→ownership-baseline→fresh-qualification→#134 independent.** Unrelated green CI does not clear that protected sequence.
-8. **Refresh/requalify broader stale candidates such as #152/#177** before current release/research claims use them.
-9. **Freeze and run confirmatory research only after operational claims are bounded.** Preserve negative and missing cells.
+1. **Repair and requalify #207/#208 authority-ordering failures.** Budget/unknown-usage state and terminal verifier failure must prevent later accepted-state/release effects before stronger fail-closed claims are made. #214 remains only a draft candidate.
+2. **Re-run a valid #206 repair-pressure intervention and retain the negative DAG/reliability cells.** Do not convert A4's invalid intervention or A5/A6 failures into PASS through workflow success or later reruns.
+3. **Continue bounded M6 repair experiments without promoting them into product capability.** #215 and #217 both remain retained FAIL results; #213 is unaccepted.
+4. **Retain fresh exact-current-deployed live-provider evidence.** A real-account Puter mission must cross protocol validation into ordinary candidate/verifier/receipt handling before live-provider success can become PASS.
+5. **Physically validate the #186 iOS fallback** without broadening fallback success into heavyweight-WebVM reliability.
+6. **Execute true blank-environment installation, recovery/host-loss qualification, and selected elapsed soak** for the exact release artifact.
+7. **Continue #120/#126 WebVM reliability work** and preserve historical negative evidence.
+8. **Resolve the #133/#132 retirement-versus-restoration discrepancy** explicitly rather than reconstructing absent capability in prose.
+9. **Keep #139→ownership-baseline→fresh-qualification→#134 independent.** Unrelated green CI does not clear that protected sequence.
+10. **Refresh/requalify broader stale candidates such as #152/#177** before current release/research claims use them.
+11. **Freeze and run confirmatory research only after operational claims are bounded.** Preserve negative, blocked and missing cells.
 
 ## Release evidence rule
 
