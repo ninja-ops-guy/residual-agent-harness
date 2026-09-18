@@ -101,9 +101,9 @@ jobs:
           ollama pull "$REVIEWER_MODEL"
       - name: Start role router and deterministic one-shot fault injector
         run: |
-          nohup python scripts/ollama_role_proxy.py             --port 11434             --upstream http://127.0.0.1:11435             --runner-model "$RUNNER_MODEL"             --reviewer-model "$REVIEWER_MODEL"             --events "$ROLE_PROXY_EVENTS"             > /tmp/role-proxy.log 2>&1 &
+          nohup python scripts/ollama_role_proxy.py --port 11436 --upstream http://127.0.0.1:11435 --runner-model "$RUNNER_MODEL" --reviewer-model "$REVIEWER_MODEL" --events "$ROLE_PROXY_EVENTS" > /tmp/role-proxy.log 2>&1 &
           for i in {1..20}; do
-            if curl -fsS http://127.0.0.1:11434/api/tags >/dev/null; then
+            if curl -fsS http://127.0.0.1:11436/api/tags >/dev/null; then
               exit 0
             fi
             sleep 1
@@ -112,7 +112,7 @@ jobs:
           exit 1
       - name: Execute heterogeneous DAG mission
         run: |
-          python scripts/dag_real_model_mission.py             --runner-model "$RUNNER_MODEL"             --reviewer-model "$REVIEWER_MODEL"             --proxy-events "$ROLE_PROXY_EVENTS"             --output runs/dag-real-model-mission/evidence.json
+          python scripts/dag_real_model_mission.py --base-url http://127.0.0.1:11436 --runner-model "$RUNNER_MODEL" --reviewer-model "$REVIEWER_MODEL" --proxy-events "$ROLE_PROXY_EVENTS" --output runs/dag-real-model-mission/evidence.json
       - name: Show retained DAG evidence
         if: always()
         run: |
