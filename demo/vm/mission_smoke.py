@@ -82,12 +82,12 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     assert not report['optional_requests'], 'guided setup initialized SDK without its load consent'
     await page.route('https://js.puter.com/v2/**', lambda route: route.abort('internetdisconnected'))
     await page.locator('#mc-provider-start').click()
-    frame = page.frame_locator('#mc-provider-frame')
-    await frame.locator('#load').wait_for()
+    provider_frame = page.frame_locator('#mc-provider-frame')
+    await provider_frame.locator('#load').wait_for()
     assert await page.locator('#mc-provider-frame').get_attribute('credentialless') is not None
     report['provider_helper_isolation'] = 'PASS_CREDENTIALLESS_EMBEDDED_BOUNDARY'
-    await frame.locator('#load').click()
-    await frame.locator('#status').filter(has_text='could not load').wait_for()
+    await provider_frame.locator('#load').click()
+    await provider_frame.locator('#status').filter(has_text='could not load').wait_for()
     assert report['optional_requests'], 'explicit SDK load did not attempt a network request'
     await page.locator('#mc-terminal').click()
     await command_proof('read -r residual_worker_pid < /tmp/residual-workbench.pid && read -r residual_worker_first < /tmp/residual-worker-first.pid && test "$residual_worker_pid" = "$residual_worker_first" && kill -0 "$residual_worker_pid"')
@@ -101,14 +101,14 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
         headers={'access-control-allow-origin': '*'},
         body=SDK_FIXTURE,
     ))
-    await frame.locator('#load').click()
-    await frame.locator('#signin').click()
+    await provider_frame.locator('#load').click()
+    await provider_frame.locator('#signin').click()
     await page.wait_for_function(
         "() => document.querySelector('#mc-connect').textContent.startsWith('Provider connected')",
         timeout=20000,
     )
-    assert await frame.locator('body').evaluate('(body) => body.ownerDocument.defaultView.__providerFixture.gesture'), 'sign-in lost user gesture'
-    assert 'Connected. Mission Control' in await frame.locator('#status').inner_text()
+    assert await provider_frame.locator('body').evaluate('(body) => body.ownerDocument.defaultView.__providerFixture.gesture'), 'sign-in lost user gesture'
+    assert 'Connected. Mission Control' in await provider_frame.locator('#status').inner_text()
 
     await page.locator('#mc-mission').click()
     await page.get_by_text('Run controls', exact=True).click()
@@ -183,7 +183,7 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     assert 'PASSED' in await page.locator('#mc-verdict').inner_text()
     assert nonce in await page.locator('#mc-answer').inner_text()
     assert 'README.md:1-1' in await page.locator('#mc-citations').text_content()
-    assert await frame.locator('body').evaluate('(body) => body.ownerDocument.defaultView.__providerFixture.calls') == 3
+    assert await provider_frame.locator('body').evaluate('(body) => body.ownerDocument.defaultView.__providerFixture.calls') == 3
     path = re.search(r'/opt/residual/runs/missions/m-[a-f0-9]{32}', await page.locator('#mc-path').inner_text()).group()
     await page.screenshot(path=str(args.output / 'mission-chat-provider-contract.png'))
     await page.locator('#mc-terminal').click()
