@@ -19,3 +19,7 @@ def test_campaign_retains_each_seed_and_has_no_hidden_retries():
     assert [row["seed"] for row in report["histories"]] == list(range(11, 19))
     assert report["failures"] == []
     assert all(row["steps_executed"] == 60 for row in report["histories"])
+    assert report["discovery_adequacy"]["result"] == "PASS"
+    assert report["discovery_adequacy"]["missing_actions"] == []
+    assert report["discovery_adequacy"]["outcome_counts"].get("UNHANDLED", 0) == 0
+    assert all(row["outcome_counts"].get("NOOP", 0) == 0 for row in report["histories"])
