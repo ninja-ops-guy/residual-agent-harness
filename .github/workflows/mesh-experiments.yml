@@ -17,6 +17,7 @@ on:
       - 'tests/test_distributed_pipeline_experiment.py'
       - 'tests/test_distributed_recovery_experiment.py'
       - 'tests/test_distributed_experiment_matrix.py'
+      - 'tests/test_station_mesh_bridge.py'
       - 'tests/mission-control-commands.test.mjs'
       - '.github/workflows/mesh-experiments.yml'
 
@@ -46,6 +47,7 @@ jobs:
           tests/test_distributed_pipeline_experiment.py
           tests/test_distributed_recovery_experiment.py
           tests/test_distributed_experiment_matrix.py
+          tests/test_station_mesh_bridge.py
       - name: Compile
         run: python -m compileall -q residual
 
