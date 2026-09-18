@@ -160,6 +160,14 @@ def test_joined_remote_can_receive_task_immediately():
     finally:
         a.close(); b.close()
 
+def test_peer_admission_does_not_falsely_claim_transport_delivery():
+    nodes = mesh_nodes("a", "b"); a, b = nodes["a"], nodes["b"]
+    a.connect_peer(b.identity); b.connect_peer(a.identity)
+    msg = a.send_message(MeshMessageKind.CHAT, content="manual transport boundary")
+    assert b.chat.messages == ()
+    assert b.receive_message(msg) is True
+    assert b.chat.messages[-1].content == "manual transport boundary"
+
 def test_late_joiner_must_replay_history_before_live_messages():
     nodes = mesh_nodes("a", "b"); a, b = nodes["a"], nodes["b"]
     b.connect_peer(a.identity)
