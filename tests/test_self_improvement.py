@@ -29,6 +29,8 @@ class RecursiveImprovementTests(unittest.TestCase):
         required = {
             "docs/CURRENT_STATUS.md": "# status\n",
             "docs/evaluator.md": "# frozen evaluator\n",
+            "docs/self-improvement/MISSION.md": "# mission policy\n",
+            "tests/test_self_improvement.py": "# frozen mission regression\n",
             "residual/goalspec.py": "GOAL = True\n",
             "residual/loop.py": "LOOP = True\n",
             "residual/station/service.py": "STATION = True\n",
