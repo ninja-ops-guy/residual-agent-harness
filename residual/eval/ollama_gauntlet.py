@@ -432,16 +432,78 @@ def _execute_strategy(runtime: FactoryRuntime, plan: ExecutionPlan, approval: Fr
     return results, waves, time.monotonic() - started
 
 
+def author_frozen_source_corpus(*, provider: str, model: str,
+                                cases: tuple[LiveCase, ...] = DEFAULT_CASES) -> dict[str, Any]:
+    """Author one immutable worker-source corpus for paired scheduler trials."""
+    plan = _plan_for_cases(cases)
+    engine = ProviderExecutionEngine(ProviderEngineConfig(
+        provider=provider, model=model, locality="local" if provider == "ollama" else "cloud",
+        max_tokens=1024, temperature=0.0,
+        system_prompt="Return exactly the requested raw Python source, with no Markdown fences.",
+    ))
+    contracts = _contracts_for_cases(
+        cases=cases,
+        plan=plan,
+        input_commit="0" * 40,
+        work_root=Path("/tmp/residual-gauntlet-authoring"),
+        engine_id=engine.engine_id,
+        attempt_prefix="pairedsrc",
+    )
+    sources: dict[str, str] = {}
+    metadata = []
+    for case, contract in zip(cases, contracts):
+        started = time.monotonic()
+        try:
+            source, tokens, author_ms = _author_source(engine, case, contract)
+            error = None
+            sources[case.case_id] = source
+        except Exception as exc:
+            source, tokens, author_ms = "", 0, int((time.monotonic() - started) * 1000)
+            error = type(exc).__name__
+        metadata.append({
+            "case_id": case.case_id,
+            "source_sha256": hashlib.sha256(source.encode()).hexdigest(),
+            "tokens": tokens,
+            "wall_clock_ms": author_ms,
+            "source_origin": source_origin,
+            "error": error,
+        })
+    if len(sources) != len(cases):
+        return {
+            "status": "INCONCLUSIVE",
+            "provider": provider,
+            "model": model,
+            "sources": sources,
+            "metadata": metadata,
+            "reason": "one or more paired worker sources could not be authored",
+        }
+    corpus_hash = digest({case.case_id: sources[case.case_id] for case in cases})
+    return {
+        "status": "PASS",
+        "provider": provider,
+        "model": model,
+        "sources": sources,
+        "metadata": metadata,
+        "source_corpus_sha256": corpus_hash,
+        "author_tokens": sum(int(row["tokens"]) for row in metadata),
+        "author_wall_clock_ms": sum(int(row["wall_clock_ms"]) for row in metadata),
+    }
+
+
 def factory_live_suite(*, provider: str, model: str, output_root: Path,
                        strategy: str, cases: tuple[LiveCase, ...] = DEFAULT_CASES,
                        fixed_capacity: int = 4, dynamic_max: int = 8,
-                       trial: int = 0) -> dict[str, Any]:
+                       trial: int = 0,
+                       preauthored_sources: dict[str, str] | None = None,
+                       source_corpus_sha256: str | None = None,
+                       run_label: str = "factory") -> dict[str, Any]:
     """Run real model-authored code through the real Factory boundary and M3 issuer."""
     if sys.platform != "linux":
         return {"suite": f"factory_live_{strategy}", "evidence_level": "factory_live",
                 "status": "NOT_TESTED", "reason": "FactoryRuntime requires Linux"}
     safe_provider = provider.replace("/", "_").replace(":", "_")
-    run_root = output_root / f"factory-{safe_provider}-{strategy}-trial-{trial:03d}"
+    safe_label = run_label.replace("/", "_").replace(":", "_")
+    run_root = output_root / f"{safe_label}-{safe_provider}-{strategy}-trial-{trial:03d}"
     run_root.mkdir(parents=True, exist_ok=False)
     repository, commit = _init_repo(run_root)
     journal = RuntimeJournal(run_root / "state" / "journal.db",
@@ -469,10 +531,17 @@ def factory_live_suite(*, provider: str, model: str, output_root: Path,
     for case, contract in zip(cases, contracts):
         started = time.monotonic()
         try:
-            source, tokens, author_ms = _author_source(engine, case, contract)
+            if preauthored_sources is None:
+                source, tokens, author_ms = _author_source(engine, case, contract)
+                source_origin = "live_authored"
+            else:
+                source = preauthored_sources[case.case_id]
+                tokens, author_ms = 0, 0
+                source_origin = "frozen_paired_corpus"
             error = None
         except Exception as exc:
             source, tokens, author_ms = "", 0, int((time.monotonic() - started) * 1000)
+            source_origin = "missing_or_invalid"
             error = type(exc).__name__
         source_path = run_root / "authored"
         source_path.mkdir(exist_ok=True)
@@ -557,6 +626,7 @@ def factory_live_suite(*, provider: str, model: str, output_root: Path,
         "trial": trial,
         "provider": provider,
         "model": model,
+        "source_corpus_sha256": source_corpus_sha256,
         "plan_hash": plan.graph_hash,
         "input_commit": commit,
         "station_key_id": identity.key_id,
@@ -584,7 +654,10 @@ def factory_live_repeated_suite(*, provider: str, model: str, output_root: Path,
                                 strategy: str, repeats: int,
                                 cases: tuple[LiveCase, ...] = DEFAULT_CASES,
                                 fixed_capacity: int = 4,
-                                dynamic_max: int = 8) -> dict[str, Any]:
+                                dynamic_max: int = 8,
+                                preauthored_sources: dict[str, str] | None = None,
+                                source_corpus_sha256: str | None = None,
+                                run_label: str = "factory") -> dict[str, Any]:
     """Repeat the full model-authoring + Factory execution experiment."""
     if repeats < 1:
         raise ValueError("repeats must be >= 1")
@@ -599,6 +672,9 @@ def factory_live_repeated_suite(*, provider: str, model: str, output_root: Path,
             fixed_capacity=fixed_capacity,
             dynamic_max=dynamic_max,
             trial=trial,
+            preauthored_sources=preauthored_sources,
+            source_corpus_sha256=source_corpus_sha256,
+            run_label=run_label,
         )
         trials.append(result)
         if result.get("status") == "NOT_TESTED":
@@ -644,6 +720,7 @@ def factory_live_repeated_suite(*, provider: str, model: str, output_root: Path,
         "strategy": strategy,
         "provider": provider,
         "model": model,
+        "source_corpus_sha256": source_corpus_sha256,
         "repeat_count": len(tested),
         "workers": total_workers,
         "accepted": total_accepted,
@@ -664,6 +741,74 @@ def factory_live_repeated_suite(*, provider: str, model: str, output_root: Path,
         ),
         "author_tokens": author_tokens,
         "trials": trials,
+    }
+
+
+def factory_paired_scheduler_suite(*, provider: str, model: str,
+                                   output_root: Path, repeats: int,
+                                   cases: tuple[LiveCase, ...] = DEFAULT_CASES) -> dict[str, Any]:
+    """Freeze worker source bytes once, then compare schedulers on paired inputs."""
+    authored = author_frozen_source_corpus(provider=provider, model=model, cases=cases)
+    if authored["status"] != "PASS":
+        return {
+            "suite": "factory_paired_scheduler",
+            "evidence_level": "factory_live_paired",
+            "status": "INCONCLUSIVE",
+            "reason": authored.get("reason"),
+            "authored": authored,
+        }
+    strategies = {}
+    for strategy in ("single", "fixed", "dynamic"):
+        strategies[strategy] = factory_live_repeated_suite(
+            provider=provider,
+            model=model,
+            output_root=output_root,
+            strategy=strategy,
+            repeats=repeats,
+            cases=cases,
+            preauthored_sources=authored["sources"],
+            source_corpus_sha256=authored["source_corpus_sha256"],
+            run_label="paired",
+        )
+    if any(value.get("status") == "FAIL" for value in strategies.values()):
+        status = "FAIL"
+    elif any(value.get("status") != "PASS" for value in strategies.values()):
+        status = "INCONCLUSIVE"
+    else:
+        status = "PASS"
+    timing = {
+        key: value.get("wall_clock_seconds_mean")
+        for key, value in strategies.items()
+        if value.get("wall_clock_seconds_mean") is not None
+    }
+    throughput = {
+        key: value.get("verified_useful_throughput_per_second")
+        for key, value in strategies.items()
+        if value.get("verified_useful_throughput_per_second") is not None
+    }
+    speedups = {}
+    baseline = timing.get("single")
+    if baseline:
+        for key in ("fixed", "dynamic"):
+            if timing.get(key):
+                speedups[key] = baseline / timing[key]
+    return {
+        "suite": "factory_paired_scheduler",
+        "evidence_level": "factory_live_paired",
+        "status": status,
+        "provider": provider,
+        "model": model,
+        "repeat_count": repeats,
+        "source_corpus_sha256": authored["source_corpus_sha256"],
+        "source_authoring": {
+            "tokens": authored["author_tokens"],
+            "wall_clock_ms": authored["author_wall_clock_ms"],
+            "metadata": authored["metadata"],
+        },
+        "wall_clock_seconds_mean": timing,
+        "verified_useful_throughput_per_second": throughput,
+        "speedup_vs_single": speedups,
+        "strategies": strategies,
     }
 
 
@@ -786,6 +931,8 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
             capture(f"factory_live_{strategy}", lambda strategy=strategy: factory_live_repeated_suite(
                 provider=provider, model=model, output_root=output, strategy=strategy,
                 repeats=repeats))
+        capture("factory_paired_scheduler", lambda: factory_paired_scheduler_suite(
+            provider=provider, model=model, output_root=output, repeats=repeats))
     if cloud_provider or cloud_model:
         if not (cloud_provider and cloud_model):
             suites.append({"suite": "cloud_provider_live", "status": "NOT_TESTED",
@@ -843,12 +990,23 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
     elif control.get("status") == "PASS":
         safety_status = "PARTIAL"
 
-    efficiency_status = "NOT_TESTED"
+    paired = by_name.get("factory_paired_scheduler", {})
+    paired_speedups = paired.get("speedup_vs_single", {}) if isinstance(paired, dict) else {}
+    scheduler_efficiency_status = "NOT_TESTED"
+    if paired.get("status") == "PASS":
+        scheduler_efficiency_status = (
+            "SUPPORTED_FOR_THIS_WORKLOAD"
+            if paired_speedups and max(paired_speedups.values()) > 1.0
+            else "NOT_SUPPORTED_FOR_THIS_WORKLOAD"
+        )
+
+    end_to_end_efficiency_status = "NOT_TESTED"
     if len(end_to_end_timing) == 3 and all(factory_local[k].get("status") == "PASS" for k in factory_local):
-        if end_to_end_speedups and max(end_to_end_speedups.values()) > 1.0:
-            efficiency_status = "SUPPORTED_FOR_THIS_WORKLOAD"
-        else:
-            efficiency_status = "NOT_SUPPORTED_FOR_THIS_WORKLOAD"
+        end_to_end_efficiency_status = (
+            "SUPPORTED_FOR_THIS_WORKLOAD"
+            if end_to_end_speedups and max(end_to_end_speedups.values()) > 1.0
+            else "NOT_SUPPORTED_FOR_THIS_WORKLOAD"
+        )
 
     cluster = by_name.get("cluster_loopback", {})
     hybrid_status = "NOT_TESTED"
@@ -861,15 +1019,23 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
         "safety": {"status": safety_status, "unsafe_acceptances": unsafe,
                    "control_probe_status": control.get("status")},
         "scheduler_efficiency": {
-            "status": efficiency_status,
-            "wall_clock_seconds": timing,
-            "verified_throughput_per_second": throughput,
-            "scheduler_speedup_vs_single": speedups,
+            "status": scheduler_efficiency_status,
+            "paired_source_corpus_sha256": paired.get("source_corpus_sha256"),
+            "wall_clock_seconds_mean": paired.get("wall_clock_seconds_mean"),
+            "verified_throughput_per_second": paired.get("verified_useful_throughput_per_second"),
+            "speedup_vs_single": paired_speedups,
+            "provider_saturation_curve": by_name.get("provider_scaling", {}).get("points"),
+            "scope": "paired governed Factory scheduling over identical frozen worker-source bytes",
+        },
+        "end_to_end_efficiency": {
+            "status": end_to_end_efficiency_status,
             "end_to_end_seconds_mean": end_to_end_timing,
             "end_to_end_verified_throughput_per_second": end_to_end_throughput,
             "end_to_end_speedup_vs_single": end_to_end_speedups,
-            "provider_saturation_curve": by_name.get("provider_scaling", {}).get("points"),
-            "scope": "governed Factory scheduling; provider saturation reported separately; not an uncontrolled-swarm baseline",
+            "factory_only_wall_clock_seconds_mean": timing,
+            "factory_only_verified_throughput_per_second": throughput,
+            "factory_only_speedup_vs_single": speedups,
+            "scope": "full model-authoring plus governed Factory execution; worker source is re-authored per trial",
         },
         "hybrid_cloud_mesh": {
             "status": hybrid_status,
@@ -894,7 +1060,7 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
             "inconclusive_suites": len(inconclusive),
             "claim_boundaries": {
                 "safety": "supported only by executed enforcement/acceptance suites",
-                "efficiency": "requires successful live single/fixed/dynamic comparisons",
+                "efficiency": "scheduler evidence uses paired frozen sources; end-to-end evidence includes fresh authoring",
                 "hybrid_cloud_mesh": "cluster loopback is control-plane evidence only; WAN/cloud remains separate",
             },
         },
