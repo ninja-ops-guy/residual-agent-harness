@@ -38,7 +38,7 @@ jobs:
           cat "$RUNNER_TEMP/ollama.log"
           exit 1
       - name: Pull pinned smoke model
-        run: ollama pull qwen2.5:0.5b
+        run: ollama pull qwen2.5-coder:0.5b
       - name: Compile and unit-test gauntlet
         run: |
           python -m compileall -q residual/eval residual/eval_frozen
@@ -49,7 +49,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p runs
-          residual-gauntlet --model qwen2.5:0.5b --repeats 1 --output runs/ollama-gauntlet-smoke | tee runs/ollama-gauntlet-smoke-summary.txt
+          residual-gauntlet --model qwen2.5-coder:0.5b --repeats 1 --output runs/ollama-gauntlet-smoke | tee runs/ollama-gauntlet-smoke-summary.txt
       - name: Preserve evidence
         if: always()
         uses: actions/upload-artifact@v4
