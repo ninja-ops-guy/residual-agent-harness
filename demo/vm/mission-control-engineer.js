@@ -2,13 +2,13 @@ import {mountMissionControl as mountCore} from './mission-control.js';
 
 const PREFIX='\x1b]777;RESIDUAL;';
 const FAILURE_HELP={
-  provider_exception:['Provider adapter failed before a candidate reached RESIDUAL.','The worker boundary raised an unexpected adapter exception, so the Harness accepted nothing.','Retry once after reconnecting. If it repeats, inspect the provider tab and retained trace; this is an integration defect, not a successful build.'],
-  provider_error:['Provider request failed before a usable candidate reached RESIDUAL.','The provider boundary returned a safe generic failure code; no provider error body or credential was copied into evidence.','Check model availability/account allowance in the provider tab, then retry.'],
-  provider_request_failed:['Provider rejected or failed the model request.','The SDK call failed after authorization, before RESIDUAL received a candidate.','Check model/account allowance in the provider tab or choose another available model.'],
+  provider_exception:['Provider adapter failed before a candidate reached RESIDUAL.','The worker boundary raised an unexpected adapter exception, so the Harness accepted nothing.','Retry once after reconnecting. If it repeats, inspect provider status and the retained trace; this is an integration defect, not a successful build.'],
+  provider_error:['Provider request failed before a usable candidate reached RESIDUAL.','The provider boundary returned a safe generic failure code; no provider error body or credential was copied into evidence.','Check model availability or account allowance in guided setup, then retry.'],
+  provider_request_failed:['Provider rejected or failed the model request.','The SDK call failed after authorization, before RESIDUAL received a candidate.','Check model or account allowance in guided setup, or choose another available model.'],
   provider_model_unavailable:['The selected model is not available in this provider session.','The provider rejected the selected model or the model could not be routed for this account.','Choose an available model and resend the preserved prompt.'],
   provider_authorization_failed:['Provider authorization or allowance was insufficient for this call.','Sign-in succeeded, but the model request was not authorized or billable for this account.','Return to provider setup, confirm the account/allowance, then retry.'],
   provider_protocol_invalid:['The model replied, but not in RESIDUAL’s required worker envelope.','Fail-closed protocol validation rejected prose or malformed tool arguments before the guest could treat them as a candidate.','Use the live provider stages to see whether decoding failed, then retry or select another tool-capable model.'],
-  provider_timeout:['The provider did not return within the bounded request window.','RESIDUAL timed out rather than wait indefinitely or infer success. A timed-out remote request may still be billed.','Check the provider tab, then retry only if the prior request is no longer running.'],
+  provider_timeout:['The provider did not return within the bounded request window.','RESIDUAL timed out rather than wait indefinitely or infer success. A timed-out remote request may still be billed.','Check the inline provider status, then retry only if the prior request is no longer running.'],
   browser_response_invalid:['The browser-to-guest provider response was malformed or incomplete.','The mailbox reader could not establish a valid bounded response after retries, so the Harness accepted nothing.','Retry once. If it repeats, inspect Activity/Terminal; this indicates a transport defect.'],
   provider_budget_exhausted:['The mission exhausted its allowed provider-call budget.','RESIDUAL refused an additional dispatch beyond the explicit call ceiling.','Increase the bounded call budget only if the extra call is intentional.'],
   verification_failed:['A candidate was produced but failed verification.','The verifier rejected it; RESIDUAL did not promote the candidate into accepted state.','Inspect the verification event and counterexample, then refine the prompt or retry.'],
@@ -90,7 +90,7 @@ export function mountMissionControl(host){
   function explain(title,why,next,code=''){if(timeline.children.length>=80)timeline.firstElementChild?.remove();const d=document.createElement('div');d.className='notice';const h=document.createElement('strong');h.textContent=title+(code?` · ${code}`:'');const p=document.createElement('div');p.textContent='WHY · '+why;const n=document.createElement('div');n.className='muted';n.textContent='NEXT · '+next;d.append(h,p,n);timeline.append(d);timeline.scrollTop=timeline.scrollHeight}
   function system(text){const node=document.createElement('div');node.className='bubble system';node.innerHTML='<span class="meta">SYSTEM</span>';const body=document.createElement('div');body.textContent=text;node.append(body);chat.append(node);chat.scrollTop=chat.scrollHeight}
   function remoteMode(){return ['build','live'].includes(q('mode').value)}
-  function providerReady(){return connect.textContent==='Provider connected'}
+  function providerReady(){return connect.textContent.startsWith('Provider connected')}
 
   function stopPipelineTimer(){if(pipelineTimer){clearInterval(pipelineTimer);pipelineTimer=null}}
   function ensurePipeline(){
@@ -119,8 +119,8 @@ export function mountMissionControl(host){
     gate.hidden=!remoteMode();if(!remoteMode())return;
     if(!providerReady()){
       gateStatus.textContent=setupOpened
-        ? 'Provider setup opened · complete SDK load/sign-in in the new tab. Your prompt is preserved and unsent.'
-        : 'Provider not connected · Send opens provider setup and keeps your prompt here.';
+        ? 'Guided Puter setup is open here in Mission Control. Your prompt is preserved and unsent.'
+        : 'Provider not connected · Send opens guided setup here and keeps your prompt in place.';
       return;
     }
     setupOpened=false;
@@ -145,8 +145,8 @@ export function mountMissionControl(host){
     if(!providerReady()){
       event.preventDefault();event.stopImmediatePropagation();
       setupOpened=true;
-      gateStatus.textContent='Provider setup opened · complete SDK load/sign-in in the new tab. Your prompt is preserved and unsent.';
-      system('Provider setup opened. Your prompt is still in the composer; no inference was sent. Complete sign-in, authorize this prompt, then Send again.');
+      gateStatus.textContent='Guided Puter setup opened here. Your prompt is preserved and unsent.';
+      system('Guided Puter setup opened inside Mission Control. Your prompt is still in the composer; no inference was sent. Complete sign-in, authorize this prompt, then Send again.');
       explain('Authorization gate stopped dispatch','The mission requires a remote provider, but no live provider session was connected.','Complete provider setup; the prompt remains unsent and editable.','provider_disconnected');
       core.connectProvider();updateGate();return;
     }
