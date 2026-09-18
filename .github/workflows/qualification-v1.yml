@@ -543,9 +543,50 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+
+  qualification-selftests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: Qualification framework self-tests
+        run: |
+          mkdir -p runs/qualification-v1
+          python scripts/qualification_v1.py run \
+            --gate-id qualification-selftests \
+            --output runs/qualification-v1/selftests.evidence.json \
+            --log runs/qualification-v1/selftests.log \
+            --junit runs/qualification-v1/selftests.xml \
+            --zero-skips \
+            -- python -m pytest -q \
+               tests/qualification/test_evidence_manifest.py \
+               tests/qualification/test_mutation_canary_harness.py \
+               tests/qualification/test_qualification_runner.py \
+               tests/qualification/test_process_soak.py \
+               tests/qualification/test_long_soak.py \
+               tests/qualification/test_paired_stats.py \
+               tests/qualification/test_schedule_campaign.py \
+               tests/qualification/test_provider_canary.py \
+               tests/qualification/test_provider_mission.py \
+               --junitxml=runs/qualification-v1/selftests.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-selftests-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
   aggregate:
     if: always()
-    needs: [deterministic, discovery, m4, artifacts, browser, concurrency, protocol-fuzz, toxic-provider, active-workload, browser-adversarial, redteam, windows-lifecycle, fault-injection, webvm-protocol-fuzz]
+    needs: [deterministic, discovery, m4, artifacts, browser, concurrency, protocol-fuzz, toxic-provider, active-workload, browser-adversarial, redteam, windows-lifecycle, fault-injection, webvm-protocol-fuzz, qualification-selftests]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
