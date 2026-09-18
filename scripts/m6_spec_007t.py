@@ -399,13 +399,23 @@ def main() -> int:
             }
             if resolution_history:
                 packet["evidence_resolution_history"]=resolution_history
-            proposal=model_call(
+            model_proposal=model_call(
                 station.store,pid,"scientist",packet,
                 SCIENTIST_SYSTEM,PROPOSAL_SCHEMA,"local",TASK_ID,
                 extensions=station.extensions(pid),
             )
+            proposal={
+                **model_proposal,
+                "evidence_snapshot_hash":snapshot["snapshot_hash"],
+                "human_approval_required":True,
+            }
             errors=verify(proposal,snapshot) + verify_selected(proposal,selected_evidence)
-            scientist_outputs.append({"cycle":cycle,"proposal":proposal,"mechanical_errors":errors})
+            scientist_outputs.append({
+                "cycle":cycle,
+                "model_output":model_proposal,
+                "host_bound_proposal":proposal,
+                "mechanical_errors":errors,
+            })
             if errors:
                 break
 
@@ -421,7 +431,7 @@ def main() -> int:
                 admitted=review.get("approved") is True
                 break
 
-            request=model_call(
+            model_request=model_call(
                 station.store,pid,"measurement_planner",
                 {"selected_evidence":selected_evidence,"insufficiency":proposal,
                  "metric_registry":[d.to_dict() for d in registry.definitions],
@@ -430,8 +440,19 @@ def main() -> int:
                 PLANNER_SYSTEM,PLANNER_SCHEMA,"local",TASK_ID,
                 extensions=station.extensions(pid),
             )
+            request={
+                **model_request,
+                "evidence_snapshot_hash":snapshot["snapshot_hash"],
+                "metric_registry_sha256":registry.registry_sha256,
+                "human_approval_required":True,
+            }
             request_errors=verify_planner(request,snapshot,selected_evidence,registry)
-            planner_outputs.append({"cycle":cycle,"request":request,"mechanical_errors":request_errors})
+            planner_outputs.append({
+                "cycle":cycle,
+                "model_output":model_request,
+                "host_bound_request":request,
+                "mechanical_errors":request_errors,
+            })
             if request_errors:
                 errors=request_errors
                 break
