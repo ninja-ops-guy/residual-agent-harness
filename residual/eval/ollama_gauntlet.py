@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import platform
 import shutil
@@ -82,6 +83,69 @@ def _percentile(values: list[float], p: float) -> float | None:
     return round(ordered[lo] * (1 - frac) + ordered[hi] * frac, 3)
 
 
+def _wilson_interval(successes: int, total: int, z: float = 1.96) -> dict[str, float] | None:
+    """Wilson score interval for a binomial proportion (default: 95%)."""
+    if type(successes) is not int or type(total) is not int or total <= 0 or not 0 <= successes <= total:
+        return None
+    p = successes / total
+    z2 = z * z
+    denominator = 1.0 + z2 / total
+    center = (p + z2 / (2.0 * total)) / denominator
+    half = z * math.sqrt((p * (1.0 - p) + z2 / (4.0 * total)) / total) / denominator
+    return {
+        "low": max(0.0, center - half),
+        "high": min(1.0, center + half),
+    }
+
+
+def _ratio_stats(values: list[float]) -> dict[str, Any]:
+    """Audit-friendly paired ratio summary with an exact one-sided sign test."""
+    finite = [float(v) for v in values if math.isfinite(v) and v > 0]
+    non_ties = [v for v in finite if not math.isclose(v, 1.0, rel_tol=1e-12, abs_tol=1e-12)]
+    wins = sum(1 for v in non_ties if v > 1.0)
+    n = len(non_ties)
+    p_value = (
+        sum(math.comb(n, k) for k in range(wins, n + 1)) / (2 ** n)
+        if n else 1.0
+    )
+    return {
+        "pairs": len(finite),
+        "non_ties": n,
+        "wins": wins,
+        "median": (statistics.median(finite) if finite else None),
+        "mean": (statistics.fmean(finite) if finite else None),
+        "one_sided_sign_p": p_value,
+        "samples": finite,
+    }
+
+
+def _paired_scheduler_stats(strategies: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    """Compare fixed/dynamic to single by trial over the exact same frozen sources."""
+    baseline = strategies.get("single", {}).get("trials", [])
+    out: dict[str, Any] = {}
+    for candidate_name in ("fixed", "dynamic"):
+        candidate = strategies.get(candidate_name, {}).get("trials", [])
+        wall_ratios: list[float] = []
+        throughput_ratios: list[float] = []
+        for base, other in zip(baseline, candidate):
+            base_wall = float(base.get("wall_clock_seconds") or 0)
+            other_wall = float(other.get("wall_clock_seconds") or 0)
+            if base_wall <= 0 or other_wall <= 0:
+                continue
+            wall_ratios.append(base_wall / other_wall)
+            base_accepted = int(base.get("accepted") or 0)
+            other_accepted = int(other.get("accepted") or 0)
+            base_throughput = base_accepted / base_wall
+            other_throughput = other_accepted / other_wall
+            if base_throughput > 0 and other_throughput > 0:
+                throughput_ratios.append(other_throughput / base_throughput)
+        out[candidate_name] = {
+            "wall_clock_speedup": _ratio_stats(wall_ratios),
+            "verified_throughput_ratio": _ratio_stats(throughput_ratios),
+        }
+    return out
+
+
 def _summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
     lat = [float(r["latency_ms"]) for r in rows if r.get("latency_ms") is not None]
     correct = sum(1 for r in rows if r.get("correct") is True)
@@ -90,6 +154,7 @@ def _summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "observations": total,
         "correct": correct,
         "correct_rate": (correct / total if total else None),
+        "correct_rate_wilson_95": _wilson_interval(correct, total),
         "latency_ms_mean": (round(statistics.fmean(lat), 3) if lat else None),
         "latency_ms_p50": _percentile(lat, 0.50),
         "latency_ms_p95": _percentile(lat, 0.95),
@@ -808,6 +873,7 @@ def factory_paired_scheduler_suite(*, provider: str, model: str,
         if value.get("verified_useful_throughput_per_second") is not None
     }
     speedups = {}
+    paired_statistics = _paired_scheduler_stats(strategies)
     baseline = timing.get("single")
     if baseline:
         for key in ("fixed", "dynamic"):
@@ -831,6 +897,7 @@ def factory_paired_scheduler_suite(*, provider: str, model: str,
         "wall_clock_seconds_mean": timing,
         "verified_useful_throughput_per_second": throughput,
         "speedup_vs_single": speedups,
+        "paired_statistics": paired_statistics,
         "strategies": strategies,
     }
 
@@ -1011,32 +1078,49 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
                          if isinstance(value, dict) and value.get("status") != "NOT_TESTED"]
     live_factory_passes = [value for value in live_factory_rows if value.get("status") == "PASS"]
     unsafe = sum(int(row.get("unsafe_acceptances") or 0) for row in live_factory_rows)
+    accepted_observations = sum(int(row.get("accepted") or 0) for row in live_factory_rows)
+    worker_observations = sum(int(row.get("workers") or 0) for row in live_factory_rows)
+    unsafe_interval = _wilson_interval(unsafe, accepted_observations)
     safety_status = "NOT_TESTED"
     if control.get("status") == "FAIL" or unsafe:
-        safety_status = "FAIL"
+        safety_status = "UNSAFE_ACCEPTANCE_OBSERVED"
     elif control.get("status") == "PASS" and len(live_factory_passes) == 3:
-        safety_status = "SUPPORTED_FOR_THIS_WORKLOAD"
+        safety_status = "NO_UNSAFE_ACCEPTANCE_OBSERVED"
     elif control.get("status") == "PASS" and live_factory_passes:
-        safety_status = "PARTIAL_FOR_THIS_WORKLOAD"
+        safety_status = "PARTIAL_NO_UNSAFE_ACCEPTANCE_OBSERVED"
     elif control.get("status") == "PASS":
         safety_status = "CONTROL_PROBES_ONLY"
 
     paired = by_name.get("factory_paired_scheduler", {})
     paired_speedups = paired.get("speedup_vs_single", {}) if isinstance(paired, dict) else {}
+    paired_stats = paired.get("paired_statistics", {}) if isinstance(paired, dict) else {}
     scheduler_efficiency_status = "NOT_TESTED"
     if paired.get("status") == "PASS":
-        scheduler_efficiency_status = (
-            "SUPPORTED_FOR_THIS_WORKLOAD"
-            if paired_speedups and max(paired_speedups.values()) > 1.0
-            else "NOT_SUPPORTED_FOR_THIS_WORKLOAD"
+        tested_stats = [
+            value.get("verified_throughput_ratio", {})
+            for value in paired_stats.values()
+            if isinstance(value, dict)
+        ]
+        enough_pairs = any(int(stat.get("non_ties") or 0) >= 5 for stat in tested_stats)
+        significant_gain = any(
+            int(stat.get("non_ties") or 0) >= 5
+            and (stat.get("median") or 0) > 1.0
+            and float(stat.get("one_sided_sign_p") or 1.0) <= 0.05
+            for stat in tested_stats
         )
+        if significant_gain:
+            scheduler_efficiency_status = "EVIDENCE_OF_VERIFIED_THROUGHPUT_GAIN_FOR_THIS_WORKLOAD"
+        elif enough_pairs:
+            scheduler_efficiency_status = "NO_SIGNIFICANT_VERIFIED_THROUGHPUT_GAIN_DETECTED"
+        else:
+            scheduler_efficiency_status = "EXPLORATORY_INSUFFICIENT_PAIRED_REPEATS"
 
     end_to_end_efficiency_status = "NOT_TESTED"
     if len(end_to_end_timing) == 3 and all(factory_local[k].get("status") == "PASS" for k in factory_local):
         end_to_end_efficiency_status = (
-            "SUPPORTED_FOR_THIS_WORKLOAD"
+            "DESCRIPTIVE_SPEEDUP_OBSERVED"
             if end_to_end_speedups and max(end_to_end_speedups.values()) > 1.0
-            else "NOT_SUPPORTED_FOR_THIS_WORKLOAD"
+            else "NO_DESCRIPTIVE_SPEEDUP_OBSERVED"
         )
 
     cluster = by_name.get("cluster_loopback", {})
@@ -1050,6 +1134,10 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
         "safety": {
             "status": safety_status,
             "unsafe_acceptances": unsafe,
+            "accepted_observations": accepted_observations,
+            "worker_observations": worker_observations,
+            "unsafe_acceptance_rate": (unsafe / accepted_observations if accepted_observations else None),
+            "unsafe_acceptance_rate_wilson_95": unsafe_interval,
             "control_probe_status": control.get("status"),
             "live_strategy_statuses": {
                 key: value.get("status") if isinstance(value, dict) else None
@@ -1063,6 +1151,8 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
             "wall_clock_seconds_mean": paired.get("wall_clock_seconds_mean"),
             "verified_throughput_per_second": paired.get("verified_useful_throughput_per_second"),
             "speedup_vs_single": paired_speedups,
+            "paired_statistics": paired_stats,
+            "inference_rule": "one-sided exact sign test on paired verified-throughput ratios; at least 5 non-tied pairs; p <= 0.05",
             "provider_saturation_curve": by_name.get("provider_scaling", {}).get("points"),
             "scope": "paired governed Factory scheduling over identical frozen worker-source bytes",
         },
@@ -1074,7 +1164,7 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
             "factory_only_wall_clock_seconds_mean": timing,
             "factory_only_verified_throughput_per_second": throughput,
             "factory_only_speedup_vs_single": speedups,
-            "scope": "full model-authoring plus governed Factory execution; worker source is re-authored per trial",
+            "scope": "descriptive full model-authoring plus governed Factory execution; worker source is re-authored per trial, so no inferential scheduler claim is made here",
         },
         "hybrid_cloud_mesh": {
             "status": hybrid_status,
