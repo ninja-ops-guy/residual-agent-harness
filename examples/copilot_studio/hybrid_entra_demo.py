@@ -135,9 +135,8 @@ def run_demo() -> dict:
         raise RuntimeError(f"demo submission failed: {submission.body}")
 
     mission_id = submission.body["mission_id"]
-    record = store.visible(
-        mission_id,
-        service._principal(firmware_token, NOW),
+    record = service.execution_candidate(
+        firmware_token, mission_id, now=NOW
     )
     catalog = ResourceCatalog((
         ApprovedRepository(
@@ -149,7 +148,9 @@ def run_demo() -> dict:
             analysis_profiles=frozenset({"default-analysis"}),
         ),
     ))
-    handoff = FirmwareFactoryAdapter(catalog).prepare(record)
+    handoff = FirmwareFactoryAdapter(
+        catalog, policy=policy
+    ).prepare(record)
 
     mechanical_attempt = _dispatch(
         http,
