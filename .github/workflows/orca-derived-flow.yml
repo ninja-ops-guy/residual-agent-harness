@@ -1,0 +1,36 @@
+name: Orca-derived flow integration
+
+on:
+  push:
+    branches:
+      - feature/orca-derived-flow-runtime
+  pull_request:
+    paths:
+      - 'residual/orchestrator/**'
+      - 'tests/test_orca_derived_flow.py'
+      - 'scripts/orca_flow_smoke.py'
+      - 'docs/specs/orca-derived-flow-runtime.md'
+      - '.github/workflows/orca-derived-flow.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  integration-smoke:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install
+        run: python -m pip install -e '.[test]'
+      - name: Compile
+        run: python -m compileall -q residual
+      - name: Focused integration tests
+        run: python -m pytest -q tests/test_orca_derived_flow.py tests/test_orchestrator_plan.py
+      - name: Credential-free smoke
+        run: python scripts/orca_flow_smoke.py
