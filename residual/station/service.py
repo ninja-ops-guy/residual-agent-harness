@@ -366,6 +366,11 @@ class Station:
             for task in p["tasks"]:
                 validate_task_receipt(self, p, task)
             head = ws.git(p["repo"], "rev-parse", "HEAD")
+            last_run = p.get("last_run") or {}
+            if (last_run.get("outcome") != "success"
+                    or last_run.get("project_head") != head
+                    or last_run.get("project_spec_hash") != p["spec_hash"]):
+                raise ContractError("Release export requires a successful run-control result bound to the current integrated revision")
             if ws.git(p["repo"], "status", "--porcelain", "--untracked-files=all"):
                 raise ContractError("Managed project changed after integration. Release export requires a clean revision.")
             integrations = [ev for ev in self.store.events(pid, 0, 100000) if ev["event_type"] == "integration.completed"]
