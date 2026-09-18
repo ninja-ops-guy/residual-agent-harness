@@ -37,3 +37,20 @@ Central budgets cover station-issued calls. Independently operated workers must 
 ## Modular providers (0.3)
 
 The same runner now accepts `--kind openai`, `anthropic`, `google`, `azure`, or `bedrock`, in addition to Ollama and compatible servers. Set `--placement remote` and use a cloud-enabled mission for cloud inference. Azure accepts `--api-version` and requires `--base-url`; Bedrock accepts `--region` and AWS environment credentials. Provider-specific environment variables are listed in [MODULAR-LAYERS.md](MODULAR-LAYERS.md). The worker has no automatic provider failover; the coordinator's UI routes apply to coordinator-owned inference. Worker receipts remain explicitly `worker_reported`.
+
+
+## Reproducible distributed experiments
+
+The repository also includes controlled loopback benchmarks for separating worker parallelism from coordinator/integration overhead:
+
+```bash
+residual experiment distributed --workers 1 2 4 --tasks 8 --work-ms 40 --repeats 3 --output runs/distributed.json
+
+residual experiment pipeline --workers 1 2 4 --width 4 --depth 2 --work-ms 40 --repeats 3 --output runs/pipeline.json
+```
+
+The first workload contains independent tasks. The pipeline workload contains dependency-gated lanes, so later work becomes claimable only after its prerequisite is reviewed and integrated.
+
+Both use the real Station HTTP worker, lease, submission, candidate-worktree, deterministic-check, review and integration paths. The worker provider is a controlled synthetic latency fixture and every worker is a loopback thread. These results are development measurements, not physical-network or live-model performance claims.
+
+See [Mesh, Distributed Workflow, and Mission Control Experiments](../mesh/EXPERIMENTS.md) for metrics, evidence boundaries and the physical multi-host experiment protocol.
