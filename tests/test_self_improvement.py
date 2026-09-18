@@ -15,6 +15,7 @@ from residual.self_improvement import (
     mission_plan,
     originate_candidates,
     planning_station_spec,
+    run_lineage,
 )
 from residual.station.contracts import parse_spec
 
@@ -265,6 +266,45 @@ class RecursiveImprovementTests(unittest.TestCase):
         self.assertEqual(result["export"]["id"], "planner-export")
         self.assertEqual(set(calls["planner_tasks"]),
                          {"SI_HEALTH_SCOUT", "SI_ROADMAP_SCOUT", "SI_COMPOSER"})
+
+    def test_lineage_advances_only_through_accepted_successors(self):
+        next_repo = str((self.repo / ".station/successor").resolve())
+        first = {
+            "mission_id": "residual-self-improvement",
+            "generation": "g1",
+            "origin": {
+                "source_head": "1" * 40,
+                "source_report_sha256": "2" * 64,
+                "plan_sha256": "3" * 64,
+                "planner_project_id": "p1",
+                "proposal_sha256": "4" * 64,
+            },
+            "execution": {
+                "project_id": "e1",
+                "accepted_successor": True,
+                "successor_head": "5" * 40,
+                "successor_tree": "6" * 40,
+                "successor_repo": next_repo,
+                "export": {"id": "x1"},
+            },
+        }
+        second = {
+            "mission_id": "residual-self-improvement",
+            "generation": "g2",
+            "origin": {
+                "source_head": "5" * 40,
+                "source_report_sha256": "7" * 64,
+                "plan_sha256": "8" * 64,
+                "planner_project_id": "p2",
+                "proposal_sha256": None,
+            },
+            "execution": None,
+        }
+        with patch("residual.self_improvement.run_cycle", side_effect=[first, second]) as cycle:
+            result = run_lineage(self.repo, self.repo / ".station", generations=3)
+        self.assertEqual(result["completed_generations"], 2)
+        self.assertEqual(result["stop_reason"], "origination_incomplete")
+        self.assertEqual(cycle.call_args_list[1].args[0], next_repo)
 
     def test_execution_delegates_to_station_managed_clone_and_export(self):
         candidate = self.repo / "candidate.json"
