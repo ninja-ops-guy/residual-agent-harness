@@ -15,7 +15,7 @@ window.puter = {
     signIn: () => {
       window.__providerFixture.gesture = navigator.userActivation.isActive;
       if (!window.__providerFixture.gesture) return Promise.reject({error:'popup_blocked'});
-      window.__providerFixture.signedIn = true; return Promise.resolue({});
+      window.__providerFixture.signedIn = true; return Promise.resolve({});
     }
   },
   ai: {
@@ -52,7 +52,7 @@ async def provider_failure_acceptance(page, context, args, report, command_proof
     assert len(context.pages) == pages_before, 'guided setup opened a separate RESIDUAL page'
     assert await page.locator('#mc-provider-guide').is_visible()
     assert await page.locator('#mc-prompt').input_value() == prompt
-    assert await page.locator('#mc-chat .buble.user').count() == users_before
+    assert await page.locator('#mc-chat .bubble.user').count() == users_before
     assert 'prompt is still in the composer' in (await page.locator('#mc-chat').inner_text()).lower()
     gate_status = (await page.locator('#mc-provider-gate-status').inner_text()).lower()
     assert 'guided puter setup is open here' in gate_status
@@ -79,7 +79,7 @@ async def provider_failure_acceptance(page, context, args, report, command_proof
     # activation. This post-reload failure regression verifies the resulting state
     # without duplicating that engine-timing-sensitive assertion.
     assert await frame.locator('body').evaluate('(body) => body.ownerDocument.defaultView.__providerFixture.signedIn')
-    await frame.locator('#status').filter(has_text='Connected. Mission Control').wait_for()
+    assert 'Connected. Mission Control' in (await frame.locator('#status').text_content())
 
     # Connectivity is not consent. The exact prompt still must not be sent.
     users_before = await page.locator('#mc-chat .bubble.user').count()
@@ -153,8 +153,7 @@ async def provider_failure_acceptance(page, context, args, report, command_proof
         'test ! -e /opt/residual/runs/missions/.active'
     )
     await page.locator('#mc-mission').click()
-    await page.wait_for_function(
-        "() => document.querySelector('#mc-runtime').textContent === 'LINUX · READY'", timeout=20000)
+    await page.wait_for_function("() => document.querySelector('#mc-runtime').textContent === 'LINUX · READY'", timeout=20000)
     await page.get_by_text('Run controls', exact=True).click()
     await page.locator('#mc-mode').select_option('audit')
     await page.locator('#mc-prompt').fill('Verify the restarted guest can execute a real repository audit')
@@ -162,7 +161,7 @@ async def provider_failure_acceptance(page, context, args, report, command_proof
     await page.locator('#mc-run').click()
     await page.wait_for_function(
         "() => document.querySelector('#mc-verdict').textContent.startsWith('PASSED') && !document.querySelector('#mc-result').hidden",
-        timeout=1200000,
+        timeout=120000,
     )
     assert 'deterministic source inventory' in await page.locator('#mc-verdict').inner_text()
     report['workbench_poisoned_guest_restart'] = 'PASS_FRESH_OVERLAY_AND_REAL_AUDIT_AFTER_EXPLICIT_RESTART'
