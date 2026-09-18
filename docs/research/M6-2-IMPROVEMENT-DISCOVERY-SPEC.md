@@ -57,9 +57,34 @@ Input:
 - bounded model proposal callback
 
 Output:
-- ImprovementSpec candidate
+- ImprovementSpec candidate; or
+- MeasurementGap proposal when the available evidence cannot support a defensible hypothesis.
 
 The prompt/contract MUST distinguish measured observations from hypotheses. Every numeric baseline statement used by an ImprovementSpec MUST be present in EvidenceSnapshot.metrics.
+
+### measurement_gap.py
+
+Define an immutable `MeasurementGap` contract for missing evidence dimensions.
+
+Required fields:
+- gap_id
+- question
+- missing_metric
+- why_needed
+- proposed_measurement
+- preserve_invariants
+- evidence_snapshot_hash
+- human_approval_required=True
+
+A MeasurementGap is **not** evidence that a defect exists. It is a falsifiable request to improve observability so that a later hypothesis can be tested.
+
+The Scientist MAY emit a MeasurementGap only when:
+- the requested metric is absent from EvidenceSnapshot;
+- the question cannot be answered from existing measured dimensions;
+- the proposed measurement is mechanically collectible;
+- the proposal does not require modifying evaluator/M4/promotion authority.
+
+MeasurementGap proposals MUST enter the experiment ledger and require external approval before instrumentation changes.
 
 The Scientist MUST have no repository writer, Git, verifier mutation, integration, promotion, shell, or network capability except the explicitly injected model proposal callback.
 
@@ -99,9 +124,11 @@ The M6.2 foundation MUST NOT:
 1. Unit tests cover canonical identity and negative paths for every contract.
 2. Same EvidenceSnapshot + same ImprovementSpec produces the same validation identity.
 3. Scientist cannot create a valid spec with an unmeasured baseline claim.
-4. Protected-target attempts fail mechanically before implementation.
-5. Ledger tampering or broken hash lineage fails verification.
-6. Existing Station/Controller/provider qualification remains green.
+4. When a required axis is absent, Scientist can emit a MeasurementGap instead of fabricating a baseline.
+5. MeasurementGap cannot be converted into an ImprovementSpec until the requested metric has been mechanically collected.
+6. Protected-target attempts fail mechanically before implementation.
+7. Ledger tampering or broken hash lineage fails verification.
+8. Existing Station/Controller/provider qualification remains green.
 
 ## Next experiment
 
