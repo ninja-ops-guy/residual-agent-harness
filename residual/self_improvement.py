@@ -14,11 +14,16 @@ from residual.station.contracts import parse_spec, path_ok
 
 MISSION_ID = "residual-self-improvement"
 ROADMAP_HEAD = re.compile("Current " + chr(96) + r"main" + chr(96) + r" is \*\*" + chr(96) + r"([0-9a-f]{40})" + chr(96) + r"\*\*\.")
-PROTECTED_PREFIXES = (".github/workflows/", "residual/factory/", "residual/station/", "verifier/")
+PROTECTED_PREFIXES = (
+    ".github/workflows/", "residual/factory/", "residual/station/", "verifier/",
+    "residual/swarm/", "residual/evidence/", "residual/scheduler/", "residual/integrator/",
+    "residual/eval_frozen/",
+)
 PROTECTED_EXACT = {"residual/goalspec.py", "residual/loop.py", "residual/receipts.py",
                    "verifier/v3/factory_ownership_baseline.json"}
 REQUIRED = ("docs/roadmap/README.md", "docs/CURRENT_STATUS.md", "residual/goalspec.py",
-            "residual/loop.py", "residual/station/service.py", "residual/station/control.py")
+            "residual/loop.py", "residual/station/service.py", "residual/station/control.py",
+            "verifier/v3/factory_ownership_baseline.json")
 
 
 def digest(value):
@@ -139,8 +144,26 @@ def mission_plan(report):
     return plan
 
 
-def protected(path):
-    return path in PROTECTED_EXACT or any(path.startswith(p) for p in PROTECTED_PREFIXES)
+def factory_protected_paths(root):
+    baseline = Path(root) / "verifier/v3/factory_ownership_baseline.json"
+    try:
+        value = strict_json(baseline.read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise ContractError("Factory ownership baseline could not be read") from exc
+    if not isinstance(value, dict) or not isinstance(value.get("files"), dict) or not value["files"]:
+        raise ContractError("Factory ownership baseline is invalid")
+    paths = set()
+    for path, blob in value["files"].items():
+        if not isinstance(path, str) or not isinstance(blob, str) or not re.fullmatch(r"[0-9a-f]{40}", blob):
+            raise ContractError("Factory ownership baseline contains an invalid file pin")
+        path_ok(path)
+        paths.add(path)
+    return frozenset(paths)
+
+
+def protected(path, ownership_paths=()):
+    return (path in PROTECTED_EXACT or path in ownership_paths
+            or any(path.startswith(p) for p in PROTECTED_PREFIXES))
 
 
 def load_candidates(path):
@@ -159,6 +182,7 @@ def build_station_spec(report, plan, doc, repo):
     root = Path(repo).resolve()
     tasks = []
     allowed = {"id", "title", "instruction", "files", "context", "depends_on", "checks", "route", "evaluator_files"}
+    ownership_paths = factory_protected_paths(root)
     for c in doc["candidates"]:
         if not isinstance(c, dict) or set(c) != allowed:
             raise ContractError("ImprovementCandidate fields are invalid")
@@ -169,8 +193,20 @@ def build_station_spec(report, plan, doc, repo):
                 or not isinstance(c["instruction"], str) or not c["files"] or not c["checks"]
                 or c["route"] not in {"local", "cloud"}):
             raise ContractError("ImprovementCandidate is incomplete")
+        if any(not isinstance(p, str) for p in c["files"] + c["context"] + c["evaluator_files"]):
+            raise ContractError("Candidate paths must be strings")
         if any(not isinstance(dep, str) for dep in c["depends_on"]):
             raise ContractError("Candidate dependencies must be strings")
+        if set(c["files"]) & set(c["evaluator_files"]):
+            raise ContractError("Candidate cannot modify its own evaluator")
+        for path in c["files"] + c["context"] + c["evaluator_files"]:
+            path_ok(path)
+        protected_files = sorted(path for path in c["files"] if protected(path, ownership_paths))
+        if protected_files:
+            raise ContractError("Protected path requires external governance")
+        missing_evaluators = sorted(path for path in c["evaluator_files"] if not (root / path).is_file())
+        if missing_evaluators:
+            raise ContractError("Frozen evaluator file is missing")
         command_checks = [check for check in c["checks"]
                           if isinstance(check, dict) and check.get("kind") == "command"]
         code_paths = [path for path in c["files"]
@@ -179,16 +215,6 @@ def build_station_spec(report, plan, doc, repo):
             raise ContractError("Command checks require external frozen evaluator files")
         if code_paths and (not command_checks or not c["evaluator_files"]):
             raise ContractError("Executable-code candidates require command checks and external frozen evaluator files")
-        if any(not isinstance(p, str) for p in c["files"] + c["context"] + c["evaluator_files"]):
-            raise ContractError("Candidate paths must be strings")
-        if set(c["files"]) & set(c["evaluator_files"]):
-            raise ContractError("Candidate cannot modify its own evaluator")
-        for path in c["files"] + c["context"] + c["evaluator_files"]:
-            path_ok(path)
-        if any(protected(path) for path in c["files"]):
-            raise ContractError("Protected path requires external governance")
-        if any(not (root / p).is_file() for p in c["evaluator_files"]):
-            raise ContractError("Frozen evaluator file is missing")
         instruction = c["instruction"] + (
             "\n\nGeneration rules: modify only writable files; evaluator files and checks are immutable; "
             "preserve historical FAIL/BLOCKED/UNKNOWN evidence.")
