@@ -415,6 +415,16 @@ def main(argv=None) -> int:
     pipeline.add_argument("--repeats", type=int, default=1)
     pipeline.add_argument("--output")
 
+    matrix = sub.add_parser("matrix", help="Sweep worker counts and synthetic inference latencies")
+    matrix.add_argument("--workers", nargs="+", type=int, default=[1, 2, 4])
+    matrix.add_argument("--latencies-ms", nargs="+", type=float, default=[0.0, 40.0, 200.0])
+    matrix.add_argument("--tasks", type=int, default=8)
+    matrix.add_argument("--pipeline-width", type=int, default=4)
+    matrix.add_argument("--pipeline-depth", type=int, default=2)
+    matrix.add_argument("--repeats", type=int, default=1)
+    matrix.add_argument("--no-recovery", action="store_true")
+    matrix.add_argument("--output")
+
     recovery = sub.add_parser("recovery", help="Benchmark fail-closed remote-worker repair recovery")
     recovery.add_argument("--bad-ms", type=float, default=20.0)
     recovery.add_argument("--good-ms", type=float, default=40.0)
@@ -443,6 +453,17 @@ def main(argv=None) -> int:
                 depth=args.depth,
                 work_ms=args.work_ms,
                 repeats=args.repeats,
+            )
+        elif args.experiment == "matrix":
+            from residual.experiments.matrix import run_experiment_matrix
+            report = run_experiment_matrix(
+                worker_counts=tuple(args.workers),
+                latencies_ms=tuple(args.latencies_ms),
+                independent_tasks=args.tasks,
+                pipeline_width=args.pipeline_width,
+                pipeline_depth=args.pipeline_depth,
+                repeats=args.repeats,
+                include_recovery=not args.no_recovery,
             )
         elif args.experiment == "recovery":
             report = run_station_recovery_benchmark(
