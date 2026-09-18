@@ -510,6 +510,50 @@ class DerivationGraph:
             raise ContractError("historical handle resolution is missing or ambiguous")
         return matches[0]
 
+    def challenge_policy_for(self, node_id: str) -> DerivationNode:
+        try:
+            node=self._nodes[node_id]
+        except KeyError:
+            raise ContractError("unknown semantic node") from None
+        if node.node_type not in _CHALLENGEABLE_NODE_TYPES:
+            raise ContractError("node is not challengeable semantic content")
+        policies=[
+            self._nodes[e.target] for e in self._edges.values()
+            if e.source==node_id and e.edge_type==EdgeType.GOVERNED_BY
+        ]
+        if len(policies)!=1:
+            raise ContractError("semantic node must resolve to exactly one ChallengePolicy")
+        policy=policies[0]
+        if policy.node_type != NodeType.CHALLENGE_POLICY:
+            raise ContractError("governed_by target is not ChallengePolicy")
+        if policy.payload.get("policy_id") != node.challenge_policy_id:
+            raise ContractError("challenge policy identity mismatch")
+        return policy
+
+    def admission_semantic_nodes(self, spec_id: str) -> tuple[str, ...]:
+        if spec_id not in self._nodes:
+            raise ContractError("unknown ImprovementSpec node")
+        seen={spec_id}
+        queue=[spec_id]
+        semantic={spec_id} if self._nodes[spec_id].node_type in _CHALLENGEABLE_NODE_TYPES else set()
+        traversal={
+            EdgeType.SUPPORTED_BY,EdgeType.MEASURED_BY,
+            EdgeType.REVIEWED_BY,EdgeType.SELECTED_TO_TEST,
+        }
+        while queue:
+            source=queue.pop()
+            for edge in self._edges.values():
+                if edge.source!=source or edge.edge_type not in traversal:
+                    continue
+                target=edge.target
+                if target in seen:
+                    continue
+                seen.add(target)
+                queue.append(target)
+                if self._nodes[target].node_type in _CHALLENGEABLE_NODE_TYPES:
+                    semantic.add(target)
+        return tuple(sorted(semantic))
+
     def admission_decision_node(
         self,
         spec_id: str,
@@ -519,7 +563,7 @@ class DerivationGraph:
         if event_index < 0:
             raise ContractError("event_index must be >= 0")
         admitted, findings=self.improvement_admissible(spec_id)
-        active=self.unresolved_challenges({spec_id})
+        active=self.unresolved_challenges(self.admission_semantic_nodes(spec_id))
         return DerivationNode(
             NodeType.ADMISSION_DECISION,
             Author.HOST,
@@ -537,11 +581,27 @@ class DerivationGraph:
         targets=set(node_ids)
         active: list[str]=[]
         states=self.validity()
+        resolutions_by_challenge: dict[str,list[DerivationNode]]={}
+        for edge in self._edges.values():
+            if edge.edge_type==EdgeType.RESOLVES_CHALLENGE:
+                resolutions_by_challenge.setdefault(edge.target,[]).append(
+                    self._nodes[edge.source]
+                )
         for edge_id, edge in self._edges.items():
             if edge.edge_type != EdgeType.CHALLENGES or edge.target not in targets:
                 continue
-            if states[edge.source] != Validity.SUPERSEDED:
-                active.append(edge_id)
+            if states[edge.source] == Validity.SUPERSEDED:
+                continue
+            resolutions=[
+                r for r in resolutions_by_challenge.get(edge.source,[])
+                if states[r.node_id] != Validity.SUPERSEDED
+            ]
+            dispositions={
+                str(r.payload.get("disposition","")).lower() for r in resolutions
+            }
+            if dispositions in ({"rejected"},{"withdrawn"}):
+                continue
+            active.append(edge_id)
         return tuple(sorted(active))
 
     def execution_root(
@@ -639,18 +699,16 @@ class DerivationGraph:
                     continue
             required[edge.edge_type] = True
 
-        required_semantic={
-            spec_id,
-            *[
-                edge.target for edge in self._edges.values()
-                if edge.source == spec_id
-                and self._nodes[edge.target].node_type in _CHALLENGEABLE_NODE_TYPES
-            ],
-        }
+        required_semantic=set(self.admission_semantic_nodes(spec_id))
         for node_id in required_semantic:
             node=self._nodes[node_id]
             if node.node_type in _CHALLENGEABLE_NODE_TYPES and not node.challenge_policy_id:
                 findings.append(f"semantic node {node_id} lacks challenge policy")
+                continue
+            try:
+                self.challenge_policy_for(node_id)
+            except ContractError as exc:
+                findings.append(f"semantic node {node_id} challenge governance invalid: {exc}")
         if self.unresolved_challenges(required_semantic):
             findings.append("required semantic subgraph has unresolved challenge")
 
