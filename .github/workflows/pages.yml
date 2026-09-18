@@ -1,19 +1,20 @@
+# STAGED WORKFLOW — issue #267. This file is the proposed replacement for
+# .github/workflows/pages.yml. It is staged under ci/ because the automation
+# token lacks the `workflow` scope and cannot push into .github/workflows/.
+# A maintainer MUST move this file to .github/workflows/pages.yml (this move
+# is the next gate; see the PR body). Only the production `push` trigger's
+# `paths:` filter is removed; all proof/deploy/artifact behavior is unchanged.
 name: Deploy GitHub Pages
 
 on:
+  # Issue #267: the production push trigger MUST NOT carry a `paths:` filter.
+  # Every new main SHA receives exactly one authoritative production Pages
+  # qualification attempt regardless of which files the merge changed. A
+  # paths filter let CI/config-only merges advance main with no Pages run.
+  # (pull_request stays path-filtered: PR-head results never satisfy the
+  # merged-main gate, so PR filtering is only a cost optimization.)
   push:
     branches: [main]
-    paths:
-      - 'site/**'
-      - 'index.html'
-      - 'demo.html'
-      - 'demo/**'
-      - 'residual/**'
-      - 'pyproject.toml'
-      - 'tests/test_webvm_*.py'
-      - 'tests/webvm-provider.test.mjs'
-      - 'examples/onboarding/cloud_demo.sh'
-      - '.github/workflows/pages.yml'
   pull_request:
     paths:
       - 'site/**'
