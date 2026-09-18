@@ -161,7 +161,11 @@ class RecursiveImprovementTests(unittest.TestCase):
         commands = [check for check in manifest["tasks"][0]["checks"] if check["kind"] == "command"]
         self.assertEqual(commands, [{
             "kind": "command",
-            "argv": ["{python}", "-m", "pytest", "tests/test_frozen_eval.py"],
+            "argv": [
+                "{python}", "-I", "-c",
+                "import os,sys; os.environ['PYTEST_DISABLE_PLUGIN_AUTOLOAD']='1'; import pytest; sys.path.insert(0,'.'); raise SystemExit(pytest.main(['-q',sys.argv[1]]))",
+                "tests/test_frozen_eval.py",
+            ],
             "timeout": 120,
         }])
 
