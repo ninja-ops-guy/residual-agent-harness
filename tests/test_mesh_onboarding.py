@@ -4,7 +4,8 @@ import hashlib
 import hmac
 import time
 import pytest
-from residual.cluster import Capability, ClusterNode, LoopbackTransport
+from residual.cluster import (Capability, ClusterError, ClusterNode, LoopbackTransport,
+                              MessageKind, WireMessage)
 from residual.core import ContractError
 from residual.mesh import MeshIdentity, MeshMessage, MeshMessageKind, MeshNode
 
@@ -73,6 +74,34 @@ def test_first_node_can_form_standalone_cluster():
         assert result["joined"] is True
         assert result["bootstrap"] is None
         assert node.registry.get("root") is not None
+    finally:
+        node.close()
+
+def test_duplicate_cluster_node_id_is_rejected():
+    a = cluster_node("same")
+    duplicate = cluster_node("same", key="mesh-onboarding-key")
+    try:
+        result = duplicate.join(bootstrap_address=a.address)
+        assert result["joined"] is False
+        assert result["bootstrap"] is None
+    finally:
+        a.close(); duplicate.close()
+
+
+def test_join_ack_rejects_invalid_negotiated_version():
+    node = cluster_node("b")
+    try:
+        msg = WireMessage(
+            kind=MessageKind.JOIN_ACK, sender_id="a",
+            payload={
+                "schema_versions": [1], "negotiated_version": 99,
+                "capability": node.capability.to_dict(),
+                "address": "loopback://a", "roster": [],
+            },
+        )
+        with pytest.raises(ClusterError, match="negotiated_version"):
+            node._handle_join_ack(msg, "loopback://a")
+        assert node.negotiated_version is None
     finally:
         node.close()
 
