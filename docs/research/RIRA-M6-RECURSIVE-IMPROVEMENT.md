@@ -535,3 +535,53 @@ champion/challenger comparison
   ↓
 external promotion
 ```
+
+
+## 17. Experimental Competence: Lessons from M6-SHIP-002 and M6-SHIP-003
+
+The attempt to ship a real roadmap task exposed failures in the experimental apparatus itself.
+
+### M6-SHIP-002 — verifier representation failure
+
+M6-SHIP-002 converted opaque bare assertions into explicit expected/actual diagnostics. However, placing the full verifier inside a `python -c` command exceeded Station's existing 2,000-character argv-element contract. The mission was rejected during specification parsing before any model call occurred.
+
+This is not a model failure.
+
+The resulting rule is:
+
+> Nontrivial acceptance logic should be represented as an immutable versioned verifier artifact, invoked by a short command.
+
+This improves auditability, reuse, provenance, and repair diagnostics while avoiding command-envelope limits.
+
+### M6-SHIP-003 — context-cost failure
+
+M6-SHIP-003 adopted an external verifier, but supplied that verifier together with broad read-only context from `residual/core.py` and `residual/goalspec.py`.
+
+The resulting runner request was 32,652 bytes. The Qwen2.5-Coder 7B call reached the Ollama adapter's 300-second timeout before returning a candidate or usage. The fail-closed budget brake then aborted because usage was unknown.
+
+By contrast, successful M6-SPEC-006 requests were approximately 5.6–8.6 KB.
+
+This is again not evidence that the implementation hypothesis was wrong. It is evidence that task-context selection can determine whether an experiment is executable.
+
+Issue #240 therefore tracks pre-dispatch context-cost visibility and empirical model/context envelopes.
+
+### Implication
+
+A recursive improvement system requires an additional competence beyond hypothesis quality and coding ability:
+
+**experimental competence** — the ability to distinguish candidate failure from invalid experimental conditions.
+
+An autonomous research controller should classify at least:
+
+- candidate rejected by deterministic evidence;
+- hypothesis rejected mechanically;
+- evidence insufficient;
+- verifier/specification invalid;
+- provider/runtime unavailable;
+- context envelope impractical;
+- repair stagnated;
+- experiment completed.
+
+Only the first categories constitute evidence about the proposed implementation or hypothesis itself.
+
+M6-SHIP-004 tests the same roadmap task with the immutable external verifier but minimal read-only context.
