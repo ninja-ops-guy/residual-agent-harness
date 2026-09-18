@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import errno
 import subprocess
+import sqlite3
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -105,3 +106,18 @@ time.sleep(60)
     task = reopened.store.task(pid, "OPS-101")
     assert task["state"] == "ready"
     assert task["owner"] is None
+
+
+def test_corrupt_station_database_fails_closed_without_silent_reset(tmp_path):
+    root = tmp_path / "station"
+    station = Station(root)
+    pid = station.create(demo_spec(), demo=True)["project_id"]
+    database = station.store.db
+    database.write_bytes(b"not-a-sqlite-database\x00retained-corruption-marker")
+    corrupted = database.read_bytes()
+
+    with pytest.raises(sqlite3.DatabaseError):
+        Station(root)
+
+    assert database.read_bytes() == corrupted
+    assert b"retained-corruption-marker" in database.read_bytes()
