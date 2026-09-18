@@ -495,12 +495,23 @@ def self_improve_main(argv=None):
     plan = sub.add_parser("plan")
     plan.add_argument("--repo", default=".")
     plan.add_argument("--candidates")
+    originate = sub.add_parser("originate")
+    originate.add_argument("--repo", default=".")
+    originate.add_argument("--station-data", required=True)
+    originate.add_argument("--route", choices=["local", "cloud"], default="local")
+    originate.add_argument("--allow-cloud", action="store_true")
     run = sub.add_parser("run")
     run.add_argument("--repo", default=".")
     run.add_argument("--candidates", required=True)
     run.add_argument("--station-data", required=True)
     run.add_argument("--allow-cloud", action="store_true")
     run.add_argument("--allow-command-checks", action="store_true")
+    cycle = sub.add_parser("cycle")
+    cycle.add_argument("--repo", default=".")
+    cycle.add_argument("--station-data", required=True)
+    cycle.add_argument("--route", choices=["local", "cloud"], default="local")
+    cycle.add_argument("--allow-cloud", action="store_true")
+    cycle.add_argument("--allow-command-checks", action="store_true")
     args = p.parse_args(argv)
     try:
         if args.command == "plan":
@@ -514,6 +525,22 @@ def self_improve_main(argv=None):
                 payload["station_spec"] = spec
             print(json.dumps(payload, indent=2))
             return 0
+        if args.command == "originate":
+            result = originate_candidates(
+                args.repo, args.station_data, route=args.route, allow_cloud=args.allow_cloud)
+            print(json.dumps(result, indent=2))
+            control = result["batch"].get("control", {})
+            return 0 if result["proposal"] is not None and control.get("outcome") == "success" else 2
+        if args.command == "cycle":
+            result = run_cycle(
+                args.repo, args.station_data, route=args.route, allow_cloud=args.allow_cloud,
+                allow_command_checks=args.allow_command_checks)
+            print(json.dumps(result, indent=2))
+            execution = result["execution"]
+            if execution is None:
+                return 2
+            control = execution["batch"].get("control", {})
+            return 0 if execution["batch"]["integrated"] == execution["batch"]["total"] and control.get("outcome") == "success" else 2
         result = execute_generation(args.repo, args.candidates, args.station_data,
                                     args.allow_cloud, args.allow_command_checks)
         print(json.dumps(result, indent=2))
