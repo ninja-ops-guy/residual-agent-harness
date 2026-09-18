@@ -31,6 +31,11 @@ class RecursiveImprovementTests(unittest.TestCase):
             "residual/station/service.py": "STATION = True\n",
             "residual/station/control.py": "CONTROL = True\n",
             "tests/frozen_eval.py": "EVALUATOR = True\n",
+            "tests/factory_guard.py": "PROTECTED = True\n",
+            "verifier/v3/factory_ownership_baseline.json": json.dumps({
+                "pinned_at": "0" * 40,
+                "files": {"tests/factory_guard.py": "1" * 40},
+            }) + "\n",
         }
         for name, content in required.items():
             path = self.repo / name
@@ -124,6 +129,13 @@ class RecursiveImprovementTests(unittest.TestCase):
     def test_candidate_cannot_modify_its_evaluator(self):
         report = doctor_repository(self.repo)
         doc = self.candidate(["tests/frozen_eval.py"], ["tests/frozen_eval.py"])
+        with self.assertRaises(ContractError):
+            build_station_spec(report, mission_plan(report), doc, self.repo)
+
+    def test_factory_ownership_manifest_path_fails_closed(self):
+        report = doctor_repository(self.repo)
+        doc = self.candidate(["tests/factory_guard.py"], ["tests/frozen_eval.py"])
+        doc["candidates"][0]["checks"] = [{"kind": "command", "argv": ["python", "tests/frozen_eval.py"]}]
         with self.assertRaises(ContractError):
             build_station_spec(report, mission_plan(report), doc, self.repo)
 
