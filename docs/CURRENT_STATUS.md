@@ -6,31 +6,30 @@ This document is a human-readable status summary. Exact code at the named revisi
 
 ## Executive summary
 
-Current `main` is **`699e2869e294fe157b4bfd73a272057683a2f7e0`**, produced by merged **#193**. Immediately before it, **#192** merged an older documentation refresh whose source state predated later accepted changes; that made several current-state documents materially stale again. This corrective docs branch restores the actual accepted state rather than treating the #192 prose as implementation authority.
+Current `main` is **`699e2869e294fe157b4bfd73a272057683a2f7e0`**, produced by merged **#193**. No later implementation PR has merged at this snapshot.
 
-Material accepted changes that must remain visible:
+Material accepted state that remains current:
 
-- **#188** — AQ-GOV-001 consensus-authority escalation lab. It assumes ten of ten workers approve privilege escalation and exercises existing quarantine/WorkerContract/AttemptGuard boundaries. It is accepted adversarial test/research apparatus, not proof of kernel/container/hypervisor/broker escape resistance.
-- **#194** — Command Station retains the latest completed generated-spec job and exposes it as a clickable result that can repopulate Mission Intake after the original in-memory watcher is gone.
-- **#133** — WebVM guest-runtime discriminator tooling/workflows. Retained results narrow one reproducible failure family to a WebVM-specific CPython positive-duration timeout/wait conversion path affecting at least `time.sleep()` and empty `select.select()`. Direct libc waits continue beyond the same narrow boundary. The exact CPython/i386 ABI/emulation mechanism and relationship to the older corruption family remain **UNKNOWN**.
-- **#193** — interactive native setup helper. `setup.sh` detects Python 3.11+, creates/reuses a dedicated venv, installs the checkout, exports its `bin` directory to the selected shell startup file, optionally installs a no-argument `residual` serve macro, and prints/attempts to open the local Station URL.
+- **#188** — AQ-GOV-001 consensus-authority escalation lab is accepted adversarial test/research apparatus. It does not prove kernel/container/hypervisor/broker escape resistance.
+- **#194** — Command Station retains the latest completed generated-spec job and exposes it as a clickable result that can repopulate Mission Intake.
+- **#133** — WebVM guest-runtime discriminator tooling/workflows are accepted. Retained results narrow one reproducible failure family to a WebVM-specific CPython positive-duration timeout/wait conversion path affecting at least `time.sleep()` and empty `select.select()`. The exact lower-level CPython/i386 ABI/emulation cause remains **UNKNOWN**.
+- **#193** — interactive native setup helper is accepted as operator convenience for hosts that already have Python 3.11+; it is not blank-environment qualification.
 
-There is also a material integration/status caveat: #133 removed the accepted #132 protected self-hosting/research-bundle implementation, workflow, tests, example and dedicated research docs. Earlier review records explicitly called those deletions an integration blocker for a supposedly diagnostic-only PR. Therefore #132 remains retained historical evidence, but its tooling is **not current accepted capability**. Whether the deletion represents intended retirement or an integration regression remains **UNKNOWN / unresolved**.
+There is also a material integration/status caveat: #133 removed the accepted #132 protected self-hosting/research-bundle implementation, workflow, tests, example and dedicated research docs. #132 remains retained historical evidence, but its tooling is **not current accepted capability**. Whether the deletion represents intended retirement or an integration regression remains **UNKNOWN / unresolved**.
+
+New development evidence since the prior status snapshot is mixed and deliberately retained as such:
+
+- current #200 setup-hardening head is technically green in the observed automated scopes but still **BLOCKED** on exact-head maintainer attestation;
+- #202 retained one simple real-local-model mission **PASS** on historical experiment head `fee21d...`, followed by a later heterogeneous DAG exact-head **FAIL** on `6b30125...`;
+- #203 retained a first-authoritative M6 ImprovementSpec self-host experiment **FAIL** on `e123b90...`.
 
 Paid/live Puter success, physical heavyweight-WebVM iPhone reliability, blank-environment install, host-loss/recovery evidence, selected elapsed soak, universal/capable-runner M4 qualification, and confirmatory R0–R5 research remain unestablished.
 
 ## Documentation regression: #192
 
-PR #192 was titled as superseded, but it nevertheless merged as `9de6d5820ef5e8735e6d6d9aef88c461085cd0de` immediately before #193. Its six documentation files were based on the earlier `main@dcf1e507...` state and consequently reintroduced stale claims such as treating #188/#194/#193 as unaccepted candidates and omitting the accepted #133/#132 file-state discrepancy.
+PR #192 was titled as superseded but merged as `9de6d5820ef5e8735e6d6d9aef88c461085cd0de` immediately before #193. Its six documentation files were based on an earlier accepted-main snapshot and reintroduced stale current-state claims. That was a prose regression only; it did not supersede implementation or retained CI/evidence history.
 
-Interpretation:
-
-- #192 merge status: **PASS / merged as repository bytes**;
-- accuracy of its current-state claims after the later accepted changes it omitted: **STALE**, not authority over implementation history;
-- corrective action: documentation-only restoration from exact current main;
-- runtime/trust-boundary implication: **none** — #192 changed documentation only.
-
-Historical implementation and CI evidence is not erased by a later stale prose merge.
+This corrective docs branch restores the accepted state from exact current main and subsequent retained evidence without modifying runtime, ownership baselines, qualification anchors, protected Factory/M4 bytes, verifier authority, or evidence schemas.
 
 ## Accepted #193 interactive setup path
 
@@ -67,11 +66,11 @@ Required claim discipline:
 - blank-environment install: **not established by setup.sh or ordinary clean-install CI**;
 - production long-run reliability: **not established**.
 
-These exact-main PASS results close the previous post-merge PENDING state for the six named workflows only. They do not broaden release, physical-device, provider, recovery, soak, or research claims.
+These exact-main PASS results do not broaden release, physical-device, provider, recovery, soak, or research claims.
 
 ## #200 setup-hardening candidate
 
-Open PR #200, exact candidate head `c21ba57dd19ae68f1e63749e5f417bd18dd7a6a7`, proposes a focused hardening of the native setup path without changing Factory/M4, verifier, evidence, provider, or acceptance behavior.
+Open PR #200, exact candidate head **`0c05074687afd50d1f2f53f93f7409e2e808af8e`**, proposes a focused hardening of the native setup path without changing Factory/M4, verifier, evidence, provider, or acceptance behavior.
 
 The candidate proposes to:
 
@@ -86,17 +85,80 @@ The candidate proposes to:
 
 This is **unaccepted candidate behavior**, not current-main behavior. It remains onboarding hardening rather than blank-environment qualification or a portability proof.
 
-Observed exact-head #200 workflow status at this snapshot:
+Observed exact-head #200 workflow status now:
 
 - Control Plane: **PASS**;
 - Factory ownership: **PASS**;
 - measured-evaluation binding: **PASS**;
 - clean install: **PASS**;
-- Controller/provider: **FAIL** — Python 3.11 failed in the full compile/test step; later matrix jobs were cancelled, and the exact underlying test/root cause is **UNKNOWN** from retained workflow metadata alone;
-- Command Station: **FAIL** — browser and Docker jobs passed, while Python 3.12 failed in the full `unittest` step; the exact underlying test/root cause is **UNKNOWN** from retained workflow metadata alone;
+- Controller/provider: **PASS**;
+- Command Station: **PASS**;
 - maintainer approval gate: **BLOCKED/FAIL** pending explicit exact-head maintainer attestation.
 
-Therefore #200 is not merge-ready evidence and must not be described as a qualified replacement for #193.
+The earlier Controller/provider and Command Station failures belonged to prior head `c21ba57...` and remain historical evidence; they are not the status of current head `0c05074...`. #200 is technically green in the observed automated scopes, but it is **not accepted** until exact-head governance is satisfied.
+
+## #202 retained real-model experiment evidence
+
+Draft PR #202 is explicitly an experiment/evidence PR and must not be treated as merge-ready product capability.
+
+### Simple mission: bounded PASS on historical experiment head
+
+On exact experiment head **`fee21d140c637300a534b9f498496e92b70d95da`**, workflow run **`35304614537`** completed the dedicated `real-model-mission` job **PASS** on attempt 1. A fresh GitHub Actions runner installed Ollama and used `qwen2.5-coder:1.5b` locally from only a behavioral specification for `calculator.py:add(a,b)`.
+
+The retained `real-model-mission-evidence` artifact records:
+
+- run outcome: **SUCCESS**;
+- integrated: **1/1**;
+- passes: **1**;
+- provider calls: **2** total, runner + reviewer;
+- reported tokens: **846**;
+- wall clock: **16.217 s**;
+- compile check: **PASS**;
+- behavioral command check: **PASS**;
+- reviewer approval: **PASS**;
+- verification receipt: present;
+- release export: present.
+
+This establishes one bounded real-local-model candidate→checks→review→integration→receipt/export path on that exact experiment revision. It does **not** establish paid/live Puter success, model quality generally, production reliability, heterogeneous DAG reliability, or the central R0–R5 hypothesis.
+
+### Later heterogeneous DAG: retained FAIL
+
+PR #202 later advanced to exact head **`6b30125fd56bdbedcb1d6d04e6ee199dd697b315`**. Workflow run **`35305663580`** completed **FAIL** and retained `dag-real-model-mission-evidence`.
+
+The retained evidence records:
+
+- batch outcome: **escalated**;
+- integrated: **1/3**;
+- `CORE-001`: checks/review/integration **PASS** with a verification receipt;
+- `STATS-002`: a deterministic injected syntax fault triggered repair; later attempts compiled but failed the behavioral check with `NameError: name 'math_core' is not defined` and remained `repair_required` after three attempts;
+- `REPORT-003`: remained ready and did not run because its dependency did not integrate;
+- run-control brake: `dispatch`, reason `no_runnable_tasks`;
+- reported tokens: **3174**;
+- wall clock: **78.675 s**.
+
+This FAIL is retained evidence, not CI noise to rerun away. It prevents broadening the earlier simple success into a general DAG/recovery claim.
+
+## #203 M6 ImprovementSpec self-host experiment
+
+Draft PR #203 is a controlled research experiment against frozen baseline `main@699e286...`. It does not modify main, protected M4, verifier authority, evidence schemas, or promotion controls; generated implementation remains isolated inside the mission/export boundary.
+
+On exact head **`e123b90d012973bfd260ae5b955eebd4dbac48f0`**, first authoritative run **`35305550407`** completed **FAIL** and retained `m6-improvementspec-research-evidence`.
+
+The retained evidence records:
+
+- batch outcome: **escalated**;
+- integrated: **0/1**;
+- attempts: **3**;
+- first attempt: import/behavior check failed because `ImprovementSpec` was absent;
+- second attempt: compile and behavior checks failed with an unclosed parenthesis;
+- third attempt: model output was truncated before a verifiable candidate was produced;
+- run-control brake: `max_iteration` after three passes;
+- reported tokens: **5526**;
+- wall clock: **125.374 s**;
+- verification receipt: **absent**;
+- release files: **none**.
+
+This is useful negative research evidence. It does **not** establish autonomous recursive self-improvement and does not restore #132 as current accepted self-maintenance capability.
 
 ## #133 WebVM runtime diagnostics
 
@@ -120,7 +182,7 @@ Required non-claims:
 - long-run WebVM reliability: **not established**;
 - production fix: **not established by diagnostic instrumentation**.
 
-Multiple #133 discriminator workflows intentionally completed **FAIL** because they reproduced the defect under study. Those FAIL outcomes remain diagnostic evidence and are not CI noise to rerun away.
+Multiple #133 discriminator workflows intentionally completed **FAIL** because they reproduced the defect under study. Those FAIL outcomes remain diagnostic evidence and are not qualification passes.
 
 ## #133 / #132 integration discrepancy
 
@@ -133,6 +195,8 @@ The final #133 merge removed that surface. Current-state interpretation is byte-
 - reason the accepted feature was removed: **not established by retained evidence**;
 - intended retirement vs accidental integration regression: **UNKNOWN / unresolved**;
 - restoration: **must be a separate focused reviewed implementation change if desired**, not silently reconstructed in documentation.
+
+Draft #203 adds experiment apparatus only and its generated candidate did not integrate; it does not change this current-capability boundary.
 
 ## Live-provider evidence
 
@@ -147,15 +211,13 @@ Claim discipline remains:
 
 Merged #179 changed the bounded build-output path. Merged #183 repaired provider-session lifecycle behavior. Merged #189 repaired the provider-helper COI/CORP publication boundary. None alone establishes successful live inference.
 
-A fresh retained real-account mission on the exact deployed accepted revision is required before paid/live provider success can become PASS. It must cross provider protocol validation and proceed through normal candidate/verifier/receipt handling.
+The #202 local-Ollama success is not Puter evidence; it used a different provider and environment. A fresh retained real-account mission on the exact deployed accepted revision is still required before paid/live provider success can become PASS. It must cross provider protocol validation and proceed through normal candidate/verifier/receipt handling.
 
-## iPhone/WebKit boundary
+## iPhone/WebKit and WebVM reliability boundary
 
 The accepted #186 fallback detects iPhone/iPad/iPod and iPadOS WebKit before heavyweight guest/disk boot and routes that profile to the lightweight walkthrough, retaining the full VM only as an explicit diagnostic override.
 
 This is a fallback contract, not proof that heavyweight WebVM is reliable on physical iPhone Safari. Published physical-device validation remains open, and the lower-level WebKit process-kill cause remains **UNKNOWN**.
-
-## WebVM reliability boundary
 
 Issues #120 and #126 remain open. #133 substantially narrows one runtime symptom and adds retained discriminators, but it does not prove that the broader poisoned-guest/interpreter/allocator corruption family shares the same cause, does not quantify an acceptable recurrence rate, and does not establish a production fix.
 
@@ -173,7 +235,10 @@ This documentation branch changes no Factory/M4 implementation or tests, ownersh
 - **#133** — accepted/on main as diagnostic tooling plus the current file-state change described above. Its diagnostic FAIL results remain retained evidence and its root cause remains UNKNOWN.
 - **#194** — accepted/on main as the completed-draft UI/state repair.
 - **#193** — accepted/on main as interactive native setup convenience; it is not blank-environment release evidence.
-- **#200** — open/unaccepted setup-hardening candidate. Several named candidate workflows PASS, but Controller/provider and Command Station are retained **FAIL** and maintainer attestation remains **BLOCKED** at the exact head.
+- **#200** — open/unaccepted setup-hardening candidate. Current exact-head technical workflows PASS; maintainer attestation remains **BLOCKED/FAIL**.
+- **#201** — open draft frontend/onboarding candidate. It remains unaccepted and requires its own Pages/live-provider UX evidence before any current-capability claim changes.
+- **#202** — draft experiment/evidence PR. Retain the historical simple local-model **PASS** and later heterogeneous DAG exact-head **FAIL** together; do not merge as product capability.
+- **#203** — draft controlled M6 self-host experiment. First authoritative exact-head run **FAIL**, 0/1 integrated, evidence retained; do not describe as autonomous self-improvement success.
 - **#190** — provider-channel recovery candidate remains open/unaccepted and requires refresh/requalification after material main movement.
 - **#152** — Qualification v1 framework candidate; older results must be refreshed before current release claims use them.
 - **#177** — IE-001 prototype candidate; previous evidence remains candidate-head evidence and needs reconciliation/requalification before final IE-001 claims.
@@ -193,7 +258,10 @@ The project does **not** yet claim that:
 - the six observed exact-current-main PASS workflows establish an unobserved exact-SHA Pages/deployment result or broader release readiness;
 - current ordinary workflow PASS establishes every-host/capable-runner M4 qualification or broader production readiness;
 - setup.sh establishes true blank-environment release qualification;
-- #200's proposed safer defaults are current accepted behavior before merge and qualification;
+- #200's proposed safer defaults are current accepted behavior before merge;
+- #202's simple local-model PASS establishes heterogeneous DAG reliability, paid/live Puter success, production reliability, or the central research hypothesis;
+- the later #202 DAG FAIL may be discarded because an earlier simpler experiment passed;
+- #203 establishes autonomous recursive self-improvement;
 - intentional #133 diagnostic FAILs are ordinary qualification PASSes;
 - #133 establishes the exact lower-level WebVM/CPython root cause or long-run reliability;
 - #132 self-maintenance/research-bundle tooling remains current capability after its files were removed;
@@ -207,17 +275,18 @@ The project does **not** yet claim that:
 
 ## Next gates
 
-1. If #200 is pursued, resolve and retain the exact causes of its Controller/provider and Command Station failures, requalify the exact repaired head, and obtain exact-head maintainer attestation before merge.
+1. If #200 is pursued, obtain exact-head maintainer attestation before merge. Its current observed technical workflows are green; earlier candidate-head technical failures remain historical evidence.
 2. If release policy requires Pages/deployment evidence on exact `main@699e286...`, retain that exact-SHA run separately; none was observed in the current exact-SHA run set.
-3. Make an explicit disposition for the #133 removal of #132 self-hosting/research-bundle tooling: intentional retirement vs focused restoration/reintroduction.
-4. Continue #120/#126 from the #133 discriminators until a lower-level cause or predefined reliability campaign justifies a stronger operational claim.
-5. Refresh/requalify #190, #152 and #177 as applicable after material main movement.
-6. Retain a fresh real-account Puter candidate→verifier→receipt success before claiming live-provider PASS.
-7. Validate the accepted #186 fallback on a physical device without turning fallback success into a heavyweight-WebVM claim.
-8. Execute true blank-environment install and recovery/host-loss qualification for the exact release artifact.
-9. Complete the selected elapsed-soak tier with retained first-failure evidence.
-10. Preserve the separate #139→ownership-baseline→fresh-qualification→#134 protected sequence.
-11. Freeze and run confirmatory R0–R5/degradation/heterogeneous-routing studies only under the stated research protocol.
+3. Keep #202/#203 as development evidence and retain both positive and negative outcomes; do not promote them into frozen confirmatory R0–R5 results.
+4. Make an explicit disposition for the #133 removal of #132 self-hosting/research-bundle tooling: intentional retirement vs focused restoration/reintroduction.
+5. Continue #120/#126 from the #133 discriminators until a lower-level cause or predefined reliability campaign justifies a stronger operational claim.
+6. Refresh/requalify #190, #152 and #177 as applicable after material main movement.
+7. Retain a fresh real-account Puter candidate→verifier→receipt success before claiming live-provider PASS.
+8. Validate the accepted #186 fallback on a physical device without turning fallback success into a heavyweight-WebVM claim.
+9. Execute true blank-environment install and recovery/host-loss qualification for the exact release artifact.
+10. Complete the selected elapsed-soak tier with retained first-failure evidence.
+11. Preserve the separate #139→ownership-baseline→fresh-qualification→#134 protected sequence.
+12. Freeze and run confirmatory R0–R5/degradation/heterogeneous-routing studies only under the stated research protocol.
 
 ## Documentation authority
 
