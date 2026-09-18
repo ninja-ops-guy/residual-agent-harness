@@ -30,6 +30,11 @@ include = ["residual*", "ai_providers*", "observation_layer*"]
 
 [tool.setuptools.package-data]
 "residual.station" = ["static/*", "schemas/*.json"]
+"residual.integrations.copilot_studio" = [
+  "openapi.yaml",
+  "profiles/*.yaml",
+  "departments/*.yaml",
+]
 
 [tool.vercel]
 entrypoint = "demo.cloud_gateway.server:app"
