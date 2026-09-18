@@ -20,6 +20,25 @@ RESIDUAL spans a connected platform rather than a single agent loop:
 
 `FAIL`, `UNKNOWN`, `BLOCKED`, malformed output, verifier exceptions, provider failures and abstention do not silently become `PASS`.
 
+### How the pieces fit
+
+```mermaid
+flowchart LR
+  U["Operator"] --> C["Core harness<br/>obligations + host verifier"]
+  U --> S["Command Station<br/>queue + checks + review + integration"]
+  U --> M["Mission Control<br/>browser / WebVM"]
+  C --> P["Configured model providers"]
+  S --> P
+  M --> B["Session-scoped provider bridge"] --> PP["Puter / external provider boundary"]
+  S -. bounded Factory work .-> F["Factory M2 → M3 → M4"]
+  C --> E["Receipts / retained evidence"]
+  S --> E
+  F --> E
+  E -. observed by .-> R["Evaluation / research"]
+```
+
+The surfaces share evidence-first authority rules, but they are not one mandatory linear pipeline. Provider/model output is a proposal; host-owned verification and integration boundaries determine accepted state.
+
 ## Current main
 
 Current `main` is **`260b5f9e20bf70a6b9ca087bc91e22a009ed77b9`**.
