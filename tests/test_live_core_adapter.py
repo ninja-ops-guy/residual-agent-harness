@@ -263,6 +263,35 @@ class TestLiveHarnessBinding(unittest.TestCase):
             any(e["kind"] == "attestation.issued" for e in backend.events("r-atomic"))
         )
 
+    def test_persistent_backend_restores_terminal_state_on_reopen(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = str(Path(temp) / "adapter.db")
+            backend = LiveCoreResidualBackend(
+                path,
+                spec_version="1.0.0",
+                spec_head_sha="a" * 40,
+                impl_commit_sha="b" * 40,
+                impl_tree_sha="c" * 40,
+                gate_evaluator=lambda *args: Verdict.passed(),
+            )
+            backend.on_run_start("r-persist", "spec@1")
+            backend.on_module_call("r-persist", "llm:test", "call-1", "0" * 64)
+            backend.on_run_complete("r-persist", "success")
+            expected = backend.get_attestation("r-persist")
+            backend.close()
+
+            reopened = LiveCoreResidualBackend(
+                path,
+                spec_version="1.0.0",
+                spec_head_sha="a" * 40,
+                impl_commit_sha="b" * 40,
+                impl_tree_sha="c" * 40,
+                gate_evaluator=lambda *args: Verdict.passed(),
+            )
+            self.assertEqual(reopened.get_attestation("r-persist"), expected)
+            with self.assertRaises(LedgerWriteError):
+                reopened.on_run_start("r-persist", "spec@1")
+
     def test_attestation_absent_before_terminal(self):
         backend = self.backend()
         backend.on_run_start("r-open", "spec@1")
