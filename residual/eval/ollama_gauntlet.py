@@ -33,7 +33,7 @@ from residual.core import digest
 from residual.engines.provider_bridge import ProviderEngineConfig, ProviderExecutionEngine
 from residual.engines.protocol import ContextAssembly, TaskSpec
 from residual.factory.evidence_bus import EvidenceBus
-from residual.factory.evidence_receipts import StationIdentity, VerificationDecision
+from residual.factory.evidence_receipts import StationIdentity, VerificationDecision, WorkerReceipt
 from residual.factory.models import ExecutionPlan, FactoryTask, FrozenPlan, Requirement
 from residual.factory.runtime import FactoryRuntime, RuntimeResult, RuntimeUnavailable
 from residual.factory.runtime_journal import RuntimeJournal
@@ -842,6 +842,10 @@ def factory_live_suite(*, provider: str, model: str, output_root: Path,
                              allow_local_worker_code=True)
     bus = EvidenceBus(run_root / "evidence.sqlite")
     identity = StationIdentity.generate()
+    station_public_key_hex = identity.public_bytes().hex()
+    (run_root / "station-public-key.hex").write_text(
+        station_public_key_hex + "\n", encoding="ascii"
+    )
     issuer = FactoryStationIssuer(identity, bus)
     plan = _plan_for_cases(cases)
     approval = FrozenPlan.approve(plan, "ollama-gauntlet")
@@ -895,7 +899,15 @@ def factory_live_suite(*, provider: str, model: str, output_root: Path,
             "evidence_level": "factory_live",
             "status": "INCONCLUSIVE",
             "reason": "one or more workers could not be authored",
+            "provider": provider,
+            "model": model,
+            "source_corpus_sha256": source_corpus_sha256,
+            "model_identity": model_identity,
+            "station_key_id": identity.key_id,
+            "station_public_key_hex": station_public_key_hex,
             "authored": authored,
+            "receipt_hashes": [],
+            "output_dir": str(run_root.relative_to(output_root)),
         }
 
     results, waves, elapsed_s = _execute_strategy(
@@ -962,6 +974,7 @@ def factory_live_suite(*, provider: str, model: str, output_root: Path,
         "plan_hash": plan.graph_hash,
         "input_commit": commit,
         "station_key_id": identity.key_id,
+        "station_public_key_hex": station_public_key_hex,
         "workers": total,
         "accepted": accepted,
         "rejected_or_failed": total - accepted,
@@ -978,7 +991,7 @@ def factory_live_suite(*, provider: str, model: str, output_root: Path,
         "workers_detail": rows,
         "receipt_hashes": [r.receipt_hash for r in receipts],
         "evidence_queue": queue_integrity,
-        "output_dir": str(run_root),
+        "output_dir": str(run_root.relative_to(output_root)),
     }
 
 
