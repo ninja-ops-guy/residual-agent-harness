@@ -28,6 +28,7 @@ from residual.station.server import Server
 from residual.station.service import Station
 from residual.station.worker import WorkerClient
 from residual.cluster import Capability, ClusterNode, LoopbackTransport
+from residual.experiments.pipeline import run_station_pipeline_benchmark
 
 
 SCHEMA = "residual.distributed-experiment.v1"
@@ -388,6 +389,14 @@ def main(argv=None) -> int:
     distributed.add_argument("--repeats", type=int, default=1)
     distributed.add_argument("--output")
 
+    pipeline = sub.add_parser("pipeline", help="Benchmark dependency-gated distributed Station workflows")
+    pipeline.add_argument("--workers", nargs="+", type=int, default=[1, 2, 4])
+    pipeline.add_argument("--width", type=int, default=4)
+    pipeline.add_argument("--depth", type=int, default=2)
+    pipeline.add_argument("--work-ms", type=float, default=40.0)
+    pipeline.add_argument("--repeats", type=int, default=1)
+    pipeline.add_argument("--output")
+
     mesh = sub.add_parser("mesh", help="Benchmark signed mesh history and cluster join")
     mesh.add_argument("--messages", type=int, default=1000)
     mesh.add_argument("--repeats", type=int, default=3)
@@ -400,6 +409,14 @@ def main(argv=None) -> int:
             report = run_station_distributed_benchmark(
                 worker_counts=tuple(args.workers),
                 tasks=args.tasks,
+                work_ms=args.work_ms,
+                repeats=args.repeats,
+            )
+        elif args.experiment == "pipeline":
+            report = run_station_pipeline_benchmark(
+                worker_counts=tuple(args.workers),
+                width=args.width,
+                depth=args.depth,
                 work_ms=args.work_ms,
                 repeats=args.repeats,
             )
