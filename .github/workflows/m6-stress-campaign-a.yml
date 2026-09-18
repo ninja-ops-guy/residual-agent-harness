@@ -1,0 +1,205 @@
+name: M6 Stress Campaign A
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+
+jobs:
+  control-boundaries:
+    if: github.head_ref == 'experiment/m6-stress-campaign-a'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      OLLAMA_HOST: 127.0.0.1:11434
+      OLLAMA_MODEL: qwen2.5-coder:1.5b
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install RESIDUAL
+        run: python -m pip install -e '.[factory]'
+      - name: Install Ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+      - name: Start isolated Ollama
+        run: |
+          pkill -f "ollama serve" || true
+          sleep 1
+          nohup ollama serve > /tmp/ollama-control.log 2>&1 &
+          for i in {1..45}; do
+            curl -fsS http://127.0.0.1:11434/api/tags >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/ollama-control.log
+          exit 1
+      - name: Pull model
+        run: ollama pull "$OLLAMA_MODEL"
+      - name: Record environment
+        run: |
+          python --version | tee /tmp/environment-control.txt
+          git --version | tee -a /tmp/environment-control.txt
+          uname -a | tee -a /tmp/environment-control.txt
+          ollama --version | tee -a /tmp/environment-control.txt
+          ollama list | tee -a /tmp/environment-control.txt
+      - name: Run budget and scope stress probes
+        run: python scripts/m6_stress_control.py --model "$OLLAMA_MODEL" --output runs/m6-stress-control/evidence.json
+      - name: Show evidence
+        if: always()
+        run: |
+          test ! -f runs/m6-stress-control/evidence.json || cat runs/m6-stress-control/evidence.json
+          tail -200 /tmp/ollama-control.log || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m6-stress-control-evidence
+          path: |
+            runs/m6-stress-control
+            /tmp/environment-control.txt
+            /tmp/ollama-control.log
+
+  repair-pressure:
+    if: github.head_ref == 'experiment/m6-stress-campaign-a'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      OLLAMA_MODEL: qwen2.5-coder:1.5b
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install RESIDUAL
+        run: python -m pip install -e '.[factory]'
+      - name: Install Ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+      - name: Start isolated upstream Ollama
+        run: |
+          pkill -f "ollama serve" || true
+          sleep 1
+          OLLAMA_HOST=127.0.0.1:11435 nohup ollama serve > /tmp/ollama-repair.log 2>&1 &
+          for i in {1..45}; do
+            curl -fsS http://127.0.0.1:11435/api/tags >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/ollama-repair.log
+          exit 1
+      - name: Pull model on upstream
+        run: OLLAMA_HOST=127.0.0.1:11435 ollama pull "$OLLAMA_MODEL"
+      - name: Start two-fault proxy
+        run: |
+          nohup python scripts/m6_repair_fault_proxy.py --port 11434 --upstream http://127.0.0.1:11435 --model "$OLLAMA_MODEL" --faults 2 --events /tmp/residual-repair-proxy-events.jsonl > /tmp/repair-proxy.log 2>&1 &
+          for i in {1..30}; do
+            curl -fsS http://127.0.0.1:11434/api/tags >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/repair-proxy.log
+          exit 1
+      - name: Run repeated repair pressure
+        run: python scripts/m6_stress_repair.py --model "$OLLAMA_MODEL" --proxy-events /tmp/residual-repair-proxy-events.jsonl --output runs/m6-stress-repair/evidence.json
+      - name: Show evidence
+        if: always()
+        run: |
+          test ! -f runs/m6-stress-repair/evidence.json || cat runs/m6-stress-repair/evidence.json
+          cat /tmp/residual-repair-proxy-events.jsonl || true
+          tail -200 /tmp/repair-proxy.log || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m6-stress-repair-evidence
+          path: |
+            runs/m6-stress-repair
+            /tmp/residual-repair-proxy-events.jsonl
+            /tmp/repair-proxy.log
+            /tmp/ollama-repair.log
+
+  dag-pressure:
+    if: github.head_ref == 'experiment/m6-stress-campaign-a'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      OLLAMA_HOST: 127.0.0.1:11434
+      OLLAMA_MODEL: qwen2.5-coder:3b
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install RESIDUAL
+        run: python -m pip install -e '.[factory]'
+      - name: Install Ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+      - name: Start isolated Ollama
+        run: |
+          pkill -f "ollama serve" || true
+          sleep 1
+          nohup ollama serve > /tmp/ollama-dag-stress.log 2>&1 &
+          for i in {1..45}; do
+            curl -fsS http://127.0.0.1:11434/api/tags >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/ollama-dag-stress.log
+          exit 1
+      - name: Pull model
+        run: ollama pull "$OLLAMA_MODEL"
+      - name: Run six-task DAG pressure
+        run: python scripts/m6_stress_dag.py --model "$OLLAMA_MODEL" --output runs/m6-stress-dag/evidence.json
+      - name: Show evidence
+        if: always()
+        run: |
+          test ! -f runs/m6-stress-dag/evidence.json || cat runs/m6-stress-dag/evidence.json
+          tail -200 /tmp/ollama-dag-stress.log || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m6-stress-dag-evidence
+          path: |
+            runs/m6-stress-dag
+            /tmp/ollama-dag-stress.log
+
+  reliability:
+    if: github.head_ref == 'experiment/m6-stress-campaign-a'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      OLLAMA_HOST: 127.0.0.1:11434
+      OLLAMA_MODEL: qwen2.5-coder:7b
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install RESIDUAL
+        run: python -m pip install -e '.[factory]'
+      - name: Install Ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+      - name: Start isolated Ollama
+        run: |
+          pkill -f "ollama serve" || true
+          sleep 1
+          nohup ollama serve > /tmp/ollama-reliability.log 2>&1 &
+          for i in {1..45}; do
+            curl -fsS http://127.0.0.1:11434/api/tags >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/ollama-reliability.log
+          exit 1
+      - name: Pull model
+        run: ollama pull "$OLLAMA_MODEL"
+      - name: Record exact model
+        run: ollama list | tee /tmp/ollama-reliability-models.txt
+      - name: Run three independent frozen-spec trials
+        run: python scripts/m6_stress_reliability.py --model "$OLLAMA_MODEL" --trials 3 --output runs/m6-stress-reliability/evidence.json
+      - name: Show evidence
+        if: always()
+        run: |
+          test ! -f runs/m6-stress-reliability/evidence.json || cat runs/m6-stress-reliability/evidence.json
+          tail -200 /tmp/ollama-reliability.log || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m6-stress-reliability-evidence
+          path: |
+            runs/m6-stress-reliability
+            /tmp/ollama-reliability-models.txt
+            /tmp/ollama-reliability.log
