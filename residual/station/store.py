@@ -18,6 +18,9 @@ from .contracts import TRANSITIONS, event_validate, sha
 from .observability import ObservationStore
 
 
+MAX_TASK_ATTEMPTS = 5
+
+
 def now():
     return dt.datetime.now(dt.timezone.utc).isoformat()
 
@@ -181,7 +184,7 @@ class Store(ObservationStore):
                     continue
                 if any(states[d] != "integrated" for d in t["depends_on"]):
                     continue
-                if t["attempt"] >= 5:
+                if t["attempt"] >= MAX_TASK_ATTEMPTS:
                     continue
                 t.update(state="running", owner=owner, attempt=t["attempt"] + 1,
                          lease=secrets.token_urlsafe(24), lease_until=time.time() + 900)

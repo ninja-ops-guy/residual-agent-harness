@@ -119,6 +119,66 @@ class StationTests(unittest.TestCase):
         with self.assertRaises(ContractError):
             self.s.review(self.pid, "OPS-101")
 
+    def test_repair_attempt_receives_previous_candidate_without_mutating_fresh_baseline(self):
+        self.s.triage(self.pid)
+        work = self.s.prepare(self.pid, "one", "OPS-101")
+        failed = "def status(services):\n    return 'ready'\n"
+        self.s.finish(work, {"files": {"station/health.py": failed}})
+        self.assertEqual(self.s.store.task(self.pid, "OPS-101")["state"], "repair_required")
+
+        repair = self.s.prepare(self.pid, "two", "OPS-101")
+        self.assertEqual(repair["packet"]["prior_candidate_files"]["station/health.py"], failed)
+        self.assertEqual(
+            repair["packet"]["files"]["station/health.py"],
+            'def status(services):\n    return "unknown"\n',
+        )
+        self.assertTrue(repair["packet"]["repair_findings"])
+        findings = [e for e in self.s.store.events(self.pid) if e["event_type"] == "task.finding"]
+        self.assertTrue(any(e["data"].get("message") == "Repair context bound to prior candidate" for e in findings))
+
+    def test_batch_can_repair_on_fourth_attempt_without_weakening_checks(self):
+        manifest = {
+            "schema_version": 1,
+            "name": "Bounded repair regression",
+            "goal": "Exercise the full bounded task repair allowance.",
+            "tasks": [{
+                "id": "REPAIR-001",
+                "title": "Implement answer",
+                "instruction": "Create answer.py with answer() returning 42.",
+                "files": ["answer.py"],
+                "context": [],
+                "depends_on": [],
+                "route": "local",
+                "checks": [
+                    {"kind": "python_compile", "path": "answer.py"},
+                    {"kind": "command", "argv": ["{python}", "-c", "from answer import answer; assert answer() == 42"], "timeout": 30},
+                ],
+            }],
+        }
+        fence = "\x60" * 3
+        pid = self.s.create(fence + "json\n" + json.dumps(manifest) + "\n" + fence, commands=True)["project_id"]
+        self.s.store.settings({"batch_max_passes": 5})
+        runner_responses = iter([
+            {"files": {"answer.py": "def answer():\n    return 0\n"}},
+            {"files": {"answer.py": "def answer():\n    return 1\n"}},
+            {"files": {"answer.py": "def answer():\n    return 41\n"}},
+            {"files": {"answer.py": "def answer():\n    return 42\n"}},
+        ])
+        with patch("residual.station.service.model_call") as call:
+            def reply(store, project_id, role, packet, system, schema, placement, tid, *, extensions=None):
+                if role == "runner":
+                    return next(runner_responses)
+                return {"approved": True, "findings": []}
+            call.side_effect = reply
+            result = self.s.batch(pid)
+
+        task = self.s.store.task(pid, "REPAIR-001")
+        self.assertEqual(result["integrated"], 1)
+        self.assertEqual(task["state"], "integrated")
+        self.assertEqual(task["attempt"], 4)
+        self.assertTrue(task["verification_receipt"])
+        self.assertTrue(all(check["passed"] for check in task["checks_result"]))
+
     def test_write_scope_and_symlink_are_enforced(self):
         self.s.triage(self.pid)
         work = self.s.prepare(self.pid, "one", "OPS-101")
