@@ -465,7 +465,7 @@ def author_frozen_source_corpus(*, provider: str, model: str,
             "source_sha256": hashlib.sha256(source.encode()).hexdigest(),
             "tokens": tokens,
             "wall_clock_ms": author_ms,
-            "source_origin": source_origin,
+            "source_origin": "paired_corpus_authoring",
             "error": error,
         })
     if len(sources) != len(cases):
@@ -552,6 +552,7 @@ def factory_live_suite(*, provider: str, model: str, output_root: Path,
             "source_sha256": hashlib.sha256(source.encode()).hexdigest(),
             "tokens": tokens,
             "wall_clock_ms": author_ms,
+            "source_origin": source_origin,
             "error": error,
         })
         if error is None:
@@ -880,6 +881,8 @@ def factory_control_suite(*, output_root: Path) -> dict[str, Any]:
 def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
                  include_factory: bool = True, cloud_provider: str | None = None,
                  cloud_model: str | None = None) -> dict[str, Any]:
+    if type(repeats) is not int or repeats < 1:
+        raise ValueError("repeats must be a positive integer")
     output = Path(output)
     output.mkdir(parents=True, exist_ok=False)
     suites = []
