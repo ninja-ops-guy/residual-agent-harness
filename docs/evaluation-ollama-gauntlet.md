@@ -25,7 +25,7 @@ The same command can use any model already installed in Ollama. The requested mo
 A smaller smoke run is:
 
 ~~~bash
-residual-gauntlet --model qwen2.5:0.5b --repeats 3 --output runs/ollama-gauntlet-smoke
+residual-gauntlet --model qwen2.5-coder:0.5b --repeats 3 --output runs/ollama-gauntlet-smoke
 ~~~
 
 To run only provider + cluster checks and skip Linux Factory execution:
@@ -88,6 +88,12 @@ The same frozen workload is model-authored and executed with bounded fixed concu
 
 The same workload is model-authored up front, then executed in host-controlled adaptive waves. No running contract is mutated and no unapproved worker is invented.
 
+### factory_paired_scheduler
+
+The model authors one immutable worker-source corpus once. RESIDUAL hashes that corpus and then reuses the exact same source bytes for repeated `single`, `fixed`, and `dynamic` Factory executions. This is the scheduler-isolation experiment: model sampling variance is removed from the scheduling comparison.
+
+The report preserves the source-corpus SHA-256 and the authoring metadata so a scheduler speedup cannot be attributed to one strategy receiving easier or different generated code.
+
 ### Station verification and M3 evidence
 
 For all live Factory strategies:
@@ -127,15 +133,11 @@ Primary metric:
 
 ### Scheduler efficiency
 
-`--repeats` repeats the full model-authoring + Factory experiment for each strategy; single runs are not promoted into a performance claim. When all three local Factory strategies execute, the report compares:
+The primary scheduler comparison is paired: one frozen, hash-bound worker-source corpus is executed under all three strategies. `--repeats` repeats those identical sources, and the report compares paired Factory wall-clock time, verified useful throughput, and speedup versus sequential execution.
 
-- Factory-only wall-clock mean/p50/p95;
-- Factory-only verified useful throughput and scheduler speedup;
-- end-to-end time including model authoring;
-- end-to-end verified useful throughput and speedup;
-- the independent provider concurrency saturation curve.
+A second, deliberately separate **end-to-end efficiency** result re-authors workers per trial and includes model-authoring time. The provider concurrency saturation curve is reported separately so Ollama/hardware saturation is not mistaken for RESIDUAL scheduler overhead.
 
-This comparison is explicitly scoped to **governed Factory scheduling**. It is not by itself an uncontrolled external swarm baseline.
+Neither result is presented as an uncontrolled external-swarm baseline.
 
 ### Hybrid cloud mesh
 
@@ -151,6 +153,7 @@ The result distinguishes:
 | --- | --- |
 | `provider_live` | real model request/response |
 | `factory_live` | real model-authored worker executed through real Factory boundaries |
+| `factory_live_paired` | one hash-bound source corpus executed unchanged across scheduler strategies |
 | `control_probe` | deterministic negative-path enforcement probe |
 | `cluster_loopback` | real cluster code and wire semantics in one process |
 | `NOT_TESTED` | environment needed for the claim was unavailable |
