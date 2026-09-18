@@ -1452,3 +1452,85 @@ This continues the M6 design trend toward **models authoring semantic choices wh
 Evidence artifact SHA-256:
 
 `fa2b2329473e38bccc5d8b74ac44cd985857bc699367a34efbdfbeb348602ef6`
+
+
+## 33. From Proof-Carrying Structure to Challengeable Semantic Derivations
+
+The derivation-graph design introduces a necessary distinction between structural proof and semantic judgment.
+
+A valid graph root proves only properties that RESIDUAL has formalized and checked. It does not transform natural-language reasoning into scientific truth.
+
+The architecture therefore adds five explicit boundaries.
+
+### Semantic challengeability
+
+Scientist findings, Planner metric decisions, semantic reviews, questions, and ImprovementSpecs are challengeable node classes by schema.
+
+They bind an active challenge policy and cannot opt out of challengeability.
+
+A later Challenge is append-only and targets the immutable semantic node. Open challenges invalidate dependent admission conclusions through declared dependency edges.
+
+Absence of a challenge means only that the current protocol has no unresolved objection; it is not proof that the semantic claim is true.
+
+### Persistent handle resolution
+
+Model-visible evidence handles are invocation-local capabilities rather than content hashes.
+
+Historical replay does not re-resolve those handles against current Host state. The Host records a separate resolution relation from the model-authored citation to the immutable EvidenceFact used during the original invocation.
+
+This preserves deterministic replay without exposing the underlying attestation identity to the model.
+
+### Metric-selection justification
+
+Metric selection is itself a semantic claim.
+
+An ImprovementSpec admission subgraph therefore requires a MetricDecision with a substantive selection rationale, deterministic Host resolution, and independent semantic review.
+
+A mechanically valid metric ID is insufficient.
+
+This directly addresses selection failures that survive transcription hardening.
+
+### Replay boundary
+
+RESIDUAL distinguishes deterministic replay from authorship replay.
+
+Graph validation, Host resolution, formal invariant checks, environment comparison, challenge propagation, and admission recomputation may be replayed without a new model call.
+
+Replacing a challenged Scientist finding, Planner decision, Reviewer verdict, or Human decision requires new authorship and therefore a new graph node.
+
+"Replayable re-derivation" refers only to recomputing deterministic consequences from retained authored nodes.
+
+### Semantic root and execution root
+
+The canonical semantic DAG has an insertion-order-independent graph root.
+
+An executed experiment additionally has an environment-bound execution root committing to the semantic graph root, Environment Contract, observed environment, and input artifacts.
+
+This separates two claims:
+
+- the semantic derivation is the same;
+- the experiment executed under the same qualified environment.
+
+Queue latency is retained as an observational environment field unless preregistered otherwise. Required environment drift can block execution admission without changing the semantic graph root.
+
+### Human authorization and execution accountability
+
+Human COSIGN is not merely a terminal admission artifact.
+
+The exact HumanDecision also becomes an authorization root for subsequent ExecutionAction nodes. Execution actions record which admitted ImprovementSpec they implement.
+
+A challenge/revocation of the authorization can therefore invalidate the dependent execution branch without deleting the historical record of what occurred.
+
+### Claim language
+
+The paper should describe the resulting object as a:
+
+> proof-carrying, challengeable derivation graph
+
+where "proof-carrying" is scoped to formalized predicates and attestation integrity.
+
+It should not claim a proof of scientific truth.
+
+The current M6-008 boundary is consequently:
+
+> No candidate has yet produced a complete, unchallenged, environmentally qualified, independently reviewed, exactly human-co-signed ImprovementSpec derivation subgraph satisfying all formal admission predicates.
