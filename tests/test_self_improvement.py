@@ -13,6 +13,8 @@ from residual.self_improvement import (
     execute_generation,
     load_candidates,
     mission_plan,
+    originate_candidates,
+    planning_station_spec,
 )
 from residual.station.contracts import parse_spec
 
@@ -95,6 +97,16 @@ class RecursiveImprovementTests(unittest.TestCase):
         self.assertEqual(mission_plan(report), mission_plan(report))
         self.assertIn("swarm_director", mission_plan(report)["hierarchy"]["mission_governor"])
 
+    def test_planning_spec_has_parallel_scouts_and_dependent_composer(self):
+        report = doctor_repository(self.repo)
+        manifest = parse_spec(planning_station_spec(report, mission_plan(report), "local"))
+        tasks = {task["id"]: task for task in manifest["tasks"]}
+        self.assertEqual(set(tasks), {"SI_HEALTH_SCOUT", "SI_ROADMAP_SCOUT", "SI_COMPOSER"})
+        self.assertEqual(tasks["SI_HEALTH_SCOUT"]["depends_on"], [])
+        self.assertEqual(tasks["SI_ROADMAP_SCOUT"]["depends_on"], [])
+        self.assertEqual(set(tasks["SI_COMPOSER"]["depends_on"]),
+                         {"SI_HEALTH_SCOUT", "SI_ROADMAP_SCOUT"})
+
     def test_candidate_builds_existing_station_contract(self):
         report = doctor_repository(self.repo)
         spec = build_station_spec(report, mission_plan(report), self.candidate(), self.repo)
@@ -123,6 +135,25 @@ class RecursiveImprovementTests(unittest.TestCase):
     def test_code_candidate_requires_frozen_command_evaluator(self):
         report = doctor_repository(self.repo)
         doc = self.candidate(["residual/example.py"], [])
+        with self.assertRaises(ContractError):
+            build_station_spec(report, mission_plan(report), doc, self.repo)
+
+    def test_candidate_writable_scopes_cannot_overlap(self):
+        report = doctor_repository(self.repo)
+        a = self.candidate()["candidates"][0]
+        b = dict(a)
+        b["id"] = "SI-002"
+        doc = {"schema_version": 1, "candidates": [a, b]}
+        with self.assertRaises(ContractError):
+            build_station_spec(report, mission_plan(report), doc, self.repo)
+
+    def test_generation_cannot_modify_another_candidates_evaluator(self):
+        report = doctor_repository(self.repo)
+        a = self.candidate(["docs/a.md"], ["docs/CURRENT_STATUS.md"])["candidates"][0]
+        b = self.candidate(["docs/CURRENT_STATUS.md"], [])["candidates"][0]
+        b["id"] = "SI-002"
+        b["checks"] = [{"kind": "exists", "path": "docs/CURRENT_STATUS.md"}]
+        doc = {"schema_version": 1, "candidates": [a, b]}
         with self.assertRaises(ContractError):
             build_station_spec(report, mission_plan(report), doc, self.repo)
 
@@ -157,6 +188,46 @@ class RecursiveImprovementTests(unittest.TestCase):
         with patch("residual.self_improvement.revision_main", return_value=7) as doctor:
             self.assertEqual(cli_main(["revision", "doctor"]), 7)
             doctor.assert_called_once_with(["doctor"])
+
+    def test_origination_uses_station_and_admits_only_validated_proposal(self):
+        proposal = self.candidate()
+        calls = {}
+        repo_path = str(self.repo.resolve())
+
+        class FakeStore:
+            def project(self, pid):
+                return {"repo": repo_path}
+            def add_artifact(self, pid, name, content, kind):
+                calls["artifact"] = {"pid": pid, "name": name, "kind": kind}
+                return {"id": "p-plan:abc", "sha256": "a" * 64, "name": name, "size": len(content), "kind": kind}
+            def event(self, pid, event_type, data):
+                calls.setdefault("events", []).append((event_type, data))
+
+        class FakeStation:
+            def __init__(self, root):
+                self.store = FakeStore()
+            def create(self, spec, source, allow_cloud, commands):
+                manifest = parse_spec(spec)
+                calls["planner_tasks"] = [task["id"] for task in manifest["tasks"]]
+                calls["source"] = source
+                self.pid = "p-plan"
+                return {"project_id": self.pid}
+            def batch(self, pid):
+                target = self.repo / "docs/self-improvement/proposals/candidates.json"
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(json.dumps(proposal))
+                return {"integrated": 3, "total": 3, "control": {"outcome": "success"}}
+            def export(self, pid):
+                return {"id": "planner-export"}
+
+        FakeStation.repo = self.repo
+        with patch("residual.station.service.Station", FakeStation):
+            result = originate_candidates(self.repo, self.repo / ".station", route="local")
+        self.assertEqual(result["proposal"], proposal)
+        self.assertEqual(result["planner_route"], "local")
+        self.assertEqual(result["export"]["id"], "planner-export")
+        self.assertEqual(set(calls["planner_tasks"]),
+                         {"SI_HEALTH_SCOUT", "SI_ROADMAP_SCOUT", "SI_COMPOSER"})
 
     def test_execution_delegates_to_station_managed_clone_and_export(self):
         candidate = self.repo / "candidate.json"
