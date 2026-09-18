@@ -140,12 +140,15 @@ def _trial(work_ms: float) -> dict[str, Any]:
         try:
             crashed = WorkerClient(url, token)
             healthy = WorkerClient(url, token)
+            crash_metadata = LeaseHealthyProvider(work_ms)
+            crashed.register("crashed-worker", crash_metadata)
 
             started = time.perf_counter_ns()
             work = crashed.request("claim", {
                 "project_id": pid,
                 "task_id": "LEASE-001",
                 "name": "crashed-worker",
+                "worker_id": crashed.worker_id,
             })["work"]
             claimed = time.perf_counter_ns()
             if not work:
@@ -174,6 +177,7 @@ def _trial(work_ms: float) -> dict[str, Any]:
                 "project_id": pid,
                 "task_id": "LEASE-001",
                 "lease": work["lease"],
+                "worker_id": crashed.worker_id,
                 "submission_id": "stale-" + uuid.uuid4().hex,
                 "response": {"files": stale_files},
             }
