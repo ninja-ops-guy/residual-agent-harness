@@ -396,6 +396,33 @@ class CopilotStudioService:
         self.policy.authorize_principal(principal)
         return self.store.visible(mission_id, principal).response()
 
+    def execution_candidate(
+        self, token: str, mission_id: str, *, now: int
+    ) -> CopilotMissionRecord:
+        """Reauthorize immediately before a prepared mission crosses into Factory."""
+        principal = self._principal(token, now)
+        self.policy.authorize_principal(principal)
+        record = self.store.visible(mission_id, principal)
+        if record.revision.policy_hash != self.policy.policy_hash:
+            raise CopilotAPIError(
+                409,
+                "policy_changed",
+                "authorization policy changed since mission preparation",
+            )
+        if record.claims_hash != principal.claims_hash:
+            raise CopilotAPIError(
+                409,
+                "identity_changed",
+                "verified identity claims changed since mission preparation",
+            )
+        if record.state != "prepared":
+            raise CopilotAPIError(
+                409,
+                "mission_not_prepared",
+                "mission is not eligible to enter execution",
+            )
+        return record
+
     def evidence(
         self, token: str, mission_id: str, *, now: int
     ) -> dict[str, Any]:
