@@ -1,179 +1,160 @@
-# Research claim and prior art
+# RESIDUAL research status
 
-Date: 2026-09-18. Status: implemented research platform; central systems hypothesis not yet established by confirmatory live-model evaluation.
+This document summarizes retained research evidence without converting bounded experiments into broader capability claims. Exact revisions, workflow artifacts, experiment records, and verifier outputs are more authoritative than prose.
 
-> **Current platform state:** [CURRENT_STATUS.md](CURRENT_STATUS.md)
+Current accepted repository baseline for this status is **`main@60d0c5a8fc2044a22619248292ce89c9b43edd37`**.
 
-## Working paper
+## Claim discipline
 
-The broader systems hypothesis is developed in:
+Research outcomes use the same evidence vocabulary as the implementation:
 
-**[Reliability from Unreliable Computation: An Evidence-First Architecture for Verifiable Multi-Agent AI Systems](papers/reliability-from-unreliable-computation.md)**
+- **PASS** — the declared bounded experiment/criterion passed on the named revision and evidence.
+- **FAIL** — the declared bounded experiment/criterion failed.
+- **BLOCKED** — the intended claim could not be exercised validly because a prerequisite/intervention/environment was unavailable or invalid.
+- **UNKNOWN** — retained evidence is insufficient to assign PASS or FAIL to the intended claim.
 
-The research question is whether system-level AI reliability can improve without making each component model individually reliable when worker authority is constrained, execution is observable, evidence is retained, outputs are independently checked, and accepted state transitions remain under deterministic host control.
+A workflow completing successfully only proves that the workflow executed. It does not automatically make every scenario inside it PASS. Likewise, a provider timeout before a hypothesis/proposal is produced is an experiment-execution failure, not evidence that the unexercised scientific hypothesis is false.
 
-The key empirical distinction is between raw worker correctness `P(X)` and accepted-system correctness `P(X|A)`. A positive result requires more than rejection: accepted correctness must improve while acceptance coverage remains useful, and the improvement must be evaluated against orchestration cost, latency and throughput.
+## Current-main qualification context
 
-## Current accepted engineering boundary
+Exact `main@60d0c5a8...` has six successful ordinary push workflows and one failure: Deploy GitHub Pages run `35349614961` failed in published desktop live acceptance. Artifact build/browser proof and deployment succeeded; the real guest/demo/warm-reload/repository-audit stages passed before the embedded provider-frame failure-state expectation timed out.
 
-Current `main` is **`260b5f9e20bf70a6b9ca087bc91e22a009ed77b9`**.
+This browser-proof failure is separate from the research claims below and is not paid/live Puter semantic evidence; the retained provider proof used a test-double SDK.
 
-Merged #200 hardens the native setup path; merged #205 restores the private provider channel across Mission Control reload/remount with validated session-scoped state; merged #218 applies bounded Station repair-loop remediation by carrying content-bound prior-candidate context into repair attempts while preserving clean baseline worktrees, clarifying transport-versus-file-language contracts, and unifying the bounded attempt ceiling at five; merged #201 accepts the guided frontend/provider UX with inline RESIDUAL-side Puter setup, explicit user-gesture authorization, lazy loading, credential separation, and fail-closed protocol handling. These are accepted engineering changes, not scientific results.
+## Earlier heterogeneous-DAG evidence — #202
 
-PR #201's exact head `4e172aed...` completed **PASS** for Control Plane, Factory ownership, measured-evaluation binding, clean install, Browser VM Demo, Pages, Command Station, Controller/provider, and maintainer approval before merge. Exact merged `main@260b5f9...` has since completed its seven ordinary push workflows: six succeeded, while **Deploy GitHub Pages run `35340104722` is FAIL in published live-acceptance scope**. The Pages build/browser proof and deployment succeeded, but the published desktop proof timed out waiting for the embedded provider frame to expose the expected `could not load` status after the core real-guest stages had passed. That result remains an engineering/browser-proof failure; the retained provider path used a test-double SDK and does not establish paid/live Puter semantic success or failure.
+#202 retains two different exact-head outcomes:
 
-## Real-model experiment evidence: #202
+- an earlier heterogeneous DAG run: **FAIL**, with only 1/3 tasks integrated and no successful recovery of the dependent branch;
+- a later bounded corrected run: **PASS**, using real local Ollama models across a three-task heterogeneous DAG with forced repair, 3/3 integrated, verification receipts present, and release export produced.
 
-Draft #202 retains both favorable and unfavorable evidence.
+The later PASS does not erase the earlier FAIL and does not establish general DAG/recovery reliability, production readiness, or provider-independent model quality.
 
-An earlier heterogeneous three-task DAG run on exact experiment head `6b30125...` remains **FAIL**: 1/3 tasks integrated, the repaired branch did not satisfy its behavioral check within the attempt budget, and the dependent reporting task did not run.
+## M6 repair/self-host evidence
 
-A later distinct exact-head run on `03c77d12...` is a bounded **PASS** using real local Ollama models:
+The historical M6 evidence set remains deliberately mixed:
 
-- Qwen2.5-Coder 3B runner;
-- Llama 3.2 1B reviewer;
-- 3/3 tasks integrated;
-- verification receipts retained for all three tasks;
-- dependency lineage retained;
-- deliberately bad candidates were rejected before later valid candidates integrated;
-- release export was produced.
+- **#203** — first authoritative ImprovementSpec self-host trial: **FAIL**.
+- **#204 / M6-SPEC-002** — **FAIL**: 0/1 integrated, three passes, max-iteration escalation, no verification receipt/release.
+- **#215 / M6-SPEC-003** — **FAIL** after exercising prior-candidate repair context.
+- **#217 / M6-SPEC-004** — **FAIL** after transport/source clarification.
+- **#220 / M6-SPEC-006** — bounded **PASS** on corrected #218 runtime using Qwen2.5-Coder 7B. Attempts 1 and 2 were rejected by frozen checks; attempt 3 passed, independent Station review approved it, 1/1 integrated, a verification receipt was issued, and release export completed.
 
-The later PASS does **not** erase the earlier FAIL. It establishes one bounded successful experiment on that exact revision/configuration, not general DAG reliability, provider-independent model quality, or production readiness.
+Interpretation: the repair loop has at least one retained positive trial after several negative trials. General repair reliability and autonomous self-maintenance remain **UNKNOWN / not established**.
 
-## M6 self-maintenance experiments: #203, #204, #215, #217 and #220
+## M6.2 first roadmap shipment — #231
 
-Draft #203's first-authoritative ImprovementSpec self-host trial remains **FAIL**: 0/1 integrated, three attempts, max-iteration escalation, no verification receipt and no release.
+M6-ROADMAP-001B exercised the first M6.2 production contract against a detached clean copy of exact `main@260b5f9e20bf70a6b9ca087bc91e22a009ed77b9`.
 
-Draft #204 repeated the bounded trial with Qwen2.5-Coder 7B. Its first-authoritative M6-SPEC-002 run also remains **FAIL**: 0/1 integrated, three passes, max-iteration escalation, no verification receipt and no release.
+Authoritative retained outcome:
 
-Draft #215 (M6-SPEC-003) exercised prior-candidate repair context with Qwen2.5-Coder 1.5B. Repair-context hashes were retained on attempts 2 and 3, but the authoritative run still finished **FAIL** with 0/1 integrated, no review, verification receipt, release or promotion. The retained candidates showed transport/source conflation.
+- 1 implementation attempt;
+- 3/3 immutable checks **PASS**;
+- independent local review **APPROVED**;
+- exact reviewed head integrated;
+- Station verification receipt hash `880fbacee5fdfb13aded09e2297c14d7006f4da2c208ac292f8283a936199695`;
+- release export succeeded;
+- 2 model calls, 4,384 reported tokens, 435.182 seconds;
+- generated `residual/improvement/__init__.py` SHA-256 `3981e064c31f85763e872c47129975a61cc8d6ab8e00f1851d216eeb269ba623`;
+- generated `residual/improvement/spec.py` SHA-256 `0bdcb3b7f86aad5d684f7437df88f3342055bbc08a9df6b51cbe859656ca7616`;
+- retained artifact ID `10546904820`, ZIP SHA-256 `908b3b748b7d4841bdf92330e2cee5708bc65547663788dd5d0de29a4477effc`.
 
-Draft #217 (M6-SPEC-004) explicitly separated the outer transport JSON contract from file-language content while retaining prior-candidate context. The authoritative workflow retained evidence but the experiment remains **FAIL**: 0/1 integrated, three passes, max-iteration escalation, no review/receipt/release. The first candidate had an indentation error; attempts 2 and 3 imported a nonexistent `dataclasses.frozen` symbol.
+Status of the bounded experiment: **PASS**.
 
-Those negative experiments directly informed accepted #218. #218 changes the runtime repair context/contract and attempt envelope, but acceptance authority remains unchanged.
+The exact generated source is proposed for production in PR **#243** with independently authored tests. #243 is still open and unmerged, so this research PASS does **not** make `ImprovementSpec` accepted production behavior. Current #243 technical workflows are green in their named scope, while the exact-head maintainer approval gate is **FAIL / awaiting matching attestation**.
 
-### M6-SPEC-006: first bounded corrected-runtime PASS
+## Evidence-sufficiency fork — #232 / M6-EPI-001
 
-Draft #220 tests the corrected #218 runtime on exact experiment head **`7971a05798fbc77f7be344dd15f920adf1fad03c`** with local Qwen2.5-Coder 7B, a dedicated Ollama endpoint, the frozen ImprovementSpec checks, the five-attempt repair envelope, and an 1800-second mission budget.
+Both experiment arms integrated after one repair, so the bounded experiment execution was successful. The outputs also exposed requirements that a deterministic HypothesisVerifier must reject:
 
-The authoritative first run retained the following sequence:
+- the insufficient-evidence arm correctly emitted a MeasurementGap instead of inventing absent baseline/hypothesis/acceptance information, but left `preserve_invariants` empty;
+- the sufficient-evidence arm grounded the measured 2.4 baseline, but used free-form acceptance prose and conflated a performance metric with a protected invariant.
 
-- attempt 1 generated invalid Python importing `frozen` from `dataclasses`; the frozen check rejected it;
-- attempt 2 fixed the import but still accepted whitespace-only invalid fields; the frozen behavioral assertion rejected it;
-- attempt 3 incorporated repair context, passed 2/2 frozen checks, and advanced to review;
-- Station review approved the candidate;
-- 1/1 task integrated;
-- a `residual.station.receipt.v2` verification receipt was retained;
-- release export completed;
-- batch control outcome was success after three passes.
+Interpretation:
 
-Workflow run `35334715201` completed successfully on attempt 1 and retained artifact `m6-spec-006-corrected-runtime-evidence` (`10543236401`, artifact digest `sha256:ab7d8cfb639557510fff9789aa4c14a2ed940ecc71b37a5190fba0de84f13e61`). The retained trial reports four local-model calls, 9,217 reported tokens, no cloud token usage, and no unreported calls.
+- evidence-sufficiency fork behavior in this experiment: **PASS in scope**;
+- candidate conformance to the stricter intended verifier contract: **not established**;
+- production MeasurementGap/Scientist/HypothesisVerifier stack: **UNKNOWN / not yet accepted**.
 
-Interpretation is deliberately narrow:
+These findings are useful because they convert ambiguous model behavior into explicit deterministic rejection cases.
 
-- M6-SPEC-006 exact trial: **PASS**;
-- accepted #218 repair-loop mechanism: **PASS on main within its tested engineering scope**;
-- #203/#204/#215/#217: **remain FAIL**;
-- general M6 repair reliability across seeds/tasks/models: **UNKNOWN / not established**;
-- autonomous discovery of what to improve: **not established by this fixed-spec trial**;
-- autonomous merge authority: **not granted**;
-- central recursive/self-improvement hypothesis: **not established by one positive trial**.
+## Autonomous discovery — M6-SPEC-007 series
 
-The important research change is therefore not “M6 solved,” but that the retained sequence now contains both repeatable negative interventions and one bounded post-remediation positive intervention.
+### #244 / M6-SPEC-007
 
-## Deterministic stress evidence: #206, #207 and #212
+Authoritative result: **provider timeout before discovery**.
 
-Draft #206 Campaign A is complete at its corrected exact experiment head `e173719...` against frozen baseline `699e286...`. The earlier apparatus revision is explicitly invalid because it would have tested GitHub's synthetic pull-request merge commit; only the corrected exact-head runs are used here. Workflow-level success means the experiments executed and retained artifacts, not that the scenarios passed.
+The initial Qwen2.5-Coder 7B call timed out at roughly 300 seconds on a 15,566-byte request. No candidate proposal, checker result, review, receipt, or integration was produced.
 
-Retained Campaign A evidence remains mixed and negative where stated:
+Status: **FAIL in experiment-execution scope / discovery not reached**. The Scientist hypothesis remains **UNKNOWN** because no discovery proposal was produced.
 
-- **STRESS-A4 repair pressure — BLOCKED / invalid for the intended intervention:** 0 faults were injected; the provider/structured-output call failed, usage became unknown, the host budget aborted after one pass, and 0/1 integrated.
-- **STRESS-A5 DAG pressure — FAIL / incomplete:** 3/6 tasks integrated across five passes before `no_runnable_tasks` escalation; downstream tasks did not complete and no release export was attempted.
-- **STRESS-A6 reliability — FAIL in the frozen campaign:** Qwen2.5-Coder 7B completed 0/3 successful trials, accepted rate 0.0, with each trial ending 0/1 integrated after the three-pass max-iteration brake.
+### #246 / M6-SPEC-007B
 
-The later #220 M6 PASS is a different exact intervention and does not rewrite those cells.
+The lean evidence snapshot reduced the first request from 15,566 to 12,927 bytes, but the provider again timed out at roughly 300 seconds before a proposal. No checker, review, receipt, or integration stage was reached.
 
-Draft #207 deterministic Campaign B retained mixed scenario-level evidence:
+Status: **FAIL in experiment-execution scope / discovery not reached**.
 
-- **STRESS-B1 — FAIL:** token-budget exhaustion was recorded only after accepted integration/release had already occurred.
-- **STRESS-B2 — PASS within the control:** the early-convergence control completed 2/2 tasks without the budget/max-iteration trips under study.
-- **STRESS-B3 — FAIL:** a terminal verifier failure aborted the batch with 0 integrated, yet a non-empty release was still materialized afterward.
-- **STRESS-B4 — mixed:** injected corrupt candidates were rejected and none integrated, a bounded containment **PASS**; however, the task did not recover to successful completion within the frozen pass budget.
+The retained result narrows the next intervention: the Scientist needs output-contract semantics and externally authoritative checking, but does not need the full immutable verifier source in model context.
 
-Draft #212 Campaign C adds a deterministic failure matrix:
+### #249 / M6-SPEC-007C
 
-- malformed runner JSON: **PASS for fail-closed containment** in that exact scenario;
-- invalid reviewer schema: **PASS for fail-closed containment** in that exact scenario;
-- reviewer denial followed by approval: **PASS for that bounded recovery path**;
-- transient HTTP 500: no integration occurred, but provider retry/failover success was not established;
-- missing usage: **FAIL for accounting-before-authority** because a valid candidate integrated and received a receipt before the later `usage_unknown_or_invalid` host abort, corroborating #208.
+At this status check there is no authoritative result comment or retained outcome. Therefore the discovery outcome is **UNKNOWN / pending**.
 
-A green research workflow means the apparatus executed and retained artifacts; it does not convert scenario-level FAIL/BLOCKED evidence into PASS.
+The intended intervention keeps aggregate measurements, source hashes, no-supplied-hypothesis constraints, and exact external checker semantics while removing full checker source from the model context. The external checker remains authoritative.
 
-## Open governance repair candidate: #214
+No claim of autonomous improvement discovery should be made until a retained run produces a defensible, verifier-accepted ImprovementSpec from evidence without a supplied hypothesis.
 
-Draft #214 targets #208 by mirroring token/deadline state into Station before review/integration and tightening release eligibility around successful run control. It remains unaccepted and is still based on predecessor `main@4608afa...` at head `d3e8a5ec...`. Because accepted main moved through #218/#201 to `260b5f9...`, #214 must be refreshed/requalified before acceptance.
+## Deterministic stress evidence
 
-Therefore the #207/#212 accounting-ordering defect remains an accepted-main **FAIL/open blocker**. #218/#220 repair-loop success is independent and must not be used as evidence that the authority-ordering problem is fixed.
+### Campaign A — #206
 
-## WebVM / provider research boundary
+- STRESS-A4 repair pressure: **BLOCKED / invalid intervention** because zero intended faults were injected.
+- STRESS-A5 DAG pressure: **FAIL / incomplete**; 3/6 tasks integrated before no-runnable-task escalation.
+- STRESS-A6 real-model reliability: **FAIL in scope**; the frozen Qwen2.5-Coder 7B trials produced zero successes.
 
-Retained diagnostics isolate a WebVM-specific, process-local CPython positive-duration timed-wait failure affecting at least `time.sleep()` and `select.select()` in the tested guest/runtime combination. The lower-level CPython/glibc/WebVM cause and any relationship to earlier interpreter/allocator corruption remain **UNKNOWN**.
+Later M6 PASS results are different interventions and do not erase these cells.
 
-Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice. Both counted calls failed closed as `provider_protocol_invalid`; no candidate crossed the protocol boundary, so candidate correctness and semantic verification remain **UNKNOWN**.
+### Campaign B — #207
 
-#179, #183, #189, #205 and #201 repair or improve bounded build-output, provider-session, publication, reload-recovery and inline setup/authorization surfaces. None alone establishes live semantic success. Fresh retained exact-deployed-revision candidate→verifier→receipt evidence remains required.
+- STRESS-B1 budget ordering: **FAIL** — exhausted-budget accounting occurred after accepted integration/release.
+- STRESS-B2 early convergence: **PASS** in its exact control.
+- STRESS-B3 terminal verifier failure/release: **FAIL** — a non-empty release materialized after terminal verifier failure.
+- STRESS-B4 repeated repair pressure: containment **PASS**, recovery **FAIL**.
 
-The #186 iOS/WebKit fallback remains accepted. It is not physical heavyweight-WebVM reliability evidence. Issues #120/#126 remain open because bounded mitigations and individual green runs do not establish long-run recurrence rate or root cause.
+These are governance defects until a current-base repair is accepted and the same relevant scenarios are requalified.
 
-## Factory / protected evidence boundary
+### Failure matrix — #212
 
-M2/M3/M4 are implemented. M4 remains environment- and exact-revision-bound rather than universally qualified.
+#212 retained several distinct fail-closed/recovery paths. Of particular importance, its missing-usage case remains **FAIL for accounting-before-authority** because a valid candidate integrated and received a receipt before the later `usage_unknown_or_invalid` abort. This corroborates the #207 ordering defect family.
 
-Accepted #185/#187 protected changes retain their exact reviewed scope. PR #139 and downstream #134 remain a separate protected sequence. If a selected research path depends on them, preserve the complete ownership-baseline/requalification sequence and never convert `BLOCKED`/`UNKNOWN` into `PASS`.
+## Central research hypothesis
 
-## Governance and research independence
+RESIDUAL's central research direction is that system-level reliability can emerge from constraining, observing, verifying, and deterministically integrating unreliable model computation rather than assuming each model call is reliable.
 
-Merged #168 establishes repository merge control as:
+Current evidence supports individual mechanisms and bounded interventions, but it does **not** yet establish the central hypothesis as a general live-model result. In particular, the repository does not yet have retained evidence for all of the following together:
 
-`implementation → automated qualification/review → exact-head maintainer attestation → merge`
+1. a frozen confirmatory workload and protocol established before outcome access;
+2. repeated live-model runs across relevant models/providers/tasks;
+3. a preregistered comparison against suitable baselines;
+4. reliable exact-revision evidence and negative controls;
+5. autonomous discovery of an ImprovementSpec from evidence without a supplied hypothesis;
+6. deterministic rejection of malformed/unsupported hypotheses;
+7. repeated improvement validation showing a durable champion/challenger gain rather than a one-off success.
 
-This is **maintainer-reviewed with automated qualification**, not independent human assurance. A paper-facing security, release or scientific claim may still require evidence independent of the implementer/maintainer.
+Until those conditions are met, broad recursive/self-improvement claims remain **UNKNOWN / not established**.
 
-## Proposed contribution
+## Current M6.2 research priorities
 
-The original contribution was framed as **counterexample-directed residual delegation with evidence negotiation**: compile a checked workflow's unresolved frontier into a bounded, independently verifiable request while preserving accepted independent work and carrying content-bound receipts across model boundaries.
+1. Review/qualify #243 without treating the #231 research PASS as automatic production acceptance.
+2. Implement and qualify EvidenceSnapshot and MeasurementGap contracts.
+3. Implement the Scientist as analysis-only, without Git/write/integration/promotion authority.
+4. Implement deterministic HypothesisVerifier rejection cases identified by #232.
+5. Resolve #249 from retained evidence; keep #244/#246 as execution failures before discovery.
+6. Build the experiment ledger and champion/challenger evaluator.
+7. Repeat autonomous discovery trials with frozen evidence and external checking.
+8. Preserve earlier negative cells and independent #207/#212 authority-ordering defects.
+9. Freeze the paper-facing R0–R5 confirmatory protocol before outcome collection.
 
-The broader hypothesis is:
+## Non-claims
 
-> stochastic workers may remain individually unreliable if the surrounding system constrains their authority, observes execution, preserves evidence, independently checks candidate work and deterministically controls accepted state.
-
-The novelty claim is intentionally bounded. Routing, checkers, DAGs, caching, retrieval, sandboxing, model mixtures and counterexample-guided synthesis all have substantial prior art. The empirical research question is whether this composition produces measurably better **accepted-state reliability** under fixed component capability.
-
-This repository does not establish a first-in-literature result.
-
-## Confirmatory gate
-
-Before paper-facing outcome collection, freeze exact source, execution/evidence path, workload/task mapping, model/version, inference settings, verifier policies, prompts, metrics and analysis code **before** observing confirmatory results.
-
-At minimum:
-
-1. preserve exact-revision failures, blocked interventions, the #220 bounded PASS, and mixed results rather than treating any later result as erasure;
-2. repair/requalify the #207/#208 accounting/release-ordering defects, including the missing-usage case reproduced by #212, if the chosen path depends on those authority effects;
-3. resolve or explicitly exclude #120/#126 for any WebVM-dependent protocol;
-4. retain fresh exact-revision live-provider evidence if the protocol depends on that provider path;
-5. complete any protected #139/#134 sequence required by the selected evidence path;
-6. independently qualify the selected evidence path to the degree required by the paper claim;
-7. freeze the protocol before outcome access and retain negative, rejected, `UNKNOWN`, `BLOCKED`, failed and missing cells.
-
-## Primary confirmatory experiment
-
-Run one fixed model across frozen R0–R5 configurations and retain raw observations sufficient to recompute raw correctness `P(X)`, acceptance coverage `P(A)`, accepted correctness `P(X|A)`, AER/ASSR, false acceptance/rejection, verifier rejection/`UNKNOWN`, latency, throughput, rework/conflicts and directly measurable monetary/token/GPU cost.
-
-A positive result requires `P(X|A)` to improve meaningfully over `P(X)` without collapsing `P(A)` toward zero. A falsifying result is equally important: if accepted correctness does not materially improve, or improvement is dominated by rejection, verifier leakage, cost or latency, the hypothesis is not supported for the tested domain.
-
-## What is deliberately not claimed
-
-The repository does not currently claim a new foundation model, a universal verifier/proof system, universally optimal routing, guaranteed token/cost savings, blanket production readiness, successful exact-current-main real-provider inference, physical heavyweight-WebVM iPhone reliability, acceptable long-run WebVM reliability, independent human assurance from the solo-maintainer merge model, live-model proof of the central hypothesis, completed long-duration soak, general autonomous recursive self-improvement, autonomous merge authority or first-in-literature status.
-
-Receipts establish that stated checks ran over stated evidence under stated identities/revisions. They do not certify arbitrary truth beyond those contracts.
+Nothing in #220, #231, #232, #244, #246, or the open #243/#249 work establishes universal model reliability, production readiness, autonomous merge authority, general recursive self-improvement, or successful paid/live provider execution.
