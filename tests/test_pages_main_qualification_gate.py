@@ -125,59 +125,14 @@ class AuthoritativeContentTests(unittest.TestCase):
         self.assertGreaterEqual(WORKFLOW.count('--expected-sha "$GITHUB_SHA"'), 3)
 
 
-class StagedWorkflowTests(unittest.TestCase):
-    """The staged ci/pages.yml (issue #267 fix, pending maintainer move to
-    .github/workflows/pages.yml because the automation token lacks the
-    `workflow` scope) must already satisfy the trigger contract."""
+class ActivationCleanupTests(unittest.TestCase):
+    """The temporary staging copy must disappear once the workflow is active."""
 
-    STAGED_PATH = ROOT / 'ci' / 'pages.yml'
-
-    def _staged(self) -> str:
-        self.assertTrue(self.STAGED_PATH.exists(), 'staged ci/pages.yml missing')
-        return self.STAGED_PATH.read_text()
-
-    def test_staged_push_trigger_unfiltered(self):
-        global WORKFLOW
-        original = WORKFLOW
-        try:
-            WORKFLOW = self._staged()
-            push = _trigger_block('push')
-            self.assertIn('branches: [main]', push)
-            self.assertNotRegex(push, re.compile(r'^\s+paths(-ignore)?:', re.MULTILINE))
-            self.assertIn(
-                "cancel-in-progress: ${{ github.event_name == 'pull_request' }}",
-                WORKFLOW,
-            )
-        finally:
-            WORKFLOW = original
-
-    def test_staged_differs_only_by_push_paths_removal(self):
-        """Staged file preserves all proof/deploy/artifact behavior."""
-        staged = self._staged()
-        live_lines = [
-            line
-            for line in WORKFLOW.splitlines()
-            if line.strip() and not line.lstrip().startswith('#')
-        ]
-        staged_lines = [
-            line
-            for line in staged.splitlines()
-            if line.strip() and not line.lstrip().startswith('#')
-        ]
-        removed = [line for line in live_lines if line not in staged_lines]
-        for line in removed:
-            stripped = line.strip()
-            self.assertTrue(
-                stripped.startswith('- ')
-                or stripped.startswith('paths:')
-                or stripped.startswith('on:')
-                or stripped.startswith('push:')
-                or stripped.startswith('branches:'),
-                f'staged workflow dropped non-trigger content: {line!r}',
-            )
-        # Nothing behavioral may be added either.
-        added = [line for line in staged_lines if line not in live_lines]
-        self.assertEqual(added, [], f'staged workflow adds content: {added}')
+    def test_obsolete_staging_copy_is_absent(self):
+        self.assertFalse(
+            (ROOT / 'ci' / 'pages.yml').exists(),
+            'ci/pages.yml is a stale duplicate after activation under .github/workflows',
+        )
 
 
 if __name__ == '__main__':
