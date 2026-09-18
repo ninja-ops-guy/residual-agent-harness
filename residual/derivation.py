@@ -11,6 +11,10 @@ from types import MappingProxyType
 from typing import Any, Iterable, Mapping
 
 from .core import ContractError, canonical, digest
+from .challenge_policy import (
+    ChallengeDisposition, ChallengePolicy, ChallengeRecord, ChallengeResolution,
+    validate_filing, validate_resolution,
+)
 
 
 class Author(str, Enum):
@@ -370,6 +374,56 @@ class DerivationGraph:
             ],
         }
 
+    def _challenge_protocol(
+        self,
+        challenge_id: str,
+        target_id: str,
+        resolution_nodes: Iterable[DerivationNode],
+    ) -> tuple[bool, str | None]:
+        target=self._nodes[target_id]
+        challenge=self._nodes[challenge_id]
+        if target.node_type not in _CHALLENGEABLE_NODE_TYPES:
+            return (False,None)
+        try:
+            policy_node=self.challenge_policy_for(target_id)
+            policy=ChallengePolicy(
+                policy_id=str(policy_node.payload["policy_id"]),
+                eligible_challenger_roles=tuple(policy_node.payload["eligible_challenger_roles"]),
+                allowed_grounds=tuple(policy_node.payload["allowed_grounds"]),
+                resolution_authority_roles=tuple(policy_node.payload["resolution_authority_roles"]),
+                filing_window_events=policy_node.payload.get("filing_window_events"),
+                allow_withdrawal=bool(policy_node.payload.get("allow_withdrawal",True)),
+                revision=str(policy_node.payload.get("revision","1")),
+            )
+            record=ChallengeRecord(
+                challenge_id=str(challenge.payload["challenge_id"]),
+                target_node_id=target_id,
+                policy_id=str(challenge.payload["policy_id"]),
+                challenger_role=str(challenge.payload["challenger_role"]),
+                ground=str(challenge.payload["ground"]),
+                filed_event=int(challenge.payload["filed_event"]),
+            )
+            validate_filing(
+                policy,record,
+                target_created_event=int(target.payload.get("created_event",0)),
+            )
+            dispositions=set()
+            for node in resolution_nodes:
+                resolution=ChallengeResolution(
+                    challenge_id=str(node.payload["challenge_id"]),
+                    resolver_role=str(node.payload["resolver_role"]),
+                    disposition=ChallengeDisposition(str(node.payload["disposition"]).lower()),
+                    resolved_event=int(node.payload["resolved_event"]),
+                    reason=str(node.payload["reason"]),
+                )
+                validate_resolution(policy,record,resolution)
+                dispositions.add(resolution.disposition.value)
+            if len(dispositions)>1:
+                return (False,None)
+            return (True,next(iter(dispositions),None))
+        except (ContractError,KeyError,TypeError,ValueError):
+            return (False,None)
+
     def validity(self) -> dict[str, Validity]:
         result = {node_id: Validity.VALID for node_id in self._nodes}
 
@@ -417,13 +471,12 @@ class DerivationGraph:
                 r for r in resolutions_by_challenge.get(edge.source,[])
                 if result[r.node_id] != Validity.SUPERSEDED
             ]
-            dispositions={
-                str(r.payload.get("disposition","")).lower() for r in resolutions
-            }
-            if len(dispositions) > 1:
+            protocol_ok,disposition=self._challenge_protocol(
+                edge.source,edge.target,resolutions
+            )
+            if not protocol_ok:
                 result[edge.target] = Validity.UNKNOWN
                 continue
-            disposition=next(iter(dispositions),None)
             if disposition in {"rejected","withdrawn"}:
                 continue
             if disposition == "upheld":
