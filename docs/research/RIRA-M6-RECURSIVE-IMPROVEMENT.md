@@ -585,3 +585,91 @@ An autonomous research controller should classify at least:
 Only the first categories constitute evidence about the proposed implementation or hypothesis itself.
 
 M6-SHIP-004 tests the same roadmap task with the immutable external verifier but minimal read-only context.
+
+
+## 18. M6-ROADMAP-001B — Shipping a Real Roadmap Task with RESIDUAL
+
+A parallel roadmap experiment corrected an important methodological issue in the first productionization attempt: the source repository presented to RESIDUAL must be the exact intended baseline, not a workflow branch that also contains the experimental apparatus.
+
+M6-ROADMAP-001B therefore materialized a detached clean copy of:
+
+`main@260b5f9e20bf70a6b9ca087bc91e22a009ed77b9`
+
+and gave that source tree to the production RESIDUAL harness. The write scope was restricted to the new M6 package files.
+
+### Result
+
+The experiment succeeded in one implementation attempt.
+
+- implementation checks: **3 / 3 passed**
+- model review: **approved**
+- integration: **completed**
+- verification receipt: **issued**
+- release export: **completed**
+- implementation attempts: **1**
+- provider calls: **2** (runner + reviewer)
+- reported tokens: **4,384**
+- mission wall clock: **435.182 s**
+- candidate false acceptance observed: **0**
+
+The exact generated files were:
+
+`residual/improvement/__init__.py`  
+SHA-256: `3981e064c31f85763e872c47129975a61cc8d6ab8e00f1851d216eeb269ba623`
+
+`residual/improvement/spec.py`  
+SHA-256: `0bdcb3b7f86aad5d684f7437df88f3342055bbc08a9df6b51cbe859656ca7616`
+
+Station verification receipt hash:
+
+`880fbacee5fdfb13aded09e2297c14d7006f4da2c208ac292f8283a936199695`
+
+Retained evidence artifact:
+
+- artifact ID: `10546904820`
+- artifact ZIP SHA-256: `908b3b748b7d4841bdf92330e2cee5708bc65547663788dd5d0de29a4477effc`
+- Actions run: `35347061630`
+
+### Independent production-test provenance
+
+To avoid allowing the generated implementation to define its own production acceptance surface, the production contract tests were authored separately before the successful generated source was inspected and copied into the shipping branch.
+
+The generated source is promoted to production byte-for-byte. The production PR therefore creates a provenance chain:
+
+```text
+independently authored tests
+        +
+exact-main RESIDUAL experiment
+        ↓
+generated source hashes
+        ↓
+review + verification receipt
+        ↓
+exact-byte production copy
+        ↓
+normal repository CI / clean-install qualification
+```
+
+Production PR #243 contains this exact generated source plus those independent tests.
+
+### Research significance
+
+This is stronger than the earlier empty-workspace self-host experiment.
+
+M6-ROADMAP-001B demonstrates that RESIDUAL can operate against a clean snapshot of its **actual repository**, produce a bounded change for its own M6 architecture, pass external deterministic checks and review, and export an artifact that can be promoted unchanged through the project's ordinary software-delivery process.
+
+It still does not demonstrate autonomous improvement discovery; the roadmap task and contract were supplied externally.
+
+## 19. Shipping-Process Lessons
+
+The series of real-repository shipping attempts produced several process lessons that matter for autonomous improvement:
+
+1. **Pin the source baseline explicitly.** Experimental workflow files must not silently become implementation context.
+2. **Keep implementation context minimal and task-relevant.** Broad repository context increases latency and may cause provider timeout without improving task quality.
+3. **Represent substantial verification as immutable artifacts.** Large inline command strings are hard to audit and can exceed mission-contract bounds.
+4. **Verification diagnostics are part of the repair channel.** A correct but opaque rejection can produce repeated identical repairs.
+5. **Repeated identical candidate+failure states are not progress.** Station should classify stagnation rather than consume the full bounded attempt budget.
+6. **Separate experiment validity from candidate validity.** Provider timeout, manifest rejection, or context-budget failure must not be counted as evidence against an implementation hypothesis.
+7. **Promote exact accepted bytes.** Once RESIDUAL has produced a reviewed and receipted artifact, productionization should preserve its identity rather than silently hand-editing the candidate.
+
+Together, these results suggest that autonomous recursive improvement requires not only coding and hypothesis generation, but a trustworthy experiment-operations layer capable of preserving provenance and classifying failure modes correctly.
