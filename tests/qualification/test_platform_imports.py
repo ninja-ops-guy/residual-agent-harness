@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import re
+import subprocess
+import sys
 from pathlib import Path
 
 from residual.factory import m4_protocol
@@ -20,7 +22,10 @@ def test_linux_child_protocol_literals_match_platform_neutral_host_constants():
 
 
 def test_host_factory_import_does_not_import_linux_isolated_child():
-    import sys
-    sys.modules.pop("residual.factory._isolated_child", None)
-    import residual.factory  # noqa: F401
-    assert "residual.factory._isolated_child" not in sys.modules
+    code = (
+        "import sys, residual.factory; "
+        "assert 'residual.factory._isolated_child' not in sys.modules, "
+        "sorted(name for name in sys.modules if name.startswith('residual.factory'))"
+    )
+    result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr or result.stdout
