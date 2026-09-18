@@ -1,6 +1,6 @@
 # Research claim and prior art
 
-Date: 2026-09-17. Status: implemented research platform; central systems hypothesis not yet established by confirmatory live-model evaluation.
+Date: 2026-09-18. Status: implemented research platform; central systems hypothesis not yet established by confirmatory live-model evaluation.
 
 > **Current platform state:** [CURRENT_STATUS.md](CURRENT_STATUS.md)
 
@@ -16,27 +16,67 @@ The key empirical distinction is between raw worker correctness `P(X)` and accep
 
 ## Current evidence boundary
 
-Current `main` is **`dcf1e5071deb624c637aa72df575089435d72ac9`**, produced by merged #189 on top of merged #187.
+Current `main` is **`699e2869e294fe157b4bfd73a272057683a2f7e0`**.
 
-#187 accepts a protected M4 safety-test observation repair and the corresponding ownership-baseline pin. Its exact-head automated qualification and maintainer approval were PASS before merge, but this does not establish universal/capable-runner M4 qualification and does not erase the historical Controller/provider FAIL that motivated the repair.
+Accepted research/engineering state relevant to claims includes:
 
-#189 accepts a static Pages isolation-boundary repair that keeps the optional `/provider/` helper outside COOP/COEP response rewriting while preserving `/demo/` and heavyweight WebVM isolation. Its exact-head PR workflows, including Pages, were PASS before merge.
+- **#188** — AQ-GOV-001 is accepted/on main. It assumes unanimous 10/10 worker approval for authority escalation and exercises existing quarantine, immutable WorkerContract and AttemptGuard boundaries. It supports only the tested software-path statement that consensus alone does not grant the tested capabilities. It does not establish kernel/container/hypervisor/broker escape resistance or universal agent safety.
+- **#194** — accepted product/state repair for persistence/reopening of completed generated-spec drafts. It is not scientific outcome evidence.
+- **#133** — accepted WebVM runtime diagnostic apparatus. Retained evidence narrows one failure family to a WebVM-specific CPython positive-duration timeout/wait conversion path affecting at least `time.sleep()` and empty `select.select()`. Tested direct libc waits continue beyond the same narrow boundary. Exact lower-level CPython/i386 ABI/emulation cause remains **UNKNOWN**.
+- **#193** — accepted interactive native setup helper. It improves operator setup convenience; it does not establish blank-environment qualification or any scientific outcome.
 
-The first exact-current-main post-#189 push set has now completed **PASS on attempt 1** for Factory ownership, measured-evaluation binding, M4 runner prerequisites, clean install, Controller/provider, Command Station, and Pages/deployment. This is exact-revision automated mechanism/integration/deployment evidence for those named workflows. It does not establish universal/capable-runner M4 qualification, production provider-helper SDK/sign-in behavior, paid/live provider success, physical heavyweight-WebVM reliability, long-duration reliability, or a paper-facing effect size.
+PR #192 later merged older documentation based on an earlier accepted-main snapshot. That prose regression does not supersede retained implementation or research evidence; this documentation correction restores the current evidence boundary.
+
+Before #192/#193, all seven ordinary first-attempt push workflows on exact `main@b3f00af...` completed **PASS**. #193's exact candidate head completed its observed ordinary qualification/governance workflows **PASS** before merge. Exact post-merge qualification for `main@699e286...` remains a separate **PENDING** evidence set until applicable workflows complete. These are integration observations, not scientific outcome evidence.
+
+## #133 diagnostic research boundary
+
+The strongest currently supported diagnosis for the reproduced timed-wait symptom is narrower than generic “WebVM corruption” but broader than `time.sleep()` alone:
+
+- positive-duration `time.sleep()` reproduces `_PyTime_t` overflow around a narrow process-local call boundary;
+- empty `select.select(..., timeout)` reproduces the same family;
+- zero-duration sleep and tested monotonic clock reads pass beyond the boundary;
+- native i386 controls pass;
+- direct libc `nanosleep` and `clock_nanosleep` continue beyond the same boundary;
+- fresh guest CPython process creation resets or avoids the process-local boundary in paired tests;
+- Mission Control, its persistent worker, background execution and a second interpreter are not necessary preconditions.
+
+This materially supports a shared **CPython positive-duration timeout/wait conversion-path failure under the tested WebVM guest**.
+
+It does **not** establish:
+
+- the exact CPython/i386 ABI, time64, syscall/emulation, handle/resource or conversion defect;
+- time64 `ENOSYS` correlation as causal proof;
+- a causal link to historical `_sha512`, impossible-constructor, allocator or poisoned-guest evidence;
+- an acceptable long-run recurrence rate;
+- a production fix.
+
+Those remain **UNKNOWN / unestablished**. Multiple #133 diagnostic workflows intentionally completed **FAIL** after reproducing the defect. Those FAIL observations remain evidence; they are not qualification passes and must not be erased by rerun.
+
+## Historical #132 self-hosting evidence vs current capability
+
+Merged #132 previously delivered a bounded protected self-hosting/research-bundle experiment and retained exact-head evidence. Its claims were deliberately narrow: one external-model-authored candidate, deterministic acceptance predicates, no autonomous merge authority, and synthetic controller/policy stress that was not represented as repeated live autonomous self-improvement.
+
+Merged #133 removed the #132 implementation, workflow, tests, example and dedicated research documentation from current main. Earlier #133 review records explicitly identified those deletions as an integration blocker for a diagnostic-only PR; the deletion nevertheless landed.
+
+Research interpretation is therefore:
+
+- #132's retained historical experiment/evidence remains valid for its named source revision;
+- #132 tooling is **not current accepted implementation** on `main@699e286...`;
+- the reason for removal and intended retirement status are **UNKNOWN** from retained evidence;
+- no current claim should describe bounded self-maintenance/research-bundle tooling as present unless it is deliberately restored/reintroduced and requalified.
+
+Historical evidence is not erased by removal, but historical evidence also does not imply present capability.
 
 ## WebVM / provider research boundary
 
-Retained diagnostics isolate a WebVM-specific, process-local CPython positive-duration timed-wait failure affecting at least `time.sleep()` and `select.select()`, while tested direct libc waits continue beyond the same narrow boundary. The lower-level CPython/glibc/WebVM cause and any relationship to earlier interpreter/allocator corruption remain **UNKNOWN**.
-
 Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice. Both counted calls failed closed as `provider_protocol_invalid`; no candidate crossed the protocol boundary, so candidate correctness and semantic verification remain **UNKNOWN**.
 
-#179 changed the bounded build-output path but did not prove truncation caused the historical invalid responses. #183 changed provider-session lifecycle handling but did not establish live semantic success. #189 repairs a separately observed provider-helper COI/CORP publication failure. The exact-current-main Pages/deployment workflow is now PASS, but provider-helper SDK/sign-in behavior and live-provider success still require retained production evidence and must not be inferred from automated deployment CI.
+Merged #179 changed the bounded build-output path, #183 changed provider-session lifecycle handling and #189 repaired a provider-helper publication boundary. None alone establishes successful live inference.
 
-PR #190 has been refreshed onto exact current main at head `3a9ea3c2e6a36889f1fa71eb8a4e17c427c13261`. It remains an unaccepted provider-session recovery candidate; fresh exact-head qualification/governance and any required post-merge production retest remain separate gates.
+PR #190 remains open/unaccepted and must be refreshed/requalified as applicable after material main movement. Any required post-merge production retest remains separate.
 
-The #186 iOS/WebKit fallback remains accepted. It routes unsupported/unqualified iOS WebKit to the lightweight walkthrough before heavyweight guest boot. This is not physical heavyweight-WebVM reliability evidence. Published physical-device validation remains open, and the lower-level WebKit process-kill mechanism remains **UNKNOWN**.
-
-Issues #120/#126 remain open because trigger avoidance, recovery, safe fallback, added diagnostics and individual green browser runs do not establish long-run recurrence rate or root cause.
+The #186 iOS/WebKit fallback is accepted but is not physical heavyweight-WebVM reliability evidence. Issues #120/#126 remain open because #133's narrowed diagnosis is not equivalent to lower-level root cause or long-run reliability qualification.
 
 ## Governance and research independence
 
@@ -46,27 +86,19 @@ Merged #168 establishes the repository's solo-maintainer merge-control model:
 
 This should be described as **maintainer-reviewed with automated qualification**, not independent human assurance. A paper-facing security, release or scientific claim may still require evidence independent of the implementer/maintainer.
 
-PR #191 was closed unmerged; its proposed automated PR Agent workflow is not part of accepted governance or research-evidence policy.
-
 ## Factory / protected evidence boundary
 
 M2/M3/M4 are implemented. M4 remains environment- and exact-revision-bound rather than universally qualified.
 
-The #185 protected runtime-journal bytes and ownership-baseline advance remain accepted. #187 additionally accepts the protected M4 test observation repair and corresponding ownership pin. Their accepted claims are limited to those reviewed changes; acceptance does not erase unrelated historical Factory/M4 failures or establish every-host capability.
-
-PR #139 and downstream #134 remain a separate protected sequence. If a selected research path depends on them, preserve their complete protected-byte sequence and refresh/requalify against current main.
-
-## AQ-GOV-001 candidate
-
-PR **#188** adds an observable adversarial lab for a specific governance failure mode: ten cooperating agents unanimously approve authority escalation and then attempt privileged tool registration, outbound posting, credential access, verifier disablement, protected-policy writes, WorkerContract mutation, self-verification, self-issued acceptance receipts, authority delegation, and privileged worker spawning.
-
-The candidate exercises existing `QuarantineStore` / `ProposedAction`, immutable Factory `WorkerContract`, and `AttemptGuard` boundaries, plus a positive control that must remain usable. It is **unaccepted candidate evidence** until merged/qualified. It does not claim kernel/container/hypervisor/broker escape resistance.
+Accepted #185/#187 protected changes remain scoped to their reviewed bytes. The separate #139→ownership-baseline→fresh-qualification→#134 sequence remains independent. If a selected research evidence path depends on it, preserve the entire protected-byte process and do not convert `BLOCKED`/`UNKNOWN` capability states into `PASS`.
 
 ## Qualification and inference-economics work
 
-PR #152 proposes a broader Qualification v1 layer. Any prior result on an older base remains historical to that head. Virtual-day stress is not elapsed wall-clock soak; planned 24h/72h/30d workflows create no elapsed claim until the actual runs complete.
+PR #152 proposes a broader Qualification v1 layer. Any prior result on an older base remains historical to that exact head. Virtual-day stress is not elapsed wall-clock soak; planned 24h/72h/30d workflows create no elapsed claim until the actual runs complete.
 
-PRs #160–#167 are inference-engineering specifications. PR #177 remains a development-only IE-001 prototype qualification candidate. Its prior focused PASS/maintainer evidence is historical to its candidate head and must be reconciled/refreshed against the current IE-001 contract and applicable current-main qualification before final IE-001 qualification is claimed.
+PR #177 remains a development-only IE-001 prototype qualification candidate. Its prior focused/qualification evidence is historical to its candidate head and must be reconciled/refreshed after material main movement before final IE-001 qualification is claimed.
+
+PRs #160–#167 remain inference-engineering specifications/planning unless and until their implementation lands and qualifies.
 
 ## Proposed contribution
 
@@ -74,7 +106,7 @@ The original contribution was framed as **counterexample-directed residual deleg
 
 The broader hypothesis is:
 
-> stochastic workers may remain individually unreliable if the surrounding system constrains their authority, observes execution, preserves evidence, independently checks candidate work and deterministically controls accepted state.
+> stochastic workers may remain individually unreliable if the surrounding system constrains their authority, observes execution, preserves evidence, independently checks candidate work, and deterministically controls accepted state.
 
 The novelty claim is intentionally bounded. Routing, checkers, DAGs, caching, retrieval, sandboxing, model mixtures and counterexample-guided synthesis all have substantial prior art. The empirical research question is whether this composition produces measurably better **accepted-state reliability** under fixed component capability.
 
@@ -86,21 +118,23 @@ Before paper-facing outcome collection, freeze the exact source revision, select
 
 At minimum:
 
-1. preserve retained exact-revision failures rather than treating later repairs as erasure;
+1. preserve exact-current-main workflow outcomes and historical failures rather than inheriting or erasing them;
 2. resolve or explicitly bound #120/#126 for any WebVM-dependent path;
 3. retain fresh exact-revision live-provider evidence if the protocol depends on that provider path;
 4. complete any protected #139/#134 sequence required by the selected evidence path;
 5. independently qualify the selected evidence path to the degree required by the paper claim rather than treating repository maintainer attestation as external scientific validation;
-6. refresh any selected candidate after a material `main` move instead of inheriting stale-head qualification.
+6. refresh any selected candidate after a material `main` move instead of inheriting stale-head qualification;
+7. do not use historical #132 evidence to imply current self-maintenance capability unless the implementation is deliberately restored and requalified;
+8. do not treat #193 setup convenience as blank-environment or research qualification.
 
 ## Primary confirmatory experiment
 
-Run one fixed model across frozen R0–R5 configurations and retain raw observations sufficient to recompute raw correctness `P(X)`, acceptance coverage `P(A)`, accepted correctness `P(X|A)`, AER/ASSR, false acceptance/rejection, verifier rejection/`UNKNOWN`, latency, throughput, rework/conflicts and directly measurable monetary/token/GPU cost.
+Run one fixed model across frozen R0–R5 configurations and retain raw observations sufficient to recompute raw correctness `P(X)`, acceptance coverage `P(A)`, accepted correctness `P(X|A)`, AER/ASSR, false acceptance/rejection, verifier rejection/`UNKNOWN`, latency, throughput, rework/conflicts, and directly measurable monetary/token/GPU cost.
 
 A positive result requires `P(X|A)` to improve meaningfully over `P(X)` without collapsing `P(A)` toward zero. A falsifying result is equally important: if accepted correctness does not materially improve, or improvement is dominated by rejection, verifier leakage, cost or latency, the hypothesis is not supported for the tested domain.
 
 ## What is deliberately not claimed
 
-The repository does not currently claim a new foundation model, a universal verifier/proof system, universally optimal routing, guaranteed token/cost savings, blanket production readiness, successful exact-current-main real-provider inference, verified production provider-helper SDK/sign-in behavior, physical heavyweight-WebVM iPhone reliability, acceptable long-run WebVM reliability, independent human assurance from the solo-maintainer merge model, final IE-001 qualification, accepted AQ-GOV-001 results, live-model proof of the central hypothesis, completed long-duration soak, autonomous recursive self-improvement, autonomous merge authority or first-in-literature status.
+The repository does not currently claim a new foundation model, a universal verifier/proof system, universally optimal routing, guaranteed token/cost savings, blanket production readiness, successful exact-current-main real-provider inference, physical heavyweight-WebVM iPhone reliability, acceptable long-run WebVM reliability, exact root cause of the CPython/WebVM timed-wait failure, independent human assurance from the solo-maintainer merge model, current accepted #132 self-maintenance/research-bundle capability, final IE-001 qualification, live-model proof of the central hypothesis, completed long-duration soak, autonomous recursive self-improvement, autonomous merge authority or first-in-literature status.
 
 Receipts establish that stated checks ran over stated evidence under stated identities/revisions. They do not certify arbitrary truth beyond those contracts.
