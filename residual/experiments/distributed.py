@@ -446,6 +446,12 @@ def main(argv=None) -> int:
     recovery.add_argument("--repeats", type=int, default=3)
     recovery.add_argument("--output")
 
+    straggler = sub.add_parser("straggler", help="Benchmark heterogeneous and straggling distributed workers")
+    straggler.add_argument("--latencies-ms", nargs="+", type=float, default=[20.0, 20.0, 200.0])
+    straggler.add_argument("--tasks", type=int, default=12)
+    straggler.add_argument("--repeats", type=int, default=3)
+    straggler.add_argument("--output")
+
     mesh = sub.add_parser("mesh", help="Benchmark signed mesh history and cluster join")
     mesh.add_argument("--messages", type=int, default=1000)
     mesh.add_argument("--repeats", type=int, default=3)
@@ -496,6 +502,13 @@ def main(argv=None) -> int:
             report = run_station_recovery_benchmark(
                 bad_ms=args.bad_ms,
                 good_ms=args.good_ms,
+                repeats=args.repeats,
+            )
+        elif args.experiment == "straggler":
+            from residual.experiments.straggler import run_straggler_benchmark
+            report = run_straggler_benchmark(
+                latencies_ms=tuple(args.latencies_ms),
+                tasks=args.tasks,
                 repeats=args.repeats,
             )
         else:

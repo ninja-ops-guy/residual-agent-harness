@@ -329,6 +329,7 @@ The focused experiment workflow retains:
 
 - `mesh-experiment.json`;
 - `distributed-experiment.json`;
+- `straggler-experiment.json`;
 - `pipeline-experiment.json`;
 - `recovery-experiment.json`;
 - `bridge-experiment.json`.
@@ -394,3 +395,41 @@ A run with `--workers 4` must retain four registered instances even if schedulin
 The report also retains aggregate worker-reported inference elapsed time. This makes it possible to separate synthetic/provider work from Station coordination and integration time in the same experiment.
 
 Mission Control exposes `/workers` as a typed registry query. In the browser lab it truthfully reports that no native Station registry is attached unless the host supplies a worker-metrics bridge.
+
+
+## Heterogeneous / straggler workers
+
+Pull-based scheduling should allow faster workers to claim more tasks as they become available, but that behavior is measured rather than assumed:
+
+```bash
+residual experiment straggler \
+  --latencies-ms 20 20 200 \
+  --tasks 12 \
+  --repeats 3 \
+  --output runs/straggler.json
+```
+
+Every configured worker is a real registered `WorkerClient` using the Station worker protocol. Each worker receives a controlled synthetic provider latency.
+
+The report retains:
+
+- candidate and full-workflow wall time;
+- all per-worker task counts;
+- registered instance count;
+- workers actually used;
+- fastest/slowest worker task share;
+- total worker-reported inference time;
+- a greedy heterogeneous synthetic scheduling floor;
+- observed overhead above that floor.
+
+No task-share threshold is a qualification gate. A faster worker receiving more work is an observation to compare across repeats, not an assumption baked into the test.
+
+This arm is especially useful before physical heterogeneous experiments because it establishes how much balancing comes from the pull scheduler itself, without mixing in network RTT, GPU differences, provider variance, or model quality.
+
+## Station-event mirror replay safety
+
+Station workflow-event mirroring into `MeshSession` is idempotent by the **full Station event hash**. The coordinator embeds a non-authoritative marker in its signed inert CHAT summary and, on replay, only coordinator-authored valid markers suppress duplicate mirroring.
+
+A peer can post text that resembles a Station-event marker, but it cannot suppress the real Station event because peer-authored markers are ignored for mirror deduplication.
+
+This allows a bridge process to retry an overlapping event window after a lost cursor without duplicating the room transcript.

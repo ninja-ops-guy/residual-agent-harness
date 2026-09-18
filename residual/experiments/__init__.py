@@ -5,6 +5,7 @@ from .pipeline import run_station_pipeline_benchmark
 from .matrix import run_experiment_matrix
 from .lease_recovery import run_station_lease_recovery_benchmark
 from .recovery import run_station_recovery_benchmark
+from .straggler import run_straggler_benchmark
 
 __all__ = [
     "run_experiment_matrix",
@@ -14,4 +15,5 @@ __all__ = [
     "run_station_distributed_benchmark",
     "run_station_pipeline_benchmark",
     "run_station_recovery_benchmark",
+    "run_straggler_benchmark",
 ]

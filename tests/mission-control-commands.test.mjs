@@ -133,6 +133,8 @@ test('mesh and experiment commands preserve browser isolation boundary',async()=
   assert.match(lease.text,/residual experiment lease-recovery/);
   const matrix=await executeMissionCommand('/experiment matrix',x.api);
   assert.match(matrix.text,/residual experiment matrix/);
+  const straggler=await executeMissionCommand('/experiment straggler',x.api);
+  assert.match(straggler.text,/residual experiment straggler/);
   const bridge=await executeMissionCommand('/experiment bridge',x.api);
   assert.match(bridge.text,/residual experiment bridge/);
 });

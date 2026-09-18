@@ -11,6 +11,7 @@ on:
       - 'demo/vm/install_workbench.py'
       - 'tests/test_mesh_*.py'
       - 'tests/test_distributed_experiments.py'
+      - 'tests/test_distributed_straggler_experiment.py'
       - 'tests/test_distributed_pipeline_experiment.py'
       - 'tests/test_distributed_recovery_experiment.py'
       - 'tests/test_distributed_lease_recovery.py'
@@ -44,6 +45,7 @@ jobs:
           tests/test_mesh_session.py
           tests/test_cluster.py
           tests/test_distributed_experiments.py
+          tests/test_distributed_straggler_experiment.py
           tests/test_distributed_pipeline_experiment.py
           tests/test_distributed_recovery_experiment.py
           tests/test_distributed_lease_recovery.py
@@ -124,6 +126,13 @@ jobs:
           --work-ms 40
           --repeats 2
           --output runs/lease-recovery-experiment.json
+      - name: Heterogeneous-worker straggler benchmark
+        run: >-
+          residual experiment straggler
+          --latencies-ms 20 20 200
+          --tasks 12
+          --repeats 2
+          --output runs/straggler-experiment.json
       - name: Summarize benchmark evidence
         run: |
           python - <<'PY'
@@ -131,17 +140,21 @@ jobs:
           from pathlib import Path
           mesh=json.loads(Path('runs/mesh-experiment.json').read_text())
           dist=json.loads(Path('runs/distributed-experiment.json').read_text())
+          straggler=json.loads(Path('runs/straggler-experiment.json').read_text())
           pipeline=json.loads(Path('runs/pipeline-experiment.json').read_text())
           recovery=json.loads(Path('runs/recovery-experiment.json').read_text())
           lease=json.loads(Path('runs/lease-recovery-experiment.json').read_text())
           bridge=json.loads(Path('runs/bridge-experiment.json').read_text())
           print('MESH', json.dumps(mesh['summary'], sort_keys=True))
           print('DISTRIBUTED', json.dumps(dist['summary'], sort_keys=True))
+          print('STRAGGLER', json.dumps(straggler['summary'], sort_keys=True))
           print('PIPELINE', json.dumps(pipeline['summary'], sort_keys=True))
           print('RECOVERY', json.dumps(recovery['summary'], sort_keys=True))
           print('LEASE_RECOVERY', json.dumps(lease['summary'], sort_keys=True))
           print('BRIDGE', json.dumps(bridge['summary'], sort_keys=True))
           assert all(row['all_integrated'] for row in dist['summary'])
+          assert straggler['summary']['all_integrated']
+          assert straggler['summary']['registered_worker_instances_min'] == 3
           assert all(row['all_integrated'] for row in pipeline['summary'])
           assert recovery['summary']['all_recovered_and_integrated']
           assert recovery['summary']['all_failures_retained_findings']
@@ -162,6 +175,7 @@ jobs:
           path: |
             runs/mesh-experiment.json
             runs/distributed-experiment.json
+            runs/straggler-experiment.json
             runs/pipeline-experiment.json
             runs/recovery-experiment.json
             runs/lease-recovery-experiment.json

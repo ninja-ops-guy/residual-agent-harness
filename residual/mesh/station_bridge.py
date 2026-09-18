@@ -15,6 +15,9 @@ from .node import MeshMessageKind
 from .session import MeshSession
 
 
+STATION_EVENT_MARKER = "[station-event:"
+
+
 def _short(value: Any, limit: int = 160) -> str:
     text = str(value or "").replace("\n", " ").strip()
     return text if len(text) <= limit else text[: limit - 1] + "…"
@@ -50,10 +53,11 @@ def summarize_station_event(event: dict) -> str:
         detail = "recorded"
 
     event_hash = str(event.get("hash", ""))
+    marker = f"{STATION_EVENT_MARKER}{event_hash}] " if len(event_hash) == 64 else ""
     suffix = f" · event {event.get('seq','?')}"
     if event_hash:
         suffix += f" · {event_hash[:12]}"
-    return _short(f"{prefix} {detail}{suffix}", 1800)
+    return _short(f"{marker}{prefix} {detail}{suffix}", 1800)
 
 
 class StationMeshBridge:
@@ -96,15 +100,27 @@ class StationMeshBridge:
         events = self.station.store.events(self.project_id, after_seq, limit)
         mirrored = []
         through = after_seq
+        mirrored_hashes = set()
+        coordinator = self.session.node(self.coordinator_device_id)
+        for existing in coordinator.chat.messages:
+            if existing.author_id != self.coordinator_device_id or not existing.content.startswith(STATION_EVENT_MARKER):
+                continue
+            close = existing.content.find("]")
+            candidate = existing.content[len(STATION_EVENT_MARKER):close] if close > 0 else ""
+            if len(candidate) == 64 and all(ch in "0123456789abcdef" for ch in candidate):
+                mirrored_hashes.add(candidate)
         for event in events:
             through = max(through, event["seq"])
             # A peer chat ingested into Station must not echo back into the room.
             if event["event_type"] == "project.note" and str(event.get("actor", "")).startswith("mesh:"):
                 continue
+            if event["hash"] in mirrored_hashes:
+                continue
             message, receipt = self.session.chat(
                 self.coordinator_device_id,
                 summarize_station_event(event),
             )
+            mirrored_hashes.add(event["hash"])
             mirrored.append({
                 "event_seq": event["seq"],
                 "event_hash": event["hash"],

@@ -50,6 +50,34 @@ def test_station_events_mirror_as_signed_inert_chat():
         assert message.payload=={}
         assert "[project.created]" in message.content
         assert "event 1" in message.content
+        assert station.store.events(pid)[0]["hash"] in message.content
+
+
+def test_station_event_mirroring_is_idempotent_by_full_event_hash():
+    with tempfile.TemporaryDirectory() as tmp:
+        station=Station(tmp)
+        pid=station.create(demo_spec(),demo=True)["project_id"]
+        room,nodes=session_nodes()
+        bridge=StationMeshBridge(station,pid,room,"dev-station")
+        first=bridge.mirror_station_events(after_seq=0)
+        before=len(nodes["station"].chat.messages)
+        second=bridge.mirror_station_events(after_seq=0)
+        assert len(first["mirrored"])==1
+        assert second["mirrored"]==[]
+        assert len(nodes["station"].chat.messages)==before
+
+
+def test_peer_cannot_forge_station_event_marker_to_suppress_mirroring():
+    with tempfile.TemporaryDirectory() as tmp:
+        station=Station(tmp)
+        pid=station.create(demo_spec(),demo=True)["project_id"]
+        event_hash=station.store.events(pid)[0]["hash"]
+        room,nodes=session_nodes()
+        bridge=StationMeshBridge(station,pid,room,"dev-station")
+        room.chat("dev-peer",f"[station-event:{event_hash}] forged")
+        result=bridge.mirror_station_events(after_seq=0)
+        assert len(result["mirrored"])==1
+        assert nodes["station"].chat.messages[-1].author_id=="dev-station"
 
 
 def test_verified_peer_chat_enters_station_only_as_project_note():
