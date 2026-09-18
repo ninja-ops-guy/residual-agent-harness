@@ -773,3 +773,69 @@ Verifier decides:
 ```
 
 The Scientist therefore cannot optimize against verifier implementation details while still being held to the same mechanically enforced contract.
+
+
+## 23. M6-SPEC-007C — Autonomous Objective Selection Reached, Admission Failed at Representation
+
+M6-SPEC-007C removed verifier implementation source from the Scientist's model-visible context. The first request fell to 6,878 bytes and completed in 187.339 seconds, allowing the experiment to reach the actual discovery question for the first time.
+
+The Scientist independently selected:
+
+- primary observed metric: `shipping_task_success_rate = 0.6`;
+- comparison metric: `provider_timeout_rate = 0.2`;
+- hypothesis: reducing provider timeouts should increase shipping-task success;
+- target metric: `shipping_task_success_rate`;
+- preservation metric: `provider_timeout_rate`;
+- protected invariant: `M4`;
+- evidence binding: exact compact EvidenceSnapshot hash;
+- authority: human approval retained.
+
+No improvement question, target metric, intervention, or hypothesis was supplied by the experiment.
+
+This is evidence of **autonomous objective selection** within the bounded evidence scope.
+
+The proposal did not pass formal admission. Attempts repeatedly malformed the JSON representation of the acceptance criterion:
+
+```text
+"operator">="
+```
+
+instead of a valid key/value pair. The deterministic JSON and proposal verifiers therefore rejected every candidate. Repeated-patch detection identified recurring failed proposals, and the final generation hit the 1,200-token output ceiling. The run escalated after five bounded passes.
+
+- first request bytes: **6,878**
+- calls: **5**
+- reported tokens: **12,840**
+- wall clock: **752.384 s**
+- integrated proposal: **none**
+- review reached: **no**
+- false admission: **0**
+- evidence artifact SHA-256: `50398a007fb67aee739d81b9b726ebf0d5caf0a45fac1599b74cc31ae40ff782`
+
+### Interpretation
+
+The experiment separates two capabilities that had previously been conflated:
+
+1. **epistemic reasoning** — selecting a measured deficiency and forming a falsifiable improvement direction;
+2. **representation compliance** — encoding that reasoning into the exact machine contract expected by the verifier.
+
+M6-SPEC-007C provides positive evidence for the first capability and negative evidence for the second.
+
+The appropriate remediation is not to weaken the verifier or manually repair the proposal. Instead, M6-SPEC-007D moves serialization out of the scientific task entirely:
+
+```text
+EvidenceSnapshot
+      ↓
+Scientist returns typed structured object
+      ↓
+RESIDUAL canonical serializer
+      ↓
+deterministic external HypothesisVerifier
+      ↓
+independent reviewer
+      ↓
+admission receipt
+```
+
+The model will no longer be asked to hand-author JSON source text. The scientific question therefore becomes whether the structured proposal is admissible, rather than whether the model can place punctuation correctly.
+
+This is the precise boundary between observed autonomous discovery and formally admitted autonomous discovery.
