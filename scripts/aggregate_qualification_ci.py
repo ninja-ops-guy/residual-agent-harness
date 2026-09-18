@@ -46,6 +46,7 @@ REQUIRED_GATES = (
     "windows-lifecycle",
     "persistence-fault-injection",
     "webvm-provider-protocol-fuzz",
+    "qualification-selftests",
 )
 
 
