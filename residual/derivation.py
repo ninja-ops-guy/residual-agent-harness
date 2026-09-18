@@ -36,6 +36,14 @@ class NodeType(str, Enum):
     SUPERSESSION = "supersession"
     CAPABILITY_RESOLUTION = "capability_resolution"
     EXECUTION_ACTION = "execution_action"
+    CHALLENGE_POLICY = "challenge_policy"
+    CHALLENGE_RESOLUTION = "challenge_resolution"
+    REVOCATION = "revocation"
+    ADMISSION_DECISION = "admission_decision"
+    DERIVATION_SNAPSHOT = "derivation_snapshot"
+    EXECUTION_BINDING = "execution_binding"
+    ENVIRONMENT_CONTEXT = "environment_context"
+    QUIESCENCE_CERTIFICATE = "quiescence_certificate"
 
 
 class EdgeType(str, Enum):
@@ -55,6 +63,13 @@ class EdgeType(str, Enum):
     AUTHORIZES = "authorizes"
     IMPLEMENTS = "implements"
     MEASURED_BY = "measured_by"
+    GOVERNED_BY = "governed_by"
+    RESOLVES_CHALLENGE = "resolves_challenge"
+    REVOKES = "revokes"
+    EXECUTES = "executes"
+    UNDER_ENVIRONMENT = "under_environment"
+    AUTHORED_UNDER = "authored_under"
+    ADMITTED_FROM = "admitted_from"
 
 
 class Validity(str, Enum):
@@ -64,6 +79,7 @@ class Validity(str, Enum):
     UNKNOWN = "unknown"
     STALE_ENVIRONMENT = "stale_environment"
     SUPERSEDED = "superseded"
+    AUTHORIZATION_REVOKED = "authorization_revoked"
 
 
 _CHALLENGEABLE_NODE_TYPES = {
@@ -238,6 +254,29 @@ _ALLOWED: dict[EdgeType, set[tuple[NodeType, NodeType]]] = {
     EdgeType.MEASURED_BY: {
         (NodeType.IMPROVEMENT_SPEC, NodeType.METRIC_DECISION),
     },
+    EdgeType.GOVERNED_BY: {
+        (node_type, NodeType.CHALLENGE_POLICY)
+        for node_type in _CHALLENGEABLE_NODE_TYPES
+    },
+    EdgeType.RESOLVES_CHALLENGE: {
+        (NodeType.CHALLENGE_RESOLUTION, NodeType.CHALLENGE),
+    },
+    EdgeType.REVOKES: {
+        (NodeType.REVOCATION, NodeType.HUMAN_DECISION),
+    },
+    EdgeType.EXECUTES: {
+        (NodeType.EXECUTION_BINDING, NodeType.DERIVATION_SNAPSHOT),
+    },
+    EdgeType.UNDER_ENVIRONMENT: {
+        (NodeType.EXECUTION_BINDING, NodeType.ENVIRONMENT_CONTEXT),
+    },
+    EdgeType.AUTHORED_UNDER: {
+        (node_type, NodeType.ENVIRONMENT_CONTEXT)
+        for node_type in _CHALLENGEABLE_NODE_TYPES
+    },
+    EdgeType.ADMITTED_FROM: {
+        (NodeType.ADMISSION_DECISION, NodeType.IMPROVEMENT_SPEC),
+    },
 }
 
 
@@ -353,12 +392,44 @@ class DerivationGraph:
             if edge.edge_type == EdgeType.SUPERSEDES:
                 result[edge.target] = Validity.SUPERSEDED
 
+        # Revocation is append-only. It does not erase the historical
+        # HumanDecision; it changes the current authorization state.
+        for edge in self._edges.values():
+            if edge.edge_type == EdgeType.REVOKES:
+                result[edge.target] = Validity.AUTHORIZATION_REVOKED
+
+        # A challenge is active unless superseded or governed by a terminal
+        # resolution. Conflicting active terminal resolutions are fail-closed.
+        resolutions_by_challenge: dict[str, list[DerivationNode]] = {}
+        for edge in self._edges.values():
+            if edge.edge_type == EdgeType.RESOLVES_CHALLENGE:
+                resolutions_by_challenge.setdefault(edge.target,[]).append(
+                    self._nodes[edge.source]
+                )
+
         for edge in self._edges.values():
             if edge.edge_type != EdgeType.CHALLENGES:
                 continue
             challenge_state = result[edge.source]
-            if challenge_state != Validity.SUPERSEDED:
-                result[edge.target] = Validity.CHALLENGED
+            if challenge_state == Validity.SUPERSEDED:
+                continue
+            resolutions=[
+                r for r in resolutions_by_challenge.get(edge.source,[])
+                if result[r.node_id] != Validity.SUPERSEDED
+            ]
+            dispositions={
+                str(r.payload.get("disposition","")).lower() for r in resolutions
+            }
+            if len(dispositions) > 1:
+                result[edge.target] = Validity.UNKNOWN
+                continue
+            disposition=next(iter(dispositions),None)
+            if disposition in {"rejected","withdrawn"}:
+                continue
+            if disposition == "upheld":
+                result[edge.target] = Validity.INVALID
+                continue
+            result[edge.target] = Validity.CHALLENGED
 
         # Most justification edges point from a conclusion to a prerequisite:
         # invalid prerequisite -> dependent source invalidates/challenges.
@@ -398,6 +469,8 @@ class DerivationGraph:
                 desired = (
                     Validity.STALE_ENVIRONMENT
                     if source_state == Validity.STALE_ENVIRONMENT
+                    else Validity.AUTHORIZATION_REVOKED
+                    if source_state == Validity.AUTHORIZATION_REVOKED
                     else Validity.CHALLENGED
                 )
                 if target_state != desired:
@@ -436,6 +509,29 @@ class DerivationGraph:
         if len(matches) != 1:
             raise ContractError("historical handle resolution is missing or ambiguous")
         return matches[0]
+
+    def admission_decision_node(
+        self,
+        spec_id: str,
+        *,
+        event_index: int,
+    ) -> DerivationNode:
+        if event_index < 0:
+            raise ContractError("event_index must be >= 0")
+        admitted, findings=self.improvement_admissible(spec_id)
+        active=self.unresolved_challenges({spec_id})
+        return DerivationNode(
+            NodeType.ADMISSION_DECISION,
+            Author.HOST,
+            {
+                "spec_id":spec_id,
+                "evaluated_graph_root":self.graph_root,
+                "event_index":event_index,
+                "verdict":"admitted" if admitted else "blocked",
+                "findings":list(findings),
+                "active_challenge_edges":list(active),
+            },
+        )
 
     def unresolved_challenges(self, node_ids: Iterable[str]) -> tuple[str, ...]:
         targets=set(node_ids)
