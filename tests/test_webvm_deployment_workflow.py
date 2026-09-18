@@ -108,11 +108,10 @@ class DeploymentWorkflowTests(unittest.TestCase):
                 self.assertIn('${{ github.run_id }}-${{ github.run_attempt }}', step(name))
 
     def test_core_and_cli_changes_requalify_demo(self):
-        push, pr = WORKFLOW.split('  pull_request:\n')
+        push = WORKFLOW.split('  push:\n', 1)[1].split('  pull_request:\n', 1)[0]
         self.assertIn('branches: [main]', push)
-        self.assertNotIn('paths:', push)
-        self.assertNotIn('paths-ignore:', push)
-        pr = pr.split('  workflow_dispatch:', 1)[0]
+        self.assertNotRegex(push, re.compile(r'^\s+paths(-ignore)?:', re.MULTILINE))
+        pr = WORKFLOW.split('  pull_request:\n', 1)[1].split('  workflow_dispatch:', 1)[0]
         for path in ("- 'residual/**'", "- 'pyproject.toml'", "- 'tests/test_webvm_*.py'"):
             self.assertIn(path, pr)
         self.assertIn('tests.test_webvm_cli_output', step('Test publication contracts'))
