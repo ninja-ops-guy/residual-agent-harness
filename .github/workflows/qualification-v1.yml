@@ -506,9 +506,41 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+
+  webvm-protocol-fuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: WebVM provider protocol deterministic fuzz corpus
+        run: |
+          mkdir -p runs/qualification-v1
+          python scripts/qualification_v1.py run \
+            --gate-id webvm-provider-protocol-fuzz \
+            --output runs/qualification-v1/webvm-protocol-fuzz.evidence.json \
+            --log runs/qualification-v1/webvm-protocol-fuzz.log \
+            -- node --test tests/qualification/webvm-provider-fuzz.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-webvm-protocol-fuzz-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
   aggregate:
     if: always()
-    needs: [deterministic, discovery, m4, artifacts, browser, concurrency, protocol-fuzz, toxic-provider, active-workload, browser-adversarial, redteam, windows-lifecycle, fault-injection]
+    needs: [deterministic, discovery, m4, artifacts, browser, concurrency, protocol-fuzz, toxic-provider, active-workload, browser-adversarial, redteam, windows-lifecycle, fault-injection, webvm-protocol-fuzz]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
