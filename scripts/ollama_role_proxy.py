@@ -82,7 +82,7 @@ class Handler(BaseHTTPRequestHandler):
             response_body, status, content_type = self._forward_bytes(upstream_body)
 
             injected = False
-            if status == 200 and role == "runner" and task_id == "STATS-002":
+            if status == 200 and role == "runner" and task_id == "CORE-001":
                 with self.state.lock:
                     should_inject = not self.state.injected
                     if should_inject:
@@ -94,9 +94,9 @@ class Handler(BaseHTTPRequestHandler):
                         proposal = json.loads(content)
                     except Exception:
                         proposal = {"files": {}}
-                    original = str((proposal.get("files") or {}).get("stats.py", ""))
+                    original = str((proposal.get("files") or {}).get("math_core.py", ""))
                     proposal["files"] = {
-                        "stats.py": "def mean_clamped(values, low, high):\n    return (\n"
+                        "math_core.py": "def clamp(value, low, high):\n    return (\n"
                     }
                     data["message"]["content"] = json.dumps(proposal, separators=(",", ":"))
                     response_body = json.dumps(data, separators=(",", ":")).encode()
@@ -107,7 +107,7 @@ class Handler(BaseHTTPRequestHandler):
                         "role": role,
                         "routed_model": routed_model,
                         "original_sha256": hashlib.sha256(original.encode()).hexdigest(),
-                        "fault": "replace stats.py with deterministic SyntaxError candidate"
+                        "fault": "replace math_core.py with deterministic SyntaxError candidate"
                     })
 
             self.state.record({
