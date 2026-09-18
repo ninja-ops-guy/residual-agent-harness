@@ -23,12 +23,14 @@ PROTECTED_EXACT = {
     "residual/goalspec.py", "residual/loop.py", "residual/receipts.py",
     "verifier/v3/factory_ownership_baseline.json",
     "docs/CURRENT_STATUS.md", "docs/roadmap/README.md", "docs/self-improvement/MISSION.md",
-    "tests/test_self_improvement.py",
+    "tests/test_self_improvement.py", "tests/__init__.py",
 }
 EXECUTABLE_CONFIG_NAMES = {
     "pyproject.toml", "package.json", "package-lock.json", "Dockerfile",
     "compose.yaml", "compose.yml", "docker-compose.yml", "Makefile",
+    "pytest.ini", "tox.ini", "setup.cfg", "setup.py",
 }
+PROTECTED_BASENAMES = {"conftest.py", "sitecustomize.py", "usercustomize.py", "pytest.py"}
 EXECUTABLE_SUFFIXES = {
     ".py", ".pyi", ".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx",
     ".sh", ".bash", ".zsh", ".fish", ".ps1", ".rb", ".go", ".rs",
@@ -219,8 +221,11 @@ def factory_protected_paths(root):
 
 
 def protected(path, ownership_paths=()):
+    p = Path(path)
     return (path in PROTECTED_EXACT or path in ownership_paths
-            or any(path.startswith(p) for p in PROTECTED_PREFIXES))
+            or p.name in EXECUTABLE_CONFIG_NAMES or p.name in PROTECTED_BASENAMES
+            or path.startswith("pytest/")
+            or any(path.startswith(prefix) for prefix in PROTECTED_PREFIXES))
 
 
 def validate_candidate_doc(value):
@@ -240,25 +245,18 @@ def load_candidates(path):
     return validate_candidate_doc(value)
 
 
-def validate_frozen_commands(command_checks, evaluator_files):
-    if not command_checks:
-        return
-    evaluators = set(evaluator_files)
-    referenced = set()
-    for check in command_checks:
-        argv = check.get("argv") if isinstance(check, dict) else None
-        if not isinstance(argv, list) or any(not isinstance(arg, str) for arg in argv):
-            raise ContractError("Self-improvement command checks require an explicit argument array")
-        if len(argv) >= 4 and argv[:3] == ["{python}", "-m", "pytest"]:
-            for evaluator in evaluators:
-                if any(arg == evaluator or arg.startswith(evaluator + "::") for arg in argv[3:]):
-                    referenced.add(evaluator)
-        elif len(argv) >= 2 and argv[0] == "{python}" and argv[1] in evaluators:
-            referenced.add(argv[1])
-        else:
-            raise ContractError("Self-improvement commands may only run declared frozen evaluators")
-    if referenced != evaluators:
-        raise ContractError("Every frozen evaluator must be bound to a self-improvement command check")
+def governor_evaluator_checks(evaluator_files):
+    checks = []
+    for evaluator in evaluator_files:
+        path = Path(evaluator)
+        if not evaluator.startswith("tests/") or path.suffix.lower() != ".py" or not path.name.startswith("test_"):
+            raise ContractError("Executable-code evaluators must be Python test files under tests/")
+        checks.append({
+            "kind": "command",
+            "argv": ["{python}", "-m", "pytest", evaluator],
+            "timeout": 120,
+        })
+    return checks
 
 
 def build_station_spec(report, plan, doc, repo):
@@ -302,12 +300,12 @@ def build_station_spec(report, plan, doc, repo):
             raise ContractError("Frozen evaluator file is missing")
         command_checks = [check for check in c["checks"]
                           if isinstance(check, dict) and check.get("kind") == "command"]
+        if command_checks:
+            raise ContractError("ImprovementCandidates may not author executable command checks")
         code_paths = [path for path in c["files"] if requires_frozen_command(path)]
-        if command_checks and not c["evaluator_files"]:
-            raise ContractError("Command checks require external frozen evaluator files")
-        if code_paths and (not command_checks or not c["evaluator_files"]):
-            raise ContractError("Executable-code candidates require command checks and external frozen evaluator files")
-        validate_frozen_commands(command_checks, c["evaluator_files"])
+        if code_paths and not c["evaluator_files"]:
+            raise ContractError("Executable-code candidates require external frozen evaluator files")
+        derived_checks = governor_evaluator_checks(c["evaluator_files"]) if code_paths else []
         for path in c["files"]:
             if path in write_owners:
                 raise ContractError("Candidate writable scopes must not overlap")
@@ -320,7 +318,7 @@ def build_station_spec(report, plan, doc, repo):
         tasks.append({"id": c["id"], "title": c["title"], "instruction": instruction,
                       "depends_on": c["depends_on"], "files": c["files"],
                       "context": list(dict.fromkeys(c["context"] + c["evaluator_files"])),
-                      "checks": c["checks"], "route": c["route"]})
+                      "checks": c["checks"] + derived_checks, "route": c["route"]})
     if set(write_owners) & evaluator_paths:
         raise ContractError("Generation evaluator files must remain immutable across all candidates")
     for candidate_id, (context, dependencies) in candidate_meta.items():
@@ -404,10 +402,11 @@ def planning_station_spec(report, plan, route="local"):
                 "evaluator_files. Writable scopes must not overlap. Protected Factory, Station, verifier, "
                 "workflow, swarm, evidence, scheduler, integrator, frozen-evaluation and ownership-manifest "
                 "surfaces are out of scope. Current status, roadmap, M7 mission policy, M7 safety regression and "
-                "generation-history files are also read-only authority inputs. Executable-code candidates must use "
-                "a command check and at least one existing external evaluator file that is not writable by any "
-                "candidate. Allowed command forms are {python} -m pytest <declared evaluator path> or {python} "
-                "<declared evaluator path>; shell, -c and unrelated executables are forbidden. Documentation-only "
+                "generation-history files are also read-only authority inputs. Executable-code candidates must declare "
+                "at least one existing tests/test_*.py evaluator file that is not writable by any candidate. "
+                "Candidates MUST NOT author command checks; the Mission Governor derives executable pytest checks "
+                "from evaluator_files after admission. Include deterministic non-command checks such as exists or "
+                "python_compile as appropriate. Documentation-only "
                 "work may use deterministic exists/contains/json_valid checks. Use explicit dependencies if a "
                 "candidate reads a file written by another candidate. Preserve historical FAIL/BLOCKED/UNKNOWN "
                 "evidence and make no production-readiness claims. The deterministic Mission Governor will reject "
