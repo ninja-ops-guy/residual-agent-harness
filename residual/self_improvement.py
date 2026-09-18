@@ -29,6 +29,19 @@ EXECUTABLE_CONFIG_NAMES = {
     "pyproject.toml", "package.json", "package-lock.json", "Dockerfile",
     "compose.yaml", "compose.yml", "docker-compose.yml", "Makefile",
 }
+EXECUTABLE_SUFFIXES = {
+    ".py", ".pyi", ".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx",
+    ".sh", ".bash", ".zsh", ".fish", ".ps1", ".rb", ".go", ".rs",
+    ".c", ".cc", ".cpp", ".h", ".hpp", ".java", ".kt", ".kts", ".cs",
+    ".php", ".pl", ".lua", ".html", ".htm", ".vue", ".svelte", ".sql",
+    ".css", ".scss",
+}
+CONFIG_SUFFIXES = {".json", ".toml", ".yaml", ".yml", ".ini", ".cfg"}
+BLOCKING_HEALTH_CODES = {
+    "roadmap_identity_missing", "roadmap_identity_unavailable",
+    "current_status_identity_missing", "current_status_identity_unavailable",
+    "roadmap_queue_missing", "required_path_missing",
+}
 REQUIRED = ("docs/roadmap/README.md", "docs/CURRENT_STATUS.md", "docs/self-improvement/MISSION.md",
             "residual/goalspec.py", "residual/loop.py", "residual/station/service.py",
             "residual/station/control.py", "tests/test_self_improvement.py",
@@ -181,6 +194,13 @@ def mission_plan(report):
     return plan
 
 
+def requires_frozen_command(path):
+    p = Path(path)
+    return (p.suffix.lower() in EXECUTABLE_SUFFIXES
+            or p.name in EXECUTABLE_CONFIG_NAMES
+            or (p.suffix.lower() in CONFIG_SUFFIXES and not path.startswith("docs/")))
+
+
 def factory_protected_paths(root):
     baseline = Path(root) / "verifier/v3/factory_ownership_baseline.json"
     try:
@@ -257,8 +277,8 @@ def build_station_spec(report, plan, doc, repo):
             if not isinstance(c[name], list):
                 raise ContractError("ImprovementCandidate collections must be lists")
         if (not isinstance(c["id"], str) or not isinstance(c["title"], str)
-                or not isinstance(c["instruction"], str) or not c["files"] or not c["checks"]
-                or c["route"] not in {"local", "cloud"}):
+                or not isinstance(c["instruction"], str) or not isinstance(c["route"], str)
+                or not c["files"] or not c["checks"] or c["route"] not in {"local", "cloud"}):
             raise ContractError("ImprovementCandidate is incomplete")
         if c["id"] in seen_ids:
             raise ContractError("ImprovementCandidate IDs must be unique")
@@ -267,6 +287,9 @@ def build_station_spec(report, plan, doc, repo):
             raise ContractError("Candidate paths must be strings")
         if any(not isinstance(dep, str) for dep in c["depends_on"]):
             raise ContractError("Candidate dependencies must be strings")
+        for name in ("files", "context", "depends_on", "evaluator_files"):
+            if len(set(c[name])) != len(c[name]):
+                raise ContractError("Candidate path and dependency lists must be unique")
         if set(c["files"]) & set(c["evaluator_files"]):
             raise ContractError("Candidate cannot modify its own evaluator")
         for path in c["files"] + c["context"] + c["evaluator_files"]:
@@ -279,11 +302,7 @@ def build_station_spec(report, plan, doc, repo):
             raise ContractError("Frozen evaluator file is missing")
         command_checks = [check for check in c["checks"]
                           if isinstance(check, dict) and check.get("kind") == "command"]
-        code_paths = [
-            path for path in c["files"]
-            if (Path(path).suffix.lower() in {".py", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".sh", ".ps1"}
-                or Path(path).name in EXECUTABLE_CONFIG_NAMES)
-        ]
+        code_paths = [path for path in c["files"] if requires_frozen_command(path)]
         if command_checks and not c["evaluator_files"]:
             raise ContractError("Command checks require external frozen evaluator files")
         if code_paths and (not command_checks or not c["evaluator_files"]):
@@ -418,7 +437,11 @@ def planning_station_spec(report, plan, route="local"):
 
 def ready_report(repo):
     report = doctor_repository(repo)
-    if report["dirty"] or any(f["severity"] == "error" for f in report["findings"]):
+    blocking = [
+        finding for finding in report["findings"]
+        if finding["severity"] == "error" or finding["code"] in BLOCKING_HEALTH_CODES
+    ]
+    if report["dirty"] or blocking:
         raise ContractError("Revision Doctor blocked generation execution")
     return report, mission_plan(report)
 
@@ -595,7 +618,8 @@ def run_lineage(repo, station_data, generations=3, route="local",
         "mode": "experimental_lineage",
         "governor_sha256": governor_sha256,
         "requested_generations": generations,
-        "completed_generations": len(history),
+        "attempted_generations": len(history),
+        "accepted_generations": sum(1 for item in history if item["accepted_successor"]),
         "stop_reason": stop_reason,
         "initial_source_repo": str(Path(repo).resolve()),
         "final_candidate_repo": current_source,
