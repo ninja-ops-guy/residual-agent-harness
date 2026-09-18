@@ -45,6 +45,7 @@ REQUIRED_GATES = (
     "redteam-zero-skip",
     "windows-lifecycle",
     "persistence-fault-injection",
+    "webvm-provider-protocol-fuzz",
 )
 
 
