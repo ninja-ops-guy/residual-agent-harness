@@ -16,11 +16,11 @@ The key empirical distinction is between raw worker correctness `P(X)` and accep
 
 ## Current accepted engineering boundary
 
-Current `main` is **`4608afabf5de4c87d77aaf149dfc12538d364f43`**.
+Current `main` is **`d665b188ccc5bb659fb37bc52ac387ab4d85f976`**.
 
-Merged #200 hardens the native setup path; merged #205 restores the private provider channel across Mission Control reload/remount with validated session-scoped state. These are accepted engineering changes, not scientific results.
+Merged #200 hardens the native setup path; merged #205 restores the private provider channel across Mission Control reload/remount with validated session-scoped state; merged #218 applies bounded Station repair-loop remediation by carrying content-bound prior-candidate context into repair attempts while preserving clean baseline worktrees, clarifying transport-versus-file-language contracts, and unifying the bounded attempt ceiling at five. These are accepted engineering changes, not scientific results.
 
-The exact-current-main Actions set observed for `4608afa...` is complete with no pending, cancelled, or failing run in the retained exact-SHA query used for this refresh; a sampled Controller/provider run completed **PASS on attempt 1**. This is scoped mechanism/integration evidence only. It does not establish every-host M4 qualification, successful live Puter inference, long-run WebVM reliability, physical-device reliability, or a paper-facing effect size.
+For exact `main@d665b18...`, seven observed ordinary `push` workflows completed **PASS on attempt 1**: Factory ownership, M4 runner prerequisites, measured-evaluation binding, clean install, Controller/provider, Command Station, and Pages/deployment. This is scoped mechanism/integration evidence only. It does not establish every-host M4 qualification, successful live Puter inference, long-run WebVM reliability, physical-device reliability, general autonomous self-maintenance, or a paper-facing effect size.
 
 ## Real-model experiment evidence: #202
 
@@ -35,56 +35,86 @@ A later distinct exact-head run on `03c77d12...` is a bounded **PASS** using rea
 - 3/3 tasks integrated;
 - verification receipts retained for all three tasks;
 - dependency lineage retained;
-- a deliberately corrupted first candidate was rejected and repaired before later integration;
-- an out-of-contract write was rejected before a later valid candidate;
-- invalid/truncated reviewer output was rejected before a valid review;
+- deliberately bad candidates were rejected before later valid candidates integrated;
 - release export was produced.
 
 The later PASS does **not** erase the earlier FAIL. It establishes one bounded successful experiment on that exact revision/configuration, not general DAG reliability, provider-independent model quality, or production readiness.
 
-## M6 self-maintenance experiments: #203, #204, #215 and #217
+## M6 self-maintenance experiments: #203, #204, #215, #217 and #220
 
 Draft #203's first-authoritative ImprovementSpec self-host trial remains **FAIL**: 0/1 integrated, three attempts, max-iteration escalation, no verification receipt and no release.
 
-Draft #204 repeated the bounded trial with Qwen2.5-Coder 7B. Its first-authoritative M6-SPEC-002 run also remains **FAIL**: 0/1 integrated, three passes, max-iteration escalation, no verification receipt and no release. The stronger model changed the observed candidate defects but did not satisfy the frozen contract within the pass budget.
+Draft #204 repeated the bounded trial with Qwen2.5-Coder 7B. Its first-authoritative M6-SPEC-002 run also remains **FAIL**: 0/1 integrated, three passes, max-iteration escalation, no verification receipt and no release.
 
-Draft #215 (M6-SPEC-003) exercised prior-candidate repair context with Qwen2.5-Coder 1.5B. Repair-context hashes were retained on attempts 2 and 3, but the authoritative run still finished **FAIL** with 0/1 integrated, no review, verification receipt, release or promotion. The retained candidates showed transport/source conflation: the model placed data-object content into the Python-file value rather than producing the required Python source.
+Draft #215 (M6-SPEC-003) exercised prior-candidate repair context with Qwen2.5-Coder 1.5B. Repair-context hashes were retained on attempts 2 and 3, but the authoritative run still finished **FAIL** with 0/1 integrated, no review, verification receipt, release or promotion. The retained candidates showed transport/source conflation.
 
-Draft #217 (M6-SPEC-004) then explicitly separated the outer transport JSON contract from file-language content while retaining prior-candidate context and leaving acceptance policy unchanged. The authoritative workflow retained evidence but the experiment itself remains **FAIL**: 0/1 integrated, three passes, max-iteration escalation, no review/receipt/release. The first candidate had an indentation error; attempts 2 and 3 compiled but failed import because they tried `from dataclasses import dataclass, frozen`. The clarification changed the failure shape but did not satisfy the frozen contract within the pass budget.
+Draft #217 (M6-SPEC-004) explicitly separated the outer transport JSON contract from file-language content while retaining prior-candidate context. The authoritative workflow retained evidence but the experiment remains **FAIL**: 0/1 integrated, three passes, max-iteration escalation, no review/receipt/release. The first candidate had an indentation error; attempts 2 and 3 imported a nonexistent `dataclasses.frozen` symbol.
 
-The implementation candidate underlying the repair-context work (#213) remains unaccepted. These experiments are useful negative results; they do **not** establish autonomous recursive self-improvement or restore previously removed #132 self-maintenance tooling as current accepted capability.
+Those negative experiments directly informed accepted #218. #218 changes the runtime repair context/contract and attempt envelope, but acceptance authority remains unchanged.
+
+### M6-SPEC-006: first bounded corrected-runtime PASS
+
+Draft #220 tests the corrected #218 runtime on exact experiment head **`7971a05798fbc77f7be344dd15f920adf1fad03c`** with local Qwen2.5-Coder 7B, a dedicated Ollama endpoint, the frozen ImprovementSpec checks, the five-attempt repair envelope, and an 1800-second mission budget.
+
+The authoritative first run retained the following sequence:
+
+- attempt 1 generated invalid Python importing `frozen` from `dataclasses`; the frozen check rejected it;
+- attempt 2 fixed the import but still accepted whitespace-only invalid fields; the frozen behavioral assertion rejected it;
+- attempt 3 incorporated repair context, passed 2/2 frozen checks, and advanced to review;
+- Station review approved the candidate;
+- 1/1 task integrated;
+- a `residual.station.receipt.v2` verification receipt was retained;
+- release export completed;
+- batch control outcome was success after three passes.
+
+Workflow run `35334715201` completed successfully on attempt 1 and retained artifact `m6-spec-006-corrected-runtime-evidence` (`10543236401`, artifact digest `sha256:ab7d8cfb639557510fff9789aa4c14a2ed940ecc71b37a5190fba0de84f13e61`). The retained trial reports four local-model calls, 9,217 reported tokens, no cloud token usage, and no unreported calls.
+
+Interpretation is deliberately narrow:
+
+- M6-SPEC-006 exact trial: **PASS**;
+- accepted #218 repair-loop mechanism: **PASS on main within its tested engineering scope**;
+- #203/#204/#215/#217: **remain FAIL**;
+- general M6 repair reliability across seeds/tasks/models: **UNKNOWN / not established**;
+- autonomous discovery of what to improve: **not established by this fixed-spec trial**;
+- autonomous merge authority: **not granted**;
+- central recursive/self-improvement hypothesis: **not established by one positive trial**.
+
+The important research change is therefore not “M6 solved,” but that the retained sequence now contains both repeatable negative interventions and one bounded post-remediation positive intervention.
 
 ## Deterministic stress evidence: #206, #207 and #212
 
-Draft #206 Campaign A is now complete at its corrected exact experiment head `e173719...` against frozen baseline `699e286...`. The earlier apparatus revision is explicitly invalid because it would have tested GitHub's synthetic merge commit; only the corrected exact-head runs are used here. Workflow-level success means the experiments executed and retained artifacts, not that the scenarios passed.
+Draft #206 Campaign A is complete at its corrected exact experiment head `e173719...` against frozen baseline `699e286...`. The earlier apparatus revision is explicitly invalid because it would have tested GitHub's synthetic pull-request merge commit; only the corrected exact-head runs are used here. Workflow-level success means the experiments executed and retained artifacts, not that the scenarios passed.
 
-Retained Campaign A evidence is mixed and negative where stated:
+Retained Campaign A evidence remains mixed and negative where stated:
 
-- **STRESS-A4 repair pressure — BLOCKED / invalid for the intended intervention:** 0 faults were injected; the single provider call ended in model-connection/structured-output failure, usage became unknown, the host budget aborted after one pass, and 0/1 integrated. The intended repair-pressure fault was therefore not exercised and cannot be called PASS.
-- **STRESS-A5 DAG pressure — FAIL / incomplete:** 3/6 tasks integrated across five passes before `no_runnable_tasks` escalation; DAG-A/B/C retained receipts, DAG-D remained `repair_required`, DAG-E/F did not complete, and no release export was attempted.
-- **STRESS-A6 reliability — FAIL in the frozen campaign:** Qwen2.5-Coder 7B completed 0/3 successful trials, accepted rate 0.0, with each trial ending 0/1 integrated after the three-pass max-iteration brake. This is scoped to that exact baseline/spec/model configuration and is not a general model-quality claim.
-- Campaign A also retained its bounded control/injection artifacts. Those artifacts do not override the blocked/failed cells above or establish general repair/DAG/reliability success.
+- **STRESS-A4 repair pressure — BLOCKED / invalid for the intended intervention:** 0 faults were injected; the provider/structured-output call failed, usage became unknown, the host budget aborted after one pass, and 0/1 integrated.
+- **STRESS-A5 DAG pressure — FAIL / incomplete:** 3/6 tasks integrated across five passes before `no_runnable_tasks` escalation; downstream tasks did not complete and no release export was attempted.
+- **STRESS-A6 reliability — FAIL in the frozen campaign:** Qwen2.5-Coder 7B completed 0/3 successful trials, accepted rate 0.0, with each trial ending 0/1 integrated after the three-pass max-iteration brake.
+
+The later #220 M6 PASS is a different exact intervention and does not rewrite those cells.
 
 Draft #207 deterministic Campaign B retained mixed scenario-level evidence:
 
-- **STRESS-B1 — FAIL:** token-budget exhaustion was recorded only after accepted integration/release had already occurred. This falsifies the stronger ordering claim for that exact scenario.
+- **STRESS-B1 — FAIL:** token-budget exhaustion was recorded only after accepted integration/release had already occurred.
 - **STRESS-B2 — PASS within the control:** the early-convergence control completed 2/2 tasks without the budget/max-iteration trips under study.
-- **STRESS-B3 — FAIL:** a terminal verifier failure aborted the batch with 0 integrated, yet a non-empty release was still materialized afterward. This is a fail-closed release-eligibility defect for that exact scenario.
-- **STRESS-B4 — mixed:** injected corrupt candidates were rejected and none integrated, which is a bounded containment **PASS**; however, the task did not recover to successful completion within the frozen pass budget, so recovery-to-success is **FAIL / not achieved** and general repair reliability remains **UNKNOWN**.
+- **STRESS-B3 — FAIL:** a terminal verifier failure aborted the batch with 0 integrated, yet a non-empty release was still materialized afterward.
+- **STRESS-B4 — mixed:** injected corrupt candidates were rejected and none integrated, a bounded containment **PASS**; however, the task did not recover to successful completion within the frozen pass budget.
 
-Draft #212 Campaign C adds a deterministic failure matrix. Its authoritative retained results are also mixed:
+Draft #212 Campaign C adds a deterministic failure matrix:
 
-- malformed runner JSON was rejected on all three calls with no review/integration: **PASS for fail-closed containment in that exact scenario**;
-- an invalid reviewer schema kept the candidate at `review_ready` through three invalid reviews with no integration/receipt: **PASS for fail-closed containment in that exact scenario**;
-- reviewer denial followed by approval recovered and integrated on attempt 2: **PASS for that bounded recovery path**;
-- a transient HTTP 500 was marked retryable, but with no alternate failover candidate the call ended and unknown usage caused a host-budget abort: no integration occurred, but provider retry/failover success is **not established**;
-- missing usage allowed a valid runner/reviewer result to integrate and receive a receipt before the host later aborted on `usage_unknown_or_invalid`: **FAIL for the stronger accounting-before-authority claim** and a direct corroboration of #208.
+- malformed runner JSON: **PASS for fail-closed containment** in that exact scenario;
+- invalid reviewer schema: **PASS for fail-closed containment** in that exact scenario;
+- reviewer denial followed by approval: **PASS for that bounded recovery path**;
+- transient HTTP 500: no integration occurred, but provider retry/failover success was not established;
+- missing usage: **FAIL for accounting-before-authority** because a valid candidate integrated and received a receipt before the later `usage_unknown_or_invalid` host abort, corroborating #208.
 
 A green research workflow means the apparatus executed and retained artifacts; it does not convert scenario-level FAIL/BLOCKED evidence into PASS.
 
 ## Open governance repair candidate: #214
 
-Draft #214 targets #208 by mirroring token/deadline state into Station before review/integration and tightening release eligibility around successful run control. Its observed exact-head technical workflows are green, but its maintainer approval gate remains **BLOCKED/FAIL** and the PR is unaccepted. Therefore the #207/#212 accounting-ordering defect remains an accepted-main **FAIL/open blocker** until a repair is merged and independently requalified in the applicable scenarios.
+Draft #214 targets #208 by mirroring token/deadline state into Station before review/integration and tightening release eligibility around successful run control. It remains unaccepted and is still based on predecessor `main@4608afa...` at head `d3e8a5ec...`. Because accepted main moved through #218 to `d665b18...`, #214 must be refreshed/requalified before acceptance.
+
+Therefore the #207/#212 accounting-ordering defect remains an accepted-main **FAIL/open blocker**. #218/#220 repair-loop success is independent and must not be used as evidence that the authority-ordering problem is fixed.
 
 ## WebVM / provider research boundary
 
@@ -128,7 +158,7 @@ Before paper-facing outcome collection, freeze exact source, execution/evidence 
 
 At minimum:
 
-1. preserve exact-revision failures, blocked interventions and mixed results rather than treating later PASSes as erasure;
+1. preserve exact-revision failures, blocked interventions, the #220 bounded PASS, and mixed results rather than treating any later result as erasure;
 2. repair/requalify the #207/#208 accounting/release-ordering defects, including the missing-usage case reproduced by #212, if the chosen path depends on those authority effects;
 3. resolve or explicitly exclude #120/#126 for any WebVM-dependent protocol;
 4. retain fresh exact-revision live-provider evidence if the protocol depends on that provider path;
@@ -144,6 +174,6 @@ A positive result requires `P(X|A)` to improve meaningfully over `P(X)` without 
 
 ## What is deliberately not claimed
 
-The repository does not currently claim a new foundation model, a universal verifier/proof system, universally optimal routing, guaranteed token/cost savings, blanket production readiness, successful exact-current-main real-provider inference, physical heavyweight-WebVM iPhone reliability, acceptable long-run WebVM reliability, independent human assurance from the solo-maintainer merge model, live-model proof of the central hypothesis, completed long-duration soak, autonomous recursive self-improvement, autonomous merge authority or first-in-literature status.
+The repository does not currently claim a new foundation model, a universal verifier/proof system, universally optimal routing, guaranteed token/cost savings, blanket production readiness, successful exact-current-main real-provider inference, physical heavyweight-WebVM iPhone reliability, acceptable long-run WebVM reliability, independent human assurance from the solo-maintainer merge model, live-model proof of the central hypothesis, completed long-duration soak, general autonomous recursive self-improvement, autonomous merge authority or first-in-literature status.
 
 Receipts establish that stated checks ran over stated evidence under stated identities/revisions. They do not certify arbitrary truth beyond those contracts.
