@@ -44,6 +44,7 @@ REQUIRED_GATES = (
     "browser-adversarial-recovery",
     "redteam-zero-skip",
     "windows-lifecycle",
+    "persistence-fault-injection",
 )
 
 
