@@ -13,6 +13,7 @@ on:
       - 'tests/test_distributed_experiments.py'
       - 'tests/test_distributed_pipeline_experiment.py'
       - 'tests/test_distributed_recovery_experiment.py'
+      - 'tests/test_distributed_lease_recovery.py'
       - 'tests/test_distributed_experiment_matrix.py'
       - 'tests/test_station_mesh_bridge.py'
       - 'tests/test_station_mesh_bridge_experiment.py'
@@ -44,9 +45,12 @@ jobs:
           tests/test_distributed_experiments.py
           tests/test_distributed_pipeline_experiment.py
           tests/test_distributed_recovery_experiment.py
+          tests/test_distributed_lease_recovery.py
           tests/test_distributed_experiment_matrix.py
           tests/test_station_mesh_bridge.py
           tests/test_station_mesh_bridge_experiment.py
+          tests/station/test_station.py::HTTPTests::test_remote_candidate_submission_is_idempotent_and_unable_to_approve
+          tests/station/test_station.py::HTTPTests::test_remote_worker_elapsed_ms_receipt_is_strictly_bounded
       - name: Compile
         run: python -m compileall -q residual
 
@@ -110,6 +114,12 @@ jobs:
           --members 2 4 8
           --repeats 2
           --output runs/bridge-experiment.json
+      - name: Expired-lease distributed recovery benchmark
+        run: >-
+          residual experiment lease-recovery
+          --work-ms 40
+          --repeats 2
+          --output runs/lease-recovery-experiment.json
       - name: Summarize benchmark evidence
         run: |
           python - <<'PY'
@@ -119,16 +129,21 @@ jobs:
           dist=json.loads(Path('runs/distributed-experiment.json').read_text())
           pipeline=json.loads(Path('runs/pipeline-experiment.json').read_text())
           recovery=json.loads(Path('runs/recovery-experiment.json').read_text())
+          lease=json.loads(Path('runs/lease-recovery-experiment.json').read_text())
           bridge=json.loads(Path('runs/bridge-experiment.json').read_text())
           print('MESH', json.dumps(mesh['summary'], sort_keys=True))
           print('DISTRIBUTED', json.dumps(dist['summary'], sort_keys=True))
           print('PIPELINE', json.dumps(pipeline['summary'], sort_keys=True))
           print('RECOVERY', json.dumps(recovery['summary'], sort_keys=True))
+          print('LEASE_RECOVERY', json.dumps(lease['summary'], sort_keys=True))
           print('BRIDGE', json.dumps(bridge['summary'], sort_keys=True))
           assert all(row['all_integrated'] for row in dist['summary'])
           assert all(row['all_integrated'] for row in pipeline['summary'])
           assert recovery['summary']['all_recovered_and_integrated']
           assert recovery['summary']['all_failures_retained_findings']
+          assert lease['summary']['all_integrated']
+          assert lease['summary']['all_stale_results_rejected']
+          assert lease['summary']['all_expirations_attributed']
           assert all(row['all_converged'] for row in bridge['summary'])
           assert all(row['station_authority_preserved'] for row in bridge['summary'])
           assert mesh['summary']['produce_median_messages_s'] > 0
@@ -143,5 +158,6 @@ jobs:
             runs/distributed-experiment.json
             runs/pipeline-experiment.json
             runs/recovery-experiment.json
+            runs/lease-recovery-experiment.json
             runs/bridge-experiment.json
           retention-days: 14

@@ -334,3 +334,49 @@ The focused experiment workflow retains:
 - `bridge-experiment.json`.
 
 Raw speedup is evidence, not a merge gate. Integrity, successful verification/integration, convergence, and authority preservation are gates.
+
+
+## Lease-expiry recovery benchmark
+
+To measure stale-worker rejection and recovery after a lost lease:
+
+```bash
+residual experiment lease-recovery \
+  --work-ms 40 \
+  --repeats 3 \
+  --output runs/lease-recovery.json
+```
+
+The task is claimed through the real remote-worker API. The experiment then fault-injects only the passage of lease time by moving `lease_until` into the past. The normal Station recovery scan must:
+
+1. emit `worker.expired` with the original worker label;
+2. move the task to blocked;
+3. reject a stale result carrying the old lease;
+4. permit explicit re-triage;
+5. allow a healthy remote worker to reclaim the task;
+6. rerun verification, review and integration successfully.
+
+This is stronger evidence than the verifier-failure recovery arm, but it still does not measure real process-kill detection time because the 15-minute lease interval is not waited in real time.
+
+## Physical worker telemetry
+
+Remote worker usage receipts now retain bounded worker-reported inference `elapsed_ms` in addition to model, placement, tokens and request bytes. The Station endpoint:
+
+```text
+GET /api/projects/<PROJECT_ID>/workers
+```
+
+aggregates by the existing `remote:<worker-name>` event actor:
+
+- claim count;
+- task IDs and attempt numbers;
+- worker-reported input/output tokens;
+- request bytes;
+- inference latency count, median, p95 and total;
+- attributed lease expirations.
+
+These names are experiment labels authenticated only by the shared worker token. They are **not cryptographic node identities**.
+
+Command Station Diagnostics displays the same telemetry table and repeats the identity warning.
+
+For physical multi-host studies, combine worker-reported inference latency with Station workflow timestamps rather than treating either alone as end-to-end latency.

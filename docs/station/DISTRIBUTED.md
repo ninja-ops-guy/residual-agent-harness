@@ -54,3 +54,31 @@ The first workload contains independent tasks. The pipeline workload contains de
 Both use the real Station HTTP worker, lease, submission, candidate-worktree, deterministic-check, review and integration paths. The worker provider is a controlled synthetic latency fixture and every worker is a loopback thread. These results are development measurements, not physical-network or live-model performance claims.
 
 See [Mesh, Distributed Workflow, and Mission Control Experiments](../mesh/EXPERIMENTS.md) for metrics, evidence boundaries and the physical multi-host experiment protocol.
+
+
+## Per-worker experiment telemetry
+
+For a loaded project, the Station exposes:
+
+```text
+GET /api/projects/<PROJECT_ID>/workers
+```
+
+and renders the same information under **Diagnostics → Distributed worker telemetry**.
+
+Remote worker receipts include a bounded self-reported `elapsed_ms` for the provider call, plus model, placement, request bytes and reported token counts. The aggregate groups those receipts with task-claim and lease-expiry events using the worker label supplied to `residual worker --name`.
+
+The label is authenticated only through the shared worker token. Treat it as an experiment label, not a cryptographic node identity.
+
+For physical experiments, give every machine a stable unique `--name`, for example:
+
+```bash
+residual worker \
+  --station https://station.example.test \
+  --project p-YOURPROJECT \
+  --name lab-4070-a \
+  --kind ollama \
+  --model qwen2.5-coder:7b
+```
+
+Use `elapsed_ms` to separate worker inference from the rest of the workflow, but retain Station claim/check/review/integration timestamps and network RTT as separate measurements.

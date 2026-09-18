@@ -430,6 +430,11 @@ def main(argv=None) -> int:
     matrix.add_argument("--no-recovery", action="store_true")
     matrix.add_argument("--output")
 
+    lease = sub.add_parser("lease-recovery", help="Benchmark expired-lease recovery and stale-result rejection")
+    lease.add_argument("--work-ms", type=float, default=40.0)
+    lease.add_argument("--repeats", type=int, default=3)
+    lease.add_argument("--output")
+
     recovery = sub.add_parser("recovery", help="Benchmark fail-closed remote-worker repair recovery")
     recovery.add_argument("--bad-ms", type=float, default=20.0)
     recovery.add_argument("--good-ms", type=float, default=40.0)
@@ -475,6 +480,12 @@ def main(argv=None) -> int:
                 pipeline_depth=args.pipeline_depth,
                 repeats=args.repeats,
                 include_recovery=not args.no_recovery,
+            )
+        elif args.experiment == "lease-recovery":
+            from residual.experiments.lease_recovery import run_station_lease_recovery_benchmark
+            report = run_station_lease_recovery_benchmark(
+                work_ms=args.work_ms,
+                repeats=args.repeats,
             )
         elif args.experiment == "recovery":
             report = run_station_recovery_benchmark(

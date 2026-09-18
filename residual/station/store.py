@@ -210,10 +210,12 @@ class Store(ObservationStore):
                 if not (expired or interrupted):
                     continue
                 prior = t["state"]
+                prior_owner = t.get("owner")
                 t.update(state="blocked", owner=None, lease=None, lease_until=0,
                          findings=["Interrupted work requires re-triage. Existing evidence is retained."])
                 self._write_task(c, row["project"], t)
-                self._event(c, self._project(c, row["project"]), "worker.expired", "coordinator", t, {"from": prior})
+                self._event(c, self._project(c, row["project"]), "worker.expired", "coordinator", t,
+                            {"from": prior, "owner": prior_owner})
             if startup:
                 for r in c.execute("SELECT id,value FROM jobs").fetchall():
                     j = json.loads(r["value"])

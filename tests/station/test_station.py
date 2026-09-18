@@ -333,14 +333,52 @@ class HTTPTests(unittest.TestCase):
         self.s.store.settings({"remote_workers_enabled": True})
         headers = {"Authorization": "Bearer " + self.s.store.settings()["worker_token"]}
         work = self.request("/api/worker/claim", {"project_id": pid, "task_id": "OPS-101", "name": "machine2"}, headers)["work"]
-        data = {"project_id": pid, "task_id": "OPS-101", "lease": work["lease"], "submission_id": "submission-1", "response": {"files": DEMO_FILES["OPS-101"]}}
+        usage = {"input_tokens": 11, "output_tokens": 7, "cached_input_tokens": 0, "cache_write_input_tokens": 0,
+                 "source": "worker_reported", "placement": "local", "role": "remote_runner",
+                 "model": "fixture-model", "request_bytes": 321, "elapsed_ms": 12.5}
+        data = {"project_id": pid, "task_id": "OPS-101", "lease": work["lease"], "submission_id": "submission-1",
+                "response": {"files": DEMO_FILES["OPS-101"]}, "usage": usage}
         result = self.request("/api/worker/result", data, headers)
         self.assertEqual(result["state"], "review_ready")
         self.assertEqual(result, self.request("/api/worker/result", data, headers))
+        workers = self.request(f"/api/projects/{pid}/workers")
+        self.assertEqual(workers["totals"]["workers_seen"], 1)
+        self.assertEqual(workers["totals"]["claims"], 1)
+        self.assertEqual(workers["totals"]["input_tokens"], 11)
+        self.assertEqual(workers["totals"]["output_tokens"], 7)
+        self.assertEqual(workers["totals"]["request_bytes"], 321)
+        self.assertEqual(workers["totals"]["inference_elapsed_ms"], 12.5)
+        self.assertEqual(workers["workers"][0]["worker"], "machine2")
+        self.assertEqual(workers["workers"][0]["inference_latency"]["median_ms"], 12.5)
+        self.assertIn("not cryptographic node identities", workers["identity_note"])
         with self.assertRaises(urllib.error.HTTPError):
             self.request("/api/worker/result", {**data, "response": {"files": {}}}, headers)
         with self.assertRaises(urllib.error.HTTPError):
             self.request(f"/api/projects/{pid}/task", {"task_id": "OPS-101", "action": "integrate"}, {**headers, "X-Station-Token": ""})
+
+    def test_remote_worker_elapsed_ms_receipt_is_strictly_bounded(self):
+        pid = self.s.create(demo_spec(), demo=True)["project_id"]
+        self.s.triage(pid)
+        self.s.store.settings({"remote_workers_enabled": True})
+        headers = {"Authorization": "Bearer " + self.s.store.settings()["worker_token"]}
+        work = self.request("/api/worker/claim", {"project_id": pid, "task_id": "OPS-101", "name": "latency-probe"}, headers)["work"]
+        base_usage = {"input_tokens": 1, "output_tokens": 1, "cached_input_tokens": 0, "cache_write_input_tokens": 0,
+                      "source": "worker_reported", "placement": "local", "role": "remote_runner",
+                      "model": "fixture", "request_bytes": 10}
+        for index, elapsed in enumerate((-1, True, "12", 86_400_001)):
+            payload = {"project_id": pid, "task_id": "OPS-101", "lease": work["lease"],
+                       "submission_id": f"bad-latency-{index}", "response": {"files": DEMO_FILES["OPS-101"]},
+                       "usage": {**base_usage, "elapsed_ms": elapsed}}
+            with self.assertRaises(urllib.error.HTTPError) as error:
+                self.request("/api/worker/result", payload, headers)
+            self.assertEqual(error.exception.code, 400)
+        valid = {"project_id": pid, "task_id": "OPS-101", "lease": work["lease"],
+                 "submission_id": "good-latency", "response": {"files": DEMO_FILES["OPS-101"]},
+                 "usage": {**base_usage, "elapsed_ms": 0.25}}
+        self.assertEqual(self.request("/api/worker/result", valid, headers)["state"], "review_ready")
+        event = [e for e in self.s.store.events(pid) if e["event_type"] == "usage.recorded"][-1]
+        self.assertEqual(event["actor"], "remote:latency-probe")
+        self.assertEqual(event["data"]["elapsed_ms"], 0.25)
 
 
 class ProviderHTTPTests(unittest.TestCase):

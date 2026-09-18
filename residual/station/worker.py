@@ -57,7 +57,8 @@ class WorkerClient:
             reply = provider.generate(work["packet"], max_tokens)
             response = strict_json(reply.text)
             usage = {**asdict(reply.usage), "source": "worker_reported", "placement": "cloud" if provider.placement == "remote" else "local",
-                     "role": "remote_runner", "model": provider.model, "request_bytes": provider.wire_size(work["packet"], max_tokens)}
+                     "role": "remote_runner", "model": provider.model, "request_bytes": provider.wire_size(work["packet"], max_tokens),
+                     "elapsed_ms": reply.elapsed_ms}
             data = {**envelope, "submission_id": uuid.uuid4().hex, "response": response, "usage": usage}
             # A transport retry repeats the same idempotency key and exact proposal.
             try:

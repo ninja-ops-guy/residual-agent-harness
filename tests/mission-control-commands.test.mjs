@@ -121,6 +121,8 @@ test('mesh and experiment commands preserve browser isolation boundary',async()=
   assert.match(pipeline.text,/residual experiment pipeline/);
   const recovery=await executeMissionCommand('/experiment recovery',x.api);
   assert.match(recovery.text,/residual experiment recovery/);
+  const lease=await executeMissionCommand('/experiment lease-recovery',x.api);
+  assert.match(lease.text,/residual experiment lease-recovery/);
   const matrix=await executeMissionCommand('/experiment matrix',x.api);
   assert.match(matrix.text,/residual experiment matrix/);
   const bridge=await executeMissionCommand('/experiment bridge',x.api);

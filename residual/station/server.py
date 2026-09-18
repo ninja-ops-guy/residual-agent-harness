@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import mimetypes
 import os
 import secrets
@@ -142,6 +143,8 @@ class Handler(BaseHTTPRequestHandler):
                         return self.respond({"events": self.station.store.events(pid, max(0, int(query.get("after", ["0"])[0])), 500)})
                     if parts[3] == "report":
                         return self.respond(self.station.store.report(pid))
+                    if parts[3] == "workers":
+                        return self.respond(self.station.worker_metrics(pid))
                     if parts[3] == "markdown":
                         return self.respond(self.station.store.markdown(pid), content_type="text/markdown; charset=utf-8", filename="PROJECT.md")
                 raise ContractError("Unknown endpoint")
@@ -264,10 +267,19 @@ class Handler(BaseHTTPRequestHandler):
                 work = {"project_id": pid, "task": t, "lease": data["lease"]}
                 usage = data.get("usage")
                 if usage is not None:
-                    allowed = {"input_tokens", "output_tokens", "cached_input_tokens", "cache_write_input_tokens", "source", "placement", "role", "model", "request_bytes"}
-                    if not isinstance(usage, dict) or set(usage) - allowed or any(usage.get(k) is not None and (type(usage[k]) is not int or not 0 <= usage[k] <= 100_000_000) for k in ("input_tokens", "output_tokens", "cached_input_tokens", "cache_write_input_tokens", "request_bytes")):
+                    allowed = {"input_tokens", "output_tokens", "cached_input_tokens", "cache_write_input_tokens", "source", "placement", "role", "model", "request_bytes", "elapsed_ms"}
+                    counted = ("input_tokens", "output_tokens", "cached_input_tokens", "cache_write_input_tokens", "request_bytes")
+                    if not isinstance(usage, dict) or set(usage) - allowed or any(usage.get(k) is not None and (type(usage[k]) is not int or not 0 <= usage[k] <= 100_000_000) for k in counted):
                         raise ContractError("Invalid remote usage receipt")
-                    usage = {**usage, "source": "worker_reported", "role": "remote_runner", "model": bounded(usage.get("model", "unknown"), "Model", 200)}
+                    elapsed = usage.get("elapsed_ms")
+                    if elapsed is not None and (type(elapsed) not in (int, float) or not math.isfinite(elapsed) or not 0 <= elapsed <= 86_400_000):
+                        raise ContractError("Invalid remote usage receipt")
+                    if usage.get("placement") not in {"local", "cloud"}:
+                        raise ContractError("Invalid remote usage receipt")
+                    usage = {**usage, "source": "worker_reported", "role": "remote_runner",
+                             "model": bounded(usage.get("model", "unknown"), "Model", 200)}
+                    if elapsed is not None:
+                        usage["elapsed_ms"] = float(elapsed)
                 result = s.finish(work, data["response"], usage)
                 with s.store.transaction() as c:
                     c.execute("INSERT INTO submissions VALUES(?,?)", (sid, canonical({"fingerprint": fingerprint, "result": result})))
