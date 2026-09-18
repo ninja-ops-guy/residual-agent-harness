@@ -1,7 +1,15 @@
 name: Command Station checks
 on:
   push:
+    branches: [main]
   pull_request:
+
+concurrency:
+  group: command-station-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.ref }}
+  # Superseded PR-head runs are disposable. Main qualification is never
+  # cancelled by a newer push.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 jobs:
