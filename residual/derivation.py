@@ -48,7 +48,7 @@ class EdgeType(str, Enum):
     SUPERSEDES = "supersedes"
     REVIEWED_BY = "reviewed_by"
     QUALIFIED_UNDER = "qualified_under"
-    AUTHORIZED_BY = "authorized_by"\n    CITES_HANDLE = "cites_handle"\n    AUTHORIZES = "authorizes"\n    IMPLEMENTS = "implements"
+    AUTHORIZED_BY = "authorized_by"\n    CITES_HANDLE = "cites_handle"\n    AUTHORIZES = "authorizes"\n    IMPLEMENTS = "implements"\n    MEASURED_BY = "measured_by"
 
 
 class Validity(str, Enum):
@@ -228,6 +228,9 @@ _ALLOWED: dict[EdgeType, set[tuple[NodeType, NodeType]]] = {
     },
     EdgeType.IMPLEMENTS: {
         (NodeType.EXECUTION_ACTION, NodeType.IMPROVEMENT_SPEC),
+    },
+    EdgeType.MEASURED_BY: {
+        (NodeType.IMPROVEMENT_SPEC, NodeType.METRIC_DECISION),
     },
 }
 
@@ -448,6 +451,7 @@ class DerivationGraph:
             EdgeType.REVIEWED_BY: False,
             EdgeType.QUALIFIED_UNDER: False,
             EdgeType.AUTHORIZED_BY: False,
+            EdgeType.MEASURED_BY: False,
         }
         for edge in self._edges.values():
             if edge.source != spec_id or edge.edge_type not in required:
@@ -474,7 +478,47 @@ class DerivationGraph:
                 if str(target.payload.get("verdict", "")).lower() != "pass":
                     findings.append("protected invariant verdict is not PASS")
                     continue
+            if edge.edge_type == EdgeType.MEASURED_BY:
+                if target.node_type != NodeType.METRIC_DECISION:
+                    findings.append("measured_by target is not MetricDecision")
+                    continue
+                rationale=target.payload.get("rationale")
+                if not isinstance(rationale,str) or len(rationale.strip()) < 20:
+                    findings.append("metric selection rationale is not substantive")
+                    continue
+                resolutions=[
+                    e for e in self._edges.values()
+                    if e.source == target.node_id and e.edge_type == EdgeType.RESOLVES_TO
+                    and states[e.target] == Validity.VALID
+                ]
+                reviews=[
+                    e for e in self._edges.values()
+                    if e.source == target.node_id and e.edge_type == EdgeType.REVIEWED_BY
+                    and states[e.target] == Validity.VALID
+                    and str(self._nodes[e.target].payload.get("verdict","")).lower()=="valid"
+                ]
+                if not resolutions:
+                    findings.append("metric decision lacks valid Host resolution")
+                    continue
+                if not reviews:
+                    findings.append("metric decision lacks VALID independent semantic review")
+                    continue
             required[edge.edge_type] = True
+
+        required_semantic={
+            spec_id,
+            *[
+                edge.target for edge in self._edges.values()
+                if edge.source == spec_id
+                and self._nodes[edge.target].node_type in _CHALLENGEABLE_NODE_TYPES
+            ],
+        }
+        for node_id in required_semantic:
+            node=self._nodes[node_id]
+            if node.node_type in _CHALLENGEABLE_NODE_TYPES and not node.challenge_policy_id:
+                findings.append(f"semantic node {node_id} lacks challenge policy")
+        if self.unresolved_challenges(required_semantic):
+            findings.append("required semantic subgraph has unresolved challenge")
 
         for edge_type, present in required.items():
             if not present:
