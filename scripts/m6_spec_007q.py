@@ -424,19 +424,46 @@ def main() -> int:
             request=model_call(
                 station.store,pid,"measurement_planner",
                 {"selected_evidence":selected_evidence,"insufficiency":proposal,
-                 "metric_catalog":snapshot["metric_catalog"],
-                 "evidence_snapshot_hash":snapshot["snapshot_hash"]},
+                 "metric_registry":[d.to_dict() for d in registry.definitions],
+                 "evidence_snapshot_hash":snapshot["snapshot_hash"],
+                 "metric_registry_sha256":registry.registry_sha256},
                 PLANNER_SYSTEM,PLANNER_SCHEMA,"local",TASK_ID,
                 extensions=station.extensions(pid),
             )
-            request_errors=verify_request(request,snapshot,selected_evidence)
+            request_errors=verify_planner(request,snapshot,selected_evidence,registry)
             planner_outputs.append({"cycle":cycle,"request":request,"mechanical_errors":request_errors})
             if request_errors:
                 errors=request_errors
                 break
 
-            requested=request["requested_metric"]
-            if requested in snapshot["metrics"]:
+            if request["type"]=="existing_metric_request":
+                requested=request["requested_metric_id"]
+                try:
+                    registered=registry.resolve(requested)
+                except ContractError as exc:
+                    errors=[str(exc)]
+                    break
+                if requested not in snapshot["metrics"]:
+                    admitted_proposal={
+                        "type":"measurement_gap",
+                        "metric_definition":registered.to_dict(),
+                        "observation":request["observation"],
+                        "reason":"Registered metric is absent from the bound EvidenceSnapshot.",
+                        "evidence_snapshot_hash":request["evidence_snapshot_hash"],
+                        "metric_registry_revision":registry.revision,
+                        "metric_registry_sha256":registry.registry_sha256,
+                        "human_approval_required":True,
+                        "classified_by":"host_evidence_resolver",
+                    }
+                    review=model_call(
+                        station.store,pid,"reviewer",
+                        {"evidence_snapshot":snapshot,"proposal":admitted_proposal,
+                         "registered_definition":registered.to_dict()},
+                        GAP_REVIEW_SYSTEM,REVIEW_SCHEMA,"local",TASK_ID,
+                        extensions=station.extensions(pid),
+                    )
+                    admitted=review.get("approved") is True
+                    break
                 if requested in selected_evidence:
                     errors=[f"Measurement Planner requested already-inspected evidence {requested!r}"]
                     resolution_history.append({"status":"repeated","metric":requested,"value":snapshot["metrics"][requested]})
@@ -444,29 +471,74 @@ def main() -> int:
                 selected_evidence[requested]=snapshot["metrics"][requested]
                 resolution_history.append({
                     "status":"present","metric":requested,"value":snapshot["metrics"][requested],
-                    "message":"Host EvidenceResolver added exact trusted evidence for the next hypothesis cycle.",
+                    "message":"Host EvidenceResolver added exact registered evidence for the next hypothesis cycle.",
                 })
                 continue
 
-            admitted_proposal={
-                "type":"measurement_gap",
-                "observation":request["observation"],
-                "question":request["question"],
-                "missing_metric":requested,
-                "why_needed":request["why_needed"],
-                "proposed_measurement":request["proposed_measurement"],
-                "preserve_invariants":request["preserve_invariants"],
-                "evidence_snapshot_hash":request["evidence_snapshot_hash"],
-                "human_approval_required":request["human_approval_required"],
-                "classified_by":"host_evidence_resolver",
-            }
-            review=model_call(
-                station.store,pid,"reviewer",
-                {"evidence_snapshot":snapshot,"proposal":admitted_proposal},
-                GAP_REVIEW_SYSTEM,REVIEW_SCHEMA,"local",TASK_ID,
+            try:
+                definition=MetricDefinition(**request["definition"])
+                metric_proposal=MetricDefinitionProposal(
+                    definition=definition,
+                    evidence_snapshot_hash=request["evidence_snapshot_hash"],
+                    observed_metric=request["observation"]["observed_metric"],
+                    observed_value=request["observation"]["observed_value"],
+                    reason_existing_registry_insufficient=request["reason_existing_registry_insufficient"],
+                    preserve_invariants=tuple(request["preserve_invariants"]),
+                    human_approval_required=request["human_approval_required"],
+                )
+                assessment=registry.assess_proposal(metric_proposal)
+            except ContractError as exc:
+                errors=[f"metric definition rejected: {exc}"]
+                break
+
+            metric_assessments.append({
+                "cycle":cycle,
+                "proposal":metric_proposal.to_dict(),
+                "disposition":assessment.disposition.value,
+                "findings":list(assessment.findings),
+                "similar_metric_ids":list(assessment.similar_metric_ids),
+            })
+            if assessment.disposition == ProposalDisposition.REJECT:
+                errors=["metric definition mechanically rejected: "+("; ".join(assessment.findings))]
+                break
+            if assessment.disposition == ProposalDisposition.UNKNOWN and any(
+                "ambiguous" in finding for finding in assessment.findings
+            ):
+                errors=["metric definition semantics UNKNOWN: "+("; ".join(assessment.findings))]
+                break
+
+            similar=[registry.resolve(mid).to_dict() for mid in assessment.similar_metric_ids]
+            metric_review=model_call(
+                station.store,pid,"metric_reviewer",
+                {"proposed_definition":definition.to_dict(),
+                 "similar_registered_definitions":similar,
+                 "registered_metric_definitions":[d.to_dict() for d in registry.definitions],
+                 "originating_observation":request["observation"],
+                 "reason_existing_registry_insufficient":request["reason_existing_registry_insufficient"]},
+                METRIC_REVIEW_SYSTEM,REVIEW_SCHEMA,"local",TASK_ID,
                 extensions=station.extensions(pid),
             )
-            admitted=review.get("approved") is True
+            metric_assessments[-1]["semantic_review"]=metric_review
+            review=metric_review
+            if metric_review.get("approved") is not True:
+                break
+
+            admitted_proposal={
+                "type":"measurement_gap",
+                "metric_definition_proposal":metric_proposal.to_dict(),
+                "registry_assessment":{
+                    "disposition":assessment.disposition.value,
+                    "findings":list(assessment.findings),
+                    "similar_metric_ids":list(assessment.similar_metric_ids),
+                },
+                "metric_semantic_review":metric_review,
+                "evidence_snapshot_hash":snapshot["snapshot_hash"],
+                "metric_registry_revision":registry.revision,
+                "metric_registry_sha256":registry.registry_sha256,
+                "human_approval_required":True,
+                "classified_by":"host_metric_registry",
+            }
+            admitted=True
             break
 
         proposal_json=canonical(admitted_proposal or proposal)
