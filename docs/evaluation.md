@@ -47,11 +47,11 @@ A system that rejects nearly everything must not be described as reliable merely
 
 ## Current integration evidence is not confirmatory evidence
 
-Current `main` is **`4608afabf5de4c87d77aaf149dfc12538d364f43`**.
+Current `main` is **`d665b188ccc5bb659fb37bc52ac387ab4d85f976`**.
 
-Merged #200 hardens the native setup path. Merged #205 restores the session-scoped private provider channel after Mission Control reload/remount. Both are accepted engineering behavior, not model-quality or scientific evidence.
+Merged #200 hardens the native setup path. Merged #205 restores the session-scoped private provider channel after Mission Control reload/remount. Merged #218 applies bounded repair-loop remediation: content-bound prior-candidate context may be supplied to a repair attempt while the new candidate still starts from a clean baseline worktree, the runner contract separates transport JSON from file-language content, and Mission Control/Store share a five-attempt ceiling. These are accepted engineering behaviors, not model-quality or scientific evidence.
 
-The exact-current-main Actions set observed for `4608afa...` is complete with no pending, cancelled, or failing run in the retained exact-SHA query used for this refresh; a sampled Controller/provider run completed **PASS on attempt 1**. This is exact-revision automated integration evidence for the gates that actually ran. It is **not** universal/capable-runner M4 qualification, blank-environment qualification, paid/live provider/model-quality evidence, physical-device reliability evidence, long-run production-reliability evidence, independent scientific validation, or a paper-facing effect size.
+For exact `main@d665b18...`, seven observed ordinary `push` workflows completed **PASS on attempt 1**: Factory ownership, M4 runner prerequisites, measured-evaluation binding, clean install, Controller/provider, Command Station, and Pages/deployment. This is exact-revision automated integration evidence for the gates that actually ran. It is **not** universal/capable-runner M4 qualification, true blank-environment qualification, paid/live provider/model-quality evidence, physical-device reliability evidence, long-run production-reliability evidence, general autonomous self-maintenance evidence, independent scientific validation, or a paper-facing effect size.
 
 Historical exact-revision failures remain in the evidence record even where later revisions pass.
 
@@ -73,38 +73,67 @@ Do not average away or overwrite the earlier negative cell because a later exper
 
 Draft #203 and #204 first-authoritative M6 self-maintenance trials both remain **FAIL** with 0/1 integrated and no verification receipt/release. Model size alone did not convert the frozen self-maintenance contract into a PASS.
 
-Draft #215 (M6-SPEC-003) added prior-candidate repair context and retained its binding hashes on repair attempts, but the authoritative 1.5B-model trial still finished **FAIL** at 0/1 integrated with no review/receipt/release. Draft #217 (M6-SPEC-004) additionally clarified transport JSON versus file-language source while leaving acceptance policy unchanged; its authoritative workflow also finished **FAIL** at 0/1 integrated after three passes. These are retained negative intervention results, not evidence of autonomous self-maintenance.
+Draft #215 (M6-SPEC-003) added prior-candidate repair context and retained its binding hashes on repair attempts, but the authoritative 1.5B-model trial still finished **FAIL** at 0/1 integrated with no review/receipt/release. Draft #217 (M6-SPEC-004) additionally clarified transport JSON versus file-language source while leaving acceptance policy unchanged; its authoritative workflow also finished **FAIL** at 0/1 integrated after three passes.
+
+Those negative interventions informed accepted #218, which changes the repair runtime rather than reinterpretation of the old results.
+
+### M6-SPEC-006 corrected-runtime evidence
+
+Draft #220 is the first bounded positive M6 repair-loop result on the accepted #218 runtime. Its authoritative exact-head workflow ran at `7971a05798fbc77f7be344dd15f920adf1fad03c` using local Qwen2.5-Coder 7B and retained the following sequence:
+
+- attempt 1: rejected by the frozen ImprovementSpec checks;
+- attempt 2: rejected by the frozen ImprovementSpec checks;
+- attempt 3: **PASS 2/2 checks**;
+- independent Station review: approved;
+- integration: 1/1 task;
+- verification receipt: present;
+- release export: present;
+- run-control outcome: success after three passes.
+
+Workflow run `35334715201` completed successfully on attempt 1 and retained artifact `m6-spec-006-corrected-runtime-evidence` (`10543236401`, artifact digest `sha256:ab7d8cfb639557510fff9789aa4c14a2ed940ecc71b37a5190fba0de84f13e61`).
+
+Evaluation interpretation:
+
+- exact M6-SPEC-006 trial: **PASS**;
+- prior #203/#204/#215/#217 trials: **remain FAIL**;
+- accepted #218 runtime mechanism: current engineering behavior, not itself a scientific effect size;
+- repeated-seed/task/model repair reliability: **UNKNOWN / not established**;
+- autonomous problem discovery: **not tested by this fixed-spec trial**;
+- autonomous merge authority: **not granted**;
+- general recursive/self-improvement claim: **not established**.
+
+The correct next research move is repeated/preregistered validation, not retroactive relabeling of the earlier failed cells.
 
 ## Deterministic stress evidence and governance ordering
 
-Draft #206 Campaign A has completed its authoritative corrected exact-head runs against frozen baseline `699e286...`. The earlier apparatus revision is explicitly invalid because it would have tested GitHub's synthetic pull-request merge commit. Workflow-level `success` in the corrected campaign means the scenario executed and evidence was retained; it is not a scenario-level PASS.
+Draft #206 Campaign A completed its authoritative corrected exact-head runs against frozen baseline `699e286...`. The earlier apparatus revision is explicitly invalid because it would have tested GitHub's synthetic pull-request merge commit. Workflow-level `success` in the corrected campaign means the scenario executed and evidence was retained; it is not a scenario-level PASS.
 
 Its retained outcomes include:
 
 - **STRESS-A4 — BLOCKED / invalid for repair-pressure qualification:** 0 faults were injected; the provider/structured-output call failed, usage became unknown, run control aborted after one pass, and 0/1 integrated. The intended intervention never executed.
-- **STRESS-A5 — FAIL / incomplete:** 3/6 DAG tasks integrated before `no_runnable_tasks` escalation; DAG-D remained under repair, downstream tasks did not complete, and no release export was attempted.
+- **STRESS-A5 — FAIL / incomplete:** 3/6 DAG tasks integrated before `no_runnable_tasks` escalation; downstream tasks did not complete and no release export was attempted.
 - **STRESS-A6 — FAIL in scope:** three frozen Qwen2.5-Coder 7B trials produced 0 successes and accepted rate 0.0; each ended 0/1 integrated after the max-iteration brake.
 
-Those cells are configuration/revision bound. They do not establish a universal model or orchestration failure, but they must remain negative/blocked evidence for the campaign that actually ran.
+Those cells are configuration/revision bound and remain negative/blocked evidence. #220 is a different corrected-runtime fixed-spec experiment and does not replace them.
 
 Draft #207 Campaign B intentionally probes conditions that a stronger fail-closed claim must survive. Its retained results are mixed:
 
-- **STRESS-B1 — FAIL:** final token-budget exhaustion was observed after accepted integration/release had already occurred. This exposes an ordering defect for the stronger claim that exhausted budget state always prevents accepted output materialization.
+- **STRESS-B1 — FAIL:** final token-budget exhaustion was observed after accepted integration/release had already occurred.
 - **STRESS-B2 — scoped PASS:** the early-convergence control completed 2/2 without the budget/max-iteration trips under study.
-- **STRESS-B3 — FAIL:** terminal verifier failure aborted with 0 integrated, but a non-empty release was materialized afterward. This exposes a release-eligibility ordering defect.
+- **STRESS-B3 — FAIL:** terminal verifier failure aborted with 0 integrated, but a non-empty release was materialized afterward.
 - **STRESS-B4 — containment PASS / recovery FAIL:** injected corrupt candidates were rejected and none integrated, but the task did not recover to successful completion within the frozen pass budget.
 
 Draft #212 Campaign C extends this with deterministic failure/recovery cases:
 
-- malformed runner JSON: **PASS for fail-closed containment** in that exact scenario; all three outputs were rejected before review/integration;
-- invalid reviewer schema: **PASS for fail-closed containment** in that exact scenario; no integration/receipt occurred;
+- malformed runner JSON: **PASS for fail-closed containment** in that exact scenario;
+- invalid reviewer schema: **PASS for fail-closed containment** in that exact scenario;
 - reviewer denial then approval: **PASS for the bounded recovery path**, integrating on attempt 2;
 - transient HTTP 500: no integration, but no alternate failover candidate existed and unknown usage aborted the run, so retry/failover success remains **UNKNOWN / not established**;
-- missing usage: **FAIL for accounting-before-authority** because a valid candidate integrated and received a receipt before the later `usage_unknown_or_invalid` host abort. This corroborates #208 beyond the numeric-over-budget case.
+- missing usage: **FAIL for accounting-before-authority** because a valid candidate integrated and received a receipt before the later `usage_unknown_or_invalid` host abort, corroborating #208.
 
 A workflow-level `success` for a research campaign means the experiment executed and retained its evidence. It does **not** mean each stress scenario passed.
 
-Draft #214 is an unaccepted candidate repair for #208. Its observed technical workflows are green, but exact-head maintainer approval remains **BLOCKED/FAIL**. Until a repair is accepted and the affected #207/#212 scenarios are requalified, do not make a stronger blanket claim that budget exhaustion, unknown usage, or terminal verifier failure always prevents later accepted-state/release materialization across the tested control surface.
+Draft #214 is an unaccepted candidate repair for #208, but its head `d3e8a5ec...` is still based on predecessor `main@4608afa...`. Current accepted main moved to `d665b18...` through #218, so #214 now requires refresh/rebase plus exact-current-head qualification before acceptance. Until a repair is accepted and the affected #207/#212 scenarios are requalified, do not make a stronger blanket claim that budget exhaustion, unknown usage, or terminal verifier failure always prevents later accepted-state/release materialization across the tested control surface.
 
 ## Live-provider boundary
 
@@ -154,7 +183,7 @@ Before paper-facing R0–R5 outcome collection:
 3. freeze workload hashes, model/version, inference settings and prompts;
 4. freeze verifier revisions, policies and acceptance boundary;
 5. freeze metrics, missingness handling, statistical tests and analysis code;
-6. preserve and explicitly scope retained exact-revision failures, blocked interventions and mixed cells for the selected evidence path;
+6. preserve and explicitly scope retained exact-revision failures, blocked interventions, the #220 bounded PASS, and mixed cells for the selected evidence path;
 7. repair/requalify any #207/#208 governance-ordering defect required by that path, including the missing-usage case reproduced by #212;
 8. independently qualify the selected evidence path to the degree required by the scientific claim;
 9. retain any WebVM/provider/release qualification required by that selected path;
@@ -180,4 +209,4 @@ Green fixture/package checks do not substitute for this freeze/qualification seq
 
 ## Current empirical boundary
 
-The repository has strong development evidence for mechanisms and exact-revision integration, plus useful positive and negative real-model/stress evidence. It does **not** yet have confirmatory live evidence that the reliability architecture materially increases `P(X|A)` over `P(X)` at useful coverage and acceptable orchestration tax. That remains the major scientific milestone.
+The repository now has one bounded positive M6 corrected-runtime self-maintenance trial in addition to earlier negative M6 trials, plus mixed DAG/stress evidence and strong development evidence for exact-revision mechanisms/integration. It still does **not** have confirmatory live evidence that the reliability architecture materially increases `P(X|A)` over `P(X)` at useful coverage and acceptable orchestration tax, nor repeated evidence that M6 repair succeeds reliably across tasks/models/seeds. Those remain major scientific milestones.
