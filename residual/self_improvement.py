@@ -29,8 +29,9 @@ EXECUTABLE_CONFIG_NAMES = {
     "pyproject.toml", "package.json", "package-lock.json", "Dockerfile",
     "compose.yaml", "compose.yml", "docker-compose.yml", "Makefile",
 }
-REQUIRED = ("docs/roadmap/README.md", "docs/CURRENT_STATUS.md", "residual/goalspec.py",
-            "residual/loop.py", "residual/station/service.py", "residual/station/control.py",
+REQUIRED = ("docs/roadmap/README.md", "docs/CURRENT_STATUS.md", "docs/self-improvement/MISSION.md",
+            "residual/goalspec.py", "residual/loop.py", "residual/station/service.py",
+            "residual/station/control.py", "tests/test_self_improvement.py",
             "verifier/v3/factory_ownership_baseline.json")
 
 
