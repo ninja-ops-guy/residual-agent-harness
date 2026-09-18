@@ -748,6 +748,8 @@ def author_frozen_source_corpus(*, provider: str, model: str,
                                 cases: tuple[LiveCase, ...] = DEFAULT_CASES) -> dict[str, Any]:
     """Author one immutable worker-source corpus for paired scheduler trials."""
     plan = _plan_for_cases(cases)
+    provider_adapter = DEFAULT_REGISTRY.get(provider)
+    model_identity = _provider_model_identity(provider_adapter, provider, model)
     engine = ProviderExecutionEngine(ProviderEngineConfig(
         provider=provider, model=model, locality="local" if provider == "ollama" else "cloud",
         max_tokens=1024, temperature=0.0,
@@ -797,6 +799,7 @@ def author_frozen_source_corpus(*, provider: str, model: str,
         "sources": sources,
         "metadata": metadata,
         "source_corpus_sha256": corpus_hash,
+        "model_identity": model_identity,
         "author_tokens": sum(int(row["tokens"]) for row in metadata),
         "author_wall_clock_ms": sum(int(row["wall_clock_ms"]) for row in metadata),
     }
@@ -808,11 +811,26 @@ def factory_live_suite(*, provider: str, model: str, output_root: Path,
                        trial: int = 0,
                        preauthored_sources: dict[str, str] | None = None,
                        source_corpus_sha256: str | None = None,
+                       source_model_identity: dict[str, Any] | None = None,
                        run_label: str = "factory") -> dict[str, Any]:
     """Run real model-authored code through the real Factory boundary and M3 issuer."""
     if sys.platform != "linux":
         return {"suite": f"factory_live_{strategy}", "evidence_level": "factory_live",
                 "status": "NOT_TESTED", "reason": "FactoryRuntime requires Linux"}
+    if preauthored_sources is not None:
+        try:
+            actual_corpus_hash = digest({
+                case.case_id: preauthored_sources[case.case_id] for case in cases
+            })
+        except KeyError as exc:
+            raise ValueError("preauthored source corpus is incomplete") from exc
+        if source_corpus_sha256 != actual_corpus_hash:
+            raise ValueError("preauthored source corpus hash mismatch")
+        model_identity = source_model_identity
+    else:
+        provider_adapter = DEFAULT_REGISTRY.get(provider)
+        model_identity = _provider_model_identity(provider_adapter, provider, model)
+
     safe_provider = provider.replace("/", "_").replace(":", "_")
     safe_label = run_label.replace("/", "_").replace(":", "_")
     run_root = output_root / f"{safe_label}-{safe_provider}-{strategy}-trial-{trial:03d}"
@@ -940,6 +958,7 @@ def factory_live_suite(*, provider: str, model: str, output_root: Path,
         "provider": provider,
         "model": model,
         "source_corpus_sha256": source_corpus_sha256,
+        "model_identity": model_identity,
         "plan_hash": plan.graph_hash,
         "input_commit": commit,
         "station_key_id": identity.key_id,
@@ -970,6 +989,7 @@ def factory_live_repeated_suite(*, provider: str, model: str, output_root: Path,
                                 dynamic_max: int = 8,
                                 preauthored_sources: dict[str, str] | None = None,
                                 source_corpus_sha256: str | None = None,
+                                source_model_identity: dict[str, Any] | None = None,
                                 run_label: str = "factory") -> dict[str, Any]:
     """Repeat the full model-authoring + Factory execution experiment."""
     if repeats < 1:
@@ -987,6 +1007,7 @@ def factory_live_repeated_suite(*, provider: str, model: str, output_root: Path,
             trial=trial,
             preauthored_sources=preauthored_sources,
             source_corpus_sha256=source_corpus_sha256,
+            source_model_identity=source_model_identity,
             run_label=run_label,
         )
         trials.append(result)
@@ -1013,7 +1034,12 @@ def factory_live_repeated_suite(*, provider: str, model: str, output_root: Path,
     total_workers = sum(int(r.get("workers") or 0) for r in tested)
     unsafe = sum(int(r.get("unsafe_acceptances") or 0) for r in tested)
     author_tokens = sum(int(r.get("author_tokens") or 0) for r in tested)
-    if unsafe:
+    model_identities = [r.get("model_identity") for r in tested if r.get("model_identity") is not None]
+    model_identity_hashes = sorted({digest(value) for value in model_identities})
+    model_identity_stable = len(model_identity_hashes) <= 1
+    if not model_identity_stable:
+        status = "FAIL"
+    elif unsafe:
         status = "FAIL"
     elif total_accepted == 0:
         status = "INCONCLUSIVE"
@@ -1034,6 +1060,9 @@ def factory_live_repeated_suite(*, provider: str, model: str, output_root: Path,
         "provider": provider,
         "model": model,
         "source_corpus_sha256": source_corpus_sha256,
+        "model_identity": (model_identities[0] if model_identities else source_model_identity),
+        "model_identity_hashes": model_identity_hashes,
+        "model_identity_stable": model_identity_stable,
         "repeat_count": len(tested),
         "workers": total_workers,
         "accepted": total_accepted,
@@ -1088,6 +1117,7 @@ def factory_paired_scheduler_suite(*, provider: str, model: str,
             cases=cases,
             preauthored_sources=authored["sources"],
             source_corpus_sha256=authored["source_corpus_sha256"],
+            source_model_identity=authored["model_identity"],
             run_label="paired",
         )
     paired_input_commits = sorted({
@@ -1132,6 +1162,7 @@ def factory_paired_scheduler_suite(*, provider: str, model: str,
         "paired_input_commits": paired_input_commits,
         "input_identity_paired": len(paired_input_commits) == 1,
         "source_authoring": {
+            "model_identity": authored["model_identity"],
             "tokens": authored["author_tokens"],
             "wall_clock_ms": authored["author_wall_clock_ms"],
             "metadata": authored["metadata"],
