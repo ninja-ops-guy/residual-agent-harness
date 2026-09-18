@@ -53,20 +53,50 @@ The observed exact-head PR workflows on `d971049...` completed **PASS** for Cont
 
 ## Exact-current-main qualification
 
-The previous exact accepted `main@b3f00af29c7507f4c0e218884e491c2fc792d984` completed all seven ordinary first-attempt `push` workflows **PASS**: Factory ownership, M4 runner prerequisites, measured-evaluation binding, clean install, Controller/provider, Command Station and Pages/deployment.
+The previous exact accepted `main@b3f00af29c7507f4c0e218884e491c2fc792d984` completed all seven ordinary first-attempt `push` workflows **PASS**: Factory ownership, M4 runner prerequisites, measured-evaluation binding, clean install, Controller/provider, Command Station and Pages/deployment. That evidence remains valid only for that exact predecessor revision and its named scopes.
 
-That evidence remains valid for `b3f00af...`; it is not automatically inherited by `699e286...`.
-
-At this status check, the post-merge workflow set on exact `main@699e286...` had started and applicable runs were still being observed. Until the exact merged revision's applicable workflows complete, post-merge qualification is **PENDING**. Candidate-head PASS and predecessor-main PASS must not be relabeled as merged-sha PASS.
+On exact current `main@699e2869e294fe157b4bfd73a272057683a2f7e0`, the six observed applicable ordinary post-#193 `push` qualification workflows completed **PASS on attempt 1**: Factory ownership, M4 runner prerequisites, measured-evaluation binding, clean install, Controller/provider, and Command Station. No Pages/deployment run bound to this exact SHA was observed in the retained run set, so this is deliberately **not** described as a seven-workflow PASS.
 
 Required claim discipline:
 
 - #193 candidate-head named workflows: **PASS**;
-- predecessor `main@b3f00af...` seven named workflows: **PASS**;
-- exact `main@699e286...` post-merge workflow set: **PENDING** at this snapshot;
+- predecessor `main@b3f00af...` seven named workflows: **PASS** within their exact scopes;
+- exact `main@699e286...` six observed applicable post-merge named workflows: **PASS** within their exact scopes;
+- Pages/deployment on exact `main@699e286...`: **UNKNOWN / not observed in the retained exact-SHA run set**;
 - universal/capable-runner M4 qualification: **not established**;
 - blank-environment install: **not established by setup.sh or ordinary clean-install CI**;
 - production long-run reliability: **not established**.
+
+These exact-main PASS results close the previous post-merge PENDING state for the six named workflows only. They do not broaden release, physical-device, provider, recovery, soak, or research claims.
+
+## #200 setup-hardening candidate
+
+Open PR #200, exact candidate head `c21ba57dd19ae68f1e63749e5f417bd18dd7a6a7`, proposes a focused hardening of the native setup path without changing Factory/M4, verifier, evidence, provider, or acceptance behavior.
+
+The candidate proposes to:
+
+- move default venv and Station state from `/tmp` to persistent XDG locations;
+- change the default Station bind host from `0.0.0.0` to `127.0.0.1`;
+- make the convenience shell macro opt-in, including non-TTY/piped execution;
+- repair a broken existing venv with bounded `venv --clear` behavior;
+- constrain shell startup-file edits to marked blocks with atomic same-directory replacement;
+- recognize exact #193 legacy snippets while refusing to overwrite unrelated user-defined `residual` functions;
+- stop opening a browser before a server has actually been started;
+- invoke installation through the venv interpreter explicitly.
+
+This is **unaccepted candidate behavior**, not current-main behavior. It remains onboarding hardening rather than blank-environment qualification or a portability proof.
+
+Observed exact-head #200 workflow status at this snapshot:
+
+- Control Plane: **PASS**;
+- Factory ownership: **PASS**;
+- measured-evaluation binding: **PASS**;
+- clean install: **PASS**;
+- Controller/provider: **FAIL** — Python 3.11 failed in the full compile/test step; later matrix jobs were cancelled, and the exact underlying test/root cause is **UNKNOWN** from retained workflow metadata alone;
+- Command Station: **FAIL** — browser and Docker jobs passed, while Python 3.12 failed in the full `unittest` step; the exact underlying test/root cause is **UNKNOWN** from retained workflow metadata alone;
+- maintainer approval gate: **BLOCKED/FAIL** pending explicit exact-head maintainer attestation.
+
+Therefore #200 is not merge-ready evidence and must not be described as a qualified replacement for #193.
 
 ## #133 WebVM runtime diagnostics
 
@@ -143,6 +173,7 @@ This documentation branch changes no Factory/M4 implementation or tests, ownersh
 - **#133** — accepted/on main as diagnostic tooling plus the current file-state change described above. Its diagnostic FAIL results remain retained evidence and its root cause remains UNKNOWN.
 - **#194** — accepted/on main as the completed-draft UI/state repair.
 - **#193** — accepted/on main as interactive native setup convenience; it is not blank-environment release evidence.
+- **#200** — open/unaccepted setup-hardening candidate. Several named candidate workflows PASS, but Controller/provider and Command Station are retained **FAIL** and maintainer attestation remains **BLOCKED** at the exact head.
 - **#190** — provider-channel recovery candidate remains open/unaccepted and requires refresh/requalification after material main movement.
 - **#152** — Qualification v1 framework candidate; older results must be refreshed before current release claims use them.
 - **#177** — IE-001 prototype candidate; previous evidence remains candidate-head evidence and needs reconciliation/requalification before final IE-001 claims.
@@ -159,9 +190,10 @@ This is maintainer-reviewed with automated qualification, not independent human 
 
 The project does **not** yet claim that:
 
-- candidate-head or predecessor-main PASS can substitute for exact `main@699e286...` post-merge evidence;
+- the six observed exact-current-main PASS workflows establish an unobserved exact-SHA Pages/deployment result or broader release readiness;
 - current ordinary workflow PASS establishes every-host/capable-runner M4 qualification or broader production readiness;
 - setup.sh establishes true blank-environment release qualification;
+- #200's proposed safer defaults are current accepted behavior before merge and qualification;
 - intentional #133 diagnostic FAILs are ordinary qualification PASSes;
 - #133 establishes the exact lower-level WebVM/CPython root cause or long-run reliability;
 - #132 self-maintenance/research-bundle tooling remains current capability after its files were removed;
@@ -175,16 +207,17 @@ The project does **not** yet claim that:
 
 ## Next gates
 
-1. Complete and retain the exact-current-main post-#193 workflow/deployment set; preserve any first failure rather than replacing it with a rerun-only success story.
-2. Make an explicit disposition for the #133 removal of #132 self-hosting/research-bundle tooling: intentional retirement vs focused restoration/reintroduction.
-3. Continue #120/#126 from the #133 discriminators until a lower-level cause or predefined reliability campaign justifies a stronger operational claim.
-4. Refresh/requalify #190, #152 and #177 as applicable after material main movement.
-5. Retain a fresh real-account Puter candidate→verifier→receipt success before claiming live-provider PASS.
-6. Validate the accepted #186 fallback on a physical device without turning fallback success into a heavyweight-WebVM claim.
-7. Execute true blank-environment install and recovery/host-loss qualification for the exact release artifact.
-8. Complete the selected elapsed-soak tier with retained first-failure evidence.
-9. Preserve the separate #139→ownership-baseline→fresh-qualification→#134 protected sequence.
-10. Freeze and run confirmatory R0–R5/degradation/heterogeneous-routing studies only under the stated research protocol.
+1. If #200 is pursued, resolve and retain the exact causes of its Controller/provider and Command Station failures, requalify the exact repaired head, and obtain exact-head maintainer attestation before merge.
+2. If release policy requires Pages/deployment evidence on exact `main@699e286...`, retain that exact-SHA run separately; none was observed in the current exact-SHA run set.
+3. Make an explicit disposition for the #133 removal of #132 self-hosting/research-bundle tooling: intentional retirement vs focused restoration/reintroduction.
+4. Continue #120/#126 from the #133 discriminators until a lower-level cause or predefined reliability campaign justifies a stronger operational claim.
+5. Refresh/requalify #190, #152 and #177 as applicable after material main movement.
+6. Retain a fresh real-account Puter candidate→verifier→receipt success before claiming live-provider PASS.
+7. Validate the accepted #186 fallback on a physical device without turning fallback success into a heavyweight-WebVM claim.
+8. Execute true blank-environment install and recovery/host-loss qualification for the exact release artifact.
+9. Complete the selected elapsed-soak tier with retained first-failure evidence.
+10. Preserve the separate #139→ownership-baseline→fresh-qualification→#134 protected sequence.
+11. Freeze and run confirmatory R0–R5/degradation/heterogeneous-routing studies only under the stated research protocol.
 
 ## Documentation authority
 
