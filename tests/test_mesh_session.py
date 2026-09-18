@@ -49,6 +49,24 @@ def test_join_catches_up_history_before_membership():
     assert nodes["a"].chat.head_hash==nodes["b"].chat.head_hash
 
 
+def test_failed_late_join_rolls_back_peer_connections():
+    nodes=compatible_nodes("a","b")
+    session=MeshSession("room")
+    session.join(nodes["a"])
+    session.chat("dev-a","history")
+    bad=MeshNode(
+        nodes["b"].identity,
+        lambda data:"bad",
+        lambda *args:False,
+    )
+    with pytest.raises(ContractError,match="signature"):
+        session.join(bad)
+    assert session.members==("dev-a",)
+    assert "dev-b" not in nodes["a"].peers
+    assert "dev-a" not in bad.peers
+    assert bad.chat.messages==()
+
+
 def test_broadcast_fans_out_and_returns_delivery_receipt():
     nodes=compatible_nodes("a","b","c")
     session=MeshSession("room")
