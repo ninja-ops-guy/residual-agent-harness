@@ -307,7 +307,112 @@ If implemented:
 
 No current RESIDUAL claim should imply autonomous weight learning until independently implemented and qualified.
 
-## 17. Required metrics
+## 17. Diagnostic feedback is not authoritative reward
+
+RESIDUAL MUST distinguish **diagnostic feedback** from **acceptance evidence**.
+
+User/operator feedback, reviewer prose, retry requests, task comments, and other interaction signals MAY identify where a procedure should change. They MUST NOT, by themselves, establish that the preceding candidate was correct or that a proposed improvement succeeded.
+
+Diagnostic feedback SHOULD be classified into bounded types such as:
+
+- acceptance/confirmation;
+- correction;
+- new information;
+- new requirement;
+- ambiguity;
+- formatting/submission failure;
+- execution/tooling failure.
+
+Each diagnostic record SHOULD retain an exact supporting evidence span or event reference.
+
+A successful tool call, a user continuing the task, or a reviewer suggesting a revision MUST NOT be interpreted as authoritative success.
+
+Improvement acceptance MUST remain grounded in the frozen rubric and independent evaluator path.
+
+## 18. Fresh evidence and counterfactual re-execution
+
+Historical trajectories MAY drive diagnosis, but they MUST NOT be the sole evidence that a new procedure works.
+
+After a candidate procedure is proposed, parent and candidate MUST be freshly executed under the paired evaluation contract.
+
+Replay of an old trace MAY test deterministic parsing, accounting, or verifier logic, but MUST NOT be used to claim behavioral improvement by a changed procedure when that procedure did not generate the trajectory.
+
+Each fresh trajectory MUST bind:
+
+- the exact procedure/harness revision;
+- the model/provider revision;
+- the evaluation task and rubric;
+- the environment/source snapshot;
+- the run seed/schedule identity where applicable.
+
+This separates **learning from experience** from **proving an intervention**.
+
+## 19. Procedural distillation and task-local quarantine
+
+The Scientist SHOULD convert repeated evidence into reusable procedures only when the proposed procedure abstracts beyond a single task instance.
+
+A proposed reusable skill or instruction MUST NOT encode:
+
+- task-specific final answers;
+- private reference values;
+- unique sample IDs used only by the source task;
+- hidden-test facts;
+- evaluator internals;
+- literal outputs whose only value is memorization.
+
+Task-specific facts MAY remain in task-local memory/evidence, but MUST NOT be promoted into the reusable harness unless a separate generalization argument and evaluation justify them.
+
+The improvement record SHOULD label each proposal as:
+
+- **general procedure**;
+- **domain procedure**;
+- **task-local fact**;
+- **measurement-only observation**.
+
+Only the first two classes are eligible for reusable harness promotion.
+
+## 20. Objective decomposition and competence-frontier metrics
+
+RESIDUAL SHOULD NOT collapse all recursive-improvement quality into one scalar.
+
+At minimum, it SHOULD distinguish:
+
+- **first-pass quality** — success before repair;
+- **repair efficiency** — success after bounded repair and attempts consumed;
+- **problem coverage** — distinct problems solved within a fixed attempt budget;
+- **accepted-state reliability** — correctness conditional on acceptance;
+- **regression preservation** — protected historical wins retained;
+- **cost/latency efficiency** — resources per accepted success;
+- **epistemic quality** — correct use of MeasurementGap/UNKNOWN instead of invented certainty.
+
+Harness/procedure changes SHOULD primarily optimize first-pass quality, repair efficiency, and accepted-state reliability.
+
+Changes intended to expand underlying solver/model capability SHOULD primarily be judged by problem coverage under a fixed harness and attempt budget.
+
+A change MUST NOT be called an improvement solely because one metric rises while a preregistered hard-gate metric materially degrades.
+
+Challenge generation SHOULD target the **competence frontier**: tasks that are neither already saturated nor so far beyond current capability that they provide no discriminating signal.
+
+## 21. Champion checkpoint and attribution discipline
+
+RESIDUAL SHOULD retain a **best-so-far champion** procedure for each frozen evaluation context.
+
+Experimental candidates MAY be explored from evidence, but the champion remains the deployment/procedural parent unless the candidate satisfies the full acceptance rule.
+
+Rejected candidates remain diagnostic history, not an alternative parent frontier by default.
+
+Because recursive revision compounds multiple accepted edits, aggregate improvement over many steps does not establish which individual edit caused the gain.
+
+Therefore:
+
+- campaign-level gains MUST be described as the combined effect of the accepted revision sequence unless an ablation isolates a component;
+- individual skills/instructions SHOULD receive causal credit only after a preregistered ablation or equivalent controlled comparison;
+- removal tests SHOULD be used periodically to identify obsolete or harmful accumulated procedures;
+- procedure count/size SHOULD be tracked to detect unbounded harness accretion.
+
+This prevents RESIDUAL from confusing cumulative correlation with causal improvement.
+
+## 22. Required metrics
 
 Each recursive-improvement campaign MUST report at minimum:
 
@@ -328,7 +433,7 @@ Each recursive-improvement campaign MUST report at minimum:
 
 Aggregate averages MUST NOT erase failed, blocked, unknown, or missing cells.
 
-## 18. Minimum acceptance tests for implementation
+## 23. Minimum acceptance tests for implementation
 
 ### RINR-R1 — Snapshot immutability
 After sealing an `ExperienceSnapshot`, changing any bound field changes identity or is rejected.
@@ -366,7 +471,26 @@ Repeated identical failed candidate/check states produce a stagnation record and
 ### RINR-R12 — Shadow deployment
 A successful research candidate cannot change accepted production/main state without the ordinary review, verification, receipt, integration, maintainer, and release path.
 
-## 19. Relationship to current M6.2 work
+
+### RINR-R13 — Diagnostic/acceptance separation
+A positive user/reviewer interaction signal without a passing frozen evaluator MUST NOT promote a candidate.
+
+### RINR-R14 — Fresh intervention evidence
+A candidate procedure cannot claim behavioral improvement solely from replaying a trajectory produced by the parent; fresh paired execution is required.
+
+### RINR-R15 — Task-answer leakage prevention
+A reusable skill proposal containing a task-specific final answer, private reference value, hidden-test fact, or evaluator internal is rejected or quarantined as task-local.
+
+### RINR-R16 — Objective decomposition
+Reports distinguish first-pass quality, repair efficiency, problem coverage, accepted-state reliability, regression preservation, and resource efficiency rather than emitting only one aggregate improvement score.
+
+### RINR-R17 — Champion retention
+A non-accepted experimental candidate cannot displace the best-so-far champion procedure.
+
+### RINR-R18 — Attribution restraint
+A multi-edit campaign cannot assign causal credit to one skill/instruction unless a controlled ablation or equivalent isolated comparison supports that claim.
+
+## 24. Relationship to current M6.2 work
 
 This spec is intended to organize, not replace, the current M6.2 path.
 
@@ -379,7 +503,7 @@ In particular:
 - the Scientist is deliberately **analysis-only**.
 - successful self-maintenance remains a candidate-generation result until independent acceptance completes.
 
-## 20. Claims boundary
+## 25. Claims boundary
 
 Implementing this spec would establish an **evidence-grounded recursive improvement protocol**.
 
