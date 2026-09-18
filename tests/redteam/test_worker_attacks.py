@@ -136,7 +136,12 @@ class TestMaliciousWorkerOutput:
             limits=SandboxLimits(cpu_seconds=15, memory_mb=128, max_pids=25,
                                  timeout_seconds=15, max_output_bytes=4096))
         backend.start(capped)
-        result = backend.exec(["/bin/bash", "-c", "head -c 10000000 /dev/zero | tr '\\000' A"])
+        # Use one in-jail process so the truncation probe does not depend on
+        # fork-heavy shell pipelines under the sandbox PID ceiling.
+        code = ("import os\n"
+                "chunk = b'A' * 65536\n"
+                "for _ in range(160): os.write(1, chunk)\n")
+        result = backend.exec([SANDBOX_PY, "-c", code])
         assert result.exit_code != 127
         assert result.truncated and len(result.stdout) <= 4096
         assert attack_receipt("atk-output-3", "unbounded stdout").verdict is CheckResult.FAIL
