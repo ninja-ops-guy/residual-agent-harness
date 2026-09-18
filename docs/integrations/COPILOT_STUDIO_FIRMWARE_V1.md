@@ -43,7 +43,7 @@ User -> Copilot Studio -> Entra/OBO custom connector -> RESIDUAL Enterprise Gate
 
 The connector MUST use end-user authentication for user-specific engineering work. Maker credentials MUST NOT authorize a Firmware Engineering mission.
 
-The API MUST reject missing, expired, wrong-issuer, wrong-audience, unsigned, malformed, or otherwise unverified tokens. Department/group claims are authorization inputs only after token verification.
+The API MUST reject missing, expired, wrong-issuer, wrong-audience, unsigned, malformed, or otherwise unverified tokens. The verified `tid` MUST match an explicit deployment tenant allowlist. Department/group claims are authorization inputs only after token verification; production deployments SHOULD use stable Entra group object IDs or app-role values rather than display names.
 
 A request MUST be bound to authenticated tenant + subject + department profile + mission id + request id. Caller-supplied subject, tenant, department, or role fields MUST NOT override verified identity claims.
 
@@ -83,7 +83,7 @@ Do not return bearer tokens, raw secrets, provider credentials, unrestricted int
 ## Department profile schema
 
 Profiles are data, not forks. A profile declares:
-- Entra group allowlist;
+- Entra tenant allowlist;\n- Entra group/app-role allowlist;
 - approved mission templates;
 - allowed RESIDUAL capabilities;
 - prohibited capabilities;
