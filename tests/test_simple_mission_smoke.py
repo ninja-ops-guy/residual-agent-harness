@@ -71,9 +71,10 @@ class FakeOllama(BaseHTTPRequestHandler):
             content = canonical({
                 "files": {
                     "calculator.py": (
-                        '"""Tiny calculator generated for the RESIDUAL smoke mission."""\\n\\n'
-                        "def add(a, b):\\n"
-                        "    return a + b\\n"
+                        '"""Tiny calculator generated for the RESIDUAL smoke mission."""'
+                        + chr(10) + chr(10)
+                        + "def add(a, b):" + chr(10)
+                        + "    return a + b" + chr(10)
                     )
                 }
             })
