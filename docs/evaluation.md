@@ -51,7 +51,7 @@ Current `main` is **`260b5f9e20bf70a6b9ca087bc91e22a009ed77b9`**.
 
 Merged #200 hardens the native setup path. Merged #205 restores the session-scoped private provider channel after Mission Control reload/remount. Merged #218 applies bounded repair-loop remediation: content-bound prior-candidate context may be supplied to a repair attempt while the new candidate still starts from a clean baseline worktree, the runner contract separates transport JSON from file-language content, and Mission Control/Store share a five-attempt ceiling. Merged #201 accepts the guided frontend/provider UX with inline RESIDUAL-side Puter setup, explicit user-gesture authorization, lazy loading, credential separation, and fail-closed protocol behavior. These are accepted engineering behaviors, not model-quality or scientific evidence.
 
-PR #201's exact head `4e172aed...` completed **PASS** for Control Plane, Factory ownership, measured-evaluation binding, clean install, Browser VM Demo, Pages, Command Station, Controller/provider, and maintainer approval before merge. Exact merged `main@260b5f9...` ordinary push qualification is **PENDING** at this status check; PR-head and predecessor-main PASS are not substitutes for merged-SHA qualification.
+PR #201's exact head `4e172aed...` completed **PASS** for Control Plane, Factory ownership, measured-evaluation binding, clean install, Browser VM Demo, Pages, Command Station, Controller/provider, and maintainer approval before merge. Exact merged `main@260b5f9...` has now completed its seven ordinary push workflows: six succeeded and **Deploy GitHub Pages run `35340104722` FAILed in published live-acceptance scope**. The Pages artifact build/browser proof and deployment succeeded; live desktop acceptance then timed out waiting for the embedded provider frame's expected `could not load` status after artifact identity, guest readiness, demo verification, warm reload, and repository audit had already passed. This must remain scoped as a browser-proof/live-acceptance failure; the retained provider path used a test-double SDK and does not establish paid/live Puter semantic success or failure.
 
 Historical exact-revision failures remain in the evidence record even where later revisions pass.
 
@@ -137,7 +137,7 @@ Draft #214 is an unaccepted candidate repair for #208, but its head `d3e8a5ec...
 
 ## Frontend/provider evaluation boundary
 
-Accepted #201 changes the browser/user-experience path, not the scientific evidence boundary. Its exact PR head passed Browser VM Demo and Pages alongside the ordinary controller/provider and Station gates, but the exact merged SHA still requires its own post-merge push qualification.
+Accepted #201 changes the browser/user-experience path, not the scientific evidence boundary. Its exact PR head passed Browser VM Demo and Pages alongside the ordinary controller/provider and Station gates. On the exact merged SHA, six ordinary push workflows succeeded while Pages live acceptance **FAILed** in run `35340104722` after successful artifact build/proof and deployment. The failure is bound to the published browser acceptance expectation for the embedded provider frame; it is not live model-quality evidence.
 
 The inline provider flow may use Puter's secure authorization popup; keeping RESIDUAL-side setup within Mission Control is not equivalent to successful provider inference. Likewise, command animation and guided proof improve onboarding but are not model-quality or reliability measurements.
 
