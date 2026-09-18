@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "generation": "0001",
-  "status": "bootstrap-authored-not-yet-qualified",
+  "status": "bootstrap-implemented-qualification-pending",
   "observed_main": "3cff6bcd52e352a6ba048c958949a7bbb2a039eb",
   "source_commit_message": "ci: harden PR Agent as advisory review (#197)",
   "mission_issue": 291,
@@ -27,5 +27,16 @@
   "roadmap_recorded_main": "4608afabf5de4c87d77aaf149dfc12538d364f43",
   "roadmap_delta_commits": 8,
   "roadmap_compare_status": "ancestor_ahead_by_8",
-  "evidence_note": "GitHub compare confirms the recorded roadmap main is an ancestor of observed main, 8 commits behind and 0 commits ahead. This is roadmap/status lag, not history divergence and not implicit qualification of the later commits."
+  "evidence_note": "GitHub compare confirms the recorded roadmap main is an ancestor of observed main, 8 commits behind and 0 commits ahead. This is roadmap/status lag, not history divergence and not implicit qualification of the later commits.",
+  "implemented_controls": [
+    "Content-addressed Revision Doctor binds roadmap, current status, M7 mission policy, and Factory ownership baseline bytes.",
+    "Two independent Station scout tasks feed one dependent candidate composer.",
+    "Generated proposals have proposal authority only and are retained as Station artifacts before deterministic admission.",
+    "Candidate writable scopes may not overlap and generation-wide frozen evaluator files cannot be writable.",
+    "Executable code and execution-config candidates require declared frozen evaluators and constrained repository-interpreter commands.",
+    "Factory ownership-manifest paths plus M7/Station/verifier/governance surfaces are blocked from autonomous writes.",
+    "Every managed Station clone is checked against the doctor-certified source HEAD before execution.",
+    "Cycle execution revalidates source HEAD, source report identity, and mission plan identity after origination.",
+    "Production merge remains external governed authority."
+  ]
 }
