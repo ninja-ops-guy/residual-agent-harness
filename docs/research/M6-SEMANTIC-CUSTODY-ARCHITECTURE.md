@@ -409,3 +409,455 @@ Use a synthetic, bounded candidate to exercise all admission steps through the H
 10. Only then reconsider M6-008.
 
 No existing StationReceipt schema is modified by this specification.
+
+
+## 15. Canonical Derivation Graph
+
+The canonical artifact of recursive improvement SHALL be a content-addressed derivation DAG, not a chronological pipeline log.
+
+Everything else — receipts, experiment summaries, Metric Registry views, ImprovementSpecs, challenges, and promotion records — is a projection over this graph.
+
+### 15.1 Node classes
+
+The initial graph vocabulary is deliberately small:
+
+- `EvidenceFact`: Host-custodied verified observation or semantic projection;
+- `Question`: the bounded scientific question;
+- `Finding`: Scientist-authored Sufficient/Insufficient semantic finding;
+- `MetricDecision`: Planner-authored semantic metric selector or definition;
+- `MetricResolution`: Host resolution against the active metric theory;
+- `InvariantVerdict`: deterministic checker result;
+- `SemanticReview`: adversarial reviewer verdict;
+- `EnvironmentVerdict`: execution-context qualification;
+- `ImprovementSpec`: proposed bounded intervention;
+- `HumanDecision`: exact-content co-sign/veto;
+- `Challenge`: later objection to a graph node or justification edge;
+- `Supersession`: append-only replacement relation.
+
+Each node has:
+
+- typed semantic payload;
+- author class: HOST | SCIENTIST | PLANNER | REVIEWER | HUMAN;
+- content hash;
+- schema/revision;
+- creation sequence;
+- optional model/runtime identity for probabilistic authors;
+- current validity state derived from graph rules, never mutated as hidden state.
+
+### 15.2 Justification edges
+
+Edges are typed claims, not ordering arrows.
+
+Initial edge vocabulary:
+
+- `SUPPORTED_BY`;
+- `SELECTED_TO_TEST`;
+- `RESOLVES_TO`;
+- `REFINES`;
+- `GENERALIZES`;
+- `PRESERVES`;
+- `VIOLATES`;
+- `CHALLENGES`;
+- `SUPERSEDES`;
+- `REVIEWED_BY`;
+- `QUALIFIED_UNDER`;
+- `AUTHORIZED_BY`.
+
+An edge is valid only when its source/target node classes are permitted by the graph schema and any required edge predicate passes.
+
+### 15.3 Content addressing
+
+Every node hash commits to:
+
+```
+node_schema
+node_type
+author_class
+semantic_payload
+declared parent/justification edge identities
+relevant Host envelope commitments
+```
+
+Every edge is likewise content-addressed.
+
+A canonical graph root commits to the reachable node/edge set using a deterministic Merkle construction.
+
+Graph root identity MUST be independent of insertion order for the same canonical DAG.
+
+### 15.4 Proof claim boundary
+
+The derivation graph is a proof object only for predicates that are actually formalized and checked.
+
+It can prove, for example:
+
+- exact provenance binding;
+- graph acyclicity;
+- capability-handle resolution;
+- metric unit compatibility;
+- explicit refinement relationships;
+- protected-invariant satisfaction where the invariant is mechanically encoded;
+- environment-contract conformance;
+- exact human co-signature binding.
+
+It cannot by hashing alone prove:
+
+- that a natural-language hypothesis is true;
+- that a selected metric is scientifically appropriate;
+- that a causal mechanism is correct;
+- that a reviewer judgment is correct.
+
+Those remain challengeable semantic claims.
+
+Preferred terminology:
+
+> proof-carrying derivation graph
+
+Avoid:
+
+> proof of scientific truth
+
+unless the relevant semantic predicate has been formalized in the invariant language and mechanically discharged.
+
+## 16. Challenge and Incremental Invalidation
+
+Challenges are append-only graph nodes.
+
+A challenge never deletes or rewrites the challenged historical node.
+
+A `Challenge` contains:
+
+- challenged node/edge;
+- challenge class;
+- structured reason;
+- challenger author;
+- optional counter-evidence handles;
+- requested disposition.
+
+Host recomputation marks downstream conclusions as one of:
+
+- VALID;
+- INVALID;
+- CHALLENGED;
+- UNKNOWN;
+- STALE_ENVIRONMENT;
+- SUPERSEDED.
+
+### 16.1 Dependency invalidation
+
+If node B depends through a required justification edge on challenged node A, B cannot remain VALID until the challenge is resolved.
+
+Invalidity propagates only through declared dependency edges.
+
+Unrelated branches remain valid.
+
+### 16.2 What "self-healing" means
+
+Challenge propagation can deterministically recompute graph validity without rerunning an experiment.
+
+It cannot automatically invent a replacement semantic conclusion.
+
+A new conclusion requires a new model/human-authored node or new evidence.
+
+Therefore the paper SHALL describe this property as:
+
+> localized invalidation and replayable re-derivation
+
+rather than claiming automatic semantic self-healing.
+
+## 17. Semantic Invariant Language
+
+A first-class deterministic semantic checker is desirable, but only over a deliberately restricted formal language.
+
+The initial invariant language SHALL support typed predicates over structured fields such as:
+
+- units/dimensions;
+- populations/cohorts;
+- aggregation operators;
+- metric lifecycle/refinement edges;
+- threshold relations;
+- protected authority boundaries;
+- required evidence classes;
+- environment constraints;
+- graph dependency forms.
+
+Example:
+
+```
+claim.kind == "tail_latency"
+=> selected_metric.aggregation in {"p95", "p99", "max"}
+```
+
+The checker MAY prove such explicitly encoded relationships.
+
+It MUST return UNKNOWN rather than infer general natural-language entailment.
+
+A model-generated formal predicate does not become trusted merely because it is machine-readable; the predicate definition itself requires governance and versioning.
+
+## 18. Metric Theory Lifecycle
+
+The Metric Registry SHALL become a versioned measurement-theory subgraph.
+
+Metric lifecycle:
+
+```
+PROPOSED -> ACTIVE -> DEPRECATED
+                    -> SUPERSEDED
+```
+
+Historical receipt interpretation always uses the metric-theory root bound at the time of the experiment.
+
+A newer theory MAY provide a reinterpretation mapping:
+
+- EXACTLY_EQUIVALENT;
+- STRICT_REFINEMENT;
+- COARSENING;
+- PARTIAL_OVERLAP;
+- INCOMPARABLE.
+
+Only EXACTLY_EQUIVALENT mappings permit direct numerical reinterpretation without additional assumptions.
+
+STRICT_REFINEMENT does not imply that old measurements can be reconstructed at the refined granularity.
+
+Therefore "re-interpret past receipts without rerunning" is permitted only when a mechanically valid mapping supports it. Otherwise the graph records the relationship but historical evidence remains at its original semantic resolution.
+
+Deprecation never invalidates historical graph roots.
+
+## 19. Capability-Enforced Runtime
+
+Capability enforcement becomes the runtime mechanism behind semantic custody.
+
+Each invocation receives an ephemeral capability set.
+
+Capability classes include:
+
+- `ReadEvidence(handle_set)`;
+- `CiteEvidence(handle_set)`;
+- `SelectMetric(vocabulary_scope)`;
+- `ProposeMetric(theory_scope)`;
+- `Challenge(node_set)`;
+- `ProposeImprovement(scope)`.
+
+Write authority over sealed facts, active metric theory, protected invariants, graph validity, and promotion remains Host-owned.
+
+Capabilities are:
+
+- unforgeable within the supported runtime boundary;
+- invocation-scoped;
+- least-privilege;
+- revocable/expiring;
+- recorded by commitment in the derivation graph.
+
+A new component can be evaluated by its capability contract rather than receiving ambient access to the entire recursive-improvement state.
+
+## 20. Staged Liveness and Risk Tiers
+
+Staged liveness is a useful future capability, but it MUST NOT silently weaken the current human promotion boundary.
+
+Risk tiers are Host-classified. An ImprovementSpec may propose a tier, but the Host computes the minimum allowed tier from touched capabilities, graph node classes, protected resources, and semantic effect.
+
+The effective tier is:
+
+```
+max(spec_declared_tier, host_computed_minimum_tier)
+```
+
+Under-declaration is impossible to use as an authority escalation.
+
+### Tier 0 — autonomous epistemic work
+
+Permitted without human approval:
+
+- read-only evidence curation;
+- graph challenge creation;
+- metric selection proposals;
+- experiment planning;
+- deterministic replay/validation.
+
+No repository or active-theory mutation.
+
+### Tier 1 — experimental staging
+
+Future option, disabled by default.
+
+May create isolated experimental artifacts/branches that cannot affect:
+
+- current production code;
+- protected graph rules;
+- active metric theory;
+- historical receipt interpretation;
+- promotion state.
+
+A time delay is not itself authorization.
+
+Activation of delayed-commit semantics requires a separately approved governance change and an enforceable veto/rollback mechanism.
+
+### Tier 2 — human co-sign
+
+Required for changes affecting:
+
+- production implementation;
+- active metric theory;
+- admission rules;
+- protected invariants;
+- receipt schema;
+- promotion state.
+
+### Tier 3 — external audit
+
+Reserved for changes that intentionally alter interpretation rules for historical evidence/receipts or other governance-defined high-impact trust roots.
+
+The external-auditor identity/trust policy is itself a protected governance object.
+
+## 21. Positive ImprovementSpec Admission Boundary
+
+M6-008 is blocked for a precise reason.
+
+No candidate yet has a derivation subgraph satisfying every required admission predicate.
+
+An admissible ImprovementSpec subgraph requires:
+
+```
+Question
+  <-SUPPORTED_BY- EvidenceFact*
+       |
+       v
+ScientistFinding(SUFFICIENT)
+       |
+       v
+MetricDecision --RESOLVES_TO--> ActiveMetricTheory
+       |
+       v
+SemanticInvariantVerdict(PASS)
+       |
+       v
+AdversarialSemanticReview(VALID)
+       |
+       v
+ImprovementSpec
+       |- predicted_effects
+       |- verification_plan
+       |- preservation_criteria
+       |- rollback_plan
+       |
+       +--QUALIFIED_UNDER--> EnvironmentContract(PASS)
+       +--PRESERVES-------> ProtectedInvariant*
+       +--AUTHORIZED_BY---> HumanDecision(COSIGN)
+```
+
+Admission occurs only when the Host verifies that the required subgraph is complete, acyclic, content-addressed, semantically reviewed, environmentally qualified, and exactly co-signed.
+
+A plausible model-generated spec is not admissible.
+
+A mechanically valid spec with INVALID/CHALLENGE semantic review is not admissible.
+
+A semantically VALID spec without exact human co-signature is not admissible.
+
+This is the positive protocol that defines the M6-008 boundary.
+
+## 22. Derivation-Graph Experiments
+
+### DG-001 — canonical root
+
+Construct the same DAG in different insertion orders.
+
+Expected: identical node hashes, edge hashes, and graph root.
+
+Mutate one semantic payload byte.
+
+Expected: affected node hash and graph root change.
+
+### DG-002 — localized challenge propagation
+
+Create two independent branches sharing one evidence ancestor.
+
+Challenge a node unique to branch A.
+
+Expected:
+
+- branch A descendants become CHALLENGED/INVALID according to edge requirements;
+- branch B remains VALID;
+- historical nodes remain present.
+
+### DG-003 — bad framing separation
+
+Create a mechanically perfect attestation subgraph for a deliberately badly framed tail-latency experiment using only a mean metric.
+
+Expected:
+
+- deterministic provenance/integrity predicates PASS;
+- semantic invariant `tail claim requires tail aggregation` FAILS;
+- semantic Reviewer INVALID/CHALLENGE;
+- ImprovementSpec admission false.
+
+### DG-004 — reviewer challenge
+
+Have the Reviewer challenge a metric-selection rationale while all Host attestation checks pass.
+
+Expected: graph root remains valid as a historical record, but the challenged conclusion is not VALID for promotion.
+
+### DG-005 — historical theory evolution
+
+Bind an experiment to metric theory V1.
+
+Create V2 with:
+- one EXACTLY_EQUIVALENT mapping;
+- one STRICT_REFINEMENT;
+- one DEPRECATED metric.
+
+Expected:
+- V1 receipt remains valid;
+- exact-equivalence reinterpretation is allowed;
+- strict-refinement reconstruction is refused without new evidence;
+- new experiments default away from deprecated metric.
+
+### DG-006 — capability non-escalation
+
+Give Planner only SelectMetric/ProposeMetric capabilities.
+
+Attempt:
+- sealed-fact write;
+- graph-validity mutation;
+- promotion;
+- access to another invocation's evidence handles.
+
+Expected: all denied and recorded as failed capability checks.
+
+### DG-007 — risk-tier under-declaration
+
+Submit a spec declaring Tier 0 that touches active metric theory or protected invariants.
+
+Expected: Host computes Tier >= 2; no Tier-0 execution path exists.
+
+### DG-008 — environment drift
+
+Bind a graph to an Environment Contract.
+
+Change a REQUIRED_EXACT field.
+
+Expected: environment node becomes non-PASS and downstream admission invalidates without deleting the historical execution record.
+
+## 23. Migration Priority
+
+The derivation graph is now the architectural center.
+
+Migration order:
+
+1. Define graph node/edge schemas and canonical Merkle root.
+2. Implement challenge/invalidation semantics.
+3. Implement sealed context + invocation-scoped capability handles as graph-backed Host state.
+4. Move Scientist and Planner outputs into graph node schemas.
+5. Implement restricted semantic invariant language.
+6. Upgrade Metric Registry into the measurement-theory subgraph with lifecycle edges.
+7. Implement adversarial Reviewer challenge nodes.
+8. Implement Environment Contract nodes.
+9. Implement positive ImprovementSpec admission as a graph predicate.
+10. Run DG-001 through DG-008.
+11. Only after those results reconsider M6-008 candidate implementation.
+
+The canonical question becomes:
+
+> What derivation subgraph justifies this conclusion, and which component authored each semantic claim?
+
+rather than:
+
+> Which pipeline step produced this output?
