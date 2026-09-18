@@ -16,6 +16,12 @@ from .service import (
 )
 from .http import CopilotHTTPAdapter, HTTPResponse
 from .persistence import SQLiteCopilotMissionStore
+from .entra_keys import (
+    EntraJWKSProvider,
+    EntraV2Endpoints,
+    HTTPSJSONFetcher,
+    build_entra_v2_oidc_client,
+)
 
 __all__ = [
     "CopilotAPIError",
@@ -28,6 +34,10 @@ __all__ = [
     "CopilotStudioService",
     "MissionEvidenceRef",
     "SQLiteCopilotMissionStore",
+    "EntraJWKSProvider",
+    "EntraV2Endpoints",
+    "HTTPSJSONFetcher",
+    "build_entra_v2_oidc_client",
     "OIDCBearerAuthenticator",
     "CopilotHTTPAdapter",
     "HTTPResponse",
