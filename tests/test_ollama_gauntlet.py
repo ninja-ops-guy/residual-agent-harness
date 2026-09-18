@@ -182,7 +182,8 @@ class FactoryBindingTests(unittest.TestCase):
 
     def test_frozen_source_corpus_is_hash_bound_and_provenanced(self):
         authored_source = "write_file('answer-001.txt','42')"
-        with patch.object(g, "_author_source", return_value=(authored_source, 11, 7)):
+        with patch.object(g, "DEFAULT_REGISTRY", FakeRegistry()), \
+             patch.object(g, "_author_source", return_value=(authored_source, 11, 7)):
             result = g.author_frozen_source_corpus(
                 provider="ollama", model="tiny:test", cases=g.DEFAULT_CASES[:1],
             )
@@ -208,6 +209,8 @@ class FactoryBindingTests(unittest.TestCase):
             "source_corpus_sha256": "b" * 64,
             "author_tokens": 11,
             "author_wall_clock_ms": 7,
+            "model_identity": {"provider": "ollama", "requested_model": "tiny:test",
+                               "immutable": None},
         }
         timings = {"single": 4.0, "fixed": 2.0, "dynamic": 3.0}
 
@@ -244,6 +247,43 @@ class FactoryBindingTests(unittest.TestCase):
             self.assertEqual(call.kwargs["preauthored_sources"], frozen["sources"])
             self.assertEqual(call.kwargs["source_corpus_sha256"], "b" * 64)
             self.assertEqual(call.kwargs["run_label"], "paired")
+
+    def test_preauthored_corpus_hash_mismatch_fails_before_execution(self):
+        if g.sys.platform != "linux":
+            self.skipTest("Factory runtime is Linux-only")
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError, "corpus hash mismatch"):
+                g.factory_live_suite(
+                    provider="ollama", model="tiny:test", output_root=Path(tmp),
+                    strategy="single", cases=g.DEFAULT_CASES[:1],
+                    preauthored_sources={"arith-01": "write_file('answer-001.txt','42')"},
+                    source_corpus_sha256="0" * 64,
+                    source_model_identity={"provider": "ollama", "requested_model": "tiny:test"},
+                )
+
+    def test_repeated_factory_fails_on_model_identity_drift(self):
+        rows = [
+            {
+                "suite": "factory_live_single", "status": "PASS",
+                "wall_clock_seconds": 1.0, "end_to_end_seconds": 2.0,
+                "accepted": 1, "workers": 1, "unsafe_acceptances": 0,
+                "author_tokens": 1, "model_identity": {"immutable": {"sha256": "a" * 64}},
+            },
+            {
+                "suite": "factory_live_single", "status": "PASS",
+                "wall_clock_seconds": 1.0, "end_to_end_seconds": 2.0,
+                "accepted": 1, "workers": 1, "unsafe_acceptances": 0,
+                "author_tokens": 1, "model_identity": {"immutable": {"sha256": "b" * 64}},
+            },
+        ]
+        with patch.object(g, "factory_live_suite", side_effect=rows):
+            result = g.factory_live_repeated_suite(
+                provider="ollama", model="tiny:test", output_root=Path("/tmp/unused"),
+                strategy="single", repeats=2,
+            )
+        self.assertEqual(result["status"], "FAIL")
+        self.assertFalse(result["model_identity_stable"])
+        self.assertEqual(len(result["model_identity_hashes"]), 2)
 
     def test_fixture_git_identity_is_deterministic_across_fresh_repositories(self):
         with tempfile.TemporaryDirectory() as tmp:
