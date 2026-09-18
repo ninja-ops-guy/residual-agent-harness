@@ -149,9 +149,18 @@ Status: **FAIL in experiment-execution scope / discovery not reached**.
 
 ### #249 / M6-SPEC-007C
 
-No authoritative result was retained at this status check. The experiment remains **UNKNOWN / pending**. Its intended change keeps aggregate measurements, source hashes, no-supplied-hypothesis constraints, and exact external checker semantics while removing full checker source from the model context.
+Authoritative workflow run **`35354978034`** reached the local model and completed five model calls without the earlier provider timeout. The retained evidence shows:
 
-Until a retained result exists, autonomous improvement discovery remains **UNKNOWN / not established**.
+- attempts 1–4 each produced an `ImprovementSpec`-shaped candidate, but every candidate was invalid JSON because the acceptance operator field was malformed; both external checks therefore failed;
+- attempts 3 and 4 exactly repeated earlier failed patches, and accepted #233 repeated-failure detection recorded those repeats rather than treating them as progress;
+- attempt 5 reached the model but its output was truncated and produced no new checkable candidate;
+- the run escalated on `max_iteration` after five passes, 12,840 reported tokens, and 752.384 seconds;
+- **0 integrated**, no approved review, no verification receipt, no release files, and final `proposal: null`;
+- retained artifact ID **`10551768764`**, ZIP SHA-256 **`50398a007fb67aee739d81b9b726ebf0d5caf0a45fac1599b74cc31ae40ff782`**.
+
+Status: **FAIL in bounded autonomous-discovery qualification scope**. Unlike #244/#246, discovery execution was reached; the failure is no longer a provider-timeout-before-proposal result. The experiment did not produce a mechanically admissible, verifier-accepted proposal within its frozen five-pass budget. This is negative evidence for the current output-contract/repair path, not proof that the broader Scientist hypothesis is false.
+
+General autonomous improvement discovery remains **UNKNOWN / not established** because the required retained verifier-accepted discovery result still does not exist.
 
 ## Deterministic stress and governance defects
 
@@ -186,7 +195,7 @@ This documentation branch changes no Factory/M4 implementation or tests, ownersh
 1. Repair and requalify exact `main@60d0c5a8...` Pages live-acceptance run `35349614961`; preserve the first exact-SHA failure rather than inheriting the green #233 PR-head Pages result.
 2. Review, attest, and qualify #243 before calling `ImprovementSpec` accepted production behavior.
 3. Continue M6.2 EvidenceSnapshot, MeasurementGap, Scientist, deterministic HypothesisVerifier, experiment ledger, and champion/challenger work without broadening #231/#232 research claims.
-4. Resolve #249 from retained evidence; #244/#246 remain provider-timeout execution failures before discovery.
+4. Treat #249 as a retained bounded discovery **FAIL** and harden the malformed/repeated/truncated proposal path while preserving the external checker and five-pass fail-closed boundary; #244/#246 remain provider-timeout execution failures before discovery.
 5. Repair/requalify the #207/#208/#212 accounting/release-ordering defect family.
 6. Retain a fresh exact-current-deployed-revision real-account Puter candidate→verifier→receipt success, or keep live-provider success UNKNOWN.
 7. Physically validate the accepted #186 fallback without broadening it into a heavyweight-WebVM reliability claim.
