@@ -1300,3 +1300,97 @@ New measurable axes should be proposed through a typed `MetricDefinitionProposal
 Exact duplicates can be rejected mechanically. Likely semantic overlap should be presented to independent review together with the existing metric definitions. Ambiguous metric semantics yield UNKNOWN.
 
 This directly addresses the EvidenceSnapshot-dimensionality concern: recursive discovery requires a governed mechanism for expanding what the system can measure without silently creating duplicate, ambiguous, or incomparable dimensions.
+
+
+## 31. Metric Identity Hardening: M6-SPEC-007P, 007R, and 007S
+
+### 007P — deterministic Metric Registry controls
+
+M6-SPEC-007P tested the Metric Registry against the exact semantic failure exposed by 007O.
+
+All 16 focused Metric Registry unit tests passed.
+
+Three preregistered controls then produced the expected classifications:
+
+1. `mean_wall_clock_s_basline` with population `normal operating conditions`
+   - result: **UNKNOWN**;
+   - findings: ambiguous population plus likely semantic/spelling overlap;
+   - similar registered metrics: `mean_wall_clock_s`, `successful_mean_wall_clock_s`.
+
+2. a different metric ID with semantics identical to `mean_wall_clock_s`
+   - result: **REJECT** as an exact semantic duplicate.
+
+3. `first_call_elapsed_ms_mean` with explicit unit, aggregation, population, domain, collection method, implementation reference, and revision
+   - result: **SEMANTIC_REVIEW**;
+   - it was not automatically registered or admitted.
+
+Registry revision:
+
+`m6-discovery-v1`
+
+Registry SHA-256:
+
+`081f9bfa28c824650b701dbdf4b291f402442738497efc2144c1fe63b3431f5d`
+
+Evidence artifact SHA-256:
+
+`52fb43f4c842490d41ab7dc2c7e13393be6c3b5ad00efeae695ac2ac74af8303`
+
+This closes the specific 007O false-positive class: string absence is no longer sufficient to establish a new measurable axis.
+
+### 007R — exact provenance transcription failure
+
+007Q was an apparatus failure before model execution due to a generated import serialization defect. 007R corrected that defect prospectively and passed syntax, registry tests, registry preflight, and model setup.
+
+The Evidence Scout selected:
+
+- `context_bytes_non_success_max`;
+- `context_bytes_success_mean`;
+- `identical_failure_repeats_total`;
+- `shipping_task_success_rate`.
+
+The Hypothesis Scientist then produced a substantively grounded `insufficient_evidence` proposal observing:
+
+`context_bytes_non_success_max = 32652`
+
+but copied the EvidenceSnapshot SHA-256 incorrectly as a 58-character value.
+
+The deterministic verifier rejected the proposal with:
+
+`evidence_snapshot_hash mismatch`
+
+No Measurement Planner, reviewer, or admission receipt followed.
+
+This is not a semantic-discovery failure. It exposes an unnecessary model responsibility: immutable provenance identity should not be transcribed by a probabilistic component.
+
+The next architecture therefore moves EvidenceSnapshot identity, Metric Registry identity, and the retained human-gate flag into a deterministic host-authored envelope.
+
+### 007S — registry semantics are receipt-bound
+
+M6-SPEC-007S tested whether an old receipt could remain valid if metric semantics changed while the metric ID and human-readable registry revision string stayed the same.
+
+The baseline registry hash was:
+
+`081f9bfa28c824650b701dbdf4b291f402442738497efc2144c1fe63b3431f5d`
+
+Changing the population and collection semantics of `mean_wall_clock_s` produced registry hash:
+
+`38580fd26ad6dc5dd47eba4f53ec591fd39b27b78aa752393de4ea2b49750117`
+
+All preregistered controls passed:
+
+- baseline receipt matched original context;
+- semantic change changed registry hash;
+- semantic change changed admission cache-key binding;
+- semantic change changed verifier-revision binding;
+- old receipt failed context matching under altered semantics;
+- direct EvidenceSnapshot registry-hash tampering was rejected;
+- seconds/milliseconds unit mismatch was rejected.
+
+Evidence artifact SHA-256:
+
+`2a9a7e7a63c381e3b48577e2bfc393fc19c43be45a48f593f073e2e66f575ea1`
+
+StationReceipt v2 itself was not modified.
+
+The result establishes that discovery receipts can remain tied to metric semantics through existing receipt identities rather than weakening or expanding the protected receipt schema.
