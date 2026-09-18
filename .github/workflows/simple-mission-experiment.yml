@@ -72,7 +72,7 @@ jobs:
     timeout-minutes: 20
     env:
       OLLAMA_HOST: 127.0.0.1:11435
-      RUNNER_MODEL: qwen2.5-coder:1.5b
+      RUNNER_MODEL: qwen2.5-coder:3b
       REVIEWER_MODEL: llama3.2:1b
       ROLE_PROXY_EVENTS: /tmp/residual-role-proxy-events.jsonl
     steps:
