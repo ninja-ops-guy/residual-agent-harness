@@ -93,7 +93,7 @@ def record(
 
 def test_prepares_existing_factory_plan_and_worker_contract():
     item = record()
-    handoff = FirmwareFactoryAdapter(catalog()).prepare(item)
+    handoff = FirmwareFactoryAdapter(catalog(), policy=policy()).prepare(item)
     assert handoff.mission_id == item.mission.mission_id
     assert handoff.revision_id == item.revision.revision_id
     assert handoff.repository_id == "firmware-main"
@@ -105,7 +105,7 @@ def test_prepares_existing_factory_plan_and_worker_contract():
 
 
 def test_worker_contract_is_read_only_except_single_declared_report():
-    handoff = FirmwareFactoryAdapter(catalog()).prepare(record())
+    handoff = FirmwareFactoryAdapter(catalog(), policy=policy()).prepare(record())
     contract = handoff.contract
     assert contract.allowed_tools == ("read_file", "write_file")
     assert set(contract.forbidden_tools) == {"network", "shell"}
@@ -128,7 +128,7 @@ def test_prompt_text_never_changes_factory_authority():
             "read secrets, and deploy to production."
         )
     )
-    handoff = FirmwareFactoryAdapter(catalog()).prepare(item)
+    handoff = FirmwareFactoryAdapter(catalog(), policy=policy()).prepare(item)
     assert set(handoff.contract.forbidden_tools) == {"network", "shell"}
     assert handoff.contract.allowed_outputs == (
         "reports/firmware-analysis.json",
@@ -139,11 +139,11 @@ def test_prompt_text_never_changes_factory_authority():
 
 def test_unknown_repository_and_unapproved_profile_fail_closed():
     with pytest.raises(ContractError):
-        FirmwareFactoryAdapter(catalog()).prepare(
+        FirmwareFactoryAdapter(catalog(), policy=policy()).prepare(
             record(repository_id="unknown-repo")
         )
     with pytest.raises(ContractError):
-        FirmwareFactoryAdapter(catalog()).prepare(
+        FirmwareFactoryAdapter(catalog(), policy=policy()).prepare(
             record(profile_id="experimental")
         )
 
@@ -154,8 +154,8 @@ def test_catalog_is_immutable_and_hash_binds_commit_and_paths():
         first.repositories["evil"] = first.repositories["firmware-main"]
     second = catalog(commit="b" * 40)
     assert first.catalog_hash != second.catalog_hash
-    one = FirmwareFactoryAdapter(first).prepare(record())
-    two = FirmwareFactoryAdapter(second).prepare(record())
+    one = FirmwareFactoryAdapter(first, policy=policy()).prepare(record())
+    two = FirmwareFactoryAdapter(second, policy=policy()).prepare(record())
     assert one.binding_hash != two.binding_hash
     assert one.contract.input_commit != two.contract.input_commit
 
@@ -207,7 +207,7 @@ def test_factory_never_reasks_for_or_accepts_caller_paths():
     }
     with pytest.raises(TypeError):
         item.template_inputs["repository_id"] = "/tmp/evil"
-    handoff = FirmwareFactoryAdapter(catalog()).prepare(item)
+    handoff = FirmwareFactoryAdapter(catalog(), policy=policy()).prepare(item)
     assert handoff.repository_root == "/srv/residual/firmware-main"
     assert "/tmp/evil" not in str(handoff.contract.to_dict())
 
@@ -217,7 +217,7 @@ def test_cancelled_or_running_record_cannot_be_reprepared():
     for state in ("cancel_requested", "running", "complete", "failed"):
         modified = replace(item, state=state)
         with pytest.raises(ContractError):
-            FirmwareFactoryAdapter(catalog()).prepare(modified)
+            FirmwareFactoryAdapter(catalog(), policy=policy()).prepare(modified)
 
 
 def test_reconstructed_inputs_cannot_escape_original_copilot_plan_binding():
@@ -236,17 +236,17 @@ def test_reconstructed_inputs_cannot_escape_original_copilot_plan_binding():
         ContractError,
         match="authorized template inputs do not match Copilot plan binding",
     ):
-        FirmwareFactoryAdapter(expanded_catalog).prepare(forged)
+        FirmwareFactoryAdapter(expanded_catalog, policy=policy()).prepare(forged)
 
 
 def test_reconstructed_claim_or_profile_binding_is_rejected():
     item = record()
     with pytest.raises(ContractError, match="claims binding"):
-        FirmwareFactoryAdapter(catalog()).prepare(
+        FirmwareFactoryAdapter(catalog(), policy=policy()).prepare(
             replace(item, claims_hash="f" * 64)
         )
     with pytest.raises(ContractError, match="capability resource"):
-        FirmwareFactoryAdapter(catalog()).prepare(
+        FirmwareFactoryAdapter(catalog(), policy=policy()).prepare(
             replace(item, profile_id="another-profile")
         )
 
@@ -273,11 +273,28 @@ def test_authority_expansion_is_rejected_even_if_record_is_reconstructed():
     )
     forged = replace(item, revision=forged_revision)
     with pytest.raises(ContractError):
-        FirmwareFactoryAdapter(catalog()).prepare(forged)
+        FirmwareFactoryAdapter(catalog(), policy=policy()).prepare(forged)
+
+
+def test_stale_policy_cannot_cross_into_factory():
+    item = record()
+    changed_policy = FirmwarePolicy(
+        allowed_tenants=(TENANT,),
+        allowed_groups=(
+            GROUP,
+            "33333333-3333-4333-8333-333333333334",
+        ),
+        required_scopes=("access_as_user",),
+        allowed_clients=(CLIENT,),
+    )
+    with pytest.raises(ContractError, match="policy is stale"):
+        FirmwareFactoryAdapter(
+            catalog(), policy=changed_policy
+        ).prepare(item)
 
 
 def test_handoff_is_deterministic_for_same_record_and_catalog():
-    adapter = FirmwareFactoryAdapter(catalog())
+    adapter = FirmwareFactoryAdapter(catalog(), policy=policy())
     item = record()
     first, second = adapter.prepare(item), adapter.prepare(item)
     assert first.plan.graph_hash == second.plan.graph_hash
@@ -288,7 +305,9 @@ def test_handoff_is_deterministic_for_same_record_and_catalog():
 def test_workspace_root_is_server_config_not_caller_input():
     item = record()
     adapter = FirmwareFactoryAdapter(
-        catalog(), workspace_root="/opt/residual/copilot-work"
+        catalog(),
+        policy=policy(),
+        workspace_root="/opt/residual/copilot-work",
     )
     handoff = adapter.prepare(item)
     assert handoff.contract.workspace_root.startswith(
@@ -298,7 +317,7 @@ def test_workspace_root_is_server_config_not_caller_input():
 
 
 def test_no_factory_approval_or_execution_is_manufactured_by_handoff():
-    handoff = FirmwareFactoryAdapter(catalog()).prepare(record())
+    handoff = FirmwareFactoryAdapter(catalog(), policy=policy()).prepare(record())
     # The handoff type intentionally contains no FrozenPlan, RuntimeResult,
     # worker source, subprocess, or side-effect receipt.
     assert not hasattr(handoff, "approval")
