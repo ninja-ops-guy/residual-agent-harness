@@ -34,6 +34,18 @@ class ChaosTransport:
             raise OSError("write barrier failed")
 
 
+class FailOnCommitTransport(ChaosTransport):
+    def __init__(self, fail_on):
+        super().__init__()
+        self.fail_on = fail_on
+        self.commits = 0
+
+    def commit(self):
+        self.commits += 1
+        if self.commits == self.fail_on:
+            raise OSError("injected commit barrier failure")
+
+
 class LiveCoreHandle(AdapterHandle):
     core_unreachable_exc = CoreUnreachableError
     ledger_write_exc = LedgerWriteError
@@ -226,6 +238,30 @@ class TestLiveHarnessBinding(unittest.TestCase):
         fired = [e for e in backend.events("r-fail") if e["kind"] == "gate.fired"]
         self.assertTrue(fired)
         self.assertEqual(fired[0]["payload"]["verdict"], "FAIL")
+
+    def test_attestation_admission_is_atomic_on_barrier_failure(self):
+        transport = FailOnCommitTransport(fail_on=4)
+        backend = LiveCoreResidualBackend(
+            ":memory:",
+            spec_version="1.0.0",
+            spec_head_sha="a" * 40,
+            impl_commit_sha="b" * 40,
+            impl_tree_sha="c" * 40,
+            transport=transport,
+            gate_evaluator=lambda *args: Verdict.passed(),
+        )
+        backend.on_run_start("r-atomic", "spec@1")
+        self.assertEqual(
+            backend.on_module_call("r-atomic", "llm:test", "call-1", "0" * 64),
+            "PASS",
+        )
+        with self.assertRaises(LedgerWriteError):
+            backend.on_run_complete("r-atomic", "success")
+        with self.assertRaises(AttestationError):
+            backend.get_attestation("r-atomic")
+        self.assertFalse(
+            any(e["kind"] == "attestation.issued" for e in backend.events("r-atomic"))
+        )
 
     def test_attestation_absent_before_terminal(self):
         backend = self.backend()
