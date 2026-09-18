@@ -47,8 +47,22 @@ def admissible_fixture(include_human=True):
         preservation_criteria={"correctness":"no regression"},
         rollback_plan={"action":"revert"},
     )
-    nodes=[evidence,finding,metric,resolution,metric_review,invariant,review,env,spec]
+    policy=node(
+        NodeType.CHALLENGE_POLICY,Author.HOST,
+        policy_id="m6-semantic-v1",
+        eligible_challenger_roles=["reviewer","human"],
+        allowed_grounds=["semantic","evidence","framing","authorization"],
+        resolution_authority_roles=["human"],
+        filing_window_events=None,
+        allow_withdrawal=True,
+    )
+    nodes=[evidence,finding,metric,resolution,metric_review,invariant,review,env,spec,policy]
     edges=[
+        edge(EdgeType.GOVERNED_BY,finding,policy),
+        edge(EdgeType.GOVERNED_BY,metric,policy),
+        edge(EdgeType.GOVERNED_BY,metric_review,policy),
+        edge(EdgeType.GOVERNED_BY,review,policy),
+        edge(EdgeType.GOVERNED_BY,spec,policy),
         edge(EdgeType.SUPPORTED_BY,finding,evidence,required=True),
         edge(EdgeType.RESOLVES_TO,metric,resolution,required=True),
         edge(EdgeType.REVIEWED_BY,metric,metric_review,required=True),
