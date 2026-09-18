@@ -70,6 +70,19 @@ def test_all_agents_use_native_generative_orchestration_and_shared_gateway():
             "cancelResidualMission",
         }
         assert profile.agent.knowledge_slots
+        assert profile.agent.instructions
+
+
+def test_instruction_profiles_do_not_pretend_planned_backends_are_live():
+    profiles = profile_map()
+    firmware = profiles["firmware-engineering"]
+    assert "Never claim a planned capability is available" in (
+        firmware.agent.instructions
+    )
+    for department_id, profile in profiles.items():
+        if department_id == "firmware-engineering":
+            continue
+        assert "currently planned" in profile.agent.instructions
 
 
 def test_only_real_factory_capability_is_advertised_executable():
