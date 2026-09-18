@@ -1,17 +1,37 @@
-version: 1
+version: 2
 profile_id: firmware-engineering
 display_name: Firmware Engineering
 entra:
+  # Example GUIDs for tests/demo only. Deployment MUST replace them with the
+  # exact tenant, group/app-role, and connector client IDs for the environment.
   allowed_tenants:
-    - tenant-a
+    - 11111111-1111-4111-8111-111111111111
   allowed_groups:
-    - Engineering-Firmware
+    - 33333333-3333-4333-8333-333333333333
+  allowed_roles: []
+  required_scopes:
+    - access_as_user
+  allowed_clients:
+    - 22222222-2222-4222-8222-222222222222
 mission:
   risk_ceiling: medium
+  max_active_missions: 4
   approved_templates:
     - firmware-repository-analysis
     - firmware-sandbox-build
     - firmware-test-triage
+  template_inputs:
+    firmware-repository-analysis:
+      - repository_id
+      - analysis_profile_id
+    firmware-sandbox-build:
+      - repository_id
+      - build_target_id
+      - test_suite_id
+    firmware-test-triage:
+      - repository_id
+      - test_run_id
+      - triage_profile_id
 capabilities:
   allow:
     - repository.analyze
@@ -40,5 +60,6 @@ approval:
   external_write: human
   production_action: prohibited
 evidence:
+  binding: mission_revision_plan_policy_claims
   visibility: mission_subject_and_authorized_firmware_reviewers
   cross_department: deny
