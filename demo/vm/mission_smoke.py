@@ -103,12 +103,12 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     ))
     await frame.locator('#load').click()
     await frame.locator('#signin').click()
-    await frame.locator('#status').filter(has_text='Connected. Mission Control').wait_for(timeout=20000)
     await page.wait_for_function(
         "() => document.querySelector('#mc-connect').textContent.startsWith('Provider connected')",
         timeout=20000,
     )
     assert await frame.locator('body').evaluate('(body) => body.ownerDocument.defaultView.__providerFixture.gesture'), 'sign-in lost user gesture'
+    assert 'Connected. Mission Control' in await frame.locator('#status').inner_text()
 
     await page.locator('#mc-mission').click()
     await page.get_by_text('Run controls', exact=True).click()

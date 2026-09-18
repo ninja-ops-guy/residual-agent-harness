@@ -69,12 +69,12 @@ async def provider_failure_acceptance(page, context, args, report, command_proof
     frame = page.frame_locator('#mc-provider-frame')
     await frame.locator('#load').click()
     await frame.locator('#signin').click()
-    await frame.locator('#status').filter(has_text='Connected. Mission Control').wait_for(timeout=20000)
     await page.wait_for_function(
         "() => document.querySelector('#mc-connect').textContent.startsWith('Provider connected')",
         timeout=20000,
     )
     assert await frame.locator('body').evaluate('(body) => body.ownerDocument.defaultView.__providerFixture.gesture')
+    assert 'Connected. Mission Control' in await frame.locator('#status').inner_text()
 
     # Connectivity is not consent. The exact prompt still must not be sent.
     users_before = await page.locator('#mc-chat .bubble.user').count()
