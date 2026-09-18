@@ -76,28 +76,35 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await command_proof('read -r residual_worker_pid < /tmp/residual-workbench.pid && kill -0 "$residual_worker_pid" && printf "%s\\n" "$residual_worker_pid" > /tmp/residual-worker-first.pid')
     await page.locator('#mc-mission').click()
 
-    async with context.expect_page() as info:
-        await page.locator('#mc-connect').click()
-    provider = await info.value
-    await provider.wait_for_load_state('domcontentloaded')
-    await provider.locator('#load').wait_for()
-    assert await provider.evaluate('!window.crossOriginIsolated'), 'provider helper must be outside isolated VM context'
+    pages_before = len(context.pages)
+    await page.locator('#mc-connect').click()
+    assert len(context.pages) == pages_before, 'provider setup opened a separate RESIDUAL page'
+    assert await page.locator('#mc-provider-guide').is_visible()
     assert await page.evaluate('!window.puter'), 'Puter SDK leaked into isolated VM host'
-    assert not report['optional_requests'], 'helper initialized SDK without its load consent'
-    await provider.route('https://js.puter.com/v2/**', lambda route: route.abort('internetdisconnected'))
-    await provider.locator('#load').click()
-    await provider.wait_for_function("() => document.querySelector('#status').textContent.includes('could not load')")
+    assert not report['optional_requests'], 'guided setup initialized SDK without its load consent'
+    await page.route('https://js.puter.com/v2/**', lambda route: route.abort('internetdisconnected'))
+    await page.locator('#mc-provider-start').click()
+    await page.wait_for_function(
+        "() => document.querySelector('#mc-provider-guide-state').textContent.includes('could not load')"
+    )
     assert report['optional_requests'], 'explicit SDK load did not attempt a network request'
     await page.locator('#mc-terminal').click()
     await command_proof('read -r residual_worker_pid < /tmp/residual-workbench.pid && read -r residual_worker_first < /tmp/residual-worker-first.pid && test "$residual_worker_pid" = "$residual_worker_first" && kill -0 "$residual_worker_pid"')
     await stage('cloud_network_failure_preserves_guest')
 
-    await provider.unroute('https://js.puter.com/v2/**')
-    await provider.route('https://js.puter.com/v2/**', lambda route: route.fulfill(status=200, content_type='text/javascript', body=SDK_FIXTURE))
-    await provider.locator('#load').click()
-    await provider.locator('#signin').click()
-    await page.wait_for_function("() => document.querySelector('#mc-connect').textContent === 'Provider connected'", timeout=20000)
-    assert await provider.evaluate('window.__providerFixture.gesture'), 'sign-in lost user gesture'
+    await page.unroute('https://js.puter.com/v2/**')
+    await page.route('https://js.puter.com/v2/**', lambda route: route.fulfill(status=200, content_type='text/javascript', body=SDK_FIXTURE))
+    await page.locator('#mc-provider-start').click()
+    await page.wait_for_function(
+        "() => document.querySelector('#mc-provider-start').textContent === 'Authorize Puter'",
+        timeout=20000,
+    )
+    await page.locator('#mc-provider-start').click()
+    await page.wait_for_function(
+        "() => document.querySelector('#mc-connect').textContent.startsWith('Provider connected')",
+        timeout=20000,
+    )
+    assert await page.evaluate('window.__providerFixture.gesture'), 'sign-in lost user gesture'
 
     await page.locator('#mc-mission').click()
     await page.get_by_text('Run controls', exact=True).click()
@@ -172,7 +179,7 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     assert 'PASSED' in await page.locator('#mc-verdict').inner_text()
     assert nonce in await page.locator('#mc-answer').inner_text()
     assert 'README.md:1-1' in await page.locator('#mc-citations').text_content()
-    assert await provider.evaluate('window.__providerFixture.calls') == 3
+    assert await page.evaluate('window.__providerFixture.calls') == 3
     path = re.search(r'/opt/residual/runs/missions/m-[a-f0-9]{32}', await page.locator('#mc-path').inner_text()).group()
     await page.screenshot(path=str(args.output / 'mission-chat-provider-contract.png'))
     await page.locator('#mc-terminal').click()
@@ -201,7 +208,6 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     assert 'deterministic source inventory' in await page.locator('#mc-verdict').inner_text()
     assert path not in await page.locator('#mc-path').inner_text()
     await stage('workbench_cli_to_ui_projection_passed')
-    await provider.close()
     await page.reload(wait_until='domcontentloaded')
     await page.locator('#mc-terminal').click()
     await page.wait_for_function("() => document.body.innerText.replace(/\\s/g,'').includes('residual@demo:~/residual-agent-harness$')", timeout=120000)

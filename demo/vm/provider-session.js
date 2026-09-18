@@ -59,7 +59,7 @@ export class ProviderSession {
         script.onerror=()=>{clearTimeout(timer);reject(new Error('sdk_load_failed'));};
         if(!existing)document.head.append(script);
       });
-      try{this.sdk=await this.sdkLoad;}catch(error){this.sdkLoad=null;this.onState('error','Puter could not load. Check content blockers or network access, then retry. No prompt was sent.');throw error;}
+      try{this.sdk=await this.sdkLoad;}catch(error){this.sdkLoad=null;document.querySelector('script[data-residual-puter-sdk="1"]')?.remove();this.onState('error','Puter could not load. Check content blockers or network access, then retry. No prompt was sent.');throw error;}
       if(!this.sdk.auth.isSignedIn?.()){this.onState('loaded','Step 1 complete · Puter is loaded. Click “Authorize Puter” to continue in its secure popup.');return false;}
     }
     this.onState('authorizing','Step 2 of 3 · authorize Puter in its secure popup. Mission Control stays open here.');

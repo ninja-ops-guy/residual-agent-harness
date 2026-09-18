@@ -46,30 +46,34 @@ async def provider_failure_acceptance(page, context, args, report, command_proof
     await page.locator('#mc-prompt').fill(prompt)
     await page.locator('#mc-consent').uncheck()
 
-    # Send is the discovery path. It must open provider setup without losing or
-    # submitting the prompt.
+    # Send is the discovery path. It must reveal setup inside Mission Control
+    # without losing/submitting the prompt or opening a RESIDUAL helper tab.
     users_before = await page.locator('#mc-chat .bubble.user').count()
-    async with context.expect_page() as info:
-        await page.locator('#mc-run').click()
-    provider = await info.value
-    await provider.wait_for_load_state('domcontentloaded')
-    assert not await provider.evaluate('window.crossOriginIsolated'), (
-        'provider helper inherited the WebVM COOP/COEP isolation boundary'
-    )
-    report['provider_helper_isolation'] = 'PASS_NON_ISOLATED'
+    pages_before = len(context.pages)
+    await page.locator('#mc-run').click()
+    assert len(context.pages) == pages_before, 'guided setup opened a separate RESIDUAL page'
+    assert await page.locator('#mc-provider-guide').is_visible()
     assert await page.locator('#mc-prompt').input_value() == prompt
     assert await page.locator('#mc-chat .bubble.user').count() == users_before
     assert 'prompt is still in the composer' in (await page.locator('#mc-chat').inner_text()).lower()
-    assert 'provider setup opened' in (await page.locator('#mc-provider-gate-status').inner_text()).lower()
+    assert 'guided puter setup opened here' in (await page.locator('#mc-provider-gate-status').inner_text()).lower()
     report['workbench_guided_provider_discovery'] = 'PASS_PROMPT_PRESERVED_NO_INFERENCE'
+    report['provider_setup_surface'] = 'PASS_INLINE_GUIDE_NO_RESIDUAL_HELPER_TAB'
     await stage('guided_provider_setup_preserves_unsent_prompt')
 
-    await provider.route('https://js.puter.com/v2/**', lambda route: route.fulfill(
+    await page.route('https://js.puter.com/v2/**', lambda route: route.fulfill(
         status=200, content_type='text/javascript', body=FAILURE_SDK))
-    await provider.locator('#load').click()
-    await provider.locator('#signin').click()
-    await page.wait_for_function("() => document.querySelector('#mc-connect').textContent === 'Provider connected'", timeout=20000)
-    assert await provider.evaluate('window.__providerFixture.gesture')
+    await page.locator('#mc-provider-start').click()
+    await page.wait_for_function(
+        "() => document.querySelector('#mc-provider-start').textContent === 'Authorize Puter'",
+        timeout=20000,
+    )
+    await page.locator('#mc-provider-start').click()
+    await page.wait_for_function(
+        "() => document.querySelector('#mc-connect').textContent.startsWith('Provider connected')",
+        timeout=20000,
+    )
+    assert await page.evaluate('window.__providerFixture.gesture')
 
     # Connectivity is not consent. The exact prompt still must not be sent.
     users_before = await page.locator('#mc-chat .bubble.user').count()
@@ -77,7 +81,7 @@ async def provider_failure_acceptance(page, context, args, report, command_proof
     assert await page.locator('#mc-prompt').input_value() == prompt
     assert await page.locator('#mc-chat .bubble.user').count() == users_before
     assert 'not authorized yet' in (await page.locator('#mc-provider-gate-status').inner_text()).lower()
-    assert await provider.evaluate('window.__providerFixture.calls') == 0
+    assert await page.evaluate('window.__providerFixture.calls') == 0
     report['workbench_per_prompt_authorization_gate'] = 'PASS_CONNECTED_IS_NOT_CONSENT'
     await stage('per_prompt_authorization_blocks_unsent_prompt')
 
@@ -90,8 +94,8 @@ async def provider_failure_acceptance(page, context, args, report, command_proof
     assert await page.locator('#mc-inline-preview-frame').count() == 0
     assert await page.locator('#mc-preview-frame').count() == 0
     assert 'No preview' in await page.locator('#mc-preview-status').inner_text()
-    assert await page.locator('#mc-connect').inner_text() == 'Provider connected'
-    assert await provider.evaluate('window.__providerFixture.calls') == 1
+    assert (await page.locator('#mc-connect').inner_text()).startswith('Provider connected')
+    assert await page.evaluate('window.__providerFixture.calls') == 1
     assert 'fixture secret body' not in await page.locator('body').inner_text()
 
     await page.locator('button[data-tab="activity"]').click()
@@ -103,7 +107,6 @@ async def provider_failure_acceptance(page, context, args, report, command_proof
     report['workbench_engineer_explanation'] = 'PASS_STAGE_WHY_NEXT_SAFE_ERROR_CODE'
     await page.screenshot(path=str(args.output / 'mission-provider-failure-explained.png'))
     await stage('provider_failure_is_blocked_explained_and_not_previewed')
-    await provider.close()
 
     # Reproduce the production screenshot boundary without weakening the worker:
     # stop the healthy persistent worker, leave a durable poison fence, and emit
