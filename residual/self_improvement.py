@@ -256,31 +256,220 @@ def build_station_spec(report, plan, doc, repo):
     return markdown
 
 
-def execute_generation(repo, candidates, station_data, allow_cloud=False, allow_command_checks=False):
+
+def planning_station_spec(report, plan, route="local"):
+    if route not in {"local", "cloud"}:
+        raise ContractError("Planner route must be local or cloud")
+    health_payload = json.dumps({
+        "source_head": report["head"],
+        "source_report_sha256": report["report_sha256"],
+        "findings": report["findings"],
+    }, ensure_ascii=False, allow_nan=False)
+    roadmap_payload = json.dumps({
+        "source_head": report["head"],
+        "plan_sha256": plan["plan_sha256"],
+        "queue": [item for item in plan["queue"] if item["source"] == "roadmap"],
+    }, ensure_ascii=False, allow_nan=False)
+    proposal_root = "docs/self-improvement/proposals/"
+    health_file = proposal_root + "health.json"
+    roadmap_file = proposal_root + "roadmap.json"
+    candidate_file = proposal_root + "candidates.json"
+    common_context = [
+        "docs/self-improvement/MISSION.md",
+        "docs/CURRENT_STATUS.md",
+        "docs/roadmap/README.md",
+        "residual/self_improvement.py",
+        "residual/cli.py",
+        "tests/test_self_improvement.py",
+    ]
+    tasks = [
+        {
+            "id": "SI_HEALTH_SCOUT",
+            "title": "Health scout",
+            "instruction": (
+                "Analyze the certified Revision Doctor input below and the supplied repository context. "
+                "Write a strict JSON research note to the declared file. Identify concrete self-healing or "
+                "self-improvement opportunities, but do not claim permission to modify protected surfaces. "
+                "Prefer small, testable, evidence-producing changes. Input: " + health_payload
+            ),
+            "depends_on": [],
+            "files": [health_file],
+            "context": common_context,
+            "checks": [{"kind": "json_valid", "path": health_file}],
+            "route": route,
+        },
+        {
+            "id": "SI_ROADMAP_SCOUT",
+            "title": "Roadmap scout",
+            "instruction": (
+                "Analyze the accepted roadmap queue and current-status evidence below. Write a strict JSON "
+                "research note to the declared file. Separate accepted capability from research, FAIL, BLOCKED, "
+                "and UNKNOWN evidence. Find bounded work that can advance the roadmap without crossing protected "
+                "governance boundaries. Input: " + roadmap_payload
+            ),
+            "depends_on": [],
+            "files": [roadmap_file],
+            "context": common_context,
+            "checks": [{"kind": "json_valid", "path": roadmap_file}],
+            "route": route,
+        },
+        {
+            "id": "SI_COMPOSER",
+            "title": "Improvement candidate composer",
+            "instruction": (
+                "Synthesize the two scout reports into a strict JSON ImprovementCandidate manifest. "
+                "Output exactly an object with schema_version=1 and candidates, with 1-4 candidates. Every "
+                "candidate must contain exactly id,title,instruction,files,context,depends_on,checks,route,"
+                "evaluator_files. Writable scopes must not overlap. Protected Factory, Station, verifier, "
+                "workflow, swarm, evidence, scheduler, integrator, frozen-evaluation and ownership-manifest "
+                "surfaces are out of scope. Executable-code candidates must use a command check and at least "
+                "one existing external evaluator file that is not writable by any candidate. Documentation-only "
+                "work may use deterministic exists/contains/json_valid checks. Use explicit dependencies if a "
+                "candidate reads a file written by another candidate. Preserve historical FAIL/BLOCKED/UNKNOWN "
+                "evidence and make no production-readiness claims. The deterministic Mission Governor will reject "
+                "anything outside this contract."
+            ),
+            "depends_on": ["SI_HEALTH_SCOUT", "SI_ROADMAP_SCOUT"],
+            "files": [candidate_file],
+            "context": list(dict.fromkeys(common_context + [health_file, roadmap_file])),
+            "checks": [{"kind": "json_valid", "path": candidate_file},
+                       {"kind": "contains", "path": candidate_file, "text": '"candidates"'}],
+            "route": route,
+        },
+    ]
+    manifest = {
+        "schema_version": 1,
+        "name": "RESIDUAL self-improvement origination " + plan["generation"],
+        "goal": ("Originate bounded self-improvement candidates from certified health and roadmap evidence. "
+                 "Proposal generation has no implementation or promotion authority."),
+        "tasks": tasks,
+    }
+    fence = chr(96) * 3
+    markdown = "# RESIDUAL self-improvement origination\n\n" + fence + "json\n" + json.dumps(
+        manifest, indent=2, ensure_ascii=False, allow_nan=False) + "\n" + fence + "\n"
+    parse_spec(markdown)
+    return markdown
+
+
+def ready_report(repo):
     report = doctor_repository(repo)
     if report["dirty"] or any(f["severity"] == "error" for f in report["findings"]):
         raise ContractError("Revision Doctor blocked generation execution")
-    plan = mission_plan(report)
-    spec = build_station_spec(report, plan, load_candidates(candidates), report["repository_root"])
+    return report, mission_plan(report)
+
+
+def assert_managed_source(station, pid, expected_head):
+    managed_repo = Path(station.store.project(pid)["repo"]).resolve()
+    managed_head = git(managed_repo, "rev-parse", "HEAD")
+    if managed_head != expected_head:
+        station.store.event(pid, "project.note", {
+            "message": "Self-improvement generation blocked: managed clone source identity mismatch",
+            "expected_head": expected_head, "managed_head": managed_head,
+        })
+        raise ContractError("Station managed clone does not match the certified source revision")
+    return managed_repo
+
+
+def originate_candidates(repo, station_data, route="local", allow_cloud=False):
+    report, plan = ready_report(repo)
+    if route == "cloud" and not allow_cloud:
+        raise ContractError("Cloud origination requires explicit cloud permission")
+    spec = planning_station_spec(report, plan, route)
+    from residual.station.service import Station
+    station = Station(station_data)
+    pid = station.create(spec, source=report["repository_root"], allow_cloud=allow_cloud,
+                         commands=False)["project_id"]
+    managed_repo = assert_managed_source(station, pid, report["head"])
+    batch = station.batch(pid)
+    result = {
+        "mission_id": MISSION_ID,
+        "generation": plan["generation"],
+        "source_head": report["head"],
+        "source_report_sha256": report["report_sha256"],
+        "plan_sha256": plan["plan_sha256"],
+        "planner_spec_sha256": hashlib.sha256(spec.encode()).hexdigest(),
+        "planner_project_id": pid,
+        "batch": batch,
+        "proposal": None,
+        "proposal_sha256": None,
+        "proposal_artifact": None,
+        "export": None,
+    }
+    if batch["integrated"] != batch["total"] or batch.get("control", {}).get("outcome") != "success":
+        return result
+    proposal_path = managed_repo / "docs/self-improvement/proposals/candidates.json"
+    try:
+        raw = proposal_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise ContractError("Planner completed without a readable candidate proposal") from exc
+    artifact = station.store.add_artifact(pid, "PROPOSED-CANDIDATES.json", raw, "self-improvement-proposal")
+    try:
+        proposal = validate_candidate_doc(strict_json(raw))
+        build_station_spec(report, plan, proposal, report["repository_root"])
+    except (ContractError, ValueError, TypeError, KeyError):
+        station.store.event(pid, "project.note", {
+            "message": "Generated candidate proposal failed deterministic Mission Governor admission",
+            "evidence": artifact["id"],
+        })
+        raise
+    proposal_sha = digest(proposal)
+    station.store.event(pid, "project.note", {
+        "message": "Generated candidate proposal passed deterministic Mission Governor admission",
+        "evidence": artifact["id"], "candidate_sha256": proposal_sha,
+    })
+    result.update(proposal=proposal, proposal_sha256=proposal_sha,
+                  proposal_artifact=artifact, export=station.export(pid))
+    return result
+
+
+def execute_candidate_doc(report, plan, candidate_doc, station_data,
+                          allow_cloud=False, allow_command_checks=False):
+    spec = build_station_spec(report, plan, validate_candidate_doc(candidate_doc), report["repository_root"])
     from residual.station.service import Station
     station = Station(station_data)
     pid = station.create(spec, source=report["repository_root"], allow_cloud=allow_cloud,
                          commands=allow_command_checks)["project_id"]
-    managed_repo = Path(station.store.project(pid)["repo"]).resolve()
-    managed_head = git(managed_repo, "rev-parse", "HEAD")
-    if managed_head != report["head"]:
-        station.store.event(pid, "project.note", {
-            "message": "Self-improvement generation blocked: managed clone source identity mismatch",
-            "expected_head": report["head"], "managed_head": managed_head,
-        })
-        raise ContractError("Station managed clone does not match the certified source revision")
+    assert_managed_source(station, pid, report["head"])
     batch = station.batch(pid)
     export = None
     if batch["integrated"] == batch["total"] and batch.get("control", {}).get("outcome") == "success":
         export = station.export(pid)
+    return {
+        "mission_id": MISSION_ID,
+        "generation": plan["generation"],
+        "source_head": report["head"],
+        "source_report_sha256": report["report_sha256"],
+        "plan_sha256": plan["plan_sha256"],
+        "candidate_manifest_sha256": digest(candidate_doc),
+        "station_spec_sha256": hashlib.sha256(spec.encode()).hexdigest(),
+        "project_id": pid,
+        "batch": batch,
+        "export": export,
+    }
+
+
+def run_cycle(repo, station_data, route="local", allow_cloud=False, allow_command_checks=False):
+    origin = originate_candidates(repo, station_data, route=route, allow_cloud=allow_cloud)
+    if origin["proposal"] is None:
+        return {"mission_id": MISSION_ID, "generation": origin["generation"],
+                "origin": origin, "execution": None}
+    report, plan = ready_report(repo)
+    if (report["head"] != origin["source_head"]
+            or report["report_sha256"] != origin["source_report_sha256"]
+            or plan["plan_sha256"] != origin["plan_sha256"]):
+        raise ContractError("Source evidence changed between origination and execution")
+    execution = execute_candidate_doc(
+        report, plan, origin["proposal"], station_data,
+        allow_cloud=allow_cloud, allow_command_checks=allow_command_checks)
     return {"mission_id": MISSION_ID, "generation": plan["generation"],
-            "source_head": report["head"], "source_report_sha256": report["report_sha256"],
-            "plan_sha256": plan["plan_sha256"], "project_id": pid, "batch": batch, "export": export}
+            "origin": origin, "execution": execution}
+
+
+def execute_generation(repo, candidates, station_data, allow_cloud=False, allow_command_checks=False):
+    report, plan = ready_report(repo)
+    return execute_candidate_doc(
+        report, plan, load_candidates(candidates), station_data,
+        allow_cloud=allow_cloud, allow_command_checks=allow_command_checks)
 
 
 def revision_main(argv=None):
