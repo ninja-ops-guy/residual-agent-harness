@@ -150,6 +150,19 @@ class MeshSession:
             raise ContractError("chat text is required")
         return self.broadcast(author_id, MeshMessageKind.CHAT, content=text)
 
+    def message(self, message_id: str) -> MeshMessage:
+        """Return a message from the converged room history by stable identity."""
+        if not isinstance(message_id, str) or not message_id:
+            raise ContractError("mesh message id is required")
+        self._require_converged()
+        if not self._nodes:
+            raise ContractError("mesh session has no members")
+        reference = self._nodes[sorted(self._nodes)[0]]
+        found = [msg for msg in reference.chat.messages if msg.message_id == message_id]
+        if len(found) != 1:
+            raise ContractError(f"mesh message {message_id!r} was not found uniquely")
+        return found[0]
+
     def status(self) -> dict[str, Any]:
         return {
             "session_id": self.session_id,
