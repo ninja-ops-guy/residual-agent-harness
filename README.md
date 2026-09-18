@@ -89,6 +89,11 @@ python3 -m residual serve --open
 
 See [`START-HERE.md`](START-HERE.md) for installation and operator setup.
 
+Update an existing installation with `residual update`. Source checkouts are
+updated only by clean fast-forward to their configured upstream; package installs
+use the current Python interpreter's pip. Preview the selected path with
+`residual update --dry-run`.
+
 ### Core harness
 
 ```bash
