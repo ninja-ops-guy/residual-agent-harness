@@ -184,9 +184,6 @@ _ALLOWED: dict[EdgeType, set[tuple[NodeType, NodeType]]] = {
         (NodeType.METRIC_DECISION, NodeType.FINDING),
         (NodeType.METRIC_DECISION, NodeType.QUESTION),
     },
-    EdgeType.RESOLVES_TO: {
-        (NodeType.METRIC_DECISION, NodeType.METRIC_RESOLUTION),
-    },
     EdgeType.PRESERVES: {
         (NodeType.IMPROVEMENT_SPEC, NodeType.INVARIANT_VERDICT),
     },
@@ -340,14 +337,22 @@ class DerivationGraph:
             }:
                 result[node_id] = Validity.STALE_ENVIRONMENT
 
-        # Append-only challenge/supersession annotations.
+        # Supersession is evaluated before challenge activation. A superseded
+        # Challenge remains historical evidence but no longer actively
+        # invalidates its target.
         for edge in self._edges.values():
-            if edge.edge_type == EdgeType.CHALLENGES:
-                result[edge.target] = Validity.CHALLENGED
-            elif edge.edge_type == EdgeType.SUPERSEDES:
+            if edge.edge_type == EdgeType.SUPERSEDES:
                 result[edge.target] = Validity.SUPERSEDED
 
-        # A source node is a conclusion that depends on its required edge target.
+        for edge in self._edges.values():
+            if edge.edge_type != EdgeType.CHALLENGES:
+                continue
+            challenge_state = result[edge.source]
+            if challenge_state != Validity.SUPERSEDED:
+                result[edge.target] = Validity.CHALLENGED
+
+        # Most justification edges point from a conclusion to a prerequisite:
+        # invalid prerequisite -> dependent source invalidates/challenges.
         changed = True
         while changed:
             changed = False
@@ -368,7 +373,61 @@ class DerivationGraph:
                 if source_state != desired:
                     result[edge.source] = desired
                     changed = True
+
+            # AUTHORIZES is intentionally causal in the opposite direction:
+            # HumanDecision -> ExecutionAction. An invalid/challenged
+            # authorization invalidates its dependent execution branch.
+            for edge in self._edges.values():
+                if edge.edge_type != EdgeType.AUTHORIZES:
+                    continue
+                source_state = result[edge.source]
+                if source_state == Validity.VALID:
+                    continue
+                target_state = result[edge.target]
+                if target_state in {Validity.INVALID, Validity.SUPERSEDED}:
+                    continue
+                desired = (
+                    Validity.STALE_ENVIRONMENT
+                    if source_state == Validity.STALE_ENVIRONMENT
+                    else Validity.CHALLENGED
+                )
+                if target_state != desired:
+                    result[edge.target] = desired
+                    changed = True
         return result
+
+    def unresolved_challenges(self, node_ids: Iterable[str]) -> tuple[str, ...]:
+        targets=set(node_ids)
+        active: list[str]=[]
+        states=self.validity()
+        for edge_id, edge in self._edges.items():
+            if edge.edge_type != EdgeType.CHALLENGES or edge.target not in targets:
+                continue
+            if states[edge.source] != Validity.SUPERSEDED:
+                active.append(edge_id)
+        return tuple(sorted(active))
+
+    def execution_root(
+        self,
+        *,
+        environment_contract_hash: str,
+        observed_environment_hash: str,
+        input_artifact_commitments: Mapping[str, str],
+    ) -> str:
+        for name, value in (
+            ("environment_contract_hash", environment_contract_hash),
+            ("observed_environment_hash", observed_environment_hash),
+        ):
+            if not isinstance(value, str) or len(value) != 64:
+                raise ContractError(f"{name} must be a 64-character digest")
+        if not isinstance(input_artifact_commitments, Mapping):
+            raise ContractError("input_artifact_commitments must be a mapping")
+        return digest({
+            "derivation_graph_root": self.graph_root,
+            "environment_contract_hash": environment_contract_hash,
+            "observed_environment_hash": observed_environment_hash,
+            "input_artifact_commitments": dict(sorted(input_artifact_commitments.items())),
+        })
 
     def improvement_admissible(self, spec_id: str) -> tuple[bool, tuple[str, ...]]:
         try:
