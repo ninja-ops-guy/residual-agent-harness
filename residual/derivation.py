@@ -33,7 +33,7 @@ class NodeType(str, Enum):
     IMPROVEMENT_SPEC = "improvement_spec"
     HUMAN_DECISION = "human_decision"
     CHALLENGE = "challenge"
-    SUPERSESSION = "supersession"
+    SUPERSESSION = "supersession"\n    CAPABILITY_RESOLUTION = "capability_resolution"\n    EXECUTION_ACTION = "execution_action"
 
 
 class EdgeType(str, Enum):
@@ -48,7 +48,7 @@ class EdgeType(str, Enum):
     SUPERSEDES = "supersedes"
     REVIEWED_BY = "reviewed_by"
     QUALIFIED_UNDER = "qualified_under"
-    AUTHORIZED_BY = "authorized_by"
+    AUTHORIZED_BY = "authorized_by"\n    CITES_HANDLE = "cites_handle"\n    AUTHORIZES = "authorizes"\n    IMPLEMENTS = "implements"
 
 
 class Validity(str, Enum):
@@ -59,6 +59,14 @@ class Validity(str, Enum):
     STALE_ENVIRONMENT = "stale_environment"
     SUPERSEDED = "superseded"
 
+
+_CHALLENGEABLE_NODE_TYPES = {
+    NodeType.QUESTION,
+    NodeType.FINDING,
+    NodeType.METRIC_DECISION,
+    NodeType.SEMANTIC_REVIEW,
+    NodeType.IMPROVEMENT_SPEC,
+}
 
 _REQUIRED_DEPENDENCY_EDGES = {
     EdgeType.SUPPORTED_BY,
@@ -94,6 +102,7 @@ class DerivationNode:
     node_type: NodeType
     author: Author
     payload: Mapping[str, Any]
+    challenge_policy_id: str | None = None
     schema_revision: str = "residual.derivation.node.v1"
 
     def __post_init__(self) -> None:
@@ -105,6 +114,16 @@ class DerivationNode:
             raise ContractError("derivation node payload must be a mapping")
         if not isinstance(self.schema_revision, str) or not self.schema_revision.strip():
             raise ContractError("node schema_revision is required")
+        if self.node_type in _CHALLENGEABLE_NODE_TYPES:
+            if not isinstance(self.challenge_policy_id, str) or not self.challenge_policy_id.strip():
+                raise ContractError(
+                    f"{self.node_type.value} is semantic and requires challenge_policy_id"
+                )
+            if self.payload.get("challengeable") is False:
+                raise ContractError("semantic nodes cannot disable challengeability")
+        elif self.challenge_policy_id is not None:
+            if not isinstance(self.challenge_policy_id, str) or not self.challenge_policy_id.strip():
+                raise ContractError("challenge_policy_id must be nonempty when supplied")
         object.__setattr__(self, "payload", _freeze(self.payload))
 
     def content(self) -> dict[str, Any]:
@@ -112,6 +131,7 @@ class DerivationNode:
             "schema_revision": self.schema_revision,
             "node_type": self.node_type.value,
             "author": self.author.value,
+            "challenge_policy_id": self.challenge_policy_id,
             "payload": _thaw(self.payload),
         }
 
@@ -195,6 +215,22 @@ _ALLOWED: dict[EdgeType, set[tuple[NodeType, NodeType]]] = {
     },
     EdgeType.GENERALIZES: {
         (NodeType.METRIC_RESOLUTION, NodeType.METRIC_RESOLUTION),
+    },
+    EdgeType.CITES_HANDLE: {
+        (NodeType.FINDING, NodeType.CAPABILITY_RESOLUTION),
+        (NodeType.METRIC_DECISION, NodeType.CAPABILITY_RESOLUTION),
+        (NodeType.SEMANTIC_REVIEW, NodeType.CAPABILITY_RESOLUTION),
+        (NodeType.IMPROVEMENT_SPEC, NodeType.CAPABILITY_RESOLUTION),
+    },
+    EdgeType.RESOLVES_TO: {
+        (NodeType.METRIC_DECISION, NodeType.METRIC_RESOLUTION),
+        (NodeType.CAPABILITY_RESOLUTION, NodeType.EVIDENCE_FACT),
+    },
+    EdgeType.AUTHORIZES: {
+        (NodeType.HUMAN_DECISION, NodeType.EXECUTION_ACTION),
+    },
+    EdgeType.IMPLEMENTS: {
+        (NodeType.EXECUTION_ACTION, NodeType.IMPROVEMENT_SPEC),
     },
 }
 
