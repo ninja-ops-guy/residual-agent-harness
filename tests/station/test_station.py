@@ -101,6 +101,12 @@ class StationTests(unittest.TestCase):
         self.assertEqual(reopened.store.task(self.pid, "OPS-101")["state"], "blocked")
         with self.assertRaises(ContractError):
             reopened.finish(work, {"files": DEMO_FILES["OPS-101"]})
+        reopened.triage(self.pid)
+        repair = reopened.prepare(self.pid, "local-recovery", "OPS-101")
+        self.assertEqual(repair["task"]["attempt"], 2)
+        self.assertEqual(repair["packet"]["prior_candidate_files"], {})
+        findings = [e for e in reopened.store.events(self.pid) if e["event_type"] == "task.finding"]
+        self.assertFalse(any(e["data"].get("message") == "Repair context bound to prior candidate" for e in findings))
 
     def test_stale_worker_cannot_write_candidate(self):
         self.s.triage(self.pid)

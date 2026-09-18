@@ -51,6 +51,7 @@ jobs:
           tests/test_station_mesh_bridge_experiment.py
           tests/station/test_station.py::HTTPTests::test_remote_candidate_submission_is_idempotent_and_unable_to_approve
           tests/station/test_station.py::HTTPTests::test_remote_worker_elapsed_ms_receipt_is_strictly_bounded
+          tests/station/test_station.py::StationTests::test_lease_expiry_and_restart_recovery_preserve_evidence
       - name: Compile
         run: python -m compileall -q residual
 

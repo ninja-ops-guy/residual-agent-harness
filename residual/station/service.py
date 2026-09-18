@@ -199,7 +199,7 @@ class Station:
                 raise
             prior_candidate_files = {}
             prior_dir = t.get("candidate_dir")
-            if t["attempt"] > 1 and t.get("findings") and prior_dir:
+            if t["attempt"] > 1 and t.get("findings") and prior_dir and t.get("head_commit"):
                 prior_path = Path(prior_dir)
                 if prior_path.is_dir():
                     previous = ws.context_files(prior_path, t)
@@ -429,6 +429,89 @@ class Station:
         totals["reported_tokens"] = sum(totals[k] for k in ("local_input", "local_output", "cloud_input", "cloud_output"))
         totals["report_bytes"] = len(canonical(self.store.report(pid)).encode())
         return totals
+
+    def worker_metrics(self, pid):
+        """Aggregate self-reported remote-worker performance without granting identity authority."""
+        self.store.project(pid)
+        events = self.store.events(pid, 0, 100000)
+        workers = {}
+
+        def record(label):
+            return workers.setdefault(label, {
+                "worker": label.removeprefix("remote:"),
+                "actor": label,
+                "claims": 0,
+                "tasks": set(),
+                "attempts": [],
+                "usage_receipts": 0,
+                "input_tokens": 0,
+                "output_tokens": 0,
+                "request_bytes": 0,
+                "elapsed_ms": [],
+                "expirations": 0,
+            })
+
+        for event in events:
+            actor = event.get("actor", "")
+            if event["event_type"] == "task.claimed" and actor.startswith("remote:"):
+                item = record(actor)
+                item["claims"] += 1
+                if event.get("task_id"):
+                    item["tasks"].add(event["task_id"])
+                item["attempts"].append(event.get("attempt", 0))
+            elif event["event_type"] == "usage.recorded" and actor.startswith("remote:"):
+                item = record(actor)
+                data = event.get("data") or {}
+                item["usage_receipts"] += 1
+                for key in ("input_tokens", "output_tokens", "request_bytes"):
+                    value = data.get(key)
+                    if type(value) is int and value >= 0:
+                        item[key] += value
+                elapsed = data.get("elapsed_ms")
+                if type(elapsed) in (int, float) and elapsed >= 0:
+                    item["elapsed_ms"].append(float(elapsed))
+            elif event["event_type"] == "worker.expired":
+                owner = (event.get("data") or {}).get("owner")
+                if isinstance(owner, str) and owner.startswith("remote:"):
+                    record(owner)["expirations"] += 1
+
+        rows = []
+        for label in sorted(workers):
+            item = workers[label]
+            samples = sorted(item.pop("elapsed_ms"))
+            if samples:
+                p95_index = max(0, min(len(samples) - 1, (95 * len(samples) + 99) // 100 - 1))
+                latency = {
+                    "count": len(samples),
+                    "median_ms": statistics.median(samples),
+                    "p95_ms": samples[p95_index],
+                    "total_ms": sum(samples),
+                }
+            else:
+                latency = {"count": 0, "median_ms": None, "p95_ms": None, "total_ms": 0.0}
+            item["tasks"] = sorted(item["tasks"])
+            item["attempts"] = sorted(item["attempts"])
+            item["inference_latency"] = latency
+            rows.append(item)
+
+        return {
+            "project_id": pid,
+            "workers": rows,
+            "totals": {
+                "workers_seen": len(rows),
+                "claims": sum(row["claims"] for row in rows),
+                "usage_receipts": sum(row["usage_receipts"] for row in rows),
+                "expirations": sum(row["expirations"] for row in rows),
+                "input_tokens": sum(row["input_tokens"] for row in rows),
+                "output_tokens": sum(row["output_tokens"] for row in rows),
+                "request_bytes": sum(row["request_bytes"] for row in rows),
+                "inference_elapsed_ms": sum(row["inference_latency"]["total_ms"] for row in rows),
+            },
+            "identity_note": (
+                "Worker labels are self-supplied names authenticated by the shared worker token; "
+                "they are experiment labels, not cryptographic node identities."
+            ),
+        }
 
     def worker_metrics(self, pid):
         """Aggregate self-reported remote-worker performance without granting identity authority."""
