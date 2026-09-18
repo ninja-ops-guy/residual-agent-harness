@@ -86,8 +86,14 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     await provider_frame.locator('#load').wait_for()
     assert await page.locator('#mc-provider-frame').get_attribute('credentialless') is not None
     report['provider_helper_isolation'] = 'PASS_CREDENTIALLESS_EMBEDDED_BOUNDARY'
+    provider_generation_before = int(await provider_frame.locator('html').get_attribute('data-provider-load-generation') or '0')
     await provider_frame.locator('#load').click()
+    await provider_frame.locator('html').filter(has=provider_frame.locator('body')).wait_for()
+    await provider_frame.locator('html').evaluate("el => new Promise((resolve, reject) => { const start=Number(el.dataset.providerLoadGeneration||0); if(start > 0 && ['requested','loading','failed','loaded'].includes(el.dataset.providerLoadState)) return resolve(); const end=Date.now()+3000; const tick=()=>{const gen=Number(el.dataset.providerLoadGeneration||0); if(gen > 0 && ['requested','loading','failed','loaded'].includes(el.dataset.providerLoadState)) resolve(); else if(Date.now()>end) reject(new Error('provider load activation was not observed in the intended frame')); else setTimeout(tick,25);}; tick(); }))")
+    provider_generation_after = int(await provider_frame.locator('html').get_attribute('data-provider-load-generation') or '0')
+    assert provider_generation_after > provider_generation_before, 'provider load activation did not advance the intended frame generation'
     await provider_frame.locator('#status').filter(has_text='could not load').wait_for()
+    assert await provider_frame.locator('html').get_attribute('data-provider-load-state') == 'failed'
     assert report['optional_requests'], 'explicit SDK load did not attempt a network request'
     await page.locator('#mc-terminal').click()
     await command_proof('read -r residual_worker_pid < /tmp/residual-workbench.pid && read -r residual_worker_first < /tmp/residual-worker-first.pid && test "$residual_worker_pid" = "$residual_worker_first" && kill -0 "$residual_worker_pid"')
