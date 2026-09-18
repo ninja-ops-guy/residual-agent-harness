@@ -306,6 +306,19 @@ class RecursiveImprovementTests(unittest.TestCase):
         self.assertEqual(result["stop_reason"], "origination_incomplete")
         self.assertEqual(cycle.call_args_list[1].args[0], next_repo)
 
+    def test_revision_doctor_improve_dispatches_bounded_lineage(self):
+        outcome = {
+            "mission_id": "residual-self-improvement",
+            "history": [{"accepted_successor": True}],
+        }
+        with patch("residual.self_improvement.run_lineage", return_value=outcome) as lineage:
+            rc = cli_main([
+                "revision", "doctor", "--improve", "--repo", str(self.repo),
+                "--station-data", str(self.repo / ".station"), "--generations", "2",
+            ])
+        self.assertEqual(rc, 0)
+        self.assertEqual(lineage.call_args.kwargs["generations"], 2)
+
     def test_execution_delegates_to_station_managed_clone_and_export(self):
         candidate = self.repo / "candidate.json"
         candidate.write_text(json.dumps(self.candidate()))
