@@ -11,7 +11,7 @@ The documents under [`source/`](source/) preserve earlier design generations and
 | Core harness / verifier / receipts / residual delegation | Implemented and covered by the established test corpus |
 | Command Station | Implemented; #218 bounded repair-loop remediation is accepted; exact-revision workflow results remain authoritative |
 | Factory M2/M3/M4 | Implemented; protected claims remain exact-revision/environment bound and universal capable-runner qualification is not implied |
-| Mission Control/WebVM lifecycle | Bounded recovery, diagnostics, iOS fallback, provider publication, #205 reload/remount channel recovery, #218 shared repair ceiling, and #201 inline provider/guided UX are accepted; long-run and physical heavyweight-WebVM reliability remain unqualified |
+| Mission Control/WebVM lifecycle | Bounded recovery, diagnostics, iOS fallback, provider publication, #205 reload/remount channel recovery, #218 shared repair ceiling, and #201 inline provider/guided UX are accepted; exact-current-main Pages live acceptance is FAIL and long-run/physical heavyweight-WebVM reliability remain unqualified |
 | Native setup path | #200 hardening is accepted; persistent XDG defaults, loopback binding, opt-in shell macro, bounded venv repair, and constrained shell-rc edits are current behavior; blank-environment qualification remains open |
 | Live provider acceptance | Historical retained Puter failure remains **FAIL/BLOCKED**; exact-current-main paid/live candidate→verifier→receipt success remains **UNKNOWN** |
 | Frozen evaluation framework | Implemented research apparatus; CI binding is not confirmatory live-model evidence |
@@ -48,10 +48,13 @@ This is accepted UI/provider-boundary behavior, **not** retained proof of paid/l
 
 PR #201's exact head `4e172aed...` completed **PASS** for Control Plane, Factory ownership, measured-evaluation binding, clean install, Browser VM Demo, Pages, Command Station, Controller/provider, and maintainer approval before merge.
 
-Exact merged `main@260b5f9...` has a new seven-workflow ordinary `push` set. That exact-SHA set is **PENDING** at this status check; at least Pages/deployment remains in progress. Required interpretation:
+Exact merged `main@260b5f9...` has now completed its seven ordinary `push` workflows. Six completed successfully. **Deploy GitHub Pages run `35340104722` is FAIL in live-acceptance scope.** The Pages artifact build/browser proof succeeded and the deployment itself succeeded, but the published desktop acceptance timed out waiting for `#mc-provider-frame` to expose the expected `#status` text `could not load`. Before that timeout, the proof had already verified served-artifact identity, guest attachment/shell readiness, real demo verification with finite metrics, warm reload, and repository audit.
+
+Required interpretation:
 
 - #201 exact PR-head named automated gates: **PASS**;
-- exact merged-main ordinary push gates: **PENDING** until their exact-SHA runs complete;
+- exact merged-main ordinary push gates: **six PASS/success, one FAIL — Pages live acceptance**;
+- the Pages failure is a retained browser-proof/acceptance failure, not evidence of paid/live Puter semantic success or failure; the retained provider path used a test-double SDK rather than real Puter login/inference;
 - historical exact-revision failures: **remain retained evidence**;
 - every-host/capable-runner M4 qualification: **not established**;
 - true blank-environment install: **not established**;
@@ -74,7 +77,7 @@ Research branches remain outside accepted production capability unless explicitl
 
 ## Current build order
 
-1. **Complete exact merged-SHA post-#201 qualification.** Preserve any first exact-SHA failure rather than inheriting the green PR-head result.
+1. **Repair and requalify the exact-current-main Pages live-acceptance failure.** Preserve run `35340104722` as the first authoritative `260b5f9...` Pages FAIL; do not inherit the green #201 PR-head Pages result or relabel the six successful merged-SHA workflows as a complete PASS.
 2. **Refresh and requalify the #207/#208 authority-ordering repair path on current main.** Budget/unknown-usage state and terminal verifier failure must prevent later accepted-state/release effects before stronger fail-closed claims are made; #214 is stale-base and unaccepted.
 3. **Expand M6 evidence beyond the single #220 PASS without erasing negative cells.** Run preregistered repeated/self-discovery experiments on accepted #218 behavior while retaining #203/#204/#215/#217 FAILs and withholding autonomous-merge authority.
 4. **Re-run a valid #206 repair-pressure intervention and retain the negative DAG/reliability cells.** Do not convert A4's invalid intervention or A5/A6 failures into PASS through workflow success or later reruns.
