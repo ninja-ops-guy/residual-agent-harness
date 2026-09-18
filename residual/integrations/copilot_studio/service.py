@@ -148,7 +148,7 @@ class CopilotStudioService:
         self,
         authenticator: BearerAuthenticator,
         *,
-        policy: FirmwarePolicy | None = None,
+        policy: FirmwarePolicy,
         store: CopilotMissionStore | None = None,
     ):
         if not hasattr(authenticator, "authenticate"):
