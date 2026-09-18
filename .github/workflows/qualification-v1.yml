@@ -342,7 +342,8 @@ jobs:
             --log runs/qualification-v1/toxic-provider.log \
             --junit runs/qualification-v1/toxic-provider.xml \
             --zero-skips \
-            -- python -m pytest tests/qualification/test_toxic_provider_matrix.py -q \
+            -- python -m pytest tests/qualification/test_toxic_provider_matrix.py \
+               tests/qualification/test_provider_mission.py -q \
                --junitxml=runs/qualification-v1/toxic-provider.xml
       - uses: actions/upload-artifact@v4
         if: always()
