@@ -171,8 +171,14 @@ def build_station_spec(report, plan, doc, repo):
             raise ContractError("ImprovementCandidate is incomplete")
         if any(not isinstance(dep, str) for dep in c["depends_on"]):
             raise ContractError("Candidate dependencies must be strings")
-        if any(isinstance(check, dict) and check.get("kind") == "command" for check in c["checks"]) and not c["evaluator_files"]:
+        command_checks = [check for check in c["checks"]
+                          if isinstance(check, dict) and check.get("kind") == "command"]
+        code_paths = [path for path in c["files"]
+                      if Path(path).suffix.lower() in {".py", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".sh", ".ps1"}]
+        if command_checks and not c["evaluator_files"]:
             raise ContractError("Command checks require external frozen evaluator files")
+        if code_paths and (not command_checks or not c["evaluator_files"]):
+            raise ContractError("Executable-code candidates require command checks and external frozen evaluator files")
         if any(not isinstance(p, str) for p in c["files"] + c["context"] + c["evaluator_files"]):
             raise ContractError("Candidate paths must be strings")
         if set(c["files"]) & set(c["evaluator_files"]):
@@ -209,6 +215,14 @@ def execute_generation(repo, candidates, station_data, allow_cloud=False, allow_
     station = Station(station_data)
     pid = station.create(spec, source=report["repository_root"], allow_cloud=allow_cloud,
                          commands=allow_command_checks)["project_id"]
+    managed_repo = Path(station.store.project(pid)["repo"]).resolve()
+    managed_head = git(managed_repo, "rev-parse", "HEAD")
+    if managed_head != report["head"]:
+        station.store.event(pid, "project.note", {
+            "message": "Self-improvement generation blocked: managed clone source identity mismatch",
+            "expected_head": report["head"], "managed_head": managed_head,
+        })
+        raise ContractError("Station managed clone does not match the certified source revision")
     batch = station.batch(pid)
     export = None
     if batch["integrated"] == batch["total"] and batch.get("control", {}).get("outcome") == "success":
