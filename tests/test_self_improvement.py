@@ -34,6 +34,8 @@ class RecursiveImprovementTests(unittest.TestCase):
             "tests/test_self_improvement.py": "# frozen mission regression\n",
             "residual/goalspec.py": "GOAL = True\n",
             "residual/loop.py": "LOOP = True\n",
+            "residual/self_improvement.py": "CONTROLLER = True\n",
+            "residual/cli.py": "CLI = True\n",
             "residual/station/service.py": "STATION = True\n",
             "residual/station/control.py": "CONTROL = True\n",
             "tests/test_frozen_eval.py": "EVALUATOR = True\n",
