@@ -36,7 +36,7 @@ class RecursiveImprovementTests(unittest.TestCase):
             "residual/loop.py": "LOOP = True\n",
             "residual/station/service.py": "STATION = True\n",
             "residual/station/control.py": "CONTROL = True\n",
-            "tests/frozen_eval.py": "EVALUATOR = True\n",
+            "tests/test_frozen_eval.py": "EVALUATOR = True\n",
             "tests/factory_guard.py": "PROTECTED = True\n",
             "verifier/v3/factory_ownership_baseline.json": json.dumps({
                 "pinned_at": "0" * 40,
@@ -136,30 +136,47 @@ class RecursiveImprovementTests(unittest.TestCase):
         self.assertNotEqual(before["inputs"]["current_status_sha256"], after["inputs"]["current_status_sha256"])
         self.assertNotEqual(before["report_sha256"], after["report_sha256"])
 
-    def test_command_check_requires_external_evaluator(self):
+    def test_model_authored_command_check_is_always_rejected(self):
         report = doctor_repository(self.repo)
-        doc = self.candidate()
-        doc["candidates"][0]["checks"] = [{"kind": "command", "argv": ["python", "-m", "pytest"]}]
+        doc = self.candidate(["residual/example.py"], ["tests/test_frozen_eval.py"])
+        doc["candidates"][0]["checks"] = [
+            {"kind": "command", "argv": ["{python}", "-m", "pytest", "tests/test_frozen_eval.py"]}
+        ]
         with self.assertRaises(ContractError):
             build_station_spec(report, mission_plan(report), doc, self.repo)
 
     def test_unsafe_model_authored_command_is_rejected(self):
         report = doctor_repository(self.repo)
-        doc = self.candidate(["residual/example.py"], ["tests/frozen_eval.py"])
+        doc = self.candidate(["residual/example.py"], ["tests/test_frozen_eval.py"])
         doc["candidates"][0]["checks"] = [
             {"kind": "command", "argv": ["{python}", "-c", "print('pass')"]}
         ]
         with self.assertRaises(ContractError):
             build_station_spec(report, mission_plan(report), doc, self.repo)
 
-    def test_code_candidate_can_bind_pytest_to_frozen_evaluator(self):
+    def test_governor_derives_pytest_from_frozen_evaluator(self):
         report = doctor_repository(self.repo)
-        doc = self.candidate(["residual/example.py"], ["tests/frozen_eval.py"])
-        doc["candidates"][0]["checks"] = [
-            {"kind": "command", "argv": ["{python}", "-m", "pytest", "tests/frozen_eval.py"]}
-        ]
+        doc = self.candidate(["residual/example.py"], ["tests/test_frozen_eval.py"])
         manifest = parse_spec(build_station_spec(report, mission_plan(report), doc, self.repo))
-        self.assertEqual(manifest["tasks"][0]["checks"][0]["argv"][-1], "tests/frozen_eval.py")
+        commands = [check for check in manifest["tasks"][0]["checks"] if check["kind"] == "command"]
+        self.assertEqual(commands, [{
+            "kind": "command",
+            "argv": ["{python}", "-m", "pytest", "tests/test_frozen_eval.py"],
+            "timeout": 120,
+        }])
+
+    def test_non_test_evaluator_is_rejected_for_code_candidate(self):
+        report = doctor_repository(self.repo)
+        doc = self.candidate(["residual/example.py"], ["docs/evaluator.md"])
+        with self.assertRaises(ContractError):
+            build_station_spec(report, mission_plan(report), doc, self.repo)
+
+    def test_pytest_control_files_are_protected_from_autonomous_write(self):
+        report = doctor_repository(self.repo)
+        for path in ("pytest.ini", "tests/conftest.py", "tests/__init__.py"):
+            doc = self.candidate([path], [])
+            with self.assertRaises(ContractError):
+                build_station_spec(report, mission_plan(report), doc, self.repo)
 
     def test_execution_config_candidate_requires_frozen_evaluator(self):
         report = doctor_repository(self.repo)
@@ -167,7 +184,7 @@ class RecursiveImprovementTests(unittest.TestCase):
         with self.assertRaises(ContractError):
             build_station_spec(report, mission_plan(report), doc, self.repo)
 
-    def test_code_candidate_requires_frozen_command_evaluator(self):
+    def test_code_candidate_requires_frozen_evaluator(self):
         report = doctor_repository(self.repo)
         doc = self.candidate(["residual/example.py"], [])
         with self.assertRaises(ContractError):
@@ -194,14 +211,13 @@ class RecursiveImprovementTests(unittest.TestCase):
 
     def test_candidate_cannot_modify_its_evaluator(self):
         report = doctor_repository(self.repo)
-        doc = self.candidate(["tests/frozen_eval.py"], ["tests/frozen_eval.py"])
+        doc = self.candidate(["tests/test_frozen_eval.py"], ["tests/test_frozen_eval.py"])
         with self.assertRaises(ContractError):
             build_station_spec(report, mission_plan(report), doc, self.repo)
 
     def test_factory_ownership_manifest_path_fails_closed(self):
         report = doctor_repository(self.repo)
-        doc = self.candidate(["tests/factory_guard.py"], ["tests/frozen_eval.py"])
-        doc["candidates"][0]["checks"] = [{"kind": "command", "argv": ["python", "tests/frozen_eval.py"]}]
+        doc = self.candidate(["tests/factory_guard.py"], ["tests/test_frozen_eval.py"])
         with self.assertRaises(ContractError):
             build_station_spec(report, mission_plan(report), doc, self.repo)
 
