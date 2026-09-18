@@ -129,6 +129,8 @@ class MeshNode:
         self._revoked: set[str] = set()
 
     def connect_peer(self, peer: MeshIdentity) -> None:
+        if peer.device_id == self.identity.device_id:
+            raise ContractError("cannot admit local device identity as a peer")
         if peer.device_id in self._revoked:
             raise ContractError(f"device {peer.device_id} is revoked")
         old = self.peers.get(peer.device_id)
