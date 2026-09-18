@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "generation": "0001",
+  "status": "bootstrap-authored-not-yet-qualified",
+  "observed_main": "3cff6bcd52e352a6ba048c958949a7bbb2a039eb",
+  "source_commit_message": "ci: harden PR Agent as advisory review (#197)",
+  "mission_issue": 291,
+  "observations": [
+    "Accepted main did not contain an indexed revision doctor command at bootstrap.",
+    "The checked-in roadmap status snapshot trails the observed main and must be treated as historical evidence rather than rewritten blindly.",
+    "M6 research work is present in open pull requests but is not production authority until merged and qualified.",
+    "Existing Station and GoalSpec machinery can host bounded self-improvement without creating a second implementation authority."
+  ],
+  "bootstrap_actions": [
+    "Add read-only Revision Doctor.",
+    "Add content-addressed hierarchical mission planning.",
+    "Add strict ImprovementCandidate validation and frozen-evaluator overlap rejection.",
+    "Block bootstrap autonomous writes to protected trust-boundary paths.",
+    "Delegate execution to a Station-managed clone and export only after successful controlled integration.",
+    "Add an intentionally low-risk first candidate and regression tests."
+  ],
+  "nonclaims": [
+    "This record is not evidence that an autonomous generation completed successfully.",
+    "Open M6 research pull requests are not treated as accepted main capability.",
+    "A Station export is not equivalent to production merge or production qualification."
+  ]
+}
