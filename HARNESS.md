@@ -59,13 +59,15 @@ The built-in demo is scripted and credential-free. It demonstrates controller be
 
 ## Current repository boundary
 
-Current `main` is **`4608afabf5de4c87d77aaf149dfc12538d364f43`**.
+Current `main` is **`d665b188ccc5bb659fb37bc52ac387ab4d85f976`**.
 
 Merged **#200** hardens native setup defaults: persistent XDG locations, loopback Station binding, opt-in shell convenience, bounded venv repair, and constrained shell-rc edits. This is accepted onboarding behavior, not blank-environment qualification.
 
 Merged **#205** restores the private provider channel across Mission Control reload/remount by validating and reusing a session-scoped channel token, and clears it on explicit close. This is accepted lifecycle behavior, not live-provider semantic evidence.
 
-The exact-current-main Actions set observed for `4608afa...` is complete with no pending, cancelled, or failing run in the retained exact-SHA query; the sampled Controller/provider workflow is **PASS on attempt 1**. Treat those results as exact-revision automated evidence only. They do not establish universal/capable-runner M4 qualification, live Puter success, physical-device reliability, recovery/soak, or confirmatory research.
+Merged **#218** applies bounded repair-loop lessons to Station. A repair attempt may receive the previous failed candidate's declared writable files as bounded context, with retained file hashes, while the next candidate still starts from a clean baseline worktree. The runner contract explicitly separates its JSON transport envelope from literal file-language content, and Mission Control/Store now use a shared five-attempt ceiling. The change does not grant workers review, receipt, integration, promotion, verifier, or Factory/M4 authority.
+
+For exact `main@d665b18...`, seven observed ordinary `push` workflows completed **PASS on attempt 1**: Factory ownership, M4 runner prerequisites, measured-evaluation binding, clean install, Controller/provider, Command Station, and Pages/deployment. Treat those results as exact-revision automated evidence only. They do not establish universal/capable-runner M4 qualification, live Puter success, physical-device reliability, true blank-environment install, recovery/soak, or confirmatory research.
 
 Historical failures remain retained evidence rather than being erased by later PASS results.
 
@@ -90,11 +92,12 @@ This documentation does not alter Factory/M4 implementation/tests, ownership bas
 Recent research evidence must remain mixed:
 
 - #202: earlier retained heterogeneous-DAG **FAIL**; later bounded corrected exact-head **PASS** with real local models and forced repair. Neither result erases the other.
-- #203: first authoritative M6 ImprovementSpec self-host trial **FAIL**.
-- #204: stronger-model M6-SPEC-002 authoritative trial **FAIL**, 0/1 integrated and no verification receipt/release.
-- #207 campaign B: retained negative control evidence shows a budget-exhaustion ordering case in which integration/release preceded final exhausted-budget accounting, and a verifier-failure case in which a non-empty release still materialized after abort. These are governance defects, not PASSes. The repeated-repair case contained injected corrupt candidates but did not recover to success within the pass budget.
+- #203/#204: first authoritative M6 ImprovementSpec self-host trials remain **FAIL** with 0/1 integrated and no verification receipt/release.
+- #215/#217: M6-SPEC-003/-004 remain retained **FAIL** results even though they exercised prior-candidate repair context and transport/source clarification.
+- #220: M6-SPEC-006 on the corrected #218 runtime is a bounded exact-head **PASS** with local Qwen2.5-Coder 7B. Attempts 1 and 2 were rejected by the frozen checks; attempt 3 passed 2/2 checks, Station review approved it, 1/1 integrated, a verification receipt was issued, and release export completed. This single successful intervention does not erase the earlier FAIL cells or establish general autonomous self-maintenance/reliability.
+- #207 campaign B: retained negative control evidence still shows a budget-exhaustion ordering case in which integration/release preceded final exhausted-budget accounting, and a verifier-failure case in which a non-empty release materialized after abort. Those are independent governance defects and are not cleared by #218/#220.
 
-These observations do not establish autonomous recursive self-improvement or production reliability.
+These observations do not establish general autonomous recursive self-improvement or production reliability.
 
 ## Governance boundary
 
@@ -119,6 +122,6 @@ Start with:
 
 A passing check establishes only its declared condition. Historical results remain tied to the exact revisions that produced them.
 
-The repository does not currently claim universal worker correctness, guaranteed savings, blanket production readiness, every-host M4 qualification, completed blank-environment/recovery/elapsed-soak qualification, acceptable long-run WebVM reliability, successful exact-current-main paid/live provider execution, physical heavyweight-WebVM iPhone reliability, autonomous recursive self-improvement, autonomous merge authority, or proof of the central live-model reliability hypothesis.
+The repository does not currently claim universal worker correctness, guaranteed savings, blanket production readiness, every-host M4 qualification, completed blank-environment/recovery/elapsed-soak qualification, acceptable long-run WebVM reliability, successful exact-current-main paid/live provider execution, physical heavyweight-WebVM iPhone reliability, general autonomous recursive self-improvement, autonomous merge authority, or proof of the central live-model reliability hypothesis.
 
 For operational setup, use [`START-HERE.md`](START-HERE.md). For current repository-wide status, use [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md).
