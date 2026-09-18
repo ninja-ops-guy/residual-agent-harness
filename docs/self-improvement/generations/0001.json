@@ -26,7 +26,7 @@
   ],
   "roadmap_recorded_main": "4608afabf5de4c87d77aaf149dfc12538d364f43",
   "roadmap_delta_commits": 8,
-  "roadmap_compare_status": "ancestor_ahead_by_8",
+  "roadmap_compare_status": "roadmap_ancestor_observed_main_ahead_by_8",
   "evidence_note": "GitHub compare confirms the recorded roadmap main is an ancestor of observed main, 8 commits behind and 0 commits ahead. This is roadmap/status lag, not history divergence and not implicit qualification of the later commits.",
   "implemented_controls": [
     "Content-addressed Revision Doctor binds roadmap, current status, M7 mission policy, and Factory ownership baseline bytes.",
