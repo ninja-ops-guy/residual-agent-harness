@@ -66,6 +66,66 @@ MUTATIONS = (
             return True""",
         ("tests/qualification/test_trust_boundary_canaries.py::test_forbidden_prefix_wins_over_read_allowlist",),
     ),
+    Mutation(
+        "failed-checks-reach-review",
+        "residual/station/service.py",
+        "residual.station.service",
+        "    def finish(",
+        """if not all(c["passed"] for c in checks):""",
+        """if False and not all(c["passed"] for c in checks):""",
+        ("tests/station/test_station.py::StationTests::test_failed_checks_do_not_reach_review",),
+    ),
+    Mutation(
+        "dependency-dispatch-bypass",
+        "residual/station/store.py",
+        "residual.station.store",
+        "    def claim(",
+        """if any(states[d] != "integrated" for d in t["depends_on"]):
+                    continue""",
+        """if False and any(states[d] != "integrated" for d in t["depends_on"]):
+                    continue""",
+        ("tests/station/test_station.py::StationTests::test_concurrent_claims_are_exclusive_and_dependencies_wait",),
+    ),
+    Mutation(
+        "pause-dispatch-bypass",
+        "residual/station/store.py",
+        "residual.station.store",
+        "    def claim(",
+        """if p["paused"]:
+                return None""",
+        """if False and p["paused"]:
+                return None""",
+        ("tests/station/test_station.py::StationTests::test_pause_prevents_claim_and_cloud_disabled_prevents_transport",),
+    ),
+    Mutation(
+        "artifact-integrity-bypass",
+        "residual/station/store.py",
+        "residual.station.store",
+        "    def artifact(",
+        """if hashlib.sha256(data).hexdigest() != aid.split(":")[1]:
+            raise ContractError("Artifact integrity check failed")""",
+        """if False and hashlib.sha256(data).hexdigest() != aid.split(":")[1]:
+            raise ContractError("Artifact integrity check failed")""",
+        ("tests/station/test_station.py::StationTests::test_artifact_tampering_is_rejected",),
+    ),
+    Mutation(
+        "moving-base-review-bypass",
+        "residual/station/service.py",
+        "residual.station.service",
+        "    def integrate(",
+        """if ws.git(p["repo"], "rev-parse", "HEAD") != t["base_commit"]:""",
+        """if False and ws.git(p["repo"], "rev-parse", "HEAD") != t["base_commit"]:""",
+        ("tests/station/test_station.py::StationTests::test_moving_base_invalidates_review",),
+    ),
+    Mutation(
+        "candidate-review-binding-bypass",
+        "residual/station/service.py",
+        "residual.station.service",
+        "    def review(",
+        """if ws.git(t["candidate_dir"], "rev-parse", "HEAD") != t["head_commit"] or ws.git(t["candidate_dir"], "status", "--porcelain"):""",
+        """if False and (ws.git(t["candidate_dir"], "rev-parse", "HEAD") != t["head_commit"] or ws.git(t["candidate_dir"], "status", "--porcelain")):""",
+        ("tests/station/test_station.py::StationTests::test_approval_cannot_survive_changed_candidate",),
+    ),
 )
 
 
