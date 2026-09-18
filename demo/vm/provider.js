@@ -47,7 +47,7 @@ function transportMessages(messages, transport = 'tool') {
     return message;
   });
 }
-if (!token) { load.disabled = true; tell('Open provider setup from Mission Control. This tab has no connection channel.'); }
+if (!token) { load.disabled = true; tell('Open provider setup from Mission Control. This panel has no connection channel.'); }
 else { channel = new BroadcastChannel(`${PROTOCOL}:${token}`); channel.onmessage = event => receive(event.data); setInterval(state, 3000); state(); }
 function loadSdk(restoring = false) {
   if (sdk?.auth && sdk?.ai) { state(); return Promise.resolve(sdk); }
@@ -65,7 +65,7 @@ function loadSdk(restoring = false) {
       const signedIn = !!sdk.auth.isSignedIn?.();
       sign.disabled = signedIn;
       load.disabled = true;
-      tell(signedIn ? 'Connected. Provider session restored; return to Mission Control. Model availability and billing are checked on each run.' : 'SDK loaded. Click Sign in to open authorization. No inference has run.');
+      tell(signedIn ? 'Connected. Provider session restored. Model availability and billing are checked on each run.' : 'SDK loaded. Click Sign in to open authorization. No inference has run.');
       state(); resolve(sdk);
     };
     document.head.appendChild(script);
@@ -80,7 +80,7 @@ sign.addEventListener('click', () => {
   catch (error) { sign.disabled = false; tell(`Sign-in failed: ${errorCode(error)}. Retry using this button.`); return; }
   let timer;
   Promise.race([auth, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('timeout')), 60000); })])
-    .then(() => { if (!sdk.auth.isSignedIn()) throw new Error('not_signed_in'); sign.disabled = true; tell('Connected. Return to Mission Control; keep this tab open. Model availability and billing are checked on each run.'); })
+    .then(() => { if (!sdk.auth.isSignedIn()) throw new Error('not_signed_in'); sign.disabled = true; tell('Connected. Mission Control can now send explicitly authorized prompts. Model availability and billing are checked on each run.'); })
     .catch(error => { sign.disabled = false; tell(`Sign-in did not complete: ${errorCode(error)}. Check popup permission, then retry. No inference was requested.`); })
     .finally(() => { clearTimeout(timer); state(); });
 });
@@ -126,7 +126,7 @@ async function receive(m) {
     if (new TextEncoder().encode(text).length > 48000) return reply({ok: false, error: 'provider_response_too_large'});
     const integer = n => Number.isInteger(n) && n >= 0 ? n : null;
     reply({ok: true, text, usage: {input_tokens: integer(u.input_tokens ?? u.prompt_tokens), output_tokens: integer(u.output_tokens ?? u.completion_tokens)}});
-    tell('Structured model response returned to the guest. RESIDUAL—not this provider tab—checks the candidate.');
+    tell('Structured model response returned to the guest. RESIDUAL—not this provider panel—checks the candidate.');
   } catch (error) {
     const code = safeFailure(error);
     reply({ok: false, error: code});

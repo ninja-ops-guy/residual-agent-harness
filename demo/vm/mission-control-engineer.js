@@ -25,7 +25,7 @@ const LEDGER_EXPLAIN={
   run_started:['Task frozen','The Harness bound the task, limits, and artifact hashes before worker dispatch.','Any later evidence refers back to this frozen start state.'],
   context_plan:['Context plan selected','RESIDUAL chose the bounded evidence/context capsule for this dispatch.','Inspect Evidence to see exactly which frozen artifacts were in scope.'],
   call_reserved:['Provider call reserved','A remote call slot was reserved before I/O because failed requests may still incur cost.','The response still has no authority until protocol parsing and verification pass.'],
-  provider_failed:['Provider call failed','The provider/transport ended before a usable candidate was accepted.','Use the safe failure code and provider tab status to choose the next action.'],
+  provider_failed:['Provider call failed','The provider/transport ended before a usable candidate was accepted.','Use the safe failure code and embedded provider status to choose the next action.'],
   call_completed:['Provider response returned','A bounded provider response arrived and was hash-recorded.','RESIDUAL must still parse the worker protocol and verify any candidate.'],
   verification:['Verifier checked candidate','A declared verifier evaluated the candidate against the obligation contract.','PASS can advance; FAIL/UNKNOWN remains unaccepted.'],
   counterexample:['Candidate rejected','RESIDUAL recorded why the current candidate could not be accepted.','The reason may guide a bounded retry; rejection is not hidden.'],

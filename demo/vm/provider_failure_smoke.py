@@ -62,18 +62,20 @@ async def provider_failure_acceptance(page, context, args, report, command_proof
     await stage('guided_provider_setup_preserves_unsent_prompt')
 
     await page.route('https://js.puter.com/v2/**', lambda route: route.fulfill(
-        status=200, content_type='text/javascript', body=FAILURE_SDK))
+        status=200,
+        content_type='text/javascript',
+        headers={'access-control-allow-origin': '*'},
+        body=FAILURE_SDK,
+    ))
     await page.locator('#mc-provider-start').click()
-    await page.wait_for_function(
-        "() => document.querySelector('#mc-provider-start').textContent === 'Authorize Puter'",
-        timeout=20000,
-    )
-    await page.locator('#mc-provider-start').click()
+    frame = page.frame_locator('#mc-provider-frame')
+    await frame.locator('#load').click()
+    await frame.locator('#signin').click()
     await page.wait_for_function(
         "() => document.querySelector('#mc-connect').textContent.startsWith('Provider connected')",
         timeout=20000,
     )
-    assert await page.evaluate('window.__providerFixture.gesture')
+    assert await frame.locator('body').evaluate('(body) => body.ownerDocument.defaultView.__providerFixture.gesture')
 
     # Connectivity is not consent. The exact prompt still must not be sent.
     users_before = await page.locator('#mc-chat .bubble.user').count()
@@ -81,7 +83,7 @@ async def provider_failure_acceptance(page, context, args, report, command_proof
     assert await page.locator('#mc-prompt').input_value() == prompt
     assert await page.locator('#mc-chat .bubble.user').count() == users_before
     assert 'not authorized yet' in (await page.locator('#mc-provider-gate-status').inner_text()).lower()
-    assert await page.evaluate('window.__providerFixture.calls') == 0
+    assert await frame.locator('body').evaluate('(body) => body.ownerDocument.defaultView.__providerFixture.calls') == 0
     report['workbench_per_prompt_authorization_gate'] = 'PASS_CONNECTED_IS_NOT_CONSENT'
     await stage('per_prompt_authorization_blocks_unsent_prompt')
 
@@ -95,7 +97,7 @@ async def provider_failure_acceptance(page, context, args, report, command_proof
     assert await page.locator('#mc-preview-frame').count() == 0
     assert 'No preview' in await page.locator('#mc-preview-status').inner_text()
     assert (await page.locator('#mc-connect').inner_text()).startswith('Provider connected')
-    assert await page.evaluate('window.__providerFixture.calls') == 1
+    assert await frame.locator('body').evaluate('(body) => body.ownerDocument.defaultView.__providerFixture.calls') == 1
     assert 'fixture secret body' not in await page.locator('body').inner_text()
 
     await page.locator('button[data-tab="activity"]').click()

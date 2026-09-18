@@ -3,9 +3,11 @@ export const PROTOCOL = 'residual.provider.v1';
 export const MAX_WIRE = 65536;
 export const MAX_PROVIDER_OUTPUT_TOKENS = 8192;
 export const PROVIDER_LIVENESS_MS = 300000;
+export const PROVIDER_CHANNEL_TOKEN_KEY = 'residual.provider.channel.v1';
 export const validId = value => typeof value === 'string' && /^m-[a-f0-9]{32}$/.test(value);
 export const validRequest = value => typeof value === 'string' && /^[a-f0-9]{32}$/.test(value);
 export const validModel = value => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,95}$/.test(value);
+export const validChannelToken = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
 export const bounded = value => { try { return new TextEncoder().encode(JSON.stringify(value)).length <= MAX_WIRE; } catch { return false; } };
 export const RESPONSE_SCHEMA = {
   type: 'object', additionalProperties: false, required: ['updates', 'requests'],
@@ -43,47 +45,18 @@ export function validProtocolEnvelope(value) { if(!value||typeof value!=='object
 function unwrapJsonFence(text) { const trimmed=text.trim(); const fenced=trimmed.match(/^```(?:json)?\s*\r?\n([\s\S]*?)\r?\n```$/i); return fenced?fenced[1].trim():trimmed; }
 function parseEnvelope(text,source='content') { if(typeof text!=='string'||!text.trim())throw new ProviderProtocolError(`${source}_empty`); let value; try{value=JSON.parse(unwrapJsonFence(text));}catch{throw new ProviderProtocolError(`${source}_not_json`);} if(!validProtocolEnvelope(value))throw new ProviderProtocolError('envelope_shape'); return JSON.stringify(value); }
 export function protocolReply(result) { if(result?.finish_reason==='length')throw new ProviderProtocolError('response_truncated'); const calls=result?.message?.tool_calls; if(Array.isArray(calls)&&calls.length>0){if(calls.length!==1)throw new ProviderProtocolError('tool_call_count');if(calls[0]?.function?.name!=='residual_submit')throw new ProviderProtocolError('tool_name');const args=calls[0]?.function?.arguments;if(args===undefined||args===null||args==='')throw new ProviderProtocolError('tool_arguments_empty');return parseEnvelope(typeof args==='string'?args:JSON.stringify(args),'tool_arguments');} return parseEnvelope(textReply(result),'content'); }
+function readStoredChannelToken() { try { const token=globalThis.sessionStorage?.getItem(PROVIDER_CHANNEL_TOKEN_KEY)||''; return validChannelToken(token)?token:''; } catch { return ''; } }
+function storeChannelToken(token) { try { if(validChannelToken(token))globalThis.sessionStorage?.setItem(PROVIDER_CHANNEL_TOKEN_KEY,token); } catch {} }
+function clearStoredChannelToken(token) { try { if(!token||globalThis.sessionStorage?.getItem(PROVIDER_CHANNEL_TOKEN_KEY)===token)globalThis.sessionStorage?.removeItem(PROVIDER_CHANNEL_TOKEN_KEY); } catch {} }
 export class ProviderSession {
-  constructor(onState=()=>{}) { this.onState=onState;this.channel=null;this.pending=new Map();this.connected=false;this.lastSeen=0;this.grant=null;this.generation=0;this.sdk=null;this.sdkLoad=null;this.transport='tool'; }
+  constructor(onState=()=>{}) { this.onState=onState;this.channel=null;this.pending=new Map();this.connected=false;this.lastSeen=0;this.grant=null;this.generation=0;this.token=readStoredChannelToken();if(this.token)this.attach(this.token); }
   get ready(){return this.connected&&Date.now()-this.lastSeen<PROVIDER_LIVENESS_MS;}
-  checkConnection(){if(this.connected&&!this.ready){this.connected=false;this.onState('disconnected','Provider tab has not responded recently. Reopen setup if it was closed; a suspended mobile tab can reconnect without changing provider authorization. No new requests are authorized while disconnected.');}}
-  async open(){
-    if(!this.sdk?.auth){
-      this.onState('loading','Step 1 of 3 · loading the Puter provider inside Mission Control…');
-      this.sdkLoad ||= new Promise((resolve,reject)=>{
-        const existing=document.querySelector('script[data-residual-puter-sdk="1"]');
-        if(existing&&window.puter?.auth)return resolve(window.puter);
-        const script=existing||document.createElement('script');script.src='https://js.puter.com/v2/';script.async=true;script.dataset.residualPuterSdk='1';
-        const timer=setTimeout(()=>reject(new Error('sdk_load_timeout')),10000);
-        script.onload=()=>{clearTimeout(timer);window.puter?.auth&&window.puter?.ai?resolve(window.puter):reject(new Error('sdk_unavailable'));};
-        script.onerror=()=>{clearTimeout(timer);reject(new Error('sdk_load_failed'));};
-        if(!existing)document.head.append(script);
-      });
-      try{this.sdk=await this.sdkLoad;}catch(error){this.sdkLoad=null;document.querySelector('script[data-residual-puter-sdk="1"]')?.remove();this.onState('error','Puter could not load. Check content blockers or network access, then retry. No prompt was sent.');throw error;}
-      if(!this.sdk.auth.isSignedIn?.()){this.onState('loaded','Step 1 complete · Puter is loaded. Click “Authorize Puter” to continue in its secure popup.');return false;}
-    }
-    this.onState('authorizing','Step 2 of 3 · authorize Puter in its secure popup. Mission Control stays open here.');
-    if(!this.sdk.auth.isSignedIn?.())await this.sdk.auth.signIn({attempt_temp_user_creation:false});
-    if(!this.sdk.auth.isSignedIn?.())throw new Error('not_signed_in');
-    this.connected=true;this.lastSeen=Date.now();
-    this.onState('connected','Step 3 of 3 · Puter connected. Review the prompt authorization checkbox, then run the mission.');
-    return true;
-  }
+  checkConnection(){if(this.connected&&!this.ready){this.connected=false;this.onState('disconnected','The embedded provider has not responded recently. Reopen guided setup; no new requests are authorized while disconnected.');}}
+  attach(token){if(!validChannelToken(token))throw new Error('Invalid provider channel token.');this.channel?.close();this.token=token;storeChannelToken(token);this.channel=new BroadcastChannel(`${PROTOCOL}:${token}`);this.channel.onmessage=event=>this.receive(event.data);}
+  open(){this.end();const token=this.token||[...crypto.getRandomValues(new Uint8Array(32))].map(b=>b.toString(16).padStart(2,'0')).join('');this.attach(token);const url=new URL('../provider/',location.href);url.hash=token;this.onState('connecting','Guided Puter setup is embedded below. Load the SDK, then authorize in Puter’s secure popup.');return url.href;}
   receive(message){if(!message||message.protocol!==PROTOCOL||!bounded(message))return;this.lastSeen=Date.now();if(message.kind==='state'){this.connected=message.connected===true;this.onState(this.ready?'connected':'disconnected',this.ready?'Provider signed in. Model access and billing are checked on each run.':'Provider not signed in. Open setup to continue.');return;}if(message.kind==='progress'&&validRequest(message.request_id)&&validId(message.mission_id)){const entry=this.pending.get(message.request_id),text=providerProgressMessage(message.stage,message.model);if(entry&&entry.missionId===message.mission_id&&text)this.onState(this.ready?'connected':'disconnected',text,{kind:'provider_progress',stage:message.stage,mission_id:message.mission_id,request_id:message.request_id,model:validModel(message.model)?message.model:null});return;}if(message.kind==='response'&&validRequest(message.request_id)){const entry=this.pending.get(message.request_id);if(entry&&message.mission_id===entry.missionId){if(message.ok===false&&typeof message.error==='string')this.onState(this.ready?'connected':'disconnected',providerFailureMessage(message.error,message.detail));clearTimeout(entry.timer);this.pending.delete(message.request_id);entry.resolve(message);}}}
   begin(missionId,calls,model){if(!this.ready||!validId(missionId)||!validModel(model)||!Number.isInteger(calls)||calls<1||calls>3)throw new Error('Provider is not connected or budget is invalid.');this.grant={missionId,calls,model,used:0,seen:new Set()};this.channel?.postMessage({protocol:PROTOCOL,kind:'grant',mission_id:missionId,max_calls:calls,model});}
-  async infer(missionId,req){
-    const g=this.grant;if(!this.ready||!g||g.missionId!==missionId)return{ok:false,error:'provider_disconnected',request_id:req.request_id};
-    if(!validInference(req)||req.model!==g.model||g.seen.has(req.request_id)||g.used>=g.calls)return{ok:false,error:'provider_budget_exhausted',request_id:req.request_id};
-    g.used++;g.seen.add(req.request_id);
-    if(!this.sdk?.ai)return new Promise(resolve=>{const timer=setTimeout(()=>{this.pending.delete(req.request_id);const response={ok:false,request_id:req.request_id,error:'provider_timeout'};this.onState(this.ready?'connected':'disconnected',providerFailureMessage(response.error));resolve(response);},85000);this.pending.set(req.request_id,{resolve,timer,missionId});this.channel?.postMessage({protocol:PROTOCOL,kind:'request',mission_id:missionId,...req});});
-    const progress=stage=>this.onState('connected',providerProgressMessage(stage,req.model));
-    const tools=[{type:'function',function:{name:'residual_submit',description:'Submit one RESIDUAL worker envelope with exactly updates and requests.',parameters:RESPONSE_SCHEMA}}];
-    const jsonNote='\n\nReturn exactly one raw JSON object with exactly two top-level keys: updates and requests. Return no prose, Markdown, or additional keys.';
-    const messages=this.transport==='tool'?req.messages:req.messages.map((m,i)=>i===0&&m.role==='system'?{...m,content:m.content+jsonNote}:m);
-    const options={model:req.model,max_tokens:req.max_output_tokens,stream:false,normalize:true};if(this.transport==='tool')options.tools=tools;
-    let timer;
-    try{progress('model_selected');progress('request_dispatched');const result=await Promise.race([this.sdk.ai.chat(messages,options),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('provider_timeout')),80000)})]);progress('response_received');let text;try{text=protocolReply(result)}catch(error){this.transport=providerTransportAfterFailure(this.transport,'provider_protocol_invalid');progress('protocol_rejected');return{ok:false,error:'provider_protocol_invalid',detail:protocolFailureReason(error),request_id:req.request_id}}progress('envelope_decoded');const usage=result?.usage||{};return{ok:true,text,request_id:req.request_id,usage:{input_tokens:Number.isInteger(usage.input_tokens??usage.prompt_tokens)?(usage.input_tokens??usage.prompt_tokens):null,output_tokens:Number.isInteger(usage.output_tokens??usage.completion_tokens)?(usage.output_tokens??usage.completion_tokens):null}}}catch(error){const raw=String(error?.error||error?.code||error?.message||'').toLowerCase();const code=raw.includes('timeout')?'provider_timeout':raw.includes('model')?'provider_model_unavailable':raw.match(/auth|permission|forbidden|billing|credit|quota|401|403/)?'provider_authorization_failed':'provider_request_failed';this.onState('connected',providerFailureMessage(code));return{ok:false,error:code,request_id:req.request_id}}finally{clearTimeout(timer)}
-  }
+  async infer(missionId,req){const g=this.grant;if(!this.ready||!g||g.missionId!==missionId)return{ok:false,error:'provider_disconnected',request_id:req.request_id};if(!validInference(req)||req.model!==g.model||g.seen.has(req.request_id)||g.used>=g.calls)return{ok:false,error:'provider_budget_exhausted',request_id:req.request_id};g.used++;g.seen.add(req.request_id);return new Promise(resolve=>{const timer=setTimeout(()=>{this.pending.delete(req.request_id);const response={ok:false,request_id:req.request_id,error:'provider_timeout'};this.onState(this.ready?'connected':'disconnected',providerFailureMessage(response.error));resolve(response);},85000);this.pending.set(req.request_id,{resolve,timer,missionId});this.channel.postMessage({protocol:PROTOCOL,kind:'request',mission_id:missionId,...req});});}
   end(){this.grant=null;for(const[id,entry]of this.pending){clearTimeout(entry.timer);entry.resolve({ok:false,request_id:id,error:'mission_cancelled'});}this.pending.clear();this.channel?.postMessage({protocol:PROTOCOL,kind:'revoke'});}
-  close(){this.end();this.channel?.close();this.channel=null;this.connected=false;this.lastSeen=0;this.generation++;}
+  close(){this.end();this.channel?.close();this.channel=null;this.connected=false;this.lastSeen=0;clearStoredChannelToken(this.token);this.token='';this.generation++;}
 }

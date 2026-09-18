@@ -1,52 +1,46 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {ProviderSession} from '../demo/vm/provider-session.js';
+import {ProviderSession, PROTOCOL, PROVIDER_CHANNEL_TOKEN_KEY} from '../demo/vm/provider-session.js';
 
-test('inline provider session starts inert without cross-tab state',()=>{
-  const session=new ProviderSession();
-  assert.equal(session.channel,null);
-  assert.equal(session.sdk,null);
-  assert.equal(session.sdkLoad,null);
-  assert.equal(session.ready,false);
-  session.close();
-});
+const token='a'.repeat(64);
 
-test('closing inline provider revokes the grant and clears liveness',()=>{
-  const session=new ProviderSession();
-  session.connected=true;
-  session.lastSeen=Date.now();
-  session.grant={missionId:'m-'+'a'.repeat(32),calls:1,model:'gpt-5-nano',used:0,seen:new Set()};
+function withBrowserState(fn){
+  const priorStorage=globalThis.sessionStorage,priorChannel=globalThis.BroadcastChannel;
+  const priorLocation=globalThis.location;
+  const data=new Map();
+  class FakeStorage{getItem(key){return data.has(key)?data.get(key):null;}setItem(key,value){data.set(key,String(value));}removeItem(key){data.delete(key);}}
+  class FakeChannel{static instances=[];constructor(name){this.name=name;this.closed=false;this.onmessage=null;FakeChannel.instances.push(this);}postMessage(){}close(){this.closed=true;}}
+  globalThis.sessionStorage=new FakeStorage();globalThis.BroadcastChannel=FakeChannel;
+  globalThis.location=new URL('https://example.test/demo/');
+  return Promise.resolve(fn({data,FakeChannel})).finally(()=>{
+    if(priorStorage===undefined)delete globalThis.sessionStorage;else globalThis.sessionStorage=priorStorage;
+    if(priorChannel===undefined)delete globalThis.BroadcastChannel;else globalThis.BroadcastChannel=priorChannel;
+    if(priorLocation===undefined)delete globalThis.location;else globalThis.location=priorLocation;
+  });
+}
+
+test('Mission Control restores the private embedded-provider channel',()=>withBrowserState(({data,FakeChannel})=>{
+  data.set(PROVIDER_CHANNEL_TOKEN_KEY,token);
+  const states=[],session=new ProviderSession((...state)=>states.push(state));
+  assert.equal(session.token,token);
+  assert.equal(FakeChannel.instances[0].name,`${PROTOCOL}:${token}`);
+  FakeChannel.instances[0].onmessage({data:{protocol:PROTOCOL,kind:'state',connected:true}});
   assert.equal(session.ready,true);
+  assert.equal(states.at(-1)[0],'connected');
   session.close();
-  assert.equal(session.connected,false);
-  assert.equal(session.lastSeen,0);
-  assert.equal(session.grant,null);
-});
+  assert.equal(data.has(PROVIDER_CHANNEL_TOKEN_KEY),false);
+}));
 
-test('inline provider retry replaces a failed SDK script',async()=>{
-  const priorDocument=globalThis.document;
-  const priorWindow=globalThis.window;
-  let current=null,appends=0,removals=0;
-  globalThis.window={};
-  globalThis.document={
-    querySelector:()=>current,
-    createElement:()=>({dataset:{},remove(){removals++;current=null;}}),
-    head:{append(script){current=script;appends++;queueMicrotask(()=>{
-      if(appends===1)script.onerror();
-      else{
-        globalThis.window.puter={auth:{isSignedIn:()=>false},ai:{}};
-        script.onload();
-      }
-    });}},
-  };
+test('guided setup returns an embeddable URL without opening a tab',()=>withBrowserState(({FakeChannel})=>{
+  const priorOpen=globalThis.open;let opened=false;globalThis.open=()=>{opened=true;};
   try{
     const session=new ProviderSession();
-    await assert.rejects(session.open(),/sdk_load_failed/);
-    assert.equal(removals,1);
-    assert.equal(await session.open(),false);
-    assert.equal(appends,2);
-  }finally{
-    globalThis.document=priorDocument;
-    globalThis.window=priorWindow;
-  }
-});
+    const url=new URL(session.open());
+    assert.equal(url.origin,'https://example.test');
+    assert.equal(url.pathname,'/provider/');
+    assert.match(url.hash,/^#[a-f0-9]{64}$/);
+    assert.equal(FakeChannel.instances.length,1);
+    assert.equal(opened,false);
+    session.close();
+  }finally{if(priorOpen===undefined)delete globalThis.open;else globalThis.open=priorOpen;}
+}));
