@@ -9,72 +9,97 @@ The documents under [`source/`](source/) preserve earlier design generations and
 | Capability | Current status |
 | --- | --- |
 | Core harness / verifier / receipts / residual delegation | Implemented and covered by the established test corpus |
-| Command Station | Implemented research/operations surface; deployment-specific production qualification still applies |
-| Factory M2 worker contracts/runtime | Implemented under `residual/factory/` |
-| Factory M3 evidence bus/Station receipts | Implemented; trusted admission remains the authority boundary |
-| Factory M4 deterministic integration/scheduler | Implemented; qualification remains exact-revision/environment bound rather than every-host |
-| Mission Control/WebVM lifecycle | #159 fresh-overlay recovery, #153 browser acceptance proof, #171/#173 bounded provider transport, and #169 privacy-safe local diagnostics are merged; current-main Pages/browser qualification passes, while live paid-provider success remains `UNKNOWN` |
+| Command Station | Implemented; exact-revision workflow results remain authoritative |
+| Factory M2/M3/M4 | Implemented; #187 protected test-only `/proc` observation repair and ownership-pin advance are accepted, but universal/capable-runner qualification is not implied |
+| Mission Control/WebVM lifecycle | #159 recovery, #153 browser acceptance, #169 diagnostics, #179 build-output handling, #183 provider-session lifecycle, #185/#186 iOS fallback, and #189 provider-helper COI boundary are on main; long-run and physical heavyweight-WebVM reliability remain unqualified |
+| iOS/WebKit release behavior | #186 fallback routes the unsupported/unqualified iOS WebKit profile to the walkthrough before heavyweight boot; physical-device validation remains open |
+| Provider helper publication | #189 static Pages COI/CORP boundary is accepted and exact-current-main Pages/deployment is PASS; retained manual production SDK/sign-in verification remains UNKNOWN |
 | Frozen evaluation framework | Implemented research apparatus; CI binding is not confirmatory live-model evidence |
-| Sandbox / red-team | Implemented development surface; host capability determines which kernel isolation paths can be qualified |
-| Cluster / distributed execution | Implemented development surface; production guarantees remain narrower than fixtures |
-| Lifecycle / side-effect gateway | Implemented deny-by-default controls and deterministic recovery mechanisms |
-| Research/reproducibility | Active; live R0–R5 and elapsed soak remain future evidence gates |
+| Release/recovery/soak | True blank-environment install, recovery/host-loss evidence and selected elapsed soak remain gates |
+| Live provider acceptance | Historical retained Puter failure remains **FAIL/BLOCKED**; exact-current-main paid/live provider success remains **UNKNOWN** until retained candidate→verifier→receipt evidence exists |
 
-Issues **#63** and **#48** are closed. `implementation-status.yaml` records M2/M3/M4/EVAL implementation presence and remains current for that purpose.
+`implementation-status.yaml` records implementation presence and remains current for that purpose. It is not a release-qualification manifest.
 
-## Current main
+## Accepted main
 
-Current `main` is **`160c01a1b1933ee10c82dcf30b1674a17f7560ff`**.
+Current `main` is **`dcf1e5071deb624c637aa72df575089435d72ac9`**, created by merged **#189** on top of merged **#187**.
 
-Recent material sequence:
+### #187 — protected test observation repair
 
-1. **#159 merged** — poison remains fenced; a failed Mission Control guest is recovered by rotating to a fresh browser-session writable overlay.
-2. **#168 merged** — repository governance changed to solo-maintainer approval with automated qualification plus exact-head maintainer attestation. This is not independent human assurance.
-3. **#153 merged** — WebVM terminal proof uses an unambiguous bounded marker and browser acceptance waits for the separate post-run control-unlock transition.
-4. **#171/#173 merged** — bounded provider-protocol compatibility remains separately counted, normal Puter tool transport preserves original harness messages, and `protocol_rejected` separates provider transport success from RESIDUAL envelope rejection.
-5. **#169 merged** — local-first privacy-safe diagnostic telemetry and sanitized triage bundles were added without changing authoritative guest evidence, provider routing, mission authority or qualification semantics.
+#187 final head `6a5ee753abe6137214f3ee17c8bcc4a85c4f3461` merged as `8592ba3b331c4d9cc16e038d0e9d7cdbfa6fbf24`.
 
-The final #169 head `fb767dc9682533a6092eb36de783e15a3bd47c13` completed exact-head qualification and received an exact-head maintainer attestation before merge.
+The accepted change performs a single `/proc/<pid>/status` read, treats only `FileNotFoundError` / `ProcessLookupError` as the expected disappeared-child outcome, preserves the bounded failure condition for a live non-zombie child, and advances the ownership pin for the changed protected test blob. It changes no runtime code or acceptance semantics.
 
-All seven observed current-main `push` workflows completed **PASS**. Pages/WebVM run `35182396521` passed on attempt 1 through provider/publication contracts, generated desktop+narrow proof, deployment, published real-guest execution, published narrow-Chromium acceptance and retained live-acceptance proof. This is exact-revision automated/browser evidence, not a live paid-provider/model result.
+Exact-head Factory ownership, measured binding, M4 prerequisites, clean install, Control Plane, Controller/provider, Command Station, and maintainer approval were PASS before merge. These scoped results do not imply every-host M4 qualification.
 
-The prior `main@2b7cb626...` Controller/provider **FAIL** on the protected M4 `/proc/<pid>/status` observation race remains retained historical evidence. A later green run does not prove the race fixed.
+### #189 — provider helper isolation boundary
+
+#189 final head `a307460228d1f1562805856085d471915f93e3f4` merged as current main.
+
+The accepted change keeps same-origin `/provider/` navigation outside COOP/COEP response rewriting so Puter's SDK is not blocked by the Pages service worker's cross-origin isolation policy. `/demo/` and the heavyweight WebVM isolation boundary remain unchanged.
+
+Exact-head Factory ownership, clean install, measured binding, Control Plane, Controller/provider, Command Station, Browser VM Demo, Pages, and maintainer approval were PASS before merge.
+
+## Exact-current-main qualification
+
+The first exact-current-main push set after #189 completed **PASS on attempt 1** for:
+
+- Factory ownership gate `35279264442`;
+- measured evaluation acceptance binding `35279264666`;
+- M4 qualification runner prerequisites `35279264635`;
+- clean install qualification `35279264767`;
+- Controller/provider contracts `35279264540`;
+- Command Station checks `35279264513`;
+- Deploy GitHub Pages `35279264564`.
+
+Required interpretation:
+
+- accepted bytes on main: **PASS**;
+- #189 exact-head pre-merge technical qualification: **PASS within named workflows**;
+- first merged-sha automated workflow/deployment set: **PASS within the seven named workflows**;
+- capable-runner/every-host M4 qualification: **not established by the hosted/prerequisite workflow set**;
+- production provider-helper SDK/sign-in behavior: **UNKNOWN** until retained manual production verification exists;
+- paid/live provider semantic success: **UNKNOWN** until retained exact-revision candidate→verifier→receipt evidence exists.
+
+Historical Controller/provider run `35263782697` on `main@e996b585...` remains retained **FAIL** in Python 3.13. #187 diagnoses/repairs that protected-test observation race; the historical failure is not erased.
+
+## iOS/WebKit accepted fallback
+
+The accepted #186 behavior detects iPhone/iPad/iPod and iPadOS WebKit before heavyweight guest/disk boot and routes that profile to `/walkthrough/?platform=ios-webkit`, preserving desktop WebVM behavior and `?full_vm=1` as an explicit diagnostic override.
+
+This is a supported-device fallback contract, not proof that heavyweight WebVM is reliable on physical iPhone Safari. Published physical-device validation and the lower-level process-kill cause remain open/UNKNOWN.
 
 ## Current build order
 
-1. **Repair the live build-provider boundary without broadening claims.** Fresh real iPhone/WebKit mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice but both counted calls ended `provider_protocol_invalid`; no candidate crossed the protocol boundary and semantic verification did not run. Treat the result as retained `FAIL/BLOCKED`; candidate correctness remains `UNKNOWN`.
-2. **Refresh/requalify #176 on current main.** #176 proposes a build-only output ceiling/default of 8192 while keeping non-build/source-grounded live mode at 1536 and failing closed on provider truncation. Its current head is diverged from current main; prior CI/attestation are historical. After any accepted merge, require post-merge Pages proof plus a new real iPhone/WebKit mission before claiming the live path fixed.
-3. **Resolve the protected M4 observation-race gate without weakening trust boundaries.** PR #139 isolates the repair. Review the protected byte change, deliberately handle the ownership baseline only if accepted, and run fresh qualification after any pin advancement.
-4. **Requalify downstream provider-adapter work only after the protected sequence where applicable.** #134 remains downstream of #139 for that protected dependency.
-5. **Continue WebVM reliability work.** Keep #120/#126 open. The positive-duration Python timed-wait boundary, older runtime corruption and the production poisoned-guest event have not been proven to share one cause. Run a defined repeated-run campaign and preserve failures rather than inferring reliability from isolated green deployments.
-6. **Refresh/requalify Qualification v1 (#152).** Older aggregate evidence does not automatically qualify current main. Keep virtual/simulated days separate from elapsed wall-clock soak.
-7. **Finish release/recovery qualification.** Exercise true blank-environment install, recovery and retained-evidence procedures. Procedure fixtures and simulations are not production release `PASS`.
-8. **Keep IE-001 evidence scoped.** Draft #177 reports 203 focused prototype tests passing plus green exact-head repository qualification/governance on its branch, but Q11 genuinely independent current-head technical review remains pending and the branch predates current main. Do not call IE-001 finally qualified or production-integrated.
-9. **Freeze the confirmatory live evaluation before outcome access.** Lock workload, task mapping, run identity, model/configuration, verifier policy, evidence path, metrics and analysis choices.
-10. **Run fixed-model R0–R5, degradation and heterogeneous-routing studies.** Report raw correctness, acceptance coverage, accepted correctness, AER/ASSR, verifier false acceptance/rejection/`UNKNOWN`, cost, latency and throughput.
-11. **Run live fault campaigns and staged elapsed soak.** 24-hour → 72-hour → 30-day only after shorter gates are clean.
-12. **Promote paper claims only from retained evidence.** Negative, `UNKNOWN`, rejected and failed runs stay in the record.
-
-## Governance note
-
-Merged #168 supersedes #146's proposed generic repository-wide independent-human gate. The repository merge-control model is automated qualification plus exact-head maintainer attestation. Use wording such as **maintainer-reviewed with automated qualification** unless another human actually supplied independent review.
-
-This does not erase claim-specific requirements for independent/third-party security review, research validation, release evidence or protected-byte handling.
+1. **Verify the provider helper in production on exact current main.** Automated Pages/deployment is PASS, but SDK load and sign-in availability need retained manual production evidence before that boundary becomes PASS.
+2. **Resolve #190's governance blocker.** Its refreshed current-main technical workflows are PASS, but the exact-head maintainer approval gate is **FAIL/BLOCKED** pending explicit approval. If accepted and merged later, retest provider-session recovery on the deployed revision.
+3. **Retest the live-provider semantic boundary on the exact deployed current main.** Historical mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` remains `FAIL/BLOCKED`; paid/live provider success stays UNKNOWN until a candidate crosses protocol validation and proceeds through normal verifier/receipt handling.
+4. **Physically validate the accepted #186 fallback.** Do not broaden fallback success into a heavyweight-WebVM reliability claim.
+5. **Execute true blank-environment installation and recovery/host-loss qualification for the exact release artifact.**
+6. **Complete the selected elapsed-soak tier.** Simulation is not elapsed wall-clock soak.
+7. **Continue #120/#126 WebVM reliability work.** Do not infer long-run reliability from isolated Pages/preflight success.
+8. **Keep #139→ownership-baseline→#134 independent.** #187 does not automatically clear that older protected sequence.
+9. **Refresh/requalify #152 and #177 before current release/research claims use them.**
+10. **Freeze and run confirmatory research only after operational claims are bounded.**
 
 ## Planning and prototype work
 
-PRs #160–#167 are inference-engineering specifications unless their implementations later land and requalify. Draft **#177** is the IE-001 development-only prototype qualification candidate; it is not production runtime and does not have final Q11 qualification. Draft **#178** is a documentation-only dependency-ordered IE-002→IE-007 implementation backlog and explicitly makes no runtime speedup, token/cost, routing, GPU or paper-facing claims. Draft **#175** is a specification-only OpenViking/context-provider proposal with no runtime dependency or accepted implementation claim.
+- **#188** — additive AQ-GOV-001 unanimous-consensus authority-escalation lab; unaccepted research candidate, no kernel/container/hypervisor/broker escape claim.
+- **#190** — provider BroadcastChannel recovery candidate; refreshed onto current main at `3a9ea3c2e6a36889f1fa71eb8a4e17c427c13261`. Observed technical workflows are PASS; maintainer approval is **FAIL/BLOCKED** pending exact-head attestation, so the candidate remains unaccepted.
+- **#193** — interactive setup-script candidate; unaccepted and not current operator/install behavior until merged/qualified.
+- **#194** — completed-draft visibility/reopen candidate for Command Station; unaccepted and not current accepted UI behavior until merged/qualified.
+- **#191** — closed unmerged; its automated PR-review workflow is not repository governance.
+- **#160/#161/#162/#163/#164/#166/#167** — IE-001→IE-007 specification/test-planning branches; no accepted production/performance/research claim.
+- **#177** — IE-001 prototype candidate; reconcile/refresh before final qualification.
+- **#178** — documentation-only IE-002→IE-007 implementation backlog; no runtime speedup/token/cost/routing/GPU claim.
+- **#175** — specification-only OpenViking/context-provider proposal; no accepted runtime dependency.
+- **#152** — Qualification v1 framework; refresh required before current release use.
+- **#139 / #134** — separate protected M4/dependent hardening sequence with its own ownership-baseline obligations.
 
-Planning artifacts and prototype-only candidates should not be counted as accepted production capability or used as a reason to change `implementation-status.yaml` by themselves.
+Planning artifacts and prototype-only candidates must not be counted as accepted production capability or used as a reason to change `implementation-status.yaml` by themselves.
 
-## Historical implementation material
+## Release evidence rule
 
-Useful background remains in:
+A merge onto main establishes that the accepted bytes are part of the repository. It does not automatically establish every release claim associated with them.
 
-- [DELEGATION.md](DELEGATION.md)
-- [FOUNDATION-CONTRACT.md](FOUNDATION-CONTRACT.md)
-- [SPEC-RECONCILIATION.md](SPEC-RECONCILIATION.md)
-- [TRACK-1-IMPLEMENTATION.md](TRACK-1-IMPLEMENTATION.md)
-- [CONFLICT_RESOLUTIONS.md](CONFLICT_RESOLUTIONS.md)
-
-These documents remain useful for lineage, but they do not override current code, exact-commit evidence, retained failures, current governance or [`../CURRENT_STATUS.md`](../CURRENT_STATUS.md).
+Any claim touching ownership baselines, qualification anchors, protected Factory/M4 bytes, verifier authority, evidence schemas, physical-device reliability, live-provider success, recovery or soak must remain scoped to retained evidence. Historical `FAIL`, `UNKNOWN`, and `BLOCKED` results remain visible even when later revisions pass.
