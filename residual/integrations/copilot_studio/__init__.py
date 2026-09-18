@@ -21,6 +21,12 @@ from .factory_handoff import (
     FirmwareFactoryAdapter,
     ResourceCatalog,
 )
+from .departments import (
+    AgentTemplate,
+    DepartmentProfile,
+    DepartmentRegistry,
+    ResidualDepartmentBinding,
+)
 
 __all__ = [
     "CopilotAPIError",
@@ -40,4 +46,8 @@ __all__ = [
     "CopilotFactoryHandoff",
     "FirmwareFactoryAdapter",
     "ResourceCatalog",
+    "AgentTemplate",
+    "DepartmentProfile",
+    "DepartmentRegistry",
+    "ResidualDepartmentBinding",
 ]

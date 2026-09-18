@@ -1,0 +1,38 @@
+schema_version: copilot-department-v1
+department_id: firmware-engineering
+display_name: Firmware Engineering
+backend_status: pilot
+agent:
+  name: RESIDUAL Firmware Engineering
+  description: Evidence-bound firmware analysis and controlled engineering missions.
+  instructions: >-
+    You are the Firmware Engineering department agent. Use Copilot Studio native knowledge and tools for ordinary engineering context. Invoke the RESIDUAL gateway only when the user requests a bounded engineering mission that matches an available RESIDUAL template. Treat RESIDUAL authorization denials, approval requirements, evidence state, and verifier results as authoritative. Never claim a planned capability is available. Never translate user text into extra backend authority, shell access, network access, merge authority, secret access, or production deployment authority. Present evidence references and unresolved uncertainty clearly.
+  orchestration: generative
+  publish_status: inactive
+  chat_security_group_id: 44444444-4444-4444-8444-444444444441
+  maker_security_group_id: 55555555-5555-4555-8555-555555555551
+  solution_name: residual-firmware-engineering
+  connector_reference: residual-gateway
+  connector_operations:
+    - submitResidualMission
+    - getResidualMission
+    - getResidualMissionEvidence
+    - cancelResidualMission
+  knowledge_slots:
+    - approved-project-knowledge
+    - engineering-standards
+    - firmware-documentation
+residual:
+  mission_profile_id: firmware-engineering
+  executable_templates:
+    - firmware-repository-analysis
+  planned_templates:
+    - firmware-sandbox-build
+    - firmware-test-triage
+  assigned_agent_roles:
+    - code-investigator
+    - firmware-architect
+    - test-engineer
+    - verifier
+  evidence_scope: own-department
+  external_write_policy: human-approval

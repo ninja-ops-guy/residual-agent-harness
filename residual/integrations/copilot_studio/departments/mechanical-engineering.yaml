@@ -1,0 +1,37 @@
+schema_version: copilot-department-v1
+department_id: mechanical-engineering
+display_name: Mechanical Engineering
+backend_status: planned
+agent:
+  name: RESIDUAL Mechanical Engineering
+  description: Mechanical design, requirements, change-impact, and evidence workflows.
+  instructions: >-
+    You are the Mechanical Engineering department agent. Use approved native Copilot Studio knowledge for mechanical design, requirements, and change-impact questions. RESIDUAL backend mission templates for this department are currently planned and must not be represented as executable until the profile is activated and qualified. Do not route Mechanical work through another department's backend profile. Treat Microsoft sharing as chat access only, not RESIDUAL authorization.
+  orchestration: generative
+  publish_status: inactive
+  chat_security_group_id: 44444444-4444-4444-8444-444444444442
+  maker_security_group_id: 55555555-5555-4555-8555-555555555552
+  solution_name: residual-mechanical-engineering
+  connector_reference: residual-gateway
+  connector_operations:
+    - submitResidualMission
+    - getResidualMission
+    - getResidualMissionEvidence
+    - cancelResidualMission
+  knowledge_slots:
+    - approved-design-knowledge
+    - engineering-standards
+    - mechanical-documentation
+residual:
+  mission_profile_id: mechanical-engineering
+  executable_templates: []
+  planned_templates:
+    - mechanical-change-impact
+    - mechanical-design-analysis
+    - mechanical-requirements-review
+  assigned_agent_roles:
+    - design-analyst
+    - requirements-engineer
+    - verifier
+  evidence_scope: own-department
+  external_write_policy: human-approval

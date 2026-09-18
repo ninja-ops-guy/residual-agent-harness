@@ -1,0 +1,115 @@
+schema_version: copilot-rbac-v1
+
+principles:
+  - copilot_chat_access_does_not_grant_residual_authority
+  - copilot_maker_access_does_not_grant_residual_authority
+  - platform_administration_does_not_grant_engineering_authority
+  - quality_review_is_separate_from_candidate_modification
+  - no_role_can_bypass_verifier_or_qualification
+  - external_writes_require_explicit_residual_authority_and_human_approval
+
+roles:
+  department-engineer:
+    copilot:
+      - chat.assigned-department-agent
+    residual:
+      - mission.submit.assigned-department
+      - mission.read.own
+      - evidence.read.own
+      - mission.cancel.own
+    denied:
+      - policy.modify
+      - verifier.bypass
+      - qualification.bypass
+      - production.write
+      - pr.merge
+
+  engineering-lead:
+    copilot:
+      - chat.assigned-department-agent
+    residual:
+      - mission.submit.assigned-department
+      - mission.read.assigned-department
+      - evidence.read.assigned-department
+      - mission.cancel.assigned-department
+      - hitl.approve.allowed-external-write
+    denied:
+      - policy.modify
+      - verifier.bypass
+      - qualification.bypass
+      - approve.own-policy-change
+
+  qa-reviewer:
+    copilot:
+      - chat.quality-assurance-agent
+    residual:
+      - evidence.read.authorized-cross-department
+      - qualification.run.approved-profile
+      - review.record
+      - review.reject
+    denied:
+      - candidate.modify.under-review
+      - verifier.bypass
+      - qualification.bypass
+      - policy.modify
+      - production.write
+
+  auditor:
+    copilot: []
+    residual:
+      - evidence.read.authorized
+      - audit.read.authorized
+      - receipt.verify
+    denied:
+      - mission.submit
+      - mission.cancel
+      - candidate.modify
+      - approval.issue
+      - policy.modify
+
+  residual-policy-admin:
+    copilot: []
+    residual:
+      - department-profile.manage
+      - resource-catalog.manage
+      - policy.manage
+    denied:
+      - approval.self-issue
+      - verifier.bypass
+      - qualification.bypass
+      - production.write.by-role-alone
+
+  copilot-agent-maker:
+    copilot:
+      - agent.author
+      - agent.test
+      - solution.prepare
+    residual: []
+    denied:
+      - residual.authority.by-maker-role
+      - policy.modify
+      - production.write
+
+  platform-admin:
+    copilot:
+      - solution.import
+      - solution.publish
+      - environment.configure
+    residual:
+      - service.health.read
+      - deployment.configure
+    denied:
+      - engineering-authority.by-platform-role
+      - approval.self-issue
+      - verifier.bypass
+      - qualification.bypass
+
+separation_of_duties:
+  - id: sod-policy-approval
+    statement: A policy administrator must not approve a mission whose authority derives from that administrator's unreviewed policy change.
+  - id: sod-qa-candidate
+    statement: A QA reviewer must not modify the candidate implementation being independently reviewed under the same review identity.
+  - id: sod-maker-runtime
+    statement: Copilot Studio maker or editor permission must not be accepted as RESIDUAL execution authority.
+  - id: sod-platform-engineering
+    statement: Power Platform or RESIDUAL platform administration must not imply department engineering authority.

@@ -1,0 +1,37 @@
+schema_version: copilot-department-v1
+department_id: automated-testing
+display_name: Automated Testing
+backend_status: planned
+agent:
+  name: RESIDUAL Automated Testing
+  description: Controlled test planning, execution triage, and reproducible evidence workflows.
+  instructions: >-
+    You are the Automated Testing department agent. Use approved native knowledge to explain test frameworks, plans, and results. RESIDUAL automated-test execution and triage templates are currently planned and must not be represented as executable until approved runners, test-suite identities, budgets, cancellation, and evidence gates are implemented. Never convert free-form user text into commands or runner access.
+  orchestration: generative
+  publish_status: inactive
+  chat_security_group_id: 44444444-4444-4444-8444-444444444444
+  maker_security_group_id: 55555555-5555-4555-8555-555555555554
+  solution_name: residual-automated-testing
+  connector_reference: residual-gateway
+  connector_operations:
+    - submitResidualMission
+    - getResidualMission
+    - getResidualMissionEvidence
+    - cancelResidualMission
+  knowledge_slots:
+    - approved-test-knowledge
+    - engineering-standards
+    - test-framework-documentation
+residual:
+  mission_profile_id: automated-testing
+  executable_templates: []
+  planned_templates:
+    - automated-test-failure-triage
+    - automated-test-plan-analysis
+    - automated-test-regression-review
+  assigned_agent_roles:
+    - test-investigator
+    - test-planner
+    - verifier
+  evidence_scope: own-department
+  external_write_policy: human-approval
