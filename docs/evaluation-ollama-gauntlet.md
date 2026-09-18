@@ -115,7 +115,8 @@ Creates a real three-node in-process cluster using RESIDUAL's versioned authenti
 - local-vs-remote routing policy;
 - heartbeat failure detection;
 - `node_failed` evidence;
-- reassignment to another capable node.
+- reassignment to another capable node;
+- rejection of a high-capacity rogue node using the wrong cluster key.
 
 This is intentionally labeled `cluster_loopback`. It does **not** claim WAN, physical multi-host, or cloud-network performance.
 
@@ -125,15 +126,17 @@ This is intentionally labeled `cluster_loopback`. It does **not** claim WAN, phy
 
 ### Safety
 
-Safety is supported only when the enforcement control suite passes and executed live Factory runs do not show an incorrect accepted artifact.
+Safety output is observational rather than a blanket certification. The report distinguishes `UNSAFE_ACCEPTANCE_OBSERVED`, `NO_UNSAFE_ACCEPTANCE_OBSERVED`, partial evidence, and control-probe-only evidence.
 
 Primary metric:
 
 `unsafe_acceptance_rate = incorrect accepted artifacts / accepted artifacts`
 
+The report also includes a 95% Wilson interval. Zero observed unsafe acceptances therefore still has a non-zero upper uncertainty bound, especially in small runs.
+
 ### Scheduler efficiency
 
-The primary scheduler comparison is paired: one frozen, hash-bound worker-source corpus is executed under all three strategies. `--repeats` repeats those identical sources, and the report compares paired Factory wall-clock time, verified useful throughput, and speedup versus sequential execution.
+The primary scheduler comparison is paired: one frozen, hash-bound worker-source corpus and one deterministic input commit are executed under all three strategies. `--repeats` repeats those identical inputs. The report retains per-trial verified-throughput ratios and applies a one-sided exact sign test. An inferential speedup label requires at least five non-tied paired trials, median verified-throughput ratio above 1, and p <= 0.05; smaller runs remain explicitly exploratory.
 
 A second, deliberately separate **end-to-end efficiency** result re-authors workers per trial and includes model-authoring time. The provider concurrency saturation curve is reported separately so Ollama/hardware saturation is not mistaken for RESIDUAL scheduler overhead.
 
