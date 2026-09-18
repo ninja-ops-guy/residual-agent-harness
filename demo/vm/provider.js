@@ -1,20 +1,16 @@
 import {PROTOCOL, RESPONSE_SCHEMA, validId, validInference, validModel, bounded, errorCode, protocolReply, protocolFailureReason, providerFailureMessage, providerTransportAfterFailure} from './provider-session.js';
 const status = document.getElementById('status'), load = document.getElementById('load'), sign = document.getElementById('signin');
-const CHANNEL_TOKEN_KEY = 'residual.provider.channel.v1';
-const hashToken = location.hash.slice(1);
-let token = /^[a-f0-9]{64}$/.test(hashToken) ? hashToken : '', recovered = false;
-try {
-  if (token) sessionStorage.setItem(CHANNEL_TOKEN_KEY, token);
-  else {
-    const stored = sessionStorage.getItem(CHANNEL_TOKEN_KEY) || '';
-    if (/^[a-f0-9]{64}$/.test(stored)) { token = stored; recovered = true; }
-  }
-} catch {}
-if (location.hash) history.replaceState(null, '', location.pathname);
 let channel, sdk, grant = null, busy = false, modelCatalog = null, sdkLoadPromise = null;
 const tell = text => { status.textContent = text; };
 const send = msg => channel?.postMessage({protocol: PROTOCOL, ...msg});
 function state() { send({kind: 'state', connected: !!sdk?.auth?.isSignedIn?.()}); }
+load.disabled = true;
+tell('Waiting for the private Mission Control bridge. No provider SDK has been loaded.');
+window.addEventListener('message', event => {
+  if (event.origin !== location.origin || event.data?.protocol !== PROTOCOL || event.data?.kind !== 'connect' || !event.ports?.[0] || channel) return;
+  channel = event.ports[0]; channel.onmessage = bridgeEvent => receive(bridgeEvent.data); channel.start?.();
+  load.disabled = false; tell('Bridge ready. Load Puter when you are ready; no inference has run.'); state();
+});
 function safeFailure(error) {
   const raw = String(error?.error || error?.code || error?.message || '').toLowerCase();
   if (raw === 'provider_protocol_invalid' || raw.includes('protocol_invalid')) return 'provider_protocol_invalid';
@@ -47,8 +43,7 @@ function transportMessages(messages, transport = 'tool') {
     return message;
   });
 }
-if (!token) { load.disabled = true; tell('Open provider setup from Mission Control. This panel has no connection channel.'); }
-else { channel = new BroadcastChannel(`${PROTOCOL}:${token}`); channel.onmessage = event => receive(event.data); setInterval(state, 3000); state(); }
+setInterval(state, 3000);
 function loadSdk(restoring = false) {
   if (sdk?.auth && sdk?.ai) { state(); return Promise.resolve(sdk); }
   if (sdkLoadPromise) return sdkLoadPromise;
@@ -84,7 +79,6 @@ sign.addEventListener('click', () => {
     .catch(error => { sign.disabled = false; tell(`Sign-in did not complete: ${errorCode(error)}. Check popup permission, then retry. No inference was requested.`); })
     .finally(() => { clearTimeout(timer); state(); });
 });
-if (recovered) loadSdk(true).catch(() => {});
 async function receive(m) {
   if (!m || m.protocol !== PROTOCOL || !bounded(m)) return;
   if (m.kind === 'revoke') { grant = null; return; }

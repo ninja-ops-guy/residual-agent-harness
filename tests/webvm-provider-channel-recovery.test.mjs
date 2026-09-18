@@ -1,46 +1,48 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {ProviderSession, PROTOCOL, PROVIDER_CHANNEL_TOKEN_KEY} from '../demo/vm/provider-session.js';
-
-const token='a'.repeat(64);
+import {ProviderSession, PROTOCOL} from '../demo/vm/provider-session.js';
 
 function withBrowserState(fn){
-  const priorStorage=globalThis.sessionStorage,priorChannel=globalThis.BroadcastChannel;
-  const priorLocation=globalThis.location;
-  const data=new Map();
-  class FakeStorage{getItem(key){return data.has(key)?data.get(key):null;}setItem(key,value){data.set(key,String(value));}removeItem(key){data.delete(key);}}
-  class FakeChannel{static instances=[];constructor(name){this.name=name;this.closed=false;this.onmessage=null;FakeChannel.instances.push(this);}postMessage(){}close(){this.closed=true;}}
-  globalThis.sessionStorage=new FakeStorage();globalThis.BroadcastChannel=FakeChannel;
+  const priorLocation=globalThis.location,priorChannel=globalThis.MessageChannel;
+  class FakePort{constructor(){this.onmessage=null;this.closed=false;}postMessage(){}start(){}close(){this.closed=true;}}
+  class FakeMessageChannel{constructor(){this.port1=new FakePort();this.port2=new FakePort();}}
   globalThis.location=new URL('https://example.test/demo/');
-  return Promise.resolve(fn({data,FakeChannel})).finally(()=>{
-    if(priorStorage===undefined)delete globalThis.sessionStorage;else globalThis.sessionStorage=priorStorage;
-    if(priorChannel===undefined)delete globalThis.BroadcastChannel;else globalThis.BroadcastChannel=priorChannel;
+  globalThis.MessageChannel=FakeMessageChannel;
+  return Promise.resolve(fn()).finally(()=>{
     if(priorLocation===undefined)delete globalThis.location;else globalThis.location=priorLocation;
+    if(priorChannel===undefined)delete globalThis.MessageChannel;else globalThis.MessageChannel=priorChannel;
   });
 }
 
-test('Mission Control restores the private embedded-provider channel',()=>withBrowserState(({data,FakeChannel})=>{
-  data.set(PROVIDER_CHANNEL_TOKEN_KEY,token);
-  const states=[],session=new ProviderSession((...state)=>states.push(state));
-  assert.equal(session.token,token);
-  assert.equal(FakeChannel.instances[0].name,`${PROTOCOL}:${token}`);
-  FakeChannel.instances[0].onmessage({data:{protocol:PROTOCOL,kind:'state',connected:true}});
-  assert.equal(session.ready,true);
-  assert.equal(states.at(-1)[0],'connected');
-  session.close();
-  assert.equal(data.has(PROVIDER_CHANNEL_TOKEN_KEY),false);
-}));
-
-test('guided setup returns an embeddable URL without opening a tab',()=>withBrowserState(({FakeChannel})=>{
-  const priorOpen=globalThis.open;let opened=false;globalThis.open=()=>{opened=true;};
+test('guided setup transfers a private port into the embedded frame without opening a tab',()=>withBrowserState(()=>{
+  const priorOpen=globalThis.open;let opened=false,handshake=null;
+  globalThis.open=()=>{opened=true;};
+  const frame={src:'',onload:null,contentWindow:{postMessage(message,origin,ports){handshake={message,origin,ports};}}};
   try{
-    const session=new ProviderSession();
-    const url=new URL(session.open());
+    const states=[],session=new ProviderSession((...state)=>states.push(state));
+    const url=new URL(session.open(frame));
     assert.equal(url.origin,'https://example.test');
     assert.equal(url.pathname,'/provider/');
-    assert.match(url.hash,/^#[a-f0-9]{64}$/);
-    assert.equal(FakeChannel.instances.length,1);
+    assert.equal(frame.src,url.href);
+    frame.onload();
+    assert.equal(handshake.message.protocol,PROTOCOL);
+    assert.equal(handshake.message.kind,'connect');
+    assert.equal(handshake.origin,'https://example.test');
+    assert.equal(handshake.ports.length,1);
     assert.equal(opened,false);
+    assert.equal(states.at(-1)[0],'connecting');
     session.close();
   }finally{if(priorOpen===undefined)delete globalThis.open;else globalThis.open=priorOpen;}
 }));
+
+test('closing embedded provider revokes the grant and clears liveness',()=>{
+  const session=new ProviderSession();
+  session.channel={postMessage(){},close(){}};
+  session.connected=true;session.lastSeen=Date.now();
+  session.grant={missionId:'m-'+'a'.repeat(32),calls:1,model:'gpt-5-nano',used:0,seen:new Set()};
+  assert.equal(session.ready,true);
+  session.close();
+  assert.equal(session.connected,false);
+  assert.equal(session.lastSeen,0);
+  assert.equal(session.grant,null);
+});
