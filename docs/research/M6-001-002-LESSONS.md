@@ -110,3 +110,44 @@ The intervention is only:
 3. richer failed-attempt evidence is retained.
 
 If M6-SPEC-003 succeeds after a failed first attempt, that supports the repair-context hypothesis. If it succeeds on the first attempt, the intervention was not exercised. If it fails, the retained candidate artifacts should make the next failure analysis substantially more precise.
+
+
+## M6-SPEC-003 result
+
+The repair-context intervention was exercised on the same 1.5B task and still failed closed.
+
+- 3 calls
+- 4,171 reported tokens
+- 41.72 s mission wall clock
+- final outcome: escalated
+- integrated: 0/1
+
+The richer evidence changed the diagnosis materially. Attempt patches showed:
+
+1. attempt 1 wrote only `{` into `spec.py`;
+2. attempt 2 wrote a dict/JSON-like data object instead of Python source;
+3. attempt 3 repeated the data-object pattern and changed one acceptance value.
+
+Repair-context hashes prove the prior candidate was supplied on attempts 2 and 3, so the remaining failure cannot be explained by missing repair context alone.
+
+### New lesson: transport/source conflation
+
+The runner protocol uses a structured outer JSON envelope:
+
+`{"files":{"path":"complete file content"}}`
+
+For a small model, that envelope can be confused with the required contents of the target file. M6-SPEC-003 shows the model satisfying the transport shape while placing a data object inside the `.py` file rather than implementing the requested class.
+
+The runner contract is therefore being strengthened to state explicitly that:
+- the outer JSON is transport only;
+- each value is literal file content;
+- `.py` values must contain Python source;
+- a concrete correctly escaped Python example is provided.
+
+This does not change acceptance, review, receipts, integration, M4, or promotion authority.
+
+## M6-SPEC-004 hypothesis
+
+M6-SPEC-004 should compare directly against M6-SPEC-003 while keeping the same 1.5B model, frozen task/checks, repair-context intervention, token ceiling, and attempt envelope. The only new behavioral intervention is the transport/source disambiguation in the runner system contract.
+
+A successful first attempt would support the transport-clarity hypothesis but would not test repair. A failed first attempt followed by a successful repair would support both transport clarity and repair-context composition.
