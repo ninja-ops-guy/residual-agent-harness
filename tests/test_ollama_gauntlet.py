@@ -41,6 +41,35 @@ class FakeRegistry:
         return FakeProvider()
 
 
+class HybridFakeProvider:
+    def __init__(self, name):
+        self.name = name
+
+    def list_models(self):
+        if self.name == "ollama":
+            return ["tiny:test"]
+        raise ProviderError(provider=self.name, code="not_implemented")
+
+    def chat(self, req):
+        prompt = req.messages[-1].content
+        if "RESIDUAL_LOCAL_OK" in prompt:
+            content = "RESIDUAL_LOCAL_OK"
+        elif "RESIDUAL_CLOUD_OK" in prompt:
+            content = "RESIDUAL_CLOUD_OK"
+        else:
+            content = "RESIDUAL_OK"
+        return ChatResponse(
+            model=req.model,
+            content=content,
+            usage={"prompt_tokens": 4, "completion_tokens": 1, "total_tokens": 5},
+        )
+
+
+class HybridFakeRegistry:
+    def get(self, name):
+        return HybridFakeProvider(name)
+
+
 class ProviderSuiteTests(unittest.TestCase):
     def test_provider_suite_uses_real_provider_boundary_and_usage(self):
         with patch.object(g, "DEFAULT_REGISTRY", FakeRegistry()):
@@ -56,6 +85,16 @@ class ProviderSuiteTests(unittest.TestCase):
             with self.assertRaises(ProviderError) as caught:
                 g.provider_live_suite(provider="ollama", model="missing:test", repeats=1)
         self.assertEqual(caught.exception.code, "model_not_found")
+
+    def test_non_ollama_provider_can_run_without_model_discovery(self):
+        case = (g.LiveCase("cloud-01", "Return exactly RESIDUAL_OK.", "RESIDUAL_OK"),)
+        with patch.object(g, "DEFAULT_REGISTRY", HybridFakeRegistry()):
+            result = g.provider_live_suite(
+                provider="openai", model="cloud:test", repeats=1, cases=case,
+            )
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["available_models"], [])
+        self.assertEqual(result["summary"]["correct"], 1)
 
     def test_provider_scaling_reports_real_concurrency_curve(self):
         with patch.object(g, "DEFAULT_REGISTRY", FakeRegistry()):
@@ -84,6 +123,21 @@ class ClusterSuiteTests(unittest.TestCase):
         self.assertFalse(result["rogue_with_wrong_key_admitted"])
         self.assertEqual(result["after_failure"]["state"], "completed")
         self.assertNotEqual(result["after_failure"]["assigned_node"], "remote-fast")
+
+
+    def test_live_hybrid_provider_failover_routes_local_then_cloud(self):
+        with patch.object(g, "DEFAULT_REGISTRY", HybridFakeRegistry()):
+            result = g.hybrid_provider_failover_suite(
+                local_provider="ollama", local_model="tiny:test",
+                cloud_provider="openai", cloud_model="cloud:test",
+            )
+        self.assertEqual(result["status"], "PASS")
+        self.assertFalse(result["wan_claim"])
+        self.assertTrue(result["local_execution_observed"])
+        self.assertTrue(result["cloud_execution_observed"])
+        self.assertTrue(result["failure_receipt_captured"])
+        self.assertEqual(result["failover_assigned_node"], "hybrid-cloud")
+        self.assertIn("hybrid-local", result["failed_nodes"])
 
 
 class FactoryBindingTests(unittest.TestCase):
