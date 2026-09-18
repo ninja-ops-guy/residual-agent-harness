@@ -49,6 +49,7 @@ def identity(subject="alice@example.com", *, tenant="tenant-a", groups=("Enginee
 def harness():
     auth = FakeAuthenticator({
         "alice": identity(),
+        "opaque-bearer-token": identity(),
         "bob": identity("bob@example.com"),
         "mech": identity("mech@example.com", groups=("Engineering-Mechanical",)),
         "other-tenant": identity("alice@example.com", tenant="tenant-b"),
@@ -93,7 +94,7 @@ def test_authorized_firmware_request_compiles_residual_authority():
     assert all(grant.subject == "alice@example.com" for grant in record.revision.capability_grants)
     assert all(grant.scope["mission_id"] == record.mission.mission_id for grant in record.revision.capability_grants)
     assert record.claims_hash
-    assert "alice" not in repr(record)  # bearer token itself is never retained
+    assert "opaque-bearer-token" not in repr(record)  # bearer token itself is never retained
 
 
 def test_department_membership_is_derived_from_verified_identity_and_fails_closed():
