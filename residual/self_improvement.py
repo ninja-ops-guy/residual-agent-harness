@@ -492,23 +492,40 @@ def execute_candidate_doc(report, plan, candidate_doc, station_data,
     spec = build_station_spec(report, plan, validate_candidate_doc(candidate_doc), report["repository_root"])
     from residual.station.service import Station
     station = Station(station_data)
+    source_tree = git(report["repository_root"], "rev-parse", report["head"] + "^{tree}")
     pid = station.create(spec, source=report["repository_root"], allow_cloud=allow_cloud,
                          commands=allow_command_checks)["project_id"]
-    assert_managed_source(station, pid, report["head"])
+    managed_repo = assert_managed_source(station, pid, report["head"])
     batch = station.batch(pid)
+    successor_head = git(managed_repo, "rev-parse", "HEAD")
+    successor_tree = git(managed_repo, "rev-parse", successor_head + "^{tree}")
+    meaningful_delta = successor_tree != source_tree
+    completed = batch["integrated"] == batch["total"] and batch.get("control", {}).get("outcome") == "success"
+    accepted_successor = completed and meaningful_delta
     export = None
-    if batch["integrated"] == batch["total"] and batch.get("control", {}).get("outcome") == "success":
+    if completed and not meaningful_delta:
+        station.store.event(pid, "project.note", {
+            "message": "Self-improvement generation completed without a tree delta; successor promotion withheld",
+            "source_tree": source_tree, "successor_tree": successor_tree,
+        })
+    if accepted_successor:
         export = station.export(pid)
     return {
         "mission_id": MISSION_ID,
         "generation": plan["generation"],
         "source_head": report["head"],
+        "source_tree": source_tree,
         "source_report_sha256": report["report_sha256"],
         "plan_sha256": plan["plan_sha256"],
         "candidate_manifest_sha256": digest(candidate_doc),
         "station_spec_sha256": hashlib.sha256(spec.encode()).hexdigest(),
         "project_id": pid,
         "batch": batch,
+        "successor_head": successor_head,
+        "successor_tree": successor_tree,
+        "successor_repo": str(managed_repo),
+        "meaningful_delta": meaningful_delta,
+        "accepted_successor": accepted_successor,
         "export": export,
     }
 
@@ -604,13 +621,11 @@ def self_improve_main(argv=None):
             execution = result["execution"]
             if execution is None:
                 return 2
-            control = execution["batch"].get("control", {})
-            return 0 if execution["batch"]["integrated"] == execution["batch"]["total"] and control.get("outcome") == "success" else 2
+            return 0 if execution.get("accepted_successor") else 2
         result = execute_generation(args.repo, args.candidates, args.station_data,
                                     args.allow_cloud, args.allow_command_checks)
         print(json.dumps(result, indent=2))
-        control = result["batch"].get("control", {})
-        return 0 if result["batch"]["integrated"] == result["batch"]["total"] and control.get("outcome") == "success" else 2
+        return 0 if result.get("accepted_successor") else 2
     except (ContractError, OSError, ValueError, TypeError, KeyError):
         print("residual self-improve: generation could not be validated or executed", file=sys.stderr)
         return 1
