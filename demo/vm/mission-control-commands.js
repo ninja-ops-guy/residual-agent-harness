@@ -18,6 +18,7 @@ const HELP=[
   "/mesh status                  show mesh attachment/control boundary",
   "/experiment distributed       show native distributed benchmark command",
   "/experiment mesh              show native mesh benchmark command",
+  "/experiment pipeline          show dependency-DAG benchmark command",
   "/terminal                      alias for /tab terminal"
 ].join("\n");
 
@@ -102,8 +103,9 @@ export async function executeMissionCommand(input,api){
   if(command==="experiment"){
     const kind=(args[0]||"").toLowerCase();
     if(kind==="distributed")return result("Native benchmark: residual experiment distributed --workers 1 2 4 --tasks 8 --work-ms 40 --repeats 3 --output runs/distributed.json");
-    if(kind==="mesh")return result("Native benchmark: residual experiment mesh --messages 1000 --repeats 3 --output runs/mesh.json");
-    return result("Usage: /experiment distributed|mesh");
+    if(kind==="mesh")return result("Native benchmark: residual experiment mesh --messages 1000 --peers 4 --repeats 3 --output runs/mesh.json");
+    if(kind==="pipeline")return result("Native benchmark: residual experiment pipeline --workers 1 2 4 --width 4 --depth 2 --work-ms 40 --repeats 3 --output runs/pipeline.json");
+    return result("Usage: /experiment distributed|mesh|pipeline");
   }
   return result(`Unknown command: /${command}\n\n${HELP}`);
 }
