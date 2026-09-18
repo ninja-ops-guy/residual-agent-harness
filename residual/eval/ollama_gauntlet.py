@@ -356,7 +356,8 @@ def factory_live_suite(*, provider: str, model: str, output_root: Path,
     if sys.platform != "linux":
         return {"suite": f"factory_live_{strategy}", "evidence_level": "factory_live",
                 "status": "NOT_TESTED", "reason": "FactoryRuntime requires Linux"}
-    run_root = output_root / f"factory-{strategy}"
+    safe_provider = provider.replace("/", "_").replace(":", "_")
+    run_root = output_root / f"factory-{safe_provider}-{strategy}"
     run_root.mkdir(parents=True, exist_ok=False)
     repository, commit = _init_repo(run_root)
     journal = RuntimeJournal(run_root / "state" / "journal.db",
@@ -548,7 +549,8 @@ def factory_control_suite(*, output_root: Path) -> dict[str, Any]:
 
 
 def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
-                 include_factory: bool = True) -> dict[str, Any]:
+                 include_factory: bool = True, cloud_provider: str | None = None,
+                 cloud_model: str | None = None) -> dict[str, Any]:
     output = Path(output)
     output.mkdir(parents=True, exist_ok=False)
     suites = []
@@ -596,16 +598,88 @@ def run_gauntlet(*, output: Path, provider: str, model: str, repeats: int = 3,
         for strategy in ("single", "fixed", "dynamic"):
             capture(f"factory_live_{strategy}", lambda strategy=strategy: factory_live_suite(
                 provider=provider, model=model, output_root=output, strategy=strategy))
+    if cloud_provider or cloud_model:
+        if not (cloud_provider and cloud_model):
+            suites.append({"suite": "cloud_provider_live", "status": "NOT_TESTED",
+                           "reason": "cloud_provider and cloud_model must be supplied together"})
+        else:
+            capture("cloud_provider_live", lambda: provider_live_suite(
+                provider=cloud_provider, model=cloud_model, repeats=repeats))
+            if include_factory:
+                capture("factory_cloud_dynamic", lambda: factory_live_suite(
+                    provider=cloud_provider, model=cloud_model, output_root=output,
+                    strategy="dynamic"))
 
     end = _now_ns()
     evaluated = [s for s in suites if s.get("status") != "NOT_TESTED"]
     failed = [s for s in evaluated if s.get("status") == "FAIL"]
+
+    by_name = {str(s.get("suite")): s for s in suites}
+    factory_local = {key: by_name.get(f"factory_live_{key}") for key in ("single", "fixed", "dynamic")}
+    timing = {key: value.get("wall_clock_seconds") for key, value in factory_local.items()
+              if isinstance(value, dict) and value.get("wall_clock_seconds") is not None}
+    throughput = {key: value.get("verified_useful_throughput_per_second")
+                  for key, value in factory_local.items()
+                  if isinstance(value, dict) and value.get("verified_useful_throughput_per_second") is not None}
+    speedups = {}
+    single_time = timing.get("single")
+    if single_time:
+        for key in ("fixed", "dynamic"):
+            candidate = timing.get(key)
+            if candidate:
+                speedups[key] = single_time / candidate
+
+    control = by_name.get("factory_control", {})
+    live_factory_rows = [value for value in factory_local.values()
+                         if isinstance(value, dict) and value.get("status") != "NOT_TESTED"]
+    unsafe = sum(int(row.get("unsafe_acceptances") or 0) for row in live_factory_rows)
+    safety_status = "NOT_TESTED"
+    if control.get("status") == "FAIL" or unsafe:
+        safety_status = "FAIL"
+    elif control.get("status") == "PASS" and live_factory_rows:
+        safety_status = "SUPPORTED"
+    elif control.get("status") == "PASS":
+        safety_status = "PARTIAL"
+
+    efficiency_status = "NOT_TESTED"
+    if len(timing) == 3:
+        if speedups and max(speedups.values()) > 1.0:
+            efficiency_status = "SUPPORTED_FOR_THIS_WORKLOAD"
+        else:
+            efficiency_status = "NOT_SUPPORTED_FOR_THIS_WORKLOAD"
+
+    cluster = by_name.get("cluster_loopback", {})
+    hybrid_status = "NOT_TESTED"
+    if cloud_provider and cloud_model and by_name.get("factory_cloud_dynamic", {}).get("status") == "PASS":
+        hybrid_status = "PARTIAL_LOCAL_RUNTIME_CLOUD_AUTHORING"
+    elif cluster.get("status") == "PASS":
+        hybrid_status = "CONTROL_PLANE_ONLY"
+
+    hypotheses = {
+        "safety": {"status": safety_status, "unsafe_acceptances": unsafe,
+                   "control_probe_status": control.get("status")},
+        "scheduler_efficiency": {
+            "status": efficiency_status,
+            "wall_clock_seconds": timing,
+            "verified_throughput_per_second": throughput,
+            "speedup_vs_single": speedups,
+            "scope": "governed Factory scheduling; not an uncontrolled-swarm baseline",
+        },
+        "hybrid_cloud_mesh": {
+            "status": hybrid_status,
+            "cluster_loopback_status": cluster.get("status"),
+            "wan_mesh_measured": False,
+            "cloud_authoring_configured": bool(cloud_provider and cloud_model),
+        },
+    }
+
     report = {
         "schema_version": SCHEMA_VERSION,
         "started_at_ns": started,
         "finished_at_ns": end,
-        "environment": environment,
+        "environment": {**environment, "cloud_provider": cloud_provider, "cloud_model": cloud_model},
         "suites": suites,
+        "hypotheses": hypotheses,
         "overall": {
             "status": "FAIL" if failed else ("PASS" if evaluated else "NOT_TESTED"),
             "evaluated_suites": len(evaluated),
@@ -630,6 +704,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--model", required=True)
     parser.add_argument("--repeats", type=int, default=3)
     parser.add_argument("--no-factory", action="store_true")
+    parser.add_argument("--cloud-provider")
+    parser.add_argument("--cloud-model")
     return parser
 
 
@@ -638,6 +714,7 @@ def main(argv: list[str] | None = None) -> int:
     report = run_gauntlet(
         output=Path(args.output), provider=args.provider, model=args.model,
         repeats=args.repeats, include_factory=not args.no_factory,
+        cloud_provider=args.cloud_provider, cloud_model=args.cloud_model,
     )
     print(json.dumps({
         "report": str(Path(args.output) / "gauntlet-report.json"),
