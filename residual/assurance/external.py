@@ -5,7 +5,9 @@ import json
 import math
 import re
 from dataclasses import dataclass
+from fractions import Fraction
 from pathlib import Path
+from threading import Lock
 from typing import Any, Iterable, Mapping
 
 from ..core import canonical, digest, strict_json
@@ -17,6 +19,10 @@ from .quality import AssuranceClass
 
 _ALLOWED_SPLITS = {"train", "evaluation"}
 _ALLOWED_GRADERS = {"exact_text", "contains_all", "json_exact", "regex"}
+
+
+class EvidenceBudgetExceeded(RuntimeError):
+    """Declared spend would exceed the frozen ceiling before provider dispatch."""
 
 
 def wilson_interval(successes: int, total: int, z: float = 1.96) -> dict[str, float]:
@@ -153,9 +159,13 @@ class ExternalEvidenceRunner:
     train outcomes. Evaluation outcomes are applied only after the corresponding
     market decision has been recorded. Fixed baselines reuse the same observed
     engine outputs, so policy comparisons do not make additional provider calls.
+    The optional budget reserves declared cost before every attempted dispatch,
+    across all trials and repeated runs on this instance. Failed calls remain
+    charged. This bounds declared accounting, not actual provider billing.
     """
 
-    def __init__(self, suite: ExternalSuite, engines: Iterable[LiveEngineSpec], trials: int = 1):
+    def __init__(self, suite: ExternalSuite, engines: Iterable[LiveEngineSpec], trials: int = 1,
+                 *, maximum_budget_usd: float | None = None):
         self.suite = suite
         self.engines = tuple(engines)
         if len(self.engines) < 2:
@@ -166,6 +176,27 @@ class ExternalEvidenceRunner:
         ids = [e.engine.engine_id for e in self.engines]
         if len(ids) != len(set(ids)):
             raise ValueError("duplicate engine id")
+        for spec in self.engines:
+            if not math.isfinite(spec.cost_per_task) or spec.cost_per_task < 0:
+                raise ValueError("cost_per_task must be finite and non-negative")
+        if maximum_budget_usd is not None:
+            if not math.isfinite(maximum_budget_usd) or maximum_budget_usd < 0:
+                raise ValueError("maximum_budget_usd must be finite and non-negative")
+        self.maximum_budget_usd = maximum_budget_usd
+        # Exact decimal input values avoid an epsilon that authorizes overspend.
+        self._budget_limit = (None if maximum_budget_usd is None
+                              else Fraction(str(maximum_budget_usd)))
+        self._declared_costs = {spec.engine.engine_id: Fraction(str(spec.cost_per_task))
+                                for spec in self.engines}
+        self._reserved_cost_usd = Fraction(0)
+        self._reservation_lock = Lock()
+
+    def _reserve_provider_call(self, spec: LiveEngineSpec) -> None:
+        with self._reservation_lock:
+            next_total = self._reserved_cost_usd + self._declared_costs[spec.engine.engine_id]
+            if self._budget_limit is not None and next_total > self._budget_limit:
+                raise EvidenceBudgetExceeded("provider dispatch refused: declared budget exhausted")
+            self._reserved_cost_usd = next_total
 
     def _new_market(self) -> VerifiedComputeMarket:
         market = VerifiedComputeMarket(exploration_strength=0.0)
@@ -195,6 +226,7 @@ class ExternalEvidenceRunner:
                         f"{case.case_id}:trial-{trial}", case.capability, case.prompt,
                         {"assurance": case.assurance.value, "trial": trial},
                     )
+                    self._reserve_provider_call(spec)
                     try:
                         result = spec.engine.execute(task, ContextAssembly())
                         passed = grade_external(result.candidate, case.grader)
@@ -204,6 +236,8 @@ class ExternalEvidenceRunner:
                             "token_usage": result.token_usage,
                             "error": None,
                         }
+                    except EvidenceBudgetExceeded:
+                        raise
                     except Exception as exc:
                         observations[(trial, case.case_id, spec.engine.engine_id)] = {
                             "passed": False,
@@ -301,6 +335,11 @@ class ExternalEvidenceRunner:
             "trials": self.trials,
             "evaluation_cases_per_trial": len(evaluation),
             "evaluation_attempts": eval_attempts,
+            "budget": {
+                "maximum_budget_usd": self.maximum_budget_usd,
+                "reserved_declared_cost_usd": float(self._reserved_cost_usd),
+                "accounting": "declared_per_task_not_provider_billing",
+            },
             "per_engine": per_engine,
             "market": {
                 "evaluation_successes": market_successes,
