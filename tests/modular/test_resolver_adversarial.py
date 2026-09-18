@@ -109,9 +109,9 @@ class ProfileAliasTests(unittest.TestCase):
         with self.assertRaisesRegex(ContractError, "Invalid output-limit field"):
             normalize_profile({"kind": "openai", "model": "m", "output_token_field": "num_predict"}, "remote")
 
-    def test_model_control_char_rejected(self):  # PR-02f (model contains \x07 BEL)
+    def test_model_control_char_rejected(self):  # PR-02f
         with self.assertRaises(ContractError):
-            normalize_profile({"kind": "openai", "model": "m"}, "remote")
+            normalize_profile({"kind": "openai", "model": "m\x07"}, "remote")  # model contains BEL control char
 
     def test_unknown_kind_rejected(self):  # PR-02g
         with self.assertRaisesRegex(ContractError, "supported provider"):
@@ -191,9 +191,9 @@ class CredentialHandleTests(unittest.TestCase):
         with self.assertRaisesRegex(ContractError, "Unsupported credential field"):
             save_settings(self.store, {"provider_credentials": {"bedrock": {"api_key": "x"}}})
 
-    def test_credential_control_char_rejected(self):  # PR-03e (api_key contains \x01 SOH)
+    def test_credential_control_char_rejected(self):  # PR-03e
         with self.assertRaisesRegex(ContractError, "Invalid credential"):
-            save_settings(self.store, {"provider_credentials": {"openai": {"api_key": "x"}}})
+            save_settings(self.store, {"provider_credentials": {"openai": {"api_key": "x\x01"}}})  # api_key contains SOH control char
 
     def test_oversized_credential_rejected(self):  # PR-03f
         with self.assertRaisesRegex(ContractError, "Invalid credential"):
