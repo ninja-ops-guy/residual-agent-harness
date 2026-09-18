@@ -25,6 +25,10 @@ def digest(value):
     return hashlib.sha256(canonical(value).encode()).hexdigest()
 
 
+def file_digest(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
+
+
 def git(repo, *args, allow_fail=False):
     try:
         p = subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True,
@@ -102,9 +106,13 @@ def doctor_repository(repo="."):
     if not queue:
         findings.append({"code": "roadmap_queue_missing", "severity": "warning",
                          "summary": "Current build order was not found.", "evidence": {}})
+    inputs = {"roadmap_sha256": file_digest(roadmap),
+              "current_status_sha256": file_digest(root / "docs/CURRENT_STATUS.md"),
+              "mission_sha256": file_digest(root / "docs/self-improvement/MISSION.md")}
     report = {"schema_version": 1, "repository_root": str(root), "head": head, "main_head": main,
               "branch": branch, "dirty": dirty, "roadmap_recorded_main": recorded,
-              "roadmap_delta_commits": delta, "roadmap_items": queue, "findings": findings}
+              "roadmap_delta_commits": delta, "roadmap_items": queue, "findings": findings,
+              "inputs": inputs}
     report["report_sha256"] = digest({k: v for k, v in report.items() if k != "repository_root"})
     return report
 
@@ -157,8 +165,14 @@ def build_station_spec(report, plan, doc, repo):
         for name in ("files", "context", "depends_on", "checks", "evaluator_files"):
             if not isinstance(c[name], list):
                 raise ContractError("ImprovementCandidate collections must be lists")
-        if not c["files"] or not c["checks"] or c["route"] not in {"local", "cloud"}:
+        if (not isinstance(c["id"], str) or not isinstance(c["title"], str)
+                or not isinstance(c["instruction"], str) or not c["files"] or not c["checks"]
+                or c["route"] not in {"local", "cloud"}):
             raise ContractError("ImprovementCandidate is incomplete")
+        if any(not isinstance(dep, str) for dep in c["depends_on"]):
+            raise ContractError("Candidate dependencies must be strings")
+        if any(isinstance(check, dict) and check.get("kind") == "command" for check in c["checks"]) and not c["evaluator_files"]:
+            raise ContractError("Command checks require external frozen evaluator files")
         if any(not isinstance(p, str) for p in c["files"] + c["context"] + c["evaluator_files"]):
             raise ContractError("Candidate paths must be strings")
         if set(c["files"]) & set(c["evaluator_files"]):
@@ -199,8 +213,9 @@ def execute_generation(repo, candidates, station_data, allow_cloud=False, allow_
     export = None
     if batch["integrated"] == batch["total"] and batch.get("control", {}).get("outcome") == "success":
         export = station.export(pid)
-    return {"mission_id": MISSION_ID, "generation": plan["generation"], "plan_sha256": plan["plan_sha256"],
-            "project_id": pid, "batch": batch, "export": export}
+    return {"mission_id": MISSION_ID, "generation": plan["generation"],
+            "source_head": report["head"], "source_report_sha256": report["report_sha256"],
+            "plan_sha256": plan["plan_sha256"], "project_id": pid, "batch": batch, "export": export}
 
 
 def revision_main(argv=None):
@@ -239,7 +254,10 @@ def self_improve_main(argv=None):
             payload = {"doctor": report, "mission": mission_plan(report)}
             if args.candidates:
                 doc = load_candidates(args.candidates)
-                payload["station_spec"] = build_station_spec(report, payload["mission"], doc, report["repository_root"])
+                spec = build_station_spec(report, payload["mission"], doc, report["repository_root"])
+                payload["candidate_manifest_sha256"] = digest(doc)
+                payload["station_spec_sha256"] = hashlib.sha256(spec.encode()).hexdigest()
+                payload["station_spec"] = spec
             print(json.dumps(payload, indent=2))
             return 0
         result = execute_generation(args.repo, args.candidates, args.station_data,
