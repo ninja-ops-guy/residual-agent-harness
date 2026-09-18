@@ -33,7 +33,9 @@ class NodeType(str, Enum):
     IMPROVEMENT_SPEC = "improvement_spec"
     HUMAN_DECISION = "human_decision"
     CHALLENGE = "challenge"
-    SUPERSESSION = "supersession"\n    CAPABILITY_RESOLUTION = "capability_resolution"\n    EXECUTION_ACTION = "execution_action"
+    SUPERSESSION = "supersession"
+    CAPABILITY_RESOLUTION = "capability_resolution"
+    EXECUTION_ACTION = "execution_action"
 
 
 class EdgeType(str, Enum):
@@ -48,7 +50,11 @@ class EdgeType(str, Enum):
     SUPERSEDES = "supersedes"
     REVIEWED_BY = "reviewed_by"
     QUALIFIED_UNDER = "qualified_under"
-    AUTHORIZED_BY = "authorized_by"\n    CITES_HANDLE = "cites_handle"\n    AUTHORIZES = "authorizes"\n    IMPLEMENTS = "implements"\n    MEASURED_BY = "measured_by"
+    AUTHORIZED_BY = "authorized_by"
+    CITES_HANDLE = "cites_handle"
+    AUTHORIZES = "authorizes"
+    IMPLEMENTS = "implements"
+    MEASURED_BY = "measured_by"
 
 
 class Validity(str, Enum):
