@@ -132,6 +132,24 @@ class RecursiveImprovementTests(unittest.TestCase):
         with self.assertRaises(ContractError):
             build_station_spec(report, mission_plan(report), doc, self.repo)
 
+    def test_unsafe_model_authored_command_is_rejected(self):
+        report = doctor_repository(self.repo)
+        doc = self.candidate(["residual/example.py"], ["tests/frozen_eval.py"])
+        doc["candidates"][0]["checks"] = [
+            {"kind": "command", "argv": ["{python}", "-c", "print('pass')"]}
+        ]
+        with self.assertRaises(ContractError):
+            build_station_spec(report, mission_plan(report), doc, self.repo)
+
+    def test_code_candidate_can_bind_pytest_to_frozen_evaluator(self):
+        report = doctor_repository(self.repo)
+        doc = self.candidate(["residual/example.py"], ["tests/frozen_eval.py"])
+        doc["candidates"][0]["checks"] = [
+            {"kind": "command", "argv": ["{python}", "-m", "pytest", "tests/frozen_eval.py"]}
+        ]
+        manifest = parse_spec(build_station_spec(report, mission_plan(report), doc, self.repo))
+        self.assertEqual(manifest["tasks"][0]["checks"][0]["argv"][-1], "tests/frozen_eval.py")
+
     def test_code_candidate_requires_frozen_command_evaluator(self):
         report = doctor_repository(self.repo)
         doc = self.candidate(["residual/example.py"], [])
