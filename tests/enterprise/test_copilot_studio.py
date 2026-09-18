@@ -55,7 +55,7 @@ def harness():
         "other-tenant": identity("alice@example.com", tenant="tenant-b"),
     })
     store = CopilotMissionStore()
-    service = CopilotStudioService(auth, store=store)
+    service = CopilotStudioService(\n        auth,\n        policy=FirmwarePolicy(\n            allowed_tenants=("tenant-a",),\n            allowed_groups=("Engineering-Firmware",),\n        ),\n        store=store,\n    )
     return auth, store, service, CopilotHTTPAdapter(service)
 
 
@@ -336,7 +336,7 @@ def test_concurrent_collision_never_creates_two_records_for_same_idempotency_key
 def test_profile_manifest_matches_runtime_policy_and_openapi_stays_bounded():
     root = Path(__file__).resolve().parents[2]
     manifest = yaml.safe_load((root / "residual/integrations/copilot_studio/profiles/firmware.yaml").read_text())
-    policy = FirmwarePolicy()
+    policy = FirmwarePolicy(\n        allowed_tenants=("tenant-a",),\n        allowed_groups=("Engineering-Firmware",),\n    )
     assert manifest["profile_id"] == policy.profile_id
     assert set(manifest["capabilities"]["allow"]) == policy.allowed_capabilities
     assert set(manifest["capabilities"]["deny"]) == policy.denied_capabilities
