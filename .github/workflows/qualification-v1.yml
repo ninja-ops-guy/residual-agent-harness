@@ -584,9 +584,42 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+
+  active-http-soak:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: Active HTTP job and resource soak
+        run: |
+          mkdir -p runs/qualification-v1
+          python scripts/qualification_v1.py run \
+            --gate-id active-http-soak \
+            --output runs/qualification-v1/active-http.evidence.json \
+            --log runs/qualification-v1/active-http-gate.log \
+            --evidence-path runs/qualification-v1/active-http-report.json \
+            -- python scripts/qualification_active_http_soak.py \
+               --cycles 6 --port 8893 \
+               --root runs/qualification-v1/active-http-state \
+               --output runs/qualification-v1/active-http-report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-active-http-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
   aggregate:
     if: always()
-    needs: [deterministic, discovery, m4, artifacts, browser, concurrency, protocol-fuzz, toxic-provider, active-workload, browser-adversarial, redteam, windows-lifecycle, fault-injection, webvm-protocol-fuzz, qualification-selftests]
+    needs: [deterministic, discovery, m4, artifacts, browser, concurrency, protocol-fuzz, toxic-provider, active-workload, active-http-soak, browser-adversarial, redteam, windows-lifecycle, fault-injection, webvm-protocol-fuzz, qualification-selftests]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
