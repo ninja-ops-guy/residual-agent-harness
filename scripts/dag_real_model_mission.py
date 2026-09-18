@@ -166,8 +166,16 @@ def main() -> int:
             for event in events
             if event["event_type"] == "usage.recorded"
         ]
-        runner_models = sorted({item.get("model") for item in usage if item.get("role") == "runner"})
-        reviewer_models = sorted({item.get("model") for item in usage if item.get("role") == "reviewer"})
+        station_runner_models = sorted({item.get("model") for item in usage if item.get("role") == "runner"})
+        station_reviewer_models = sorted({item.get("model") for item in usage if item.get("role") == "reviewer"})
+        routed_runner_models = sorted({
+            item.get("routed_model") for item in proxy_events
+            if item.get("event") == "route" and item.get("role") == "runner"
+        })
+        routed_reviewer_models = sorted({
+            item.get("routed_model") for item in proxy_events
+            if item.get("event") == "route" and item.get("role") == "reviewer"
+        })
 
         repair_transitions = [
             event for event in events
@@ -201,8 +209,10 @@ def main() -> int:
                 }
                 for task_id, task in tasks.items()
             },
-            "runner_models_observed": runner_models,
-            "reviewer_models_observed": reviewer_models,
+            "station_runner_models_observed": station_runner_models,
+            "station_reviewer_models_observed": station_reviewer_models,
+            "routed_runner_models_observed": routed_runner_models,
+            "routed_reviewer_models_observed": routed_reviewer_models,
             "repair_transition_count": len(repair_transitions),
             "proxy_events": proxy_events,
             "release_files": release_files,
@@ -240,8 +250,8 @@ def main() -> int:
         all_reviews_approved = all(task.get("review", {}).get("approved") is True for task in tasks.values())
         all_receipts = all(bool(task.get("verification_receipt")) for task in tasks.values())
         model_separation = (
-            runner_models == [args.runner_model]
-            and reviewer_models == [args.reviewer_model]
+            routed_runner_models == [args.runner_model]
+            and routed_reviewer_models == [args.reviewer_model]
             and args.runner_model != args.reviewer_model
         )
         repair_exercised = tasks["STATS-002"]["attempt"] >= 2 and len(repair_transitions) >= 1 and len(fault_events) == 1
