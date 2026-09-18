@@ -34,14 +34,15 @@ Recent material sequence from the previously documented `dcf1e507...`:
 
 ## Current-main qualification
 
-The first seven ordinary `push` workflows on exact `main@b3f00af...` were **PENDING/queued** at the latest observation. Do not inherit PASS from predecessor `main@dcf1e507...` or from #133's candidate head.
+Six of seven ordinary first-attempt `push` workflows on exact `main@b3f00af...` are **PASS**: Factory ownership, M4 runner prerequisites, measured-evaluation binding, clean install, Controller/provider, and Command Station. Pages/deployment run `35288585007` is **IN PROGRESS / PENDING**. Do not inherit predecessor or candidate-head PASS for that remaining deployment gate.
 
 On #133's exact final candidate head, ordinary Factory ownership, measured-binding, Browser VM Demo, Control Plane, clean install, Controller/provider, Command Station, Pages, and maintainer approval were **PASS**. Multiple diagnostic workflows intentionally completed **FAIL** because they reproduced the runtime defect under study. Those FAILs are retained evidence, not qualification PASSes and not noise to rerun away.
 
 Required interpretation:
 
 - accepted bytes on current main: **PASS / merged**;
-- first merged-sha ordinary CI/deployment set: **PENDING**;
+- six named current-main ordinary workflows: **PASS within their exact scopes**;
+- exact-current-main Pages/deployment: **PENDING**;
 - WebVM timed-wait lower-level root cause: **UNKNOWN**;
 - long-run WebVM reliability: **UNKNOWN / unqualified**;
 - paid/live provider semantic success: **UNKNOWN** until retained exact-revision candidate→verifier→receipt evidence exists;
@@ -49,7 +50,7 @@ Required interpretation:
 
 ## Current build order
 
-1. **Complete current-main qualification.** Retain first-attempt results for the seven ordinary `push` workflows on `b3f00af...`; preserve any FAIL/UNKNOWN rather than rerunning it away.
+1. **Complete current-main deployment qualification.** Retain the first-attempt outcome for Pages run `35288585007`; preserve any FAIL/UNKNOWN rather than rerunning it away.
 2. **Resolve the #133/#132 integration discrepancy.** Decide explicitly whether removal of #132 self-hosting/research-bundle tooling was intended retirement or an integration regression. Any restoration should be a focused reviewed implementation change, not a documentation rewrite.
 3. **Continue #120/#126 WebVM reliability work from the #133 discriminators.** The shared CPython timeout/wait symptom is narrowed, but the exact ABI/emulation cause, relationship to older corruption, and recurrence rate remain unknown.
 4. **Refresh/requalify #190.** Its provider-channel recovery candidate predates current main. Prior candidate evidence is historical after the material tree move; post-merge production retest remains separate if later accepted.
