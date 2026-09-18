@@ -1,0 +1,76 @@
+name: M6-SPEC-007T host provenance envelope
+on:
+  pull_request:
+    branches:
+      - m6/metric-registry-impl
+permissions:
+  contents: read
+jobs:
+  m6-spec-007t:
+    if: github.head_ref == 'experiment/m6-spec-007t-host-provenance-envelope'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      OLLAMA_HOST: 127.0.0.1:11460
+      OLLAMA_NO_CLOUD: "1"
+      OLLAMA_MODEL: qwen2.5:7b
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install RESIDUAL
+        run: python -m pip install -e '.[factory]'
+      - name: Syntax-check experiment
+        run: python -m py_compile scripts/m6_spec_007t.py
+      - name: Qualify Metric Registry
+        run: python -m unittest tests.test_discovery_metrics -v
+      - name: Preflight host-only provenance schema
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+          p=Path("scripts/m6_spec_007t.py")
+          spec=importlib.util.spec_from_file_location("m6_007t",p)
+          mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+          wire=str(mod.PROPOSAL_SCHEMA)+str(mod.PLANNER_SCHEMA)
+          assert "evidence_snapshot_hash" not in wire
+          assert "metric_registry_sha256" not in wire
+          assert "human_approval_required" not in wire
+          PY
+      - name: Install Ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+      - name: Start dedicated Ollama endpoint
+        run: |
+          nohup ollama serve > /tmp/ollama-m6-spec-007t.log 2>&1 &
+          echo $! > /tmp/ollama-m6-spec-007t.pid
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:11460/api/tags >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ollama-m6-spec-007t.log
+          exit 1
+      - name: Pull analysis model
+        run: ollama pull "$OLLAMA_MODEL"
+      - name: Record runtime identity
+        run: |
+          ollama --version
+          ollama list | tee /tmp/ollama-models-m6-spec-007t.txt
+          sha256sum scripts/m6_spec_007t.py residual/discovery_metric_registry.json | tee /tmp/m6-spec-007t-input-sha256.txt
+      - name: Execute authoritative host-envelope trial
+        run: python scripts/m6_spec_007t.py --model "$OLLAMA_MODEL" --base-url http://127.0.0.1:11460 --output runs/m6-spec-007t/evidence.json
+      - name: Retain evidence
+        if: always()
+        run: |
+          test ! -f runs/m6-spec-007t/evidence.json || cat runs/m6-spec-007t/evidence.json
+          tail -300 /tmp/ollama-m6-spec-007t.log || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m6-spec-007t-host-envelope-evidence
+          path: |
+            runs/m6-spec-007t
+            /tmp/ollama-m6-spec-007t.log
+            /tmp/ollama-m6-spec-007t.pid
+            /tmp/ollama-models-m6-spec-007t.txt
+            /tmp/m6-spec-007t-input-sha256.txt
