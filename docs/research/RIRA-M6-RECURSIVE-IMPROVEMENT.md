@@ -473,20 +473,44 @@ The candidate is therefore retained as a successful implementation of the origin
 
 ## 12.4 M6-ROADMAP-001C — Immutable Identity Hardening
 
-A new preregistered trial strengthens the contract before shipment. It requires acceptance data to become deeply immutable inside ImprovementSpec, detached from caller-owned input, strictly JSON-compatible, and fully thawed only in detached `to_dict()` output.
+A preregistered trial strengthened the contract before shipment. It required acceptance data to become deeply immutable inside ImprovementSpec, detached from caller-owned input, strictly JSON-compatible, and fully thawed only in detached `to_dict()` output.
 
-The SHA-256 identity must remain unchanged after attempted mutation through:
+The SHA-256 identity was required to remain unchanged after attempted mutation through:
 
 - the original caller input;
 - the public acceptance view;
 - nested acceptance mappings/sequences;
 - nested `to_dict()` output.
 
-This trial also uses the repaired failure-feedback/stagnation diagnostics derived from M6-ROADMAP-001.
+M6-ROADMAP-001C did **not** reach model execution. The stronger inline acceptance program exceeded RESIDUAL's existing 2,000-character command-argument contract, and `parse_spec` rejected the mission before candidate generation.
+
+This result is classified as **invalid experiment configuration**, not a candidate failure.
+
+It produced a process lesson: complex qualification logic should be an immutable, hash-bound external fixture rather than an oversized inline `python -c` payload.
+
+The retained artifact ZIP SHA-256 was:
+
+`346a7ffa2f8e0dab89d333d41276fe36fcd4a7786a92601b050ad7f757980b5f`
+
+## 12.5 M6-ROADMAP-001D — External Immutable Acceptance Fixture
+
+A new numbered trial preserves the strengthened immutable-identity contract but moves its acceptance program into an external research fixture that the candidate cannot modify.
+
+The experiment records the fixture's SHA-256 and invokes it against the isolated candidate. Source remains pinned to the exact production baseline, while the harness includes the evidence-derived repair diagnostic changes.
+
+The repair diagnostic changes were independently qualified and merged to main as:
+
+`60d0c5a8fc2044a22619248292ce89c9b43edd37`
+
+Those changes:
+
+- retain both context and the terminal root cause within bounded repair feedback;
+- detect an exact repetition of a previously failed patch;
+- emit deterministic repeated-candidate evidence without weakening acceptance.
 
 **Status:** in progress at the time of this paper revision.
 
-## 12.5 Process Lessons
+## 12.6 Process Lessons
 
 The productionization series adds several lessons beyond M6-SPEC-006:
 
