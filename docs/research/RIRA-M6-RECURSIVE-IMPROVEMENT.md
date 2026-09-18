@@ -938,3 +938,57 @@ M6-SPEC-007F therefore makes the Scientist schema evidence-aware:
 - deterministic post-generation verification remains authoritative.
 
 The model still chooses the improvement objective. The system merely prevents structurally impossible claims from occupying the proposal space.
+
+
+## 26. M6-SPEC-007F — Evidence-Aware Schema Does Not Replace Deterministic Verification
+
+M6-SPEC-007F attempted to move mechanically known evidence constraints into the model response schema itself.
+
+Measured metric IDs were used as enums for observation, target, preservation, and acceptance fields. Registered invariant IDs were likewise constrained. The MeasurementGap branch attempted to prevent already-measured metrics from appearing as `missing_metric` using a JSON Schema `not + enum` constraint.
+
+The model still returned:
+
+```text
+type = measurement_gap
+missing_metric = provider_timeout_rate
+```
+
+even though the EvidenceSnapshot measured:
+
+```text
+provider_timeout_rate = 0.2
+```
+
+The provider-side structured-output path therefore did not enforce the intended semantic exclusion.
+
+The deterministic post-generation verifier rejected the proposal.
+
+- Scientist call: **completed**
+- request bytes: **5,667**
+- elapsed: **89.804 s**
+- reported tokens: **887**
+- mechanical admission: **failed**
+- semantic review reached: **no**
+- false admission: **0**
+- evidence artifact SHA-256:
+  `e963dfcb8dab977557788332385b934feb354a95cd0d199f867a97b055903ab6`
+
+### Implication
+
+Structured decoding is useful for representation correctness, but provider implementations may support only a subset of JSON Schema semantics.
+
+RIRA must therefore preserve the ordering:
+
+```text
+typed generation
+      ↓
+deterministic host verification
+      ↓
+semantic review
+```
+
+Provider-side schema enforcement is an optimization and interface aid, not a trust boundary.
+
+The repeated MeasurementGap behavior also raises a model-role question. The Scientist experiments through 007F used `qwen2.5-coder:7b`, a model selected originally for implementation work rather than evidence analysis.
+
+M6-SPEC-007G therefore changes only the analysis model role to general `qwen2.5:7b` while preserving the evidence, typed proposal contract, deterministic verifier, semantic reviewer, and human promotion boundary.
