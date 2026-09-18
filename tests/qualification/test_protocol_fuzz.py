@@ -7,7 +7,7 @@ from hypothesis import given, settings, strategies as st
 
 from residual.core import ContractError
 from residual.factory.worker_contract import WorkerContract
-from residual.station.contracts import parse_spec, path_ok
+from residual.station.contracts import event_validate, parse_spec, path_ok
 from residual.receipts import StationReceipt
 
 
@@ -123,3 +123,17 @@ def test_duplicate_keys_are_rejected_in_specs_and_receipts():
         parse_spec(bad_spec)
     with pytest.raises(ContractError):
         StationReceipt.from_json('{"schema_version":"x","schema_version":"x"}')
+
+
+@given(value=JSON_VALUE)
+@settings(max_examples=500, deadline=None, derandomize=True, database=None)
+def test_arbitrary_json_workflow_event_is_bounded_or_strictly_validated(value):
+    try:
+        event_validate(value)
+    except ContractError:
+        return
+    assert isinstance(value, dict)
+    assert value["schema_version"] == 1
+    assert isinstance(value["event_type"], str)
+    assert isinstance(value["data"], dict)
+    assert value["task_id"] is None or isinstance(value["task_id"], str)
