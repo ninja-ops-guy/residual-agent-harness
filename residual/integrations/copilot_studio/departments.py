@@ -60,6 +60,7 @@ def _strings(value: Any, name: str) -> tuple[str, ...]:
 class AgentTemplate:
     name: str
     description: str
+    instructions: str
     orchestration: str
     publish_status: str
     chat_security_group_id: str
@@ -74,6 +75,12 @@ class AgentTemplate:
             raise ContractError("agent template name is required")
         if not isinstance(self.description, str) or not self.description.strip():
             raise ContractError("agent template description is required")
+        if (
+            not isinstance(self.instructions, str)
+            or not self.instructions.strip()
+            or len(self.instructions) > 8_000
+        ):
+            raise ContractError("agent template instructions are required and bounded")
         if self.orchestration not in _ALLOWED_ORCHESTRATION:
             raise ContractError("unsupported Copilot orchestration mode")
         if self.publish_status not in _ALLOWED_PUBLISH:
@@ -185,6 +192,7 @@ class DepartmentProfile:
         if set(agent) != {
             "name",
             "description",
+            "instructions",
             "orchestration",
             "publish_status",
             "chat_security_group_id",
