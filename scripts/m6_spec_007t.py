@@ -88,7 +88,7 @@ PROPOSAL_SCHEMA = {
                 "evidence_snapshot_hash": {"type": "string"},
                 "human_approval_required": {"const": True},
             },
-            "required": ["type","observation","reason","preserve_invariants","evidence_snapshot_hash","human_approval_required"],
+            "required": ["type","observation","reason","preserve_invariants"],
             "additionalProperties": False,
         },
     ]
@@ -117,7 +117,7 @@ PLANNER_SCHEMA = {
             "preserve_invariants":{"type":"array","items":{"type":"string"},"minItems":1},
             "evidence_snapshot_hash":{"type":"string"},"metric_registry_sha256":{"type":"string"},
             "human_approval_required":{"const":True}},
-         "required":["type","observation","question","requested_metric_id","why_needed","preserve_invariants","evidence_snapshot_hash","metric_registry_sha256","human_approval_required"],"additionalProperties":False},
+         "required":["type","observation","question","requested_metric_id","why_needed","preserve_invariants"],"additionalProperties":False},
         {"type":"object","properties":{
             "type":{"const":"new_metric_proposal"},
             "observation":{"type":"object","properties":{"observed_metric":{"type":"string"},"observed_value":{"type":"number"}},"required":["observed_metric","observed_value"],"additionalProperties":False},
@@ -131,7 +131,7 @@ PLANNER_SCHEMA = {
             "preserve_invariants":{"type":"array","items":{"type":"string"},"minItems":1},
             "evidence_snapshot_hash":{"type":"string"},"metric_registry_sha256":{"type":"string"},
             "human_approval_required":{"const":True}},
-         "required":["type","observation","definition","reason_existing_registry_insufficient","preserve_invariants","evidence_snapshot_hash","metric_registry_sha256","human_approval_required"],"additionalProperties":False}
+         "required":["type","observation","definition","reason_existing_registry_insufficient","preserve_invariants"],"additionalProperties":False}
     ]
 }
 
@@ -141,7 +141,7 @@ If a registered metric already expresses the evidence you need, return existing_
 Only if no registered definition expresses the needed measurable axis may you return new_metric_proposal, and then define it completely with a deterministic population and collection method.
 Do not use vague populations such as normal, typical, usual, or representative conditions. Do not invent a near-alias of an existing metric.
 Do not claim nonredundancy; the host and independent reviewer decide it.
-Do not propose code or an intervention. Return only the typed request."""
+Snapshot/registry identity and human-gate provenance are host-owned and intentionally absent from your output schema.\nDo not propose code or an intervention. Return only the typed request."""
 
 REVIEW_SCHEMA = {
     "type": "object",
@@ -162,7 +162,7 @@ Otherwise return insufficient_evidence with the exact measured observation and a
 Do not request a metric yourself; a separate Measurement Planner owns evidence requests.
 When evidence_resolution_history is supplied, incorporate those exact resolved values.
 An observation and any ImprovementSpec target/preserve metrics must come from selected_evidence.
-Do not implement code, change evidence, or claim promotion authority."""
+Snapshot identity and human-gate provenance are host-owned and intentionally absent from your output schema.\nDo not implement code, change evidence, or claim promotion authority."""
 
 IMPROVEMENT_REVIEW_SYSTEM = """Independently review a mechanically grounded ImprovementSpec against the supplied EvidenceSnapshot.
 Reject causal overclaim, incoherent preservation criteria, non-falsifiable acceptance, or a proposal that does not follow from the evidence.
