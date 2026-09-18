@@ -1,0 +1,64 @@
+name: M6-SHIP-004 ImprovementSpec minimal context
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  m6-ship-004:
+    if: github.head_ref == 'experiment/m6-roadmap-ship-improvementspec-004'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      OLLAMA_HOST: 127.0.0.1:11442
+      OLLAMA_NO_CLOUD: "1"
+      OLLAMA_MODEL: qwen2.5-coder:7b
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install RESIDUAL
+        run: python -m pip install -e '.[factory]'
+      - name: Confirm checkout cleanliness
+        run: test -z "$(git status --porcelain)"
+      - name: Syntax-check immutable verifier
+        run: python -m py_compile scripts/m6_ship_improvementspec_check.py
+      - name: Install Ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+      - name: Start dedicated Ollama endpoint
+        run: |
+          nohup ollama serve > /tmp/ollama-m6-ship-004.log 2>&1 &
+          echo $! > /tmp/ollama-m6-ship-004.pid
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:11442/api/tags >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ollama-m6-ship-004.log
+          exit 1
+      - name: Pull coding model
+        run: ollama pull "$OLLAMA_MODEL"
+      - name: Record runtime identity
+        run: |
+          git rev-parse HEAD | tee /tmp/m6-ship-004-source-head.txt
+          sha256sum scripts/m6_ship_improvementspec_check.py | tee /tmp/m6-ship-004-verifier-sha256.txt
+          ollama --version
+          ollama list | tee /tmp/ollama-models-m6-ship-004.txt
+      - name: Execute authoritative shipping trial
+        run: python scripts/m6_ship_improvementspec.py --model "$OLLAMA_MODEL" --base-url http://127.0.0.1:11442 --output runs/m6-roadmap-ship-004/improvementspec-evidence.json
+      - name: Retain evidence
+        if: always()
+        run: |
+          test ! -f runs/m6-roadmap-ship-004/improvementspec-evidence.json || cat runs/m6-roadmap-ship-004/improvementspec-evidence.json
+          tail -300 /tmp/ollama-m6-ship-004.log || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m6-ship-004-improvementspec-evidence
+          path: |
+            runs/m6-roadmap-ship-004
+            /tmp/ollama-m6-ship-004.log
+            /tmp/ollama-m6-ship-004.pid
+            /tmp/ollama-models-m6-ship-004.txt
+            /tmp/m6-ship-004-source-head.txt
+            /tmp/m6-ship-004-verifier-sha256.txt
