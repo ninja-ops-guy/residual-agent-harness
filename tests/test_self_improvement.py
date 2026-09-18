@@ -6,6 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from residual.core import ContractError
+from residual.cli import main as cli_main
 from residual.self_improvement import (
     build_station_spec,
     doctor_repository,
@@ -114,6 +115,11 @@ class RecursiveImprovementTests(unittest.TestCase):
         path.write_text(json.dumps(value))
         with self.assertRaises(ContractError):
             load_candidates(path)
+
+    def test_cli_dispatches_revision_doctor(self):
+        with patch("residual.self_improvement.revision_main", return_value=7) as doctor:
+            self.assertEqual(cli_main(["revision", "doctor"]), 7)
+            doctor.assert_called_once_with(["doctor"])
 
     def test_execution_delegates_to_station_managed_clone_and_export(self):
         candidate = self.repo / "candidate.json"
