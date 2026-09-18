@@ -85,28 +85,42 @@ class ClusterNode:
         self.transport.close()
 
     def join(self, bootstrap_address: str | None = None) -> dict:
-        """N9-R19: discover, authenticate with cluster key, announce
-        capabilities, and begin accepting tasks."""
+        """N9-R19: discover, authenticate, negotiate, then report joined.
+
+        A first node with no discovered peers may form a standalone cluster.
+        When peers are present (or an explicit bootstrap was supplied), a
+        transport send alone is not admission: JOIN_ACK/version negotiation is
+        required before joined becomes true.
+        """
         peers = ([bootstrap_address] if bootstrap_address
                  else self.discovery.discover())
+        self.negotiated_version = None
         joined_to = None
-        for addr in peers:
-            hello = sign_message(self.cluster_key, WireMessage(
-                kind=MessageKind.JOIN, sender_id=self.node_id,
-                payload={
-                    "address": self.address,
-                    "capability": self.capability.to_dict(),
-                    "schema_versions": supported_versions(),
-                },
-            ))
-            if self.transport.send(addr, encode(hello)):
-                joined_to = addr
-                break
-        self.joined = True
+        if not peers and bootstrap_address is None:
+            self.joined = True
+        else:
+            self.joined = False
+            for addr in peers:
+                hello = sign_message(self.cluster_key, WireMessage(
+                    kind=MessageKind.JOIN, sender_id=self.node_id,
+                    payload={
+                        "address": self.address,
+                        "capability": self.capability.to_dict(),
+                        "schema_versions": supported_versions(),
+                    },
+                ))
+                if not self.transport.send(addr, encode(hello)):
+                    continue
+                # Loopback transport delivers synchronously; admission is
+                # established only if JOIN_ACK negotiated a common version.
+                if self.negotiated_version is not None:
+                    joined_to = addr
+                    self.joined = True
+                    break
         return {
             "node_id": self.node_id,
             "address": self.address,
-            "joined": True,
+            "joined": self.joined,
             "bootstrap": joined_to,
             "discovery_backend": self.discovery.backend,
             "schema_versions": supported_versions(),
