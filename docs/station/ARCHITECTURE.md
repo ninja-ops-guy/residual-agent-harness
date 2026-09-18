@@ -4,21 +4,26 @@ The local station owns task state. Markdown is an import/export view; runner pro
 
 ```mermaid
 flowchart TD
-  Spec[Markdown specification] --> Triage[Parser and local triage]
-  Triage --> Queue[Transactional task queue]
-  Queue --> Local[Local runners]
-  Queue --> Cloud[Cloud runners]
-  Local --> Checks[Local checks]
-  Cloud --> Checks
-  Checks --> Review[Revision-bound review]
-  Review --> Integration[Integration checks]
-  Review -->|findings| Queue
-  Integration --> State[Accepted project state]
-  State --> Queue
-  Checks --> Events[LDD event log]
-  State --> Events
-  Events --> Report[Deterministic reports]
-  Report --> Swarm[Scoped cloud assessment]
+  O["Operator / Markdown specification"] --> T["Parser + triage"]
+  T --> Q["Transactional task queue<br/>SQLite leases + budgets"]
+  Q --> W["Fresh isolated worktree"]
+  W --> R["Local / cloud runner proposal"]
+  R --> K{"Deterministic project checks"}
+  K -->|FAIL| RC["Bounded repair context<br/>previous declared writable files + hashes"]
+  RC --> Q
+  K -->|PASS| RV{"Revision-bound review"}
+  RV -->|findings / deny| Q
+  RV -->|approve| I{"Integration checks on proposed integrated tree"}
+  I -->|FAIL| Q
+  I -->|PASS| S["Accepted project state"]
+  S --> Q
+  Q --> E["Authoritative LDD events / usage receipts"]
+  K --> E
+  RV --> E
+  I --> E
+  S --> E
+  E --> D["Deterministic reports / diagnostics"]
+  D -. optional scoped assessment .-> A["Cloud assessment"]
 ```
 
 | Module | Responsibility |
