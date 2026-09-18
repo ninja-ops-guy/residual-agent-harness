@@ -379,24 +379,51 @@ class LiveCoreResidualBackend:
             "prev_attestation_hash": prev_hash,
         }
         token["attestation_id"] = recompute_attestation_id(token)
-        try:
-            self._conn.execute("BEGIN IMMEDIATE")
-            self._conn.execute(
-                "INSERT INTO attestations(attestation_id,run_id,token_json) VALUES(?,?,?)",
-                (token["attestation_id"], run_id, canonical(token)),
-            )
-            self.transport.commit()
-            self._conn.commit()
-        except Exception as exc:
-            self._conn.rollback()
-            raise LedgerWriteError(f"attestation write failed: {exc}") from exc
-        self._append_event(
-            run_id,
-            "attestation",
-            "attestation.issued",
-            {"attestation_id": token["attestation_id"]},
-            event_id=token["attestation_id"],
-        )
+
+        # AT-3 is one transaction: the token and its ledger admission either
+        # both become durable or neither does.
+        with self._lock:
+            try:
+                self._conn.execute("BEGIN IMMEDIATE")
+                row = self._conn.execute(
+                    "SELECT seq,digest FROM events WHERE run_id=? ORDER BY seq DESC LIMIT 1",
+                    (run_id,),
+                ).fetchone()
+                event_prev = row[1] if row else GENESIS_HASH
+                seq = (row[0] if row else 0) + 1
+                event_body = {
+                    "domain": "attestation",
+                    "event_id": token["attestation_id"],
+                    "kind": "attestation.issued",
+                    "payload": {"attestation_id": token["attestation_id"]},
+                    "prev_hash": event_prev,
+                    "run_id": run_id,
+                    "seq": seq,
+                }
+                event_digest = _sha(event_body)
+                self._conn.execute(
+                    "INSERT INTO attestations(attestation_id,run_id,token_json) VALUES(?,?,?)",
+                    (token["attestation_id"], run_id, canonical(token)),
+                )
+                self._conn.execute(
+                    "INSERT INTO events(run_id,seq,event_id,domain,kind,payload_json,digest,prev_hash) "
+                    "VALUES(?,?,?,?,?,?,?,?)",
+                    (
+                        run_id,
+                        seq,
+                        token["attestation_id"],
+                        "attestation",
+                        "attestation.issued",
+                        canonical({"attestation_id": token["attestation_id"]}),
+                        event_digest,
+                        event_prev,
+                    ),
+                )
+                self.transport.commit()
+                self._conn.commit()
+            except Exception as exc:
+                self._conn.rollback()
+                raise LedgerWriteError(f"attestation admission failed atomically: {exc}") from exc
 
     def get_attestation(self, run_id: str) -> dict:
         row = self._conn.execute(
