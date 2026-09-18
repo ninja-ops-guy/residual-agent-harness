@@ -2,9 +2,12 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import os
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -15,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 class Mutation:
     name: str
     path: str
+    module: str
     anchor: str
     old: str
     new: str
@@ -25,6 +29,7 @@ MUTATIONS = (
     Mutation(
         "revoked-candidate-acceptance",
         "residual/factory/runtime_journal.py",
+        "residual.factory.runtime_journal",
         "    def finish(",
         "if state == 'CANDIDATE' and row[1]:",
         "if state == 'CANDIDATE' and not row[1]:",
@@ -33,6 +38,7 @@ MUTATIONS = (
     Mutation(
         "candidate-lease-resurrection",
         "residual/factory/runtime_journal.py",
+        "residual.factory.runtime_journal",
         "    def lease_read(",
         "and not row[2] and row[3] in ('RESERVED', 'RUNNING')",
         "and not row[2] and row[3] in ('RESERVED', 'RUNNING', 'CANDIDATE')",
@@ -41,6 +47,7 @@ MUTATIONS = (
     Mutation(
         "git-path-policy-bypass",
         "residual/factory/worker_contract.py",
+        "residual.factory.worker_contract",
         "    def permits_path(",
         """if any(part.lower() == ".git" for part in path.split("/")):
             return False""",
@@ -51,6 +58,7 @@ MUTATIONS = (
     Mutation(
         "forbidden-prefix-bypass",
         "residual/factory/worker_contract.py",
+        "residual.factory.worker_contract",
         "    def permits_path(",
         """if any(_matches(path, item) for item in self.forbidden):
             return False""",
@@ -65,9 +73,6 @@ def _scope(text: str, mutation: Mutation) -> tuple[int, int, str]:
     start = text.find(mutation.anchor)
     if start < 0:
         return -1, -1, ""
-    # All current canaries target class methods. Limit textual mutation to the
-    # selected method so nearby implementation refactors cannot accidentally
-    # make a common expression ambiguous across the whole module.
     end = text.find("\n    def ", start + len(mutation.anchor))
     if end < 0:
         end = len(text)
@@ -81,7 +86,6 @@ def mutation_site_count(mutation: Mutation, *, root: Path = ROOT) -> int:
 
 
 def validate_mutation_sites(*, root: Path = ROOT) -> list[dict[str, object]]:
-    """Return every mutation whose method-scoped selector is not exactly unique."""
     invalid = []
     for mutation in MUTATIONS:
         count = mutation_site_count(mutation, root=root)
@@ -102,8 +106,34 @@ def _apply_mutation(text: str, mutation: Mutation) -> str:
     count = scoped.count(mutation.old)
     if count != 1:
         raise ValueError(f"expected one method-scoped mutation site, found {count}")
-    mutated_scope = scoped.replace(mutation.old, mutation.new, 1)
-    return text[:start] + mutated_scope + text[end:]
+    return text[:start] + scoped.replace(mutation.old, mutation.new, 1) + text[end:]
+
+
+def _source_proof(mutation: Mutation, expected_sha256: str, *, env: dict[str, str]) -> dict:
+    expected_path = str((ROOT / mutation.path).resolve())
+    proof = (
+        "import hashlib,importlib,json,pathlib,sys;"
+        f"m=importlib.import_module({mutation.module!r});"
+        "p=pathlib.Path(m.__file__).resolve();"
+        "h=hashlib.sha256(p.read_bytes()).hexdigest();"
+        f"ok=(str(p)=={expected_path!r} and h=={expected_sha256!r});"
+        "print(json.dumps({'module_file':str(p),'sha256':h,'ok':ok},sort_keys=True));"
+        "sys.exit(0 if ok else 23)"
+    )
+    proc = subprocess.run(
+        [sys.executable, "-c", proof],
+        cwd=ROOT, capture_output=True, text=True, timeout=30, check=False, env=env,
+    )
+    try:
+        payload = json.loads(proc.stdout.strip().splitlines()[-1]) if proc.stdout.strip() else {}
+    except Exception:
+        payload = {}
+    return {
+        "returncode": proc.returncode,
+        "stdout": proc.stdout[-2000:],
+        "stderr": proc.stderr[-2000:],
+        **payload,
+    }
 
 
 def run_mutation(mutation: Mutation) -> dict:
@@ -112,25 +142,41 @@ def run_mutation(mutation: Mutation) -> dict:
     try:
         mutated = _apply_mutation(original, mutation)
     except ValueError as exc:
-        return {
-            "name": mutation.name,
-            "path": mutation.path,
-            "result": "ERROR",
-            "reason": str(exc),
-        }
+        return {"name": mutation.name, "path": mutation.path, "result": "ERROR", "reason": str(exc)}
+
+    mutated_sha256 = hashlib.sha256(mutated.encode("utf-8")).hexdigest()
     try:
         path.write_text(mutated, encoding="utf-8")
-        proc = subprocess.run(
-            [sys.executable, "-m", "pytest", "-q", *mutation.tests],
-            cwd=ROOT, capture_output=True, text=True, timeout=180, check=False,
-        )
+        # Same-size mutations can otherwise reuse a just-written timestamp-based .pyc
+        # on filesystems with coarse mtime resolution. Each mutant gets a fresh cache.
+        with tempfile.TemporaryDirectory(prefix="residual-mutation-pycache-") as pycache:
+            env = {**os.environ, "PYTHONPYCACHEPREFIX": pycache}
+            proof = _source_proof(mutation, mutated_sha256, env=env)
+            if proof.get("returncode") != 0 or proof.get("ok") is not True:
+                return {
+                    "name": mutation.name,
+                    "path": mutation.path,
+                    "anchor": mutation.anchor.strip(),
+                    "result": "ERROR",
+                    "reason": "mutated source identity was not established before test execution",
+                    "mutated_sha256": mutated_sha256,
+                    "source_proof": proof,
+                }
+            proc = subprocess.run(
+                [sys.executable, "-m", "pytest", "-q", *mutation.tests],
+                cwd=ROOT, capture_output=True, text=True, timeout=180, check=False, env=env,
+            )
     finally:
         path.write_text(original, encoding="utf-8")
+
     killed = proc.returncode != 0
     return {
         "name": mutation.name,
         "path": mutation.path,
+        "module": mutation.module,
         "anchor": mutation.anchor.strip(),
+        "mutated_sha256": mutated_sha256,
+        "source_proof": proof,
         "tests": list(mutation.tests),
         "result": "KILLED" if killed else "SURVIVED",
         "returncode": proc.returncode,
