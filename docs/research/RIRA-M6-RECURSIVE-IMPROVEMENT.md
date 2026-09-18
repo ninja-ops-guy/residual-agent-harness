@@ -736,3 +736,40 @@ This result is classified as an **experiment-execution failure**, not an epistem
 The follow-up, M6-SPEC-007B, preserves the same aggregate measurements, provenance hashes, no-supplied-hypothesis condition, deterministic checker, review, receipt, and authority boundaries while removing verbose per-run rows from model-visible context.
 
 This follows the experimental-competence rule established earlier: reduce unnecessary context before interpreting a provider timeout as a failure of reasoning.
+
+
+## 22. M6-SPEC-007B — Compact Snapshot Still Exceeds Local Discovery Envelope
+
+M6-SPEC-007B removed the verbose per-run rows from the Scientist's model-visible EvidenceSnapshot while preserving the exact aggregate measurements and source evidence hashes.
+
+The first request shrank from 15,566 bytes to 12,927 bytes, but the local Qwen2.5-Coder 7B call still reached the Ollama adapter's 300-second timeout before producing a proposal.
+
+- proposal produced: **no**
+- request bytes: **12,927**
+- elapsed: **300.093 s**
+- outcome: **aborted**
+- brake: **usage_unknown_or_invalid**
+- compact snapshot hash: `7bbb1196ff3e96fb818a34941f0bebc5d35498ea1115656a475f21bfd043eb6a`
+- evidence artifact SHA-256: `bb5ab558b3db4768d44553db2fb3a13f5922afedf0250ff40f8f40fa2b04e73b`
+
+The result further isolates the execution problem. The Scientist was still given the full immutable verifier source as read-only context even though verifier implementation details are not required to originate a proposal.
+
+M6-SPEC-007C therefore separates proposal generation from verifier implementation visibility. The model receives only the compact EvidenceSnapshot and a concise output contract. The same deterministic verifier remains external and authoritative.
+
+This separation strengthens the architecture conceptually as well as operationally:
+
+```text
+Scientist sees:
+  evidence + admissible output contract
+
+Scientist does NOT see:
+  verifier implementation as task context
+
+Verifier sees:
+  evidence + Scientist proposal
+
+Verifier decides:
+  admissible / rejected
+```
+
+The Scientist therefore cannot optimize against verifier implementation details while still being held to the same mechanically enforced contract.
