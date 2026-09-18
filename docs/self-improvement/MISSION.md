@@ -20,7 +20,7 @@ This mission does not create a second implementation authority. Station task sta
     residual self-improve cycle --station-data .residual/self-improve
     residual self-improve lineage --generations 3 --station-data .residual/self-improve
 
-Revision Doctor and self-improve plan are read-only unless the operator explicitly supplies --improve. That flag enters the same governed lineage runtime rather than adding a separate repair authority. originate creates a Station-managed planning project with two independent scouts (health and roadmap) and a dependent composer. The composer has proposal authority only: its candidate manifest is retained as an artifact and must pass the deterministic Mission Governor before it can execute. run executes an explicit validated candidate manifest. cycle chains one origination and execution only when source HEAD, source-report identity and mission-plan identity are unchanged between the two stages. lineage repeats that cycle for a bounded 1-10 generations.
+Revision Doctor and self-improve plan are read-only unless the operator explicitly supplies --improve. That flag enters the same governed lineage runtime rather than adding a separate repair authority. originate creates a Station-managed planning project with two independent scouts (health and roadmap) and a dependent composer. The composer has proposal authority only: its candidate manifest is retained as an artifact and must pass the deterministic Mission Governor before it can execute. Without --allow-command-checks, origination is constrained to non-executable documentation/data improvements; code proposals are rejected before execution. With that explicit permission, code candidates may use only governor-derived frozen-evaluator checks. run executes an explicit validated candidate manifest. cycle chains one origination and execution only when source HEAD, source-report identity and mission-plan identity are unchanged between the two stages. lineage repeats that cycle for a bounded 1-10 generations.
 
 All execution occurs in Station-managed clones. Every managed clone must prove that its HEAD is exactly the doctor-certified source HEAD before a worker runs.
 
@@ -72,7 +72,7 @@ Unknown fields, protected writable paths, missing evaluator files, evaluator/wri
 
 ## Health Director / Revision Doctor
 
-The bootstrap doctor records exact HEAD, main identity, branch, dirty state, roadmap snapshot identity, roadmap lag, current build-order items, and structured findings. The report is content-addressed without embedding the machine-specific repository path in its identity.
+The bootstrap doctor records exact HEAD, known main identity, whether the source contains that main revision, branch, dirty state, roadmap and current-status snapshot identities, snapshot lag, current build-order items, and structured findings. The report binds the raw roadmap, current-status, M7 mission policy, M7 controller, M7 safety regression, and Factory ownership-manifest bytes while excluding the machine-specific repository path from its identity. A source that is behind or diverged from known main is blocking.
 
 A roadmap SHA is treated as a historical status snapshot. If it is an ancestor of current main, lag is a warning to reconcile evidence; the doctor does not rewrite the SHA and does not turn later commits into an implicit PASS. A divergent snapshot is blocking.
 
