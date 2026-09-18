@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from ai_providers import ChatResponse
+from ai_providers import ChatResponse, ProviderError
 from residual.cluster.transport import LoopbackTransport
 from residual.eval import ollama_gauntlet as g
 from residual.factory.models import FrozenPlan
@@ -53,8 +53,21 @@ class ProviderSuiteTests(unittest.TestCase):
 
     def test_missing_ollama_model_fails_closed(self):
         with patch.object(g, "DEFAULT_REGISTRY", FakeRegistry()):
-            with self.assertRaisesRegex(ValueError, "not installed"):
+            with self.assertRaises(ProviderError) as caught:
                 g.provider_live_suite(provider="ollama", model="missing:test", repeats=1)
+        self.assertEqual(caught.exception.code, "model_not_found")
+
+    def test_provider_scaling_reports_real_concurrency_curve(self):
+        with patch.object(g, "DEFAULT_REGISTRY", FakeRegistry()):
+            result = g.provider_scaling_suite(
+                provider="ollama", model="tiny:test", repeats=1,
+                concurrencies=(1, 2),
+            )
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual([p["concurrency"] for p in result["points"]], [1, 2])
+        self.assertTrue(all(p["summary"]["correct"] == 5 for p in result["points"]))
+        self.assertTrue(all(p["requests_per_second"] > 0 for p in result["points"]))
+
 
 
 class ClusterSuiteTests(unittest.TestCase):
@@ -73,6 +86,31 @@ class ClusterSuiteTests(unittest.TestCase):
 
 
 class FactoryBindingTests(unittest.TestCase):
+    def test_repeated_factory_suite_aggregates_without_hiding_inconclusive_trials(self):
+        rows = [
+            {
+                "suite": "factory_live_fixed", "status": "PASS",
+                "wall_clock_seconds": 2.0, "accepted": 5, "workers": 5,
+                "unsafe_acceptances": 0, "author_tokens": 10,
+            },
+            {
+                "suite": "factory_live_fixed", "status": "INCONCLUSIVE",
+                "wall_clock_seconds": 3.0, "accepted": 2, "workers": 5,
+                "unsafe_acceptances": 0, "author_tokens": 12,
+            },
+        ]
+        with patch.object(g, "factory_live_suite", side_effect=rows):
+            result = g.factory_live_repeated_suite(
+                provider="ollama", model="tiny:test", output_root=Path("/tmp/unused"),
+                strategy="fixed", repeats=2,
+            )
+        self.assertEqual(result["status"], "INCONCLUSIVE")
+        self.assertEqual(result["repeat_count"], 2)
+        self.assertEqual(result["accepted"], 7)
+        self.assertEqual(result["workers"], 10)
+        self.assertEqual(result["wall_clock_seconds_mean"], 2.5)
+        self.assertEqual(result["unsafe_acceptances"], 0)
+
     def test_contracts_bind_exact_plan_and_provider_engine(self):
         cases = g.DEFAULT_CASES[:2]
         plan = g._plan_for_cases(cases)
