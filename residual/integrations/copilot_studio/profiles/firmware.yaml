@@ -1,0 +1,42 @@
+version: 1
+profile_id: firmware-engineering
+display_name: Firmware Engineering
+entra:
+  allowed_groups:
+    - Engineering-Firmware
+mission:
+  risk_ceiling: medium
+  approved_templates:
+    - firmware-repository-analysis
+    - firmware-sandbox-build
+    - firmware-test-triage
+capabilities:
+  allow:
+    - repository.analyze
+    - sandbox.build
+    - tests.run_approved
+    - patch.propose
+    - evidence.read_own
+    - draft_pr.propose
+  deny:
+    - pr.merge
+    - production.write
+    - policy.modify
+    - qualification.bypass
+    - verifier.bypass
+    - secrets.read
+    - shell.host
+    - network.arbitrary
+agents:
+  assigned:
+    - firmware_architect
+    - code_investigator
+    - test_engineer
+    - verifier
+approval:
+  patch_proposal: none
+  external_write: human
+  production_action: prohibited
+evidence:
+  visibility: mission_subject_and_authorized_firmware_reviewers
+  cross_department: deny
