@@ -7,6 +7,7 @@ from dataclasses import asdict
 
 from residual import AmendmentRule, CheckResult, CheckType, GoalSpec, LoopController, SuccessCriterion, Verifier
 from residual.core import ContractError, digest
+from .store import MAX_TASK_ATTEMPTS
 
 
 def _checks(candidate, parameters):
@@ -39,7 +40,7 @@ class MissionPass:
         if p["paused"]:
             return {**result, "candidate": p, "halt": "paused"}
         states = {t["id"]: t["state"] for t in p["tasks"]}
-        ready = [t for t in p["tasks"] if t["state"] in {"ready", "repair_required"} and t["attempt"] < 3 and all(states[d] == "integrated" for d in t["depends_on"])]
+        ready = [t for t in p["tasks"] if t["state"] in {"ready", "repair_required"} and t["attempt"] < MAX_TASK_ATTEMPTS and all(states[d] == "integrated" for d in t["depends_on"])]
         if not ready and not any(t["state"] in {"review_ready", "approved"} for t in p["tasks"]):
             return {**result, "candidate": p, **({} if all(t["state"] == "integrated" for t in p["tasks"]) else {"halt": "no_runnable_tasks"})}
         settings = store.settings()
@@ -90,7 +91,7 @@ def run_controlled_batch(station, pid, progress):
         SuccessCriterion("integration", CheckType.STRUCTURAL, "Original specifications are integrated", "station:integration",
                          {"spec_hash": p["spec_hash"], "task_ids": sorted(t["id"] for t in p["tasks"])}),
         SuccessCriterion("review", CheckType.JUDGE, "Reviewer receipts match integrated commits", "station:review"),
-    ), max_passes=min(settings["batch_max_passes"], max(1, len(p["tasks"]) * 3)),
+    ), max_passes=min(settings["batch_max_passes"], max(1, len(p["tasks"]) * MAX_TASK_ATTEMPTS)),
        token_budget=settings["batch_token_budget"], wall_clock_budget_s=settings["batch_wall_clock_s"],
        amendment_rule=AmendmentRule(("operator",)))
     bus = store.observation_bus(pid, component="loop_controller")

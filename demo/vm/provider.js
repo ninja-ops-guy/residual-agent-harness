@@ -1,11 +1,16 @@
 import {PROTOCOL, RESPONSE_SCHEMA, validId, validInference, validModel, bounded, errorCode, protocolReply, protocolFailureReason, providerFailureMessage, providerTransportAfterFailure} from './provider-session.js';
 const status = document.getElementById('status'), load = document.getElementById('load'), sign = document.getElementById('signin');
-const token = location.hash.slice(1);
-history.replaceState(null, '', location.pathname);
-let channel, sdk, grant = null, busy = false, modelCatalog = null;
+let channel, sdk, grant = null, busy = false, modelCatalog = null, sdkLoadPromise = null, loadGeneration = 0;
 const tell = text => { status.textContent = text; };
 const send = msg => channel?.postMessage({protocol: PROTOCOL, ...msg});
 function state() { send({kind: 'state', connected: !!sdk?.auth?.isSignedIn?.()}); }
+load.disabled = true;
+tell('Waiting for the private Mission Control bridge. No provider SDK has been loaded.');
+window.addEventListener('message', event => {
+  if (event.origin !== location.origin || event.data?.protocol !== PROTOCOL || event.data?.kind !== 'connect' || !event.ports?.[0] || channel) return;
+  channel = event.ports[0]; channel.onmessage = bridgeEvent => receive(bridgeEvent.data); channel.start?.();
+  load.disabled = false; tell('Bridge ready. Load Puter when you are ready; no inference has run.'); state();
+});
 function safeFailure(error) {
   const raw = String(error?.error || error?.code || error?.message || '').toLowerCase();
   if (raw === 'provider_protocol_invalid' || raw.includes('protocol_invalid')) return 'provider_protocol_invalid';
@@ -38,17 +43,35 @@ function transportMessages(messages, transport = 'tool') {
     return message;
   });
 }
-if (!/^[a-f0-9]{64}$/.test(token)) { load.disabled = true; tell('Open provider setup from Mission Control. This tab has no connection channel.'); }
-else { channel = new BroadcastChannel(`${PROTOCOL}:${token}`); channel.onmessage = event => receive(event.data); setInterval(state, 3000); state(); }
-load.addEventListener('click', () => {
-  load.disabled = true; tell('Loading provider SDK…');
-  const script = document.createElement('script'); script.src = 'https://js.puter.com/v2/'; script.async = true;
-  let settled = false;
-  const fail = () => { if (settled) return; settled = true; clearTimeout(timer); script.remove(); load.disabled = false; tell('SDK could not load. Check content blockers/network and retry. Nothing was sent for inference.'); };
-  const timer = setTimeout(fail, 10000); script.onerror = fail;
-  script.onload = () => { if (settled) return; if (!window.puter?.auth || !window.puter?.ai) return fail(); settled = true; clearTimeout(timer); sdk = window.puter; modelCatalog = null; sign.disabled = false; tell('SDK loaded. Click Sign in to open authorization. No inference has run.'); state(); };
-  document.head.appendChild(script);
-});
+setInterval(state, 3000);
+function loadSdk(restoring = false) {
+  const generation = ++loadGeneration;
+  document.documentElement.dataset.providerLoadGeneration = String(generation);
+  document.documentElement.dataset.providerLoadState = 'requested';
+  if (sdk?.auth && sdk?.ai) { state(); return Promise.resolve(sdk); }
+  if (sdkLoadPromise) return sdkLoadPromise;
+  load.disabled = true; document.documentElement.dataset.providerLoadState = 'loading'; tell(restoring ? 'Restoring provider session…' : 'Loading provider SDK…');
+  sdkLoadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script'); script.src = 'https://js.puter.com/v2/'; script.async = true;
+    let settled = false;
+    const fail = () => { if (settled) return; settled = true; clearTimeout(timer); script.remove(); load.disabled = false; sdkLoadPromise = null; document.documentElement.dataset.providerLoadState = 'failed'; tell('SDK could not load. Check content blockers/network and retry. Nothing was sent for inference.'); reject(new Error('sdk_load_failed')); };
+    const timer = setTimeout(fail, 10000); script.onerror = fail;
+    script.onload = () => {
+      if (settled) return;
+      if (!window.puter?.auth || !window.puter?.ai) return fail();
+      settled = true; clearTimeout(timer); sdk = window.puter; modelCatalog = null; sdkLoadPromise = null;
+      document.documentElement.dataset.providerLoadState = 'loaded';
+      const signedIn = !!sdk.auth.isSignedIn?.();
+      sign.disabled = signedIn;
+      load.disabled = true;
+      tell(signedIn ? 'Connected. Provider session restored. Model availability and billing are checked on each run.' : 'SDK loaded. Click Sign in to open authorization. No inference has run.');
+      state(); resolve(sdk);
+    };
+    document.head.appendChild(script);
+  });
+  return sdkLoadPromise;
+}
+load.addEventListener('click', () => { loadSdk(false).catch(() => {}); });
 sign.addEventListener('click', () => {
   if (!sdk || busy) return;
   sign.disabled = true; tell('Waiting for authorization. Allow the popup or close it to cancel.');
@@ -56,9 +79,9 @@ sign.addEventListener('click', () => {
   catch (error) { sign.disabled = false; tell(`Sign-in failed: ${errorCode(error)}. Retry using this button.`); return; }
   let timer;
   Promise.race([auth, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('timeout')), 60000); })])
-    .then(() => { if (!sdk.auth.isSignedIn()) throw new Error('not_signed_in'); tell('Connected. Return to Mission Control; keep this tab open. Model availability and billing are checked on each run.'); })
-    .catch(error => tell(`Sign-in did not complete: ${errorCode(error)}. Check popup permission, then retry. No inference was requested.`))
-    .finally(() => { clearTimeout(timer); sign.disabled = false; state(); });
+    .then(() => { if (!sdk.auth.isSignedIn()) throw new Error('not_signed_in'); sign.disabled = true; tell('Connected. Mission Control can now send explicitly authorized prompts. Model availability and billing are checked on each run.'); })
+    .catch(error => { sign.disabled = false; tell(`Sign-in did not complete: ${errorCode(error)}. Check popup permission, then retry. No inference was requested.`); })
+    .finally(() => { clearTimeout(timer); state(); });
 });
 async function receive(m) {
   if (!m || m.protocol !== PROTOCOL || !bounded(m)) return;
@@ -101,11 +124,13 @@ async function receive(m) {
     if (new TextEncoder().encode(text).length > 48000) return reply({ok: false, error: 'provider_response_too_large'});
     const integer = n => Number.isInteger(n) && n >= 0 ? n : null;
     reply({ok: true, text, usage: {input_tokens: integer(u.input_tokens ?? u.prompt_tokens), output_tokens: integer(u.output_tokens ?? u.completion_tokens)}});
-    tell('Structured model response returned to the guest. RESIDUAL—not this provider tab—checks the candidate.');
+    tell('Structured model response returned to the guest. RESIDUAL—not this provider panel—checks the candidate.');
   } catch (error) {
     const code = safeFailure(error);
     reply({ok: false, error: code});
     tell(providerFailureMessage(code));
   } finally { clearTimeout(timer); busy = false; state(); }
 }
-window.addEventListener('pagehide', () => { send({kind: 'state', connected: false}); channel?.close(); });
+window.addEventListener('pagehide', event => { if (event.persisted) return; send({kind: 'state', connected: false}); channel?.close(); });
+window.addEventListener('pageshow', () => state());
+document.addEventListener('visibilitychange', () => { if (!document.hidden) state(); });
