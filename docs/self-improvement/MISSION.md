@@ -13,9 +13,13 @@ This mission does not create a second implementation authority. Station task sta
     residual revision doctor
     residual revision doctor --json
     residual self-improve plan --candidates docs/self-improvement/candidates.json
+    residual self-improve originate --station-data .residual/self-improve
     residual self-improve run --candidates docs/self-improvement/candidates.json --station-data .residual/self-improve
+    residual self-improve cycle --station-data .residual/self-improve
 
-Revision Doctor is read-only. self-improve plan is read-only. self-improve run refuses a dirty source checkout or a blocking health error, validates every candidate, clones the source into a Station-managed workspace, and delegates implementation, checking, review, integration, and export to Station.
+Revision Doctor and self-improve plan are read-only. originate creates a Station-managed planning project with two independent scouts (health and roadmap) and a dependent composer. The composer has proposal authority only: its candidate manifest is retained as an artifact and must pass the deterministic Mission Governor before it can execute. run executes an explicit validated candidate manifest. cycle chains origination and execution only when source HEAD, source-report identity and mission-plan identity are unchanged between the two stages.
+
+All execution occurs in Station-managed clones. Every managed clone must prove that its HEAD is exactly the doctor-certified source HEAD before a worker runs.
 
 ## Hierarchy
 
@@ -31,21 +35,23 @@ Mission Governor
   - Verifier
   - Integrator
 
-The hierarchy is an organization contract, not a claim that each named role already has an independent model process. Distributed workers may satisfy implementation lanes through Station's existing worker protocol.
+The hierarchy is partly executable in the bootstrap: Health Scout and Roadmap Scout are independent Station tasks and the Composer depends on both, creating an explicit two-lane scout wave followed by synthesis. The implementation candidate DAG is then a separate Station project. Station's worker protocol remains the distribution surface; the bootstrap CLI itself does not claim that batch is a globally parallel scheduler.
 
 ## Authority boundary
 
-Autonomous authority covers inspection, deterministic planning, and managed implementation for explicitly validated unprotected candidates.
+Autonomous authority covers inspection, evidence-bound origination, deterministic candidate admission, and managed implementation for explicitly validated unprotected candidates.
 
-The mission has no authority to merge to production. Protected trust-boundary changes require a separate governed mission and review. Bootstrap protected paths include GitHub workflows, Factory, Station internals, verifier surfaces, GoalSpec, LoopController, receipts, and the Factory ownership baseline.
+The mission has no authority to merge to production. Protected trust-boundary changes require a separate governed mission and review. Bootstrap protected paths include GitHub workflows, Factory, Station internals, verifier surfaces, GoalSpec, LoopController, receipts, frozen evaluation, swarm/evidence/scheduler/integrator surfaces, the Factory ownership baseline and every file pinned by that baseline. M7 also freezes its mission policy, current-status/roadmap authority inputs, safety regression, and historical generation records against autonomous writes.
 
 A generated export is a candidate successor. It is not accepted main and is not production qualification.
 
 ## Frozen evaluator rule
 
-A candidate may not write any external evaluator file used to certify that candidate. The Station check contract is generated before execution and is immutable for that generation. A candidate therefore cannot make itself pass by rewriting its own tests or acceptance criteria.
+A candidate may not write any external evaluator file used to certify that candidate, and no other candidate in the same generation may write it either. Candidate writable scopes may not overlap. If one candidate reads another candidate's generated file, it must declare that writer as a dependency.
 
-Changing an evaluator is a separate generation whose acceptance is provided by a different frozen evaluator.
+Executable-code and execution-configuration candidates require command checks plus existing external evaluator files. M7 accepts only frozen-evaluator command shapes using the Station interpreter placeholder: {python} -m pytest <declared-evaluator> or {python} <declared-evaluator>. Model-authored shell, -c, arbitrary executables and unrelated commands are rejected before Station execution. The Station check contract is generated before execution and is immutable for that generation.
+
+Changing a frozen evaluator requires a separate externally governed mission rather than the generation it certifies.
 
 ## Candidate contract
 
@@ -69,7 +75,7 @@ A roadmap SHA is treated as a historical status snapshot. If it is an ancestor o
 
 ## Perpetual generation lifecycle
 
-Observe -> Plan -> Validate Candidate -> Managed Clone -> Implement -> Check -> Review -> Integrate -> Export -> Governed Promotion -> Observe
+Observe -> Plan -> Scout Health + Scout Roadmap -> Compose Proposal -> Deterministic Admission -> Managed Clone -> Implement -> Check -> Review -> Integrate -> Export -> Governed Promotion -> Observe
 
 Failures and UNKNOWN/BLOCKED states remain evidence. A later successful generation does not erase earlier failure history.
 
@@ -85,6 +91,6 @@ Large generations should be decomposed into non-overlapping candidate scopes. St
 
 ## Generation 0001
 
-Generation 0001 establishes the control surface rather than claiming autonomous improvement success. It introduces Revision Doctor, hierarchical planning, bounded candidate validation, Station delegation, frozen-evaluator/protected-path gates, an initial documentation candidate, tests, and this mission contract.
+Generation 0001 establishes the control surface rather than claiming autonomous improvement success. It introduces Revision Doctor, a real two-scout-plus-composer origination DAG, bounded generation-wide candidate validation, exact-source Station delegation, canonical ownership protection, constrained frozen-evaluator commands, an initial documentation candidate, tests, and this mission contract.
 
 The first candidate is intentionally low risk: produce an operations runbook inside the managed workspace. Its purpose is to exercise the full mission path before allowing broader writable scopes.
