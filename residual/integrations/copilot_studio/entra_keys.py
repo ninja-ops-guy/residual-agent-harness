@@ -86,6 +86,8 @@ class HTTPSJSONFetcher:
         )
         try:
             with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                if response.geturl() != url:
+                    raise ContractError("OIDC metadata redirect is not allowed")
                 if getattr(response, "status", 200) != 200:
                     raise ContractError("OIDC metadata endpoint returned non-200")
                 raw = response.read(MAX_DOCUMENT_BYTES + 1)
