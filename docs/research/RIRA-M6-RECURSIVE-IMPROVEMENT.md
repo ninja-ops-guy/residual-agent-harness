@@ -1133,3 +1133,84 @@ That distinction matters. The system did not force an intervention hypothesis fr
 Therefore M6-008 remains blocked.
 
 The correct next operation is evidence acquisition: collect `context_bytes_non_success_max` from the hash-bound retained source evidence, produce an enriched EvidenceSnapshot, and invoke the Scientist again. Only a subsequently admitted ImprovementSpec may advance to autonomous candidate implementation.
+
+
+## 29. Closing the First Admitted Gap: M6-SPEC-007K through 007M
+
+After 007J admitted `context_bytes_non_success_max` as a legitimate missing measurement, the next experiments tested whether RESIDUAL could acquire that evidence and continue discovery without forcing an intervention.
+
+### 007K — apparatus failure
+
+007K attempted to derive the admitted metric from retained non-success run records but referenced an incorrect local variable name. It failed before model execution and is classified as apparatus failure.
+
+### 007L — admitted evidence acquired
+
+007L corrected the apparatus and added an executable preflight.
+
+The requested metric was derived from the bound retained runs:
+
+- M6-SHIP-001: 30,606 first-request bytes;
+- M6-SHIP-003: 32,652 first-request bytes.
+
+Therefore:
+
+`context_bytes_non_success_max = 32,652`
+
+The enriched EvidenceSnapshot bound the derivation method, contributing run IDs, contributing artifact hashes, and originating 007J admission receipt.
+
+The Scientist correctly observed the new maximum but then requested `context_bytes_non_success_mean` as missing even though the snapshot already measured it at 31,629.0. The deterministic verifier rejected the proposal before semantic review.
+
+This demonstrated that closing a MeasurementGap does not guarantee that a small Scientist model will correctly track evidence availability.
+
+### 007M — host EvidenceResolver
+
+007M removed missingness authority from the Scientist.
+
+The Scientist could emit either an ImprovementSpec or an EvidenceRequest. The trusted host then resolved the request:
+
+```text
+EvidenceRequest
+   ↓
+host EvidenceResolver
+   ├─ present -> return exact trusted value and reassess
+   └─ absent  -> host-classified MeasurementGap
+```
+
+Across three bounded calls the resolver returned:
+
+1. `context_bytes_non_success_max = 32652`;
+2. `context_bytes_non_success_mean = 31629.0`;
+3. the second request repeated and was classified as stagnation.
+
+No false MeasurementGap was created.
+
+The experiment therefore succeeded at separating **evidence demand** from **evidence availability authority**, but the Scientist still failed to use already-resolved evidence reliably.
+
+- Scientist calls: **3**
+- reported tokens: **3,959**
+- admission: **none**
+- false missing-evidence classification: **0**
+- evidence artifact SHA-256:
+  `04ee76fd12e10d0d637311137453f3c1fef128c83d6620b566eb844fbd511f5b`
+
+### Architectural implication
+
+Passive inclusion of an EvidenceSnapshot in model context is not equivalent to evidence use.
+
+The next design should make evidence inspection an explicit typed phase:
+
+```text
+metric catalog
+      ↓
+Scientist selects evidence to inspect
+      ↓
+host returns exact Evidence Bus/Snapshot values
+      ↓
+Scientist forms proposal or asks for a new measurement
+      ↓
+deterministic admission
+      ↓
+independent review
+```
+
+This preserves the Scientist's epistemic agency while keeping evidence truth and availability under deterministic host control.
