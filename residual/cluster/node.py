@@ -167,6 +167,11 @@ class ClusterNode:
 
     def _handle_join(self, msg: WireMessage, from_address: str) -> None:
         offered = msg.payload.get("schema_versions", [])
+        requested_address = msg.payload.get("address", from_address)
+        existing = self.registry.get(msg.sender_id)
+        if msg.sender_id == self.node_id or (existing is not None and existing.address != requested_address):
+            self._send(from_address, MessageKind.ERROR, {"reason": "duplicate_node_id"})
+            return
         version = negotiate_version(offered)
         if version is None:
             self._send(from_address, MessageKind.ERROR,
@@ -176,7 +181,7 @@ class ClusterNode:
         cap = Capability.from_dict(msg.payload["capability"])
         self.registry.upsert(NodeRecord(
             node_id=msg.sender_id,
-            address=msg.payload.get("address", from_address),
+            address=requested_address,
             capability=cap, schema_versions=tuple(offered),
         ))
         # JOIN_ACK carries our versions + full roster so the joiner can
@@ -193,7 +198,10 @@ class ClusterNode:
         version = negotiate_version(msg.payload.get("schema_versions", []))
         if version is None:
             raise ClusterError("cluster rejected join: no common schema_version")
-        self.negotiated_version = msg.payload.get("negotiated_version", version)
+        negotiated = msg.payload.get("negotiated_version", version)
+        if negotiated != version or negotiated not in supported_versions():
+            raise ClusterError("cluster join ack contains an invalid negotiated_version")
+        self.negotiated_version = negotiated
         for rec in msg.payload.get("roster", []):
             record = NodeRecord.from_dict(rec)
             if record.node_id != self.node_id:
