@@ -21,7 +21,7 @@ class MetricExpressionTests(unittest.TestCase):
         candidate=tail(latency_threshold=220,throughput_floor=1100,error_ceiling=0.008)
         self.assertEqual(
             expression_refinement(candidate,base,atomic_relations={}),
-            Refinement.STRICT_REFINEMENT,
+            Refinement.REFINEMENT,
         )
 
     def test_mx001_child_coarsening_makes_composite_unknown(self):
@@ -30,6 +30,30 @@ class MetricExpressionTests(unittest.TestCase):
         self.assertEqual(
             expression_refinement(candidate,base,atomic_relations={}),
             Refinement.UNKNOWN,
+        )
+
+    def test_mx001_disjunction_refinement_does_not_claim_strictness(self):
+        from residual.metric_expr import Or
+        base=Or((
+            Compare(Atomic("latency_p99_ms","time"),"<",250),
+            Compare(Atomic("error_rate","ratio"),"<=",0.01),
+        ))
+        candidate=Or((
+            Compare(Atomic("latency_p99_ms","time"),"<",220),
+            Compare(Atomic("error_rate","ratio"),"<=",0.01),
+        ))
+        self.assertEqual(
+            expression_refinement(candidate,base,atomic_relations={}),
+            Refinement.REFINEMENT,
+        )
+
+    def test_mx001_negation_inverts_refinement_direction(self):
+        from residual.metric_expr import Not
+        base=Not(Compare(Atomic("latency_p99_ms","time"),"<",250))
+        candidate=Not(Compare(Atomic("latency_p99_ms","time"),"<",220))
+        self.assertEqual(
+            expression_refinement(candidate,base,atomic_relations={}),
+            Refinement.COARSENING,
         )
 
     def test_mx001_incompatible_topology_is_unknown(self):
