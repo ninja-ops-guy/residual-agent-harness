@@ -93,7 +93,7 @@ class RecursiveImprovementTests(unittest.TestCase):
         self.assertEqual(len(a["roadmap_items"]), 2)
         codes = {f["code"] for f in a["findings"]}
         self.assertIn("roadmap_status_lag", codes)
-        self.assertIn("current_status_status_lag", codes)
+        self.assertIn("current_status_lag", codes)
 
     def test_doctor_detects_dirty_checkout(self):
         (self.repo / "scratch.txt").write_text("dirty")
