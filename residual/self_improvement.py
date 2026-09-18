@@ -15,7 +15,7 @@ from residual.station.contracts import parse_spec, path_ok
 MISSION_ID = "residual-self-improvement"
 ROADMAP_HEAD = re.compile("Current " + chr(96) + r"main" + chr(96) + r" is \*\*" + chr(96) + r"([0-9a-f]{40})" + chr(96) + r"\*\*\.")
 PROTECTED_PREFIXES = (
-    ".github/workflows/", "residual/factory/", "residual/station/", "verifier/",
+    ".github/workflows/", "tests/", "residual/factory/", "residual/station/", "verifier/",
     "residual/swarm/", "residual/evidence/", "residual/scheduler/", "residual/integrator/",
     "residual/eval_frozen/", "docs/self-improvement/generations/",
 )
