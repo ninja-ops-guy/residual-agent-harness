@@ -134,6 +134,17 @@ engineering integration. Maker-provided credentials are not accepted as an
 equivalent security model. Power Platform environment policy should disable
 maker-provided credentials for the governed engineering environment.
 
+### SR-013 — authorization fresh at API but stale at execution handoff
+Severity: High
+Status: remediated
+
+A prepared mission can wait before Factory execution, so authorization at submit
+time is not sufficient. `CopilotStudioService.execution_candidate` now
+requires a freshly validated bearer token immediately before handoff, reapplies
+tenant/client/scope/department policy, requires the current verified-claims hash
+and policy hash to match the prepared mission, and requires state `prepared`.
+Downstream Factory adapters must also bind to the active policy hash.
+
 ## Threat tests
 
 The qualification suite covers:
