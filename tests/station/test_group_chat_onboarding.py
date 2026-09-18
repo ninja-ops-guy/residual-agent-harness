@@ -23,7 +23,7 @@ class SharedCommsOnboardingTests(unittest.TestCase):
         events = self.station.store.events(self.pid)
         self.assertTrue(events)
         self.assertEqual(events[0]["event_type"], "project.created")
-        self.assertEqual(events[0]["actor"], "station")
+        self.assertEqual(events[0]["actor"], "operator")
 
     def test_operator_note_roundtrip_preserves_actor_and_text(self):
         text = "Hello runners — onboarding note"
