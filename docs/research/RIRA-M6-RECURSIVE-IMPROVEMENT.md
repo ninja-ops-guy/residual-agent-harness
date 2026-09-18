@@ -1,0 +1,449 @@
+# Recursive Improvement Without Recursive Authority
+
+## An Evidence-Governed Architecture for Self-Improving Agentic Software Systems
+
+**RESIDUAL Research Paper — M6 Recursive Improvement Laboratory**  
+**Status:** Design, empirical program through M6-SPEC-006, and M6.2 discovery protocol  
+**Experiment date:** 2026-09-18
+
+## Abstract
+
+Agentic software systems can inspect repositories, modify code, execute tests, and coordinate specialized workers. This makes bounded recursive software engineering possible. The harder problem is preserving an independent basis for deciding whether a self-generated modification is actually an improvement.
+
+This paper proposes **Recursive Improvement Without Recursive Authority (RIRA)**. A trusted RESIDUAL baseline may receive or formulate an improvement hypothesis, generate successor candidates, and experimentally evaluate them, while candidates remain unable to modify the protected evaluator, M4 authority boundary, qualification policy, evidence mechanism, or promotion authority.
+
+The M6 experimental program progressed from governed failure containment to successful bounded recursive development. M6-SPEC-001 through M6-SPEC-005 exposed repair-context loss, transport/source ambiguity, inconsistent attempt limits, provider-process ambiguity, and runtime-budget interactions. Those failures were preserved as authoritative evidence and converted into harness changes without weakening acceptance or promotion authority.
+
+**M6-SPEC-006 subsequently succeeded.** Using a real local Qwen2.5-Coder 7B model, RESIDUAL rejected two incorrect candidates, supplied hash-bound prior-candidate context to later repair attempts, accepted the third only after unchanged deterministic checks passed, obtained independent review approval, integrated the exact reviewed head, issued a verification receipt, and exported the generated source.
+
+The current claim is therefore: **RESIDUAL has demonstrated bounded recursive development under external evaluation and promotion authority.** The next research question is whether it can originate a defensible improvement objective from its own evidence rather than merely execute a human-supplied hypothesis.
+
+## 1. Central Principle
+
+> **RESIDUAL may propose its successor. It may not appoint its successor.**
+
+Generation, evaluation, and promotion are distinct authority domains.
+
+A candidate is untrusted until independently qualified. Candidate code MUST NOT be able to rewrite the authoritative evaluator, weaken protected acceptance criteria, suppress authoritative evidence, or promote itself.
+
+## 2. Improvement Contract
+
+RIRA introduces an ImprovementSpec containing an observation, falsifiable hypothesis, target metrics, metrics that must be preserved, protected invariants, acceptance criteria, and an explicit external-approval requirement. Improvement is therefore not represented by an unconstrained instruction such as "make yourself better."
+
+The intended progression is:
+
+1. **M6.0 — Recursive Evaluation:** evaluate manually specified changes.
+2. **M6.1 — Recursive Development:** RESIDUAL implements a human-supplied ImprovementSpec.
+3. **M6.2 — Improvement Discovery:** RESIDUAL proposes ImprovementSpecs from operational evidence.
+4. **M6.3 — Closed-Loop Research:** RESIDUAL discovers, implements, evaluates, and presents a candidate while external authority retains promotion.
+
+## 3. Evaluation Model
+
+The currently trusted implementation is the **Champion** and generated implementations are **Challengers**. Evaluation is multi-dimensional rather than a single self-improvement score. Relevant dimensions include correctness, task success, latency, token/resource cost, determinism, evidence completeness, recovery behavior, and protected-invariant violations.
+
+## 4. Experiment M6-SPEC-001
+
+### 4.1 Research question
+
+Can RESIDUAL use its own Station execution path and a real local coding model to implement one bounded component intended for RESIDUAL's recursive-improvement architecture, while the harness independently enforces behavioral checks and refuses unsuccessful candidates?
+
+### 4.2 Frozen conditions
+
+- Repository: ninja-ops-guy/residual-agent-harness
+- Baseline: 699e2869e294fe157b4bfd73a272057683a2f7e0
+- Experiment PR: #203
+- Branch: experiment/m6-improvementspec-self-host
+- Apparatus head: e123b90d012973bfd260ae5b955eebd4dbac48f0
+- GitHub Actions run: 35305550407
+- Python: 3.12
+- Provider: Ollama
+- Model: qwen2.5-coder:1.5b
+- Workers: 1
+- Model output ceiling: 1600 tokens
+- Batch token budget: 30,000
+- Batch wall-clock budget: 600 s
+- Effective run-control maximum: 3 passes
+- Specification SHA-256: dad4015272c4d990cb6fad4409042517c2ab5afa03ca82247bdc6d3ca244b6eb
+
+The generated candidate was isolated from main. The task prohibited network, subprocess, filesystem, provider, Git, verifier, M4, receipt, and promotion operations inside the target module.
+
+### 4.3 Target specification
+
+The model was instructed to create residual/improvement/spec.py containing a frozen ImprovementSpec dataclass with identity, observation, hypothesis, target and preserved metrics, protected invariants, acceptance criteria, mandatory human approval, negative-path validation, deterministic canonical JSON, and deterministic SHA-256 identity.
+
+Success required candidate generation, Python compilation, behavioral and negative-path checks, model-review approval, isolated integration, a verification receipt, and release export containing the generated source.
+
+### 4.4 Observed execution
+
+The first authoritative execution made three provider calls and consumed 5,526 reported tokens: 3,656 input and 1,870 output tokens. No cloud-model tokens were used. The mission ran for 125.374 seconds.
+
+**Pass 1:** the generated file compiled, but the behavioral test could not import ImprovementSpec. One of two checks passed. RESIDUAL transitioned the task to repair_required.
+
+**Pass 2:** the repair candidate contained an unclosed parenthesis at line 23. Both compilation and behavioral checks failed. RESIDUAL again transitioned to repair_required.
+
+**Pass 3:** generation reached the configured 1,600-output-token ceiling. RESIDUAL recorded: "Model output was truncated. Narrow the task or increase the output limit." The maximum-iteration brake tripped at three passes.
+
+| Measurement | Result |
+|---|---|
+| Candidate accepted | No |
+| Integrated tasks | 0 / 1 |
+| Final task state | repair_required |
+| Passes | 3 |
+| Provider calls | 3 |
+| Reported tokens | 5,526 |
+| Wall clock | 125.374 s |
+| Model review | Not reached |
+| Verification receipt | Not issued |
+| Release export | Not produced |
+| Run outcome | Escalated |
+| Brake | max_iteration |
+
+### 4.5 Result
+
+**M6-SPEC-001 failed its primary success criterion.**
+
+This must not be reported as successful self-improvement or successful self-hosted implementation.
+
+The negative result nevertheless demonstrates several control properties in this run: generated source was not trusted merely because a model produced it; a compiling but behaviorally incomplete implementation was rejected; a syntactically invalid repair was rejected; truncated output was explicitly classified; repeated failure caused bounded escalation; no failed candidate reached review, integration, receipt issuance, export, or promotion; and evidence was retained after failure.
+
+The result is evidence for **governed failure containment**, not yet for successful recursive development.
+
+### 4.6 Failure analysis
+
+The immediate failure was model/output-path related rather than evidence that the behavioral specification was unsatisfiable. The 1.5B model first produced an incomplete interface, then an invalid repair, and finally exhausted the configured 1,600-token output ceiling.
+
+The experiment also exposed a configuration interaction: although the apparatus requested batch_max_passes=5, authoritative run control escalated at three passes. Reproduction must record actual run-control evidence rather than assuming the requested setting became effective.
+
+A separate Ollama startup log reported port 11434 already bound. The health probe succeeded and three calls were recorded against the intended local model, so execution continued, but future replication should explicitly guarantee provider-process ownership.
+
+## 5. Interpretation
+
+**Can RESIDUAL yet reliably implement this M6 component with this model/configuration?** No. One trial cannot estimate reliability, and the first trial failed.
+
+**Did the harness preserve its control boundary when implementation failed?** In this run, yes: checks rejected bad candidates, iteration remained bounded, the task escalated, and no failed artifact crossed the integration boundary.
+
+This distinction is central to RIRA. A failed generation that is correctly detected and retained is preferable to an apparently successful experiment produced by weakened evaluation.
+
+## 6. Repeatable Validation Procedure
+
+### 6.1 Exact apparatus reproduction
+
+Run:
+
+~~~bash
+git clone https://github.com/ninja-ops-guy/residual-agent-harness.git
+cd residual-agent-harness
+git fetch origin pull/203/head:m6-spec-001
+git checkout e123b90d012973bfd260ae5b955eebd4dbac48f0
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e '.[factory]'
+~~~
+
+Install Ollama using its official installation method, ensure one intended server owns 127.0.0.1:11434, and obtain the model:
+
+~~~bash
+ollama pull qwen2.5-coder:1.5b
+curl -fsS http://127.0.0.1:11434/api/tags
+~~~
+
+Execute:
+
+~~~bash
+python scripts/m6_improvementspec_experiment.py \
+  --model qwen2.5-coder:1.5b \
+  --base-url http://127.0.0.1:11434 \
+  --output runs/m6-improvementspec/evidence.json
+~~~
+
+The command intentionally exits non-zero when acceptance fails. Preserve evidence.json regardless of exit status.
+
+### 6.2 Evidence validation
+
+Record:
+
+~~~bash
+git rev-parse HEAD
+sha256sum scripts/m6_improvementspec_experiment.py
+python -m json.tool runs/m6-improvementspec/evidence.json >/dev/null
+cat runs/m6-improvementspec/evidence.json
+~~~
+
+Validate these identifiers:
+
+- baseline_sha = 699e2869e294fe157b4bfd73a272057683a2f7e0
+- experiment = M6-SPEC-001
+- spec_sha256 = dad4015272c4d990cb6fad4409042517c2ab5afa03ca82247bdc6d3ca244b6eb
+- provider kind = ollama
+- model = qwen2.5-coder:1.5b
+
+A replication need not produce byte-identical model output unless inference determinism is separately demonstrated. Compare protocol and acceptance outcomes while retaining generated-source hashes for every trial.
+
+### 6.3 Historical evidence
+
+Original GitHub Actions run: 35305550407  
+Job: 105476895809  
+Artifact: m6-improvementspec-research-evidence  
+Artifact ID: 10531533856  
+Artifact ZIP SHA-256: 9002f40ead356585e98390be26c499174318abcaeb755fe0c56438bc169ad77f
+
+The experiment PR is research apparatus and is intentionally not for merge.
+
+### 6.4 Independent replication protocol
+
+1. Use a fresh Linux environment.
+2. Check out the exact apparatus commit.
+3. Record Python, Ollama, and model versions/digests where available.
+4. Ensure exactly one intended Ollama server owns the configured port.
+5. Run without editing specification or checks.
+6. Preserve evidence.json even on failure.
+7. Record environment metadata, wall clock, provider calls, token counts, candidate hashes, checks, transitions, and final brake/outcome.
+8. Never replace a failed trial with a retry. Number every execution.
+9. Use a preregistered number of trials; at least 10 is recommended for the next study.
+10. Report every trial, including truncations and infrastructure failures.
+
+### 6.5 Successful-trial acceptance
+
+A future trial qualifies only when all of these hold:
+
+~~~text
+batch.integrated == 1
+task.state == "integrated"
+all behavioral checks == PASS
+review.approved == true
+verification_receipt != null
+generated_source != null
+export_error == null
+~~~
+
+Independent inspection must also confirm that the candidate changed only the allowed target and did not alter protected evaluation or authority mechanisms.
+
+## 7. Threats to Validity
+
+**Single trial.** This experiment cannot estimate success probability.
+
+**Model size.** Qwen2.5-Coder 1.5B is lightweight; its failure does not establish that stronger models would fail.
+
+**Inference reproducibility.** Output can vary across model/runtime/hardware versions.
+
+**Output ceiling.** The third generation hit the configured 1,600-token ceiling.
+
+**Effective-pass mismatch.** Requested and effective pass limits differed and should be bound explicitly in future studies.
+
+**Provider-process ambiguity.** The workflow observed an already-bound Ollama port. Future runs should prove process identity.
+
+**Downstream gates untested.** Review, receipt, and export were not reached for this task.
+
+## 8. Next Experiment
+
+M6-SPEC-002 should be a preregistered replication, not a rewritten history of M6-SPEC-001. Keep the behavioral specification and acceptance tests frozen while varying exactly one controlled independent variable, such as model capability or output ceiling.
+
+The primary endpoint should be complete accepted-implementation rate. Secondary endpoints should include first-pass correctness, repairs per success, tokens, wall time, truncation rate, and correctly contained failures.
+
+## 9. Conclusion
+
+M6-SPEC-001 did not demonstrate successful recursive software improvement. It demonstrated something preliminary but necessary: when RESIDUAL attempted to implement a component intended for its own recursive-improvement architecture and the model repeatedly produced unacceptable candidates, the harness rejected them, bounded the attempt, escalated, and retained evidence.
+
+> **Models provide intelligence. They do not get authority.**
+
+The next milestone is to reproduce the experiment, isolate the limiting variable, achieve a qualifying candidate under frozen acceptance criteria, and then demonstrate champion–challenger evaluation before any successor is eligible for external promotion.
+
+
+## 10. Experimental Progression: M6-SPEC-002 through M6-SPEC-006
+
+The failed trials after M6-SPEC-001 were not discarded. Each isolated a different weakness in the development loop.
+
+### M6-SPEC-002 — stronger model, unchanged repair semantics
+
+Qwen2.5-Coder 7B still failed within three passes. The failure sequence was informative rather than random: an invalid dataclasses import was followed by a missing json import and then incomplete blank-string validation. This suggested that the model could make progressively narrower corrections but was not being given the prior candidate as explicit repair context.
+
+### M6-SPEC-003 — prior-candidate repair context
+
+RESIDUAL supplied the prior writable files as bounded repair context while still constructing each new attempt from a clean baseline worktree. The 1.5B model still failed, but retained patches exposed a new representation error: it confused the outer structured JSON transport with the literal contents required inside a Python source file.
+
+### M6-SPEC-004 — transport/source disambiguation
+
+The runner contract explicitly separated the transport envelope from file-language content. The model stopped emitting data objects into Python files and began producing real Python source. It still failed within the three-pass ceiling, revealing an inconsistency: Store permitted five task attempts while Mission Control stopped dispatching after three.
+
+### M6-SPEC-005 — integrated remediation, invalid runtime configuration
+
+The repaired harness was tested with the recommended 7B coding model, but a 4096-token output ceiling caused the first Ollama request to hit the adapter's 300-second transport timeout. Unknown usage correctly tripped the fail-closed budget brake. This trial is classified as an infrastructure/configuration abort, not a model-quality failure.
+
+### M6-SPEC-006 — corrected runtime, successful bounded self-hosting
+
+# M6-SPEC-006 — Successful Post-Remediation Validation
+
+## Result
+
+M6-SPEC-006 is the first successful bounded RESIDUAL self-hosting experiment in the M6 series.
+
+The experiment used the unchanged ImprovementSpec behavioral specification from M6-SPEC-001 and the remediated harness derived from failures in M6-SPEC-001 through M6-SPEC-005.
+
+### Frozen runtime
+- harness: `e7488199ee238f04ef1547338199096389047b2e`
+- model: `qwen2.5-coder:7b`
+- model ID: `dae161e27b0e`
+- provider: Ollama 0.34.2
+- dedicated endpoint: `127.0.0.1:11437`
+- max output: 1600 tokens
+- batch max passes: 5
+- mission wall-clock budget: 1800 s
+- no cloud fallback
+
+### Outcome
+- batch outcome: **success**
+- attempts: **3**
+- integrated: **1 / 1**
+- frozen checks: **2 / 2 passed**
+- reviewer: **approved**
+- verification receipt: **issued**
+- release export: **successful**
+- generated source: **present**
+- false acceptance observed: **0**
+- provider calls: **4** (3 runner + 1 reviewer)
+- reported tokens: **9,217**
+- input tokens: **7,521**
+- output tokens: **1,696**
+- request bytes: **32,721**
+- mission wall clock: **759.722 s**
+- generated source SHA-256: `90aaf5b4d35f6eaff11a0c4a85cf3c2764c0255407cca95c6c1e352cca30edbf`
+- verification receipt hash: `0c45802590a839a101cfb08dbb000fe34540365dee9cd790083419d1ccac6a0e`
+
+Research artifact:
+- name: `m6-spec-006-corrected-runtime-evidence`
+- artifact ID: `10543236401`
+- artifact ZIP SHA-256: `ab7d8cfb639557510fff9789aa4c14a2ed940ecc71b37a5190fba0de84f13e61`
+- Actions run: `35334715201`
+
+## Repair trajectory
+
+### Attempt 1
+The model produced a nearly complete Python implementation but incorrectly imported `frozen` from `dataclasses`.
+
+Mechanical compilation passed because imports are not resolved by AST compilation. The behavioral command correctly failed during import.
+
+RESIDUAL rejected the candidate and entered `repair_required`.
+
+### Attempt 2
+The previous candidate was hash-bound into the repair context. The model removed the invalid `frozen` import.
+
+The candidate then failed a deeper negative-path condition: whitespace-only `improvement_id` was accepted.
+
+RESIDUAL rejected the candidate and retained the new checks/patch evidence.
+
+### Attempt 3
+The second candidate was hash-bound into the next repair request. The model changed string validation to use `.strip()` for identity, observation, hypothesis, metrics, and protected invariants.
+
+Both frozen checks passed.
+
+RESIDUAL then:
+1. transitioned the candidate to local_verified;
+2. submitted it for independent model review;
+3. received an approved review with no findings;
+4. transitioned it to approved;
+5. integrated the exact reviewed head;
+6. emitted integration-check evidence;
+7. issued a station verification receipt;
+8. exported the accepted release;
+9. retained the generated source and its SHA-256.
+
+
+
+The result matters because no acceptance rule was relaxed between the failed and successful experiments. The system improved by carrying better corrective context, clarifying the output contract, aligning bounded attempt semantics, and controlling runtime provenance.
+
+## 11. Evidence Dimensionality and Measurement-Gap Discovery
+
+Improvement discovery is bounded not only by model reasoning but by the dimensions represented in the evidence.
+
+A Scientist that can reason perfectly over an incomplete EvidenceSnapshot can still discover only deficiencies visible through the measured axes. This creates a second-order discovery problem: the system may need to determine that **the evidence is insufficient to decide whether an improvement opportunity exists**.
+
+RIRA therefore distinguishes two legitimate Scientist outputs:
+
+1. **ImprovementSpec** — a falsifiable hypothesis grounded in existing measured evidence.
+2. **MeasurementGap** — a bounded proposal explaining which evidence dimension is missing, why it is required, and how it could be collected mechanically.
+
+A MeasurementGap is not a defect claim. Missing telemetry cannot be transformed into evidence that a problem exists. Instead, it records:
+
+- the unanswered question;
+- the absent metric;
+- the evidence snapshot that lacks it;
+- the proposed measurement method;
+- protected invariants that instrumentation must preserve;
+- the external approval requirement for changing observability.
+
+This prevents a common failure mode in autonomous research systems: inventing confidence where the evidence schema is silent.
+
+The recursive research loop therefore becomes:
+
+```text
+EvidenceSnapshot
+      |
+      +--> sufficient dimensions --> ImprovementSpec
+      |
+      +--> insufficient dimensions --> MeasurementGap
+                                      |
+                                approved instrumentation
+                                      |
+                               new measured evidence
+                                      |
+                                 EvidenceSnapshot'
+```
+
+The evidence schema itself can thus evolve through explicit, auditable proposals without allowing the Scientist to silently redefine what counts as evidence.
+
+## 12. M6.2 — From Recursive Development to Improvement Discovery
+
+M6-SPEC-006 closes the bounded development loop. M6.2 moves the starting point backward.
+
+The target sequence is:
+
+```text
+trusted run evidence
+        ↓
+EvidenceSnapshot
+        ↓
+Improvement Scientist
+        ↓
+ImprovementSpec OR MeasurementGap
+        ↓
+mechanical hypothesis verification
+        ↓
+external experiment authorization
+        ↓
+bounded candidate development
+        ↓
+champion/challenger evaluation
+        ↓
+review + receipt
+        ↓
+external promotion gate
+```
+
+The Scientist is intentionally analysis-only. Denying source-write and promotion authority is not merely a safety restriction; it forces the Scientist's contribution to remain legible as an argument that can be independently falsified.
+
+The central M6.2 question is therefore not whether a model can suggest something that sounds useful. It is whether RESIDUAL can originate an improvement hypothesis that is:
+
+- grounded in hash-bound measurements;
+- nontrivial rather than a restatement of an existing task;
+- falsifiable under a preregistered experiment;
+- explicit about preserved metrics and protected invariants;
+- mechanically rejected when it relies on unmeasured claims;
+- converted into a MeasurementGap when the available evidence is insufficient.
+
+M6-SPEC-007 is reserved for this discovery test.
+
+## 13. Updated Conclusion
+
+The experimental program has moved beyond the original M6-SPEC-001 result.
+
+RESIDUAL has now demonstrated a bounded form of recursive development: it can use a real model to implement software intended for its own architecture, reject incorrect versions, repair from retained evidence, pass an unchanged external standard, obtain independent review, integrate the exact reviewed candidate, issue a verification receipt, and export the result.
+
+That does **not** establish autonomous recursive improvement.
+
+The remaining distinction is epistemic: who originates the improvement objective?
+
+M6.2 tests whether RESIDUAL can move from executing a supplied ImprovementSpec to constructing a defensible one from its own measured history—or explicitly conclude that a required evidence dimension is missing.
+
+The authority invariant remains unchanged:
+
+> **RESIDUAL may discover, propose, implement, and evaluate a successor. It may not appoint that successor.**
