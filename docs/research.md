@@ -13,7 +13,7 @@ Research outcomes use the same evidence vocabulary as the implementation:
 - **BLOCKED** — the intended claim could not be exercised validly because a prerequisite/intervention/environment was unavailable or invalid.
 - **UNKNOWN** — retained evidence is insufficient to assign PASS or FAIL to the intended claim.
 
-A workflow completing successfully only proves that the workflow executed. A provider timeout or apparatus defect before a valid proposal is produced is an experiment-execution failure, not evidence that the unexercised scientific hypothesis is false. A single accepted proposal is bounded positive evidence, not a general reliability claim.
+A workflow completing successfully only proves that the workflow executed. A provider timeout or apparatus defect before a valid proposal is produced is an experiment-execution failure, not evidence that the unexercised scientific hypothesis is false. A single accepted proposal is bounded positive evidence, not a general reliability claim. An integrity-valid receipt proves the recorded decision/context was bound as specified; it does **not** convert a semantically ambiguous scientific decision into PASS.
 
 ## Current-main qualification context
 
@@ -176,6 +176,24 @@ Retained outcome:
 
 Status: **FAIL in bounded active-evidence-query discovery scope**.
 
+### #264 / 007O — split-role workflow PASS; semantic claim UNKNOWN
+
+The split-role architecture worked operationally: Evidence Scout selected five metrics; Hypothesis Scientist explicitly returned `insufficient_evidence`; Measurement Planner requested a new baseline metric; the host EvidenceResolver classified it absent; branch-aware review approved; and receipt `674513d7e3b82c747bdbea408094ad2c08342943bb05a544e29a6d07727a5359` was issued.
+
+Post-hoc audit found that the requested metric ID is misspelled/undefined (`mean_wall_clock_s_basline`) and may overlap the already-inspected `successful_mean_wall_clock_s=786.123333`. Because the discovery EvidenceSnapshot binds metric IDs/values but not governed definitions for unit, population, aggregation semantics, collection method, or equivalence/overlap, the claim that this was a genuinely absent and nonredundant metric cannot be established.
+
+Retained outcome:
+
+- split-role workflow execution: **PASS**;
+- receipt issuance/integrity: **PASS in recorded-decision scope**;
+- semantic adequacy of the MeasurementGap admission: **UNKNOWN**;
+- artifact ID `10559527734`;
+- ZIP SHA-256 `7a28d6367d91af99dca8ea1a66c0128b136665955a3d273d86a5afb988df895e`.
+
+The receipt must not be used as scientific authority to advance the recursive loop. **M6-008 remains BLOCKED** pending metric-identity/semantic validation.
+
+Issue **#265** records the required remediation: a versioned discovery Metric Registry. Open spec PR **#266** defines typed `MetricDefinition` and `MetricDefinitionProposal` contracts; registry/evidence revision binding; deterministic naming, identity, and exact-duplicate gates; semantic-overlap review; executable negative paths; and fail-closed `UNKNOWN` behavior when semantics are missing or ambiguous. #266 is trust-infrastructure design only and does not authorize metric registration or M6-008.
+
 ### Current discovery interpretation
 
 The series now separates several failure layers:
@@ -186,10 +204,11 @@ The series now separates several failure layers:
 4. **#255 — semantic quality:** a mechanically plausible missing-measurement proposal failed scientific review.
 5. **#257 — formal admission:** one genuinely absent MeasurementGap passed deterministic/semantic admission and received a receipt.
 6. **#259/#262/#263 — post-admission evidence use:** after the missing measurement was closed and host-side resolution improved, the Scientist still failed to use resolved measurements coherently and repeated present requests.
+7. **#264 — metric identity/semantics:** the split-role workflow completed and issued an integrity-valid receipt, but post-hoc audit could not establish that the admitted metric was semantically distinct/nonredundant, so the research claim is **UNKNOWN** rather than PASS.
 
-The deterministic checker/resolver is doing useful work: it prevents plausible-sounding but evidence-contradicted MeasurementGaps from becoming accepted merely because output is well formed. The #257 PASS is meaningful positive evidence that this boundary can admit one defensible autonomous gap proposal. The follow-up FAILs show that proposal admission is not equivalent to reliable evidence-driven scientific iteration.
+The deterministic checker/resolver is doing useful work: it prevents plausible-sounding but evidence-contradicted MeasurementGaps from becoming accepted merely because output is well formed. The #257 PASS remains meaningful positive evidence that this boundary can admit one defensible autonomous gap proposal. The later FAIL/UNKNOWN cells show that proposal admission is not equivalent to reliable evidence-driven scientific iteration, and that receipt integrity is not a substitute for governed scientific semantics.
 
-Therefore **general autonomous improvement discovery remains UNKNOWN / not established** and **general recursive self-improvement remains UNKNOWN / not established**.
+Therefore **general autonomous improvement discovery remains UNKNOWN / not established**, **general recursive self-improvement remains UNKNOWN / not established**, and **M6-008 remains BLOCKED pending the Metric Registry requirement**.
 
 ## Deterministic stress evidence
 
@@ -218,4 +237,4 @@ These remain governance defects until a current-base repair is accepted and the 
 
 RESIDUAL's central research direction is that system-level reliability can emerge from constraining, observing, verifying, and deterministically integrating unreliable model computation rather than assuming each model call is reliable.
 
-Current evidence supports parts of the mechanism, including bounded verification, rejection, evidence resolution, and one bounded autonomous formal-admission PASS. It does **not** yet establish the broad hypothesis across repeated live-model tasks, environments, champion/challenger comparisons, or full autonomous improvement cycles.
+Current evidence supports parts of the mechanism, including bounded verification, rejection, evidence resolution, and one bounded autonomous formal-admission PASS. It does **not** yet establish the broad hypothesis across repeated live-model tasks, environments, champion/challenger comparisons, or full autonomous improvement cycles. The #264 audit further shows that scientific semantics themselves must be versioned and governed before a successful control-plane decision can be promoted into a research claim.
