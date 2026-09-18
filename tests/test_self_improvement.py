@@ -112,6 +112,12 @@ class RecursiveImprovementTests(unittest.TestCase):
         with self.assertRaises(ContractError):
             build_station_spec(report, mission_plan(report), doc, self.repo)
 
+    def test_code_candidate_requires_frozen_command_evaluator(self):
+        report = doctor_repository(self.repo)
+        doc = self.candidate(["residual/example.py"], [])
+        with self.assertRaises(ContractError):
+            build_station_spec(report, mission_plan(report), doc, self.repo)
+
     def test_candidate_cannot_modify_its_evaluator(self):
         report = doctor_repository(self.repo)
         doc = self.candidate(["tests/frozen_eval.py"], ["tests/frozen_eval.py"])
@@ -144,9 +150,16 @@ class RecursiveImprovementTests(unittest.TestCase):
         subprocess.run(["git", "commit", "-m", "candidate"], cwd=self.repo, check=True, capture_output=True)
 
         calls = {}
+        repo_path = str(self.repo.resolve())
+        class FakeStore:
+            def project(self, pid):
+                return {"repo": repo_path}
+            def event(self, pid, event_type, data):
+                calls["event"] = {"event_type": event_type, "data": data}
         class FakeStation:
             def __init__(self, root):
                 calls["root"] = str(root)
+                self.store = FakeStore()
             def create(self, spec, source, allow_cloud, commands):
                 parse_spec(spec)
                 calls["source"] = source
