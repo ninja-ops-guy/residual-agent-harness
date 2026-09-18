@@ -37,6 +37,13 @@ REQUIRED_GATES = (
     "browser-chromium",
     "browser-firefox",
     "browser-webkit",
+    "real-concurrency",
+    "protocol-fuzz",
+    "toxic-provider-matrix",
+    "active-workload",
+    "browser-adversarial-recovery",
+    "redteam-zero-skip",
+    "windows-lifecycle",
 )
 
 
