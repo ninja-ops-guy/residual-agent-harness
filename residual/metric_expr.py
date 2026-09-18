@@ -1,7 +1,8 @@
 """Restricted formal refinement rules for composite metric expressions.
 
-This checker is intentionally conservative. UNKNOWN is preferred over
-natural-language inference or pairwise heuristics.
+The checker is sound only for the explicitly supported structural rules. It is
+intentionally incomplete: UNKNOWN is preferred over an unjustified strictness
+or natural-language entailment claim.
 """
 from __future__ import annotations
 
@@ -14,6 +15,7 @@ from .core import ContractError
 
 class Refinement(str, Enum):
     EXACTLY_EQUIVALENT = "exactly_equivalent"
+    REFINEMENT = "refinement"
     STRICT_REFINEMENT = "strict_refinement"
     COARSENING = "coarsening"
     INCOMPARABLE = "incomparable"
@@ -51,19 +53,28 @@ class Not:
 MetricExpr = Atomic | Compare | And | Or | Not
 
 
-def _combine_same_topology(relations: list[Refinement]) -> Refinement:
+def _combine_monotone_children(relations: list[Refinement]) -> Refinement:
+    """Prove no-weaker-than, but never infer strictness without a witness.
+
+    For aligned conjunctions and disjunctions, pairwise subset/refinement is
+    enough to prove the composed candidate is no weaker than the base. It is
+    not enough to prove *strict* refinement because other children may make
+    the changed region redundant.
+    """
     if not relations:
         return Refinement.UNKNOWN
-    if any(r in {Refinement.UNKNOWN, Refinement.INCOMPARABLE} for r in relations):
-        return Refinement.UNKNOWN
-    if any(r == Refinement.COARSENING for r in relations):
-        # A mixed refine/coarsen composite cannot be reduced safely without a
-        # stronger expression-level proof rule.
+    if any(r in {
+        Refinement.UNKNOWN, Refinement.INCOMPARABLE, Refinement.COARSENING
+    } for r in relations):
         return Refinement.UNKNOWN
     if all(r == Refinement.EXACTLY_EQUIVALENT for r in relations):
         return Refinement.EXACTLY_EQUIVALENT
-    if all(r in {Refinement.EXACTLY_EQUIVALENT, Refinement.STRICT_REFINEMENT} for r in relations):
-        return Refinement.STRICT_REFINEMENT
+    if all(r in {
+        Refinement.EXACTLY_EQUIVALENT,
+        Refinement.REFINEMENT,
+        Refinement.STRICT_REFINEMENT,
+    } for r in relations):
+        return Refinement.REFINEMENT
     return Refinement.UNKNOWN
 
 
@@ -71,9 +82,9 @@ def _threshold_relation(operator: str, candidate: float, base: float) -> Refinem
     if candidate == base:
         return Refinement.EXACTLY_EQUIVALENT
     if operator in {"<", "<="}:
-        return Refinement.STRICT_REFINEMENT if candidate < base else Refinement.COARSENING
+        return Refinement.REFINEMENT if candidate < base else Refinement.COARSENING
     if operator in {">", ">="}:
-        return Refinement.STRICT_REFINEMENT if candidate > base else Refinement.COARSENING
+        return Refinement.REFINEMENT if candidate > base else Refinement.COARSENING
     if operator == "==":
         return Refinement.INCOMPARABLE
     return Refinement.UNKNOWN
@@ -85,7 +96,7 @@ def expression_refinement(
     *,
     atomic_relations: Mapping[tuple[str, str], Refinement],
 ) -> Refinement:
-    """Return whether candidate is a conservative refinement of base."""
+    """Return a conservative structural relation for the supported fragment."""
     if type(candidate) is not type(base):
         return Refinement.UNKNOWN
 
@@ -105,17 +116,18 @@ def expression_refinement(
         child=expression_refinement(
             candidate.expr,base.expr,atomic_relations=atomic_relations
         )
-        if child in {Refinement.UNKNOWN, Refinement.INCOMPARABLE, Refinement.COARSENING}:
+        # V1 interprets threshold ordering only over the exact same semantic
+        # quantity. Cross-metric order-preserving maps need their own proof.
+        if child != Refinement.EXACTLY_EQUIVALENT:
             return Refinement.UNKNOWN
-        threshold=_threshold_relation(
+        return _threshold_relation(
             candidate.operator,candidate.threshold,base.threshold
         )
-        return _combine_same_topology([child,threshold])
 
     if isinstance(candidate, And) and isinstance(base, And):
         if len(candidate.children) != len(base.children):
             return Refinement.UNKNOWN
-        return _combine_same_topology([
+        return _combine_monotone_children([
             expression_refinement(c,b,atomic_relations=atomic_relations)
             for c,b in zip(candidate.children,base.children)
         ])
@@ -123,7 +135,7 @@ def expression_refinement(
     if isinstance(candidate, Or) and isinstance(base, Or):
         if len(candidate.children) != len(base.children):
             return Refinement.UNKNOWN
-        return _combine_same_topology([
+        return _combine_monotone_children([
             expression_refinement(c,b,atomic_relations=atomic_relations)
             for c,b in zip(candidate.children,base.children)
         ])
@@ -132,10 +144,10 @@ def expression_refinement(
         child=expression_refinement(
             candidate.child,base.child,atomic_relations=atomic_relations
         )
-        if child == Refinement.STRICT_REFINEMENT:
+        if child in {Refinement.REFINEMENT, Refinement.STRICT_REFINEMENT}:
             return Refinement.COARSENING
         if child == Refinement.COARSENING:
-            return Refinement.STRICT_REFINEMENT
+            return Refinement.REFINEMENT
         return child
 
     raise ContractError("unsupported metric expression")
