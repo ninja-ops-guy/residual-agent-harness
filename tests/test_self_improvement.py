@@ -37,6 +37,7 @@ class RecursiveImprovementTests(unittest.TestCase):
             "residual/station/service.py": "STATION = True\n",
             "residual/station/control.py": "CONTROL = True\n",
             "tests/test_frozen_eval.py": "EVALUATOR = True\n",
+            "tests/test_second_eval.py": "SECOND = True\n",
             "tests/factory_guard.py": "PROTECTED = True\n",
             "verifier/v3/factory_ownership_baseline.json": json.dumps({
                 "pinned_at": "0" * 40,
@@ -102,6 +103,18 @@ class RecursiveImprovementTests(unittest.TestCase):
         self.assertTrue(report["dirty"])
         self.assertIn("checkout_dirty", {f["code"] for f in report["findings"]})
 
+    def test_doctor_blocks_source_that_falls_behind_main(self):
+        subprocess.run(["git", "checkout", "-b", "work"], cwd=self.repo, check=True, capture_output=True)
+        subprocess.run(["git", "checkout", "main"], cwd=self.repo, check=True, capture_output=True)
+        (self.repo / "main-only.txt").write_text("advance main\n")
+        subprocess.run(["git", "add", "."], cwd=self.repo, check=True)
+        subprocess.run(["git", "commit", "-m", "advance-main"], cwd=self.repo, check=True, capture_output=True)
+        subprocess.run(["git", "checkout", "work"], cwd=self.repo, check=True, capture_output=True)
+        report = doctor_repository(self.repo)
+        self.assertEqual(report["source_main_state"], "behind_main")
+        finding = next(f for f in report["findings"] if f["code"] == "source_behind_main")
+        self.assertEqual(finding["severity"], "error")
+
     def test_plan_is_hierarchical_and_stable(self):
         report = doctor_repository(self.repo)
         self.assertEqual(mission_plan(report), mission_plan(report))
@@ -116,6 +129,11 @@ class RecursiveImprovementTests(unittest.TestCase):
         self.assertEqual(tasks["SI_ROADMAP_SCOUT"]["depends_on"], [])
         self.assertEqual(set(tasks["SI_COMPOSER"]["depends_on"]),
                          {"SI_HEALTH_SCOUT", "SI_ROADMAP_SCOUT"})
+        self.assertIn("Executable verification is not authorized", tasks["SI_COMPOSER"]["instruction"])
+        executable = parse_spec(planning_station_spec(
+            report, mission_plan(report), "local", allow_executable=True))
+        composer = next(task for task in executable["tasks"] if task["id"] == "SI_COMPOSER")
+        self.assertIn("Executable-code candidates may be proposed", composer["instruction"])
 
     def test_candidate_builds_existing_station_contract(self):
         report = doctor_repository(self.repo)
@@ -169,6 +187,12 @@ class RecursiveImprovementTests(unittest.TestCase):
             "timeout": 120,
         }])
 
+    def test_non_executable_candidate_cannot_declare_evaluator(self):
+        report = doctor_repository(self.repo)
+        doc = self.candidate(["docs/note.md"], ["docs/evaluator.md"])
+        with self.assertRaises(ContractError):
+            build_station_spec(report, mission_plan(report), doc, self.repo)
+
     def test_non_test_evaluator_is_rejected_for_code_candidate(self):
         report = doctor_repository(self.repo)
         doc = self.candidate(["residual/example.py"], ["docs/evaluator.md"])
@@ -205,10 +229,9 @@ class RecursiveImprovementTests(unittest.TestCase):
 
     def test_generation_cannot_modify_another_candidates_evaluator(self):
         report = doctor_repository(self.repo)
-        a = self.candidate(["docs/a.md"], ["docs/evaluator.md"])["candidates"][0]
-        b = self.candidate(["docs/evaluator.md"], [])["candidates"][0]
+        a = self.candidate(["residual/a.py"], ["tests/test_frozen_eval.py"])["candidates"][0]
+        b = self.candidate(["tests/test_frozen_eval.py"], ["tests/test_second_eval.py"])["candidates"][0]
         b["id"] = "SI-002"
-        b["checks"] = [{"kind": "exists", "path": "docs/evaluator.md"}]
         doc = {"schema_version": 1, "candidates": [a, b]}
         with self.assertRaises(ContractError):
             build_station_spec(report, mission_plan(report), doc, self.repo)
@@ -345,6 +368,17 @@ class RecursiveImprovementTests(unittest.TestCase):
             ])
         self.assertEqual(rc, 0)
         self.assertEqual(lineage.call_args.kwargs["generations"], 2)
+
+    def test_code_execution_requires_explicit_command_permission(self):
+        candidate = self.repo / "candidate-code.json"
+        candidate.write_text(json.dumps(
+            self.candidate(["residual/example.py"], ["tests/test_frozen_eval.py"])))
+        subprocess.run(["git", "add", "."], cwd=self.repo, check=True)
+        subprocess.run(["git", "commit", "-m", "candidate-code"], cwd=self.repo,
+                       check=True, capture_output=True)
+        with self.assertRaises(ContractError):
+            execute_generation(self.repo, candidate, self.repo / ".station",
+                               allow_command_checks=False)
 
     def test_execution_delegates_to_station_managed_clone_and_export(self):
         candidate = self.repo / "candidate.json"
