@@ -105,28 +105,38 @@ You are selecting evidence to inspect, not proposing an improvement yet.
 Return only the typed selection. Do not invent metric IDs."""
 
 PLANNER_SCHEMA = {
-    "type":"object",
-    "properties":{
-        "observation":{
-            "type":"object",
-            "properties":{"observed_metric":{"type":"string"},"observed_value":{"type":"number"}},
-            "required":["observed_metric","observed_value"],"additionalProperties":False,
-        },
-        "question":{"type":"string"},
-        "requested_metric":{"type":"string"},
-        "why_needed":{"type":"string"},
-        "proposed_measurement":{"type":"string"},
-        "preserve_invariants":{"type":"array","items":{"type":"string"},"minItems":1},
-        "evidence_snapshot_hash":{"type":"string"},
-        "human_approval_required":{"const":True},
-    },
-    "required":["observation","question","requested_metric","why_needed","proposed_measurement","preserve_invariants","evidence_snapshot_hash","human_approval_required"],
-    "additionalProperties":False,
+    "oneOf":[
+        {"type":"object","properties":{
+            "type":{"const":"existing_metric_request"},
+            "observation":{"type":"object","properties":{"observed_metric":{"type":"string"},"observed_value":{"type":"number"}},"required":["observed_metric","observed_value"],"additionalProperties":False},
+            "question":{"type":"string"},"requested_metric_id":{"type":"string"},"why_needed":{"type":"string"},
+            "preserve_invariants":{"type":"array","items":{"type":"string"},"minItems":1},
+            "evidence_snapshot_hash":{"type":"string"},"metric_registry_sha256":{"type":"string"},
+            "human_approval_required":{"const":True}},
+         "required":["type","observation","question","requested_metric_id","why_needed","preserve_invariants","evidence_snapshot_hash","metric_registry_sha256","human_approval_required"],"additionalProperties":False},
+        {"type":"object","properties":{
+            "type":{"const":"new_metric_proposal"},
+            "observation":{"type":"object","properties":{"observed_metric":{"type":"string"},"observed_value":{"type":"number"}},"required":["observed_metric","observed_value"],"additionalProperties":False},
+            "definition":{"type":"object","properties":{
+                "metric_id":{"type":"string"},"description":{"type":"string"},"unit":{"type":"string"},
+                "aggregation":{"type":"string"},"population":{"type":"string"},"valid_domain":{"type":"string"},
+                "directionality":{"type":"string","enum":["lower_is_better","higher_is_better","target","contextual"]},
+                "collection_method":{"type":"string"},"implementation_ref":{"type":"string"},"revision":{"type":"string"}},
+                "required":["metric_id","description","unit","aggregation","population","valid_domain","directionality","collection_method","implementation_ref","revision"],"additionalProperties":False},
+            "reason_existing_registry_insufficient":{"type":"string"},
+            "preserve_invariants":{"type":"array","items":{"type":"string"},"minItems":1},
+            "evidence_snapshot_hash":{"type":"string"},"metric_registry_sha256":{"type":"string"},
+            "human_approval_required":{"const":True}},
+         "required":["type","observation","definition","reason_existing_registry_insufficient","preserve_invariants","evidence_snapshot_hash","metric_registry_sha256","human_approval_required"],"additionalProperties":False}
+    ]
 }
 
 PLANNER_SYSTEM = """Act only as the Measurement Planner after the Hypothesis Scientist has declared evidence insufficient.
-Given the exact inspected evidence, insufficiency statement, and metric catalog, request the single measurement that would most directly resolve the uncertainty.
-Do not claim that evidence is missing; the host EvidenceResolver decides availability.
+You receive exact inspected evidence and versioned Metric Registry definitions.
+If a registered metric already expresses the evidence you need, return existing_metric_request with that exact metric ID.
+Only if no registered definition expresses the needed measurable axis may you return new_metric_proposal, and then define it completely with a deterministic population and collection method.
+Do not use vague populations such as normal, typical, usual, or representative conditions. Do not invent a near-alias of an existing metric.
+Do not claim nonredundancy; the host and independent reviewer decide it.
 Do not propose code or an intervention. Return only the typed request."""
 
 REVIEW_SCHEMA = {
@@ -159,6 +169,13 @@ A MeasurementGap is not an intervention hypothesis and does not require causal p
 Approve only if: the observed anomaly is meaningful and evidence-bound; the missing measurement is genuinely absent and nonredundant; the proposed measurement is mechanically collectible; collecting it could materially resolve the stated uncertainty; and the preserved authority/integrity invariants are appropriate.
 Reject speculative causal claims presented as facts, redundant measurements, uncollectible measurements, or gaps that would not change what can be concluded.
 Do not rewrite the proposal. Return only the structured verdict."""
+
+
+METRIC_REVIEW_SYSTEM = """Independently review a proposed discovery MetricDefinition against the versioned registered definitions and originating inspected evidence.
+Approve only if the definition is unambiguous, mechanically collectible, and genuinely new or an explicitly justified refinement with distinct aggregation/population semantics.
+Reject aliases, likely misspellings, undefined or subjective populations, unit/aggregation ambiguity, uncollectible measurements, or proposals whose answer is already represented by a registered metric.
+Approval does not register the metric, implement a collector, or authorize promotion.
+Return only the structured verdict."""
 
 
 RUNS = [
