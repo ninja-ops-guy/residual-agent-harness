@@ -69,7 +69,8 @@ def parse_spec(markdown):
         ids.add(tid)
         bounded(task.get("title"), "Task title", 160)
         bounded(task.get("instruction"), "Task instruction", 12000)
-        if task.get("route", "local") not in {"local", "cloud"}:
+        route = task.get("route", "local")
+        if not isinstance(route, str) or route not in {"local", "cloud"}:
             raise ContractError("route must be local or cloud")
         task.setdefault("route", "local")
         for key in ("files", "context"):
@@ -95,7 +96,7 @@ def parse_spec(markdown):
             allowed = {"exists": {"kind", "path"}, "contains": {"kind", "path", "text"},
                        "python_compile": {"kind", "path"}, "json_valid": {"kind", "path"},
                        "command": {"kind", "argv", "timeout"}}
-            if kind not in allowed or set(check) - allowed[kind]:
+            if not isinstance(kind, str) or kind not in allowed or set(check) - allowed[kind]:
                 raise ContractError("Unsupported check or check field")
             if kind == "command":
                 argv = check.get("argv")
@@ -132,7 +133,7 @@ def event_validate(event):
                 "actor", "attempt", "spec_hash", "data"}
     if not isinstance(event, dict) or set(event) != required or type(event["schema_version"]) is not int or event["schema_version"] != 1:
         raise ContractError("Invalid LDD event envelope")
-    if event["event_type"] not in EVENT_TYPES:
+    if not isinstance(event["event_type"], str) or event["event_type"] not in EVENT_TYPES:
         raise ContractError("Unknown LDD event type")
     for key in ("event_id", "timestamp", "project_id", "actor", "spec_hash"):
         bounded(event[key], key, 200)
