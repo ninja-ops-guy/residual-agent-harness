@@ -61,17 +61,21 @@ The built-in demo is scripted and credential-free. It demonstrates controller be
 
 ## Current repository boundary
 
-Current `main` is **`260b5f9e20bf70a6b9ca087bc91e22a009ed77b9`**.
+Current `main` is **`60d0c5a8fc2044a22619248292ce89c9b43edd37`**.
 
 Merged **#200** hardens native setup defaults: persistent XDG locations, loopback Station binding, opt-in shell convenience, bounded venv repair, and constrained shell-rc edits. This is accepted onboarding behavior, not blank-environment qualification.
 
 Merged **#205** restores the private provider channel across Mission Control reload/remount by validating and reusing a session-scoped channel token, and clears it on explicit close. This is accepted lifecycle behavior, not live-provider semantic evidence.
 
-Merged **#218** applies bounded repair-loop lessons to Station. A repair attempt may receive the previous failed candidate's declared writable files as bounded context, with retained file hashes, while the next candidate still starts from a clean baseline worktree. The runner contract explicitly separates its JSON transport envelope from literal file-language content, and Mission Control/Store use a shared five-attempt ceiling. The change does not grant workers review, receipt, integration, promotion, verifier, or Factory/M4 authority.
+Merged **#218** applies bounded repair-loop lessons to Station. A repair attempt may receive the previous failed candidate's declared writable files as bounded context, with retained file hashes, while the next candidate still starts from a clean baseline worktree. The runner contract separates its JSON transport envelope from literal file-language content, and Mission Control/Store use a shared five-attempt ceiling. The change does not grant workers review, receipt, integration, promotion, verifier, or Factory/M4 authority.
 
-Merged **#201** accepts the guided frontend/provider UX: the public site separates guided proof from the interactive WebVM lab, Mission Control keeps Puter setup inline rather than opening a separate RESIDUAL provider tab, authorization remains attached to explicit user gesture, credentials remain outside RESIDUAL, and provider protocol validation remains fail-closed. Puter's own secure authorization popup may still appear.
+Merged **#201** accepts the guided frontend/provider UX: the public site separates guided proof from the interactive WebVM lab, Mission Control keeps Puter setup inline, authorization remains attached to explicit user gesture, credentials remain outside RESIDUAL, and provider protocol validation remains fail-closed.
 
-PR #201's exact head `4e172aed...` completed **PASS** for Control Plane, Factory ownership, measured-evaluation binding, clean install, Browser VM Demo, Pages, Command Station, Controller/provider, and maintainer approval before merge. Exact merged `main@260b5f9...` has now completed its seven ordinary push workflows: six succeeded, while **Deploy GitHub Pages run `35340104722` is FAIL in live-acceptance scope**. Its artifact build/browser proof and deployment succeeded, then the published desktop proof timed out waiting for the embedded provider frame's expected `could not load` state after the real guest/demo/warm-reload/repository-audit stages had passed. That browser-proof failure is not evidence of paid/live Puter semantic success or failure; the provider path in the retained proof used a test-double SDK.
+Merged **#233** preserves actionable Station repair failure context and explicitly detects repeated failed patches. That makes repair behavior more legible and prevents an identical failed patch from being mistaken for progress; it does not widen acceptance authority.
+
+PR #233's exact head `8801d5e0...` passed Deploy GitHub Pages, Control Plane, clean install, Factory ownership, measured-evaluation binding, Controller/provider, Command Station, and exact-head maintainer approval before merge.
+
+Exact merged `main@60d0c5a8...` has seven ordinary push workflows: six succeeded, while **Deploy GitHub Pages run `35349614961` is FAIL in published live-acceptance scope**. Build/browser proof and deployment passed. Published desktop acceptance passed served-artifact identity, guest boot, demo verification, warm reload, and repository audit, then timed out waiting for the embedded provider frame's expected `could not load` state. The retained provider proof used a test-double SDK, so the failure is not evidence for or against successful paid/live Puter inference.
 
 Historical failures remain retained evidence rather than being erased by later PASS results.
 
@@ -79,7 +83,7 @@ Historical failures remain retained evidence rather than being erased by later P
 
 Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice. Both counted calls failed closed as `provider_protocol_invalid`; no candidate crossed the protocol boundary, so candidate correctness and semantic verification remain **UNKNOWN**.
 
-Merged #179, #183, #189, #205 and #201 repair or improve bounded build-output, provider-session, publication, reload-recovery, and inline setup/authorization surfaces. None is retained proof of successful paid/live Puter inference. A fresh exact-deployed-revision real-account mission must reach normal candidate/verifier/receipt handling before live-provider success becomes `PASS`.
+Merged #179, #183, #189, #205 and #201 improve bounded build-output, provider-session, publication, reload-recovery, and inline setup/authorization surfaces. None is retained proof of successful paid/live Puter inference. A fresh exact-deployed-revision real-account mission must reach normal candidate/verifier/receipt handling before live-provider success becomes `PASS`.
 
 The #186 fallback remains accepted: detected iOS/iPadOS WebKit is routed to the lightweight walkthrough before heavyweight guest boot. Physical heavyweight-WebVM reliability and the lower-level process-kill cause remain **UNKNOWN / unqualified**. Issues #120/#126 remain open.
 
@@ -93,13 +97,16 @@ This documentation does not alter Factory/M4 implementation/tests, ownership bas
 
 ## Research boundary
 
-Recent research evidence must remain mixed:
+Recent research evidence remains mixed:
 
-- #202: earlier retained heterogeneous-DAG **FAIL**; later bounded corrected exact-head **PASS** with real local models and forced repair. Neither result erases the other.
-- #203/#204: first authoritative M6 ImprovementSpec self-host trials remain **FAIL** with 0/1 integrated and no verification receipt/release.
-- #215/#217: M6-SPEC-003/-004 remain retained **FAIL** results even though they exercised prior-candidate repair context and transport/source clarification.
-- #220: M6-SPEC-006 on the corrected #218 runtime is a bounded exact-head **PASS** with local Qwen2.5-Coder 7B. Attempts 1 and 2 were rejected by the frozen checks; attempt 3 passed 2/2 checks, Station review approved it, 1/1 integrated, a verification receipt was issued, and release export completed. This single successful intervention does not erase the earlier FAIL cells or establish general autonomous self-maintenance/reliability.
-- #207 campaign B: retained negative control evidence still shows a budget-exhaustion ordering case in which integration/release preceded final exhausted-budget accounting, and a verifier-failure case in which a non-empty release materialized after abort. Those are independent governance defects and are not cleared by #218/#220.
+- #202 retains an earlier heterogeneous-DAG **FAIL** and a later bounded corrected exact-head **PASS**. Neither erases the other.
+- #203/#204 and #215/#217 remain retained M6 **FAIL** results.
+- #220 M6-SPEC-006 remains a bounded exact-head **PASS** on the corrected #218 runtime. It does not establish general repair reliability or autonomous self-maintenance.
+- #231 M6-ROADMAP-001B is a bounded research **PASS** against a detached clean copy of exact `main@260b5f9...`: one implementation attempt, 3/3 immutable checks PASS, independent local review APPROVED, exact reviewed head integrated, verification receipt issued, and release export succeeded. The exact generated `ImprovementSpec` bytes are proposed in production PR #243, which is still open and therefore **unaccepted**.
+- #232 M6-EPI-001 completed both experiment arms after one repair, but surfaced stricter verifier requirements: an empty invariant set in the insufficient-evidence arm and malformed/conflated acceptance/invariant semantics in the sufficient-evidence arm. That is a useful research result, not production qualification.
+- #244 M6-SPEC-007 and #246 M6-SPEC-007B both timed out at the provider before any autonomous discovery proposal was produced. Treat them as **FAIL in experiment-execution scope / discovery not reached**, not as a failed Scientist hypothesis. #246 reduced request size but did not clear the timeout.
+- #249 M6-SPEC-007C has no authoritative result retained at this status check, so its discovery outcome is **UNKNOWN**.
+- #207 campaign B still retains independent accounting/release authority-ordering defects. #218/#220/#231 do not clear them.
 
 These observations do not establish general autonomous recursive self-improvement or production reliability.
 
