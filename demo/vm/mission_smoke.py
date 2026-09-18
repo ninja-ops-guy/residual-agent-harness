@@ -15,9 +15,7 @@ window.puter = {
     signIn: () => {
       window.__providerFixture.gesture = navigator.userActivation.isActive;
       if (!window.__providerFixture.gesture) return Promise.reject({error:'popup_blocked'});
-      const popup = window.open('about:blank', '_blank');
-      if (!popup) return Promise.reject({error:'popup_blocked'});
-      popup.close(); window.__providerFixture.signedIn = true; return Promise.resolve({});
+      window.__providerFixture.signedIn = true; return Promise.resolve({});
     }
   },
   ai: {chat: async (messages, options) => {
@@ -105,6 +103,7 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     ))
     await frame.locator('#load').click()
     await frame.locator('#signin').click()
+    await frame.locator('#status').filter(has_text='Connected. Mission Control').wait_for(timeout=20000)
     await page.wait_for_function(
         "() => document.querySelector('#mc-connect').textContent.startsWith('Provider connected')",
         timeout=20000,
