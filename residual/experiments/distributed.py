@@ -415,6 +415,11 @@ def main(argv=None) -> int:
     pipeline.add_argument("--repeats", type=int, default=1)
     pipeline.add_argument("--output")
 
+    bridge = sub.add_parser("bridge", help="Benchmark Station-to-mesh observability fanout")
+    bridge.add_argument("--members", nargs="+", type=int, default=[2, 4, 8])
+    bridge.add_argument("--repeats", type=int, default=3)
+    bridge.add_argument("--output")
+
     matrix = sub.add_parser("matrix", help="Sweep worker counts and synthetic inference latencies")
     matrix.add_argument("--workers", nargs="+", type=int, default=[1, 2, 4])
     matrix.add_argument("--latencies-ms", nargs="+", type=float, default=[0.0, 40.0, 200.0])
@@ -452,6 +457,12 @@ def main(argv=None) -> int:
                 width=args.width,
                 depth=args.depth,
                 work_ms=args.work_ms,
+                repeats=args.repeats,
+            )
+        elif args.experiment == "bridge":
+            from residual.experiments.bridge import run_station_mesh_bridge_benchmark
+            report = run_station_mesh_bridge_benchmark(
+                member_counts=tuple(args.members),
                 repeats=args.repeats,
             )
         elif args.experiment == "matrix":
