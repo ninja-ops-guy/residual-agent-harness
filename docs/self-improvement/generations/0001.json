@@ -45,6 +45,6 @@
     "Governor-derived pytest starts under Python isolated mode with third-party plugin autoload disabled before the candidate repository is added to the evaluator path.",
     "Autonomous execution blocks when the source revision is behind or diverged from the repository's known main revision.",
     "Without explicit command-check permission, origination is constrained to non-executable documentation/data candidates and executable proposals fail before Station execution.",
-    "Revision Doctor identity additionally binds the M7 controller and M7 safety regression bytes."
+    "Revision Doctor identity additionally binds the M7 controller, CLI dispatch surface, and M7 safety regression bytes."
   ]
 }
