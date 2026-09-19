@@ -1,0 +1,41 @@
+{
+  "id": "enterprise-pilot",
+  "title": "Run an enterprise pilot",
+  "category": "enterprise",
+  "summary": "Plan an enterprise pilot around architecture review, security review, training, evidence, and fail-closed operational runbooks.",
+  "keywords": [
+    "enterprise",
+    "pilot",
+    "security review",
+    "architecture review",
+    "governance",
+    "audit",
+    "production"
+  ],
+  "docs": [
+    "enterprise/README.md",
+    "enterprise/governance/pilot-program.md",
+    "enterprise/governance/security-review-package.md",
+    "enterprise/governance/architecture-review-package.md",
+    "enterprise/governance/training/administrators.md",
+    "enterprise/governance/training/operators.md"
+  ],
+  "inputs": [],
+  "steps": [
+    {
+      "kind": "read",
+      "title": "Review enterprise architecture and controls",
+      "detail": "Use the enterprise docs as the source of truth for pilot scope, control ownership, and evidence."
+    },
+    {
+      "kind": "manual",
+      "title": "Assign accountable owners",
+      "detail": "Name platform, security, operator, auditor, and change-management owners before enabling production-adjacent capabilities."
+    },
+    {
+      "kind": "verify",
+      "title": "Run the pilot gates",
+      "detail": "Exercise training, failure runbooks, evidence review, and release qualification against an exact head before promotion."
+    }
+  ]
+}
