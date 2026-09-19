@@ -167,6 +167,18 @@ class TestOIDC(unittest.TestCase):
         identity = self._client(lambda kid: self.secret).authenticate(token, now=NOW)
         self.assertEqual(identity.subject, "alice@acme.com")
 
+    def test_amr_is_optional_and_defaults_empty(self):
+        payload = self._payload()
+        payload.pop("amr")
+        token = jwt_encode(payload, self.secret, alg="HS256")
+        identity = self._client(lambda kid: self.secret).authenticate(token, now=NOW)
+        self.assertEqual(identity.amr, ())
+
+    def test_amr_rejects_non_string_entries(self):
+        token = jwt_encode(self._payload(amr=["pwd", 7]), self.secret, alg="HS256")
+        with self.assertRaises(ContractError):
+            self._client(lambda kid: self.secret).authenticate(token, now=NOW)
+
     def test_expired_token_rejected(self):
         token = jwt_encode(self._payload(exp=NOW - 120), self.secret)
         with self.assertRaises(ContractError):
