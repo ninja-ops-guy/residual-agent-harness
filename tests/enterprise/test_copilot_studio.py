@@ -1,6 +1,9 @@
 """Security and contract tests for the Copilot Studio Firmware v1 gateway."""
 from __future__ import annotations
 
+import os
+import stat
+
 import pytest
 
 from residual.core import ContractError
@@ -66,7 +69,7 @@ def make_token(
 
 
 def make_api(*, expected_tenant="tenant-a", group_resolver=None,
-             allowed_client_apps=frozenset(), store=None, backend=None):
+             allowed_client_apps=frozenset(), store=None, backend=None, audit=None):
     settings = OIDCSettings(issuer=ISSUER, client_id=AUDIENCE, clock_skew=0)
     oidc = OIDCClient(settings, {KID: KEYPAIR.public_key})
     verifier = CopilotIdentityVerifier(
@@ -83,7 +86,7 @@ def make_api(*, expected_tenant="tenant-a", group_resolver=None,
         backend,
         store=store,
     )
-    return CopilotAPI(gateway), gateway, backend
+    return CopilotAPI(gateway, audit=audit), gateway, backend
 
 
 def payload(request_id="req-a", objective="Investigate boot regression",
@@ -420,3 +423,57 @@ def test_persisted_claim_recovers_if_backend_acknowledgement_was_lost(tmp_path):
     recovered = submit(api, body=payload(request_id="recover-1"))
     assert recovered.status == 202
     assert len(backend.bindings) == 1
+
+
+def test_api_audit_never_contains_token_payload_or_backend_error_text():
+    events = []
+    api, _, _ = make_api(audit=lambda event, data: events.append((event, data)))
+    secret_objective = "SENSITIVE-OBJECTIVE-DO-NOT-LOG"
+    token = make_token()
+    response = submit(
+        api,
+        token=token,
+        body=payload(request_id="audit-1", objective=secret_objective),
+    )
+    assert response.status == 202
+    serialized = repr(events)
+    assert token not in serialized
+    assert secret_objective not in serialized
+    assert "access_as_user" not in serialized
+    assert any(event == "copilot_api_response" for event, _ in events)
+
+
+def test_contract_failure_audit_is_redacted(tmp_path):
+    class AlwaysFailBackend(CaptureBackend):
+        def submit(self, binding, request, plan):
+            raise ContractError("TOP-SECRET-BACKEND-DETAIL")
+
+    events = []
+    api, _, _ = make_api(
+        store=SQLiteMissionStore(tmp_path / "audit-failure.db"),
+        backend=AlwaysFailBackend(),
+        audit=lambda event, data: events.append((event, data)),
+    )
+    response = submit(api, body=payload(request_id="audit-fail-1"))
+    assert response.status == 500
+    assert "TOP-SECRET-BACKEND-DETAIL" not in repr(response.body)
+    assert "TOP-SECRET-BACKEND-DETAIL" not in repr(events)
+    assert any(event == "copilot_api_contract_failure" for event, _ in events)
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX file mode hardening")
+def test_sqlite_store_file_is_private(tmp_path):
+    path = tmp_path / "private-missions.db"
+    SQLiteMissionStore(path)
+    assert stat.S_IMODE(path.stat().st_mode) & 0o077 == 0
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX symlink hardening")
+def test_sqlite_store_rejects_symlink_path(tmp_path):
+    target = tmp_path / "target.db"
+    target.write_bytes(b"")
+    os.chmod(target, 0o600)
+    link = tmp_path / "link.db"
+    link.symlink_to(target)
+    with pytest.raises(ContractError, match="symlink"):
+        SQLiteMissionStore(link)
