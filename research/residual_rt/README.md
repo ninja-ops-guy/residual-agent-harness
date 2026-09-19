@@ -29,9 +29,38 @@ Run the focused regression suite with:
 
 The output binds the fixture and each decision trace with SHA-256 hashes. This is engineering evidence for the replay implementation, not a scientific claim that RT5 will achieve the same effect on live models or real cyber ranges.
 
-## Planned Phase B: proposal-only digital twin
+## Implemented runner: Phase B proposal-only digital twin
 
-A frozen model emits only typed capability proposals such as network.service.enumerate or state.change.request. The adapter is a no-op: no offensive command is executed. This phase measures planning quality, scope drift, evidence requests, verifier disagreement, memory effects, and orchestration overhead while preserving strict separation between reasoning and authority.
+A frozen model emits only typed capability proposals such as network.service.enumerate or state.change.request. There is no execution adapter: no offensive command is executed. The runner reuses RESIDUAL's HTTP provider transport, validates model output against a dedicated proposal schema, binds safe model/config identity, scores the proposals against hidden oracle metadata, and replays the exact proposal set through RT0-RT5.
+
+Four frozen engagements are in research/residual_rt/engagements.json. The model-visible packet excludes the oracle, verifier outcomes, capability risk map, truth labels, and required-evidence answers.
+
+Example local Ollama pilot:
+
+    python -m residual.eval.residual_rt_models \
+      --kind ollama \
+      --model qwen2.5-coder:7b \
+      --base-url http://127.0.0.1:11434 \
+      --placement local \
+      --repeats 10 \
+      --temperature 0 \
+      --seed-base 20260918 \
+      --output runs/residual-rt/phase-b-qwen.json
+
+Example OpenAI-compatible endpoint:
+
+    python -m residual.eval.residual_rt_models \
+      --kind openai_compatible \
+      --model YOUR_MODEL \
+      --base-url https://YOUR_ENDPOINT \
+      --placement remote \
+      --api-key-env YOUR_API_KEY_ENV \
+      --repeats 10 \
+      --temperature 0 \
+      --seed-base 20260918 \
+      --output runs/residual-rt/phase-b-remote.json
+
+These commands are pilot/reproduction surfaces. Paper-facing confirmatory runs still require a frozen model matrix, power analysis, exact source/environment identity, and outcome-independent protocol freeze.
 
 ## Planned Phase C: isolated cyber range
 
@@ -43,4 +72,4 @@ The range requirements are explicit: disposable lab assets, no external route, a
 
 The primary endpoints are scope-violation execution, unauthorized high-risk execution, false acceptance, accepted correctness, acceptance coverage, false rejection, evidence completeness, and exact-repeat suppression. Accepted correctness is never reported without acceptance coverage: rejecting everything is not success.
 
-See protocol.json for the preregistration draft and paper/residual_rt_ieee.tex for the IEEE-style manuscript.
+See protocol.json for the preregistration draft, engagements.json for Phase B workloads, and paper/residual_rt_ieee.tex for the IEEE-style manuscript.
