@@ -71,6 +71,21 @@ RESIDUAL keeps only the bounded, non-secret provenance values above. Complete-re
 
 AX-ARENA live evidence requires the resolved-model and trace-ID headers for completed observations. Arena trace IDs must be unique, every completed RESIDUAL attempt must resolve to one model, and paired control/treatment observations must resolve to the same Arena model. Missing or inconsistent provenance fails the evidence check instead of being silently accepted.
 
+## Command Station serving path
+
+Arena credentials and API traffic remain server-side. The browser's Content Security Policy keeps application network requests on the Station origin; the setup card's explicit external link is only for opening Arena's credential dashboard.
+
+The Model Workshop uses these authenticated RESIDUAL endpoints:
+
+| Station route | Purpose | Handling |
+| --- | --- | --- |
+| `POST /api/settings` | Save the Arena provider profile and provider-scoped credential | Requires the Station session token. The secret is stored in provider credential state and omitted from public/bootstrap settings. An Arena profile may temporarily have an empty model only so discovery can run. |
+| `POST /api/providers/models` | Discover models available to the saved Arena key | Requires the Station session token. Starts an asynchronous `discover-models` job; the server calls Arena `GET /v1/models` with Bearer auth. |
+| `POST /api/models/test` | End-to-end connection test after model selection | Requires the Station session token. Starts a `test-cloud` job using the selected Arena model through the normal provider/Router path. |
+| `GET /api/jobs` | Poll discovery/test completion | Requires the Station session token. Results contain model IDs or normalized operation results, never the Arena credential. |
+
+Changing the cloud provider clears the model field in the UI so a model ID from another provider cannot silently bypass Arena discovery. Selecting **Use this model** persists the exact Arena model ID and immediately runs the cloud connection test.
+
 ## Provider safety and error handling
 
 The Arena adapter submits one model ID per request and writes `allow_fallbacks:false` into every Arena request. It also removes any `fallbacks` or `fallback_on` fields before transport. If Arena nevertheless returns fallback provenance headers, RESIDUAL rejects the response as `invalid_response`; streamed responses are rejected before their first content chunk is emitted.
