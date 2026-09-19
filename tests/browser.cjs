@@ -47,6 +47,7 @@ async function main(){
   // Arena onboarding must lead directly to the virtual API-key page without exposing credentials.
   await page.locator('#cloud-kind').selectOption('arena');
   assert.equal(await page.locator('#cloud-url').inputValue(),'https://api.preview.arena.ai/v1');
+  assert.equal(await page.locator('#cloud-model').inputValue(),'');
   const arenaKeyLink=page.getByRole('link',{name:'Get Arena API key ↗',exact:true});
   await arenaKeyLink.waitFor({state:'visible'});
   assert.equal(await arenaKeyLink.getAttribute('href'),'https://portal.api.preview.arena.ai/dashboard/keys');
