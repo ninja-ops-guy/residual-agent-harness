@@ -20,13 +20,14 @@ The station supports one credential set per cloud provider. Use a separate stati
 |---|---|---|---|---|---|
 | OpenAI Chat Completions | Yes | Yes | Yes | Yes | API |
 | OpenAI-compatible | Yes | Yes* | Yes | Yes* | API* |
+| Arena API (preview) | Yes | Yes* | Yes | Yes* | API* |
 | Anthropic Messages | Yes | Yes | Yes | Yes | Paginated API |
 | Google Gemini | Yes | Yes | Yes | Yes | Paginated API |
 | Azure OpenAI | Yes | Yes | Yes | Yes | Enter deployment ID |
 | AWS Bedrock Converse | Yes | Explicit `not_implemented` | Yes | Explicit `not_implemented` | Enter model/profile ID |
 | Ollama native | Yes | Yes | Yes | Yes | Installed models API |
 
-*Compatible servers must support the request fields they receive, including JSON mode and streaming usage options. Compatibility is protocol support, not a promise about every hosted service or model. Tool specifications and tool-result messages translate to native provider formats. The station itself requests bounded text/JSON file proposals; it does not execute model-requested tools. `supports_tools()` is conservative and may return false for opaque deployment names. Ollama capabilities are queried rather than guessed from a model name.
+*Compatible servers and the Arena preview gateway must support the request fields they receive, including JSON mode and streaming usage options. Arena model capability is intentionally treated as opaque: `supports_tools()` is conservative, and scientific AX-ARENA runs disable unrecorded provider fallback. Compatibility is protocol support, not a promise about every hosted service or model. Tool specifications and tool-result messages translate to native provider formats. The station itself requests bounded text/JSON file proposals; it does not execute model-requested tools. `supports_tools()` is conservative and may return false for opaque deployment names. Ollama capabilities are queried rather than guessed from a model name.
 
 Async methods run the shared stdlib transport in worker threads. Async streaming preserves the same chunks, errors and usage as sync streaming. Cancellation of an outstanding read waits for that bounded read to complete before closing the generator. Bedrock streaming remains unavailable; it is never represented as a successful empty stream. Model Workshop uses complete-response background jobs, not token-by-token rendering.
 
