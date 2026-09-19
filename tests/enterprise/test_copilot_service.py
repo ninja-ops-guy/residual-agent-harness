@@ -58,3 +58,36 @@ def test_cross_department_group_cannot_submit():
         now=1100,
     )
     assert response.status==403
+
+
+def test_reviewer_auditor_and_lead_permissions_are_enforced_end_to_end():
+    dep=_deployment(); key=rsa_generate_keypair(1024)
+    backend=InMemoryMissionBackend(); store=InMemoryMissionStore()
+    service=DepartmentCopilotService(
+        "firmware",dep,backend,store,jwks_provider=lambda kid:key.public_key,
+    )
+    profile,_=dep.departments()["firmware"]
+    owner_token=_token(service,key,next(iter(profile.allowed_groups)))
+    created=service.api.handle(
+        "POST","/v1/copilot/missions","Bearer "+owner_token,
+        {"request_id":"rbac-owner","template_id":"firmware-repository-analysis",
+         "objective":"Analyze firmware.","inputs":{"repository_id":"firmware_sample"}},now=1100,
+    )
+    mid=created.body["mission_id"]
+
+    def token_for(oid,group):
+        return jwt_encode({
+            "iss":service.deployment.entra().issuer,"sub":oid,"aud":service.deployment.entra().audience,
+            "iat":1000,"exp":1200,"tid":service.deployment.tenant_id,"oid":oid,
+            "scp":"access_as_user","groups":[group],"azp":service.deployment.connector_client_app_id,
+        },key,alg="RS256",headers={"kid":"k1"})
+
+    reviewer=token_for("reviewer",next(iter(profile.reviewer_groups)))
+    auditor=token_for("auditor",next(iter(profile.auditor_groups)))
+    lead=token_for("lead",next(iter(profile.lead_groups)))
+
+    assert service.api.handle("GET",f"/v1/copilot/missions/{mid}/evidence","Bearer "+reviewer,None,now=1100).status==200
+    assert service.api.handle("POST",f"/v1/copilot/missions/{mid}/cancel","Bearer "+reviewer,{},now=1100).status==404
+    assert service.api.handle("GET",f"/v1/copilot/missions/{mid}","Bearer "+auditor,None,now=1100).status==200
+    assert service.api.handle("POST",f"/v1/copilot/missions/{mid}/cancel","Bearer "+auditor,{},now=1100).status==404
+    assert service.api.handle("POST",f"/v1/copilot/missions/{mid}/cancel","Bearer "+lead,{},now=1100).status==202
