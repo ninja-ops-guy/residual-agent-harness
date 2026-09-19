@@ -77,30 +77,18 @@ def run_mission(*, provider: str, model: str, base_url: str | None, root: Path) 
     })
     pid = station.create(SPEC, allow_cloud=True, commands=True)["project_id"]
     try:
-        station.triage(pid)
-        if station.store.task(pid, "LIVE-1")["state"] != "ready":
-            raise RuntimeError("triage did not produce a ready task")
-
-        run = station.run_one(pid, "LIVE-1", owner="live-provider-qualification")
-        if not run or station.store.task(pid, "LIVE-1")["state"] != "review_ready":
-            raise RuntimeError("live implementation did not reach review_ready")
-
-        review = station.review(pid, "LIVE-1")
-        if review.get("approved") is not True or station.store.task(pid, "LIVE-1")["state"] != "approved":
-            raise RuntimeError("live reviewer did not approve the verified candidate")
-
-        integrated = station.integrate(pid, "LIVE-1")
-        if station.store.task(pid, "LIVE-1")["state"] != "integrated":
-            raise RuntimeError("verified candidate did not integrate")
-
-        # Export authority is intentionally stricter than integration state: the
-        # current integrated head must also be covered by a successful
-        # run-control result. Exercise that real control path without invoking
-        # Station.batch()'s optional post-run cloud assessment, which would add
-        # unrelated provider calls to this bounded two-call mission.
+        # The authority-bearing mission itself must execute inside run control.
+        # BudgetAdmission gates dispatch, review, and integration before each
+        # effect; obtaining a receipt after doing those effects would only prove
+        # post-hoc export compatibility, not governed execution.
         control = run_controlled_batch(station, pid, lambda *_args: None)
         if control["control"]["outcome"] != "success":
             raise RuntimeError("run control did not establish release authority")
+
+        task = station.store.task(pid, "LIVE-1")
+        if task["state"] != "integrated":
+            raise RuntimeError("controlled mission did not integrate the verified candidate")
+        integrated_head = control["control"]["project_head"]
 
         release = station.export(pid)
         meta, release_bytes = station.store.artifact(release["id"])
@@ -112,7 +100,8 @@ def run_mission(*, provider: str, model: str, base_url: str | None, root: Path) 
             "provider": provider,
             "model_requested": model,
             "project_id": pid,
-            "integrated_head": integrated["head_commit"],
+            "integrated_head": integrated_head,
+            "authority_path": "run_controlled_batch",
             "run_control": {
                 "outcome": control["control"]["outcome"],
                 "project_head": control["control"]["project_head"],
