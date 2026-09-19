@@ -20,6 +20,25 @@ def write_json(path, value):
     path.write_text(json.dumps(value, indent=2, ensure_ascii=False, allow_nan=False) + "\n", encoding="utf-8")
 
 
+def _start(argv):
+    settings_path = Path(os.environ.get("RESIDUAL_SETTINGS", Path.home() / ".residual-settings"))
+    saved = {}
+    if settings_path.is_file():
+        for line in settings_path.read_text(encoding="utf-8").splitlines():
+            key, sep, value = line.partition("=")
+            if sep:
+                saved[key] = value
+    parser = argparse.ArgumentParser(prog="residual start", description="Start the local RESIDUAL Command Station")
+    parser.add_argument("--host", default=saved.get("host", "127.0.0.1"))
+    parser.add_argument("--port", type=int, default=int(saved.get("port", "8765")))
+    parser.add_argument("--data", default=saved.get("data_dir", str(Path.home() / ".local/state/residual/station")))
+    args = parser.parse_args(argv)
+    if args.host == "0.0.0.0":
+        print("residual: warning: --host 0.0.0.0 exposes Command Station to other reachable hosts", file=sys.stderr)
+    from .station.server import main as serve
+    return serve(["--host", args.host, "--port", str(args.port), "--data", args.data])
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     if argv and argv[0] == "factory":
@@ -31,7 +50,7 @@ def main(argv=None):
     if argv and argv[0] == "study":
         from .study import main as study
         return study(argv[1:])
-    if argv and argv[0] == "serve":
+    if argv and argv[0] == "start":\n        return _start(argv[1:])\n    if argv and argv[0] == "serve":
         from .station.server import main as serve
         return serve(argv[1:])
     if argv and argv[0] == "worker":
@@ -47,7 +66,7 @@ def main(argv=None):
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("factory", help="Plan and approve headless multi-swarm Factory Mode work")
     sub.add_parser("evaluate", help="Run SPEC-EVAL-001 comparative evidence (evaluate --help)")
-    sub.add_parser("serve", help="Open the local web command station (serve --help for options)")
+    sub.add_parser("start", help="Start Command Station with saved setup defaults")\n    sub.add_parser("serve", help="Open the local web command station (serve --help for options)")
     sub.add_parser("worker", help="Connect a distributed inference runner")
     sub.add_parser("study", help="Freeze/run independently graded studies (study --help)")
     sub.add_parser("node", help="Join/leave the distributed cluster (node --help)")
