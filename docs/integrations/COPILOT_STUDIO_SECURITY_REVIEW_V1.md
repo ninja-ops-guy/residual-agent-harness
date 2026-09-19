@@ -222,3 +222,39 @@ capability, replay, ownership, and redaction controls are represented in code an
 tests. Production deployment remains gated on the blockers above and on an
 exact-head green CI result; this document is not an authorization to merge or
 deploy.
+
+
+## C4 read-only execution bridge
+
+The first production-shaped execution path is intentionally limited to
+`firmware-repository-analysis`.
+
+Admission and execution are separated by `EncryptedMissionQueueBackend`.
+The Copilot/HTTP process persists an encrypted, integrity-bound mission but does
+not execute repository code. A trusted `FirmwareRepositoryAnalysisWorker`
+claims only the analysis template through an exact lease.
+
+Repository access is resolved through `RepositoryCatalog`: the caller supplies
+only an opaque `repository_id`; the deployment owns the resolved local Git
+repository and exact context-file list. The worker reads those files from a
+frozen `HEAD^{commit}`, not the mutable working tree, and records direct
+SHA-256 file hashes plus a snapshot hash.
+
+Repository contents are passed to the selected RESIDUAL execution engine as
+explicitly untrusted data. The worker exposes no shell, file-write, arbitrary
+network, merge, deployment, secret, policy, or qualification tool surface.
+Any engine result containing tool calls is rejected. Provider-native approval or
+policy metadata is rejected by the existing RESIDUAL `PolicyAuthority`.
+
+The worker revalidates its queue lease after engine execution and before evidence
+commit. A result produced after lease expiry therefore cannot become
+authoritative; the mission remains fail-closed and is quarantined as
+`lease_expired` by the queue sweeper.
+
+Adversarial qualification covers repository prompt injection, dirty-worktree
+isolation, unknown repository aliases, oversized context/results, attempted tool
+calls, provider self-approval metadata, wrong-template claims, and lease expiry.
+
+This does **not** authorize the sandbox build/test or patch-proposal templates.
+Those remain queued until a separate WorkerContract/OS-isolated execution adapter
+is implemented and qualified.
