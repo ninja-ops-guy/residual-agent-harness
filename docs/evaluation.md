@@ -36,19 +36,19 @@ A system that rejects nearly everything must not be described as reliable merely
 
 ## Current integration evidence is not confirmatory evidence
 
-Current `main` is **`3bfa6abac719bb1ca5db225b32df347ae2afc079`**, produced by merged #330. No newer production-main commit landed in this check.
+Current `main` is **`d89c5d940a32d8a7df4dd55e699c158fff5f615c`**, produced by merged #336 after #337 on 2026-09-19. #337 repairs PR-Agent advisory publication/concurrency governance; #336 adds a guest-filesystem durability boundary before reusable WebVM completion. These are engineering/governance changes, not model-quality or scientific evidence.
 
-Recent accepted engineering/security changes include #307 CI fan-out repair, #260 provider-bootstrap hardening, #288 pre-dispatch Station budget authority, #320 repository-side CSP/anti-clickjacking configuration, #328 core execution/egress/XML security hardening, and #330 workflow checkout credential-persistence hardening. These are engineering, governance, or security changes, not model-quality or scientific evidence.
+Accepted #276 requires each `main` SHA to receive its own non-cancelling production Pages attempt. For exact current main, run **`35449637725`**, attempt 1, completed **FAIL**. Generated desktop+narrow proof, deployment, published desktop exact-revision/real-guest execution, and multiple narrow live-guest stages passed. The required narrow retained-evidence assertion failed later.
 
-Accepted #276 requires each `main` SHA to receive its own non-cancelling production Pages attempt. For exact current main, run **`35437556200`**, attempt 1, completed **FAIL**. Generated artifact/browser proof, deployment, served revision identity, and desktop real-guest acceptance passed; the required narrow/mobile Chromium acceptance failed after reaching the live guest and multiple Workbench stages. The retained live-proof artifact is `10582812524`, SHA-256 `868ca31506d278a335ff95d3607adbd13c14edaec8b161c1b45ac013e7f7c8b8`. The lower-level cause remains **UNKNOWN**.
+That assertion compound-checks the live/build/follow-up artifact files and then `verify_run(...)` for each mission directory. Because the predicates are chained, the retained attempt does not identify the first failing subpredicate. Lower-level cause: **UNKNOWN**. Retained artifact: `webvm-live-proof-35449637725-1`, SHA-256 `edd0d84e1270b71cc53039cae85e42041c06767c52039bb6c418a3ffffd62ff8`.
 
-Production Pages run `35431634267`, attempt 1, remains a scoped **PASS for exact revision `0a675017...` only**. The earlier Pages **FAIL** on `e7b72ad...` also remains exact-revision evidence. Neither predecessor result overrides the independent current-main FAIL.
+The accepted #336 `os.sync()` repair is therefore **necessary but insufficient** for the full narrow reload/evidence path. A next changed-head diagnostic should split the compound assertion without weakening any required predicate. The current head should not be rerun merely to produce green.
 
-Open #336 has a generated branch Pages **PASS** at exact head `92aca285...`, but it is not accepted-current-main evidence. It remains on HOLD behind #337 because review of #336 exposed a PR Agent fail-open publication/concurrency defect. #337's technical lanes are green in their scoped checks, but PR Agent advisory and protected maintainer approval remain **FAIL**, so the governance repair is itself unaccepted. If #337 lands, #336 must reconcile and regenerate exact-head evidence; if #336 later lands, the new main SHA still requires its own first authoritative production Pages attempt.
+Historical production Pages results remain exact-revision evidence: `0a675017...` run `35431634267` attempt 1 is a scoped PASS for that revision; later/current FAIL results do not erase it, and its PASS does not transfer forward.
 
-Open #338 is protected trust-boundary work, not evaluation evidence: it changes RuntimeJournal protected bytes and advances the Factory ownership-baseline pin. Scoped Factory/technical lanes and maintainer approval are PASS, but generated PR Pages and PR Agent advisory are FAIL, so it remains unaccepted. Open #340 adds proposed Moonshot/Kimi and Kimi Claw/OpenClaw adapters; it is likewise branch-only with incomplete qualification and maintainer approval FAIL. Neither may be used as current-main provider or Factory evidence.
+Open #338 is protected trust-boundary work, not evaluation evidence. It changes RuntimeJournal protected bytes and the Factory ownership-baseline pin and remains unaccepted pending explicit review. Open #340 contains implementation-only Moonshot/Kimi and Kimi Claw/OpenClaw adapters. Draft #341 contains the separated governed nested-runtime research track and is research-only. None may be used as accepted current-main provider, Factory, or scientific evidence.
 
-Successful paid/live Puter execution, every-host M4 qualification, production Vercel security-header validation, blank-environment install, physical heavyweight-WebVM reliability, and a scientific effect size remain separate claims. The current Pages failure recorded `cloud_inference` as `NOT_RUN`, so it is not a live-provider/model-quality failure result.
+Successful paid/live Puter execution, every-host M4 qualification, production Vercel security-header validation, blank-environment install, physical heavyweight-WebVM reliability, and a scientific effect size remain separate claims.
 
 ## Real-model development evidence must remain mixed
 
@@ -57,8 +57,6 @@ Draft #202 provides a useful example of why first-attempt and revision binding m
 The M6 self-host sequence is similarly mixed: #203/#204/#215/#217 retain authoritative **FAIL** cells, while #220/M6-SPEC-006 retains one bounded corrected-path **PASS**. That PASS does not establish general autonomous self-maintenance.
 
 ## M6.2 discovery evaluation boundary
-
-The autonomous-discovery series must be evaluated as a matrix of scoped outcomes rather than one aggregate success claim.
 
 Key retained cells include:
 
@@ -87,21 +85,13 @@ Draft #207 Campaign B and draft #212 Campaign C retain important frozen outcomes
 - **#212 transient HTTP 500:** retry/failover success **UNKNOWN / not established**.
 - **#212 missing usage:** **FAIL for accounting-before-authority** because a candidate integrated and received a receipt before the later unknown-usage abort.
 
-Merged **#288** closes product issue #208. The accepted repair adds host-owned pre-dispatch budget/deadline admission for Station runner/reviewer calls, conservative handling of invalid/unknown usage, authority rechecks, and release export bound to a successful exact-head/spec run-control result.
+Merged **#288** closes product issue #208. Historical scenario outcomes remain unchanged. A stronger present-tense claim that the repaired path prevents every affected authority-ordering failure is **UNKNOWN pending fresh repaired-path requalification**.
 
-Interpretation discipline:
+## Research Workbench and nested-runtime evaluation
 
-- product defect #208: **repaired/accepted on main**;
-- historical #207/#212 scenario outcomes: unchanged retained evidence;
-- stronger present-tense claim that the repaired path prevents every affected authority-ordering failure: **UNKNOWN pending fresh repaired-path requalification**.
+Draft #323's first authoritative Workbench trial remains **BLOCKED**. #288 is accepted, but #323 still requires rebase/requalification before an authoritative M6-WB-001 run.
 
-Do not retroactively relabel frozen FAIL cells as PASS because a repair later merged.
-
-## Research Workbench evaluation boundary
-
-Draft #323's first authoritative Workbench trial remains **BLOCKED**. #288 is now accepted, satisfying one prerequisite, but #323 still requires rebase/requalification onto a main containing that repair before an authoritative M6-WB-001 run.
-
-Definition availability for staged Workbench experiments is not execution evidence.
+Draft **#341 / EXP-NESTED-SWARM-001** is a governed nested-runtime evaluation track separated from provider implementation #340. Its definitions, adapters, and contracts are apparatus only. General nested-swarm benefit remains **UNKNOWN / not established** until a frozen governed run produces interpretable retained evidence.
 
 ## Cooperative mesh evaluation
 
@@ -119,13 +109,13 @@ Do not substitute green provider-contract, browser, Pages-build, or lifecycle CI
 
 ## Security qualification is separate from scientific evaluation
 
-Merged #320, #328, and #330 are accepted configuration/source/workflow changes, but their existence does not turn security or scientific claims into blanket PASS.
+Merged #320, #328, #330, #337, and #336 are accepted configuration/source/workflow/governance changes in their reviewed scope. Their existence does not turn security or scientific claims into blanket PASS.
 
 - #320 production Vercel response-header enforcement/Aikido revalidation: **UNKNOWN / pending**.
 - #328 core source/runtime security split: **accepted** for its reviewed scope.
 - #330 checkout credential-persistence hardening: **accepted** for its reviewed workflow scope.
-- stale overlapping #324: must not be merged wholesale.
-- vendor/scanner confidence: not repository acceptance evidence and not scientific evidence.
+- #337 advisory publication/concurrency hardening: **accepted** for its reviewed governance scope.
+- #336 guest evidence-durability boundary: **accepted** as an implementation repair, while exact-current-main production Pages remains **FAIL**.
 
 ## WebVM-dependent evaluation gate
 
@@ -133,29 +123,21 @@ Issues #120/#126 remain open. Bounded mitigations, diagnostics, and individual g
 
 The #186 fallback is accepted. It establishes only that the unsupported/unqualified iOS WebKit profile is routed to the lightweight walkthrough before heavyweight guest/disk boot. That result must **not** be reported as physical heavyweight-WebVM reliability.
 
-The exact-current-main Pages result adds one more bounded negative cell: desktop real-guest execution passed in run `35437556200`, while the required narrow/mobile Chromium proof failed. Preserve that asymmetry rather than flattening it into either blanket browser failure or mobile reliability proof. The #336 branch-only generated Pages PASS is a separate changed-head engineering observation, not a rewrite of the production FAIL.
-
 For a confirmatory protocol that depends on WebVM: freeze the exact source/deployed revision, retain exact-revision browser/runtime evidence, preserve first-attempt `FAIL`/`UNKNOWN`, preregister repeated reliability measurement, report operational missingness separately from model correctness, and never describe a safe fallback or transport repair as proof that the broader reliability family is fixed.
 
 ## Protected Factory/M4 evidence path
 
 M4 remains evidence- and environment-bound rather than universally qualified.
 
-Accepted #185/#187 protected changes retain their exact reviewed scope. The separate #139→ownership-baseline→fresh-qualification→#134 sequence remains independent.
+Qualification-v1 remains a separate testing-branch evidence path. Open PR #152 is now at exact head **`aeba9962918c3659693e1efcd5603275cfb77cb4`**. Exact-head Qualification-v1 run **`35448856959` attempt 1 = FAIL**. Real bubblewrap provisioning passed and the visible selftest, toxic-provider, M4, browser, discovery, concurrency, fault-injection, and lifecycle sibling jobs passed. The required deterministic job failed at `Full deterministic regression gate`; the aggregate failed closed. The retained summary does not establish the lower-level deterministic-regression cause, so it remains **UNKNOWN**.
 
-Qualification-v1 remains a separate testing-branch evidence path. Merged **#339** moved open PR #152 to exact head **`19d3917079ee6f7105e78c88e2aae08d25ce4c13`** and repaired provider-mission export to bind through the real run-control authority path. Exact-head Qualification-v1 run **`35446710781` attempt 1 = FAIL**, but the failure set narrowed: `qualification-selftests` is **PASS**, the toxic-provider job is **PASS**, and the required deterministic job remains **FAIL** at `Full deterministic regression gate`. The predecessor `11c0ac67...` run `35443955204` remains exact-head historical **FAIL** evidence, including its seven enterprise sandbox failures where the hosted runner reported `kernel-level sandbox isolation unavailable` and its provider-mission-related selftest/toxic-provider failures. #339 intentionally did not weaken or skip the fail-closed sandbox requirement.
-
-Protected maintainer approval and PR Agent advisory remain **FAIL** for #152, so the branch remains unaccepted. The earlier `24816ebc...` positive technical evidence remains historical and exact-head bound. No testing-branch PASS overrides the current required-gate FAIL or becomes accepted current-main Factory/M4 qualification.
+#152 remains unaccepted and its maintainer/advisory governance is unsatisfied. No testing-branch PASS overrides the required-gate FAIL or becomes accepted current-main Factory/M4 qualification.
 
 `implementation-status.yaml` remains an implementation-presence manifest, not a qualification manifest.
 
 ## Governance and evaluation independence
 
 Merged #168 establishes repository merge control as automated qualification plus exact-head maintainer attestation. This is **maintainer-reviewed with automated qualification**, not independent human assurance.
-
-The #336/#337 finding is itself evidence for keeping advisory publication fail closed: a fresh bot failure/status message is not a substantive review. #337 remains unaccepted until its required gates pass; #336 remains held behind it.
-
-Issue #305's historical Actions saturation remains evidence. #307 is accepted as the structural duplicate-fan-out repair. The current queued-run snapshot is **0**; queue state never permits required first-attempt failures to be cancelled or reinterpreted.
 
 ## Live confirmatory evaluation gate
 
@@ -169,9 +151,10 @@ Before paper-facing R0–R5 outcome collection:
 6. preserve exact-revision failures, blocked interventions, and mixed cells;
 7. requalify any selected path affected by historical #207/#208/#212 authority ordering against accepted #288;
 8. rebase/requalify #323 before using the Workbench for authoritative trials;
-9. independently qualify the selected evidence path to the degree required by the scientific claim;
-10. retain any WebVM/provider/release qualification required by that selected path;
-11. preserve negative, rejected, `UNKNOWN`, `BLOCKED`, missing, and failed cells in the evidence package.
+9. keep #341 research-only until its own frozen governed experiment is complete;
+10. independently qualify the selected evidence path to the degree required by the scientific claim;
+11. retain any WebVM/provider/release qualification required by that selected path;
+12. preserve negative, rejected, `UNKNOWN`, `BLOCKED`, missing, and failed cells in the evidence package.
 
 ## Interpretation rules
 
