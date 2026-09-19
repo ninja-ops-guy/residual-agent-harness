@@ -417,6 +417,39 @@ class HTTPTests(unittest.TestCase):
             }, worker_headers)
         self.assertEqual(error.exception.code, 400)
 
+    def test_connected_runner_roster_is_live_ephemeral_and_project_scoped(self):
+        pid = self.s.create(demo_spec(), demo=True)["project_id"]
+        other = self.s.create(demo_spec(), demo=True)["project_id"]
+        self.s.triage(pid)
+        self.s.store.settings({"remote_workers_enabled": True})
+        worker_headers = {"Authorization": "Bearer " + self.s.store.settings()["worker_token"]}
+
+        work = self.request("/api/worker/claim", {
+            "project_id": pid, "task_id": "OPS-101", "name": "Hammer",
+            "model": "qwen2.5-coder:7b", "placement": "local", "presence_ttl_s": 45,
+        }, worker_headers)["work"]
+        roster = self.request(f"/api/projects/{pid}/runners")["runners"]
+        self.assertEqual(len(roster), 1)
+        self.assertEqual(roster[0]["name"], "Hammer")
+        self.assertEqual(roster[0]["status"], "working")
+        self.assertEqual(roster[0]["task_id"], "OPS-101")
+        self.assertEqual(roster[0]["model"], "qwen2.5-coder:7b")
+        self.assertEqual(roster[0]["placement"], "local")
+        self.assertEqual(self.request(f"/api/projects/{other}/runners")["runners"], [])
+
+        result = self.request("/api/worker/result", {
+            "project_id": pid, "task_id": "OPS-101", "lease": work["lease"],
+            "presence_ttl_s": 45, "submission_id": "presence-result-1",
+            "response": {"files": DEMO_FILES["OPS-101"]},
+        }, worker_headers)
+        self.assertEqual(result["state"], "review_ready")
+        roster = self.request(f"/api/projects/{pid}/runners")["runners"]
+        self.assertEqual(roster[0]["status"], "review_ready")
+
+        with self.s.mutex:
+            self.s.runner_presence[(pid, "Hammer")]["expires_at"] = time.monotonic() - 1
+        self.assertEqual(self.request(f"/api/projects/{pid}/runners")["runners"], [])
+
 
 class ProviderHTTPTests(unittest.TestCase):
     def test_station_uses_actual_ollama_http_framing_and_reported_usage(self):
