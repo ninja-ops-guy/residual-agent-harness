@@ -261,6 +261,7 @@ def _cluster_bootstrap(task_groups, seed, samples=10000):
 
 def score_protocol(lock, traces):
     lock = _verify_lock(lock)
+    traces = list(traces)
     expected = {job["observation_id"]: job for job in lock["schedule"]}
     seen = {}
     rows = []
