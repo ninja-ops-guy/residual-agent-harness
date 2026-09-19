@@ -212,7 +212,7 @@ class StationTests(unittest.TestCase):
             ws.safe_file(root, "link/target.py")
 
     def _live_review_ready(self):
-        pid = self.s.create(demo_spec(), demo=False)["project_id"]
+        pid = self.s.create(demo_spec(), commands=True, demo=False)["project_id"]
         self.s.triage(pid)
         work = self.s.prepare(pid, "review-contract", "OPS-101")
         self.s.finish(work, {"files": DEMO_FILES["OPS-101"]})
