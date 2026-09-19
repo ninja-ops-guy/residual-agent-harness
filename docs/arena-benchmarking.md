@@ -11,6 +11,28 @@ RESIDUAL integrates Arena in two separate roles:
 
 These roles are deliberately separated. The repository does not claim to submit RESIDUAL into the official Agent Arena leaderboard and does not label local results as official Arena scores.
 
+## Setup from RESIDUAL
+
+The easiest path is **Command Station → Model Workshop → Cloud provider → Arena API**.
+
+When Arena is selected, RESIDUAL shows a guided setup card:
+
+1. **Get Arena API key** opens the Arena dashboard Keys page directly: `https://portal.api.preview.arena.ai/dashboard/keys`.
+2. Create a **virtual API key** in Arena and copy it.
+3. Return to RESIDUAL, paste it in the API key field, and click **Save model routes**.
+4. Click **Test cloud connection**.
+5. Click **List cloud models** and copy/select the exact model ID you want to benchmark.
+
+RESIDUAL does not fetch or create the Arena credential on your behalf. The key is entered directly into the Station credential field and is not returned by bootstrap/settings APIs.
+
+Terminal users can open the same destination with:
+
+    python -m residual.workbench arena setup
+
+For headless systems:
+
+    python -m residual.workbench arena setup --print-only
+
 ## Provider safety
 
 The Arena adapter submits a single model ID per request and writes `allow_fallbacks: false` into every Arena request. Scientific runs therefore disable Arena gateway fallback at the transport boundary. If an operator wants failover for non-experimental use, it should be expressed through RESIDUAL's existing `Router`, where every attempt is separately observed and receipted.
