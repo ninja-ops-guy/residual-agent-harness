@@ -4,8 +4,9 @@ Third-party modules MUST run in isolated containers with: no network
 access to the host, filesystem access limited to explicit allowlists,
 non-root execution, and resource constraints. :class:`SandboxPolicy`
 models the container policy; :func:`validate_manifest` enforces it;
-:func:`run_sandboxed` executes a module callable under a restricted
-namespace with no network builtins and an allowlisted ``open``.
+:func:`run_sandboxed` executes third-party Python only behind a
+kernel-enforced sandbox boundary and fails closed when that boundary is
+unavailable.
 """
 from __future__ import annotations
 
@@ -18,41 +19,6 @@ from dataclasses import dataclass, field
 from typing import Any, Callable
 
 from residual.core import ContractError, identifier
-
-# Network-capable stdlib modules a sandboxed module may not touch.
-DENIED_NETWORK_MODULES = frozenset(
-    {"socket", "urllib", "http", "ftplib", "smtplib", "ssl", "requests"}
-)
-
-# Restricted builtins available to sandboxed module code.
-_SAFE_BUILTINS = {
-    "abs": abs,
-    "all": all,
-    "any": any,
-    "bool": bool,
-    "dict": dict,
-    "enumerate": enumerate,
-    "filter": filter,
-    "float": float,
-    "int": int,
-    "isinstance": isinstance,
-    "len": len,
-    "list": list,
-    "map": map,
-    "max": max,
-    "min": min,
-    "print": print,
-    "range": range,
-    "repr": repr,
-    "round": round,
-    "set": set,
-    "sorted": sorted,
-    "str": str,
-    "sum": sum,
-    "tuple": tuple,
-    "zip": zip,
-}
-
 
 def _check_allowlist_path(path: str) -> None:
     if not isinstance(path, str) or not path.startswith("/"):
