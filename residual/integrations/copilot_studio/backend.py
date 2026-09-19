@@ -433,6 +433,26 @@ class EncryptedMissionQueueBackend:
                 if row is None:
                     db.execute("COMMIT")
                     return None
+                mission_id = row["mission_id"]
+                payload = self._decrypt(
+                    mission_id, "mission", row["encrypted_payload"]
+                )
+                if not isinstance(payload, dict):
+                    raise ContractError("decrypted mission payload must be an object")
+                binding = self._binding_from(payload["binding"])
+                request = MissionRequest.from_dict(payload["request"])
+                plan = ExecutionPlan.from_dict(payload["plan"])
+                if (
+                    binding.mission_id != mission_id
+                    or binding.binding_hash != row["binding_hash"]
+                    or binding.request_hash != row["request_hash"]
+                    or binding.plan_hash != row["plan_hash"]
+                    or binding.template_id != row["template_id"]
+                    or binding.plan_hash != plan.graph_hash
+                    or binding.request_hash != request.request_hash
+                ):
+                    raise ContractError("decrypted mission binding failed integrity checks")
+
                 lease_id = secrets.token_hex(16)
                 generation = int(row["lease_generation"]) + 1
                 expires = now + float(lease_seconds)
@@ -445,22 +465,20 @@ class EncryptedMissionQueueBackend:
                     """,
                     (
                         lease_id, worker_id, generation, expires, now,
-                        row["mission_id"],
+                        mission_id,
                     ),
                 )
                 if cursor.rowcount != 1:
                     raise ContractError("mission claim race")
                 self._append_evidence(
                     db,
-                    row["mission_id"],
+                    mission_id,
                     "mission_claimed",
                     {
                         "worker_id": worker_id,
                         "lease_generation": generation,
                     },
                 )
-                blob = row["encrypted_payload"]
-                mission_id = row["mission_id"]
                 db.execute("COMMIT")
             except BaseException:
                 try:
@@ -468,16 +486,6 @@ class EncryptedMissionQueueBackend:
                 except sqlite3.Error:
                     pass
                 raise
-        payload = self._decrypt(mission_id, "mission", blob)
-        binding = self._binding_from(payload["binding"])
-        request = MissionRequest.from_dict(payload["request"])
-        plan = ExecutionPlan.from_dict(payload["plan"])
-        if (
-            binding.binding_hash != self.status(mission_id)["binding_hash"]
-            or binding.plan_hash != plan.graph_hash
-            or binding.request_hash != request.request_hash
-        ):
-            raise ContractError("decrypted mission binding failed integrity checks")
         return QueuedMissionWork(
             binding=binding,
             request=request,
