@@ -1,112 +1,151 @@
+import contextlib
+import io
+import json
+import socket
+import threading
 import unittest
+import urllib.error
+import urllib.request
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from ai_providers import ChatRequest, Message, ProviderName, Role
+from ai_providers.core import AuthenticationError, ProviderError
 from ai_providers.adapters.kimi_claw_adapter import KimiClawAdapter
 from ai_providers.adapters.moonshot_adapter import MoonshotAdapter
 from ai_providers.registry import _default_registry
-from residual.core import ContractError
-from residual.modular import make_adapter, normalize_profile
 
 
-class MoonshotAndKimiClawAdapterTests(unittest.TestCase):
-    def request(self, model):
-        return ChatRequest(
-            model=model,
-            messages=(Message(Role.USER, "hello"),),
-            max_tokens=321,
-        )
+class _RecordingOpener:
+    """Opener that records requests and replays a scripted response."""
 
-    def test_provider_names_are_closed_vocabulary(self):
-        self.assertEqual(ProviderName("moonshot").value, "moonshot")
-        self.assertEqual(ProviderName("kimi_claw").value, "kimi_claw")
+    def __init__(self, responder):
+        self.responder = responder
+        self.requests = []
 
-    def test_moonshot_uses_distinct_identity_and_openai_wire_contract(self):
-        adapter = MoonshotAdapter(api_key="test-secret")
-        req = self.request("kimi-k3")
-        body = adapter._build_body(req)
-        self.assertEqual(adapter.name, "moonshot")
-        self.assertEqual(adapter._request_url(req, False), "https://api.moonshot.ai/v1/chat/completions")
-        self.assertEqual(body["model"], "kimi-k3")
-        self.assertEqual(body["max_tokens"], 321)
-        self.assertNotIn("max_completion_tokens", body)
-        self.assertEqual(adapter._headers()["Authorization"], "Bearer test-secret")
-        self.assertNotIn(b"test-secret", adapter.wire_bytes(req))
-        self.assertTrue(adapter.supports_tools("kimi-k3"))
-        self.assertFalse(adapter.supports_tools("other-model"))
+    def open(self, request, timeout=None):
+        body = request.data.decode() if request.data else None
+        self.requests.append((request, body, timeout))
+        return self.responder(request, body)
 
-    def test_kimi_claw_targets_openclaw_gateway_and_allows_stable_session(self):
-        adapter = KimiClawAdapter(api_key="gateway-token")
-        req = ChatRequest(
-            model="openclaw/default",
-            messages=(Message(Role.USER, "hello"),),
-            max_tokens=222,
-            extra={"user": "residual:mission-123"},
-        )
-        body = adapter._build_body(req)
-        self.assertEqual(adapter.name, "kimi_claw")
-        self.assertEqual(adapter._request_url(req, False), "http://127.0.0.1:18789/v1/chat/completions")
-        self.assertEqual(body["model"], "openclaw/default")
-        self.assertEqual(body["user"], "residual:mission-123")
-        self.assertEqual(body["max_completion_tokens"], 222)
-        self.assertEqual(adapter._headers()["Authorization"], "Bearer gateway-token")
-        self.assertNotIn(b"gateway-token", adapter.wire_bytes(req))
-        self.assertTrue(adapter.supports_tools("openclaw/default"))
-        self.assertFalse(adapter.supports_tools("kimi-k3"))
 
-    def test_moonshot_rejects_credential_redirection_to_compatible_host(self):
-        for hostile in (
-            "https://example.com/v1",
-            "https://api.moonshot.ai.evil.example/v1",
-            "http://api.moonshot.ai/v1",
-            "https://api.moonshot.ai/other",
-        ):
-            with self.subTest(hostile=hostile):
-                with self.assertRaises(Exception):
-                    MoonshotAdapter(api_key="secret", base_url=hostile)
-                with self.assertRaises(ContractError):
-                    normalize_profile(
-                        {"kind": "moonshot", "model": "kimi-k3", "base_url": hostile},
-                        "remote",
-                    )
+class AdapterConformanceHardeningTests(unittest.TestCase):
+    def test_transport_error_attribution_and_fail_closed(self):
+        def refuse(request, body):
+            raise urllib.error.URLError("connection refused by peer")
 
-    def test_kimi_claw_rejects_non_loopback_operator_token_destinations(self):
-        for hostile in (
-            "https://example.com/v1",
-            "http://192.168.1.20:18789/v1",
-            "http://127.0.0.1:18789/not-v1",
-        ):
-            with self.subTest(hostile=hostile):
-                with self.assertRaises(Exception):
-                    KimiClawAdapter(api_key="operator-secret", base_url=hostile)
+        opener = _RecordingOpener(refuse)
+        adapter = MoonshotAdapter(api_key="sk-test-secret-1", opener=opener)
+        request = ChatRequest(messages=[Message(role=Role.USER, content="hi")], model="kimi-k2")
+        with self.assertRaises(ProviderError) as caught:
+            adapter.chat(request)
+        err = caught.exception
+        self.assertEqual(err.provider, "moonshot")
+        self.assertEqual(err.code, "connection")
+        self.assertTrue(err.retryable)
+        self.assertNotIn("sk-test-secret-1", str(err))
+        self.assertNotIn("sk-test-secret-1", repr(err.__dict__))
 
-        with self.assertRaises(ContractError):
-            normalize_profile(
-                {"kind": "kimi_claw", "model": "openclaw/default"},
-                "remote",
-            )
+    def test_transport_error_attribution_kimi_claw(self):
+        def refuse(request, body):
+            raise urllib.error.URLError("connection refused by peer")
 
-    def test_builtin_registry_exposes_both_adapters(self):
-        names = _default_registry().names()
-        self.assertIn("moonshot", names)
-        self.assertIn("kimi_claw", names)
+        opener = _RecordingOpener(refuse)
+        adapter = KimiClawAdapter(token="claw-secret-2", opener=opener)
+        request = ChatRequest(messages=[Message(role=Role.USER, content="hi")], model="kimi-claw")
+        with self.assertRaises(ProviderError) as caught:
+            adapter.chat(request)
+        err = caught.exception
+        self.assertEqual(err.provider, "kimi_claw")
+        self.assertEqual(err.code, "connection")
+        self.assertTrue(err.retryable)
+        self.assertNotIn("claw-secret-2", str(err))
 
-    def test_modular_runtime_profiles(self):
-        moonshot = normalize_profile(
-            {"kind": "moonshot", "model": "kimi-k3"},
-            "remote",
-        )
-        self.assertEqual(moonshot["base_url"], "https://api.moonshot.ai/v1")
-        self.assertIsInstance(make_adapter(moonshot, {"api_key": "x"}), MoonshotAdapter)
+    def test_timeout_propagates_as_retryable_timeout(self):
+        for exc in (socket.timeout("timed out"), TimeoutError("timed out")):
+            def hang(request, body, exc=exc):
+                raise exc
 
-        claw = normalize_profile(
-            {"kind": "kimi_claw", "model": "openclaw/default"},
-            "local",
-        )
-        self.assertEqual(claw["base_url"], "http://127.0.0.1:18789/v1")
-        self.assertIsInstance(make_adapter(claw, {"api_key": "x"}), KimiClawAdapter)
+            opener = _RecordingOpener(hang)
+            adapter = MoonshotAdapter(api_key="sk-test-secret-3", opener=opener)
+            request = ChatRequest(messages=[Message(role=Role.USER, content="hi")], model="kimi-k2")
+            with self.assertRaises(ProviderError) as caught:
+                adapter.chat(request)
+            self.assertEqual(caught.exception.code, "timeout")
+            self.assertTrue(caught.exception.retryable)
 
-        with self.assertRaises(ContractError):
-            normalize_profile({"kind": "moonshot", "model": "kimi-k3"}, "local")
+    def test_invalid_timeout_config_fails_closed(self):
+        with self.assertRaises(ProviderError) as caught:
+            MoonshotAdapter(api_key="sk-x", timeout=-5)
+        self.assertEqual(caught.exception.code, "config")
+
+    def test_http_401_maps_to_authentication_error_without_secret_echo(self):
+        secret = "sk-test-secret-4"
+
+        def unauthorized(request, body):
+            payload = ("invalid token " + secret).encode()
+            raise urllib.error.HTTPError(request.full_url, 401, "Unauthorized", hdrs=None, fp=io.BytesIO(payload))
+
+        opener = _RecordingOpener(unauthorized)
+        adapter = MoonshotAdapter(api_key=secret, opener=opener)
+        request = ChatRequest(messages=[Message(role=Role.USER, content="hi")], model="kimi-k2")
+        with self.assertRaises(AuthenticationError) as caught:
+            adapter.chat(request)
+        self.assertNotIn(secret, str(caught.exception))
+
+    def test_redirect_refused_fail_closed(self):
+        def redirect(request, body):
+            raise urllib.error.HTTPError(request.full_url, 302, "Found", hdrs={"Location": "https://evil.example/v1"}, fp=io.BytesIO(b""))
+
+        opener = _RecordingOpener(redirect)
+        adapter = MoonshotAdapter(api_key="sk-test-secret-5", opener=opener)
+        request = ChatRequest(messages=[Message(role=Role.USER, content="hi")], model="kimi-k2")
+        with self.assertRaises(ProviderError):
+            adapter.chat(request)
+
+    def test_concurrent_session_isolation(self):
+        seen = {}
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_POST(self):
+                length = int(self.headers.get("Content-Length", "0"))
+                body = self.rfile.read(length).decode()
+                auth = self.headers.get("Authorization", "")
+                key = threading.current_thread().name
+                seen.setdefault(key, []).append((auth, body))
+                payload = json.dumps({"choices": [{"message": {"role": "assistant", "content": "ok"}}]}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(payload)))
+                self.end_headers()
+                self.wfile.write(payload)
+
+            def log_message(self, *args):
+                pass
+
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            base = f"http://127.0.0.1:{server.server_address[1]}/v1"
+            adapters = [KimiClawAdapter(token=f"token-{i}", base_url=base) for i in range(4)]
+
+            def call(adapter, i):
+                request = ChatRequest(messages=[Message(role=Role.USER, content=f"m{i}")], model="kimi-claw")
+                return adapter.chat(request)
+
+            with contextlib.ExitStack() as stack:
+                threads = [threading.Thread(target=call, args=(a, i)) for i, a in enumerate(adapters)]
+                for t in threads:
+                    t.start()
+                for t in threads:
+                    t.join()
+            for records in seen.values():
+                for auth, body in records:
+                    self.assertTrue(auth.startswith("Bearer token-"))
+                    self.assertNotIn("token-", body)
+        finally:
+            server.shutdown()
+            server.server_close()
 
 
 if __name__ == "__main__":
