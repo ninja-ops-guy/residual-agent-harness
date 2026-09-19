@@ -10,7 +10,7 @@ from ...core import ContractError, digest
 from .departments import DepartmentGroups, department_catalog
 from .entra import EntraDeploymentConfig
 
-_GUID=re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$|^0{8}-0{4}-0{4}-0{4}-0{12}$")
+_GUID=re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 
 
 def _guid(value,name):
