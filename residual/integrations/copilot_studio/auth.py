@@ -4,7 +4,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable
 
-from ...core import ContractError, digest
+from ...core import ContractError, digest, strict_json
+from ...iam.crypto import b64url_decode
 from ...iam.oidc import OIDCClient
 
 DEFAULT_DELEGATED_SCOPE = "access_as_user"
@@ -66,8 +67,8 @@ class CopilotIdentityVerifier:
     """Validate an Entra delegated token through the existing OIDC verifier.
 
     The wrapped OIDCClient verifies JWT signature, issuer, audience, and time
-    claims. This adapter then enforces the delegated scope and Entra identity
-    claims used by the Copilot integration.
+    claims. This adapter additionally pins Entra signing to RS256, enforces the
+    delegated scope, and extracts only verified claims for authorization.
     """
 
     def __init__(
@@ -77,6 +78,7 @@ class CopilotIdentityVerifier:
         expected_tenant: str | None = None,
         required_scope: str = DEFAULT_DELEGATED_SCOPE,
         group_resolver: GroupResolver | None = None,
+        allowed_client_apps: frozenset[str] = frozenset(),
     ):
         if not isinstance(oidc_client, OIDCClient):
             raise ContractError("oidc_client must be an OIDCClient")
@@ -88,12 +90,32 @@ class CopilotIdentityVerifier:
             raise ContractError("required_scope must be non-empty")
         if group_resolver is not None and not callable(group_resolver):
             raise ContractError("group_resolver must be callable")
+        if not isinstance(allowed_client_apps, frozenset) or any(
+            not isinstance(app, str) or not app.strip() for app in allowed_client_apps
+        ):
+            raise ContractError("allowed_client_apps must be a frozenset of app ids")
         self._client = oidc_client
         self._tenant = expected_tenant.strip() if expected_tenant else None
         self._required_scope = required_scope.strip()
         self._group_resolver = group_resolver
+        self._allowed_client_apps = allowed_client_apps
+
+    @staticmethod
+    def _require_entra_algorithm(token: str) -> None:
+        if not isinstance(token, str):
+            raise ContractError("delegated token must be a string")
+        parts = token.split(".")
+        if len(parts) != 3:
+            raise ContractError("delegated token must have three segments")
+        try:
+            header = strict_json(b64url_decode(parts[0]).decode("utf-8"))
+        except (ContractError, UnicodeDecodeError) as exc:
+            raise ContractError("malformed delegated token header") from exc
+        if not isinstance(header, dict) or header.get("alg") != "RS256":
+            raise ContractError("delegated token signing algorithm not allowed")
 
     def verify(self, token: str, *, now: int) -> CopilotPrincipal:
+        self._require_entra_algorithm(token)
         identity = self._client.authenticate(token, now=now)
         attrs = dict(identity.attributes)
 
@@ -106,6 +128,11 @@ class CopilotIdentityVerifier:
         tenant_id, object_id = tenant_id.strip(), object_id.strip()
         if self._tenant is not None and tenant_id != self._tenant:
             raise ContractError("delegated token tenant mismatch")
+
+        if self._allowed_client_apps:
+            client_app = attrs.get("azp") or attrs.get("appid")
+            if not isinstance(client_app, str) or client_app not in self._allowed_client_apps:
+                raise ContractError("delegated token client application is not allowed")
 
         scopes = _string_set(attrs.get("scp"), "scp")
         if self._required_scope not in scopes:
