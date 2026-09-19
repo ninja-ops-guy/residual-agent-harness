@@ -124,11 +124,17 @@ class OIDCClient:
             raise ContractError("id token requires a sub claim")
         if nonce is not None and payload.get("nonce") != nonce:
             raise ContractError("id token nonce mismatch")
-        amr = payload.get("amr", ())
-        if isinstance(amr, list):
-            amr = tuple(str(a) for a in amr)
+        amr = payload.get("amr")
+        if amr is None:
+            amr = ()
         elif isinstance(amr, str):
+            if not amr.strip():
+                raise ContractError("amr claim entries must be non-empty strings")
             amr = (amr,)
+        elif isinstance(amr, (list, tuple)):
+            if any(not isinstance(a, str) or not a.strip() for a in amr):
+                raise ContractError("amr claim must contain only non-empty strings")
+            amr = tuple(amr)
         else:
             raise ContractError("amr claim must be a string or list of strings")
         attributes = {
