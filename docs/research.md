@@ -91,15 +91,34 @@ The Metric Registry and proof-carrying derivation-graph line (#265/#270/#298/#29
 
 General autonomous discovery and recursive self-improvement remain **UNKNOWN / not established**. A single successful admission does not establish a general recursive-improvement capability.
 
+## M6-MESH-001 cooperative-efficiency pilot
+
+Open **#319** introduces the first frozen M6-MESH-001 crossover pilot. The branch head is `d3b6f24d7b2e9c2ac08f51c02764fda41042af76`; workflow run **`35424274389` is PASS for experiment/apparatus execution** and retained artifact **`10578541714`** (`m6-mesh-001-trial0`, SHA-256 `182a00055eba534e409ef006d17d282722ddbdff2d919ae3c6f92555dc73864b`) records all observations.
+
+The frozen cell uses one local Ollama host, Qwen2.5-Coder 1.5B, two independent obligations, sequential versus two-call concurrent execution, and three repeats. Both conditions passed all six obligation checks. Retained mean wall time is **2.189893 s sequential** versus **1.830017 s concurrent**, giving an observed mean ratio of **1.196652x** in favor of the concurrent condition. Token totals were effectively unchanged.
+
+This is **positive bounded pilot evidence**, not a general mesh-efficiency result. Three repeats on one host are insufficient for a durable performance claim; the row-level observations show substantial first-run/warm-up and order sensitivity, so the apparent mean advantage requires larger randomized/repeated measurement before scientific promotion. Therefore:
+
+- Trial-0 apparatus execution: **PASS**;
+- task/verifier success in this frozen cell: **PASS** for both conditions;
+- observed wall-clock difference in this frozen cell: **positive / retained**;
+- statistically durable concurrency benefit: **UNKNOWN / not established**;
+- general distributed mesh/swarm efficiency: **UNKNOWN / not established**.
+
+Security review is also unresolved on the experiment branch. Aikido's check completed but reported **two new MEDIUM and two new LOW findings**, including unsafe `exec` use in `scripts/m6_mesh_001.py` and missing integrity verification for a remotely pulled workflow artifact. The protected maintainer-approval gate is **FAIL**, so #319 remains unaccepted research evidence and must not be merged or promoted based on the workflow-success label alone.
+
 ## New experimental branches do not change accepted capability
 
 Recent draft research/integration work includes:
 
 - **#293** — M7 governed recursive mission; unaccepted and explicitly preserves an external promotion gate.
+- **#310** — live-core adapter binding; draft/unaccepted and still dependent on the normative adapter contract being merged/tagged and pinned before production use.
 - **#313** — A2A semantic-feasibility spike; experimental and isolated from production authority.
 - **#314** — Vector/Wire-Pod verified continual-learning experiment; draft/unaccepted.
 - **#316** — RAC evidence-gated improvement `StationModule`; draft/unmerged. Its current exact head has green named workflows including maintainer approval, but that is PR-head qualification only and does not make the integration accepted production capability. Its stated contract treats a correctly retained scientific FAIL as a valid integration result rather than optimizing toward PASS.
 - **#317** — RESIDUAL-RT bounded-authority adversary-emulation research track; draft/unmerged. Phase A is deterministic controller-isolation replay, Phase B is proposal-only live-model transport with no execution adapter, and Phase C remains planned/gated. Current technical workflows are green while maintainer approval is **FAIL**. No live-model red-team effectiveness, production safety, or real-world exploit reliability is established.
+- **#318** — Web Command Station/Vercel control-plane architecture; draft/unaccepted and intentionally separates public control-plane duties from arbitrary worker execution.
+- **#319** — M6-MESH-001 cooperative-efficiency pilot described above; one positive bounded observation, general efficiency **UNKNOWN**, security findings unresolved, and maintainer approval **FAIL**.
 
 These branches preserve external promotion/qualification boundaries and therefore do not change accepted `main` capability or justify autonomous self-promotion claims.
 
@@ -163,6 +182,6 @@ A positive result requires `P(X|A)` to improve meaningfully over `P(X)` without 
 
 ## What is deliberately not claimed
 
-The repository does not currently claim a new foundation model, a universal verifier/proof system, universally optimal routing, guaranteed token/cost savings, blanket production readiness, successful exact-current-main real-provider inference, physical heavyweight-WebVM iPhone reliability, acceptable long-run WebVM reliability, independent human assurance from the solo-maintainer merge model, live-model proof of the central hypothesis, completed long-duration soak, autonomous recursive self-improvement, autonomous merge authority or first-in-literature status.
+The repository does not currently claim a new foundation model, a universal verifier/proof system, universally optimal routing, guaranteed token/cost savings, blanket production readiness, successful exact-current-main real-provider inference, physical heavyweight-WebVM iPhone reliability, acceptable long-run WebVM reliability, independent human assurance from the solo-maintainer merge model, live-model proof of the central hypothesis, completed long-duration soak, autonomous recursive self-improvement, autonomous merge authority, general distributed mesh/swarm efficiency or first-in-literature status.
 
 Receipts establish that stated checks ran over stated evidence under stated identities/revisions. They do not certify arbitrary truth beyond those contracts.
