@@ -215,7 +215,10 @@ def firmware_templates() -> dict[str, MissionTemplate]:
     }
 
 
-def firmware_profile(*, allowed_groups: frozenset[str] | None = None) -> DepartmentProfile:
+def firmware_profile(*, allowed_groups: frozenset[str] | None = None,
+                     reviewer_groups: frozenset[str] = frozenset(),
+                     lead_groups: frozenset[str] = frozenset(),
+                     auditor_groups: frozenset[str] = frozenset()) -> DepartmentProfile:
     """Build the Firmware profile with deployment-specific Entra group object IDs.
 
     The friendly-name default is for local fixtures only. Production deployments
@@ -235,6 +238,9 @@ def firmware_profile(*, allowed_groups: frozenset[str] | None = None) -> Departm
             "draft_pr.propose",
             "evidence.read_own",
         }),
+        reviewer_groups=reviewer_groups,
+        lead_groups=lead_groups,
+        auditor_groups=auditor_groups,
         deny_capabilities=frozenset({
             "pr.merge",
             "production.write",
