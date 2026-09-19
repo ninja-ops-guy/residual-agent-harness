@@ -15,6 +15,8 @@ The documents under [`source/`](source/) preserve earlier design generations and
 | Native setup path | #200 hardening is accepted; persistent XDG defaults, loopback binding, opt-in shell macro, bounded venv repair and constrained shell-rc edits are current behavior; blank-environment qualification remains open |
 | Live provider acceptance | Historical retained Puter failure remains **FAIL/BLOCKED**; exact-current-main paid/live candidate→verifier→receipt success remains **UNKNOWN** |
 | Frozen evaluation framework | Implemented research apparatus; CI binding is not confirmatory live-model evidence |
+| Research Workbench | Draft #323; current exact-head qualification is **FAIL** and the first authoritative trial is **BLOCKED** on accepted #288 plus requalification |
+| Residual Studio | Draft #325; first IDE/control-plane observer slice exists on a branch, but authoritative mutation wiring and full qualification remain incomplete |
 | Release/recovery/soak | True blank-environment install, host-loss/recovery evidence and selected elapsed soak remain gates |
 | Autonomous discovery / recursive improvement | Mixed bounded research evidence only; general capability remains **UNKNOWN / not established** and M6-008 remains **BLOCKED** |
 | Cooperative mesh efficiency | M6-MESH-001 has one positive bounded two-obligation pilot cell; general performance benefit remains **UNKNOWN / not established** |
@@ -83,6 +85,9 @@ Research branches remain outside accepted production capability unless explicitl
 - **#317** — RESIDUAL-RT bounded-authority adversary-emulation research; draft/unmerged. Technical workflows are green while maintainer approval is **FAIL**; proposal-only/lab-scoped development evidence does not establish live-model red-team effectiveness or real-world exploit reliability.
 - **#318** — Web Command Station/Vercel control-plane architecture; draft/unaccepted and intentionally separates public control-plane duties from arbitrary worker execution.
 - **#319 / M6-MESH-001 Trial 0** — workflow/apparatus **PASS** on exact head `d3b6f24d7b2e9c2ac08f51c02764fda41042af76`, with artifact `10578541714` retaining 6/6 successful obligation checks in both sequential and concurrent conditions. Retained means are `2.189893 s` sequential and `1.830017 s` concurrent (`1.196652x` observed ratio), but three repeats on one Ollama host with visible warm-up/order sensitivity do not establish a general performance benefit. General mesh/swarm efficiency remains **UNKNOWN / not established**. The branch also has unresolved Aikido findings (two MEDIUM, two LOW) and maintainer approval **FAIL**.
+- **#323** — built-in Research Workbench with versioned experiment identity and preregistered trial controls; draft/unaccepted. Exact head `f32b99b7d62bc35872daaf4da00787761b7ca8ea` has **FAIL** results for the dedicated Workbench workflow, Controller/provider, Command Station and Factory runtime evidence, while several sibling gates are PASS and maintainer approval is **FAIL**. Its first authoritative trial is explicitly blocked until #288 is accepted on main and #323 is rebased/requalified.
+- **#325** — first Residual Studio IDE/control-plane slice; draft/unaccepted. The current branch provides project/observer surfaces and a read-only/default Factory control boundary, while authoritative mutation wiring and full qualification remain incomplete.
+- **#326** — Mission Control time-travel debugger candidate; unmerged. Its exact-head named technical workflows are **PASS**, including Browser VM and PR-head Pages, while maintainer approval is **FAIL** and the advisory PR Agent run was cancelled. The feature is a read-only historical debugger, not deterministic execution replay.
 
 General autonomous discovery and recursive self-improvement remain **UNKNOWN / not established**. **M6-008 remains BLOCKED** until its declared positive semantic/derivation admission gates are satisfied. General cooperative mesh/swarm efficiency likewise remains **UNKNOWN / not established** until larger frozen measurements establish a durable effect without verifier-success loss.
 
@@ -93,6 +98,7 @@ Security work opened after the previous roadmap snapshot but remains unaccepted:
 - **#320** — CSP and anti-clickjacking remediation. Vercel deployment for its current head is **PASS**, but protected maintainer approval is **FAIL / no exact-head attestation**. Post-merge production response-header and Aikido validation remain **UNKNOWN / not run**.
 - **#321** — Aikido-generated replacement of untrusted `xml.etree.ElementTree.fromstring` use with `defusedxml`; unmerged and still requires repository validation.
 - **#322** — Aikido-generated file-inclusion/path-traversal hardening; unmerged and still requires repository validation.
+- **#324** — repository-authored runtime/egress/XML/CI-credential hardening pass. Exact head `db209368750f425a8bf1500ad2b207f43b8af958` has the named technical workflows **PASS**, including Factory runtime/OS evidence, Controller/provider, Command Station, clean install, Factory ownership, Control Plane and measured-evaluation binding; protected maintainer approval is **FAIL**. The PR is unmerged, does not update the Factory ownership baseline, and does not yet change accepted security posture.
 - **#319** — research branch Aikido findings include unsafe `exec` usage and remote-artifact integrity verification gaps. Workflow success is not a security PASS.
 
 These candidates do not change accepted security posture until deliberately reviewed, qualified and merged. Vendor confidence or a successful deployment status is not equivalent to repository acceptance.
@@ -103,21 +109,25 @@ Issue **#305** remains open for the structural duplicate-trigger/concurrency def
 
 Open **#307** is the candidate structural repair for duplicate feature-branch CI fan-out. Its current exact head has the named technical workflows green, but maintainer approval is **FAIL** and the PR remains unmerged on an older base. Queue recovery alone therefore does not clear #305 or prove the fan-out defect fixed. Production Pages/main first-attempt evidence must remain non-cancelling.
 
+Open **#288** is now reconciled to current main at exact head **`0bc86441c295bd488bbd11f952f057e9266bb17e`**. Its named technical workflows are **PASS**, but protected maintainer approval is **FAIL** and the PR remains draft/unmerged. It therefore does not yet clear the #207/#208/#212 authority-ordering failures or authorize dependent Research Workbench trials.
+
 Qualification-v1 work under #152/#303/#312 remains on the separate testing branch and does not alter current production `main` or broaden M4 claims.
 
 ## Current build order
 
 1. **Preserve and repair the exact-current-main production Pages FAIL.** Retain run `35410875305` as the authoritative first-attempt failure. #260 is technically green on its exact PR head but remains HOLD pending exact-head maintainer attestation and any required fresh independent technical acceptance; if accepted later, require the resulting main SHA's own first production attempt.
-2. **Repair and requalify #207/#208/#212 authority-ordering failures.** Budget/unknown-usage and terminal verifier state must prevent later accepted-state/release effects before stronger claims are made.
+2. **Accept and requalify the #207/#208/#212 authority-ordering repair path.** #288 is technically green on its current exact head but remains draft/unapproved. Budget/unknown-usage and terminal verifier state must prevent later accepted-state/release effects before stronger claims or dependent Workbench trials proceed.
 3. **Retain fresh exact-current-deployed live-provider evidence.** A real-account Puter mission must cross protocol validation into ordinary candidate/verifier/receipt handling before live-provider success can become PASS.
 4. **Continue bounded M6 discovery/derivation and M6-MESH measurement without promoting pilot results into product capability.** Preserve mixed PASS/FAIL/UNKNOWN evidence; keep M6-008 blocked until its explicit gates are met; expand M6-MESH-001 with larger randomized/repeated cells before any efficiency claim.
-5. **Resolve open security-remediation candidates deliberately.** Review #319 findings and #320-#322; require exact-head qualification and appropriate post-merge evidence rather than treating deployment/vendor status as acceptance.
-6. **Physically validate the #186 iOS fallback** without broadening fallback success into heavyweight-WebVM reliability.
-7. **Execute true blank-environment installation, recovery/host-loss qualification and selected elapsed soak** for the exact release artifact.
-8. **Continue #120/#126 WebVM reliability work** and preserve historical negative evidence.
-9. **Finish structural CI fan-out repair under #305/#307.** The acute queue is clear, but the duplicate-trigger/concurrency defect is not accepted fixed until #307 is reconciled, qualified and merged without weakening required first-attempt evidence.
-10. **Keep protected sequences independent.** #139→ownership-baseline→fresh-qualification→#134 and Qualification-v1 evidence must not inherit unrelated green CI.
-11. **Freeze confirmatory research before outcome access.** Preserve negative, blocked, unknown and missing cells.
+5. **Repair/requalify the Research Workbench before the first authoritative trial.** Resolve #323's failing exact-head Workbench/core workflows, accept the required #288 authority repair first, then rebase/requalify #323 before any M6-WB-001 or staged experiment execution is treated as authoritative.
+6. **Advance Residual Studio only through its bounded control boundary.** Keep #325 draft until authoritative Factory mutation wiring, Next.js/browser validation and Python Studio API qualification are complete; do not let browser/control-plane state become acceptance authority.
+7. **Resolve open security-remediation candidates deliberately.** Review #319 findings and #320-#324; require exact-head qualification, maintainer governance and appropriate post-merge evidence rather than treating deployment/vendor status as acceptance.
+8. **Physically validate the #186 iOS fallback** without broadening fallback success into heavyweight-WebVM reliability.
+9. **Execute true blank-environment installation, recovery/host-loss qualification and selected elapsed soak** for the exact release artifact.
+10. **Continue #120/#126 WebVM reliability work** and preserve historical negative evidence.
+11. **Finish structural CI fan-out repair under #305/#307.** The acute queue is clear, but the duplicate-trigger/concurrency defect is not accepted fixed until #307 is reconciled, qualified and merged without weakening required first-attempt evidence.
+12. **Keep protected sequences independent.** #139→ownership-baseline→fresh-qualification→#134 and Qualification-v1 evidence must not inherit unrelated green CI.
+13. **Freeze confirmatory research before outcome access.** Preserve negative, blocked, unknown and missing cells.
 
 ## Release evidence rule
 
