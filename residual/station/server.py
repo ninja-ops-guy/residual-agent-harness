@@ -291,12 +291,15 @@ class Handler(BaseHTTPRequestHandler):
             return {"work": {"project_id": work["project_id"], "task_id": t["id"], "attempt": t["attempt"], "lease": work["lease"], "packet": work["packet"], "allow_cloud": s.store.project(work["project_id"])["allow_cloud"]}}
         if path == "/api/worker/heartbeat":
             pid, tid = data["project_id"], data["task_id"]
+            ttl_s = data.get("presence_ttl_s", 90)
+            if type(ttl_s) is not int or not 15 <= ttl_s <= 900:
+                raise ContractError("presence_ttl_s must be an integer from 15 to 900")
             s.store.heartbeat(pid, tid, data["lease"])
             task = s.store.task(pid, tid)
             owner = task.get("owner") or ""
             if owner.startswith("remote:"):
                 s.touch_runner(pid, owner.removeprefix("remote:"), status="working", task_id=tid,
-                               ttl_s=int(data.get("presence_ttl_s", 90)))
+                               ttl_s=ttl_s)
             return {"ok": True}
         if path == "/api/worker/result":
             # Remote workers submit candidates only; the coordinator owns testing and approval.
@@ -323,8 +326,12 @@ class Handler(BaseHTTPRequestHandler):
                 result = s.finish(work, data["response"], usage)
                 owner = t.get("owner") or ""
                 if owner.startswith("remote:"):
-                    s.touch_runner(pid, owner.removeprefix("remote:"), status="review_ready", task_id=tid,
-                                   ttl_s=int(data.get("presence_ttl_s", 90)))
+                    ttl_s = data.get("presence_ttl_s", 90)
+                    if type(ttl_s) is not int or not 15 <= ttl_s <= 900:
+                        raise ContractError("presence_ttl_s must be an integer from 15 to 900")
+                    presence_status = "review_ready" if result.get("state") == "review_ready" else "idle"
+                    s.touch_runner(pid, owner.removeprefix("remote:"), status=presence_status,
+                                   task_id=tid if presence_status == "review_ready" else None, ttl_s=ttl_s)
                 with s.store.transaction() as c:
                     c.execute("INSERT INTO submissions VALUES(?,?)", (sid, canonical({"fingerprint": fingerprint, "result": result})))
                 return result
