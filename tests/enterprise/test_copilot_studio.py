@@ -270,7 +270,7 @@ def test_group_overage_fails_closed_without_resolver():
 
 
 def test_group_overage_can_use_host_resolver():
-    api, _, _ = make_api(group_resolver=lambda attrs: ["Engineering-Firmware"])
+    api, _, _ = make_api(group_resolver=lambda tenant_id, object_id: ["Engineering-Firmware"])
     token = make_token(
         groups=(),
         extra={"_claim_names": {"groups": "src1"}},
