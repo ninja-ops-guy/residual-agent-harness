@@ -1,6 +1,7 @@
 """Exact-head HITL approvals for consequential Copilot Studio actions."""
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -19,10 +20,14 @@ class ExternalWriteIntent:
     target: str
 
     def __post_init__(self):
-        for name in ("mission_id","binding_hash","plan_hash","evidence_hash","action","target"):
+        if not isinstance(self.mission_id,str) or not re.fullmatch(r"m-[0-9a-f]{32}",self.mission_id):
+            raise ContractError("mission_id must be a RESIDUAL mission id")
+        for name in ("binding_hash","plan_hash","evidence_hash"):
             value=getattr(self,name)
-            if not isinstance(value,str) or not value.strip():
-                raise ContractError(f"{name} is required")
+            if not isinstance(value,str) or not re.fullmatch(r"[0-9a-f]{64}",value):
+                raise ContractError(f"{name} must be a lowercase SHA-256")
+        if not isinstance(self.target,str) or not self.target.strip() or len(self.target)>512:
+            raise ContractError("target is required and bounded")
         identifier(self.action)
 
     @property
