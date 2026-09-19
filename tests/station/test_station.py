@@ -342,6 +342,50 @@ class HTTPTests(unittest.TestCase):
         with self.assertRaises(urllib.error.HTTPError):
             self.request(f"/api/projects/{pid}/task", {"task_id": "OPS-101", "action": "integrate"}, {**headers, "X-Station-Token": ""})
 
+    def test_shared_comms_reaches_runners_without_changing_task_authority(self):
+        pid = self.s.create(demo_spec(), demo=True)["project_id"]
+        self.s.triage(pid)
+        task = self.s.store.task(pid, "OPS-101")
+        self.s.store.settings({"remote_workers_enabled": True})
+        worker_headers = {"Authorization": "Bearer " + self.s.store.settings()["worker_token"]}
+
+        operator_message = self.request(f"/api/projects/{pid}/chat", {
+            "message": "Please pay attention to the health edge case.",
+            "audience": "runners",
+            "kind": "message",
+        })
+        self.request(f"/api/projects/{pid}/chat", {
+            "message": "Coordinator-only bookkeeping note.",
+            "audience": "coordinator",
+            "kind": "message",
+        })
+
+        visible = self.request(f"/api/worker/comms?project_id={pid}&after=0", None, worker_headers)["messages"]
+        self.assertEqual([m["message"] for m in visible], ["Please pay attention to the health edge case."])
+        self.assertEqual(visible[0]["actor"], "operator")
+        self.assertEqual(operator_message["event_type"], "comms.message")
+
+        work = self.request("/api/worker/claim", {
+            "project_id": pid, "task_id": "OPS-101", "name": "Hammer",
+        }, worker_headers)["work"]
+        self.assertEqual(work["packet"]["instruction"], task["instruction"])
+        self.assertEqual(work["packet"]["writable_files"], task["files"])
+        self.assertEqual(work["packet"]["checks"], task["checks"])
+        self.assertEqual([m["message"] for m in work["packet"]["shared_comms"]],
+                         ["Please pay attention to the health edge case."])
+
+        reply = self.request("/api/worker/comms", {
+            "project_id": pid, "name": "Hammer", "message": "Acknowledged.", "audience": "all",
+        }, worker_headers)
+        self.assertEqual(reply["actor"], "remote:Hammer")
+        self.assertEqual(reply["data"]["message"], "Acknowledged.")
+
+        with self.assertRaises(urllib.error.HTTPError) as error:
+            self.request("/api/worker/comms", {
+                "project_id": pid, "name": "Hammer", "message": "nope", "audience": "cloud",
+            }, worker_headers)
+        self.assertEqual(error.exception.code, 400)
+
 
 class ProviderHTTPTests(unittest.TestCase):
     def test_station_uses_actual_ollama_http_framing_and_reported_usage(self):
