@@ -49,8 +49,8 @@ RESIDUAL uses Arena's documented OpenAI-compatible API surface:
 | Purpose | Upstream Arena route | Method | RESIDUAL behavior |
 | --- | --- | --- | --- |
 | Discover models | `https://api.preview.arena.ai/v1/models` | `GET` | Bearer-authenticated; returns/sorts model IDs available to the virtual key. No model ID is required for this setup-only call. |
-| Chat / structured output | `https://api.preview.arena.ai/v1/chat/completions` | `POST` | Sends the selected model, messages, output limit and `allow_fallbacks:false`. JSON mode/tools use the existing OpenAI-compatible adapter contract. |
-| Streaming chat | `https://api.preview.arena.ai/v1/chat/completions` | `POST` + SSE | Sends `stream:true` and the same `allow_fallbacks:false` policy. Arena provenance headers are validated before the first chunk is emitted. |
+| Chat / structured output | `https://api.preview.arena.ai/v1/chat/completions` | `POST` | Sends the selected model, messages, output limit, optional tools, and `allow_fallbacks:false`. RESIDUAL does not depend on undocumented `response_format`; requested schemas are included in the system instruction and the returned JSON is validated locally. |
+| Streaming chat | `https://api.preview.arena.ai/v1/chat/completions` | `POST` + SSE | Sends `stream:true` and the same `allow_fallbacks:false` policy. RESIDUAL does not send undocumented `stream_options`; usage stays unknown unless Arena reports it in the stream. Arena provenance headers are validated before the first chunk is emitted. |
 
 Authentication is always:
 
