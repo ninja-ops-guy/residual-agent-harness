@@ -12,15 +12,15 @@ The documents under [`source/`](source/) preserve earlier design generations and
 | Command Station | Implemented; exact-revision workflow results remain authoritative |
 | Factory M2/M3/M4 | Implemented; protected claims remain exact-revision/environment bound and universal capable-runner qualification is not implied |
 | Station budget/deadline admission | #288 accepted; pre-dispatch runner/reviewer admission and exact run-control-bound export eligibility are current behavior; stronger repaired-path empirical claims still need fresh requalification |
-| Mission Control/WebVM lifecycle | Bounded recovery, diagnostics, iOS fallback and provider/session/bootstrap hardening are accepted; exact-current-main production Pages qualification is **FAIL** on run `35437556200` because the required narrow/mobile Chromium acceptance failed, while desktop real-guest acceptance passed |
+| Mission Control/WebVM lifecycle | Exact-current-main production Pages is **FAIL** on run `35437556200`; #336 has a branch-only generated Pages **PASS** but is held behind #337 governance repair, fresh exact-head qualification, maintainer attestation, merge, and a new main SHA's own first production Pages attempt |
 | Native setup path | #200 hardening is accepted; blank-environment qualification remains open |
 | Live provider acceptance | Historical retained Puter failure remains scoped to its exact run; exact-current-main paid/live candidate→verifier→receipt success remains **UNKNOWN** |
 | Frozen evaluation framework | Implemented research apparatus; CI binding is not confirmatory live-model evidence |
 | Research Workbench | Draft #323; #288 prerequisite is accepted, but #323 must still be rebased/requalified before the first authoritative trial, which remains **BLOCKED** |
 | Residual Studio | Draft #325; first IDE/control-plane observer slice exists on a branch, but authoritative mutation wiring and full qualification remain incomplete |
-| Core security hardening | #328 accepted for core execution/egress/XML hardening; #330 now accepts workflow checkout credential-persistence hardening. This is scoped accepted security work, not blanket security qualification |
+| Core security hardening | #328 accepted for core execution/egress/XML hardening; #330 accepts workflow checkout credential-persistence hardening. This is scoped accepted security work, not blanket security qualification |
 | CSP / anti-clickjacking | #320 repository configuration accepted; production Vercel response-header/Aikido validation remains **UNKNOWN / pending** |
-| Qualification-v1 | #331 merged only to `testing/qualification-v1`; #152 technical branch gates are positive on `24816ebc...`, but protected approval is FAIL and security review is incomplete, so capability remains unaccepted |
+| Qualification-v1 | #333 synced current main into `testing/qualification-v1`; #152 is now at `11c0ac67...` and exact-head run `35443955204` is **FAIL** on three required gates. Predecessor `24816ebc...` positive evidence remains historical only |
 | Release/recovery/soak | True blank-environment install, host-loss/recovery evidence and selected elapsed soak remain gates |
 | Autonomous discovery / recursive improvement | Mixed bounded research evidence only; general capability remains **UNKNOWN / not established** and M6-008 remains **BLOCKED** |
 | Cooperative mesh efficiency | M6-MESH-001 has one positive bounded two-obligation pilot cell; general performance benefit remains **UNKNOWN / not established** |
@@ -30,35 +30,9 @@ The documents under [`source/`](source/) preserve earlier design generations and
 
 ## Accepted main
 
-Current `main` is **`3bfa6abac719bb1ca5db225b32df347ae2afc079`**, produced by merged **#330** on 2026-09-19.
+Current `main` is **`3bfa6abac719bb1ca5db225b32df347ae2afc079`**, produced by merged **#330** on 2026-09-19. No newer production-main commit landed in this check.
 
-Recent accepted changes relevant to roadmap status:
-
-### #307 — duplicate feature-branch CI fan-out repair
-
-The affected general workflows no longer produce redundant unrestricted feature-branch push copies in addition to PR qualification. PR qualification remains, superseded PR-head cancellation is bounded to intended paths, and production-main/Pages first-attempt evidence remains non-cancelling. Historical #305 saturation evidence remains retained.
-
-### #260 — provider bootstrap guard
-
-The embedded provider Load control fails closed until the private MessagePort bridge is initialized. This is accepted UI/transport behavior, not retained proof of successful paid/live Puter inference.
-
-### #288 — pre-dispatch budget authority
-
-#288 closes #208. Station runner/reviewer dispatch is admitted against host-owned budget/deadline state before authority-bearing work begins, unknown/invalid usage is handled conservatively, and release export requires a successful run-control result bound to the exact head/spec. Historical #207/#212 research failures remain retained; stronger present-tense claims need repaired-path requalification.
-
-### #320 — repository-side CSP / anti-clickjacking
-
-The repository carries CSP/anti-clickjacking policy for the Vercel deployment configuration, with an HTML CSP fallback for GitHub Pages. Production Vercel header inspection and Aikido revalidation remain **UNKNOWN / pending**.
-
-### #328 — core security hardening
-
-Accepted core changes require kernel isolation/fail closed for third-party supply-chain execution, harden connector origin/redirect/proxy handling against SSRF/bearer forwarding, harden SAML XML parsing, and add bounded supporting controls/regression coverage.
-
-### #330 — workflow checkout credential hardening
-
-The remaining workflow checkout hardening is now accepted on main. Checkout steps use `persist-credentials: false`, pinned external WebVM checkouts preserve their repository/ref/path inputs, accepted #307 main-only push/concurrency semantics remain intact, accepted #267 Pages semantics remain intact, and a structural regression scans workflow checkout steps. The stale overlapping #324 branch must not be merged wholesale. This accepted change is scoped to the reviewed workflow-security behavior and does not imply blanket security qualification.
-
-None of these changes expands protected Factory/M4, verifier, evidence-schema, provider, or acceptance authority.
+Recent accepted changes relevant to roadmap status remain #307 (CI fan-out repair), #260 (provider bootstrap guard), #288 (pre-dispatch budget/deadline authority), #320 (repository-side CSP/anti-clickjacking), #328 (core source/runtime security hardening), and #330 (workflow checkout credential hardening). None expands protected Factory/M4, verifier, evidence-schema, provider, or acceptance authority.
 
 ## Exact-current-main qualification
 
@@ -81,6 +55,14 @@ For `main@3bfa6aba...`:
 - recovery/elapsed-soak qualification: **not established**.
 
 The predecessor `main@0a675017...` production Pages run `35431634267`, attempt 1, remains a scoped exact-revision **PASS**. It is historical evidence after main moved and must not be inherited by `3bfa6aba...`. The still earlier production Pages **FAIL** on `e7b72ad...` likewise remains exact-revision historical evidence. The current `3bfa6aba...` run is an independent first-attempt FAIL; the desktop sub-check PASS does not override the terminal qualification result.
+
+### Focused repair chain
+
+**#336** is the current focused durability repair at exact head `92aca285a9287b73787b552f87aaa42062e73ba4`. Its generated PR Pages run `35438579639` attempt 1 is **PASS**, with named surrounding technical lanes also green. This is branch evidence only. Protected maintainer approval is **FAIL**, and a substantive PR Agent advisory was not established because the review provider exhausted credits and the old publication verifier could mistake the resulting bot failure/status comment for advisory evidence.
+
+**#337** repairs that governance defect by requiring an explicit full-review marker and separating concurrency classes so status-bot comments cannot cancel a legitimate review path. It is open at `46e522b4437d42d68df170285bd3a93366808bd1`; named technical lanes are **PASS**, but PR Agent advisory and protected maintainer approval remain **FAIL**. Therefore #337 is unaccepted, #336 remains on HOLD behind it, and production remains FAIL.
+
+If #337 lands, #336 must rebase/reconcile onto the new `main`, regenerate all merge-relevant exact-head evidence, and receive fresh maintainer attestation. If #336 then lands, the resulting new main must still pass its own first authoritative production Pages attempt. No branch or predecessor PASS is inherited.
 
 ## Research and development state
 
@@ -111,7 +93,7 @@ Accepted work and remaining evidence must be kept distinct:
 - **#330:** workflow checkout credential-persistence hardening is accepted.
 - **#324:** stale overlapping predecessor; it must not be merged wholesale.
 - **#321/#322:** scanner-generated candidates remain separate and are not acceptance evidence merely because vendor confidence is high.
-- **#152:** qualification-v1 security-review completeness remains **UNKNOWN / incomplete** because current branch findings remain and Deep Review did not execute.
+- **#152:** exact current testing-branch Qualification-v1 is **FAIL** and governance remains unsatisfied; no branch result can be promoted into current-main capability.
 
 Do not describe this as blanket security qualification. Each accepted change is scoped to reviewed bytes and retained evidence.
 
@@ -121,15 +103,23 @@ Issue **#305** remains historical evidence of severe queue saturation. **#307 is
 
 Production Pages/main first-attempt evidence remains non-cancelling. Queue recovery or CI deduplication does not authorize skipping, cancelling, or rewriting required qualification outcomes.
 
-Qualification-v1 remains separate testing-branch evidence. PR **#331** merged into `testing/qualification-v1` only, moving open PR **#152** to exact head `24816ebc778b26497dd30497e59f6f2badcf39ed`. On that head, retained checks show **PASS** for `aggregate`, `browser-adversarial`, `concurrency`, `m4`, `m4-prereq`, browser, and surrounding qualification lanes. The protected `maintainer-approval` gate remains **FAIL**, so #152 remains unaccepted and none of its PASSes broaden current production `main` or M4 claims. Earlier failed cells remain retained historical evidence. The same head's Aikido code check reported **2 new MEDIUM and 19 new LOW findings** and Deep Review was **SKIPPED** because no credits were available.
+Qualification-v1 remains separate testing-branch evidence. PR **#333** reverse-merged current `main` into `testing/qualification-v1`, moving open PR **#152** to exact head `11c0ac67f60f61a7243bcc79ce803d588a89aa94`. Exact-head Qualification-v1 run **`35443955204` attempt 1 = FAIL**. The retained final manifest names three required failures:
+
+- `deterministic-regression=FAIL`: seven enterprise sandbox tests failed because the hosted runner reported `kernel-level sandbox isolation unavailable`; 1,817 tests passed, 29 skipped, and 387 subtests passed in that gate.
+- `qualification-selftests=FAIL`: the full provider-mission qualifier returned FAIL; 38 sibling selftests passed.
+- `toxic-provider-matrix=FAIL`: the same provider-mission qualifier returned FAIL; seven sibling tests passed.
+
+The lower-level provider-mission cause remains **UNKNOWN** from retained evidence, and the final failure ledger leaves these required failures **UNCLASSIFIED**. Factory ownership, M4 prerequisites, Browser VM Demo, Controller/provider, Command Station, clean install, Factory runtime/OS evidence, Control Plane, measured-evaluation binding, and generated PR Pages proof are **PASS** on the exact current testing head, but they do not override the overall required-gate FAIL. Protected maintainer approval and PR Agent advisory are also **FAIL**.
+
+The predecessor `24816ebc...` technical PASS remains historical exact-head evidence and is not inherited after #333 changed the branch head.
 
 ## Current build order
 
-1. **Investigate and requalify the exact-current-main production Pages FAIL.** Preserve first-attempt run `35437556200` and live-proof artifact `10582812524`; do not let the desktop sub-check PASS overwrite the required mobile/narrow failure.
-2. **Requalify the repaired #288 authority path.** Retain fresh evidence for budget exhaustion, unknown usage, terminal verifier/release ordering, and export binding before making stronger present-tense claims.
-3. **Rebase/requalify Research Workbench #323** before M6-WB-001 can run authoritatively.
-4. **Validate #320 on production Vercel.** Inspect actual response headers and rerun the relevant security check; configuration merge alone is not production-header PASS.
-5. **Complete #152 exact-head governance/security review.** Technical branch PASSes do not become accepted main capability while maintainer approval is FAIL and security review remains incomplete.
+1. **Fix PR-review governance first.** Review and qualify #337. Do not attest/merge #336 ahead of it. If #337 lands, reconcile #336 to the new main and rerun all merge-relevant exact-head gates; after any #336 merge, require the new main SHA's first production Pages attempt to PASS.
+2. **Diagnose exact-head #152 Qualification-v1 failures.** Preserve run `35443955204` attempt 1, including deterministic sandbox-unavailable failures and the provider-mission failures; do not rerun an unchanged head merely to obtain green.
+3. **Requalify the repaired #288 authority path.** Retain fresh evidence for budget exhaustion, unknown usage, terminal verifier/release ordering, and export binding before making stronger present-tense claims.
+4. **Rebase/requalify Research Workbench #323** before M6-WB-001 can run authoritatively.
+5. **Validate #320 on production Vercel.** Inspect actual response headers and rerun the relevant security check; configuration merge alone is not production-header PASS.
 6. **Retain fresh exact-current-deployed live-provider evidence.** A real-account Puter mission must cross protocol validation into ordinary candidate/verifier/receipt handling before live-provider success can become PASS.
 7. **Continue bounded M6 discovery/derivation and M6-MESH measurement** without promoting pilot results into product capability; keep M6-008 blocked until explicit gates are met.
 8. **Execute true blank-environment installation, recovery/host-loss qualification, selected elapsed soak, and physical/mobile validation** for the exact release path.
