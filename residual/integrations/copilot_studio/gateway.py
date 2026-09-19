@@ -315,6 +315,10 @@ class CopilotMissionGateway:
             raise CopilotAccessError("invalid_request", str(exc), 400) from exc
         template = self._template(request.template_id)
         self._authorize(principal, template)
+        try:
+            template.validate_inputs(request.inputs)
+        except ContractError as exc:
+            raise CopilotAccessError("invalid_inputs", str(exc), 400) from exc
         plan = self._compile(request, template)
         binding = self._binding(principal, request, template, plan)
         record = self._record(binding)
