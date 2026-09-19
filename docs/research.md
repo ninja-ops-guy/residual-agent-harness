@@ -20,7 +20,9 @@ Current `main` is **`e7b72ad18df5729f16d36771971c8a8828d71a10`**.
 
 Recent accepted engineering/governance changes relevant to research interpretation include #275, which repairs exact-head maintainer-approval status publication, and #276, which ensures every merged-main SHA receives a non-cancelling authoritative production Pages attempt. These are engineering/qualification changes, not scientific results.
 
-The first authoritative production Pages attempt for exact current main is **run `35410875305`, attempt 1, FAIL**. Generated desktop+narrow artifact proof and deployment passed; published live guest verification failed and the subsequent published narrow check was skipped. This is exact-revision production qualification evidence. It is **not** a model-quality result, a paid/live Puter result, or proof of the central research hypothesis. The lower-level cause remains **UNKNOWN from the currently inspected retained metadata**.
+The first authoritative production Pages attempt for exact current main is **run `35410875305`, attempt 1, FAIL**. Generated desktop+narrow artifact proof and deployment passed; published live guest verification failed and the subsequent published narrow check was skipped. This is exact-revision production qualification evidence. It is **not** a model-quality result, a paid/live Puter result, or proof of the central research hypothesis.
+
+Open #260 is the current focused bootstrap-race repair candidate on exact head `2a9455ee1c2001306521946e61376fae153211ad`. Its named exact-head technical workflows are green, including PR-head Pages and Browser VM, but the protected maintainer-approval gate is **FAIL** pending a fresh exact-head human attestation. #260 is unmerged, so those PASS results are development/qualification evidence for that PR head only and do not alter current-main production status.
 
 Controller/provider, Command Station and Factory ownership have retained exact-main PASS results in their named scopes. Those PASS results do not override the production Pages FAIL and do not establish universal/capable-runner M4 qualification, live provider quality, physical-device reliability or a paper-facing effect size.
 
@@ -91,13 +93,21 @@ General autonomous discovery and recursive self-improvement remain **UNKNOWN / n
 
 ## New experimental branches do not change accepted capability
 
-Recent draft research/integration work includes #293 (M7 governed recursive mission), #313 (A2A semantic-feasibility spike) and #314 (Vector/Wire-Pod verified continual-learning experiment). Their own stated boundaries keep them experimental/unaccepted and preserve external promotion/qualification gates. They therefore do not change accepted `main` capability or justify an autonomous self-promotion claim.
+Recent draft research/integration work includes:
+
+- **#293** — M7 governed recursive mission; unaccepted and explicitly preserves an external promotion gate.
+- **#313** — A2A semantic-feasibility spike; experimental and isolated from production authority.
+- **#314** — Vector/Wire-Pod verified continual-learning experiment; draft/unaccepted.
+- **#316** — RAC evidence-gated improvement `StationModule`; draft/unmerged. Its current exact head has green named workflows including maintainer approval, but that is PR-head qualification only and does not make the integration accepted production capability. Its stated contract treats a correctly retained scientific FAIL as a valid integration result rather than optimizing toward PASS.
+- **#317** — RESIDUAL-RT bounded-authority adversary-emulation research track; draft/unmerged. Phase A is deterministic controller-isolation replay, Phase B is proposal-only live-model transport with no execution adapter, and Phase C remains planned/gated. Current technical workflows are green while maintainer approval is **FAIL**. No live-model red-team effectiveness, production safety, or real-world exploit reliability is established.
+
+These branches preserve external promotion/qualification boundaries and therefore do not change accepted `main` capability or justify autonomous self-promotion claims.
 
 ## WebVM / provider research boundary
 
 Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice. Both counted calls failed closed as `provider_protocol_invalid`; no candidate crossed the protocol boundary, so candidate correctness and semantic verification remain **UNKNOWN**.
 
-Current-main production Pages failure `35410875305` occurs at published live guest verification after generated proof and deployment passed. It must remain a production qualification **FAIL**, but the inspected workflow metadata does not justify reclassifying it as provider/model-quality failure.
+Current-main production Pages failure `35410875305` occurs at published live guest verification after generated proof and deployment passed. It must remain a production qualification **FAIL** and must not be reclassified as provider/model-quality failure merely because #260 is technically green on a PR head.
 
 The #186 iOS/WebKit fallback remains accepted. It is not physical heavyweight-WebVM reliability evidence. Issues #120/#126 remain open because bounded mitigations and individual green runs do not establish long-run recurrence rate or root cause.
 
@@ -117,7 +127,7 @@ Merged #168 establishes repository merge control as:
 
 This is **maintainer-reviewed with automated qualification**, not independent human assurance. A paper-facing security, release or scientific claim may still require evidence independent of the implementer/maintainer.
 
-Issue #305 also remains open for Actions queue saturation. Queue delay is an operational qualification problem, not evidence of scientific success or failure. Open #307 is a candidate fan-out repair and is not accepted until merged and observed effective.
+Issue #305 remains open for the structural duplicate-trigger/concurrency defect, but the acute queue backlog has operationally drained to **0 queued runs**. Open #307 is still unmerged, so queue recovery is not proof that the underlying fan-out defect is fixed.
 
 ## Proposed contribution
 
