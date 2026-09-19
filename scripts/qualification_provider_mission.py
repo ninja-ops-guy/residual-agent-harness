@@ -10,6 +10,7 @@ import time
 from pathlib import Path
 
 from residual.core import canonical
+from residual.station.control import run_controlled_batch
 from residual.station.models import PROVIDERS, save_settings
 from residual.station.service import Station
 
@@ -92,6 +93,15 @@ def run_mission(*, provider: str, model: str, base_url: str | None, root: Path) 
         if station.store.task(pid, "LIVE-1")["state"] != "integrated":
             raise RuntimeError("verified candidate did not integrate")
 
+        # Export authority is intentionally stricter than integration state: the
+        # current integrated head must also be covered by a successful
+        # run-control result. Exercise that real control path without invoking
+        # Station.batch()'s optional post-run cloud assessment, which would add
+        # unrelated provider calls to this bounded two-call mission.
+        control = run_controlled_batch(station, pid, lambda *_args: None)
+        if control["control"]["outcome"] != "success":
+            raise RuntimeError("run control did not establish release authority")
+
         release = station.export(pid)
         meta, release_bytes = station.store.artifact(release["id"])
         task = station.store.task(pid, "LIVE-1")
@@ -103,6 +113,12 @@ def run_mission(*, provider: str, model: str, base_url: str | None, root: Path) 
             "model_requested": model,
             "project_id": pid,
             "integrated_head": integrated["head_commit"],
+            "run_control": {
+                "outcome": control["control"]["outcome"],
+                "project_head": control["control"]["project_head"],
+                "project_spec_hash": control["control"]["project_spec_hash"],
+                "evidence": control["control"]["evidence"],
+            },
             "verification_receipt_hash": task["verification_receipt"]["receipt"]["receipt_hash"],
             "release": {
                 "id": release["id"],

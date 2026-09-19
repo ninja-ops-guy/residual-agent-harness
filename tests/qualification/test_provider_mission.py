@@ -56,6 +56,8 @@ def test_full_provider_mission_qualifier_exercises_implementation_review_and_rel
         server.shutdown(); server.server_close(); thread.join(timeout=5)
 
     assert report["result"] == "PASS", report
+    assert report["run_control"]["outcome"] == "success"
+    assert report["run_control"]["project_head"] == report["integrated_head"]
     assert report["metrics"]["calls"] == 2
     assert report["release"]["size"] > 0
     assert len(report["verification_receipt_hash"]) == 64
