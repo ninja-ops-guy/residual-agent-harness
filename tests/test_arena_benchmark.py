@@ -1,6 +1,11 @@
+import json
+import os
+import tempfile
 import unittest
+from pathlib import Path
+from unittest.mock import patch
 
-from ai_providers import ChatRequest, DEFAULT_REGISTRY, Message, ProviderName, Role
+from ai_providers import ChatRequest, ChatResponse, DEFAULT_REGISTRY, Message, ProviderName, Role
 from ai_providers.adapters.arena_adapter import ArenaAdapter
 from residual.eval.arena import (
     AgentEvaluationTrace,
@@ -8,7 +13,9 @@ from residual.eval.arena import (
     extract_arena_aligned_signals,
 )
 from residual.modular import make_adapter, normalize_profile
+from residual.eval_frozen.workload import development_workload
 from residual.workbench.arena_benchmark import freeze_protocol, score_protocol
+from residual.workbench.arena_live import run_protocol
 
 
 def manifest(repeats=1):
@@ -141,6 +148,92 @@ class ArenaIntegrationTests(unittest.TestCase):
         )
         with self.assertRaises(Exception):
             score_protocol(lock, [trace])
+
+    def test_unknown_pair_remains_explicit(self):
+        lock = freeze_protocol(manifest(), ["arena:model-a"])
+        traces = []
+        unknown_id = lock["schedule"][0]["observation_id"]
+        for job in lock["schedule"]:
+            unknown = job["observation_id"] == unknown_id
+            traces.append(AgentEvaluationTrace.build(
+                experiment_id=job["experiment_id"],
+                observation_id=job["observation_id"],
+                task_id=job["task_id"],
+                condition=job["condition"],
+                model=job["model"],
+                harness_version="test",
+                environment_digest="env",
+                available_tools=(),
+                events=(),
+                usage={},
+                verdict={
+                    "state": "UNKNOWN" if unknown else "PASS",
+                    "verified_task_success": None if unknown else True,
+                },
+                provider_metadata={"provider": "arena", "fallback_used": False},
+            ))
+        report = score_protocol(lock, traces)
+        summary = report["summary"]["arena:model-a"]
+        unknown_total = summary["control"]["unknown"] + summary["residual"]["unknown"]
+        self.assertEqual(unknown_total, 1)
+        paired = report["paired_success_comparisons"][0]
+        self.assertEqual(paired["unknown_pairs"], 1)
+        self.assertEqual(paired["complete_pairs"], 5)
+
+    def test_live_runner_executes_control_and_real_residual_harness_without_network(self):
+        live = manifest()
+        live["evidence_level"] = "live_model"
+        live["experiment_id"] = "AX-ARENA-LIVE-TEST"
+        lock = freeze_protocol(live, ["arena:model-a"])
+        answers = {
+            task.prompt: task.expected
+            for task in development_workload().slice_tasks("evaluation")
+        }
+
+        def fake_chat(_adapter, req):
+            content = req.messages[-1].content
+            try:
+                packet = json.loads(content)
+            except json.JSONDecodeError:
+                packet = None
+            if isinstance(packet, dict) and packet.get("protocol") == "residual.packet.v1":
+                answer = answers[packet["goal"]]
+                text = json.dumps(
+                    {"updates": {"answer": answer}, "requests": []},
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+            else:
+                text = answers[content]
+            return ChatResponse(
+                req.model,
+                text,
+                usage={"prompt_tokens": 5, "completion_tokens": 1, "total_tokens": 6},
+            )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "arena-run"
+            with patch.dict(os.environ, {"ARENA_API_KEY": "test-key"}), patch.object(
+                ArenaAdapter, "chat", new=fake_chat
+            ):
+                traces = run_protocol(
+                    lock, output, max_output_tokens=64, residual_rounds=1
+                )
+            self.assertEqual(len(traces), 12)
+            self.assertTrue((output / "protocol.json").is_file())
+            self.assertTrue((output / "environment.json").is_file())
+            self.assertEqual(
+                len((output / "traces.jsonl").read_text().splitlines()), 12
+            )
+            report = score_protocol(lock, traces)
+            self.assertEqual(
+                report["summary"]["arena:model-a"]["control"]["scheduled_success_rate"],
+                1.0,
+            )
+            self.assertEqual(
+                report["summary"]["arena:model-a"]["residual"]["scheduled_success_rate"],
+                1.0,
+            )
 
 
 if __name__ == "__main__":
