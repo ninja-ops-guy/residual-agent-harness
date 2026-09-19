@@ -33,6 +33,20 @@
       "finding": "The SDK request handler and task store participate in lifecycle persistence and recovery semantics.",
       "consequence": "Protocol error, executor failure, transport loss, stored task state, and RESIDUAL acceptance state must be recorded as distinct facts.",
       "status": "open-for-experiment"
+    },
+    {
+      "id": "IMP-A2A-005",
+      "question": "F0 transport gate",
+      "classification": "validated-canary",
+      "finding": "Pinned A2A 1.0.3 JSON-RPC/SSE canaries passed in CI: remote COMPLETED with incorrect artifact did not produce acceptance, and server-process death after a valid artifact but before terminal/interrupted state left the candidate provisional with no accepted receipt.",
+      "consequence": "The tested transport paths preserve the protected acceptance-authority invariant. This is scoped canary evidence, not general A2A qualification.",
+      "status": "confirmed",
+      "evidence": {
+        "commit": "50e2582ef38d8c8430b3e20f0d0438dce7438830",
+        "workflow_run_id": 35413164622,
+        "job_id": 105816610772,
+        "transport_tests": "2 passed in 1.65s"
+      }
     }
   ]
 }
