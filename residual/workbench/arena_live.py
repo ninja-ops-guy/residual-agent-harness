@@ -95,6 +95,9 @@ def _control(lock, job, task, environment_digest, api_key, base_url, max_output_
         "provider": "arena",
         "fallback_used": False,
         "requested_model": model_id,
+        "resolved_model": None,
+        "trace_id": None,
+        "response_model": None,
     }
     try:
         response = adapter.chat(req)
@@ -109,7 +112,13 @@ def _control(lock, job, task, environment_digest, api_key, base_url, max_output_
             provider_metadata=metadata,
         )
 
-    metadata["resolved_model"] = response.model
+    arena_meta = response.metadata
+    metadata.update({
+        "fallback_used": arena_meta.get("arena_fallback_used"),
+        "resolved_model": arena_meta.get("arena_resolved_model"),
+        "trace_id": arena_meta.get("arena_trace_id"),
+        "response_model": response.model,
+    })
     answer = response.content.strip()
     success = _answer_ok(answer, task.expected)
     events.append(ArenaTraceEvent.build(1, "evaluation", {
@@ -224,11 +233,34 @@ def _residual(lock, job, task, environment_digest, api_key, base_url,
                 + metrics["remote_output_tokens_reported"]
             ),
         }
+    attempts = []
+    for receipt in provider.attempt_receipts:
+        response_meta = receipt.get("response_metadata") or {}
+        attempts.append({
+            "request_id": receipt.get("request_id"),
+            "attempt": receipt.get("attempt"),
+            "status": receipt.get("status"),
+            "requested_model": receipt.get("model"),
+            "resolved_model": response_meta.get("arena_resolved_model"),
+            "trace_id": response_meta.get("arena_trace_id"),
+            "fallback_used": response_meta.get("arena_fallback_used"),
+            "error": receipt.get("error"),
+        })
+    completed_attempts = [attempt for attempt in attempts if attempt["status"] == "completed"]
     metadata = {
         "provider": "arena",
-        "fallback_used": False,
+        "fallback_used": any(attempt["fallback_used"] is True for attempt in attempts),
         "requested_model": model_id,
         "provider_calls": len(harness.calls),
+        "arena_attempts": attempts,
+        "resolved_models": sorted({
+            attempt["resolved_model"] for attempt in completed_attempts
+            if isinstance(attempt["resolved_model"], str) and attempt["resolved_model"]
+        }),
+        "trace_ids": [
+            attempt["trace_id"] for attempt in completed_attempts
+            if isinstance(attempt["trace_id"], str) and attempt["trace_id"]
+        ],
     }
     engine_hash = lock["source_hashes"].get("residual/engine.py", "")[:16]
     return _base_trace(
