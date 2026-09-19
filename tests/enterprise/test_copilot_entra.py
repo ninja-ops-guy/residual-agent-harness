@@ -26,7 +26,7 @@ class Opener:
     def __init__(self,responses):
         self.responses=list(responses); self.requests=[]
     def open(self,req,timeout=None):
-        self.requests.append((req.full_url,req.method,dict(req.header_items()),req.data,timeout))
+        self.requests.append((req.full_url,req.get_method(),dict(req.header_items()),req.data,timeout))
         if not self.responses: raise OSError("no scripted response")
         item=self.responses.pop(0)
         if isinstance(item,Exception): raise item
