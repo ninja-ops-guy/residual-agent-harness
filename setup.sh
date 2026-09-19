@@ -135,7 +135,7 @@ MACRO_BLOCK="$MACRO_BEGIN
 residual() {
   if [ \$# -eq 0 ]; then
     echo \"Starting RESIDUAL Command Station on $HOST:$PORT\"
-    command residual serve --host \"$HOST\" --port \"$PORT\" --data \"$DATA_DIR\"
+    command residual start
   else
     command residual \"\$@\"
   fi
@@ -232,7 +232,8 @@ export PATH="$VENV_DIR/bin:$PATH"
 
 echo ""
 info "Setup complete."
-echo "  CLI:      residual --help"\necho "  Start:    residual start"
+echo "  CLI:      residual --help"
+echo "  Start:    residual start"
 echo "  Serve:    residual serve --host $HOST --port $PORT --data $DATA_DIR"
 echo "  Link:     http://$HOST:$PORT"
 echo "  Venv:     $VENV_DIR"
