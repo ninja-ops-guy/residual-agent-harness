@@ -1,6 +1,7 @@
 """Administrator-owned resource catalog for Copilot Firmware missions."""
 from __future__ import annotations
 
+import hashlib
 import re
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
@@ -125,7 +126,7 @@ class RepositoryResource:
             except UnicodeDecodeError as exc:
                 raise ContractError("repository context must be UTF-8 text") from exc
             contents.append((path, text))
-            hashes.append((path, digest({"bytes_sha256": __import__("hashlib").sha256(raw).hexdigest()})))
+            hashes.append((path, hashlib.sha256(raw).hexdigest()))
 
         snapshot_hash = digest({
             "repository_id": self.repository_id,
