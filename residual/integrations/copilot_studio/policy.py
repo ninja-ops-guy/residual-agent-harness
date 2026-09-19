@@ -28,6 +28,8 @@ class MissionTemplate:
     risk: str
     capabilities: frozenset[str]
     acceptance: tuple[str, ...]
+    required_inputs: frozenset[str] = frozenset()
+    optional_inputs: frozenset[str] = frozenset()
 
     def __post_init__(self):
         identifier(self.template_id)
@@ -39,6 +41,41 @@ class MissionTemplate:
             raise ContractError("mission template acceptance must be a non-empty tuple")
         if any(not isinstance(x, str) or not x.strip() for x in self.acceptance):
             raise ContractError("mission acceptance entries must be non-empty strings")
+        for name, values in (
+            ("required_inputs", self.required_inputs),
+            ("optional_inputs", self.optional_inputs),
+        ):
+            if not isinstance(values, frozenset):
+                raise ContractError(f"{name} must be a frozenset")
+            for value in values:
+                identifier(value)
+        if self.required_inputs & self.optional_inputs:
+            raise ContractError("mission input field cannot be both required and optional")
+
+    def validate_inputs(self, inputs: dict[str, Any]) -> dict[str, str]:
+        """Validate opaque deployment aliases, never paths or URLs.
+
+        v1 intentionally accepts only identifier-shaped strings. A production
+        host resolves these aliases (for example repository_id) through its own
+        trusted configuration; caller data never becomes a filesystem path or
+        network destination directly.
+        """
+        if not isinstance(inputs, dict):
+            raise ContractError("mission inputs must be an object")
+        allowed = self.required_inputs | self.optional_inputs
+        keys = set(inputs)
+        missing = self.required_inputs - keys
+        unknown = keys - allowed
+        if missing:
+            raise ContractError("missing required mission input: " + sorted(missing)[0])
+        if unknown:
+            raise ContractError("unknown mission input: " + sorted(unknown)[0])
+        normalized: dict[str, str] = {}
+        for key, value in inputs.items():
+            if not isinstance(value, str):
+                raise ContractError(f"{key} must be an opaque identifier")
+            normalized[key] = identifier(value.strip())
+        return normalized
 
 
 @dataclass(frozen=True)
@@ -118,6 +155,7 @@ def firmware_templates() -> dict[str, MissionTemplate]:
                 "Produce an evidence-backed analysis.",
                 "Do not modify repository, production, policy, or qualification state.",
             ),
+            required_inputs=frozenset({"repository_id"}),
         ),
         "firmware-sandbox-build": MissionTemplate(
             "firmware-sandbox-build",
@@ -131,6 +169,8 @@ def firmware_templates() -> dict[str, MissionTemplate]:
                 "Return evidence for each claimed result.",
                 "Do not perform an external write or production action.",
             ),
+            required_inputs=frozenset({"repository_id"}),
+            optional_inputs=frozenset({"build_profile_id"}),
         ),
         "firmware-test-triage": MissionTemplate(
             "firmware-test-triage",
@@ -144,6 +184,8 @@ def firmware_templates() -> dict[str, MissionTemplate]:
                 "Any code change is a proposal only; do not merge or deploy it.",
                 "Return evidence supporting the proposed remediation.",
             ),
+            required_inputs=frozenset({"repository_id"}),
+            optional_inputs=frozenset({"test_profile_id"}),
         ),
     }
 
