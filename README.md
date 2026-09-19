@@ -1,5 +1,11 @@
 # RESIDUAL
 
+## License
+
+**Business Source License 1.1** — source-available now; converts to MIT on 2029-09-18. Research, personal, evaluation, and other uses permitted by the [Additional Use Grant](LICENSE) are available without a commercial license; commercial production use outside that grant requires a [paid license](COMMERCIAL.md).
+
+[![License: BSL 1.1](https://img.shields.io/badge/License-BSL%201.1-blue.svg)](LICENSE)
+
 **Build reliable AI systems from unreliable computation.**
 
 RESIDUAL is an evidence-first reliability and control plane for AI-assisted engineering. Workers propose bounded work; the harness owns acceptance. Execution is observed, evidence is retained, candidate outputs are checked, and only accepted state is allowed across controlled integration boundaries.
