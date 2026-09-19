@@ -31,6 +31,8 @@ For a trusted TLS reverse proxy, configure `RESIDUAL_ALLOWED_HOSTS=station.examp
 
 **Shared Comms is the mission group chat.** Operator and runner messages are retained as `comms.message` events. Recent messages addressed to runners are included in newly claimed work packets as **advisory context only**: chat never expands the assigned instruction, writable paths, checks, dependencies, lease, review authority, or integration authority. The UI can also start mission planning from this thread; planning produces a draft specification that still requires normal operator review, schema validation, and explicit mission creation.
 
+Shared Comms also shows a **Connected runners** roster for the active project. Each long-running worker refreshes ephemeral presence while it polls/works, including its self-reported runner name, model/placement, current task status, and last check-in. Presence is operational UI state rather than retained evidence: stale workers expire automatically and no heartbeat events are added to the project log. Runner names are authenticated by the shared worker token but remain self-reported identities until per-runner identity is implemented.
+
 The bundled client polls Shared Comms between task polls and prints new messages. A runner can post a one-off reply with:
 
 ```bash
