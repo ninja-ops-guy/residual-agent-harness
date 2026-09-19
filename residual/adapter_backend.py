@@ -116,7 +116,19 @@ def recompute_attestation_id(token: dict) -> str:
     return _sha({k: v for k, v in token.items() if k != "attestation_id"})
 
 
-def _git_identity() -> tuple[str, str]:
+def _normalize_repo_slug(url: str) -> str:
+    """Reduce a git remote URL to owner/repo for comparison."""
+    slug = url.strip()
+    if slug.endswith(".git"):
+        slug = slug[:-4]
+    if ":" in slug and not slug.startswith(("http://", "https://")):
+        slug = slug.split(":", 1)[1]  # scp-like syntax git@host:owner/repo
+    else:
+        slug = "/".join(slug.split("/")[-2:])
+    return slug.lower()
+
+
+def _git_identity(implementation_repo: str) -> tuple[str, str]:
     root = Path(__file__).resolve().parents[1]
     try:
         commit = subprocess.run(
@@ -125,12 +137,24 @@ def _git_identity() -> tuple[str, str]:
         tree = subprocess.run(
             ["git", "rev-parse", "HEAD^{tree}"], cwd=root, check=True, capture_output=True, text=True
         ).stdout.strip()
+        remote = subprocess.run(
+            ["git", "config", "--get", "remote.origin.url"], cwd=root,
+            check=False, capture_output=True, text=True
+        ).stdout.strip()
     except (OSError, subprocess.CalledProcessError) as exc:
         raise ContractError(
             "implementation commit/tree unavailable; pass impl_commit_sha and impl_tree_sha explicitly"
         ) from exc
     if len(commit) != 40 or len(tree) != 40:
         raise ContractError("invalid git implementation identity")
+    # Auto-detected identity must come from the declared implementation repo;
+    # an ambient unrelated checkout is never attestation authority. A checkout
+    # without an origin remote cannot be proven either way and is rejected.
+    if not remote or _normalize_repo_slug(remote) != _normalize_repo_slug(implementation_repo):
+        raise ContractError(
+            "git auto-detection does not match implementation_repo; "
+            "pass impl_commit_sha and impl_tree_sha explicitly"
+        )
     return commit, tree
 
 
@@ -157,7 +181,7 @@ class LiveCoreResidualBackend:
         if (impl_commit_sha is None) != (impl_tree_sha is None):
             raise ContractError("implementation commit/tree must be supplied together")
         if impl_commit_sha is None:
-            impl_commit_sha, impl_tree_sha = _git_identity()
+            impl_commit_sha, impl_tree_sha = _git_identity(implementation_repo)
         assert impl_tree_sha is not None
         if len(impl_commit_sha) != 40 or len(impl_tree_sha) != 40:
             raise ContractError("implementation commit/tree must be 40-character git ids")
@@ -185,7 +209,35 @@ class LiveCoreResidualBackend:
         self._terminal: set[str] = set()
         self._verdicts: dict[str, dict[str, str]] = {}
         self._verify_event_chains()
+        self._verify_attestations()
         self._restore_runtime_state()
+
+    def _verify_attestations(self) -> None:
+        """Re-derive every stored attestation from the event ledger.
+
+        Triggers block UPDATE/DELETE through SQLite, but a byte-level edit or a
+        restored backup can still leave token_json inconsistent with the events
+        table. On open, recompute each token's content address, its evidence
+        manifest against the events actually recorded, and the cross-run
+        attestation chain. Any mismatch fails closed: the backend refuses to
+        serve potentially fabricated evidence.
+        """
+        rows = self._conn.execute(
+            "SELECT seq,attestation_id,run_id,token_json FROM attestations ORDER BY seq"
+        ).fetchall()
+        prev_id = GENESIS_HASH
+        for _seq, attestation_id, run_id, token_json in rows:
+            token = json.loads(token_json)
+            if token.get("attestation_id") != attestation_id:
+                raise LedgerWriteError(f"attestation id/key mismatch for run {run_id}")
+            if recompute_attestation_id(token) != attestation_id:
+                raise LedgerWriteError(f"attestation content address invalid for run {run_id}")
+            if token.get("prev_attestation_hash") != prev_id:
+                raise LedgerWriteError(f"attestation chain broken at run {run_id}")
+            recorded = [e for e in self.events(run_id) if e["kind"] != "attestation.issued"]
+            if _sha({"run_id": run_id, "events": recorded}) != token.get("evidence_manifest_hash"):
+                raise LedgerWriteError(f"evidence manifest mismatch for run {run_id}")
+            prev_id = attestation_id
 
     @property
     def gate_set_hash(self) -> str:
@@ -275,10 +327,22 @@ class LiveCoreResidualBackend:
             except sqlite3.IntegrityError:
                 self._conn.rollback()
                 row = self._conn.execute(
-                    "SELECT digest FROM events WHERE event_id=?", (event_id,)
+                    "SELECT digest,run_id,domain,kind,payload_json FROM events WHERE event_id=?",
+                    (event_id,),
                 ).fetchone()
                 if row is None:
                     raise LedgerWriteError(f"event admission failed: {event_id}")
+                # Idempotent admission is only valid for content-identical replays.
+                # Chain position (seq/prev_hash) is excluded: a legitimate retry may
+                # re-arrive after the ledger advanced. A reused event_id carrying
+                # divergent content is evidence corruption and must fail closed.
+                _, st_run, st_domain, st_kind, st_payload = row
+                if (st_run, st_domain, st_kind) != (run_id, domain, kind) or (
+                    json.loads(st_payload) != payload
+                ):
+                    raise LedgerWriteError(
+                        f"event_id collision with divergent payload: {event_id}"
+                    )
                 return row[0]
             except Exception as exc:
                 self._conn.rollback()
@@ -589,7 +653,16 @@ class LiveCoreResidualBackend:
                 "station_receipt_count": len(station_receipts),
             },
         )
-        self.on_run_complete(run_id, "success" if result.get("success") else "aborted")
+        # Terminal outcome preserves the core's distinction: a definitive
+        # verifier FAIL is "error" (CORE-RUN-OUTCOME=FAIL); BLOCKED is reserved
+        # for dependency-blocked or otherwise unresolved runs.
+        if result.get("success"):
+            outcome = "success"
+        elif any(decision.verdict == "FAIL" for _, decision in decisions):
+            outcome = "error"
+        else:
+            outcome = "aborted"
+        self.on_run_complete(run_id, outcome)
         return result, self.get_attestation(run_id)
 
     def close(self) -> None:

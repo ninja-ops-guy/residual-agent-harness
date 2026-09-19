@@ -1,4 +1,5 @@
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -213,7 +214,7 @@ class TestLiveHarnessBinding(unittest.TestCase):
         self.assertTrue(any(e["kind"] == "core.run.bound" for e in events))
         self.assertTrue(any(e["kind"] == "attestation.issued" for e in events))
 
-    def test_real_harness_fail_remains_fail_and_aborts_attested_run(self):
+    def test_real_harness_fail_remains_fail_and_attests_run_failure(self):
         registry = Registry()
         registry.check("always_fail", lambda value, ctx: Verdict.fail("forced_failure"), "1")
         registry.solver("candidate", lambda ctx: {"candidate": True})
@@ -234,10 +235,120 @@ class TestLiveHarnessBinding(unittest.TestCase):
         result, token = backend.run_harness(Harness(registry, None, None), task, run_id="r-fail")
         self.assertFalse(result["success"])
         self.assertEqual(token["verdicts"]["CORE-OBLIGATION:decision"], "FAIL")
-        self.assertEqual(token["verdicts"]["CORE-RUN-OUTCOME"], "BLOCKED")
+        # A definitive verifier FAIL must not be laundered into BLOCKED.
+        self.assertEqual(token["verdicts"]["CORE-RUN-OUTCOME"], "FAIL")
+        completed = [e for e in backend.events("r-fail") if e["kind"] == "run.completed"]
+        self.assertEqual(completed[0]["payload"]["outcome"], "error")
         fired = [e for e in backend.events("r-fail") if e["kind"] == "gate.fired"]
         self.assertTrue(fired)
         self.assertEqual(fired[0]["payload"]["verdict"], "FAIL")
+
+    def test_harness_dependency_blocked_run_remains_blocked(self):
+        registry = Registry()
+        register_builtins(registry)
+        task = Task(
+            "binding_blocked",
+            "a dependency chain whose root is never satisfied",
+            {},
+            (
+                Obligation("root", "no solver and no provider can satisfy this", "json_value"),
+                Obligation("child", "depends on the unsatisfiable root", "json_value",
+                           depends_on=("root",)),
+            ),
+        )
+        backend = self.backend()
+        result, token = backend.run_harness(Harness(registry, None, None), task, run_id="r-blocked")
+        self.assertFalse(result["success"])
+        self.assertEqual(token["verdicts"]["CORE-OBLIGATION:child"], "BLOCKED")
+        self.assertEqual(token["verdicts"]["CORE-RUN-OUTCOME"], "BLOCKED")
+
+    def test_divergent_event_id_collision_fails_closed(self):
+        backend = self.backend()
+        backend.on_run_start("r-collide", "spec@1")
+        # Replay the identical admission: idempotent resolve is legal.
+        backend._append_event(
+            "r-collide", "module", "module.called",
+            {"module": "m", "verdict": "PASS"}, event_id="fixed-id",
+        )
+        backend._append_event(
+            "r-collide", "module", "module.called",
+            {"module": "m", "verdict": "PASS"}, event_id="fixed-id",
+        )
+        self.assertEqual(
+            sum(1 for e in backend.events("r-collide") if e["event_id"] == "fixed-id"), 1
+        )
+        # Same event_id with divergent content is evidence corruption.
+        with self.assertRaises(LedgerWriteError):
+            backend._append_event(
+                "r-collide", "module", "module.called",
+                {"module": "m", "verdict": "FAIL"}, event_id="fixed-id",
+            )
+
+    def test_tampered_attestation_detected_on_reopen(self):
+        import json as _json
+        import sqlite3 as _sqlite3
+
+        with tempfile.TemporaryDirectory() as temp:
+            path = str(Path(temp) / "adapter.db")
+            backend = LiveCoreResidualBackend(
+                path,
+                spec_version="1.0.0",
+                spec_head_sha="a" * 40,
+                impl_commit_sha="b" * 40,
+                impl_tree_sha="c" * 40,
+                gate_evaluator=lambda *args: Verdict.passed(),
+            )
+            backend.on_run_start("r-tamper", "spec@1")
+            backend.on_module_call("r-tamper", "llm:test", "call-1", "0" * 64)
+            backend.on_run_complete("r-tamper", "success")
+            backend.close()
+
+            # Simulate byte-level tampering bypassing the append-only triggers.
+            raw = _sqlite3.connect(path)
+            raw.execute("DROP TRIGGER attest_no_update")
+            row = raw.execute(
+                "SELECT token_json FROM attestations WHERE run_id='r-tamper'"
+            ).fetchone()
+            token = _json.loads(row[0])
+            token["verdicts"]["CORE-RUN-OUTCOME"] = "BLOCKED"
+            raw.execute(
+                "UPDATE attestations SET token_json=? WHERE run_id='r-tamper'",
+                (_json.dumps(token),),
+            )
+            raw.commit()
+            raw.close()
+
+            with self.assertRaises(LedgerWriteError):
+                LiveCoreResidualBackend(
+                    path,
+                    spec_version="1.0.0",
+                    spec_head_sha="a" * 40,
+                    impl_commit_sha="b" * 40,
+                    impl_tree_sha="c" * 40,
+                    gate_evaluator=lambda *args: Verdict.passed(),
+                )
+
+    def test_attestation_verdicts_match_ledger_events(self):
+        # A-ATT-2: every fired gate verdict must appear verbatim in the token.
+        backend = LiveCoreResidualBackend(
+            ":memory:",
+            spec_version="1.0.0",
+            spec_head_sha="a" * 40,
+            impl_commit_sha="b" * 40,
+            impl_tree_sha="c" * 40,
+            gate_evaluator=lambda *args: CoreGateDecision(
+                "BLOCKED", "CORE:tool:shell", {"source": "test-policy"}
+            ),
+        )
+        backend.on_run_start("r-consistency", "spec@1")
+        with self.assertRaises(GateFiredError):
+            backend.on_module_call("r-consistency", "tool:shell", "call-1", "0" * 64)
+        token = backend.get_attestation("r-consistency")
+        fired = [e for e in backend.events("r-consistency") if e["kind"] == "gate.fired"]
+        self.assertTrue(fired)
+        for event in fired:
+            gate_id = event["payload"]["gate_id"]
+            self.assertEqual(token["verdicts"].get(gate_id), event["payload"]["verdict"])
 
     def test_attestation_admission_is_atomic_on_barrier_failure(self):
         transport = FailOnCommitTransport(fail_on=4)
