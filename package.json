@@ -3,6 +3,12 @@
   "private": true,
   "version": "0.4.0",
   "description": "Optional browser QA tooling. The app has no Node runtime dependency in native mode.",
-  "scripts": {"test:ui": "node tests/browser.cjs", "check:ui": "node --check residual/station/static/app.js"},
-  "devDependencies": {"playwright": "^1.58.0"}
+  "scripts": {
+    "test:ui": "node tests/browser.cjs",
+    "check:ui": "node --check residual/station/static/app.js",
+    "test:onboarding": "node tests/mesh_group_chat_browser.cjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.58.0"
+  }
 }

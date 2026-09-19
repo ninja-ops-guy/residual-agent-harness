@@ -133,7 +133,7 @@ class ImportedIntegrityTests(unittest.TestCase):
         sender=MeshNode(a,sign,verify);receiver=MeshNode(b,sign,verify)
         receiver.connect_peer(a)
         payload={'nested':{'value':1}}
-        message=sender.send_message(MeshMessageKind.CHAT,payload=payload)
+        message=sender.send_message(MeshMessageKind.TASK_PROPOSAL,payload=payload)
         payload['nested']['value']=2
         self.assertEqual(message.payload['nested']['value'],1)
         self.assertTrue(receiver.receive_message(message));self.assertFalse(receiver.receive_message(message))
