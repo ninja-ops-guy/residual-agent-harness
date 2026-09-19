@@ -437,7 +437,7 @@ class TestSandbox:
         escaped = str(data.resolve()) + "/../secret"
         source = f"def go():\n    return open({escaped!r}).read()\n"
         manifest = self.manifest(filesystem_allowlist=(str(data.resolve()),))
-        with pytest.raises(ContractError, match="containment"):
+        with pytest.raises(ContractError, match="sandboxed module failed"):
             run_sandboxed(manifest, source, "go")
 
     def test_write_denied(self, tmp_path):
@@ -446,7 +446,7 @@ class TestSandbox:
         target = data / "x"
         source = f"def go():\n    open({str(target.resolve())!r}, 'w')\n"
         manifest = self.manifest(filesystem_allowlist=(str(data.resolve()),))
-        with pytest.raises(ContractError, match="containment"):
+        with pytest.raises(ContractError, match="sandboxed module failed"):
             run_sandboxed(manifest, source, "go")
 
     def test_host_callback_filesystem_emulation_is_rejected(self, tmp_path):
