@@ -2,7 +2,7 @@
 
 This roadmap describes planned work and current evidence boundaries. It is not a release-qualification certificate. Exact source, workflow runs, retained experiment artifacts, and protected governance remain authoritative.
 
-Current accepted repository baseline for this status is **`main@3cff6bcd52e352a6ba048c958949a7bbb2a039eb`**.
+Current accepted repository baseline for this status is **`main@28cfc6d40233e7349cc73350143bd3e2b55dcc59`**.
 
 ## Current capability boundary
 
@@ -10,9 +10,10 @@ Current accepted repository baseline for this status is **`main@3cff6bcd52e352a6
 | --- | --- | --- |
 | Core harness | Implemented | Verifier-owned acceptance, bounded obligations, receipts and evidence handling exist; broad model reliability is not implied |
 | Command Station | Implemented and actively hardened | #218 repair context and #233 actionable failure/repeated-patch diagnostics are accepted; general repair reliability remains unproven |
-| Mission Control / WebVM | Implemented with bounded fallback/recovery | #248 provider-load lifecycle behavior is accepted; retained production Pages acceptance on parent de7 remains FAIL; current-main Pages qualification is UNKNOWN/BLOCKED because #267 found the push-trigger bypass; #260 remains unaccepted |
+| Mission Control / WebVM | Implemented with bounded fallback/recovery | #248 provider-load lifecycle behavior is accepted; retained production Pages acceptance on historical de7 remains FAIL; exact-current-main Pages qualification is UNKNOWN/BLOCKED because #267's trigger repair is still unmerged; #260 requires current-base refresh |
 | Factory M2/M3/M4 | Implemented | Qualification remains exact-revision/environment bound; implementation is not every-host qualification |
 | Qualification pipeline | **BLOCKED operationally** | #305 retained 1,267 queued Actions runs and 15 in progress; required exact-head gates are not PASS until they actually execute and complete; #307 is an unmerged fan-out/concurrency repair candidate |
+| Maintainer approval publication | Repaired on main | #275 merged and closed #268; exact-head human attestation is still required and the protected status is now published to the exact PR head |
 | M6 repair loop | Mixed research evidence | #203/#204/#215/#217 FAIL; #220 bounded PASS |
 | M6.2 first contract shipment | Research PASS, production pending | #231 self-shipped the first `ImprovementSpec` implementation; #243 is derived from that source plus maintainer hardening and remains open/unaccepted |
 | M6.2 evidence-sufficiency fork | Bounded research PASS with defects surfaced | #232 exercised MeasurementGap vs grounded hypothesis behavior and exposed deterministic rejection requirements |
@@ -32,13 +33,14 @@ The current accepted sequence includes:
 - #201 guided frontend and inline Puter setup;
 - #233 actionable repair failure-tail retention and repeated failed-patch detection;
 - #248 provider-load generation/lifecycle qualification on the credentialless embedded provider path;
-- **#197** advisory PR-review workflow/configuration hardening only.
+- #197 advisory PR-review workflow/configuration hardening only;
+- **#275** exact-PR-head maintainer approval status publication, closing #268 without weakening exact-head attestation or any protected Factory/M4/verifier/evidence authority.
 
-Current `main@3cff6bcd...` has six successful ordinary push workflows in their named scopes, but issue **#267** establishes that it has **no authoritative production Pages attempt** because the workflow's push path filter skipped #197. The latest retained production Pages acceptance remains first run `35363306307` on parent `main@de7d9774...` and is **FAIL**. Current-main production Pages qualification is therefore **UNKNOWN / BLOCKED by missing required attempt**. Open **#276** now carries the protected trigger repair at exact head `813b6123c69640cd2584f99ba7192d3c77f68345`. Earlier activation heads `a134a7ce...` and `d5c647ff...` remain retained **FAIL** history for stale/comment-sensitive publication-contract tests. On current head `813b612...`, the required technical workflows are **PASS**, including Deploy GitHub Pages run `35389534189`, Browser VM Demo CI, Controller/provider contracts, Command Station, Control Plane, Factory ownership, measured-evaluation binding, and clean install. The advisory PR Agent run is **CANCELLED**, not PASS, and maintainer approval remains **FAIL / pending matching exact-head attestation**. #276 is unmerged, so the repair is not active on main and its PR-head Pages PASS is not production Pages proof.
+Current `main@28cfc6d...` still has **no authoritative production Pages attempt**. Issue **#267** remains open because the accepted Pages workflow still uses a push path filter; #275 advanced main through governance paths outside that filter. The latest retained production Pages acceptance remains first run `35363306307` on historical `main@de7d9774...` and is **FAIL**. Exact-current-main production Pages qualification is therefore **UNKNOWN / BLOCKED by missing required attempt**. Open **#276** has refreshed onto current main at exact head `cf850bd5d120434e05490802bf3d639a41aa2e14`. Earlier activation heads `a134a7ce...` and `d5c647ff...` remain retained **FAIL** history, and the later `813b612...` technical PASS is now historical because the base advanced. On current head `cf850bd...`, Deploy GitHub Pages, Browser VM Demo CI, Controller/provider contracts, Command Station, Control Plane, Factory ownership, measured-evaluation binding, clean install, and maintainer approval are **QUEUED**; the advisory PR Agent run is **CANCELLED**. #276 is unmerged, so the repair is not active on main and no queued/missing result is treated as PASS.
 
-PR #253 is closed unmerged. Open **#260** is rebuilt directly on current main and has applicable exact-head technical workflows **PASS**, including Browser VM Demo CI and Deploy GitHub Pages. It remains **HOLD / unaccepted** because issue **#268** shows maintainer approval comments do not reliably publish the required protected status on the exact PR head. Open **#275** now carries the reviewed status-publishing repair at current head `328c3b784b7561e5b39260058ab54c38bf64c66f`. Its earlier `87afd4d...` head remains historical after advisory review found malformed GitHub-response normalization that required another fix. On current head `328c3b7...`, measured-evaluation binding, Factory ownership, Control Plane, Controller/provider contracts, clean install, Command Station, and the advisory PR Agent are **PASS**. A matching exact-head human attestation is now present, but maintainer-approval run `35389474375` attempt 2 is **QUEUED**, so protected approval is **BLOCKED / not yet PASS**. #275 is unmerged, so #268 remains unresolved on main. If #260 is eventually accepted, the resulting merged SHA still requires its own first published Pages acceptance. PR-head proof is not production proof.
+PR #253 is closed unmerged. Open **#260** retains technical exact-head PASS evidence from when it was rebuilt directly on former `main@3cff6bcd...`, including Browser VM Demo CI and Deploy GitHub Pages. Since #275 advanced main and repaired the maintainer-status publication defect, #260's previous base/head evidence is now historical for acceptance purposes. It requires current-main refresh and fresh exact-head qualification before merge consideration. If #260 is eventually accepted, the resulting merged SHA still requires its own first published Pages acceptance. PR-head proof is not production proof.
 
-Issue **#305** adds a separate infrastructure blocker: at `2026-09-18T21:44Z`, the repository retained **1,267 queued Actions runs and 15 in progress**. That backlog is materially delaying release-critical exact-head qualification. Open **#307** is a candidate repair that removes duplicate feature-branch push fan-out for general qualification workflows while preserving required production/first-attempt evidence. #307 is unmerged; queued or missing gates remain **BLOCKED/UNKNOWN**, never PASS.
+Issue **#305** remains a separate infrastructure blocker: at `2026-09-18T21:44Z`, the repository retained **1,267 queued Actions runs and 15 in progress**. That backlog is materially delaying release-critical exact-head qualification. Open **#307** is a candidate repair that removes duplicate feature-branch push fan-out for general qualification workflows while preserving required production/first-attempt evidence. #307 is unmerged; queued or missing gates remain **BLOCKED/UNKNOWN**, never PASS.
 
 ## M6.2 roadmap issue #222
 
@@ -65,9 +67,9 @@ Production PR **#243** imports the generated implementation but also contains ma
 
 Current #243 status:
 
-- applicable technical PR-head workflows: **PASS**;
+- historical applicable technical PR-head workflows: **PASS** for their exact evaluated base/head;
 - merge/production status: **open, unaccepted**;
-- exact-head acceptance remains subject to the repository-level maintainer-status governance in #268 until that defect is repaired.
+- #275 has repaired exact-head maintainer-status publication on main, but #243 must refresh/requalify against the current baseline before acceptance.
 
 Until #243 is accepted, the production contract remains **UNKNOWN / unaccepted**.
 
@@ -137,29 +139,30 @@ These lines may inform later architecture, but no PASS/production claim is inher
 ## Current build order
 
 1. **Drain qualification infrastructure without weakening evidence:** resolve #305. Review #307 as an infrastructure repair candidate, but preserve non-cancelling production Pages/required first-attempt evidence and exact-head governance. Queued/missing gates remain BLOCKED/UNKNOWN.
-2. **Close deliverable 1 correctly:** review and qualify #243 under the repaired exact-head maintainer-status path. Preserve the distinction between #231-generated research source and the human-hardened production candidate.
-3. **Preserve the #257 admission boundary:** treat 007J as one bounded PASS, not a general discovery claim. Retain its proposal, snapshot, review, receipt, model/provider identity, and artifact as a positive regression fixture.
-4. **Finish Metric Registry acceptance, not just implementation:** review #266/#270 as trust-boundary changes, preserve the #274 negative controls, and keep StationReceipt v2/schema authority unchanged. Do not resume M6-008 merely because the open implementation is technically green.
-5. **Minimize model transcription surfaces:** carry immutable provenance and already-verified Scientist context through host-owned envelopes. #273/#277 show that asking models to retype identity or verified observations creates avoidable fail-closed errors. Use #286 to test the narrower Planner contract prospectively.
-6. **Evidence contracts:** make `EvidenceSnapshot` and `MeasurementGap` deterministic production contracts with canonical identity, explicit measured-vs-missing semantics, provenance, defensive serialization, and registry-backed metric identity.
-7. **Evidence-use semantics:** after a metric is resolved, require the Scientist to incorporate the exact value into the next proposal rather than requesting it again. Repeated resolved requests should terminate/stagnate deterministically.
-8. **Scientist boundary:** keep the Scientist analysis-only — no Git/write/integration/promotion authority and no ability to redefine protected invariants.
-9. **HypothesisVerifier:** encode #232, #250–#255, #259/#262/#263, #264, and the registry/transcription failure classes as explicit fail-closed or UNKNOWN cases. A MeasurementGap must name a genuinely absent required measurement; an available bad value is not a missing measurement; causal/acceptance claims must remain falsifiable and evidence-grounded; semantically ambiguous metric identity must remain UNKNOWN.
-10. **Experiment ledger:** retain hypothesis/proposal identity, evidence identity, metric-registry revision, code/revision identity, model/provider identity, checks, review, receipts, outcomes, apparatus failures, and negative/UNKNOWN cells.
-11. **Champion/challenger:** compare accepted candidate changes against an exact retained baseline with frozen metrics and reject regressions in protected invariants.
-12. **Repeat autonomous discovery:** require repeated retained verifier-accepted proposals and complete improvement cycles before making reliability claims. One formal-admission PASS is insufficient for a general claim.
-13. **Repair independent governance defects:** finish qualification/acceptance of #275/#276 without weakening exact-head attestation or production-attempt requirements; separately qualify the #207/#208/#212 accounting/release-ordering repair path. Draft #288 is a candidate for the budget-admission defect but is not accepted evidence on main.
-14. **Confirmatory evaluation:** freeze R0–R5 and planned degradation/routing protocols before paper-facing outcome collection.
+2. **Land the production Pages trigger repair correctly:** qualify refreshed #276 exact head `cf850bd...` without reusing the historical `813b612...` PASS, require explicit exact-head approval, then require the resulting merged `main` SHA's first production Pages attempt. Do not treat PR-head Pages as production proof.
+3. **Refresh dependent production candidates:** rebuild/requalify #260 and #243 on current main now that #275 is accepted. Historical technical PASS remains retained but does not qualify a moved base.
+4. **Preserve the #257 admission boundary:** treat 007J as one bounded PASS, not a general discovery claim. Retain its proposal, snapshot, review, receipt, model/provider identity, and artifact as a positive regression fixture.
+5. **Finish Metric Registry acceptance, not just implementation:** review #266/#270 as trust-boundary changes, preserve the #274 negative controls, and keep StationReceipt v2/schema authority unchanged. Do not resume M6-008 merely because the open implementation is technically green.
+6. **Minimize model transcription surfaces:** carry immutable provenance and already-verified Scientist context through host-owned envelopes. #273/#277 show that asking models to retype identity or verified observations creates avoidable fail-closed errors. Use #286 to test the narrower Planner contract prospectively.
+7. **Evidence contracts:** make `EvidenceSnapshot` and `MeasurementGap` deterministic production contracts with canonical identity, explicit measured-vs-missing semantics, provenance, defensive serialization, and registry-backed metric identity.
+8. **Evidence-use semantics:** after a metric is resolved, require the Scientist to incorporate the exact value into the next proposal rather than requesting it again. Repeated resolved requests should terminate/stagnate deterministically.
+9. **Scientist boundary:** keep the Scientist analysis-only — no Git/write/integration/promotion authority and no ability to redefine protected invariants.
+10. **HypothesisVerifier:** encode #232, #250–#255, #259/#262/#263, #264, and the registry/transcription failure classes as explicit fail-closed or UNKNOWN cases. A MeasurementGap must name a genuinely absent required measurement; an available bad value is not a missing measurement; causal/acceptance claims must remain falsifiable and evidence-grounded; semantically ambiguous metric identity must remain UNKNOWN.
+11. **Experiment ledger:** retain hypothesis/proposal identity, evidence identity, metric-registry revision, code/revision identity, model/provider identity, checks, review, receipts, outcomes, apparatus failures, and negative/UNKNOWN cells.
+12. **Champion/challenger:** compare accepted candidate changes against an exact retained baseline with frozen metrics and reject regressions in protected invariants.
+13. **Repeat autonomous discovery:** require repeated retained verifier-accepted proposals and complete improvement cycles before making reliability claims. One formal-admission PASS is insufficient for a general claim.
+14. **Repair independent governance defects:** #275/#268 is resolved; separately finish #276 and qualify the #207/#208/#212 accounting/release-ordering repair path. Draft #288 is a candidate for the budget-admission defect but is not accepted evidence on main.
+15. **Confirmatory evaluation:** freeze R0–R5 and planned degradation/routing protocols before paper-facing outcome collection.
 
 ## Parallel qualification work
 
 The M6.2 roadmap does not replace other blockers:
 
 - **#305/#307:** release-critical exact-head qualification is operationally **BLOCKED** by Actions queue saturation. #307 is an unmerged fan-out/concurrency repair candidate; it must not cancel required production first-attempt evidence or weaken protected gates;
-- **#267/#276:** current `main@3cff6bcd...` remains **UNKNOWN / BLOCKED** because its authoritative production Pages attempt is missing. #276's current exact head `813b612...` has required PR-head technical/Pages qualification **PASS**; the advisory PR Agent run is **CANCELLED** and maintainer approval remains **FAIL / pending matching exact-head attestation**. The repair is still unmerged, and after acceptance the resulting new `main` SHA must receive its own first authoritative production Pages attempt before production qualification can become PASS;
-- **#268/#275:** #275 current exact head `328c3b7...` has technical/advisory qualification **PASS** and a matching human attestation, but maintainer-approval run `35389474375` attempt 2 is **QUEUED**. Protected approval is therefore **BLOCKED / not yet PASS**. Until #275 is accepted and merged, #268 remains unresolved on main;
+- **#267/#276:** current `main@28cfc6d...` remains **UNKNOWN / BLOCKED** because its authoritative production Pages attempt is missing. #276 refreshed to exact head `cf850bd...`; the new PR-head technical/Pages/approval workflows are **QUEUED**, while the advisory PR Agent is **CANCELLED**. The earlier `813b612...` PASS is historical after the base moved. The repair is still unmerged, and after acceptance the resulting new `main` SHA must receive its own first authoritative production Pages attempt before production qualification can become PASS;
+- **#268/#275:** **resolved on main**. #275 merged as `28cfc6d...`, issue #268 is closed, explicit exact-head human attestation remains required, and the protected status is published to the exact PR head. This repair does not auto-approve dependent PRs or let them reuse stale-base evidence;
 - **#152 Qualification v1:** branch head `f90d702...` includes the deliberate #303 protected ownership-baseline advance and M4 prerequisite run `35397918743` is **PASS**, but the broader exact-head qualification/acceptance set remains incomplete/unaccepted and is affected by queue saturation. No branch PASS broadens current-main production claims;
-- **#260:** keep HOLD until exact-head governance is valid; if eventually accepted, qualify the resulting merged SHA with its own first production Pages acceptance;
+- **#260:** historical technical PASS is retained on the former base, but current-main refresh/requalification is now required; if eventually accepted, qualify the resulting merged SHA with its own first production Pages acceptance;
 - retain a fresh exact-deployed-revision real-account Puter candidate→verifier→receipt success or keep paid/live provider success UNKNOWN;
 - physically validate the #186 mobile fallback without claiming heavyweight-WebVM iPhone reliability;
 - complete true blank-environment, recovery/host-loss, and selected elapsed-soak qualification;
