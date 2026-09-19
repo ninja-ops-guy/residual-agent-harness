@@ -1,0 +1,11 @@
+{
+  "schema_version": "residual.agent-library-template.v1",
+  "name": "RESIDUAL Engineering Agents",
+  "description": "Department-scoped Copilot Studio engineering agents backed by RESIDUAL evidence and execution controls.",
+  "publish_status": "Inactive",
+  "template_type": "Custom agent template for Copilot Studio",
+  "solution_unique_name": "ResidualEngineeringAgents",
+  "template_file": "ResidualEngineeringAgents_managed.zip",
+  "setup_guide": "deploy/copilot-studio/README.md",
+  "activation_gate": "Activate in Agent Library only after managed-solution import, connection-reference setup, exact-head readiness bundle verification, and hybrid-Entra acceptance pass."
+}
