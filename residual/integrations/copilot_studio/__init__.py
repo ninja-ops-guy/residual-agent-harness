@@ -19,6 +19,7 @@ from .store import (
     MissionStore,
     SQLiteMissionStore,
 )
+from .http import CopilotHTTPServer, FixedWindowRateLimiter, create_server, make_handler
 from .gateway import (
     APIResponse,
     CopilotAPI,
@@ -34,9 +35,11 @@ __all__ = [
     "CopilotAPI",
     "CopilotAccessError",
     "CopilotIdentityVerifier",
+    "CopilotHTTPServer",
     "CopilotMissionGateway",
     "CopilotPrincipal",
     "DepartmentProfile",
+    "FixedWindowRateLimiter",
     "InMemoryMissionBackend",
     "InMemoryMissionStore",
     "MissionBinding",
@@ -45,6 +48,8 @@ __all__ = [
     "MissionStore",
     "MissionTemplate",
     "SQLiteMissionStore",
+    "create_server",
+    "make_handler",
     "firmware_profile",
     "firmware_templates",
 ]
