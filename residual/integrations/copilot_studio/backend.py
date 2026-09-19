@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
-from ...core import ContractError, canonical, identifier
+from ...core import ContractError, canonical, identifier, strict_json
 from ...crypto.provider import CryptoProvider
 from ...factory.models import ExecutionPlan
 from .gateway import MissionBinding, MissionRequest
@@ -68,7 +68,8 @@ class EncryptedMissionQueueBackend:
         self.crypto = crypto
         self._clock = clock
         self._lock = threading.RLock()
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        self._protect_parent()
         self._protect_file()
         with self._connect() as db:
             db.execute("PRAGMA journal_mode=WAL")
@@ -105,6 +106,22 @@ class EncryptedMissionQueueBackend:
                 """
             )
 
+    def _protect_parent(self) -> None:
+        if os.name != "posix":
+            return
+        parent = self.path.parent
+        if parent.resolve(strict=False) != parent:
+            raise ContractError("mission queue directory must not traverse symlinks")
+        info = parent.stat()
+        if (
+            not stat.S_ISDIR(info.st_mode)
+            or info.st_uid != os.geteuid()
+            or info.st_mode & 0o077
+        ):
+            raise ContractError(
+                "mission queue directory must be private and owned by the service"
+            )
+
     def _protect_file(self) -> None:
         if os.name != "posix":
             return
@@ -130,6 +147,7 @@ class EncryptedMissionQueueBackend:
     def _connect(self):
         db = sqlite3.connect(self.path, timeout=5.0, isolation_level=None)
         db.row_factory = sqlite3.Row
+        db.execute("PRAGMA synchronous=FULL")
         db.execute("PRAGMA foreign_keys=ON")
         return db
 
@@ -145,7 +163,7 @@ class EncryptedMissionQueueBackend:
     def _decrypt(self, mission_id: str, kind: str, blob: bytes) -> Any:
         try:
             plain = self.crypto.decrypt(blob, aad=self._aad(mission_id, kind))
-            return json.loads(plain.decode("utf-8"))
+            return strict_json(plain.decode("utf-8"))
         except ContractError:
             raise
         except Exception as exc:
@@ -345,7 +363,9 @@ class EncryptedMissionQueueBackend:
             payload = self._decrypt(
                 mission_id, f"evidence:{row['sequence']}", row["encrypted_payload"]
             )
-            result.append({"kind": row["kind"], **payload})
+            if not isinstance(payload, dict):
+                raise ContractError("mission evidence payload must be an object")
+            result.append({**payload, "kind": row["kind"]})
         return tuple(result)
 
     def cancel(self, mission_id: str) -> dict[str, Any]:
@@ -416,7 +436,7 @@ class EncryptedMissionQueueBackend:
                 lease_id = secrets.token_hex(16)
                 generation = int(row["lease_generation"]) + 1
                 expires = now + float(lease_seconds)
-                db.execute(
+                cursor = db.execute(
                     """
                     UPDATE missions
                     SET state='running', lease_id=?, lease_owner=?,
@@ -428,7 +448,7 @@ class EncryptedMissionQueueBackend:
                         row["mission_id"],
                     ),
                 )
-                if db.total_changes != 1:
+                if cursor.rowcount != 1:
                     raise ContractError("mission claim race")
                 self._append_evidence(
                     db,
@@ -575,8 +595,15 @@ class EncryptedMissionQueueBackend:
     ) -> dict[str, Any]:
         if state not in _TERMINAL:
             raise ContractError("invalid terminal mission state")
-        if not isinstance(evidence, tuple) or any(not isinstance(x, dict) for x in evidence):
-            raise ContractError("mission evidence must be a tuple of objects")
+        if (
+            not isinstance(evidence, tuple)
+            or len(evidence) > 64
+            or any(not isinstance(x, dict) for x in evidence)
+        ):
+            raise ContractError("mission evidence must be at most 64 objects")
+        for item in evidence:
+            if len(canonical(item).encode("utf-8")) > 64 * 1024:
+                raise ContractError("mission evidence item exceeds 64 KB")
         now = float(self._clock())
         with self._lock, self._connect() as db:
             db.execute("BEGIN IMMEDIATE")
