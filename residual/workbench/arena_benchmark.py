@@ -198,7 +198,9 @@ def _read_traces(path: Path):
 
 
 def _aggregate(rows):
-    successes = sum(row["success"] for row in rows)
+    successes = sum(row["success"] is True for row in rows)
+    evaluated = sum(row["success"] is not None for row in rows)
+    unknown = len(rows) - evaluated
     tool_calls = sum(row["signals"].tool_calls for row in rows)
     hallucinations = sum(row["signals"].tool_hallucinations for row in rows)
     corrections = sum(row["signals"].corrections for row in rows)
@@ -216,7 +218,9 @@ def _aggregate(rows):
     return {
         "runs": len(rows),
         "successful": successes,
-        "success_rate": successes / len(rows),
+        "unknown": unknown,
+        "scheduled_success_rate": successes / len(rows),
+        "evaluated_success_rate": successes / evaluated if evaluated else None,
         "confirmed_success_rate": (
             sum(row["signals"].confirmed_success is True for row in rows)
             / sum(row["signals"].confirmed_success is not None for row in rows)
