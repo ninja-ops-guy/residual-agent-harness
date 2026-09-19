@@ -4,52 +4,21 @@ Third-party modules MUST run in isolated containers with: no network
 access to the host, filesystem access limited to explicit allowlists,
 non-root execution, and resource constraints. :class:`SandboxPolicy`
 models the container policy; :func:`validate_manifest` enforces it;
-:func:`run_sandboxed` executes a module callable under a restricted
-namespace with no network builtins and an allowlisted ``open``.
+:func:`run_sandboxed` executes third-party Python only behind a
+kernel-enforced sandbox boundary and fails closed when that boundary is
+unavailable.
 """
 from __future__ import annotations
 
-import io
+import json
+import os
 import posixpath
+import sys
+from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
 from residual.core import ContractError, identifier
-
-# Network-capable stdlib modules a sandboxed module may not touch.
-DENIED_NETWORK_MODULES = frozenset(
-    {"socket", "urllib", "http", "ftplib", "smtplib", "ssl", "requests"}
-)
-
-# Restricted builtins available to sandboxed module code.
-_SAFE_BUILTINS = {
-    "abs": abs,
-    "all": all,
-    "any": any,
-    "bool": bool,
-    "dict": dict,
-    "enumerate": enumerate,
-    "filter": filter,
-    "float": float,
-    "int": int,
-    "isinstance": isinstance,
-    "len": len,
-    "list": list,
-    "map": map,
-    "max": max,
-    "min": min,
-    "print": print,
-    "range": range,
-    "repr": repr,
-    "round": round,
-    "set": set,
-    "sorted": sorted,
-    "str": str,
-    "sum": sum,
-    "tuple": tuple,
-    "zip": zip,
-}
-
 
 def _check_allowlist_path(path: str) -> None:
     if not isinstance(path, str) or not path.startswith("/"):
@@ -129,48 +98,166 @@ def validate_manifest(manifest: ModuleManifest) -> None:
         raise ContractError("ENT5-R7: containers MUST have no network access to the host")
 
 
-def _sandbox_builtins(
-    policy: SandboxPolicy,
+_RESULT_PREFIX = "RESIDUAL_SANDBOX_RESULT:"
+_MAX_RESULT_BYTES = 1 << 20
+
+# This wrapper is executed only inside a kernel-isolated sandbox selected by
+# residual.sandbox. Keeping arbitrary module source out of the parent process
+# removes the previous Python-object-model escape from the host trust boundary.
+_ISOLATED_RUNNER = r"""
+import contextlib
+import io
+import json
+import sys
+
+PREFIX = "RESIDUAL_SANDBOX_RESULT:"
+capture = io.StringIO()
+try:
+    envelope = json.loads(sys.stdin.read())
+    if (
+        not isinstance(envelope, dict)
+        or set(envelope) != {"source", "function", "args", "kwargs"}
+        or not isinstance(envelope["source"], str)
+        or not isinstance(envelope["function"], str)
+        or not isinstance(envelope["args"], list)
+        or not isinstance(envelope["kwargs"], dict)
+    ):
+        raise ValueError("invalid envelope")
+    namespace = {"__name__": "__residual_sandboxed_module__"}
+    with contextlib.redirect_stdout(capture), contextlib.redirect_stderr(capture):
+        # Deliberately dynamic: this interpreter is already inside a kernel
+        # mount/network/PID/resource sandbox. The host process never executes
+        # untrusted Python source.
+        exec(compile(envelope["source"], "<residual-supplychain-module>", "exec"),
+             namespace, namespace)
+        function = namespace.get(envelope["function"])
+        if not callable(function):
+            raise ValueError("entrypoint missing")
+        value = function(*envelope["args"], **envelope["kwargs"])
+    payload = json.dumps({"ok": True, "value": value},
+                         separators=(",", ":"), allow_nan=False)
+except BaseException:
+    payload = json.dumps({"ok": False, "error": "sandboxed_module_failed"},
+                         separators=(",", ":"))
+sys.__stdout__.write(PREFIX + payload + "\n")
+"""
+
+
+def _kernel_execute(
+    manifest: ModuleManifest,
+    source: str,
+    function: str,
+    args: tuple[Any, ...],
+    kwargs: dict[str, Any],
+    *,
     read_file_bytes: Callable[[str], bytes] | None,
-) -> dict[str, Any]:
-    """Build the restricted builtins namespace. Implements ENT5-R7."""
+) -> Any:
+    """Execute third-party Python only behind kernel-enforced containment."""
+    validate_manifest(manifest)
+    if sys.platform != "linux":
+        raise ContractError("ENT5-R7: kernel sandbox execution requires Linux")
+    if os.geteuid() == 0:
+        raise ContractError("ENT5-R7: refuse third-party execution from a root parent")
+    if read_file_bytes is not None:
+        raise ContractError(
+            "ENT5-R7: host callback filesystem emulation is disabled; "
+            "materialize reviewed files and allowlist their real paths"
+        )
+    if not isinstance(source, str) or len(source.encode("utf-8")) > 512_000:
+        raise ContractError("ENT5-R7: module source exceeds 512 KB")
+    if not isinstance(function, str) or not function:
+        raise ContractError("ENT5-R7: sandbox entrypoint required")
+    try:
+        envelope = json.dumps(
+            {"source": source, "function": function, "args": list(args), "kwargs": kwargs},
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+        )
+    except (TypeError, ValueError, OverflowError):
+        raise ContractError("ENT5-R7: sandbox arguments must be JSON-serializable") from None
+    if len(envelope.encode("utf-8")) > 1_000_000:
+        raise ContractError("ENT5-R7: sandbox request exceeds 1 MB")
 
-    def sandbox_open(path: str, mode: str = "r", *o_args: Any, **o_kwargs: Any) -> io.IOBase:
-        if ".." in str(path).split("/"):
-            raise ContractError("ENT5-R7: path escapes sandbox allowlist")
-        if not policy.path_allowed(str(path)):
-            raise ContractError(f"ENT5-R7: filesystem access denied for {path!r}")
-        if read_file_bytes is None:
-            raise ContractError("ENT5-R7: no sandbox filesystem backend configured")
-        if any(flag in mode for flag in "wax+"):
-            raise ContractError("ENT5-R7: sandbox filesystem is read-only")
-        data = read_file_bytes(str(path))
-        return io.BytesIO(data) if "b" in mode else io.StringIO(data.decode("utf-8"))
+    from residual.sandbox import (
+        FsAllowlist,
+        NetworkPolicy,
+        SandboxLimits,
+        SandboxSpec,
+        select_backend,
+    )
 
-    def sandbox_import(name: str, *i_args: Any, **i_kwargs: Any) -> Any:
-        top = str(name).split(".")[0]
-        if top in DENIED_NETWORK_MODULES:
-            raise ContractError(f"ENT5-R7: network module {top!r} denied in sandbox")
-        raise ContractError(f"ENT5-R7: import {name!r} not permitted in sandbox")
+    resolved: list[str] = []
+    for raw in manifest.policy.filesystem_allowlist:
+        path = Path(raw)
+        if not path.exists():
+            raise ContractError(f"ENT5-R7: allowlisted path does not exist: {raw!r}")
+        value = str(path.resolve())
+        if value != raw.rstrip("/") and value != raw:
+            raise ContractError(
+                f"ENT5-R7: allowlisted path must be canonical before execution: {raw!r}"
+            )
+        resolved.append(value)
 
-    builtins_ns = dict(_SAFE_BUILTINS)
-    builtins_ns["open"] = sandbox_open
-    builtins_ns["__import__"] = sandbox_import
-    return builtins_ns
+    spec = SandboxSpec(
+        name="supplychain",
+        limits=SandboxLimits(
+            cpu_seconds=manifest.policy.max_cpu_seconds,
+            memory_mb=manifest.policy.max_memory_mb,
+            max_pids=16,
+            timeout_seconds=manifest.policy.max_cpu_seconds + 5,
+            max_output_bytes=_MAX_RESULT_BYTES,
+        ),
+        fs=FsAllowlist(read=tuple(resolved)),
+        network=NetworkPolicy.DENY,
+        workdir="/",
+    )
+    backend = select_backend(require_kernel=True)
+    backend.start(spec)
+    try:
+        result = backend.exec(
+            [sys.executable, "-I", "-S", "-c", _ISOLATED_RUNNER],
+            stdin=envelope,
+        )
+    finally:
+        backend.stop()
+
+    if result.enforcement != "kernel":
+        raise ContractError("ENT5-R7: kernel isolation was not actually enforced")
+    if not result.ok:
+        raise ContractError(
+            "ENT5-R7: sandboxed module was stopped by the containment boundary"
+        )
+
+    encoded = result.stdout.encode("utf-8", "replace")
+    if len(encoded) > _MAX_RESULT_BYTES:
+        raise ContractError("ENT5-R7: sandbox result exceeds output budget")
+    payload = None
+    for line in reversed(result.stdout.splitlines()):
+        if line.startswith(_RESULT_PREFIX):
+            payload = line[len(_RESULT_PREFIX):]
+            break
+    if payload is None:
+        raise ContractError("ENT5-R7: sandbox returned no result frame")
+    try:
+        decoded = json.loads(payload)
+    except (json.JSONDecodeError, RecursionError):
+        raise ContractError("ENT5-R7: sandbox returned malformed result") from None
+    if not isinstance(decoded, dict) or decoded.get("ok") is not True or set(decoded) != {"ok", "value"}:
+        raise ContractError("ENT5-R7: sandboxed module failed")
+    return decoded["value"]
 
 
 def compile_sandboxed(manifest: ModuleManifest, source: str, function: str) -> Callable[..., Any]:
-    """Compile module source into a callable under restricted builtins. Implements ENT5-R7."""
+    """Prepare a callable whose executions occur only under kernel isolation. Implements ENT5-R7."""
     validate_manifest(manifest)
-    namespace: dict[str, Any] = {
-        "__builtins__": _sandbox_builtins(manifest.policy, None),
-        "__name__": f"sandbox.{manifest.name}",
-    }
-    exec(compile(source, f"<sandbox:{manifest.name}>", "exec"), namespace)
-    fn = namespace.get(function)
-    if not callable(fn):
-        raise ContractError(f"sandbox entrypoint {function!r} not defined")
-    return fn
+
+    def isolated_callable(*args: Any, **kwargs: Any) -> Any:
+        return _kernel_execute(
+            manifest, source, function, args, kwargs, read_file_bytes=None
+        )
+
+    return isolated_callable
 
 
 def run_sandboxed(
@@ -181,21 +268,14 @@ def run_sandboxed(
     read_file_bytes: Callable[[str], bytes] | None = None,
     **kwargs: Any,
 ) -> Any:
-    """Run a module's entrypoint under restricted builtins. Implements ENT5-R7.
+    """Run a third-party module only in a kernel-enforced sandbox. Implements ENT5-R7.
 
-    - Network access: denied (no socket/urllib/http builtins or imports).
-    - Filesystem: ``open`` is restricted to the manifest's allowlist;
-      access outside it raises ContractError.
-    - Non-root execution and resource limits are modeled by
-      :class:`SandboxPolicy` and enforced by :func:`validate_manifest`.
+    The former in-process dynamic execution path has been removed. Arbitrary
+    Python now executes in the strongest residual.sandbox backend with kernel
+    isolation required, network denied, a read-only real-path allowlist,
+    non-root parent enforcement, and bounded CPU/memory/PID/wall/output
+    resources. If those guarantees are unavailable the call fails closed.
     """
-    validate_manifest(manifest)
-    namespace: dict[str, Any] = {
-        "__builtins__": _sandbox_builtins(manifest.policy, read_file_bytes),
-        "__name__": f"sandbox.{manifest.name}",
-    }
-    exec(compile(source, f"<sandbox:{manifest.name}>", "exec"), namespace)
-    fn = namespace.get(function)
-    if not callable(fn):
-        raise ContractError(f"sandbox entrypoint {function!r} not defined")
-    return fn(*args, **kwargs)
+    return _kernel_execute(
+        manifest, source, function, args, kwargs, read_file_bytes=read_file_bytes
+    )
