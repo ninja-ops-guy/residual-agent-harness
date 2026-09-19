@@ -1,12 +1,22 @@
 # RESIDUAL current status
 
-_Current-state check: 2026-09-18 UTC against `main@4608afabf5de4c87d77aaf149dfc12538d364f43`._
+> **Live-state rule:** this document intentionally does not hard-code a `main` SHA as "current." `main` can advance independently of prose. Resolve the live revision from the repository's `main` ref and bind qualification claims to the exact SHA recorded by their evidence. The historical snapshot below is retained as dated evidence, not as a claim about today's head.
 
-This document is a human-readable status summary. Exact code at the named revision, exact-head workflow results, retained machine-readable evidence, explicit issues/PRs, and applicable maintainer/protected-byte governance are more authoritative than prose. Historical evidence remains bound to the revision and environment that produced it.
+## Live accepted-state pointer
 
-## Executive summary
+The authoritative current code is [`main`](https://github.com/ninja-ops-guy/residual-agent-harness/tree/main). For a release, review, or qualification decision, record the resolved full SHA first, then use only exact-head CI/evidence for that SHA. Do not infer current acceptance from an older prose snapshot.
 
-Current `main` is **`4608afabf5de4c87d77aaf149dfc12538d364f43`**.
+Recent accepted changes after the historical snapshot below include pre-dispatch budget admission authority (#288), CSP/anti-clickjacking hardening (#320), kernel sandbox/egress/XML hardening (#328), checkout credential hardening (#330), WebVM mission-evidence durability (#336), substantive PR-agent advisory gating (#337), and RuntimeJournal init-admission recovery (#338). Each claim remains scoped to its merged implementation and exact-head evidence.
+
+## Historical snapshot — 2026-09-18 UTC
+
+_The remainder of this document describes `main@4608afabf5de4c87d77aaf149dfc12538d364f43` unless a later revision is named explicitly._
+
+This is a retained human-readable snapshot. Exact code at the named revision, exact-head workflow results, retained machine-readable evidence, explicit issues/PRs, and applicable maintainer/protected-byte governance are more authoritative than prose. Historical evidence remains bound to the revision and environment that produced it.
+
+## Executive summary (historical snapshot)
+
+Snapshot revision: **`4608afabf5de4c87d77aaf149dfc12538d364f43`**.
 
 Meaningful accepted changes since `main@699e2869e294fe157b4bfd73a272057683a2f7e0`:
 
