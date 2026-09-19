@@ -9,7 +9,7 @@ from residual.integrations.copilot_studio.store import InMemoryMissionStore
 
 
 def _deployment():
-    ids=[f"00000000-0000-0000-0000-{i:012d}" for i in range(1,12)]
+    ids=[f"00000000-0000-0000-0000-{i:012d}" for i in range(1,16)]
     return EnterpriseCopilotDeployment("https://residual.example.com",*ids)
 
 
