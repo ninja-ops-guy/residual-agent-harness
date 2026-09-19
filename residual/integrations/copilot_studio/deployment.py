@@ -8,7 +8,7 @@ from typing import Mapping
 
 from ...core import ContractError, digest
 from .departments import DepartmentGroups, department_catalog
-from .entra import EntraDeploymentConfig
+from .entra import EntraDeploymentConfig, MicrosoftGraphGroupResolver
 
 _GUID=re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 
@@ -76,6 +76,19 @@ class EnterpriseCopilotDeployment:
     def entra(self):
         return EntraDeploymentConfig(
             self.tenant_id,self.api_client_id,frozenset({self.connector_client_app_id})
+        )
+
+    @property
+    def all_group_ids(self):
+        return frozenset({
+            self.firmware_group_id,self.mechanical_group_id,self.electromechanical_group_id,
+            self.automated_testing_group_id,self.qa_group_id,self.reviewers_group_id,
+            self.leads_group_id,self.auditors_group_id,
+        })
+
+    def graph_group_resolver(self,token_provider,**kwargs):
+        return MicrosoftGraphGroupResolver(
+            self.tenant_id,self.all_group_ids,token_provider,**kwargs,
         )
 
     def departments(self):
