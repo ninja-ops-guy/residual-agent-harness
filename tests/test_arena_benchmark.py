@@ -1,6 +1,6 @@
 import unittest
 
-from ai_providers import DEFAULT_REGISTRY, ProviderName
+from ai_providers import ChatRequest, DEFAULT_REGISTRY, Message, ProviderName, Role
 from ai_providers.adapters.arena_adapter import ArenaAdapter
 from residual.eval.arena import (
     AgentEvaluationTrace,
@@ -34,9 +34,9 @@ class ArenaIntegrationTests(unittest.TestCase):
         adapter = ArenaAdapter("secret", "http://127.0.0.1:1234")
         self.assertEqual(adapter.name, "arena")
         self.assertEqual(adapter._headers()["Authorization"], "Bearer secret")
-        body = adapter._build_body(__import__("ai_providers").ChatRequest(
+        body = adapter._build_body(ChatRequest(
             "example-model",
-            (__import__("ai_providers").Message(__import__("ai_providers").Role.USER, "hello"),),
+            (Message(Role.USER, "hello"),),
         ))
         self.assertIs(body["allow_fallbacks"], False)
         self.assertNotIn("fallbacks", body)
