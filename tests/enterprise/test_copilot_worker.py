@@ -386,3 +386,20 @@ def test_cloud_engine_cannot_receive_firmware_source_context(tmp_path):
     assert engine.tasks == []
     assert engine.contexts == []
     assert backend.status(mission_id)["state"] == "failed"
+
+
+def test_provider_chat_engine_is_rejected_even_if_mislabeled_local(tmp_path):
+    backend = _backend(tmp_path)
+    catalog, _ = _catalog(tmp_path)
+    _, mission_id = _submit_analysis(backend, request_id="provider-chat")
+
+    class ProviderChatCaptureEngine(CaptureEngine):
+        locality = "local"
+        capability_class = "provider_chat"
+
+    engine = ProviderChatCaptureEngine()
+    worker = FirmwareRepositoryAnalysisWorker(backend, catalog, _router(engine))
+    assert worker.run_once()["state"] == "failed"
+    assert engine.tasks == []
+    assert engine.contexts == []
+    assert backend.status(mission_id)["state"] == "failed"
