@@ -303,3 +303,36 @@ def test_oversized_engine_result_fails_closed(tmp_path):
     worker = FirmwareRepositoryAnalysisWorker(backend, catalog, _router(engine))
     assert worker.run_once()["state"] == "failed"
     assert backend.status(mission_id)["state"] == "failed"
+
+
+def test_result_after_lease_expiry_never_becomes_authoritative(tmp_path):
+    from tests.enterprise.test_copilot_backend import Clock
+
+    clock = Clock()
+    state = tmp_path / "lease-private-state"
+    state.mkdir(mode=0o700)
+    if os.name == "posix":
+        os.chmod(state, 0o700)
+    backend = EncryptedMissionQueueBackend(
+        state / "missions.db",
+        LocalDevCryptoProvider(signing_key=b"s" * 32, encryption_key=b"e" * 32),
+        clock=clock,
+    )
+    catalog, _ = _catalog(tmp_path)
+    _, mission_id = _submit_analysis(backend, request_id="analysis-lease-expiry")
+
+    class SlowEngine(CaptureEngine):
+        def execute(self, task, context):
+            clock.advance(61)
+            return super().execute(task, context)
+
+    worker = FirmwareRepositoryAnalysisWorker(
+        backend, catalog, _router(SlowEngine()), lease_seconds=60
+    )
+    with pytest.raises(ContractError, match="lease expired"):
+        worker.run_once()
+    assert backend.status(mission_id)["state"] == "running"
+    assert backend.sweep_expired() == (mission_id,)
+    assert backend.status(mission_id)["state"] == "lease_expired"
+    evidence = backend.evidence(mission_id)
+    assert not any(e.get("evidence_type") == "analysis_result" for e in evidence)
