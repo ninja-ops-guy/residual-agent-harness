@@ -22,7 +22,7 @@ function responseFor(body){
   if(system.includes('Implement the assigned software specification')){
     let packet={};
     try{ packet=JSON.parse(messages.find(m=>m.role==='user')?.content||'{}'); }catch{}
-    const id=packet?.task?.id||packet?.id;
+    const id=packet?.task_id||packet?.task?.id||packet?.id;
     if(id==='OPS-101') return JSON.stringify({files:{'station/health.py':"def status(services):\n    return 'ready' if services and all(services.values()) else 'degraded'\n"}});
     return JSON.stringify({files:{'marker.txt':'ready\n'}});
   }
@@ -69,23 +69,27 @@ async function api(page,pathName,body){
 }
 
 async function waitJob(page,jobId){
-  await page.waitForFunction(async jobId=>{
-    const b=await fetch('/api/bootstrap').then(r=>r.json());
-    const jobs=await fetch('/api/jobs',{headers:{'X-Station-Token':b.token}}).then(r=>r.json());
+  // waitForFunction awaits an async predicate once and treats its resolved value
+  // as final, so polling must live in the test, not inside the predicate.
+  const deadline=Date.now()+30000;
+  for(;;){
+    const jobs=await api(page,'/api/jobs');
     const job=jobs.jobs.find(x=>x.id===jobId);
-    return job&&['completed','failed','interrupted'].includes(job.state);
-  },jobId,{timeout:30000});
-  const jobs=await api(page,'/api/jobs');
-  return jobs.jobs.find(x=>x.id===jobId);
+    if(job&&['completed','failed','interrupted'].includes(job.state))return job;
+    if(Date.now()>=deadline)throw Error(`Timed out waiting 30s for job ${jobId} (last state: ${job?job.state:'missing'})`);
+    await new Promise(r=>setTimeout(r,250));
+  }
 }
 
 async function waitTask(page,pid,tid,state){
-  await page.waitForFunction(async ({pid,tid,state})=>{
-    const b=await fetch('/api/bootstrap').then(r=>r.json());
-    const value=await fetch('/api/projects/'+pid,{headers:{'X-Station-Token':b.token}}).then(r=>r.json());
+  const deadline=Date.now()+30000;
+  for(;;){
+    const value=await api(page,'/api/projects/'+pid);
     const task=value.project.tasks.find(x=>x.id===tid);
-    return task&&task.state===state;
-  },{pid,tid,state},{timeout:30000});
+    if(task&&task.state===state)return;
+    if(Date.now()>=deadline)throw Error(`Timed out waiting 30s for task ${tid} state ${state} (last state: ${task?task.state:'missing'})`);
+    await new Promise(r=>setTimeout(r,250));
+  }
 }
 
 async function main(){
@@ -111,7 +115,11 @@ async function main(){
     assert(chatJob&&chatJob.state==='completed'&&chatJob.result?.text==='Station online.');
     await page.reload();await page.locator('[data-view="diagnostics"]').click();
     await page.getByRole('heading',{name:'Follow the evidence.'}).waitFor();
-    await page.getByRole('cell',{name:'playground',exact:true}).waitFor();
+    // The Operations history cell renders the operation label in a <code>
+    // element alongside a timestamp, so the cell's accessible name is never
+    // exactly 'playground'. Pin the exact operation label inside the cell
+    // instead of matching the whole cell text.
+    await page.getByRole('cell').filter({has:page.locator('code').filter({hasText:/^playground$/})}).first().waitFor();
 
     // Q-UX-JOBS-002: generate a real planner job, then prove the completed draft survives reload.
     await page.locator('[data-view="overview"]').click();
@@ -152,17 +160,27 @@ async function main(){
     await waitTask(page,pid,'OPS-101','repair_required');
 
     await page.evaluate(pid=>localStorage.setItem('residual-project',pid),pid);
-    await page.goto(stationUrl+'/#board');await page.getByRole('heading',{name:'Mission board',exact:true}).waitFor();
-    const card=page.locator('.task-card').filter({hasText:'OPS-101'});await card.waitFor();await card.click();
-    await page.getByText('repair required',{exact:true}).waitFor();
+    // A hash-only goto is a same-document navigation and never reboots the app,
+    // so the newly saved project selection would not load. Reload explicitly.
+    await page.goto(stationUrl+'/#board');await page.reload();
+    await page.getByRole('heading',{name:'Mission board',exact:true}).waitFor();
+    const card=page.locator('.task-card[data-id="OPS-101"]');await card.waitFor();await card.click();
+    await page.locator('#dialog-body').getByText('repair required',{exact:true}).waitFor();
     await page.getByRole('button',{name:'▶ Run task',exact:true}).click();
     await waitTask(page,pid,'OPS-101','review_ready');
+    // The task dialog renders from the station UI's cached project state, which
+    // refreshes on a ~2.2s interval. Wait until the board card reflects the new
+    // state so the reopened dialog offers the action for that state.
+    await card.filter({hasText:'review ready'}).waitFor();
     await card.click();await page.getByRole('button',{name:'Review candidate',exact:true}).click();
     await waitTask(page,pid,'OPS-101','approved');
+    await card.filter({hasText:'approved'}).waitFor();
     await card.click();await page.getByRole('button',{name:'Integrate verified change',exact:true}).click();
     await waitTask(page,pid,'OPS-101','integrated');
-    await page.reload();await page.locator('.task-card').filter({hasText:'OPS-101'}).waitFor();
-    assert((await page.locator('.task-card').filter({hasText:'OPS-101'}).innerText()).includes('integrated'));
+    await page.reload();await page.locator('.task-card[data-id="OPS-101"]').waitFor();
+    // innerText reflects the badge's CSS uppercase transform; the exact state is
+    // already pinned by waitTask above, so the visible badge check is case-insensitive.
+    assert((await page.locator('.task-card[data-id="OPS-101"]').innerText()).toLowerCase().includes('integrated'));
 
     assert.deepEqual(errors,[]);
     const result={passed:true,checks:[
