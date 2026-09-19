@@ -189,6 +189,14 @@ class FirmwareRepositoryAnalysisWorker:
         result = self.policy.apply(result)
         result = self._validate_result(result)
 
+        # The engine call is the only potentially long operation in this
+        # read-only worker. Revalidate the lease before committing evidence so
+        # a result produced after lease expiry can never become authoritative.
+        self.backend.heartbeat(
+            work.binding.mission_id,
+            work.lease_id,
+            lease_seconds=self.lease_seconds,
+        )
         if self.backend.cancellation_requested(
             work.binding.mission_id, work.lease_id
         ):
