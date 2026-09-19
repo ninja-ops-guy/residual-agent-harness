@@ -7,6 +7,8 @@ binds evidence to the authenticated caller.
 """
 
 from .auth import CopilotIdentityVerifier, CopilotPrincipal
+from .readiness import release_eligible
+from .service import DepartmentCopilotService
 from .triage import FirmwareTestTriageWorker
 from .readiness import QualificationRecord, build_readiness_bundle, verify_readiness_bundle
 from .demo import DemoExpectation, HybridEntraDemoHarness
@@ -42,6 +44,8 @@ from .gateway import (
 )
 
 __all__ = [
+    "release_eligible",
+    "DepartmentCopilotService",
     "FirmwareTestTriageWorker",
     "verify_readiness_bundle",
     "build_readiness_bundle",
