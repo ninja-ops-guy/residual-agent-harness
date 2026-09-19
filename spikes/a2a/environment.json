@@ -1,0 +1,22 @@
+{
+  "spike_id": "SPIKE-A2A-000",
+  "spike_version": "1.0",
+  "a2a": {
+    "spec_version": "1.0.1",
+    "sdk_name": "a2a-sdk",
+    "sdk_version": "1.0.3",
+    "sdk_release": "v1.0.3",
+    "protocol_binding": "json-rpc"
+  },
+  "python": {
+    "requires": ">=3.11"
+  },
+  "authority": {
+    "production": "NONE",
+    "m4": "NONE"
+  },
+  "notes": [
+    "The spike deliberately pins the latest 1.0.x SDK rather than the newer 1.1.x line.",
+    "JSON-RPC is the first binding under test; HTTP+JSON and gRPC remain out of scope for the first semantic pass."
+  ]
+}
