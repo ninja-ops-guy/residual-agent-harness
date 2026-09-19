@@ -37,7 +37,8 @@ stage = os.environ["RESIDUAL_MODULE_STAGE"]
 eps = metadata.entry_points()
 selected = eps.select(group="residual.modules") if hasattr(eps, "select") else eps.get("residual.modules", ())
 selected = list(selected)
-assert len(selected) == 1, "package must expose exactly one residual.modules entry point"
+if len(selected) != 1:
+    raise RuntimeError("package must expose exactly one residual.modules entry point")
 print(json.dumps(validate_module(selected[0].load()(), source_root=stage), sort_keys=True))
 '''
         proc = subprocess.run(

@@ -1,7 +1,7 @@
 """SAML 2.0 authentication for Enterprise IAM.
 
 Implements ENT1-R1: protocol-level SAML 2.0 Web Browser SSO response
-parsing and validation with pure stdlib XML processing. Provider
+parsing and validation with hardened XML processing. Provider
 presets for Okta, Azure AD (Entra ID), Ping Identity, Auth0, and
 OneLogin share one code path — no custom configuration per provider.
 
@@ -18,6 +18,8 @@ access-denied observations (ENT1-R6).
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as DefusedET
+from defusedxml.common import DefusedXmlException
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
@@ -38,6 +40,7 @@ ET.register_namespace("saml", NS_ASSERTION)
 ET.register_namespace("samlp", NS_PROTOCOL)
 
 SIGNATURE_PLACEHOLDER = "__SIGNATURE__"
+MAX_SAML_XML_BYTES = 1_048_576
 
 #: Provider presets implementing ENT1-R1. Each preset only parameterizes
 #: the issuer pattern and default attribute mappings; the validation and
@@ -165,14 +168,21 @@ def parse_saml_response(
     """
     if not isinstance(xml_text, str) or not xml_text.strip():
         raise ContractError("saml response must be non-empty XML text")
+    if len(xml_text.encode("utf-8")) > MAX_SAML_XML_BYTES:
+        raise ContractError("SAML response exceeds 1 MiB")
     if not isinstance(settings, SAMLSettings):
         raise ContractError("settings must be SAMLSettings")
     if type(now) is not int:
         raise ContractError("now must be an integer")
     try:
-        root = ET.fromstring(xml_text)
-    except ET.ParseError as exc:
-        raise ContractError("malformed SAML response XML") from exc
+        root = DefusedET.fromstring(
+            xml_text,
+            forbid_dtd=True,
+            forbid_entities=True,
+            forbid_external=True,
+        )
+    except (ET.ParseError, DefusedXmlException) as exc:
+        raise ContractError("malformed or unsafe SAML response XML") from exc
     if root.tag != f"{{{NS_PROTOCOL}}}Response":
         raise ContractError("expected a samlp:Response root element")
 

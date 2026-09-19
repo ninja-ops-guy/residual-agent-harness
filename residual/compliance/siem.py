@@ -182,4 +182,5 @@ class Forwarder:
                 self._observe(event, action, timestamp)
 
 
-assert callable(canonical)
+if not callable(canonical):
+    raise RuntimeError("canonical encoder is unavailable")
