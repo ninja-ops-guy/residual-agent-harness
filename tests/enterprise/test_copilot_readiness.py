@@ -10,7 +10,7 @@ from tests.enterprise.test_copilot_studio import auth,make_api,make_token,payloa
 
 
 def _deployment():
-    vals=[f"00000000-0000-0000-0000-{i:012d}" for i in range(1,12)]
+    vals=[f"00000000-0000-0000-0000-{i:012d}" for i in range(1,16)]
     return EnterpriseCopilotDeployment(
         "https://residual.example.com",*vals
     )
