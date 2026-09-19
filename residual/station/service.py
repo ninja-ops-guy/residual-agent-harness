@@ -178,13 +178,18 @@ class Station:
                     self.store.transition(pid, task["id"], "blocked", fields={"findings": [str(e)]})
             return {"message": "Triage complete. Failing baseline acceptance checks are expected for unimplemented specs."}
 
-    def comms(self, pid, after=0, audiences=None, limit=100):
-        """Return bounded project chat messages without granting them task authority."""
+    def comms(self, pid, after=0, audiences=None, limit=100, thread_id=None):
+        """Return bounded project chat messages without granting them task authority.
+
+        Threads are scoped views over the retained event stream, not execution authority.
+        """
         self.store.project(pid)
         if type(after) is not int or after < 0:
             raise ContractError("Chat cursor must be a nonnegative integer")
         if type(limit) is not int or not 1 <= limit <= 500:
             raise ContractError("Chat limit must be between 1 and 500")
+        if thread_id is not None:
+            thread_id = bounded(thread_id, "Thread ID", 80)
         valid = {"all", "runners", "operator", "coordinator", "cloud"}
         allowed = set(audiences or valid)
         if not allowed or not allowed <= valid:
@@ -197,10 +202,15 @@ class Station:
             data = ev.get("data") or {}
             if data.get("audience", "all") not in allowed:
                 continue
+            message_thread = data.get("thread_id", "main")
+            if thread_id is not None and message_thread != thread_id:
+                continue
             messages.append({
                 "seq": ev["seq"], "timestamp": ev["timestamp"], "actor": ev["actor"],
                 "message": str(data.get("message", ""))[:2000],
                 "audience": data.get("audience", "all"), "kind": data.get("kind", "message"),
+                "thread_id": message_thread,
+                "reply_to": data.get("reply_to"), "supersedes": data.get("supersedes"),
             })
         return messages[-limit:]
 
