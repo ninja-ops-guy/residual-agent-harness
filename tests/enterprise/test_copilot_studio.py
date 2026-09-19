@@ -12,6 +12,7 @@ from residual.integrations.copilot_studio import (
     CopilotMissionGateway,
     InMemoryMissionBackend,
     MissionTemplate,
+    SQLiteMissionStore,
     firmware_profile,
     firmware_templates,
 )
@@ -64,7 +65,8 @@ def make_token(
     return jwt_encode(payload, KEYPAIR, alg="RS256", headers={"kid": KID})
 
 
-def make_api(*, expected_tenant="tenant-a", group_resolver=None, allowed_client_apps=frozenset()):
+def make_api(*, expected_tenant="tenant-a", group_resolver=None,
+             allowed_client_apps=frozenset(), store=None, backend=None):
     settings = OIDCSettings(issuer=ISSUER, client_id=AUDIENCE, clock_skew=0)
     oidc = OIDCClient(settings, {KID: KEYPAIR.public_key})
     verifier = CopilotIdentityVerifier(
@@ -73,12 +75,13 @@ def make_api(*, expected_tenant="tenant-a", group_resolver=None, allowed_client_
         group_resolver=group_resolver,
         allowed_client_apps=allowed_client_apps,
     )
-    backend = CaptureBackend()
+    backend = backend or CaptureBackend()
     gateway = CopilotMissionGateway(
         verifier,
         firmware_profile(),
         firmware_templates(),
         backend,
+        store=store,
     )
     return CopilotAPI(gateway), gateway, backend
 
@@ -361,3 +364,59 @@ def test_uuid_style_request_id_can_start_with_a_digit():
         body=payload(request_id="7d9b2a1e-6e3c-4d6a-8bb0-1cf24260fabe"),
     )
     assert response.status == 202
+
+
+def test_sqlite_store_preserves_ownership_and_idempotency_across_gateway_restart(tmp_path):
+    store = SQLiteMissionStore(tmp_path / "copilot-missions.db")
+    backend = CaptureBackend()
+
+    api1, _, _ = make_api(store=store, backend=backend)
+    first = submit(api1, body=payload(request_id="restart-1"))
+    assert first.status == 202
+    mission_id = first.body["mission_id"]
+
+    api2, _, _ = make_api(store=store, backend=backend)
+    replay = submit(api2, body=payload(request_id="restart-1"))
+    assert replay.status == 202
+    assert replay.body["mission_id"] == mission_id
+    assert len(backend.bindings) == 1
+
+    evidence = api2.handle(
+        "GET",
+        f"/v1/copilot/missions/{mission_id}/evidence",
+        auth(make_token()),
+        None,
+        now=NOW,
+    )
+    assert evidence.status == 200
+
+    conflict = submit(
+        api2,
+        body=payload(request_id="restart-1", objective="different after restart"),
+    )
+    assert conflict.status == 409
+
+
+def test_persisted_claim_recovers_if_backend_acknowledgement_was_lost(tmp_path):
+    class FlakyBackend(CaptureBackend):
+        def __init__(self):
+            super().__init__()
+            self.fail_once = True
+
+        def submit(self, binding, request, plan):
+            if self.fail_once:
+                self.fail_once = False
+                raise ContractError("simulated lost backend acknowledgement")
+            return super().submit(binding, request, plan)
+
+    store = SQLiteMissionStore(tmp_path / "copilot-recovery.db")
+    backend = FlakyBackend()
+    api, _, _ = make_api(store=store, backend=backend)
+
+    first = submit(api, body=payload(request_id="recover-1"))
+    assert first.status == 500
+    assert first.body["code"] == "internal_contract_error"
+
+    recovered = submit(api, body=payload(request_id="recover-1"))
+    assert recovered.status == 202
+    assert len(backend.bindings) == 1
