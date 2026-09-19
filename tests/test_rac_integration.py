@@ -273,3 +273,24 @@ def test_non_rac_action_is_not_blocked_by_rac_policy() -> None:
         "tool_call", "read_file", {"rac_capability": "read_public_artifact"}, "worker"
     )
     assert RACModule().quarantine_policies()[0](action) is None
+
+
+def test_unknown_schema_and_capability_fail_closed() -> None:
+    candidate = _candidate()
+    candidate["decision"]["schema_version"] = "rac-residual-decision/99.0"
+    assert _run(candidate) != RunOutcome.SUCCESS
+
+    module = RACModule()
+    undeclared = ProposedAction("tool_call", "rac.read", {}, "worker")
+    assert module.quarantine_policies()[0](undeclared) is not None
+
+    unknown = ProposedAction(
+        "tool_call", "rac.experimental", {"rac_capability": "future_unknown"}, "worker"
+    )
+    assert module.quarantine_policies()[0](unknown) is not None
+
+    trip = RACAuthorityBrake().update(
+        {"kind": "custom", "payload": {"rac_capability": "future_unknown"}}
+    )
+    assert isinstance(trip, BrakeTrip)
+    assert trip.recommended_action == BrakeAction.ABORT
