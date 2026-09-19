@@ -113,7 +113,104 @@ components:
         objective: { type: string, minLength: 1, maxLength: 8000 }
         inputs:
           type: object
-          additionalProperties: true
+          description: >
+            Opaque deployment aliases only. repository_id is resolved by trusted
+            RESIDUAL host configuration; callers must not supply repository URLs
+            or filesystem paths. build_profile_id and test_profile_id are accepted
+            only by the matching server-owned mission template.
+          additionalProperties: false
+          required: [repository_id]
+          properties:
+            repository_id:
+              type: string
+              minLength: 1
+              maxLength: 96
+              pattern: '^[A-Za-z][A-Za-z0-9_.-]{0,95}
+    MissionResponse:
+      type: object
+      required: [mission_id, state, template_id, risk, approval_required]
+      properties:
+        mission_id: { type: string }
+        state: { type: string }
+        template_id: { type: string }
+        risk: { type: string }
+        approval_required: { type: boolean }
+        evidence_ref: { type: string, nullable: true }
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        request_id: { type: string, nullable: true }
+  responses:
+    Error:
+      description: Fail-closed error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+            build_profile_id:
+              type: string
+              minLength: 1
+              maxLength: 96
+              pattern: '^[A-Za-z][A-Za-z0-9_.-]{0,95}
+    MissionResponse:
+      type: object
+      required: [mission_id, state, template_id, risk, approval_required]
+      properties:
+        mission_id: { type: string }
+        state: { type: string }
+        template_id: { type: string }
+        risk: { type: string }
+        approval_required: { type: boolean }
+        evidence_ref: { type: string, nullable: true }
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        request_id: { type: string, nullable: true }
+  responses:
+    Error:
+      description: Fail-closed error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+            test_profile_id:
+              type: string
+              minLength: 1
+              maxLength: 96
+              pattern: '^[A-Za-z][A-Za-z0-9_.-]{0,95}
+    MissionResponse:
+      type: object
+      required: [mission_id, state, template_id, risk, approval_required]
+      properties:
+        mission_id: { type: string }
+        state: { type: string }
+        template_id: { type: string }
+        risk: { type: string }
+        approval_required: { type: boolean }
+        evidence_ref: { type: string, nullable: true }
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        request_id: { type: string, nullable: true }
+  responses:
+    Error:
+      description: Fail-closed error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
     MissionResponse:
       type: object
       required: [mission_id, state, template_id, risk, approval_required]
