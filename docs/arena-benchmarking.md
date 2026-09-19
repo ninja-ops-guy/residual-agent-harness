@@ -37,9 +37,56 @@ For headless systems:
 
     residual arena setup --print-only
 
-## Provider safety
+## Arena API contract used by RESIDUAL
 
-The Arena adapter submits a single model ID per request and writes `allow_fallbacks: false` into every Arena request. Scientific runs therefore disable Arena gateway fallback at the transport boundary. If an operator wants failover for non-experimental use, it should be expressed through RESIDUAL's existing `Router`, where every attempt is separately observed and receipted.
+RESIDUAL uses Arena's documented OpenAI-compatible API surface:
+
+| Purpose | Upstream Arena route | Method | RESIDUAL behavior |
+| --- | --- | --- | --- |
+| Discover models | `https://api.preview.arena.ai/v1/models` | `GET` | Bearer-authenticated; returns/sorts model IDs available to the virtual key. No model ID is required for this setup-only call. |
+| Chat / structured output | `https://api.preview.arena.ai/v1/chat/completions` | `POST` | Sends the selected model, messages, output limit and `allow_fallbacks:false`. JSON mode/tools use the existing OpenAI-compatible adapter contract. |
+| Streaming chat | `https://api.preview.arena.ai/v1/chat/completions` | `POST` + SSE | Sends `stream:true` and the same `allow_fallbacks:false` policy. Arena provenance headers are validated before the first chunk is emitted. |
+
+Authentication is always:
+
+    Authorization: Bearer <virtual Arena API key>
+
+The Station never places the key in query parameters, task packets, observations, benchmark traces, or public settings responses.
+
+### Arena response provenance
+
+Arena documents these response headers:
+
+- `X-Arena-Resolved-Model` — actual model selected by the gateway;
+- `X-Arena-Trace-ID` — Arena request identifier for debugging/support;
+- `X-Arena-Fallback-Index` — present when a fallback served the request;
+- `X-Arena-Fallback-Reason` — why the previous model was abandoned.
+
+RESIDUAL keeps only the bounded, non-secret provenance values above. Complete-response calls attach them to normalized `ChatResponse.metadata`; Router receipts and Station `usage.recorded` events carry that sanitized metadata forward. Raw upstream headers and bodies are not persisted.
+
+AX-ARENA live evidence requires the resolved-model and trace-ID headers for completed observations. Arena trace IDs must be unique, every completed RESIDUAL attempt must resolve to one model, and paired control/treatment observations must resolve to the same Arena model. Missing or inconsistent provenance fails the evidence check instead of being silently accepted.
+
+## Provider safety and error handling
+
+The Arena adapter submits one model ID per request and writes `allow_fallbacks:false` into every Arena request. It also removes any `fallbacks` or `fallback_on` fields before transport. If Arena nevertheless returns fallback provenance headers, RESIDUAL rejects the response as `invalid_response`; streamed responses are rejected before their first content chunk is emitted.
+
+Non-experimental cross-provider failover belongs in RESIDUAL's existing `Router`, where every transport attempt gets a separate reservation and receipt. AX-ARENA does not configure Router fallbacks.
+
+HTTP/transport handling follows the common bounded provider contract:
+
+| Condition | Normalized RESIDUAL result | Retryable by Router? |
+| --- | --- | --- |
+| 401 / 403 | `authentication` | No |
+| 404 | `model_not_found` | No |
+| 429 | `rate_limit` (honors bounded `Retry-After` metadata) | Yes |
+| 5xx | `server_error` | Yes |
+| connection / socket timeout | `connection` / `timeout` | Yes |
+| redirect | `redirect_refused` | No |
+| malformed JSON, duplicate keys, invalid Arena provenance | `invalid_response` | No |
+| oversized response/stream | `response_too_large` | No |
+| incomplete stream | `stream_incomplete` | Yes only before caller-visible replay can occur |
+
+The stdlib HTTP layer disables ambient proxies and redirects, bounds complete responses to 2 MB and streams to 16 MB, and never interpolates upstream error bodies into exceptions.
 
 Environment variables:
 
@@ -68,7 +115,7 @@ Score an externally produced complete trace set:
     python -m residual.workbench arena score --lock <lock.json> \
       --traces <traces.jsonl> --output <report.json>
 
-The built-in live executor is intentionally narrow: exact-answer tasks, one raw single-call Arena control, and the same Arena model behind RESIDUAL's real obligation harness. It records transport/provider failures as `UNKNOWN` rather than task failures. More complex coding/tool benchmarks should implement a task/evaluator adapter against the same frozen schedule and trace contract.
+The built-in live executor is intentionally narrow: exact-answer tasks, one raw single-call Arena control, and the same Arena model behind RESIDUAL's real obligation harness. It records transport/provider failures as `UNKNOWN` rather than task failures. Completed observations must carry Arena's actual resolved-model and trace-ID provenance; paired observations that resolve to different models are rejected as incomparable. More complex coding/tool benchmarks should implement a task/evaluator adapter against the same frozen schedule and trace contract.
 
 The lock binds the workload, randomized schedule, model refs, conditions, complete RESIDUAL/provider/observation source hashes, fallback policy, seed, and methodology before outcomes are inspected. Live execution refuses a changed source tree.
 
