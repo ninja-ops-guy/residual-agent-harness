@@ -143,7 +143,9 @@ openclaw onboard --non-interactive --accept-risk \
 ```
 
 The bearer token/password must never be written into task packets, experiment
-manifests, provider snapshots, traces, receipts, or paper artifacts.
+manifests, provider snapshots, traces, receipts, or paper artifacts. If multiple
+Gateway secret environment variables are set to different values, RESIDUAL fails
+configuration rather than guessing which auth mode is active.
 
 ## 6. RESIDUAL provider configuration
 
@@ -219,7 +221,11 @@ http://127.0.0.1:18789/v1
 
 as the RESIDUAL endpoint.
 
-Do not point `KIMI_CLAW_BASE_URL` at a public internet host.
+Do not point `KIMI_CLAW_BASE_URL` at a public internet host. The v1 adapter also
+intentionally does not accept OpenClaw's Docker-specific `host.docker.internal`
+shortcut; containerized RESIDUAL deployments should use an explicitly reviewed
+local networking/tunnel design rather than weakening the operator-credential
+origin check.
 
 ## 10. Research Workbench requirements
 
