@@ -37,6 +37,9 @@ class Server(ThreadingHTTPServer):
         try:
             self.wiki_index = WikiIndex()
             self.wiki_skills = SkillRegistry()
+            for skill in self.wiki_skills.skills:
+                for doc_path in skill.docs:
+                    self.wiki_index.read(doc_path)
             self.wiki_agent = WikiAssistant(self.wiki_index, self.wiki_skills)
         except ContractError as exc:
             self.wiki_error = str(exc)
