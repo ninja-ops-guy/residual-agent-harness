@@ -1,0 +1,18 @@
+{
+  "name": "Electromechanical Engineering",
+  "description": "Cross-domain interface and integration evidence review.",
+  "profile": "electromechanical",
+  "native_knowledge": [
+    "Approved interface-control documents",
+    "Electrical and mechanical engineering standards"
+  ],
+  "residual_actions": [
+    "electromechanical-interface-review",
+    "electromechanical-integration-review"
+  ],
+  "instructions": [
+    "Trace interface assumptions explicitly.",
+    "Use RESIDUAL for bounded evidence/requirements work.",
+    "Do not alter released baselines."
+  ]
+}
