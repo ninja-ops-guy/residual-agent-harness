@@ -5,7 +5,7 @@ import json
 import re
 import threading
 from dataclasses import dataclass
-from typing import Any, Protocol, runtime_checkable
+from typing import Any, Callable, Protocol, runtime_checkable
 
 from ...core import ContractError, canonical, digest, identifier
 from ...factory.compiler import RequirementCompiler
@@ -418,13 +418,35 @@ class APIResponse:
     body: dict[str, Any]
 
 
-class CopilotAPI:
-    """Small framework-neutral router matching the frozen OpenAPI surface."""
+AuditSink = Callable[[str, dict[str, Any]], None]
 
-    def __init__(self, gateway: CopilotMissionGateway):
+
+class CopilotAPI:
+    """Small framework-neutral router matching the frozen OpenAPI surface.
+
+    The optional audit sink receives only redacted metadata. Bearer tokens,
+    request payloads, claim values, backend errors, and evidence bodies are
+    deliberately excluded.
+    """
+
+    def __init__(self, gateway: CopilotMissionGateway, audit: AuditSink | None = None):
         if not isinstance(gateway, CopilotMissionGateway):
             raise ContractError("gateway is required")
+        if audit is not None and not callable(audit):
+            raise ContractError("audit must be callable")
         self._gateway = gateway
+        self._audit = audit
+
+    def _emit(self, event: str, data: dict[str, Any]) -> None:
+        if self._audit is None:
+            return
+        safe = json.loads(canonical(data))
+        try:
+            self._audit(event, safe)
+        except Exception:
+            # Mission/evidence integrity does not depend on this observer.
+            # Production hosts should wire this to their durable observation sink.
+            return
 
     @staticmethod
     def _token(authorization: str | None) -> str:
@@ -435,31 +457,67 @@ class CopilotAPI:
             raise CopilotAccessError("unauthorized", "bearer token required", 401)
         return token
 
+    def _success(self, method: str, path: str, response: APIResponse) -> APIResponse:
+        self._emit(
+            "copilot_api_response",
+            {"method": method, "path": path[:240], "status": response.status},
+        )
+        return response
+
     def handle(self, method: str, path: str, authorization: str | None,
                payload: dict[str, Any] | None, *, now: int) -> APIResponse:
+        raw_method = method.upper() if isinstance(method, str) else ""
+        safe_path = path[:240] if isinstance(path, str) else ""
         try:
             token = self._token(authorization)
-            method = method.upper()
+            method = raw_method
             if method == "POST" and path == "/v1/copilot/missions":
                 body = self._gateway.submit(token, payload or {}, now=now)
-                return APIResponse(202, body)
+                return self._success(method, safe_path, APIResponse(202, body))
 
             prefix = "/v1/copilot/missions/"
-            if not path.startswith(prefix):
+            if not isinstance(path, str) or not path.startswith(prefix):
                 raise CopilotAccessError("not_found", "route not found", 404)
             suffix = path[len(prefix):]
             parts = suffix.split("/")
             mission_id = parts[0]
             if len(parts) == 1 and method == "GET":
-                return APIResponse(200, self._gateway.status(token, mission_id, now=now))
+                return self._success(
+                    method, safe_path,
+                    APIResponse(200, self._gateway.status(token, mission_id, now=now)),
+                )
             if len(parts) == 2 and parts[1] == "evidence" and method == "GET":
-                return APIResponse(200, self._gateway.evidence(token, mission_id, now=now))
+                return self._success(
+                    method, safe_path,
+                    APIResponse(200, self._gateway.evidence(token, mission_id, now=now)),
+                )
             if len(parts) == 2 and parts[1] == "cancel" and method == "POST":
-                return APIResponse(202, self._gateway.cancel(token, mission_id, now=now))
+                return self._success(
+                    method, safe_path,
+                    APIResponse(202, self._gateway.cancel(token, mission_id, now=now)),
+                )
             raise CopilotAccessError("not_found", "route not found", 404)
         except CopilotAccessError as exc:
+            self._emit(
+                "copilot_api_denied",
+                {
+                    "method": raw_method,
+                    "path": safe_path,
+                    "status": exc.status,
+                    "code": exc.code,
+                },
+            )
             return APIResponse(exc.status, {"code": exc.code, "message": str(exc)})
-        except ContractError:
+        except ContractError as exc:
+            self._emit(
+                "copilot_api_contract_failure",
+                {
+                    "method": raw_method,
+                    "path": safe_path,
+                    "status": 500,
+                    "error_type": type(exc).__name__,
+                },
+            )
             return APIResponse(
                 500,
                 {"code": "internal_contract_error", "message": "internal contract failure"},
