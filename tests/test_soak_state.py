@@ -1,5 +1,6 @@
 """Soak-state persistence and deterministic resume tests."""
 import json
+import os
 
 import pytest
 
@@ -41,6 +42,22 @@ def test_state_saved_atomically_per_day(tmp_path):
     loaded = SoakState.load(str(path))
     assert loaded.next_day == 1
     assert loaded.metrics.tasks_executed == 50
+
+
+@pytest.mark.skipif(os.name != "posix", reason="symlink regression is POSIX-specific")
+def test_state_save_does_not_follow_predictable_tmp_symlink(tmp_path):
+    path = tmp_path / "state.json"
+    sentinel = tmp_path / "sentinel.txt"
+    sentinel.write_text("unchanged", encoding="utf-8")
+    legacy_tmp = tmp_path / "state.json.tmp"
+    legacy_tmp.symlink_to(sentinel)
+
+    state = SoakState(seed=1, tasks_per_day=50, total_days=4, next_day=1)
+    state.save(str(path))
+
+    assert sentinel.read_text(encoding="utf-8") == "unchanged"
+    assert legacy_tmp.is_symlink()
+    assert SoakState.load(str(path)).to_dict() == state.to_dict()
 
 
 def test_resume_matches_uninterrupted_run(tmp_path):
