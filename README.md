@@ -22,14 +22,19 @@ RESIDUAL spans a connected platform rather than a single agent loop:
 
 ## Current main
 
-Current `main` is **`4608afabf5de4c87d77aaf149dfc12538d364f43`**.
+Current `main` is **`0a675017a51f94e489528a607032e7463fbf7993`**, produced by merged **#328** on 2026-09-19.
 
-Two accepted changes landed since the previous documented snapshot:
+Recent accepted changes relevant to current claims are deliberately scoped:
 
-- **#200** — native setup hardening. The setup path now defaults to persistent XDG state, binds Station to `127.0.0.1`, makes the convenience shell macro opt-in, uses bounded venv repair, and constrains shell startup-file edits. This is onboarding hardening, **not** blank-environment qualification or a portability proof.
-- **#205** — WebVM provider-channel recovery. Mission Control now restores the private provider channel token from `sessionStorage` across reload/remount, validates it fail-closed, reuses it only for the active browser session, and clears it on explicit close. This is accepted provider-session lifecycle behavior, **not** retained proof of live Puter inference.
+- **#307** — removes duplicate generic feature-branch `push` fan-out from the general CI paths while preserving PR qualification and non-cancelling production-main evidence. The acute Actions backlog is currently **0 queued runs**; that does not erase earlier queue evidence.
+- **#260** — accepts the provider-bootstrap guard that keeps the Puter load control disabled until its private bridge is initialized. This is a bounded UI/transport repair, not paid/live Puter evidence.
+- **#288** — closes #208 with host-owned pre-dispatch budget/deadline admission for Station runner/reviewer dispatch plus bound run-control export eligibility. Historical #207/#212 negative research cells remain retained and require claim-specific requalification rather than being rewritten as PASS.
+- **#320** — adds repository-side CSP/anti-clickjacking hardening. Vercel can emit the configured response headers; GitHub Pages retains only the HTML CSP fallback because arbitrary repository-controlled response headers are not available there. Production Vercel response-header/Aikido validation remains **UNKNOWN / pending**.
+- **#328** — accepts the core, non-workflow split of the #324 security pass: kernel-enforced third-party execution isolation, connector SSRF/bearer hardening, hardened SAML XML parsing, and bounded marketplace/recovery/telemetry/demo-gateway changes with regression coverage. The separate workflow credential-persistence changes remain open under #324.
 
-The exact-current-main Actions set observed for `main@4608afa...` is complete with no pending, cancelled, or failing run in the retained exact-SHA query; the sampled Controller/provider workflow is **PASS on attempt 1**. Those results remain scoped to their named automated gates. They do not establish every-host/capable-runner M4 qualification, physical iPhone reliability, blank-environment install, host-loss recovery, elapsed soak, live-provider semantic success, or confirmatory research.
+Every new `main` SHA is required by the accepted #276 gate to receive its own non-cancelling first production Pages attempt. For exact current main, production Pages run **`35431634267`**, attempt 1, is currently **UNKNOWN / pending** while the workflow remains in progress. The earlier production Pages **FAIL** on `e7b72ad...` remains historical evidence for that exact revision; it is not inherited as the result for `0a675017...`, and no PR-head PASS is inherited either.
+
+Some exact-current-main test/qualification jobs have already completed **PASS** in their named scopes, while the production Pages/browser proof path is still running. Do not summarize the current revision as globally green until the required exact-revision gates finish.
 
 Historical failures remain evidence even when later revisions pass.
 
@@ -37,7 +42,7 @@ Historical failures remain evidence even when later revisions pass.
 
 Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice, but both counted calls ended `provider_protocol_invalid`. No candidate crossed the protocol boundary; candidate correctness and semantic verification remain **UNKNOWN**.
 
-Merged #179 changed the bounded build-output path, #183 repaired provider-session lifecycle behavior, #189 repaired the provider-helper publication boundary, and #205 now restores the provider channel across Mission Control reload/remount. None of those changes, by itself, is retained proof of successful paid/live Puter inference. A fresh real-account mission on the accepted deployed revision must cross provider protocol validation and proceed through normal candidate/verifier/receipt handling before live-provider success can become `PASS`.
+Merged #179, #183, #189, #205, #248, #260 and #276 repair bounded build-output, provider-session, bootstrap, publication and qualification surfaces. None is retained proof of successful paid/live Puter inference. A fresh real-account mission on an accepted deployed revision must cross provider protocol validation and proceed through normal candidate/verifier/receipt handling before live-provider success can become `PASS`.
 
 The accepted #186 fallback routes detected iPhone/iPadOS WebKit to the lightweight walkthrough before heavyweight WebVM boot. This is not proof that heavyweight WebVM is reliable on physical iPhone Safari. Issues #120/#126 and long-run WebVM reliability remain open.
 
@@ -52,11 +57,13 @@ Accepted #185/#187 protected-byte and ownership-baseline changes retain their ex
 Research results are revision-bound and deliberately mixed:
 
 - Draft #202 retains an earlier heterogeneous-DAG **FAIL** and a later distinct exact-head bounded **PASS** using real local models for a three-task DAG with forced repair. The later PASS does not erase the earlier FAIL or establish general DAG/recovery reliability.
-- Draft #203 M6 ImprovementSpec self-host trial 1 remains **FAIL**.
-- Draft #204 stronger-model M6-SPEC-002 authoritative trial remains **FAIL**: 0/1 integrated, three passes, max-iteration escalation, no verification receipt or release.
-- Draft #207 deterministic stress campaign B retained important negative governance evidence: one budget-exhaustion case observed accepted integration/release before final exhausted-budget accounting, and one terminal verifier-failure case still materialized a non-empty release. A repeated-repair case rejected injected corrupt candidates and integrated none, but did not recover to task success within the pass budget.
+- #220 / M6-SPEC-006 remains a bounded corrected-path self-hosting **PASS**; earlier M6 self-host trials retain **FAIL** evidence.
+- #257 / M6-SPEC-007J is a bounded autonomous-discovery **PASS at formal MeasurementGap admission**. Later registry/provenance/planner experiments retain PASS, FAIL and UNKNOWN cells. General autonomous discovery and recursive self-improvement remain **UNKNOWN / not established**.
+- #207/#212 retain historical accounting/release-ordering and failure-matrix evidence. The accepted #288 repair closes the product defect tracked by #208, but it does not retroactively change those frozen research outcomes; affected claims require fresh requalification on the repaired path.
+- #319 / M6-MESH-001 is one positive bounded two-obligation concurrency pilot; general mesh/swarm efficiency remains **UNKNOWN / not established**.
+- Draft #323 Research Workbench remains **BLOCKED for its first authoritative trial**: #288 is now accepted, satisfying one prerequisite, but #323 is still based on the older `e7b72ad...` main and must be rebased and requalified before an authoritative Workbench run.
 
-These are research/development observations, not production qualification. See [`docs/research.md`](docs/research.md) and [`docs/evaluation.md`](docs/evaluation.md).
+M6-008 remains **BLOCKED** until its declared semantic/derivation gates are satisfied. These are research/development observations, not production qualification. See [`docs/research.md`](docs/research.md) and [`docs/evaluation.md`](docs/evaluation.md).
 
 ## Governance boundary
 
@@ -96,16 +103,17 @@ python3 -m residual benchmark --output runs/benchmark.json
 
 ## Current priority gates
 
-1. Repair and requalify the stress-campaign governance-ordering defects before making stronger fail-closed budget/release claims.
-2. Retain a fresh real-account Puter candidate→verifier→receipt success on the accepted deployed revision, or keep live-provider success `UNKNOWN`.
-3. Physically validate the #186 mobile fallback without broadening it into a heavyweight-WebVM reliability claim.
-4. Complete true blank-environment installation, recovery/host-loss qualification, and selected elapsed soak for the exact release artifact.
-5. Continue #120/#126 long-run WebVM reliability work and the separate #139→ownership-baseline→#134 protected sequence.
-6. Resolve the #133/#132 retirement-versus-restoration discrepancy explicitly rather than reconstructing capability in prose.
-7. Freeze the confirmatory live-evaluation protocol before outcome access, then run R0–R5 and the planned degradation/routing studies.
+1. Let exact-current-main production Pages run `35431634267` finish and preserve its first-attempt result as the authoritative Pages evidence for `0a675017...`; do not inherit the older `e7b72ad...` failure or any PR-head success.
+2. Requalify any stronger budget/unknown-usage/release-ordering claim that depended on the historical #207/#208/#212 failures against the accepted #288 repair; historical frozen failures remain visible.
+3. Rebase and requalify #323 on a main containing #288 before any first authoritative Research Workbench trial.
+4. Validate the merged #320 policy on the production Vercel origin and rerun the relevant security check before calling response-header remediation PASS in production.
+5. Finish the remaining #324 workflow credential-persistence hardening independently of the accepted #328 core security split.
+6. Retain a fresh real-account Puter candidate→verifier→receipt success on an accepted deployed revision, or keep live-provider success `UNKNOWN`.
+7. Complete physical mobile fallback validation, true blank-environment installation, recovery/host-loss qualification, selected elapsed soak, and #120/#126 long-run WebVM reliability work without broadening bounded evidence.
+8. Keep M6/M7 research bounded: general recursive self-improvement and general mesh efficiency remain `UNKNOWN`; M6-008 remains `BLOCKED`.
 
 ## Scope and non-claims
 
 RESIDUAL is an implemented research and engineering platform, not a universal proof system. A verifier establishes only the conditions encoded by its contract and evidence. Receipts are evidence of checked acceptance under stated identities and revisions, not certificates of arbitrary truth.
 
-The project does not currently claim universal correctness, blanket production readiness, every-host M4 qualification, completed blank-environment/recovery/elapsed-soak qualification, acceptable long-run WebVM reliability, successful exact-current-main paid/live provider execution, physical heavyweight-WebVM iPhone reliability, autonomous recursive self-improvement, autonomous merge authority, or live proof of the central research hypothesis.
+The project does not currently claim universal correctness, blanket production readiness, every-host M4 qualification, completed blank-environment/recovery/elapsed-soak qualification, acceptable long-run WebVM reliability, successful exact-current-main paid/live provider execution, physical heavyweight-WebVM iPhone reliability, autonomous recursive self-improvement, autonomous merge authority, production Vercel security-header validation, or live proof of the central research hypothesis.
