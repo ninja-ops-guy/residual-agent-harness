@@ -1,7 +1,9 @@
 """Durable mission ownership and idempotency state for Copilot Studio."""
 from __future__ import annotations
 
+import os
 import sqlite3
+import stat
 import threading
 from dataclasses import dataclass
 from pathlib import Path
@@ -84,6 +86,26 @@ class SQLiteMissionStore:
     def __init__(self, path: str | Path):
         self.path = Path(path).absolute()
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        if os.name == "posix":
+            if self.path.resolve(strict=False) != self.path:
+                raise ContractError("mission store path must not traverse symlinks")
+            flags = os.O_CREAT | os.O_RDWR
+            flags |= getattr(os, "O_CLOEXEC", 0)
+            flags |= getattr(os, "O_NOFOLLOW", 0)
+            fd = os.open(self.path, flags, 0o600)
+            try:
+                info = os.fstat(fd)
+                if (
+                    not stat.S_ISREG(info.st_mode)
+                    or info.st_nlink != 1
+                    or info.st_uid != os.geteuid()
+                    or info.st_mode & 0o077
+                ):
+                    raise ContractError(
+                        "mission store must be a private regular file owned by the service"
+                    )
+            finally:
+                os.close(fd)
         self._lock = threading.RLock()
         with self._connect() as db:
             db.execute("PRAGMA journal_mode=WAL")
