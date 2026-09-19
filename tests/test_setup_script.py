@@ -49,6 +49,18 @@ class SetupScriptSafetyTests(unittest.TestCase):
         self.assertIn('"$PY" -m venv --clear "$VENV_DIR"', self.text)
         self.assertIn('"$VENV_DIR/bin/python" -c \'import sys\'', self.text)
 
+    def test_setup_persists_venv_path_and_start_defaults(self):
+        self.assertIn('export PATH=\\"$VENV_DIR/bin:\\$PATH\\"', self.text)
+        self.assertIn('set_setting data_dir "$DATA_DIR"', self.text)
+        self.assertIn('set_setting host "$HOST"', self.text)
+        self.assertIn('set_setting port "$PORT"', self.text)
+        self.assertIn('Macro:    residual start', self.text)
+        self.assertIn('command residual start', self.text)
+
+    def test_setup_prompts_for_data_directory_on_tty(self):
+        self.assertIn('RESIDUAL data directory [%s]: ', self.text)
+        self.assertIn('if [ ! -w "$DATA_DIR" ]', self.text)
+
     def test_setup_does_not_launch_browser_or_server(self):
         self.assertNotIn("xdg-open", self.text)
         self.assertNotIn('\nopen "$LINK"', self.text)
