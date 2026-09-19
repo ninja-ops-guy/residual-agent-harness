@@ -1,6 +1,9 @@
+import os
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -65,6 +68,24 @@ class SetupScriptSafetyTests(unittest.TestCase):
         self.assertNotIn("xdg-open", self.text)
         self.assertNotIn('\nopen "$LINK"', self.text)
         self.assertNotIn('\nstart "$LINK"', self.text)
+
+    def test_residual_start_uses_saved_defaults(self):
+        from residual import cli
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            settings = root / "settings"
+            data_dir = root / "station-data"
+            settings.write_text(
+                f"host=127.0.0.1\nport=9876\ndata_dir={data_dir}\n",
+                encoding="utf-8",
+            )
+            with patch.dict(os.environ, {"RESIDUAL_SETTINGS": str(settings)}, clear=False):
+                with patch("residual.station.server.main", return_value=0) as serve:
+                    self.assertEqual(cli.main(["start"]), 0)
+            serve.assert_called_once_with(
+                ["--host", "127.0.0.1", "--port", "9876", "--data", str(data_dir)]
+            )
 
 
 if __name__ == "__main__":
