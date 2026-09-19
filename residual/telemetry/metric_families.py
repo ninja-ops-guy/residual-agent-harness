@@ -139,8 +139,10 @@ def _tracked_optional(kind: str) -> tuple:
     }.get(kind, ())
 
 
-assert set(ALL_KINDS) == {
+_EXPECTED_KINDS = {
     KIND_EXECUTION, KIND_ACCEPTANCE, KIND_REJECTION, KIND_VERIFICATION,
     KIND_INTEGRATION, KIND_CONFLICT, KIND_RETRY, KIND_RESOURCE,
     KIND_ORCHESTRATION_TIMING,
 }
+if set(ALL_KINDS) != _EXPECTED_KINDS:
+    raise RuntimeError("telemetry metric family registry is inconsistent")
