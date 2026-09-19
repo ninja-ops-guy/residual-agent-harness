@@ -22,22 +22,22 @@ RESIDUAL spans a connected platform rather than a single agent loop:
 
 ## Current main
 
-Current `main` is **`4608afabf5de4c87d77aaf149dfc12538d364f43`**.
+Current `main` is **`e7b72ad18df5729f16d36771971c8a8828d71a10`**, produced by merged PR **#276** on 2026-09-19.
 
-Two accepted changes landed since the previous documented snapshot:
+Recent accepted governance/qualification changes include:
 
-- **#200** — native setup hardening. The setup path now defaults to persistent XDG state, binds Station to `127.0.0.1`, makes the convenience shell macro opt-in, uses bounded venv repair, and constrains shell startup-file edits. This is onboarding hardening, **not** blank-environment qualification or a portability proof.
-- **#205** — WebVM provider-channel recovery. Mission Control now restores the private provider channel token from `sessionStorage` across reload/remount, validates it fail-closed, reuses it only for the active browser session, and clears it on explicit close. This is accepted provider-session lifecycle behavior, **not** retained proof of live Puter inference.
+- **#275** — repairs exact-PR-head publication of the protected `maintainer-approval` result after explicit exact-head human attestation. This is governance hardening, not expanded model, verifier, Factory/M4, provider or acceptance authority.
+- **#276** — closes #267 by ensuring every new `main` SHA receives an authoritative production Pages qualification attempt without relying on the previous `push.paths` filter. Production Pages attempts remain non-cancelling first-attempt evidence.
 
-The exact-current-main Actions set observed for `main@4608afa...` is complete with no pending, cancelled, or failing run in the retained exact-SHA query; the sampled Controller/provider workflow is **PASS on attempt 1**. Those results remain scoped to their named automated gates. They do not establish every-host/capable-runner M4 qualification, physical iPhone reliability, blank-environment install, host-loss recovery, elapsed soak, live-provider semantic success, or confirmatory research.
+The first authoritative production Pages attempt for exact current main is run **`35410875305`**, attempt 1, and is **FAIL**. The generated desktop+narrow browser proof passed, deployment passed, and the published live acceptance then failed at `Verify published WebVM revision and real guest execution`; published narrow acceptance was skipped. Retained live proof exists for that exact run. This is a production Pages qualification **FAIL** for `main@e7b72ad...`; the retained metadata does not establish a paid/live Puter failure, model-quality failure, or exact lower-level root cause.
 
-Historical failures remain evidence even when later revisions pass.
+Other exact-main automated gates must remain scoped to their own retained results. Historical failures remain evidence even when later revisions pass.
 
 ## Live-provider and WebVM boundary
 
 Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice, but both counted calls ended `provider_protocol_invalid`. No candidate crossed the protocol boundary; candidate correctness and semantic verification remain **UNKNOWN**.
 
-Merged #179 changed the bounded build-output path, #183 repaired provider-session lifecycle behavior, #189 repaired the provider-helper publication boundary, and #205 now restores the provider channel across Mission Control reload/remount. None of those changes, by itself, is retained proof of successful paid/live Puter inference. A fresh real-account mission on the accepted deployed revision must cross provider protocol validation and proceed through normal candidate/verifier/receipt handling before live-provider success can become `PASS`.
+Merged #179 changed the bounded build-output path, #183 repaired provider-session lifecycle behavior, #189 repaired the provider-helper publication boundary, #205 restores the provider channel across Mission Control reload/remount, and #248/#276 harden publication/qualification lifecycle behavior. None of those changes, by itself, is retained proof of successful paid/live Puter inference. A fresh real-account mission on the accepted deployed revision must cross provider protocol validation and proceed through normal candidate/verifier/receipt handling before live-provider success can become `PASS`.
 
 The accepted #186 fallback routes detected iPhone/iPadOS WebKit to the lightweight walkthrough before heavyweight WebVM boot. This is not proof that heavyweight WebVM is reliable on physical iPhone Safari. Issues #120/#126 and long-run WebVM reliability remain open.
 
@@ -52,9 +52,9 @@ Accepted #185/#187 protected-byte and ownership-baseline changes retain their ex
 Research results are revision-bound and deliberately mixed:
 
 - Draft #202 retains an earlier heterogeneous-DAG **FAIL** and a later distinct exact-head bounded **PASS** using real local models for a three-task DAG with forced repair. The later PASS does not erase the earlier FAIL or establish general DAG/recovery reliability.
-- Draft #203 M6 ImprovementSpec self-host trial 1 remains **FAIL**.
-- Draft #204 stronger-model M6-SPEC-002 authoritative trial remains **FAIL**: 0/1 integrated, three passes, max-iteration escalation, no verification receipt or release.
-- Draft #207 deterministic stress campaign B retained important negative governance evidence: one budget-exhaustion case observed accepted integration/release before final exhausted-budget accounting, and one terminal verifier-failure case still materialized a non-empty release. A repeated-repair case rejected injected corrupt candidates and integrated none, but did not recover to task success within the pass budget.
+- #220 / M6-SPEC-006 remains a bounded self-hosting **PASS** on its exact corrected research path; earlier M6-SPEC-001..004 failures remain retained negative evidence.
+- #257 / M6-SPEC-007J is a bounded autonomous-discovery **PASS at formal MeasurementGap admission**. Later registry/provenance/planner experiments retain both PASS and FAIL/UNKNOWN cells. General autonomous discovery and recursive self-improvement remain **UNKNOWN / not established**.
+- Draft #207/#212 stress campaigns retain accounting/release-ordering **FAIL** evidence. Those defects remain blockers for stronger fail-closed authority claims until repaired and requalified.
 
 These are research/development observations, not production qualification. See [`docs/research.md`](docs/research.md) and [`docs/evaluation.md`](docs/evaluation.md).
 
@@ -96,13 +96,14 @@ python3 -m residual benchmark --output runs/benchmark.json
 
 ## Current priority gates
 
-1. Repair and requalify the stress-campaign governance-ordering defects before making stronger fail-closed budget/release claims.
-2. Retain a fresh real-account Puter candidate→verifier→receipt success on the accepted deployed revision, or keep live-provider success `UNKNOWN`.
-3. Physically validate the #186 mobile fallback without broadening it into a heavyweight-WebVM reliability claim.
-4. Complete true blank-environment installation, recovery/host-loss qualification, and selected elapsed soak for the exact release artifact.
-5. Continue #120/#126 long-run WebVM reliability work and the separate #139→ownership-baseline→#134 protected sequence.
-6. Resolve the #133/#132 retirement-versus-restoration discrepancy explicitly rather than reconstructing capability in prose.
-7. Freeze the confirmatory live-evaluation protocol before outcome access, then run R0–R5 and the planned degradation/routing studies.
+1. Diagnose and repair the exact-current-main production Pages **FAIL** from run `35410875305`; retain the first-attempt failure and require the next accepted main revision to qualify independently.
+2. Repair and requalify the #207/#208/#212 governance-ordering defects before making stronger fail-closed budget/release claims.
+3. Retain a fresh real-account Puter candidate→verifier→receipt success on the accepted deployed revision, or keep live-provider success `UNKNOWN`.
+4. Physically validate the #186 mobile fallback without broadening it into heavyweight-WebVM reliability.
+5. Complete true blank-environment installation, recovery/host-loss qualification, and selected elapsed soak for the exact release artifact.
+6. Continue #120/#126 long-run WebVM reliability work and the separate #139→ownership-baseline→#134 protected sequence.
+7. Keep M6/M7 research bounded: unmerged discovery, derivation-graph, and recursive-mission work is not accepted production capability; general recursive self-improvement remains `UNKNOWN`.
+8. Address #305 queue saturation without cancelling required first-attempt production evidence; #307 remains an unmerged candidate repair.
 
 ## Scope and non-claims
 
