@@ -62,6 +62,13 @@ def _sha256(value: Any) -> str:
     return hashlib.sha256(_canonical_bytes(value)).hexdigest()
 
 
+def _event_hash(event: Mapping[str, Any]) -> str:
+    raw = json.dumps(
+        event, sort_keys=True, separators=(",", ":"), default=str
+    ).encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()
+
+
 def _is_sha256(value: Any) -> bool:
     return isinstance(value, str) and bool(_SHA256_RE.fullmatch(value))
 
@@ -359,14 +366,14 @@ class RACAuthorityBrake:
             return BrakeTrip(
                 self.name,
                 f"forbidden RAC capability observed: {capability}",
-                "",
+                _event_hash(event),
                 BrakeAction.ABORT,
             )
         if capability is not None and capability not in ALLOWED_RAC_CAPABILITIES:
             return BrakeTrip(
                 self.name,
                 f"unknown RAC capability observed: {capability}",
-                "",
+                _event_hash(event),
                 BrakeAction.ABORT,
             )
 
@@ -379,7 +386,7 @@ class RACAuthorityBrake:
                 return BrakeTrip(
                     self.name,
                     violation,
-                    "",
+                    _event_hash(event),
                     BrakeAction.ABORT,
                 )
         return None
