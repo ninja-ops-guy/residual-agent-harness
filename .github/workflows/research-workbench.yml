@@ -1,0 +1,53 @@
+name: Research Workbench qualification
+on:
+  pull_request:
+    paths:
+      - 'residual/research.py'
+      - 'residual/research_runtime.py'
+      - 'residual/cli.py'
+      - 'residual/station/server.py'
+      - 'residual/station/contracts.py'
+      - 'residual/station/workspace.py'
+      - 'residual/station/static/**'
+      - 'tests/test_research_workbench.py'
+      - 'tests/test_research_runtime.py'
+      - 'tests/station/test_station.py'
+      - 'docs/research-workbench.md'
+      - '.github/workflows/research-workbench.yml'
+permissions:
+  contents: read
+jobs:
+  workbench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install
+        run: python -m pip install -e '.[test,factory]'
+      - name: Python syntax and focused qualification
+        run: |
+          python -m compileall -q residual/research.py residual/research_runtime.py residual/cli.py residual/station/server.py residual/station/contracts.py residual/station/workspace.py
+          python -m pytest -q tests/test_research_workbench.py tests/test_research_runtime.py tests/station/test_station.py
+      - name: Portal JavaScript syntax
+        run: node --check residual/station/static/app.js
+      - name: Build and packaged-import smoke
+        run: |
+          python -m pip install build
+          python -m build --wheel --outdir dist
+          python -m venv /tmp/residual-workbench-wheel
+          /tmp/residual-workbench-wheel/bin/python -m pip install dist/*.whl
+          cd /tmp
+          /tmp/residual-workbench-wheel/bin/python - <<'PY'
+          import residual.research
+          import residual.research_runtime
+          import residual.station.server
+          print("packaged research imports: PASS")
+          PY
