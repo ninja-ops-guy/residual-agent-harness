@@ -13,14 +13,14 @@ _AGENT_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,95}\\Z")
 
 
 def resolve_kimi_claw_secret(explicit=None):
-    """Resolve only gateway-specific secrets; never consume generic cloud LLM keys."""
+    """Resolve only gateway-specific secrets; ambiguous auth fails closed."""
     if explicit:
         return explicit
-    for name in GATEWAY_SECRET_ENV:
-        value = os.environ.get(name)
-        if value:
-            return value
-    return None
+    configured = [(name, os.environ.get(name)) for name in GATEWAY_SECRET_ENV if os.environ.get(name)]
+    distinct = {value for _, value in configured}
+    if len(distinct) > 1:
+        raise ProviderError(provider="kimi_claw", code="config")
+    return configured[0][1] if configured else None
 
 
 def _kimi_claw_agent_target(model: str) -> str:
