@@ -11,6 +11,11 @@ RESIDUAL integrates Arena in two separate roles:
 
 These roles are deliberately separated. The repository does not claim to submit RESIDUAL into the official Agent Arena leaderboard and does not label local results as official Arena scores.
 
+Upstream references used by this integration:
+
+- [Arena API reference](https://portal.api.preview.arena.ai/docs/api-reference)
+- [Arena model routing and fallback](https://portal.api.preview.arena.ai/docs/routing)
+
 ## Setup from RESIDUAL
 
 The easiest path is **Command Station → Model Workshop → Cloud provider → Arena API**.
@@ -99,20 +104,20 @@ The provider remains a remote/cloud route. It is not accepted as a local provide
 
 Model discovery:
 
-    python -m residual.workbench arena models
+    residual arena models
 
 Freeze:
 
-    python -m residual.workbench arena freeze --manifest <manifest.json> \
+    residual arena freeze --manifest <manifest.json> \
       --model arena:<model-id> [--model arena:<model-id> ...] --output <lock.json>
 
 Run a frozen live protocol:
 
-    python -m residual.workbench arena run --lock <lock.json> --output <run-directory>
+    residual arena run --lock <lock.json> --output <run-directory>
 
 Score an externally produced complete trace set:
 
-    python -m residual.workbench arena score --lock <lock.json> \
+    residual arena score --lock <lock.json> \
       --traces <traces.jsonl> --output <report.json>
 
 The built-in live executor is intentionally narrow: exact-answer tasks, one raw single-call Arena control, and the same Arena model behind RESIDUAL's real obligation harness. It records transport/provider failures as `UNKNOWN` rather than task failures. Completed observations must carry Arena's actual resolved-model and trace-ID provenance; paired observations that resolve to different models are rejected as incomparable. More complex coding/tool benchmarks should implement a task/evaluator adapter against the same frozen schedule and trace contract.
