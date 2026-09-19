@@ -380,6 +380,37 @@ class HTTPTests(unittest.TestCase):
         self.assertEqual(reply["actor"], "remote:Hammer")
         self.assertEqual(reply["data"]["message"], "Acknowledged.")
 
+        research = self.request(f"/api/projects/{pid}/chat", {
+            "message": "AX-21 finding: preserve the disagreement.",
+            "audience": "coordinator",
+            "kind": "evidence",
+            "thread_id": "research/ax-21",
+            "reply_to": operator_message["seq"],
+        })
+        self.assertEqual(research["data"]["thread_id"], "research/ax-21")
+        self.assertEqual(research["data"]["reply_to"], operator_message["seq"])
+        self.assertEqual(
+            [m["message"] for m in self.request(
+                f"/api/projects/{pid}/comms?thread_id=research%2Fax-21", None
+            )["messages"]],
+            ["AX-21 finding: preserve the disagreement."],
+        )
+        self.assertEqual(
+            self.request(f"/api/projects/{pid}/comms?thread_id=main", None)["messages"][0]["message"],
+            "Please pay attention to the health edge case.",
+        )
+        runner_thread = self.request("/api/worker/comms", {
+            "project_id": pid, "name": "Hammer", "message": "Thread-scoped runner note.",
+            "audience": "operator", "thread_id": "mission/ops-101",
+        }, worker_headers)
+        self.assertEqual(runner_thread["data"]["thread_id"], "mission/ops-101")
+        self.assertEqual(
+            self.request(
+                f"/api/worker/comms?project_id={pid}&thread_id=mission%2Fops-101", None, worker_headers
+            )["messages"],
+            [],
+        )
+
         with self.assertRaises(urllib.error.HTTPError) as error:
             self.request("/api/worker/comms", {
                 "project_id": pid, "name": "Hammer", "message": "nope", "audience": "cloud",
