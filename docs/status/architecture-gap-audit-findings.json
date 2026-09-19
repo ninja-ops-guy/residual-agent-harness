@@ -1,0 +1,733 @@
+{
+  "header": "Current-state gap audit 2026-09-18 @ main 3cff6bcd; verdicts are audit observations, not qualification claims.",
+  "repo": "ninja-ops-guy/residual-agent-harness",
+  "audited_head": "3cff6bcd52e352a6ba048c958949a7bbb2a039eb",
+  "prior_audit": {
+    "head": "699e2869e294fe157b4bfd73a272057683a2f7e0",
+    "counts": {
+      "PASS": 7,
+      "PARTIAL": 20,
+      "ABSENT": 11,
+      "UNKNOWN": 5
+    }
+  },
+  "counts": {
+    "PASS": 7,
+    "PARTIAL": 25,
+    "ABSENT": 11,
+    "UNKNOWN": 5,
+    "BLOCKED": 0
+  },
+  "note": "Status prose bound to 4608afab (stale vs audited head). Merges since prior head: #200 #201 #205 #216 #218 #233 #248 #197. Prior WA-1..WA-6 rows subsumed into MS-A..MS-K (37 carried P0/P1/P2 rows + 11 MS rows = 48). No prior row upgraded to PASS. PR #152 open (not merged). P1-4 repair #214 draft/BLOCKED; retained FAILs preserved.",
+  "findings": [
+    {
+      "requirement_id": "P0-1",
+      "layer": "P0",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "docs/release/STABILIZATION_2026-09-17.md"
+      ],
+      "test_refs": [],
+      "evidence_refs": [
+        "docs/release/STABILIZATION_2026-09-17.md (12 exit criteria unchecked at head)"
+      ],
+      "future_owner": "release-eng",
+      "notes": "Stabilization lane defined; no frozen RC artifact promoted. Unchanged since 699e2869."
+    },
+    {
+      "requirement_id": "P0-2",
+      "layer": "P0",
+      "verdict": "UNKNOWN",
+      "implementation_refs": [
+        ".github/workflows/ (25 workflows incl. ci.yml, control-plane.yml, station.yml)"
+      ],
+      "test_refs": [
+        ".github/workflows/ci.yml"
+      ],
+      "evidence_refs": [
+        "docs/CURRENT_STATUS.md (exact-head PASS at 4608afab, not audited head 3cff6bcd)"
+      ],
+      "future_owner": "release-eng/CI",
+      "notes": "Status prose stale relative to audited head; rerun at exact head required."
+    },
+    {
+      "requirement_id": "P0-3",
+      "layer": "P0",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "residual/factory/m4_sandbox.py",
+        "residual/factory/m4_qualification_prereq.py",
+        "scripts/m4_trust_evidence.py",
+        ".github/workflows/m4-qualification-prereq.yml"
+      ],
+      "test_refs": [
+        "tests/test_factory_m4_qualification_prereq.py",
+        "tests/test_factory_m4_sandbox.py",
+        "tests/test_factory_m4_safety.py"
+      ],
+      "evidence_refs": [
+        "evidence/m4-qualification-prereq/",
+        "runs/m4-trust/",
+        "docs/CURRENT_STATUS.md (capable-runner qualification 'not established')"
+      ],
+      "future_owner": "factory/M4 + CI runners",
+      "notes": "Prereq probe + runner-prereq CI exist; no capable-runner (blocked_capabilities:[]) run retained. Unchanged."
+    },
+    {
+      "requirement_id": "P0-4",
+      "layer": "P0",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "verifier/v3/qualify_clean_install.py",
+        "docs/status/CLEAN_INSTALL_QUALIFICATION.md"
+      ],
+      "test_refs": [
+        "tests/test_clean_install_qualification.py"
+      ],
+      "evidence_refs": [
+        ".github/workflows/clean-install-qualification.yml (report artifacts)"
+      ],
+      "future_owner": "release-eng",
+      "notes": "Per-build wheel SHA-256 + commit/tree binding; no frozen promoted release artifact. Unchanged."
+    },
+    {
+      "requirement_id": "P0-5",
+      "layer": "P0",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "verifier/v3/qualify_clean_install.py (fresh-venv + isolated -I smoke only)",
+        "setup script hardened by #200 (persistent XDG defaults, opt-in macro)"
+      ],
+      "test_refs": [
+        "tests/test_clean_install_qualification.py"
+      ],
+      "evidence_refs": [
+        "clean-install CI reports (venv scope); CURRENT_STATUS: blank-environment install 'not established'"
+      ],
+      "future_owner": "release-eng",
+      "notes": "True blank-VM install ABSENT; in-flight PR #115. #200 narrowed setup risk without blank-VM evidence."
+    },
+    {
+      "requirement_id": "P0-6",
+      "layer": "P0",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "residual/hadr/restore.py",
+        "residual/hadr/failover.py",
+        "docs/enterprise/governance/runbooks/station-failure.md"
+      ],
+      "test_refs": [],
+      "evidence_refs": [
+        "none retained for real host-loss"
+      ],
+      "future_owner": "HADR",
+      "notes": "Mechanisms exist; host-loss/recovery evidence UNKNOWN/absent. Unchanged."
+    },
+    {
+      "requirement_id": "P0-7",
+      "layer": "P0",
+      "verdict": "ABSENT",
+      "implementation_refs": [
+        "residual/soak/harness.py (deterministic simulator; total_days simulated=30)"
+      ],
+      "test_refs": [
+        "tests/test_soak.py",
+        "tests/test_soak_report.py",
+        "tests/test_soak_state.py"
+      ],
+      "evidence_refs": [
+        "docs/CURRENT_STATUS.md (production long-run reliability 'not established')"
+      ],
+      "future_owner": "soak/infra",
+      "notes": "Wall-clock 24h/72h soak absent; soak plan in-flight PR #115. Unchanged."
+    },
+    {
+      "requirement_id": "P0-8",
+      "layer": "P0",
+      "verdict": "UNKNOWN",
+      "implementation_refs": [
+        "residual/providers.py (client + protocol validation)"
+      ],
+      "test_refs": [
+        "tests/test_providers.py",
+        "tests/test_connector_conformance.py (test doubles)"
+      ],
+      "evidence_refs": [
+        "docs/CURRENT_STATUS.md (historical live Puter mission m-b98fe1b9: provider_protocol_invalid, FAIL/BLOCKED; post-#205 success 'not established')"
+      ],
+      "future_owner": "provider-integration",
+      "notes": "No retained successful real-account E2E at audited head. Unchanged."
+    },
+    {
+      "requirement_id": "P0-9",
+      "layer": "P0",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "site/coi-serviceworker.js (#189)",
+        "#201 embedded provider setup",
+        "#205 provider-channel recovery",
+        "#248 provider load lifecycle"
+      ],
+      "test_refs": [],
+      "evidence_refs": [
+        "docs/CURRENT_STATUS.md (manual production SDK/sign-in success on exact current main: UNKNOWN)"
+      ],
+      "future_owner": "webvm/provider",
+      "notes": "Scope narrowed by #201/#205/#248; production verification evidence still absent."
+    },
+    {
+      "requirement_id": "P0-10",
+      "layer": "P0",
+      "verdict": "PASS",
+      "implementation_refs": [
+        "demo/vm/ios_webkit_preflight_smoke.py",
+        ".github/workflows/ios-webkit-preflight.yml"
+      ],
+      "test_refs": [
+        "tests/test_webvm_ios_preflight.py"
+      ],
+      "evidence_refs": [
+        "ios-webkit-preflight CI"
+      ],
+      "future_owner": "webvm",
+      "notes": "PASS scoped to fallback routing contract only; heavyweight WebVM on physical iPhone UNKNOWN (#120/#126 open). Unchanged."
+    },
+    {
+      "requirement_id": "P0-11",
+      "layer": "P0",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        ".github/workflows/webvm-runtime-*.yml (9 workflows)",
+        "docs/repeated-live-evidence-design.md"
+      ],
+      "test_refs": [
+        "tests/test_webvm_*.py"
+      ],
+      "evidence_refs": [
+        "no retained repeated-campaign result set"
+      ],
+      "future_owner": "webvm",
+      "notes": "Infrastructure exists; campaign not executed/retained. Unchanged."
+    },
+    {
+      "requirement_id": "P1-1",
+      "layer": "P1-production-control",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "residual/hitl/gateway.py (host-supplied authenticate callable; fail-closed when None)"
+      ],
+      "test_refs": [
+        "tests/test_tracks_2_8.py"
+      ],
+      "evidence_refs": [],
+      "future_owner": "security/HITL",
+      "notes": "Approver identity delegated to host authenticator. Unchanged."
+    },
+    {
+      "requirement_id": "P1-2",
+      "layer": "P1-production-control",
+      "verdict": "PASS",
+      "implementation_refs": [
+        "residual/hitl/gateway.py (atomic single-use consume, BEGIN IMMEDIATE)"
+      ],
+      "test_refs": [
+        "tests/test_tracks_2_8.py"
+      ],
+      "evidence_refs": [
+        "CI green"
+      ],
+      "future_owner": "security/HITL",
+      "notes": "Replay-denied mechanism implemented and tested. Unchanged."
+    },
+    {
+      "requirement_id": "P1-3",
+      "layer": "P1-production-control",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "residual/factory/runtime_journal.py (__init__ refuses corrupt persisted chain; UNIQUE constraints; bounded writer-admission retry = R1 repair)"
+      ],
+      "test_refs": [
+        "tests/test_lifecycle_glue_resume.py",
+        "tests/test_release_stabilization_runtime_journal.py"
+      ],
+      "evidence_refs": [
+        "docs/release/STABILIZATION_2026-09-17.md R1 (3.11 journal contention SIGKILL, retained FAIL; repair merged, no exact-head requalification)"
+      ],
+      "future_owner": "control-plane",
+      "notes": "R1 bounded-retry repair present at head; exactly-one-terminal not a ledger-level guarantee; R1 requalification evidence outstanding."
+    },
+    {
+      "requirement_id": "P1-4",
+      "layer": "P1-production-control",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "residual/control_plane/transactions.py (in-memory saga)",
+        "residual/factory/runtime_journal.py claim() single-active-attempt guard"
+      ],
+      "test_refs": [
+        "tests/test_control_plane.py",
+        "tests/test_gateway_bypass.py"
+      ],
+      "evidence_refs": [
+        "retained FAIL: #207 STRESS-B1 and #212 missing-usage (accepted integration/release before accounting aborted); #214 repair draft/BLOCKED"
+      ],
+      "future_owner": "control-plane",
+      "notes": "Storage-uniqueness/CAS ledger absent; new retained negative evidence on accounting-before-authority ordering."
+    },
+    {
+      "requirement_id": "P1-5",
+      "layer": "P1-production-control",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "residual/providers.py (safe error codes)",
+        "residual/quarantine.py"
+      ],
+      "test_refs": [
+        "tests/test_providers.py",
+        "tests/test_loop_layer.py"
+      ],
+      "evidence_refs": [],
+      "future_owner": "security",
+      "notes": "Error-path discipline present; full boundary unproven. Unchanged."
+    },
+    {
+      "requirement_id": "P1-6",
+      "layer": "P1-production-control",
+      "verdict": "ABSENT",
+      "implementation_refs": [],
+      "test_refs": [],
+      "evidence_refs": [],
+      "future_owner": "security/CI",
+      "notes": "No secret-leakage scan workflow (25 workflows checked) or script. Unchanged."
+    },
+    {
+      "requirement_id": "P1-7",
+      "layer": "P1-production-control",
+      "verdict": "ABSENT",
+      "implementation_refs": [
+        "docs/enterprise/governance/runbooks/station-failure.md (mentions /healthz only)"
+      ],
+      "test_refs": [],
+      "evidence_refs": [],
+      "future_owner": "station/ops",
+      "notes": "No liveness/readiness/mission-success endpoint separation. Unchanged."
+    },
+    {
+      "requirement_id": "P1-8",
+      "layer": "P1-production-control",
+      "verdict": "ABSENT",
+      "implementation_refs": [],
+      "test_refs": [],
+      "evidence_refs": [],
+      "future_owner": "orchestration",
+      "notes": "No bounded-queue/backpressure implementation; spec-only PR #162 open. Unchanged."
+    },
+    {
+      "requirement_id": "P1-9",
+      "layer": "P1-production-control",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "residual/hadr/failover.py"
+      ],
+      "test_refs": [],
+      "evidence_refs": [],
+      "future_owner": "HADR/station",
+      "notes": "No SIGTERM/drain graceful-shutdown handoff in station. Unchanged."
+    },
+    {
+      "requirement_id": "P1-10",
+      "layer": "P1-production-control",
+      "verdict": "ABSENT",
+      "implementation_refs": [
+        "residual/station/store.py (CREATE TABLE IF NOT EXISTS only)",
+        "residual/factory/runtime_journal.py (same pattern)"
+      ],
+      "test_refs": [],
+      "evidence_refs": [],
+      "future_owner": "storage",
+      "notes": "No schema migration framework. Unchanged."
+    },
+    {
+      "requirement_id": "P1-11",
+      "layer": "P1-production-control",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "scripts/factory_termination_matrix.py",
+        ".github/workflows/swarm3-termination-matrix.yml"
+      ],
+      "test_refs": [
+        "tests/test_factory_termination_matrix.py",
+        "tests/test_factory_termination_provenance.py"
+      ],
+      "evidence_refs": [
+        "CI workflow runs"
+      ],
+      "future_owner": "factory/SRE",
+      "notes": "Termination matrix exists; broader disaster/restart matrix not covered. Unchanged."
+    },
+    {
+      "requirement_id": "P1-12",
+      "layer": "P1-production-control",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "docs/enterprise/ENTERPRISE_SPECS.md",
+        "docs/enterprise/governance/runbooks/station-failure.md (RTO/RPO targets)"
+      ],
+      "test_refs": [],
+      "evidence_refs": [],
+      "future_owner": "docs/SRE",
+      "notes": "HA docs exist; limitation vs proven behavior not separated. Unchanged."
+    },
+    {
+      "requirement_id": "P1-13",
+      "layer": "P1-production-control",
+      "verdict": "PASS",
+      "implementation_refs": [
+        "docs/enterprise/governance/runbooks/ (5 runbooks)"
+      ],
+      "test_refs": [],
+      "evidence_refs": [
+        "the documents themselves"
+      ],
+      "future_owner": "docs/SRE",
+      "notes": "Runbooks exist; operational validation not audited. Unchanged."
+    },
+    {
+      "requirement_id": "P1-14",
+      "layer": "P1-production-control",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "residual/hadr/restore.py",
+        "residual/workbench/host_recovery.py"
+      ],
+      "test_refs": [],
+      "evidence_refs": [],
+      "future_owner": "HADR",
+      "notes": "Components exist; not integrated as one suite against real failure injection. Unchanged."
+    },
+    {
+      "requirement_id": "P1-15",
+      "layer": "P1-observability",
+      "verdict": "PASS",
+      "implementation_refs": [
+        "residual/observability/slo.py (DEFAULT_SLOS)"
+      ],
+      "test_refs": [
+        "tests/test_observability_hardening.py"
+      ],
+      "evidence_refs": [
+        "CI green"
+      ],
+      "future_owner": "observability",
+      "notes": "Definitions+tests; production compliance UNKNOWN. Unchanged."
+    },
+    {
+      "requirement_id": "P1-16",
+      "layer": "P1-observability",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "residual/observability/metrics.py (histogram MetricsRegistry)"
+      ],
+      "test_refs": [
+        "tests/test_observability_hardening.py"
+      ],
+      "evidence_refs": [],
+      "future_owner": "observability",
+      "notes": "Histograms exist; explicit p50/p95/p99 export not found. Unchanged."
+    },
+    {
+      "requirement_id": "P1-17",
+      "layer": "P1-observability",
+      "verdict": "ABSENT",
+      "implementation_refs": [],
+      "test_refs": [],
+      "evidence_refs": [],
+      "future_owner": "observability",
+      "notes": "Orchestration-overhead vs model-latency absent; in-flight PRs #93/#167. Unchanged."
+    },
+    {
+      "requirement_id": "P1-18",
+      "layer": "P1-observability",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "residual/providers.py (token usage validation, pricing fields)"
+      ],
+      "test_refs": [
+        "tests/test_providers.py"
+      ],
+      "evidence_refs": [
+        "retained FAIL: #212 missing-usage case integrated before accounting abort"
+      ],
+      "future_owner": "observability",
+      "notes": "Accounting structs validated; no cost SLOs/dashboards; usage can be unknown while integration proceeds."
+    },
+    {
+      "requirement_id": "P1-19",
+      "layer": "P1-observability",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "residual/observability/completeness.py",
+        "residual/observability/exporter.py"
+      ],
+      "test_refs": [
+        "tests/test_observability_hardening.py"
+      ],
+      "evidence_refs": [],
+      "future_owner": "observability",
+      "notes": "Registry completeness checked; no bounded-cardinality guarantee. Unchanged."
+    },
+    {
+      "requirement_id": "P1-20",
+      "layer": "P1-observability",
+      "verdict": "UNKNOWN",
+      "implementation_refs": [],
+      "test_refs": [],
+      "evidence_refs": [],
+      "future_owner": "observability/verifier",
+      "notes": "No telemetry/verifier isolation mechanism found; likely ABSENT, not exhaustively proven. Unchanged."
+    },
+    {
+      "requirement_id": "P1-21",
+      "layer": "P1-observability",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "tests/test_webvm_diagnostics.py",
+        "tests/webvm-diagnostics.test.mjs",
+        "residual/observation_layer/"
+      ],
+      "test_refs": [
+        "tests/test_webvm_diagnostics.py"
+      ],
+      "evidence_refs": [
+        "docs/research.md (retained diagnostics)"
+      ],
+      "future_owner": "webvm/observability",
+      "notes": "Diagnostics exist; sanitization policy not explicit. Unchanged."
+    },
+    {
+      "requirement_id": "P1-22",
+      "layer": "P1-observability",
+      "verdict": "UNKNOWN",
+      "implementation_refs": [
+        "runs/",
+        "evidence/ (per-domain dirs)"
+      ],
+      "test_refs": [],
+      "evidence_refs": [
+        "runs/m4-trust/",
+        "evidence/m4-qualification-prereq/"
+      ],
+      "future_owner": "observability",
+      "notes": "No sufficiency standard to evaluate failure bundles. Unchanged."
+    },
+    {
+      "requirement_id": "P2-1",
+      "layer": "P2",
+      "verdict": "PASS",
+      "implementation_refs": [
+        "verifier/v3/check_factory_ownership.py",
+        "verifier/v3/factory_ownership_baseline.json",
+        ".github/workflows/factory-ownership.yml"
+      ],
+      "test_refs": [
+        "tests/test_factory_ownership_gate.py"
+      ],
+      "evidence_refs": [
+        "docs/status/FACTORY_OWNERSHIP_GATE.md"
+      ],
+      "future_owner": "release-eng",
+      "notes": "Protected-bytes ownership gate present. Unchanged."
+    },
+    {
+      "requirement_id": "P2-2",
+      "layer": "P2",
+      "verdict": "PASS",
+      "implementation_refs": [
+        "scripts/check_maintainer_approval.py",
+        ".github/workflows/maintainer-approval.yml"
+      ],
+      "test_refs": [
+        "tests/test_maintainer_approval_gate.py"
+      ],
+      "evidence_refs": [
+        "docs/CURRENT_STATUS.md (per-head gate results)"
+      ],
+      "future_owner": "governance",
+      "notes": "Mechanism present; known gap: status not published on exact PR head (open fix PR #275); #197 hardened PR Agent as advisory."
+    },
+    {
+      "requirement_id": "P2-3",
+      "layer": "P2",
+      "verdict": "PASS",
+      "implementation_refs": [
+        "implementation-status.yaml",
+        "scripts/status_check.py",
+        "docs/status/IMPLEMENTATION_STATUS.md"
+      ],
+      "test_refs": [
+        "tests/test_traceability.py"
+      ],
+      "evidence_refs": [
+        "the manifest itself"
+      ],
+      "future_owner": "governance",
+      "notes": "Traceability manifest with stale-doc detector. Unchanged."
+    },
+    {
+      "requirement_id": "P2-4",
+      "layer": "P2",
+      "verdict": "UNKNOWN",
+      "implementation_refs": [
+        "verifier/runs/ (retained v1-v3 run logs)"
+      ],
+      "test_refs": [],
+      "evidence_refs": [
+        "verifier/runs/ logs bound to older revisions"
+      ],
+      "future_owner": "verifier",
+      "notes": "Run logs stale at audited head 3cff6bcd. Unchanged."
+    },
+    {
+      "requirement_id": "MS-A",
+      "layer": "MS-architecture",
+      "verdict": "ABSENT",
+      "implementation_refs": [
+        "closest: residual/factory/runtime_journal.py (Factory-scoped); residual/control_plane/transactions.py (in-memory)"
+      ],
+      "test_refs": [],
+      "evidence_refs": [],
+      "future_owner": "control-plane",
+      "notes": "No shared authoritative control store."
+    },
+    {
+      "requirement_id": "MS-B",
+      "layer": "MS-architecture",
+      "verdict": "ABSENT",
+      "implementation_refs": [],
+      "test_refs": [],
+      "evidence_refs": [],
+      "future_owner": "control-plane",
+      "notes": "No dedicated MS-08 writer service (no 'writer service' occurrences)."
+    },
+    {
+      "requirement_id": "MS-C",
+      "layer": "MS-architecture",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "residual/observation_layer/ (hash-chained Observation, SCHEMA_VERSION, verify_chain)",
+        "evidence/{dsm,obs,otx,vq,runtime,eval}/"
+      ],
+      "test_refs": [
+        "observation tests"
+      ],
+      "evidence_refs": [
+        "evidence dirs retained"
+      ],
+      "future_owner": "control-plane/observability",
+      "notes": "Shared schema + per-domain evidence exist; not per-lane shards bound to a control store."
+    },
+    {
+      "requirement_id": "MS-D",
+      "layer": "MS-architecture",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "residual/factory/runtime_journal.py (FULL-synchronous commit-before-ack journal, append-only triggers; Factory scope)"
+      ],
+      "test_refs": [
+        "tests/test_release_stabilization_runtime_journal.py"
+      ],
+      "evidence_refs": [],
+      "future_owner": "control-plane",
+      "notes": "Local emergency journal exists at Factory scope only."
+    },
+    {
+      "requirement_id": "MS-E",
+      "layer": "MS-architecture",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "runtime_journal.py UNIQUE constraints + claim() single-active-attempt guard + finish() terminal-transition guard"
+      ],
+      "test_refs": [
+        "tests/test_lifecycle_glue_resume.py"
+      ],
+      "evidence_refs": [],
+      "future_owner": "control-plane",
+      "notes": "Exactly-one-terminal enforced for Factory attempts only; no CAS + uniqueness across control-plane terminal states."
+    },
+    {
+      "requirement_id": "MS-F",
+      "layer": "MS-architecture",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "runtime_journal.py docstring: commits each event before acknowledgement; hitl/gateway.py atomic consume"
+      ],
+      "test_refs": [
+        "tests/test_tracks_2_8.py"
+      ],
+      "evidence_refs": [],
+      "future_owner": "control-plane",
+      "notes": "Commit-before-ack at component scope; no writer-service ack protocol."
+    },
+    {
+      "requirement_id": "MS-G",
+      "layer": "MS-architecture",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "runtime_journal.py lease generation monotonicity + LeaseRead tri-state",
+        "residual/workbench/browser_worker.py poison-record fences"
+      ],
+      "test_refs": [
+        "tests/test_webvm_poison_restart.py (browser scope)"
+      ],
+      "evidence_refs": [],
+      "future_owner": "control-plane",
+      "notes": "Fencing at Factory/browser scope; no control-plane fencing tokens; in-flight PR #118."
+    },
+    {
+      "requirement_id": "MS-H",
+      "layer": "MS-architecture",
+      "verdict": "ABSENT",
+      "implementation_refs": [
+        "residual/providers.py is a client, not a resolver contract"
+      ],
+      "test_refs": [],
+      "evidence_refs": [],
+      "future_owner": "provider-integration",
+      "notes": "Provider resolver contract not present. Unchanged."
+    },
+    {
+      "requirement_id": "MS-I",
+      "layer": "MS-architecture",
+      "verdict": "ABSENT",
+      "implementation_refs": [],
+      "test_refs": [],
+      "evidence_refs": [],
+      "future_owner": "architecture",
+      "notes": "No D0-D4 determinism-class occurrences (code search). Unchanged."
+    },
+    {
+      "requirement_id": "MS-J",
+      "layer": "MS-architecture",
+      "verdict": "ABSENT",
+      "implementation_refs": [],
+      "test_refs": [],
+      "evidence_refs": [],
+      "future_owner": "release-eng/verifier",
+      "notes": "No G0-G7 gate evidence index; Qualification v1 framework in open PR #152 (not merged at audit time)."
+    },
+    {
+      "requirement_id": "MS-K",
+      "layer": "MS-architecture",
+      "verdict": "PARTIAL",
+      "implementation_refs": [
+        "runtime_journal.py __init__ restart chain validation",
+        "control_plane/transactions.py RECONCILING states"
+      ],
+      "test_refs": [],
+      "evidence_refs": [],
+      "future_owner": "control-plane",
+      "notes": "No startup reconciliation pass over a durable ledger. Unchanged."
+    }
+  ],
+  "row_count": 48
+}
