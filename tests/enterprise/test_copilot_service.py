@@ -91,3 +91,34 @@ def test_reviewer_auditor_and_lead_permissions_are_enforced_end_to_end():
     assert service.api.handle("GET",f"/v1/copilot/missions/{mid}","Bearer "+auditor,None,now=1100).status==200
     assert service.api.handle("POST",f"/v1/copilot/missions/{mid}/cancel","Bearer "+auditor,{},now=1100).status==404
     assert service.api.handle("POST",f"/v1/copilot/missions/{mid}/cancel","Bearer "+lead,{},now=1100).status==202
+
+
+def test_department_reviewer_does_not_cross_department_boundary():
+    dep=_deployment(); key=rsa_generate_keypair(1024)
+    fw_backend=InMemoryMissionBackend(); fw_store=InMemoryMissionStore()
+    fw_service=DepartmentCopilotService(
+        "firmware",dep,fw_backend,fw_store,jwks_provider=lambda kid:key.public_key,
+    )
+    fw_profile,_=dep.departments()["firmware"]
+    owner_token=_token(fw_service,key,next(iter(fw_profile.allowed_groups)))
+    created=fw_service.api.handle(
+        "POST","/v1/copilot/missions","Bearer "+owner_token,
+        {"request_id":"review-boundary","template_id":"firmware-repository-analysis",
+         "objective":"Analyze firmware.","inputs":{"repository_id":"firmware_sample"}},now=1100,
+    )
+    mid=created.body["mission_id"]
+
+    mechanical_reviewer=next(iter(dep.departments()["mechanical"][0].reviewer_groups))
+    reviewer_token=jwt_encode({
+        "iss":fw_service.deployment.entra().issuer,"sub":"mech-reviewer",
+        "aud":fw_service.deployment.entra().audience,"iat":1000,"exp":1200,
+        "tid":fw_service.deployment.tenant_id,"oid":"mech-reviewer",
+        "scp":"access_as_user","groups":[mechanical_reviewer],
+        "azp":fw_service.deployment.connector_client_app_id,
+    },key,alg="RS256",headers={"kid":"k1"})
+    denied=fw_service.api.handle(
+        "GET",f"/v1/copilot/missions/{mid}/evidence",
+        "Bearer "+reviewer_token,None,now=1100,
+    )
+    assert denied.status==404
+    assert denied.body["code"]=="not_found"
