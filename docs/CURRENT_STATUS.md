@@ -14,7 +14,7 @@ Five accepted changes since the preceding documented `e7b72ad...` boundary mater
 - **#260** — provider bootstrap guard. The embedded provider Load control now fails closed until its private bridge is initialized. This is accepted repository/UI transport behavior, not proof of paid/live Puter inference.
 - **#288 / #208** — pre-dispatch Station budget/deadline authority repair. Runner and reviewer dispatch are admitted through host-owned run accounting, unknown usage fails conservatively, later authority effects are rechecked, and release export requires a successful run-control result bound to the exact project head/spec. #208 is closed. Historical #207/#212 frozen outcomes are retained rather than reclassified.
 - **#320** — repository-side CSP and anti-clickjacking hardening. The Vercel configuration defines CSP, `frame-ancestors 'none'`, `X-Frame-Options: DENY`, `nosniff`, referrer policy and restrictive permissions policy. GitHub Pages can only use the HTML CSP fallback because arbitrary repository-controlled HTTP response headers are unavailable there. Post-merge production Vercel header inspection/Aikido validation is **UNKNOWN / pending**.
-- **#328** — accepted core non-workflow split of #324. It replaces host-interpreter third-party execution with required kernel isolation/fail-closed behavior, hardens connector origin/redirect/proxy handling against SSRF/bearer forwarding, hardens SAML XML parsing, and adds bounded marketplace/recovery/telemetry/demo-gateway protections and regression coverage. The workflow `persist-credentials: false` portion remains open in #324 and is not claimed as accepted by #328.
+- **#328** — accepted core non-workflow split of #324. It replaces host-interpreter third-party execution with required kernel isolation/fail-closed behavior, hardens connector origin/redirect/proxy handling against SSRF/bearer forwarding, hardens SAML XML parsing, and adds bounded marketplace/recovery/telemetry/demo-gateway protections and regression coverage. The remaining workflow `persist-credentials: false` work has been split onto focused current-main PR **#330**; it remains **OPEN / unaccepted**, and stale overlapping #324 must not be merged wholesale.
 
 No change above broadens Factory/M4, verifier, evidence-schema or acceptance authority.
 
@@ -68,15 +68,17 @@ Draft **#323** remains based on the older `e7b72ad...` main at exact head `f32b9
 
 Repository-side policy is accepted. Production Vercel response-header enforcement has not been established by retained post-merge production inspection in this status check, so that claim remains **UNKNOWN / pending**. The GitHub Pages origin cannot be described as emitting the Vercel-only response headers; its repository-controlled mitigation is the HTML CSP fallback.
 
-### #328 / #324 split
+### #328 / #330 workflow-hardening split
 
 Merged #328 accepts the non-workflow core of the Aikido remediation pass: kernel-enforced supply-chain execution isolation, connector SSRF/bearer hardening, defused XML parsing and bounded supporting security controls/tests.
 
-Original #324 still carries workflow credential-persistence hardening that could not be included in the core split without workflow-scoped credentials. Therefore:
+The remaining GitHub Actions checkout credential-persistence hardening has been rebuilt directly from exact current main as focused PR **#330**, rather than carrying the stale overlapping #324 branch forward wholesale. #330 sets `persist-credentials: false` on the remaining checkout steps while preserving the accepted #307 and #267 workflow semantics and adds a structural regression test. At current exact head `97dca2bf1850ea67e0d0e5292081410c1eb0f1f0`, the protected `maintainer-approval` status is **FAIL** because no matching exact-head human attestation exists. Therefore:
 
 - #328 core source/runtime security changes: **ACCEPTED on main**;
-- #324 workflow `persist-credentials: false` changes: **OPEN / unaccepted**;
-- blanket claim that all #324 findings are closed: **not supported**;
+- #330 workflow credential-persistence hardening: **OPEN / unaccepted**;
+- #330 merge/acceptance: **BLOCKED by the failed exact-head maintainer-approval gate** until governance is satisfied;
+- stale overlapping #324: **must not be merged wholesale**;
+- blanket claim that all #324-derived findings are closed: **not supported**;
 - production deployment/security posture beyond the retained accepted changes: scoped to its own evidence, not globally PASS.
 
 Aikido-generated #321/#322 remain separate vendor-generated candidates; vendor confidence text is not repository acceptance evidence.
@@ -88,6 +90,21 @@ Issue #305 recorded severe Actions saturation, including an original snapshot of
 Merged **#307** now removes the identified duplicate generic feature-branch push fan-out for the affected general CI workflows while preserving PR qualification and non-cancelling production evidence. The current Actions API reports **0 queued runs**. Therefore the acute operational blocker is presently cleared and the structural repair is accepted, even though #305 itself remains open in GitHub.
 
 Queue recovery is not permission to cancel, overwrite or reinterpret required first-attempt qualification evidence.
+
+### Qualification-v1 testing branch
+
+PR **#331** merged only into `testing/qualification-v1`, not `main`. It repaired the browser-adversarial harness defects and the concurrency-test reader/admission race without changing the protected `residual/factory/runtime_journal.py` bytes or weakening the asserted invariants. That moves open PR **#152** to exact testing-branch head **`24816ebc778b26497dd30497e59f6f2badcf39ed`**.
+
+On that exact branch head, the retained check set includes **PASS** for `aggregate`, `browser-adversarial`, `concurrency`, `m4`, `m4-prereq`, the browser matrix, deterministic/fault/discovery lanes and the generated browser proof. The protected `maintainer-approval` gate is still **FAIL** because no exact-head attestation is present. The Aikido code check completed under its threshold but reported **2 new MEDIUM and 19 new LOW findings**, while its Deep Review was **SKIPPED** because no credits were available.
+
+Therefore:
+
+- repaired Qualification-v1 branch technical gates named above: **PASS on exact testing-branch head `24816ebc...`**;
+- prior Qualification-v1 attempt-1 failures: **retained historical FAIL evidence**, not erased;
+- #152 accepted-main capability: **UNKNOWN / not established** because the PR is still open/unmerged;
+- #152 maintainer approval: **FAIL** on that exact head;
+- #152 security review completeness: **UNKNOWN / incomplete** because reported findings remain and Deep Review did not execute;
+- no #152 branch PASS broadens exact-current-main Factory/M4 or release qualification.
 
 ## Live provider / WebVM boundary
 
@@ -138,11 +155,12 @@ General autonomous discovery and recursive self-improvement remain **UNKNOWN / n
 1. **Requalify repaired authority ordering.** Retain fresh tests/experiments against accepted #288 before promoting stronger present-tense budget/unknown-usage/release-ordering claims.
 2. **Rebase/requalify #323.** Do not run the first authoritative Workbench trial until the branch is based on a main containing #288 and its required gates pass.
 3. **Validate #320 in production.** Inspect the production Vercel response headers and rerun the relevant security check before calling production CSP/anti-clickjacking remediation PASS.
-4. **Finish #324 workflow hardening.** Keep the open workflow credential-persistence changes separate from accepted #328 core hardening.
-5. **Retain fresh live-provider semantic evidence** or keep exact-current-main paid/live provider success UNKNOWN.
-6. **Complete blank-environment, recovery/host-loss, elapsed-soak and physical/mobile reliability work** without broadening bounded results.
-7. **Keep research claims bounded.** General recursive self-improvement and general mesh efficiency remain UNKNOWN; M6-008 remains BLOCKED.
-8. **Preserve exact-main Pages evidence.** Keep run `35431634267`, attempt 1, as the scoped production Pages PASS for `0a675017...`; do not use that PASS to infer provider/model quality, physical-device reliability, every-host M4 qualification, or unrelated security claims.
+4. **Finish and govern #330 workflow hardening.** Keep its unaccepted workflow credential-persistence changes separate from accepted #328 and do not merge stale overlapping #324 wholesale.
+5. **Complete #152 governance/security review.** Its repaired testing-branch technical gates are positive evidence, but exact-head maintainer approval is FAIL and the scanner findings/Deep Review gap remain unresolved; do not import branch PASS into main.
+6. **Retain fresh live-provider semantic evidence** or keep exact-current-main paid/live provider success UNKNOWN.
+7. **Complete blank-environment, recovery/host-loss, elapsed-soak and physical/mobile reliability work** without broadening bounded results.
+8. **Keep research claims bounded.** General recursive self-improvement and general mesh efficiency remain UNKNOWN; M6-008 remains BLOCKED.
+9. **Preserve exact-main Pages evidence.** Keep run `35431634267`, attempt 1, as the scoped production Pages PASS for `0a675017...`; do not use that PASS to infer provider/model quality, physical-device reliability, every-host M4 qualification, or unrelated security claims.
 
 ## Claim discipline
 
