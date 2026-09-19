@@ -12,7 +12,7 @@ The documents under [`source/`](source/) preserve earlier design generations and
 | Command Station | Implemented; exact-revision workflow results remain authoritative |
 | Factory M2/M3/M4 | Implemented; protected claims remain exact-revision/environment bound and universal capable-runner qualification is not implied |
 | Station budget/deadline admission | #288 accepted; pre-dispatch runner/reviewer admission and exact run-control-bound export eligibility are current behavior; stronger repaired-path empirical claims still need fresh requalification |
-| Mission Control/WebVM lifecycle | Bounded recovery, diagnostics, iOS fallback and provider/session/bootstrap hardening are accepted; exact-current-main production Pages qualification is **UNKNOWN / pending** while run `35437556200` executes |
+| Mission Control/WebVM lifecycle | Bounded recovery, diagnostics, iOS fallback and provider/session/bootstrap hardening are accepted; exact-current-main production Pages qualification is **FAIL** on run `35437556200` because the required narrow/mobile Chromium acceptance failed, while desktop real-guest acceptance passed |
 | Native setup path | #200 hardening is accepted; blank-environment qualification remains open |
 | Live provider acceptance | Historical retained Puter failure remains scoped to its exact run; exact-current-main paid/live candidate→verifier→receipt success remains **UNKNOWN** |
 | Frozen evaluation framework | Implemented research apparatus; CI binding is not confirmatory live-model evidence |
@@ -66,9 +66,13 @@ Accepted #276 requires every new `main` SHA to receive its own non-cancelling fi
 
 For `main@3bfa6aba...`:
 
-- production Pages run **`35437556200`**, attempt 1: **IN PROGRESS**;
-- current exact-main publication/browser/real-guest classification: **UNKNOWN / pending**;
-- current queued Actions snapshot: **23**;
+- production Pages run **`35437556200`**, attempt 1: **FAIL**;
+- generated artifact/browser proof: **PASS**;
+- deployment, served revision identity, and desktop real-guest acceptance: **PASS**;
+- required narrow/mobile Chromium acceptance: **FAIL** after reaching the live guest and several Workbench stages;
+- retained live-proof artifact: `10582812524`, SHA-256 `868ca31506d278a335ff95d3607adbd13c14edaec8b161c1b45ac013e7f7c8b8`;
+- lower-level mobile/narrow failure cause: **UNKNOWN**;
+- current queued Actions snapshot: **0**;
 - every-host/capable-runner M4 qualification: **not established**;
 - blank-environment install: **not established**;
 - paid/live provider semantic success: **UNKNOWN / not established**;
@@ -76,7 +80,7 @@ For `main@3bfa6aba...`:
 - production Vercel security-header validation: **UNKNOWN / pending**;
 - recovery/elapsed-soak qualification: **not established**.
 
-The predecessor `main@0a675017...` production Pages run `35431634267`, attempt 1, remains a scoped exact-revision **PASS**. It is historical evidence after main moved and must not be inherited by `3bfa6aba...`. The still earlier production Pages **FAIL** on `e7b72ad...` likewise remains exact-revision historical evidence.
+The predecessor `main@0a675017...` production Pages run `35431634267`, attempt 1, remains a scoped exact-revision **PASS**. It is historical evidence after main moved and must not be inherited by `3bfa6aba...`. The still earlier production Pages **FAIL** on `e7b72ad...` likewise remains exact-revision historical evidence. The current `3bfa6aba...` run is an independent first-attempt FAIL; the desktop sub-check PASS does not override the terminal qualification result.
 
 ## Research and development state
 
@@ -113,7 +117,7 @@ Do not describe this as blanket security qualification. Each accepted change is 
 
 ## Qualification infrastructure
 
-Issue **#305** remains historical evidence of severe queue saturation. **#307 is merged** as the structural duplicate feature-branch fan-out repair. The current post-#330 queued-run snapshot is **23**, which should be tracked operationally but does not by itself establish recurrence of the prior saturation severity.
+Issue **#305** remains historical evidence of severe queue saturation. **#307 is merged** as the structural duplicate feature-branch fan-out repair. The current queued-run snapshot is **0**, which is current operational state only and does not erase the historical saturation record.
 
 Production Pages/main first-attempt evidence remains non-cancelling. Queue recovery or CI deduplication does not authorize skipping, cancelling, or rewriting required qualification outcomes.
 
@@ -121,7 +125,7 @@ Qualification-v1 remains separate testing-branch evidence. PR **#331** merged in
 
 ## Current build order
 
-1. **Finish exact-current-main qualification after #330.** Preserve first-attempt production Pages run `35437556200` and keep the `3bfa6aba...` cell UNKNOWN until it completes.
+1. **Investigate and requalify the exact-current-main production Pages FAIL.** Preserve first-attempt run `35437556200` and live-proof artifact `10582812524`; do not let the desktop sub-check PASS overwrite the required mobile/narrow failure.
 2. **Requalify the repaired #288 authority path.** Retain fresh evidence for budget exhaustion, unknown usage, terminal verifier/release ordering, and export binding before making stronger present-tense claims.
 3. **Rebase/requalify Research Workbench #323** before M6-WB-001 can run authoritatively.
 4. **Validate #320 on production Vercel.** Inspect actual response headers and rerun the relevant security check; configuration merge alone is not production-header PASS.
