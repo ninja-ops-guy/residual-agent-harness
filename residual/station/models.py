@@ -70,7 +70,8 @@ def model_call(store, pid, role, packet, system, schema=None, placement="local",
             usage = normalized_usage(value["usage"])
             store.event(pid, "usage.recorded", {"role":role, "placement":placement, "model":value["model"], "provider":value["provider"],
                 **asdict(usage), "request_bytes":value["request_bytes"], "elapsed_ms":value["elapsed_ms"], "status":value["status"],
-                "request_id":value["request_id"], "provider_attempt":value["attempt"], "error":value["error"]}, tid)
+                "request_id":value["request_id"], "provider_attempt":value["attempt"],
+                "provider_metadata":value.get("response_metadata", {}), "error":value["error"]}, tid)
     router = Router(registry=reg, default_provider=primary["kind"], observation_bus=store.observation_bus(pid, role=role, placement=placement, task=tid or ""),
                     before_attempt=reserve, after_attempt=receipt)
     start = time.monotonic()
