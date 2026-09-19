@@ -188,16 +188,28 @@ class RACModule:
                 return CheckResult.FAIL, f"evidence[{index}] outcome is invalid"
             producer = bundle.get("producer_id")
             verifier = bundle.get("independent_verifier_id")
+            producer_identity = bundle.get("producer_identity_sha256")
+            verifier_identity = bundle.get("independent_verifier_identity_sha256")
+            verifier_receipt = bundle.get("independent_verifier_receipt_sha256")
+            replication_receipt = bundle.get("replication_receipt_sha256")
             if not isinstance(producer, str) or not producer:
                 return CheckResult.FAIL, f"evidence[{index}] producer identity missing"
+            if not _is_sha256(producer_identity):
+                return CheckResult.FAIL, f"evidence[{index}] producer identity hash invalid"
             if not isinstance(verifier, str) or not verifier:
                 return CheckResult.FAIL, f"evidence[{index}] verifier identity missing"
-            if producer == verifier:
+            if not _is_sha256(verifier_identity):
+                return CheckResult.FAIL, f"evidence[{index}] verifier identity hash invalid"
+            if not _is_sha256(verifier_receipt):
+                return CheckResult.FAIL, f"evidence[{index}] verifier receipt hash invalid"
+            if producer == verifier or producer_identity == verifier_identity:
                 return CheckResult.FAIL, f"evidence[{index}] is self-verified"
             if not isinstance(bundle.get("replication_id"), str) or not bundle.get(
                 "replication_id"
             ):
                 return CheckResult.FAIL, f"evidence[{index}] replication identity missing"
+            if not _is_sha256(replication_receipt):
+                return CheckResult.FAIL, f"evidence[{index}] replication receipt hash invalid"
 
             try:
                 evidence_hashes.append(_sha256(bundle))
@@ -234,11 +246,26 @@ class RACModule:
             expected = "REJECTED"
         elif any(outcome == "INCONCLUSIVE" for outcome in outcomes):
             expected = "INCONCLUSIVE"
-        elif len({bundle.get("replication_id") for bundle in bundles}) < 2:
+        elif (
+            len({bundle.get("replication_id") for bundle in bundles}) < 2
+            or len({bundle.get("replication_receipt_sha256") for bundle in bundles}) < 2
+        ):
             expected = "INCONCLUSIVE"
-        elif len(
-            {bundle.get("independent_verifier_id") for bundle in bundles}
-        ) < 2:
+        elif (
+            len({bundle.get("independent_verifier_id") for bundle in bundles}) < 2
+            or len(
+                {
+                    bundle.get("independent_verifier_identity_sha256")
+                    for bundle in bundles
+                }
+            ) < 2
+            or len(
+                {
+                    bundle.get("independent_verifier_receipt_sha256")
+                    for bundle in bundles
+                }
+            ) < 2
+        ):
             expected = "INCONCLUSIVE"
         elif bundles and all(outcome == "PASS" for outcome in outcomes):
             expected = "PROMOTABLE"
@@ -254,7 +281,7 @@ class RACModule:
         if expected == "PROMOTABLE":
             return (
                 CheckResult.PASS,
-                "replicated PASS evidence has distinct replication and verifier identities",
+                "replicated PASS evidence has hash-distinct replication and verifier receipts",
             )
         return CheckResult.PASS, f"non-promotable evidence coherently remains {expected}"
 
