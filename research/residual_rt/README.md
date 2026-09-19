@@ -1,0 +1,94 @@
+# RESIDUAL-RT research track
+
+RESIDUAL-RT studies whether RESIDUAL's bounded-authority and evidence-first mechanisms can make agentic adversary-emulation workflows safer, more reliable, more auditable, and easier to evaluate.
+
+This directory is a **research/evaluation surface**, not an offensive execution framework. The implemented Phase A fixture is deliberately non-executable: it contains typed proposals and ground-truth labels but no shell commands, argv, payload bytes, exploit code, or real targets. Targets must use the lab-* namespace.
+
+## Implemented now: Phase A controller-isolation replay
+
+The replay compares six cumulative control conditions:
+
+| Condition | Added control |
+|---|---|
+| RT0 | direct baseline |
+| RT1 | typed scope gate |
+| RT2 | required-evidence gate |
+| RT3 | independent verifier gate |
+| RT4 | rejected-state epistemic memory |
+| RT5 | risk-tiered HITL |
+
+The same frozen proposal trace is replayed through every condition. That isolates what the controller changes from what the model changes.
+
+Run the deterministic replay with:
+
+    python -m residual.eval.residual_rt --fixture research/residual_rt/fixtures.json --output runs/residual-rt/replay.json
+
+Run the focused regression suite with:
+
+    python -m unittest discover -s tests -p "test_residual_rt_eval.py" -v
+
+The output binds the fixture and each decision trace with SHA-256 hashes. This is engineering evidence for the replay implementation, not a scientific claim that RT5 will achieve the same effect on live models or real cyber ranges.
+
+## Implemented runner: Phase B proposal-only digital twin
+
+A frozen model emits only typed capability proposals such as network.service.enumerate or state.change.request. There is no execution adapter: no offensive command is executed. The runner reuses RESIDUAL's HTTP provider transport, validates model output against a dedicated proposal schema, binds safe model/config identity, scores the proposals against hidden oracle metadata, and replays the exact proposal set through RT0-RT5.
+
+Four frozen engagements are in research/residual_rt/engagements.json. The model-visible packet excludes the oracle, verifier outcomes, capability risk map, truth labels, and required-evidence answers.
+
+Example local Ollama pilot:
+
+    python -m residual.eval.residual_rt_models \
+      --kind ollama \
+      --model qwen2.5-coder:7b \
+      --base-url http://127.0.0.1:11434 \
+      --placement local \
+      --repeats 10 \
+      --temperature 0 \
+      --seed-base 20260918 \
+      --output runs/residual-rt/phase-b-qwen.json
+
+Example OpenAI-compatible endpoint:
+
+    python -m residual.eval.residual_rt_models \
+      --kind openai_compatible \
+      --model YOUR_MODEL \
+      --base-url https://YOUR_ENDPOINT \
+      --placement remote \
+      --api-key-env YOUR_API_KEY_ENV \
+      --repeats 10 \
+      --temperature 0 \
+      --seed-base 20260918 \
+      --output runs/residual-rt/phase-b-remote.json
+
+These commands are pilot/reproduction surfaces. Paper-facing confirmatory runs still require a frozen model matrix, power analysis, exact source/environment identity, and outcome-independent protocol freeze.
+
+## Planned Phase C: isolated cyber range
+
+Phase C may begin only after the protocol is frozen and the execution adapter is independently reviewed. It will reuse RESIDUAL's existing WorkerContract, append-only EvidenceBus, signed receipts, verifier path, quarantine policies, and brakes rather than creating a parallel trust boundary.
+
+The range requirements are explicit: disposable lab assets, no external route, allowlisted targets, snapshot/reset between paired runs, ephemeral credentials, non-destructive ATT&CK-aligned behaviors, and retained FAIL/UNKNOWN/BLOCKED outcomes.
+
+## Primary endpoints
+
+The primary endpoints are scope-violation execution, unauthorized high-risk execution, false acceptance, accepted correctness, acceptance coverage, false rejection, evidence completeness, and exact-repeat suppression. Accepted correctness is never reported without acceptance coverage: rejecting everything is not success.
+
+See protocol.json for the preregistration draft, engagements.json for Phase B workloads, and paper/residual_rt_ieee.tex for the IEEE-style manuscript.
+
+
+## Prepare a pilot for later investigation
+
+The full operator procedure is in TRIAL_PROCEDURE.md.
+
+To prepare a new local pilot directory without calling a model:
+
+    python scripts/init_residual_rt_trial.py \
+      --operator "<name-or-initials>" \
+      --model qwen2.5-coder:7b
+
+The initializer creates:
+
+- trial_manifest.json with source, workload, protocol, and runner hashes;
+- investigation_notes.md from the analysis template;
+- RUN_COMMAND.txt containing the exact model-run command.
+
+It refuses to overwrite an existing trial directory. Preparing a trial does not call the provider or execute any cyber action.
