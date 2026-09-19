@@ -70,8 +70,12 @@ def candidate() -> dict:
                 "artifact_sha256s": [SHA],
                 "outcome": "PASS",
                 "producer_id": "rri-001-worker",
+                "producer_identity_sha256": "b" * 64,
                 "independent_verifier_id": verifier,
+                "independent_verifier_identity_sha256": ("c" if number == 1 else "d") * 64,
+                "independent_verifier_receipt_sha256": ("e" if number == 1 else "f") * 64,
                 "replication_id": replication,
+                "replication_receipt_sha256": ("1" if number == 1 else "2") * 64,
                 "notes": "synthetic contract-conformance fixture",
             }
         )
