@@ -142,13 +142,19 @@ class DepartmentProfile:
             raise ContractError("caller is not authorized for this department profile")
 
     def can_read_mission(self, principal: CopilotPrincipal, owner_object_id: str) -> bool:
-        if principal.object_id == owner_object_id:
-            return True
+        owner_active = (
+            principal.object_id == owner_object_id
+            and bool(principal.groups & self.allowed_groups)
+        )
         privileged = self.reviewer_groups | self.lead_groups | self.auditor_groups
-        return bool(principal.groups & privileged)
+        return owner_active or bool(principal.groups & privileged)
 
     def can_control_mission(self, principal: CopilotPrincipal, owner_object_id: str) -> bool:
-        return principal.object_id == owner_object_id or bool(principal.groups & self.lead_groups)
+        owner_active = (
+            principal.object_id == owner_object_id
+            and bool(principal.groups & self.allowed_groups)
+        )
+        return owner_active or bool(principal.groups & self.lead_groups)
 
     def authorize(self, principal: CopilotPrincipal, template: MissionTemplate) -> None:
         self.require_membership(principal)
