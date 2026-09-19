@@ -110,7 +110,13 @@ def test_duplicate_terminal_write_race_emits_one_terminal_transition(tmp_path: P
     assert len(terminal) == 1
 
 
-def test_revoked_lease_never_resurrects_during_concurrent_restart_reads(tmp_path: Path):
+def test_revoked_lease_never_resurrects_during_concurrent_restart_reads(tmp_path: Path, monkeypatch):
+    # Constructor write-admission busy-waits only WRITE_CONNECT_TIMEOUT_S (0.2s)
+    # with no retry; under this test's deliberate reopen storm the stock budget
+    # expires spuriously. Give constructors the same budget writer transactions
+    # already get; revocation assertions below are unchanged.
+    monkeypatch.setattr(RuntimeJournal, "WRITE_CONNECT_TIMEOUT_S",
+                        RuntimeJournal.WRITE_TRANSACTION_TIMEOUT_S)
     path = tmp_path / "restart.sqlite3"
     journal = RuntimeJournal(path, trace_id="restart-race")
     candidate = contract(4000)
@@ -125,8 +131,14 @@ def test_revoked_lease_never_resurrects_during_concurrent_restart_reads(tmp_path
     def reader() -> None:
         local = RuntimeJournal(path, trace_id="restart-race")
         while not stop.is_set():
+            # Sample the revocation flag BEFORE the durable read. The flag is
+            # set only after revoke() commits, so a read taken after observing
+            # it must never see a resurrected lease. Checking the flag after
+            # the read would race a pre-revoke snapshot against a post-revoke
+            # flag and report a violation that never existed.
+            already_revoked = revoked.is_set()
             state = local.lease_state(candidate)
-            if revoked.is_set() and state != "revoked":
+            if already_revoked and state != "revoked":
                 with lock:
                     violations.append(state)
                 return
