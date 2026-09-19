@@ -88,8 +88,16 @@ class ArenaStationApiTests(unittest.TestCase):
 
     def test_connection_test_is_served_after_exact_model_selection(self):
         settings = self.station.store.settings()
+        cloud = settings["cloud"]
         save_settings(self.station.store, {
-            "cloud": {**settings["cloud"], "model": "model-a"},
+            "cloud": {
+                "kind": cloud["kind"],
+                "model": "model-a",
+                "base_url": cloud["base_url"],
+                "output_token_field": cloud["output_token_field"],
+                "region": cloud.get("region", "us-east-1"),
+                "api_version": cloud.get("api_version", "2024-10-21"),
+            },
         })
         captured = {}
 
