@@ -15,7 +15,14 @@ PROVIDERS={
  'google':{'label':'Google Gemini','base_url':'https://generativelanguage.googleapis.com/v1beta'},
  'azure':{'label':'Azure OpenAI','base_url':''},
  'bedrock':{'label':'AWS Bedrock','base_url':''},
- 'arena':{'label':'Arena API','base_url':'https://api.preview.arena.ai/v1'},
+ 'arena':{
+     'label':'Arena API',
+     'base_url':'https://api.preview.arena.ai/v1',
+     'setup_url':'https://portal.api.preview.arena.ai/dashboard/keys',
+     'docs_url':'https://portal.api.preview.arena.ai/docs/api-reference',
+     'setup_label':'Get Arena API key',
+     'setup_help':'Create a virtual Arena API key, copy it once, then paste it into RESIDUAL.'
+ },
 }
 ENV_KEYS={'openai':'OPENAI_API_KEY','openai_compatible':'LLM_API_KEY','anthropic':'ANTHROPIC_API_KEY','google':'GEMINI_API_KEY','azure':'AZURE_OPENAI_API_KEY','ollama':'OLLAMA_API_KEY','arena':'ARENA_API_KEY'}
 
