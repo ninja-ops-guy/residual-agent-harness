@@ -36,6 +36,27 @@ With two models, the bundled six-task evaluation fixture produces 72 scheduled o
 
 For the originally proposed 36-observation smoke, use a separately frozen three-task workload file.
 
+### Live transport smoke
+
+The checked-in `live-smoke.manifest.json` uses the same public development tasks but marks the execution evidence as live-model evidence. It is an **apparatus/transport smoke**, not an independent held-out benchmark.
+
+Freeze it after choosing one Arena model:
+
+    python -m residual.workbench arena freeze \
+      --manifest experiments/AX-ARENA-01/live-smoke.manifest.json \
+      --model arena:<MODEL_ID> \
+      --output runs/arena/AX-ARENA-01-live.lock.json
+
+Then execute the frozen randomized schedule end-to-end:
+
+    python -m residual.workbench arena run \
+      --lock runs/arena/AX-ARENA-01-live.lock.json \
+      --output runs/arena/AX-ARENA-01-live
+
+The live runner performs a raw one-call Arena control and the same model behind RESIDUAL's actual obligation harness. It withholds each task's expected answer from both model inputs, uses the frozen answer only in trusted verification/evaluation code, writes one durable trace per scheduled cell, records provider failures as `UNKNOWN`, and automatically emits `report.json`.
+
+The runner refuses to start if the repository source hashes differ from the frozen lock or if the protocol is still labelled `development_fixture`.
+
 ## Trace contract
 
 Each scheduled observation must produce one `residual.arena-trace.v1` JSON object. The scorer refuses duplicate, unexpected, mismatched, or missing observations.
