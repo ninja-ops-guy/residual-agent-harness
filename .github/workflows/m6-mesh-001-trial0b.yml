@@ -1,0 +1,33 @@
+name: M6 MESH 001 Trial 0B
+on:
+  pull_request:
+    branches: [main]
+jobs:
+  trial0b:
+    if: github.head_ref == 'experiment/m6-mesh-001-cooperative-efficiency'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+      - name: Start Ollama
+        run: |
+          nohup ollama serve >/tmp/ollama-mesh-0b.log 2>&1 &
+          for i in {1..30}; do
+            curl -fsS http://127.0.0.1:11434/api/tags >/dev/null && exit 0
+            sleep 1
+          done
+          exit 1
+      - name: Pull frozen model
+        run: ollama pull qwen2.5-coder:1.5b
+      - name: Run warm-controlled Trial 0B
+        run: python scripts/m6_mesh_001_trial0b.py --repeats 8 --output runs/m6-mesh-001/trial0b.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m6-mesh-001-trial0b
+          path: runs/m6-mesh-001/trial0b.json
