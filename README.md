@@ -29,7 +29,9 @@ Recent accepted governance/qualification changes include:
 - **#275** — repairs exact-PR-head publication of the protected `maintainer-approval` result after explicit exact-head human attestation. This is governance hardening, not expanded model, verifier, Factory/M4, provider or acceptance authority.
 - **#276** — closes #267 by ensuring every new `main` SHA receives an authoritative production Pages qualification attempt without relying on the previous `push.paths` filter. Production Pages attempts remain non-cancelling first-attempt evidence.
 
-The first authoritative production Pages attempt for exact current main is run **`35410875305`**, attempt 1, and is **FAIL**. The generated desktop+narrow browser proof passed, deployment passed, and the published live acceptance then failed at `Verify published WebVM revision and real guest execution`; published narrow acceptance was skipped. Retained live proof exists for that exact run. This is a production Pages qualification **FAIL** for `main@e7b72ad...`; the retained metadata does not establish a paid/live Puter failure, model-quality failure, or exact lower-level root cause.
+The first authoritative production Pages attempt for exact current main is run **`35410875305`**, attempt 1, and is **FAIL**. The generated desktop+narrow browser proof passed, deployment passed, and the published live acceptance then failed at `Verify published WebVM revision and real guest execution`; published narrow acceptance was skipped. Retained live proof exists for that exact run. This is a production Pages qualification **FAIL** for `main@e7b72ad...`; it is not evidence of paid/live Puter success or model quality.
+
+Open **#260** is the current focused bootstrap-race repair candidate, reconciled onto current main at exact head `2a9455ee1c2001306521946e61376fae153211ad`. Its exact-head technical workflows are green, including PR-head Pages, Browser VM, controller/provider, Command Station, clean-install, Factory ownership, Control Plane and measured-evaluation binding. The protected maintainer-approval gate remains **FAIL** because no fresh exact-head attestation exists. #260 is unmerged, so none of its PR-head PASS results change the retained production Pages **FAIL** on current `main`; if it is accepted later, the resulting new main SHA must receive its own first production Pages attempt.
 
 Other exact-main automated gates must remain scoped to their own retained results. Historical failures remain evidence even when later revisions pass.
 
@@ -96,14 +98,14 @@ python3 -m residual benchmark --output runs/benchmark.json
 
 ## Current priority gates
 
-1. Diagnose and repair the exact-current-main production Pages **FAIL** from run `35410875305`; retain the first-attempt failure and require the next accepted main revision to qualify independently.
+1. Preserve the exact-current-main production Pages **FAIL** from run `35410875305`. #260 is the current focused repair candidate and is technically green on its exact PR head, but remains unaccepted while maintainer approval is **FAIL/pending exact-head attestation**; if merged later, require the resulting main SHA's own first production Pages attempt.
 2. Repair and requalify the #207/#208/#212 governance-ordering defects before making stronger fail-closed budget/release claims.
 3. Retain a fresh real-account Puter candidate→verifier→receipt success on the accepted deployed revision, or keep live-provider success `UNKNOWN`.
 4. Physically validate the #186 mobile fallback without broadening it into heavyweight-WebVM reliability.
 5. Complete true blank-environment installation, recovery/host-loss qualification, and selected elapsed soak for the exact release artifact.
 6. Continue #120/#126 long-run WebVM reliability work and the separate #139→ownership-baseline→#134 protected sequence.
 7. Keep M6/M7 research bounded: unmerged discovery, derivation-graph, and recursive-mission work is not accepted production capability; general recursive self-improvement remains `UNKNOWN`.
-8. Address #305 queue saturation without cancelling required first-attempt production evidence; #307 remains an unmerged candidate repair.
+8. #305's acute Actions queue saturation has cleared to **0 queued runs**, but the structural duplicate-trigger/concurrency issue remains open; #307 is still unmerged and must not weaken or cancel required first-attempt production evidence.
 
 ## Scope and non-claims
 
