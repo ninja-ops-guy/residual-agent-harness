@@ -7,6 +7,10 @@ binds evidence to the authenticated caller.
 """
 
 from .auth import CopilotIdentityVerifier, CopilotPrincipal
+from .triage import FirmwareTestTriageWorker
+from .readiness import QualificationRecord, build_readiness_bundle, verify_readiness_bundle
+from .demo import DemoExpectation, HybridEntraDemoHarness
+from .deployment import EnterpriseCopilotDeployment
 from .departments import DepartmentGroups, department_catalog
 from .entra import EntraDeploymentConfig, EntraJWKSProvider, MicrosoftGraphGroupResolver
 from .hitl import CopilotExternalWriteGate, ExternalWriteApproval, ExternalWriteIntent
@@ -38,6 +42,13 @@ from .gateway import (
 )
 
 __all__ = [
+    "FirmwareTestTriageWorker",
+    "verify_readiness_bundle",
+    "build_readiness_bundle",
+    "QualificationRecord",
+    "HybridEntraDemoHarness",
+    "DemoExpectation",
+    "EnterpriseCopilotDeployment",
     "department_catalog",
     "MicrosoftGraphGroupResolver",
     "FirmwareSandboxBuildWorker",
