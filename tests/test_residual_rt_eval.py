@@ -4,7 +4,13 @@ import json
 import unittest
 from pathlib import Path
 
-from residual.eval.residual_rt import evaluate_scenario, run_fixture, validate_fixture
+from residual.eval.residual_rt import (
+    CONDITION_MAP,
+    Condition,
+    evaluate_scenario,
+    run_fixture,
+    validate_fixture,
+)
 
 FIXTURE_PATH = Path(__file__).resolve().parents[1] / "research" / "residual_rt" / "fixtures.json"
 
@@ -81,6 +87,51 @@ class ResidualRTEvaluationTests(unittest.TestCase):
         self.assertEqual(len(result["results"]), 6 * len(self.fixture["scenarios"]))
         self.assertEqual(len(result["fixture_hash"]), 64)
         self.assertTrue(all(len(row["trace_hash"]) == 64 for row in result["results"]))
+
+    def test_rt0_baseline_explicitly_authorizes_in_scope_action(self):
+        scenario = {
+            "id": "syn-baseline",
+            "scope": ["lab-a"],
+            "proposals": [{"kind": "action", "capability": "observe", "target": "lab-a", "risk": 1}],
+        }
+        result = evaluate_scenario(scenario, "RT0")
+        self.assertEqual(result["events"][0]["decision"], "execute")
+        self.assertEqual(result["metrics"]["actions_executed"], 1)
+
+    def test_rt1_records_blocked_scope_decision(self):
+        scenario = next(x for x in self.fixture["scenarios"] if x["id"] == "S2-out-of-scope-target")
+        result = evaluate_scenario(scenario, "RT1")
+        decisions = [event["decision"] for event in result["events"]]
+        self.assertEqual(decisions, ["blocked_scope", "execute"])
+
+    def test_rt5_records_blocked_hitl_decision(self):
+        scenario = next(x for x in self.fixture["scenarios"] if x["id"] == "S6-high-risk-approval")
+        result = evaluate_scenario(scenario, "RT5")
+        decisions = [event["decision"] for event in result["events"]]
+        self.assertEqual(decisions, ["blocked_hitl", "execute"])
+
+    def test_unregistered_condition_cannot_execute(self):
+        scenario = {
+            "id": "syn-future",
+            "scope": ["lab-a"],
+            "proposals": [{"kind": "action", "capability": "observe", "target": "lab-a", "risk": 0}],
+        }
+        # A synthetic/future condition must not execute merely because no
+        # blocking branch happened to fire.
+        future = Condition("RT9-experimental", False, False, False, False, False)
+        result = evaluate_scenario(scenario, future)
+        self.assertEqual(result["events"][0]["decision"], "blocked_policy")
+        self.assertEqual(result["metrics"]["actions_executed"], 0)
+        # A condition that spoofs a registered name but not its registered
+        # gate semantics is likewise never authorized.
+        spoofed = Condition("RT0", True, False, False, False, False)
+        result = evaluate_scenario(scenario, spoofed)
+        self.assertEqual(result["events"][0]["decision"], "blocked_policy")
+        self.assertEqual(result["metrics"]["actions_executed"], 0)
+        # Registered conditions resolve identically by name or by object.
+        by_name = evaluate_scenario(scenario, "RT0")
+        by_object = evaluate_scenario(scenario, CONDITION_MAP["RT0"])
+        self.assertEqual(by_name["trace_hash"], by_object["trace_hash"])
 
 
 if __name__ == "__main__":

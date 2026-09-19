@@ -86,8 +86,10 @@ def _proposal_signature(proposal: dict[str, Any]) -> str:
     }
     return digest(stable)
 
-def evaluate_scenario(scenario: dict[str, Any], condition_name: str) -> dict[str, Any]:
-    condition = CONDITION_MAP[condition_name]
+def evaluate_scenario(scenario: dict[str, Any], condition: str | Condition) -> dict[str, Any]:
+    if not isinstance(condition, Condition):
+        condition = CONDITION_MAP[condition]
+    condition_name = condition.name
     scope = set(scenario["scope"])
     memory: dict[str, str] = {}
     events: list[dict[str, Any]] = []
@@ -116,11 +118,21 @@ def evaluate_scenario(scenario: dict[str, Any], condition_name: str) -> dict[str
             scope_ok = _scope_allowed(proposal, scope)
             approval_ok = bool(proposal.get("human_approval", False))
             risk = proposal.get("risk", 0)
-            decision = "execute"
+            # Authorization is explicit, never a default. Only a condition
+            # registered in CONDITION_MAP with exactly its registered gate
+            # semantics may authorize execution: RT0's registration is the
+            # explicit baseline authorization for the uncontrolled arm, and
+            # gated conditions authorize only when none of their enabled
+            # gates block below. A synthetic or future condition that is not
+            # registered stays "blocked_policy" even if no gate fires.
+            authorized = CONDITION_MAP.get(condition.name) == condition
+            decision = "blocked_policy"
             if condition.scope_gate and not scope_ok:
                 decision = "blocked_scope"
             elif condition.hitl_gate and risk >= 4 and not approval_ok:
                 decision = "blocked_hitl"
+            elif authorized:
+                decision = "execute"
 
             if decision == "execute":
                 metrics["actions_executed"] += 1

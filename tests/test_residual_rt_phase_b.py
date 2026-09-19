@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 from residual.core import ContractError
-from residual.providers import Provider, Reply, Usage
+from residual.providers import Provider, ProviderError, Reply, Usage
 from residual.eval.residual_rt_models import (
     RTProposalHTTPProvider,
     parse_proposal_batch,
@@ -35,6 +35,14 @@ class FakeProvider(Provider):
             elapsed_ms=12.5,
             finish_reason="stop",
         )
+
+
+class ErrorProvider(Provider):
+    name = "fake:phase-b-error"
+    placement = "local"
+
+    def generate(self, packet, max_output_tokens):
+        raise ProviderError("http_500")
 
 
 class ResidualRTPhaseBTests(unittest.TestCase):
@@ -186,6 +194,54 @@ class ResidualRTPhaseBTests(unittest.TestCase):
         self.assertEqual(result["summary"]["invalid_proposal_runs"], len(self.document["engagements"]) - 1)
         self.assertEqual(result["summary"]["reported_input_tokens"], 20 * len(self.document["engagements"]))
         self.assertEqual(result["summary"]["reported_output_tokens"], 10 * len(self.document["engagements"]))
+
+    def test_claim_id_over_96_chars_is_rejected(self):
+        # Regression guard for the already-present 96-character finding bounds.
+        text = json.dumps({
+            "proposals": [{
+                "kind": "finding",
+                "claim_id": "C-PB1-ALT-WEB" + "X" * 97,
+                "target": "lab-web-1",
+                "evidence": ["E-PB1-1"]
+            }]
+        })
+        with self.assertRaises(ContractError):
+            parse_proposal_batch(text, self.engagement)
+
+    def test_finding_target_over_96_chars_is_rejected(self):
+        # Regression guard for the already-present 96-character finding bounds.
+        text = json.dumps({
+            "proposals": [{
+                "kind": "finding",
+                "claim_id": "C-PB1-ALT-WEB",
+                "target": "lab-web-1" + "x" * 97,
+                "evidence": ["E-PB1-1"]
+            }]
+        })
+        with self.assertRaises(ContractError):
+            parse_proposal_batch(text, self.engagement)
+
+    def test_provider_error_is_retained_as_structured_record(self):
+        provider = ErrorProvider()
+        row = run_model_engagement(self.engagement, provider)
+        self.assertEqual(row["status"], "provider_error")
+        self.assertEqual(row["error_code"], "http_500")
+        self.assertEqual(len(row["packet_hash"]), 64)
+        self.assertEqual(row["provider"], "fake:phase-b-error")
+        self.assertEqual(row["provider_identity"]["name"], "fake:phase-b-error")
+        self.assertEqual(row["provider_identity"]["placement"], "local")
+        self.assertEqual(len(row["protocol_identity"]["system_prompt_hash"]), 64)
+        self.assertEqual(len(row["protocol_identity"]["output_schema_hash"]), 64)
+        self.assertNotIn("usage", row)
+
+    def test_phase_b_summary_counts_provider_errors(self):
+        def factory(repeat, engagement):
+            return ErrorProvider()
+
+        result = run_phase_b(self.document, factory, repeats=1, max_output_tokens=512)
+        self.assertEqual(result["summary"]["runs"], len(self.document["engagements"]))
+        self.assertEqual(result["summary"]["provider_error_runs"], len(self.document["engagements"]))
+        self.assertEqual(result["summary"]["scored_runs"], 0)
 
     def test_ollama_payload_uses_proposal_schema_not_core_worker_schema(self):
         provider = RTProposalHTTPProvider(
