@@ -370,3 +370,19 @@ def test_committed_change_produces_new_snapshot_hash(tmp_path):
     second = catalog.snapshot("firmware_sample")
     assert first.commit != second.commit
     assert first.snapshot_hash != second.snapshot_hash
+
+
+def test_cloud_engine_cannot_receive_firmware_source_context(tmp_path):
+    backend = _backend(tmp_path)
+    catalog, _ = _catalog(tmp_path)
+    _, mission_id = _submit_analysis(backend, request_id="cloud-disclosure")
+
+    class CloudCaptureEngine(CaptureEngine):
+        locality = "cloud"
+
+    engine = CloudCaptureEngine()
+    worker = FirmwareRepositoryAnalysisWorker(backend, catalog, _router(engine))
+    assert worker.run_once()["state"] == "failed"
+    assert engine.tasks == []
+    assert engine.contexts == []
+    assert backend.status(mission_id)["state"] == "failed"
