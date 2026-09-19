@@ -18,6 +18,7 @@ on:
       - 'tests/enterprise/test_copilot_package.py'
       - 'deploy/copilot-studio/**'
       - 'tests/enterprise/test_copilot_service.py'
+      - 'tests/enterprise/test_copilot_document_review.py'
       - 'tests/enterprise/test_iam.py'
       - 'residual/iam/oidc.py'
       - 'docs/integrations/COPILOT_STUDIO_SECURITY_REVIEW_V1.md'
@@ -49,4 +50,4 @@ jobs:
       - name: Compile integration package
         run: python -m compileall -q residual/integrations/copilot_studio
       - name: Run Copilot and IAM contract/security tests
-        run: python -m pytest tests/enterprise/test_copilot_studio.py tests/enterprise/test_copilot_http.py tests/enterprise/test_copilot_backend.py tests/enterprise/test_copilot_worker.py tests/enterprise/test_copilot_sandbox_build.py tests/enterprise/test_copilot_departments.py tests/enterprise/test_copilot_entra.py tests/enterprise/test_copilot_hitl.py tests/enterprise/test_copilot_triage.py tests/enterprise/test_copilot_readiness.py tests/enterprise/test_copilot_soak.py tests/enterprise/test_copilot_package.py tests/enterprise/test_copilot_service.py tests/enterprise/test_iam.py -q
+        run: python -m pytest tests/enterprise/test_copilot_studio.py tests/enterprise/test_copilot_http.py tests/enterprise/test_copilot_backend.py tests/enterprise/test_copilot_worker.py tests/enterprise/test_copilot_sandbox_build.py tests/enterprise/test_copilot_departments.py tests/enterprise/test_copilot_entra.py tests/enterprise/test_copilot_hitl.py tests/enterprise/test_copilot_triage.py tests/enterprise/test_copilot_readiness.py tests/enterprise/test_copilot_soak.py tests/enterprise/test_copilot_package.py tests/enterprise/test_copilot_service.py tests/enterprise/test_copilot_document_review.py tests/enterprise/test_iam.py -q
