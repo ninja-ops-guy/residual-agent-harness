@@ -262,19 +262,24 @@ def _live_provenance(trace):
     provider = trace.provider_metadata
     if provider.get("provider") != "arena" or provider.get("fallback_used") is not False:
         raise ContractError("live AX-ARENA trace lacks single-provider Arena provenance")
-    if trace.verdict.get("state") == "UNKNOWN":
-        return set(), []
+    unknown = trace.verdict.get("state") == "UNKNOWN"
     if trace.condition == "control":
         resolved = provider.get("resolved_model")
         trace_id = provider.get("trace_id")
+        if resolved is None and trace_id is None and unknown:
+            return set(), []
         if not isinstance(resolved, str) or not resolved or not isinstance(trace_id, str) or not trace_id:
             raise ContractError("live AX-ARENA control trace lacks Arena resolved-model/trace headers")
         return {resolved}, [trace_id]
     attempts = provider.get("arena_attempts")
     if not isinstance(attempts, list) or not attempts:
+        if unknown:
+            return set(), []
         raise ContractError("live AX-ARENA RESIDUAL trace lacks Arena attempt provenance")
     completed = [attempt for attempt in attempts if isinstance(attempt, dict) and attempt.get("status") == "completed"]
     if not completed:
+        if unknown:
+            return set(), []
         raise ContractError("live AX-ARENA RESIDUAL trace has no completed Arena attempt")
     resolved_models, trace_ids = set(), []
     for attempt in completed:
@@ -289,7 +294,6 @@ def _live_provenance(trace):
     if len(resolved_models) != 1 or len(trace_ids) != len(set(trace_ids)):
         raise ContractError("live AX-ARENA trace has inconsistent model resolution or duplicate Arena trace IDs")
     return resolved_models, trace_ids
-
 
 def score_protocol(lock, traces):
     lock = _verify_lock(lock)
