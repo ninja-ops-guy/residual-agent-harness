@@ -12,17 +12,18 @@ from ...factory.compiler import RequirementCompiler
 from ...factory.models import ExecutionPlan
 from .auth import CopilotIdentityVerifier, CopilotPrincipal
 from .policy import DepartmentProfile, MissionTemplate
+from .store import InMemoryMissionStore, MissionRecord, MissionStore
 
 _MISSION_RE = re.compile(r"^m-[0-9a-f]{32}$")
 _REQUEST_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 _MAX_INPUT_BYTES = 64 * 1024
+_TERMINAL = frozenset({"completed", "failed", "cancelled", "rejected"})
 
 
 def _validate_request_id(value: str) -> str:
     if not isinstance(value, str) or not _REQUEST_ID_RE.fullmatch(value):
         raise ContractError("request_id must be 1-128 safe identifier characters")
     return value
-_TERMINAL = frozenset({"completed", "failed", "cancelled", "rejected"})
 
 
 class CopilotAccessError(ContractError):
@@ -128,7 +129,12 @@ class MissionBinding:
 
 @runtime_checkable
 class MissionBackend(Protocol):
-    """Host adapter. Implementations must preserve the supplied mission binding."""
+    """Host adapter for the existing Factory/Station execution path.
+
+    submit() MUST be idempotent by binding.mission_id. This allows the gateway
+    to recover safely after a process crash that persisted the idempotency claim
+    but did not receive the backend acknowledgement.
+    """
 
     def submit(self, binding: MissionBinding, request: MissionRequest,
                plan: ExecutionPlan) -> dict[str, Any]: ...
@@ -183,16 +189,6 @@ class InMemoryMissionBackend:
         return dict(row)
 
 
-@dataclass(frozen=True)
-class _OwnershipRecord:
-    tenant_id: str
-    object_id: str
-    department: str
-    request_hash: str
-    mission_id: str
-    template_id: str
-
-
 class CopilotMissionGateway:
     """Authenticate -> authorize -> compile -> bind -> submit.
 
@@ -209,6 +205,7 @@ class CopilotMissionGateway:
         backend: MissionBackend,
         *,
         compiler: RequirementCompiler | None = None,
+        store: MissionStore | None = None,
     ):
         if not isinstance(identity_verifier, CopilotIdentityVerifier):
             raise ContractError("identity_verifier is required")
@@ -218,6 +215,8 @@ class CopilotMissionGateway:
             raise ContractError("templates are required")
         if not isinstance(backend, MissionBackend):
             raise ContractError("backend does not satisfy MissionBackend")
+        if store is not None and not isinstance(store, MissionStore):
+            raise ContractError("store does not satisfy MissionStore")
         for key, template in templates.items():
             if not isinstance(key, str) or not isinstance(template, MissionTemplate):
                 raise ContractError("templates must map ids to MissionTemplate objects")
@@ -228,8 +227,7 @@ class CopilotMissionGateway:
         self._templates = dict(templates)
         self._backend = backend
         self._compiler = compiler or RequirementCompiler()
-        self._idempotency: dict[tuple[str, str, str], _OwnershipRecord] = {}
-        self._owners: dict[str, _OwnershipRecord] = {}
+        self._store = store or InMemoryMissionStore()
         self._lock = threading.RLock()
 
     def _principal(self, token: str, now: int) -> CopilotPrincipal:
@@ -268,6 +266,47 @@ class CopilotMissionGateway:
             )
         return result.plan
 
+    def _binding(
+        self,
+        principal: CopilotPrincipal,
+        request: MissionRequest,
+        template: MissionTemplate,
+        plan: ExecutionPlan,
+    ) -> MissionBinding:
+        mission_id = "m-" + digest({
+            "tenant_id": principal.tenant_id,
+            "object_id": principal.object_id,
+            "department": self._profile.profile_id,
+            "request_id": request.request_id,
+            "request_hash": request.request_hash,
+            "template_id": template.template_id,
+            "plan_hash": plan.graph_hash,
+        })[:32]
+        return MissionBinding(
+            mission_id=mission_id,
+            tenant_id=principal.tenant_id,
+            subject_id=principal.subject_id,
+            object_id=principal.object_id,
+            department=self._profile.profile_id,
+            request_id=request.request_id,
+            request_hash=request.request_hash,
+            template_id=template.template_id,
+            plan_hash=plan.graph_hash,
+            capabilities=tuple(sorted(template.capabilities)),
+        )
+
+    @staticmethod
+    def _record(binding: MissionBinding) -> MissionRecord:
+        return MissionRecord(
+            tenant_id=binding.tenant_id,
+            object_id=binding.object_id,
+            department=binding.department,
+            request_id=binding.request_id,
+            request_hash=binding.request_hash,
+            mission_id=binding.mission_id,
+            template_id=binding.template_id,
+        )
+
     def submit(self, token: str, payload: dict[str, Any], *, now: int) -> dict[str, Any]:
         principal = self._principal(token, now)
         try:
@@ -277,58 +316,48 @@ class CopilotMissionGateway:
         template = self._template(request.template_id)
         self._authorize(principal, template)
         plan = self._compile(request, template)
+        binding = self._binding(principal, request, template, plan)
+        record = self._record(binding)
 
-        key = (principal.tenant_id, principal.object_id, request.request_id)
         with self._lock:
-            prior = self._idempotency.get(key)
-            if prior is not None:
-                if prior.request_hash != request.request_hash:
+            prior = self._store.get_by_request(
+                principal.tenant_id, principal.object_id, request.request_id
+            )
+            if prior is not None and prior.request_hash != request.request_hash:
+                raise CopilotAccessError(
+                    "idempotency_conflict",
+                    "request_id was already used with a different canonical payload",
+                    409,
+                )
+            try:
+                claimed, created = self._store.claim(record)
+            except ContractError as exc:
+                if "idempotency" in str(exc):
                     raise CopilotAccessError(
                         "idempotency_conflict",
                         "request_id was already used with a different canonical payload",
                         409,
-                    )
+                    ) from exc
+                raise
+
+            if not created:
+                try:
+                    row = self._backend.status(claimed.mission_id)
+                except ContractError:
+                    # Crash recovery: the durable claim exists but the backend
+                    # acknowledgement did not. Re-submit the exact deterministic
+                    # mission; backends are required to be idempotent by mission id.
+                    row = self._backend.submit(binding, request, plan)
                 return self._response(
-                    self._backend.status(prior.mission_id),
-                    self._template(prior.template_id),
-                    prior.mission_id,
+                    row,
+                    self._template(claimed.template_id),
+                    claimed.mission_id,
                 )
 
-            mission_id = "m-" + digest({
-                "tenant_id": principal.tenant_id,
-                "object_id": principal.object_id,
-                "department": self._profile.profile_id,
-                "request_id": request.request_id,
-                "request_hash": request.request_hash,
-                "template_id": template.template_id,
-                "plan_hash": plan.graph_hash,
-            })[:32]
-            binding = MissionBinding(
-                mission_id=mission_id,
-                tenant_id=principal.tenant_id,
-                subject_id=principal.subject_id,
-                object_id=principal.object_id,
-                department=self._profile.profile_id,
-                request_id=request.request_id,
-                request_hash=request.request_hash,
-                template_id=template.template_id,
-                plan_hash=plan.graph_hash,
-                capabilities=tuple(sorted(template.capabilities)),
-            )
             row = self._backend.submit(binding, request, plan)
-            record = _OwnershipRecord(
-                tenant_id=principal.tenant_id,
-                object_id=principal.object_id,
-                department=self._profile.profile_id,
-                request_hash=request.request_hash,
-                mission_id=mission_id,
-                template_id=template.template_id,
-            )
-            self._idempotency[key] = record
-            self._owners[mission_id] = record
-            return self._response(row, template, mission_id)
+            return self._response(row, template, binding.mission_id)
 
-    def _require_owner(self, token: str, mission_id: str, *, now: int) -> _OwnershipRecord:
+    def _require_owner(self, token: str, mission_id: str, *, now: int) -> MissionRecord:
         if not isinstance(mission_id, str) or not _MISSION_RE.fullmatch(mission_id):
             raise CopilotAccessError("not_found", "unknown mission", 404)
         principal = self._principal(token, now)
@@ -336,10 +365,12 @@ class CopilotMissionGateway:
             self._profile.require_membership(principal)
         except ContractError as exc:
             raise CopilotAccessError("forbidden", str(exc), 403) from exc
-        record = self._owners.get(mission_id)
+        record = self._store.get_by_mission(mission_id)
         if record is None:
             raise CopilotAccessError("not_found", "unknown mission", 404)
         if record.tenant_id != principal.tenant_id or record.object_id != principal.object_id:
+            raise CopilotAccessError("not_found", "unknown mission", 404)
+        if record.department != self._profile.profile_id:
             raise CopilotAccessError("not_found", "unknown mission", 404)
         return record
 
