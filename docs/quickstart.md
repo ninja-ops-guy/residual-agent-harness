@@ -15,6 +15,18 @@ environment:
 pip install residual-agent-harness
 ```
 
+### Update an existing installation
+
+Run `residual update` to update safely. When RESIDUAL is running from a Git
+source checkout, the command requires a clean, attached branch with a configured
+upstream and performs only a fast-forward update. For an installed package, it
+uses the current Python interpreter to run pip with `--upgrade`.
+
+Use `residual update --dry-run` to validate the selected update path without
+changing the checkout or environment. `--method source` and `--method package`
+can override automatic detection; `--pre` is package-only.
+
+
 ## 2. Run a bounded task
 
 The sample project in `examples/onboarding/sample_project` declares two
