@@ -29,6 +29,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: copilot-studio-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   qualify:
     name: Copilot gateway Python ${{ matrix.python-version }}
