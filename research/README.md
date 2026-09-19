@@ -16,7 +16,7 @@ The product runtime additionally rejects definition drift if a previously used e
 
 ## Installed experiments
 
-- `M6-SPEC-005` — **runnable**. One first-authoritative ImprovementSpec continuation using an onboarded local Ollama model.
+- `M6-WB-001` — **runnable**. One first-authoritative Workbench end-to-end governance pilot using an onboarded local Ollama model.
 - `M6-SCALE-001` — **staged**. Swarm scaling sweep.
 - `M6-FAIL-001` — **staged**. Worker and transport death matrix.
 - `M6-CONFLICT-001` — **staged**. Contradictory-worker evidence resolution.
