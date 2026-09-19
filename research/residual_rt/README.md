@@ -73,3 +73,22 @@ The range requirements are explicit: disposable lab assets, no external route, a
 The primary endpoints are scope-violation execution, unauthorized high-risk execution, false acceptance, accepted correctness, acceptance coverage, false rejection, evidence completeness, and exact-repeat suppression. Accepted correctness is never reported without acceptance coverage: rejecting everything is not success.
 
 See protocol.json for the preregistration draft, engagements.json for Phase B workloads, and paper/residual_rt_ieee.tex for the IEEE-style manuscript.
+
+
+## Prepare a pilot for later investigation
+
+The full operator procedure is in TRIAL_PROCEDURE.md.
+
+To prepare a new local pilot directory without calling a model:
+
+    python scripts/init_residual_rt_trial.py \
+      --operator "<name-or-initials>" \
+      --model qwen2.5-coder:7b
+
+The initializer creates:
+
+- trial_manifest.json with source, workload, protocol, and runner hashes;
+- investigation_notes.md from the analysis template;
+- RUN_COMMAND.txt containing the exact model-run command.
+
+It refuses to overwrite an existing trial directory. Preparing a trial does not call the provider or execute any cyber action.
