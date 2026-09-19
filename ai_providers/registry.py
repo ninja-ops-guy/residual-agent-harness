@@ -100,9 +100,9 @@ def _default_registry() -> Registry:
         )
 
     def _kimi_claw():
-        from .adapters.kimi_claw_adapter import KimiClawAdapter
+        from .adapters.kimi_claw_adapter import KimiClawAdapter, resolve_kimi_claw_secret
         return KimiClawAdapter(
-            api_key=os.environ.get("KIMI_CLAW_TOKEN"),
+            api_key=resolve_kimi_claw_secret(),
             base_url=os.environ.get("KIMI_CLAW_BASE_URL", "http://127.0.0.1:18789/v1"),
         )
 
