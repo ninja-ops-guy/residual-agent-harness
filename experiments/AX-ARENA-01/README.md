@@ -63,7 +63,7 @@ Then execute the frozen randomized schedule end-to-end:
       --lock runs/arena/AX-ARENA-01-live.lock.json \
       --output runs/arena/AX-ARENA-01-live
 
-The live runner performs a raw one-call Arena control and the same model behind RESIDUAL's actual obligation harness. It withholds each task's expected answer from both model inputs, uses the frozen answer only in trusted verification/evaluation code, writes one durable trace per scheduled cell, records provider failures as `UNKNOWN`, and automatically emits `report.json`.
+The live runner performs a raw one-call Arena control and the same requested model behind RESIDUAL's actual obligation harness. It withholds each task's expected answer from both model inputs, uses the frozen answer only in trusted verification/evaluation code, writes one durable trace per scheduled cell, records provider failures as `UNKNOWN`, validates Arena's actual resolved-model/trace provenance, and automatically emits `report.json`.
 
 The runner refuses to start if the repository source hashes differ from the frozen lock or if the protocol is still labelled `development_fixture`.
 
@@ -78,11 +78,11 @@ The trace records:
 - the explicit available-tool set;
 - ordered trace events;
 - usage/cost fields;
-- independent `verified_task_success`;
+- the evaluator's `verified_task_success` verdict;
 - provider provenance;
 - a content digest.
 
-For `live_model` evidence, provider metadata must identify `arena` and assert `fallback_used: false`. Server-side or unrecorded fallback is deliberately outside the protocol because it would contaminate the model-treatment label.
+For `live_model` evidence, provider metadata must identify `arena`, assert `fallback_used:false`, and retain Arena's `X-Arena-Resolved-Model` and `X-Arena-Trace-ID` values for every completed gateway call. Arena trace IDs must be unique. A RESIDUAL treatment with multiple repair calls must resolve every completed call to the same Arena model, and the paired control/treatment cells must resolve to the same model. Any fallback header, missing provenance on a completed call, or resolved-model mismatch fails the scorer rather than weakening attribution.
 
 ## Arena-aligned local signals
 
