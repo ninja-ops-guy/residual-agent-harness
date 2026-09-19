@@ -106,7 +106,7 @@ The adapter hashes the original source file and appends that digest to `source_u
 }
 ```
 
-Do not place credentials, bearer tokens, headers, endpoints, or secret-bearing URLs in this file. The preregistration loader rejects common secret-bearing fields. The existing `ai_providers` registry resolves credentials and endpoints from the environment. Supported provider names currently include OpenAI, Anthropic, Google, Azure OpenAI, Bedrock, Ollama, and OpenAI-compatible endpoints.
+Do not place credentials, bearer tokens, headers, endpoints, or secret-bearing URLs in this file. The preregistration loader rejects common secret-bearing fields. The existing `ai_providers` registry resolves credentials and endpoints from the environment. Supported provider names currently include OpenAI, Anthropic, Google, Azure OpenAI, Bedrock, Ollama, Arena API, and OpenAI-compatible endpoints.
 
 `cost_per_task` is a declared study input. Residual uses it for market policy and preregistration budget projection; it is not claimed to be provider billing truth unless the evaluator has derived it from current provider pricing.
 
