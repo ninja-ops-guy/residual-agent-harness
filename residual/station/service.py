@@ -229,7 +229,6 @@ class Station:
                     "model": value.get("model"),
                     "placement": value.get("placement"),
                     "last_seen": value["last_seen"],
-                    "age_s": max(0, int(time.time() - value["last_seen"])),
                 })
         return sorted(rows, key=lambda item: (item["status"] != "working", item["name"].lower()))
 
