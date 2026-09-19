@@ -57,7 +57,13 @@ def _evidence(
     replication_id: str = "replication-a",
     verifier_id: str = "verifier-a",
     producer_id: str = "worker-a",
+    verifier_identity_sha256: str | None = None,
+    verifier_receipt_sha256: str | None = None,
+    replication_receipt_sha256: str | None = None,
 ) -> dict:
+    verifier_identity_sha256 = verifier_identity_sha256 or (("c" if index % 2 else "d") * 64)
+    verifier_receipt_sha256 = verifier_receipt_sha256 or (("e" if index % 2 else "f") * 64)
+    replication_receipt_sha256 = replication_receipt_sha256 or (("1" if index % 2 else "2") * 64)
     return {
         "schema_version": "rac-residual-evidence/1.0",
         "evidence_id": f"RAC-EV-{index:06d}",
@@ -69,8 +75,12 @@ def _evidence(
         "artifact_sha256s": [SHA],
         "outcome": outcome,
         "producer_id": producer_id,
+        "producer_identity_sha256": "b" * 64,
         "independent_verifier_id": verifier_id,
+        "independent_verifier_identity_sha256": verifier_identity_sha256,
+        "independent_verifier_receipt_sha256": verifier_receipt_sha256,
         "replication_id": replication_id,
+        "replication_receipt_sha256": replication_receipt_sha256,
         "notes": "",
     }
 
@@ -197,6 +207,22 @@ def test_same_verifier_identity_cannot_satisfy_promotable() -> None:
     )
     assert _run(candidate) != RunOutcome.SUCCESS
 
+
+
+def test_distinct_labels_cannot_fake_hash_bound_independence() -> None:
+    candidate = _candidate()
+    first, second = candidate["evidence"]
+    second["independent_verifier_identity_sha256"] = first[
+        "independent_verifier_identity_sha256"
+    ]
+    candidate["decision"]["evidence_sha256s"] = [_hash(bundle) for bundle in candidate["evidence"]]
+    assert _run(candidate) != RunOutcome.SUCCESS
+
+    candidate = _candidate()
+    first, second = candidate["evidence"]
+    second["replication_receipt_sha256"] = first["replication_receipt_sha256"]
+    candidate["decision"]["evidence_sha256s"] = [_hash(bundle) for bundle in candidate["evidence"]]
+    assert _run(candidate) != RunOutcome.SUCCESS
 
 def test_self_verification_fails_contract_integrity() -> None:
     candidate = _candidate()
