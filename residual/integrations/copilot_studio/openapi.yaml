@@ -1,0 +1,202 @@
+openapi: 3.0.3
+info:
+  title: RESIDUAL Copilot Studio Gateway
+  version: 1.0.0
+  description: >
+    Department-scoped, evidence-producing RESIDUAL mission surface for
+    Microsoft Copilot Studio. Identity is derived exclusively from the
+    verified Entra delegated token; request bodies never carry authority.
+servers:
+  - url: https://residual.example.invalid
+security:
+  - entraOBO: []
+
+paths:
+  /v1/copilot/missions:
+    post:
+      operationId: submitResidualMission
+      summary: Submit a bounded RESIDUAL mission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MissionRequest'
+      responses:
+        '202':
+          description: Mission accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MissionResponse'
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+
+  /v1/copilot/missions/{mission_id}:
+    get:
+      operationId: getResidualMission
+      summary: Get a mission visible to the authenticated caller
+      parameters:
+        - $ref: '#/components/parameters/MissionId'
+      responses:
+        '200':
+          description: Mission state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MissionResponse'
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+
+  /v1/copilot/missions/{mission_id}/evidence:
+    get:
+      operationId: getResidualMissionEvidence
+      summary: Get authorized evidence references for a mission
+      parameters:
+        - $ref: '#/components/parameters/MissionId'
+      responses:
+        '200':
+          description: Evidence references
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [mission_id, evidence]
+                properties:
+                  mission_id: { type: string }
+                  evidence:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+
+  /v1/copilot/missions/{mission_id}/cancel:
+    post:
+      operationId: cancelResidualMission
+      summary: Request bounded cancellation
+      parameters:
+        - $ref: '#/components/parameters/MissionId'
+      responses:
+        '202':
+          description: Cancellation accepted or already requested
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MissionResponse'
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+
+components:
+  securitySchemes:
+    entraOBO:
+      type: oauth2
+      description: >
+        Configure the Copilot Studio custom connector for Microsoft Entra
+        delegated authentication/OBO. Replace tenant/API placeholders during
+        Power Platform solution deployment.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://login.microsoftonline.com/{tenant-id}/oauth2/v2.0/authorize
+          tokenUrl: https://login.microsoftonline.com/{tenant-id}/oauth2/v2.0/token
+          scopes:
+            api://{residual-api-client-id}/access_as_user: Access RESIDUAL on behalf of the signed-in user
+
+  parameters:
+    MissionId:
+      name: mission_id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^m-[0-9a-f]{32}$'
+
+  schemas:
+    MissionRequest:
+      type: object
+      additionalProperties: false
+      required: [request_id, template_id, objective, inputs]
+      properties:
+        request_id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$'
+        template_id:
+          type: string
+          enum:
+            - firmware-repository-analysis
+            - firmware-sandbox-build
+            - firmware-test-triage
+            - mechanical-design-review
+            - mechanical-change-impact
+            - electromechanical-interface-review
+            - electromechanical-integration-review
+            - automated-test-plan-review
+            - automated-test-isolated-run
+            - quality-evidence-review
+            - quality-release-readiness
+        objective:
+          type: string
+          minLength: 1
+          maxLength: 8000
+        inputs:
+          type: object
+          description: >
+            Opaque deployment aliases only. The server-owned mission template
+            determines which fields are required. Values are identifiers, never
+            caller-provided filesystem paths, URLs, commands, credentials, roles,
+            group IDs, or capabilities.
+          additionalProperties: false
+          properties:
+            repository_id: { $ref: '#/components/schemas/OpaqueId' }
+            build_profile_id: { $ref: '#/components/schemas/OpaqueId' }
+            test_profile_id: { $ref: '#/components/schemas/OpaqueId' }
+            knowledge_source_id: { $ref: '#/components/schemas/OpaqueId' }
+            change_set_id: { $ref: '#/components/schemas/OpaqueId' }
+            interface_set_id: { $ref: '#/components/schemas/OpaqueId' }
+            test_evidence_id: { $ref: '#/components/schemas/OpaqueId' }
+            evidence_set_id: { $ref: '#/components/schemas/OpaqueId' }
+            release_candidate_id: { $ref: '#/components/schemas/OpaqueId' }
+
+    OpaqueId:
+      type: string
+      minLength: 1
+      maxLength: 96
+      pattern: '^[A-Za-z][A-Za-z0-9_.-]{0,95}$'
+
+    MissionResponse:
+      type: object
+      additionalProperties: false
+      required: [mission_id, state, template_id, risk, approval_required]
+      properties:
+        mission_id: { type: string }
+        state: { type: string }
+        template_id: { type: string }
+        risk: { type: string }
+        approval_required: { type: boolean }
+        evidence_ref: { type: string, nullable: true }
+
+    Error:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        request_id: { type: string, nullable: true }
+
+  responses:
+    Error:
+      description: Fail-closed error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

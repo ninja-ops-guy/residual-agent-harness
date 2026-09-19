@@ -1,0 +1,37 @@
+{
+  "schema_version": "residual.copilot.solution.v1",
+  "solution_unique_name": "ResidualEngineeringAgents",
+  "display_name": "RESIDUAL Engineering Agents",
+  "publisher_prefix": "residual",
+  "package_type": "Copilot Studio custom agent Power Platform solution",
+  "components": {
+    "custom_connector": "RESIDUAL Enterprise Gateway",
+    "connection_reference": "RESIDUAL Entra OBO Connection",
+    "environment_variables": [
+      "RESIDUAL_API_BASE_URL",
+      "RESIDUAL_ENTRA_TENANT_ID",
+      "RESIDUAL_API_CLIENT_ID",
+      "RESIDUAL_CONNECTOR_CLIENT_APP_ID",
+      "RESIDUAL_FIRMWARE_GROUP_ID",
+      "RESIDUAL_MECHANICAL_GROUP_ID",
+      "RESIDUAL_ELECTROMECHANICAL_GROUP_ID",
+      "RESIDUAL_AUTOMATED_TESTING_GROUP_ID",
+      "RESIDUAL_QA_GROUP_ID",
+      "RESIDUAL_FIRMWARE_REVIEWERS_GROUP_ID",
+      "RESIDUAL_MECHANICAL_REVIEWERS_GROUP_ID",
+      "RESIDUAL_ELECTROMECHANICAL_REVIEWERS_GROUP_ID",
+      "RESIDUAL_AUTOMATED_TESTING_REVIEWERS_GROUP_ID",
+      "RESIDUAL_QA_REVIEWERS_GROUP_ID",
+      "RESIDUAL_ENGINEERING_LEADS_GROUP_ID",
+      "RESIDUAL_ENGINEERING_AUDITORS_GROUP_ID"
+    ],
+    "agents": [
+      "Firmware Engineering",
+      "Mechanical Engineering",
+      "Electromechanical Engineering",
+      "Automated Testing",
+      "Quality Assurance"
+    ]
+  },
+  "export_requirement": "The final installable ZIP must be exported from a Power Platform environment after importing/configuring these source definitions; tenant component IDs are environment-owned."
+}
