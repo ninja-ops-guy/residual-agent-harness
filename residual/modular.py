@@ -88,8 +88,13 @@ class ModularProvider(Provider):
         self.name=self.kind+':'+self.model
         self.system,self.schema=system,schema
         self.adapter=make_adapter(self.profile,credentials or ({'api_key':key} if key else {}))
+        self.attempt_receipts=[]
+        def retain_attempt(value):
+            # Snapshot only normalized Router receipts; raw provider bodies and
+            # credentials never enter this record.
+            self.attempt_receipts.append(__import__('json').loads(canonical(value)))
         reg=Registry();reg.register(self.kind,lambda:self.adapter)
-        self.router=Router(registry=reg,default_provider=self.kind,observation_bus=observation_bus)
+        self.router=Router(registry=reg,default_provider=self.kind,observation_bus=observation_bus,after_attempt=retain_attempt)
     def request(self,packet,cap):
         return ChatRequest(self.model,(Message(Role.SYSTEM,self.system),Message(Role.USER,canonical(packet))),max_tokens=cap,response_schema=self.schema)
     def payload(self,packet,max_output_tokens): return self.adapter._build_body(self.request(packet,max_output_tokens))
