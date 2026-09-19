@@ -62,7 +62,8 @@ class DemoGatewayTests(unittest.TestCase):
         self.g.MAX_ACTIVE_SESSIONS = 99
         self.g.MAX_SESSIONS_PER_HOUR = 1
         with mock.patch.object(self.g, '_freellm_create_profile', return_value=(7, 'sk-cp-secret')) as create, \
-             mock.patch.object(self.g, '_tailscale_auth_key', return_value='tskey-auth-x'):
+             mock.patch.object(self.g, '_tailscale_auth_key', return_value='tskey-auth-x'), \
+             mock.patch.object(self.g, '_freellm_delete_profile'):
             first = self.g._new_session()
             self.g._revoke(first['token'])
             with self.assertRaises(self.g.DemoCapacityError):
@@ -77,6 +78,6 @@ class DemoGatewayTests(unittest.TestCase):
         with mock.patch.object(self.g, '_new_session', side_effect=self.g.DemoCapacityError('full')):
             code, body = self.g._route('POST', '/v1/demo/session', {}, b'')
         self.assertEqual(code, 429)
-        self.assertIn('capacity', body['error']['message'].replace('full', 'capacity'))
+        self.assertEqual(body['error']['message'], 'full')
 
 if __name__ == '__main__': unittest.main()
