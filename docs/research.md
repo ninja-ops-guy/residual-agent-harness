@@ -69,7 +69,7 @@ Retained Campaign B/C evidence includes:
 - **#212 transient HTTP 500:** failover success remains **UNKNOWN / not established**.
 - **#212 missing usage:** **FAIL for accounting-before-authority** because integration plus a receipt occurred before a later `usage_unknown_or_invalid` abort.
 
-These failures remain active blockers for stronger claims that budget, unknown usage or terminal verifier state always precedes all accepted-state/release effects. Candidate repairs are not accepted evidence until merged and the applicable scenarios are requalified.
+These failures remain active blockers for stronger claims that budget, unknown usage or terminal verifier state always precedes all accepted-state/release effects. Open **#288** is the current pre-dispatch budget-admission repair candidate on exact head `0bc86441c295bd488bbd11f952f057e9266bb17e`; its named technical workflows are **PASS**, but maintainer approval is **FAIL** and the PR remains draft/unmerged. Therefore #288 is development evidence only and the applicable #207/#208/#212 scenarios still require post-acceptance requalification.
 
 ## M6.2 evidence-driven autonomous discovery
 
@@ -107,6 +107,20 @@ This is **positive bounded pilot evidence**, not a general mesh-efficiency resul
 
 Security review is also unresolved on the experiment branch. Aikido's check completed but reported **two new MEDIUM and two new LOW findings**, including unsafe `exec` use in `scripts/m6_mesh_001.py` and missing integrity verification for a remotely pulled workflow artifact. The protected maintainer-approval gate is **FAIL**, so #319 remains unaccepted research evidence and must not be merged or promoted based on the workflow-success label alone.
 
+## Research Workbench candidate: #323
+
+Open **#323** proposes a built-in Research Workbench that binds experiment ID, catalog commit and canonical definition SHA-256, enforces preregistered trial counts, retains run history/evidence bundles and routes experiment execution through normal Station governance. Its first planned pilot, **M6-WB-001**, is deliberately declarative: the model emits one JSON research artifact and host-owned checks validate exact preregistered content; model-authored Python/shell/JS is not executed by that pilot.
+
+This is not yet accepted research apparatus. Exact head `f32b99b7d62bc35872daaf4da00787761b7ca8ea` has **FAIL** results for the dedicated Research Workbench qualification, Controller/provider, Command Station and Factory runtime evidence workflows. Control Plane, Factory ownership, clean install, measured-evaluation binding, PR Agent and PR-head Pages are **PASS**, while maintainer approval is **FAIL**. The PR also explicitly requires **#288** to be accepted on `main`, followed by a rebase/requalification, before any first authoritative Workbench trial is run.
+
+Therefore:
+
+- Workbench implementation candidate: **UNACCEPTED / draft**;
+- current exact-head qualification: **FAIL**;
+- first authoritative M6-WB-001 trial: **BLOCKED / not run**;
+- staged M6-SCALE/M6-FAIL/M6-CONFLICT/M6-ABLATE definitions: **definition availability only**, not experimental evidence;
+- any paper-facing result from the Workbench path: **UNKNOWN / not established**.
+
 ## New experimental branches do not change accepted capability
 
 Recent draft research/integration work includes:
@@ -119,6 +133,8 @@ Recent draft research/integration work includes:
 - **#317** — RESIDUAL-RT bounded-authority adversary-emulation research track; draft/unmerged. Phase A is deterministic controller-isolation replay, Phase B is proposal-only live-model transport with no execution adapter, and Phase C remains planned/gated. Current technical workflows are green while maintainer approval is **FAIL**. No live-model red-team effectiveness, production safety, or real-world exploit reliability is established.
 - **#318** — Web Command Station/Vercel control-plane architecture; draft/unaccepted and intentionally separates public control-plane duties from arbitrary worker execution.
 - **#319** — M6-MESH-001 cooperative-efficiency pilot described above; one positive bounded observation, general efficiency **UNKNOWN**, security findings unresolved, and maintainer approval **FAIL**.
+- **#323** — Research Workbench described above; draft with exact-head qualification **FAIL** and the first authoritative trial **BLOCKED** on accepted #288 plus requalification.
+- **#325** — first Residual Studio IDE/control-plane slice; draft/unaccepted. It exposes observation surfaces and a read-only/default control boundary, while authoritative mutation wiring and full qualification remain incomplete. It is platform-development evidence, not a scientific result.
 
 These branches preserve external promotion/qualification boundaries and therefore do not change accepted `main` capability or justify autonomous self-promotion claims.
 
@@ -167,7 +183,7 @@ Before paper-facing outcome collection, freeze exact source, execution/evidence 
 At minimum:
 
 1. preserve exact-revision failures, blocked interventions and mixed results rather than treating later PASSes as erasure;
-2. repair/requalify the #207/#208/#212 accounting/release-ordering defects if the chosen path depends on those authority effects;
+2. accept and requalify the #207/#208/#212 accounting/release-ordering repair path, including #288 if the selected path depends on its pre-dispatch budget authority, before running dependent authoritative Workbench or release experiments;
 3. resolve or explicitly exclude #120/#126 for any WebVM-dependent protocol;
 4. retain fresh exact-revision live-provider evidence if the protocol depends on that provider path;
 5. preserve any protected ownership/requalification sequence required by the selected evidence path;
@@ -182,6 +198,6 @@ A positive result requires `P(X|A)` to improve meaningfully over `P(X)` without 
 
 ## What is deliberately not claimed
 
-The repository does not currently claim a new foundation model, a universal verifier/proof system, universally optimal routing, guaranteed token/cost savings, blanket production readiness, successful exact-current-main real-provider inference, physical heavyweight-WebVM iPhone reliability, acceptable long-run WebVM reliability, independent human assurance from the solo-maintainer merge model, live-model proof of the central hypothesis, completed long-duration soak, autonomous recursive self-improvement, autonomous merge authority, general distributed mesh/swarm efficiency or first-in-literature status.
+The repository does not currently claim a new foundation model, a universal verifier/proof system, universally optimal routing, guaranteed token/cost savings, blanket production readiness, successful exact-current-main real-provider inference, physical heavyweight-WebVM iPhone reliability, acceptable long-run WebVM reliability, independent human assurance from the solo-maintainer merge model, live-model proof of the central hypothesis, completed long-duration soak, autonomous recursive self-improvement, autonomous merge authority, general distributed mesh/swarm efficiency, successful authoritative Research Workbench trials or first-in-literature status.
 
 Receipts establish that stated checks ran over stated evidence under stated identities/revisions. They do not certify arbitrary truth beyond those contracts.
