@@ -109,7 +109,7 @@ class CopilotIdentityVerifier:
             raise ContractError("delegated token must have three segments")
         try:
             header = strict_json(b64url_decode(parts[0]).decode("utf-8"))
-        except (ContractError, UnicodeDecodeError) as exc:
+        except (ContractError, UnicodeDecodeError, ValueError) as exc:
             raise ContractError("malformed delegated token header") from exc
         if not isinstance(header, dict) or header.get("alg") != "RS256":
             raise ContractError("delegated token signing algorithm not allowed")
