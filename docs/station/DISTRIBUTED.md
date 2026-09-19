@@ -26,6 +26,21 @@ For a trusted TLS reverse proxy, configure `RESIDUAL_ALLOWED_HOSTS=station.examp
 - `POST /api/worker/claim`: project ID, worker name, optional task ID. Returns attempt, lease, scoped context and cloud permission.
 - `POST /api/worker/heartbeat`: renew an unexpired lease; client sends every 60 seconds during inference.
 - `POST /api/worker/result`: submission ID, lease, task, candidate files and optional worker-reported usage.
+- `GET /api/worker/comms?project_id=...&after=SEQ`: messages addressed to everyone/runners after a cursor.
+- `POST /api/worker/comms`: runner name + project-scoped message to everyone or the operator.
+
+**Shared Comms is the mission group chat.** Operator and runner messages are retained as `comms.message` events. Recent messages addressed to runners are included in newly claimed work packets as **advisory context only**: chat never expands the assigned instruction, writable paths, checks, dependencies, lease, review authority, or integration authority. The UI can also start mission planning from this thread; planning produces a draft specification that still requires normal operator review, schema validation, and explicit mission creation.
+
+The bundled client polls Shared Comms between task polls and prints new messages. A runner can post a one-off reply with:
+
+```bash
+python3 -m residual.station.worker \
+  --station http://127.0.0.1:8765 \
+  --project p-YOURPROJECT \
+  --name workstation-02 \
+  --say "Acknowledged. I can take the retry task." \
+  --once
+```
 
 Transport retries reuse the same submission ID and exact proposal. A different payload with the same ID is rejected. Workers cannot approve/integrate tasks. The operator's **Run mission** processes review-ready submissions and subsequent dependent work.
 
