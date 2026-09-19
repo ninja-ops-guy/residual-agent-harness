@@ -88,6 +88,8 @@ report in Gate C tests.
 ## Limitations
 
 - Fixture outcomes are scripted; no live-model performance claim is made.
-  Live runs must use `--live` and are labeled `live_model` separately.
+  The scripted runner is prohibited from emitting a `live_model` label. Genuine
+  live execution must pass through the provider-backed live evaluator or the
+  Ollama/Factory gauntlet, which records a distinct evidence level.
 - The evidence artifact records the commit/tree of the generating code; the
   artifact file itself is committed in a follow-up commit on the same branch.
