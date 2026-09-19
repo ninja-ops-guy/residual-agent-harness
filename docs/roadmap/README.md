@@ -18,7 +18,7 @@ The documents under [`source/`](source/) preserve earlier design generations and
 | Frozen evaluation framework | Implemented research apparatus; CI binding is not confirmatory live-model evidence |
 | Research Workbench | Draft #323; #288 prerequisite is now accepted, but #323 must still be rebased/requalified before the first authoritative trial, which remains **BLOCKED** |
 | Residual Studio | Draft #325; first IDE/control-plane observer slice exists on a branch, but authoritative mutation wiring and full qualification remain incomplete |
-| Core security hardening | #328 accepted for kernel-isolated third-party execution, connector SSRF/bearer hardening, SAML XML hardening and supporting controls; workflow credential-persistence portion remains open in #324 |
+| Core security hardening | #328 accepted for kernel-isolated third-party execution, connector SSRF/bearer hardening, SAML XML hardening and supporting controls; remaining workflow credential-persistence work is isolated in focused current-main PR #330 and remains **OPEN / unaccepted** |
 | CSP / anti-clickjacking | #320 repository configuration accepted; production Vercel response-header/Aikido validation remains **UNKNOWN / pending** |
 | Release/recovery/soak | True blank-environment install, host-loss/recovery evidence and selected elapsed soak remain gates |
 | Autonomous discovery / recursive improvement | Mixed bounded research evidence only; general capability remains **UNKNOWN / not established** and M6-008 remains **BLOCKED** |
@@ -51,7 +51,7 @@ The repository now carries CSP/anti-clickjacking policy including `frame-ancesto
 
 ### #328 — core security hardening split from #324
 
-Accepted core changes require kernel isolation/fail closed for third-party supply-chain execution, harden connector origin/redirect/proxy handling against SSRF/bearer forwarding, harden SAML XML parsing, and add bounded marketplace/recovery/telemetry/demo-gateway controls and regression coverage. The workflow `persist-credentials: false` changes remain open under #324 and are not included in #328's accepted scope.
+Accepted core changes require kernel isolation/fail closed for third-party supply-chain execution, harden connector origin/redirect/proxy handling against SSRF/bearer forwarding, harden SAML XML parsing, and add bounded marketplace/recovery/telemetry/demo-gateway controls and regression coverage. The remaining workflow `persist-credentials: false` changes have been rebuilt from exact current main as focused PR **#330**; they are not included in #328's accepted scope and remain **OPEN / unaccepted**. The stale overlapping #324 branch must not be merged wholesale.
 
 None of these changes expands protected Factory/M4, verifier, evidence-schema or acceptance authority.
 
@@ -109,7 +109,8 @@ Accepted work and remaining work must be kept distinct:
 
 - **#320:** repository-side CSP/anti-clickjacking policy is accepted; production Vercel response-header/Aikido validation is **UNKNOWN / pending**.
 - **#328:** core non-workflow security hardening is accepted.
-- **#324:** workflow checkout credential-persistence hardening remains open/unaccepted.
+- **#330:** focused workflow checkout credential-persistence hardening remains **OPEN / unaccepted** on exact head `97dca2bf1850ea67e0d0e5292081410c1eb0f1f0`; the protected maintainer-approval status is **FAIL** because no matching exact-head attestation exists.
+- **#324:** stale overlapping predecessor; it must not be merged wholesale.
 - **#321/#322:** scanner-generated candidates remain separate and are not acceptance evidence merely because vendor confidence is high.
 - **#319:** experiment-branch security findings remain separate from the experiment's apparatus result.
 
@@ -124,23 +125,24 @@ Issue **#305** remains open, but two facts must be separated:
 
 Production Pages/main first-attempt evidence remains non-cancelling. Queue recovery or CI deduplication does not authorize skipping, cancelling or rewriting required qualification outcomes.
 
-Qualification-v1 work on its separate testing branch does not alter current production `main` or broaden M4 claims.
+Qualification-v1 remains separate testing-branch evidence. PR **#331** merged into `testing/qualification-v1` only, moving open PR **#152** to exact head `24816ebc778b26497dd30497e59f6f2badcf39ed`. On that head, the retained checks show **PASS** for `aggregate`, `browser-adversarial`, `concurrency`, `m4`, `m4-prereq`, the browser matrix and the surrounding qualification lanes. The protected `maintainer-approval` gate remains **FAIL**, so #152 remains unaccepted and none of its PASSes broaden current production `main` or M4 claims. Earlier attempt-1 failures remain retained historical evidence. The same head's Aikido code check reported **2 new MEDIUM and 19 new LOW findings** and Deep Review was **SKIPPED** because no credits were available; security-review completeness is therefore **UNKNOWN / incomplete**.
 
 ## Current build order
 
 1. **Requalify the repaired #288 authority path.** Retain fresh evidence for budget exhaustion, unknown usage, terminal verifier/release ordering and export binding before making stronger present-tense claims.
 2. **Rebase/requalify Research Workbench #323.** #288 is accepted; the remaining prerequisite is a fresh #323 base and qualification before M6-WB-001 can run authoritatively.
 3. **Validate #320 on production Vercel.** Inspect actual response headers and rerun the relevant security check; do not treat configuration merge alone as production-header PASS.
-4. **Finish the remaining #324 workflow hardening** independently of accepted #328 core source/runtime changes.
-5. **Retain fresh exact-current-deployed live-provider evidence.** A real-account Puter mission must cross protocol validation into ordinary candidate/verifier/receipt handling before live-provider success can become PASS.
-6. **Continue bounded M6 discovery/derivation and M6-MESH measurement** without promoting pilot results into product capability; keep M6-008 blocked until explicit gates are met.
-7. **Advance Residual Studio only through its bounded control boundary.** Keep authoritative Factory mutation and browser/control-plane state separate until their own gates pass.
-8. **Physically validate the #186 iOS fallback** without broadening fallback success into heavyweight-WebVM reliability.
-9. **Execute true blank-environment installation, recovery/host-loss qualification and selected elapsed soak** for the exact release artifact.
-10. **Continue #120/#126 WebVM reliability work** and preserve historical negative evidence.
-11. **Keep protected sequences independent.** Factory ownership/qualification paths must not inherit unrelated green CI.
-12. **Freeze confirmatory research before outcome access.** Preserve negative, blocked, unknown and missing cells.
-13. **Preserve exact-main Pages evidence.** Keep run `35431634267`, attempt 1, as the exact-revision PASS for publication/browser/real-guest qualification without broadening it into provider/model, physical-device, M4, or blanket production claims.
+4. **Finish and govern #330 workflow hardening** independently of accepted #328 core source/runtime changes; do not merge stale overlapping #324 wholesale.
+5. **Complete #152 exact-head governance/security review.** Its repaired testing-branch technical gates are positive branch evidence, but maintainer approval is FAIL and scanner review is incomplete.
+6. **Retain fresh exact-current-deployed live-provider evidence.** A real-account Puter mission must cross protocol validation into ordinary candidate/verifier/receipt handling before live-provider success can become PASS.
+7. **Continue bounded M6 discovery/derivation and M6-MESH measurement** without promoting pilot results into product capability; keep M6-008 blocked until explicit gates are met.
+8. **Advance Residual Studio only through its bounded control boundary.** Keep authoritative Factory mutation and browser/control-plane state separate until their own gates pass.
+9. **Physically validate the #186 iOS fallback** without broadening fallback success into heavyweight-WebVM reliability.
+10. **Execute true blank-environment installation, recovery/host-loss qualification and selected elapsed soak** for the exact release artifact.
+11. **Continue #120/#126 WebVM reliability work** and preserve historical negative evidence.
+12. **Keep protected sequences independent.** Factory ownership/qualification paths must not inherit unrelated green CI.
+13. **Freeze confirmatory research before outcome access.** Preserve negative, blocked, unknown and missing cells.
+14. **Preserve exact-main Pages evidence.** Keep run `35431634267`, attempt 1, as the exact-revision PASS for publication/browser/real-guest qualification without broadening it into provider/model, physical-device, M4, or blanket production claims.
 
 ## Release evidence rule
 
