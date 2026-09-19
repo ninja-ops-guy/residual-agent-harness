@@ -59,6 +59,16 @@ Production assertions used as runtime integrity checks were replaced with explic
 
 The protected Factory trust-boundary file `residual/factory/termination_provenance.py` was deliberately restored byte-for-byte to the current ownership baseline. Any change there must follow the Factory ownership/baseline qualification procedure rather than being smuggled into a scanner-cleanup PR.
 
+### SR-06 — Public demo gateway resource-allocation abuse
+
+**Status:** mitigated in code; deployment-wide rate limiting still required for horizontally scaled/serverless production.
+
+The public demo session endpoint mints bounded FreeLLMAPI client profiles and ephemeral Tailscale auth keys. CORS is a browser policy, not authentication, so a non-browser client could repeatedly create sessions and bypass per-session request/token budgets by minting new sessions. The HTTP body and upstream JSON reads were also previously unbounded.
+
+The remediation branch adds per-process active-session and hourly issuance caps, serializes issuance so concurrent calls cannot race around those caps, caps inbound request bodies and upstream response bodies, stores the gateway SQLite database with private file permissions, and adds conservative JSON API security headers. Regression tests cover active/hourly capacity, HTTP 429 typing, and private database permissions.
+
+For a multi-instance Vercel deployment, the SQLite counters are instance-local. Production should add a shared edge/global rate limiter (or equivalent abuse-control challenge) so the issuance budget is global rather than per instance.
+
 ## Aikido findings classified as stale, non-applicable, or requiring external action
 
 ### Docker runs as root
@@ -124,6 +134,14 @@ The Station is loopback-first, validates Host/Origin/Sec-Fetch-Site, uses sessio
 ### AR-03 — Historical secrets require provider-side resolution, not source deletion alone
 
 A source scan can establish that a credential is absent from current `main`; it cannot prove a historical credential was harmless or revoked. Historical findings should be resolved only after classifying the detected token type and, when real, rotating/revoking it at the provider.
+
+### AR-04 — Marketplace validation executes signed extension code before a kernel sandbox
+
+**Risk:** material if marketplace publishers are not already fully trusted.
+
+The installation path verifies a detached Ed25519 signature and stages the package, but validation currently loads the module entry point in a normal subprocess with the parent environment inherited. The enterprise runbook describes modules as untrusted supply-chain artifacts until validation and states that validation includes sandbox execution. Signature verification proves that an artifact matches the operator-supplied public key; it does not by itself make publisher code safe.
+
+**Recommendation:** make marketplace admission wheel-only (or build source distributions in an isolated builder), run entry-point loading/validation behind the kernel sandbox with network denied and a read-only staged tree, scrub ambient credentials from the validation environment, and bind trusted publisher identities/keys through policy rather than accepting an arbitrary key as equivalent to trust. Until then, treat marketplace installation as execution of trusted signed code, not safe inspection of untrusted code.
 
 ## Positive controls observed
 
