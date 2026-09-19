@@ -105,6 +105,6 @@ export function mountTimeTravelDebug(root,diagnostics){
     const diff=document.createElement('section');diff.className='tt-event';const dh=document.createElement('h3');dh.textContent='Delta from previous event';const list=document.createElement('div');list.className='tt-diff';if(!changes.length){const none=document.createElement('div');none.className='tt-sub';none.textContent=index===0?'Start of retained timeline.':'No reconstructed state fields changed.';list.append(none)}else for(const change of changes.slice(0,40)){const row=document.createElement('div');row.className='tt-change';const code=document.createElement('code');code.textContent=change.field;const body=document.createElement('span');body.textContent=` · ${JSON.stringify(change.from)} → ${JSON.stringify(change.to)}`;row.append(code,body);list.append(row)}diff.append(dh,list);panel.append(diff);
   }
 
-  tab.addEventListener('click',()=>{runId=diagnostics.latestRunId||runId;index=-1;queueMicrotask(render)});
+  tab.onclick=()=>{root.dataset.view='timetravel';for(const item of root.querySelectorAll('.panel'))item.hidden=item!==panel;for(const item of root.querySelectorAll('[data-tab]'))item.setAttribute('aria-selected',String(item===tab));runId=diagnostics.latestRunId||runId;index=-1;queueMicrotask(render)};
   return {refresh:render,destroy(){tab.remove();panel.remove();}};
 }
