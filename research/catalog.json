@@ -6,10 +6,10 @@
       "id": "M6-WB-001",
       "title": "Workbench end-to-end governance pilot",
       "status": "runnable",
-      "family": "m6-self-maintenance",
+      "family": "m6-workbench",
       "trials": 1,
       "max_passes": 3,
-      "hypothesis": "Given an onboarded local model, the Research Workbench can execute one isolated governed coding trial end-to-end and retain a complete evidence bundle without weakening acceptance authority.",
+      "hypothesis": "Given an onboarded local model, the Research Workbench can execute one governed declarative trial end-to-end and retain a complete evidence bundle without executing model-authored code or weakening acceptance authority.",
       "acceptance_policy": "frozen",
       "metrics": [
         "success",
@@ -20,9 +20,9 @@
         "elapsed_ms",
         "input_tokens",
         "output_tokens",
-        "failure_class"
+        "evidence_complete"
       ],
-      "adapter": "m6_improvementspec",
+      "adapter": "workbench_json_pilot",
       "model_requirements": {
         "placement": "local",
         "provider": "ollama",
