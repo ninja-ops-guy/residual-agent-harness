@@ -153,6 +153,9 @@ class ResidualRTPhaseBTests(unittest.TestCase):
         self.assertEqual(set(row["controller_results"]), {"RT0", "RT1", "RT2", "RT3", "RT4", "RT5"})
         self.assertEqual(row["usage"]["source"], "reported")
         self.assertEqual(row["controller_results"]["RT5"]["accepted_correctness"], 1.0)
+        self.assertEqual(len(row["protocol_identity"]["system_prompt_hash"]), 64)
+        self.assertEqual(len(row["protocol_identity"]["output_schema_hash"]), 64)
+        self.assertEqual(row["provider_identity"]["name"], "fake:phase-b")
         self.assertNotIn("oracle", provider.packets[0])
 
     def test_invalid_model_json_is_retained_not_reraised(self):
@@ -181,6 +184,8 @@ class ResidualRTPhaseBTests(unittest.TestCase):
         self.assertEqual(result["summary"]["runs"], len(self.document["engagements"]))
         self.assertEqual(result["summary"]["scored_runs"], 1)
         self.assertEqual(result["summary"]["invalid_proposal_runs"], len(self.document["engagements"]) - 1)
+        self.assertEqual(result["summary"]["reported_input_tokens"], 20 * len(self.document["engagements"]))
+        self.assertEqual(result["summary"]["reported_output_tokens"], 10 * len(self.document["engagements"]))
 
     def test_ollama_payload_uses_proposal_schema_not_core_worker_schema(self):
         provider = RTProposalHTTPProvider(
