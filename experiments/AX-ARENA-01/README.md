@@ -10,6 +10,16 @@ The checked-in manifest is intentionally a development fixture. It is for valida
 
 ## Setup
 
+### Command Station
+
+Open **Model Workshop**, choose **Arena API** as the cloud provider, and use the **Get Arena API key** button. It opens Arena's virtual-key page directly. Paste the copied key back into RESIDUAL, save the route, test it, then use **List cloud models** to get the exact model ID.
+
+### Terminal
+
+Open the same key page from RESIDUAL:
+
+    python -m residual.workbench arena setup
+
 Set the Arena preview API credential in the environment:
 
     export ARENA_API_KEY=...
