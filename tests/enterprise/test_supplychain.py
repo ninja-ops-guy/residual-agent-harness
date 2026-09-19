@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import hashlib
+import os
+import sys
 
 import pytest
 
@@ -369,6 +371,12 @@ class TestPinning:
 
 
 class TestSandbox:
+    def setup_method(self):
+        if sys.platform != "linux":
+            pytest.skip("ENT5-R7 kernel sandbox requires Linux")
+        if os.geteuid() == 0:
+            pytest.skip("ENT5-R7 intentionally refuses a root parent")
+
     def manifest(self, **policy_kwargs):
         return ModuleManifest(
             name="thirdparty.demo",
@@ -394,45 +402,79 @@ class TestSandbox:
         with pytest.raises(ContractError, match="network"):
             validate_manifest(manifest)
 
-    def test_network_import_denied(self):
-        source = "def go():\n    import socket\n    return 1\n"
-        with pytest.raises(ContractError, match="socket"):
+    def test_network_egress_denied_by_kernel(self):
+        source = (
+            "def go():\n"
+            "    import socket\n"
+            "    socket.create_connection(('203.0.113.1', 9), timeout=0.2)\n"
+            "    return 1\n"
+        )
+        with pytest.raises(ContractError, match="sandboxed module failed"):
             run_sandboxed(self.manifest(), source, "go")
 
-    def test_filesystem_outside_allowlist_denied(self):
+    def test_filesystem_outside_allowlist_denied(self, tmp_path):
+        data = tmp_path / "data"
+        data.mkdir()
         source = "def go():\n    return open('/etc/passwd').read()\n"
-        manifest = self.manifest(filesystem_allowlist=("/data",))
-        with pytest.raises(ContractError, match="denied"):
-            run_sandboxed(manifest, source, "go", read_file_bytes=lambda p: b"x")
+        manifest = self.manifest(filesystem_allowlist=(str(data.resolve()),))
+        with pytest.raises(ContractError, match="sandboxed module failed"):
+            run_sandboxed(manifest, source, "go")
 
-    def test_filesystem_allowlist_permitted(self):
-        source = "def go():\n    return open('/data/config.txt').read()\n"
-        manifest = self.manifest(filesystem_allowlist=("/data",))
-        result = run_sandboxed(
-            manifest, source, "go", read_file_bytes=lambda p: b"hello"
-        )
-        assert result == "hello"
+    def test_filesystem_allowlist_permitted(self, tmp_path):
+        data = tmp_path / "data"
+        data.mkdir()
+        config = data / "config.txt"
+        config.write_text("hello", encoding="utf-8")
+        source = f"def go():\n    return open({str(config.resolve())!r}).read()\n"
+        manifest = self.manifest(filesystem_allowlist=(str(data.resolve()),))
+        assert run_sandboxed(manifest, source, "go") == "hello"
 
-    def test_path_traversal_denied(self):
-        source = "def go():\n    return open('/data/../secret').read()\n"
-        manifest = self.manifest(filesystem_allowlist=("/data",))
-        with pytest.raises(ContractError):
-            run_sandboxed(manifest, source, "go", read_file_bytes=lambda p: b"x")
+    def test_path_traversal_denied(self, tmp_path):
+        data = tmp_path / "data"
+        data.mkdir()
+        secret = tmp_path / "secret"
+        secret.write_text("nope", encoding="utf-8")
+        escaped = str(data.resolve()) + "/../secret"
+        source = f"def go():\n    return open({escaped!r}).read()\n"
+        manifest = self.manifest(filesystem_allowlist=(str(data.resolve()),))
+        with pytest.raises(ContractError, match="sandboxed module failed"):
+            run_sandboxed(manifest, source, "go")
 
-    def test_write_denied(self):
-        source = "def go():\n    open('/data/x', 'w')\n"
-        manifest = self.manifest(filesystem_allowlist=("/data",))
-        with pytest.raises(ContractError, match="read-only"):
-            run_sandboxed(manifest, source, "go", read_file_bytes=lambda p: b"x")
+    def test_write_denied(self, tmp_path):
+        data = tmp_path / "data"
+        data.mkdir()
+        target = data / "x"
+        source = f"def go():\n    open({str(target.resolve())!r}, 'w')\n"
+        manifest = self.manifest(filesystem_allowlist=(str(data.resolve()),))
+        with pytest.raises(ContractError, match="sandboxed module failed"):
+            run_sandboxed(manifest, source, "go")
+
+    def test_host_callback_filesystem_emulation_is_rejected(self, tmp_path):
+        data = tmp_path / "data"
+        data.mkdir()
+        manifest = self.manifest(filesystem_allowlist=(str(data.resolve()),))
+        with pytest.raises(ContractError, match="host callback"):
+            run_sandboxed(
+                manifest, "def go():\n    return 1\n", "go",
+                read_file_bytes=lambda _: b"not-used",
+            )
 
     def test_benign_module_runs(self):
         source = "def add(a, b):\n    return a + b\n"
         assert run_sandboxed(self.manifest(), source, "add", 2, 3) == 5
 
-    def test_eval_and_dunder_builtins_unavailable(self):
-        source = "def go():\n    return eval('1+1')\n"
-        with pytest.raises(NameError):
-            run_sandboxed(self.manifest(), source, "go")
+    def test_spawned_process_cannot_write_host_filesystem(self, tmp_path):
+        marker = tmp_path / "host-escape-marker"
+        parent = marker.parent
+        source = (
+            "def go():\n"
+            "    import os\n"
+            f"    return os.system('mkdir -p {parent} && touch {marker}')\n"
+        )
+        # Process execution inside the jail is allowed; the proof is that the
+        # child sees an isolated /tmp and cannot mutate the host path.
+        assert run_sandboxed(self.manifest(), source, "go") == 0
+        assert not marker.exists()
 
 
 # ---------------------------------------------------------------- ENT5-R8
