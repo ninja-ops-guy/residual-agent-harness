@@ -24,7 +24,7 @@ Recent accepted engineering changes matter to interpretation but are not scienti
 - **#260** accepts the provider-bootstrap guard;
 - **#288** closes product issue #208 with pre-dispatch Station budget/deadline admission and exact run-control-bound export eligibility;
 - **#320** accepts repository-side CSP/anti-clickjacking configuration, while production Vercel header validation remains pending;
-- **#328** accepts the non-workflow core of #324's execution/egress/XML security hardening, while workflow credential-persistence changes remain open under #324.
+- **#328** accepts the non-workflow core of #324's execution/egress/XML security hardening; the remaining workflow checkout credential-persistence hardening has moved to focused current-main PR **#330**, which remains open/unaccepted.
 
 None of these merges establishes the central research hypothesis, live-provider model quality, universal M4 qualification or a paper-facing effect size.
 
@@ -134,7 +134,8 @@ Therefore:
 Merged #320 and #328 improve accepted engineering/security controls, but they do not establish the systems hypothesis.
 
 - #320 production Vercel header enforcement remains **UNKNOWN / pending** until retained post-merge production inspection/security validation exists.
-- #328 accepts the non-workflow core security hardening; the workflow credential-persistence portion remains open in #324.
+- #328 accepts the non-workflow core security hardening; focused PR #330 carries the remaining workflow checkout credential-persistence hardening and remains **OPEN / unaccepted** with exact-head maintainer approval **FAIL**.
+- stale overlapping #324 must not be merged wholesale; neither #324 nor #330 is accepted evidence until the applicable governance path completes.
 - scanner/vendor confidence is not scientific or repository acceptance evidence.
 
 Likewise, exact-current-main production Pages run `35431634267` is a **PASS for its release/browser/real-guest qualification scope**. That PASS does not establish model quality or the research hypothesis.
@@ -149,7 +150,9 @@ Accepted provider/session/bootstrap/publication repairs do not substitute for fr
 
 M2/M3/M4 are implemented. M4 remains environment- and exact-revision-bound rather than universally qualified.
 
-Accepted #185/#187 protected changes retain their exact reviewed scope. PR #139 and downstream #134 remain a separate protected sequence. Qualification-v1 work on its separate testing branch is branch evidence only unless and until the applicable production sequence is deliberately accepted.
+Accepted #185/#187 protected changes retain their exact reviewed scope. PR #139 and downstream #134 remain a separate protected sequence.
+
+Qualification-v1 remains branch evidence only. PR #331 merged into `testing/qualification-v1`, moving open PR #152 to exact head `24816ebc778b26497dd30497e59f6f2badcf39ed`. The retained exact-head branch checks now show **PASS** for `aggregate`, `browser-adversarial`, `concurrency`, `m4`, `m4-prereq` and the surrounding qualification lanes, while the protected `maintainer-approval` gate remains **FAIL**. Earlier attempt-1 browser/concurrency failures remain retained historical evidence. The same head's Aikido code check reported **2 new MEDIUM and 19 new LOW findings**, and Deep Review was **SKIPPED** because no credits were available. Therefore #152 is still **UNACCEPTED**, security-review completeness is **UNKNOWN / incomplete**, and none of its branch PASSes establish current-main or paper-facing qualification.
 
 `implementation-status.yaml` remains an implementation-presence manifest, not a qualification manifest.
 
