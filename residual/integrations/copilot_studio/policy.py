@@ -209,8 +209,7 @@ def firmware_templates() -> dict[str, MissionTemplate]:
                 "Any code change is a proposal only; do not merge or deploy it.",
                 "Return evidence supporting the proposed remediation.",
             ),
-            required_inputs=frozenset({"repository_id"}),
-            optional_inputs=frozenset({"test_profile_id"}),
+            required_inputs=frozenset({"repository_id", "test_profile_id"}),
         ),
     }
 
