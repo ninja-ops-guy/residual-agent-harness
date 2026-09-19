@@ -67,6 +67,23 @@ class AdapterTests(unittest.TestCase):
                 if a.name=='azure':self.assertNotIn('model',body)
                 if a.name=='bedrock':self.assertIn('SignedHeaders=content-type;host;x-amz-date;x-amz-security-token',requests[0]['headers']['Authorization'])
 
+    def test_arena_structured_and_stream_requests_use_documented_wire_fields(self):
+        schema = {"type":"object","properties":{"ok":{"type":"boolean"}}}
+        req = ChatRequest(
+            "test",
+            (Message(Role.USER,"return json"),),
+            max_tokens=32,
+            response_schema=schema,
+        )
+        adapter = ArenaAdapter("KEY","http://127.0.0.1:1234")
+        body = adapter._build_body(req)
+        self.assertNotIn("response_format", body)
+        self.assertIn("Return only JSON matching this schema:", body["messages"][0]["content"])
+        stream_body = adapter._build_body(req, True)
+        self.assertTrue(stream_body["stream"])
+        self.assertNotIn("stream_options", stream_body)
+        self.assertIs(stream_body["allow_fallbacks"], False)
+
     def test_arena_disables_gateway_fallback_and_preserves_safe_provenance(self):
         headers = {
             "X-Arena-Resolved-Model": "resolved-model",
