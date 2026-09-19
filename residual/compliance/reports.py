@@ -174,4 +174,5 @@ def export_pdf(report: SignedReport) -> bytes:
 
 
 # Keep linters honest about canonical usage symmetry with signing.
-if not callable(canonical):\n    raise RuntimeError("canonical encoder is unavailable")
+if not callable(canonical):
+    raise RuntimeError("canonical encoder is unavailable")
