@@ -13,7 +13,7 @@ These roles are deliberately separated. The repository does not claim to submit 
 
 ## Provider safety
 
-The Arena adapter submits a single model ID per request. Scientific runs keep fallback disabled. If an operator wants failover for non-experimental use, it should be expressed through RESIDUAL's existing `Router`, where every attempt is separately observed and receipted.
+The Arena adapter submits a single model ID per request and writes `allow_fallbacks: false` into every Arena request. Scientific runs therefore disable Arena gateway fallback at the transport boundary. If an operator wants failover for non-experimental use, it should be expressed through RESIDUAL's existing `Router`, where every attempt is separately observed and receipted.
 
 Environment variables:
 
