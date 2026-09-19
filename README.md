@@ -33,7 +33,7 @@ Recent accepted changes relevant to current claims are deliberately scoped:
 - **#328** — accepts the core non-workflow portion of the security-hardening pass: kernel-enforced third-party execution isolation, connector SSRF/bearer hardening, hardened SAML XML parsing, and bounded supporting controls.
 - **#330** — accepts the remaining GitHub Actions checkout credential-persistence hardening. Checkout steps now use `persist-credentials: false` with structural regression coverage while preserving the accepted #307/#267 workflow semantics. This is a scoped workflow-security change, not blanket security qualification. The stale overlapping #324 branch must not be merged wholesale.
 
-Every new `main` SHA is required by accepted #276 to receive its own non-cancelling first production Pages attempt. For exact current main `3bfa6aba...`, production Pages run **`35437556200`**, attempt 1, is currently **in progress**, so exact-current-main publication/browser/real-guest qualification is **UNKNOWN / pending**. Do not inherit the previous main's result. Production Pages run `35431634267`, attempt 1, remains a scoped **PASS for exact revision `0a675017...` only**; the still earlier `e7b72ad...` production Pages **FAIL** also remains retained exact-revision evidence.
+Every new `main` SHA is required by accepted #276 to receive its own non-cancelling first production Pages attempt. For exact current main `3bfa6aba...`, production Pages run **`35437556200`**, attempt 1, completed **FAIL**. Build/browser proof, deployment, published revision identity, and the desktop real-guest acceptance path passed; the required narrow/mobile Chromium acceptance failed after reaching the live guest and several Workbench stages. The retained live-proof artifact is `10582812524` with SHA-256 `868ca31506d278a335ff95d3607adbd13c14edaec8b161c1b45ac013e7f7c8b8`. The lower-level cause is **UNKNOWN** and must not be attributed to #330, Puter/model quality, Factory/M4, or another subsystem without further evidence. Production Pages run `35431634267`, attempt 1, remains a scoped **PASS for exact revision `0a675017...` only**; the still earlier `e7b72ad...` production Pages **FAIL** also remains retained exact-revision evidence.
 
 Historical failures remain evidence even when later revisions pass.
 
@@ -103,7 +103,7 @@ python3 -m residual benchmark --output runs/benchmark.json
 
 ## Current priority gates
 
-1. Retain the exact-current-main #330 post-merge qualification, especially production Pages run `35437556200`; keep the current state **UNKNOWN / pending** until it completes.
+1. Investigate and requalify the exact-current-main #330 production Pages **FAIL** in run `35437556200`, preserving the first-attempt mobile/narrow failure and retained live-proof artifact; do not convert the cell to PASS without a distinct qualifying revision/run.
 2. Requalify stronger budget/unknown-usage/release-ordering claims against the accepted #288 repair; historical frozen failures remain visible.
 3. Rebase and requalify #323 before any first authoritative Research Workbench trial.
 4. Validate the merged #320 policy on the production Vercel origin before calling response-header remediation PASS in production.
