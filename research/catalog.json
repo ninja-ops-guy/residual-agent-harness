@@ -7,7 +7,7 @@
       "title": "ImprovementSpec controlled continuation",
       "status": "runnable",
       "family": "m6-self-maintenance",
-      "trials": 5,
+      "trials": 1,
       "max_passes": 3,
       "hypothesis": "Given repair context and an explicit transport/source distinction, an onboarded model can produce an ImprovementSpec candidate satisfying the unchanged frozen acceptance contract within three passes.",
       "acceptance_policy": "frozen",
@@ -36,7 +36,8 @@
         "batch_wall_clock_s": 600,
         "cloud_fallback": false,
         "review_placement": "local"
-      }
+      },
+      "endpoint": "first_authoritative_trial"
     },
     {
       "id": "M6-SCALE-001",
