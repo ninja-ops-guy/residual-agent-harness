@@ -14,7 +14,14 @@ from .auth import CopilotIdentityVerifier, CopilotPrincipal
 from .policy import DepartmentProfile, MissionTemplate
 
 _MISSION_RE = re.compile(r"^m-[0-9a-f]{32}$")
+_REQUEST_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 _MAX_INPUT_BYTES = 64 * 1024
+
+
+def _validate_request_id(value: str) -> str:
+    if not isinstance(value, str) or not _REQUEST_ID_RE.fullmatch(value):
+        raise ContractError("request_id must be 1-128 safe identifier characters")
+    return value
 _TERMINAL = frozenset({"completed", "failed", "cancelled", "rejected"})
 
 
