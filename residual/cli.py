@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -50,7 +51,9 @@ def main(argv=None):
     if argv and argv[0] == "study":
         from .study import main as study
         return study(argv[1:])
-    if argv and argv[0] == "start":\n        return _start(argv[1:])\n    if argv and argv[0] == "serve":
+    if argv and argv[0] == "start":
+        return _start(argv[1:])
+    if argv and argv[0] == "serve":
         from .station.server import main as serve
         return serve(argv[1:])
     if argv and argv[0] == "worker":
@@ -66,7 +69,8 @@ def main(argv=None):
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("factory", help="Plan and approve headless multi-swarm Factory Mode work")
     sub.add_parser("evaluate", help="Run SPEC-EVAL-001 comparative evidence (evaluate --help)")
-    sub.add_parser("start", help="Start Command Station with saved setup defaults")\n    sub.add_parser("serve", help="Open the local web command station (serve --help for options)")
+    sub.add_parser("start", help="Start Command Station with saved setup defaults")
+    sub.add_parser("serve", help="Open the local web command station (serve --help for options)")
     sub.add_parser("worker", help="Connect a distributed inference runner")
     sub.add_parser("study", help="Freeze/run independently graded studies (study --help)")
     sub.add_parser("node", help="Join/leave the distributed cluster (node --help)")
