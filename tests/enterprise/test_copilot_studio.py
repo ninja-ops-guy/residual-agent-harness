@@ -19,7 +19,7 @@ from residual.integrations.copilot_studio import (
 NOW = 1_800_000_000
 ISSUER = "https://login.microsoftonline.com/tenant-a/v2.0"
 AUDIENCE = "api://residual-copilot"
-KEY = b"copilot-test-secret-key-material"
+KEYPAIR = rsa_generate_keypair(1024)
 KID = "k1"
 
 
