@@ -107,6 +107,10 @@ class Handler(BaseHTTPRequestHandler):
                 self.auth(worker=True)
                 if path == "/api/worker/projects":
                     return self.respond({"projects": [{"id": p["id"], "name": p["name"]} for p in self.station.store.list_projects() if p["mode"] == "live"]})
+                if path == "/api/worker/comms":
+                    pid = query.get("project_id", [""])[0]
+                    after = max(0, int(query.get("after", ["0"])[0]))
+                    return self.respond({"messages": self.station.comms(pid, after, {"all", "runners"}, 100)})
                 raise ContractError("Unknown worker endpoint")
             if path.startswith("/api/"):
                 self.auth()
@@ -140,6 +144,8 @@ class Handler(BaseHTTPRequestHandler):
                         return self.respond({"project": self.station.store.project(pid), "metrics": self.station.metrics(pid)})
                     if parts[3] == "events":
                         return self.respond({"events": self.station.store.events(pid, max(0, int(query.get("after", ["0"])[0])), 500)})
+                    if parts[3] == "comms":
+                        return self.respond({"messages": self.station.comms(pid, max(0, int(query.get("after", ["0"])[0])), None, 500)})
                     if parts[3] == "report":
                         return self.respond(self.station.store.report(pid))
                     if parts[3] == "markdown":
@@ -236,6 +242,15 @@ class Handler(BaseHTTPRequestHandler):
                 s.store.settings({"worker_token": secrets.token_urlsafe(32)})
             s.store.settings({"remote_workers_enabled": enabled})
             return {"enabled": enabled, "token": s.store.settings()["worker_token"] if enabled else None}
+        if path == "/api/worker/comms":
+            pid = data["project_id"]
+            s.store.project(pid)
+            name = bounded(data.get("name"), "Runner name", 60)
+            message = bounded(data.get("message"), "Message", 2000)
+            audience = data.get("audience", "all")
+            if audience not in {"all", "operator"}:
+                raise ContractError("Remote runners may address everyone or the operator")
+            return s.store.event(pid, "comms.message", {"message": message, "audience": audience, "kind": "message"}, actor="remote:" + name)
         if path == "/api/worker/claim":
             name = bounded(data.get("name"), "Runner name", 60)
             work = s.prepare(data["project_id"], "remote:" + name, data.get("task_id"))
@@ -297,6 +312,15 @@ class Handler(BaseHTTPRequestHandler):
                     s.store.update_task(pid, tid, route="cloud")
                     s.store.event(pid, "task.finding", {"message": "Operator routed the unresolved task to cloud"}, tid, "operator")
                     return {"ok": True}
+            if action == "chat":
+                message = bounded(data.get("message"), "Message", 2000)
+                audience = data.get("audience", "all")
+                kind = data.get("kind", "message")
+                if audience not in {"all", "runners", "coordinator", "cloud"}:
+                    raise ContractError("Invalid chat audience")
+                if kind not in {"message", "planning"}:
+                    raise ContractError("Invalid chat message kind")
+                return s.store.event(pid, "comms.message", {"message": message, "audience": audience, "kind": kind}, actor="operator")
             if action == "cloud-report":
                 return s.launch("cloud-report", lambda progress: s.cloud_report(pid, progress), pid)
             if action == "export":
