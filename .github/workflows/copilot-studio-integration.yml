@@ -1,0 +1,36 @@
+name: Copilot Studio integration
+
+on:
+  pull_request:
+    paths:
+      - 'residual/integrations/copilot_studio/**'
+      - 'tests/enterprise/test_copilot_studio.py'
+      - 'docs/integrations/COPILOT_STUDIO_FIRMWARE_V1.md'
+      - '.github/workflows/copilot-studio-integration.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    name: Copilot gateway Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test dependencies
+        run: python -m pip install '.[test]'
+      - name: Compile integration package
+        run: python -m compileall -q residual/integrations/copilot_studio
+      - name: Run Copilot contract and security tests
+        run: python -m pytest tests/enterprise/test_copilot_studio.py -q
