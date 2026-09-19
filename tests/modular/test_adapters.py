@@ -7,6 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from unittest.mock import patch
 from ai_providers import *
 from ai_providers.adapters.openai_adapter import OpenAIAdapter, OpenAICompatibleAdapter
+from ai_providers.adapters.arena_adapter import ArenaAdapter
 from ai_providers.adapters.anthropic_adapter import AnthropicAdapter
 from ai_providers.adapters.azure_adapter import AzureAdapter
 from ai_providers.adapters.google_adapter import GoogleAdapter
@@ -65,6 +66,80 @@ class AdapterTests(unittest.TestCase):
                 self.assertIn('77',requests[0]['body'].decode())
                 if a.name=='azure':self.assertNotIn('model',body)
                 if a.name=='bedrock':self.assertIn('SignedHeaders=content-type;host;x-amz-date;x-amz-security-token',requests[0]['headers']['Authorization'])
+
+    def test_arena_structured_and_stream_requests_use_documented_wire_fields(self):
+        schema = {"type":"object","properties":{"ok":{"type":"boolean"}}}
+        req = ChatRequest(
+            "test",
+            (Message(Role.USER,"return json"),),
+            max_tokens=32,
+            response_schema=schema,
+        )
+        adapter = ArenaAdapter("KEY","http://127.0.0.1:1234")
+        body = adapter._build_body(req)
+        self.assertNotIn("response_format", body)
+        self.assertIn("Return only JSON matching this schema:", body["messages"][0]["content"])
+        stream_body = adapter._build_body(req, True)
+        self.assertTrue(stream_body["stream"])
+        self.assertNotIn("stream_options", stream_body)
+        self.assertIs(stream_body["allow_fallbacks"], False)
+
+    def test_arena_disables_gateway_fallback_and_preserves_safe_provenance(self):
+        headers = {
+            "X-Arena-Resolved-Model": "resolved-model",
+            "X-Arena-Trace-ID": "arena-trace-123",
+        }
+        with endpoint(lambda _:(200,OPENAI,headers)) as (url,requests):
+            adapter = ArenaAdapter("ARENA-SECRET", url)
+            response = adapter.chat(REQ)
+            body = json.loads(requests[0]["body"])
+            self.assertIs(body["allow_fallbacks"], False)
+            self.assertNotIn("fallbacks", body)
+            self.assertNotIn("fallback_on", body)
+            self.assertEqual(requests[0]["headers"]["Authorization"], "Bearer ARENA-SECRET")
+            self.assertEqual(response.metadata["arena_resolved_model"], "resolved-model")
+            self.assertEqual(response.metadata["arena_trace_id"], "arena-trace-123")
+            self.assertIs(response.metadata["arena_fallback_used"], False)
+            self.assertNotIn("ARENA-SECRET", json.dumps(response.metadata))
+        with endpoint(lambda _:(200,OPENAI,{
+            "X-Arena-Resolved-Model":"backup-model",
+            "X-Arena-Trace-ID":"arena-trace-456",
+            "X-Arena-Fallback-Index":"1",
+            "X-Arena-Fallback-Reason":"503",
+        })) as (url,_):
+            with self.assertRaises(ProviderError) as error:
+                ArenaAdapter("KEY", url).chat(REQ)
+            self.assertEqual(error.exception.code, "invalid_response")
+
+    def test_arena_stream_rejects_fallback_headers_before_content(self):
+        body = sse(
+            {'choices':[{'delta':{'content':'ok'},'finish_reason':'stop'}]},
+            '[DONE]',
+        )
+        with endpoint(lambda _:(200,body,{
+            'X-Arena-Resolved-Model':'model-a',
+            'X-Arena-Trace-ID':'trace-stream-ok',
+        })) as (url,_):
+            chunks=list(ArenaAdapter('KEY',url).stream(REQ))
+            self.assertEqual(''.join(chunk.content or '' for chunk in chunks),'ok')
+        with endpoint(lambda _:(200,body,{
+            'X-Arena-Resolved-Model':'backup-model',
+            'X-Arena-Trace-ID':'trace-stream-bad',
+            'X-Arena-Fallback-Index':'1',
+            'X-Arena-Fallback-Reason':'transport_error',
+        })) as (url,_):
+            stream=ArenaAdapter('KEY',url).stream(REQ)
+            with self.assertRaises(ProviderError) as error:
+                next(stream)
+            self.assertEqual(error.exception.code,'invalid_response')
+
+    def test_arena_model_discovery_uses_bearer_auth_and_sorted_openai_shape(self):
+        with endpoint(lambda _:(200,{"data":[{"id":"model-z"},{"id":"model-a"}]},{})) as (url,requests):
+            models = ArenaAdapter("ARENA-SECRET", url).list_models()
+            self.assertEqual(models, ["model-a", "model-z"])
+            self.assertEqual(requests[0]["path"], "/models")
+            self.assertEqual(requests[0]["headers"]["Authorization"], "Bearer ARENA-SECRET")
+            self.assertEqual(requests[0]["body"], b"")
 
     def test_unknown_usage_is_not_zero_and_invalid_usage_is_rejected(self):
         responses=[{**OPENAI,'usage':None},{**ANTHROPIC,'usage':None},{k:v for k,v in GOOGLE.items() if k!='usageMetadata'}, {**BEDROCK,'usage':None},{k:v for k,v in OLLAMA.items() if k not in {'prompt_eval_count','eval_count'}}]

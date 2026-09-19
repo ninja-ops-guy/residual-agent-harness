@@ -1,5 +1,6 @@
 """Bridge the uploaded provider contract into RESIDUAL's bounded runner interface."""
 from __future__ import annotations
+import json
 import os
 import time
 from ai_providers import ChatRequest, Message, Role, ProviderName, ProviderError, Router, Registry
@@ -15,14 +16,22 @@ PROVIDERS={
  'google':{'label':'Google Gemini','base_url':'https://generativelanguage.googleapis.com/v1beta'},
  'azure':{'label':'Azure OpenAI','base_url':''},
  'bedrock':{'label':'AWS Bedrock','base_url':''},
+ 'arena':{
+     'label':'Arena API',
+     'base_url':'https://api.preview.arena.ai/v1',
+     'setup_url':'https://portal.api.preview.arena.ai/dashboard/keys',
+     'docs_url':'https://portal.api.preview.arena.ai/docs/api-reference',
+     'setup_label':'Get Arena API key',
+     'setup_help':'Create a virtual Arena API key, copy it once, then paste it into RESIDUAL.'
+ },
 }
-ENV_KEYS={'openai':'OPENAI_API_KEY','openai_compatible':'LLM_API_KEY','anthropic':'ANTHROPIC_API_KEY','google':'GEMINI_API_KEY','azure':'AZURE_OPENAI_API_KEY','ollama':'OLLAMA_API_KEY'}
+ENV_KEYS={'openai':'OPENAI_API_KEY','openai_compatible':'LLM_API_KEY','anthropic':'ANTHROPIC_API_KEY','google':'GEMINI_API_KEY','azure':'AZURE_OPENAI_API_KEY','ollama':'OLLAMA_API_KEY','arena':'ARENA_API_KEY'}
 
 
-def normalize_profile(profile,placement):
+def normalize_profile(profile,placement,allow_empty_model=False):
     if not isinstance(profile,dict) or profile.get('kind') not in PROVIDERS: raise ContractError('Choose a supported provider')
     kind=profile['kind']; model=profile.get('model','')
-    if not isinstance(model,str) or not model or len(model)>500 or any(ord(c)<32 for c in model): raise ContractError('Enter a model or deployment ID')
+    if not isinstance(model,str) or (not model and not allow_empty_model) or len(model)>500 or any(ord(c)<32 for c in model): raise ContractError('Enter a model or deployment ID')
     if placement=='local' and kind not in {'ollama','openai_compatible'}: raise ContractError('Local routes require Ollama or a compatible loopback server')
     region=profile.get('region') or 'us-east-1'
     base=profile.get('base_url') or PROVIDERS[kind]['base_url']
@@ -43,6 +52,9 @@ def make_adapter(profile,credentials=None):
     p=profile; kind=p['kind']; c=credentials or {}
     key=c.get('api_key') or (os.environ.get('RESIDUAL_LOCAL_API_KEY') if p.get('placement')=='local' else os.environ.get(ENV_KEYS.get(kind,'')))
     if kind=='google': key=key or os.environ.get('GOOGLE_API_KEY')
+    if kind=='arena':
+        from ai_providers.adapters.arena_adapter import ArenaAdapter
+        return ArenaAdapter(key,p['base_url'],output_token_field=p['output_token_field'])
     if kind in {'openai','openai_compatible'}:
         from ai_providers.adapters.openai_adapter import OpenAIAdapter,OpenAICompatibleAdapter
         return (OpenAIAdapter if kind=='openai' else OpenAICompatibleAdapter)(key,p['base_url'],output_token_field=p['output_token_field'])
@@ -77,8 +89,13 @@ class ModularProvider(Provider):
         self.name=self.kind+':'+self.model
         self.system,self.schema=system,schema
         self.adapter=make_adapter(self.profile,credentials or ({'api_key':key} if key else {}))
+        self.attempt_receipts=[]
+        def retain_attempt(value):
+            # Snapshot only normalized Router receipts; raw provider bodies and
+            # credentials never enter this record.
+            self.attempt_receipts.append(json.loads(canonical(value)))
         reg=Registry();reg.register(self.kind,lambda:self.adapter)
-        self.router=Router(registry=reg,default_provider=self.kind,observation_bus=observation_bus)
+        self.router=Router(registry=reg,default_provider=self.kind,observation_bus=observation_bus,after_attempt=retain_attempt)
     def request(self,packet,cap):
         return ChatRequest(self.model,(Message(Role.SYSTEM,self.system),Message(Role.USER,canonical(packet))),max_tokens=cap,response_schema=self.schema)
     def payload(self,packet,max_output_tokens): return self.adapter._build_body(self.request(packet,max_output_tokens))

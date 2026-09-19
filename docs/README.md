@@ -34,6 +34,8 @@ Station-specific documentation lives under [`station/`](station/), including arc
 
 Use [`controlled-evaluation.md`](controlled-evaluation.md) for the controlled study design and [`evaluation.md`](evaluation.md) for evaluation tooling/metrics. Development fixtures demonstrate controller behavior; they do not prove that a real model preserves quality, reduces cost, or makes cloud reasoning necessary.
 
+[`arena-benchmarking.md`](arena-benchmarking.md) documents the Arena API provider integration and AX-ARENA benchmark path: guided key/model setup, the exact upstream API routes RESIDUAL uses, server-side Station request handling, fallback/provenance controls, failure semantics, and the paired control-vs-RESIDUAL experiment workflow.
+
 [`cic-integration.md`](cic-integration.md) documents the opt-in structural grouping
 and bounded CIC feasibility checks in the original obligation harness, including
 receipt semantics, model limits, and the three-arm scripted comparison.

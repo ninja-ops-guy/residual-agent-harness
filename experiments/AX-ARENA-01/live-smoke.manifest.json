@@ -1,0 +1,21 @@
+{
+  "schema_version": "residual.ax-arena-manifest.v1",
+  "experiment_id": "AX-ARENA-01-LIVE-SMOKE",
+  "title": "RESIDUAL Harness Effect — live Arena transport smoke",
+  "conditions": [
+    "control",
+    "residual"
+  ],
+  "repeats": 1,
+  "seed": 20260919,
+  "slice": "evaluation",
+  "evidence_level": "live_model",
+  "allow_provider_fallback": false,
+  "workload": {
+    "kind": "development_fixture"
+  },
+  "residual_signals": [
+    "evidence_completeness",
+    "recovery_success"
+  ]
+}

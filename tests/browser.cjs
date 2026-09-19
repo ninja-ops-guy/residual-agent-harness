@@ -44,6 +44,16 @@ async function main(){
   checks.push('Batch pass and token limits persist through the model workshop');
   await page.screenshot({path:path.join(out,'06-model-workshop.png'),fullPage:true});
   await page.getByRole('button',{name:'Open setup checklist',exact:true}).click();await page.getByRole('heading',{name:'Ready for your first shift?'}).waitFor();await page.getByRole('button',{name:'Close dialog',exact:true}).click();checks.push('Setup checklist remains accessible');
+  // Arena onboarding must lead directly to the virtual API-key page without exposing credentials.
+  await page.locator('#cloud-kind').selectOption('arena');
+  assert.equal(await page.locator('#cloud-url').inputValue(),'https://api.preview.arena.ai/v1');
+  assert.equal(await page.locator('#cloud-model').inputValue(),'');
+  const arenaKeyLink=page.getByRole('link',{name:'Get Arena API key ↗',exact:true});
+  await arenaKeyLink.waitFor({state:'visible'});
+  assert.equal(await arenaKeyLink.getAttribute('href'),'https://portal.api.preview.arena.ai/dashboard/keys');
+  assert.equal(await arenaKeyLink.getAttribute('target'),'_blank');
+  await page.getByRole('link',{name:'API docs ↗',exact:true}).waitFor({state:'visible'});
+  checks.push('Arena provider exposes direct API-key and documentation onboarding links');
   // Exercise the new provider controls without using external accounts.
   await page.locator('#cloud-kind').selectOption('anthropic');assert.equal(await page.locator('#cloud-url').inputValue(),'https://api.anthropic.com');
   await page.locator('#cloud-model').fill('test-anthropic');await page.locator('#cloud-key').fill('UI-PRIVATE-KEY');

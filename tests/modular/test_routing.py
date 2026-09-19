@@ -37,9 +37,36 @@ class RouterTests(unittest.TestCase):
                 with self.assertRaises(ProviderError):router.chat('openai:x',REQ,['anthropic:y'])
             self.assertEqual(two.calls,1 if retryable else 0)
             self.assertEqual(len(receipts),2 if retryable else 1)
+            self.assertIn("response_metadata", receipts[-1])
             self.assertEqual(len({r['request_id'] for r in receipts}),1)
             self.assertTrue(verify_chain(mem.events));self.assertIn(ObservationKind.LLM_FAILED,[e.kind for e in mem.events])
             self.assertNotIn('Hello café',canonical([o.to_dict() for o in mem.events]))
+
+    def test_router_only_exports_allowlisted_arena_response_metadata(self):
+        receipts=[]
+        google=FakeProvider(ChatResponse(
+            'test','ok',metadata={'google_parts':[{'thoughtSignature':'OPAQUE'}]}
+        ));google.name='google'
+        reg=Registry();reg.register('google',lambda:google)
+        Router(reg,default_provider='google',after_attempt=receipts.append).chat('google:test',REQ)
+        self.assertEqual(receipts[-1]['response_metadata'],{})
+
+        arena=FakeProvider(ChatResponse(
+            'test','ok',metadata={
+                'arena_resolved_model':'model-a',
+                'arena_trace_id':'trace-1',
+                'arena_fallback_used':False,
+                'unapproved_field':'DO-NOT-EXPORT',
+            }
+        ));arena.name='arena'
+        reg=Registry();reg.register('arena',lambda:arena)
+        Router(reg,default_provider='arena',after_attempt=receipts.append).chat('arena:test',REQ)
+        self.assertEqual(receipts[-1]['response_metadata'],{
+            'arena_fallback_used':False,
+            'arena_resolved_model':'model-a',
+            'arena_trace_id':'trace-1',
+        })
+        self.assertNotIn('DO-NOT-EXPORT',canonical(receipts))
 
     def test_stream_partial_failure_does_not_replay_on_fallback(self):
         reg=Registry();one=FakeProvider(None);two=FakeProvider(None);two.name='anthropic'
@@ -126,6 +153,31 @@ class StationRoutingTests(unittest.TestCase):
             with endpoint(lambda _:(200,response,{})) as (url,_):
                 save_settings(self.s.store,{'local':{'kind':'ollama','model':'m','base_url':url}})
                 with self.assertRaises(ContractError):model_call(self.s.store,self.pid,'runner',{},'S',schema={'type':'object'})
+
+    def test_arena_key_can_be_saved_before_model_discovery(self):
+        save_settings(self.s.store, {
+            "cloud": {
+                "kind": "arena",
+                "model": "",
+                "base_url": "https://api.preview.arena.ai/v1",
+                "output_token_field": "max_completion_tokens",
+            },
+            "provider_credentials": {
+                "arena": {"api_key": "ARENA-SETUP-SECRET"}
+            },
+        })
+        settings = self.s.store.settings()
+        self.assertEqual(settings["cloud"]["kind"], "arena")
+        self.assertEqual(settings["cloud"]["model"], "")
+        public = public_settings(self.s.store)
+        self.assertTrue(public["credential_status"]["arena"]["saved"])
+        self.assertEqual(
+            public["providers"]["arena"]["setup_url"],
+            "https://portal.api.preview.arena.ai/dashboard/keys",
+        )
+        self.assertNotIn("ARENA-SETUP-SECRET", canonical(public))
+        with self.assertRaises(ContractError):
+            model_call(self.s.store, self.pid, "runner", {}, "S", placement="cloud")
 
     def test_api_settings_refuse_wrong_local_classification_and_duplicate_routes(self):
         for value in [{'local':{'kind':'anthropic','model':'m'}},{'local':{'kind':'ollama','model':'m-cloud','base_url':'http://localhost:11434'}},{'cloud':{'kind':'anthropic','model':'m'},'cloud_fallbacks':[{'kind':'anthropic','model':'n'}]}]:

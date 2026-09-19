@@ -70,7 +70,8 @@ def model_call(store, pid, role, packet, system, schema=None, placement="local",
             usage = normalized_usage(value["usage"])
             store.event(pid, "usage.recorded", {"role":role, "placement":placement, "model":value["model"], "provider":value["provider"],
                 **asdict(usage), "request_bytes":value["request_bytes"], "elapsed_ms":value["elapsed_ms"], "status":value["status"],
-                "request_id":value["request_id"], "provider_attempt":value["attempt"], "error":value["error"]}, tid)
+                "request_id":value["request_id"], "provider_attempt":value["attempt"],
+                "provider_metadata":value.get("response_metadata", {}), "error":value["error"]}, tid)
     router = Router(registry=reg, default_provider=primary["kind"], observation_bus=store.observation_bus(pid, role=role, placement=placement, task=tid or ""),
                     before_attempt=reserve, after_attempt=receipt)
     start = time.monotonic()
@@ -116,7 +117,11 @@ def save_settings(store, incoming):
         if not isinstance(p,dict) or set(p)-fields: raise ContractError("Unsupported model profile field")
         if placement=="cloud" and not p.get("model") and not p.get("base_url"):
             clean[placement]=dict(DEFAULTS["cloud"]); continue
-        clean[placement]=normalize_profile(p, "remote" if placement=="cloud" else "local")
+        clean[placement]=normalize_profile(
+            p,
+            "remote" if placement=="cloud" else "local",
+            allow_empty_model=(placement=="cloud" and p.get("kind")=="arena"),
+        )
     if "cloud_fallbacks" in incoming:
         fallbacks = incoming["cloud_fallbacks"]
         if not isinstance(fallbacks,list) or len(fallbacks)>3 or any(not isinstance(p,dict) or set(p)-fields for p in fallbacks): raise ContractError("Use at most three cloud fallback profiles")

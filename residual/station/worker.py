@@ -81,7 +81,7 @@ def main(argv=None):
     p.add_argument("--station", required=True)
     p.add_argument("--project", required=True)
     p.add_argument("--name", default="remote-runner")
-    p.add_argument("--kind", choices=["ollama", "openai_compatible", "openai", "anthropic", "google", "azure", "bedrock"], default="ollama")
+    p.add_argument("--kind", choices=["ollama", "openai_compatible", "openai", "anthropic", "google", "azure", "bedrock", "arena"], default="ollama")
     p.add_argument("--model", default="qwen2.5-coder:7b")
     p.add_argument("--base-url", default="")
     p.add_argument("--region", default="us-east-1")

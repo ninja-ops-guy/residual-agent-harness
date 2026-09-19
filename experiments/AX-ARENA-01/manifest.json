@@ -1,0 +1,25 @@
+{
+  "schema_version": "residual.ax-arena-manifest.v1",
+  "experiment_id": "AX-ARENA-01",
+  "title": "RESIDUAL Harness Causal Effect — Arena-aligned smoke protocol",
+  "conditions": [
+    "control",
+    "residual"
+  ],
+  "repeats": 3,
+  "seed": 20260919,
+  "slice": "evaluation",
+  "evidence_level": "development_fixture",
+  "allow_provider_fallback": false,
+  "workload": {
+    "kind": "development_fixture"
+  },
+  "residual_signals": [
+    "evidence_completeness",
+    "verifier_false_acceptance",
+    "verifier_false_rejection",
+    "recovery_success",
+    "integration_conflicts",
+    "duplicate_work"
+  ]
+}

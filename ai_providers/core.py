@@ -22,6 +22,7 @@ class ProviderName(str, Enum):
     AZURE = "azure"
     BEDROCK = "bedrock"
     OLLAMA = "ollama"
+    ARENA = "arena"
     ROUTER = "router"
 
 
