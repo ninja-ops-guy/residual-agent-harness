@@ -148,6 +148,8 @@ class Handler(BaseHTTPRequestHandler):
                     if parts[3] == "comms":
                         thread_id = query.get("thread_id", [None])[0]
                         return self.respond({"messages": self.station.comms(pid, max(0, int(query.get("after", ["0"])[0])), None, 500, thread_id)})
+                    if parts[3] == "runners":
+                        return self.respond({"runners": self.station.runners(pid)})
                     if parts[3] == "report":
                         return self.respond(self.station.store.report(pid))
                     if parts[3] == "markdown":
@@ -269,14 +271,32 @@ class Handler(BaseHTTPRequestHandler):
             return s.store.event(pid, "comms.message", {"message": message, "audience": audience, "kind": "message",
                 "thread_id": thread_id, "reply_to": reply_to, "supersedes": supersedes}, actor="remote:" + name)
         if path == "/api/worker/claim":
+            pid = data["project_id"]
             name = bounded(data.get("name"), "Runner name", 60)
-            work = s.prepare(data["project_id"], "remote:" + name, data.get("task_id"))
+            ttl_s = data.get("presence_ttl_s", 90)
+            if type(ttl_s) is not int or not 15 <= ttl_s <= 900:
+                raise ContractError("presence_ttl_s must be an integer from 15 to 900")
+            model = data.get("model")
+            if model is not None:
+                model = bounded(model, "Model", 200)
+            placement = data.get("placement")
+            if placement is not None and placement not in {"local", "remote"}:
+                raise ContractError("Invalid runner placement")
+            s.touch_runner(pid, name, status="idle", model=model, placement=placement, ttl_s=ttl_s)
+            work = s.prepare(pid, "remote:" + name, data.get("task_id"))
             if not work:
                 return {"work": None}
             t = work["task"]
+            s.touch_runner(pid, name, status="working", task_id=t["id"], model=model, placement=placement, ttl_s=ttl_s)
             return {"work": {"project_id": work["project_id"], "task_id": t["id"], "attempt": t["attempt"], "lease": work["lease"], "packet": work["packet"], "allow_cloud": s.store.project(work["project_id"])["allow_cloud"]}}
         if path == "/api/worker/heartbeat":
-            s.store.heartbeat(data["project_id"], data["task_id"], data["lease"])
+            pid, tid = data["project_id"], data["task_id"]
+            s.store.heartbeat(pid, tid, data["lease"])
+            task = s.store.task(pid, tid)
+            owner = task.get("owner") or ""
+            if owner.startswith("remote:"):
+                s.touch_runner(pid, owner.removeprefix("remote:"), status="working", task_id=tid,
+                               ttl_s=int(data.get("presence_ttl_s", 90)))
             return {"ok": True}
         if path == "/api/worker/result":
             # Remote workers submit candidates only; the coordinator owns testing and approval.
@@ -301,6 +321,10 @@ class Handler(BaseHTTPRequestHandler):
                         raise ContractError("Invalid remote usage receipt")
                     usage = {**usage, "source": "worker_reported", "role": "remote_runner", "model": bounded(usage.get("model", "unknown"), "Model", 200)}
                 result = s.finish(work, data["response"], usage)
+                owner = t.get("owner") or ""
+                if owner.startswith("remote:"):
+                    s.touch_runner(pid, owner.removeprefix("remote:"), status="review_ready", task_id=tid,
+                                   ttl_s=int(data.get("presence_ttl_s", 90)))
                 with s.store.transaction() as c:
                     c.execute("INSERT INTO submissions VALUES(?,?)", (sid, canonical({"fingerprint": fingerprint, "result": result})))
                 return result
