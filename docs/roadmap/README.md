@@ -1,81 +1,200 @@
-# RESIDUAL roadmap — current build state
+# RESIDUAL roadmap
 
-> **Current-state entry point:** [../CURRENT_STATUS.md](../CURRENT_STATUS.md)
+This roadmap describes planned work and current evidence boundaries. It is not a release-qualification certificate. Exact source, workflow runs, retained experiment artifacts, and protected governance remain authoritative.
 
-The documents under [`source/`](source/) preserve earlier design generations and are historical input unless a newer reconciliation says otherwise. Checkmarks in those source documents mean **specified/documented**, not automatically implemented or qualified on the current tree.
+Current accepted repository baseline for this status is **`main@28cfc6d40233e7349cc73350143bd3e2b55dcc59`**.
 
-## Current capability map
+## Current capability boundary
 
-| Capability | Current status |
-| --- | --- |
-| Core harness / verifier / receipts / residual delegation | Implemented and covered by the established test corpus |
-| Command Station | Implemented; exact-revision workflow results remain authoritative |
-| Factory M2/M3/M4 | Implemented; protected claims remain exact-revision/environment bound and universal capable-runner qualification is not implied |
-| Mission Control/WebVM lifecycle | Bounded recovery, diagnostics, iOS fallback, provider publication, and #205 reload/remount channel recovery are accepted; long-run and physical heavyweight-WebVM reliability remain unqualified |
-| Native setup path | #200 hardening is accepted; persistent XDG defaults, loopback binding, opt-in shell macro, bounded venv repair, and constrained shell-rc edits are current behavior; blank-environment qualification remains open |
-| Live provider acceptance | Historical retained Puter failure remains **FAIL/BLOCKED**; exact-current-main paid/live candidate→verifier→receipt success remains **UNKNOWN** |
-| Frozen evaluation framework | Implemented research apparatus; CI binding is not confirmatory live-model evidence |
-| Release/recovery/soak | True blank-environment install, host-loss/recovery evidence and selected elapsed soak remain gates |
+| Area | Current state | Evidence / limitation |
+| --- | --- | --- |
+| Core harness | Implemented | Verifier-owned acceptance, bounded obligations, receipts and evidence handling exist; broad model reliability is not implied |
+| Command Station | Implemented and actively hardened | #218 repair context and #233 actionable failure/repeated-patch diagnostics are accepted; general repair reliability remains unproven |
+| Mission Control / WebVM | Implemented with bounded fallback/recovery | #248 provider-load lifecycle behavior is accepted; retained production Pages acceptance on historical de7 remains FAIL; exact-current-main Pages qualification is UNKNOWN/BLOCKED because #267's trigger repair is still unmerged; #260 requires current-base refresh |
+| Factory M2/M3/M4 | Implemented | Qualification remains exact-revision/environment bound; implementation is not every-host qualification |
+| Qualification pipeline | **BLOCKED operationally** | #305 retained 1,267 queued Actions runs and 15 in progress; required exact-head gates are not PASS until they actually execute and complete; #307 is an unmerged fan-out/concurrency repair candidate |
+| Maintainer approval publication | Repaired on main | #275 merged and closed #268; exact-head human attestation is still required and the protected status is now published to the exact PR head |
+| M6 repair loop | Mixed research evidence | #203/#204/#215/#217 FAIL; #220 bounded PASS |
+| M6.2 first contract shipment | Research PASS, production pending | #231 self-shipped the first `ImprovementSpec` implementation; #243 is derived from that source plus maintainer hardening and remains open/unaccepted |
+| M6.2 evidence-sufficiency fork | Bounded research PASS with defects surfaced | #232 exercised MeasurementGap vs grounded hypothesis behavior and exposed deterministic rejection requirements |
+| M6.2 autonomous discovery | One bounded formal-admission PASS; later FAIL/UNKNOWN cells | #257/007J formally admitted one genuinely absent MeasurementGap; #264 exposed semantic-identity UNKNOWN; #272/#273/#277 retain registry-aware apparatus/transcription FAILs; #286 is pending |
+| M6.2 metric semantics | Implementation candidate technically green; acceptance still blocked | #265/#266 define the Metric Registry trust boundary; open stacked #270 implements it and #274 passes bounded binding controls, but the path is unaccepted on main; M6-008 remains BLOCKED pending accepted trust infrastructure plus a valid registry-aware discovery result |
+| M7 recursive self-improvement bootstrap | Draft / unaccepted | #293 adds a governed doctor/plan/run candidate path and explicitly retains external merge authority; it is not accepted on main and does not establish recursive self-improvement |
+| General recursive self-improvement | **UNKNOWN / not established** | No repeated autonomous-discovery → implementation → verifier → champion/challenger success chain exists |
+| Paid/live provider success on exact current deployed main | **UNKNOWN / not established** | Retained production Pages proof records `cloud_inference: NOT_RUN`; historical real-account protocol failure remains |
 
-`implementation-status.yaml` records implementation presence and remains current for that purpose. It is not a release-qualification manifest.
+## Accepted current changes
 
-## Accepted main
+The current accepted sequence includes:
 
-Current `main` is **`4608afabf5de4c87d77aaf149dfc12538d364f43`**.
+- #200 setup hardening;
+- #205 session-scoped provider-channel recovery;
+- #218 bounded Station prior-candidate repair context and shared five-attempt ceiling;
+- #201 guided frontend and inline Puter setup;
+- #233 actionable repair failure-tail retention and repeated failed-patch detection;
+- #248 provider-load generation/lifecycle qualification on the credentialless embedded provider path;
+- #197 advisory PR-review workflow/configuration hardening only;
+- **#275** exact-PR-head maintainer approval status publication, closing #268 without weakening exact-head attestation or any protected Factory/M4/verifier/evidence authority.
 
-### #200 — native setup hardening
+Current `main@28cfc6d...` still has **no authoritative production Pages attempt**. Issue **#267** remains open because the accepted Pages workflow still uses a push path filter; #275 advanced main through governance paths outside that filter. The latest retained production Pages acceptance remains first run `35363306307` on historical `main@de7d9774...` and is **FAIL**. Exact-current-main production Pages qualification is therefore **UNKNOWN / BLOCKED by missing required attempt**. Open **#276** has refreshed onto current main at exact head `cf850bd5d120434e05490802bf3d639a41aa2e14`. Earlier activation heads `a134a7ce...` and `d5c647ff...` remain retained **FAIL** history, and the later `813b612...` technical PASS is now historical because the base advanced. On current head `cf850bd...`, Deploy GitHub Pages, Browser VM Demo CI, Controller/provider contracts, Command Station, Control Plane, Factory ownership, measured-evaluation binding, clean install, and maintainer approval are **QUEUED**; the advisory PR Agent run is **CANCELLED**. #276 is unmerged, so the repair is not active on main and no queued/missing result is treated as PASS.
 
-Merged #200 accepts the safer setup defaults and repair behavior described above. It improves onboarding ergonomics and local safety, but does **not** establish a truly blank-machine installation result or broad host portability.
+PR #253 is closed unmerged. Open **#260** retains technical exact-head PASS evidence from when it was rebuilt directly on former `main@3cff6bcd...`, including Browser VM Demo CI and Deploy GitHub Pages. Since #275 advanced main and repaired the maintainer-status publication defect, #260's previous base/head evidence is now historical for acceptance purposes. It requires current-main refresh and fresh exact-head qualification before merge consideration. If #260 is eventually accepted, the resulting merged SHA still requires its own first published Pages acceptance. PR-head proof is not production proof.
 
-### #205 — provider-channel reload recovery
+Issue **#305** remains a separate infrastructure blocker: at `2026-09-18T21:44Z`, the repository retained **1,267 queued Actions runs and 15 in progress**. That backlog is materially delaying release-critical exact-head qualification. Open **#307** is a candidate repair that removes duplicate feature-branch push fan-out for general qualification workflows while preserving required production/first-attempt evidence. #307 is unmerged; queued or missing gates remain **BLOCKED/UNKNOWN**, never PASS.
 
-Merged #205 accepts session-scoped restoration of the private browser provider channel across Mission Control reload/remount. Restored tokens are validated fail-closed and explicit close clears the stored token.
+## M6.2 roadmap issue #222
 
-This closes the accepted-byte lifecycle gap targeted by older provider-channel recovery work, but it does **not** establish successful paid/live Puter inference or production provider-helper sign-in on the exact deployed revision.
+Issue #222 remains open. Its objective is to move from a repair loop that executes supplied improvement hypotheses toward a system that can originate evidence-grounded, falsifiable ImprovementSpecs while keeping authority outside the model.
 
-## Exact-current-main qualification
+The target decomposition remains:
 
-For exact `main@4608afa...`, the retained exact-SHA Actions query used for this status refresh returned a completed set with no pending, cancelled, or failing run observed; a sampled Controller/provider workflow completed **PASS on attempt 1**.
+1. `ImprovementSpec` production contract;
+2. `EvidenceSnapshot` production contract;
+3. `MeasurementGap` production contract plus governed metric identity/semantics;
+4. analysis-only `Scientist`;
+5. deterministic `HypothesisVerifier`;
+6. experiment ledger;
+7. champion/challenger evaluator;
+8. autonomous discovery experiments and successors.
 
-Required interpretation:
+### Deliverable 1 — ImprovementSpec
 
-- exact-main named automated gates: **PASS where retained exact-SHA runs report PASS**;
-- historical exact-revision failures: **remain retained evidence**;
-- every-host/capable-runner M4 qualification: **not established**;
-- blank-environment install: **not established**;
-- paid/live provider semantic success: **UNKNOWN / not established**;
-- physical heavyweight-WebVM iPhone reliability: **UNKNOWN / unqualified**;
-- recovery/elapsed-soak qualification: **not established**.
+**Research status: PASS in #231. Production status: open/unaccepted in #243.**
 
-## Research and development state
+M6-ROADMAP-001B (#231) ran against a detached clean copy of exact `main@260b5f9...` and retained one implementation attempt, 3/3 immutable checks PASS, independent local review APPROVED, exact reviewed head integrated, a verification receipt, and successful release export.
 
-Research branches remain outside accepted production capability unless explicitly merged and qualified.
+Production PR **#243** imports the generated implementation but also contains maintainer hardening after review found mutable nested `acceptance` state. Its current head recursively freezes that graph, protects canonical identity from caller-owned mutation, keeps serialization detached, rejects unsupported non-JSON values, and adds independent production tests. The current #243 source therefore **does not claim byte-for-byte identity with the generated #231 source**.
 
-- **#202** — an earlier heterogeneous real-model DAG run remains **FAIL**; a later distinct exact-head run is a bounded **PASS** with 3/3 tasks integrated, retained receipts, dependency lineage, deliberate repair pressure, and release export. The later PASS does not erase the earlier FAIL or establish general DAG/recovery reliability.
-- **#203** — first-authoritative M6 ImprovementSpec self-host trial remains **FAIL**.
-- **#204** — stronger-model M6-SPEC-002 authoritative trial remains **FAIL**: 0/1 integrated, max-iteration escalation, no verification receipt and no release.
-- **#206** — Campaign A is complete at its corrected exact experiment head. STRESS-A4 is **BLOCKED / invalid for its intended repair-pressure intervention** because 0 faults were injected before an unknown-usage abort; STRESS-A5 is **FAIL / incomplete** at 3/6 integrated with no release; STRESS-A6 is **FAIL in scope** at 0/3 successful Qwen2.5-Coder 7B trials. Workflow-level success only establishes that evidence was retained.
-- **#207** — deterministic Campaign B retained mixed results. STRESS-B1 is **FAIL** because exhausted-budget accounting was observed only after accepted integration/release; STRESS-B2 is a scoped **PASS** early-convergence control; STRESS-B3 is **FAIL** because a non-empty release materialized after terminal verifier failure; STRESS-B4 contains corrupt candidates in the exact scenario but does not recover to task success within the frozen pass budget.
-- **#212** — deterministic Campaign C adds bounded containment/recovery PASS cells for malformed runner output, invalid reviewer schema, and denial→approval recovery, while the missing-usage case is a **FAIL** for accounting-before-authority because integration plus a receipt occurred before the later `usage_unknown_or_invalid` abort. The transient-500 case did not establish provider failover success.
-- **#213/#215/#217** — repair-context and transport/source-clarity work remains unaccepted research/development. M6-SPEC-003 and M6-SPEC-004 both remain authoritative **FAIL** results with 0/1 integrated and no receipt/release.
-- **#214** — draft repair candidate for #208. Observed exact-head technical workflows are green, but maintainer attestation is **BLOCKED/FAIL**; no accepted-main fix claim is made until merge plus applicable requalification.
+Current #243 status:
+
+- historical applicable technical PR-head workflows: **PASS** for their exact evaluated base/head;
+- merge/production status: **open, unaccepted**;
+- #275 has repaired exact-head maintainer-status publication on main, but #243 must refresh/requalify against the current baseline before acceptance.
+
+Until #243 is accepted, the production contract remains **UNKNOWN / unaccepted**.
+
+### Evidence-sufficiency experiment — #232
+
+M6-EPI-001 completed both experiment arms after one repair and validated the high-level distinction between insufficient and sufficient evidence, while exposing stricter verifier requirements:
+
+- an insufficient-evidence result must not leave required protected invariants empty;
+- acceptance criteria must be structured rather than free-form prose;
+- performance metrics must not be silently treated as protected invariants.
+
+These remain deterministic HypothesisVerifier rejection cases. #232 does not itself establish the production Scientist or verifier.
+
+## Autonomous discovery — #244 through #286
+
+The retained sequence materially narrows both the failure modes and the first bounded positive results:
+
+- **#244 / 007:** provider timeout before proposal — **FAIL in experiment-execution scope / discovery not reached**.
+- **#246 / 007B:** smaller context, provider again timed out — **FAIL in experiment-execution scope / discovery not reached**.
+- **#249 / 007C:** provider completed, but free-form candidates were malformed/repeated/truncated — **FAIL in bounded discovery qualification scope**.
+- **#250 / 007D, #251 / 007E, #252 / 007F, #254 / 007G:** typed output removed malformed JSON, but deterministic admission rejected false MeasurementGaps for already-measured metrics — bounded **FAILs**.
+- **#255 / 007H:** a genuinely absent-metric-shaped proposal reached semantic review but was rejected for causal overclaim, non-falsifiable acceptance, and preservation defects — **FAIL in bounded semantic-review scope**.
+- **#256 / 007I:** stale task-ID apparatus defect — **FAIL in experiment-execution/apparatus scope**, not Scientist-hypothesis evidence.
+- **#257 / 007J:** local `qwen2.5:7b` proposed genuinely absent `context_bytes_non_success_max`; semantic review approved and an admission/verification receipt was issued — **PASS in bounded autonomous MeasurementGap formal-admission scope**. Receipt `09f3bbc0dba17ca7344b485cf4a8757dc11382e0ac2f6b46ece8fb7f74bd80c9`; artifact `10558781593`; ZIP SHA-256 `ea74dce1d0706a880566e694d872c76e305b8d28da0eee4dd89801e1232ad26e`.
+- **#258 / 007K:** pre-model variable-name apparatus defect — **FAIL in experiment-execution/apparatus scope**.
+- **#259 / 007L:** corrected apparatus derived `context_bytes_non_success_max=32652`, but the Scientist continued asking for already-present evidence — **FAIL in bounded post-gap-closure evidence-use scope**.
+- **#262 / 007M:** host EvidenceResolver returned exact present values, but the Scientist repeated an already-resolved request — **FAIL in bounded resolver-assisted discovery/repair scope**.
+- **#263 / 007N:** active evidence selection exposed trusted metrics, then the Scientist requested and repeated already-resolved evidence — **FAIL in bounded active-evidence-query discovery scope**. Artifact `10558852392`; ZIP SHA-256 `db5eb7e5eba32147c55f7dd54e5dd32d41d14d381ce5140ef12a646eeabb548e`.
+- **#264 / 007O:** split Evidence Scout / Hypothesis Scientist / Measurement Planner workflow completed and issued receipt `674513d7e3b82c747bdbea408094ad2c08342943bb05a544e29a6d07727a5359`, but post-hoc audit could not establish that `mean_wall_clock_s_basline` is semantically distinct from already-inspected `successful_mean_wall_clock_s=786.123333` — **workflow PASS; research conclusion UNKNOWN pending metric-identity/semantic validation**. Artifact `10559527734`; ZIP SHA-256 `7a28d6367d91af99dca8ea1a66c0128b136665955a3d273d86a5afb988df895e`.
+- **#272 / 007Q:** registry tests passed, but generated import serialization failed `py_compile` before model execution — **FAIL in apparatus/execution scope; registry-aware discovery not exercised**.
+- **#273 / 007R:** corrected apparatus reached the Scientist, but model-copied EvidenceSnapshot identity was wrong and deterministic verification rejected it before Planner/review — **FAIL in bounded provenance-transcription scope**; no receipt. Artifact `10562515080`; ZIP SHA-256 `a0f86bb813f903696f95a1c1bb3aafa79c328d59f7d1874f798978659ff96e7e`.
+- **#274 / 007S:** seven preregistered registry/receipt binding controls passed after the focused registry suite; semantic changes under the same metric ID/revision altered registry/admission/verifier identity and stale receipt context failed closed — **PASS in bounded registry/receipt binding-control scope**. Artifact `10560939948`; ZIP SHA-256 `2a9a7e7a63c381e3b48577e2bfc393fc19c43be45a48f593f073e2e66f575ea1`.
+- **#277 / 007T:** host-owned provenance removed the #273 identity-transcription failure class and the Scientist proposal passed mechanical verification, but the Planner re-authored the wrong metric/value context and failed before registry assessment/review — **host provenance mechanism PASS; overall experiment FAIL at Planner transcription**. Artifact `10562057488`; ZIP SHA-256 `fa2b2329473e38bccc5d8b74ac44cd985857bc699367a34efbdfbeb348602ef6`.
+- **#286 / 007U:** Planner authorship is further minimized so verified context is host-carried. At this refresh there is no authoritative owner result comment — **UNKNOWN / pending authoritative result**. External Vercel rate limiting is not research evidence.
+
+The important gains remain bounded, not general: **#257 proves one autonomous missing-measurement proposal can cross formal admission under the exact experiment contract; #274 provides bounded positive evidence that metric semantics can be content-addressed and bound into receipt/admission context.** The later FAIL/UNKNOWN cells show that trustworthy identity and provenance do not yet make the Scientist/Planner reliably perform repeated evidence-driven scientific iteration.
+
+Therefore general autonomous improvement discovery remains **UNKNOWN / not established** and general recursive self-improvement remains **UNKNOWN / not established**.
+
+## Metric Registry gate — #265 / #266 / #270
+
+#264 exposed a trust requirement: discovery cannot safely call a proposed metric “absent” or “nonredundant” from a free-form identifier alone. Issue **#265** requires a versioned discovery Metric Registry before MeasurementGap admissions can advance the recursive loop.
+
+Open spec PR **#266** defines the intended trust infrastructure:
+
+- versioned `MetricDefinition` and `MetricDefinitionProposal` contracts;
+- canonical metric IDs plus description, unit, aggregation, population/observation unit, domain, directionality/interpretation, collection reference, and revision/hash;
+- EvidenceSnapshot and admission-receipt binding to registry revisions;
+- deterministic naming and exact-duplicate gates;
+- semantic-overlap review against existing definitions;
+- missing/ambiguous semantics => **UNKNOWN**, never PASS;
+- executable negative-path acceptance requirements.
+
+Open implementation PR **#270**, stacked on #266, now implements immutable/content-addressed definitions and registry identity, a seed registry for the current discovery metrics, typed proposal assessment, duplicate/spelling/overlap handling, snapshot/unit validation, and cryptographic binding helpers through existing StationReceipt v2 identities rather than changing the protected receipt schema. Its retained owner report says the exact head is green across the relevant Command Station Python 3.11/3.12/3.13, wheel, Docker, browser, Control Plane, clean-install, Factory ownership, controller/provider, and measured-evaluation scopes. Dedicated downstream 007P also passed the focused registry suite and three preregistered controls.
+
+Status: **the trust mechanism has bounded technical PASS evidence, but #266/#270 are open/unaccepted and not on main.** #274 adds bounded negative-control evidence for registry/receipt binding. No metric registration, autonomous write authority, promotion authority, or M6-008 authorization follows from those results. **M6-008 remains BLOCKED until the trust infrastructure is accepted and a registry-aware discovery experiment produces a valid admissible result without an unresolved apparatus/transcription failure.**
+
+## Experimental successors — unaccepted
+
+Two new successor lines are active but must not be read as accepted capability:
+
+- **#293 / M7 bootstrap** — draft governed recursive-self-improvement orchestration (`revision doctor`, deterministic self-improve plan, bounded candidate run) that keeps production promotion/merge authority external. It is open/unaccepted and does not establish recursive self-improvement.
+- **#299 / #300 derivation-graph research** — stacked semantic-custody/proof-carrying derivation-graph spec and experimental core. They are research/spec candidates only, do not replace StationReceipt or current governance, and explicitly do not authorize M6-008 or production mutation.
+
+These lines may inform later architecture, but no PASS/production claim is inherited from their existence or local design tests.
 
 ## Current build order
 
-1. **Repair and requalify #207/#208 authority-ordering failures.** Budget/unknown-usage state and terminal verifier failure must prevent later accepted-state/release effects before stronger fail-closed claims are made. #214 remains only a draft candidate.
-2. **Re-run a valid #206 repair-pressure intervention and retain the negative DAG/reliability cells.** Do not convert A4's invalid intervention or A5/A6 failures into PASS through workflow success or later reruns.
-3. **Continue bounded M6 repair experiments without promoting them into product capability.** #215 and #217 both remain retained FAIL results; #213 is unaccepted.
-4. **Retain fresh exact-current-deployed live-provider evidence.** A real-account Puter mission must cross protocol validation into ordinary candidate/verifier/receipt handling before live-provider success can become PASS.
-5. **Physically validate the #186 iOS fallback** without broadening fallback success into heavyweight-WebVM reliability.
-6. **Execute true blank-environment installation, recovery/host-loss qualification, and selected elapsed soak** for the exact release artifact.
-7. **Continue #120/#126 WebVM reliability work** and preserve historical negative evidence.
-8. **Resolve the #133/#132 retirement-versus-restoration discrepancy** explicitly rather than reconstructing absent capability in prose.
-9. **Keep #139→ownership-baseline→fresh-qualification→#134 independent.** Unrelated green CI does not clear that protected sequence.
-10. **Refresh/requalify broader stale candidates such as #152/#177** before current release/research claims use them.
-11. **Freeze and run confirmatory research only after operational claims are bounded.** Preserve negative, blocked and missing cells.
+1. **Drain qualification infrastructure without weakening evidence:** resolve #305. Review #307 as an infrastructure repair candidate, but preserve non-cancelling production Pages/required first-attempt evidence and exact-head governance. Queued/missing gates remain BLOCKED/UNKNOWN.
+2. **Land the production Pages trigger repair correctly:** qualify refreshed #276 exact head `cf850bd...` without reusing the historical `813b612...` PASS, require explicit exact-head approval, then require the resulting merged `main` SHA's first production Pages attempt. Do not treat PR-head Pages as production proof.
+3. **Refresh dependent production candidates:** rebuild/requalify #260 and #243 on current main now that #275 is accepted. Historical technical PASS remains retained but does not qualify a moved base.
+4. **Preserve the #257 admission boundary:** treat 007J as one bounded PASS, not a general discovery claim. Retain its proposal, snapshot, review, receipt, model/provider identity, and artifact as a positive regression fixture.
+5. **Finish Metric Registry acceptance, not just implementation:** review #266/#270 as trust-boundary changes, preserve the #274 negative controls, and keep StationReceipt v2/schema authority unchanged. Do not resume M6-008 merely because the open implementation is technically green.
+6. **Minimize model transcription surfaces:** carry immutable provenance and already-verified Scientist context through host-owned envelopes. #273/#277 show that asking models to retype identity or verified observations creates avoidable fail-closed errors. Use #286 to test the narrower Planner contract prospectively.
+7. **Evidence contracts:** make `EvidenceSnapshot` and `MeasurementGap` deterministic production contracts with canonical identity, explicit measured-vs-missing semantics, provenance, defensive serialization, and registry-backed metric identity.
+8. **Evidence-use semantics:** after a metric is resolved, require the Scientist to incorporate the exact value into the next proposal rather than requesting it again. Repeated resolved requests should terminate/stagnate deterministically.
+9. **Scientist boundary:** keep the Scientist analysis-only — no Git/write/integration/promotion authority and no ability to redefine protected invariants.
+10. **HypothesisVerifier:** encode #232, #250–#255, #259/#262/#263, #264, and the registry/transcription failure classes as explicit fail-closed or UNKNOWN cases. A MeasurementGap must name a genuinely absent required measurement; an available bad value is not a missing measurement; causal/acceptance claims must remain falsifiable and evidence-grounded; semantically ambiguous metric identity must remain UNKNOWN.
+11. **Experiment ledger:** retain hypothesis/proposal identity, evidence identity, metric-registry revision, code/revision identity, model/provider identity, checks, review, receipts, outcomes, apparatus failures, and negative/UNKNOWN cells.
+12. **Champion/challenger:** compare accepted candidate changes against an exact retained baseline with frozen metrics and reject regressions in protected invariants.
+13. **Repeat autonomous discovery:** require repeated retained verifier-accepted proposals and complete improvement cycles before making reliability claims. One formal-admission PASS is insufficient for a general claim.
+14. **Repair independent governance defects:** #275/#268 is resolved; separately finish #276 and qualify the #207/#208/#212 accounting/release-ordering repair path. Draft #288 is a candidate for the budget-admission defect but is not accepted evidence on main.
+15. **Confirmatory evaluation:** freeze R0–R5 and planned degradation/routing protocols before paper-facing outcome collection.
 
-## Release evidence rule
+## Parallel qualification work
 
-A merge onto main establishes that accepted bytes are part of the repository. It does not automatically establish every release claim associated with them.
+The M6.2 roadmap does not replace other blockers:
 
-Any claim touching ownership baselines, qualification anchors, protected Factory/M4 bytes, verifier authority, evidence schemas, physical-device reliability, live-provider success, recovery or soak must remain scoped to retained evidence. Historical `FAIL`, `UNKNOWN`, and `BLOCKED` results remain visible even when later revisions pass.
+- **#305/#307:** release-critical exact-head qualification is operationally **BLOCKED** by Actions queue saturation. #307 is an unmerged fan-out/concurrency repair candidate; it must not cancel required production first-attempt evidence or weaken protected gates;
+- **#267/#276:** current `main@28cfc6d...` remains **UNKNOWN / BLOCKED** because its authoritative production Pages attempt is missing. #276 refreshed to exact head `cf850bd...`; the new PR-head technical/Pages/approval workflows are **QUEUED**, while the advisory PR Agent is **CANCELLED**. The earlier `813b612...` PASS is historical after the base moved. The repair is still unmerged, and after acceptance the resulting new `main` SHA must receive its own first authoritative production Pages attempt before production qualification can become PASS;
+- **#268/#275:** **resolved on main**. #275 merged as `28cfc6d...`, issue #268 is closed, explicit exact-head human attestation remains required, and the protected status is published to the exact PR head. This repair does not auto-approve dependent PRs or let them reuse stale-base evidence;
+- **#152 Qualification v1:** branch head `f90d702...` includes the deliberate #303 protected ownership-baseline advance and M4 prerequisite run `35397918743` is **PASS**, but the broader exact-head qualification/acceptance set remains incomplete/unaccepted and is affected by queue saturation. No branch PASS broadens current-main production claims;
+- **#260:** historical technical PASS is retained on the former base, but current-main refresh/requalification is now required; if eventually accepted, qualify the resulting merged SHA with its own first production Pages acceptance;
+- retain a fresh exact-deployed-revision real-account Puter candidate→verifier→receipt success or keep paid/live provider success UNKNOWN;
+- physically validate the #186 mobile fallback without claiming heavyweight-WebVM iPhone reliability;
+- complete true blank-environment, recovery/host-loss, and selected elapsed-soak qualification;
+- continue #120/#126 WebVM long-run reliability work;
+- preserve the separate #139→ownership-baseline→fresh-qualification→#134 protected sequence;
+- resolve the #133/#132 retirement-versus-restoration discrepancy explicitly.
+
+## Trust-boundary constraints
+
+Roadmap work must preserve the existing authority split:
+
+- models propose; host-owned checks decide acceptance;
+- review, receipt, integration, promotion and release authority remain outside the Scientist/runner;
+- protected Factory/M4 implementation, ownership baselines, qualification anchors, protected bytes and evidence schemas require their own reviewed process;
+- metric identity/semantics must be versioned and reviewable before a discovery admission can claim nonredundancy;
+- workflow/attestation repairs must publish evidence to the exact governed revision rather than bypass protected status requirements;
+- CI queue pressure or rerun delay cannot turn missing/queued qualification into PASS or justify cancelling required production first-attempt evidence;
+- `implementation-status.yaml` is an implementation-presence manifest, not a release-qualification manifest;
+- historical FAIL/BLOCKED/UNKNOWN cells are not erased by later PASS results.
+
+## Exit criteria for stronger self-improvement claims
+
+Do not describe RESIDUAL as generally self-improving until retained evidence demonstrates, across repeated frozen trials:
+
+1. the system originates defensible ImprovementSpecs from evidence without a supplied hypothesis;
+2. a deterministic verifier accepts the hypothesis before execution;
+3. protected invariants are explicit and retained;
+4. proposed/observed metrics have registry-backed identity and semantics sufficient to distinguish absent, duplicate, overlapping, and merely bad measurements;
+5. a bounded implementation/review/integration path executes the accepted hypothesis;
+6. a champion/challenger evaluator shows the declared improvement against an exact baseline;
+7. failures, apparatus defects, regressions, semantic ambiguities, and UNKNOWN cells are retained rather than filtered from the dataset;
+8. the process repeats across more than one task/model/environment cell;
+9. no autonomous merge authority is inferred from the experiment.
+
+#257 satisfies only a bounded proposal-admission slice of this larger chain. #274 establishes only bounded registry/receipt binding controls, while #273/#277 demonstrate that trustworthy provenance still requires careful host/model responsibility boundaries. Open #293 and #299/#300 are successor candidates, not evidence that these exit criteria have been met. Until the full criteria repeat successfully, autonomous discovery reliability and general recursive self-improvement remain **UNKNOWN / not established**.
