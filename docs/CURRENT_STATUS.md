@@ -87,7 +87,7 @@ Accordingly #338 is **UNACCEPTED**. Its green scoped lanes do not override the f
 
 ## Open provider/runtime adapter candidate
 
-Open **#340** proposes Moonshot/Kimi API and Kimi Claw/OpenClaw provider/runtime adapters. It remains **UNACCEPTED / branch-only**. Current qualification is incomplete, PR Agent advisory is **FAIL**, and protected maintainer approval is **FAIL**. No current-main live-provider capability or model-quality claim changes because of this candidate.
+Open **#340** proposes Moonshot/Kimi API and Kimi Claw/OpenClaw provider/runtime adapters. It remains **UNACCEPTED / branch-only**. At current head `e527b1371e79a88d5efb7d46f37945fec796c5e1`, several technical lanes are **PASS**, production-style PR Pages qualification is still **in progress**, PR Agent advisory is **pending**, and protected maintainer approval is **FAIL**. No current-main live-provider capability or model-quality claim changes because of this candidate.
 
 ## Accepted authority repair and retained stress evidence
 
