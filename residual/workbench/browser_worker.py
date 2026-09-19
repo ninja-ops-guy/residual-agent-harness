@@ -116,6 +116,22 @@ def _dispatch_admitted(
         return 64
 
 
+def _sync_guest_filesystems() -> None:
+    """Make completed mission evidence durable before publishing completion.
+
+    The WebVM writable overlay is browser-backed persistent storage. A page reload
+    can race dirty guest blocks even after ordinary file close/fsync operations in
+    individual writers. Mission Control therefore does not publish a reusable
+    completion marker until the guest has requested a filesystem-wide sync. If the
+    runtime cannot provide that durability boundary, fail closed and poison the
+    worker rather than claim that evidence survived.
+    """
+    sync = getattr(os, "sync", None)
+    if sync is None:
+        raise RuntimeError("guest filesystem durability sync is unavailable")
+    sync()
+
+
 def _owned_regular(path: Path) -> tuple[bool, os.stat_result | None]:
     try:
         info = path.lstat()
@@ -275,6 +291,10 @@ def serve(
                     mission_id, mode, mailbox=mailbox, root=root,
                     output_root=output_root,
                 )
+                # The RUN marker grants the browser authority to reuse or reload
+                # this guest. Publish it only after all mission evidence has crossed
+                # an explicit guest-filesystem durability boundary.
+                _sync_guest_filesystems()
             except BaseException:
                 # Poison from inside the worker before emitting the fatal marker.
                 # This survives page loss and prevents a new generation from
@@ -314,8 +334,8 @@ def main(argv=None) -> int:
     return serve(
         control_file=args.control_file,
         pid_file=args.pid_file,
-        busy_file=args.busy_file,
         poison_file=args.poison_file,
+        busy_file=args.busy_file,
         mailbox=args.mailbox,
         root=args.root,
         output_root=args.output_root,
