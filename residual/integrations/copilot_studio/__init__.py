@@ -7,6 +7,7 @@ binds evidence to the authenticated caller.
 """
 
 from .auth import CopilotIdentityVerifier, CopilotPrincipal
+from .backend import EncryptedMissionQueueBackend, QueuedMissionWork
 from .policy import (
     DepartmentProfile,
     MissionTemplate,
@@ -39,6 +40,7 @@ __all__ = [
     "CopilotMissionGateway",
     "CopilotPrincipal",
     "DepartmentProfile",
+    "EncryptedMissionQueueBackend",
     "FixedWindowRateLimiter",
     "InMemoryMissionBackend",
     "InMemoryMissionStore",
@@ -47,6 +49,7 @@ __all__ = [
     "MissionRequest",
     "MissionStore",
     "MissionTemplate",
+    "QueuedMissionWork",
     "SQLiteMissionStore",
     "create_server",
     "make_handler",
