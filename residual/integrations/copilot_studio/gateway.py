@@ -35,7 +35,7 @@ class MissionRequest:
     inputs: dict[str, Any]
 
     def __post_init__(self):
-        identifier(self.request_id)
+        _validate_request_id(self.request_id)
         identifier(self.template_id)
         if not isinstance(self.objective, str) or not self.objective.strip():
             raise ContractError("objective is required")
@@ -94,7 +94,7 @@ class MissionBinding:
         if not _MISSION_RE.fullmatch(self.mission_id):
             raise ContractError("invalid mission id")
         identifier(self.department)
-        identifier(self.request_id)
+        _validate_request_id(self.request_id)
         identifier(self.template_id)
         for name in ("tenant_id", "subject_id", "object_id", "request_hash", "plan_hash"):
             value = getattr(self, name)
