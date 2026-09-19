@@ -36,13 +36,15 @@ A system that rejects nearly everything must not be described as reliable merely
 
 ## Current integration evidence is not confirmatory evidence
 
-Current `main` is **`3bfa6abac719bb1ca5db225b32df347ae2afc079`**, produced by merged #330.
+Current `main` is **`3bfa6abac719bb1ca5db225b32df347ae2afc079`**, produced by merged #330. No newer production-main commit landed in this check.
 
 Recent accepted engineering/security changes include #307 CI fan-out repair, #260 provider-bootstrap hardening, #288 pre-dispatch Station budget authority, #320 repository-side CSP/anti-clickjacking configuration, #328 core execution/egress/XML security hardening, and #330 workflow checkout credential-persistence hardening. These are engineering, governance, or security changes, not model-quality or scientific evidence.
 
 Accepted #276 requires each `main` SHA to receive its own non-cancelling production Pages attempt. For exact current main, run **`35437556200`**, attempt 1, completed **FAIL**. Generated artifact/browser proof, deployment, served revision identity, and desktop real-guest acceptance passed; the required narrow/mobile Chromium acceptance failed after reaching the live guest and multiple Workbench stages. The retained live-proof artifact is `10582812524`, SHA-256 `868ca31506d278a335ff95d3607adbd13c14edaec8b161c1b45ac013e7f7c8b8`. The lower-level cause remains **UNKNOWN**.
 
 Production Pages run `35431634267`, attempt 1, remains a scoped **PASS for exact revision `0a675017...` only**. The earlier Pages **FAIL** on `e7b72ad...` also remains exact-revision evidence. Neither predecessor result overrides the independent current-main FAIL.
+
+Open #336 has a generated branch Pages **PASS** at exact head `92aca285...`, but it is not accepted-current-main evidence. It remains on HOLD behind #337 because review of #336 exposed a PR Agent fail-open publication/concurrency defect. #337's technical lanes are green in their scoped checks, but PR Agent advisory and protected maintainer approval remain **FAIL**, so the governance repair is itself unaccepted. If #337 lands, #336 must reconcile and regenerate exact-head evidence; if #336 later lands, the new main SHA still requires its own first authoritative production Pages attempt.
 
 Successful paid/live Puter execution, every-host M4 qualification, production Vercel security-header validation, blank-environment install, physical heavyweight-WebVM reliability, and a scientific effect size remain separate claims. The current Pages failure recorded `cloud_inference` as `NOT_RUN`, so it is not a live-provider/model-quality failure result.
 
@@ -129,7 +131,7 @@ Issues #120/#126 remain open. Bounded mitigations, diagnostics, and individual g
 
 The #186 fallback is accepted. It establishes only that the unsupported/unqualified iOS WebKit profile is routed to the lightweight walkthrough before heavyweight guest/disk boot. That result must **not** be reported as physical heavyweight-WebVM reliability.
 
-The exact-current-main Pages result adds one more bounded negative cell: desktop real-guest execution passed in run `35437556200`, while the required narrow/mobile Chromium proof failed. Preserve that asymmetry rather than flattening it into either blanket browser failure or mobile reliability proof.
+The exact-current-main Pages result adds one more bounded negative cell: desktop real-guest execution passed in run `35437556200`, while the required narrow/mobile Chromium proof failed. Preserve that asymmetry rather than flattening it into either blanket browser failure or mobile reliability proof. The #336 branch-only generated Pages PASS is a separate changed-head engineering observation, not a rewrite of the production FAIL.
 
 For a confirmatory protocol that depends on WebVM: freeze the exact source/deployed revision, retain exact-revision browser/runtime evidence, preserve first-attempt `FAIL`/`UNKNOWN`, preregister repeated reliability measurement, report operational missingness separately from model correctness, and never describe a safe fallback or transport repair as proof that the broader reliability family is fixed.
 
@@ -139,15 +141,17 @@ M4 remains evidence- and environment-bound rather than universally qualified.
 
 Accepted #185/#187 protected changes retain their exact reviewed scope. The separate #139→ownership-baseline→fresh-qualification→#134 sequence remains independent.
 
-Qualification-v1 remains a separate testing-branch evidence path. PR #331 merged into `testing/qualification-v1` only and moved open PR #152 to exact head `24816ebc778b26497dd30497e59f6f2badcf39ed`. On that head, `aggregate`, `browser-adversarial`, `concurrency`, `m4`, `m4-prereq`, the browser matrix, and surrounding named qualification lanes are **PASS**. The protected `maintainer-approval` gate is **FAIL**, so #152 remains unaccepted and none of those branch results become current-main capability. Earlier browser/concurrency failures remain historical evidence rather than being rewritten.
+Qualification-v1 remains a separate testing-branch evidence path. Reverse-merge **#333** moved open PR #152 to exact head **`11c0ac67f60f61a7243bcc79ce803d588a89aa94`**. Exact-head Qualification-v1 run **`35443955204` attempt 1 = FAIL**. Its retained final manifest lists `deterministic-regression`, `qualification-selftests`, and `toxic-provider-matrix` as required non-PASS gates. The deterministic regression gate retained seven enterprise sandbox test failures because the hosted runner reported `kernel-level sandbox isolation unavailable`, alongside 1,817 passed tests, 29 skips, and 387 passed subtests. The selftest and toxic-provider gates each failed because the full provider-mission qualifier returned FAIL; the lower-level provider-mission cause remains **UNKNOWN** from retained evidence.
 
-The same exact #152 head's Aikido code check reported **2 new MEDIUM and 19 new LOW findings**, and Deep Review was **SKIPPED** because no credits were available. Treat security-review completeness as **UNKNOWN / incomplete**, not PASS.
+On the same exact testing head, Factory ownership, M4 prerequisites, Browser VM Demo, Controller/provider contracts, Command Station, clean install, Factory runtime/OS evidence, Control Plane, measured-evaluation binding, and generated PR Pages proof are **PASS**. Those partial PASSes do not override the aggregate required-gate FAIL. Protected maintainer approval and PR Agent advisory are also **FAIL**. The predecessor `24816ebc...` positive technical evidence remains historical and exact-head bound; it is not inherited after the reverse merge.
 
 `implementation-status.yaml` remains an implementation-presence manifest, not a qualification manifest.
 
 ## Governance and evaluation independence
 
 Merged #168 establishes repository merge control as automated qualification plus exact-head maintainer attestation. This is **maintainer-reviewed with automated qualification**, not independent human assurance.
+
+The #336/#337 finding is itself evidence for keeping advisory publication fail closed: a fresh bot failure/status message is not a substantive review. #337 remains unaccepted until its required gates pass; #336 remains held behind it.
 
 Issue #305's historical Actions saturation remains evidence. #307 is accepted as the structural duplicate-fan-out repair. The current queued-run snapshot is **0**; queue state never permits required first-attempt failures to be cancelled or reinterpreted.
 
