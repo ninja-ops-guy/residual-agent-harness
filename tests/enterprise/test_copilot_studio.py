@@ -226,7 +226,8 @@ def test_removed_department_membership_revokes_status_access():
         "GET", f"/v1/copilot/missions/{mission_id}",
         auth(make_token(groups=())), None, now=NOW,
     )
-    assert response.status == 403
+    assert response.status == 404
+    assert response.body["code"] == "not_found"
 
 
 def test_cancel_is_owner_scoped_and_idempotent():
