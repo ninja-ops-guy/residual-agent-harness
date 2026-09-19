@@ -148,10 +148,17 @@ def firmware_templates() -> dict[str, MissionTemplate]:
     }
 
 
-def firmware_profile() -> DepartmentProfile:
+def firmware_profile(*, allowed_groups: frozenset[str] | None = None) -> DepartmentProfile:
+    """Build the Firmware profile with deployment-specific Entra group object IDs.
+
+    The friendly-name default is for local fixtures only. Production deployments
+    should pass the immutable set of Entra group object IDs configured for the
+    Power Platform environment.
+    """
+    groups = allowed_groups or frozenset({"Engineering-Firmware"})
     return DepartmentProfile(
         profile_id="firmware-engineering",
-        allowed_groups=frozenset({"Engineering-Firmware"}),
+        allowed_groups=groups,
         approved_templates=frozenset(firmware_templates()),
         allow_capabilities=frozenset({
             "repository.analyze",
