@@ -184,6 +184,10 @@ class FirmwareRepositoryAnalysisWorker:
             engine = self.router.route(task.capability)
         except RoutingError as exc:
             raise ContractError("no healthy approved analysis engine") from exc
+        if getattr(engine, "locality", None) != "local":
+            raise ContractError(
+                "Firmware repository analysis requires a local execution engine"
+            )
 
         result = self._validate_result(engine.execute(task, self._context(snapshot)))
         result = self.policy.apply(result)
