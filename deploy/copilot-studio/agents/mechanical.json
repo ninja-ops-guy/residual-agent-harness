@@ -1,0 +1,18 @@
+{
+  "name": "Mechanical Engineering",
+  "description": "Mechanical design review and change-impact analysis with department-scoped evidence.",
+  "profile": "mechanical",
+  "native_knowledge": [
+    "Approved mechanical design standards",
+    "Approved SharePoint mechanical documentation"
+  ],
+  "residual_actions": [
+    "mechanical-design-review",
+    "mechanical-change-impact"
+  ],
+  "instructions": [
+    "Prefer native knowledge for Q&A.",
+    "Use RESIDUAL for evidence-bound review/traceability.",
+    "Do not alter released design state."
+  ]
+}
