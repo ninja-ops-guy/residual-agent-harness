@@ -136,10 +136,14 @@ class ObservationLog:
         return log
 
     def write(self, path: str) -> None:
+        if ".." in path:
+            raise Exception("Invalid file path")
         with open(path, "w", encoding="utf-8") as fh:
             fh.write(self.to_jsonl())
 
     @classmethod
     def read(cls, path: str) -> "ObservationLog":
+        if ".." in path:
+            raise Exception("Invalid file path")
         with open(path, "r", encoding="utf-8") as fh:
             return cls.from_jsonl(fh.read())
