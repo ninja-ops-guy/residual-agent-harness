@@ -29,9 +29,9 @@ Recent accepted engineering changes matter to interpretation but are not scienti
 
 None of these merges establishes the central research hypothesis, live-provider model quality, universal M4 qualification, or a paper-facing effect size.
 
-Accepted #276 requires a new non-cancelling production Pages attempt for every `main` SHA. Exact-current-main run **`35437556200`**, attempt 1, is currently **in progress**, so publication/browser/real-guest qualification for `3bfa6aba...` is **UNKNOWN / pending**. The prior run `35431634267` remains a scoped **PASS for exact revision `0a675017...` only**; the earlier `e7b72ad...` Pages FAIL remains retained exact-revision evidence.
+Accepted #276 requires a new non-cancelling production Pages attempt for every `main` SHA. Exact-current-main run **`35437556200`**, attempt 1, completed **FAIL**. The generated artifact/browser proof, deployment, published revision identity, and desktop real-guest path passed, while the required narrow/mobile Chromium acceptance failed after several successful live-guest/Workbench stages. Retained live-proof artifact `10582812524` has SHA-256 `868ca31506d278a335ff95d3607adbd13c14edaec8b161c1b45ac013e7f7c8b8`; the lower-level cause is **UNKNOWN**. The prior run `35431634267` remains a scoped **PASS for exact revision `0a675017...` only**; the earlier `e7b72ad...` Pages FAIL remains retained exact-revision evidence.
 
-No Pages outcome establishes the central systems hypothesis, provider/model quality, physical heavyweight-WebVM reliability, or any paper-facing effect size.
+No Pages outcome establishes the central systems hypothesis, provider/model quality, physical heavyweight-WebVM reliability, or any paper-facing effect size. The current failure recorded `cloud_inference` as `NOT_RUN`, so it is not evidence of live Puter/model failure.
 
 ## Real-model development evidence
 
@@ -113,7 +113,7 @@ Merged #320, #328, and #330 improve accepted engineering/security controls, but 
 - stale overlapping #324 must not be merged wholesale.
 - scanner/vendor confidence is not scientific or repository acceptance evidence.
 
-Exact-current-main production Pages qualification is still **UNKNOWN / pending** while run `35437556200` executes. Even a future PASS for that run would be release/browser qualification evidence only, not model-quality or research-hypothesis evidence.
+Exact-current-main production Pages qualification is **FAIL** on run `35437556200`, attempt 1, because the required narrow/mobile acceptance failed. The desktop/real-guest path within that run remains a scoped sub-check PASS. This is release/browser qualification evidence only, not model-quality or research-hypothesis evidence.
 
 ## WebVM / provider research boundary
 
@@ -139,7 +139,7 @@ Merged #168 establishes repository merge control as:
 
 This is **maintainer-reviewed with automated qualification**, not independent human assurance. A paper-facing security, release, or scientific claim may still require evidence independent of the implementer/maintainer.
 
-Issue #305's historical queue saturation remains evidence. #307 is accepted as the structural fan-out repair. The current post-#330 queued-run snapshot is **23**; transient queue state does not erase first-attempt evidence or authorize skipped qualification.
+Issue #305's historical queue saturation remains evidence. #307 is accepted as the structural fan-out repair. The current queued-run snapshot is **0**; transient queue state does not erase first-attempt evidence or authorize skipped qualification.
 
 ## Proposed contribution
 
