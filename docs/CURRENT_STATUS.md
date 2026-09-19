@@ -25,13 +25,17 @@ Accepted #276 requires every new `main` SHA to receive its own non-cancelling fi
 
 For exact current main `3bfa6aba...`:
 
-- production Pages run **`35437556200`**, attempt 1: **IN PROGRESS**;
-- exact-current-main publication/browser/real-guest qualification: **UNKNOWN / pending** until that first attempt completes;
-- current Actions queued-run snapshot: **23**. This is a post-merge qualification fan-out snapshot, not evidence that the historical #305 saturation has recurred at its prior severity.
+- production Pages run **`35437556200`**, attempt 1: **FAIL**;
+- `build-and-browser-proof`: **PASS**;
+- deployment plus published-revision identity and desktop real-guest acceptance: **PASS**;
+- required narrow/mobile Chromium acceptance: **FAIL** after the live guest reached shell-ready and multiple Workbench stages;
+- retained live-proof artifact: **`10582812524`**, SHA-256 **`868ca31506d278a335ff95d3607adbd13c14edaec8b161c1b45ac013e7f7c8b8`**;
+- lower-level cause of the narrow/mobile failure: **UNKNOWN**. The observed failing proof command exited 1 while re-verifying retained Workbench runs; the evidence does not establish whether the cause belongs to browser/mobile runtime behavior, a retained-run race/state issue, another subsystem, or transient execution. Do not attribute it to #330, Puter/model quality, Factory/M4, or another component without further evidence;
+- current repository queued-run snapshot: **0**. Six workflows were in progress at the snapshot, primarily the documentation branch's fresh exact-head checks; the historical #305 queue saturation remains historical evidence rather than current queued backlog.
 
-Do not inherit qualification from the predecessor SHA after `main` moves. Production Pages run **`35431634267`**, attempt 1, remains a scoped **PASS for exact revision `0a675017a51f94e489528a607032e7463fbf7993` only**. The earlier production Pages run `35410875305` on `e7b72ad...` remains a retained **FAIL for that exact revision only**. Neither historical result decides the current `3bfa6aba...` cell.
+Do not inherit qualification from the predecessor SHA after `main` moves. Production Pages run **`35431634267`**, attempt 1, remains a scoped **PASS for exact revision `0a675017a51f94e489528a607032e7463fbf7993` only**. The earlier production Pages run `35410875305` on `e7b72ad...` remains a retained **FAIL for that exact revision only**. The current `3bfa6aba...` cell is independently **FAIL** on its own first authoritative attempt.
 
-A Pages PASS, when retained, remains scoped to publication/browser/real-guest qualification. It does not establish paid/live Puter inference, model quality, physical heavyweight-WebVM iPhone reliability, every-host M4 qualification, production Vercel security posture, or blanket production readiness.
+The current failure is scoped to the required exact-main production Pages qualification. It does not establish paid/live Puter inference failure, model-quality failure, every-host M4 failure, production Vercel security posture, or blanket product failure. Conversely, the successful desktop path inside the same run does not override the required mobile/narrow failure.
 
 ## Accepted budget-authority repair and retained stress evidence
 
@@ -82,7 +86,7 @@ Aikido-generated #321/#322 remain separate vendor-generated candidates; vendor c
 
 Issue #305 recorded severe Actions saturation, including a historical snapshot of 1,267 queued runs. That historical evidence remains valid.
 
-Merged **#307** removes the identified duplicate generic feature-branch push fan-out for affected general CI workflows while preserving PR qualification and non-cancelling production evidence. The current queued-run snapshot after #330 merged is **23**. That number should be treated as current operational state, not as permission to cancel, overwrite, or reinterpret required first-attempt evidence.
+Merged **#307** removes the identified duplicate generic feature-branch push fan-out for affected general CI workflows while preserving PR qualification and non-cancelling production evidence. The current queued-run snapshot is **0**. That is current operational state only; it does not erase historical saturation evidence or authorize cancelling/reinterpreting required first-attempt evidence.
 
 ### Qualification-v1 testing branch
 
@@ -110,6 +114,8 @@ Accepted provider/session/bootstrap/publication changes do not substitute for fr
 - successful paid/live Puter candidate→verifier→receipt execution on exact current main: **UNKNOWN / not established**;
 - candidate correctness for the historical failed calls: **UNKNOWN**;
 - model quality implied by Pages or transport CI: **UNKNOWN / not established**.
+
+The current Pages failure occurred with `cloud_inference` recorded as `NOT_RUN` and therefore is not evidence of a live Puter/model failure.
 
 The #186 iOS/WebKit fallback remains accepted only as a lightweight pre-boot route. Physical heavyweight-WebVM reliability and long-run recurrence/root cause under #120/#126 remain **UNKNOWN / unqualified**.
 
@@ -143,7 +149,7 @@ General autonomous discovery and recursive self-improvement remain **UNKNOWN / n
 
 ## Current priority gates
 
-1. **Finish exact-current-main qualification after #330.** Preserve production Pages run `35437556200`, attempt 1, and do not classify `3bfa6aba...` as PASS until the required run completes successfully.
+1. **Investigate and requalify the exact-current-main production Pages failure.** Preserve run `35437556200`, attempt 1, and artifact `10582812524`; the desktop success inside the run does not override the required mobile/narrow FAIL.
 2. **Requalify repaired authority ordering.** Retain fresh tests/experiments against accepted #288 before promoting stronger present-tense budget/unknown-usage/release-ordering claims.
 3. **Rebase/requalify #323.** Do not run the first authoritative Workbench trial until the branch is based on a main containing #288 and its required gates pass.
 4. **Validate #320 in production.** Inspect the production Vercel response headers and rerun the relevant security check before calling production CSP/anti-clickjacking remediation PASS.
@@ -160,6 +166,7 @@ General autonomous discovery and recursive self-improvement remain **UNKNOWN / n
 - `BLOCKED` means a required gate could not validly execute; it is not PASS.
 - A research workflow can successfully retain a scenario-level FAIL; workflow success is not hypothesis success.
 - PR-head or predecessor-main success is not accepted-current-main production evidence after `main` moves.
+- A partial PASS inside a required multi-stage gate does not override that gate's terminal FAIL.
 - A merge accepts repository bytes; it does not automatically establish every security, live-provider, physical-device, scientific, or release claim associated with them.
 
 The repository does not currently claim blanket production readiness, universal worker correctness, every-host M4 qualification, successful exact-current-main paid/live provider execution, completed blank-environment/recovery/soak qualification, physical heavyweight-WebVM iPhone reliability, production Vercel security-header validation, general autonomous recursive self-improvement, general cooperative mesh efficiency, or proof of the central live-model reliability hypothesis.
