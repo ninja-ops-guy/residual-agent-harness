@@ -401,7 +401,7 @@ class RuntimeJournal:
 
     def mark_purged(self, attempt_id: str) -> None:
         with self._transaction() as db:
-            row = db.execute("SELECT state,revoked FROM attempts WHERE attempt_id=?", (attempt_id,)).fetchone()
+            row = db.execute("SELECT state FROM attempts WHERE attempt_id=?", (attempt_id,)).fetchone()
             if row is None or row[0] in ('RESERVED', 'RUNNING'):
                 raise JournalError("active attempts cannot be purged")
             db.execute("UPDATE attempts SET state='PURGED',updated_ns=? WHERE attempt_id=?",
