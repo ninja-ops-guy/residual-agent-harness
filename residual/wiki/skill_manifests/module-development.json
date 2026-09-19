@@ -1,0 +1,51 @@
+{
+  "id": "module-development",
+  "title": "Build a RESIDUAL module",
+  "category": "extensions",
+  "summary": "Create a host-selected module entry point, validate it, and keep verifier/brake authority explicit.",
+  "keywords": [
+    "module",
+    "plugin",
+    "extension",
+    "entry point",
+    "verifier",
+    "brake",
+    "marketplace"
+  ],
+  "docs": [
+    "module-tutorial.md",
+    "extending.md",
+    "enterprise/governance/runbooks/module-installation.md"
+  ],
+  "inputs": [
+    {
+      "name": "package",
+      "type": "opaque",
+      "required": false,
+      "label": "Python package"
+    },
+    {
+      "name": "class_name",
+      "type": "opaque",
+      "required": false,
+      "label": "Module class"
+    }
+  ],
+  "steps": [
+    {
+      "kind": "read",
+      "title": "Read the module contract",
+      "detail": "Implement StationModule hooks with explicit verifier revisions and typed fail-closed brake behavior."
+    },
+    {
+      "kind": "manual",
+      "title": "Add the entry point",
+      "detail": "Add the generated residual.modules entry point to the package metadata."
+    },
+    {
+      "kind": "verify",
+      "title": "Validate before install",
+      "detail": "Run residual-module validate against the source root before publication or installation."
+    }
+  ]
+}

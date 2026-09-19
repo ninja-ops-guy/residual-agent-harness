@@ -8,6 +8,7 @@ import threading
 import time
 import unittest
 import urllib.error
+import urllib.parse
 import urllib.request
 import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -326,6 +327,60 @@ class HTTPTests(unittest.TestCase):
         save_settings(self.s.store, {"cloud_key": "private-key"})
         body = self.request("/api/bootstrap")
         self.assertNotIn("private-key", canonical(body))
+
+    def test_wiki_search_doc_and_skill_plan_are_authenticated(self):
+        summary = self.request("/api/wiki")
+        self.assertGreater(summary["summary"]["documents"], 50)
+        self.assertTrue(summary["skills"])
+
+        search = self.request("/api/wiki/search?q=distributed%20worker")
+        self.assertTrue(search["results"])
+        path = search["results"][0]["path"]
+        doc = self.request("/api/wiki/doc?path=" + urllib.parse.quote(path))
+        self.assertEqual(doc["document"]["path"], path)
+        self.assertTrue(doc["document"]["content"])
+
+        plan = self.request(
+            "/api/wiki/skills/run",
+            {
+                "skill_id": "module-development",
+                "inputs": {"package": "my_module", "class_name": "ExampleModule"},
+            },
+        )
+        self.assertEqual(plan["side_effects"], "none")
+        self.assertEqual(plan["status"], "ready")
+        self.assertRegex(plan["plan_hash"], r"^[a-f0-9]{64}$")
+
+    def test_wiki_skill_rejects_secret_and_unknown_inputs(self):
+        with self.assertRaises(urllib.error.HTTPError) as error:
+            self.request(
+                "/api/wiki/skills/run",
+                {
+                    "skill_id": "distributed-worker",
+                    "inputs": {
+                        "station_url": "https://station.example.com",
+                        "project_id": "project-one",
+                        "worker_token": "do-not-accept",
+                    },
+                },
+            )
+        self.assertEqual(error.exception.code, 400)
+
+    def test_wiki_agent_uses_retrieved_docs_and_returns_sources(self):
+        with patch("residual.station.server.model_call") as call:
+            call.return_value = {"text": "Remote workers submit proposals [SOURCE 1]."}
+            result = self.request(
+                "/api/wiki/ask",
+                {"question": "How do distributed workers work?", "placement": "local"},
+            )
+        self.assertTrue(result["grounded"])
+        self.assertTrue(result["sources"])
+        self.assertIn("SOURCE 1", result["answer"])
+        payload = call.call_args.args[3]
+        system = call.call_args.args[4]
+        self.assertIn("[SOURCE 1:", payload["sources"])
+        self.assertIn("untrusted reference material", system)
+        self.assertEqual(call.call_args.kwargs["placement"], "local")
 
     def test_remote_candidate_submission_is_idempotent_and_unable_to_approve(self):
         pid = self.s.create(demo_spec(), demo=True)["project_id"]
