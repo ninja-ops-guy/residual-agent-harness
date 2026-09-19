@@ -141,6 +141,10 @@ def _git_identity(implementation_repo: str) -> tuple[str, str]:
             ["git", "config", "--get", "remote.origin.url"], cwd=root,
             check=False, capture_output=True, text=True
         ).stdout.strip()
+        dirty = subprocess.run(
+            ["git", "status", "--porcelain", "--untracked-files=normal"], cwd=root,
+            check=True, capture_output=True, text=True
+        ).stdout
     except (OSError, subprocess.CalledProcessError) as exc:
         raise ContractError(
             "implementation commit/tree unavailable; pass impl_commit_sha and impl_tree_sha explicitly"
@@ -154,6 +158,15 @@ def _git_identity(implementation_repo: str) -> tuple[str, str]:
         raise ContractError(
             "git auto-detection does not match implementation_repo; "
             "pass impl_commit_sha and impl_tree_sha explicitly"
+        )
+    # A clean commit/tree pair is only authoritative when it identifies the
+    # executable bytes actually running. Refuse ambient dirty/untracked state
+    # rather than minting an attestation for HEAD while executing other bytes.
+    if dirty.strip():
+        raise ContractError(
+            "git worktree is dirty; implementation identity would not bind the "
+            "executed bytes. Commit/stash changes or pass an externally verified "
+            "immutable implementation identity from a clean build."
         )
     return commit, tree
 
@@ -448,75 +461,79 @@ class LiveCoreResidualBackend:
         self._issue_attestation(run_id)
 
     def _issue_attestation(self, run_id: str) -> None:
-        events = self.events(run_id)
-        evidence_manifest_hash = _sha({"run_id": run_id, "events": events})
-        prev = self._conn.execute(
-            "SELECT token_json FROM attestations ORDER BY seq DESC LIMIT 1"
-        ).fetchone()
-        prev_hash = json.loads(prev[0])["attestation_id"] if prev else GENESIS_HASH
-        token = {
-            "spec_version": self.spec_version,
-            "spec_head_sha": self.spec_head_sha,
-            "gate_version": self.gate_version,
-            "gate_set_hash": self.gate_set_hash,
-            "implementation": {
-                "repo": self.implementation_repo,
-                "commit_sha": self.impl_commit_sha,
-                "tree_sha": self.impl_tree_sha,
-            },
-            "evidence_manifest_hash": evidence_manifest_hash,
-            "verdicts": dict(self._verdicts.get(run_id, {})),
-            "issued_ns": time.time_ns(),
-            "issuer": self.issuer,
-            "prev_attestation_hash": prev_hash,
-        }
-        token["attestation_id"] = recompute_attestation_id(token)
-
-        # AT-3 is one transaction: the token and its ledger admission either
-        # both become durable or neither does.
+        # Serialize predecessor selection with admission. Without this lock,
+        # concurrent completions can both observe the same predecessor and fork
+        # the global attestation chain even though their INSERTs later serialize.
         with self._lock:
-            try:
-                self._conn.execute("BEGIN IMMEDIATE")
-                row = self._conn.execute(
-                    "SELECT seq,digest FROM events WHERE run_id=? ORDER BY seq DESC LIMIT 1",
-                    (run_id,),
-                ).fetchone()
-                event_prev = row[1] if row else GENESIS_HASH
-                seq = (row[0] if row else 0) + 1
-                event_body = {
-                    "domain": "attestation",
-                    "event_id": token["attestation_id"],
-                    "kind": "attestation.issued",
-                    "payload": {"attestation_id": token["attestation_id"]},
-                    "prev_hash": event_prev,
-                    "run_id": run_id,
-                    "seq": seq,
-                }
-                event_digest = _sha(event_body)
-                self._conn.execute(
-                    "INSERT INTO attestations(attestation_id,run_id,token_json) VALUES(?,?,?)",
-                    (token["attestation_id"], run_id, canonical(token)),
-                )
-                self._conn.execute(
-                    "INSERT INTO events(run_id,seq,event_id,domain,kind,payload_json,digest,prev_hash) "
-                    "VALUES(?,?,?,?,?,?,?,?)",
-                    (
-                        run_id,
-                        seq,
-                        token["attestation_id"],
-                        "attestation",
-                        "attestation.issued",
-                        canonical({"attestation_id": token["attestation_id"]}),
-                        event_digest,
-                        event_prev,
-                    ),
-                )
-                self.transport.commit()
-                self._conn.commit()
-            except Exception as exc:
-                self._conn.rollback()
-                raise LedgerWriteError(f"attestation admission failed atomically: {exc}") from exc
-
+            events = self.events(run_id)
+            evidence_manifest_hash = _sha({"run_id": run_id, "events": events})
+            prev = self._conn.execute(
+                "SELECT token_json FROM attestations ORDER BY seq DESC LIMIT 1"
+            ).fetchone()
+            prev_hash = json.loads(prev[0])["attestation_id"] if prev else GENESIS_HASH
+            token = {
+                "spec_version": self.spec_version,
+                "spec_head_sha": self.spec_head_sha,
+                "gate_version": self.gate_version,
+                "gate_set_hash": self.gate_set_hash,
+                "implementation": {
+                    "repo": self.implementation_repo,
+                    "commit_sha": self.impl_commit_sha,
+                    "tree_sha": self.impl_tree_sha,
+                },
+                "evidence_manifest_hash": evidence_manifest_hash,
+                "verdicts": dict(self._verdicts.get(run_id, {})),
+                "issued_ns": time.time_ns(),
+                "issuer": self.issuer,
+                "prev_attestation_hash": prev_hash,
+            }
+            token["attestation_id"] = recompute_attestation_id(token)
+    
+            # AT-3 is one transaction: the token and its ledger admission either
+            # both become durable or neither does.
+            with self._lock:
+                try:
+                    self._conn.execute("BEGIN IMMEDIATE")
+                    row = self._conn.execute(
+                        "SELECT seq,digest FROM events WHERE run_id=? ORDER BY seq DESC LIMIT 1",
+                        (run_id,),
+                    ).fetchone()
+                    event_prev = row[1] if row else GENESIS_HASH
+                    seq = (row[0] if row else 0) + 1
+                    event_body = {
+                        "domain": "attestation",
+                        "event_id": token["attestation_id"],
+                        "kind": "attestation.issued",
+                        "payload": {"attestation_id": token["attestation_id"]},
+                        "prev_hash": event_prev,
+                        "run_id": run_id,
+                        "seq": seq,
+                    }
+                    event_digest = _sha(event_body)
+                    self._conn.execute(
+                        "INSERT INTO attestations(attestation_id,run_id,token_json) VALUES(?,?,?)",
+                        (token["attestation_id"], run_id, canonical(token)),
+                    )
+                    self._conn.execute(
+                        "INSERT INTO events(run_id,seq,event_id,domain,kind,payload_json,digest,prev_hash) "
+                        "VALUES(?,?,?,?,?,?,?,?)",
+                        (
+                            run_id,
+                            seq,
+                            token["attestation_id"],
+                            "attestation",
+                            "attestation.issued",
+                            canonical({"attestation_id": token["attestation_id"]}),
+                            event_digest,
+                            event_prev,
+                        ),
+                    )
+                    self.transport.commit()
+                    self._conn.commit()
+                except Exception as exc:
+                    self._conn.rollback()
+                    raise LedgerWriteError(f"attestation admission failed atomically: {exc}") from exc
+    
     def get_attestation(self, run_id: str) -> dict:
         row = self._conn.execute(
             "SELECT token_json FROM attestations WHERE run_id=?", (run_id,)
