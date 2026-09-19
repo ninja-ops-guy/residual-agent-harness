@@ -1,0 +1,38 @@
+{
+  "id": "local-model",
+  "title": "Set up a local model",
+  "category": "providers",
+  "summary": "Use the Station Model Workshop to install/connect a local Ollama-compatible runtime and verify it before missions use it.",
+  "keywords": [
+    "ollama",
+    "local model",
+    "local provider",
+    "model workshop",
+    "offline",
+    "on device"
+  ],
+  "docs": [
+    "quickstart.md",
+    "station/ARCHITECTURE.md",
+    "station/RUN-CONTROL.md"
+  ],
+  "inputs": [],
+  "steps": [
+    {
+      "kind": "read",
+      "title": "Read local-first setup",
+      "detail": "Review the quickstart and Station model-routing docs before changing provider settings."
+    },
+    {
+      "kind": "navigate",
+      "title": "Open Model Workshop",
+      "detail": "Use the existing Station UI to install/start Ollama or connect an approved loopback-compatible endpoint.",
+      "target": "#models"
+    },
+    {
+      "kind": "verify",
+      "title": "Test the local route",
+      "detail": "Run the built-in local connection test and verify the selected model appears healthy before using it on a mission."
+    }
+  ]
+}
