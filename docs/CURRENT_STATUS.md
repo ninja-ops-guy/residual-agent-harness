@@ -1,93 +1,71 @@
 # RESIDUAL current status
 
-_Current-state check: 2026-09-19 UTC against `main@3bfa6abac719bb1ca5db225b32df347ae2afc079`._
+_Current-state check: 2026-09-19 UTC against `main@d89c5d940a32d8a7df4dd55e699c158fff5f615c`._
 
 This document is a human-readable status summary. Exact source at the named revision, exact-head workflow results, retained machine-readable evidence, explicit issues/PRs, and applicable maintainer/protected-byte governance are more authoritative than prose. Historical evidence remains bound to the revision and environment that produced it.
 
 ## Executive summary
 
-Current `main` is **`3bfa6abac719bb1ca5db225b32df347ae2afc079`**, produced by merged **#330** on 2026-09-19. No newer production-main commit has landed in this check.
+Current `main` is **`d89c5d940a32d8a7df4dd55e699c158fff5f615c`**, produced by merged **#336** on 2026-09-19 after merged **#337** landed the PR-Agent advisory-governance repair.
 
-Recent accepted changes affecting the current boundary remain:
+The two newly accepted changes are deliberately scoped:
 
-- **#307** — duplicate feature-branch CI fan-out repair while preserving PR qualification and non-cancelling production evidence;
-- **#260** — provider bootstrap guard; bounded UI/transport behavior, not paid/live provider evidence;
-- **#288 / #208** — accepted pre-dispatch Station budget/deadline authority and exact run-control-bound export eligibility; historical #207/#212 failures remain retained;
-- **#320** — repository-side CSP/anti-clickjacking policy; production Vercel response-header validation remains **UNKNOWN / pending**;
-- **#328** — scoped core execution/egress/XML hardening;
-- **#330** — scoped GitHub Actions checkout credential-persistence hardening.
+- **#337** requires a substantive PR-Agent full-review marker and separates review/status concurrency so a bot failure/status comment cannot satisfy or cancel the legitimate advisory path.
+- **#336** adds a guest-filesystem durability boundary before Mission Control/WebVM publishes reusable worker completion.
 
-No accepted change above broadens Factory/M4, verifier, evidence-schema, provider, or acceptance authority.
+Neither merge broadens Factory/M4, verifier, evidence-schema, provider, or acceptance authority. Earlier accepted #307, #260, #288, #320, #328, and #330 retain their previously reviewed scope.
 
 ## Exact-current-main qualification
 
 Accepted #276 requires every new `main` SHA to receive its own non-cancelling first production Pages attempt.
 
-For exact current main `3bfa6aba...`:
+For exact current main `d89c5d94...`:
 
-- production Pages run **`35437556200`**, attempt 1: **FAIL**;
-- generated artifact/browser proof: **PASS**;
-- deployment, served-revision identity, and desktop real-guest acceptance: **PASS**;
-- required narrow/mobile Chromium acceptance: **FAIL** after the live guest reached shell-ready and multiple Workbench stages;
-- retained live-proof artifact: **`10582812524`**, SHA-256 **`868ca31506d278a335ff95d3607adbd13c14edaec8b161c1b45ac013e7f7c8b8`**;
-- lower-level cause: **UNKNOWN**. The retained evidence does not justify attributing the failure to #330, Puter/model quality, Factory/M4, or another subsystem.
+- production Pages run **`35449637725`**, attempt 1: **FAIL**;
+- generated desktop+narrow artifact/browser proof: **PASS**;
+- Pages deployment: **PASS**;
+- published desktop exact-revision and real-guest execution: **PASS**;
+- narrow boot/demo/warm reload/audit/provider boundary/build/follow-up/live transport/CLI→UI projection stages: observed **PASS** before the terminal failure;
+- required narrow retained-evidence compound assertion: **FAIL**;
+- retained live-proof artifact: **`webvm-live-proof-35449637725-1`**;
+- artifact SHA-256: **`edd0d84e1270b71cc53039cae85e42041c06767c52039bb6c418a3ffffd62ff8`**;
+- lower-level cause: **UNKNOWN**.
 
-The predecessor `0a675017...` production Pages run `35431634267`, attempt 1, remains a scoped **PASS for that exact revision only**. The earlier `e7b72ad...` production Pages run remains a retained **FAIL for that exact revision only**. Neither predecessor result is inherited by current main.
+The failing command chains `test -s` existence checks for the live `answer.md`, build `artifacts/index.html`, and follow-up `artifacts/index.html`, followed by `verify_run(...)` for all three mission directories. Because those predicates were joined by `&&`, the retained attempt does **not** establish which individual existence/integrity predicate failed first. Do not attribute this failure to Puter, model quality, Factory/M4, provider transport, or another subsystem without stronger evidence.
 
-The current Pages failure is release/browser qualification evidence. It is not evidence of live provider/model quality failure, every-host M4 failure, or blanket product failure.
+The #336 `os.sync()` boundary is therefore **necessary but insufficient** for full narrow reload/evidence acceptance. The next changed-head repair should split the compound retained-evidence assertion into separately reported existence and `verify_run(...)` checks without weakening any requirement, then fix the first observed failing invariant. The unchanged `d89c5d94...` head must not be rerun merely to obtain green.
 
-## Focused Pages repair and PR-review governance blocker
-
-Open **#336** remains the focused changed-head durability repair. At exact head **`92aca285a9287b73787b552f87aaa42062e73ba4`**, its generated PR Pages proof `35438579639` attempt 1 is **PASS** and its named technical lanes are green. That evidence is branch-only. Protected maintainer approval is **FAIL**, and a substantive advisory review was not established.
-
-Review of #336 exposed a separate governance defect: a provider-credit failure produced only `Failed to review PR`, while the old verifier could count a fresh bot failure/status comment as advisory-publication evidence; shared concurrency could also interfere with a legitimate review.
-
-Open **#337** at exact head **`46e522b4437d42d68df170285bd3a93366808bd1`** is the focused governance repair. It requires the explicit full-review marker and separates review concurrency classes. It remains **UNACCEPTED** with PR Agent advisory and protected maintainer approval **FAIL**.
-
-Therefore:
-
-- current production `main@3bfa6aba...` Pages: **FAIL**;
-- #336 generated branch Pages proof: **PASS** for its exact branch head only;
-- #336 acceptance: **BLOCKED / HOLD** behind #337 plus fresh exact-head qualification and maintainer attestation;
-- #337 acceptance: **FAIL / not accepted**;
-- if #337 lands, #336 must reconcile to the resulting new main and regenerate merge-relevant exact-head evidence;
-- if #336 later lands, that new main SHA still requires its own first authoritative production Pages PASS.
-
-The retained production run `35437556200` remains evidence throughout the repair sequence.
+Predecessor evidence remains revision-bound: `0a675017...` run `35431634267` attempt 1 is a scoped **PASS** for that exact revision only; the `3bfa6aba...` and `e7b72ad...` production Pages attempts retain their exact-revision **FAIL** outcomes.
 
 ## Qualification-v1 testing branch
 
-Qualification-v1 remains an independent testing-branch evidence path and does not become current-main capability merely because a branch lane passes.
+Qualification-v1 remains an independent testing-branch evidence path and does not become current-main capability merely because branch lanes pass.
 
-Merged **#339** moved open **#152** to exact testing-branch head **`19d3917079ee6f7105e78c88e2aae08d25ce4c13`**. #339 changes the provider-mission qualification path so export is bound through real run-control authority. It intentionally does not weaken or skip the fail-closed sandbox requirement.
+Open **#152** has advanced to exact testing-branch head **`aeba9962918c3659693e1efcd5603275cfb77cb4`** through a sequence that adds real bubblewrap provisioning and tightens provider-mission/control-authority qualification.
 
-The first exact-head `RESIDUAL Qualification v1` run on `19d391...`, **`35446710781` attempt 1**, is **FAIL**. The required failure set narrowed materially relative to predecessor head `11c0ac67...`:
+The first exact-head `RESIDUAL Qualification v1` run on `aeba996...`, **`35448856959` attempt 1**, is **FAIL**. The retained job set shows:
 
+- bubblewrap sandbox provisioning step: **PASS**;
 - `qualification-selftests`: **PASS**;
-- toxic-provider job: **PASS**;
-- deterministic regression job: **FAIL** at the full deterministic regression gate.
+- toxic-provider: **PASS**;
+- M4: **PASS**;
+- discovery, protocol fuzz, concurrency, browser, active-workload, fault-injection, macOS/Windows lifecycle and other visible sibling jobs: **PASS**;
+- required deterministic job: **FAIL** at `Full deterministic regression gate`;
+- fail-closed aggregate: **FAIL**.
 
-The exact current run therefore remains an aggregate **FAIL**. The current visible workflow summary establishes the deterministic gate failure but does not, by itself, establish a new lower-level causal diagnosis. The predecessor `11c0ac67...` run `35443955204` remains historical exact-head **FAIL** evidence, including the retained hosted-runner observation that kernel-level sandbox isolation was unavailable and the earlier provider-mission-related selftest/toxic-provider failures. Those predecessor failures are not silently rewritten by #339.
+The visible retained summary establishes that real sandbox provisioning itself now completed successfully, but it does not establish a new lower-level cause for the remaining deterministic regression failure. Preserve that cause as **UNKNOWN** until evidence identifies it. #152 remains open/unaccepted and its maintainer/advisory governance is unsatisfied. Predecessor #152 results remain historical exact-head evidence only.
 
-For #152:
+## Protected RuntimeJournal candidate
 
-- exact-current testing-branch Qualification-v1: **FAIL**;
-- accepted-main capability: **UNKNOWN / not established** because the PR remains open/unmerged;
-- protected maintainer approval: **FAIL**;
-- PR Agent advisory: **FAIL**;
-- no branch PASS broadens exact-current-main Factory/M4 or release qualification.
+Open **#338** is rebased onto current main and remains a separate protected trust-boundary candidate. It changes protected `RuntimeJournal` bytes and advances the Factory ownership-baseline pin while adding bounded write-admission behavior.
 
-## Protected RuntimeJournal contention candidate
+Accordingly #338 is **UNACCEPTED** until its exact current head satisfies all required technical/review/approval gates and receives explicit trust-boundary review. No automation should merge it. Sibling or predecessor green lanes do not override that requirement.
 
-Open **#338** is a separate protected trust-boundary candidate at exact head **`61986ecb56e35a845f2a66b64052b42b13e60be3`**. It changes protected `RuntimeJournal` bytes and advances the Factory ownership-baseline pin while adding bounded constructor write-admission retry for lock contention.
+## Provider/runtime adapters and nested-runtime research
 
-On that exact head, retained workflow state includes **PASS** for Factory ownership, Factory runtime/OS evidence, Control Plane, Controller/provider, Command Station, clean install, measured-evaluation binding, and the maintainer-approval gate. Generated PR Pages and PR Agent advisory are **FAIL**.
+Open **#340** now contains the implementation-only Moonshot/Kimi and Kimi Claw/OpenClaw provider/runtime adapter work. It is branch-only and **UNACCEPTED**; no current-main provider capability or live-provider quality claim changes because of it.
 
-Accordingly #338 is **UNACCEPTED**. Its green scoped lanes do not override the failed required evidence, and because it touches protected Factory bytes plus the ownership baseline, it requires explicit trust-boundary review. It must not be auto-merged.
-
-## Open provider/runtime adapter candidate
-
-Open **#340** proposes Moonshot/Kimi API and Kimi Claw/OpenClaw provider/runtime adapters. It remains **UNACCEPTED / branch-only**. At current head `e527b1371e79a88d5efb7d46f37945fec796c5e1`, several technical lanes are **PASS**, production-style PR Pages qualification is still **in progress**, PR Agent advisory is **pending**, and protected maintainer approval is **FAIL**. No current-main live-provider capability or model-quality claim changes because of this candidate.
+Draft **#341**, `EXP-NESTED-SWARM-001`, contains the research/evaluation material split out of #340. It is explicitly **RESEARCH ONLY — DO NOT MERGE** in its current form. Staged definitions, adapters, or evidence contracts are availability only, not proof of nested-swarm benefit or accepted provider capability.
 
 ## Accepted authority repair and retained stress evidence
 
@@ -102,7 +80,7 @@ A stronger present-tense claim that the repaired path prevents all affected auth
 
 ## Research Workbench
 
-Draft **#323** remains unaccepted. #288 is now accepted, satisfying its first prerequisite, but #323 still requires rebase and fresh qualification before the first authoritative M6-WB-001 trial.
+Draft **#323** remains unaccepted. #288 is accepted, satisfying its first prerequisite, but #323 still requires rebase and fresh qualification before the first authoritative M6-WB-001 trial.
 
 - current #323 implementation: **UNACCEPTED / draft**;
 - first authoritative M6-WB-001 trial: **BLOCKED / not run** pending rebase and fresh qualification;
@@ -113,7 +91,7 @@ Draft **#323** remains unaccepted. #288 is now accepted, satisfying its first pr
 - **#320:** repository CSP/anti-clickjacking policy is accepted; production Vercel response-header/Aikido validation remains **UNKNOWN / pending**.
 - **#328:** core source/runtime security hardening is accepted for its reviewed scope.
 - **#330:** checkout credential-persistence hardening is accepted for its reviewed workflow scope.
-- **#324:** stale overlapping predecessor; must not be merged wholesale.
+- **#337:** PR-Agent advisory publication/concurrency hardening is accepted for its reviewed governance scope.
 - blanket repository security qualification: **not established**.
 
 ## Live provider / WebVM boundary
@@ -132,7 +110,7 @@ The #186 iOS/WebKit fallback remains accepted only as a lightweight pre-boot rou
 
 M2/M3/M4 are implemented. `implementation-status.yaml` remains an implementation-presence manifest, not a production-qualification manifest.
 
-Accepted #185/#187 protected-byte and ownership-baseline changes retain their reviewed scope. The separate protected sequences and Qualification-v1 work remain independent evidence paths. Documentation does not change Factory/M4 implementation/tests, ownership baselines, qualification anchors, protected bytes, verifier authority, evidence schemas, provider authorization, or acceptance authority.
+Accepted #185/#187 protected-byte and ownership-baseline changes retain their reviewed scope. Separate protected sequences and Qualification-v1 work remain independent evidence paths. Documentation does not change Factory/M4 implementation/tests, ownership baselines, qualification anchors, protected bytes, verifier authority, evidence schemas, provider authorization, or acceptance authority.
 
 Namespace/capability-unavailable execution remains `BLOCKED`/`UNKNOWN`, never PASS by documentation.
 
@@ -158,15 +136,16 @@ General autonomous discovery and recursive self-improvement remain **UNKNOWN / n
 
 ## Current priority gates
 
-1. **Resolve #337 before accepting #336.** If #337 lands, reconcile/requalify #336 on the new exact main. Preserve production run `35437556200` attempt 1 as FAIL until a repaired merged-main SHA passes its own first authoritative Pages attempt.
-2. **Resolve #152's remaining deterministic Qualification-v1 FAIL.** Preserve run `35446710781` attempt 1 and predecessor run `35443955204`; do not weaken the sandbox requirement or rerun an unchanged head merely for green.
-3. **Review #338 as a protected trust-boundary candidate.** Its protected RuntimeJournal/ownership-baseline changes must not be auto-merged even with scoped PASS lanes.
-4. **Requalify repaired authority ordering** against accepted #288 before broadening budget/unknown-usage/release-ordering claims.
-5. **Rebase/requalify #323** before M6-WB-001 can run authoritatively.
-6. **Validate #320 in production** before calling production CSP/anti-clickjacking response-header remediation PASS.
-7. **Retain fresh live-provider semantic evidence** or keep exact-current-main paid/live provider success UNKNOWN; #340 is not accepted evidence.
-8. **Complete blank-environment, recovery/host-loss, elapsed-soak and physical/mobile reliability work** without broadening bounded results.
-9. **Keep research claims bounded.** General recursive self-improvement and general mesh efficiency remain UNKNOWN; M6-008 remains BLOCKED.
+1. **Diagnose the current Pages failure without weakening acceptance.** Split the narrow retained-evidence compound assertion into independently reported existence and `verify_run(...)` checks on a changed head. Preserve `35449637725` attempt 1 as authoritative FAIL for `d89c5d94...`.
+2. **Resolve #152's remaining deterministic Qualification-v1 FAIL.** Preserve `35448856959` attempt 1; real bubblewrap provisioning now passes, but the deterministic regression gate remains red and the lower-level cause is still UNKNOWN.
+3. **Review #338 as a protected trust-boundary candidate.** Its RuntimeJournal/ownership-baseline changes must not be auto-merged.
+4. **Keep #340 and #341 separated.** #340 is unaccepted implementation work; #341 is draft research-only work. Neither changes current-main capability or scientific conclusions.
+5. **Requalify repaired authority ordering** against accepted #288 before broadening budget/unknown-usage/release-ordering claims.
+6. **Rebase/requalify #323** before M6-WB-001 can run authoritatively.
+7. **Validate #320 in production** before calling production CSP/anti-clickjacking response-header remediation PASS.
+8. **Retain fresh live-provider semantic evidence** or keep exact-current-main paid/live provider success UNKNOWN.
+9. **Complete blank-environment, recovery/host-loss, elapsed-soak and physical/mobile reliability work** without broadening bounded results.
+10. **Keep research claims bounded.** General recursive self-improvement and general mesh efficiency remain UNKNOWN; M6-008 remains BLOCKED.
 
 ## Documentation scope for this reconciliation
 
