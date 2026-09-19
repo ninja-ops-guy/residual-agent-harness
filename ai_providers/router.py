@@ -58,9 +58,13 @@ class Router:
         return provider,routed,meta,tags,time.monotonic()
 
     def _end(self,meta,tags,start,resp=None,error=None):
+        response_metadata={}
+        if resp is not None and meta.get('provider')=='arena':
+            allowed={'arena_resolved_model','arena_trace_id','arena_fallback_used','arena_fallback_index','arena_fallback_reason'}
+            response_metadata={key:resp.metadata.get(key) for key in sorted(allowed) if key in resp.metadata}
         receipt={**meta,'elapsed_ms':round((time.monotonic()-start)*1000),'status':'failed' if error else 'completed',
                  'usage':dict(resp.usage) if resp else {},'finish_reason':resp.finish_reason if resp else None,
-                 'response_metadata':dict(resp.metadata) if resp else {},
+                 'response_metadata':response_metadata,
                  'error':error.to_dict() if error else None}
         self._emit('llm.failed' if error else 'llm.response',receipt,tags)
         if self.after_attempt: self.after_attempt(receipt)
