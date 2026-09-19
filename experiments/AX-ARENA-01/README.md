@@ -18,7 +18,7 @@ Open **Model Workshop**, choose **Arena API** as the cloud provider, and use the
 
 Open the same key page from RESIDUAL:
 
-    python -m residual.workbench arena setup
+    residual arena setup
 
 Set the Arena preview API credential in the environment:
 
