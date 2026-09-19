@@ -94,6 +94,28 @@ class AdapterTests(unittest.TestCase):
                 ArenaAdapter("KEY", url).chat(REQ)
             self.assertEqual(error.exception.code, "invalid_response")
 
+    def test_arena_stream_rejects_fallback_headers_before_content(self):
+        body = sse(
+            {'choices':[{'delta':{'content':'ok'},'finish_reason':'stop'}]},
+            '[DONE]',
+        )
+        with endpoint(lambda _:(200,body,{
+            'X-Arena-Resolved-Model':'model-a',
+            'X-Arena-Trace-ID':'trace-stream-ok',
+        })) as (url,_):
+            chunks=list(ArenaAdapter('KEY',url).stream(REQ))
+            self.assertEqual(''.join(chunk.content or '' for chunk in chunks),'ok')
+        with endpoint(lambda _:(200,body,{
+            'X-Arena-Resolved-Model':'backup-model',
+            'X-Arena-Trace-ID':'trace-stream-bad',
+            'X-Arena-Fallback-Index':'1',
+            'X-Arena-Fallback-Reason':'transport_error',
+        })) as (url,_):
+            stream=ArenaAdapter('KEY',url).stream(REQ)
+            with self.assertRaises(ProviderError) as error:
+                next(stream)
+            self.assertEqual(error.exception.code,'invalid_response')
+
     def test_arena_model_discovery_uses_bearer_auth_and_sorted_openai_shape(self):
         with endpoint(lambda _:(200,{"data":[{"id":"model-z"},{"id":"model-a"}]},{})) as (url,requests):
             models = ArenaAdapter("ARENA-SECRET", url).list_models()
