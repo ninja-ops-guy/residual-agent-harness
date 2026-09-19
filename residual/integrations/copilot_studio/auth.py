@@ -60,7 +60,7 @@ class CopilotPrincipal:
         })
 
 
-GroupResolver = Callable[[dict[str, Any]], Iterable[str]]
+GroupResolver = Callable[[str, str], Iterable[str]]
 
 
 class CopilotIdentityVerifier:
@@ -148,7 +148,7 @@ class CopilotIdentityVerifier:
             if self._group_resolver is None:
                 raise ContractError("group overage requires a configured resolver")
             try:
-                groups = _string_set(tuple(self._group_resolver(attrs)), "resolved groups")
+                groups = _string_set(tuple(self._group_resolver(tenant_id, object_id)), "resolved groups")
             except ContractError:
                 raise
             except Exception as exc:
