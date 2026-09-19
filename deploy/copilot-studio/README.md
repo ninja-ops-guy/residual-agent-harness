@@ -24,3 +24,8 @@ This directory is the source-of-truth configuration for the Power Platform/Copil
 ## Agent Library
 
 As of the 2026 Agent Library model, custom Copilot Studio templates are Power Platform solution ZIPs. Agent Library installs the solution into the selected environment and resolves connection references during install. Treat the exported solution ZIP as a release artifact and bind its SHA-256 into the RESIDUAL enterprise-readiness evidence bundle.
+
+
+## Enterprise onboarding
+
+Use [ENTERPRISE_ONBOARDING_PLAYBOOK.md](./ENTERPRISE_ONBOARDING_PLAYBOOK.md) as the operational checklist for tenant onboarding, validation, release evidence, rollback, and production activation.
