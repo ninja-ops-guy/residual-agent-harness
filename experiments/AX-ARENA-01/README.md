@@ -30,11 +30,11 @@ An alternate endpoint may be supplied with:
 
 Discover model IDs:
 
-    python -m residual.workbench arena models
+    residual arena models
 
 Freeze the protocol **before observing outcomes**:
 
-    python -m residual.workbench arena freeze \
+    residual arena freeze \
       --manifest experiments/AX-ARENA-01/manifest.json \
       --model arena:<MODEL_A> \
       --model arena:<MODEL_B> \
@@ -52,14 +52,14 @@ The checked-in `live-smoke.manifest.json` uses the same public development tasks
 
 Freeze it after choosing one Arena model:
 
-    python -m residual.workbench arena freeze \
+    residual arena freeze \
       --manifest experiments/AX-ARENA-01/live-smoke.manifest.json \
       --model arena:<MODEL_ID> \
       --output runs/arena/AX-ARENA-01-live.lock.json
 
 Then execute the frozen randomized schedule end-to-end:
 
-    python -m residual.workbench arena run \
+    residual arena run \
       --lock runs/arena/AX-ARENA-01-live.lock.json \
       --output runs/arena/AX-ARENA-01-live
 
@@ -98,7 +98,7 @@ These are **Arena-aligned local measurements**, not official Arena leaderboard s
 
 Score a complete trace file:
 
-    python -m residual.workbench arena score \
+    residual arena score \
       --lock runs/arena/AX-ARENA-01/lock.json \
       --traces runs/arena/AX-ARENA-01/traces.jsonl \
       --output runs/arena/AX-ARENA-01/report.json
