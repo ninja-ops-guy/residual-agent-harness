@@ -1,6 +1,6 @@
 # Research claim and prior art
 
-Date: 2026-09-18. Status: implemented research platform; central systems hypothesis not yet established by confirmatory live-model evaluation.
+Date: 2026-09-19. Status: implemented research platform; central systems hypothesis not yet established by confirmatory live-model evaluation.
 
 > **Current platform state:** [CURRENT_STATUS.md](CURRENT_STATUS.md)
 
@@ -12,95 +12,124 @@ The broader systems hypothesis is developed in:
 
 The research question is whether system-level AI reliability can improve without making each component model individually reliable when worker authority is constrained, execution is observable, evidence is retained, outputs are independently checked, and accepted state transitions remain under deterministic host control.
 
-The key empirical distinction is between raw worker correctness `P(X)` and accepted-system correctness `P(X|A)`. A positive result requires more than rejection: accepted correctness must improve while acceptance coverage remains useful, and the improvement must be evaluated against orchestration cost, latency and throughput.
+The key empirical distinction is between raw worker correctness `P(X)` and accepted-system correctness `P(X|A)`. A positive result requires more than rejection: accepted correctness must improve while acceptance coverage remains useful, and the improvement must be evaluated against orchestration cost, latency, and throughput.
 
 ## Current accepted engineering boundary
 
-Current `main` is **`4608afabf5de4c87d77aaf149dfc12538d364f43`**.
+Current `main` is **`3bfa6abac719bb1ca5db225b32df347ae2afc079`**, produced by merged #330.
 
-Merged #200 hardens the native setup path; merged #205 restores the private provider channel across Mission Control reload/remount with validated session-scoped state. These are accepted engineering changes, not scientific results.
+Recent accepted engineering changes matter to interpretation but are not scientific results:
 
-The exact-current-main Actions set observed for `4608afa...` is complete with no pending, cancelled, or failing run in the retained exact-SHA query used for this refresh; a sampled Controller/provider run completed **PASS on attempt 1**. This is scoped mechanism/integration evidence only. It does not establish every-host M4 qualification, successful live Puter inference, long-run WebVM reliability, physical-device reliability, or a paper-facing effect size.
+- **#307** repairs duplicate feature-branch CI fan-out while preserving non-cancelling production evidence;
+- **#260** accepts the provider-bootstrap guard;
+- **#288** closes product issue #208 with pre-dispatch Station budget/deadline admission and exact run-control-bound export eligibility;
+- **#320** accepts repository-side CSP/anti-clickjacking configuration, while production Vercel header validation remains pending;
+- **#328** accepts the non-workflow core execution/egress/XML security hardening;
+- **#330** accepts the remaining workflow checkout credential-persistence hardening (`persist-credentials: false`) with structural regression coverage while preserving accepted workflow-trigger semantics.
 
-## Real-model experiment evidence: #202
+None of these merges establishes the central research hypothesis, live-provider model quality, universal M4 qualification, or a paper-facing effect size.
 
-Draft #202 retains both favorable and unfavorable evidence.
+Accepted #276 requires a new non-cancelling production Pages attempt for every `main` SHA. Exact-current-main run **`35437556200`**, attempt 1, is currently **in progress**, so publication/browser/real-guest qualification for `3bfa6aba...` is **UNKNOWN / pending**. The prior run `35431634267` remains a scoped **PASS for exact revision `0a675017...` only**; the earlier `e7b72ad...` Pages FAIL remains retained exact-revision evidence.
 
-An earlier heterogeneous three-task DAG run on exact experiment head `6b30125...` remains **FAIL**: 1/3 tasks integrated, the repaired branch did not satisfy its behavioral check within the attempt budget, and the dependent reporting task did not run.
+No Pages outcome establishes the central systems hypothesis, provider/model quality, physical heavyweight-WebVM reliability, or any paper-facing effect size.
 
-A later distinct exact-head run on `03c77d12...` is a bounded **PASS** using real local Ollama models:
+## Real-model development evidence
 
-- Qwen2.5-Coder 3B runner;
-- Llama 3.2 1B reviewer;
-- 3/3 tasks integrated;
-- verification receipts retained for all three tasks;
-- dependency lineage retained;
-- a deliberately corrupted first candidate was rejected and repaired before later integration;
-- an out-of-contract write was rejected before a later valid candidate;
-- invalid/truncated reviewer output was rejected before a valid review;
-- release export was produced.
+Draft #202 retains both favorable and unfavorable evidence. An earlier heterogeneous three-task DAG run remains **FAIL**, while a later distinct exact-head run is a bounded **PASS** using real local Ollama models with 3/3 tasks integrated, retained receipts/dependency lineage, rejected bad candidates/reviewer outputs, successful repair, and release export.
 
 The later PASS does **not** erase the earlier FAIL. It establishes one bounded successful experiment on that exact revision/configuration, not general DAG reliability, provider-independent model quality, or production readiness.
 
-## M6 self-maintenance experiments: #203, #204, #215 and #217
+## M6 self-maintenance evidence
 
-Draft #203's first-authoritative ImprovementSpec self-host trial remains **FAIL**: 0/1 integrated, three attempts, max-iteration escalation, no verification receipt and no release.
+The bounded self-host sequence remains mixed:
 
-Draft #204 repeated the bounded trial with Qwen2.5-Coder 7B. Its first-authoritative M6-SPEC-002 run also remains **FAIL**: 0/1 integrated, three passes, max-iteration escalation, no verification receipt and no release. The stronger model changed the observed candidate defects but did not satisfy the frozen contract within the pass budget.
+- **#203 / M6-SPEC-001:** **FAIL**;
+- **#204 / M6-SPEC-002:** **FAIL**;
+- **#215 / M6-SPEC-003:** **FAIL**;
+- **#217 / M6-SPEC-004:** **FAIL**;
+- **#220 / M6-SPEC-006:** bounded corrected-path **PASS**.
 
-Draft #215 (M6-SPEC-003) exercised prior-candidate repair context with Qwen2.5-Coder 1.5B. Repair-context hashes were retained on attempts 2 and 3, but the authoritative run still finished **FAIL** with 0/1 integrated, no review, verification receipt, release or promotion. The retained candidates showed transport/source conflation: the model placed data-object content into the Python-file value rather than producing the required Python source.
-
-Draft #217 (M6-SPEC-004) then explicitly separated the outer transport JSON contract from file-language content while retaining prior-candidate context and leaving acceptance policy unchanged. The authoritative workflow retained evidence but the experiment itself remains **FAIL**: 0/1 integrated, three passes, max-iteration escalation, no review/receipt/release. The first candidate had an indentation error; attempts 2 and 3 compiled but failed import because they tried `from dataclasses import dataclass, frozen`. The clarification changed the failure shape but did not satisfy the frozen contract within the pass budget.
-
-The implementation candidate underlying the repair-context work (#213) remains unaccepted. These experiments are useful negative results; they do **not** establish autonomous recursive self-improvement or restore previously removed #132 self-maintenance tooling as current accepted capability.
+The #220 PASS is positive evidence but does not establish general autonomous self-maintenance or recursive self-improvement.
 
 ## Deterministic stress evidence: #206, #207 and #212
 
-Draft #206 Campaign A is now complete at its corrected exact experiment head `e173719...` against frozen baseline `699e286...`. The earlier apparatus revision is explicitly invalid because it would have tested GitHub's synthetic merge commit; only the corrected exact-head runs are used here. Workflow-level success means the experiments executed and retained artifacts, not that the scenarios passed.
-
-Retained Campaign A evidence is mixed and negative where stated:
-
-- **STRESS-A4 repair pressure — BLOCKED / invalid for the intended intervention:** 0 faults were injected; the single provider call ended in model-connection/structured-output failure, usage became unknown, the host budget aborted after one pass, and 0/1 integrated. The intended repair-pressure fault was therefore not exercised and cannot be called PASS.
-- **STRESS-A5 DAG pressure — FAIL / incomplete:** 3/6 tasks integrated across five passes before `no_runnable_tasks` escalation; DAG-A/B/C retained receipts, DAG-D remained `repair_required`, DAG-E/F did not complete, and no release export was attempted.
-- **STRESS-A6 reliability — FAIL in the frozen campaign:** Qwen2.5-Coder 7B completed 0/3 successful trials, accepted rate 0.0, with each trial ending 0/1 integrated after the three-pass max-iteration brake. This is scoped to that exact baseline/spec/model configuration and is not a general model-quality claim.
-- Campaign A also retained its bounded control/injection artifacts. Those artifacts do not override the blocked/failed cells above or establish general repair/DAG/reliability success.
-
-Draft #207 deterministic Campaign B retained mixed scenario-level evidence:
-
-- **STRESS-B1 — FAIL:** token-budget exhaustion was recorded only after accepted integration/release had already occurred. This falsifies the stronger ordering claim for that exact scenario.
-- **STRESS-B2 — PASS within the control:** the early-convergence control completed 2/2 tasks without the budget/max-iteration trips under study.
-- **STRESS-B3 — FAIL:** a terminal verifier failure aborted the batch with 0 integrated, yet a non-empty release was still materialized afterward. This is a fail-closed release-eligibility defect for that exact scenario.
-- **STRESS-B4 — mixed:** injected corrupt candidates were rejected and none integrated, which is a bounded containment **PASS**; however, the task did not recover to successful completion within the frozen pass budget, so recovery-to-success is **FAIL / not achieved** and general repair reliability remains **UNKNOWN**.
-
-Draft #212 Campaign C adds a deterministic failure matrix. Its authoritative retained results are also mixed:
-
-- malformed runner JSON was rejected on all three calls with no review/integration: **PASS for fail-closed containment in that exact scenario**;
-- an invalid reviewer schema kept the candidate at `review_ready` through three invalid reviews with no integration/receipt: **PASS for fail-closed containment in that exact scenario**;
-- reviewer denial followed by approval recovered and integrated on attempt 2: **PASS for that bounded recovery path**;
-- a transient HTTP 500 was marked retryable, but with no alternate failover candidate the call ended and unknown usage caused a host-budget abort: no integration occurred, but provider retry/failover success is **not established**;
-- missing usage allowed a valid runner/reviewer result to integrate and receive a receipt before the host later aborted on `usage_unknown_or_invalid`: **FAIL for the stronger accounting-before-authority claim** and a direct corroboration of #208.
-
 A green research workflow means the apparatus executed and retained artifacts; it does not convert scenario-level FAIL/BLOCKED evidence into PASS.
 
-## Open governance repair candidate: #214
+Retained Campaign B/C evidence includes:
 
-Draft #214 targets #208 by mirroring token/deadline state into Station before review/integration and tightening release eligibility around successful run control. Its observed exact-head technical workflows are green, but its maintainer approval gate remains **BLOCKED/FAIL** and the PR is unaccepted. Therefore the #207/#212 accounting-ordering defect remains an accepted-main **FAIL/open blocker** until a repair is merged and independently requalified in the applicable scenarios.
+- **#207 STRESS-B1:** **FAIL** — exhausted-budget accounting was observed after accepted integration/release on the frozen baseline.
+- **#207 STRESS-B2:** bounded control **PASS**.
+- **#207 STRESS-B3:** **FAIL** — a non-empty release materialized after terminal verifier failure.
+- **#207 STRESS-B4:** corrupt-candidate containment **PASS**, recovery-to-success **FAIL / not achieved**.
+- **#212 malformed-runner / invalid-reviewer containment:** bounded **PASS** cells.
+- **#212 denial→approval recovery:** bounded **PASS**.
+- **#212 transient HTTP 500:** failover success remains **UNKNOWN / not established**.
+- **#212 missing usage:** **FAIL for accounting-before-authority** because integration plus a receipt occurred before the later `usage_unknown_or_invalid` abort on that frozen baseline.
+
+Merged **#288** repairs the tracked product defect (#208) with host-owned pre-dispatch admission and bound export eligibility. That merge changes accepted product behavior; it does not retroactively turn frozen #207/#212 cells into PASS. Stronger present-tense claims about budget exhaustion, unknown usage, or release ordering require fresh requalification against the accepted repair and remain **UNKNOWN pending repaired-path requalification** until then.
+
+## M6.2 evidence-driven autonomous discovery
+
+The M6.2 sequence deliberately separates execution, representation, evidence grounding, semantic review, evidence use, metric identity, provenance, and Planner-transcription failures.
+
+Key retained cells:
+
+- **#244/#246:** experiment execution **FAIL** before a valid discovery proposal;
+- **#249:** bounded autonomous-discovery **FAIL** after malformed/repeated/truncated candidates;
+- **#250/#251/#252/#254:** deterministic admission **FAIL** for already-measured evidence requests;
+- **#255:** semantic-review **FAIL**;
+- **#257:** first retained bounded autonomous-discovery **PASS at formal MeasurementGap admission**;
+- **#259/#262/#263:** post-gap/evidence-resolver/active-query **FAIL** cells;
+- **#264:** workflow/receipt integrity succeeded, but scientific conclusion **UNKNOWN** because admitted metric identity/semantics were ambiguous;
+- **#274:** bounded **PASS** for registry/receipt semantic-binding controls;
+- **#273/#277:** provenance/Planner **FAIL** cells, with positive host-owned provenance evidence inside an overall failed path.
+
+General autonomous discovery and recursive self-improvement remain **UNKNOWN / not established**. **M6-008 remains BLOCKED** until its required positive semantic/derivation admission gates are actually satisfied.
+
+## M6-MESH-001 cooperative-efficiency pilot
+
+Open **#319** retains the first frozen M6-MESH-001 crossover pilot. Both sequential and two-call concurrent conditions passed their six obligation checks. Retained mean wall time is about **2.1899 s sequential** versus **1.8300 s concurrent** across three repeats on one local Ollama host.
+
+This is **positive bounded pilot evidence**, not a general mesh-efficiency result. Three repeats on one host with warm-up/order sensitivity are insufficient for a durable performance claim. General distributed mesh/swarm efficiency remains **UNKNOWN / not established**.
+
+## Research Workbench candidate: #323
+
+Open **#323** proposes a built-in Research Workbench that binds experiment identity and frozen definitions into Station governance. Its first planned pilot remains **BLOCKED** until the Workbench is rebased and requalified on a main containing the accepted #288 authority repair.
+
+Therefore:
+
+- Workbench implementation candidate: **UNACCEPTED / draft**;
+- previous exact-head qualification results: retained historical branch evidence;
+- first authoritative M6-WB-001 trial: **BLOCKED / not run** pending rebase and fresh qualification;
+- staged experiment definitions: definition availability only, not experimental evidence.
+
+## Security and deployment evidence are not research results
+
+Merged #320, #328, and #330 improve accepted engineering/security controls, but they do not establish the systems hypothesis.
+
+- #320 production Vercel header enforcement remains **UNKNOWN / pending** until retained production inspection/security validation exists.
+- #328 source/runtime security hardening is accepted for its reviewed scope.
+- #330 workflow checkout credential-persistence hardening is accepted for its reviewed scope.
+- stale overlapping #324 must not be merged wholesale.
+- scanner/vendor confidence is not scientific or repository acceptance evidence.
+
+Exact-current-main production Pages qualification is still **UNKNOWN / pending** while run `35437556200` executes. Even a future PASS for that run would be release/browser qualification evidence only, not model-quality or research-hypothesis evidence.
 
 ## WebVM / provider research boundary
 
-Retained diagnostics isolate a WebVM-specific, process-local CPython positive-duration timed-wait failure affecting at least `time.sleep()` and `select.select()` in the tested guest/runtime combination. The lower-level CPython/glibc/WebVM cause and any relationship to earlier interpreter/allocator corruption remain **UNKNOWN**.
-
 Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice. Both counted calls failed closed as `provider_protocol_invalid`; no candidate crossed the protocol boundary, so candidate correctness and semantic verification remain **UNKNOWN**.
 
-#179, #183, #189 and #205 repair bounded build-output, provider-session, publication and reload-recovery surfaces. None alone establishes live semantic success. Fresh retained exact-deployed-revision candidate→verifier→receipt evidence remains required.
-
-The #186 iOS/WebKit fallback remains accepted. It is not physical heavyweight-WebVM reliability evidence. Issues #120/#126 remain open because bounded mitigations and individual green runs do not establish long-run recurrence rate or root cause.
+Accepted provider/session/bootstrap/publication repairs do not substitute for fresh real-account semantic evidence. The #186 iOS/WebKit fallback remains accepted, but it is not physical heavyweight-WebVM reliability evidence. Issues #120/#126 remain open because bounded mitigations and individual green runs do not establish long-run recurrence rate or root cause.
 
 ## Factory / protected evidence boundary
 
 M2/M3/M4 are implemented. M4 remains environment- and exact-revision-bound rather than universally qualified.
 
-Accepted #185/#187 protected changes retain their exact reviewed scope. PR #139 and downstream #134 remain a separate protected sequence. If a selected research path depends on them, preserve the complete ownership-baseline/requalification sequence and never convert `BLOCKED`/`UNKNOWN` into `PASS`.
+Accepted #185/#187 protected changes retain their exact reviewed scope. PR #139 and downstream #134 remain a separate protected sequence.
+
+Qualification-v1 remains branch evidence only. PR #331 merged into `testing/qualification-v1`, moving open PR #152 to exact head `24816ebc778b26497dd30497e59f6f2badcf39ed`. The retained exact-head branch checks show **PASS** for `aggregate`, `browser-adversarial`, `concurrency`, `m4`, `m4-prereq`, the browser matrix, and surrounding named qualification lanes, while protected `maintainer-approval` remains **FAIL**. Earlier failed cells remain historical evidence. The same head's Aikido code check reported **2 new MEDIUM and 19 new LOW findings**, and Deep Review was **SKIPPED** because no credits were available. Therefore #152 remains **UNACCEPTED**, security-review completeness is **UNKNOWN / incomplete**, and none of its branch PASSes establish current-main or paper-facing qualification.
+
+`implementation-status.yaml` remains an implementation-presence manifest, not a qualification manifest.
 
 ## Governance and research independence
 
@@ -108,7 +137,9 @@ Merged #168 establishes repository merge control as:
 
 `implementation → automated qualification/review → exact-head maintainer attestation → merge`
 
-This is **maintainer-reviewed with automated qualification**, not independent human assurance. A paper-facing security, release or scientific claim may still require evidence independent of the implementer/maintainer.
+This is **maintainer-reviewed with automated qualification**, not independent human assurance. A paper-facing security, release, or scientific claim may still require evidence independent of the implementer/maintainer.
+
+Issue #305's historical queue saturation remains evidence. #307 is accepted as the structural fan-out repair. The current post-#330 queued-run snapshot is **23**; transient queue state does not erase first-attempt evidence or authorize skipped qualification.
 
 ## Proposed contribution
 
@@ -118,32 +149,23 @@ The broader hypothesis is:
 
 > stochastic workers may remain individually unreliable if the surrounding system constrains their authority, observes execution, preserves evidence, independently checks candidate work and deterministically controls accepted state.
 
-The novelty claim is intentionally bounded. Routing, checkers, DAGs, caching, retrieval, sandboxing, model mixtures and counterexample-guided synthesis all have substantial prior art. The empirical research question is whether this composition produces measurably better **accepted-state reliability** under fixed component capability.
+The novelty claim is intentionally bounded. Routing, checkers, DAGs, caching, retrieval, sandboxing, model mixtures, and counterexample-guided synthesis all have substantial prior art. The empirical research question is whether this composition produces measurably better **accepted-state reliability** under fixed component capability.
 
 This repository does not establish a first-in-literature result.
 
 ## Confirmatory gate
 
-Before paper-facing outcome collection, freeze exact source, execution/evidence path, workload/task mapping, model/version, inference settings, verifier policies, prompts, metrics and analysis code **before** observing confirmatory results.
+Before paper-facing outcome collection, freeze exact source, execution/evidence path, workload/task mapping, model/version, inference settings, verifier policies, prompts, metrics, and analysis code **before** observing confirmatory results.
 
 At minimum:
 
-1. preserve exact-revision failures, blocked interventions and mixed results rather than treating later PASSes as erasure;
-2. repair/requalify the #207/#208 accounting/release-ordering defects, including the missing-usage case reproduced by #212, if the chosen path depends on those authority effects;
-3. resolve or explicitly exclude #120/#126 for any WebVM-dependent protocol;
-4. retain fresh exact-revision live-provider evidence if the protocol depends on that provider path;
-5. complete any protected #139/#134 sequence required by the selected evidence path;
-6. independently qualify the selected evidence path to the degree required by the paper claim;
-7. freeze the protocol before outcome access and retain negative, rejected, `UNKNOWN`, `BLOCKED`, failed and missing cells.
+1. preserve exact-revision failures, blocked interventions, and mixed results rather than treating later PASSes as erasure;
+2. requalify any selected path affected by historical #207/#208/#212 authority-ordering failures against accepted #288;
+3. rebase/requalify #323 before using the Workbench for an authoritative trial;
+4. resolve or explicitly exclude #120/#126 for any WebVM-dependent protocol;
+5. retain fresh exact-revision live-provider evidence if the protocol depends on that provider path;
+6. preserve any protected ownership/requalification sequence required by the selected evidence path;
+7. independently qualify the selected evidence path to the degree required by the paper claim;
+8. keep `PASS`, `FAIL`, `UNKNOWN`, `BLOCKED`, missing, and rejected cells in the retained evidence package.
 
-## Primary confirmatory experiment
-
-Run one fixed model across frozen R0–R5 configurations and retain raw observations sufficient to recompute raw correctness `P(X)`, acceptance coverage `P(A)`, accepted correctness `P(X|A)`, AER/ASSR, false acceptance/rejection, verifier rejection/`UNKNOWN`, latency, throughput, rework/conflicts and directly measurable monetary/token/GPU cost.
-
-A positive result requires `P(X|A)` to improve meaningfully over `P(X)` without collapsing `P(A)` toward zero. A falsifying result is equally important: if accepted correctness does not materially improve, or improvement is dominated by rejection, verifier leakage, cost or latency, the hypothesis is not supported for the tested domain.
-
-## What is deliberately not claimed
-
-The repository does not currently claim a new foundation model, a universal verifier/proof system, universally optimal routing, guaranteed token/cost savings, blanket production readiness, successful exact-current-main real-provider inference, physical heavyweight-WebVM iPhone reliability, acceptable long-run WebVM reliability, independent human assurance from the solo-maintainer merge model, live-model proof of the central hypothesis, completed long-duration soak, autonomous recursive self-improvement, autonomous merge authority or first-in-literature status.
-
-Receipts establish that stated checks ran over stated evidence under stated identities/revisions. They do not certify arbitrary truth beyond those contracts.
+Until those gates are met, the central systems hypothesis remains **UNKNOWN / not established by confirmatory live-model evaluation**.
