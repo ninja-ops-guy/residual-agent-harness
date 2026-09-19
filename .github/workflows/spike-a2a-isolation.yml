@@ -27,3 +27,5 @@ jobs:
         run: python -m pytest -q spikes/a2a/tests/spike_a2a/test_f0_canaries.py
       - name: Run pinned-SDK F0 lifecycle canary
         run: PYTHONPATH=spikes/a2a python -m pytest -q spikes/a2a/tests/spike_a2a/test_f0_sdk_lifecycle.py
+      - name: Run F0-1 JSON-RPC/SSE transport canary
+        run: PYTHONPATH=spikes/a2a python -m pytest -q spikes/a2a/tests/spike_a2a/test_f0_transport_canaries.py
