@@ -58,12 +58,15 @@ class WorkerClient:
         return self.request("comms", {"project_id": project, "name": name, "message": message,
                                       "audience": audience, "thread_id": thread_id})
 
-    def run_once(self, project, name, provider, max_tokens=4096):
-        work = self.request("claim", {"project_id": project, "name": name}).get("work")
+    def run_once(self, project, name, provider, max_tokens=4096, presence_ttl_s=90):
+        work = self.request("claim", {"project_id": project, "name": name,
+            "model": provider.model, "placement": provider.placement,
+            "presence_ttl_s": presence_ttl_s}).get("work")
         if not work:
             return False
         stop = threading.Event()
-        envelope = {"project_id": project, "task_id": work["task_id"], "lease": work["lease"]}
+        envelope = {"project_id": project, "task_id": work["task_id"], "lease": work["lease"],
+                    "presence_ttl_s": presence_ttl_s}
         def heartbeat():
             while not stop.wait(60):
                 try:
@@ -131,7 +134,8 @@ def main(argv=None):
             for message in messages:
                 chat_after = max(chat_after, int(message.get("seq", 0)))
                 print(f"[shared #{message.get('seq')}] {message.get('actor')}: {message.get('message')}", flush=True)
-            worked = client.run_once(args.project, args.name, provider)
+            presence_ttl_s = min(900, max(30, args.poll_seconds * 3 + 15))
+            worked = client.run_once(args.project, args.name, provider, presence_ttl_s=presence_ttl_s)
             if worked:
                 print("Candidate submitted. The station owns verification and review.", flush=True)
         except Exception as e:
