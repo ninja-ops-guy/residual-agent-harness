@@ -14,6 +14,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from residual.core import ContractError, canonical, strict_json
+from residual import research, research_runtime
 from .contracts import bounded, parse_spec
 from .models import model_call, public_settings, save_settings, credentials_for
 from residual.modular import normalize_profile, make_adapter
@@ -118,6 +119,17 @@ class Handler(BaseHTTPRequestHandler):
                     return self.respond(self.station.ollama.status())
                 if path == "/api/settings":
                     return self.respond(public_settings(self.station.store))
+                if path == "/api/research/catalog":
+                    try:
+                        catalog, commit = research.current()
+                    except (OSError, ValueError, RuntimeError, FileNotFoundError, json.JSONDecodeError):
+                        catalog, commit = research.sync()
+                    return self.respond({"catalog": catalog, "commit": commit, "runs": research_runtime.list_runs(self.station)})
+                if path == "/api/research/export":
+                    experiment_id = query.get("experiment_id", [""])[0]
+                    run_id = query.get("run_id", [""])[0]
+                    data = research_runtime.export_bundle(self.station, experiment_id, run_id)
+                    return self.respond(data, content_type="application/zip", filename=f"{experiment_id}-{run_id}.zip")
                 if path == "/api/diagnostics":
                     import platform, shutil
                     return self.respond({"version": "0.3.0", "python": platform.python_version(), "platform": platform.system(),
@@ -190,6 +202,18 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/settings":
             save_settings(s.store, data)
             return public_settings(s.store)
+        if path == "/api/research/sync":
+            catalog, commit = research.sync()
+            return {"catalog": catalog, "commit": commit, "runs": research_runtime.list_runs(s)}
+        if path == "/api/research/run":
+            experiment_id = data["experiment_id"]
+            kind = "research-" + experiment_id.lower()
+            with s.mutex:
+                if (None, kind) in s.active:
+                    raise ContractError("This experiment already has an active run")
+            prepared = research_runtime.prepare(s, experiment_id, require_runnable=True)
+            launched = s.launch(kind, lambda progress: research_runtime.run(s, experiment_id, prepared["run_id"], progress))
+            return {**launched, "run_id": prepared["run_id"], "experiment_id": experiment_id}
         if path == "/api/models/start":
             return {"message": s.ollama.start()}
         if path == "/api/models/stop":

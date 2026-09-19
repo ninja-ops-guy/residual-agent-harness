@@ -92,6 +92,8 @@ def parse_spec(markdown):
             kind = check.get("kind")
             allowed = {"exists": {"kind", "path"}, "contains": {"kind", "path", "text"},
                        "python_compile": {"kind", "path"}, "json_valid": {"kind", "path"},
+                       "json_value": {"kind", "path", "pointer", "value"},
+                       "json_exact": {"kind", "path", "value"},
                        "command": {"kind", "argv", "timeout"}}
             if kind not in allowed or set(check) - allowed[kind]:
                 raise ContractError("Unsupported check or check field")
@@ -105,6 +107,11 @@ def parse_spec(markdown):
                 path_ok(check.get("path"))
                 if kind == "contains":
                     bounded(check.get("text"), "Check text", 10000)
+                if kind == "json_value":
+                    pointer = check.get("pointer")
+                    if (not isinstance(pointer, list) or not 1 <= len(pointer) <= 16
+                            or any(not isinstance(part, str) or not part or len(part) > 100 for part in pointer)):
+                        raise ContractError("json_value pointer must contain 1–16 nonempty object keys")
     graph = {t["id"]: t["depends_on"] for t in tasks}
     visiting, visited = set(), set()
     def visit(tid):

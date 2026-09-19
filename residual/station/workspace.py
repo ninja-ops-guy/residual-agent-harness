@@ -14,7 +14,7 @@ import uuid
 import zipfile
 from pathlib import Path
 
-from residual.core import ContractError
+from residual.core import ContractError, canonical, strict_json
 from .contracts import path_ok
 
 
@@ -152,9 +152,20 @@ def run_checks(root, checks, commands=False):
                     raise ContractError("Required text was not found")
                 if kind == "python_compile":
                     ast.parse(path.read_text(encoding="utf-8"), filename=check["path"])
-                if kind == "json_valid":
-                    from residual.core import strict_json
-                    strict_json(path.read_text(encoding="utf-8"))
+                parsed_json = None
+                if kind in {"json_valid", "json_value", "json_exact"}:
+                    parsed_json = strict_json(path.read_text(encoding="utf-8"))
+                if kind == "json_exact":
+                    if canonical(parsed_json) != canonical(check.get("value")):
+                        raise ContractError("JSON document did not exactly match the required value")
+                if kind == "json_value":
+                    current = parsed_json
+                    for key in check["pointer"]:
+                        if not isinstance(current, dict) or key not in current:
+                            raise ContractError("Required JSON value was not found")
+                        current = current[key]
+                    if canonical(current) != canonical(check.get("value")):
+                        raise ContractError("JSON value did not match the required value")
                 result.update(passed=True, detail="Acceptance check passed")
         except (ContractError, OSError, ValueError, SyntaxError, UnicodeError) as e:
             result["detail"] = str(e)[:1000]

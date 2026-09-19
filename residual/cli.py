@@ -31,6 +31,9 @@ def main(argv=None):
     if argv and argv[0] == "study":
         from .study import main as study
         return study(argv[1:])
+    if argv and argv[0] == "research":
+        from .research import main as research
+        return research(argv[1:])
     if argv and argv[0] == "serve":
         from .station.server import main as serve
         return serve(argv[1:])
@@ -50,6 +53,7 @@ def main(argv=None):
     sub.add_parser("serve", help="Open the local web command station (serve --help for options)")
     sub.add_parser("worker", help="Connect a distributed inference runner")
     sub.add_parser("study", help="Freeze/run independently graded studies (study --help)")
+    sub.add_parser("research", help="Import versioned experiments from the Research Workbench")
     sub.add_parser("node", help="Join/leave the distributed cluster (node --help)")
     sub.add_parser("cluster", help="Show cluster status (cluster --help)")
     for name in ("demo", "run"):

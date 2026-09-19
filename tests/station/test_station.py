@@ -262,6 +262,27 @@ class StationTests(unittest.TestCase):
         repo = Path(__file__).parents[2]
         self.assertEqual((repo / "vendor/ldd-kit/base.json").read_bytes(), (repo / "residual/station/schemas/ldd-base.json").read_bytes())
 
+    def test_json_exact_check_is_host_owned_and_rejects_extra_data(self):
+        root = Path(self.temp.name) / "json-check"
+        root.mkdir()
+        expected = {"schema_version": 1, "authority": {"candidate_code_execution": False}}
+        (root / "result.json").write_text(json.dumps(expected))
+        check = [{"kind": "json_exact", "path": "result.json", "value": expected}]
+        passed = ws.run_checks(root, check, False)
+        self.assertTrue(passed[0]["passed"])
+        (root / "result.json").write_text(json.dumps({**expected, "unexpected": True}))
+        failed = ws.run_checks(root, check, False)
+        self.assertFalse(failed[0]["passed"])
+
+    def test_json_value_check_requires_exact_typed_value(self):
+        root = Path(self.temp.name) / "json-value"
+        root.mkdir()
+        (root / "result.json").write_text('{"enabled":true}')
+        checks = [{"kind": "json_value", "path": "result.json", "pointer": ["enabled"], "value": True}]
+        self.assertTrue(ws.run_checks(root, checks, False)[0]["passed"])
+        wrong = [{"kind": "json_value", "path": "result.json", "pointer": ["enabled"], "value": 1}]
+        self.assertFalse(ws.run_checks(root, wrong, False)[0]["passed"])
+
     def test_test_commands_require_project_permission(self):
         checks = [{"kind": "command", "argv": ["{python}", "-c", "print('ok')"]}]
         result = ws.run_checks(self.temp.name, checks, False)
@@ -326,6 +347,31 @@ class HTTPTests(unittest.TestCase):
         save_settings(self.s.store, {"cloud_key": "private-key"})
         body = self.request("/api/bootstrap")
         self.assertNotIn("private-key", canonical(body))
+
+    def test_research_catalog_is_session_protected_and_version_bound(self):
+        catalog={"schema_version":1,"experiments":[{"id":"M6-WB-001","status":"runnable","adapter":"m6_improvementspec"}]}
+        with patch("residual.station.server.research.current", return_value=(catalog,"a"*40)), patch("residual.station.server.research_runtime.list_runs", return_value=[]):
+            body=self.request("/api/research/catalog")
+        self.assertEqual(body["commit"],"a"*40)
+        self.assertEqual(body["catalog"]["experiments"][0]["id"],"M6-WB-001")
+
+    def test_research_run_prepares_before_background_execution(self):
+        prepared={"run_id":"20260919T000000Z-1234abcd","experiment":{"id":"M6-WB-001"},"catalog_commit":"a"*40,"output":"/tmp/research"}
+        with patch("residual.station.server.research_runtime.prepare", return_value=prepared), patch.object(self.s,"launch", return_value={"job_id":"job-1"}) as launch:
+            body=self.request("/api/research/run",{"experiment_id":"M6-WB-001"})
+        self.assertEqual(body["run_id"],prepared["run_id"])
+        self.assertEqual(body["job_id"],"job-1")
+        launch.assert_called_once()
+
+    def test_research_duplicate_active_run_is_rejected_before_prepare(self):
+        kind="research-m6-wb-001"
+        self.s.active.add((None,kind))
+        with patch("residual.station.server.research_runtime.prepare") as prepare:
+            with self.assertRaises(urllib.error.HTTPError) as error:
+                self.request("/api/research/run",{"experiment_id":"M6-WB-001"})
+        self.assertEqual(error.exception.code,400)
+        prepare.assert_not_called()
+        self.s.active.discard((None,kind))
 
     def test_remote_candidate_submission_is_idempotent_and_unable_to_approve(self):
         pid = self.s.create(demo_spec(), demo=True)["project_id"]
