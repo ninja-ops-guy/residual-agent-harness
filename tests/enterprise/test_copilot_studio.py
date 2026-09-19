@@ -4,7 +4,7 @@ from __future__ import annotations
 import pytest
 
 from residual.core import ContractError
-from residual.iam.crypto import jwt_encode
+from residual.iam.crypto import jwt_encode, rsa_generate_keypair
 from residual.iam.oidc import OIDCClient, OIDCSettings
 from residual.integrations.copilot_studio import (
     CopilotAPI,
@@ -61,12 +61,12 @@ def make_token(
         "groups": list(groups),
     }
     payload.update(extra or {})
-    return jwt_encode(payload, KEY, alg="HS256", headers={"kid": KID})
+    return jwt_encode(payload, KEYPAIR, alg="RS256", headers={"kid": KID})
 
 
 def make_api(*, expected_tenant="tenant-a", group_resolver=None):
     settings = OIDCSettings(issuer=ISSUER, client_id=AUDIENCE, clock_skew=0)
-    oidc = OIDCClient(settings, {KID: KEY})
+    oidc = OIDCClient(settings, {KID: KEYPAIR.public_key})
     verifier = CopilotIdentityVerifier(
         oidc,
         expected_tenant=expected_tenant,
