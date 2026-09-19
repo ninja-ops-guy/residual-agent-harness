@@ -69,7 +69,7 @@ This PASS is scoped to exact-revision publication/browser/real-guest qualificati
 
 The accepted #288 repair closes product issue #208. Historical #207/#212 stress/failure-matrix outcomes remain retained evidence and are not rewritten by the merge; any stronger budget/unknown-usage/release-ordering claim needs fresh qualification on the repaired revision.
 
-The accepted #320 policy is repository configuration, not yet production Vercel response-header acceptance. Production header inspection/Aikido revalidation remains **UNKNOWN / pending**. #328 accepts the core non-workflow portion of #324; workflow `persist-credentials: false` changes remain open under #324.
+The accepted #320 policy is repository configuration, not yet production Vercel response-header acceptance. Production header inspection/Aikido revalidation remains **UNKNOWN / pending**. #328 accepts the core non-workflow portion of #324; the remaining workflow `persist-credentials: false` hardening is now isolated in focused current-main PR **#330**, which remains **OPEN / unaccepted**. The stale overlapping #324 must not be merged wholesale.
 
 Historical failures remain retained evidence rather than being erased by later PASS results.
 
