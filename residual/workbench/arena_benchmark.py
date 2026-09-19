@@ -258,12 +258,46 @@ def _cluster_bootstrap(task_groups, seed, samples=10000):
     return [_percentile(means, 0.025), _percentile(means, 0.975)]
 
 
+def _live_provenance(trace):
+    provider = trace.provider_metadata
+    if provider.get("provider") != "arena" or provider.get("fallback_used") is not False:
+        raise ContractError("live AX-ARENA trace lacks single-provider Arena provenance")
+    if trace.verdict.get("state") == "UNKNOWN":
+        return set(), []
+    if trace.condition == "control":
+        resolved = provider.get("resolved_model")
+        trace_id = provider.get("trace_id")
+        if not isinstance(resolved, str) or not resolved or not isinstance(trace_id, str) or not trace_id:
+            raise ContractError("live AX-ARENA control trace lacks Arena resolved-model/trace headers")
+        return {resolved}, [trace_id]
+    attempts = provider.get("arena_attempts")
+    if not isinstance(attempts, list) or not attempts:
+        raise ContractError("live AX-ARENA RESIDUAL trace lacks Arena attempt provenance")
+    completed = [attempt for attempt in attempts if isinstance(attempt, dict) and attempt.get("status") == "completed"]
+    if not completed:
+        raise ContractError("live AX-ARENA RESIDUAL trace has no completed Arena attempt")
+    resolved_models, trace_ids = set(), []
+    for attempt in completed:
+        resolved = attempt.get("resolved_model")
+        trace_id = attempt.get("trace_id")
+        if attempt.get("fallback_used") is not False:
+            raise ContractError("live AX-ARENA attempt reports gateway fallback")
+        if not isinstance(resolved, str) or not resolved or not isinstance(trace_id, str) or not trace_id:
+            raise ContractError("live AX-ARENA attempt lacks Arena resolved-model/trace headers")
+        resolved_models.add(resolved)
+        trace_ids.append(trace_id)
+    if len(resolved_models) != 1 or len(trace_ids) != len(set(trace_ids)):
+        raise ContractError("live AX-ARENA trace has inconsistent model resolution or duplicate Arena trace IDs")
+    return resolved_models, trace_ids
+
+
 def score_protocol(lock, traces):
     lock = _verify_lock(lock)
     traces = list(traces)
     expected = {job["observation_id"]: job for job in lock["schedule"]}
     seen = {}
     rows = []
+    arena_trace_ids = set()
 
     for trace in traces:
         if trace.observation_id in seen:
@@ -283,10 +317,13 @@ def score_protocol(lock, traces):
                 or (state == "FAIL" and success is not False)
                 or (state == "UNKNOWN" and success is not None)):
             raise ContractError("AX-ARENA verdict state/success mismatch")
+        resolved_models = set()
         if lock["evidence_level"] == "live_model":
-            provider = trace.provider_metadata
-            if provider.get("provider") != "arena" or provider.get("fallback_used") is not False:
-                raise ContractError("live AX-ARENA trace lacks single-provider Arena provenance")
+            resolved_models, trace_ids = _live_provenance(trace)
+            for trace_id in trace_ids:
+                if trace_id in arena_trace_ids:
+                    raise ContractError("duplicate Arena gateway trace ID across AX observations")
+                arena_trace_ids.add(trace_id)
         signals = extract_arena_aligned_signals(trace)
         row = {
             "trace": trace,
@@ -295,6 +332,7 @@ def score_protocol(lock, traces):
             "success": success,
             "signals": signals,
             "usage": trace.usage,
+            "resolved_models": resolved_models,
         }
         seen[trace.observation_id] = row
         rows.append(row)
@@ -326,6 +364,8 @@ def score_protocol(lock, traces):
             if pair["residual"]["success"] is None or pair["control"]["success"] is None:
                 unknown_pairs += 1
                 continue
+            if lock["evidence_level"] == "live_model" and pair["residual"]["resolved_models"] != pair["control"]["resolved_models"]:
+                raise ContractError("paired AX-ARENA conditions resolved to different Arena models")
             delta = int(pair["residual"]["success"]) - int(pair["control"]["success"])
             task_groups.setdefault(task_id, []).append(delta)
         differences = [value for values in task_groups.values() for value in values]
