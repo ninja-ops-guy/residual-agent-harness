@@ -59,13 +59,15 @@ The built-in demo is scripted and credential-free. It demonstrates controller be
 
 ## Current repository boundary
 
-Current `main` is **`4608afabf5de4c87d77aaf149dfc12538d364f43`**.
+Current `main` is **`0a675017a51f94e489528a607032e7463fbf7993`**, produced by merged **#328** on 2026-09-19.
 
-Merged **#200** hardens native setup defaults: persistent XDG locations, loopback Station binding, opt-in shell convenience, bounded venv repair, and constrained shell-rc edits. This is accepted onboarding behavior, not blank-environment qualification.
+Accepted changes since the earlier documented boundary include **#307** (duplicate feature-branch CI fan-out repair), **#260** (provider bootstrap guard), **#288** (pre-dispatch Station budget/deadline admission and run-control-bound export eligibility), **#320** (repository-side CSP/anti-clickjacking policy), and **#328** (core non-workflow execution/egress/XML security hardening). These are bounded engineering/governance/security changes; none expands model, verifier, Factory/M4 or evidence-schema authority.
 
-Merged **#205** restores the private provider channel across Mission Control reload/remount by validating and reusing a session-scoped channel token, and clears it on explicit close. This is accepted lifecycle behavior, not live-provider semantic evidence.
+Every current `main` SHA now receives its own non-cancelling production Pages attempt under accepted #276. Exact-current-main run **`35431634267`**, attempt 1, is currently **UNKNOWN / pending** because it is still in progress. Several exact-current-main test/qualification jobs have already completed **PASS** in their named scopes, but a partially completed gate set is not a global PASS. The earlier Pages **FAIL** on `e7b72ad...` remains historical exact-revision evidence only.
 
-The exact-current-main Actions set observed for `4608afa...` is complete with no pending, cancelled, or failing run in the retained exact-SHA query; the sampled Controller/provider workflow is **PASS on attempt 1**. Treat those results as exact-revision automated evidence only. They do not establish universal/capable-runner M4 qualification, live Puter success, physical-device reliability, recovery/soak, or confirmatory research.
+The accepted #288 repair closes product issue #208. Historical #207/#212 stress/failure-matrix outcomes remain retained evidence and are not rewritten by the merge; any stronger budget/unknown-usage/release-ordering claim needs fresh qualification on the repaired revision.
+
+The accepted #320 policy is repository configuration, not yet production Vercel response-header acceptance. Production header inspection/Aikido revalidation remains **UNKNOWN / pending**. #328 accepts the core non-workflow portion of #324; workflow `persist-credentials: false` changes remain open under #324.
 
 Historical failures remain retained evidence rather than being erased by later PASS results.
 
@@ -73,7 +75,7 @@ Historical failures remain retained evidence rather than being erased by later P
 
 Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice. Both counted calls failed closed as `provider_protocol_invalid`; no candidate crossed the protocol boundary, so candidate correctness and semantic verification remain **UNKNOWN**.
 
-Merged #179, #183, #189 and #205 repair bounded build-output, provider-session, publication, and reload-recovery surfaces. None is retained proof of successful paid/live Puter inference. A fresh exact-deployed-revision real-account mission must reach normal candidate/verifier/receipt handling before live-provider success becomes `PASS`.
+Merged #179, #183, #189, #205, #248, #260 and #276 repair bounded build-output, provider-session, bootstrap, publication and qualification surfaces. None is retained proof of successful paid/live Puter inference. A fresh exact-deployed-revision real-account mission must reach normal candidate/verifier/receipt handling before live-provider success becomes `PASS`.
 
 The #186 fallback remains accepted: detected iOS/iPadOS WebKit is routed to the lightweight walkthrough before heavyweight guest boot. Physical heavyweight-WebVM reliability and the lower-level process-kill cause remain **UNKNOWN / unqualified**. Issues #120/#126 remain open.
 
@@ -90,9 +92,12 @@ This documentation does not alter Factory/M4 implementation/tests, ownership bas
 Recent research evidence must remain mixed:
 
 - #202: earlier retained heterogeneous-DAG **FAIL**; later bounded corrected exact-head **PASS** with real local models and forced repair. Neither result erases the other.
-- #203: first authoritative M6 ImprovementSpec self-host trial **FAIL**.
-- #204: stronger-model M6-SPEC-002 authoritative trial **FAIL**, 0/1 integrated and no verification receipt/release.
-- #207 campaign B: retained negative control evidence shows a budget-exhaustion ordering case in which integration/release preceded final exhausted-budget accounting, and a verifier-failure case in which a non-empty release still materialized after abort. These are governance defects, not PASSes. The repeated-repair case contained injected corrupt candidates but did not recover to success within the pass budget.
+- #220: bounded corrected M6-SPEC-006 self-hosting **PASS**; earlier M6 self-host trials retain **FAIL** evidence.
+- #257: bounded M6-SPEC-007J formal MeasurementGap-admission **PASS**; later registry/provenance/planner work includes PASS, FAIL and UNKNOWN cells. General autonomous discovery remains **UNKNOWN / not established**.
+- #207/#212: frozen stress/failure-matrix evidence includes accounting/release-ordering and missing-usage failures. #288 repairs the tracked product defect (#208), but the research cells remain historical and require repaired-path requalification for stronger claims.
+- #319: one bounded concurrency pilot is positive, while general mesh/swarm efficiency remains **UNKNOWN / not established**.
+- #323: Research Workbench is still draft and its first authoritative trial remains **BLOCKED** pending rebase/requalification onto a main that includes the now-accepted #288 repair.
+- M6-008 and broader recursive self-improvement remain **BLOCKED/UNKNOWN** until their specific positive gates are satisfied. Unmerged M6/M7 branches are not accepted product capability.
 
 These observations do not establish autonomous recursive self-improvement or production reliability.
 
@@ -119,6 +124,6 @@ Start with:
 
 A passing check establishes only its declared condition. Historical results remain tied to the exact revisions that produced them.
 
-The repository does not currently claim universal worker correctness, guaranteed savings, blanket production readiness, every-host M4 qualification, completed blank-environment/recovery/elapsed-soak qualification, acceptable long-run WebVM reliability, successful exact-current-main paid/live provider execution, physical heavyweight-WebVM iPhone reliability, autonomous recursive self-improvement, autonomous merge authority, or proof of the central live-model reliability hypothesis.
+The repository does not currently claim universal worker correctness, guaranteed savings, blanket production readiness, every-host M4 qualification, completed blank-environment/recovery/elapsed-soak qualification, acceptable long-run WebVM reliability, successful exact-current-main paid/live provider execution, physical heavyweight-WebVM iPhone reliability, production Vercel header validation, autonomous recursive self-improvement, autonomous merge authority, or proof of the central live-model reliability hypothesis.
 
 For operational setup, use [`START-HERE.md`](START-HERE.md). For current repository-wide status, use [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md).
