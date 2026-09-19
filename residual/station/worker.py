@@ -48,11 +48,15 @@ class WorkerClient:
                 raise ContractError("Worker packet is too large")
             return strict_json(value.decode())
 
-    def comms(self, project, after=0):
-        return self.fetch("comms", {"project_id": project, "after": after}).get("messages", [])
+    def comms(self, project, after=0, thread_id=None):
+        params = {"project_id": project, "after": after}
+        if thread_id:
+            params["thread_id"] = thread_id
+        return self.fetch("comms", params).get("messages", [])
 
-    def say(self, project, name, message, audience="all"):
-        return self.request("comms", {"project_id": project, "name": name, "message": message, "audience": audience})
+    def say(self, project, name, message, audience="all", thread_id="main"):
+        return self.request("comms", {"project_id": project, "name": name, "message": message,
+                                      "audience": audience, "thread_id": thread_id})
 
     def run_once(self, project, name, provider, max_tokens=4096):
         work = self.request("claim", {"project_id": project, "name": name}).get("work")
@@ -107,6 +111,7 @@ def main(argv=None):
     p.add_argument("--poll-seconds", type=int, default=10)
     p.add_argument("--say", default="", help="Post one message to Shared Comms before polling for work")
     p.add_argument("--audience", choices=["all", "operator"], default="all", help="Audience for --say")
+    p.add_argument("--thread", default="main", help="Shared Comms thread to read/post (default: main)")
     args = p.parse_args(argv)
     if not 1 <= args.poll_seconds <= 300:
         p.error("poll-seconds must be 1–300")
@@ -114,7 +119,7 @@ def main(argv=None):
     provider = StationProvider({"kind": args.kind, "model": args.model, "base_url": args.base_url, "placement": args.placement, "region": args.region, "api_version": args.api_version},
                                RUNNER_SYSTEM, FILES_SCHEMA, os.environ.get("RESIDUAL_RUNNER_API_KEY"))
     if args.say:
-        client.say(args.project, args.name, args.say, args.audience)
+        client.say(args.project, args.name, args.say, args.audience, args.thread)
         print("Shared Comms message posted.", flush=True)
         if args.once:
             return 0
@@ -122,7 +127,7 @@ def main(argv=None):
     chat_after = 0
     while True:
         try:
-            messages = client.comms(args.project, chat_after)
+            messages = client.comms(args.project, chat_after, args.thread)
             for message in messages:
                 chat_after = max(chat_after, int(message.get("seq", 0)))
                 print(f"[shared #{message.get('seq')}] {message.get('actor')}: {message.get('message')}", flush=True)
