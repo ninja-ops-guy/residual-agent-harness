@@ -1,3 +1,4 @@
 # SPIKE-A2A-000 isolated dependency pin
 a2a-sdk[http-server]==1.0.3
 pytest>=8
+uvicorn==0.30.6
