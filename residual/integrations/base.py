@@ -166,7 +166,7 @@ class ConnectorReceipt:
 
 class IntegrationConnector:
     """Base connector. Implements ENT6-R6 (bidirectional: ``import_task``
-    pulls input, ``post_receipt``/``sync_status`` push output) and
+    pulls input from and ``post_receipt``/``sync_status`` push output) and
     ENT6-R7 (every external call is observed with request/response
     hashes and latency, recorded in ``observations``).
     """

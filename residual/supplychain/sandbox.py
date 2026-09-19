@@ -279,4 +279,3 @@ def run_sandboxed(
     return _kernel_execute(
         manifest, source, function, args, kwargs, read_file_bytes=read_file_bytes
     )
-
