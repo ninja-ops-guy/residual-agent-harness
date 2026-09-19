@@ -37,6 +37,7 @@ class RouterTests(unittest.TestCase):
                 with self.assertRaises(ProviderError):router.chat('openai:x',REQ,['anthropic:y'])
             self.assertEqual(two.calls,1 if retryable else 0)
             self.assertEqual(len(receipts),2 if retryable else 1)
+            self.assertIn("response_metadata", receipts[-1])
             self.assertEqual(len({r['request_id'] for r in receipts}),1)
             self.assertTrue(verify_chain(mem.events));self.assertIn(ObservationKind.LLM_FAILED,[e.kind for e in mem.events])
             self.assertNotIn('Hello café',canonical([o.to_dict() for o in mem.events]))
