@@ -21,6 +21,8 @@ jobs:
     steps:
       - name: Checkout RESIDUAL
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Test demo gateway budgets and revocation
         run: python3 -m unittest -v tests.test_demo_cloud_gateway
@@ -31,6 +33,7 @@ jobs:
       - name: Checkout WebVM build context
         uses: actions/checkout@v4
         with:
+          persist-credentials: false
           repository: leaningtech/webvm
           ref: main
           path: _webvm
