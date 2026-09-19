@@ -35,6 +35,64 @@ class _BeginInterceptor:
 
 
 class RuntimeJournalWriterAdmissionTests(unittest.TestCase):
+    def test_constructor_transient_busy_is_retried_within_production_budget(self):
+        original = sqlite3.connect
+        attempts: list[int] = []
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "constructor-retry.sqlite"
+
+            def connect(*args, **kwargs):
+                return _BeginInterceptor(original(*args, **kwargs), attempts, fail_count=2)
+
+            with patch("residual.factory.runtime_journal.sqlite3.connect", side_effect=connect):
+                journal = RuntimeJournal(path, trace_id="constructor-retry")
+
+            self.assertEqual(len(attempts), 3)
+            self.assertEqual(journal.trace_id, "constructor-retry")
+            journal.observations()
+
+    def test_constructor_non_contention_operational_error_is_not_retried(self):
+        original = sqlite3.connect
+        attempts: list[int] = []
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "constructor-error.sqlite"
+
+            def connect(*args, **kwargs):
+                return _BeginInterceptor(
+                    original(*args, **kwargs),
+                    attempts,
+                    fail_count=1,
+                    error_code=sqlite3.SQLITE_ERROR,
+                )
+
+            with patch("residual.factory.runtime_journal.sqlite3.connect", side_effect=connect):
+                with self.assertRaises(sqlite3.OperationalError):
+                    RuntimeJournal(path, trace_id="constructor-error")
+            self.assertEqual(len(attempts), 1)
+
+    def test_constructor_persistent_busy_is_bounded_and_fail_closed(self):
+        original = sqlite3.connect
+        attempts: list[int] = []
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "constructor-busy.sqlite"
+
+            def connect(*args, **kwargs):
+                return _BeginInterceptor(original(*args, **kwargs), attempts, fail_count=10_000)
+
+            started = time.monotonic()
+            with (
+                patch.object(RuntimeJournal, "WRITE_TRANSACTION_TIMEOUT_S", 0.12),
+                patch.object(RuntimeJournal, "WRITE_CONNECT_TIMEOUT_S", 0.02),
+                patch("residual.factory.runtime_journal.sqlite3.connect", side_effect=connect),
+            ):
+                with self.assertRaises(sqlite3.OperationalError):
+                    RuntimeJournal(path, trace_id="constructor-busy")
+            elapsed = time.monotonic() - started
+
+            self.assertGreaterEqual(elapsed, 0.09)
+            self.assertLess(elapsed, 0.5)
+            self.assertGreater(len(attempts), 1)
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
