@@ -7,6 +7,7 @@ binds evidence to the authenticated caller.
 """
 
 from .auth import CopilotIdentityVerifier, CopilotPrincipal
+from .postgres import PostgresEncryptedMissionQueueBackend, PostgresMissionStore
 from .document_review import DepartmentEvidenceReviewWorker, DocumentBundle, DocumentCatalog
 from .readiness import release_eligible
 from .service import DepartmentCopilotService
@@ -45,6 +46,8 @@ from .gateway import (
 )
 
 __all__ = [
+    "PostgresMissionStore",
+    "PostgresEncryptedMissionQueueBackend",
     "DocumentCatalog",
     "DocumentBundle",
     "DepartmentEvidenceReviewWorker",
