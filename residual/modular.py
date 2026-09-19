@@ -15,8 +15,9 @@ PROVIDERS={
  'google':{'label':'Google Gemini','base_url':'https://generativelanguage.googleapis.com/v1beta'},
  'azure':{'label':'Azure OpenAI','base_url':''},
  'bedrock':{'label':'AWS Bedrock','base_url':''},
+ 'arena':{'label':'Arena API','base_url':'https://api.preview.arena.ai/v1'},
 }
-ENV_KEYS={'openai':'OPENAI_API_KEY','openai_compatible':'LLM_API_KEY','anthropic':'ANTHROPIC_API_KEY','google':'GEMINI_API_KEY','azure':'AZURE_OPENAI_API_KEY','ollama':'OLLAMA_API_KEY'}
+ENV_KEYS={'openai':'OPENAI_API_KEY','openai_compatible':'LLM_API_KEY','anthropic':'ANTHROPIC_API_KEY','google':'GEMINI_API_KEY','azure':'AZURE_OPENAI_API_KEY','ollama':'OLLAMA_API_KEY','arena':'ARENA_API_KEY'}
 
 
 def normalize_profile(profile,placement):
@@ -43,6 +44,9 @@ def make_adapter(profile,credentials=None):
     p=profile; kind=p['kind']; c=credentials or {}
     key=c.get('api_key') or (os.environ.get('RESIDUAL_LOCAL_API_KEY') if p.get('placement')=='local' else os.environ.get(ENV_KEYS.get(kind,'')))
     if kind=='google': key=key or os.environ.get('GOOGLE_API_KEY')
+    if kind=='arena':
+        from ai_providers.adapters.arena_adapter import ArenaAdapter
+        return ArenaAdapter(key,p['base_url'],output_token_field=p['output_token_field'])
     if kind in {'openai','openai_compatible'}:
         from ai_providers.adapters.openai_adapter import OpenAIAdapter,OpenAICompatibleAdapter
         return (OpenAIAdapter if kind=='openai' else OpenAICompatibleAdapter)(key,p['base_url'],output_token_field=p['output_token_field'])
