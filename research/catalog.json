@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "catalog_id": "residual-research",
+  "experiments": [
+    {
+      "id": "M6-SPEC-005",
+      "title": "ImprovementSpec controlled continuation",
+      "status": "ready",
+      "family": "m6-self-maintenance",
+      "trials": 5,
+      "max_passes": 3,
+      "hypothesis": "Given repair context and an explicit transport/source distinction, an onboarded model can produce an ImprovementSpec candidate satisfying the unchanged frozen acceptance contract within three passes.",
+      "acceptance_policy": "frozen",
+      "metrics": [
+        "success",
+        "integrated",
+        "verification_receipt",
+        "release",
+        "attempts",
+        "elapsed_ms",
+        "input_tokens",
+        "output_tokens",
+        "failure_class"
+      ]
+    },
+    {
+      "id": "M6-SCALE-001",
+      "title": "Swarm scaling sweep",
+      "status": "ready",
+      "family": "m6-swarm",
+      "arms": [
+        1,
+        2,
+        4,
+        8,
+        16
+      ],
+      "trials": 5,
+      "metrics": [
+        "success_rate",
+        "wall_ms",
+        "model_calls",
+        "input_tokens",
+        "output_tokens",
+        "duplicate_work",
+        "useful_work_ratio"
+      ]
+    },
+    {
+      "id": "M6-FAIL-001",
+      "title": "Worker and transport death",
+      "status": "ready",
+      "family": "m6-fault-injection",
+      "faults": [
+        "pre_assignment_death",
+        "mid_execution_death",
+        "post_artifact_pre_ack_death",
+        "result_transport_death"
+      ],
+      "trials": 5,
+      "metrics": [
+        "false_success",
+        "reassignment",
+        "recovery_ms",
+        "duplicate_execution",
+        "evidence_complete"
+      ]
+    },
+    {
+      "id": "M6-CONFLICT-001",
+      "title": "Contradictory workers",
+      "status": "ready",
+      "family": "m6-verification",
+      "trials": 5,
+      "metrics": [
+        "verdict",
+        "evidence_resolution",
+        "unsupported_claim_accepted",
+        "verification_receipt"
+      ]
+    },
+    {
+      "id": "M6-ABLATE-001",
+      "title": "Governance ablation",
+      "status": "ready",
+      "family": "m6-ablation",
+      "arms": [
+        "full",
+        "no_verifier",
+        "no_critic",
+        "no_scheduler",
+        "no_evidence_bus",
+        "no_deterministic_integrator",
+        "no_worker_contract"
+      ],
+      "trials": 5,
+      "metrics": [
+        "success_rate",
+        "unsafe_accept_rate",
+        "wall_ms",
+        "model_calls",
+        "useful_work_ratio"
+      ]
+    }
+  ]
+}
