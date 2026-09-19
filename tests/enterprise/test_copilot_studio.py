@@ -96,7 +96,7 @@ def payload(request_id="req-a", objective="Investigate boot regression",
         "request_id": request_id,
         "template_id": template_id,
         "objective": objective,
-        "inputs": inputs or {"repo": "firmware/sample"},
+        "inputs": inputs or {"repository_id": "firmware_sample"},
     }
 
 
@@ -501,13 +501,72 @@ def test_structured_inputs_cannot_request_additional_authority():
         body=payload(
             request_id="inputs-cannot-escalate",
             inputs={
-                "repo": "firmware/sample",
-                "capabilities": ["pr.merge", "production.write", "secrets.read"],
+                "repository_id": "firmware_sample",
+                "capabilities": "pr.merge",
                 "role": "administrator",
                 "department": "all",
             },
         ),
     )
+    assert response.status == 400
+    assert response.body["code"] == "invalid_inputs"
+    assert backend.bindings == []
+
+
+@pytest.mark.parametrize(
+    "bad_repository",
+    [
+        "https://evil.example/repo.git",
+        "../../etc/passwd",
+        "/srv/firmware",
+        "firmware;rm-rf",
+        "git@host:repo",
+    ],
+)
+def test_repository_input_is_an_opaque_alias_not_a_location(bad_repository):
+    api, _, backend = make_api()
+    response = submit(
+        api,
+        body=payload(
+            request_id="unsafe-repository",
+            inputs={"repository_id": bad_repository},
+        ),
+    )
+    assert response.status == 400
+    assert response.body["code"] == "invalid_inputs"
+    assert backend.bindings == []
+
+
+def test_template_rejects_inputs_belonging_to_another_template():
+    api, _, backend = make_api()
+    response = submit(
+        api,
+        body=payload(
+            request_id="cross-template-input",
+            template_id="firmware-repository-analysis",
+            inputs={
+                "repository_id": "firmware_sample",
+                "build_profile_id": "approved_build",
+            },
+        ),
+    )
+    assert response.status == 400
+    assert response.body["code"] == "invalid_inputs"
+    assert backend.bindings == []
+
+
+def test_sandbox_build_accepts_only_approved_alias_shapes():
+    api, _, backend = make_api()
+    response = submit(
+        api,
+        body=payload(
+            request_id="sandbox-aliases",
+            template_id="firmware-sandbox-build",
+            inputs={
+                "repository_id": "firmware_sample",
+                "build_profile_id": "debug_build",
+            },
+        ),
+    )
     assert response.status == 202
-    caps = set(backend.bindings[-1].capabilities)
-    assert caps == {"repository.analyze", "evidence.read_own"}
+    assert backend.bindings[-1].template_id == "firmware-sandbox-build"
