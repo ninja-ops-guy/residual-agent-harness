@@ -57,19 +57,13 @@ This merge updates accepted repository bytes and the corresponding ownership pin
 
 Qualification-v1 remains an independent testing-branch evidence path and does not become current-main capability merely because branch lanes pass.
 
-Open **#152** remains at exact testing-branch head **`aeba9962918c3659693e1efcd5603275cfb77cb4`**. Its first exact-head `RESIDUAL Qualification v1` run **`35448856959` attempt 1 is FAIL**. The retained job set shows:
+Open **#152** has advanced five commits beyond the previously evaluated `aeba9962918c3659693e1efcd5603275cfb77cb4` head and is now at exact testing-branch head **`061910c56b23c58c064952a6414f0b5eb54baea6`**. The current head changes Factory source, protected expected-Factory fixture bytes, `tests/factory/ownership_baseline.json`, and qualification/runtime-gate material.
 
-- bubblewrap sandbox provisioning step: **PASS**;
-- `qualification-selftests`: **PASS**;
-- toxic-provider: **PASS**;
-- M4: **PASS**;
-- discovery, protocol fuzz, concurrency, browser, active-workload, fault-injection, macOS/Windows lifecycle and other visible sibling jobs: **PASS**;
-- required deterministic job: **FAIL** at `Full deterministic regression gate`;
-- fail-closed aggregate: **FAIL**.
+At this check, no exact-head workflow run or commit-status result had been published for `061910c5...`. Current exact-head Qualification-v1 status is therefore **UNKNOWN / pending**, not inherited PASS or FAIL.
 
-The visible retained summary establishes that real sandbox provisioning completed successfully, but it does not establish a lower-level cause for the remaining deterministic regression failure. Preserve that cause as **UNKNOWN** until evidence identifies it.
+The predecessor `aeba9962...` remains retained exact-revision evidence: `RESIDUAL Qualification v1` run **`35448856959` attempt 1 was FAIL**. On that predecessor head, bubblewrap sandbox provisioning, qualification self-tests, toxic-provider, M4, discovery, protocol fuzz, concurrency, browser, active-workload, fault-injection, macOS/Windows lifecycle and the other visible sibling lanes passed, while the required deterministic job failed at `Full deterministic regression gate`, causing the fail-closed aggregate to fail. The retained summary did not identify the lower-level deterministic invariant, so that cause remains **UNKNOWN**.
 
-#152 remains open/unaccepted and must reconcile/requalify against current `main`, including the now-accepted #338 protected RuntimeJournal/ownership-baseline change, before any merge-readiness claim. Predecessor #152 results remain historical exact-head evidence only.
+Because current #152 moves protected Factory/fixture/ownership evidence, it requires explicit trust-boundary review, fresh exact-head qualification, protected maintainer approval, and merge authority. It must not be auto-merged or treated as accepted Factory/M4 qualification. Earlier #152 results remain historical exact-head evidence only.
 
 ## Provider/runtime adapters and nested-runtime research
 
@@ -77,7 +71,9 @@ Open **#340** contains the implementation-only Moonshot/Kimi and Kimi Claw/OpenC
 
 Draft **#341**, `EXP-NESTED-SWARM-001`, contains the research/evaluation material split out of #340. It is explicitly **RESEARCH ONLY — DO NOT MERGE** in its current form. Staged definitions, adapters, or evidence contracts are availability only, not proof of nested-swarm benefit or accepted provider capability.
 
-Draft **#344** proposes two branch-only layers: Arena provider transport and the local Arena-aligned paired benchmark scaffold **`AX-ARENA-01`**. It is **DRAFT / UNACCEPTED**. The repository does not claim an official Agent Arena leaderboard submission or official Arena score from this branch. Its checked-in development fixture and benchmark apparatus are availability only, not paper-facing outcome evidence. Accepted Arena provider capability and any comparative RESIDUAL-vs-control benefit remain **UNKNOWN / not established** until ordinary exact-head qualification/attestation is satisfied and a frozen governed experiment produces retained interpretable evidence.
+Draft **#344** remains **DRAFT / UNACCEPTED** at exact head **`1b5b183edc7fd78093f8140dddf9ecc4a4c0f1d0`**. It proposes Arena provider transport plus the local Arena-aligned paired benchmark scaffold **`AX-ARENA-01`**. At that exact head, Control Plane, Factory ownership, Controller/provider, clean install, measured-evaluation and Command Station workflows are **PASS**; protected maintainer approval is **FAIL**, PR-Agent advisory is **FAIL**, and Vercel is **FAIL due deployment rate limiting**. The repository does not claim official Agent Arena participation, an official Arena score, accepted Arena-provider capability, or comparative RESIDUAL-vs-control benefit from this branch. Its checked-in development fixture and benchmark apparatus remain availability only, not paper-facing outcome evidence.
+
+Draft **#345** is a new **DRAFT / UNACCEPTED** Aircloud provider candidate at exact head **`843eb182ba36269f3f0d2bfb5be0aac44a8ceb40`**. At that exact head, Control Plane, Factory ownership, Controller/provider, clean install, measured-evaluation and Command Station workflows are **PASS**; protected maintainer approval is **FAIL**, PR-Agent publication verification is **FAIL**, and Vercel is **FAIL due deployment rate limiting**. These branch-only results do not establish accepted current-main Aircloud runtime capability, live-provider semantic success, or provider quality.
 
 ## Accepted authority repair and retained stress evidence
 
@@ -113,9 +109,10 @@ Current Vercel deployment-rate-limit failures are infrastructure status and do n
 
 Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice; both counted calls failed closed as `provider_protocol_invalid`. No candidate crossed the protocol boundary.
 
-Accepted provider/session/bootstrap/publication changes and open #340 do not substitute for fresh live semantic evidence. Therefore:
+Accepted provider/session/bootstrap/publication changes and open provider candidates do not substitute for fresh live semantic evidence. Therefore:
 
 - successful paid/live provider candidate→verifier→receipt execution on exact current main: **UNKNOWN / not established**;
+- accepted Aircloud provider runtime capability: **UNKNOWN / not established**;
 - candidate correctness for the historical failed calls: **UNKNOWN**;
 - model quality implied by Pages or provider-contract CI: **UNKNOWN / not established**.
 
@@ -154,19 +151,19 @@ General autonomous discovery and recursive self-improvement remain **UNKNOWN / n
 ## Current priority gates
 
 1. **Preserve the exact-current-main Pages PASS without broadening it.** Run `35452581203` attempt 1 is authoritative for `2f9dda38...`; predecessor FAILs remain evidence. Continue #120/#126/#335 reliability work without treating one green revision as long-run reliability proof.
-2. **Resolve #152's remaining deterministic Qualification-v1 FAIL and reconcile it to current main.** Preserve `35448856959` attempt 1; real bubblewrap provisioning passes, but the deterministic regression gate remains red and the lower-level cause is still UNKNOWN. Requalification must include the accepted #338 protected RuntimeJournal/ownership-baseline state.
-3. **Keep #340, #341 and #344 separated and bounded.** #340 is unaccepted provider implementation work; #341 is draft research-only nested-runtime work; #344 is a draft Arena-provider plus Arena-aligned benchmark scaffold. None changes accepted current-main capability or scientific conclusions until its own governance/evidence path is satisfied.
+2. **Freshly qualify and explicitly review #152's current protected head.** Exact head `061910c5...` changes Factory source, expected-Factory fixture bytes and the ownership baseline, so its present status is UNKNOWN until exact-head evidence is published. Preserve predecessor `aeba9962...` run `35448856959` as historical FAIL evidence rather than inheriting it onto the new head.
+3. **Keep #340, #341, #344 and #345 separated and bounded.** #340 is unaccepted provider implementation work; #341 is draft research-only nested-runtime work; #344 is a draft Arena-provider plus Arena-aligned benchmark scaffold; #345 is a draft Aircloud-provider candidate. None changes accepted current-main capability or scientific conclusions until its own governance/evidence path is satisfied.
 4. **Requalify repaired authority ordering** against accepted #288 before broadening budget/unknown-usage/release-ordering claims.
 5. **Rebase/requalify #323** before M6-WB-001 can run authoritatively.
 6. **Validate #320 in production** before calling production CSP/anti-clickjacking response-header remediation PASS.
 7. **Retain fresh live-provider semantic evidence** or keep exact-current-main paid/live provider success UNKNOWN.
 8. **Complete blank-environment, recovery/host-loss, elapsed-soak and physical/mobile reliability work** without broadening bounded results.
 9. **Keep research claims bounded.** General recursive self-improvement and general mesh efficiency remain UNKNOWN; M6-008 remains BLOCKED.
-10. **Retain governance gaps explicitly.** #338's failed PR-Agent advisory due provider-credit exhaustion is not substantive review evidence.
+10. **Retain governance gaps explicitly.** #338's failed PR-Agent advisory due provider-credit exhaustion is not substantive review evidence; draft provider branches with failed approval/advisory gates remain unaccepted regardless of scoped technical greens.
 
 ## Documentation scope for this reconciliation
 
-Updated documentation is limited to `README.md`, `HARNESS.md`, `docs/CURRENT_STATUS.md`, `docs/research.md`, `docs/evaluation.md`, and `docs/roadmap/README.md`.
+The focused documentation PR remains limited to `README.md`, `HARNESS.md`, `docs/CURRENT_STATUS.md`, `docs/research.md`, `docs/evaluation.md`, and `docs/roadmap/README.md`. This check updates only `docs/CURRENT_STATUS.md` because accepted `main`, setup behavior, implementation-presence claims, and the other accepted-current-main documentation boundaries did not move.
 
 `START-HERE.md` and `implementation-status.yaml` remain intentionally unchanged because no accepted setup or implementation-presence claim changed.
 
@@ -181,4 +178,4 @@ Updated documentation is limited to `README.md`, `HARNESS.md`, `docs/CURRENT_STA
 - A partial PASS inside a required multi-stage gate does not override that gate's terminal FAIL.
 - A merge accepts repository bytes; it does not automatically establish every security, live-provider, physical-device, scientific, release, or independent-review claim associated with them.
 
-The repository does not currently claim blanket production readiness, universal worker correctness, every-host M4 qualification, successful exact-current-main paid/live provider execution, completed blank-environment/recovery/soak qualification, physical heavyweight-WebVM iPhone reliability, production Vercel security-header validation, substantive PR-Agent advisory review for #338, accepted Arena/AX-ARENA capability or comparative result, general autonomous recursive self-improvement, general cooperative mesh efficiency, or proof of the central live-model reliability hypothesis.
+The repository does not currently claim blanket production readiness, universal worker correctness, every-host M4 qualification, successful exact-current-main paid/live provider execution, completed blank-environment/recovery/soak qualification, physical heavyweight-WebVM iPhone reliability, production Vercel security-header validation, substantive PR-Agent advisory review for #338, accepted Arena/AX-ARENA capability or comparative result, accepted Aircloud provider capability, current exact-head Qualification-v1 PASS or FAIL for #152 at `061910c5...`, general autonomous recursive self-improvement, general cooperative mesh efficiency, or proof of the central live-model reliability hypothesis.
