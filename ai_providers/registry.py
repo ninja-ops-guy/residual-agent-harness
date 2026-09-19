@@ -92,6 +92,20 @@ def _default_registry() -> Registry:
         from .adapters.openai_adapter import OpenAICompatibleAdapter
         return OpenAICompatibleAdapter(api_key=os.environ.get("LLM_API_KEY"), base_url=os.environ.get("LLM_BASE_URL", "http://localhost:8080/v1"))
 
+    def _moonshot():
+        from .adapters.moonshot_adapter import MoonshotAdapter
+        return MoonshotAdapter(
+            api_key=os.environ.get("MOONSHOT_API_KEY"),
+            base_url=os.environ.get("MOONSHOT_BASE_URL", "https://api.moonshot.ai/v1"),
+        )
+
+    def _kimi_claw():
+        from .adapters.kimi_claw_adapter import KimiClawAdapter
+        return KimiClawAdapter(
+            api_key=os.environ.get("KIMI_CLAW_TOKEN"),
+            base_url=os.environ.get("KIMI_CLAW_BASE_URL", "http://127.0.0.1:18789/v1"),
+        )
+
     reg.register("openai_compatible", _compatible)
     reg.register("openai", _openai)
     reg.register("anthropic", _anthropic)
@@ -99,6 +113,8 @@ def _default_registry() -> Registry:
     reg.register("azure", _azure)
     reg.register("bedrock", _bedrock)
     reg.register("ollama", _ollama)
+    reg.register("moonshot", _moonshot)
+    reg.register("kimi_claw", _kimi_claw)
     return reg
 
 
