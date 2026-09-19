@@ -27,11 +27,15 @@ RESIDUAL does not fetch or create the Arena credential on your behalf. The key i
 
 Terminal users can open the same destination with:
 
+    residual arena setup
+
+The module form remains equivalent:
+
     python -m residual.workbench arena setup
 
 For headless systems:
 
-    python -m residual.workbench arena setup --print-only
+    residual arena setup --print-only
 
 ## Provider safety
 
