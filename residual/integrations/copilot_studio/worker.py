@@ -188,6 +188,10 @@ class FirmwareRepositoryAnalysisWorker:
             raise ContractError(
                 "Firmware repository analysis requires a local execution engine"
             )
+        if getattr(engine, "capability_class", None) == "provider_chat":
+            raise ContractError(
+                "Firmware repository analysis rejects provider-chat engines"
+            )
 
         result = self._validate_result(engine.execute(task, self._context(snapshot)))
         result = self.policy.apply(result)
