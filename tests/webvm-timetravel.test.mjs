@@ -28,5 +28,6 @@ test('state diff reports only changed flattened fields',()=>{
 test('Mission Control diagnostics mounts the debugger and the WebVM installer ships it',()=>{
   const diagnostics=readFileSync(new URL('../demo/vm/mission-control-diagnostics.js',import.meta.url),'utf8');
   const installer=readFileSync(new URL('../demo/vm/install_workbench.py',import.meta.url),'utf8');
+  const mission=readFileSync(new URL('../demo/vm/mission-control.js',import.meta.url),'utf8');
   assert.match(diagnostics,/mission-control-timetravel\.js/);assert.match(diagnostics,/mountTimeTravelDebug\(root,diagnostics\)/);assert.match(installer,/mission-control-timetravel\.js/);
 });
