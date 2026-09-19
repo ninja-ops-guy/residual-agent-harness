@@ -190,7 +190,7 @@ class WikiIndex:
 
     def summary(self) -> dict:
         return {
-            "root": str(self.root),
+            "source": "docs/",
             "documents": len(self._documents),
             "bytes": sum(doc.size for doc in self._documents),
             "categories": [
