@@ -18,6 +18,7 @@ access-denied observations (ENT1-R6).
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as DefusedET
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
@@ -170,7 +171,7 @@ def parse_saml_response(
     if type(now) is not int:
         raise ContractError("now must be an integer")
     try:
-        root = ET.fromstring(xml_text)
+        root = DefusedET.fromstring(xml_text)
     except ET.ParseError as exc:
         raise ContractError("malformed SAML response XML") from exc
     if root.tag != f"{{{NS_PROTOCOL}}}Response":
