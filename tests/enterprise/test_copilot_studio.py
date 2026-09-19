@@ -64,13 +64,14 @@ def make_token(
     return jwt_encode(payload, KEYPAIR, alg="RS256", headers={"kid": KID})
 
 
-def make_api(*, expected_tenant="tenant-a", group_resolver=None):
+def make_api(*, expected_tenant="tenant-a", group_resolver=None, allowed_client_apps=frozenset()):
     settings = OIDCSettings(issuer=ISSUER, client_id=AUDIENCE, clock_skew=0)
     oidc = OIDCClient(settings, {KID: KEYPAIR.public_key})
     verifier = CopilotIdentityVerifier(
         oidc,
         expected_tenant=expected_tenant,
         group_resolver=group_resolver,
+        allowed_client_apps=allowed_client_apps,
     )
     backend = CaptureBackend()
     gateway = CopilotMissionGateway(
@@ -312,3 +313,51 @@ def test_input_size_bound_prevents_unbounded_connector_payload():
     response = submit(api, body=payload(inputs={"blob": "x" * 70000}))
     assert response.status == 400
     assert backend.bindings == []
+
+
+def test_hs256_is_rejected_even_if_generic_oidc_has_a_symmetric_key():
+    symmetric = b"this-would-be-valid-for-generic-oidc"
+    settings = OIDCSettings(issuer=ISSUER, client_id=AUDIENCE, clock_skew=0)
+    oidc = OIDCClient(settings, {KID: symmetric})
+    verifier = CopilotIdentityVerifier(oidc, expected_tenant="tenant-a")
+    token = jwt_encode(
+        {
+            "iss": ISSUER,
+            "sub": "subject-a",
+            "aud": AUDIENCE,
+            "iat": NOW,
+            "exp": NOW + 60,
+            "tid": "tenant-a",
+            "oid": "user-a",
+            "scp": "access_as_user",
+            "groups": ["Engineering-Firmware"],
+        },
+        symmetric,
+        alg="HS256",
+        headers={"kid": KID},
+    )
+    with pytest.raises(ContractError, match="signing algorithm"):
+        verifier.verify(token, now=NOW)
+
+
+def test_optional_client_application_allowlist_is_enforced():
+    api, _, backend = make_api(allowed_client_apps=frozenset({"copilot-app"}))
+    denied = submit(api, token=make_token(extra={"azp": "other-app"}))
+    assert denied.status == 401
+    assert backend.bindings == []
+
+    allowed = submit(
+        api,
+        token=make_token(extra={"azp": "copilot-app"}),
+        body=payload(request_id="req-client-app"),
+    )
+    assert allowed.status == 202
+
+
+def test_uuid_style_request_id_can_start_with_a_digit():
+    api, _, _ = make_api()
+    response = submit(
+        api,
+        body=payload(request_id="7d9b2a1e-6e3c-4d6a-8bb0-1cf24260fabe"),
+    )
+    assert response.status == 202
