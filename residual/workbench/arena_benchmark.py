@@ -369,6 +369,8 @@ def build_parser():
     sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("models", help="List Arena API model IDs using ARENA_API_KEY")
+    setup = sub.add_parser("setup", help="Open the Arena API Keys page")
+    setup.add_argument("--print-only", action="store_true")
 
     freeze = sub.add_parser("freeze", help="Freeze an AX-ARENA protocol before outcomes are observed")
     freeze.add_argument("--manifest", required=True, type=Path)
@@ -393,6 +395,22 @@ def main(argv=None):
     try:
         if args.command == "models":
             print(json.dumps({"provider": "arena", "models": _models()}, indent=2))
+            return 0
+        if args.command == "setup":
+            url = "https://portal.api.preview.arena.ai/dashboard/keys"
+            opened = False
+            if not args.print_only:
+                try:
+                    import webbrowser
+                    opened = bool(webbrowser.open(url))
+                except Exception:
+                    opened = False
+            print(json.dumps({
+                "provider": "arena",
+                "keys_url": url,
+                "opened_browser": opened,
+                "next": "Create a virtual API key, set ARENA_API_KEY, then run: python -m residual.workbench arena models",
+            }, indent=2))
             return 0
         if args.command == "freeze":
             manifest = strict_json(args.manifest.read_text(encoding="utf-8"))
