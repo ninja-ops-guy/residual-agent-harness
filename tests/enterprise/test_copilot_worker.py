@@ -336,3 +336,37 @@ def test_result_after_lease_expiry_never_becomes_authoritative(tmp_path):
     assert backend.status(mission_id)["state"] == "lease_expired"
     evidence = backend.evidence(mission_id)
     assert not any(e.get("evidence_type") == "analysis_result" for e in evidence)
+
+
+def test_catalog_rejects_caller_style_paths_before_runtime(tmp_path):
+    root = _repo(tmp_path)
+    for bad in (
+        "../README.md",
+        "/etc/passwd",
+        ".git/config",
+        "src\\boot.c",
+        "https://evil.example/file",
+    ):
+        with pytest.raises(ContractError):
+            RepositoryResource("firmware_sample", root, (bad,))
+
+
+def test_snapshot_hash_is_stable_for_same_frozen_commit(tmp_path):
+    catalog, _ = _catalog(tmp_path)
+    first = catalog.snapshot("firmware_sample")
+    second = catalog.snapshot("firmware_sample")
+    assert first.commit == second.commit
+    assert first.file_hashes == second.file_hashes
+    assert first.snapshot_hash == second.snapshot_hash
+
+
+def test_committed_change_produces_new_snapshot_hash(tmp_path):
+    catalog, root = _catalog(tmp_path)
+    first = catalog.snapshot("firmware_sample")
+    (root / "README.md").write_text("# Firmware\nChanged committed content.\n")
+    _git(root, "add", "README.md")
+    _git(root, "-c", "user.name=Residual Test", "-c", "user.email=test@localhost",
+         "commit", "-m", "change fixture")
+    second = catalog.snapshot("firmware_sample")
+    assert first.commit != second.commit
+    assert first.snapshot_hash != second.snapshot_hash
