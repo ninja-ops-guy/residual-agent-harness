@@ -265,7 +265,7 @@ class TestLiveHarnessBinding(unittest.TestCase):
     def test_divergent_event_id_collision_fails_closed(self):
         backend = self.backend()
         backend.on_run_start("r-collide", "spec@1")
-        # Replay the identical admission: idempotent resolve is legal.
+        # Replay the identical attestation admission: idempotent resolve is legal.
         backend._append_event(
             "r-collide", "module", "module.called",
             {"module": "m", "verdict": "PASS"}, event_id="fixed-id",
