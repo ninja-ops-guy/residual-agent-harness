@@ -361,25 +361,27 @@ class CopilotMissionGateway:
             row = self._backend.submit(binding, request, plan)
             return self._response(row, template, binding.mission_id)
 
-    def _require_owner(self, token: str, mission_id: str, *, now: int) -> MissionRecord:
+    def _mission_access(self, token: str, mission_id: str, *, now: int,
+                        control: bool = False) -> MissionRecord:
         if not isinstance(mission_id, str) or not _MISSION_RE.fullmatch(mission_id):
             raise CopilotAccessError("not_found", "unknown mission", 404)
         principal = self._principal(token, now)
-        try:
-            self._profile.require_membership(principal)
-        except ContractError as exc:
-            raise CopilotAccessError("forbidden", str(exc), 403) from exc
         record = self._store.get_by_mission(mission_id)
-        if record is None:
-            raise CopilotAccessError("not_found", "unknown mission", 404)
-        if record.tenant_id != principal.tenant_id or record.object_id != principal.object_id:
+        if record is None or record.tenant_id != principal.tenant_id:
             raise CopilotAccessError("not_found", "unknown mission", 404)
         if record.department != self._profile.profile_id:
+            raise CopilotAccessError("not_found", "unknown mission", 404)
+        allowed = (
+            self._profile.can_control_mission(principal, record.object_id)
+            if control else self._profile.can_read_mission(principal, record.object_id)
+        )
+        if not allowed:
+            # Do not disclose another user's/department's mission existence.
             raise CopilotAccessError("not_found", "unknown mission", 404)
         return record
 
     def status(self, token: str, mission_id: str, *, now: int) -> dict[str, Any]:
-        record = self._require_owner(token, mission_id, now=now)
+        record = self._mission_access(token, mission_id, now=now)
         return self._response(
             self._backend.status(mission_id),
             self._template(record.template_id),
@@ -387,12 +389,12 @@ class CopilotMissionGateway:
         )
 
     def evidence(self, token: str, mission_id: str, *, now: int) -> dict[str, Any]:
-        self._require_owner(token, mission_id, now=now)
+        self._mission_access(token, mission_id, now=now)
         evidence = self._backend.evidence(mission_id)
         return {"mission_id": mission_id, "evidence": list(evidence)}
 
     def cancel(self, token: str, mission_id: str, *, now: int) -> dict[str, Any]:
-        record = self._require_owner(token, mission_id, now=now)
+        record = self._mission_access(token, mission_id, now=now, control=True)
         return self._response(
             self._backend.cancel(mission_id),
             self._template(record.template_id),
