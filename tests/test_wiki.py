@@ -162,5 +162,18 @@ class WikiSkillTests(unittest.TestCase):
             self.skills.plan("root-shell", {})
 
 
+
+class WikiUIContractTests(unittest.TestCase):
+    def test_station_static_ui_exposes_wiki_workspace(self):
+        root = Path(__file__).resolve().parents[1]
+        html = (root / "residual" / "station" / "static" / "index.html").read_text()
+        app = (root / "residual" / "station" / "static" / "app.js").read_text()
+        self.assertIn('data-view="wiki"', html)
+        self.assertIn("Wiki + setup agent", html)
+        self.assertIn("/api/wiki/ask", app)
+        self.assertIn("/api/wiki/skills/run", app)
+        self.assertIn("function wiki()", app)
+        self.assertIn('/^[1-6]$/', app)
+
 if __name__ == "__main__":
     unittest.main()
