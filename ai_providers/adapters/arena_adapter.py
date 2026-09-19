@@ -33,6 +33,16 @@ class ArenaAdapter(OpenAIAdapter):
             output_token_field=output_token_field,
         )
 
+    def _build_body(self, req, stream=False):
+        body = super()._build_body(req, stream)
+        # Fail closed for experiment provenance. Arena supports its own gateway
+        # fallback chain, but RESIDUAL keeps fallback in Router where every
+        # attempt is separately observed and receipted.
+        body["allow_fallbacks"] = False
+        body.pop("fallbacks", None)
+        body.pop("fallback_on", None)
+        return body
+
     def supports_tools(self, model):
         # Arena is a gateway over heterogeneous models. A gateway model ID does
         # not prove the selected backend supports tools, so keep capability
