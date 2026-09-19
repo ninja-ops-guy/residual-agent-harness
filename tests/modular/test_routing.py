@@ -127,6 +127,31 @@ class StationRoutingTests(unittest.TestCase):
                 save_settings(self.s.store,{'local':{'kind':'ollama','model':'m','base_url':url}})
                 with self.assertRaises(ContractError):model_call(self.s.store,self.pid,'runner',{},'S',schema={'type':'object'})
 
+    def test_arena_key_can_be_saved_before_model_discovery(self):
+        save_settings(self.s.store, {
+            "cloud": {
+                "kind": "arena",
+                "model": "",
+                "base_url": "https://api.preview.arena.ai/v1",
+                "output_token_field": "max_completion_tokens",
+            },
+            "provider_credentials": {
+                "arena": {"api_key": "ARENA-SETUP-SECRET"}
+            },
+        })
+        settings = self.s.store.settings()
+        self.assertEqual(settings["cloud"]["kind"], "arena")
+        self.assertEqual(settings["cloud"]["model"], "")
+        public = public_settings(self.s.store)
+        self.assertTrue(public["credential_status"]["arena"]["saved"])
+        self.assertEqual(
+            public["providers"]["arena"]["setup_url"],
+            "https://portal.api.preview.arena.ai/dashboard/keys",
+        )
+        self.assertNotIn("ARENA-SETUP-SECRET", canonical(public))
+        with self.assertRaises(ContractError):
+            model_call(self.s.store, self.pid, "runner", {}, "S", placement="cloud")
+
     def test_api_settings_refuse_wrong_local_classification_and_duplicate_routes(self):
         for value in [{'local':{'kind':'anthropic','model':'m'}},{'local':{'kind':'ollama','model':'m-cloud','base_url':'http://localhost:11434'}},{'cloud':{'kind':'anthropic','model':'m'},'cloud_fallbacks':[{'kind':'anthropic','model':'n'}]}]:
             with self.assertRaises(ContractError):save_settings(self.s.store,value)
