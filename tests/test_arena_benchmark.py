@@ -34,6 +34,13 @@ class ArenaIntegrationTests(unittest.TestCase):
         adapter = ArenaAdapter("secret", "http://127.0.0.1:1234")
         self.assertEqual(adapter.name, "arena")
         self.assertEqual(adapter._headers()["Authorization"], "Bearer secret")
+        body = adapter._build_body(__import__("ai_providers").ChatRequest(
+            "example-model",
+            (__import__("ai_providers").Message(__import__("ai_providers").Role.USER, "hello"),),
+        ))
+        self.assertIs(body["allow_fallbacks"], False)
+        self.assertNotIn("fallbacks", body)
+        self.assertNotIn("fallback_on", body)
         profile = normalize_profile({
             "kind": "arena",
             "model": "example-model",
