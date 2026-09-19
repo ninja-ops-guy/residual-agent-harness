@@ -1,0 +1,98 @@
+{
+  "schema": "residual.priority-repair.validation.v1",
+  "lane": "93",
+  "recorded_commit": "391c5bd552ac8994a3cbaac9f268ad685396be27",
+  "tracked_changes": [],
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "command": [
+    "tests/swarm/test_economics_integrity.py",
+    "tests/swarm/test_economics_observability.py",
+    "tests/swarm/test_obs006.py",
+    "tests/swarm/test_otx.py",
+    "tests/swarm/test_eval_frozen.py",
+    "tests/test_eval_frozen_acceptance_binding.py"
+  ],
+  "positive_exit_code": 0,
+  "restored_exit_code": 0,
+  "mutations": [
+    {
+      "name": "nonfinite_measurement",
+      "path": "residual/observability/reliability.py",
+      "selector": "tests/swarm/test_economics_integrity.py::test_nonfinite_measurements_are_refused_at_construction",
+      "before": "or not math.isfinite(value) or value < 0",
+      "after": "or value < 0",
+      "source_sha256": "cbbf21d9a9949551764ebf4888687bfb639e19cc27b09c7bade5bee26dfb9300",
+      "mutant_sha256": "4c15595e1195f53043e139293b9f9190f8d7f8b4b83c06988b204ed8d1cb585c",
+      "exit_code": 1,
+      "log": "mutant-nonfinite_measurement.log"
+    },
+    {
+      "name": "missing_hash_inferred",
+      "path": "residual/observability/reliability.py",
+      "selector": "tests/swarm/test_economics_integrity.py::test_missing_observation_hash_cannot_disable_integrity_check",
+      "before": "claimed = value.pop(\"observation_sha256\", None)",
+      "after": "claimed = value.pop(\"observation_sha256\", None) or digest(value)",
+      "source_sha256": "cbbf21d9a9949551764ebf4888687bfb639e19cc27b09c7bade5bee26dfb9300",
+      "mutant_sha256": "08df22b8f49df25384274249c8f5ffca0b69d5e7625bba735c002a5e2455443f",
+      "exit_code": 1,
+      "log": "mutant-missing_hash_inferred.log"
+    },
+    {
+      "name": "report_hash",
+      "path": "residual/observability/reliability.py",
+      "selector": "tests/swarm/test_economics_integrity.py::test_pareto_refuses_report_changed_after_hashing",
+      "before": "if report.get(\"report_sha256\") != digest(body):",
+      "after": "if False:",
+      "source_sha256": "cbbf21d9a9949551764ebf4888687bfb639e19cc27b09c7bade5bee26dfb9300",
+      "mutant_sha256": "8d80a53dff94b43d8381d5dc57bc8bd010f1ac45548af08c9afdc328173ac05f",
+      "exit_code": 1,
+      "log": "mutant-report_hash.log"
+    },
+    {
+      "name": "throughput_claim",
+      "path": "residual/observability/reliability.py",
+      "selector": "tests/swarm/test_economics_integrity.py::test_service_time_does_not_claim_observed_throughput",
+      "before": "\"throughput_runs_per_sec\": None,",
+      "after": "\"throughput_runs_per_sec\": _stable(n / total_wall_seconds) if total_wall_seconds else None,",
+      "source_sha256": "cbbf21d9a9949551764ebf4888687bfb639e19cc27b09c7bade5bee26dfb9300",
+      "mutant_sha256": "7c101e20c3318523bcf68de2868a6bebd41f3f6bb3cb1ac9baa5f806b92d3ab0",
+      "exit_code": 1,
+      "log": "mutant-throughput_claim.log"
+    },
+    {
+      "name": "source_tree",
+      "path": "scripts/swarm5_evidence.py",
+      "selector": "tests/swarm/test_economics_integrity.py::test_generator_refuses_unrelated_tree_and_dirty_source",
+      "before": "if tree != git(root, \"rev-parse\", \"HEAD^{tree}\"):",
+      "after": "if False:",
+      "source_sha256": "4d4774503212fd997c2c473322f7532d27810c67bab84f181353174eafc8b10d",
+      "mutant_sha256": "1a8a5bd16635e379d6b2dbffb8923dbf320a78d7f6c1dd6f1109d6faf352a8c7",
+      "exit_code": 1,
+      "log": "mutant-source_tree.log"
+    },
+    {
+      "name": "dirty_source",
+      "path": "scripts/swarm5_evidence.py",
+      "selector": "tests/swarm/test_economics_integrity.py::test_generator_refuses_unrelated_tree_and_dirty_source",
+      "before": "if git(root, \"diff\", \"--name-only\", \"HEAD\", \"--\"):",
+      "after": "if False:",
+      "source_sha256": "4d4774503212fd997c2c473322f7532d27810c67bab84f181353174eafc8b10d",
+      "mutant_sha256": "1841cfe03b7ad8968062cd1b2764eb8862d5232e7fc650583b700ea1b598c69a",
+      "exit_code": 1,
+      "log": "mutant-dirty_source.log"
+    }
+  ],
+  "independent_review": false,
+  "claim_scope": "implementer regression evidence; no production, elapsed-soak or independent acceptance claim",
+  "files_sha256": {
+    "mutant-dirty_source.log": "1945825979e5d6ec6b3bbaed238c400f9ec8244c118b3641db87c482d77a7991",
+    "mutant-missing_hash_inferred.log": "ecbafe52524182c2699e09b14d001491fc3ab383feaf6d233f502553613e8440",
+    "mutant-nonfinite_measurement.log": "37db3d4c9f1720e92d213298e7b6e3074418678fa4c4f788e493d185dbd37507",
+    "mutant-report_hash.log": "e9f060571b6096d65e3ccf7b55bcb2d040172d2f217f607cc8c22f222b927032",
+    "mutant-source_tree.log": "614ec5f8c040df66f314b7e2976311b20e17e09a4a07c0636a735e2d06df0899",
+    "mutant-throughput_claim.log": "77314963fc453cfc8d62a887eeeec67179a700f893c24843a6dfee926b888512",
+    "positive.log": "4e1fc8d07475d5df93fa337db7c3c79c023027f2c0c4a5662bca3001fad43bfd",
+    "restored-positive.log": "a89fc4d5bc51172147a96f8948aed8b2931f922c86d2d484ed8b36939e09b2cf"
+  }
+}

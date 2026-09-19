@@ -30,13 +30,17 @@ from .factory_dynamic import (
     FactoryDynamicSwarmJob,
 )
 from .market import MarketDecision, MarketProfile, MarketRequest, VerifiedComputeMarket
-from .orchestration import ExecutionStrategy, OrchestrationTaxController, StrategyEstimate, UtilityWeights
+from .orchestration import (
+    ExecutionStrategy, OrchestrationTaxController, StrategyEstimate,
+    TopologyDecision, TopologyOutcomeObservation, UtilityWeights,
+)
 from .quality import AssuranceClass, VerifierQualityProfile, VerifierQualityRegistry
 from .runtime import AdaptiveAssuranceRuntime, AssuranceExecutionReceipt, ExecutionOutcome, ExecutionPlan
 
 __all__ = [
     "AssuranceClass", "VerifierQualityProfile", "VerifierQualityRegistry",
     "ExecutionStrategy", "OrchestrationTaxController", "StrategyEstimate", "UtilityWeights",
+    "TopologyDecision", "TopologyOutcomeObservation",
     "MarketDecision", "MarketProfile", "MarketRequest", "VerifiedComputeMarket",
     "AuthoritativeLog", "QuorumUnavailable", "ReplicatedEntry", "require_quorum",
     "AdaptiveAssuranceRuntime", "AssuranceExecutionReceipt", "ExecutionPlan", "ExecutionOutcome",

@@ -1,0 +1,10 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/swarm/test_economics_integrity.py::test_service_time_does_not_claim_observed_throughput -q --tb=short
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____________ test_service_time_does_not_claim_observed_throughput _____________
+tests/swarm/test_economics_integrity.py:41: in test_service_time_does_not_claim_observed_throughput
+    assert report['overall']['throughput_runs_per_sec'] is None
+E   assert 3.584229391 is None
+=========================== short test summary info ============================
+FAILED tests/swarm/test_economics_integrity.py::test_service_time_does_not_claim_observed_throughput
+1 failed in 0.18s

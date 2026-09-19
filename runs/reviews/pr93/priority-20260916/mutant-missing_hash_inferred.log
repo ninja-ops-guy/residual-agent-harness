@@ -1,0 +1,11 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/swarm/test_economics_integrity.py::test_missing_observation_hash_cannot_disable_integrity_check -q --tb=short
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________ test_missing_observation_hash_cannot_disable_integrity_check _________
+tests/swarm/test_economics_integrity.py:27: in test_missing_observation_hash_cannot_disable_integrity_check
+    with pytest.raises(ContractError, match='hash'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ContractError
+=========================== short test summary info ============================
+FAILED tests/swarm/test_economics_integrity.py::test_missing_observation_hash_cannot_disable_integrity_check
+1 failed in 0.18s
