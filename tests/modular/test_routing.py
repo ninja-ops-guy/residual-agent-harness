@@ -42,6 +42,32 @@ class RouterTests(unittest.TestCase):
             self.assertTrue(verify_chain(mem.events));self.assertIn(ObservationKind.LLM_FAILED,[e.kind for e in mem.events])
             self.assertNotIn('Hello café',canonical([o.to_dict() for o in mem.events]))
 
+    def test_router_only_exports_allowlisted_arena_response_metadata(self):
+        receipts=[]
+        google=FakeProvider(ChatResponse(
+            'test','ok',metadata={'google_parts':[{'thoughtSignature':'OPAQUE'}]}
+        ));google.name='google'
+        reg=Registry();reg.register('google',lambda:google)
+        Router(reg,default_provider='google',after_attempt=receipts.append).chat('google:test',REQ)
+        self.assertEqual(receipts[-1]['response_metadata'],{})
+
+        arena=FakeProvider(ChatResponse(
+            'test','ok',metadata={
+                'arena_resolved_model':'model-a',
+                'arena_trace_id':'trace-1',
+                'arena_fallback_used':False,
+                'unapproved_field':'DO-NOT-EXPORT',
+            }
+        ));arena.name='arena'
+        reg=Registry();reg.register('arena',lambda:arena)
+        Router(reg,default_provider='arena',after_attempt=receipts.append).chat('arena:test',REQ)
+        self.assertEqual(receipts[-1]['response_metadata'],{
+            'arena_fallback_used':False,
+            'arena_resolved_model':'model-a',
+            'arena_trace_id':'trace-1',
+        })
+        self.assertNotIn('DO-NOT-EXPORT',canonical(receipts))
+
     def test_stream_partial_failure_does_not_replay_on_fallback(self):
         reg=Registry();one=FakeProvider(None);two=FakeProvider(None);two.name='anthropic'
         reg.register('openai',lambda:one);reg.register('anthropic',lambda:two)
