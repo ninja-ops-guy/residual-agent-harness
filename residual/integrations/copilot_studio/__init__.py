@@ -8,6 +8,8 @@ binds evidence to the authenticated caller.
 
 from .auth import CopilotIdentityVerifier, CopilotPrincipal
 from .backend import EncryptedMissionQueueBackend, QueuedMissionWork
+from .resources import RepositoryCatalog, RepositoryResource, RepositorySnapshot
+from .worker import FirmwareAnalysisResult, FirmwareRepositoryAnalysisWorker
 from .policy import (
     DepartmentProfile,
     MissionTemplate,
@@ -41,6 +43,8 @@ __all__ = [
     "CopilotPrincipal",
     "DepartmentProfile",
     "EncryptedMissionQueueBackend",
+    "FirmwareAnalysisResult",
+    "FirmwareRepositoryAnalysisWorker",
     "FixedWindowRateLimiter",
     "InMemoryMissionBackend",
     "InMemoryMissionStore",
@@ -50,6 +54,9 @@ __all__ = [
     "MissionStore",
     "MissionTemplate",
     "QueuedMissionWork",
+    "RepositoryCatalog",
+    "RepositoryResource",
+    "RepositorySnapshot",
     "SQLiteMissionStore",
     "create_server",
     "make_handler",
