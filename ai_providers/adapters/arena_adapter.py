@@ -21,6 +21,7 @@ class ArenaAdapter(OpenAIAdapter):
     """OpenAI-compatible transport for the Arena preview API."""
 
     name = "arena"
+    allowed_extra = set()
 
     def __init__(
         self,
@@ -46,6 +47,12 @@ class ArenaAdapter(OpenAIAdapter):
         body["allow_fallbacks"] = False
         body.pop("fallbacks", None)
         body.pop("fallback_on", None)
+        # Arena's published chat schema does not currently document the
+        # OpenAI response_format or stream_options extensions. The parent
+        # adapter still injects the requested JSON schema into a system message;
+        # RESIDUAL then validates the returned JSON locally.
+        body.pop("response_format", None)
+        body.pop("stream_options", None)
         return body
 
     @staticmethod
