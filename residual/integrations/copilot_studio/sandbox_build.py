@@ -14,8 +14,12 @@ from .backend import EncryptedMissionQueueBackend, QueuedMissionWork
 from .resources import RepositoryCatalog
 
 BUILD_TEMPLATE = "firmware-sandbox-build"
-_REQUIRED_CAPABILITIES = frozenset({
+AUTOMATED_TEST_TEMPLATE = "automated-test-isolated-run"
+_FIRMWARE_CAPABILITIES = frozenset({
     "repository.analyze", "sandbox.build", "tests.run_approved", "evidence.read_own",
+})
+_AUTOMATED_TEST_CAPABILITIES = frozenset({
+    "sandbox.build", "tests.run_approved", "evidence.read_own",
 })
 
 
@@ -126,6 +130,7 @@ class FirmwareSandboxBuildWorker:
         worker_id: str = "firmware_build_worker",
         lease_seconds: float = 300.0,
         runner: SandboxRunner = run_isolated,
+        template_capabilities: dict[str, frozenset[str]] | None = None,
     ):
         if not isinstance(backend, EncryptedMissionQueueBackend):
             raise ContractError("build worker requires EncryptedMissionQueueBackend")
@@ -145,12 +150,21 @@ class FirmwareSandboxBuildWorker:
         self.worker_id = worker_id
         self.lease_seconds = float(lease_seconds)
         self.runner = runner
+        self.template_capabilities = dict(template_capabilities or {
+            BUILD_TEMPLATE: _FIRMWARE_CAPABILITIES,
+        })
+        if not self.template_capabilities:
+            raise ContractError("sandbox worker requires template capability bindings")
+        for template_id, capabilities in self.template_capabilities.items():
+            identifier(template_id)
+            if not isinstance(capabilities, frozenset) or not capabilities:
+                raise ContractError("sandbox template capabilities must be non-empty")
 
-    @staticmethod
-    def _validate_work(work: QueuedMissionWork) -> None:
-        if work.binding.template_id != BUILD_TEMPLATE or work.request.template_id != BUILD_TEMPLATE:
+    def _validate_work(self, work: QueuedMissionWork) -> None:
+        required = self.template_capabilities.get(work.binding.template_id)
+        if required is None or work.request.template_id != work.binding.template_id:
             raise ContractError("build worker received unsupported template")
-        if set(work.binding.capabilities) != set(_REQUIRED_CAPABILITIES):
+        if set(work.binding.capabilities) != set(required):
             raise ContractError("build mission capability binding mismatch")
         if work.binding.plan_hash != work.plan.graph_hash:
             raise ContractError("build mission plan binding mismatch")
@@ -235,7 +249,7 @@ class FirmwareSandboxBuildWorker:
         work = self.backend.claim_next(
             self.worker_id,
             lease_seconds=self.lease_seconds,
-            template_ids=frozenset({BUILD_TEMPLATE}),
+            template_ids=frozenset(self.template_capabilities),
         )
         if work is None:
             return None
@@ -270,3 +284,21 @@ class FirmwareSandboxBuildWorker:
                 return {"mission_id": mission_id, "state": row["state"]}
             except ContractError:
                 raise
+
+
+class AutomatedTestSandboxWorker(FirmwareSandboxBuildWorker):
+    """Same isolation path for the Automated Testing department."""
+
+    def __init__(self, backend, repositories, profiles, *, runtime_root,
+                 worker_id="automated_test_worker", lease_seconds=300.0,
+                 runner=run_isolated):
+        super().__init__(
+            backend, repositories, profiles,
+            runtime_root=runtime_root,
+            worker_id=worker_id,
+            lease_seconds=lease_seconds,
+            runner=runner,
+            template_capabilities={
+                AUTOMATED_TEST_TEMPLATE: _AUTOMATED_TEST_CAPABILITIES,
+            },
+        )
