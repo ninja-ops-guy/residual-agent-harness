@@ -11,7 +11,8 @@ from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Protocol
-from .runtime_journal import RuntimeJournal\nfrom .studio_control import AuthoritativeStudioControl
+from .runtime_journal import RuntimeJournal
+from .studio_control import AuthoritativeStudioControl
 
 class ControlAdapter(Protocol):
     def control(self, action: str, payload: dict) -> dict: ...
