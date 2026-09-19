@@ -205,7 +205,8 @@ class ProcessControl:
         with self._reap_lock:
             with self._state_lock:
                 if self._reaped:
-                    assert self._returncode is not None
+                    if self._returncode is None:
+                        raise RuntimeError("reaped process is missing its return code")
                     return self._returncode
                 pidfd = self.pidfd
                 if pidfd < 0:
