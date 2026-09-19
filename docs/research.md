@@ -16,7 +16,7 @@ The key empirical distinction is between raw worker correctness `P(X)` and accep
 
 ## Current accepted engineering boundary
 
-Current `main` is **`3bfa6abac719bb1ca5db225b32df347ae2afc079`**, produced by merged #330.
+Current `main` is **`3bfa6abac719bb1ca5db225b32df347ae2afc079`**, produced by merged #330. No newer production-main commit landed in this check.
 
 Recent accepted engineering changes matter to interpretation but are not scientific results:
 
@@ -30,6 +30,8 @@ Recent accepted engineering changes matter to interpretation but are not scienti
 None of these merges establishes the central research hypothesis, live-provider model quality, universal M4 qualification, or a paper-facing effect size.
 
 Accepted #276 requires a new non-cancelling production Pages attempt for every `main` SHA. Exact-current-main run **`35437556200`**, attempt 1, completed **FAIL**. The generated artifact/browser proof, deployment, published revision identity, and desktop real-guest path passed, while the required narrow/mobile Chromium acceptance failed after several successful live-guest/Workbench stages. Retained live-proof artifact `10582812524` has SHA-256 `868ca31506d278a335ff95d3607adbd13c14edaec8b161c1b45ac013e7f7c8b8`; the lower-level cause is **UNKNOWN**. The prior run `35431634267` remains a scoped **PASS for exact revision `0a675017...` only**; the earlier `e7b72ad...` Pages FAIL remains retained exact-revision evidence.
+
+Open #336 has a branch-only generated Pages **PASS** on exact head `92aca285...`, but it is not accepted or production evidence. It remains held behind #337, which repairs a PR Agent fail-open publication/concurrency defect discovered when an exhausted review provider produced only a failure/status comment. #337 is itself unaccepted with PR Agent advisory and protected maintainer approval **FAIL**. These are engineering/governance observations, not scientific results. If either branch head changes, exact-head evidence must be regenerated; if a repair later reaches `main`, the new production SHA still requires its own first authoritative Pages attempt.
 
 No Pages outcome establishes the central systems hypothesis, provider/model quality, physical heavyweight-WebVM reliability, or any paper-facing effect size. The current failure recorded `cloud_inference` as `NOT_RUN`, so it is not evidence of live Puter/model failure.
 
@@ -127,7 +129,9 @@ M2/M3/M4 are implemented. M4 remains environment- and exact-revision-bound rathe
 
 Accepted #185/#187 protected changes retain their exact reviewed scope. PR #139 and downstream #134 remain a separate protected sequence.
 
-Qualification-v1 remains branch evidence only. PR #331 merged into `testing/qualification-v1`, moving open PR #152 to exact head `24816ebc778b26497dd30497e59f6f2badcf39ed`. The retained exact-head branch checks show **PASS** for `aggregate`, `browser-adversarial`, `concurrency`, `m4`, `m4-prereq`, the browser matrix, and surrounding named qualification lanes, while protected `maintainer-approval` remains **FAIL**. Earlier failed cells remain historical evidence. The same head's Aikido code check reported **2 new MEDIUM and 19 new LOW findings**, and Deep Review was **SKIPPED** because no credits were available. Therefore #152 remains **UNACCEPTED**, security-review completeness is **UNKNOWN / incomplete**, and none of its branch PASSes establish current-main or paper-facing qualification.
+Qualification-v1 remains branch evidence only. Reverse-merge **#333** moved open #152 to exact testing head **`11c0ac67f60f61a7243bcc79ce803d588a89aa94`**. Exact-head run **`35443955204` attempt 1 is FAIL**. Its retained final manifest names `deterministic-regression`, `qualification-selftests`, and `toxic-provider-matrix` as required failures. The deterministic regression failure includes seven enterprise sandbox tests where the hosted runner reported `kernel-level sandbox isolation unavailable`. The selftest and toxic-provider failures both include the full provider-mission qualifier returning FAIL; the lower-level cause remains **UNKNOWN** from retained evidence. Factory ownership, M4 prerequisites, browser VM, Controller/provider, Command Station, clean install and several other surrounding lanes are PASS, but partial PASS does not override the aggregate required-gate FAIL. Protected maintainer approval and PR Agent advisory are also FAIL.
+
+The predecessor `24816ebc...` positive technical evidence remains historical and exact-head bound; it is not inherited by `11c0ac67...`. Therefore #152 remains **UNACCEPTED** and none of its branch PASSes establish current-main or paper-facing qualification.
 
 `implementation-status.yaml` remains an implementation-presence manifest, not a qualification manifest.
 
@@ -138,6 +142,8 @@ Merged #168 establishes repository merge control as:
 `implementation → automated qualification/review → exact-head maintainer attestation → merge`
 
 This is **maintainer-reviewed with automated qualification**, not independent human assurance. A paper-facing security, release, or scientific claim may still require evidence independent of the implementer/maintainer.
+
+The #336/#337 sequence reinforces this boundary: a bot failure/status comment is not substantive advisory evidence. #337's repair remains unaccepted until its own required gates are satisfied, and #336 remains held behind it.
 
 Issue #305's historical queue saturation remains evidence. #307 is accepted as the structural fan-out repair. The current queued-run snapshot is **0**; transient queue state does not erase first-attempt evidence or authorize skipped qualification.
 
