@@ -6,7 +6,7 @@ This document is a human-readable status summary. Exact source at the named revi
 
 ## Executive summary
 
-Current `main` is **`3bfa6abac719bb1ca5db225b32df347ae2afc079`**, produced by merged **#330** on 2026-09-19.
+Current `main` is **`3bfa6abac719bb1ca5db225b32df347ae2afc079`**, produced by merged **#330** on 2026-09-19. No newer commit has landed on `main` in this check.
 
 Recent accepted changes materially affecting the current boundary are:
 
@@ -31,11 +31,30 @@ For exact current main `3bfa6aba...`:
 - required narrow/mobile Chromium acceptance: **FAIL** after the live guest reached shell-ready and multiple Workbench stages;
 - retained live-proof artifact: **`10582812524`**, SHA-256 **`868ca31506d278a335ff95d3607adbd13c14edaec8b161c1b45ac013e7f7c8b8`**;
 - lower-level cause of the narrow/mobile failure: **UNKNOWN**. The observed failing proof command exited 1 while re-verifying retained Workbench runs; the evidence does not establish whether the cause belongs to browser/mobile runtime behavior, a retained-run race/state issue, another subsystem, or transient execution. Do not attribute it to #330, Puter/model quality, Factory/M4, or another component without further evidence;
-- current repository queued-run snapshot: **0**. Six workflows were in progress at the snapshot, primarily the documentation branch's fresh exact-head checks; the historical #305 queue saturation remains historical evidence rather than current queued backlog.
+- current repository queued-run snapshot: **0**. The historical #305 queue saturation remains historical evidence rather than current queued backlog.
 
 Do not inherit qualification from the predecessor SHA after `main` moves. Production Pages run **`35431634267`**, attempt 1, remains a scoped **PASS for exact revision `0a675017a51f94e489528a607032e7463fbf7993` only**. The earlier production Pages run `35410875305` on `e7b72ad...` remains a retained **FAIL for that exact revision only**. The current `3bfa6aba...` cell is independently **FAIL** on its own first authoritative attempt.
 
 The current failure is scoped to the required exact-main production Pages qualification. It does not establish paid/live Puter inference failure, model-quality failure, every-host M4 failure, production Vercel security posture, or blanket product failure. Conversely, the successful desktop path inside the same run does not override the required mobile/narrow failure.
+
+## Focused Pages repair and PR-review governance blocker
+
+Open **#336** is the focused changed-head repair for the retained production Pages failure. At exact head **`92aca285a9287b73787b552f87aaa42062e73ba4`**, it changes only the persistent WebVM worker plus focused regression coverage and establishes an explicit guest-filesystem durability boundary before the worker publishes a reusable completion marker. Its generated PR Pages proof **`35438579639`**, attempt 1, is **PASS**; Control Plane, Factory ownership, measured-evaluation binding, clean install, Command Station and Controller/provider are also **PASS** on that exact branch head.
+
+That evidence is **branch-only** and does not change the current production cell. #336 protected maintainer approval is **FAIL**, and a fresh advisory review was not established. The review provider exhausted its credits and emitted only `Failed to review PR`. The existing PR Agent verifier could count a fresh `github-actions[bot]` failure/status comment as a successful publication, creating false-green governance evidence; shared concurrency could also let bot issue comments cancel a legitimate review before the bot-triggered job was skipped.
+
+Open **#337** at exact head **`46e522b4437d42d68df170285bd3a93366808bd1`** is the focused governance repair. It requires the explicit `<!-- pr-agent:review:full -->` marker from the current run and isolates concurrency by PR/event/sender class. Its named technical lanes are **PASS**, but PR Agent advisory and protected maintainer approval are **FAIL**, so #337 remains unaccepted.
+
+Therefore:
+
+- current production `main@3bfa6aba...` Pages: **FAIL**;
+- #336 generated branch Pages proof: **PASS** for exact branch head only;
+- #336 acceptance: **BLOCKED / HOLD** behind #337 plus fresh exact-head qualification and maintainer attestation;
+- #337 acceptance: **FAIL / not accepted** because required governance gates are not satisfied;
+- if #337 lands, #336 must reconcile onto the resulting new `main` and all merge-relevant exact-head evidence must be regenerated rather than inherited;
+- even after #336 later merges, the resulting new `main` must pass its own first authoritative production Pages attempt before the production Pages claim becomes PASS.
+
+The retained `35437556200` failure remains evidence throughout any repair sequence.
 
 ## Accepted budget-authority repair and retained stress evidence
 
@@ -90,20 +109,28 @@ Merged **#307** removes the identified duplicate generic feature-branch push fan
 
 ### Qualification-v1 testing branch
 
-PR **#331** merged only into `testing/qualification-v1`, not `main`. It repaired browser-adversarial harness defects and the concurrency reader/admission race without changing protected `residual/factory/runtime_journal.py` bytes or weakening the intended assertions. Open PR **#152** is now at exact testing-branch head **`24816ebc778b26497dd30497e59f6f2badcf39ed`**.
+PR **#333** reverse-merged exact current main into `testing/qualification-v1`, not into production `main`. Open PR **#152** is now at exact testing-branch head **`11c0ac67f60f61a7243bcc79ce803d588a89aa94`**.
 
-On that exact branch head, retained checks include **PASS** for `aggregate`, `browser-adversarial`, `concurrency`, `m4`, `m4-prereq`, the browser matrix, deterministic/fault/discovery lanes, and generated browser proof. The protected `maintainer-approval` gate is **FAIL** because no matching exact-head attestation is present. The same head's Aikido code check reported **2 new MEDIUM and 19 new LOW findings**, while Deep Review was **SKIPPED** because no credits were available.
+The first exact-head `RESIDUAL Qualification v1` run on that revision, **`35443955204` attempt 1**, is **FAIL**. Retained final evidence names three required gates that did not establish PASS:
+
+- **`deterministic-regression`: FAIL** — retained regression output shows seven enterprise sandbox failures because the hosted runner reported `kernel-level sandbox isolation unavailable`; the gate also retained 29 general capability skips. This is not a hosted-runner PASS and must not be waived by prose.
+- **`qualification-selftests`: FAIL** — one full provider-mission qualifier returned `FAIL` while 38 sibling selftests passed.
+- **`toxic-provider-matrix`: FAIL** — the same full provider-mission qualifier returned `FAIL` while seven sibling tests passed.
+
+The retained failure ledger classifies these required non-PASS gates as **UNCLASSIFIED**. The lower-level reason the provider-mission report itself returned FAIL is therefore **UNKNOWN** from the retained qualification evidence reviewed here; do not invent a product/provider cause.
+
+On the same exact branch head, retained surrounding checks include **PASS** for Factory ownership, M4 prerequisites, Browser VM Demo, Controller/provider contracts, Command Station, clean install, Factory runtime/OS evidence, Control Plane, measured-evaluation binding, and generated PR Pages proof. Those partial PASSes do not override the required aggregate qualification **FAIL**. Protected maintainer approval is **FAIL**, and PR Agent advisory is also **FAIL**.
+
+The predecessor head **`24816ebc778b26497dd30497e59f6f2badcf39ed`** retains its earlier positive technical evidence and earlier failures as exact-head historical evidence. It is not inherited by `11c0ac67...`.
 
 Therefore:
 
-- repaired Qualification-v1 branch technical gates named above: **PASS on exact testing-branch head `24816ebc...`**;
-- prior Qualification-v1 attempt-1 failures: **retained historical FAIL evidence**, not erased;
+- #152 exact-current testing-branch Qualification-v1 result: **FAIL**;
 - #152 accepted-main capability: **UNKNOWN / not established** because the PR remains open/unmerged;
-- #152 maintainer approval: **FAIL** on that exact head;
-- #152 security-review completeness: **UNKNOWN / incomplete** because findings remain and Deep Review did not execute;
+- #152 maintainer approval: **FAIL**;
+- #152 advisory-review completion: **FAIL**;
+- lower-level provider-mission cause: **UNKNOWN**;
 - no #152 branch PASS broadens exact-current-main Factory/M4 or release qualification.
-
-PR #332 only reconciled current main into another feature/qualification branch; it did not merge to `main` and changes no accepted production claim.
 
 ## Live provider / WebVM boundary
 
@@ -149,11 +176,11 @@ General autonomous discovery and recursive self-improvement remain **UNKNOWN / n
 
 ## Current priority gates
 
-1. **Investigate and requalify the exact-current-main production Pages failure.** Preserve run `35437556200`, attempt 1, and artifact `10582812524`; the desktop success inside the run does not override the required mobile/narrow FAIL.
-2. **Requalify repaired authority ordering.** Retain fresh tests/experiments against accepted #288 before promoting stronger present-tense budget/unknown-usage/release-ordering claims.
-3. **Rebase/requalify #323.** Do not run the first authoritative Workbench trial until the branch is based on a main containing #288 and its required gates pass.
-4. **Validate #320 in production.** Inspect the production Vercel response headers and rerun the relevant security check before calling production CSP/anti-clickjacking remediation PASS.
-5. **Complete #152 governance/security review.** Its repaired testing-branch technical gates are positive evidence, but exact-head maintainer approval is FAIL and the scanner findings/Deep Review gap remain unresolved; do not import branch PASS into main.
+1. **Repair PR-review governance before accepting the Pages repair.** Review/qualify #337; if it lands, reconcile #336 onto the new main and rerun all required exact-head gates. Preserve production run `35437556200` attempt 1 as FAIL. A later branch PASS is not production PASS; the repaired merged-main SHA must pass its own first authoritative Pages attempt.
+2. **Diagnose and repair #152 exact-head qualification.** Preserve run `35443955204` attempt 1 and its deterministic/selftest/toxic-provider failures. Do not classify the provider-mission cause beyond retained evidence. New qualification is justified only by a changed candidate head.
+3. **Requalify repaired authority ordering.** Retain fresh tests/experiments against accepted #288 before promoting stronger present-tense budget/unknown-usage/release-ordering claims.
+4. **Rebase/requalify #323.** Do not run the first authoritative Workbench trial until the branch is based on a main containing #288 and its required gates pass.
+5. **Validate #320 in production.** Inspect the production Vercel response headers and rerun the relevant security check before calling production CSP/anti-clickjacking remediation PASS.
 6. **Retain fresh live-provider semantic evidence** or keep exact-current-main paid/live provider success UNKNOWN.
 7. **Complete blank-environment, recovery/host-loss, elapsed-soak and physical/mobile reliability work** without broadening bounded results.
 8. **Keep research claims bounded.** General recursive self-improvement and general mesh efficiency remain UNKNOWN; M6-008 remains BLOCKED.
