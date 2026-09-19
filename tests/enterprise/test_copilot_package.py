@@ -68,3 +68,18 @@ def test_openapi_is_valid_yaml_and_lists_every_department_template():
     inputs=spec["components"]["schemas"]["MissionRequest"]["properties"]["inputs"]
     assert inputs["additionalProperties"] is False
     assert "required" not in inputs
+
+
+def test_solution_environment_variables_match_example_configuration():
+    manifest=json.loads((DEPLOY/"solution-manifest.json").read_text())
+    example=json.loads((DEPLOY/"environment.example.json").read_text())
+    declared=set(manifest["components"]["environment_variables"])
+    assert declared==set(example)
+    assert "RESIDUAL_ENGINEERING_REVIEWERS_GROUP_ID" not in declared
+    assert {
+        "RESIDUAL_FIRMWARE_REVIEWERS_GROUP_ID",
+        "RESIDUAL_MECHANICAL_REVIEWERS_GROUP_ID",
+        "RESIDUAL_ELECTROMECHANICAL_REVIEWERS_GROUP_ID",
+        "RESIDUAL_AUTOMATED_TESTING_REVIEWERS_GROUP_ID",
+        "RESIDUAL_QA_REVIEWERS_GROUP_ID",
+    } <= declared
