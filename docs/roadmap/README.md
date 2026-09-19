@@ -11,71 +11,136 @@ The documents under [`source/`](source/) preserve earlier design generations and
 | Core harness / verifier / receipts / residual delegation | Implemented and covered by the established test corpus |
 | Command Station | Implemented; exact-revision workflow results remain authoritative |
 | Factory M2/M3/M4 | Implemented; protected claims remain exact-revision/environment bound and universal capable-runner qualification is not implied |
-| Mission Control/WebVM lifecycle | Bounded recovery, diagnostics, iOS fallback, provider publication, and #205 reload/remount channel recovery are accepted; long-run and physical heavyweight-WebVM reliability remain unqualified |
-| Native setup path | #200 hardening is accepted; persistent XDG defaults, loopback binding, opt-in shell macro, bounded venv repair, and constrained shell-rc edits are current behavior; blank-environment qualification remains open |
-| Live provider acceptance | Historical retained Puter failure remains **FAIL/BLOCKED**; exact-current-main paid/live candidate→verifier→receipt success remains **UNKNOWN** |
+| Station budget/deadline admission | #288 accepted; pre-dispatch runner/reviewer admission and exact run-control-bound export eligibility are current behavior; stronger repaired-path empirical claims still need fresh requalification |
+| Mission Control/WebVM lifecycle | Bounded recovery, diagnostics, iOS fallback and provider/session/bootstrap hardening are accepted; exact-current-main production Pages is currently **UNKNOWN / pending** while its first run is in progress |
+| Native setup path | #200 hardening is accepted; blank-environment qualification remains open |
+| Live provider acceptance | Historical retained Puter failure remains scoped to its exact run; exact-current-main paid/live candidate→verifier→receipt success remains **UNKNOWN** |
 | Frozen evaluation framework | Implemented research apparatus; CI binding is not confirmatory live-model evidence |
+| Research Workbench | Draft #323; #288 prerequisite is now accepted, but #323 must still be rebased/requalified before the first authoritative trial, which remains **BLOCKED** |
+| Residual Studio | Draft #325; first IDE/control-plane observer slice exists on a branch, but authoritative mutation wiring and full qualification remain incomplete |
+| Core security hardening | #328 accepted for kernel-isolated third-party execution, connector SSRF/bearer hardening, SAML XML hardening and supporting controls; workflow credential-persistence portion remains open in #324 |
+| CSP / anti-clickjacking | #320 repository configuration accepted; production Vercel response-header/Aikido validation remains **UNKNOWN / pending** |
 | Release/recovery/soak | True blank-environment install, host-loss/recovery evidence and selected elapsed soak remain gates |
+| Autonomous discovery / recursive improvement | Mixed bounded research evidence only; general capability remains **UNKNOWN / not established** and M6-008 remains **BLOCKED** |
+| Cooperative mesh efficiency | M6-MESH-001 has one positive bounded two-obligation pilot cell; general performance benefit remains **UNKNOWN / not established** |
+| Web Command Station control plane | Proposed/draft under #318; not accepted production capability |
 
 `implementation-status.yaml` records implementation presence and remains current for that purpose. It is not a release-qualification manifest.
 
 ## Accepted main
 
-Current `main` is **`4608afabf5de4c87d77aaf149dfc12538d364f43`**.
+Current `main` is **`0a675017a51f94e489528a607032e7463fbf7993`**, produced by merged **#328** on 2026-09-19.
 
-### #200 — native setup hardening
+Recent accepted changes relevant to roadmap status:
 
-Merged #200 accepts the safer setup defaults and repair behavior described above. It improves onboarding ergonomics and local safety, but does **not** establish a truly blank-machine installation result or broad host portability.
+### #307 — duplicate feature-branch CI fan-out repair
 
-### #205 — provider-channel reload recovery
+The affected general workflows no longer produce redundant unrestricted feature-branch push copies in addition to PR qualification. PR qualification remains, superseded PR-head cancellation is bounded to the intended paths, and production-main/Pages first-attempt evidence remains non-cancelling. The current Actions queue snapshot is **0**; historical #305 saturation evidence remains retained.
 
-Merged #205 accepts session-scoped restoration of the private browser provider channel across Mission Control reload/remount. Restored tokens are validated fail-closed and explicit close clears the stored token.
+### #260 — provider bootstrap guard
 
-This closes the accepted-byte lifecycle gap targeted by older provider-channel recovery work, but it does **not** establish successful paid/live Puter inference or production provider-helper sign-in on the exact deployed revision.
+The embedded provider Load control fails closed until the private MessagePort bridge is initialized. This is accepted UI/transport behavior, not retained proof of successful paid/live Puter inference.
+
+### #288 — pre-dispatch budget authority
+
+#288 closes #208. Station runner/reviewer dispatch is admitted against host-owned budget/deadline state before authority-bearing work begins, unknown/invalid usage is handled conservatively, and release export requires a successful run-control result bound to the exact head/spec. Historical #207/#212 research failures remain retained; stronger present-tense claims need repaired-path requalification.
+
+### #320 — repository-side CSP / anti-clickjacking
+
+The repository now carries CSP/anti-clickjacking policy including `frame-ancestors 'none'`, `X-Frame-Options: DENY`, `nosniff`, strict referrer policy and restrictive permissions policy for the Vercel deployment configuration, with an HTML CSP fallback for GitHub Pages. Production Vercel header inspection and Aikido revalidation remain **UNKNOWN / pending**.
+
+### #328 — core security hardening split from #324
+
+Accepted core changes require kernel isolation/fail closed for third-party supply-chain execution, harden connector origin/redirect/proxy handling against SSRF/bearer forwarding, harden SAML XML parsing, and add bounded marketplace/recovery/telemetry/demo-gateway controls and regression coverage. The workflow `persist-credentials: false` changes remain open under #324 and are not included in #328's accepted scope.
+
+None of these changes expands protected Factory/M4, verifier, evidence-schema or acceptance authority.
 
 ## Exact-current-main qualification
 
-For exact `main@4608afa...`, the retained exact-SHA Actions query used for this status refresh returned a completed set with no pending, cancelled, or failing run observed; a sampled Controller/provider workflow completed **PASS on attempt 1**.
+Accepted #276 requires every new `main` SHA to receive its own non-cancelling first production Pages attempt.
 
-Required interpretation:
+For `main@0a675017...`:
 
-- exact-main named automated gates: **PASS where retained exact-SHA runs report PASS**;
-- historical exact-revision failures: **remain retained evidence**;
+- production Pages run **`35431634267`**, attempt 1: **UNKNOWN / pending** (`in_progress` at this snapshot);
+- Pages browser-proof job: **in progress**;
+- several exact-current-main test/qualification jobs: **PASS in their named scopes**;
+- Actions queued-run count at the current snapshot: **0**;
 - every-host/capable-runner M4 qualification: **not established**;
 - blank-environment install: **not established**;
 - paid/live provider semantic success: **UNKNOWN / not established**;
 - physical heavyweight-WebVM iPhone reliability: **UNKNOWN / unqualified**;
+- production Vercel security-header validation: **UNKNOWN / pending**;
 - recovery/elapsed-soak qualification: **not established**.
+
+The earlier production Pages **FAIL** on `e7b72ad...` remains exact-revision historical evidence and is not the result for current main. A green PR-head gate likewise does not become current-main production evidence.
 
 ## Research and development state
 
 Research branches remain outside accepted production capability unless explicitly merged and qualified.
 
-- **#202** — an earlier heterogeneous real-model DAG run remains **FAIL**; a later distinct exact-head run is a bounded **PASS** with 3/3 tasks integrated, retained receipts, dependency lineage, deliberate repair pressure, and release export. The later PASS does not erase the earlier FAIL or establish general DAG/recovery reliability.
-- **#203** — first-authoritative M6 ImprovementSpec self-host trial remains **FAIL**.
-- **#204** — stronger-model M6-SPEC-002 authoritative trial remains **FAIL**: 0/1 integrated, max-iteration escalation, no verification receipt and no release.
-- **#206** — Campaign A is complete at its corrected exact experiment head. STRESS-A4 is **BLOCKED / invalid for its intended repair-pressure intervention** because 0 faults were injected before an unknown-usage abort; STRESS-A5 is **FAIL / incomplete** at 3/6 integrated with no release; STRESS-A6 is **FAIL in scope** at 0/3 successful Qwen2.5-Coder 7B trials. Workflow-level success only establishes that evidence was retained.
-- **#207** — deterministic Campaign B retained mixed results. STRESS-B1 is **FAIL** because exhausted-budget accounting was observed only after accepted integration/release; STRESS-B2 is a scoped **PASS** early-convergence control; STRESS-B3 is **FAIL** because a non-empty release materialized after terminal verifier failure; STRESS-B4 contains corrupt candidates in the exact scenario but does not recover to task success within the frozen pass budget.
-- **#212** — deterministic Campaign C adds bounded containment/recovery PASS cells for malformed runner output, invalid reviewer schema, and denial→approval recovery, while the missing-usage case is a **FAIL** for accounting-before-authority because integration plus a receipt occurred before the later `usage_unknown_or_invalid` abort. The transient-500 case did not establish provider failover success.
-- **#213/#215/#217** — repair-context and transport/source-clarity work remains unaccepted research/development. M6-SPEC-003 and M6-SPEC-004 both remain authoritative **FAIL** results with 0/1 integrated and no receipt/release.
-- **#214** — draft repair candidate for #208. Observed exact-head technical workflows are green, but maintainer attestation is **BLOCKED/FAIL**; no accepted-main fix claim is made until merge plus applicable requalification.
+- **#202** — earlier heterogeneous real-model DAG **FAIL** plus later distinct bounded **PASS**; neither erases the other.
+- **#203/#204/#215/#217** — bounded M6 self-host attempts retain **FAIL** evidence.
+- **#220 / M6-SPEC-006** — bounded corrected-path **PASS**; not general self-maintenance proof.
+- **#206** — Campaign A retains BLOCKED/FAIL repair/DAG/reliability cells.
+- **#207/#212** — retain historical accounting/release-ordering and missing-usage failure evidence. #288 repairs the accepted product path, but those frozen cells do not become PASS; affected stronger claims need repaired-path requalification.
+- **#257 / M6-SPEC-007J** — first bounded autonomous-discovery **PASS at formal MeasurementGap admission**.
+- **#264** — integrity-valid workflow/receipt but scientific conclusion **UNKNOWN** because metric identity/semantics were ambiguous.
+- **#274 / 007S** — bounded **PASS** for registry/receipt semantic binding.
+- **#273/#277** — retained provenance/planner **FAIL** cells; #277 demonstrates host-owned provenance binding while the overall trial still fails at Planner transcription.
+- **#293** — M7 governed recursive self-improvement bootstrap remains unaccepted and preserves an external promotion gate.
+- **#310** — live-core adapter binding remains draft/unaccepted and dependent on the normative adapter contract being merged/tagged and pinned before production use.
+- **#313/#314** — A2A and Vector/Wire-Pod experiments remain draft/unaccepted.
+- **#316** — RAC evidence-gated improvement StationModule remains branch-scoped/unaccepted.
+- **#317** — RESIDUAL-RT bounded-authority adversary-emulation research remains draft/unaccepted; proposal/lab evidence does not establish real-world exploit reliability.
+- **#318** — Web Command Station/Vercel control-plane architecture remains draft/unaccepted.
+- **#319 / M6-MESH-001 Trial 0** — bounded apparatus/task success with an observed concurrency wall-time advantage across three repeats on one host. General mesh/swarm efficiency remains **UNKNOWN / not established**.
+- **#323** — built-in Research Workbench remains draft. #288 is now accepted, satisfying the first prerequisite, but #323 is still based on older `e7b72ad...`; its first authoritative trial remains **BLOCKED** pending rebase and fresh qualification.
+- **#325** — first Residual Studio IDE/control-plane slice remains draft/unaccepted; authoritative mutation wiring and full qualification remain incomplete.
+- **#326** — Mission Control time-travel debugger remains branch-scoped unless separately accepted; it is a read-only historical debugger, not deterministic execution replay.
+
+General autonomous discovery and recursive self-improvement remain **UNKNOWN / not established**. **M6-008 remains BLOCKED** until its declared positive semantic/derivation gates are satisfied. General cooperative mesh/swarm efficiency likewise remains **UNKNOWN / not established** until larger frozen measurements establish a durable effect without verifier-success loss.
+
+## Security work still open
+
+Accepted work and remaining work must be kept distinct:
+
+- **#320:** repository-side CSP/anti-clickjacking policy is accepted; production Vercel response-header/Aikido validation is **UNKNOWN / pending**.
+- **#328:** core non-workflow security hardening is accepted.
+- **#324:** workflow checkout credential-persistence hardening remains open/unaccepted.
+- **#321/#322:** scanner-generated candidates remain separate and are not acceptance evidence merely because vendor confidence is high.
+- **#319:** experiment-branch security findings remain separate from the experiment's apparatus result.
+
+Do not describe this as blanket security qualification. Each accepted change is scoped to its reviewed bytes and retained evidence.
+
+## Qualification infrastructure
+
+Issue **#305** remains open, but two facts must be separated:
+
+1. its historical queue-saturation snapshots remain valid evidence;
+2. **#307 is now merged** as the structural duplicate feature-branch fan-out repair, and the current Actions queue snapshot is **0**.
+
+Production Pages/main first-attempt evidence remains non-cancelling. Queue recovery or CI deduplication does not authorize skipping, cancelling or rewriting required qualification outcomes.
+
+Qualification-v1 work on its separate testing branch does not alter current production `main` or broaden M4 claims.
 
 ## Current build order
 
-1. **Repair and requalify #207/#208 authority-ordering failures.** Budget/unknown-usage state and terminal verifier failure must prevent later accepted-state/release effects before stronger fail-closed claims are made. #214 remains only a draft candidate.
-2. **Re-run a valid #206 repair-pressure intervention and retain the negative DAG/reliability cells.** Do not convert A4's invalid intervention or A5/A6 failures into PASS through workflow success or later reruns.
-3. **Continue bounded M6 repair experiments without promoting them into product capability.** #215 and #217 both remain retained FAIL results; #213 is unaccepted.
-4. **Retain fresh exact-current-deployed live-provider evidence.** A real-account Puter mission must cross protocol validation into ordinary candidate/verifier/receipt handling before live-provider success can become PASS.
-5. **Physically validate the #186 iOS fallback** without broadening fallback success into heavyweight-WebVM reliability.
-6. **Execute true blank-environment installation, recovery/host-loss qualification, and selected elapsed soak** for the exact release artifact.
-7. **Continue #120/#126 WebVM reliability work** and preserve historical negative evidence.
-8. **Resolve the #133/#132 retirement-versus-restoration discrepancy** explicitly rather than reconstructing absent capability in prose.
-9. **Keep #139→ownership-baseline→fresh-qualification→#134 independent.** Unrelated green CI does not clear that protected sequence.
-10. **Refresh/requalify broader stale candidates such as #152/#177** before current release/research claims use them.
-11. **Freeze and run confirmatory research only after operational claims are bounded.** Preserve negative, blocked and missing cells.
+1. **Finish exact-current-main production Pages.** Preserve run `35431634267`, attempt 1, as the authoritative first-attempt Pages result for `0a675017...` when it completes.
+2. **Requalify the repaired #288 authority path.** Retain fresh evidence for budget exhaustion, unknown usage, terminal verifier/release ordering and export binding before making stronger present-tense claims.
+3. **Rebase/requalify Research Workbench #323.** #288 is accepted; the remaining prerequisite is a fresh #323 base and qualification before M6-WB-001 can run authoritatively.
+4. **Validate #320 on production Vercel.** Inspect actual response headers and rerun the relevant security check; do not treat configuration merge alone as production-header PASS.
+5. **Finish the remaining #324 workflow hardening** independently of accepted #328 core source/runtime changes.
+6. **Retain fresh exact-current-deployed live-provider evidence.** A real-account Puter mission must cross protocol validation into ordinary candidate/verifier/receipt handling before live-provider success can become PASS.
+7. **Continue bounded M6 discovery/derivation and M6-MESH measurement** without promoting pilot results into product capability; keep M6-008 blocked until explicit gates are met.
+8. **Advance Residual Studio only through its bounded control boundary.** Keep authoritative Factory mutation and browser/control-plane state separate until their own gates pass.
+9. **Physically validate the #186 iOS fallback** without broadening fallback success into heavyweight-WebVM reliability.
+10. **Execute true blank-environment installation, recovery/host-loss qualification and selected elapsed soak** for the exact release artifact.
+11. **Continue #120/#126 WebVM reliability work** and preserve historical negative evidence.
+12. **Keep protected sequences independent.** Factory ownership/qualification paths must not inherit unrelated green CI.
+13. **Freeze confirmatory research before outcome access.** Preserve negative, blocked, unknown and missing cells.
 
 ## Release evidence rule
 
 A merge onto main establishes that accepted bytes are part of the repository. It does not automatically establish every release claim associated with them.
 
-Any claim touching ownership baselines, qualification anchors, protected Factory/M4 bytes, verifier authority, evidence schemas, physical-device reliability, live-provider success, recovery or soak must remain scoped to retained evidence. Historical `FAIL`, `UNKNOWN`, and `BLOCKED` results remain visible even when later revisions pass.
+Any claim touching ownership baselines, qualification anchors, protected Factory/M4 bytes, verifier authority, evidence schemas, physical-device reliability, live-provider success, production security headers, recovery or soak must remain scoped to retained evidence. Historical `FAIL`, `UNKNOWN`, and `BLOCKED` results remain visible even when later revisions pass.
