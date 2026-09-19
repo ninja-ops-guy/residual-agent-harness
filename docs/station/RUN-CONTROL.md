@@ -10,6 +10,15 @@ Under **Model workshop → Mission loop limits**, set maximum passes, reported t
 
 Token and time brakes are **cooperative checks between waves**. A running wave can exceed these values before its calls and local checks return. They are not a hard spending cap or an OS watchdog. Provider timeouts and project reservations operate separately. The controller will not start another wave after its limit is reached. Unknown or invalid usage aborts further waves and is recorded as `null`, never as zero. Training missions execute no model calls, so their total is zero.
 
+## Pre-dispatch budget admission
+
+Because the controller's brakes only engage between passes, Station mirrors the same run-level budget/deadline accounting inside the pass through a host-owned **admission gate** (`BudgetAdmission` in `residual/station/control.py`). The invariant is: no action capable of producing an accepted or releasable successor may begin unless the run has sufficient admissible budget/deadline authority for that dispatch.
+
+* **Admission before dispatch.** Every runner and reviewer provider dispatch must be admitted by the gate first. Admission is refused when the run's recorded usage plus outstanding reservations reach the token budget, when the wall-clock deadline has elapsed, or when usage is unknown.
+* **Reserved-then-recheck.** Where bounded cost is knowable it is reserved before dispatch: the reservation unit is the worst per-call usage observed so far in the run (one token before any observation), held while the call is in flight and reconciled against the durable `usage.recorded` receipt on completion. Run authority is re-checked after the runner wave, before each review, after each review and before each integration, so a budget trip racing an in-flight dispatch still blocks every subsequent authority-bearing effect.
+* **Unknown usage is conservative.** An unknown or invalid usage receipt admits no further dispatch and permits no review/integration effect, matching the controller's abort on unknown usage. Denied admissions are recorded as durable `project.note` events with the reason and stage.
+* **Export requires a bound run-control receipt.** `station.export()` requires the last run-control result to be a success bound to the exact current integrated head (`project_head`) and project spec hash (`project_spec_hash`), not merely integrated task state. An aborted run cannot produce a releasable successor even when candidate checks and review passed.
+
 Automatic cloud assessment runs after an eligible non-aborted live batch. Its calls have separate receipts and count against the project-wide reservations; they are outside the implementation batch's run receipt. Aborted batches do not automatically invoke the cloud assessment.
 
 ## Verification order and decisions
