@@ -22,6 +22,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Provision real bubblewrap sandbox
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bubblewrap
+          command -v bwrap
+          bwrap --version
       - name: Install qualification dependencies
         run: python -m pip install '.[factory,qualification]'
       - name: Full deterministic regression gate
