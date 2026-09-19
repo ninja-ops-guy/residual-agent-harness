@@ -1,0 +1,56 @@
+{
+  "id": "distributed-worker",
+  "title": "Connect a distributed worker",
+  "category": "runtime",
+  "summary": "Connect another trusted machine as a scoped worker while keeping verification and integration authority on the coordinator.",
+  "keywords": [
+    "distributed worker",
+    "remote worker",
+    "runner",
+    "worker token",
+    "another machine",
+    "distributed"
+  ],
+  "docs": [
+    "station/DISTRIBUTED.md",
+    "station/ARCHITECTURE.md",
+    "factory/M2-EXECUTION.md"
+  ],
+  "inputs": [
+    {
+      "name": "station_url",
+      "type": "url",
+      "required": false,
+      "label": "Station URL"
+    },
+    {
+      "name": "project_id",
+      "type": "opaque",
+      "required": false,
+      "label": "Project ID"
+    }
+  ],
+  "steps": [
+    {
+      "kind": "read",
+      "title": "Review the distributed trust boundary",
+      "detail": "Remote workers receive scoped work and submit proposals; the Station retains checks and approval authority."
+    },
+    {
+      "kind": "manual",
+      "title": "Secure network reachability",
+      "detail": "Use TLS through an approved reverse proxy or an SSH tunnel. Do not expose the default local Station directly."
+    },
+    {
+      "kind": "navigate",
+      "title": "Enable runner access",
+      "detail": "Use Diagnostics to enable/rotate worker access and copy the token directly to the trusted worker host.",
+      "target": "#diagnostics"
+    },
+    {
+      "kind": "verify",
+      "title": "Claim a scoped task",
+      "detail": "Start the bundled worker client and verify that the coordinator, not the worker, performs verification and integration."
+    }
+  ]
+}
