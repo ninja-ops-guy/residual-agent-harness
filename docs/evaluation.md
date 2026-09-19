@@ -144,7 +144,8 @@ Merged #320 and #328 are accepted source/configuration changes, but their existe
 
 - #320 production Vercel response-header enforcement/Aikido revalidation: **UNKNOWN / pending** at this snapshot.
 - #328 core security split: **accepted** for its source/runtime scope.
-- #324 workflow `persist-credentials: false` changes: **open / unaccepted**.
+- #330 focused workflow `persist-credentials: false` hardening: **OPEN / unaccepted** on exact current-main-derived head `97dca2bf...`; its protected maintainer-approval status is **FAIL** because no exact-head attestation exists.
+- stale overlapping #324: **must not be merged wholesale**; its existence is not acceptance evidence.
 - vendor/scanner confidence: not repository acceptance evidence and not scientific evidence.
 
 ## WebVM-dependent evaluation gate
@@ -168,7 +169,11 @@ A protocol may exclude WebVM, but exclusion must be explicit before outcome acce
 
 M4 remains evidence- and environment-bound rather than universally qualified.
 
-Accepted #185/#187 protected changes retain their exact reviewed scope. The separate #139→ownership-baseline→fresh-qualification→#134 sequence remains independent. Qualification-v1 work on the separate testing branch remains branch evidence until its own governed acceptance path is completed.
+Accepted #185/#187 protected changes retain their exact reviewed scope. The separate #139→ownership-baseline→fresh-qualification→#134 sequence remains independent.
+
+Qualification-v1 remains a separate testing-branch evidence path. PR #331 merged into `testing/qualification-v1` only and moved open PR #152 to exact head `24816ebc778b26497dd30497e59f6f2badcf39ed`. On that head, `aggregate`, `browser-adversarial`, `concurrency`, `m4`, `m4-prereq`, the browser matrix and the other named qualification lanes in the retained check set are **PASS**. The protected `maintainer-approval` gate is **FAIL**, so #152 is still unaccepted and none of those branch results become current-main capability. The earlier browser-adversarial/concurrency failures remain historical evidence rather than being rewritten.
+
+The same exact #152 head's Aikido code check completed under its configured threshold but reported **2 new MEDIUM and 19 new LOW findings**, and the Deep Review was **SKIPPED** because no credits were available. Treat security-review completeness as **UNKNOWN / incomplete**, not PASS.
 
 `implementation-status.yaml` remains an implementation-presence manifest, not a qualification manifest.
 
