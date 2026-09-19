@@ -1,0 +1,39 @@
+...........................F...........                                  [100%]
+=================================== FAILURES ===================================
+_______________________ test_quickstart_commands_execute _______________________
+tests/test_onboarding.py:49: in test_quickstart_commands_execute
+    assert proc.returncode == 0, (
+E   AssertionError: quickstart block failed (1):
+E     residual setup
+E     
+E     stdout: Residual First-Run Setup
+E     ════════════════════════════════════
+E     Managed home: /tmp/residual-priority-89/runs/reviews/pr89/priority-20260916/isolated-home
+E     
+E     Choose an upstream provider:
+E       1. Groq               fast workers, low-cost burst capacity
+E       2. Google AI Studio   broad model access, fallback capacity
+E       3. Cerebras           very fast workers, batch capacity
+E       4. Mistral            general workers, fallback capacity
+E       5. OpenRouter         model diversity, continuity
+E     Select [1]: 
+E     stderr: Traceback (most recent call last):
+E       File "/tmp/residual-venv-89/bin/residual", line 8, in <module>
+E         sys.exit(main())
+E                  ^^^^^^
+E       File "/tmp/residual-priority-89/residual/cli.py", line 119, in main
+E         return setup(
+E                ^^^^^^
+E       File "/tmp/residual-priority-89/residual/onboarding.py", line 476, in setup
+E         manifest = _choose_provider()
+E                    ^^^^^^^^^^^^^^^^^^
+E       File "/tmp/residual-priority-89/residual/onboarding.py", line 455, in _choose_provider
+E         value = input("Select [1]: ").strip() or "1"
+E                 ^^^^^^^^^^^^^^^^^^^^^
+E     EOFError: EOF when reading a line
+E     
+E   assert 1 == 0
+E    +  where 1 = CompletedProcess(args=['bash', '-c', 'residual setup\n'], returncode=1, stdout='Residual First-Run Setup\n════════════... value = input("Select [1]: ").strip() or "1"\n            ^^^^^^^^^^^^^^^^^^^^^\nEOFError: EOF when reading a line\n').returncode
+=========================== short test summary info ============================
+FAILED tests/test_onboarding.py::test_quickstart_commands_execute - Assertion...
+1 failed, 38 passed in 3.50s

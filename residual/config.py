@@ -1,5 +1,8 @@
-"""TOML configuration; secrets remain in environment variables."""
+"""TOML configuration; secrets remain outside the configuration document."""
 import importlib
+import os
+import re
+import stat
 import tomllib
 from pathlib import Path
 
@@ -10,15 +13,57 @@ from .providers import HTTPProvider, Prices
 from .storage import Cache
 
 
+_ENV_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
+
+def _load_secret_env(spec, config_path: Path) -> None:
+    """Load a private env file without placing secret values in TOML.
+
+    Existing process environment always wins. On POSIX, group/world-readable
+    files are rejected so managed credentials cannot silently become less safe.
+    """
+    if not isinstance(spec, dict) or set(spec) != {"env_file"} or not isinstance(spec.get("env_file"), str):
+        raise ContractError("invalid secrets configuration")
+    path = Path(spec["env_file"]).expanduser()
+    if not path.is_absolute():
+        path = config_path.parent / path
+    try:
+        info = path.stat()
+    except OSError:
+        raise ContractError("configured secrets file is unavailable") from None
+    if not stat.S_ISREG(info.st_mode):
+        raise ContractError("configured secrets path is not a file")
+    if os.name != "nt" and stat.S_IMODE(info.st_mode) & 0o077:
+        raise ContractError("configured secrets file permissions are too broad")
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeError):
+        raise ContractError("configured secrets file could not be read") from None
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if "=" not in line:
+            raise ContractError("invalid secrets env line")
+        name, value = line.split("=", 1)
+        if not _ENV_NAME.fullmatch(name):
+            raise ContractError("invalid secrets environment variable name")
+        os.environ.setdefault(name, value)
+
+
 def load_config(path=None):
     if path is None:
         return {"local": {"kind": "demo", "role": "local"},
                 "expert": {"kind": "demo", "role": "expert"},
                 "limits": {"local_rounds": 1}, "cache": {"enabled": False}}
-    with open(path, "rb") as file:
+    config_path = Path(path).expanduser().resolve()
+    with open(config_path, "rb") as file:
         data = tomllib.load(file)
-    if set(data) - {"local", "expert", "limits", "plugins", "cache"}:
+    if set(data) - {"local", "expert", "limits", "plugins", "cache", "secrets"}:
         raise ContractError("unknown configuration sections")
+    secrets_spec = data.pop("secrets", None)
+    if secrets_spec is not None:
+        _load_secret_env(secrets_spec, config_path)
     return data
 
 
@@ -48,7 +93,6 @@ def provider_from(spec, registry):
     from .modular import ModularProvider, PROVIDERS
     if kind in PROVIDERS:
         from .providers import SYSTEM, RESPONSE_SCHEMA
-        import os
         key_env=spec.pop("api_key_env", None)
         timeout=spec.pop("timeout_seconds", 90)
         schema=RESPONSE_SCHEMA if spec.pop("json_mode", True) else None
