@@ -77,6 +77,8 @@ Open **#340** contains the implementation-only Moonshot/Kimi and Kimi Claw/OpenC
 
 Draft **#341**, `EXP-NESTED-SWARM-001`, contains the research/evaluation material split out of #340. It is explicitly **RESEARCH ONLY — DO NOT MERGE** in its current form. Staged definitions, adapters, or evidence contracts are availability only, not proof of nested-swarm benefit or accepted provider capability.
 
+Draft **#344** proposes two branch-only layers: Arena provider transport and the local Arena-aligned paired benchmark scaffold **`AX-ARENA-01`**. It is **DRAFT / UNACCEPTED**. The repository does not claim an official Agent Arena leaderboard submission or official Arena score from this branch. Its checked-in development fixture and benchmark apparatus are availability only, not paper-facing outcome evidence. Accepted Arena provider capability and any comparative RESIDUAL-vs-control benefit remain **UNKNOWN / not established** until ordinary exact-head qualification/attestation is satisfied and a frozen governed experiment produces retained interpretable evidence.
+
 ## Accepted authority repair and retained stress evidence
 
 Merged #288 closes product issue #208 with host-owned pre-dispatch budget/deadline admission and run-control-bound export eligibility. It changes current product behavior but does **not** rewrite frozen research evidence:
@@ -153,7 +155,7 @@ General autonomous discovery and recursive self-improvement remain **UNKNOWN / n
 
 1. **Preserve the exact-current-main Pages PASS without broadening it.** Run `35452581203` attempt 1 is authoritative for `2f9dda38...`; predecessor FAILs remain evidence. Continue #120/#126/#335 reliability work without treating one green revision as long-run reliability proof.
 2. **Resolve #152's remaining deterministic Qualification-v1 FAIL and reconcile it to current main.** Preserve `35448856959` attempt 1; real bubblewrap provisioning passes, but the deterministic regression gate remains red and the lower-level cause is still UNKNOWN. Requalification must include the accepted #338 protected RuntimeJournal/ownership-baseline state.
-3. **Keep #340 and #341 separated.** #340 is unaccepted implementation work; #341 is draft research-only work. Neither changes current-main capability or scientific conclusions.
+3. **Keep #340, #341 and #344 separated and bounded.** #340 is unaccepted provider implementation work; #341 is draft research-only nested-runtime work; #344 is a draft Arena-provider plus Arena-aligned benchmark scaffold. None changes accepted current-main capability or scientific conclusions until its own governance/evidence path is satisfied.
 4. **Requalify repaired authority ordering** against accepted #288 before broadening budget/unknown-usage/release-ordering claims.
 5. **Rebase/requalify #323** before M6-WB-001 can run authoritatively.
 6. **Validate #320 in production** before calling production CSP/anti-clickjacking response-header remediation PASS.
@@ -179,4 +181,4 @@ Updated documentation is limited to `README.md`, `HARNESS.md`, `docs/CURRENT_STA
 - A partial PASS inside a required multi-stage gate does not override that gate's terminal FAIL.
 - A merge accepts repository bytes; it does not automatically establish every security, live-provider, physical-device, scientific, release, or independent-review claim associated with them.
 
-The repository does not currently claim blanket production readiness, universal worker correctness, every-host M4 qualification, successful exact-current-main paid/live provider execution, completed blank-environment/recovery/soak qualification, physical heavyweight-WebVM iPhone reliability, production Vercel security-header validation, substantive PR-Agent advisory review for #338, general autonomous recursive self-improvement, general cooperative mesh efficiency, or proof of the central live-model reliability hypothesis.
+The repository does not currently claim blanket production readiness, universal worker correctness, every-host M4 qualification, successful exact-current-main paid/live provider execution, completed blank-environment/recovery/soak qualification, physical heavyweight-WebVM iPhone reliability, production Vercel security-header validation, substantive PR-Agent advisory review for #338, accepted Arena/AX-ARENA capability or comparative result, general autonomous recursive self-improvement, general cooperative mesh efficiency, or proof of the central live-model reliability hypothesis.
