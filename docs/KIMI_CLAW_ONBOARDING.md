@@ -95,7 +95,7 @@ OpenClaw's `POST /v1/chat/completions` endpoint is disabled by default.
 Enable:
 
 ```bash
-openclaw config set gateway.http.endpoints.chatCompletions.enabled true
+openclaw config set gateway.http.endpoints.chatCompletions.enabled true --strict-json
 openclaw gateway restart
 openclaw gateway status
 ```
