@@ -476,6 +476,59 @@ class TestSandbox:
         assert run_sandboxed(self.manifest(), source, "go") == 0
         assert not marker.exists()
 
+    def test_thread_inflated_host_containment_and_pid_budget(self):
+        # RLIMIT_NPROC charges every task of the real UID host-wide, threads
+        # included. Inflate the UID's task charge with many threads inside a
+        # single process: accounting that counts only process leaders would
+        # under-budget and break even benign containment on CI-class hosts.
+        import threading
+
+        stop = threading.Event()
+        threads = [
+            threading.Thread(target=stop.wait, daemon=True, name=f"nproc-charge-{i}")
+            for i in range(150)
+        ]
+        for thread in threads:
+            thread.start()
+        try:
+            # (a) Normal containment still succeeds under the inflated charge:
+            # a benign module that forks within the intended budget (16) runs
+            # to completion behind the kernel boundary. Under process-leader
+            # accounting the inflated thread charge would exceed the budget
+            # and every fork here would fail with EAGAIN.
+            benign = (
+                "def go():\n"
+                "    import os\n"
+                "    total = 0\n"
+                "    for _ in range(4):\n"
+                "        pid = os.fork()\n"
+                "        if pid == 0:\n"
+                "            os._exit(2)\n"
+                "        _, status = os.waitpid(pid, 0)\n"
+                "        total += os.waitstatus_to_exitcode(status)\n"
+                "    return total\n"
+            )
+            assert run_sandboxed(self.manifest(), benign, "go") == 8
+
+            # (b) The intended process budget is still enforced: a payload
+            # forking well past max_pids (16) is stopped by the boundary.
+            bomb = (
+                "def go():\n"
+                "    import os\n"
+                "    for _ in range(64):\n"
+                "        if os.fork() == 0:\n"
+                "            import time\n"
+                "            time.sleep(30)\n"
+                "            os._exit(0)\n"
+                "    return 1\n"
+            )
+            with pytest.raises(ContractError, match="sandboxed module"):
+                run_sandboxed(self.manifest(), bomb, "go")
+        finally:
+            stop.set()
+            for thread in threads:
+                thread.join(timeout=5)
+
 
 # ---------------------------------------------------------------- ENT5-R8
 

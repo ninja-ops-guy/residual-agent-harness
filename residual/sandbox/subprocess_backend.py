@@ -33,10 +33,15 @@ from .backend import Enforcement
 from .spec import NetworkPolicy, SandboxResult, SandboxSpec, Violation
 
 def current_uid_processes() -> int:
-    """Number of processes owned by our real UID (RLIMIT_NPROC charges).
+    """Number of tasks (processes plus their threads) owned by our real UID.
 
-    Honest limitation: RLIMIT_NPROC is per-UID across the whole host, so the
-    sandbox adds ``max_pids`` on top of the current count (B-R10)."""
+    RLIMIT_NPROC charges every task of the real UID across the whole host —
+    kernel thread accounting, not just process leaders — so the base MUST
+    sum each owned process's thread count. Counting process leaders alone
+    under-budgets on any thread-heavy host (CI agents, browsers, service
+    workers) and makes every sandboxed fork fail with EAGAIN even though
+    the sandbox itself is nearly idle (B-R10). The sandbox adds
+    ``max_pids`` on top of this measured charge."""
     uid = os.getuid()
     count = 0
     for entry in os.listdir("/proc"):
@@ -44,10 +49,16 @@ def current_uid_processes() -> int:
             continue
         try:
             with open(f"/proc/{entry}/status", "rb") as fh:
-                head = fh.read(512)
-            if f"Uid:\t{uid}\t".encode() in head:
+                head = fh.read(1024)
+            if f"Uid:\t{uid}\t".encode() not in head:
+                continue
+            for line in head.split(b"\n"):
+                if line.startswith(b"Threads:"):
+                    count += int(line.split()[1])
+                    break
+            else:
                 count += 1
-        except OSError:
+        except (OSError, ValueError):
             continue
     return count
 
