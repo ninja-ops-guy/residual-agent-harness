@@ -21,6 +21,16 @@ Exact-current-main automated evidence is therefore mixed rather than globally gr
 
 The acute Actions queue saturation captured by **#305** has cleared operationally: the retained issue update reports **0 queued runs** on 2026-09-19, down from earlier snapshots of 1,291/970 and the original 1,267 queued. #305 remains open because the structural duplicate-trigger/concurrency repair **#307** is still unmerged. Queue recovery is not evidence that the trigger defect is fixed, and it does not erase any first-attempt failures.
 
+## Newly opened unaccepted work and evidence
+
+Several new branches appeared after the preceding status refresh. None changes accepted `main` capability.
+
+- **#318** — draft Web Command Station control-plane architecture for Vercel. The design explicitly keeps Vercel as a public control plane rather than an arbitrary-code worker runtime and proposes WEB-F0..F10 qualification gates. It is **UNACCEPTED / draft** and must not be described as implemented production capability.
+- **#319 / M6-MESH-001 Trial 0** — retained real-model crossover pilot on exact head `d3b6f24d7b2e9c2ac08f51c02764fda41042af76`. Workflow run `35424274389` is **PASS for apparatus execution** and retained artifact `10578541714` (`m6-mesh-001-trial0`, SHA-256 `182a00055eba534e409ef006d17d282722ddbdff2d919ae3c6f92555dc73864b`) records three repeats of the same two independently verified Qwen2.5-Coder 1.5B obligations. Both sequential and two-call concurrent conditions passed all six obligation checks. The retained means are `2.189893 s` sequential versus `1.830017 s` parallel, an observed ratio of `1.196652x`. This is a **bounded pilot observation only**: three repeats on one Ollama host, with visible warm-up/order sensitivity, are insufficient to establish a general or statistically durable concurrency-efficiency claim. General mesh/swarm efficiency therefore remains **UNKNOWN / not established**. The branch is also unaccepted: maintainer approval is **FAIL**, and the Aikido scan reports two new MEDIUM and two new LOW findings, including unsafe `exec` use and missing integrity verification for a remotely pulled workflow artifact.
+- **#320** — open CSP/anti-clickjacking remediation. Its Vercel deployment status is **PASS**, while the protected maintainer-approval status is **FAIL / no exact-head attestation**. The PR remains unmerged, and post-merge production-header/Aikido validation is **UNKNOWN / not run**.
+- **#321/#322** — Aikido-generated SAST remediation candidates for untrusted XML parsing and file-inclusion/path traversal respectively. Both are unmerged. Vendor confidence text is not acceptance evidence; repository validation remains required before any security claim changes.
+- **#310** — draft live-core adapter binding remains unaccepted on an older base. It fails closed when no live evaluator is bound and adds durable evidence/conformance machinery, but its own declared dependency on the normative adapter spec being merged/tagged and pinned is still unresolved. It is not production release evidence.
+
 ## Accepted current-main changes relevant to claims
 
 The following accepted changes remain useful context for current claims:
@@ -136,7 +146,7 @@ Important retained cells include:
 
 Open #265 and the Metric Registry/derivation-graph work are trust infrastructure for this research line. General autonomous discovery remains **UNKNOWN / not established**. **M6-008 remains BLOCKED** until its required positive semantic/derivation admission gates are actually satisfied.
 
-Newer draft work such as **#299/#300** (semantic custody / derivation graph), **#293** (M7 governed recursive mission), **#313** (A2A feasibility spike), **#314** (Vector/Wire-Pod verified-learning experiment), **#316** (RAC evidence-gated improvement StationModule) and **#317** (RESIDUAL-RT bounded-authority adversary-emulation research) is explicitly unaccepted experimental work. #316's current exact head has green named workflows including maintainer approval, while #317's technical workflows are green and maintainer approval is **FAIL**; both remain draft/unmerged and therefore do not change accepted production capability or authorize self-merge/self-promotion.
+Newer draft work such as **#299/#300** (semantic custody / derivation graph), **#293** (M7 governed recursive mission), **#313** (A2A feasibility spike), **#314** (Vector/Wire-Pod verified-learning experiment), **#316** (RAC evidence-gated improvement StationModule), **#317** (RESIDUAL-RT bounded-authority adversary-emulation research), **#318** (Web Command Station control-plane architecture) and **#319** (M6-MESH-001 cooperative-efficiency pilot) is explicitly unaccepted experimental work. #316's current exact head has green named workflows including maintainer approval, while #317's technical workflows are green and maintainer approval is **FAIL**. #319 has one retained bounded pilot cell with complete task verification but unresolved generality and security-review limits as described above. None of these branches changes accepted production capability or authorizes self-merge/self-promotion.
 
 ## Stress-campaign governance blockers
 
@@ -156,8 +166,9 @@ These results block stronger claims that budget/usage/verifier terminal state al
 4. **WebVM reliability:** continue #120/#126 investigation and physical validation without promoting fallback success into heavyweight reliability.
 5. **Release qualification:** complete true blank-environment install, recovery/host-loss qualification and selected elapsed soak for an exact release artifact.
 6. **CI fan-out:** the acute #305 queue backlog has drained to zero, but #307 remains unmerged; structural duplicate-trigger/concurrency prevention is not yet accepted.
-7. **M6/M7:** preserve PASS/FAIL/UNKNOWN/BLOCKED boundaries; general autonomous discovery/recursive self-improvement remain unestablished and M6-008 remains blocked.
-8. **Protected sequences:** keep #139→ownership-baseline→fresh-qualification→#134 and Qualification-v1 work independent from unrelated green hosted CI.
+7. **M6/M7 and mesh research:** preserve PASS/FAIL/UNKNOWN/BLOCKED boundaries; general autonomous discovery/recursive self-improvement and general mesh/swarm efficiency remain unestablished, M6-008 remains blocked, and #319's security findings remain unresolved on its research branch.
+8. **Unaccepted web/security work:** #318 and #320-#322 remain open candidates; do not treat control-plane design, Vercel deployment success, or vendor-generated SAST fixes as accepted security or production qualification.
+9. **Protected sequences:** keep #139→ownership-baseline→fresh-qualification→#134 and Qualification-v1 work independent from unrelated green hosted CI.
 
 ## Documentation scope
 
