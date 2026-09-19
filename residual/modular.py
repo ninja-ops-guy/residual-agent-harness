@@ -35,8 +35,9 @@ def normalize_profile(profile,placement):
     try:
         if kind=='kimi_claw':
             if placement!='local': raise ProviderError(provider=kind,code='config')
-            from ai_providers.adapters.kimi_claw_adapter import _kimi_claw_base_url
+            from ai_providers.adapters.kimi_claw_adapter import _kimi_claw_agent_target, _kimi_claw_base_url
             base=_kimi_claw_base_url(base)
+            model=_kimi_claw_agent_target(model)
         elif kind=='moonshot':
             from ai_providers.adapters.moonshot_adapter import _moonshot_base_url
             base=_moonshot_base_url(base)
@@ -53,7 +54,11 @@ def normalize_profile(profile,placement):
 
 def make_adapter(profile,credentials=None):
     p=profile; kind=p['kind']; c=credentials or {}
-    key=c.get('api_key') or (os.environ.get('RESIDUAL_LOCAL_API_KEY') if p.get('placement')=='local' else os.environ.get(ENV_KEYS.get(kind,'')))
+    if kind=='kimi_claw':
+        from ai_providers.adapters.kimi_claw_adapter import resolve_kimi_claw_secret
+        key=c.get('api_key') or resolve_kimi_claw_secret() or os.environ.get('RESIDUAL_LOCAL_API_KEY')
+    else:
+        key=c.get('api_key') or (os.environ.get('RESIDUAL_LOCAL_API_KEY') if p.get('placement')=='local' else os.environ.get(ENV_KEYS.get(kind,'')))
     if kind=='google': key=key or os.environ.get('GOOGLE_API_KEY')
     if kind in {'openai','openai_compatible'}:
         from ai_providers.adapters.openai_adapter import OpenAIAdapter,OpenAICompatibleAdapter
