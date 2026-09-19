@@ -17,6 +17,8 @@ The documents under [`source/`](source/) preserve earlier design generations and
 | Frozen evaluation framework | Implemented research apparatus; CI binding is not confirmatory live-model evidence |
 | Release/recovery/soak | True blank-environment install, host-loss/recovery evidence and selected elapsed soak remain gates |
 | Autonomous discovery / recursive improvement | Mixed bounded research evidence only; general capability remains **UNKNOWN / not established** and M6-008 remains **BLOCKED** |
+| Cooperative mesh efficiency | M6-MESH-001 has one positive bounded two-obligation pilot cell; general performance benefit remains **UNKNOWN / not established** |
+| Web Command Station control plane | Proposed/draft under #318; not accepted production capability |
 
 `implementation-status.yaml` records implementation presence and remains current for that purpose. It is not a release-qualification manifest.
 
@@ -75,11 +77,25 @@ Research branches remain outside accepted production capability unless explicitl
 - **#273/#277** — retained provenance/planner **FAIL** cells; #277 demonstrates host-owned provenance binding while the overall trial still fails at Planner transcription.
 - **#265/#270/#298/#299/#300** — Metric Registry and proof-carrying derivation-graph work remain trust/research infrastructure, not accepted production capability.
 - **#293** — M7 governed recursive self-improvement bootstrap is unaccepted and explicitly preserves an external promotion gate.
+- **#310** — live-core adapter binding remains draft/unaccepted and dependent on the normative adapter contract being merged/tagged and pinned before production use.
 - **#313/#314** — A2A and Vector/Wire-Pod experiments remain draft/unaccepted.
 - **#316** — RAC evidence-gated improvement `StationModule`; draft/unmerged. Its current exact head has green named workflows including maintainer approval, but that does not make it accepted production capability.
 - **#317** — RESIDUAL-RT bounded-authority adversary-emulation research; draft/unmerged. Technical workflows are green while maintainer approval is **FAIL**; proposal-only/lab-scoped development evidence does not establish live-model red-team effectiveness or real-world exploit reliability.
+- **#318** — Web Command Station/Vercel control-plane architecture; draft/unaccepted and intentionally separates public control-plane duties from arbitrary worker execution.
+- **#319 / M6-MESH-001 Trial 0** — workflow/apparatus **PASS** on exact head `d3b6f24d7b2e9c2ac08f51c02764fda41042af76`, with artifact `10578541714` retaining 6/6 successful obligation checks in both sequential and concurrent conditions. Retained means are `2.189893 s` sequential and `1.830017 s` concurrent (`1.196652x` observed ratio), but three repeats on one Ollama host with visible warm-up/order sensitivity do not establish a general performance benefit. General mesh/swarm efficiency remains **UNKNOWN / not established**. The branch also has unresolved Aikido findings (two MEDIUM, two LOW) and maintainer approval **FAIL**.
 
-General autonomous discovery and recursive self-improvement remain **UNKNOWN / not established**. **M6-008 remains BLOCKED** until its declared positive semantic/derivation admission gates are satisfied.
+General autonomous discovery and recursive self-improvement remain **UNKNOWN / not established**. **M6-008 remains BLOCKED** until its declared positive semantic/derivation admission gates are satisfied. General cooperative mesh/swarm efficiency likewise remains **UNKNOWN / not established** until larger frozen measurements establish a durable effect without verifier-success loss.
+
+## Open security remediation candidates
+
+Security work opened after the previous roadmap snapshot but remains unaccepted:
+
+- **#320** — CSP and anti-clickjacking remediation. Vercel deployment for its current head is **PASS**, but protected maintainer approval is **FAIL / no exact-head attestation**. Post-merge production response-header and Aikido validation remain **UNKNOWN / not run**.
+- **#321** — Aikido-generated replacement of untrusted `xml.etree.ElementTree.fromstring` use with `defusedxml`; unmerged and still requires repository validation.
+- **#322** — Aikido-generated file-inclusion/path-traversal hardening; unmerged and still requires repository validation.
+- **#319** — research branch Aikido findings include unsafe `exec` usage and remote-artifact integrity verification gaps. Workflow success is not a security PASS.
+
+These candidates do not change accepted security posture until deliberately reviewed, qualified and merged. Vendor confidence or a successful deployment status is not equivalent to repository acceptance.
 
 ## Qualification infrastructure
 
@@ -94,13 +110,14 @@ Qualification-v1 work under #152/#303/#312 remains on the separate testing branc
 1. **Preserve and repair the exact-current-main production Pages FAIL.** Retain run `35410875305` as the authoritative first-attempt failure. #260 is technically green on its exact PR head but remains HOLD pending exact-head maintainer attestation and any required fresh independent technical acceptance; if accepted later, require the resulting main SHA's own first production attempt.
 2. **Repair and requalify #207/#208/#212 authority-ordering failures.** Budget/unknown-usage and terminal verifier state must prevent later accepted-state/release effects before stronger claims are made.
 3. **Retain fresh exact-current-deployed live-provider evidence.** A real-account Puter mission must cross protocol validation into ordinary candidate/verifier/receipt handling before live-provider success can become PASS.
-4. **Continue bounded M6 discovery/derivation work without promoting it into product capability.** Preserve mixed PASS/FAIL/UNKNOWN evidence; keep M6-008 blocked until its explicit gates are met.
-5. **Physically validate the #186 iOS fallback** without broadening fallback success into heavyweight-WebVM reliability.
-6. **Execute true blank-environment installation, recovery/host-loss qualification and selected elapsed soak** for the exact release artifact.
-7. **Continue #120/#126 WebVM reliability work** and preserve historical negative evidence.
-8. **Finish structural CI fan-out repair under #305/#307.** The acute queue is clear, but the duplicate-trigger/concurrency defect is not accepted fixed until #307 is reconciled, qualified and merged without weakening required first-attempt evidence.
-9. **Keep protected sequences independent.** #139→ownership-baseline→fresh-qualification→#134 and Qualification-v1 evidence must not inherit unrelated green CI.
-10. **Freeze confirmatory research before outcome access.** Preserve negative, blocked, unknown and missing cells.
+4. **Continue bounded M6 discovery/derivation and M6-MESH measurement without promoting pilot results into product capability.** Preserve mixed PASS/FAIL/UNKNOWN evidence; keep M6-008 blocked until its explicit gates are met; expand M6-MESH-001 with larger randomized/repeated cells before any efficiency claim.
+5. **Resolve open security-remediation candidates deliberately.** Review #319 findings and #320-#322; require exact-head qualification and appropriate post-merge evidence rather than treating deployment/vendor status as acceptance.
+6. **Physically validate the #186 iOS fallback** without broadening fallback success into heavyweight-WebVM reliability.
+7. **Execute true blank-environment installation, recovery/host-loss qualification and selected elapsed soak** for the exact release artifact.
+8. **Continue #120/#126 WebVM reliability work** and preserve historical negative evidence.
+9. **Finish structural CI fan-out repair under #305/#307.** The acute queue is clear, but the duplicate-trigger/concurrency defect is not accepted fixed until #307 is reconciled, qualified and merged without weakening required first-attempt evidence.
+10. **Keep protected sequences independent.** #139→ownership-baseline→fresh-qualification→#134 and Qualification-v1 evidence must not inherit unrelated green CI.
+11. **Freeze confirmatory research before outcome access.** Preserve negative, blocked, unknown and missing cells.
 
 ## Release evidence rule
 
