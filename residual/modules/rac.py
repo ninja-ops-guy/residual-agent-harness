@@ -20,11 +20,23 @@ from ..verifier import CheckResult
 
 
 CANDIDATE_CONTRACT = "rac-residual-candidate/1.0"
+IMPROVEMENT_SCHEMA = "rac-residual-improvement/1.0"
+EVIDENCE_SCHEMA = "rac-residual-evidence/1.0"
+DECISION_SCHEMA = "rac-residual-decision/1.0"
 REQUIRED_FORBIDDEN_CAPABILITIES = frozenset(
     {
         "held_out_candidate_selection",
         "physical_experiment_execution",
         "automatic_scientific_promotion",
+    }
+)
+ALLOWED_RAC_CAPABILITIES = frozenset(
+    {
+        "read_public_artifact",
+        "write_bounded_candidate",
+        "digital_experiment_execution",
+        "evidence_collection",
+        "advisory_decision",
     }
 )
 FORBIDDEN_ACTION_NAMES = frozenset(
@@ -33,6 +45,11 @@ FORBIDDEN_ACTION_NAMES = frozenset(
 VALID_OUTCOMES = frozenset({"PASS", "FAIL", "INCONCLUSIVE"})
 VALID_DECISIONS = frozenset({"PROMOTABLE", "REJECTED", "INCONCLUSIVE"})
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+_REVISION_RE = re.compile(r"^[0-9a-f]{40,64}$")
+_SPEC_ID_RE = re.compile(r"^RAC-I-[0-9]{6}$")
+_HYPOTHESIS_ID_RE = re.compile(r"^RAC-H-[0-9]{6}$")
+_EVIDENCE_ID_RE = re.compile(r"^RAC-EV-[0-9]{6}$")
+_DECISION_ID_RE = re.compile(r"^RAC-D-[0-9]{6}$")
 
 
 def _canonical_bytes(value: Any) -> bytes:
@@ -126,10 +143,14 @@ class RACModule:
 
     def _forbidden_capability_policy(self, action: ProposedAction) -> str | None:
         capability = action.arguments.get("rac_capability")
-        if capability in REQUIRED_FORBIDDEN_CAPABILITIES:
-            return f"RAC capability {capability!r} is outside RESIDUAL authority"
         if action.name in FORBIDDEN_ACTION_NAMES:
             return f"RAC action {action.name!r} is outside RESIDUAL authority"
+        if action.name.startswith("rac.") and not isinstance(capability, str):
+            return "RAC actions must declare a rac_capability"
+        if capability in REQUIRED_FORBIDDEN_CAPABILITIES:
+            return f"RAC capability {capability!r} is outside RESIDUAL authority"
+        if capability is not None and capability not in ALLOWED_RAC_CAPABILITIES:
+            return f"unknown RAC capability {capability!r} is denied fail-closed"
         return None
 
     def _contract_integrity(
@@ -145,6 +166,22 @@ class RACModule:
         evidence = candidate.get("evidence")
         if spec is None or decision is None or not isinstance(evidence, (list, tuple)):
             return CheckResult.FAIL, "candidate is missing spec/evidence/decision blocks"
+
+        if spec.get("schema_version") != IMPROVEMENT_SCHEMA:
+            return CheckResult.FAIL, "unsupported RAC ImprovementSpec schema"
+        if not _SPEC_ID_RE.fullmatch(str(spec.get("spec_id", ""))):
+            return CheckResult.FAIL, "invalid RAC ImprovementSpec id"
+        if not _HYPOTHESIS_ID_RE.fullmatch(str(spec.get("hypothesis_id", ""))):
+            return CheckResult.FAIL, "invalid RAC hypothesis id"
+        baseline_revision = spec.get("baseline_revision")
+        if not isinstance(baseline_revision, str) or not _REVISION_RE.fullmatch(
+            baseline_revision
+        ):
+            return CheckResult.FAIL, "invalid RAC baseline revision"
+        if decision.get("schema_version") != DECISION_SCHEMA:
+            return CheckResult.FAIL, "unsupported RAC decision schema"
+        if not _DECISION_ID_RE.fullmatch(str(decision.get("decision_id", ""))):
+            return CheckResult.FAIL, "invalid RAC decision id"
 
         try:
             spec_hash = _sha256(spec)
@@ -163,6 +200,15 @@ class RACModule:
             bundle = _as_mapping(bundle)
             if bundle is None:
                 return CheckResult.FAIL, f"evidence[{index}] is not a mapping"
+            if bundle.get("schema_version") != EVIDENCE_SCHEMA:
+                return CheckResult.FAIL, f"evidence[{index}] schema is unsupported"
+            if not _EVIDENCE_ID_RE.fullmatch(str(bundle.get("evidence_id", ""))):
+                return CheckResult.FAIL, f"evidence[{index}] id is invalid"
+            source_revision = bundle.get("source_revision")
+            if not isinstance(source_revision, str) or not _REVISION_RE.fullmatch(
+                source_revision
+            ):
+                return CheckResult.FAIL, f"evidence[{index}] source revision is invalid"
             if bundle.get("spec_sha256") != spec_hash:
                 return CheckResult.FAIL, f"evidence[{index}] references another spec"
             if bundle.get("evaluation_version") != evaluation_version:
@@ -313,6 +359,13 @@ class RACAuthorityBrake:
             return BrakeTrip(
                 self.name,
                 f"forbidden RAC capability observed: {capability}",
+                "",
+                BrakeAction.ABORT,
+            )
+        if capability is not None and capability not in ALLOWED_RAC_CAPABILITIES:
+            return BrakeTrip(
+                self.name,
+                f"unknown RAC capability observed: {capability}",
                 "",
                 BrakeAction.ABORT,
             )
