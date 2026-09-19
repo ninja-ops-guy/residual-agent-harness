@@ -116,7 +116,11 @@ def save_settings(store, incoming):
         if not isinstance(p,dict) or set(p)-fields: raise ContractError("Unsupported model profile field")
         if placement=="cloud" and not p.get("model") and not p.get("base_url"):
             clean[placement]=dict(DEFAULTS["cloud"]); continue
-        clean[placement]=normalize_profile(p, "remote" if placement=="cloud" else "local")
+        clean[placement]=normalize_profile(
+            p,
+            "remote" if placement=="cloud" else "local",
+            allow_empty_model=(placement=="cloud" and p.get("kind")=="arena"),
+        )
     if "cloud_fallbacks" in incoming:
         fallbacks = incoming["cloud_fallbacks"]
         if not isinstance(fallbacks,list) or len(fallbacks)>3 or any(not isinstance(p,dict) or set(p)-fields for p in fallbacks): raise ContractError("Use at most three cloud fallback profiles")
