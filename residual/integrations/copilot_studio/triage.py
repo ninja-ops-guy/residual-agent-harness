@@ -8,6 +8,7 @@ from typing import Any
 from ...core import ContractError, canonical, digest, identifier
 from ...engines.protocol import ContextAssembly, EngineResult, TaskSpec
 from ...factory.m4_sandbox import IsolatedResult, run_isolated
+from ...factory.runtime_journal import private_directory
 from ...factory.runtime_workspace import WorkerContractError, git
 from ...runtime.policy import PolicyAuthority
 from ...runtime.records import build_execution_record
@@ -77,7 +78,7 @@ class FirmwareTestTriageWorker:
         if not isinstance(router,RuntimeCapabilityRouter): raise ContractError("triage worker requires runtime router")
         identifier(worker_id)
         self.backend=backend; self.repositories=repositories; self.test_profiles=test_profiles
-        self.router=router; self.runtime_root=Path(runtime_root).absolute(); self.runtime_root.mkdir(parents=True,exist_ok=True,mode=0o700)
+        self.router=router; self.runtime_root=private_directory(Path(runtime_root).absolute())
         self.worker_id=worker_id; self.lease_seconds=float(lease_seconds); self.runner=runner
         self.policy=PolicyAuthority({"deny_capabilities":(
             "pr.merge","production.write","policy.modify","qualification.bypass","verifier.bypass","secrets.read","shell.host","network.arbitrary",
