@@ -1,5 +1,6 @@
 import sys
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 
@@ -373,6 +374,107 @@ class TestLiveHarnessBinding(unittest.TestCase):
         self.assertFalse(
             any(e["kind"] == "attestation.issued" for e in backend.events("r-atomic"))
         )
+
+    def test_failed_attestation_admission_recovers_without_second_terminal(self):
+        transport = FailOnCommitTransport(fail_on=4)
+        backend = LiveCoreResidualBackend(
+            ":memory:",
+            spec_version="1.0.0",
+            spec_head_sha="a" * 40,
+            impl_commit_sha="b" * 40,
+            impl_tree_sha="c" * 40,
+            transport=transport,
+            gate_evaluator=lambda *args: Verdict.passed(),
+        )
+        backend.on_run_start("r-recover", "spec@1")
+        backend.on_module_call("r-recover", "llm:test", "call-1", "0" * 64)
+        with self.assertRaises(LedgerWriteError):
+            backend.on_run_complete("r-recover", "success")
+        terminals = [e for e in backend.events("r-recover") if e["kind"] == "run.completed"]
+        self.assertEqual(len(terminals), 1)
+        transport.fail_on = -1
+        backend.on_run_complete("r-recover", "success")
+        terminals = [e for e in backend.events("r-recover") if e["kind"] == "run.completed"]
+        self.assertEqual(len(terminals), 1)
+        self.assertEqual(
+            backend.get_attestation("r-recover")["verdicts"]["CORE-RUN-OUTCOME"], "PASS"
+        )
+
+    def test_incomplete_terminal_recovers_after_reopen(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = str(Path(temp) / "recover.db")
+            transport = FailOnCommitTransport(fail_on=4)
+            backend = LiveCoreResidualBackend(
+                path,
+                spec_version="1.0.0",
+                spec_head_sha="a" * 40,
+                impl_commit_sha="b" * 40,
+                impl_tree_sha="c" * 40,
+                transport=transport,
+                gate_evaluator=lambda *args: Verdict.passed(),
+            )
+            backend.on_run_start("r-reopen-recover", "spec@1")
+            backend.on_module_call("r-reopen-recover", "llm:test", "call-1", "0" * 64)
+            with self.assertRaises(LedgerWriteError):
+                backend.on_run_complete("r-reopen-recover", "success")
+            backend.close()
+
+            reopened = LiveCoreResidualBackend(
+                path,
+                spec_version="1.0.0",
+                spec_head_sha="a" * 40,
+                impl_commit_sha="b" * 40,
+                impl_tree_sha="c" * 40,
+                gate_evaluator=lambda *args: Verdict.passed(),
+            )
+            reopened.on_run_complete("r-reopen-recover", "success")
+            self.assertEqual(
+                len([e for e in reopened.events("r-reopen-recover")
+                     if e["kind"] == "run.completed"]), 1
+            )
+            self.assertEqual(
+                reopened.get_attestation("r-reopen-recover")["verdicts"]["CORE-RUN-OUTCOME"],
+                "PASS",
+            )
+
+    def test_concurrent_completions_form_linear_attestation_chain(self):
+        backend = LiveCoreResidualBackend(
+            ":memory:",
+            spec_version="1.0.0",
+            spec_head_sha="a" * 40,
+            impl_commit_sha="b" * 40,
+            impl_tree_sha="c" * 40,
+            gate_evaluator=lambda *args: Verdict.passed(),
+        )
+        for run_id in ("r-a", "r-b"):
+            backend.on_run_start(run_id, "spec@1")
+            backend.on_module_call(run_id, "llm:test", f"call-{run_id}", "0" * 64)
+
+        barrier = threading.Barrier(2)
+        errors = []
+
+        def finish(run_id):
+            try:
+                barrier.wait()
+                backend.on_run_complete(run_id, "success")
+            except BaseException as exc:
+                errors.append(exc)
+
+        threads = [threading.Thread(target=finish, args=(rid,)) for rid in ("r-a", "r-b")]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+        self.assertEqual(errors, [])
+
+        rows = backend._conn.execute(
+            "SELECT token_json FROM attestations ORDER BY seq"
+        ).fetchall()
+        self.assertEqual(len(rows), 2)
+        first = __import__("json").loads(rows[0][0])
+        second = __import__("json").loads(rows[1][0])
+        self.assertEqual(first["prev_attestation_hash"], "0" * 64)
+        self.assertEqual(second["prev_attestation_hash"], first["attestation_id"])
 
     def test_persistent_backend_restores_terminal_state_on_reopen(self):
         with tempfile.TemporaryDirectory() as temp:
