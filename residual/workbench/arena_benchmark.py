@@ -449,7 +449,7 @@ def main(argv=None):
                 "provider": "arena",
                 "keys_url": url,
                 "opened_browser": opened,
-                "next": "Create a virtual API key, set ARENA_API_KEY, then run: python -m residual.workbench arena models",
+                "next": "Create a virtual API key, set ARENA_API_KEY, then run: residual arena models",
             }, indent=2))
             return 0
         if args.command == "freeze":
