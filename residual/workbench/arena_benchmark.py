@@ -374,6 +374,12 @@ def build_parser():
     freeze.add_argument("--model", action="append", required=True, dest="models")
     freeze.add_argument("--output", required=True, type=Path)
 
+    run = sub.add_parser("run", help="Execute a frozen live paired Arena/RESIDUAL protocol")
+    run.add_argument("--lock", required=True, type=Path)
+    run.add_argument("--output", required=True, type=Path)
+    run.add_argument("--max-output-tokens", type=int, default=256)
+    run.add_argument("--residual-rounds", type=int, default=2)
+
     score = sub.add_parser("score", help="Validate complete traces and build an Arena-aligned report")
     score.add_argument("--lock", required=True, type=Path)
     score.add_argument("--traces", required=True, type=Path)
@@ -399,6 +405,25 @@ def main(argv=None):
             }, indent=2))
             return 0
         lock = strict_json(args.lock.read_text(encoding="utf-8"))
+        if args.command == "run":
+            lock = _verify_lock(lock)
+            from .arena_live import run_protocol
+            traces = run_protocol(
+                lock,
+                args.output,
+                max_output_tokens=args.max_output_tokens,
+                residual_rounds=args.residual_rounds,
+            )
+            report = score_protocol(lock, traces)
+            report_path = args.output / "report.json"
+            _write_json(report_path, report)
+            print(json.dumps({
+                "experiment_id": report["experiment_id"],
+                "observations": len(traces),
+                "report_sha256": report["sha256"],
+                "output": str(args.output),
+            }, indent=2))
+            return 0
         report = score_protocol(lock, _read_traces(args.traces))
         _write_json(args.output, report)
         print(json.dumps({
