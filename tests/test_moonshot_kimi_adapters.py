@@ -6,6 +6,7 @@ import threading
 import unittest
 import urllib.error
 import urllib.request
+from unittest.mock import patch
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from ai_providers import ChatRequest, Message, ProviderName, Role
@@ -77,6 +78,33 @@ class MoonshotAndKimiClawAdapterTests(unittest.TestCase):
                         {"kind": "moonshot", "model": "kimi-k3", "base_url": hostile},
                         "remote",
                     )
+
+    def test_kimi_claw_accepts_only_openclaw_agent_targets(self):
+        adapter = KimiClawAdapter(api_key="gateway-token")
+        for model in ("openclaw", "openclaw/default", "openclaw/research", "openclaw:research", "agent:research"):
+            with self.subTest(model=model):
+                body = adapter._build_body(self.request(model))
+                self.assertEqual(body["model"], model)
+                self.assertTrue(adapter.supports_tools(model))
+        for model in ("kimi-k3", "moonshot/kimi-k3", "openclaw/../../main", "random"):
+            with self.subTest(model=model):
+                with self.assertRaises(ProviderError):
+                    adapter._build_body(self.request(model))
+                self.assertFalse(adapter.supports_tools(model))
+        with self.assertRaises(ContractError):
+            normalize_profile({"kind": "kimi_claw", "model": "kimi-k3"}, "local")
+
+    def test_kimi_claw_uses_gateway_specific_env_without_cloud_key_leakage(self):
+        profile = normalize_profile({"kind": "kimi_claw", "model": "openclaw/default"}, "local")
+        with patch.dict("os.environ", {"OPENCLAW_GATEWAY_TOKEN": "official-token", "LLM_API_KEY": "cloud-secret"}, clear=True):
+            adapter = make_adapter(profile)
+            self.assertEqual(adapter._headers()["Authorization"], "Bearer official-token")
+        with patch.dict("os.environ", {"OPENCLAW_GATEWAY_PASSWORD": "official-password"}, clear=True):
+            adapter = make_adapter(profile)
+            self.assertEqual(adapter._headers()["Authorization"], "Bearer official-password")
+        with patch.dict("os.environ", {"LLM_API_KEY": "cloud-secret"}, clear=True):
+            adapter = make_adapter(profile)
+            self.assertNotIn("Authorization", adapter._headers())
 
     def test_kimi_claw_rejects_non_loopback_operator_token_destinations(self):
         for hostile in (
