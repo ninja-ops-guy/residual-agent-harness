@@ -88,11 +88,19 @@ def _default_registry() -> Registry:
         from .adapters.ollama_adapter import OllamaAdapter
         return OllamaAdapter(base_url=os.environ.get("OLLAMA_HOST", "http://localhost:11434"))
 
+    def _arena():
+        from .adapters.arena_adapter import ArenaAdapter
+        return ArenaAdapter(
+            api_key=os.environ.get("ARENA_API_KEY"),
+            base_url=os.environ.get("ARENA_BASE_URL", "https://api.preview.arena.ai/v1"),
+        )
+
     def _compatible():
         from .adapters.openai_adapter import OpenAICompatibleAdapter
         return OpenAICompatibleAdapter(api_key=os.environ.get("LLM_API_KEY"), base_url=os.environ.get("LLM_BASE_URL", "http://localhost:8080/v1"))
 
     reg.register("openai_compatible", _compatible)
+    reg.register("arena", _arena)
     reg.register("openai", _openai)
     reg.register("anthropic", _anthropic)
     reg.register("google", _google)
