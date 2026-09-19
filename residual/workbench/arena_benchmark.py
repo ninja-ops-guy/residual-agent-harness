@@ -102,17 +102,11 @@ def _validate_models(models):
 
 
 def _source_hashes():
-    root = Path(__file__).resolve().parents[2]
-    paths = (
-        root / "ai_providers" / "adapters" / "arena_adapter.py",
-        root / "residual" / "eval" / "arena.py",
-        root / "residual" / "workbench" / "arena_benchmark.py",
-    )
-    result = {}
-    for path in paths:
-        if path.exists():
-            result[path.relative_to(root).as_posix()] = digest(path.read_text(encoding="utf-8"))
-    return result
+    # Reuse the controlled-study source commitment so a live AX run binds the
+    # complete RESIDUAL/provider/observation implementation, not merely the
+    # adapter and scorer files.
+    from ..study import sources
+    return sources()
 
 
 def freeze_protocol(manifest, models, *, manifest_path: Path | None = None):
