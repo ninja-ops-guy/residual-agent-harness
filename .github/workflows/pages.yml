@@ -47,6 +47,8 @@ jobs:
     steps:
       - name: Checkout RESIDUAL
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -83,6 +85,7 @@ jobs:
       - name: Checkout pinned WebVM runtime
         uses: actions/checkout@v4
         with:
+          persist-credentials: false
           repository: leaningtech/webvm
           ref: 388d0adeb319d9ad605a5ec0485777cff5430c88
           path: _webvm
@@ -231,6 +234,8 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'

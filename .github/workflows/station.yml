@@ -20,6 +20,8 @@ jobs:
         python: ['3.11', '3.12', '3.13']
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
@@ -31,6 +33,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -49,6 +53,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - run: docker compose config --quiet
       - run: docker build -t residual-station-ci .
       - run: docker run --rm --entrypoint python3 residual-station-ci -c "from residual.station.service import Station,demo_spec; import tempfile; s=Station(tempfile.mkdtemp()); p=s.create(demo_spec(),demo=True)['project_id']; assert s.batch(p)['integrated']==3"
