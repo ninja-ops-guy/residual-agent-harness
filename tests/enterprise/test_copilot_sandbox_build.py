@@ -6,7 +6,7 @@ from pathlib import Path
 
 from residual.factory.m4_sandbox import IsolatedResult, SANDBOX_PROFILE
 from residual.integrations.copilot_studio import EncryptedMissionQueueBackend, RepositoryCatalog, RepositoryResource
-from residual.integrations.copilot_studio.sandbox_build import BuildCommand, BuildProfile, BuildProfileCatalog, FirmwareSandboxBuildWorker
+from residual.integrations.copilot_studio.sandbox_build import BuildCommand, BuildProfile, BuildProfileCatalog, FirmwareSandboxBuildWorker, AutomatedTestSandboxWorker
 from tests.enterprise.test_copilot_worker import _backend, _repo
 from tests.enterprise.test_copilot_studio import make_api, payload, submit
 
@@ -82,3 +82,23 @@ def test_isolation_unavailable_fails_closed(tmp_path):
 def test_build_profile_is_content_addressed():
     p=_profiles().resolve("debug_build")
     assert p.profile_hash==_profiles().resolve("debug_build").profile_hash
+
+
+def test_automated_testing_department_uses_same_isolation_boundary(tmp_path):
+    from residual.iam.crypto import rsa_generate_keypair
+    from residual.integrations.copilot_studio.service import DepartmentCopilotService
+    from residual.integrations.copilot_studio.store import InMemoryMissionStore
+    from tests.enterprise.test_copilot_service import _deployment,_token
+    backend=_backend(tmp_path); catalog,_=_catalog(tmp_path); dep=_deployment(); key=rsa_generate_keypair(1024)
+    service=DepartmentCopilotService("automated_testing",dep,backend,InMemoryMissionStore(),jwks_provider=lambda kid:key.public_key)
+    profile,_=dep.departments()["automated_testing"]
+    token=_token(service,key,next(iter(profile.allowed_groups)))
+    response=service.api.handle("POST","/v1/copilot/missions","Bearer "+token,{
+        "request_id":"auto-run","template_id":"automated-test-isolated-run","objective":"Run approved isolated tests.",
+        "inputs":{"repository_id":"firmware_sample","build_profile_id":"debug_build"}},now=1100)
+    assert response.status==202
+    runner=FakeRunner()
+    worker=AutomatedTestSandboxWorker(backend,catalog,_profiles(),runtime_root=tmp_path/"auto-runtime",runner=runner)
+    assert worker.run_once()["state"]=="completed"
+    evidence=backend.evidence(response.body["mission_id"])
+    assert any(e.get("execution_boundary")==SANDBOX_PROFILE for e in evidence)
