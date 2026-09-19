@@ -167,7 +167,8 @@ def freeze_protocol(manifest, models, *, manifest_path: Path | None = None):
         "limitations": [
             "This is a local Arena-aligned evaluation, not an official Arena leaderboard submission or score.",
             "The Arena API is used only as a model gateway; server-side model fallback is disallowed by this protocol.",
-            "Development fixtures are apparatus tests and must not be cited as live-model evidence.",
+            "Development fixtures are apparatus tests and must not be cited as independent held-out evidence.",
+            "The built-in exact-answer live runner uses the same frozen expected answer for harness verification and final evaluation; it does not establish verifier independence or false-acceptance rates.",
             "Live-model inference remains stochastic unless the selected backend itself guarantees stronger reproducibility.",
         ],
     }
