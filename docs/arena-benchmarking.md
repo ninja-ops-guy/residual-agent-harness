@@ -20,8 +20,8 @@ When Arena is selected, RESIDUAL shows a guided setup card:
 1. **Get Arena API key** opens the Arena dashboard Keys page directly: `https://portal.api.preview.arena.ai/dashboard/keys`.
 2. Create a **virtual API key** in Arena and copy it.
 3. Return to RESIDUAL, paste it in the API key field, and click **Save model routes**.
-4. Click **Test cloud connection**.
-5. Click **List cloud models** and copy/select the exact model ID you want to benchmark.
+4. If no Arena model is selected yet, RESIDUAL automatically fetches the model IDs available to that key.
+5. Click **Use this model** on the model you want. RESIDUAL saves it and immediately runs the cloud connection test.
 
 RESIDUAL does not fetch or create the Arena credential on your behalf. The key is entered directly into the Station credential field and is not returned by bootstrap/settings APIs.
 
