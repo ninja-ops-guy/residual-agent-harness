@@ -111,7 +111,7 @@
     {
       "id": "B",
       "name": "model proposal-only digital twin",
-      "status": "planned",
+      "status": "runner-implemented-trials-pending",
       "proposal_source": "frozen model/version/prompt/config",
       "execution": "models may emit only typed capability proposals into a no-op adapter; no offensive command execution",
       "purpose": "measure model-controller interaction, planning quality, and control-plane overhead"
