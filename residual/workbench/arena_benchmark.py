@@ -270,8 +270,14 @@ def score_protocol(lock, traces):
             if getattr(trace, field) != job[field]:
                 raise ContractError("AX-ARENA trace does not match frozen schedule")
         verdict = trace.verdict
-        if type(verdict.get("verified_task_success")) is not bool:
-            raise ContractError("AX-ARENA trace requires verified_task_success")
+        state = verdict.get("state")
+        success = verdict.get("verified_task_success")
+        if state not in {"PASS", "FAIL", "UNKNOWN"}:
+            raise ContractError("AX-ARENA trace requires PASS/FAIL/UNKNOWN state")
+        if ((state == "PASS" and success is not True)
+                or (state == "FAIL" and success is not False)
+                or (state == "UNKNOWN" and success is not None)):
+            raise ContractError("AX-ARENA verdict state/success mismatch")
         if lock["evidence_level"] == "live_model":
             provider = trace.provider_metadata
             if provider.get("provider") != "arena" or provider.get("fallback_used") is not False:
@@ -280,7 +286,8 @@ def score_protocol(lock, traces):
         row = {
             "trace": trace,
             "job": job,
-            "success": verdict["verified_task_success"],
+            "state": state,
+            "success": success,
             "signals": signals,
             "usage": trace.usage,
         }
