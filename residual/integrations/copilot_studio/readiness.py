@@ -50,6 +50,7 @@ def _profile_payload(profile,templates):
 def build_readiness_bundle(*,head_sha:str,deployment:EnterpriseCopilotDeployment,
                            qualifications:tuple[QualificationRecord,...],
                            scenarios:tuple[Mapping[str,Any],...],
+                           release_artifacts:Mapping[str,str]|None=None,
                            known_limitations:tuple[str,...]=()):
     if not isinstance(head_sha,str) or len(head_sha)!=40 or any(c not in "0123456789abcdef" for c in head_sha):
         raise ContractError("head_sha must be full lowercase Git SHA")
@@ -62,6 +63,10 @@ def build_readiness_bundle(*,head_sha:str,deployment:EnterpriseCopilotDeployment
         raise ContractError("scenarios must be a tuple of mappings")
     if not isinstance(known_limitations,tuple) or any(not isinstance(x,str) or not x.strip() for x in known_limitations):
         raise ContractError("known_limitations invalid")
+    artifacts=dict(release_artifacts or {})
+    for name,value in artifacts.items():
+        if not isinstance(name,str) or not name.strip() or not isinstance(value,str) or len(value)!=64 or any(ch not in "0123456789abcdef" for ch in value):
+            raise ContractError("release artifact hashes must be named lowercase SHA-256 values")
     departments=deployment.departments()
     body={
         "schema_version":"residual.copilot.enterprise-readiness.v1",
@@ -72,8 +77,15 @@ def build_readiness_bundle(*,head_sha:str,deployment:EnterpriseCopilotDeployment
         "department_policy":{name:_profile_payload(profile,templates) for name,(profile,templates) in sorted(departments.items())},
         "qualifications":[q.to_dict() for q in sorted(qualifications,key=lambda q:q.name)],
         "scenarios":[dict(s) for s in scenarios],
+        "release_artifacts":dict(sorted(artifacts.items())),
         "known_limitations":list(known_limitations),
     }
+    body["release_eligible"]=(
+        all(q.status=="pass" for q in qualifications)
+        and all(bool(dict(s).get("passed")) for s in scenarios)
+        and not known_limitations
+        and bool(artifacts)
+    )
     body["bundle_hash"]=digest(body)
     return body
 
@@ -83,7 +95,10 @@ def verify_readiness_bundle(bundle:Mapping[str,Any])->bool:
     expected=bundle.get("bundle_hash")
     if not isinstance(expected,str): return False
     unsigned=dict(bundle); unsigned.pop("bundle_hash",None)
-    return digest(unsigned)==expected and all(
-        q.get("status")=="pass" and q.get("head_sha")==bundle.get("head_sha")
-        for q in bundle.get("qualifications",[])
-    )
+    integrity=digest(unsigned)==expected
+    exact=all(q.get("head_sha")==bundle.get("head_sha") for q in bundle.get("qualifications",[]))
+    return integrity and exact
+
+
+def release_eligible(bundle:Mapping[str,Any])->bool:
+    return bool(verify_readiness_bundle(bundle) and bundle.get("release_eligible") is True)
