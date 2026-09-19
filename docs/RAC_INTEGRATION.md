@@ -89,8 +89,8 @@ By contrast, any of these conditions fail closed:
 - the RAC evaluation version drifts;
 - a producer is also its own independent verifier;
 - the decision's evidence hashes do not match the supplied bundles;
-- `PROMOTABLE` lacks two replication identities;
-- `PROMOTABLE` lacks two independent verifier identities;
+- `PROMOTABLE` lacks two replication identities and distinct replication-receipt hashes;
+- `PROMOTABLE` lacks two independent verifier labels, verifier-identity hashes, and verifier-receipt hashes;
 - the human promotion gate is removed;
 - automated scientific promotion is granted;
 - mandatory forbidden capabilities disappear from the ImprovementSpec.
@@ -130,10 +130,11 @@ negative record successfully.
 
 ### RRI-004 — verifier independence
 
-Feed two nominal PASS bundles that share one verifier identity. The envelope
-must remain `INCONCLUSIVE`. Repeat with two genuinely distinct verifier
-identities and two replication identities; only then may RAC produce the
-advisory `PROMOTABLE` state.
+Feed two nominal PASS bundles that merely use different labels while sharing a
+verifier-identity hash or replication-receipt hash. The envelope must remain
+`INCONCLUSIVE`. Repeat with hash-distinct verifier identities/receipts and
+hash-distinct replication receipts; only then may RAC produce the advisory
+`PROMOTABLE` state.
 
 ## Promotion boundary
 
