@@ -77,6 +77,9 @@ class Station:
         self.mutex = threading.RLock()
         self.project_locks = {}
         self.active = set()
+        # Runner presence is intentionally ephemeral operational state, not evidence.
+        # Heartbeats/claims refresh it; stale entries expire without writing event-log noise.
+        self.runner_presence = {}
         from .extensions import default_registry
         self._extension_factory = extension_factory or default_registry
         self._extensions = {}
@@ -177,6 +180,58 @@ class Station:
                 except ContractError as e:
                     self.store.transition(pid, task["id"], "blocked", fields={"findings": [str(e)]})
             return {"message": "Triage complete. Failing baseline acceptance checks are expected for unimplemented specs."}
+
+    def touch_runner(self, pid, name, *, status="idle", task_id=None, model=None, placement=None, ttl_s=90):
+        """Refresh ephemeral presence for one authenticated distributed runner."""
+        self.store.project(pid)
+        name = bounded(name, "Runner name", 60)
+        if status not in {"idle", "working", "review_ready"}:
+            raise ContractError("Invalid runner presence status")
+        if task_id is not None:
+            task_id = bounded(task_id, "Task ID", 100)
+        if model is not None:
+            model = bounded(model, "Model", 200)
+        if placement is not None and placement not in {"local", "remote"}:
+            raise ContractError("Invalid runner placement")
+        if type(ttl_s) is not int or not 15 <= ttl_s <= 900:
+            raise ContractError("Runner presence TTL must be 15-900 seconds")
+        now_mono, now_wall = time.monotonic(), time.time()
+        key = (pid, name)
+        with self.mutex:
+            prior = self.runner_presence.get(key, {})
+            self.runner_presence[key] = {
+                "name": name,
+                "status": status,
+                "task_id": task_id,
+                "model": model if model is not None else prior.get("model"),
+                "placement": placement if placement is not None else prior.get("placement"),
+                "last_seen": now_wall,
+                "expires_at": now_mono + ttl_s,
+                "ttl_s": ttl_s,
+            }
+
+    def runners(self, pid):
+        """Return currently connected runners for one project."""
+        self.store.project(pid)
+        now = time.monotonic()
+        with self.mutex:
+            stale = [key for key, value in self.runner_presence.items() if value["expires_at"] < now]
+            for key in stale:
+                self.runner_presence.pop(key, None)
+            rows = []
+            for (project_id, _), value in self.runner_presence.items():
+                if project_id != pid:
+                    continue
+                rows.append({
+                    "name": value["name"],
+                    "status": value["status"],
+                    "task_id": value["task_id"],
+                    "model": value.get("model"),
+                    "placement": value.get("placement"),
+                    "last_seen": value["last_seen"],
+                    "age_s": max(0, int(time.time() - value["last_seen"])),
+                })
+        return sorted(rows, key=lambda item: (item["status"] != "working", item["name"].lower()))
 
     def comms(self, pid, after=0, audiences=None, limit=100, thread_id=None):
         """Return bounded project chat messages without granting them task authority.
