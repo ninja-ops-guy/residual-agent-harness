@@ -6,7 +6,7 @@
   "scripts": {
     "test:ui": "node tests/browser.cjs",
     "check:ui": "node --check residual/station/static/app.js",
-    "test:web": "node tests/web_command_station.cjs && node tests/web_onboarding.cjs"
+    "test:web": "node tests/web_command_station.cjs && node tests/web_onboarding.cjs && node tests/web_gateway.cjs"
   },
   "devDependencies": {
     "playwright": "^1.58.0"
