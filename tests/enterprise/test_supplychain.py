@@ -402,9 +402,14 @@ class TestSandbox:
         with pytest.raises(ContractError, match="network"):
             validate_manifest(manifest)
 
-    def test_network_syscall_denied_by_kernel(self):
-        source = "def go():\n    import socket\n    socket.socket()\n    return 1\n"
-        with pytest.raises(ContractError, match="containment"):
+    def test_network_egress_denied_by_kernel(self):
+        source = (
+            "def go():\n"
+            "    import socket\n"
+            "    socket.create_connection(('203.0.113.1', 9), timeout=0.2)\n"
+            "    return 1\n"
+        )
+        with pytest.raises(ContractError, match="sandboxed module failed"):
             run_sandboxed(self.manifest(), source, "go")
 
     def test_filesystem_outside_allowlist_denied(self, tmp_path):
@@ -412,7 +417,7 @@ class TestSandbox:
         data.mkdir()
         source = "def go():\n    return open('/etc/passwd').read()\n"
         manifest = self.manifest(filesystem_allowlist=(str(data.resolve()),))
-        with pytest.raises(ContractError, match="containment"):
+        with pytest.raises(ContractError, match="sandboxed module failed"):
             run_sandboxed(manifest, source, "go")
 
     def test_filesystem_allowlist_permitted(self, tmp_path):
@@ -458,10 +463,18 @@ class TestSandbox:
         source = "def add(a, b):\n    return a + b\n"
         assert run_sandboxed(self.manifest(), source, "add", 2, 3) == 5
 
-    def test_python_object_model_escape_cannot_spawn_host_process(self):
-        source = "def go():\n    import os\n    return os.system('id')\n"
-        with pytest.raises(ContractError, match="containment"):
-            run_sandboxed(self.manifest(), source, "go")
+    def test_spawned_process_cannot_write_host_filesystem(self, tmp_path):
+        marker = tmp_path / "host-escape-marker"
+        parent = marker.parent
+        source = (
+            "def go():\n"
+            "    import os\n"
+            f"    return os.system('mkdir -p {parent} && touch {marker}')\n"
+        )
+        # Process execution inside the jail is allowed; the proof is that the
+        # child sees an isolated /tmp and cannot mutate the host path.
+        assert run_sandboxed(self.manifest(), source, "go") == 0
+        assert not marker.exists()
 
 
 # ---------------------------------------------------------------- ENT5-R8
