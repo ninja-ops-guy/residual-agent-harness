@@ -27,10 +27,10 @@ PROVIDERS={
 ENV_KEYS={'openai':'OPENAI_API_KEY','openai_compatible':'LLM_API_KEY','anthropic':'ANTHROPIC_API_KEY','google':'GEMINI_API_KEY','azure':'AZURE_OPENAI_API_KEY','ollama':'OLLAMA_API_KEY','arena':'ARENA_API_KEY'}
 
 
-def normalize_profile(profile,placement):
+def normalize_profile(profile,placement,allow_empty_model=False):
     if not isinstance(profile,dict) or profile.get('kind') not in PROVIDERS: raise ContractError('Choose a supported provider')
     kind=profile['kind']; model=profile.get('model','')
-    if not isinstance(model,str) or not model or len(model)>500 or any(ord(c)<32 for c in model): raise ContractError('Enter a model or deployment ID')
+    if not isinstance(model,str) or (not model and not allow_empty_model) or len(model)>500 or any(ord(c)<32 for c in model): raise ContractError('Enter a model or deployment ID')
     if placement=='local' and kind not in {'ollama','openai_compatible'}: raise ContractError('Local routes require Ollama or a compatible loopback server')
     region=profile.get('region') or 'us-east-1'
     base=profile.get('base_url') or PROVIDERS[kind]['base_url']
