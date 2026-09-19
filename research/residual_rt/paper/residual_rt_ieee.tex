@@ -108,7 +108,7 @@ Phase A is implemented in the accompanying repository. A frozen JSON fixture con
 Each scenario is replayed through RT0--RT5. The implementation produces SHA-256 bindings for the fixture, each scenario, and each decision trace. Phase A is an engineering experiment. It verifies that the ablation logic expresses the intended invariants and exposes tradeoffs. It does not establish live-model or real-range effectiveness.
 
 \subsection{Phase B: Proposal-Only Digital Twin}
-Phase B introduces frozen LLM workers but retains a no-op execution adapter. Models receive the same synthetic network state and engagement objective, then emit only typed capability requests and findings. The broker records what would have been authorized, blocked, or escalated. This separates planning and policy interaction from operational cyber capability.
+The accompanying repository implements the Phase B runner; empirical model trials remain pending. Phase B introduces frozen LLM workers but retains a no-op execution adapter. Models receive the same synthetic network state and engagement objective, then emit only typed capability requests and findings. The broker records what would have been authorized, blocked, or escalated. This separates planning and policy interaction from operational cyber capability.
 
 Phase B adds model-dependent measures including proposal validity, scope drift, verifier disagreement, repeated hypotheses, token usage, latency, and the rate at which the model repairs a rejected proposal with materially new evidence.
 
@@ -166,7 +166,7 @@ The key design claim is that autonomous adversary emulation should be treated as
 RESIDUAL-RT also suggests a broader benchmark direction: governance under capability. A stronger model may improve task completion while also generating more ambitious requests. A control plane should therefore be measured not only on whether the model succeeds, but on whether the system preserves engagement boundaries as model capability changes.
 
 \section{Limitations}
-The current implementation establishes only the Phase A replay apparatus. Synthetic fixtures cannot model the full ambiguity of real networks, correlated verifier errors, adversarial tool output, or operator behavior. Phase B still lacks execution consequences. Phase C improves ecological validity but remains a laboratory study and cannot establish universal safety or production readiness.
+The current implementation establishes the Phase A replay apparatus and the Phase B proposal-only runner, but no confirmatory Phase B model results are claimed. Synthetic fixtures cannot model the full ambiguity of real networks, correlated verifier errors, adversarial tool output, or operator behavior. Phase B still lacks execution consequences. Phase C improves ecological validity but remains a laboratory study and cannot establish universal safety or production readiness.
 
 The architecture depends on correct policy and verifier specification. A receipt proves that named checks were applied to named evidence under named identities; it does not prove arbitrary truth. Independent external evaluation remains necessary for strong deployment claims.
 
