@@ -1,7 +1,8 @@
 "use client";
 import {useEffect,useMemo,useState} from "react";
 import Editor from "@monaco-editor/react";
-import {FactorySnapshot,fallbackSnapshot} from "../lib/factory";\nimport MissionControl from "./MissionControl";
+import {FactorySnapshot,fallbackSnapshot} from "../lib/factory";
+import MissionControl from "./MissionControl";
 const tree=["residual/","  factory/","    runtime.py","    evidence_receipts.py","    m4_integrator.py","tests/","  test_factory_runtime.py","docs/"];
 const sample=`from residual.factory import FactoryRuntime\n\n# Studio remains subordinate to the approved ExecutionPlan.\ndef run_factory(plan, approval):\n    runtime = FactoryRuntime()\n    return runtime.execute(plan, approval)\n`;
 export default function StudioShell(){
