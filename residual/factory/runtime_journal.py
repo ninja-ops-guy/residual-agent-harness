@@ -265,7 +265,7 @@ class RuntimeJournal:
                 db.close()
 
     def _append(self, db: sqlite3.Connection, payload: dict[str, Any]) -> None:
-        # Round trip to detach mutable input and reject duplicate JSON.
+        # Round trip to detach mutable input and reject non-finite/duplicate JSON.
         payload = strict_json(canonical(payload))
         tail = db.execute("SELECT digest FROM events ORDER BY sequence DESC LIMIT 1").fetchone()
         observation = Observation(str(uuid.uuid4()), self.trace_id, ObservationKind.CUSTOM,
