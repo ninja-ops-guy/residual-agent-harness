@@ -59,13 +59,13 @@ The built-in demo is scripted and credential-free. It demonstrates controller be
 
 ## Current repository boundary
 
-Current `main` is **`4608afabf5de4c87d77aaf149dfc12538d364f43`**.
+Current `main` is **`e7b72ad18df5729f16d36771971c8a8828d71a10`**, produced by merged **#276** on 2026-09-19.
 
-Merged **#200** hardens native setup defaults: persistent XDG locations, loopback Station binding, opt-in shell convenience, bounded venv repair, and constrained shell-rc edits. This is accepted onboarding behavior, not blank-environment qualification.
+Recent accepted repository-governance changes include **#275**, which repairs protected exact-PR-head maintainer-approval status publication after explicit exact-head human attestation, and **#276**, which closes #267 by ensuring every new `main` SHA receives an authoritative non-cancelling production Pages qualification attempt. Neither change expands worker, verifier, Factory/M4, provider or acceptance authority.
 
-Merged **#205** restores the private provider channel across Mission Control reload/remount by validating and reusing a session-scoped channel token, and clears it on explicit close. This is accepted lifecycle behavior, not live-provider semantic evidence.
+The first production Pages attempt for exact current main, run **`35410875305`** attempt 1, is **FAIL**. Generated desktop+narrow artifact proof and deployment succeeded; the published live acceptance failed at `Verify published WebVM revision and real guest execution`, and published narrow acceptance was skipped. That failure is exact-revision production evidence. The retained workflow metadata does not establish a paid/live Puter failure, model-quality failure, or exact lower-level root cause.
 
-The exact-current-main Actions set observed for `4608afa...` is complete with no pending, cancelled, or failing run in the retained exact-SHA query; the sampled Controller/provider workflow is **PASS on attempt 1**. Treat those results as exact-revision automated evidence only. They do not establish universal/capable-runner M4 qualification, live Puter success, physical-device reliability, recovery/soak, or confirmatory research.
+Controller/provider, Command Station and Factory ownership workflows on the same exact main revision have retained PASS results in their named scopes. Those results do not override the production Pages failure and do not establish universal/capable-runner M4 qualification, live Puter success, physical-device reliability, recovery/soak or confirmatory research.
 
 Historical failures remain retained evidence rather than being erased by later PASS results.
 
@@ -73,7 +73,7 @@ Historical failures remain retained evidence rather than being erased by later P
 
 Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice. Both counted calls failed closed as `provider_protocol_invalid`; no candidate crossed the protocol boundary, so candidate correctness and semantic verification remain **UNKNOWN**.
 
-Merged #179, #183, #189 and #205 repair bounded build-output, provider-session, publication, and reload-recovery surfaces. None is retained proof of successful paid/live Puter inference. A fresh exact-deployed-revision real-account mission must reach normal candidate/verifier/receipt handling before live-provider success becomes `PASS`.
+Merged #179, #183, #189, #205 and subsequent publication/qualification hardening repair bounded build-output, provider-session, publication and reload-recovery surfaces. None is retained proof of successful paid/live Puter inference. A fresh exact-deployed-revision real-account mission must reach normal candidate/verifier/receipt handling before live-provider success becomes `PASS`.
 
 The #186 fallback remains accepted: detected iOS/iPadOS WebKit is routed to the lightweight walkthrough before heavyweight guest boot. Physical heavyweight-WebVM reliability and the lower-level process-kill cause remain **UNKNOWN / unqualified**. Issues #120/#126 remain open.
 
@@ -90,9 +90,10 @@ This documentation does not alter Factory/M4 implementation/tests, ownership bas
 Recent research evidence must remain mixed:
 
 - #202: earlier retained heterogeneous-DAG **FAIL**; later bounded corrected exact-head **PASS** with real local models and forced repair. Neither result erases the other.
-- #203: first authoritative M6 ImprovementSpec self-host trial **FAIL**.
-- #204: stronger-model M6-SPEC-002 authoritative trial **FAIL**, 0/1 integrated and no verification receipt/release.
-- #207 campaign B: retained negative control evidence shows a budget-exhaustion ordering case in which integration/release preceded final exhausted-budget accounting, and a verifier-failure case in which a non-empty release still materialized after abort. These are governance defects, not PASSes. The repeated-repair case contained injected corrupt candidates but did not recover to success within the pass budget.
+- #220: bounded corrected M6-SPEC-006 self-hosting **PASS**; earlier M6 self-host trials remain retained **FAIL** evidence.
+- #257: bounded M6-SPEC-007J formal MeasurementGap-admission **PASS**; later registry/provenance/planner work includes PASS, FAIL and UNKNOWN cells. General autonomous discovery remains **UNKNOWN / not established**.
+- #207/#212: retained accounting/release-ordering **FAIL** evidence remains a blocker for stronger fail-closed authority claims.
+- M6-008 and broader recursive self-improvement remain **BLOCKED/UNKNOWN** until their specific positive gates are satisfied. Unmerged M6/M7 branches are not accepted product capability.
 
 These observations do not establish autonomous recursive self-improvement or production reliability.
 
