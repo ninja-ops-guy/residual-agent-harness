@@ -414,22 +414,42 @@ class EncryptedMissionQueueBackend:
         worker_id: str,
         *,
         lease_seconds: float = 60.0,
+        template_ids: frozenset[str] | None = None,
     ) -> QueuedMissionWork | None:
         identifier(worker_id)
         if type(lease_seconds) not in (int, float) or not 1 <= lease_seconds <= 3600:
             raise ContractError("lease_seconds is out of bounds")
+        if template_ids is not None:
+            if not isinstance(template_ids, frozenset) or not template_ids:
+                raise ContractError("template_ids must be a non-empty frozenset")
+            for template_id in template_ids:
+                identifier(template_id)
         now = float(self._clock())
         with self._lock, self._connect() as db:
             db.execute("BEGIN IMMEDIATE")
             try:
-                row = db.execute(
-                    """
-                    SELECT * FROM missions
-                    WHERE state='queued' AND cancel_requested=0
-                    ORDER BY created_at, mission_id
-                    LIMIT 1
-                    """
-                ).fetchone()
+                if template_ids is None:
+                    row = db.execute(
+                        """
+                        SELECT * FROM missions
+                        WHERE state='queued' AND cancel_requested=0
+                        ORDER BY created_at, mission_id
+                        LIMIT 1
+                        """
+                    ).fetchone()
+                else:
+                    ordered = tuple(sorted(template_ids))
+                    marks = ",".join("?" for _ in ordered)
+                    row = db.execute(
+                        f"""
+                        SELECT * FROM missions
+                        WHERE state='queued' AND cancel_requested=0
+                          AND template_id IN ({marks})
+                        ORDER BY created_at, mission_id
+                        LIMIT 1
+                        """,
+                        ordered,
+                    ).fetchone()
                 if row is None:
                     db.execute("COMMIT")
                     return None
