@@ -1,1 +1,720 @@
-__FILE_tests__
+import sys
+import tempfile
+import threading
+import unittest
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent / "vendor"))
+
+from adapter_conformance_suite import AdapterConformanceTests, AdapterHandle
+
+from residual.adapter_backend import (
+    AttestationError,
+    CoreGateDecision,
+    CoreUnreachableError,
+    GateFiredError,
+    LedgerWriteError,
+    LiveCoreResidualBackend,
+    recompute_attestation_id,
+)
+from residual.core import Artifact, ContractError, Obligation, Registry, Task, Verdict, register_builtins
+from residual.engine import Harness
+
+# Tests cannot reach the spec repository; the suite binds a deterministic
+# verifier standing in for a trusted immutable spec manifest. Production
+# configuration must use spec_repo or a verifier over real immutable state.
+SPEC_VERIFIED = lambda sha: True
+
+
+class ChaosTransport:
+    def __init__(self):
+        self.reachable = True
+        self.writable = True
+
+    def ping(self):
+        if not self.reachable:
+            raise ConnectionRefusedError("core unavailable")
+        return True
+
+    def commit(self):
+        if not self.writable:
+            raise OSError("write barrier failed")
+
+
+class FailOnCommitTransport(ChaosTransport):
+    def __init__(self, fail_on):
+        super().__init__()
+        self.fail_on = fail_on
+        self.commits = 0
+
+    def commit(self):
+        self.commits += 1
+        if self.commits == self.fail_on:
+            raise OSError("injected commit barrier failure")
+
+
+class LiveCoreHandle(AdapterHandle):
+    core_unreachable_exc = CoreUnreachableError
+    ledger_write_exc = LedgerWriteError
+    gate_fired_exc = GateFiredError
+
+    def __init__(self):
+        self.transport = ChaosTransport()
+        self.blocked = set()
+        self.backend = LiveCoreResidualBackend(
+            ":memory:",
+            spec_version="1.0.0",
+            spec_head_sha="a" * 40,
+            spec_commit_verifier=SPEC_VERIFIED,
+            impl_commit_sha="b" * 40,
+            impl_tree_sha="c" * 40,
+            transport=self.transport,
+            gate_evaluator=self._evaluate,
+            evaluator_id="test-core-verifier",
+        )
+
+    def _evaluate(self, run_id, module, call_id, inputs_digest):
+        if module in self.blocked:
+            return CoreGateDecision(
+                "BLOCKED",
+                f"CORE:{module}",
+                {"source": "test-core-policy", "module": module},
+            )
+        return Verdict.passed()
+
+    def start_run(self, run_id, spec_id):
+        self.backend.on_run_start(run_id, spec_id)
+
+    def module_call(self, run_id, module):
+        return self.backend.on_module_call(run_id, module, f"call:{module}", "0" * 64)
+
+    def complete_run(self, run_id, outcome="success"):
+        self.backend.on_run_complete(run_id, outcome)
+
+    def events(self, run_id):
+        return self.backend.events(run_id)
+
+    def get_attestation(self, run_id):
+        return self.backend.get_attestation(run_id)
+
+    def break_core(self):
+        self.transport.reachable = False
+
+    def heal_core(self):
+        self.transport.reachable = True
+
+    def break_ledger(self):
+        self.transport.writable = False
+
+    def heal_ledger(self):
+        self.transport.writable = True
+
+    def block_module(self, module):
+        self.blocked.add(module)
+
+    def try_mutate_ledger(self):
+        self.backend._conn.execute("UPDATE events SET kind='mutated'")
+
+
+class TestLiveCoreConformance(AdapterConformanceTests):
+    def make_handle(self):
+        return LiveCoreHandle()
+
+
+class MutantCoercesVerdict(LiveCoreHandle):
+    def get_attestation(self, run_id):
+        token = super().get_attestation(run_id)
+        token["verdicts"] = {key: "PASS" for key in token["verdicts"]}
+        token["attestation_id"] = recompute_attestation_id(token)
+        return token
+
+
+class MutantFailOpenCore(LiveCoreHandle):
+    def break_core(self):
+        self.transport.reachable = True
+
+
+class MutantSwallowsGate(LiveCoreHandle):
+    def module_call(self, run_id, module):
+        try:
+            return super().module_call(run_id, module)
+        except GateFiredError:
+            return "PASS"
+
+
+class MutantMutableLedger(LiveCoreHandle):
+    def try_mutate_ledger(self):
+        try:
+            super().try_mutate_ledger()
+        except Exception:
+            return None
+
+
+class TestLiveCoreMutationEvidence(unittest.TestCase):
+    def _run(self, handle_cls):
+        class Bound(AdapterConformanceTests):
+            def make_handle(self):
+                return handle_cls()
+
+        result = unittest.TestResult()
+        unittest.TestLoader().loadTestsFromTestCase(Bound).run(result)
+        return {case._testMethodName for case, _ in result.failures + result.errors}
+
+    def test_verdict_coercion_is_detected(self):
+        self.assertIn("test_verdict_not_coerced", self._run(MutantCoercesVerdict))
+
+    def test_fail_open_core_is_detected(self):
+        self.assertIn("test_core_unreachable_fail_closed", self._run(MutantFailOpenCore))
+
+    def test_swallowed_gate_is_detected(self):
+        self.assertIn("test_gate_firing_propagates", self._run(MutantSwallowsGate))
+
+    def test_mutable_ledger_is_detected(self):
+        self.assertIn("test_ledger_append_only", self._run(MutantMutableLedger))
+
+
+class TestLiveHarnessBinding(unittest.TestCase):
+    def backend(self):
+        return LiveCoreResidualBackend(
+            ":memory:",
+            spec_version="1.0.0",
+            spec_head_sha="a" * 40,
+            spec_commit_verifier=SPEC_VERIFIED,
+            impl_commit_sha="b" * 40,
+            impl_tree_sha="c" * 40,
+        )
+
+    def test_absent_evaluator_is_unknown_and_fail_closed(self):
+        backend = self.backend()
+        backend.on_run_start("r-unknown", "spec@1")
+        with self.assertRaises(GateFiredError) as raised:
+            backend.on_module_call("r-unknown", "tool:shell", "call-1", "0" * 64)
+        self.assertEqual(raised.exception.verdict, "UNKNOWN")
+        token = backend.get_attestation("r-unknown")
+        self.assertEqual(token["verdicts"]["CORE:tool:shell"], "UNKNOWN")
+        self.assertEqual(token["verdicts"]["CORE-RUN-OUTCOME"], "BLOCKED")
+
+    def test_real_harness_pass_is_bound_without_reinterpretation(self):
+        registry = Registry()
+        register_builtins(registry)
+        task = Task(
+            "binding_pass",
+            "extract a declared JSON value",
+            {"input": Artifact("input", '{"answer":42}')},
+            (
+                Obligation(
+                    "answer",
+                    "return the answer",
+                    "json_value",
+                    evidence=("input",),
+                    parameters={"artifact": "input", "pointer": "/answer"},
+                    solver="json_value",
+                ),
+            ),
+        )
+        backend = self.backend()
+        result, token = backend.run_harness(Harness(registry, None, None), task, run_id="r-pass")
+        self.assertTrue(result["success"])
+        self.assertEqual(token["verdicts"]["CORE-OBLIGATION:answer"], "PASS")
+        self.assertEqual(token["verdicts"]["CORE-RUN-OUTCOME"], "PASS")
+        self.assertTrue(result["station_receipts"])
+        events = backend.events("r-pass")
+        self.assertTrue(any(e["kind"] == "core.run.bound" for e in events))
+        self.assertTrue(any(e["kind"] == "attestation.issued" for e in events))
+
+    def test_real_harness_fail_remains_fail_and_attests_run_failure(self):
+        registry = Registry()
+        registry.check("always_fail", lambda value, ctx: Verdict.fail("forced_failure"), "1")
+        registry.solver("candidate", lambda ctx: {"candidate": True})
+        task = Task(
+            "binding_fail",
+            "exercise a real core verifier failure",
+            {},
+            (
+                Obligation(
+                    "decision",
+                    "this verifier deliberately rejects",
+                    "always_fail",
+                    solver="candidate",
+                ),
+            ),
+        )
+        backend = self.backend()
+        result, token = backend.run_harness(Harness(registry, None, None), task, run_id="r-fail")
+        self.assertFalse(result["success"])
+        self.assertEqual(token["verdicts"]["CORE-OBLIGATION:decision"], "FAIL")
+        # A definitive verifier FAIL must not be laundered into BLOCKED.
+        self.assertEqual(token["verdicts"]["CORE-RUN-OUTCOME"], "FAIL")
+        completed = [e for e in backend.events("r-fail") if e["kind"] == "run.completed"]
+        self.assertEqual(completed[0]["payload"]["outcome"], "error")
+        fired = [e for e in backend.events("r-fail") if e["kind"] == "gate.fired"]
+        self.assertTrue(fired)
+        self.assertEqual(fired[0]["payload"]["verdict"], "FAIL")
+
+    def test_harness_dependency_blocked_run_remains_blocked(self):
+        registry = Registry()
+        register_builtins(registry)
+        task = Task(
+            "binding_blocked",
+            "a dependency chain whose root is never satisfied",
+            {},
+            (
+                Obligation("root", "no solver and no provider can satisfy this", "json_value"),
+                Obligation("child", "depends on the unsatisfiable root", "json_value",
+                           depends_on=("root",)),
+            ),
+        )
+        backend = self.backend()
+        result, token = backend.run_harness(Harness(registry, None, None), task, run_id="r-blocked")
+        self.assertFalse(result["success"])
+        self.assertEqual(token["verdicts"]["CORE-OBLIGATION:child"], "BLOCKED")
+        self.assertEqual(token["verdicts"]["CORE-RUN-OUTCOME"], "BLOCKED")
+
+    def test_divergent_event_id_collision_fails_closed(self):
+        backend = self.backend()
+        backend.on_run_start("r-collide", "spec@1")
+        # Replay the identical attestation admission: idempotent resolve is legal.
+        backend._append_event(
+            "r-collide", "module", "module.called",
+            {"module": "m", "verdict": "PASS"}, event_id="fixed-id",
+        )
+        backend._append_event(
+            "r-collide", "module", "module.called",
+            {"module": "m", "verdict": "PASS"}, event_id="fixed-id",
+        )
+        self.assertEqual(
+            sum(1 for e in backend.events("r-collide") if e["event_id"] == "fixed-id"), 1
+        )
+        # Same event_id with divergent content is evidence corruption.
+        with self.assertRaises(LedgerWriteError):
+            backend._append_event(
+                "r-collide", "module", "module.called",
+                {"module": "m", "verdict": "FAIL"}, event_id="fixed-id",
+            )
+
+    def test_tampered_attestation_detected_on_reopen(self):
+        import json as _json
+        import sqlite3 as _sqlite3
+
+        with tempfile.TemporaryDirectory() as temp:
+            path = str(Path(temp) / "adapter.db")
+            backend = LiveCoreResidualBackend(
+                path,
+                spec_version="1.0.0",
+                spec_head_sha="a" * 40,
+                spec_commit_verifier=SPEC_VERIFIED,
+                impl_commit_sha="b" * 40,
+                impl_tree_sha="c" * 40,
+                gate_evaluator=lambda *args: Verdict.passed(),
+            )
+            backend.on_run_start("r-tamper", "spec@1")
+            backend.on_module_call("r-tamper", "llm:test", "call-1", "0" * 64)
+            backend.on_run_complete("r-tamper", "success")
+            backend.close()
+
+            # Simulate byte-level tampering bypassing the append-only triggers.
+            raw = _sqlite3.connect(path)
+            raw.execute("DROP TRIGGER attest_no_update")
+            row = raw.execute(
+                "SELECT token_json FROM attestations WHERE run_id='r-tamper'"
+            ).fetchone()
+            token = _json.loads(row[0])
+            token["verdicts"]["CORE-RUN-OUTCOME"] = "BLOCKED"
+            raw.execute(
+                "UPDATE attestations SET token_json=? WHERE run_id='r-tamper'",
+                (_json.dumps(token),),
+            )
+            raw.commit()
+            raw.close()
+
+            with self.assertRaises(LedgerWriteError):
+                LiveCoreResidualBackend(
+                    path,
+                    spec_version="1.0.0",
+                    spec_head_sha="a" * 40,
+                    spec_commit_verifier=SPEC_VERIFIED,
+                    impl_commit_sha="b" * 40,
+                    impl_tree_sha="c" * 40,
+                    gate_evaluator=lambda *args: Verdict.passed(),
+                )
+
+    def test_attestation_verdicts_match_ledger_events(self):
+        # A-ATT-2: every fired gate verdict must appear verbatim in the token.
+        backend = LiveCoreResidualBackend(
+            ":memory:",
+            spec_version="1.0.0",
+            spec_head_sha="a" * 40,
+            spec_commit_verifier=SPEC_VERIFIED,
+            impl_commit_sha="b" * 40,
+            impl_tree_sha="c" * 40,
+            gate_evaluator=lambda *args: CoreGateDecision(
+                "BLOCKED", "CORE:tool:shell", {"source": "test-policy"}
+            ),
+        )
+        backend.on_run_start("r-consistency", "spec@1")
+        with self.assertRaises(GateFiredError):
+            backend.on_module_call("r-consistency", "tool:shell", "call-1", "0" * 64)
+        token = backend.get_attestation("r-consistency")
+        fired = [e for e in backend.events("r-consistency") if e["kind"] == "gate.fired"]
+        self.assertTrue(fired)
+        for event in fired:
+            gate_id = event["payload"]["gate_id"]
+            self.assertEqual(token["verdicts"].get(gate_id), event["payload"]["verdict"])
+
+    def test_attestation_admission_is_atomic_on_barrier_failure(self):
+        transport = FailOnCommitTransport(fail_on=4)
+        backend = LiveCoreResidualBackend(
+            ":memory:",
+            spec_version="1.0.0",
+            spec_head_sha="a" * 40,
+            spec_commit_verifier=SPEC_VERIFIED,
+            impl_commit_sha="b" * 40,
+            impl_tree_sha="c" * 40,
+            transport=transport,
+            gate_evaluator=lambda *args: Verdict.passed(),
+        )
+        backend.on_run_start("r-atomic", "spec@1")
+        self.assertEqual(
+            backend.on_module_call("r-atomic", "llm:test", "call-1", "0" * 64),
+            "PASS",
+        )
+        with self.assertRaises(LedgerWriteError):
+            backend.on_run_complete("r-atomic", "success")
+        with self.assertRaises(AttestationError):
+            backend.get_attestation("r-atomic")
+        self.assertFalse(
+            any(e["kind"] == "attestation.issued" for e in backend.events("r-atomic"))
+        )
+
+    def test_failed_attestation_admission_recovers_without_second_terminal(self):
+        transport = FailOnCommitTransport(fail_on=4)
+        backend = LiveCoreResidualBackend(
+            ":memory:",
+            spec_version="1.0.0",
+            spec_head_sha="a" * 40,
+            spec_commit_verifier=SPEC_VERIFIED,
+            impl_commit_sha="b" * 40,
+            impl_tree_sha="c" * 40,
+            transport=transport,
+            gate_evaluator=lambda *args: Verdict.passed(),
+        )
+        backend.on_run_start("r-recover", "spec@1")
+        backend.on_module_call("r-recover", "llm:test", "call-1", "0" * 64)
+        with self.assertRaises(LedgerWriteError):
+            backend.on_run_complete("r-recover", "success")
+        terminals = [e for e in backend.events("r-recover") if e["kind"] == "run.completed"]
+        self.assertEqual(len(terminals), 1)
+        transport.fail_on = -1
+        backend.on_run_complete("r-recover", "success")
+        terminals = [e for e in backend.events("r-recover") if e["kind"] == "run.completed"]
+        self.assertEqual(len(terminals), 1)
+        self.assertEqual(
+            backend.get_attestation("r-recover")["verdicts"]["CORE-RUN-OUTCOME"], "PASS"
+        )
+
+    def test_incomplete_terminal_recovers_after_reopen(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = str(Path(temp) / "recover.db")
+            transport = FailOnCommitTransport(fail_on=4)
+            backend = LiveCoreResidualBackend(
+                path,
+                spec_version="1.0.0",
+                spec_head_sha="a" * 40,
+                spec_commit_verifier=SPEC_VERIFIED,
+                impl_commit_sha="b" * 40,
+                impl_tree_sha="c" * 40,
+                transport=transport,
+                gate_evaluator=lambda *args: Verdict.passed(),
+            )
+            backend.on_run_start("r-reopen-recover", "spec@1")
+            backend.on_module_call("r-reopen-recover", "llm:test", "call-1", "0" * 64)
+            with self.assertRaises(LedgerWriteError):
+                backend.on_run_complete("r-reopen-recover", "success")
+            backend.close()
+
+            reopened = LiveCoreResidualBackend(
+                path,
+                spec_version="1.0.0",
+                spec_head_sha="a" * 40,
+                spec_commit_verifier=SPEC_VERIFIED,
+                impl_commit_sha="b" * 40,
+                impl_tree_sha="c" * 40,
+                gate_evaluator=lambda *args: Verdict.passed(),
+            )
+            reopened.on_run_complete("r-reopen-recover", "success")
+            self.assertEqual(
+                len([e for e in reopened.events("r-reopen-recover")
+                     if e["kind"] == "run.completed"]), 1
+            )
+            self.assertEqual(
+                reopened.get_attestation("r-reopen-recover")["verdicts"]["CORE-RUN-OUTCOME"],
+                "PASS",
+            )
+
+    def test_concurrent_completions_form_linear_attestation_chain(self):
+        backend = LiveCoreResidualBackend(
+            ":memory:",
+            spec_version="1.0.0",
+            spec_head_sha="a" * 40,
+            spec_commit_verifier=SPEC_VERIFIED,
+            impl_commit_sha="b" * 40,
+            impl_tree_sha="c" * 40,
+            gate_evaluator=lambda *args: Verdict.passed(),
+        )
+        for run_id in ("r-a", "r-b"):
+            backend.on_run_start(run_id, "spec@1")
+            backend.on_module_call(run_id, "llm:test", f"call-{run_id}", "0" * 64)
+
+        barrier = threading.Barrier(2)
+        errors = []
+
+        def finish(run_id):
+            try:
+                barrier.wait()
+                backend.on_run_complete(run_id, "success")
+            except BaseException as exc:
+                errors.append(exc)
+
+        threads = [threading.Thread(target=finish, args=(rid,)) for rid in ("r-a", "r-b")]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+        self.assertEqual(errors, [])
+
+        rows = backend._conn.execute(
+            "SELECT token_json FROM attestations ORDER BY seq"
+        ).fetchall()
+        self.assertEqual(len(rows), 2)
+        first = __import__("json").loads(rows[0][0])
+        second = __import__("json").loads(rows[1][0])
+        self.assertEqual(first["prev_attestation_hash"], "0" * 64)
+        self.assertEqual(second["prev_attestation_hash"], first["attestation_id"])
+
+    def test_same_run_concurrent_completion_is_atomic(self):
+        # Threads racing to complete ONE run_id: exactly one may win per
+        # attempt. Losers must fail closed, and the ledger must hold exactly
+        # one terminal event and one attestation. The race is repeated with
+        # many threads so a check-then-append gap cannot hide behind thread
+        # scheduling latency.
+        for attempt in range(15):
+            backend = LiveCoreResidualBackend(
+                ":memory:",
+                spec_version="1.0.0",
+                spec_head_sha="a" * 40,
+                spec_commit_verifier=SPEC_VERIFIED,
+                impl_commit_sha="b" * 40,
+                impl_tree_sha="c" * 40,
+                gate_evaluator=lambda *args: Verdict.passed(),
+            )
+            run_id = f"r-race-{attempt}"
+            backend.on_run_start(run_id, "spec@1")
+            backend.on_module_call(run_id, "llm:test", "call-1", "0" * 64)
+
+            barrier = threading.Barrier(8)
+            errors = []
+            completions = []
+
+            def finish():
+                try:
+                    barrier.wait(timeout=10)
+                    backend.on_run_complete(run_id, "success")
+                    completions.append(True)
+                except LedgerWriteError:
+                    pass  # expected loser outcome: fail closed, no duplicate terminal
+                except BaseException as exc:
+                    errors.append(exc)
+
+            threads = [threading.Thread(target=finish) for _ in range(8)]
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
+
+            self.assertEqual(errors, [])
+            self.assertEqual(len(completions), 1, f"attempt {attempt}: double terminalization")
+            events = backend.events(run_id)
+            self.assertEqual(sum(1 for e in events if e["kind"] == "run.completed"), 1)
+            self.assertEqual(sum(1 for e in events if e["kind"] == "attestation.issued"), 1)
+            self.assertEqual(
+                backend.get_attestation(run_id)["verdicts"]["CORE-RUN-OUTCOME"], "PASS"
+            )
+
+    def test_module_call_never_recorded_after_terminal(self):
+        # Race module admission against completion: any module.called that is
+        # admitted must precede run.completed in the hash chain, and any call
+        # arriving after terminalization must be rejected.
+        for attempt in range(20):
+            backend = LiveCoreResidualBackend(
+                ":memory:",
+                spec_version="1.0.0",
+                spec_head_sha="a" * 40,
+                spec_commit_verifier=SPEC_VERIFIED,
+                impl_commit_sha="b" * 40,
+                impl_tree_sha="c" * 40,
+                gate_evaluator=lambda *args: Verdict.passed(),
+            )
+            run_id = f"r-race-mod-{attempt}"
+            backend.on_run_start(run_id, "spec@1")
+            # Anti-vacuity: at least one module call is admitted before the
+            # race begins, so the ordering assertion is never empty.
+            backend.on_module_call(run_id, "llm:test", "call-seed", "0" * 64)
+
+            barrier = threading.Barrier(2)
+            errors = []
+            gate_leaks = []
+
+            def call_module():
+                try:
+                    barrier.wait(timeout=10)
+                    for index in range(25):
+                        backend.on_module_call(
+                            run_id, "llm:test", f"call-{index}", "0" * 64
+                        )
+                except LedgerWriteError:
+                    pass  # run already terminal: rejected, as required
+                except GateFiredError as exc:
+                    gate_leaks.append(exc)
+                except BaseException as exc:
+                    errors.append(exc)
+
+            def complete():
+                try:
+                    barrier.wait(timeout=10)
+                    backend.on_run_complete(run_id, "success")
+                except LedgerWriteError:
+                    pass
+                except BaseException as exc:
+                    errors.append(exc)
+
+            threads = [
+                threading.Thread(target=call_module),
+                threading.Thread(target=complete),
+            ]
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
+
+            self.assertEqual(errors, [])
+            self.assertEqual(gate_leaks, [])
+            events = backend.events(run_id)
+            terminal_seqs = [e["seq"] for e in events if e["kind"] == "run.completed"]
+            self.assertEqual(len(terminal_seqs), 1)
+            module_seqs = [e["seq"] for e in events if e["kind"] == "module.called"]
+            self.assertTrue(module_seqs)
+            self.assertTrue(
+                all(seq < terminal_seqs[0] for seq in module_seqs),
+                "module.called admitted after run.completed",
+            )
+            self.assertEqual(
+                backend.get_attestation(run_id)["verdicts"]["CORE-RUN-OUTCOME"], "PASS"
+            )
+
+    def test_spec_identity_must_be_lowercase_hex(self):
+        for bad in ("g" * 40, "A" * 40, "a" * 39, "a" * 41, "a" * 40 + "\n"):
+            with self.assertRaises(ContractError, msg=f"accepted {bad!r}"):
+                LiveCoreResidualBackend(
+                    ":memory:",
+                    spec_version="1.0.0",
+                    spec_head_sha=bad,
+                    spec_commit_verifier=SPEC_VERIFIED,
+                    impl_commit_sha="b" * 40,
+                    impl_tree_sha="c" * 40,
+                )
+
+    def test_spec_identity_requires_immutable_verification(self):
+        # No spec_repo and no verifier: refuse to mint tokens against an
+        # unverified spec claim.
+        with self.assertRaises(ContractError):
+            LiveCoreResidualBackend(
+                ":memory:",
+                spec_version="1.0.0",
+                spec_head_sha="a" * 40,
+                impl_commit_sha="b" * 40,
+                impl_tree_sha="c" * 40,
+            )
+        # A verifier that cannot resolve the commit fails closed.
+        with self.assertRaises(ContractError):
+            LiveCoreResidualBackend(
+                ":memory:",
+                spec_version="1.0.0",
+                spec_head_sha="a" * 40,
+                spec_commit_verifier=lambda sha: False,
+                impl_commit_sha="b" * 40,
+                impl_tree_sha="c" * 40,
+            )
+        # A verifier that raises also fails closed.
+        def raising_verifier(sha):
+            raise RuntimeError("spec manifest unreadable")
+
+        with self.assertRaises(ContractError):
+            LiveCoreResidualBackend(
+                ":memory:",
+                spec_version="1.0.0",
+                spec_head_sha="a" * 40,
+                spec_commit_verifier=raising_verifier,
+                impl_commit_sha="b" * 40,
+                impl_tree_sha="c" * 40,
+            )
+
+    def test_impl_identity_must_be_lowercase_hex(self):
+        with self.assertRaises(ContractError):
+            LiveCoreResidualBackend(
+                ":memory:",
+                spec_version="1.0.0",
+                spec_head_sha="a" * 40,
+                spec_commit_verifier=SPEC_VERIFIED,
+                impl_commit_sha="B" * 40,
+                impl_tree_sha="c" * 40,
+            )
+        with self.assertRaises(ContractError):
+            LiveCoreResidualBackend(
+                ":memory:",
+                spec_version="1.0.0",
+                spec_head_sha="a" * 40,
+                spec_commit_verifier=SPEC_VERIFIED,
+                impl_commit_sha="b" * 40,
+                impl_tree_sha="z" * 40,
+            )
+
+    def test_persistent_backend_restores_terminal_state_on_reopen(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = str(Path(temp) / "adapter.db")
+            backend = LiveCoreResidualBackend(
+                path,
+                spec_version="1.0.0",
+                spec_head_sha="a" * 40,
+                spec_commit_verifier=SPEC_VERIFIED,
+                impl_commit_sha="b" * 40,
+                impl_tree_sha="c" * 40,
+                gate_evaluator=lambda *args: Verdict.passed(),
+            )
+            backend.on_run_start("r-persist", "spec@1")
+            backend.on_module_call("r-persist", "llm:test", "call-1", "0" * 64)
+            backend.on_run_complete("r-persist", "success")
+            expected = backend.get_attestation("r-persist")
+            backend.close()
+
+            reopened = LiveCoreResidualBackend(
+                path,
+                spec_version="1.0.0",
+                spec_head_sha="a" * 40,
+                spec_commit_verifier=SPEC_VERIFIED,
+                impl_commit_sha="b" * 40,
+                impl_tree_sha="c" * 40,
+                gate_evaluator=lambda *args: Verdict.passed(),
+            )
+            self.assertEqual(reopened.get_attestation("r-persist"), expected)
+            with self.assertRaises(LedgerWriteError):
+                reopened.on_run_start("r-persist", "spec@1")
+
+    def test_attestation_absent_before_terminal(self):
+        backend = self.backend()
+        backend.on_run_start("r-open", "spec@1")
+        with self.assertRaises(AttestationError):
+            backend.get_attestation("r-open")
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
