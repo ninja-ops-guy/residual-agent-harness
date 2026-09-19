@@ -31,3 +31,15 @@ test('Mission Control diagnostics mounts the debugger and the WebVM installer sh
   const mission=readFileSync(new URL('../demo/vm/mission-control.js',import.meta.url),'utf8');
   assert.match(diagnostics,/mission-control-timetravel\.js/);assert.match(diagnostics,/mountTimeTravelDebug\(root,diagnostics\)/);assert.match(installer,/mission-control-timetravel\.js/);
 });
+
+
+test('time travel dashboard exposes the interactive 16-bit controls',()=>{
+  const source=readFileSync(new URL('../demo/vm/mission-control-timetravel.js',import.meta.url),'utf8');
+  assert.match(source,/CLICK DELOREAN TO ENTER TIMELINE/);
+  assert.match(source,/JUMP TO FAILURE/);
+  assert.match(source,/JUMP TO EVIDENCE/);
+  assert.match(source,/DIFF VIEW/);
+  assert.match(source,/image-rendering:pixelated/);
+  assert.match(source,/radial-gradient\(#9dffb2/);
+  assert.match(source,/READ-ONLY RECONSTRUCTION/);
+});
