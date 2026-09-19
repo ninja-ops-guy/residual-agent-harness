@@ -14,6 +14,7 @@ import json
 import time
 import urllib.request
 import urllib.error
+import urllib.parse
 from dataclasses import dataclass, field
 from typing import Any, Callable, Protocol, runtime_checkable
 
@@ -50,11 +51,26 @@ class Transport(Protocol):
         ...
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Fail closed on redirects so trusted connector origins cannot pivot."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise urllib.error.HTTPError(
+            req.full_url, code, "redirect refused", headers, fp
+        )
+
+
 class UrllibTransport:
     """Real HTTP transport built on urllib. Implements ENT6-R7."""
 
     def __init__(self, timeout: float = 30.0):
         self.timeout = timeout
+        # Ignore ambient proxy configuration and never follow redirects. Both
+        # properties matter for SSRF: a connector bound to one reviewed origin
+        # must not be silently rerouted through a proxy or 30x target.
+        self.opener = urllib.request.build_opener(
+            urllib.request.ProxyHandler({}), _NoRedirect()
+        )
 
     def request(self, method: str, url: str, body: Any = None,
                 headers: dict[str, str] | None = None) -> TransportResponse:
@@ -62,7 +78,7 @@ class UrllibTransport:
         req = urllib.request.Request(url, data=data, method=method.upper(),
                                      headers=headers or {})
         try:
-            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+            with self.opener.open(req, timeout=self.timeout) as resp:
                 raw = resp.read().decode("utf-8")
                 parsed = json.loads(raw) if raw else None
                 return TransportResponse(resp.status, parsed,
@@ -162,7 +178,23 @@ class IntegrationConnector:
                  clock: Callable[[], float] = time.perf_counter):
         if not isinstance(base_url, str) or not base_url:
             raise ContractError("connector base_url must be nonempty")
-        self.base_url = base_url.rstrip("/")
+        parsed = urllib.parse.urlsplit(base_url)
+        if (
+            parsed.scheme not in {"http", "https"}
+            or not parsed.hostname
+            or parsed.username
+            or parsed.password
+            or parsed.query
+            or parsed.fragment
+            or any(ord(ch) < 33 for ch in base_url)
+        ):
+            raise ContractError(
+                "connector base_url must be an HTTP(S) origin/path without "
+                "credentials, query, fragment, or control characters"
+            )
+        self.base_url = urllib.parse.urlunsplit(
+            (parsed.scheme.lower(), parsed.netloc, parsed.path.rstrip("/"), "", "")
+        )
         self.token = token
         self.transport = transport or UrllibTransport()
         self.clock = clock
@@ -173,7 +205,18 @@ class IntegrationConnector:
     def call(self, method: str, path: str, body: Any = None,
              headers: dict[str, str] | None = None) -> TransportResponse:
         """Perform one observed API call. Implements ENT6-R7."""
-        url = path if path.startswith("http") else self.base_url + path
+        if (
+            not isinstance(path, str)
+            or not path.startswith("/")
+            or path.startswith("//")
+            or "\\" in path
+            or any(ord(ch) < 33 for ch in path)
+        ):
+            raise ContractError("connector endpoint must be a safe origin-relative path")
+        endpoint = urllib.parse.urlsplit(path)
+        if endpoint.scheme or endpoint.netloc:
+            raise ContractError("connector endpoint must not override the configured origin")
+        url = self.base_url + path
         merged = {"Content-Type": "application/json"}
         if self.token:
             merged["Authorization"] = f"Bearer {self.token}"
