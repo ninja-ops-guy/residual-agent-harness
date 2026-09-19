@@ -1,5 +1,6 @@
 """Bridge the uploaded provider contract into RESIDUAL's bounded runner interface."""
 from __future__ import annotations
+import json
 import os
 import time
 from ai_providers import ChatRequest, Message, Role, ProviderName, ProviderError, Router, Registry
@@ -92,7 +93,7 @@ class ModularProvider(Provider):
         def retain_attempt(value):
             # Snapshot only normalized Router receipts; raw provider bodies and
             # credentials never enter this record.
-            self.attempt_receipts.append(__import__('json').loads(canonical(value)))
+            self.attempt_receipts.append(json.loads(canonical(value)))
         reg=Registry();reg.register(self.kind,lambda:self.adapter)
         self.router=Router(registry=reg,default_provider=self.kind,observation_bus=observation_bus,after_attempt=retain_attempt)
     def request(self,packet,cap):
