@@ -33,12 +33,18 @@ Freeze:
     python -m residual.workbench arena freeze --manifest <manifest.json> \
       --model arena:<model-id> [--model arena:<model-id> ...] --output <lock.json>
 
-Score:
+Run a frozen live protocol:
+
+    python -m residual.workbench arena run --lock <lock.json> --output <run-directory>
+
+Score an externally produced complete trace set:
 
     python -m residual.workbench arena score --lock <lock.json> \
       --traces <traces.jsonl> --output <report.json>
 
-The lock binds the workload, randomized schedule, model refs, conditions, source hashes, fallback policy, seed, and methodology before outcomes are inspected.
+The built-in live executor is intentionally narrow: exact-answer tasks, one raw single-call Arena control, and the same Arena model behind RESIDUAL's real obligation harness. It records transport/provider failures as `UNKNOWN` rather than task failures. More complex coding/tool benchmarks should implement a task/evaluator adapter against the same frozen schedule and trace contract.
+
+The lock binds the workload, randomized schedule, model refs, conditions, complete RESIDUAL/provider/observation source hashes, fallback policy, seed, and methodology before outcomes are inspected. Live execution refuses a changed source tree.
 
 ## Trace event vocabulary
 
