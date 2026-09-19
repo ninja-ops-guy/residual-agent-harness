@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Protocol
-from .runtime_journal import RuntimeJournal
+from .runtime_journal import RuntimeJournal\nfrom .studio_control import AuthoritativeStudioControl
 
 class ControlAdapter(Protocol):
     def control(self, action: str, payload: dict) -> dict: ...
@@ -74,14 +74,14 @@ class StudioHandler(BaseHTTPRequestHandler):
         except PermissionError as exc:self._json(403,{"ok":False,"error":str(exc)})
         except Exception:self._json(400,{"ok":False,"error":"control request rejected"})
 
-def serve(journal_path: str, trace_id: str, *, host="127.0.0.1", port=8765, token="", model="local", control_adapter=None):
+def serve(journal_path: str, trace_id: str, *, host="127.0.0.1", port=8765, token="", model="local", control_adapter=None, state_dir=None):
     journal=RuntimeJournal(journal_path,trace_id=trace_id)
-    handler=type("ConfiguredStudioHandler",(StudioHandler,),{"projection":StudioProjection(journal,model=model),"control_adapter":control_adapter or ReadOnlyControl(),"token":token})
+    handler=type("ConfiguredStudioHandler",(StudioHandler,),{"projection":StudioProjection(journal,model=model),"control_adapter":control_adapter or (AuthoritativeStudioControl(state_dir) if state_dir else ReadOnlyControl()),"token":token})
     server=ThreadingHTTPServer((host,port),handler)
     server.serve_forever()
 
 def main(argv=None):
     p=argparse.ArgumentParser(description="Local Residual Studio Factory API")
-    p.add_argument("--journal",required=True);p.add_argument("--trace-id",required=True);p.add_argument("--host",default="127.0.0.1");p.add_argument("--port",type=int,default=8765);p.add_argument("--model",default="local");p.add_argument("--token",default=os.environ.get("RESIDUAL_STUDIO_CONTROL_TOKEN",""))
-    a=p.parse_args(argv);serve(a.journal,a.trace_id,host=a.host,port=a.port,token=a.token,model=a.model)
+    p.add_argument("--journal",required=True);p.add_argument("--trace-id",required=True);p.add_argument("--host",default="127.0.0.1");p.add_argument("--port",type=int,default=8765);p.add_argument("--model",default="local");p.add_argument("--state-dir");p.add_argument("--token",default=os.environ.get("RESIDUAL_STUDIO_CONTROL_TOKEN",""))
+    a=p.parse_args(argv);serve(a.journal,a.trace_id,host=a.host,port=a.port,token=a.token,model=a.model,state_dir=a.state_dir)
 if __name__=="__main__": raise SystemExit(main())
