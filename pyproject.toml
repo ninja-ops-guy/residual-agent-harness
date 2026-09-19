@@ -14,6 +14,7 @@ dependencies = []
 marketplace = ["cryptography>=43"]
 factory = ["cryptography>=43", "PyYAML>=6"]
 test = ["pytest>=8", "PyYAML>=6"]
+enterprise = ["cryptography>=43", "PyYAML>=6", "psycopg[binary]>=3.2"]
 
 [project.scripts]
 residual = "residual.cli:main"
