@@ -12,7 +12,8 @@ from pathlib import Path
 from residual.core import strict_json
 from .compiler import RequirementCompiler
 from .models import ExecutionPlan, FrozenPlan
-from .runtime import FactoryRuntime\nfrom .runtime_journal import private_directory
+from .runtime import FactoryRuntime
+from .runtime_journal import private_directory
 
 class StudioControlError(RuntimeError): pass
 
@@ -25,7 +26,10 @@ class AuthoritativeStudioControl:
     @property
     def approval_path(self): return self.root/"approval.json"
     def _write(self,path:Path,value:dict):
-        data=(json.dumps(value,indent=2,sort_keys=True)+"\\n").encode("utf-8")\n        tmp=path.with_suffix(path.suffix+".tmp")\n        fd=os.open(tmp,os.O_WRONLY|os.O_CREAT|os.O_TRUNC|os.O_NOFOLLOW,0o600)\n        with os.fdopen(fd,"wb") as stream: stream.write(data);stream.flush();os.fsync(stream.fileno())\n        os.replace(tmp,path)
+        data=(json.dumps(value,indent=2,sort_keys=True)+"\n").encode("utf-8")
+        tmp=path.with_suffix(path.suffix+".tmp")\n        fd=os.open(tmp,os.O_WRONLY|os.O_CREAT|os.O_TRUNC|os.O_NOFOLLOW,0o600)
+        with os.fdopen(fd,"wb") as stream: stream.write(data);stream.flush();os.fsync(stream.fileno())
+        os.replace(tmp,path)
     def _plan(self)->ExecutionPlan:
         if not self.plan_path.exists(): raise StudioControlError("no compiled plan")
         return ExecutionPlan.from_dict(strict_json(self.plan_path.read_text(encoding="utf-8")))
