@@ -1,8 +1,10 @@
+import io
 import json
 import os
 import tempfile
 import unittest
 from pathlib import Path
+from contextlib import redirect_stdout
 from unittest.mock import patch
 
 from ai_providers import ChatRequest, ChatResponse, DEFAULT_REGISTRY, Message, ProviderName, Role
@@ -13,6 +15,7 @@ from residual.eval.arena import (
     extract_arena_aligned_signals,
 )
 from residual.modular import make_adapter, normalize_profile
+from residual.cli import main as residual_main
 from residual.eval_frozen.workload import development_workload
 from residual.workbench.arena_benchmark import freeze_protocol, score_protocol
 from residual.workbench.arena_live import run_protocol
@@ -35,6 +38,18 @@ def manifest(repeats=1):
 
 
 class ArenaIntegrationTests(unittest.TestCase):
+    def test_top_level_arena_setup_prints_direct_keys_page(self):
+        output = io.StringIO()
+        with redirect_stdout(output):
+            code = residual_main(["arena", "setup", "--print-only"])
+        self.assertEqual(code, 0)
+        payload = json.loads(output.getvalue())
+        self.assertEqual(
+            payload["keys_url"],
+            "https://portal.api.preview.arena.ai/dashboard/keys",
+        )
+        self.assertFalse(payload["opened_browser"])
+
     def test_provider_is_closed_registered_and_modular(self):
         self.assertEqual(ProviderName("arena").value, "arena")
         self.assertIn("arena", DEFAULT_REGISTRY.names())
