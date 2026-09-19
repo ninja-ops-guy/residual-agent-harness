@@ -1,0 +1,418 @@
+{
+  "$id": "residual.determinism.bundle.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "backend": {
+      "additionalProperties": false,
+      "properties": {
+        "backend_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "backend_version": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "llm_adapter",
+            "browser_provider",
+            "sandbox_executor",
+            "fixture_harness",
+            "in_process_executor",
+            "other"
+          ]
+        }
+      },
+      "required": [
+        "backend_id",
+        "backend_version",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "bundle_id": {
+      "format": "uuid",
+      "type": "string"
+    },
+    "canonicalization": {
+      "additionalProperties": false,
+      "properties": {
+        "encoding": {
+          "const": "utf-8"
+        },
+        "float_policy": {
+          "enum": [
+            "exact_ieee754_hex",
+            "fixed_precision_decimal",
+            "tolerance"
+          ]
+        },
+        "float_tolerance": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "key_ordering": {
+          "const": "sorted_utf8_codepoint"
+        },
+        "newline": {
+          "const": "lf"
+        }
+      },
+      "required": [
+        "float_policy",
+        "key_ordering",
+        "encoding",
+        "newline"
+      ],
+      "type": "object"
+    },
+    "class_attempted": {
+      "enum": [
+        "D0",
+        "D1",
+        "D2",
+        "D3",
+        "D4"
+      ]
+    },
+    "envelope": {
+      "description": "Embedded PR #152 EvidenceEnvelope (residual.qualification.evidence.v1). envelope.source.{commit,tree} is the commit/tree binding; envelope.gate_id MUST equal 'determinism-<class-lowercase>-<backend_id>'; envelope.result MUST equal this bundle's result; envelope.skip_count/unknown_count MUST be 0 for class-entry bundles.",
+      "properties": {
+        "command": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "environment": {
+          "type": "object"
+        },
+        "evidence": {
+          "additionalProperties": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "finished_at": {
+          "type": "string"
+        },
+        "gate_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "non_claims": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "notes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "result": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "UNKNOWN",
+            "SKIP"
+          ]
+        },
+        "schema": {
+          "const": "residual.qualification.evidence.v1"
+        },
+        "skip_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "source": {
+          "properties": {
+            "commit": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "tracked_source_dirty": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "tree": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "commit",
+            "tree",
+            "tracked_source_dirty"
+          ],
+          "type": "object"
+        },
+        "started_at": {
+          "type": "string"
+        },
+        "unknown_count": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema",
+        "gate_id",
+        "result",
+        "started_at",
+        "finished_at",
+        "source",
+        "environment"
+      ],
+      "type": "object"
+    },
+    "equivalence": {
+      "additionalProperties": false,
+      "properties": {
+        "all_pairwise_equal": {
+          "type": "boolean"
+        },
+        "divergences": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "artifact": {
+                "type": "string"
+              },
+              "hash_a": {
+                "type": "string"
+              },
+              "hash_b": {
+                "type": "string"
+              },
+              "run_a": {
+                "type": "integer"
+              },
+              "run_b": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "run_a",
+              "run_b",
+              "artifact",
+              "hash_a",
+              "hash_b"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "relation": {
+          "enum": [
+            "canonical_bitwise",
+            "canonical_with_float_tolerance",
+            "semantic_declared"
+          ]
+        },
+        "semantic_relation_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "relation",
+        "all_pairwise_equal"
+      ],
+      "type": "object"
+    },
+    "negative_control": {
+      "additionalProperties": false,
+      "description": "REQUIRED non-null with performed=tamper_detected=true for D4 PASS",
+      "properties": {
+        "evidence_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "performed": {
+          "type": "boolean"
+        },
+        "tamper_detected": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "performed",
+        "tamper_detected"
+      ],
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "non_claims": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "predecessor_id": {
+      "description": "bundle_id this observation amends/supersedes; null starts a new observation line",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "result": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "UNKNOWN",
+        "SKIP"
+      ]
+    },
+    "runs": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "canonical_output_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "environment": {
+            "additionalProperties": false,
+            "properties": {
+              "container_image_digest": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "machine": {
+                "type": "string"
+              },
+              "platform": {
+                "type": "string"
+              },
+              "python": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "platform",
+              "machine",
+              "python"
+            ],
+            "type": "object"
+          },
+          "finished_at": {
+            "type": "string"
+          },
+          "network_disabled": {
+            "default": false,
+            "type": "boolean"
+          },
+          "output_hashes": {
+            "additionalProperties": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "minProperties": 1,
+            "type": "object"
+          },
+          "restart_generation": {
+            "default": 0,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "run_index": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "started_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_index",
+          "environment",
+          "output_hashes",
+          "canonical_output_sha256"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "schema": {
+      "const": "residual.determinism.bundle.v1"
+    },
+    "suite": {
+      "additionalProperties": false,
+      "properties": {
+        "excluded_fields": {
+          "description": "timestamps/UUIDs/other run-unique values excluded from the canonical comparison surface",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "input_hashes": {
+          "additionalProperties": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "description": "path -> sha256 of every canonical input",
+          "minProperties": 1,
+          "type": "object"
+        },
+        "seed": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "suite_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "suite_version": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "suite_id",
+        "suite_version",
+        "input_hashes",
+        "seed"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema",
+    "bundle_id",
+    "predecessor_id",
+    "backend",
+    "class_attempted",
+    "envelope",
+    "suite",
+    "runs",
+    "canonicalization",
+    "equivalence",
+    "result",
+    "non_claims"
+  ],
+  "title": "DeterminismQualificationBundle",
+  "type": "object"
+}

@@ -1,0 +1,110 @@
+{
+  "backend": {
+    "backend_id": "fixture-echo",
+    "backend_version": "0.0.0-fixture",
+    "kind": "fixture_harness"
+  },
+  "bundle_id": "3f6c2f10-1c8b-4c3a-9a2e-0d2f3f0a1b2c",
+  "canonicalization": {
+    "encoding": "utf-8",
+    "float_policy": "exact_ieee754_hex",
+    "float_tolerance": null,
+    "key_ordering": "sorted_utf8_codepoint",
+    "newline": "lf"
+  },
+  "class_attempted": "D2",
+  "envelope": {
+    "command": [
+      "python",
+      "-m",
+      "determinism_harness",
+      "--seed",
+      "20260918"
+    ],
+    "environment": {
+      "machine": "x86_64",
+      "platform": "Linux-6.8",
+      "python": "3.12.3"
+    },
+    "evidence": {
+      "runs/raw-run-0.json": "87a8321cc6c7dce3633660a699c37aafb410c4d49336b046802dd934cf8ab782",
+      "runs/raw-run-1.json": "e12a7d772d3f2bf92b7e959c88ad0467535d7d5a3a28ff0465b511fd8e4de6a4"
+    },
+    "finished_at": "2026-09-18T00:00:05Z",
+    "gate_id": "determinism-d2-fixture-echo",
+    "non_claims": [],
+    "notes": [],
+    "result": "PASS",
+    "schema": "residual.qualification.evidence.v1",
+    "skip_count": 0,
+    "source": {
+      "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "tracked_source_dirty": false,
+      "tree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "started_at": "2026-09-18T00:00:00Z",
+    "unknown_count": 0
+  },
+  "equivalence": {
+    "all_pairwise_equal": true,
+    "divergences": [],
+    "relation": "canonical_bitwise",
+    "semantic_relation_ref": null
+  },
+  "negative_control": null,
+  "non_claims": [
+    "Fixture harness evidence only; no claim about any production backend."
+  ],
+  "predecessor_id": null,
+  "result": "PASS",
+  "runs": [
+    {
+      "canonical_output_sha256": "0deeb8fa1dbbee4c0dbe7f5e3c9183940139f26d22797ee8ab07c00557a4c2ff",
+      "environment": {
+        "container_image_digest": null,
+        "machine": "x86_64",
+        "platform": "Linux-6.8-x86_64",
+        "python": "3.12.3"
+      },
+      "finished_at": "2026-09-18T00:00:00Z",
+      "network_disabled": false,
+      "output_hashes": {
+        "stdout.txt": "990179ec5064cf7956be1bf2364843b0a58b519e5d88a398f6027970ddeb0eb1"
+      },
+      "restart_generation": 0,
+      "run_index": 0,
+      "started_at": "2026-09-18T00:00:00Z"
+    },
+    {
+      "canonical_output_sha256": "0deeb8fa1dbbee4c0dbe7f5e3c9183940139f26d22797ee8ab07c00557a4c2ff",
+      "environment": {
+        "container_image_digest": null,
+        "machine": "x86_64",
+        "platform": "Linux-6.8-x86_64",
+        "python": "3.12.3"
+      },
+      "finished_at": "2026-09-18T00:00:01Z",
+      "network_disabled": false,
+      "output_hashes": {
+        "stdout.txt": "6776128287ef2cb8ead79828e5b76f6eefbd55378c32a6f8a594785c5e0e5997"
+      },
+      "restart_generation": 0,
+      "run_index": 1,
+      "started_at": "2026-09-18T00:00:01Z"
+    }
+  ],
+  "schema": "residual.determinism.bundle.v1",
+  "suite": {
+    "excluded_fields": [
+      "started_at",
+      "finished_at",
+      "run_uuid"
+    ],
+    "input_hashes": {
+      "inputs/prompt.txt": "cf07194ee232eb531e15f690000d19846dea69cf05504782658afcfacb9228a2"
+    },
+    "seed": 20260918,
+    "suite_id": "fixture-echo-suite",
+    "suite_version": "1.0.0"
+  }
+}
