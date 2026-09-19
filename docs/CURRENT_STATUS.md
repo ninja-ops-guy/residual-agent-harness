@@ -13,11 +13,13 @@ Two recent governance/qualification repairs are now accepted:
 - **#275 / #268** — #275 repaired publication of the protected `maintainer-approval` result onto the exact live PR head after explicit exact-head human attestation; #268 is closed. This changes repository governance plumbing only and does not widen worker, verifier, Factory/M4, provider, evidence-schema or acceptance authority.
 - **#276 / #267** — #276 removed the production Pages `push.paths` bypass that allowed some merged-main revisions to receive no authoritative Pages qualification attempt; #267 is closed. Every new `main` SHA is now expected to receive its own non-cancelling first production Pages attempt.
 
-The first authoritative production Pages attempt for exact current main is **run `35410875305`, attempt 1, and it is FAIL**. Generated desktop+narrow browser proof passed. Deployment itself passed. Published live acceptance then failed at **`Verify published WebVM revision and real guest execution`**, and the subsequent published narrow-browser acceptance was skipped. The workflow retained the live proof artifact. This is production Pages qualification **FAIL for `main@e7b72ad...`**. The accessible retained workflow metadata does **not** establish the lower-level cause and does not establish a paid/live Puter, authentication, model-quality, Factory or M4 failure.
+The first authoritative production Pages attempt for exact current main is **run `35410875305`, attempt 1, and it is FAIL**. Generated desktop+narrow browser proof passed. Deployment itself passed. Published live acceptance then failed at **`Verify published WebVM revision and real guest execution`**, and the subsequent published narrow-browser acceptance was skipped. The workflow retained the live proof artifact. This is production Pages qualification **FAIL for `main@e7b72ad...`**. The retained run proves the failure stage; it does not establish a paid/live Puter or model-quality failure.
+
+Open **#260** is now reconciled onto exact current main at head `2a9455ee1c2001306521946e61376fae153211ad` as the focused provider-bootstrap race repair. Its exact-head technical workflows are **PASS**, including PR-head Pages, Browser VM, Controller/provider, Command Station, clean install, Factory ownership, Control Plane and measured-evaluation binding. The protected maintainer-approval workflow remains **FAIL** because no new exact-head maintainer attestation exists, and the retained triage also calls for fresh independent technical acceptance on the moved head if required by #260's governing criteria. #260 is therefore **HOLD / unaccepted**. Its PR-head PASS does not change the retained production Pages **FAIL** on current `main`; if #260 is later accepted unchanged, the resulting new main SHA's first automatic production Pages run is authoritative.
 
 Exact-current-main automated evidence is therefore mixed rather than globally green. Controller/provider, Command Station and Factory ownership workflows have retained **PASS** results for their named exact-main scopes, while production Pages is **FAIL**. A PASS in one named gate does not override a FAIL in another.
 
-Repository qualification infrastructure also remains under operational pressure. **#305 is open** with a retained snapshot of 1,267 queued Actions runs and 15 in progress at 2026-09-18T21:44Z. **#307** is an unmerged candidate to reduce duplicate feature-branch push fan-out while preserving non-cancelling production evidence. Queue pressure does not convert missing/queued qualification into PASS and does not erase retained first-attempt failures.
+The acute Actions queue saturation captured by **#305** has cleared operationally: the retained issue update reports **0 queued runs** on 2026-09-19, down from earlier snapshots of 1,291/970 and the original 1,267 queued. #305 remains open because the structural duplicate-trigger/concurrency repair **#307** is still unmerged. Queue recovery is not evidence that the trigger defect is fixed, and it does not erase any first-attempt failures.
 
 ## Accepted current-main changes relevant to claims
 
@@ -60,12 +62,26 @@ Claim discipline:
 
 - exact-current-main production Pages: **FAIL**;
 - exact failure stage: **known at published live guest verification**;
-- exact lower-level root cause: **UNKNOWN from the currently inspected retained metadata**;
+- retained triage points to the already-identified provider bootstrap click race as the focused repository repair target, but #260 remains unaccepted;
 - paid/live Puter success: **UNKNOWN / not established**;
 - provider/model quality in this failed run: **UNKNOWN / not established**;
 - physical heavyweight-WebVM iPhone reliability: **UNKNOWN / unqualified**.
 
 Do not rerun the unchanged failed revision merely to manufacture a green first attempt. A repair must land on a new exact revision and that revision must receive its own authoritative production attempt.
+
+### Current repair candidate: #260
+
+#260 is based on current `main@e7b72ad...` at exact head **`2a9455ee1c2001306521946e61376fae153211ad`**. Its diff remains limited to the provider bootstrap change plus regression coverage. Fresh exact-head technical workflows are green, including **Deploy GitHub Pages run `35412156544`**, Browser VM Demo CI, Controller/provider, Command Station, clean install, Factory ownership, Control Plane, measured-evaluation binding and the advisory PR Agent review.
+
+The protected **Maintainer approval gate run `35412156574` is FAIL** because no fresh exact-head maintainer attestation exists. Therefore:
+
+- #260 exact-head technical qualification: **PASS in the named PR-head scopes**;
+- #260 maintainer approval: **FAIL / pending new exact-head human attestation**;
+- #260 accepted into `main`: **NO**;
+- current-main production Pages result: still **FAIL**;
+- post-merge production qualification for a hypothetical future #260 merge: **UNKNOWN / not run**.
+
+Historical technical acceptance on the older `fadf493...` head is not reused for the moved head.
 
 ## Live-provider boundary
 
@@ -120,7 +136,7 @@ Important retained cells include:
 
 Open #265 and the Metric Registry/derivation-graph work are trust infrastructure for this research line. General autonomous discovery remains **UNKNOWN / not established**. **M6-008 remains BLOCKED** until its required positive semantic/derivation admission gates are actually satisfied.
 
-Newer draft work such as **#299/#300** (semantic custody / derivation graph), **#293** (M7 governed recursive mission), **#313** (A2A feasibility spike) and **#314** (Vector/Wire-Pod verified-learning experiment) is explicitly unaccepted experimental work. It does not change accepted production capability or authorize self-merge/self-promotion.
+Newer draft work such as **#299/#300** (semantic custody / derivation graph), **#293** (M7 governed recursive mission), **#313** (A2A feasibility spike), **#314** (Vector/Wire-Pod verified-learning experiment), **#316** (RAC evidence-gated improvement StationModule) and **#317** (RESIDUAL-RT bounded-authority adversary-emulation research) is explicitly unaccepted experimental work. #316's current exact head has green named workflows including maintainer approval, while #317's technical workflows are green and maintainer approval is **FAIL**; both remain draft/unmerged and therefore do not change accepted production capability or authorize self-merge/self-promotion.
 
 ## Stress-campaign governance blockers
 
@@ -134,12 +150,12 @@ These results block stronger claims that budget/usage/verifier terminal state al
 
 ## Current priority blockers
 
-1. **Production Pages:** diagnose and repair run `35410875305` on a new revision; retain the exact-current-main FAIL and require a fresh first production attempt after any repair lands.
+1. **Production Pages:** retain current-main run `35410875305` as **FAIL**. #260 is technically green on its exact PR head but remains **HOLD** pending exact-head maintainer attestation and any required fresh independent technical acceptance; if it later lands, require the new main SHA's own first production attempt.
 2. **Accounting/release ordering:** repair and requalify the #207/#208/#212 authority-ordering failures before making stronger fail-closed release claims.
 3. **Live provider:** retain a fresh exact-deployed-revision real-account Puter candidate→verifier→receipt success, or keep paid/live success `UNKNOWN`.
 4. **WebVM reliability:** continue #120/#126 investigation and physical validation without promoting fallback success into heavyweight reliability.
 5. **Release qualification:** complete true blank-environment install, recovery/host-loss qualification and selected elapsed soak for an exact release artifact.
-6. **Actions queue:** #305 remains open; #307 is unmerged. Reduce fan-out without cancelling or weakening required first-attempt evidence.
+6. **CI fan-out:** the acute #305 queue backlog has drained to zero, but #307 remains unmerged; structural duplicate-trigger/concurrency prevention is not yet accepted.
 7. **M6/M7:** preserve PASS/FAIL/UNKNOWN/BLOCKED boundaries; general autonomous discovery/recursive self-improvement remain unestablished and M6-008 remains blocked.
 8. **Protected sequences:** keep #139→ownership-baseline→fresh-qualification→#134 and Qualification-v1 work independent from unrelated green hosted CI.
 
