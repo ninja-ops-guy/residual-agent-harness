@@ -65,7 +65,7 @@ The predecessor `aeba9962...` remains retained exact-revision evidence: `RESIDUA
 
 Because current #152 moves protected Factory/fixture/ownership evidence, it requires explicit trust-boundary review, fresh exact-head qualification, protected maintainer approval, and merge authority. It must not be auto-merged or treated as accepted Factory/M4 qualification. Earlier #152 results remain historical exact-head evidence only.
 
-## Provider/runtime adapters and nested-runtime research
+## Provider/runtime adapters, nested-runtime research, and Wiki candidate
 
 Open **#340** contains the implementation-only Moonshot/Kimi and Kimi Claw/OpenClaw provider/runtime adapter work. It is branch-only and **UNACCEPTED**; no current-main provider capability or live-provider quality claim changes because of it.
 
@@ -73,7 +73,7 @@ Draft **#341**, `EXP-NESTED-SWARM-001`, contains the research/evaluation materia
 
 Draft **#344** remains **DRAFT / UNACCEPTED** at exact head **`1b5b183edc7fd78093f8140dddf9ecc4a4c0f1d0`**. It proposes Arena provider transport plus the local Arena-aligned paired benchmark scaffold **`AX-ARENA-01`**. At that exact head, Control Plane, Factory ownership, Controller/provider, clean install, measured-evaluation and Command Station workflows are **PASS**; protected maintainer approval is **FAIL**, PR-Agent advisory is **FAIL**, and Vercel is **FAIL due deployment rate limiting**. The repository does not claim official Agent Arena participation, an official Arena score, accepted Arena-provider capability, or comparative RESIDUAL-vs-control benefit from this branch. Its checked-in development fixture and benchmark apparatus remain availability only, not paper-facing outcome evidence.
 
-Draft **#345** is a new **DRAFT / UNACCEPTED** Aircloud provider candidate at exact head **`843eb182ba36269f3f0d2bfb5be0aac44a8ceb40`**. At that exact head, Control Plane, Factory ownership, Controller/provider, clean install, measured-evaluation and Command Station workflows are **PASS**; protected maintainer approval is **FAIL**, PR-Agent publication verification is **FAIL**, and Vercel is **FAIL due deployment rate limiting**. These branch-only results do not establish accepted current-main Aircloud runtime capability, live-provider semantic success, or provider quality.
+Draft **#345** is a new **DRAFT / UNACCEPTED** RESIDUAL Wiki + setup-agent candidate at exact head **`2a16fe4c05deea6a3f3827cb6f4c99ec2bf28408`**. It keeps `docs/` as the canonical documentation source while adding Station Wiki/search/viewer/grounded setup-agent surfaces and repository-shipped declarative setup skills. At that exact head, Control Plane, clean install, Factory ownership, measured-evaluation, Factory runtime evidence, Factory OS execution evidence, Command Station, Controller/provider contracts, and the PR-head GitHub Pages workflow are **PASS**; protected maintainer approval is **FAIL**, PR-Agent advisory is **FAIL**, and Vercel is **FAIL due deployment rate limiting**. These branch-only results do not establish accepted current-main Wiki/setup-agent capability or authority to execute documentation-derived instructions.
 
 ## Accepted authority repair and retained stress evidence
 
@@ -112,7 +112,6 @@ Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440
 Accepted provider/session/bootstrap/publication changes and open provider candidates do not substitute for fresh live semantic evidence. Therefore:
 
 - successful paid/live provider candidate→verifier→receipt execution on exact current main: **UNKNOWN / not established**;
-- accepted Aircloud provider runtime capability: **UNKNOWN / not established**;
 - candidate correctness for the historical failed calls: **UNKNOWN**;
 - model quality implied by Pages or provider-contract CI: **UNKNOWN / not established**.
 
@@ -152,14 +151,14 @@ General autonomous discovery and recursive self-improvement remain **UNKNOWN / n
 
 1. **Preserve the exact-current-main Pages PASS without broadening it.** Run `35452581203` attempt 1 is authoritative for `2f9dda38...`; predecessor FAILs remain evidence. Continue #120/#126/#335 reliability work without treating one green revision as long-run reliability proof.
 2. **Freshly qualify and explicitly review #152's current protected head.** Exact head `061910c5...` changes Factory source, expected-Factory fixture bytes and the ownership baseline, so its present status is UNKNOWN until exact-head evidence is published. Preserve predecessor `aeba9962...` run `35448856959` as historical FAIL evidence rather than inheriting it onto the new head.
-3. **Keep #340, #341, #344 and #345 separated and bounded.** #340 is unaccepted provider implementation work; #341 is draft research-only nested-runtime work; #344 is a draft Arena-provider plus Arena-aligned benchmark scaffold; #345 is a draft Aircloud-provider candidate. None changes accepted current-main capability or scientific conclusions until its own governance/evidence path is satisfied.
+3. **Keep #340, #341, #344 and #345 separated and bounded.** #340 is unaccepted provider implementation work; #341 is draft research-only nested-runtime work; #344 is a draft Arena-provider plus Arena-aligned benchmark scaffold; #345 is a draft Wiki/setup-agent candidate. None changes accepted current-main capability or scientific conclusions until its own governance/evidence path is satisfied.
 4. **Requalify repaired authority ordering** against accepted #288 before broadening budget/unknown-usage/release-ordering claims.
 5. **Rebase/requalify #323** before M6-WB-001 can run authoritatively.
 6. **Validate #320 in production** before calling production CSP/anti-clickjacking response-header remediation PASS.
 7. **Retain fresh live-provider semantic evidence** or keep exact-current-main paid/live provider success UNKNOWN.
 8. **Complete blank-environment, recovery/host-loss, elapsed-soak and physical/mobile reliability work** without broadening bounded results.
 9. **Keep research claims bounded.** General recursive self-improvement and general mesh efficiency remain UNKNOWN; M6-008 remains BLOCKED.
-10. **Retain governance gaps explicitly.** #338's failed PR-Agent advisory due provider-credit exhaustion is not substantive review evidence; draft provider branches with failed approval/advisory gates remain unaccepted regardless of scoped technical greens.
+10. **Retain governance gaps explicitly.** #338's failed PR-Agent advisory due provider-credit exhaustion is not substantive review evidence; draft candidates with failed approval/advisory gates remain unaccepted regardless of scoped technical greens.
 
 ## Documentation scope for this reconciliation
 
@@ -178,4 +177,4 @@ The focused documentation PR remains limited to `README.md`, `HARNESS.md`, `docs
 - A partial PASS inside a required multi-stage gate does not override that gate's terminal FAIL.
 - A merge accepts repository bytes; it does not automatically establish every security, live-provider, physical-device, scientific, release, or independent-review claim associated with them.
 
-The repository does not currently claim blanket production readiness, universal worker correctness, every-host M4 qualification, successful exact-current-main paid/live provider execution, completed blank-environment/recovery/soak qualification, physical heavyweight-WebVM iPhone reliability, production Vercel security-header validation, substantive PR-Agent advisory review for #338, accepted Arena/AX-ARENA capability or comparative result, accepted Aircloud provider capability, current exact-head Qualification-v1 PASS or FAIL for #152 at `061910c5...`, general autonomous recursive self-improvement, general cooperative mesh efficiency, or proof of the central live-model reliability hypothesis.
+The repository does not currently claim blanket production readiness, universal worker correctness, every-host M4 qualification, successful exact-current-main paid/live provider execution, completed blank-environment/recovery/soak qualification, physical heavyweight-WebVM iPhone reliability, production Vercel security-header validation, substantive PR-Agent advisory review for #338, accepted Arena/AX-ARENA capability or comparative result, accepted RESIDUAL Wiki/setup-agent capability, current exact-head Qualification-v1 PASS or FAIL for #152 at `061910c5...`, general autonomous recursive self-improvement, general cooperative mesh efficiency, or proof of the central live-model reliability hypothesis.
