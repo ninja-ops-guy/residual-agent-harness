@@ -7,6 +7,10 @@ binds evidence to the authenticated caller.
 """
 
 from .auth import CopilotIdentityVerifier, CopilotPrincipal
+from .departments import DepartmentGroups, department_catalog
+from .entra import EntraDeploymentConfig, EntraJWKSProvider, MicrosoftGraphGroupResolver
+from .hitl import CopilotExternalWriteGate, ExternalWriteApproval, ExternalWriteIntent
+from .sandbox_build import BuildCommand, BuildProfile, BuildProfileCatalog, FirmwareSandboxBuildWorker
 from .backend import EncryptedMissionQueueBackend, QueuedMissionWork
 from .resources import RepositoryCatalog, RepositoryResource, RepositorySnapshot
 from .worker import FirmwareAnalysisResult, FirmwareRepositoryAnalysisWorker
@@ -34,6 +38,18 @@ from .gateway import (
 )
 
 __all__ = [
+    "department_catalog",
+    "MicrosoftGraphGroupResolver",
+    "FirmwareSandboxBuildWorker",
+    "ExternalWriteIntent",
+    "ExternalWriteApproval",
+    "EntraJWKSProvider",
+    "EntraDeploymentConfig",
+    "DepartmentGroups",
+    "CopilotExternalWriteGate",
+    "BuildProfileCatalog",
+    "BuildProfile",
+    "BuildCommand",
     "APIResponse",
     "CopilotAPI",
     "CopilotAccessError",
