@@ -1,26 +1,21 @@
 "use client";
-import {useMemo,useState} from "react";
+import {useEffect,useMemo,useState} from "react";
 import Editor from "@monaco-editor/react";
-
-type Worker={id:string;role:string;state:"running"|"verified"|"blocked"|"idle";task:string;receipt?:string};
-const workers:Worker[]=[
-{id:"coord-01",role:"Coordinator",state:"running",task:"Plan ready frontier"},
-{id:"worker-01",role:"Worker",state:"verified",task:"Implement auth boundary",receipt:"wr:8f91…"},
-{id:"worker-02",role:"Worker",state:"running",task:"Add scheduler tests"},
-{id:"worker-03",role:"Worker",state:"blocked",task:"Await WorkerReceipt dependency"},
-{id:"verify-01",role:"Verifier",state:"running",task:"Acceptance + security checks"}];
+import {FactorySnapshot,fallbackSnapshot} from "../lib/factory";
 const tree=["residual/","  factory/","    runtime.py","    evidence_receipts.py","    m4_integrator.py","tests/","  test_factory_runtime.py","docs/"];
-const sample=`from residual.factory import FactoryRuntime\n\n# Studio edits remain subordinate to the approved ExecutionPlan.\ndef run_factory(plan, approval):\n    runtime = FactoryRuntime()\n    return runtime.execute(plan, approval)\n`;
+const sample=`from residual.factory import FactoryRuntime\n\n# Studio remains subordinate to the approved ExecutionPlan.\ndef run_factory(plan, approval):\n    runtime = FactoryRuntime()\n    return runtime.execute(plan, approval)\n`;
 export default function StudioShell(){
- const [tab,setTab]=useState("Editor"); const [selected,setSelected]=useState("runtime.py");
- const verified=useMemo(()=>workers.filter(w=>w.state==="verified").length,[]);
+ const [tab,setTab]=useState("Terminal"),[selected,setSelected]=useState("runtime.py"),[snapshot,setSnapshot]=useState<FactorySnapshot>(fallbackSnapshot),[connected,setConnected]=useState(false);
+ async function refresh(){try{const r=await fetch("/api/factory/snapshot",{cache:"no-store"});const j=await r.json();if(j.connected&&j.snapshot){setSnapshot(j.snapshot);setConnected(true)}else setConnected(false)}catch{setConnected(false)}}
+ useEffect(()=>{refresh();const timer=setInterval(refresh,5000);const es=new EventSource("/api/factory/events");es.onmessage=e=>{try{const next=JSON.parse(e.data);if(next.snapshot)setSnapshot(next.snapshot);else setSnapshot(next);setConnected(true)}catch{}};es.onerror=()=>setConnected(false);return()=>{clearInterval(timer);es.close()}},[]);
+ const pct=snapshot.total?Math.round(snapshot.accepted/snapshot.total*100):0; const verified=useMemo(()=>snapshot.workers.filter(w=>w.state==="verified").length,[snapshot]);
  return <main className="shell">
-  <header><div><b>RESIDUAL</b><span>STUDIO</span></div><div className="mission"><i/> FACTORY RUN · ACTIVE</div><button>Observer mode</button></header>
+  <header><div><b>RESIDUAL</b><span>STUDIO</span></div><div className="mission"><i className={connected?"live":"offline"}/> {snapshot.runId==="offline"?"FACTORY · DISCONNECTED":`FACTORY RUN · ${snapshot.status.toUpperCase()}`}</div><button>Observer mode</button></header>
   <section className="workspace">
-   <aside className="explorer"><h3>PROJECT</h3><div className="repo">residual-agent-harness <em>main*</em></div>{tree.map((x,i)=><button key={i} className={x.includes(selected)?"sel":""} onClick={()=>x.includes(".py")&&setSelected(x.trim())}>{x}</button>)}<div className="plan"><small>APPROVED PLAN</small><strong>9b74…c18e</strong><span>16 requirements · frozen</span></div></aside>
+   <aside className="explorer"><h3>PROJECT</h3><div className="repo">residual-agent-harness <em>main*</em></div>{tree.map((x,i)=><button key={i} className={x.includes(selected)?"sel":""} onClick={()=>x.includes(".py")&&setSelected(x.trim())}>{x}</button>)}<div className="plan"><small>APPROVED PLAN</small><strong>{snapshot.planHash.slice(0,12)}</strong><span>{snapshot.total} tasks · frozen</span></div></aside>
    <section className="editor"><nav><button className="active">{selected} ×</button><button>m4_integrator.py</button></nav><Editor height="100%" defaultLanguage="python" theme="vs-dark" value={sample} options={{minimap:{enabled:false},fontSize:14,fontLigatures:true,padding:{top:16},automaticLayout:true}}/></section>
-   <aside className="swarm"><div className="swarmHead"><div><small>SWARM CONTROL</small><h2>Factory Mission</h2></div><span>05:42</span></div><div className="progress"><div><span>11 / 16 accepted</span><span>69%</span></div><b><i/></b></div>{workers.map(w=><article key={w.id}><div className={"dot "+w.state}/><div><strong>{w.role}</strong><small>{w.id}</small><p>{w.task}</p>{w.receipt&&<code>{w.receipt}</code>}</div><span className={w.state}>{w.state}</span></article>)}<div className="metrics"><div><small>READY</small><b>3</b></div><div><small>BLOCKED</small><b>2</b></div><div><small>RECEIPTS</small><b>{verified+10}</b></div></div></aside>
+   <aside className="swarm"><div className="swarmHead"><div><small>SWARM CONTROL</small><h2>{snapshot.runId}</h2></div><span>{connected?"LIVE":"OFFLINE"}</span></div><div className="progress"><div><span>{snapshot.accepted} / {snapshot.total} accepted</span><span>{pct}%</span></div><b><i style={{width:pct+"%"}}/></b></div>{snapshot.workers.length?snapshot.workers.map(w=><article key={w.id}><div className={"dot "+w.state}/><div><strong>{w.role}</strong><small>{w.id}</small><p>{w.task}</p>{w.receipt&&<code>{w.receipt}</code>}</div><span className={w.state}>{w.state}</span></article>):<p className="empty">Connect RESIDUAL_FACTORY_API to observe live workers.</p>}<div className="metrics"><div><small>READY</small><b>{snapshot.ready}</b></div><div><small>BLOCKED</small><b>{snapshot.blocked}</b></div><div><small>RECEIPTS</small><b>{snapshot.receipts||verified}</b></div></div></aside>
   </section>
-  <section className="bottom"><nav>{["Terminal","Evidence","Receipts","Tests","Git","Timeline"].map(x=><button onClick={()=>setTab(x)} className={tab===x?"active":""} key={x}>{x}</button>)}</nav><div className="console"><code><span>$</span> residual factory status run-7fa2</code><p>plan <b>9b74…c18e</b> · workers 5 · accepted 11/16 · verifier retries 2</p><p className="ok">✓ evidence chain valid &nbsp; ✓ Station signatures valid &nbsp; ✓ source branch unchanged</p></div><div className="status"><span>LOCAL</span><span>qwen2.5-coder:7b</span><span>Evidence Bus ●</span><span>Station ●</span></div></section>
+  <section className="bottom"><nav>{["Terminal","Evidence","Receipts","Tests","Git","Timeline"].map(x=><button onClick={()=>setTab(x)} className={tab===x?"active":""} key={x}>{x}</button>)}</nav><div className="console"><code><span>$</span> residual factory status {snapshot.runId}</code><p>plan <b>{snapshot.planHash.slice(0,12)}</b> · workers {snapshot.workers.length} · accepted {snapshot.accepted}/{snapshot.total}</p><p className={connected?"ok":""}>{connected?"✓ live Factory snapshot · observation stream connected":"Factory backend not configured — editor remains usable in observer shell mode."}</p></div><div className="status"><span>{connected?"LOCAL · LIVE":"OFFLINE"}</span><span>{snapshot.model}</span><span>Evidence Bus {connected?"●":"○"}</span><span>Station {connected?"●":"○"}</span></div></section>
  </main>
 }
