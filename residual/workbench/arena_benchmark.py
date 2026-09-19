@@ -318,21 +318,27 @@ def score_protocol(lock, traces):
             key = (row["trace"].task_id, row["job"]["repeat"])
             pairs.setdefault(key, {})[row["trace"].condition] = row
         task_groups = {}
+        unknown_pairs = 0
         for (task_id, repeat), pair in pairs.items():
             if set(pair) != {"control", "residual"}:
                 raise ContractError("AX-ARENA paired observation missing condition")
+            if pair["residual"]["success"] is None or pair["control"]["success"] is None:
+                unknown_pairs += 1
+                continue
             delta = int(pair["residual"]["success"]) - int(pair["control"]["success"])
             task_groups.setdefault(task_id, []).append(delta)
         differences = [value for values in task_groups.values() for value in values]
         paired.append({
             "model": model,
-            "pairs": len(differences),
-            "tasks": len(task_groups),
-            "residual_minus_control_success_rate": statistics.mean(differences),
-            "task_cluster_bootstrap_95_interval": _cluster_bootstrap(
-                task_groups, lock["seed"] + model_index
+            "complete_pairs": len(differences),
+            "unknown_pairs": unknown_pairs,
+            "tasks_with_complete_pairs": len(task_groups),
+            "residual_minus_control_success_rate": statistics.mean(differences) if differences else None,
+            "task_cluster_bootstrap_95_interval": (
+                _cluster_bootstrap(task_groups, lock["seed"] + model_index)
+                if differences else None
             ),
-            "interpretation": "Descriptive paired harness-effect estimate; no automatic superiority claim.",
+            "interpretation": "Descriptive complete-pair harness-effect estimate; UNKNOWN pairs remain explicit and no automatic superiority claim is made.",
         })
 
     report = {
