@@ -35,7 +35,9 @@ class BwrapBackend:
         self._spec = spec
 
     def _wrap(self, argv: list[str]) -> list[str]:
-        if self._spec is None:\n            raise RuntimeError("sandbox not started")\n        spec = self._spec
+        if self._spec is None:
+            raise RuntimeError("sandbox not started")
+        spec = self._spec
         cmd = ["bwrap", "--die-with-parent", "--new-session", "--unshare-pid"]
         if spec.network is NetworkPolicy.DENY:
             cmd.append("--unshare-net")
