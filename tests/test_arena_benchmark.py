@@ -205,6 +205,8 @@ class ArenaIntegrationTests(unittest.TestCase):
             for task in development_workload().slice_tasks("evaluation")
         }
 
+        trace_counter = iter(range(1000))
+
         def fake_chat(_adapter, req):
             content = req.messages[-1].content
             try:
@@ -220,10 +222,18 @@ class ArenaIntegrationTests(unittest.TestCase):
                 )
             else:
                 text = answers[content]
+            trace_number = next(trace_counter)
             return ChatResponse(
                 req.model,
                 text,
                 usage={"prompt_tokens": 5, "completion_tokens": 1, "total_tokens": 6},
+                metadata={
+                    "arena_resolved_model": "model-a",
+                    "arena_trace_id": f"arena-test-trace-{trace_number}",
+                    "arena_fallback_used": False,
+                    "arena_fallback_index": None,
+                    "arena_fallback_reason": None,
+                },
             )
 
         with tempfile.TemporaryDirectory() as tmp:
