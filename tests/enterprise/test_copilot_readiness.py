@@ -5,7 +5,7 @@ import copy
 
 from residual.integrations.copilot_studio.demo import DemoExpectation, HybridEntraDemoHarness
 from residual.integrations.copilot_studio.deployment import EnterpriseCopilotDeployment
-from residual.integrations.copilot_studio.readiness import QualificationRecord,build_readiness_bundle,verify_readiness_bundle
+from residual.integrations.copilot_studio.readiness import QualificationRecord,build_readiness_bundle,verify_readiness_bundle,release_eligible
 from tests.enterprise.test_copilot_studio import auth,make_api,make_token,payload
 
 
@@ -50,9 +50,11 @@ def test_readiness_bundle_requires_exact_head_passes():
     bundle=build_readiness_bundle(
         head_sha=sha,deployment=d,qualifications=qs,
         scenarios=({"name":"hybrid-demo","passed":True},),
+        release_artifacts={"managed_solution_zip":"c"*64},
         known_limitations=("Live tenant import still requires environment-owned solution export.",),
     )
     assert verify_readiness_bundle(bundle)
+    assert not release_eligible(bundle)
     tampered=copy.deepcopy(bundle); tampered["scenarios"][0]["passed"]=False
     assert not verify_readiness_bundle(tampered)
 
@@ -62,6 +64,20 @@ def test_failed_qualification_does_not_verify_ready_bundle():
     bundle=build_readiness_bundle(
         head_sha=sha,deployment=d,
         qualifications=(QualificationRecord("copilot-matrix",sha,"fail"),),
-        scenarios=(),
+        scenarios=({"name":"x","passed":False},),
+        release_artifacts={"managed_solution_zip":"d"*64},
     )
-    assert not verify_readiness_bundle(bundle)
+    assert verify_readiness_bundle(bundle)
+    assert not release_eligible(bundle)
+
+
+def test_release_eligible_requires_artifact_passed_scenarios_and_no_limitations():
+    d=_deployment(); sha="e"*40
+    bundle=build_readiness_bundle(
+        head_sha=sha,deployment=d,
+        qualifications=(QualificationRecord("copilot-matrix",sha,"pass"),),
+        scenarios=({"name":"hybrid-demo","passed":True},),
+        release_artifacts={"managed_solution_zip":"f"*64},
+    )
+    assert verify_readiness_bundle(bundle)
+    assert release_eligible(bundle)
