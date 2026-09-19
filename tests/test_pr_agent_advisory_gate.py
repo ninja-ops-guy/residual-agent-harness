@@ -26,6 +26,17 @@ class PRAgentAdvisoryGateTests(unittest.TestCase):
         self.assertIn('<!-- pr-agent:review:full -->', full_review)
         self.assertIn('failure/status comments do not satisfy this gate', self.workflow)
 
+    def test_bot_issue_comments_cannot_cancel_human_review_runs(self) -> None:
+        # Concurrency identity must distinguish pull_request vs issue_comment and
+        # User vs Bot senders. This prevents status bots from cancelling the
+        # advisory run before its job-level sender filter can reject the bot.
+        group_line = next(
+            line.strip() for line in self.workflow.splitlines() if line.strip().startswith("group: pr-agent-")
+        )
+        self.assertIn("github.event_name", group_line)
+        self.assertIn("github.event.sender.type", group_line)
+        self.assertIn("cancel-in-progress: true", self.workflow)
+
 
 if __name__ == "__main__":
     unittest.main()
