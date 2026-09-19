@@ -12,7 +12,7 @@ The documents under [`source/`](source/) preserve earlier design generations and
 | Command Station | Implemented; exact-revision workflow results remain authoritative |
 | Factory M2/M3/M4 | Implemented; protected claims remain exact-revision/environment bound and universal capable-runner qualification is not implied |
 | Station budget/deadline admission | #288 accepted; pre-dispatch runner/reviewer admission and exact run-control-bound export eligibility are current behavior; stronger repaired-path empirical claims still need fresh requalification |
-| Mission Control/WebVM lifecycle | Bounded recovery, diagnostics, iOS fallback and provider/session/bootstrap hardening are accepted; exact-current-main production Pages is currently **UNKNOWN / pending** while its first run is in progress |
+| Mission Control/WebVM lifecycle | Bounded recovery, diagnostics, iOS fallback and provider/session/bootstrap hardening are accepted; exact-current-main production Pages run `35431634267` attempt 1 is **PASS** for publication/browser/real-guest qualification |
 | Native setup path | #200 hardening is accepted; blank-environment qualification remains open |
 | Live provider acceptance | Historical retained Puter failure remains scoped to its exact run; exact-current-main paid/live candidate→verifier→receipt success remains **UNKNOWN** |
 | Frozen evaluation framework | Implemented research apparatus; CI binding is not confirmatory live-model evidence |
@@ -61,9 +61,12 @@ Accepted #276 requires every new `main` SHA to receive its own non-cancelling fi
 
 For `main@0a675017...`:
 
-- production Pages run **`35431634267`**, attempt 1: **UNKNOWN / pending** (`in_progress` at this snapshot);
-- Pages browser-proof job: **in progress**;
-- several exact-current-main test/qualification jobs: **PASS in their named scopes**;
+- production Pages run **`35431634267`**, attempt 1: **PASS**;
+- Pages `build-and-browser-proof`: **PASS**;
+- deployment: **PASS**;
+- published WebVM revision + real guest execution: **PASS**;
+- published narrow Chromium acceptance: **PASS**;
+- retained live proof artifact: `10580449851`, SHA-256 `ebdecf8e4055679933f1941f648d422d37a38ba5e4dad1f285967b83ccf684aa`;
 - Actions queued-run count at the current snapshot: **0**;
 - every-host/capable-runner M4 qualification: **not established**;
 - blank-environment install: **not established**;
@@ -72,7 +75,7 @@ For `main@0a675017...`:
 - production Vercel security-header validation: **UNKNOWN / pending**;
 - recovery/elapsed-soak qualification: **not established**.
 
-The earlier production Pages **FAIL** on `e7b72ad...` remains exact-revision historical evidence and is not the result for current main. A green PR-head gate likewise does not become current-main production evidence.
+The current Pages result is a scoped exact-revision PASS, not blanket production readiness or live-provider/model-quality evidence. The earlier production Pages **FAIL** on `e7b72ad...` remains exact-revision historical evidence and is not erased by the later PASS.
 
 ## Research and development state
 
@@ -125,19 +128,19 @@ Qualification-v1 work on its separate testing branch does not alter current prod
 
 ## Current build order
 
-1. **Finish exact-current-main production Pages.** Preserve run `35431634267`, attempt 1, as the authoritative first-attempt Pages result for `0a675017...` when it completes.
-2. **Requalify the repaired #288 authority path.** Retain fresh evidence for budget exhaustion, unknown usage, terminal verifier/release ordering and export binding before making stronger present-tense claims.
-3. **Rebase/requalify Research Workbench #323.** #288 is accepted; the remaining prerequisite is a fresh #323 base and qualification before M6-WB-001 can run authoritatively.
-4. **Validate #320 on production Vercel.** Inspect actual response headers and rerun the relevant security check; do not treat configuration merge alone as production-header PASS.
-5. **Finish the remaining #324 workflow hardening** independently of accepted #328 core source/runtime changes.
-6. **Retain fresh exact-current-deployed live-provider evidence.** A real-account Puter mission must cross protocol validation into ordinary candidate/verifier/receipt handling before live-provider success can become PASS.
-7. **Continue bounded M6 discovery/derivation and M6-MESH measurement** without promoting pilot results into product capability; keep M6-008 blocked until explicit gates are met.
-8. **Advance Residual Studio only through its bounded control boundary.** Keep authoritative Factory mutation and browser/control-plane state separate until their own gates pass.
-9. **Physically validate the #186 iOS fallback** without broadening fallback success into heavyweight-WebVM reliability.
-10. **Execute true blank-environment installation, recovery/host-loss qualification and selected elapsed soak** for the exact release artifact.
-11. **Continue #120/#126 WebVM reliability work** and preserve historical negative evidence.
-12. **Keep protected sequences independent.** Factory ownership/qualification paths must not inherit unrelated green CI.
-13. **Freeze confirmatory research before outcome access.** Preserve negative, blocked, unknown and missing cells.
+1. **Requalify the repaired #288 authority path.** Retain fresh evidence for budget exhaustion, unknown usage, terminal verifier/release ordering and export binding before making stronger present-tense claims.
+2. **Rebase/requalify Research Workbench #323.** #288 is accepted; the remaining prerequisite is a fresh #323 base and qualification before M6-WB-001 can run authoritatively.
+3. **Validate #320 on production Vercel.** Inspect actual response headers and rerun the relevant security check; do not treat configuration merge alone as production-header PASS.
+4. **Finish the remaining #324 workflow hardening** independently of accepted #328 core source/runtime changes.
+5. **Retain fresh exact-current-deployed live-provider evidence.** A real-account Puter mission must cross protocol validation into ordinary candidate/verifier/receipt handling before live-provider success can become PASS.
+6. **Continue bounded M6 discovery/derivation and M6-MESH measurement** without promoting pilot results into product capability; keep M6-008 blocked until explicit gates are met.
+7. **Advance Residual Studio only through its bounded control boundary.** Keep authoritative Factory mutation and browser/control-plane state separate until their own gates pass.
+8. **Physically validate the #186 iOS fallback** without broadening fallback success into heavyweight-WebVM reliability.
+9. **Execute true blank-environment installation, recovery/host-loss qualification and selected elapsed soak** for the exact release artifact.
+10. **Continue #120/#126 WebVM reliability work** and preserve historical negative evidence.
+11. **Keep protected sequences independent.** Factory ownership/qualification paths must not inherit unrelated green CI.
+12. **Freeze confirmatory research before outcome access.** Preserve negative, blocked, unknown and missing cells.
+13. **Preserve exact-main Pages evidence.** Keep run `35431634267`, attempt 1, as the exact-revision PASS for publication/browser/real-guest qualification without broadening it into provider/model, physical-device, M4, or blanket production claims.
 
 ## Release evidence rule
 

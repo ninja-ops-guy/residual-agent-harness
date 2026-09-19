@@ -28,7 +28,9 @@ Recent accepted engineering changes matter to interpretation but are not scienti
 
 None of these merges establishes the central research hypothesis, live-provider model quality, universal M4 qualification or a paper-facing effect size.
 
-Every current `main` SHA now receives its own non-cancelling production Pages attempt. Exact-current-main Pages run **`35431634267`**, attempt 1, is currently **UNKNOWN / pending** while still in progress. Earlier production Pages failure on `e7b72ad...` remains retained evidence for that exact revision only. Do not inherit either a predecessor FAIL or a PR-head PASS onto `0a675017...`.
+Every current `main` SHA now receives its own non-cancelling production Pages attempt. Exact-current-main Pages run **`35431634267`**, attempt 1, completed **PASS**: generated browser proof, deployment, published WebVM revision/real-guest execution, and narrow Chromium acceptance all passed. Retained live proof is artifact `10580449851`, SHA-256 `ebdecf8e4055679933f1941f648d422d37a38ba5e4dad1f285967b83ccf684aa`. Earlier production Pages failure on `e7b72ad...` remains retained evidence for that exact revision and is not erased.
+
+This production Pages PASS is release/browser qualification evidence only. It does not establish the central systems hypothesis, provider/model quality, physical heavyweight-WebVM reliability, or any paper-facing effect size.
 
 ## Real-model development evidence: #202
 
@@ -135,7 +137,7 @@ Merged #320 and #328 improve accepted engineering/security controls, but they do
 - #328 accepts the non-workflow core security hardening; the workflow credential-persistence portion remains open in #324.
 - scanner/vendor confidence is not scientific or repository acceptance evidence.
 
-Likewise, exact-current-main production Pages run `35431634267` is a release/qualification gate. Whether it eventually PASSes or FAILs does not by itself establish model quality or the research hypothesis.
+Likewise, exact-current-main production Pages run `35431634267` is a **PASS for its release/browser/real-guest qualification scope**. That PASS does not establish model quality or the research hypothesis.
 
 ## WebVM / provider research boundary
 

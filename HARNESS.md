@@ -63,7 +63,9 @@ Current `main` is **`0a675017a51f94e489528a607032e7463fbf7993`**, produced by me
 
 Accepted changes since the earlier documented boundary include **#307** (duplicate feature-branch CI fan-out repair), **#260** (provider bootstrap guard), **#288** (pre-dispatch Station budget/deadline admission and run-control-bound export eligibility), **#320** (repository-side CSP/anti-clickjacking policy), and **#328** (core non-workflow execution/egress/XML security hardening). These are bounded engineering/governance/security changes; none expands model, verifier, Factory/M4 or evidence-schema authority.
 
-Every current `main` SHA now receives its own non-cancelling production Pages attempt under accepted #276. Exact-current-main run **`35431634267`**, attempt 1, is currently **UNKNOWN / pending** because it is still in progress. Several exact-current-main test/qualification jobs have already completed **PASS** in their named scopes, but a partially completed gate set is not a global PASS. The earlier Pages **FAIL** on `e7b72ad...` remains historical exact-revision evidence only.
+Every current `main` SHA now receives its own non-cancelling production Pages attempt under accepted #276. Exact-current-main run **`35431634267`**, attempt 1, completed **PASS**. Its `build-and-browser-proof` job, deployment, published WebVM revision/real-guest execution check, and narrow Chromium acceptance all passed. Retained live proof is artifact `10580449851`, SHA-256 `ebdecf8e4055679933f1941f648d422d37a38ba5e4dad1f285967b83ccf684aa`. The earlier Pages **FAIL** on `e7b72ad...` remains historical exact-revision evidence and is not erased.
+
+This PASS is scoped to exact-revision publication/browser/real-guest qualification. It does not establish live provider/model quality, physical heavyweight-WebVM iPhone reliability, every-host M4 qualification, or blanket production readiness.
 
 The accepted #288 repair closes product issue #208. Historical #207/#212 stress/failure-matrix outcomes remain retained evidence and are not rewritten by the merge; any stronger budget/unknown-usage/release-ordering claim needs fresh qualification on the repaired revision.
 

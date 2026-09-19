@@ -24,14 +24,18 @@ Accepted #276 requires every new `main` SHA to receive its own non-cancelling fi
 
 For exact current main `0a675017...`:
 
-- production Pages run **`35431634267`**, attempt 1: **UNKNOWN / pending** — the workflow is still `in_progress` at this status check;
-- the Pages `build-and-browser-proof` job is also still **in progress**;
-- several exact-current-main test/qualification jobs have already completed **PASS** in their named scopes;
+- production Pages run **`35431634267`**, attempt 1: **PASS**;
+- `build-and-browser-proof`: **PASS**;
+- deployment: **PASS**;
+- published WebVM revision + real guest execution verification: **PASS**;
+- published narrow Chromium acceptance: **PASS**;
+- retained live proof artifact: **`10580449851`**, SHA-256 **`ebdecf8e4055679933f1941f648d422d37a38ba5e4dad1f285967b83ccf684aa`**;
+- retained generated browser proof artifact: **`10580818938`**, SHA-256 **`9ed51067d6fc7d1222edc9eec9c7a265d880e9a30f7080ba7f90ffe360627f06`**;
 - queued Actions runs: **0** at the current API snapshot.
 
-Do not convert the partially completed current-main gate set into a global PASS. The earlier production Pages run `35410875305` on `e7b72ad...` remains a retained **FAIL for that exact revision only**. It is not inherited as the result for `0a675017...`. Likewise, a PR-head PASS from #260 or any other predecessor revision is not current-main production evidence.
+This is an exact-revision **PASS for the production Pages publication/browser/real-guest qualification scope**. It is not a global production-readiness PASS and does not establish paid/live Puter inference, model quality, physical heavyweight-WebVM iPhone reliability, every-host M4 qualification, or unrelated trust-boundary claims.
 
-When run `35431634267` completes, its first-attempt result is the authoritative Pages evidence for this exact main SHA and must remain visible even if a later revision repairs a failure.
+The earlier production Pages run `35410875305` on `e7b72ad...` remains a retained **FAIL for that exact revision only**. It is not erased or reclassified by the current-main PASS. Likewise, PR-head success from predecessor revisions is not substituted for this main result.
 
 ## Accepted budget-authority repair and retained stress evidence
 
@@ -131,14 +135,14 @@ General autonomous discovery and recursive self-improvement remain **UNKNOWN / n
 
 ## Current priority gates
 
-1. **Finish exact-current-main Pages qualification.** Preserve run `35431634267` attempt 1 as the authoritative Pages result for `0a675017...` when it completes.
-2. **Requalify repaired authority ordering.** Retain fresh tests/experiments against accepted #288 before promoting stronger present-tense budget/unknown-usage/release-ordering claims.
-3. **Rebase/requalify #323.** Do not run the first authoritative Workbench trial until the branch is based on a main containing #288 and its required gates pass.
-4. **Validate #320 in production.** Inspect the production Vercel response headers and rerun the relevant security check before calling production CSP/anti-clickjacking remediation PASS.
-5. **Finish #324 workflow hardening.** Keep the open workflow credential-persistence changes separate from accepted #328 core hardening.
-6. **Retain fresh live-provider semantic evidence** or keep exact-current-main paid/live provider success UNKNOWN.
-7. **Complete blank-environment, recovery/host-loss, elapsed-soak and physical/mobile reliability work** without broadening bounded results.
-8. **Keep research claims bounded.** General recursive self-improvement and general mesh efficiency remain UNKNOWN; M6-008 remains BLOCKED.
+1. **Requalify repaired authority ordering.** Retain fresh tests/experiments against accepted #288 before promoting stronger present-tense budget/unknown-usage/release-ordering claims.
+2. **Rebase/requalify #323.** Do not run the first authoritative Workbench trial until the branch is based on a main containing #288 and its required gates pass.
+3. **Validate #320 in production.** Inspect the production Vercel response headers and rerun the relevant security check before calling production CSP/anti-clickjacking remediation PASS.
+4. **Finish #324 workflow hardening.** Keep the open workflow credential-persistence changes separate from accepted #328 core hardening.
+5. **Retain fresh live-provider semantic evidence** or keep exact-current-main paid/live provider success UNKNOWN.
+6. **Complete blank-environment, recovery/host-loss, elapsed-soak and physical/mobile reliability work** without broadening bounded results.
+7. **Keep research claims bounded.** General recursive self-improvement and general mesh efficiency remain UNKNOWN; M6-008 remains BLOCKED.
+8. **Preserve exact-main Pages evidence.** Keep run `35431634267`, attempt 1, as the scoped production Pages PASS for `0a675017...`; do not use that PASS to infer provider/model quality, physical-device reliability, every-host M4 qualification, or unrelated security claims.
 
 ## Claim discipline
 

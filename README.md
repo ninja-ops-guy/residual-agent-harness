@@ -32,9 +32,9 @@ Recent accepted changes relevant to current claims are deliberately scoped:
 - **#320** — adds repository-side CSP/anti-clickjacking hardening. Vercel can emit the configured response headers; GitHub Pages retains only the HTML CSP fallback because arbitrary repository-controlled response headers are not available there. Production Vercel response-header/Aikido validation remains **UNKNOWN / pending**.
 - **#328** — accepts the core, non-workflow split of the #324 security pass: kernel-enforced third-party execution isolation, connector SSRF/bearer hardening, hardened SAML XML parsing, and bounded marketplace/recovery/telemetry/demo-gateway changes with regression coverage. The separate workflow credential-persistence changes remain open under #324.
 
-Every new `main` SHA is required by the accepted #276 gate to receive its own non-cancelling first production Pages attempt. For exact current main, production Pages run **`35431634267`**, attempt 1, is currently **UNKNOWN / pending** while the workflow remains in progress. The earlier production Pages **FAIL** on `e7b72ad...` remains historical evidence for that exact revision; it is not inherited as the result for `0a675017...`, and no PR-head PASS is inherited either.
+Every new `main` SHA is required by the accepted #276 gate to receive its own non-cancelling first production Pages attempt. For exact current main, production Pages run **`35431634267`**, attempt 1, completed **PASS**. The `build-and-browser-proof` job passed, deployment passed, published WebVM revision plus real guest execution passed, and the narrow Chromium acceptance passed. Retained artifacts include `webvm-live-proof-35431634267-1` (`10580449851`, SHA-256 `ebdecf8e4055679933f1941f648d422d37a38ba5e4dad1f285967b83ccf684aa`) and `webvm-proof-35431634267-1` (`10580818938`, SHA-256 `9ed51067d6fc7d1222edc9eec9c7a265d880e9a30f7080ba7f90ffe360627f06`). The earlier production Pages **FAIL** on `e7b72ad...` remains historical evidence for that exact revision and is not erased by this PASS.
 
-Some exact-current-main test/qualification jobs have already completed **PASS** in their named scopes, while the production Pages/browser proof path is still running. Do not summarize the current revision as globally green until the required exact-revision gates finish.
+That exact-main Pages result is a **PASS only for its publication/browser/real-guest qualification scope**. It does not establish paid/live Puter inference, model quality, physical heavyweight-WebVM iPhone reliability, every-host M4 qualification, or blanket production readiness.
 
 Historical failures remain evidence even when later revisions pass.
 
@@ -103,14 +103,14 @@ python3 -m residual benchmark --output runs/benchmark.json
 
 ## Current priority gates
 
-1. Let exact-current-main production Pages run `35431634267` finish and preserve its first-attempt result as the authoritative Pages evidence for `0a675017...`; do not inherit the older `e7b72ad...` failure or any PR-head success.
-2. Requalify any stronger budget/unknown-usage/release-ordering claim that depended on the historical #207/#208/#212 failures against the accepted #288 repair; historical frozen failures remain visible.
-3. Rebase and requalify #323 on a main containing #288 before any first authoritative Research Workbench trial.
-4. Validate the merged #320 policy on the production Vercel origin and rerun the relevant security check before calling response-header remediation PASS in production.
-5. Finish the remaining #324 workflow credential-persistence hardening independently of the accepted #328 core security split.
-6. Retain a fresh real-account Puter candidate→verifier→receipt success on an accepted deployed revision, or keep live-provider success `UNKNOWN`.
-7. Complete physical mobile fallback validation, true blank-environment installation, recovery/host-loss qualification, selected elapsed soak, and #120/#126 long-run WebVM reliability work without broadening bounded evidence.
-8. Keep M6/M7 research bounded: general recursive self-improvement and general mesh efficiency remain `UNKNOWN`; M6-008 remains `BLOCKED`.
+1. Requalify any stronger budget/unknown-usage/release-ordering claim that depended on the historical #207/#208/#212 failures against the accepted #288 repair; historical frozen failures remain visible.
+2. Rebase and requalify #323 on a main containing #288 before any first authoritative Research Workbench trial.
+3. Validate the merged #320 policy on the production Vercel origin and rerun the relevant security check before calling response-header remediation PASS in production.
+4. Finish the remaining #324 workflow credential-persistence hardening independently of the accepted #328 core security split.
+5. Retain a fresh real-account Puter candidate→verifier→receipt success on an accepted deployed revision, or keep live-provider success `UNKNOWN`.
+6. Complete physical mobile fallback validation, true blank-environment installation, recovery/host-loss qualification, selected elapsed soak, and #120/#126 long-run WebVM reliability work without broadening bounded evidence.
+7. Keep M6/M7 research bounded: general recursive self-improvement and general mesh efficiency remain `UNKNOWN`; M6-008 remains `BLOCKED`.
+8. Preserve production Pages run `35431634267`, attempt 1, as the exact-revision **PASS** for its publication/browser/real-guest scope without using it to infer provider, model, physical-device, or unrelated trust-boundary success.
 
 ## Scope and non-claims
 

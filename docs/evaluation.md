@@ -51,9 +51,9 @@ Current `main` is **`0a675017a51f94e489528a607032e7463fbf7993`**.
 
 Recent accepted engineering changes include #307 CI fan-out repair, #260 provider-bootstrap hardening, #288 pre-dispatch Station budget authority, #320 repository-side CSP/anti-clickjacking configuration, and #328 core execution/egress/XML security hardening. These are engineering, governance or security changes, not model-quality or scientific evidence.
 
-Accepted #276 requires each `main` SHA to receive its own non-cancelling production Pages attempt. For exact current main, run **`35431634267`**, attempt 1, is currently **UNKNOWN / pending** because the workflow remains in progress. Several current-main tests have already completed PASS in their named scopes, but the partially completed gate set must not be summarized as globally green.
+Accepted #276 requires each `main` SHA to receive its own non-cancelling production Pages attempt. For exact current main, run **`35431634267`**, attempt 1, completed **PASS**. Its generated browser proof, deployment, published WebVM revision/real-guest execution verification, and narrow Chromium acceptance all passed; retained live proof is artifact `10580449851`, SHA-256 `ebdecf8e4055679933f1941f648d422d37a38ba5e4dad1f285967b83ccf684aa`.
 
-The previous production Pages **FAIL** on `e7b72ad...` remains exact-revision evidence. It is not inherited by `0a675017...`, and PR-head green evidence is not inherited either.
+The previous production Pages **FAIL** on `e7b72ad...` remains exact-revision evidence and is not erased by the current-main PASS. The current PASS is scoped to publication/browser/real-guest qualification and must not be summarized as provider/model-quality or blanket production evidence.
 
 Successful paid/live Puter execution, every-host M4 qualification, production Vercel security-header validation, blank-environment install, physical heavyweight-WebVM reliability and a scientific effect size remain separate claims.
 
