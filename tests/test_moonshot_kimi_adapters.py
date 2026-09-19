@@ -106,6 +106,17 @@ class MoonshotAndKimiClawAdapterTests(unittest.TestCase):
             adapter = make_adapter(profile)
             self.assertNotIn("Authorization", adapter._headers())
 
+    def test_kimi_claw_conflicting_gateway_secrets_fail_closed(self):
+        profile = normalize_profile({"kind": "kimi_claw", "model": "openclaw/default"}, "local")
+        with patch.dict("os.environ", {
+            "OPENCLAW_GATEWAY_TOKEN": "token-a",
+            "OPENCLAW_GATEWAY_PASSWORD": "password-b",
+        }, clear=True):
+            with self.assertRaises(ProviderError) as ctx:
+                make_adapter(profile)
+            self.assertEqual(ctx.exception.provider, "kimi_claw")
+            self.assertEqual(ctx.exception.code, "config")
+
     def test_kimi_claw_rejects_non_loopback_operator_token_destinations(self):
         for hostile in (
             "https://example.com/v1",
