@@ -1,5 +1,12 @@
 # RESIDUAL Documentation
 
+## Agent-first wiki
+
+For fast onboarding and deterministic task routing, start with [`wiki/README.md`](wiki/README.md). Coding/operations agents should begin at the repository-level [`AGENTS.md`](../AGENTS.md), then use [`wiki/AGENT-BOOTSTRAP.md`](wiki/AGENT-BOOTSTRAP.md) and [`wiki/INTEGRATION-SKILLS.md`](wiki/INTEGRATION-SKILLS.md).
+
+The wiki is a navigation layer, not a second status ledger. Current accepted/draft/unknown boundaries remain in [`CURRENT_STATUS.md`](CURRENT_STATUS.md).
+
+
 This directory documents three related surfaces of the same project: the original verification harness, the operator-facing Command Station, and the emerging Factory/Studio multi-worker platform.
 
 If you are new to the repository, read the documents in the order below rather than treating every spec as equally mature.
