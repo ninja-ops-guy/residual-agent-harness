@@ -55,11 +55,29 @@ These are reported observations from the live swarm session and require preserva
 
 ### Hub Phase 2 — pending elevated operator action
 
-One elevated Windows pass remains required to create/refresh the two LAN-to-WSL TCP/22 portproxy mappings and the scoped inbound firewall rule.
+One elevated Windows pass remains required. Ghost's later host reconnaissance materially revised the topology:
+
+- Windows OpenSSH Server capability is absent before the elevated pass; client tools only.
+- Loopback TCP/22 is already occupied by WSL/wslrelay.
+- Planned Windows `sshd` binding is therefore loopback `127.0.0.1:2222`.
+- LAN chokepoints are two explicit portproxy mappings:
+  - `192.168.5.161:22 -> 127.0.0.1:2222`
+  - `192.168.99.2:22 -> 127.0.0.1:2222`
+- Removing either mapping provides a host-specific remote transport revocation mechanism without changing the station or sshd listener.
+- Inbound firewall scope is limited to TCP/22 from the two relevant private network ranges during enrollment, with a recorded intent to tighten after first successful connects.
+
+The staged elevated installer is reported as idempotent: it installs/configures OpenSSH Server, configures the restricted tunnel identity, delete/recreates the two exact portproxy mappings rather than accumulating stale mappings, and checks for the named firewall rule before create/update.
 
 This is an **operator infrastructure intervention** and must be included in the operator-effort denominator.
 
-Post-change acceptance must verify actual listener/forward behavior; command success alone is insufficient.
+Acceptance is explicitly verify-don't-trust. Preserve outputs for:
+- `netsh interface portproxy show v4tov4`;
+- firewall rule state;
+- TCP listeners on 22/2222;
+- live connection tests to both LAN endpoints;
+- SSH host-key fingerprints.
+
+Successful installer exit alone is not P1 evidence.
 
 ### DELL7320 / Wrench enrollment state
 
@@ -92,7 +110,36 @@ Preserve this manifest because P2+ will operate on heterogeneous hardware and la
 
 Status: CLOSED / ACCEPTED by KimiConductor.
 
+Reported station-side retained lifecycle evidence:
+
+- project `p-76cd46aacb98`: remote STAR claimed OPS-101 and remote Mason claimed OPS-102 at ~15:32:37, attempt 1; both leases later expired and tasks transitioned to blocked with owners cleared; after operator triage/requeue, Mason reclaimed at attempt 2 and produced `usage.recorded` before reaching review-ready.
+- project `p-d4dd2d7b4e21`: Hammer/Hermes claimed work at ~15:33:03; expiry was recorded later; after requeue Hammer completed an attempt-2 loop with `usage.recorded` and reached review-ready.
+- heartbeats are not retained as project events; they operate through the lease path. The retained record is therefore claim/expiry/transition/submission/usage evidence rather than heartbeat events.
+
 The B0-6 negative-test battery is retained as the enrollment fail-closed suite. Do not overwrite first-failure or race evidence with later clean reruns.
+
+### Material finding AX21-F002 — expired work requires operator triage before reclaim
+
+Organic enrollment observation: lease expiry transitions affected tasks to `blocked`, clears ownership, and does not automatically return the task to reclaimable/ready state. Operator triage was required before the second attempt could be claimed.
+
+Current classification: **scheduler/recovery friction finding**, not automatically a defect. Fail-closed blocking after authority expiry is safety-preserving; the experiment must determine whether bounded automatic recovery can reduce operator effort without weakening authority.
+
+### RES-UP candidate AX21-RES-UP-002
+
+**Policy-governed post-expiry recovery**
+
+Evaluate a deterministic recovery policy that distinguishes:
+- safe-to-requeue lease expiry with no accepted candidate/effect;
+- expiry requiring HITL because evidence/state is ambiguous;
+- repeated expiry requiring quarantine/escalation.
+
+Replay acceptance should prove:
+1. no stale lease regains authority;
+2. no duplicate candidate/integration authority is created;
+3. safe cases can return to reclaimable state without operator triage;
+4. ambiguous cases remain BLOCKED/HITL;
+5. recovery decisions are retained as evidence;
+6. operator interventions are compared against the organic B0-6 baseline.
 
 ## Material finding AX21-F001 — stale buffered instruction execution
 
