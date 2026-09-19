@@ -50,7 +50,7 @@ response = router.chat("ollama:qwen2.5-coder:7b", request)
 print(response.content, response.usage)
 ```
 
-Cloud environment variables: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY` (or `GOOGLE_API_KEY`), `AZURE_OPENAI_API_KEY`, and AWS's access/secret/session variables. The standalone registry also reads `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_VERSION`, `AWS_DEFAULT_REGION`, `OLLAMA_HOST`, `LLM_BASE_URL`, and `LLM_API_KEY`. Use `RESIDUAL_LOCAL_API_KEY` for a station local server key. `RESIDUAL_CLOUD_API_KEY` remains a fallback for the station's selected primary cloud provider. The bundled worker accepts `RESIDUAL_RUNNER_API_KEY`.
+Cloud environment variables: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY` (or `GOOGLE_API_KEY`), `AZURE_OPENAI_API_KEY`, `ARENA_API_KEY`, and AWS's access/secret/session variables. The standalone registry also reads `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_VERSION`, `AWS_DEFAULT_REGION`, `ARENA_BASE_URL`, `OLLAMA_HOST`, `LLM_BASE_URL`, and `LLM_API_KEY`. Use `RESIDUAL_LOCAL_API_KEY` for a station local server key. `RESIDUAL_CLOUD_API_KEY` remains a fallback for the station's selected primary cloud provider. The bundled worker accepts `RESIDUAL_RUNNER_API_KEY`.
 
 Use a new `Registry` and `register(provider_name, factory)` for explicitly constructed adapters with custom endpoints. Built-in provider names are a closed vocabulary. Factories load lazily; re-registering replaces the cached instance. Optional `before_attempt` and `after_attempt` Router callbacks are authoritative policy/accounting hooks. Their exceptions propagate. Observation callbacks are best-effort and cannot veto the model result.
 
