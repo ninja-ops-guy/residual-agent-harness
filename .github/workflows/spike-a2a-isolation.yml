@@ -14,7 +14,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install isolated spike dependencies
+        run: python -m pip install -r spikes/a2a/requirements-spike.txt
       - name: Verify spike isolation
         run: bash scripts/verify_spike_isolation.sh origin/${{ github.base_ref }}
+      - name: Verify environment pin
+        run: python -m pytest -q spikes/a2a/tests/spike_a2a/test_environment_pin.py
       - name: Run F0 canaries
         run: python -m pytest -q spikes/a2a/tests/spike_a2a/test_f0_canaries.py
