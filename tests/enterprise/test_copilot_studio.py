@@ -69,7 +69,8 @@ def make_token(
 
 
 def make_api(*, expected_tenant="tenant-a", group_resolver=None,
-             allowed_client_apps=frozenset(), store=None, backend=None, audit=None):
+             allowed_client_apps=frozenset(), store=None, backend=None, audit=None,
+             profile_groups=None):
     settings = OIDCSettings(issuer=ISSUER, client_id=AUDIENCE, clock_skew=0)
     oidc = OIDCClient(settings, {KID: KEYPAIR.public_key})
     verifier = CopilotIdentityVerifier(
@@ -81,7 +82,7 @@ def make_api(*, expected_tenant="tenant-a", group_resolver=None,
     backend = backend or CaptureBackend()
     gateway = CopilotMissionGateway(
         verifier,
-        firmware_profile(),
+        firmware_profile(allowed_groups=profile_groups),
         firmware_templates(),
         backend,
         store=store,
@@ -477,3 +478,36 @@ def test_sqlite_store_rejects_symlink_path(tmp_path):
     link.symlink_to(target)
     with pytest.raises(ContractError, match="symlink"):
         SQLiteMissionStore(link)
+
+
+def test_production_profile_can_bind_encrypted_token_group_object_ids():
+    group_id = "11111111-2222-3333-4444-555555555555"
+    api, _, _ = make_api(profile_groups=frozenset({group_id}))
+    allowed = submit(api, token=make_token(groups=(group_id,)), body=payload(request_id="group-guid"))
+    assert allowed.status == 202
+
+    denied = submit(
+        api,
+        token=make_token(groups=("Engineering-Firmware",)),
+        body=payload(request_id="group-name"),
+    )
+    assert denied.status == 403
+
+
+def test_structured_inputs_cannot_request_additional_authority():
+    api, _, backend = make_api()
+    response = submit(
+        api,
+        body=payload(
+            request_id="inputs-cannot-escalate",
+            inputs={
+                "repo": "firmware/sample",
+                "capabilities": ["pr.merge", "production.write", "secrets.read"],
+                "role": "administrator",
+                "department": "all",
+            },
+        ),
+    )
+    assert response.status == 202
+    caps = set(backend.bindings[-1].capabilities)
+    assert caps == {"repository.analyze", "evidence.read_own"}
