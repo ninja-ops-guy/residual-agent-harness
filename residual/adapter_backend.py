@@ -284,6 +284,13 @@ class LiveCoreResidualBackend:
         rows = self._conn.execute(
             "SELECT run_id,kind,payload_json FROM events ORDER BY run_id,seq"
         ).fetchall()
+        # A run is durably terminal only when its terminal event has a matching
+        # admitted attestation. A crash/barrier failure between those stages is
+        # an incomplete terminalization that on_run_complete can recover
+        # idempotently without writing a second run.completed event.
+        attested_runs = {
+            row[0] for row in self._conn.execute("SELECT run_id FROM attestations").fetchall()
+        }
         for run_id, kind, payload_json in rows:
             payload = json.loads(payload_json)
             if kind == "run.started":
@@ -299,7 +306,8 @@ class LiveCoreResidualBackend:
                 if gate_id and verdict in VALID_VERDICTS:
                     self._verdicts.setdefault(run_id, {})[gate_id] = verdict
             elif kind == "run.completed":
-                self._terminal.add(run_id)
+                if run_id in attested_runs:
+                    self._terminal.add(run_id)
                 outcome = payload.get("outcome")
                 if outcome in _VALID_OUTCOMES:
                     self._verdicts.setdefault(run_id, {})["CORE-RUN-OUTCOME"] = {
@@ -452,13 +460,38 @@ class LiveCoreResidualBackend:
     def on_run_complete(self, run_id: str, outcome: str) -> None:
         if outcome not in _VALID_OUTCOMES:
             raise LedgerWriteError(f"invalid outcome: {outcome}")
-        if run_id not in self._started or run_id in self._terminal:
+        if run_id not in self._started:
             raise LedgerWriteError(f"run not open: {run_id}")
+        if run_id in self._terminal:
+            raise LedgerWriteError(f"run not open: {run_id}")
+
         run_verdict = {"success": "PASS", "error": "FAIL", "aborted": "BLOCKED"}[outcome]
         self._verdicts.setdefault(run_id, {})["CORE-RUN-OUTCOME"] = run_verdict
+
+        # Recovery path: if run.completed committed but attestation admission
+        # failed, retry only the missing attestation. Never append a second
+        # terminal event, and never permit the caller to change the outcome.
+        completed = [
+            e for e in self.events(run_id) if e["kind"] == "run.completed"
+        ]
+        if completed:
+            if len(completed) != 1 or completed[0]["payload"].get("outcome") != outcome:
+                raise LedgerWriteError(
+                    f"terminal recovery mismatch for {run_id}: existing terminal differs"
+                )
+            try:
+                self.get_attestation(run_id)
+            except AttestationError:
+                self._issue_attestation(run_id)
+            self._terminal.add(run_id)
+            return
+
         self._append_event(run_id, "run", "run.completed", {"outcome": outcome})
-        self._terminal.add(run_id)
+        # Mark terminal in memory only after the attestation is durable. If
+        # admission fails, the exact terminal event remains retained evidence
+        # and the recovery path above can finish it idempotently.
         self._issue_attestation(run_id)
+        self._terminal.add(run_id)
 
     def _issue_attestation(self, run_id: str) -> None:
         # Serialize predecessor selection with admission. Without this lock,
