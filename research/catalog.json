@@ -3,13 +3,13 @@
   "catalog_id": "residual-research",
   "experiments": [
     {
-      "id": "M6-SPEC-005",
-      "title": "ImprovementSpec controlled continuation",
+      "id": "M6-WB-001",
+      "title": "Workbench end-to-end governance pilot",
       "status": "runnable",
       "family": "m6-self-maintenance",
       "trials": 1,
       "max_passes": 3,
-      "hypothesis": "Given repair context and an explicit transport/source distinction, an onboarded model can produce an ImprovementSpec candidate satisfying the unchanged frozen acceptance contract within three passes.",
+      "hypothesis": "Given an onboarded local model, the Research Workbench can execute one isolated governed coding trial end-to-end and retain a complete evidence bundle without weakening acceptance authority.",
       "acceptance_policy": "frozen",
       "metrics": [
         "success",
