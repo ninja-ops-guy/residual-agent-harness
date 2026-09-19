@@ -28,7 +28,9 @@ class AuthoritativeStudioControl:
     def _write(self,path:Path,value:dict):
         data=(json.dumps(value,indent=2,sort_keys=True)+"\n").encode("utf-8")
         tmp=path.with_suffix(path.suffix+".tmp")
-        fd=os.open(tmp,os.O_WRONLY|os.O_CREAT|os.O_TRUNC|os.O_NOFOLLOW,0o600)
+        try: tmp.unlink()
+        except FileNotFoundError: pass
+        fd=os.open(tmp,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
         with os.fdopen(fd,"wb") as stream: stream.write(data);stream.flush();os.fsync(stream.fileno())
         os.replace(tmp,path)
     def _plan(self)->ExecutionPlan:
