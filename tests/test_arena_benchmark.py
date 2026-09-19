@@ -77,7 +77,7 @@ class ArenaIntegrationTests(unittest.TestCase):
             available_tools=("lookup", "bash"),
             events=events,
             usage={"prompt_tokens": 10, "completion_tokens": 2, "cost_usd": 0.1},
-            verdict={"verified_task_success": True},
+            verdict={"state": "PASS", "verified_task_success": True},
             provider_metadata={"provider": "arena", "fallback_used": False},
         )
         self.assertEqual(trace.events[0].data["name"], "lookup")
@@ -111,12 +111,12 @@ class ArenaIntegrationTests(unittest.TestCase):
                 available_tools=(),
                 events=(),
                 usage={"prompt_tokens": 1, "completion_tokens": 1, "cost_usd": 0.01},
-                verdict={"verified_task_success": success},
+                verdict={"state": "PASS" if success else "FAIL", "verified_task_success": success},
                 provider_metadata={"provider": "arena", "fallback_used": False},
             ))
         report = score_protocol(lock, traces)
-        self.assertEqual(report["summary"]["arena:model-a"]["control"]["success_rate"], 0.0)
-        self.assertEqual(report["summary"]["arena:model-a"]["residual"]["success_rate"], 1.0)
+        self.assertEqual(report["summary"]["arena:model-a"]["control"]["scheduled_success_rate"], 0.0)
+        self.assertEqual(report["summary"]["arena:model-a"]["residual"]["scheduled_success_rate"], 1.0)
         self.assertEqual(
             report["paired_success_comparisons"][0]["residual_minus_control_success_rate"],
             1.0,
@@ -136,7 +136,7 @@ class ArenaIntegrationTests(unittest.TestCase):
             available_tools=(),
             events=(),
             usage={"prompt_tokens": 1, "completion_tokens": 1},
-            verdict={"verified_task_success": True},
+            verdict={"state": "PASS", "verified_task_success": True},
             provider_metadata={},
         )
         with self.assertRaises(Exception):
