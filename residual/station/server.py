@@ -110,7 +110,8 @@ class Handler(BaseHTTPRequestHandler):
                 if path == "/api/worker/comms":
                     pid = query.get("project_id", [""])[0]
                     after = max(0, int(query.get("after", ["0"])[0]))
-                    return self.respond({"messages": self.station.comms(pid, after, {"all", "runners"}, 100)})
+                    thread_id = query.get("thread_id", [None])[0]
+                    return self.respond({"messages": self.station.comms(pid, after, {"all", "runners"}, 100, thread_id)})
                 raise ContractError("Unknown worker endpoint")
             if path.startswith("/api/"):
                 self.auth()
@@ -145,7 +146,8 @@ class Handler(BaseHTTPRequestHandler):
                     if parts[3] == "events":
                         return self.respond({"events": self.station.store.events(pid, max(0, int(query.get("after", ["0"])[0])), 500)})
                     if parts[3] == "comms":
-                        return self.respond({"messages": self.station.comms(pid, max(0, int(query.get("after", ["0"])[0])), None, 500)})
+                        thread_id = query.get("thread_id", [None])[0]
+                        return self.respond({"messages": self.station.comms(pid, max(0, int(query.get("after", ["0"])[0])), None, 500, thread_id)})
                     if parts[3] == "report":
                         return self.respond(self.station.store.report(pid))
                     if parts[3] == "markdown":
@@ -257,7 +259,15 @@ class Handler(BaseHTTPRequestHandler):
             audience = data.get("audience", "all")
             if audience not in {"all", "operator"}:
                 raise ContractError("Remote runners may address everyone or the operator")
-            return s.store.event(pid, "comms.message", {"message": message, "audience": audience, "kind": "message"}, actor="remote:" + name)
+            thread_id = bounded(data.get("thread_id", "main"), "Thread ID", 80)
+            reply_to = data.get("reply_to")
+            supersedes = data.get("supersedes")
+            if reply_to is not None and (type(reply_to) is not int or reply_to < 1):
+                raise ContractError("reply_to must be a positive message sequence")
+            if supersedes is not None and (type(supersedes) is not int or supersedes < 1):
+                raise ContractError("supersedes must be a positive message sequence")
+            return s.store.event(pid, "comms.message", {"message": message, "audience": audience, "kind": "message",
+                "thread_id": thread_id, "reply_to": reply_to, "supersedes": supersedes}, actor="remote:" + name)
         if path == "/api/worker/claim":
             name = bounded(data.get("name"), "Runner name", 60)
             work = s.prepare(data["project_id"], "remote:" + name, data.get("task_id"))
@@ -323,11 +333,19 @@ class Handler(BaseHTTPRequestHandler):
                 message = bounded(data.get("message"), "Message", 2000)
                 audience = data.get("audience", "all")
                 kind = data.get("kind", "message")
-                if audience not in {"all", "runners"}:
+                if audience not in {"all", "runners", "coordinator"}:
                     raise ContractError("Invalid chat audience")
-                if kind not in {"message", "planning"}:
+                if kind not in {"message", "planning", "observation", "question", "answer", "claim", "evidence", "challenge", "handoff", "blocker", "decision_request", "decision", "status"}:
                     raise ContractError("Invalid chat message kind")
-                return s.store.event(pid, "comms.message", {"message": message, "audience": audience, "kind": kind}, actor="operator")
+                thread_id = bounded(data.get("thread_id", "main"), "Thread ID", 80)
+                reply_to = data.get("reply_to")
+                supersedes = data.get("supersedes")
+                if reply_to is not None and (type(reply_to) is not int or reply_to < 1):
+                    raise ContractError("reply_to must be a positive message sequence")
+                if supersedes is not None and (type(supersedes) is not int or supersedes < 1):
+                    raise ContractError("supersedes must be a positive message sequence")
+                return s.store.event(pid, "comms.message", {"message": message, "audience": audience, "kind": kind,
+                    "thread_id": thread_id, "reply_to": reply_to, "supersedes": supersedes}, actor="operator")
             if action == "cloud-report":
                 return s.launch("cloud-report", lambda progress: s.cloud_report(pid, progress), pid)
             if action == "export":
