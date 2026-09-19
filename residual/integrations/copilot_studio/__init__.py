@@ -7,7 +7,7 @@ binds evidence to the authenticated caller.
 """
 
 from .auth import CopilotIdentityVerifier, CopilotPrincipal
-from .policy import DepartmentProfile, MissionTemplate, firmware_profile, firmware_templates
+from .policy import DepartmentProfile, MissionTemplate, firmware_profile, firmware_templates\nfrom .store import InMemoryMissionStore, MissionRecord, MissionStore, SQLiteMissionStore
 from .gateway import (
     APIResponse,
     CopilotAPI,
@@ -26,10 +26,10 @@ __all__ = [
     "CopilotMissionGateway",
     "CopilotPrincipal",
     "DepartmentProfile",
-    "InMemoryMissionBackend",
-    "MissionBinding",
+    "InMemoryMissionBackend",\n    "InMemoryMissionStore",
+    "MissionBinding",\n    "MissionRecord",\n    "MissionStore",
     "MissionRequest",
-    "MissionTemplate",
+    "MissionTemplate",\n    "SQLiteMissionStore",
     "firmware_profile",
     "firmware_templates",
 ]
