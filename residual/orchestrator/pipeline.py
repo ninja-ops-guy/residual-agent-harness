@@ -8,6 +8,7 @@ from __future__ import annotations
 from ..core import ContractError
 from .ambiguity import AmbiguityDetector
 from .compiler import RequirementCompiler
+from .flow import FlowCompiler, ResidualFlow
 from .intent import Intent
 from .partition import WorkPartitioner
 from .plan import Plan
@@ -20,11 +21,13 @@ class Orchestrator:
     def __init__(self, compiler: RequirementCompiler | None = None,
                  detector: AmbiguityDetector | None = None,
                  partitioner: WorkPartitioner | None = None,
-                 estimator: RiskEstimator | None = None):
+                 estimator: RiskEstimator | None = None,
+                 flow_compiler: FlowCompiler | None = None):
         self._compiler = compiler or RequirementCompiler()
         self._detector = detector or AmbiguityDetector()
         self._partitioner = partitioner or WorkPartitioner()
         self._estimator = estimator or RiskEstimator()
+        self._flow_compiler = flow_compiler or FlowCompiler()
 
     def plan(self, intent: Intent) -> Plan:
         if not isinstance(intent, Intent):
@@ -35,3 +38,7 @@ class Orchestrator:
         risks = self._estimator.estimate(graph, packets)
         return Plan(intent=intent, requirements=graph.requirements,
                     packets=packets, risk_reports=risks, ambiguity=ambiguity)
+
+    def flow(self, intent: Intent) -> ResidualFlow:
+        """Compile the unchanged Plan into an additive staged execution view."""
+        return self._flow_compiler.compile(self.plan(intent))
