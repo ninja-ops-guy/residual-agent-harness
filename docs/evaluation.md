@@ -40,11 +40,11 @@ Current `main` is **`3bfa6abac719bb1ca5db225b32df347ae2afc079`**, produced by me
 
 Recent accepted engineering/security changes include #307 CI fan-out repair, #260 provider-bootstrap hardening, #288 pre-dispatch Station budget authority, #320 repository-side CSP/anti-clickjacking configuration, #328 core execution/egress/XML security hardening, and #330 workflow checkout credential-persistence hardening. These are engineering, governance, or security changes, not model-quality or scientific evidence.
 
-Accepted #276 requires each `main` SHA to receive its own non-cancelling production Pages attempt. For exact current main, run **`35437556200`**, attempt 1, is **in progress**. Therefore exact-current-main publication/browser/real-guest qualification is **UNKNOWN / pending**, not inherited from the prior revision.
+Accepted #276 requires each `main` SHA to receive its own non-cancelling production Pages attempt. For exact current main, run **`35437556200`**, attempt 1, completed **FAIL**. Generated artifact/browser proof, deployment, served revision identity, and desktop real-guest acceptance passed; the required narrow/mobile Chromium acceptance failed after reaching the live guest and multiple Workbench stages. The retained live-proof artifact is `10582812524`, SHA-256 `868ca31506d278a335ff95d3607adbd13c14edaec8b161c1b45ac013e7f7c8b8`. The lower-level cause remains **UNKNOWN**.
 
-Production Pages run `35431634267`, attempt 1, remains a scoped **PASS for exact revision `0a675017...` only**. The earlier Pages **FAIL** on `e7b72ad...` also remains exact-revision evidence. Neither predecessor result may be copied onto `3bfa6aba...` before its own first attempt completes.
+Production Pages run `35431634267`, attempt 1, remains a scoped **PASS for exact revision `0a675017...` only**. The earlier Pages **FAIL** on `e7b72ad...` also remains exact-revision evidence. Neither predecessor result overrides the independent current-main FAIL.
 
-Successful paid/live Puter execution, every-host M4 qualification, production Vercel security-header validation, blank-environment install, physical heavyweight-WebVM reliability, and a scientific effect size remain separate claims.
+Successful paid/live Puter execution, every-host M4 qualification, production Vercel security-header validation, blank-environment install, physical heavyweight-WebVM reliability, and a scientific effect size remain separate claims. The current Pages failure recorded `cloud_inference` as `NOT_RUN`, so it is not a live-provider/model-quality failure result.
 
 ## Real-model development evidence must remain mixed
 
@@ -129,6 +129,8 @@ Issues #120/#126 remain open. Bounded mitigations, diagnostics, and individual g
 
 The #186 fallback is accepted. It establishes only that the unsupported/unqualified iOS WebKit profile is routed to the lightweight walkthrough before heavyweight guest/disk boot. That result must **not** be reported as physical heavyweight-WebVM reliability.
 
+The exact-current-main Pages result adds one more bounded negative cell: desktop real-guest execution passed in run `35437556200`, while the required narrow/mobile Chromium proof failed. Preserve that asymmetry rather than flattening it into either blanket browser failure or mobile reliability proof.
+
 For a confirmatory protocol that depends on WebVM: freeze the exact source/deployed revision, retain exact-revision browser/runtime evidence, preserve first-attempt `FAIL`/`UNKNOWN`, preregister repeated reliability measurement, report operational missingness separately from model correctness, and never describe a safe fallback or transport repair as proof that the broader reliability family is fixed.
 
 ## Protected Factory/M4 evidence path
@@ -147,7 +149,7 @@ The same exact #152 head's Aikido code check reported **2 new MEDIUM and 19 new 
 
 Merged #168 establishes repository merge control as automated qualification plus exact-head maintainer attestation. This is **maintainer-reviewed with automated qualification**, not independent human assurance.
 
-Issue #305's historical Actions saturation remains evidence. #307 is accepted as the structural duplicate-fan-out repair. The current post-#330 queued-run snapshot is **23**; queue state never permits required first-attempt failures to be cancelled or reinterpreted.
+Issue #305's historical Actions saturation remains evidence. #307 is accepted as the structural duplicate-fan-out repair. The current queued-run snapshot is **0**; queue state never permits required first-attempt failures to be cancelled or reinterpreted.
 
 ## Live confirmatory evaluation gate
 
@@ -173,6 +175,7 @@ Before paper-facing R0–R5 outcome collection:
 - `BLOCKED` means the required gate could not validly execute; it is not `PASS`.
 - A research workflow may PASS because it successfully captured a scenario-level FAIL; distinguish experiment execution from hypothesis outcome.
 - Do not inherit qualification from a predecessor branch or predecessor main SHA after `main` materially moves.
+- A successful sub-check inside a required multi-stage qualification run does not override that run's terminal FAIL.
 - Do not infer model quality from transport conformance, physical iOS reliability from browser preflight, or production readiness from fixture CI.
 - Retain exact commit/tree, workload hash, model/config identity, and raw observations for every paper-facing result.
 
