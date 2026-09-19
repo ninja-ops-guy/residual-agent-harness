@@ -85,6 +85,9 @@ class DepartmentProfile:
     approved_templates: frozenset[str]
     allow_capabilities: frozenset[str]
     deny_capabilities: frozenset[str]
+    reviewer_groups: frozenset[str] = frozenset()
+    lead_groups: frozenset[str] = frozenset()
+    auditor_groups: frozenset[str] = frozenset()
     risk_ceiling: str = "medium"
 
     def __post_init__(self):
@@ -95,6 +98,10 @@ class DepartmentProfile:
             raise ContractError("department profile requires approved templates")
         if self.risk_ceiling not in _RISK_ORDER:
             raise ContractError("unknown department risk ceiling")
+        for name in ("reviewer_groups","lead_groups","auditor_groups"):
+            values=getattr(self,name)
+            if not isinstance(values,frozenset) or any(not isinstance(v,str) or not v.strip() for v in values):
+                raise ContractError(f"{name} must be a frozenset of group ids")
         overlap = self.allow_capabilities & self.deny_capabilities
         if overlap:
             raise ContractError(
@@ -107,7 +114,8 @@ class DepartmentProfile:
             raise ContractError("department profile must be an object")
         allowed = {
             "profile_id", "allowed_groups", "approved_templates",
-            "allow_capabilities", "deny_capabilities", "risk_ceiling",
+            "allow_capabilities", "deny_capabilities", "reviewer_groups",
+            "lead_groups", "auditor_groups", "risk_ceiling",
         }
         if set(data) - allowed:
             raise ContractError("unknown department profile keys")
@@ -121,6 +129,9 @@ class DepartmentProfile:
                 data["allow_capabilities"], "allow_capabilities", nonempty=True
             ),
             deny_capabilities=_strings(data.get("deny_capabilities", []), "deny_capabilities"),
+            reviewer_groups=_strings(data.get("reviewer_groups", []), "reviewer_groups"),
+            lead_groups=_strings(data.get("lead_groups", []), "lead_groups"),
+            auditor_groups=_strings(data.get("auditor_groups", []), "auditor_groups"),
             risk_ceiling=data.get("risk_ceiling", "medium"),
         )
 
@@ -129,6 +140,15 @@ class DepartmentProfile:
             raise ContractError("principal must be verified")
         if not (principal.groups & self.allowed_groups):
             raise ContractError("caller is not authorized for this department profile")
+
+    def can_read_mission(self, principal: CopilotPrincipal, owner_object_id: str) -> bool:
+        if principal.object_id == owner_object_id:
+            return True
+        privileged = self.reviewer_groups | self.lead_groups | self.auditor_groups
+        return bool(principal.groups & privileged)
+
+    def can_control_mission(self, principal: CopilotPrincipal, owner_object_id: str) -> bool:
+        return principal.object_id == owner_object_id or bool(principal.groups & self.lead_groups)
 
     def authorize(self, principal: CopilotPrincipal, template: MissionTemplate) -> None:
         self.require_membership(principal)
@@ -169,8 +189,7 @@ def firmware_templates() -> dict[str, MissionTemplate]:
                 "Return evidence for each claimed result.",
                 "Do not perform an external write or production action.",
             ),
-            required_inputs=frozenset({"repository_id"}),
-            optional_inputs=frozenset({"build_profile_id"}),
+            required_inputs=frozenset({"repository_id", "build_profile_id"}),
         ),
         "firmware-test-triage": MissionTemplate(
             "firmware-test-triage",
