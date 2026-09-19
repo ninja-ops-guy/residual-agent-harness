@@ -59,6 +59,7 @@ class SetupScriptSafetyTests(unittest.TestCase):
         self.assertIn('set_setting port "$PORT"', self.text)
         self.assertIn('Macro:    residual start', self.text)
         self.assertIn('command residual start', self.text)
+        self.assertNotIn('\\necho', self.text)
 
     def test_setup_prompts_for_data_directory_on_tty(self):
         self.assertIn('RESIDUAL data directory [%s]: ', self.text)
