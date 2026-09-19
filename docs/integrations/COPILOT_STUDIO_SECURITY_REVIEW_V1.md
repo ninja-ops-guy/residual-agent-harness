@@ -258,3 +258,32 @@ calls, provider self-approval metadata, wrong-template claims, and lease expiry.
 This does **not** authorize the sandbox build/test or patch-proposal templates.
 Those remain queued until a separate WorkerContract/OS-isolated execution adapter
 is implemented and qualified.
+
+
+## Enterprise convergence update
+
+The earlier production-blocker list above described the first gateway-only implementation. The following blockers are now closed in this branch:
+
+- bounded HTTP transport exists with strict JSON/content type/body limits, redacted logging, local throttling, and explicit TLS/reverse-proxy trust;
+- production-shaped Entra helpers exist for fixed tenant JWKS refresh and fixed Microsoft Graph group-overage resolution;
+- mission ownership and execution handoff are durable and encrypted through an injected CryptoProvider;
+- read-only Firmware repository analysis executes through local non-provider-chat engines over frozen Git snapshots;
+- Firmware build/test and Automated Testing isolated runs use the existing M4 namespace sandbox and deployment-owned command profiles;
+- Firmware test triage produces proposal artifacts only after approved isolated test execution;
+- Mechanical, Electromechanical, Automated Test Plan, and QA evidence reviews use the shared local read-only evidence worker;
+- exact-head HITL challenges exist for future consequential external writes;
+- member/reviewer/lead/auditor separation of duties is enforced in the gateway;
+- five department agent/package manifests and Power Platform ALM source metadata are present;
+- hybrid-Entra acceptance, package-drift, concurrency/abuse, and exact-head readiness bundle tests are in the dedicated matrix.
+
+### External deployment gates that cannot be closed by repository code alone
+
+1. Supply the real Entra tenant ID, API application/client ID, custom-connector client application ID, and production department/reviewer/lead/auditor group object IDs.
+2. Apply and validate the organization's actual Conditional Access, MFA, hybrid-Entra/compliant-device policies.
+3. Configure a production KMS/HSM-backed CryptoProvider and service credential source.
+4. Import/configure the agents/custom connector in the target Power Platform development environment and export the tenant-owned managed solution ZIP.
+5. Apply the organization's Power Platform DLP/environment governance/pipeline policies.
+6. Run the hybrid-Entra walkthrough against real delegated tokens and the target enterprise edge/WAF/load-balancer.
+7. Hash the exported managed solution ZIP and include it, the exact CI head, hosted scenario results, and deployment-config hash in the readiness bundle. Only a bundle with `release_eligible=true` should authorize production activation.
+
+PR merge by itself is not equivalent to completing those tenant-owned deployment gates.
