@@ -190,7 +190,8 @@ class Station:
         if not allowed or not allowed <= valid:
             raise ContractError("Invalid chat audience")
         messages = []
-        for ev in self.store.events(pid, after, 500):
+        scan_limit = 5000 if after == 0 else 500
+        for ev in self.store.events(pid, after, scan_limit):
             if ev["event_type"] != "comms.message":
                 continue
             data = ev.get("data") or {}
