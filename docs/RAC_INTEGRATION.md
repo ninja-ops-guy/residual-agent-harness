@@ -30,10 +30,18 @@ The module therefore enforces three layers:
 
 It also installs:
 
-- a quarantine policy that denies held-out candidate selection, physical
-  experiment execution, and automatic scientific promotion;
-- an authority brake that aborts a run if one of those capabilities appears in
-  an observation.
+- a capability-declared quarantine policy: RAC-prefixed actions without a
+  `rac_capability` are denied, unknown capabilities are denied fail-closed,
+  and held-out candidate selection, physical experiment execution, and
+  automatic scientific promotion are always forbidden;
+- an authority brake that aborts a run if a forbidden or unknown RAC capability
+  appears in an observation.
+
+The v1 allowed capability vocabulary is intentionally small:
+`read_public_artifact`, `write_bounded_candidate`,
+`digital_experiment_execution`, `evidence_collection`, and
+`advisory_decision`. Extending this list is a policy change and therefore
+changes the verifier revision.
 
 ## GoalSpec example
 
@@ -85,6 +93,7 @@ the record into a PASS.
 
 By contrast, any of these conditions fail closed:
 
+- an unknown RAC schema version or malformed RAC identifier is supplied;
 - evidence references another ImprovementSpec;
 - the RAC evaluation version drifts;
 - a producer is also its own independent verifier;
