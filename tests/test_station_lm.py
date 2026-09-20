@@ -109,7 +109,7 @@ class ProviderPipelineTests(unittest.TestCase):
     def test_fail_closed_on_authority_violation(self):
         result = make_provider(mode="authority_violation").decide(make_request())
         self.assertTrue(result.fallback)
-        self.assertEqual(result.receipt.fallback_reason, "policy_violation")
+        self.assertEqual(result.receipt.fallback_reason, "authority_violation")
 
     def test_fail_closed_on_missing_artifact(self):
         result = make_provider(mode="missing_artifact").decide(make_request())
@@ -182,13 +182,15 @@ class ProviderPipelineTests(unittest.TestCase):
 
 
 class ModelRegistryTests(unittest.TestCase):
-    def manifest(self, model_id="modelA", receipt=None):
-        return ModelManifest(
+    def manifest(self, model_id="modelA", receipt=None, **overrides):
+        spec = dict(
             model_id=model_id, model_hash=HASH, tokenizer_hash="b" * 64,
             dataset_manifest_hash="c" * 64, training_config={"lr": 0.1},
             code_commit="d" * 40, seed=1, qualification_receipt=receipt,
             model_card={"name": model_id, "version": "1",
                         "intended_use": "advisory routing", "limitations": "stub"})
+        spec.update(overrides)
+        return ModelManifest(**spec)
 
     def test_manifest_validation(self):
         for kwargs in ({"model_hash": "zz"}, {"code_commit": "XYZ"},
@@ -243,7 +245,7 @@ class ModelRegistryTests(unittest.TestCase):
         reg.register(self.manifest())
         with self.assertRaises(ContractError):
             reg.register(self.manifest("modelA", receipt="e" * 64))  # changed manifest
-        self.assertIs(reg.register(self.manifest()).manifest, self.manifest())
+        self.assertEqual(reg.register(self.manifest()).manifest, self.manifest())
         reg.transition("modelA", "staged")
         reg.transition("modelA", "qualified", qualification_receipt="e" * 64)
         with self.assertRaises(ContractError):
@@ -273,23 +275,24 @@ class RollbackMonitorTests(unittest.TestCase):
             self.assertEqual(result.receipt.fallback_reason, "rollback_triggered")
 
     def test_schema_invalid_rate_spike(self):
+        # Pure-invalid traffic trips the rate threshold on the first receipt.
         provider, monitor = self.provider_with_monitor(
             "invalid_schema", window=10, schema_invalid_rate=0.5)
         provider.decide(make_request())
-        self.assertFalse(monitor.triggered)  # 1/1 is 100% >= 0.5 -> immediate
-        # With a healthy mix the rate stays below threshold.
-        monitor.reset()
-        provider2 = StationLMProvider(FakeDecisionModel(seed=1), default_route="defer",
-                                      monitor=monitor)
-        for i in range(4):
-            provider2.decide(make_request(task_id=f"ok{i}"))
-        self.assertFalse(monitor.triggered)
-        provider3 = StationLMProvider(FakeDecisionModel(mode="invalid_schema"),
-                                      default_route="defer", monitor=monitor)
-        provider3.decide(make_request(task_id="bad1"))
-        self.assertFalse(monitor.triggered)
-        provider3.decide(make_request(task_id="bad2"))
         self.assertTrue(monitor.triggered)
+        self.assertEqual(monitor.trigger.condition, "schema_invalid_rate_spike")
+        # With a healthy mix the rate stays below threshold until it spikes.
+        monitor.reset()
+        healthy = StationLMProvider(FakeDecisionModel(seed=1), default_route="defer",
+                                    monitor=monitor)
+        for i in range(4):
+            healthy.decide(make_request(task_id=f"ok{i}"))
+        self.assertFalse(monitor.triggered)
+        broken = StationLMProvider(FakeDecisionModel(mode="invalid_schema"),
+                                   default_route="defer", monitor=monitor)
+        for i, expect in ((1, False), (2, False), (3, False), (4, True)):
+            broken.decide(make_request(task_id=f"bad{i}"))
+            self.assertEqual(monitor.triggered, expect)  # trips at 4/8 = 0.5
         self.assertEqual(monitor.trigger.condition, "schema_invalid_rate_spike")
 
     def test_false_non_escalation_spike(self):

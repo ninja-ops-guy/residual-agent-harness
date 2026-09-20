@@ -30,8 +30,8 @@ from ai_providers.core import (
 )
 
 from .decision_model import (
-    DECISION_SCHEMA_VERSION, DecisionModel, DecisionProposal, DecisionRequest,
-    default_policy, validate_proposal,
+    AUTHORITY_KEYS, DECISION_SCHEMA_VERSION, DecisionModel, DecisionProposal,
+    DecisionRequest, default_policy, validate_proposal,
 )
 from .rollback import RollbackMonitor
 
@@ -160,6 +160,10 @@ class StationLMProvider:
             elapsed_ms = (self._clock() - start) * 1000
             if elapsed_ms > request.deadline_ms:
                 result = self._fallback(request, "timeout", start)
+            elif isinstance(raw, dict) and {str(k).lower() for k in raw} & AUTHORITY_KEYS:
+                # Authority claims are checked before schema: a malformed output
+                # that also claims execution authority is an authority violation.
+                result = self._fallback(request, "authority_violation", start)
             else:
                 try:
                     proposal = validate_proposal(raw, request)
