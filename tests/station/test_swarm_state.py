@@ -61,6 +61,10 @@ class SwarmStateTests(unittest.TestCase):
         self.assertEqual(second["state_generation"], 2)
         self.assertNotEqual(second["state_hash"], first["state_hash"])
 
+    def test_project_state_rejects_non_object_payload(self):
+        with self.assertRaisesRegex(ContractError, "must be an object"):
+            self.swarm.publish(["not", "a", "state"])
+
     def test_model_annotations_cannot_shadow_authoritative_truth(self):
         with self.assertRaisesRegex(ContractError, "cannot shadow"):
             self.swarm.publish(project_state(), {"main_sha": "b" * 40})
