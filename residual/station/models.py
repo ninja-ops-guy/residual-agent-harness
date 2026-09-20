@@ -148,7 +148,7 @@ def save_settings(store, incoming):
         if type(incoming["slm_observation_export"]) is not bool: raise ContractError("SLM observation export must be a boolean")
         clean["slm_observation_export"]=incoming["slm_observation_export"]
     if "slm_observation_denylist" in incoming:
-        # Reuse the emitter's compiler so deployment config is validated exactly once, up front.
+        # Compile once at save time so invalid deployment patterns are rejected up front.
         from .slm_observation import compile_denylist
         compile_denylist(incoming["slm_observation_denylist"])
         clean["slm_observation_denylist"]=list(incoming["slm_observation_denylist"])
@@ -226,7 +226,7 @@ class Ollama:
                 "disk_free_gb": round(shutil.disk_usage(self.store.root).free / 1024**3, 1), "cpu_count": os.cpu_count()}
         try:
             with self.request("/api/tags") as response:
-                info["models"] = json.loads(response.read(1_000_000)).get("tags", [])
+                info["models"] = json.loads(response.read(1_000_000)).get("models", [])
             info["connected"] = True
             with self.request("/api/ps") as response:
                 info["running"] = json.loads(response.read(1_000_000)).get("models", [])
@@ -256,6 +256,7 @@ class Ollama:
             self.process.kill()
         if self.log_handle:
             self.log_handle.close()
+        return "Ollama stopped"
 
     def pull(self, name, progress):
         if not isinstance(name, str) or not MODEL_NAME.fullmatch(name) or ".." in name:
@@ -305,14 +306,25 @@ class Ollama:
             raise ContractError("Runtime checksum mismatch; download discarded")
         dest = self.store.root / "runtime"
         dest.mkdir(exist_ok=True)
-        with zipfile.ZipFile(archive) if archive.suffix == ".zip" else tarfile.open(archive) as z:
-            for item in (z.infolist() if archive.suffix == ".zip" else z.getmembers()):
-                if not (dest / (item.filename if archive.suffix == ".zip" else item.name)).resolve().is_relative_to(dest.resolve()):
-                    raise ContractError("Unsafe runtime archive member")
-            z.extractall(dest)
-        binary = dest / "bin" / ("ollama.exe" if os.name == "nt" else "ollama")
-        if not binary.is_file():
-            binary = dest / ("ollama.exe" if os.name == "nt" else "ollama")
-        if not binary.is_file():
+        if archive.suffix == ".zip":
+            with zipfile.ZipFile(archive) as z:
+                for item in z.infolist():
+                    if not (dest / item.filename).resolve().is_relative_to(dest.resolve()):
+                        raise ContractError("Unsafe runtime archive member")
+                z.extractall(dest)
+        elif archive.name.endswith(".tar.zst"):
+            # Official signed-content digest is checked above. GNU tar needs zstd on native Linux.
+            if not shutil.which("zstd"):
+                raise ContractError("Native Linux extraction requires zstd. Install zstd or use the included Docker launcher.")
+            result = subprocess.run(["tar", "--zstd", "-xf", str(archive), "-C", str(dest)], capture_output=True, timeout=300)
+            if result.returncode:
+                raise ContractError("Could not extract runtime archive")
+        else:
+            with tarfile.open(archive) as t:
+                for member in t.getmembers():
+                    if not (dest / member.name).resolve().is_relative_to(dest.resolve()):
+                        raise ContractError("Unsafe runtime archive member")
+                t.extractall(dest, filter="data")
+        if not self.binary():
             raise ContractError("Runtime extracted but the executable was not found")
         return self.start()
