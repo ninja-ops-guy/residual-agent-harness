@@ -31,7 +31,7 @@ class SwarmStateTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.store = Store(self.temp.name)
-        self.swarm = SwarmStateStore(self.store)
+        self.swarm = SwarmStateStore(self.store, "residual")
 
     def tearDown(self):
         self.temp.cleanup()
@@ -149,12 +149,30 @@ class SwarmStateTests(unittest.TestCase):
                 placement="remote",
             )
 
+    def test_project_state_and_sync_are_scope_bound(self):
+        profile = self.enroll()
+        state = self.swarm.publish(project_state())
+        self.swarm.acknowledge("hammer", state["state_generation"], state["state_hash"], profile["capability_revision"])
+
+        other = SwarmStateStore(self.store, "other-project")
+        other_state = other.publish(project_state())
+        self.assertNotEqual(other_state["state_hash"], state["state_hash"])
+        self.assertFalse(other.eligible("hammer"))
+
+        delta = self.swarm.publish(project_state("b" * 40, 2))
+        update = self.swarm.delta(state["state_generation"])
+        wrong_scope = dict(update)
+        wrong_scope["scope_id"] = "other-project"
+        with self.assertRaisesRegex(ContractError, "scope mismatch"):
+            apply_delta(state, wrong_scope)
+        self.assertEqual(delta["scope_id"], "residual")
+
     def test_sync_and_enrollment_are_durable_across_restart(self):
         profile = self.enroll()
         state = self.swarm.publish(project_state())
         self.swarm.acknowledge("hammer", state["state_generation"], state["state_hash"], profile["capability_revision"])
 
-        reopened = SwarmStateStore(Store(self.temp.name))
+        reopened = SwarmStateStore(Store(self.temp.name), "residual")
         self.assertTrue(reopened.eligible("hammer"))
         self.assertEqual(reopened.current(), state)
         self.assertEqual(reopened.runner("hammer")["identity_digest"], "1" * 64)
