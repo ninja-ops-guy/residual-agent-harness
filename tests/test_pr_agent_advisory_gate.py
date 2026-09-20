@@ -26,6 +26,12 @@ class PRAgentAdvisoryGateTests(unittest.TestCase):
         self.assertIn('<!-- pr-agent:review:full -->', full_review)
         self.assertIn('failure/status comments do not satisfy this gate', self.workflow)
 
+    def test_reviewer_caches_bot_identity_before_persistent_state_update(self) -> None:
+        # PR-Agent's GitHub provider records the author login when it publishes
+        # the temporary progress comment. The pinned persistent-review code can
+        # then verify authorship without relying on GITHUB_TOKEN /user identity.
+        self.assertIn('CONFIG.PUBLISH_OUTPUT_PROGRESS: "true"', self.workflow)
+
     def test_bot_issue_comments_cannot_cancel_human_review_runs(self) -> None:
         # Concurrency identity must distinguish pull_request vs issue_comment and
         # User vs Bot senders. This prevents status bots from cancelling the
