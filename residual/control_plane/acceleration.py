@@ -312,7 +312,19 @@ class AccelerationConductor:
         return all(self._tasks[dep].state is TaskState.COMPLETE for dep in task.depends_on)
 
     def _deps_failed(self, task: PortfolioTask) -> bool:
-        return any(self._tasks[dep].state is TaskState.FAILED for dep in task.depends_on)
+        """Return True when any direct or transitive dependency is explicitly failed."""
+        pending = list(task.depends_on)
+        seen: set[str] = set()
+        while pending:
+            dep_id = pending.pop()
+            if dep_id in seen:
+                continue
+            seen.add(dep_id)
+            dependency = self._tasks[dep_id]
+            if dependency.state is TaskState.FAILED:
+                return True
+            pending.extend(dependency.depends_on)
+        return False
 
     def _execution_allowed(self, task: PortfolioTask) -> bool:
         return not self.manifest.release_freeze or task.scope is Scope.REQUIRED
