@@ -28,9 +28,13 @@ class FullSuiteWorkflowDependencyTests(unittest.TestCase):
         start = text.index("  deterministic:")
         end = text.index("\n  discovery:", start)
         deterministic = text[start:end]
+        self.assertIn("runs-on: ubuntu-22.04", deterministic)
+        self.assertNotIn("runs-on: ubuntu-latest", deterministic)
         self.assertIn("sudo apt-get install -y bubblewrap", deterministic)
         self.assertIn("command -v bwrap", deterministic)
         self.assertIn("bwrap --version", deterministic)
+        self.assertIn("--unshare-pid --unshare-net", deterministic)
+        self.assertIn("--ro-bind / / -- /bin/true", deterministic)
         self.assertNotIn("continue-on-error: true", deterministic)
 
 
