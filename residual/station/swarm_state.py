@@ -6,6 +6,7 @@ authority. Network/authentication wiring belongs to the worker identity lane.
 """
 from __future__ import annotations
 
+import datetime as dt
 import re
 from typing import Any
 
@@ -40,6 +41,10 @@ AUTHORITATIVE_FIELDS = {
     "operator_decisions",
     "evidence",
 }
+
+
+def _now() -> str:
+    return dt.datetime.now(dt.timezone.utc).isoformat()
 
 
 def _text(value: Any, name: str, maximum: int = 300, empty: bool = False) -> str:
@@ -175,7 +180,7 @@ class SwarmStateStore:
 
     def __init__(self, store):
         self.store = store
-        with self.store.transaction() as c:
+        with self.store.lock, self.store.connect() as c:
             c.executescript("""
             CREATE TABLE IF NOT EXISTS swarm_states(
                 generation INTEGER PRIMARY KEY,
@@ -282,7 +287,7 @@ class SwarmStateStore:
         constraints = constraints or []
         if not isinstance(constraints, list) or len(constraints) > 100:
             raise ContractError("constraints must be a list with at most 100 entries")
-        clean_constraints = [_text(v, "constraint", 300) for v in constraints]
+        clean_constraints = sorted({_text(v, "constraint", 300) for v in constraints})
 
         revision_input = {
             "schema_version": CAPABILITY_SCHEMA,
@@ -297,11 +302,18 @@ class SwarmStateStore:
             "constraints": clean_constraints,
         }
         revision = digest({"domain": CAPABILITY_SCHEMA, "profile": revision_input})
-        profile = {**revision_input, "display_name": display_name, "capability_revision": revision}
         with self.store.transaction() as c:
-            row = c.execute("SELECT identity_digest FROM swarm_runners WHERE runner_id=?", (runner_id,)).fetchone()
+            row = c.execute("SELECT identity_digest,value FROM swarm_runners WHERE runner_id=?", (runner_id,)).fetchone()
             if row and row["identity_digest"] != identity_digest:
                 raise ContractError("Runner identity cannot be rebound to a different credential")
+            enrolled_at = strict_json(row["value"]).get("enrolled_at") if row else _now()
+            profile = {
+                **revision_input,
+                "display_name": display_name,
+                "capability_revision": revision,
+                "enrolled_at": enrolled_at,
+                "updated_at": _now(),
+            }
             c.execute(
                 "INSERT OR REPLACE INTO swarm_runners(runner_id,identity_digest,capability_revision,value) VALUES(?,?,?,?)",
                 (runner_id, identity_digest, revision, canonical(profile)),
@@ -335,6 +347,7 @@ class SwarmStateStore:
             "state_generation": state_generation,
             "state_hash": state_hash,
             "capability_revision": capability_revision,
+            "acknowledged_at": _now(),
         }
         with self.store.transaction() as c:
             c.execute("INSERT OR REPLACE INTO swarm_sync(runner_id,value) VALUES(?,?)",
@@ -354,7 +367,7 @@ class SwarmStateStore:
             return False
         current = self.current()
         ack = self.acknowledgement(runner_id)
-        if current is None or ack is None:
+        if current is None or ack is None or ack.get("schema_version") != SYNC_SCHEMA:
             return False
         return (
             ack.get("identity_digest") == runner["identity_digest"]
