@@ -18,6 +18,7 @@ from residual.core import ContractError, digest
 
 
 SCHEMA_VERSION = "residual-acceleration-control-plane-v1"
+RISK_CLASSES = frozenset({"A", "B", "C", "D"})
 
 
 class Scope(str, Enum):
@@ -120,11 +121,14 @@ class OwnerAction:
         evidence_digest = _nonempty(value.get("evidence_digest"), field="owner_action.evidence_digest")
         if len(evidence_digest) != 64 or any(c not in "0123456789abcdef" for c in evidence_digest):
             raise ContractError("owner_action.evidence_digest must be a lowercase sha256 hex digest")
+        risk_class = _nonempty(value.get("risk_class"), field="owner_action.risk_class")
+        if risk_class not in RISK_CLASSES:
+            raise ContractError("owner_action.risk_class must be one of A, B, C, D")
         return cls(
             summary=_nonempty(value.get("summary"), field="owner_action.summary"),
             approval_text=_nonempty(value.get("approval_text"), field="owner_action.approval_text"),
             evidence_digest=evidence_digest,
-            risk_class=_nonempty(value.get("risk_class"), field="owner_action.risk_class"),
+            risk_class=risk_class,
             checks_passed=_bool(value.get("checks_passed"), field="owner_action.checks_passed"),
             independent_review_passed=_bool(
                 value.get("independent_review_passed"),
@@ -338,7 +342,8 @@ class AccelerationConductor:
                 return DerivedStatus.BLOCKED
             if not self._execution_allowed(task):
                 return DerivedStatus.FROZEN
-            assert task.owner_action is not None
+            if task.owner_action is None:
+                raise ContractError(f"human gate {task.id} is missing owner_action")
             return DerivedStatus.OWNER_READY if task.owner_action.ready else DerivedStatus.OWNER_BLOCKED
 
         if deps_complete and self._execution_allowed(task):
@@ -354,7 +359,8 @@ class AccelerationConductor:
         for task in sorted(self.manifest.tasks, key=lambda item: item.id):
             if self.status_for(task.id) is not DerivedStatus.OWNER_READY:
                 continue
-            assert task.owner_action is not None
+            if task.owner_action is None:
+                raise ContractError(f"human gate {task.id} is missing owner_action")
             queue.append({
                 "task_id": task.id,
                 "lane": task.lane,
