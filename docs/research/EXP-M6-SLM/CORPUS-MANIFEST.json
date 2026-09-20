@@ -5,6 +5,10 @@
   "branch": "slm00/corpus",
   "base_branch": "research/exp-m6-slm-00",
   "base_commit": "3661319eee03963943a6df88db61243254134983",
+  "limitations_doc": {
+    "path": "docs/research/EXP-M6-SLM/CORPUS-LIMITATIONS.md",
+    "note": "SLM-INFRA-QUAL MATERIAL-6: frozen primary/safety metrics VSMS/$, VSMS/W, FNER, UER, AVR are UNCOMPUTABLE from corpus v0 (cost.inference_usd / cost.energy_wh null rate 1.0; escalation field absent everywhere; only 1 non-assumed authority record). Reports MUST mark these NOT-COMPUTABLE until the AX-21 observation export or bench instrumentation supplies the fields. See the limitations doc for the full table and closure plan."
+  },
   "schema": {
     "path": "docs/research/EXP-M6-SLM/observation.schema.json",
     "blob_sha": "6e549b05e0fab3684d6ec7173985aa734e55ffca",
@@ -86,7 +90,7 @@
       "records_estimated": 260, "basis": "size-estimate (preflight SS1); exact 50 for adequate.part0 (50/50 lines read)",
       "source_class": "benchmark",
       "part0_adequate_exact": {"records": 50, "ground_truth_true": 50, "verdict_true": 50, "agreement": 50, "verified_success": 50, "confidence_null": 50, "confidence_null_rate": 1.0, "safety_critical_true": 50, "label_source": "frozen_workload", "verifier_id": "value-match-verifier", "basis": "manual-inspection (50/50)"},
-      "DUPLICATION_WARNING": "outcomes-adequate.part0 and outcomes-degraded.part0 have IDENTICAL blob SHA e79f2946fd30cc11994a2015f35668fb4e9ab808; adequate.part1 == degraded.part1 (2fdc9b28d8f0814b7e579bc03fddfa18e55148c9); only part2 differs. The adequate/degraded split is therefore NOT in the record payloads for parts 0-1 (likely a verifier-condition wrapper, see vq-002-benchmark.json sha 27002ad6c3a15f20b638a09dfb914c73fc3ad862 -- not yet inventoried into corpus). Contamination groups are keyed by case-prefix + blob-sha8 so identical parts CANNOT land in different groups; near-duplicate records across adequate/degraded parts 0-1 are expected and must be deduplicated or single-sided before any split.",
+      "DUPLICATION_WARNING": "outcomes-adequate.part0 and outcomes-degraded.part0 have IDENTICAL blob SHA e79f2946fd30cc11994a2015f35668fb4e9ab808; adequate.part1 == degraded.part1 (2fdc9b28d8f0814b7e579bc03fddfa18e55148c9); part2 differs (adequate e14239f8... vs degraded 8d7c4b0c...) but shares the same 30 case_ids bad0-bad29 with 20/30 content-identical records. The adequate/degraded split is therefore NOT in the record payloads for parts 0-1 (likely a verifier-condition wrapper, see vq-002-benchmark.json sha 27002ad6c3a15f20b638a09dfb914c73fc3ad862 -- not yet inventoried into corpus). Contamination groups are keyed by case_id lineage (vq:case:<case_id>) so ALL variants of a case -- adequate/degraded, identical or verdict-flipped -- share one group and can never straddle a split (SLM-INFRA-QUAL MATERIAL-2 fix; supersedes the prior blob-sha8 keying, which assigned part2 pairs to different groups). Near-duplicate records across adequate/degraded parts 0-1 are expected and must still be deduplicated or single-sided before any split.",
       "verification_status_rule": "ground_truth == verdict -> verified_success else verified_failure; null verdict/ground_truth -> unknown",
       "null_rates": {"confidence": 1.0, "basis": "sampled (50/50 part0; presumed uniform per preflight, unverified for parts 1-2)"},
       "cost": "all null (no state/cost fields in source)"
@@ -105,10 +109,10 @@
     "provisional_outcomes": {"count_exact": 24, "breakdown": {"otx-003": 24}, "basis": "manual-inspection"},
     "unknown_verification": {"count_exact": 91, "breakdown": {"obs-006": 9, "dsm-004_journals": 82}, "basis": "manual-inspection"},
     "rejected_actions": {"count_exact": 1, "breakdown": {"obs-006 rejection (reason=verification)": 1}, "basis": "manual-inspection"},
-    "retry_repair_events": {"count_exact": 3, "breakdown": {"obs-006 retry (attempt 2, cause=conflict)": 1, "obs-006 conflict (resolution=retry)": 1, "dsm-004 restart_mid_stream duplicate-disposition retries": 1}, "basis": "manual-inspection", "note": "DSM retransmissions (lost m2, combined m3) preserved inside journal records"},
-    "interventions": {"count_exact": 0, "basis": "manual-inspection", "note": "no operator-intervention events exist in any corpus-eligible source; AX-21 operator ledger (8 interventions) is narrative-only and excluded"},
-    "escalation_events": {"count_exact": 0, "basis": "manual-inspection", "note": "no source records escalation.required/taken; escalation field absent from all converted records"},
-    "false_non_escalation_candidates": {"count_exact": 0, "basis": "manual-inspection", "note": "cannot be computed: no escalation labels exist in structured sources; this is a corpus coverage gap for Control Bench categories retry/escalate/abort and safety metrics"},
+    "retry_repair_events": {"count_exact": 3, "breakdown": {"obs-006 retry (attempt 2, cause=conflict)": 1, "obs-006 conflict (resolution=retry)": 1, "dsm-004 restart_mid_stream duplicate-disposition retries": 1}, "basis": "manual-inspection", "note": "DSM retransmissions (lost m2, combined m3) preserved inside journal records. Converter now counts outcome.kind=='retry' or non-null attempt into retry_repair_events (MINOR-6 reconciliation); obs-006 conflict resolution=retry carries no attempt field and kind=conflict, so computed retry_repair_events may differ slightly from this manual count until the converter is executed and counts re-verified (INFO-2)."},
+    "interventions": {"count_exact": 0, "basis": "manual-inspection", "note": "no operator-intervention events exist in any corpus-eligible source; AX-21 operator ledger (8 interventions) is narrative-only and excluded. Converter counts only explicit operator interventions here (0); retries/repairs go to retry_repair_events."},
+    "escalation_events": {"count_exact": 0, "basis": "manual-inspection", "note": "no source records escalation.required/taken; escalation field absent from all converted records; see CORPUS-LIMITATIONS.md"},
+    "false_non_escalation_candidates": {"count_exact": 0, "basis": "manual-inspection", "note": "cannot be computed: no escalation labels exist in structured sources; this is a corpus coverage gap for Control Bench categories retry/escalate/abort and safety metrics; see CORPUS-LIMITATIONS.md"},
     "authority_violations": {"count_exact": 0, "basis": "manual-inspection", "note": "1 recorded authority-map record (RUNTIME-005) with violation=false; authority absent in all other sources and defaulted (documented assumption)"},
     "schema_failures": {"strict_schema": "100% of records fail strict schema solely on timestamp (universal absence)", "erratum_schema": 0, "basis": "manual-inspection + local jsonschema validation of 13-record sample (13/13 pass erratum schema, 13/13 fail strict)"},
     "sanitation_rejects": {"count": 0, "basis": "manual-inspection", "note": "no credentials/secrets in any sampled structured artifact (preflight SS5); dogfood log (only artifact with LAN IPs/hostnames) excluded upstream, not sanitized into corpus"}
@@ -128,18 +132,18 @@
   },
   "contamination_group_scheme": {
     "otx": "otx:<task_class>-<granularity> (6 groups; all replicates of a task family share group)",
-    "vq": "vq:<case_id alpha-prefix>:<blob sha8> (content-keyed so identical adequate/degraded parts merge; frozen workload lineage)",
+    "vq": "vq:case:<case_id> -- case_id LINEAGE-keyed (SLM-INFRA-QUAL MATERIAL-2 fix). All variants of a case across adequate/degraded parts share one group, including the 30 shared part2 case_ids bad0-bad29 whose blob SHAs differ (e14239f8 vs 8d7c4b0c) despite 20/30 content-identical records. Supersedes the prior vq:<prefix>:<blob-sha8> scheme, which assigned those identical records to different groups and admitted split straddling.",
     "obs": "obs006-fixture-v1 (single fixture = single group)",
     "dsm": "dsm004:<schedule> for fault inboxes; dsm004:outbox-shared for hash-identical outbox journals; dsm004:recovery/<scenario> (journal + scenario record share lineage)",
     "runtime": "runtime005:<scenario>",
-    "total_groups_estimated": 26,
-    "total_groups_basis": "manual-inspection: 6 OTX + 1 OBS + 10 DSM + 5 RUNTIME + >=4 VQ (3 adequate-part prefixes confirmed 'good' only in part0; parts 1-2 prefixes unread)"
+    "total_groups_estimated": "recomputed on first converter execution; VQ group count now equals the number of distinct case_ids (one group per case, variants merged), not per part-file",
+    "total_groups_basis": "manual-inspection: 6 OTX + 1 OBS + 10 DSM + 5 RUNTIME + VQ (one group per distinct case_id; exact count pending full read of parts 1-2)"
   },
   "open_items": [
     "Converter not yet executed; corpus.jsonl and computed manifest pending an execution environment.",
     "VQ parts 1-2 and degraded part2 unread (record counts and case-prefix distribution unverified); vq-002-benchmark.json (sha 27002ad6c3a15f20b638a09dfb914c73fc3ad862) not yet read -- may explain adequate/degraded duplication.",
-    "Adequate/degraded VQ duplication (identical blob SHAs parts 0-1) needs a corpus decision: dedupe or single-side before split.",
-    "No escalation or operator-intervention events in structured corpus; Control Bench categories 4 (retry/escalate/abort) and safety metrics cannot be trained/validated from this corpus alone.",
+    "Adequate/degraded VQ duplication (identical blob SHAs parts 0-1) needs a corpus decision: dedupe or single-side before split. The case_id-lineage group scheme (MATERIAL-2 fix) prevents straddling but does NOT deduplicate the ~100 content-duplicate records.",
+    "No escalation or operator-intervention events in structured corpus; Control Bench categories 4 (retry/escalate/abort) and safety metrics cannot be trained/validated from this corpus alone (see CORPUS-LIMITATIONS.md).",
     "SCHEMA-ERRATUM-001 must be ratified/frozen before benchmark freeze per protocol split policy."
   ]
 }
