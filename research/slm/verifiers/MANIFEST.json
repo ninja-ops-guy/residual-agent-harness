@@ -1,0 +1,116 @@
+{
+  "manifest": "slm00-verifier-manifest",
+  "suite_version": "1.0.0",
+  "benchmark": "residual-control-bench-v0",
+  "protocol_ref": "docs/research/EXP-M6-SLM/SLM-00-PROTOCOL.md",
+  "bench_spec_ref": "docs/research/EXP-M6-SLM/CONTROL-BENCH-V0.md",
+  "verdicts": ["PASS", "FAIL", "BENCHMARK_DEFECT"],
+  "interface": {
+    "module": "research.slm.verifiers.base",
+    "base_class": "BaseVerifier",
+    "signature": "verify(item, candidate_output) -> VerifierResult",
+    "malformed_sentinel": "research.slm.verifiers.base.MalformedOutput",
+    "registry": "research.slm.verifiers.VERIFIER_REGISTRY",
+    "dispatcher": "research.slm.verifiers.verify(item, candidate_output)"
+  },
+  "verifiers": [
+    {
+      "verifier_id": "slm00.verifier.worker_routing",
+      "category": "worker_routing",
+      "version": "1.0.0",
+      "module": "research.slm.verifiers.worker_routing",
+      "class": "WorkerRoutingVerifier",
+      "checks": ["capability constraint satisfaction", "authority compatibility", "route legality", "worker availability"],
+      "bench_allocation": 200,
+      "tests": "research/slm/verifiers/tests/test_worker_routing.py"
+    },
+    {
+      "verifier_id": "slm00.verifier.contract_compilation",
+      "category": "contract_compilation",
+      "version": "1.0.0",
+      "module": "research.slm.verifiers.contract_compilation",
+      "class": "ContractCompilationVerifier",
+      "checks": ["schema/required-field validation", "declarative invariant checks", "capability boundary", "authority scope", "evidence requirements", "budget constraints", "canonical-JSON semantic equivalence (not byte-exact)"],
+      "bench_allocation": 150,
+      "tests": "research/slm/verifiers/tests/test_contract_compilation.py"
+    },
+    {
+      "verifier_id": "slm00.verifier.evidence_sufficiency",
+      "category": "evidence_sufficiency",
+      "version": "1.0.0",
+      "module": "research.slm.verifiers.evidence_sufficiency",
+      "class": "EvidenceSufficiencyVerifier",
+      "checks": ["explicit requirement coverage", "artifact presence", "provenance integrity", "sha256 digest validity", "required verifier outputs"],
+      "bench_allocation": 150,
+      "tests": "research/slm/verifiers/tests/test_evidence_sufficiency.py"
+    },
+    {
+      "verifier_id": "slm00.verifier.retry_escalate_abort",
+      "category": "retry_escalate_abort",
+      "version": "1.0.0",
+      "module": "research.slm.verifiers.retry_escalate_abort",
+      "class": "RetryEscalateAbortVerifier",
+      "checks": ["frozen policy execution", "retry budget", "capability mismatch", "failure taxonomy gating", "authority state", "escalation conditions"],
+      "bench_allocation": 100,
+      "tests": "research/slm/verifiers/tests/test_retry_escalate_abort.py"
+    },
+    {
+      "verifier_id": "slm00.verifier.budget_decisions",
+      "category": "budget_decisions",
+      "version": "1.0.0",
+      "module": "research.slm.verifiers.budget_decisions",
+      "class": "BudgetDecisionsVerifier",
+      "checks": ["hard budget constraints", "route cost bounds", "remaining budget", "mission policy (mission_critical/allows_zero_slack)", "safety reserve"],
+      "bench_allocation": 100,
+      "tests": "research/slm/verifiers/tests/test_budget_decisions.py"
+    },
+    {
+      "verifier_id": "slm00.verifier.failure_classification",
+      "category": "failure_classification",
+      "version": "1.0.0",
+      "module": "research.slm.verifiers.failure_classification",
+      "class": "FailureClassificationVerifier",
+      "checks": ["exact frozen taxonomy", "preregistered aliases only", "deterministic mapping rules"],
+      "bench_allocation": 100,
+      "tests": "research/slm/verifiers/tests/test_failure_classification.py"
+    },
+    {
+      "verifier_id": "slm00.verifier.adversarial_malformed",
+      "category": "adversarial_malformed",
+      "version": "1.0.0",
+      "module": "research.slm.verifiers.adversarial_malformed",
+      "class": "AdversarialMalformedVerifier",
+      "checks": ["targeted invariant under attack", "schema-invalid behavior", "injection handling", "authority bypass attempts", "malformed evidence", "invalid state transition requests"],
+      "bench_allocation": 100,
+      "tests": "research/slm/verifiers/tests/test_adversarial_malformed.py"
+    },
+    {
+      "verifier_id": "slm00.verifier.stale_state_authority",
+      "category": "stale_state_authority",
+      "version": "1.0.0",
+      "module": "research.slm.verifiers.stale_state_authority",
+      "class": "StaleStateAuthorityVerifier",
+      "checks": ["generation/state consistency", "authority scope", "stale receipt detection", "state-machine legality", "protected boundary rules"],
+      "bench_allocation": 100,
+      "tests": "research/slm/verifiers/tests/test_stale_state_authority.py"
+    }
+  ],
+  "covered_item_categories": [
+    "worker_routing",
+    "contract_compilation",
+    "evidence_sufficiency",
+    "retry_escalate_abort",
+    "budget_decisions",
+    "failure_classification",
+    "adversarial_malformed",
+    "stale_state_authority"
+  ],
+  "ambiguity_report": "research/slm/verifiers/AMBIGUITY.md",
+  "test_battery_requirement": "per verifier: correct->PASS; incorrect->FAIL; malformed->FAIL; unauthorized action->FAIL; ambiguous/unverifiable->BENCHMARK_DEFECT",
+  "guarantees": [
+    "pure deterministic functions; no network; no model calls",
+    "malformed candidate output is FAIL, never silently repaired",
+    "inconsistent or unverifiable items are BENCHMARK_DEFECT, never silently repaired",
+    "frozen expected_output is adversarially re-derived from input_state where the category permits"
+  ]
+}
