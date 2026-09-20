@@ -1,6 +1,6 @@
 # RESIDUAL current status
 
-_Current-state check: 2026-09-19 UTC against `main@2f9dda3882f39c28a1c766859b1bf9579eea7911`._
+_Current-state check: 2026-09-20 UTC against `main@2f9dda3882f39c28a1c766859b1bf9579eea7911`._
 
 This document is a human-readable status summary. Exact source at the named revision, exact-head workflow results, retained machine-readable evidence, explicit issues/PRs, and applicable maintainer/protected-byte governance are more authoritative than prose. Historical evidence remains bound to the revision and environment that produced it.
 
@@ -18,6 +18,8 @@ The newly accepted protected change is deliberately scoped:
 The #338 exact PR head had a matching maintainer attestation. Its PR-Agent advisory was nevertheless **FAIL / unavailable** because both configured OpenAI review models returned `credit_balance_exhausted`; no substantive advisory was published. That missing advisory remains an evidence/governance gap and is not retroactively a PASS.
 
 Earlier accepted #307, #260, #288, #320, #328, #330, #337, and #336 retain their previously reviewed scope.
+
+Separate from the exact-current-main Pages result, open owner issue **#353** now records an **AUD-1 P0 pre-release convergence gate** against frozen `main@2f9dda38...`. The owner disposition marks F1-F3 as P0 BLOCKER findings and keeps F4/F6 in the same P0 remediation lane. No exact remediation head exists yet. Release convergence is therefore **BLOCKED by the declared P0 security gate**, while the repair status of any future candidate remains **UNKNOWN** until the required adversarial regressions, physical reconnect cases, independent Mason re-audit, exact-head qualification, and owner attestation exist.
 
 ## Exact-current-main production qualification
 
@@ -109,7 +111,11 @@ Draft **#323** remains unaccepted. #288 is accepted, satisfying its first prereq
 - **#330:** checkout credential-persistence hardening is accepted for its reviewed workflow scope.
 - **#337:** PR-Agent advisory publication/concurrency hardening is accepted for its reviewed governance scope.
 - **#338:** protected RuntimeJournal contention handling + ownership-pin advance is accepted for its reviewed scope; the PR-Agent advisory for the exact merge head was **FAIL / unavailable**, not PASS.
+- **#353:** owner-authored AUD-1 convergence issue treats frozen `main@2f9dda38...` as subject to a P0 pre-release security gate. F1-F3 are recorded as **P0 BLOCKER** findings; F4 and F6 are required in the same P0 lane. No exact remediation candidate exists yet, so repair qualification is **UNKNOWN / pending**, while release convergence is **BLOCKED** under the declared gate sequence.
+- **#354:** open governance-regression candidate at exact head **`e2327e870137f7b418a656d59311984940b57388`**. It adds gate-index tests, maintainer-approval parser hardening, and a new `verifier/v3/governance_integrity.json` manifest that pins governance-critical bytes; it does not change workflows or production code. Exact-head Factory ownership, Control Plane, measured-evaluation binding, clean install, Controller/provider and Command Station workflows are **PASS**, and Vercel is **PASS**. Protected maintainer approval is **FAIL** and PR-Agent advisory is **FAIL**. Its own release-convergence instruction is **DO NOT MERGE / HOLD** until #152 lands and new-main qualification completes. The new integrity manifest is therefore candidate trust-boundary material, not accepted-main authority.
 - blanket repository security or independent-review qualification: **not established**.
+
+Issue #353 requires separate retained physical reconnect evidence for inside-window recovery and outside-window authority expiry; those claims must not be collapsed into a single reconnect PASS. Mason's future independent re-audit is necessary evidence for the declared convergence sequence but does not itself authorize merge.
 
 Current Vercel deployment-rate-limit failures are infrastructure status and do not establish production response-header behavior one way or the other.
 
@@ -171,15 +177,17 @@ General autonomous discovery and recursive self-improvement remain **UNKNOWN / n
 
 ## Current priority gates
 
-1. **Preserve the exact-current-main Pages PASS without broadening it.** Run `35452581203` attempt 1 is authoritative for `2f9dda38...`; predecessor FAILs remain evidence. Continue #120/#126/#335 reliability work without treating one green revision as long-run reliability proof.
-2. **Freshly qualify and explicitly review #152's current protected head.** Exact head `061910c5...` changes Factory source, expected-Factory fixture bytes and the ownership baseline, so its present status is UNKNOWN until exact-head evidence is published. Preserve predecessor `aeba9962...` run `35448856959` as historical FAIL evidence rather than inheriting it onto the new head.
-3. **Keep #340, #341, #344, #345, #346, #347, #348, #349, #350 and #352 separated and bounded; keep #351 research-only.** #340 is unaccepted and currently FAIL on required exact-head Command Station/provider CI; #341 is draft research-only nested-runtime work; #344 is a draft Arena-provider plus Arena-aligned benchmark scaffold; #345 is a draft Wiki/setup-agent candidate; #346 is draft docs-only agent/wiki onboarding; #347 is an unaccepted setup/`residual start` candidate; #348 is an unaccepted public-interface/current-status repair; #349 is a draft/HOLD Shared Comms candidate with required product-CI failures; #350 is a draft research-only AX-21 dogfooding log whose reported observations are not production qualification or general swarm-efficiency proof; #351/#352 are FreeLLMAPI research/provider-candidate work that does not establish an accepted gateway integration, privacy suitability, or production readiness. None changes accepted current-main capability, setup semantics, documentation authority, or scientific conclusions until its own governance/evidence path is satisfied.
-4. **Repair and requalify current exact-head product-test failures** before treating #340 or #349 as merge-ready.
-5. **Resolve the accepted-main public CLI example defect through #348 or an equivalent reviewed repair** before presenting that homepage command as valid current behavior.
-6. **Requalify repaired authority ordering** against accepted #288 before broadening budget/unknown-usage/release-ordering claims.
-7. **Rebase/requalify #323** before M6-WB-001 can run authoritatively.
-8. **Validate #320 in production** before calling production CSP/anti-clickjacking response-header remediation PASS.
-9. **Retain fresh live-provider semantic evidence** or keep exact-current-main paid/live provider success UNKNOWN.
-10. **Complete blank-environment, recovery/host-loss, elapsed-soak and physical/mobile reliability work** without broadening bounded results.
-11. **Keep research claims bounded.** General recursive self-improvement and general mesh efficiency remain UNKNOWN; M6-008 remains BLOCKED. AX-21 reported live-session observations remain research-only until the underlying evidence bundle and phase exit criteria are preserved and checked. FreeLLMAPI compatibility/setup observations remain research evidence only until an actual RESIDUAL integration is implemented and qualified.
-12. **Retain governance gaps explicitly.** #338's failed PR-Agent advisory due provider-credit exhaustion is not substantive review evidence; open/draft candidates with failed approval/advisory gates remain unaccepted regardless of scoped technical greens.
+1. **Resolve the AUD-1 P0 convergence gate in #353 without weakening authority boundaries.** The declared release sequence is implementation → ten adversarial regressions → ordinary CI → two separately retained physical F6 reconnect cases → Mason independent re-audit → exact-head qualification → owner review/attestation → merge → authoritative new-main qualification. Until that evidence exists, release convergence remains **BLOCKED**; no future candidate may inherit a PASS from the frozen baseline.
+2. **Preserve the exact-current-main Pages PASS without broadening it.** Run `35452581203` attempt 1 is authoritative for `2f9dda38...`; predecessor FAILs remain evidence. Continue #120/#126/#335 reliability work without treating one green revision as long-run reliability proof.
+3. **Freshly qualify and explicitly review #152's current protected head.** Exact head `061910c5...` changes Factory source, expected-Factory fixture bytes and the ownership baseline, so its present status is UNKNOWN until exact-head evidence is published. Preserve predecessor `aeba9962...` run `35448856959` as historical FAIL evidence rather than inheriting it onto the new head.
+4. **Keep #354 governance tightening on HOLD until its declared release-convergence prerequisites are satisfied.** Its exact-head technical CI is green in the checked lanes and Vercel is PASS, but maintainer approval and PR-Agent advisory are FAIL; its governance-integrity manifest and parser-hardening tests are candidate trust-boundary material, not accepted main.
+5. **Keep #340, #341, #344, #345, #346, #347, #348, #349, #350 and #352 separated and bounded; keep #351 research-only.** #340 is unaccepted and currently FAIL on required exact-head Command Station/provider CI; #341 is draft research-only nested-runtime work; #344 is a draft Arena-provider plus Arena-aligned benchmark scaffold; #345 is a draft Wiki/setup-agent candidate; #346 is draft docs-only agent/wiki onboarding; #347 is an unaccepted setup/`residual start` candidate; #348 is an unaccepted public-interface/current-status repair; #349 is a draft/HOLD Shared Comms candidate with required product-CI failures; #350 is a draft research-only AX-21 dogfooding log whose reported observations are not production qualification or general swarm-efficiency proof; #351/#352 are FreeLLMAPI research/provider-candidate work that does not establish an accepted gateway integration, privacy suitability, or production readiness. None changes accepted current-main capability, setup semantics, documentation authority, or scientific conclusions until its own governance/evidence path is satisfied.
+6. **Repair and requalify current exact-head product-test failures** before treating #340 or #349 as merge-ready.
+7. **Resolve the accepted-main public CLI example defect through #348 or an equivalent reviewed repair** before presenting that homepage command as valid current behavior.
+8. **Requalify repaired authority ordering** against accepted #288 before broadening budget/unknown-usage/release-ordering claims.
+9. **Rebase/requalify #323** before M6-WB-001 can run authoritatively.
+10. **Validate #320 in production** before calling production CSP/anti-clickjacking response-header remediation PASS.
+11. **Retain fresh live-provider semantic evidence** or keep exact-current-main paid/live provider success UNKNOWN.
+12. **Complete blank-environment, recovery/host-loss, elapsed-soak and physical/mobile reliability work** without broadening bounded results.
+13. **Keep research claims bounded.** General recursive self-improvement and general mesh efficiency remain UNKNOWN; M6-008 remains BLOCKED. AX-21 reported live-session observations remain research-only until the underlying evidence bundle and phase exit criteria are preserved and checked. FreeLLMAPI compatibility/setup observations remain research evidence only until an actual RESIDUAL integration is implemented and qualified.
+14. **Retain governance gaps explicitly.** #338's failed PR-Agent advisory due provider-credit exhaustion is not substantive review evidence; open/draft candidates with failed approval/advisory gates remain unaccepted regardless of scoped technical greens.
