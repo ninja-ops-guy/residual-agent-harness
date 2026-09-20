@@ -150,7 +150,6 @@ class OwnerAction:
             "checks_passed": self.checks_passed,
             "independent_review_passed": self.independent_review_passed,
             "unresolved_findings": self.unresolved_findings,
-            "ready": self.ready,
         }
 
 
