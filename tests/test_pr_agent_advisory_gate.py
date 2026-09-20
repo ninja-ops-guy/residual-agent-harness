@@ -30,7 +30,10 @@ class PRAgentAdvisoryGateTests(unittest.TestCase):
         # PR-Agent's GitHub provider records the author login when it publishes
         # the temporary progress comment. The pinned persistent-review code can
         # then verify authorship without relying on GITHUB_TOKEN /user identity.
-        self.assertIn('CONFIG.PUBLISH_OUTPUT_PROGRESS: "true"', self.workflow)
+        start = self.workflow.index("- name: Run advisory PR review")
+        end = self.workflow.index("- name: Verify substantive advisory review was published", start)
+        review_step = self.workflow[start:end]
+        self.assertIn('CONFIG.PUBLISH_OUTPUT_PROGRESS: "true"', review_step)
 
     def test_bot_issue_comments_cannot_cancel_human_review_runs(self) -> None:
         # Concurrency identity must distinguish pull_request vs issue_comment and
