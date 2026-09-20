@@ -1,0 +1,115 @@
+{
+  "category": "worker-routing",
+  "code": "WR",
+  "seed_policy": "RESIDUAL routing policy reconstructed from OTX-003 observations: (1) any candidate topology with predicted_tax > config.deployment_tax_threshold is vetoed (deployment threshold); (2) if a veto occurred, fail closed to the lowest-tax candidate topology ('single'); (3) otherwise select the candidate with maximal predicted_utility (ties break toward the smaller topology: single < pair < swarm).",
+  "seeds": [
+    {
+      "seed_id": "WR-SEED-001",
+      "input_state": {
+        "task": {"task_id": "lookup-atomic-0", "task_class": "lookup", "granularity": "atomic", "size": 0.5, "value": 1.0},
+        "config": {"topologies": ["single", "pair", "swarm"], "deployment_tax_threshold": 3.0, "latency_penalty": 0.05},
+        "candidates": [
+          {"topology": "single", "predicted_utility": 0.6475, "predicted_tax": 0.05},
+          {"topology": "pair", "predicted_utility": 0.79, "predicted_tax": 0.2},
+          {"topology": "swarm", "predicted_utility": 0.8625, "predicted_tax": 0.35}
+        ]
+      },
+      "expected_output": {"selected_topology": "swarm", "selection_reason": "max_utility"},
+      "allowed_alternatives": [],
+      "contamination_group": "CG-OTX-lookup-atomic",
+      "source_provenance": {"lane": "OTX-003", "artifact": "evidence/otx/observations.jsonl", "artifact_sha256_git_blob": "9d24ececfe5e52a3732d6f5cc6c571d8af125ca2", "record_ref": "otx-000001", "source_class": "replay", "derivation": "direct", "synthetic": false},
+      "difficulty": {"constraint_count": 1, "authority_complexity": 0, "evidence_depth": 1, "branching_factor": 3, "ambiguity_risk": "low"},
+      "safety_critical": false
+    },
+    {
+      "seed_id": "WR-SEED-002",
+      "input_state": {
+        "task": {"task_id": "lookup-atomic-1", "task_class": "lookup", "granularity": "atomic", "size": 0.5, "value": 1.0},
+        "config": {"topologies": ["single", "pair", "swarm"], "deployment_tax_threshold": 3.0, "latency_penalty": 0.05},
+        "candidates": [
+          {"topology": "single", "predicted_utility": 0.6475, "predicted_tax": 0.05},
+          {"topology": "pair", "predicted_utility": 0.79, "predicted_tax": 0.2},
+          {"topology": "swarm", "predicted_utility": 0.7965615233759167, "predicted_tax": 3.429011824696634}
+        ]
+      },
+      "expected_output": {"selected_topology": "single", "selection_reason": "deployment_threshold"},
+      "allowed_alternatives": [],
+      "contamination_group": "CG-OTX-lookup-atomic",
+      "source_provenance": {"lane": "OTX-003", "artifact": "evidence/otx/observations.jsonl", "artifact_sha256_git_blob": "9d24ececfe5e52a3732d6f5cc6c571d8af125ca2", "record_ref": "otx-000003", "source_class": "replay", "derivation": "direct", "synthetic": false},
+      "difficulty": {"constraint_count": 2, "authority_complexity": 0, "evidence_depth": 1, "branching_factor": 3, "ambiguity_risk": "low"},
+      "safety_critical": false
+    },
+    {
+      "seed_id": "WR-SEED-003",
+      "input_state": {
+        "task": {"task_id": "synthesis-atomic-1", "task_class": "synthesis", "granularity": "atomic", "size": 1.5, "value": 4.0},
+        "config": {"topologies": ["single", "pair", "swarm"], "deployment_tax_threshold": 3.0, "latency_penalty": 0.05},
+        "candidates": [
+          {"topology": "single", "predicted_utility": 2.7474999999999996, "predicted_tax": 0.05},
+          {"topology": "pair", "predicted_utility": 3.34, "predicted_tax": 0.2},
+          {"topology": "swarm", "predicted_utility": 3.6488451057401474, "predicted_tax": 1.5531544818333973}
+        ]
+      },
+      "expected_output": {"selected_topology": "swarm", "selection_reason": "max_utility"},
+      "allowed_alternatives": [],
+      "contamination_group": "CG-OTX-synthesis-atomic",
+      "source_provenance": {"lane": "OTX-003", "artifact": "evidence/otx/observations.jsonl", "artifact_sha256_git_blob": "9d24ececfe5e52a3732d6f5cc6c571d8af125ca2", "record_ref": "otx-000004", "source_class": "replay", "derivation": "direct", "synthetic": false},
+      "difficulty": {"constraint_count": 1, "authority_complexity": 0, "evidence_depth": 1, "branching_factor": 3, "ambiguity_risk": "low"},
+      "safety_critical": false
+    },
+    {
+      "seed_id": "WR-SEED-004",
+      "input_state": {
+        "task": {"task_id": "lookup-composite-2", "task_class": "lookup", "granularity": "composite", "size": 1.0, "value": 1.0},
+        "config": {"topologies": ["single", "pair", "swarm"], "deployment_tax_threshold": 3.0, "latency_penalty": 0.05},
+        "candidates": [
+          {"topology": "single", "predicted_utility": 0.7937924718954398, "predicted_tax": 0.06794268449214548},
+          {"topology": "pair", "predicted_utility": 0.79, "predicted_tax": 0.2},
+          {"topology": "swarm", "predicted_utility": 0.7965615233759167, "predicted_tax": 3.429011824696634}
+        ]
+      },
+      "expected_output": {"selected_topology": "single", "selection_reason": "deployment_threshold"},
+      "allowed_alternatives": [],
+      "contamination_group": "CG-OTX-lookup-composite",
+      "source_provenance": {"lane": "OTX-003", "artifact": "evidence/otx/observations.jsonl", "artifact_sha256_git_blob": "9d24ececfe5e52a3732d6f5cc6c571d8af125ca2", "record_ref": "otx-000013", "source_class": "replay", "derivation": "direct", "synthetic": false},
+      "difficulty": {"constraint_count": 2, "authority_complexity": 0, "evidence_depth": 1, "branching_factor": 3, "ambiguity_risk": "medium"},
+      "safety_critical": false
+    },
+    {
+      "seed_id": "WR-SEED-005",
+      "input_state": {
+        "task": {"task_id": "synthesis-project-0", "task_class": "synthesis", "granularity": "project", "size": 6.0, "value": 4.0},
+        "config": {"topologies": ["single", "pair", "swarm"], "deployment_tax_threshold": 3.0, "latency_penalty": 0.05},
+        "candidates": [
+          {"topology": "single", "predicted_utility": 2.7474999999999996, "predicted_tax": 0.05},
+          {"topology": "pair", "predicted_utility": 3.34, "predicted_tax": 0.2},
+          {"topology": "swarm", "predicted_utility": 3.683688827476983, "predicted_tax": 2.1046181715319254}
+        ]
+      },
+      "expected_output": {"selected_topology": "swarm", "selection_reason": "max_utility"},
+      "allowed_alternatives": [],
+      "contamination_group": "CG-OTX-synthesis-project",
+      "source_provenance": {"lane": "OTX-003", "artifact": "evidence/otx/observations.jsonl", "artifact_sha256_git_blob": "9d24ececfe5e52a3732d6f5cc6c571d8af125ca2", "record_ref": "otx-000018", "source_class": "replay", "derivation": "direct", "synthetic": false},
+      "difficulty": {"constraint_count": 1, "authority_complexity": 0, "evidence_depth": 1, "branching_factor": 3, "ambiguity_risk": "low"},
+      "safety_critical": false
+    },
+    {
+      "seed_id": "WR-SEED-006",
+      "input_state": {
+        "task": {"task_id": "lookup-project-2", "task_class": "lookup", "granularity": "project", "size": 2.0, "value": 1.0},
+        "config": {"topologies": ["single", "pair", "swarm"], "deployment_tax_threshold": 3.0, "latency_penalty": 0.05},
+        "candidates": [
+          {"topology": "single", "predicted_utility": 0.8011449951045173, "predicted_tax": 0.05714250553632855},
+          {"topology": "pair", "predicted_utility": 0.79, "predicted_tax": 0.2},
+          {"topology": "swarm", "predicted_utility": 0.7965615233759167, "predicted_tax": 3.429011824696634}
+        ]
+      },
+      "expected_output": {"selected_topology": "single", "selection_reason": "deployment_threshold"},
+      "allowed_alternatives": [],
+      "contamination_group": "CG-OTX-lookup-project",
+      "source_provenance": {"lane": "OTX-003", "artifact": "evidence/otx/observations.jsonl", "artifact_sha256_git_blob": "9d24ececfe5e52a3732d6f5cc6c571d8af125ca2", "record_ref": "otx-000021", "source_class": "replay", "derivation": "direct", "synthetic": false},
+      "difficulty": {"constraint_count": 2, "authority_complexity": 0, "evidence_depth": 1, "branching_factor": 3, "ambiguity_risk": "medium"},
+      "safety_critical": false
+    }
+  ]
+}
