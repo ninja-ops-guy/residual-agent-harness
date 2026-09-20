@@ -18,9 +18,15 @@ and SCHEMA-ERRATUM-001):
 
 Contamination groups:
   OTX  : otx:<task_class>-<granularity>   (task family; all replicates share config)
-  VQ   : vq:<case_id alpha-prefix>:<blob sha8>  (content-keyed: outcomes-adequate.part0
-         and outcomes-degraded.part0 are byte-identical (same blob SHA) -> same group;
-         identical records can never straddle a split)
+  VQ   : vq:case:<case_id>  (case_id LINEAGE-keyed, NOT blob-keyed. Rationale
+         (SLM-INFRA-QUAL MATERIAL-2): the prior scheme vq:<prefix>:<blob-sha8>
+         keyed groups by source-file blob SHA; outcomes-adequate.part2 and
+         outcomes-degraded.part2 share the same 30 case_ids with 20/30
+         content-identical records but DIFFERENT blob SHAs, so identical
+         records were assigned different groups and could straddle a split
+         undetected. Keying by case_id lineage guarantees every variant of a
+         case (adequate/degraded, flipped verdicts included) shares exactly
+         one group, so related records can never straddle a split.)
   OBS  : obs006-fixture-v1                (single fixture = single group)
   DSM  : dsm004:<schedule> for fault inbox journals; dsm004:outbox-shared for the
          hash-identical outbox journals (same event hashes in all 6 schedules);
@@ -78,6 +84,7 @@ MANIFEST = {
     "unknown_verification": 0,
     "rejected_actions": 0,
     "interventions": 0,
+    "retry_repair_events": 0,
     "escalation_events": 0,
     "false_non_escalation_candidates": 0,
     "authority_violations": 0,
@@ -423,9 +430,13 @@ def convert_vq(root):
                 case_id = r["case_id"]
                 m = re.match(r"^([A-Za-z]+)", case_id)
                 prefix = m.group(1) if m else case_id
-                # Content-keyed group: adequate.part0 == degraded.part0 (identical blob
-                # SHA) -> identical records can never land in different groups.
-                group = f"vq:{prefix}:{SOURCE_SHAS[src][:8]}"
+                # Case_id LINEAGE-keyed group (MATERIAL-2 fix): every variant of a
+                # case -- adequate/degraded files, byte-identical parts, and the
+                # part2 records whose verdicts differ -- shares ONE group, so
+                # related records can never straddle a split. The prior
+                # blob-sha8 keying gave adequate.part2/degraded.part2 different
+                # groups despite 20/30 content-identical records.
+                group = f"vq:case:{case_id}"
                 gt, verdict = r.get("ground_truth"), r.get("verdict")
                 if gt is None or verdict is None:
                     vstatus = "unknown"
@@ -503,8 +514,12 @@ def update_manifest(records, rejects_by_source):
         if rec["authority"].get("violation"):
             MANIFEST["authority_violations"] += 1
         out = rec.get("outcome", {})
+        # MINOR-6 fix: retry/repair events are counted separately from
+        # OPERATOR interventions. No source records operator interventions,
+        # so `interventions` stays 0 (matching CORPUS-MANIFEST); retries and
+        # re-attempts accumulate in `retry_repair_events`.
         if out.get("kind") in ("retry",) or out.get("attempt"):
-            MANIFEST["interventions"] += 1
+            MANIFEST["retry_repair_events"] += 1
         esc = rec.get("escalation")
         if esc and esc.get("required") is not None:
             MANIFEST["escalation_events"] += 1
