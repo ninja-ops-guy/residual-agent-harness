@@ -72,9 +72,11 @@ def _validate_sha(value: Any, name: str, empty: bool = False) -> str:
 
 
 def _validate_authoritative(value: Any) -> dict[str, Any]:
-    if not isinstance(value, dict) or set(value) != AUTHORITATIVE_FIELDS:
-        missing = sorted(AUTHORITATIVE_FIELDS - set(value or {}) if isinstance(value, dict) else AUTHORITATIVE_FIELDS)
-        extra = sorted(set(value or {}) - AUTHORITATIVE_FIELDS if isinstance(value, dict) else [])
+    if not isinstance(value, dict):
+        raise ContractError("Project state must be an object")
+    if set(value) != AUTHORITATIVE_FIELDS:
+        missing = sorted(AUTHORITATIVE_FIELDS - set(value))
+        extra = sorted(set(value) - AUTHORITATIVE_FIELDS)
         raise ContractError(f"Project state fields mismatch; missing={missing}, extra={extra}")
     result = _bounded_json(value, "project state")
     result["main_sha"] = _validate_sha(result["main_sha"], "main_sha")
