@@ -180,14 +180,18 @@ class SwarmStateStore:
     class deliberately has no model-call API.
     """
 
-    def __init__(self, store):
+    def __init__(self, store, scope_id: str):
         self.store = store
+        self.scope_id = identifier(scope_id)
         with self.store.lock, self.store.connect() as c:
             c.executescript("""
             CREATE TABLE IF NOT EXISTS swarm_states(
-                generation INTEGER PRIMARY KEY,
-                state_hash TEXT NOT NULL UNIQUE,
-                value TEXT NOT NULL
+                scope_id TEXT NOT NULL,
+                generation INTEGER NOT NULL,
+                state_hash TEXT NOT NULL,
+                value TEXT NOT NULL,
+                PRIMARY KEY(scope_id,generation),
+                UNIQUE(scope_id,state_hash)
             );
             CREATE TABLE IF NOT EXISTS swarm_runners(
                 runner_id TEXT PRIMARY KEY,
@@ -196,21 +200,23 @@ class SwarmStateStore:
                 value TEXT NOT NULL
             );
             CREATE TABLE IF NOT EXISTS swarm_sync(
-                runner_id TEXT PRIMARY KEY,
-                value TEXT NOT NULL
+                scope_id TEXT NOT NULL,
+                runner_id TEXT NOT NULL,
+                value TEXT NOT NULL,
+                PRIMARY KEY(scope_id,runner_id)
             );
             """)
 
     def current(self) -> dict[str, Any] | None:
         with self.store.connect() as c:
-            row = c.execute("SELECT value FROM swarm_states ORDER BY generation DESC LIMIT 1").fetchone()
+            row = c.execute("SELECT value FROM swarm_states WHERE scope_id=? ORDER BY generation DESC LIMIT 1", (self.scope_id,)).fetchone()
         return validate_state(strict_json(row[0])) if row else None
 
     def state(self, generation: int) -> dict[str, Any]:
         if type(generation) is not int or generation < 1:
             raise ContractError("generation must be a positive integer")
         with self.store.connect() as c:
-            row = c.execute("SELECT value FROM swarm_states WHERE generation=?", (generation,)).fetchone()
+            row = c.execute("SELECT value FROM swarm_states WHERE scope_id=? AND generation=?", (self.scope_id, generation)).fetchone()
         if not row:
             raise ContractError("Project-state generation was not found")
         return validate_state(strict_json(row[0]))
@@ -219,7 +225,7 @@ class SwarmStateStore:
         authoritative = _validate_authoritative(authoritative)
         annotations = _validate_annotations(annotations)
         with self.store.transaction() as c:
-            row = c.execute("SELECT generation,value FROM swarm_states ORDER BY generation DESC LIMIT 1").fetchone()
+            row = c.execute("SELECT generation,value FROM swarm_states WHERE scope_id=? ORDER BY generation DESC LIMIT 1", (self.scope_id,)).fetchone()
             if row:
                 current = validate_state(strict_json(row["value"]))
                 if current["authoritative"] == authoritative and current["annotations"] == annotations:
@@ -229,8 +235,8 @@ class SwarmStateStore:
                 generation = 1
             body = _state_body(generation, authoritative, annotations)
             state = {**body, "state_hash": _state_hash(body)}
-            c.execute("INSERT INTO swarm_states(generation,state_hash,value) VALUES(?,?,?)",
-                      (generation, state["state_hash"], canonical(state)))
+            c.execute("INSERT INTO swarm_states(scope_id,generation,state_hash,value) VALUES(?,?,?,?)",
+                      (self.scope_id, generation, state["state_hash"], canonical(state)))
             return state
 
     def delta(self, from_generation: int) -> dict[str, Any]:
@@ -344,6 +350,7 @@ class SwarmStateStore:
             raise ContractError("Runner capability revision is stale")
         value = {
             "schema_version": SYNC_SCHEMA,
+            "scope_id": self.scope_id,
             "runner_id": runner["runner_id"],
             "identity_digest": runner["identity_digest"],
             "state_generation": state_generation,
@@ -352,14 +359,14 @@ class SwarmStateStore:
             "acknowledged_at": _now(),
         }
         with self.store.transaction() as c:
-            c.execute("INSERT OR REPLACE INTO swarm_sync(runner_id,value) VALUES(?,?)",
-                      (runner["runner_id"], canonical(value)))
+            c.execute("INSERT OR REPLACE INTO swarm_sync(scope_id,runner_id,value) VALUES(?,?,?)",
+                      (self.scope_id, runner["runner_id"], canonical(value)))
         return value
 
     def acknowledgement(self, runner_id: str) -> dict[str, Any] | None:
         runner_id = identifier(runner_id)
         with self.store.connect() as c:
-            row = c.execute("SELECT value FROM swarm_sync WHERE runner_id=?", (runner_id,)).fetchone()
+            row = c.execute("SELECT value FROM swarm_sync WHERE scope_id=? AND runner_id=?", (self.scope_id, runner_id)).fetchone()
         return strict_json(row[0]) if row else None
 
     def eligible(self, runner_id: str) -> bool:
@@ -372,7 +379,8 @@ class SwarmStateStore:
         if current is None or ack is None or ack.get("schema_version") != SYNC_SCHEMA:
             return False
         return (
-            ack.get("identity_digest") == runner["identity_digest"]
+            ack.get("scope_id") == self.scope_id
+            and ack.get("identity_digest") == runner["identity_digest"]
             and ack.get("capability_revision") == runner["capability_revision"]
             and ack.get("state_generation") == current["state_generation"]
             and ack.get("state_hash") == current["state_hash"]
@@ -395,6 +403,7 @@ class SwarmStateStore:
             raise ContractError("worker_contract_hash must be a SHA-256 digest")
         return {
             "schema_version": "residual.work_state_binding.v1",
+            "scope_id": self.scope_id,
             "runner_id": ack["runner_id"],
             "identity_digest": ack["identity_digest"],
             "state_generation": current["state_generation"],
