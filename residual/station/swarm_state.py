@@ -100,9 +100,10 @@ def _validate_annotations(value: Any) -> dict[str, Any]:
     return _bounded_json(value, "annotations", 100_000)
 
 
-def _state_body(generation: int, authoritative: dict[str, Any], annotations: dict[str, Any]) -> dict[str, Any]:
+def _state_body(scope_id: str, generation: int, authoritative: dict[str, Any], annotations: dict[str, Any]) -> dict[str, Any]:
     return {
         "schema_version": PROJECT_STATE_SCHEMA,
+        "scope_id": identifier(scope_id),
         "state_generation": generation,
         "authoritative": authoritative,
         "annotations": annotations,
@@ -114,13 +115,14 @@ def _state_hash(body: dict[str, Any]) -> str:
 
 
 def validate_state(state: Any) -> dict[str, Any]:
-    if not isinstance(state, dict) or set(state) != {"schema_version", "state_generation", "authoritative", "annotations", "state_hash"}:
+    if not isinstance(state, dict) or set(state) != {"schema_version", "scope_id", "state_generation", "authoritative", "annotations", "state_hash"}:
         raise ContractError("Invalid project-state envelope")
     if state["schema_version"] != PROJECT_STATE_SCHEMA or type(state["state_generation"]) is not int or state["state_generation"] < 1:
         raise ContractError("Invalid project-state schema or generation")
+    scope_id = identifier(state["scope_id"])
     authoritative = _validate_authoritative(state["authoritative"])
     annotations = _validate_annotations(state["annotations"])
-    body = _state_body(state["state_generation"], authoritative, annotations)
+    body = _state_body(scope_id, state["state_generation"], authoritative, annotations)
     expected = _state_hash(body)
     if not isinstance(state["state_hash"], str) or not _HEX64.fullmatch(state["state_hash"]) or state["state_hash"] != expected:
         raise ContractError("Project-state hash mismatch")
@@ -131,12 +133,14 @@ def apply_delta(base: dict[str, Any], delta: dict[str, Any]) -> dict[str, Any]:
     """Apply a bounded top-level StateDelta and verify its exact target hash."""
     base = validate_state(base)
     if not isinstance(delta, dict) or set(delta) != {
-        "schema_version", "from_generation", "from_hash", "to_generation", "to_hash",
+        "schema_version", "scope_id", "from_generation", "from_hash", "to_generation", "to_hash",
         "authoritative_set", "authoritative_remove", "annotation_set", "annotation_remove",
     }:
         raise ContractError("Invalid state-delta envelope")
     if delta["schema_version"] != STATE_DELTA_SCHEMA:
         raise ContractError("Invalid state-delta schema")
+    if delta["scope_id"] != base["scope_id"]:
+        raise ContractError("StateDelta scope mismatch")
     if delta["from_generation"] != base["state_generation"] or delta["from_hash"] != base["state_hash"]:
         raise ContractError("StateDelta does not apply to this base state")
     if type(delta["to_generation"]) is not int or delta["to_generation"] <= delta["from_generation"]:
@@ -165,7 +169,7 @@ def apply_delta(base: dict[str, Any], delta: dict[str, Any]) -> dict[str, Any]:
             raise ContractError("StateDelta annotation cannot shadow authority")
         annotations[key] = value
 
-    body = _state_body(delta["to_generation"], _validate_authoritative(authoritative), _validate_annotations(annotations))
+    body = _state_body(base["scope_id"], delta["to_generation"], _validate_authoritative(authoritative), _validate_annotations(annotations))
     target = {**body, "state_hash": _state_hash(body)}
     if delta["to_hash"] != target["state_hash"]:
         raise ContractError("StateDelta target hash mismatch")
@@ -233,7 +237,7 @@ class SwarmStateStore:
                 generation = row["generation"] + 1
             else:
                 generation = 1
-            body = _state_body(generation, authoritative, annotations)
+            body = _state_body(self.scope_id, generation, authoritative, annotations)
             state = {**body, "state_hash": _state_hash(body)}
             c.execute("INSERT INTO swarm_states(scope_id,generation,state_hash,value) VALUES(?,?,?,?)",
                       (self.scope_id, generation, state["state_hash"], canonical(state)))
@@ -250,6 +254,7 @@ class SwarmStateStore:
         n_remove = sorted(set(base["annotations"]) - set(target["annotations"]))
         return {
             "schema_version": STATE_DELTA_SCHEMA,
+            "scope_id": self.scope_id,
             "from_generation": base["state_generation"],
             "from_hash": base["state_hash"],
             "to_generation": target["state_generation"],
