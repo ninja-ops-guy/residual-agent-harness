@@ -256,7 +256,6 @@ class Ollama:
             self.process.kill()
         if self.log_handle:
             self.log_handle.close()
-        return "Ollama stopped"
 
     def pull(self, name, progress):
         if not isinstance(name, str) or not MODEL_NAME.fullmatch(name) or ".." in name:
@@ -269,10 +268,7 @@ class Ollama:
                 if "error" in item:
                     raise ContractError("Model download failed. Check model name, connectivity, and available disk space.")
                 total, completed = item.get("total"), item.get("completed")
-                if done := (completed or 0):
-                    progress(str(item.get("status", "Downloading model"))[:160], round(100 * done / total) if total else None)
-                else:
-                    progress(str(item.get("status", "Downloading model"))[:160], None)
+                progress(str(item.get("status", "Downloading model"))[:160], round(100 * completed / total) if total else None)
         return "Model downloaded; select it as the local runner"
 
     def unload(self, name):
