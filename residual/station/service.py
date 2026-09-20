@@ -13,6 +13,7 @@ from residual.core import ContractError, canonical
 from .contracts import bounded, parse_spec, sha
 from ai_providers import ProviderError as ModularError
 from .models import DEFAULTS, Ollama, model_call
+from .slm_observation import SlmObservationEmitter
 from .store import Store
 from . import workspace as ws
 
@@ -73,6 +74,7 @@ class Station:
         self.store.settings(DEFAULTS, defaults=True)
         self.store.recover(startup=True)
         self.ollama = Ollama(self.store)
+        self.slm_observations = SlmObservationEmitter(self.store.root)
         self.mutex = threading.RLock()
         self.project_locks = {}
         self.active = set()
@@ -85,6 +87,27 @@ class Station:
             if pid not in self._extensions:
                 self._extensions[pid] = self._extension_factory(self, pid)
             return self._extensions[pid]
+
+    def _slm_observe(self, pid, tid=None, **fields):
+        """Fail-closed SLM observation export (EXP-M6-SLM): collection only, never blocking.
+
+        Emission is gated by the slm_observation_export setting (off by default).
+        Any emission failure is itself recorded as a station event; the
+        authoritative operation always proceeds and nothing is silently dropped.
+        """
+        settings = self.store.settings()
+        if not settings.get("slm_observation_export", False):
+            return None
+        try:
+            return self.slm_observations.emit(mission_id=pid, incident_id=tid,
+                                              denylist=settings.get("slm_observation_denylist", []), **fields)
+        except Exception as e:
+            try:
+                self.store.event(pid, "slm.observation_failed",
+                                 {"message": str(e)[:300], "task_id": tid}, tid)
+            except Exception:
+                pass  # diagnostic logging must never veto authoritative operation either
+            return None
 
     def _guard_files(self, pid, task, values):
         from residual import ProposedAction, QuarantineStore, PolicyDecision
@@ -239,7 +262,8 @@ class Station:
                 fields = {"head_commit": head, "checks_result": checks, "checks_hash": sha(receipt),
                           "artifacts": current["artifacts"] + [artifact, patch], "findings": []}
                 self.store.event(pid, "checks.completed", {"head_commit": head, "passed": sum(c["passed"] for c in checks), "total": len(checks), "evidence": artifact["id"]}, t["id"])
-                if not all(c["passed"] for c in checks):
+                passed = all(c["passed"] for c in checks)
+                if not passed:
                     fields["findings"] = [f"{c['id']}: {_repair_detail(c['detail'])}" for c in checks if not c["passed"]]
                     if repeated_failed_patch:
                         fields["findings"].append("Candidate exactly repeated a previously failed patch; make a materially different correction that addresses the recorded check failure.")
@@ -250,6 +274,24 @@ class Station:
                     self.store.transition(pid, t["id"], "review_ready")
                 if usage:
                     self.store.event(pid, "usage.recorded", usage, t["id"], actor=t["owner"])
+                self._slm_observe(pid, t["id"],
+                    decision_point="runner.finish",
+                    state={"task_id": t["id"], "attempt": t["attempt"], "route": t["route"],
+                           "base_commit": current["base_commit"], "spec_hash": p["spec_hash"],
+                           "writable_files": t["files"]},
+                    proposed_decision={"files_proposed": sorted(response["files"])},
+                    actual_decision={"action": "commit_candidate", "head_commit": head,
+                                     "final_state": "review_ready" if passed else "repair_required"},
+                    outcome={"checks_passed": sum(c["passed"] for c in checks), "checks_total": len(checks),
+                             "repeated_failed_patch": repeated_failed_patch,
+                             "findings": fields["findings"][:8]},
+                    verification={"status": "verified_success" if passed else "verified_failure",
+                                  "verifier_refs": [artifact["id"]]},
+                    cost={"latency_ms": (usage or {}).get("elapsed_ms")},
+                    authority={"requested": ["file_write"], "granted": ["file_write"], "violation": False},
+                    artifact_digests=[artifact["sha256"], patch["sha256"]],
+                    escalation={"required": not passed, "taken": not passed,
+                                "classification": "correct_escalation" if not passed else "correct_non_escalation"})
                 return {"task_id": t["id"], "state": self.store.task(pid, t["id"])["state"]}
             except Exception as e:
                 if self.store.task(pid, t["id"])["state"] == "running":
@@ -316,6 +358,22 @@ class Station:
             self.store.event(pid, "review.completed", {"approved": result["approved"], "head_commit": t["head_commit"], "evidence": artifact["id"]}, tid, "reviewer")
             self.store.transition(pid, tid, "approved" if result["approved"] else "repair_required", "reviewer",
                                   fields={"review": receipt, "findings": result["findings"], "artifacts": t["artifacts"] + [artifact]})
+            self._slm_observe(pid, tid,
+                decision_point="review",
+                state={"task_id": tid, "head_commit": t["head_commit"], "base_commit": t["base_commit"],
+                       "spec_hash": p["spec_hash"], "checks_hash": t["checks_hash"], "reviewer": receipt["reviewer"]},
+                proposed_decision=None,
+                actual_decision={"action": "approve" if result["approved"] else "reject",
+                                 "approved": result["approved"], "finding_count": len(result["findings"])},
+                outcome={"final_state": "approved" if result["approved"] else "repair_required",
+                         "findings": result["findings"][:8]},
+                verification={"status": "verified_success" if result["approved"] else "rejected",
+                              "verifier_refs": [artifact["id"]]},
+                cost={},
+                authority={"requested": ["review_verdict"], "granted": ["review_verdict"], "violation": False},
+                artifact_digests=[artifact["sha256"]],
+                escalation={"required": not result["approved"], "taken": not result["approved"],
+                            "classification": "correct_escalation" if not result["approved"] else "correct_non_escalation"})
             return result
 
     def integrate(self, pid, tid):
@@ -351,6 +409,20 @@ class Station:
             self.store.transition(pid, tid, "integrated", fields={"artifacts": t["artifacts"] + [artifact, bound_artifact],
                                                                "verification_receipt": binding})
             self.store.event(pid, "integration.completed", {"head_commit": t["head_commit"], "evidence": artifact["id"]}, tid)
+            self._slm_observe(pid, tid,
+                decision_point="integrate",
+                state={"task_id": tid, "base_commit": t["base_commit"], "spec_hash": p["spec_hash"],
+                       "accumulated_checks": len(checks)},
+                proposed_decision={"action": "merge_ff_only", "head_commit": t["head_commit"]},
+                actual_decision={"action": "integrated", "head_commit": t["head_commit"]},
+                outcome={"final_state": "integrated", "head_commit": t["head_commit"],
+                         "integration_checks_passed": sum(c["passed"] for c in results),
+                         "integration_checks_total": len(results)},
+                verification={"status": "verified_success", "verifier_refs": [artifact["id"], bound_artifact["id"]]},
+                cost={},
+                authority={"requested": ["integrate"], "granted": ["integrate"], "violation": False},
+                artifact_digests=[artifact["sha256"], bound_artifact["sha256"]],
+                escalation={"required": False, "taken": False, "classification": "correct_non_escalation"})
             return {"head_commit": t["head_commit"]}
 
     def batch(self, pid, progress=lambda *a: None):
