@@ -91,6 +91,12 @@ class AccelerationControlPlaneTests(unittest.TestCase):
         self.assertEqual(conductor.status_for("slm-00"), DerivedStatus.READY)
         self.assertEqual([item["task_id"] for item in conductor.ready_work()["execute"]], ["slm-00"])
 
+    def test_owner_risk_class_is_closed(self):
+        value = manifest()
+        value["tasks"][1]["owner_action"]["risk_class"] = "critical"
+        with self.assertRaises(ContractError):
+            PortfolioManifest.from_dict(value)
+
     def test_human_gate_never_auto_crosses(self):
         conductor = AccelerationConductor(PortfolioManifest.from_dict(manifest()))
         self.assertNotIn("release", [item["task_id"] for item in conductor.ready_work()["execute"]])
