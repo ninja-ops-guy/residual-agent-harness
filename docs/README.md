@@ -51,6 +51,8 @@ The project intentionally distinguishes:
 
 Use [`extending.md`](extending.md) for the extension model and [`module-tutorial.md`](module-tutorial.md) for a small module walkthrough. New execution engines, verifiers, integrations, or worker runtimes should preserve the project's authority boundaries: workers propose, verifiers decide, and the harness integrates accepted state.
 
+For runtime/workstation profile integrations, use [`station/RUNTIME-PROFILE-LOADER.md`](station/RUNTIME-PROFILE-LOADER.md). It defines the canonical profile loader contract, lifecycle state machine, and ownership boundaries needed for Omarchy and future runtime profiles without adding platform-specific branches to Station core.
+
 ## Core invariants
 
 Across the repository, the following ideas should remain stable even as individual APIs evolve:
