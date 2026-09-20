@@ -27,7 +27,9 @@ rejected if they shadow an authoritative field.
 ## Project state
 
 `residual.station.swarm_state.SwarmStateStore` stores immutable, generation-numbered
-project-state snapshots. Every snapshot is domain-separated and SHA-256 bound.
+project-state snapshots. Each store is explicitly bound to a project/workspace `scope_id`;
+that scope is included in the state envelope and hash so a state or delta cannot be
+replayed across projects. Every snapshot is domain-separated and SHA-256 bound.
 
 The authoritative payload currently requires:
 
@@ -96,6 +98,7 @@ The same `runner_id` cannot be rebound to a different identity digest.
 A runner becomes synchronization-eligible only after acknowledging:
 
 - its durable runner identity;
+- its exact project/workspace `scope_id`;
 - the exact current `state_generation`;
 - the exact current `state_hash`;
 - its exact current `capability_revision`.
@@ -159,7 +162,8 @@ Conversely, appearing in a presence roster does not grant task authority.
 - idempotent state publication;
 - annotation/authority separation;
 - exact StateDelta reconstruction;
-- tampered delta rejection;
+- tampered and cross-scope delta rejection;
+- project-scoped state/synchronization isolation;
 - stale runner ineligibility after a new state generation;
 - exact acknowledgement requirement;
 - capability revision invalidating synchronization;
