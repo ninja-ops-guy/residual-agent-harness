@@ -102,6 +102,26 @@ class AccelerationControlPlaneTests(unittest.TestCase):
         self.assertNotIn("release", [item["task_id"] for item in conductor.ready_work()["execute"]])
         self.assertEqual(conductor.status_for("release"), DerivedStatus.OWNER_READY)
 
+    def test_transitive_failure_blocks_speculative_prep(self):
+        tasks = [
+            {
+                "id": "root", "lane": "v1", "scope": "required", "state": "failed",
+                "depends_on": [], "preparable": False, "summary": "root",
+            },
+            {
+                "id": "middle", "lane": "v1", "scope": "required", "state": "pending",
+                "depends_on": ["root"], "preparable": True, "summary": "middle",
+            },
+            {
+                "id": "downstream", "lane": "slm", "scope": "research", "state": "pending",
+                "depends_on": ["middle"], "preparable": True, "summary": "downstream",
+            },
+        ]
+        conductor = AccelerationConductor(PortfolioManifest.from_dict(manifest(tasks=tasks)))
+        self.assertEqual(conductor.status_for("middle"), DerivedStatus.BLOCKED)
+        self.assertEqual(conductor.status_for("downstream"), DerivedStatus.BLOCKED)
+        self.assertEqual(conductor.ready_work()["prepare"], [])
+
     def test_dependency_cycle_is_rejected(self):
         tasks = [
             {
