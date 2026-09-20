@@ -94,5 +94,51 @@ class MaintainerApprovalGateTests(unittest.TestCase):
         self.assertIn("solo", detail)
 
 
+class MaintainerApprovalParserHardeningTests(unittest.TestCase):
+    """Parser evasion and fail-closed hardening cases (extension; the cases
+    above remain the authoritative baseline)."""
+
+    def test_command_with_trailing_lines_is_rejected(self):
+        body = f"{APPROVE_PREFIX} {HEAD}\ninject extra instructions"
+        self.assertIsNone(_command(body))
+
+    def test_command_on_second_line_is_rejected(self):
+        body = f"looks good to me\n{APPROVE_PREFIX} {HEAD}"
+        self.assertIsNone(_command(body))
+
+    def test_comment_edited_from_approve_to_revoke_fails_closed(self):
+        # An edited comment keeps its id; the latest content for that id must
+        # win, so an approve edited into a revoke leaves no approval.
+        comments = [
+            comment(7, "solo", f"{APPROVE_PREFIX} {HEAD}"),
+            comment(7, "solo", f"{REVOKE_PREFIX} {HEAD}"),
+        ]
+        self.assertEqual(current_head_approvers(HEAD, comments, {"solo": "write"}), [])
+        ok, _detail = evaluate(HEAD, comments, {"solo": "write"})
+        self.assertFalse(ok)
+
+    def test_approver_demoted_between_evaluations_fails_closed(self):
+        comments = [comment(1, "solo", f"{APPROVE_PREFIX} {HEAD}")]
+        ok_before, _ = evaluate(HEAD, comments, {"solo": "write"})
+        self.assertTrue(ok_before)
+        ok_after, detail = evaluate(HEAD, comments, {"solo": "read"})
+        self.assertFalse(ok_after)
+        self.assertIn("write", detail)
+
+    def test_command_with_extra_token_is_rejected(self):
+        self.assertIsNone(_command(f"{APPROVE_PREFIX} {HEAD} extra-token"))
+        self.assertIsNone(_command(f"{APPROVE_PREFIX} {HEAD}\textra-token"))
+
+    def test_approval_for_different_head_is_not_counted(self):
+        comments = [
+            comment(1, "solo", f"{APPROVE_PREFIX} staleheadsha"),
+            comment(2, "other", f"{APPROVE_PREFIX} {HEAD}"),
+        ]
+        self.assertEqual(candidate_logins(comments, HEAD), ["other"])
+        ok, detail = evaluate(HEAD, comments, {"solo": "write", "other": "read"})
+        self.assertFalse(ok)
+        self.assertIn(f"{APPROVE_PREFIX} {HEAD}", detail)
+
+
 if __name__ == "__main__":
     unittest.main()
