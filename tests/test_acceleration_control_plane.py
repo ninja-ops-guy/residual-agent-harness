@@ -120,6 +120,10 @@ class AccelerationControlPlaneTests(unittest.TestCase):
         with self.assertRaises(ContractError):
             PortfolioManifest.from_dict(manifest(tasks=tasks))
 
+    def test_manifest_round_trip_preserves_authoritative_inputs(self):
+        parsed = PortfolioManifest.from_dict(manifest())
+        self.assertEqual(PortfolioManifest.from_dict(parsed.to_dict()), parsed)
+
     def test_snapshot_is_deterministic_and_binds_manifest(self):
         conductor = AccelerationConductor(PortfolioManifest.from_dict(manifest()))
         one = conductor.snapshot()
