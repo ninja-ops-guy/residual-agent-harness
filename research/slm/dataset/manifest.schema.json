@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://residual.dev/research/slm/dataset/manifest.schema.json",
+  "title": "RESIDUAL SLM Packed Dataset Manifest v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest_version",
+    "created_utc",
+    "seed",
+    "tokenizer",
+    "input_sha256",
+    "null_field_counts",
+    "unknown_field_counts",
+    "splits",
+    "index_file",
+    "index_sha256",
+    "total_records"
+  ],
+  "properties": {
+    "manifest_version": {"const": "slm-dataset-manifest-v0"},
+    "created_utc": {"type": "string", "format": "date-time"},
+    "seed": {"type": "integer"},
+    "tokenizer": {"type": "string", "minLength": 1},
+    "input_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "null_field_counts": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    },
+    "unknown_field_counts": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    },
+    "splits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["train", "holdout"],
+      "properties": {
+        "train": {"$ref": "#/$defs/split"},
+        "holdout": {"$ref": "#/$defs/split"}
+      }
+    },
+    "index_file": {"type": "string", "minLength": 1},
+    "index_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "total_records": {"type": "integer", "minimum": 0}
+  },
+  "$defs": {
+    "split": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record_count", "token_count", "bin_file", "bin_sha256", "dtype"],
+      "properties": {
+        "record_count": {"type": "integer", "minimum": 0},
+        "token_count": {"type": "integer", "minimum": 0},
+        "bin_file": {"type": "string", "minLength": 1},
+        "bin_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "dtype": {"const": "uint32-le"}
+      }
+    }
+  }
+}
