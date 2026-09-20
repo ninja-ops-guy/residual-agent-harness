@@ -116,6 +116,19 @@ class AccelerationControlPlaneTests(unittest.TestCase):
         with self.assertRaises(ContractError):
             PortfolioManifest.from_dict(manifest(tasks=tasks))
 
+    def test_running_required_work_is_allowed_during_release_freeze(self):
+        tasks = [
+            {
+                "id": "release-work", "lane": "v1", "scope": "required", "state": "running",
+                "depends_on": [], "preparable": False, "summary": "release work",
+            }
+        ]
+        parsed = PortfolioManifest.from_dict(manifest(tasks=tasks))
+        self.assertEqual(
+            AccelerationConductor(parsed).status_for("release-work"),
+            DerivedStatus.RUNNING,
+        )
+
     def test_running_nonrequired_work_is_rejected_while_release_frozen(self):
         tasks = [
             {
