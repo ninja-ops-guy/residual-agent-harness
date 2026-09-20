@@ -2,28 +2,38 @@
 """Compile a canonical observation JSONL corpus into a packed binary dataset.
 
 Pipeline: streaming JSONL reader -> schema validation (fail-closed) ->
-deterministic seeded shuffle -> train/holdout assignment via a pre-provided
-split manifest ONLY (this tool never invents splits) -> tokenization ->
-packed uint32 token stream + manifest + per-record index.
+deterministic seeded shuffle -> split assignment via a pre-provided split
+manifest ONLY (this tool never invents splits) -> tokenization ->
+packed uint32-le token stream + manifest + per-record index.
 
 Usage:
     python compile.py --input observations.jsonl --split-manifest splits.json \
         --output-dir out/ --seed 1234 --tokenizer r50k_base
 
 Split manifest format (JSON):
-    {"observation_id": "train" | "holdout", ...}
+    {"observation_id": "train" | "val" | "holdout", ...}
 Every observation_id in the input MUST appear in the manifest; the tool
-refuses to proceed otherwise.
+refuses to proceed otherwise. "val" (validation) is OPTIONAL but, when
+used, is a split fully distinct from holdout.
+
+Contamination-group split purity (SLM-INFRA-QUAL MATERIAL-1):
+    a contamination_group MUST map to exactly one split. If any group
+    appears in two or more splits (e.g. train and holdout), compilation
+    aborts with exit 2 BEFORE any output is written. Related retries,
+    repairs, and near-duplicate lineage must never straddle a split.
 
 Determinism: identical inputs, seed, and tokenizer produce byte-identical
-outputs (hashes recorded in dataset_manifest.json).
+bins, index, and manifest (hashes recorded in dataset_manifest.json).
+The manifest embeds NO wall-clock timestamp by default; pass
+--created-utc explicitly if an audit timestamp is required (it then
+becomes part of the deterministic output only if the same value is
+reused).
 """
 from __future__ import annotations
 
 import argparse
 import array
 import base64
-import datetime as dt
 import hashlib
 import json
 import random
@@ -31,7 +41,9 @@ import sys
 from pathlib import Path
 from typing import Any, Iterator
 
-REQUIRED_SPLIT_VALUES = {"train", "holdout"}
+REQUIRED_SPLIT_VALUES = {"train", "val", "holdout"}
+# Fixed iteration order for deterministic output.
+SPLIT_ORDER = ("train", "val", "holdout")
 
 # Fields that are allowed to be null per observation.schema.json; we count
 # nulls for observability but never substitute invented values.
@@ -141,9 +153,20 @@ def compile_dataset(args: argparse.Namespace) -> int:
     splits = load_split_manifest(Path(args.split_manifest))
     validator = load_validator(Path(args.schema))
     enc = get_tokenizer(args.tokenizer)
+    vocab_size = int(enc.n_vocab)
+    if vocab_size > 0xFFFFFFFF:
+        raise fail(f"tokenizer vocab_size {vocab_size} exceeds uint32 range")
 
-    # Pass 1: stream, validate, bucket by split.
-    records: dict[str, list[dict[str, Any]]] = {"train": [], "holdout": []}
+    used_splits = {s for s in splits.values()}
+
+    # Pass 1: stream, validate, bucket by split, enforce group purity.
+    records: dict[str, list[dict[str, Any]]] = {
+        s: [] for s in SPLIT_ORDER if s in used_splits}
+    # contamination_group -> (split, first observation_id) for the
+    # split-purity check (MATERIAL-1). Records with a null group cannot
+    # be checked and are counted for observability.
+    group_split: dict[str, tuple[str, str]] = {}
+    null_group_count = 0
     null_counts: dict[str, int] = {f: 0 for f in NULLABLE_FIELDS}
     unknown_field_counts: dict[str, int] = {}
     known_fields = set(
@@ -167,6 +190,20 @@ def compile_dataset(args: argparse.Namespace) -> int:
             raise fail(
                 f"observation_id {oid!r} (line {lineno}) has no entry in the "
                 f"split manifest; refusing to invent a split assignment")
+        split = splits[oid]
+        group = rec.get("contamination_group")
+        if group is None:
+            null_group_count += 1
+        else:
+            prior = group_split.get(group)
+            if prior is not None and prior[0] != split:
+                raise fail(
+                    f"contamination-group split-purity violation: group "
+                    f"{group!r} assigned to both {prior[0]!r} (e.g. "
+                    f"{prior[1]!r}) and {split!r} ({oid!r}, line {lineno}); "
+                    f"all members of a contamination group MUST share one "
+                    f"split")
+            group_split.setdefault(group, (split, oid))
         for f in NULLABLE_FIELDS:
             if rec.get(f) is None:
                 null_counts[f] += 1
@@ -174,7 +211,7 @@ def compile_dataset(args: argparse.Namespace) -> int:
             if key not in known_fields:
                 unknown_field_counts[key] = (
                     unknown_field_counts.get(key, 0) + 1)
-        records[splits[oid]].append(rec)
+        records[split].append(rec)
 
     unused = set(splits) - seen_ids
     if unused:
@@ -186,24 +223,30 @@ def compile_dataset(args: argparse.Namespace) -> int:
     for split in records:
         rng.shuffle(records[split])
 
-    # Pass 2: tokenize + pack.
+    # Pass 2: tokenize + pack (uint32-le to allow vocab growth; the
+    # training scaffold must read the same dtype).
     out_dir.mkdir(parents=True, exist_ok=True)
     manifest: dict[str, Any] = {
         "manifest_version": "slm-dataset-manifest-v0",
-        "created_utc": dt.datetime.now(dt.timezone.utc)
-        .replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "seed": args.seed,
         "tokenizer": args.tokenizer,
+        "vocab_size": vocab_size,
         "input_sha256": hashlib.sha256(
             input_path.read_bytes()).hexdigest(),
         "null_field_counts": null_counts,
         "unknown_field_counts": unknown_field_counts,
         "splits": {},
     }
+    # Wall-clock timestamp only when explicitly requested (MINOR-2):
+    # default output is byte-identical across identical runs.
+    if args.created_utc is not None:
+        manifest["created_utc"] = args.created_utc
     index_path = out_dir / "index.jsonl"
     index_hasher = hashlib.sha256()
     with index_path.open("wb") as index_fh:
-        for split in ("train", "holdout"):
+        for split in SPLIT_ORDER:
+            if split not in records:
+                continue
             token_buf = array.array("I")
             rec_count = 0
             for rec in records[split]:
@@ -235,6 +278,11 @@ def compile_dataset(args: argparse.Namespace) -> int:
     manifest["index_file"] = index_path.name
     manifest["index_sha256"] = index_hasher.hexdigest()
     manifest["total_records"] = n_in
+    manifest["contamination_group_split_purity"] = {
+        "checked_groups": len(group_split),
+        "null_group_records": null_group_count,
+        "violations": 0,
+    }
 
     manifest_path = out_dir / "dataset_manifest.json"
     manifest_path.write_text(
@@ -242,10 +290,11 @@ def compile_dataset(args: argparse.Namespace) -> int:
         encoding="utf-8")
     print(json.dumps({
         "records": n_in,
-        "train_tokens": manifest["splits"]["train"]["token_count"],
-        "holdout_tokens": manifest["splits"]["holdout"]["token_count"],
+        "vocab_size": vocab_size,
+        "split_tokens": {s: manifest["splits"][s]["token_count"]
+                         for s in manifest["splits"]},
         "manifest": str(manifest_path),
-    }))
+    }, sort_keys=True))
     return 0
 
 
@@ -257,7 +306,7 @@ def build_parser() -> argparse.ArgumentParser:
                    help="Path to canonical observation JSONL corpus.")
     p.add_argument("--split-manifest", required=True,
                    help="JSON object mapping observation_id -> "
-                        "'train'|'holdout'. Splits are NEVER invented.")
+                        "'train'|'val'|'holdout'. Splits are NEVER invented.")
     p.add_argument("--output-dir", required=True,
                    help="Directory for packed outputs.")
     p.add_argument("--seed", type=int, required=True,
@@ -270,6 +319,10 @@ def build_parser() -> argparse.ArgumentParser:
                    help="Path to observation JSON schema.")
     p.add_argument("--max-tokens", type=int, default=0,
                    help="Optional per-record token cap (0 = no cap).")
+    p.add_argument("--created-utc", default=None,
+                   help="Optional ISO-8601 UTC timestamp to embed in the "
+                        "manifest. Omitted by default so identical runs "
+                        "produce byte-identical manifests.")
     return p
 
 

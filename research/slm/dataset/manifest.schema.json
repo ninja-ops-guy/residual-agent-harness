@@ -6,9 +6,9 @@
   "additionalProperties": false,
   "required": [
     "manifest_version",
-    "created_utc",
     "seed",
     "tokenizer",
+    "vocab_size",
     "input_sha256",
     "null_field_counts",
     "unknown_field_counts",
@@ -22,6 +22,7 @@
     "created_utc": {"type": "string", "format": "date-time"},
     "seed": {"type": "integer"},
     "tokenizer": {"type": "string", "minLength": 1},
+    "vocab_size": {"type": "integer", "minimum": 1},
     "input_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "null_field_counts": {
       "type": "object",
@@ -37,12 +38,23 @@
       "required": ["train", "holdout"],
       "properties": {
         "train": {"$ref": "#/$defs/split"},
+        "val": {"$ref": "#/$defs/split"},
         "holdout": {"$ref": "#/$defs/split"}
       }
     },
     "index_file": {"type": "string", "minLength": 1},
     "index_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-    "total_records": {"type": "integer", "minimum": 0}
+    "total_records": {"type": "integer", "minimum": 0},
+    "contamination_group_split_purity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checked_groups", "null_group_records", "violations"],
+      "properties": {
+        "checked_groups": {"type": "integer", "minimum": 0},
+        "null_group_records": {"type": "integer", "minimum": 0},
+        "violations": {"const": 0}
+      }
+    }
   },
   "$defs": {
     "split": {
