@@ -100,6 +100,26 @@ class SwarmStateTests(unittest.TestCase):
         with self.assertRaisesRegex(ContractError, "synchronize"):
             self.swarm.require_current("hammer")
 
+    def test_work_binding_is_exact_and_requires_current_sync(self):
+        profile = self.enroll()
+        state = self.swarm.publish(project_state())
+        with self.assertRaisesRegex(ContractError, "synchronize"):
+            self.swarm.work_binding("hammer", mission_spec_hash="2" * 64, worker_contract_hash="3" * 64)
+
+        self.swarm.acknowledge("hammer", state["state_generation"], state["state_hash"], profile["capability_revision"])
+        binding = self.swarm.work_binding("hammer", mission_spec_hash="2" * 64, worker_contract_hash="3" * 64)
+        self.assertEqual(binding["state_generation"], state["state_generation"])
+        self.assertEqual(binding["state_hash"], state["state_hash"])
+        self.assertEqual(binding["main_sha"], state["authoritative"]["main_sha"])
+        self.assertEqual(binding["topology_generation"], 1)
+        self.assertEqual(binding["capability_revision"], profile["capability_revision"])
+        self.assertEqual(binding["mission_spec_hash"], "2" * 64)
+        self.assertEqual(binding["worker_contract_hash"], "3" * 64)
+
+        self.swarm.publish(project_state("b" * 40, 2))
+        with self.assertRaisesRegex(ContractError, "synchronize"):
+            self.swarm.work_binding("hammer", mission_spec_hash="2" * 64, worker_contract_hash="3" * 64)
+
     def test_capability_revision_change_invalidates_prior_sync(self):
         original = self.enroll({"python": "advertised"})
         state = self.swarm.publish(project_state())
