@@ -381,6 +381,29 @@ class SwarmStateStore:
             raise ContractError("Runner must synchronize the current project state before claiming new work")
         return self.acknowledgement(runner_id)
 
+    def work_binding(self, runner_id: str, *, mission_spec_hash: str, worker_contract_hash: str) -> dict[str, Any]:
+        """Return the exact synchronization/capability binding for a new work packet."""
+        ack = self.require_current(runner_id)
+        current = self.current()
+        if current is None:
+            raise ContractError("Project state is not initialized")
+        if not isinstance(mission_spec_hash, str) or not _HEX64.fullmatch(mission_spec_hash):
+            raise ContractError("mission_spec_hash must be a SHA-256 digest")
+        if not isinstance(worker_contract_hash, str) or not _HEX64.fullmatch(worker_contract_hash):
+            raise ContractError("worker_contract_hash must be a SHA-256 digest")
+        return {
+            "schema_version": "residual.work_state_binding.v1",
+            "runner_id": ack["runner_id"],
+            "identity_digest": ack["identity_digest"],
+            "state_generation": current["state_generation"],
+            "state_hash": current["state_hash"],
+            "main_sha": current["authoritative"]["main_sha"],
+            "topology_generation": current["authoritative"]["topology_generation"],
+            "capability_revision": ack["capability_revision"],
+            "mission_spec_hash": mission_spec_hash,
+            "worker_contract_hash": worker_contract_hash,
+        }
+
     def capability_is(self, runner_id: str, capability: str, minimum: str = "qualified") -> bool:
         capability = identifier(capability)
         if minimum not in _CAPABILITY_STATES:
