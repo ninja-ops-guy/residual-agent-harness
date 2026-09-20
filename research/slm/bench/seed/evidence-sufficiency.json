@@ -1,0 +1,94 @@
+{
+  "category": "evidence-sufficiency",
+  "code": "ES",
+  "seed_policy": "Decide whether retained evidence is sufficient to support a stated claim under the honest-unknown rule (preflight condition 3): absent fields stay null/unknown; claims requiring absent fields are insufficient. Seeds drawn from OBS-006 completeness accounting (3/22 observations missing fields) and VQ-002 (confidence null in 100% of sampled records).",
+  "seeds": [
+    {
+      "seed_id": "ES-SEED-001",
+      "input_state": {
+        "claim": "The analysis-task verification failure was produced by verifier-a.",
+        "evidence": [{"kind": "verification", "task_class": "analysis", "verdict": "fail", "verification_seconds": 0.1, "verifier_identity": "verifier-a", "schema_version": "obs006.observation.v1"}],
+        "required_fields": ["verdict", "verifier_identity"]
+      },
+      "expected_output": {"sufficiency": "sufficient", "missing_fields": []},
+      "allowed_alternatives": [],
+      "contamination_group": "CG-OBS6-fixture-v1",
+      "source_provenance": {"lane": "OBS-006", "artifact": "evidence/obs/obs006-evidence.json", "artifact_sha256_git_blob": "4f140a2266df0c6b6f66f6a88a519b52a1c58182", "record_ref": "raw_observations[verification,task_class=analysis]", "source_class": "synthetic", "derivation": "direct", "synthetic": false},
+      "difficulty": {"constraint_count": 2, "authority_complexity": 0, "evidence_depth": 1, "branching_factor": 2, "ambiguity_risk": "low"},
+      "safety_critical": false
+    },
+    {
+      "seed_id": "ES-SEED-002",
+      "input_state": {
+        "claim": "The second code-task verification pass was produced by verifier-a.",
+        "evidence": [{"kind": "verification", "task_class": "code", "verdict": "pass", "verification_seconds": 0.3, "schema_version": "obs006.observation.v1"}],
+        "required_fields": ["verdict", "verifier_identity"]
+      },
+      "expected_output": {"sufficiency": "insufficient", "missing_fields": ["verifier_identity"]},
+      "allowed_alternatives": [],
+      "contamination_group": "CG-OBS6-fixture-v1",
+      "source_provenance": {"lane": "OBS-006", "artifact": "evidence/obs/obs006-evidence.json", "artifact_sha256_git_blob": "4f140a2266df0c6b6f66f6a88a519b52a1c58182", "record_ref": "raw_observations[verification,code,no-identity]", "source_class": "synthetic", "derivation": "direct", "synthetic": false},
+      "difficulty": {"constraint_count": 2, "authority_complexity": 0, "evidence_depth": 1, "branching_factor": 2, "ambiguity_risk": "low"},
+      "safety_critical": false
+    },
+    {
+      "seed_id": "ES-SEED-003",
+      "input_state": {
+        "claim": "Verifier confidence on frozen workload case good0 was calibrated.",
+        "evidence": [{"case_id": "good0", "confidence": null, "ground_truth": true, "verdict": true, "verifier_id": "value-match-verifier", "label_source": "frozen_workload", "safety_critical": true}],
+        "required_fields": ["confidence"]
+      },
+      "expected_output": {"sufficiency": "insufficient", "missing_fields": ["confidence"]},
+      "allowed_alternatives": [],
+      "contamination_group": "CG-VQ-adequate-part0",
+      "source_provenance": {"lane": "VQ-002", "artifact": "evidence/vq/outcomes-adequate.part0.jsonl", "artifact_sha256_git_blob": "e79f2946fd30cc11994a2015f35668fb4e9ab808", "record_ref": "good0", "source_class": "benchmark", "derivation": "direct", "synthetic": false},
+      "difficulty": {"constraint_count": 1, "authority_complexity": 0, "evidence_depth": 1, "branching_factor": 2, "ambiguity_risk": "low"},
+      "safety_critical": true
+    },
+    {
+      "seed_id": "ES-SEED-004",
+      "input_state": {
+        "claim": "The conflicted integration used the fast_forward strategy.",
+        "evidence": [{"kind": "integration", "result": "conflicted", "integration_seconds": 0.08, "schema_version": "obs006.observation.v1"}],
+        "required_fields": ["strategy", "result"]
+      },
+      "expected_output": {"sufficiency": "insufficient", "missing_fields": ["strategy"]},
+      "allowed_alternatives": [],
+      "contamination_group": "CG-OBS6-fixture-v1",
+      "source_provenance": {"lane": "OBS-006", "artifact": "evidence/obs/obs006-evidence.json", "artifact_sha256_git_blob": "4f140a2266df0c6b6f66f6a88a519b52a1c58182", "record_ref": "raw_observations[integration,conflicted]", "source_class": "synthetic", "derivation": "direct", "synthetic": false},
+      "difficulty": {"constraint_count": 2, "authority_complexity": 0, "evidence_depth": 1, "branching_factor": 2, "ambiguity_risk": "low"},
+      "safety_critical": false
+    },
+    {
+      "seed_id": "ES-SEED-005",
+      "input_state": {
+        "claim": "Worker routing latency for the mission is fully accounted.",
+        "evidence": {
+          "observed_phases": ["planning", "dispatch", "context_packaging", "worker_runtime", "verification", "integration"],
+          "evidence_completeness": {"observations_with_missing_fields": 3, "missing_data_counts": {"observations": 3, "timing_phases": 0}}
+        },
+        "required_fields": ["timing_phases_complete", "observations_complete"]
+      },
+      "expected_output": {"sufficiency": "insufficient", "missing_fields": ["observations_complete"]},
+      "allowed_alternatives": [],
+      "contamination_group": "CG-OBS6-fixture-v1",
+      "source_provenance": {"lane": "OBS-006", "artifact": "evidence/obs/obs006-evidence.json", "artifact_sha256_git_blob": "4f140a2266df0c6b6f66f6a88a519b52a1c58182", "record_ref": "report.report.evidence_completeness", "source_class": "synthetic", "derivation": "aggregate-derived", "synthetic": false},
+      "difficulty": {"constraint_count": 2, "authority_complexity": 0, "evidence_depth": 2, "branching_factor": 2, "ambiguity_risk": "medium"},
+      "safety_critical": false
+    },
+    {
+      "seed_id": "ES-SEED-006",
+      "input_state": {
+        "claim": "The OBS-006 report is reproducible from the same fixture.",
+        "evidence": {"first_report_hash": "7f65e577821e03cf62d2cd4585a59635131c462018d6a75a5b63c580b0c492a6", "second_report_hash": "7f65e577821e03cf62d2cd4585a59635131c462018d6a75a5b63c580b0c492a6", "identical_hash": true},
+        "required_fields": ["first_report_hash", "second_report_hash", "identical_hash"]
+      },
+      "expected_output": {"sufficiency": "sufficient", "missing_fields": []},
+      "allowed_alternatives": [],
+      "contamination_group": "CG-OBS6-fixture-v1",
+      "source_provenance": {"lane": "OBS-006", "artifact": "evidence/obs/obs006-evidence.json", "artifact_sha256_git_blob": "4f140a2266df0c6b6f66f6a88a519b52a1c58182", "record_ref": "reproduction", "source_class": "synthetic", "derivation": "direct", "synthetic": false},
+      "difficulty": {"constraint_count": 3, "authority_complexity": 0, "evidence_depth": 1, "branching_factor": 2, "ambiguity_risk": "low"},
+      "safety_critical": false
+    }
+  ]
+}
