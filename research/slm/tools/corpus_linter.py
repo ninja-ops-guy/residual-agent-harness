@@ -10,7 +10,19 @@ Checks (fail-closed: any ERROR finding exits non-zero):
   contamination lineage collisions: records sharing mission/incident
                 lineage (retries, repairs, receipts, templates,
                 paraphrases, counterfactuals) MUST share a
-                contamination_group
+                contamination_group. Fallback when mission/incident ids
+                are null (SLM-INFRA-QUAL MATERIAL-3):
+                  * near-dup lineage inference -- a near-duplicate pair
+                    with DIFFERENT contamination_groups is an ERROR
+                    (related records straddling groups)
+                  * a near-duplicate pair sharing one group is
+                    consistent (WARN-only near_dup still reported)
+                  * records whose lineage cannot be bound at all (no
+                    mission_id, no incident_id, no contamination_group)
+                    yield WARN -- the check never passes silently
+                  * if NO record binds primary lineage ids, a WARN is
+                    emitted that the check is running in degraded
+                    (fallback) mode
   provenance    missing provenance.source_class or unreplayable records
   leakage       suspicious label-leakage patterns (outcome/verification/
                 label text embedded in state, decision echoing labels)
@@ -167,17 +179,22 @@ def lint(path, dup_threshold, max_records):
     shingle_sets = [(rec.get("observation_id", "?"),
                      shingles(canonical(rec))) for rec in records
                     if isinstance(rec, dict)]
+    # near-dup pairs are collected first so the contamination fallback can
+    # reuse them for lineage inference (MATERIAL-3).
+    near_dup_pairs = []
     for i in range(len(shingle_sets)):
         for j in range(i + 1, len(shingle_sets)):
             ida, sa = shingle_sets[i]
             idb, sb = shingle_sets[j]
             if jaccard(sa, sb) >= dup_threshold:
+                near_dup_pairs.append((ida, idb))
                 finding("WARN", "near_dup",
                         "near-duplicate (jaccard>=%.2f)" % dup_threshold,
                         [ida, idb])
 
     lineage_groups = defaultdict(set)
     lineage_ids = defaultdict(list)
+    unbindable = []  # no mission/incident id AND no contamination_group
     for rec in records:
         if not isinstance(rec, dict):
             continue
@@ -185,12 +202,45 @@ def lint(path, dup_threshold, max_records):
         if lk:
             lineage_groups[lk].add(rec.get("contamination_group"))
             lineage_ids[lk].append(rec.get("observation_id", "?"))
+        elif not rec.get("contamination_group"):
+            unbindable.append(rec.get("observation_id", "?"))
     for lk, groups in lineage_groups.items():
         if len(groups) > 1:
             finding("ERROR", "contamination",
                     "lineage %s spans contamination groups %s"
                     % (lk, sorted(str(g) for g in groups)),
                     lineage_ids[lk])
+
+    # ---- MATERIAL-3 fallback: mission/incident ids are null for the whole
+    # converted corpus, so the primary check above can never fire on it.
+    # Fall back to declared contamination_group + near-dup lineage
+    # inference, and never pass silently.
+    if records and not lineage_groups:
+        finding("WARN", "contamination",
+                "no mission_id/incident_id lineage bound for any record; "
+                "contamination check running in degraded fallback mode "
+                "(declared contamination_group + near-dup inference)")
+    if unbindable:
+        finding("WARN", "contamination",
+                "cannot bind lineage for %d record(s): no mission_id, no "
+                "incident_id, and no contamination_group; contamination "
+                "check is vacuous for these records" % len(unbindable),
+                unbindable[:50])
+    # Near-dup lineage inference: near-identical records are lineage
+    # relatives; they MUST share a contamination_group.
+    group_of = {}
+    for rec in records:
+        if isinstance(rec, dict):
+            group_of[rec.get("observation_id", "?")] = (
+                rec.get("contamination_group"))
+    for ida, idb in near_dup_pairs:
+        ga, gb = group_of.get(ida), group_of.get(idb)
+        if ga is not None and gb is not None and ga != gb:
+            finding("ERROR", "contamination",
+                    "near-duplicate lineage inference: near-identical "
+                    "records %r and %r carry different contamination "
+                    "groups (%r vs %r); related records MUST share one "
+                    "group" % (ida, idb, ga, gb), [ida, idb])
     return report
 
 

@@ -5,6 +5,12 @@ Applies small perturbations (mutations) to benchmark items and confirms the
 verifier under test FAILS each mutated item. A mutation that still passes
 "survives" and indicates a verifier blind spot.
 
+Verifier crashes are counted SEPARATELY from correct rejections
+(MINOR-4): a crashed verifier call is not evidence of robustness. If a
+verifier crashes on EVERY mutant of a mutation class, that class yields
+no rejection evidence and the run fails (exit 1) -- a verifier that
+always crashes must not score as perfect.
+
 This tool is GENERIC over a verifier interface. It does not author, modify,
 or select benchmark items or content; it only perturbs existing items to
 test verifier robustness.
@@ -131,19 +137,26 @@ def run(items, verifier, mutator_names):
             total += 1
             try:
                 passed = bool(verifier(mutated))
-            except Exception as exc:  # verifier crash = correct rejection
-                passed = False
+            except Exception as exc:
+                # Verifier crash is NOT a correct rejection (MINOR-4):
+                # count separately and exclude from the survival-rate
+                # denominator.
+                errors += 1
                 detail.append({"item_id": iid, "mutation": name,
                                "result": "verifier_error", "error": str(exc)})
-                errors += 1
+                continue
             if passed:
                 survived += 1
                 detail.append({"item_id": iid, "mutation": name,
                                "result": "SURVIVED"})
-        rate = (survived / total) if total else 0.0
+        decided = total - errors  # mutants with a real verifier verdict
+        rate = (survived / decided) if decided else None
         per_verifier[name] = {"mutants": total, "survived": survived,
+                              "rejected": decided - survived,
                               "verifier_errors": errors,
-                              "survival_rate": round(rate, 6)}
+                              "all_errored": decided == 0 and total > 0,
+                              "survival_rate": (round(rate, 6)
+                                                if rate is not None else None)}
     return per_verifier, detail
 
 
@@ -192,18 +205,27 @@ def main(argv=None):
     report = {"benchmark": args.benchmark, "verifier": args.verifier,
               "items": len(items), "per_mutation": per_verifier,
               "survived_detail": [d for d in detail
-                                  if d["result"] == "SURVIVED"]}
+                                  if d["result"] == "SURVIVED"],
+              "error_detail": [d for d in detail
+                               if d["result"] == "verifier_error"]}
     text = json.dumps(report, indent=2, sort_keys=True) + "\n"
     if args.report == "-":
         sys.stdout.write(text)
     else:
         with open(args.report, "w", encoding="utf-8") as fh:
             fh.write(text)
+    failed = False
     total_survived = sum(v["survived"] for v in per_verifier.values())
     if total_survived:
         print("WARNING: %d mutants survived" % total_survived, file=sys.stderr)
-        return 1
-    return 0
+        failed = True
+    all_errored = [n for n, v in per_verifier.items() if v["all_errored"]]
+    if all_errored:
+        print("WARNING: verifier crashed on EVERY mutant of %s; those "
+              "mutation classes provide no rejection evidence"
+              % all_errored, file=sys.stderr)
+        failed = True
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":

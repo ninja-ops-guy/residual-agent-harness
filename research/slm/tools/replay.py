@@ -6,8 +6,21 @@ presented to the model:
 
   * canonical serialization (sorted keys, tight separators, UTF-8, LF)
   * SHA-256 digest of the reconstructed state, verified against an
-    expected digest (--digest, a manifest file, or the digest recorded in
-    the record's provenance.artifact_digests when present)
+    expected digest supplied via --digest or a --manifest file
+
+Exit codes (MINOR-1 clarification):
+  0  replay succeeded; if an expected digest was supplied it MATCHED.
+     If NO digest source was given, digest_verified is null and the
+     replay is UNVERIFIED -- exit 0 in that case means "reconstructed",
+     not "verified". Pass --require-digest to make a missing digest
+     source an error (exit 2) instead of a fail-open pass.
+  1  an expected digest was supplied and did NOT match.
+  2  record/manifest load error, or --require-digest with no digest
+     source available.
+
+Note: the digest is NOT read from the record's
+provenance.artifact_digests -- those digests identify source artifacts,
+not reconstructed state; earlier doc text implying otherwise was wrong.
 
 Use for reproducibility audits and debugging. Read-only; no network calls.
 """
@@ -105,6 +118,10 @@ def main(argv=None):
                     help="expected sha256 state digest (hex or 'sha256:hex')")
     ap.add_argument("--manifest", default=None,
                     help="JSON manifest mapping observation_id -> state digest")
+    ap.add_argument("--require-digest", action="store_true",
+                    help="fail (exit 2) if no expected-digest source is "
+                         "given; default is fail-open with "
+                         "digest_verified=null")
     ap.add_argument("--out", default="-",
                     help="write canonical state here, or '-' for stdout")
     args = ap.parse_args(argv)
@@ -127,7 +144,14 @@ def main(argv=None):
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         print("replay: %s" % exc, file=sys.stderr)
         return 2
-    if exp is not None:
+    if exp is None and args.require_digest:
+        print("replay: no expected digest available (--digest/--manifest) "
+              "and --require-digest was given", file=sys.stderr)
+        return 2
+    if exp is None:
+        print("replay: WARNING: no expected digest supplied; replay is "
+              "UNVERIFIED (digest_verified=null, exit 0)", file=sys.stderr)
+    else:
         result["digest_verified"] = (exp == actual)
 
     if args.out == "-":
