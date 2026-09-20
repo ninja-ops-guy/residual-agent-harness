@@ -42,7 +42,7 @@ shared:
   harness_provider_kind_local: ollama
   harness_provider_kind_remote: openai_compatible
   output_mode: structured-schema  # schema-validated before task verification
-  decoding:
+  decoding: &shared_decoding
     temperature: 0.0        # deterministic decode for reproducibility
     top_p: 1.0
     top_k: -1               # disabled / runtime default
@@ -170,7 +170,7 @@ baselines:
     quantization: q4_K_M (Ollama registry default for the 7b tag; verify at pull and pin digest)
     inference_runtime: ollama 0.34.0 (ollama/ollama:0.34.0 container)
     prompt_template_id: exp-m6-slm-control-decision-v0
-    decoding: *shared_decoding  # placeholder; see shared.decoding (temp 0.0, seed 0)
+    decoding: *shared_decoding
     hardware_class: "single consumer GPU, 24 GB VRAM class (e.g. RTX 3090/4090) or Apple-silicon 32 GB unified memory; CPU fallback allowed but latency recorded"
     context_length: 131072 (per model card; effective eval context capped by observation schema)
     benchmark_hash: unfrozen-placeholder
