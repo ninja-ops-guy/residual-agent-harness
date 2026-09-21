@@ -1,0 +1,24 @@
+[Unit]
+Description=RESIDUAL OpenClaw Shared Comms Bridge (%i)
+After=network-online.target residual-station.service openclaw-%i.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+EnvironmentFile=/etc/residual/openclaw-bridge-%i.env
+StateDirectory=residual-openclaw-bridge-%i
+ExecStart=/root/.local/share/residual/venv/bin/python -m residual.integrations.openclaw_bridge --state /var/lib/residual-openclaw-bridge-%i/bridge.sqlite3 --status-file /var/lib/residual-openclaw-bridge-%i/status.json
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target
