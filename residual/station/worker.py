@@ -5,6 +5,7 @@ import argparse
 import json
 import os
 import queue
+import sys
 import threading
 import time
 import urllib.parse
@@ -148,7 +149,7 @@ def main(argv=None):
             if worked:
                 print("Candidate submitted. The station owns verification and review.", flush=True)
         except WorkerAuthorityLost as e:
-            print(str(e), file=sys.stderr if 'sys' in globals() else None)
+            print(str(e), file=sys.stderr, flush=True)
             return 1
         except Exception as e:
             print(str(e) if isinstance(e, ContractError) else "Runner request failed. Check connectivity and model configuration.", flush=True)
