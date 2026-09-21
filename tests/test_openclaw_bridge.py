@@ -14,6 +14,8 @@ from residual.integrations.openclaw_bridge import (
     deterministic_response_operation_id,
     deterministic_session_key,
     extract_openclaw_json,
+    _openclaw_child_env,
+    _sanitize_fallback_attempts,
 )
 
 
@@ -86,6 +88,32 @@ class OpenClawBridgeTests(unittest.TestCase):
         raw = 'warning\n' + json.dumps({"payloads": [{"text": "OK"}], "meta": {"agentMeta": {"provider": "ollama"}}}) + '\n'
         parsed = extract_openclaw_json(raw)
         self.assertEqual(parsed["payloads"][0]["text"], "OK")
+
+    def test_child_env_scrubs_residual_credentials(self):
+        import os
+        saved = {key: os.environ.get(key) for key in ("RESIDUAL_WORKER_TOKEN", "RESIDUAL_RUNNER_API_KEY")}
+        try:
+            os.environ["RESIDUAL_WORKER_TOKEN"] = "secret"
+            os.environ["RESIDUAL_RUNNER_API_KEY"] = "runner-secret"
+            env = _openclaw_child_env()
+            self.assertNotIn("RESIDUAL_WORKER_TOKEN", env)
+            self.assertNotIn("RESIDUAL_RUNNER_API_KEY", env)
+        finally:
+            for key, value in saved.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
+
+    def test_fallback_evidence_drops_raw_error_text(self):
+        sanitized = _sanitize_fallback_attempts([{
+            "provider": "kimi", "model": "kimicode", "reason": "rate_limit",
+            "status": 429, "error": "secret-bearing raw blob"
+        }])
+        self.assertEqual(sanitized, [{
+            "provider": "kimi", "model": "kimicode", "reason": "rate_limit", "status": 429
+        }])
+        self.assertNotIn("error", sanitized[0])
 
     def test_prepared_response_survives_reopen(self):
         with tempfile.TemporaryDirectory() as td:
