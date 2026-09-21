@@ -1,0 +1,149 @@
+{
+  "manifest_id": "CORPUS-MANIFEST-SLM00-v0-draft",
+  "lane": "SLM-00 Corpus (Lane B)",
+  "date": "2026-09-20",
+  "branch": "slm00/corpus",
+  "base_branch": "research/exp-m6-slm-00",
+  "base_commit": "3661319eee03963943a6df88db61243254134983",
+  "limitations_doc": {
+    "path": "docs/research/EXP-M6-SLM/CORPUS-LIMITATIONS.md",
+    "note": "SLM-INFRA-QUAL MATERIAL-6: frozen primary/safety metrics VSMS/$, VSMS/W, FNER, UER, AVR are UNCOMPUTABLE from corpus v0 (cost.inference_usd / cost.energy_wh null rate 1.0; escalation field absent everywhere; only 1 non-assumed authority record). Reports MUST mark these NOT-COMPUTABLE until the AX-21 observation export or bench instrumentation supplies the fields. See the limitations doc for the full table and closure plan."
+  },
+  "schema": {
+    "path": "docs/research/EXP-M6-SLM/observation.schema.json",
+    "blob_sha": "6e549b05e0fab3684d6ec7173985aa734e55ffca",
+    "erratum_applied": "SCHEMA-ERRATUM-001",
+    "erratum_path": "docs/research/EXP-M6-SLM/SCHEMA-ERRATUM-001.md",
+    "note": "strict schema (non-nullable timestamp): 0% of records convertible without fabrication; under erratum (nullable timestamp + provenance.timestamp_erratum marker) all counts below are schema-valid. Sample file research/slm/corpus/sample/converted-sample.jsonl validated locally against the erratum-amended schema (13/13 pass; 13/13 fail strict)."
+  },
+  "converter": {
+    "path": "research/slm/corpus/convert.py",
+    "executed": false,
+    "execution_note": "No execution environment available (GitHub MCP only). Converter logic is deterministic parsing + field mapping; sample output was hand-generated with the identical mapping and locally schema-validated.",
+    "computed_manifest_output": "corpus-manifest-computed.json (produced when converter is run)"
+  },
+  "totals": {
+    "total_records_estimated": 387,
+    "basis": "sampled",
+    "total_records_basis_detail": "24 OTX (manual-inspection, exact) + 13 OBS-006 canonical (manual-inspection, exact) + 85 DSM-004 (82 journal events + 3 recovery scenarios; manual-inspection, exact count from full file read) + 5 RUNTIME-005 fault scenarios (manual-inspection, exact) + ~260 VQ-002 (basis: size-estimate; exact 50 confirmed for outcomes-adequate.part0; parts 1-2 and degraded part2 not fully read)",
+    "total_records_exact_floor": 177,
+    "total_records_exact_floor_basis": "manual-inspection (excludes VQ parts not fully read; includes 50 confirmed VQ part0 records)"
+  },
+  "per_source": {
+    "otx-003": {
+      "source_file": "evidence/otx/observations.jsonl",
+      "blob_sha": "9d24ececfe5e52a3732d6f5cc6c571d8af125ca2",
+      "records": 24, "basis": "manual-inspection (24/24 lines read)",
+      "source_class": "replay",
+      "outcome_classes": {"success_true": 24, "success_false": 0, "quality_score_1.0": 24},
+      "verification_status": {"provisional": 24},
+      "verification_note": "result.success && quality_score==1.0 is a model-run outcome, NOT a recorded verifier verdict; mapped to provisional per preflight SS2.1",
+      "contamination_groups": {"otx:lookup-atomic": 4, "otx:synthesis-atomic": 4, "otx:lookup-composite": 4, "otx:synthesis-composite": 4, "otx:lookup-project": 4, "otx:synthesis-project": 4},
+      "cost": {"latency_ms": "derived from timing_breakdown sum (deterministic); equals observed_total_s*1000 within rounding on inspected records", "inference_usd": null, "energy_wh": null, "operator_active_seconds": null, "frontier_calls": null},
+      "authority": "defaulted (requested=[], granted=[], violation=false) -- documented assumption, flagged authority_default_assumed=true"
+    },
+    "obs-006": {
+      "source_file": "evidence/obs/obs006-evidence.json",
+      "blob_sha": "4f140a2266df0c6b6f66f6a88a519b52a1c58182",
+      "raw_events": 22, "basis": "manual-inspection (22/22 events read)",
+      "source_class": "synthetic",
+      "canonical_unit_records": 13,
+      "canonical_by_kind": {"execution": 3, "acceptance": 2, "rejection": 1, "verification": 3, "integration": 2, "conflict": 1, "retry": 1},
+      "folded_not_standalone": {"resource": 3, "orchestration_timing": 6},
+      "folded_basis": "manual-inspection; resource/timing events are attributes of sibling observations, not canonical state->decision->outcome units (preflight SS2.2)",
+      "outcome_classes": {"execution_pass": 2, "execution_fail": 1, "acceptance_correct_true": 1, "acceptance_correct_false": 1, "rejection_verification_reason": 1, "verification_pass": 2, "verification_fail": 1, "integration_integrated": 1, "integration_conflicted": 1, "conflict_write_write_resolution_retry": 1, "retry_attempt_2_cause_conflict": 1},
+      "verification_status": {"verified_success": 2, "verified_failure": 1, "rejected": 1, "unknown": 9},
+      "completeness": {"complete": 19, "missing_fields": 3, "basis": "corroborated by evidence_completeness block in source"},
+      "contamination_groups": {"obs006-fixture-v1": 13},
+      "identity_anchoring": {"commit": "058e25b3ca73de4528648b72b1901b2c319fe643", "tree": "8457fe71ff6767e2ddc6f488fbc81781a076058b", "observation_hash": "0589de8fed4438a9ceeb019b145e7ebfd24b7ea753fe0de41d7195bcaa93b536", "reproduction_identical_hash": true}
+    },
+    "dsm-004": {
+      "source_file": "evidence/dsm/dsm-004-evidence.json",
+      "blob_sha": "20c8e7e4d8ad99dc0b5b0b73085388ab14477620",
+      "journal_event_records": 82, "recovery_scenario_records": 3, "records_total": 85,
+      "basis": "manual-inspection (full file read; exact line counts: 6 fault schedules x (inbox 6 + outbox 6) = 72; recovery journals crash_between_write_and_ack 1 + replay_determinism 6 + restart_mid_stream 3 = 10; total 82 journal events)",
+      "source_class": "replay",
+      "outcome_classes": {"deliver_accepted": 46, "send": 36, "basis_journal_kinds": "manual-inspection: all fault inbox deliveries accepted (46 = 72 - 36 outbox sends + 10 recovery transitions... see note)", "recovery_ok_true": 3, "replay_determinism_failures_preserved": "3 of 6 replay_determinism transitions are value=failed (task-a/b/c terminal failed) -- failures retained as first-class records"},
+      "journal_kind_note": "72 fault-schedule events = 36 inbox deliver (all disposition=accepted) + 36 outbox send; 10 recovery journal events are kind=transition (values: running x6, failed x3, succeeded x1). deliver_accepted/send counts above refer to fault schedules only.",
+      "duplicate_delivery_events": {"duplicate_schedule_extra_deliveries": 2, "combined_schedule_extra_deliveries": 1, "restart_mid_stream_duplicate_dispositions": 2, "note": "duplicate/retry/retransmission events retained, not deduplicated"},
+      "verification_status": {"unknown": 82, "verified_success": 3},
+      "contamination_groups": {"dsm004:faults/clean": 6, "dsm004:faults/duplicate": 6, "dsm004:faults/delayed": 6, "dsm004:faults/reordered": 6, "dsm004:faults/lost": 6, "dsm004:faults/combined": 6, "dsm004:outbox-shared": 36, "dsm004:recovery/crash_between_write_and_ack": 2, "dsm004:recovery/restart_mid_stream": 4, "dsm004:recovery/replay_determinism": 7},
+      "contamination_group_note": "All six fault-schedule outbox journals are hash-identical (same event hashes) -> single shared group dsm004:outbox-shared so identical records cannot straddle a split. Inbox journals differ per schedule -> per-schedule groups. Recovery scenario records share the group of their journal lineage (retries/duplicates/replays stay together per protocol split policy).",
+      "synthetic_clock": "time_ns=0 on every event; kept in state.synthetic_time_ns, NEVER promoted to timestamp",
+      "reduced_scope": "lineage/contamination structure and replay-class records, not decision training units (preflight SS2.3)"
+    },
+    "runtime-005": {
+      "source_file": "evidence/runtime/runtime005_evidence.json",
+      "blob_sha": "76358dd1a1054e596a5e04c167dd84792e809dd0",
+      "records": 5, "basis": "manual-inspection (5/5 fault scenarios read)",
+      "source_class": "synthetic",
+      "verification_status": {"verified_success": 5},
+      "authority_violations": 0,
+      "authority_note": "provider_native_authority_never_overrides_residual: full sanitized authority map, all provider-override flags false, residual_policy_authoritative=true -> authority{requested:[],granted:[],violation:false} as RECORDED fact (authority_default_assumed=false). Only explicit authority material in corpus.",
+      "stale_state_events": 1,
+      "stale_state_note": "stale_telemetry_returns_unknown: stale telemetry -> status unknown, value suppressed (fail-closed); mapped as stale-state labeled record",
+      "not_converted": {"conformance_checks": "2 engines x 12 checks = 24 check booleans; suite-level outcomes, not canonical units -> rejected as observations, retained as provenance/verifier_refs evidence"},
+      "contamination_groups": {"runtime005:stale_telemetry_returns_unknown": 1, "runtime005:cancellation_within_budget": 1, "runtime005:cancellation_budget_exceeded_fails_closed": 1, "runtime005:capability_probe_fail_closed_and_local_preferred": 1, "runtime005:provider_native_authority_never_overrides_residual": 1}
+    },
+    "vq-002": {
+      "source_files": ["evidence/vq/outcomes-adequate.part0.jsonl", "evidence/vq/outcomes-adequate.part1.jsonl", "evidence/vq/outcomes-adequate.part2.jsonl", "evidence/vq/outcomes-degraded.part0.jsonl", "evidence/vq/outcomes-degraded.part1.jsonl", "evidence/vq/outcomes-degraded.part2.jsonl"],
+      "records_estimated": 260, "basis": "size-estimate (preflight SS1); exact 50 for adequate.part0 (50/50 lines read)",
+      "source_class": "benchmark",
+      "part0_adequate_exact": {"records": 50, "ground_truth_true": 50, "verdict_true": 50, "agreement": 50, "verified_success": 50, "confidence_null": 50, "confidence_null_rate": 1.0, "safety_critical_true": 50, "label_source": "frozen_workload", "verifier_id": "value-match-verifier", "basis": "manual-inspection (50/50)"},
+      "DUPLICATION_WARNING": "outcomes-adequate.part0 and outcomes-degraded.part0 have IDENTICAL blob SHA e79f2946fd30cc11994a2015f35668fb4e9ab808; adequate.part1 == degraded.part1 (2fdc9b28d8f0814b7e579bc03fddfa18e55148c9); part2 differs (adequate e14239f8... vs degraded 8d7c4b0c...) but shares the same 30 case_ids bad0-bad29 with 20/30 content-identical records. The adequate/degraded split is therefore NOT in the record payloads for parts 0-1 (likely a verifier-condition wrapper, see vq-002-benchmark.json sha 27002ad6c3a15f20b638a09dfb914c73fc3ad862 -- not yet inventoried into corpus). Contamination groups are keyed by case_id lineage (vq:case:<case_id>) so ALL variants of a case -- adequate/degraded, identical or verdict-flipped -- share one group and can never straddle a split (SLM-INFRA-QUAL MATERIAL-2 fix; supersedes the prior blob-sha8 keying, which assigned part2 pairs to different groups). Near-duplicate records across adequate/degraded parts 0-1 are expected and must still be deduplicated or single-sided before any split.",
+      "verification_status_rule": "ground_truth == verdict -> verified_success else verified_failure; null verdict/ground_truth -> unknown",
+      "null_rates": {"confidence": 1.0, "basis": "sampled (50/50 part0; presumed uniform per preflight, unverified for parts 1-2)"},
+      "cost": "all null (no state/cost fields in source)"
+    }
+  },
+  "rejected_as_corpus_records": {
+    "eval_fixture_study_csv": {"rows": 6, "reason": "config-level aggregates, no per-observation linkage; retained as run-level metadata", "basis": "manual-inspection (preflight SS2.6)"},
+    "ax21_dogfood_log": {"records": 0, "reason": "narrative-only, 100% unverifiable at event level (preflight SS3); contains internal hostnames/LAN IPs -> excluded entirely, never read into corpus, redaction required before any future inclusion", "basis": "manual-inspection"},
+    "m4_trust_and_sandbox_timing": {"reason": "test-suite reports, not state->decision->outcome units; usable as provenance/verifier_refs only", "basis": "manual-inspection (preflight SS2.6)"},
+    "runtime005_conformance_checks": {"checks": 24, "reason": "suite-level booleans, not canonical units"},
+    "obs006_folded_events": {"events": 9, "reason": "resource/orchestration_timing kinds are derivable attributes of sibling records, not standalone observations"}
+  },
+  "metrics_summary": {
+    "verified_successes": {"count_exact": 60, "breakdown": {"obs-006": 2, "dsm-004_recovery": 3, "runtime-005": 5, "vq-002_part0_adequate": 50}, "basis": "manual-inspection", "note": "excludes unverified VQ parts 1-2 and degraded part2"},
+    "verified_failures": {"count_exact": 1, "breakdown": {"obs-006": 1}, "basis": "manual-inspection"},
+    "provisional_outcomes": {"count_exact": 24, "breakdown": {"otx-003": 24}, "basis": "manual-inspection"},
+    "unknown_verification": {"count_exact": 91, "breakdown": {"obs-006": 9, "dsm-004_journals": 82}, "basis": "manual-inspection"},
+    "rejected_actions": {"count_exact": 1, "breakdown": {"obs-006 rejection (reason=verification)": 1}, "basis": "manual-inspection"},
+    "retry_repair_events": {"count_exact": 3, "breakdown": {"obs-006 retry (attempt 2, cause=conflict)": 1, "obs-006 conflict (resolution=retry)": 1, "dsm-004 restart_mid_stream duplicate-disposition retries": 1}, "basis": "manual-inspection", "note": "DSM retransmissions (lost m2, combined m3) preserved inside journal records. Converter now counts outcome.kind=='retry' or non-null attempt into retry_repair_events (MINOR-6 reconciliation); obs-006 conflict resolution=retry carries no attempt field and kind=conflict, so computed retry_repair_events may differ slightly from this manual count until the converter is executed and counts re-verified (INFO-2)."},
+    "interventions": {"count_exact": 0, "basis": "manual-inspection", "note": "no operator-intervention events exist in any corpus-eligible source; AX-21 operator ledger (8 interventions) is narrative-only and excluded. Converter counts only explicit operator interventions here (0); retries/repairs go to retry_repair_events."},
+    "escalation_events": {"count_exact": 0, "basis": "manual-inspection", "note": "no source records escalation.required/taken; escalation field absent from all converted records; see CORPUS-LIMITATIONS.md"},
+    "false_non_escalation_candidates": {"count_exact": 0, "basis": "manual-inspection", "note": "cannot be computed: no escalation labels exist in structured sources; this is a corpus coverage gap for Control Bench categories retry/escalate/abort and safety metrics; see CORPUS-LIMITATIONS.md"},
+    "authority_violations": {"count_exact": 0, "basis": "manual-inspection", "note": "1 recorded authority-map record (RUNTIME-005) with violation=false; authority absent in all other sources and defaulted (documented assumption)"},
+    "schema_failures": {"strict_schema": "100% of records fail strict schema solely on timestamp (universal absence)", "erratum_schema": 0, "basis": "manual-inspection + local jsonschema validation of 13-record sample (13/13 pass erratum schema, 13/13 fail strict)"},
+    "sanitation_rejects": {"count": 0, "basis": "manual-inspection", "note": "no credentials/secrets in any sampled structured artifact (preflight SS5); dogfood log (only artifact with LAN IPs/hostnames) excluded upstream, not sanitized into corpus"}
+  },
+  "unknown_null_field_rates": {
+    "timestamp": {"rate": 1.0, "basis": "manual-inspection", "note": "universal; null under SCHEMA-ERRATUM-001"},
+    "cost.inference_usd": {"rate": 1.0, "basis": "manual-inspection"},
+    "cost.energy_wh": {"rate": 1.0, "basis": "manual-inspection"},
+    "cost.operator_active_seconds": {"rate": 1.0, "basis": "manual-inspection"},
+    "cost.frontier_calls": {"rate": 1.0, "basis": "manual-inspection"},
+    "cost.latency_ms": {"rate": 0.677, "basis": "sampled", "note": "non-null only for OTX (24) + OBS executions with worker_seconds (3 of 13 canonical; executions 3, of which all 3 carry worker_seconds... exact: 3) = 27 of ~177 exact-floor records -> null rate ~0.847 on exact floor; estimate sensitive to VQ dominance (all-null) at full scale"},
+    "provenance.mission_id": {"rate": 1.0, "basis": "manual-inspection"},
+    "provenance.incident_id": {"rate": 1.0, "basis": "manual-inspection"},
+    "provenance.generation": {"rate": 1.0, "basis": "manual-inspection"},
+    "vq.confidence": {"rate": 1.0, "basis": "sampled (50/50)"},
+    "escalation": {"rate": 1.0, "basis": "manual-inspection", "note": "field absent everywhere"}
+  },
+  "contamination_group_scheme": {
+    "otx": "otx:<task_class>-<granularity> (6 groups; all replicates of a task family share group)",
+    "vq": "vq:case:<case_id> -- case_id LINEAGE-keyed (SLM-INFRA-QUAL MATERIAL-2 fix). All variants of a case across adequate/degraded parts share one group, including the 30 shared part2 case_ids bad0-bad29 whose blob SHAs differ (e14239f8 vs 8d7c4b0c) despite 20/30 content-identical records. Supersedes the prior vq:<prefix>:<blob-sha8> scheme, which assigned those identical records to different groups and admitted split straddling.",
+    "obs": "obs006-fixture-v1 (single fixture = single group)",
+    "dsm": "dsm004:<schedule> for fault inboxes; dsm004:outbox-shared for hash-identical outbox journals; dsm004:recovery/<scenario> (journal + scenario record share lineage)",
+    "runtime": "runtime005:<scenario>",
+    "total_groups_estimated": "recomputed on first converter execution; VQ group count now equals the number of distinct case_ids (one group per case, variants merged), not per part-file",
+    "total_groups_basis": "manual-inspection: 6 OTX + 1 OBS + 10 DSM + 5 RUNTIME + VQ (one group per distinct case_id; exact count pending full read of parts 1-2)"
+  },
+  "open_items": [
+    "Converter not yet executed; corpus.jsonl and computed manifest pending an execution environment.",
+    "VQ parts 1-2 and degraded part2 unread (record counts and case-prefix distribution unverified); vq-002-benchmark.json (sha 27002ad6c3a15f20b638a09dfb914c73fc3ad862) not yet read -- may explain adequate/degraded duplication.",
+    "Adequate/degraded VQ duplication (identical blob SHAs parts 0-1) needs a corpus decision: dedupe or single-side before split. The case_id-lineage group scheme (MATERIAL-2 fix) prevents straddling but does NOT deduplicate the ~100 content-duplicate records.",
+    "No escalation or operator-intervention events in structured corpus; Control Bench categories 4 (retry/escalate/abort) and safety metrics cannot be trained/validated from this corpus alone (see CORPUS-LIMITATIONS.md).",
+    "SCHEMA-ERRATUM-001 must be ratified/frozen before benchmark freeze per protocol split policy."
+  ]
+}
