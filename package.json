@@ -3,6 +3,6 @@
   "private": true,
   "version": "0.4.0",
   "description": "Optional browser QA tooling. The app has no Node runtime dependency in native mode.",
-  "scripts": {"test:ui": "node -r ./tests/browser-auth-preload.cjs tests/browser.cjs", "check:ui": "node --check residual/station/static/app.js"},
+  "scripts": {"test:ui": "node tests/aud1-browser-runner.cjs", "check:ui": "node --check residual/station/static/app.js"},
   "devDependencies": {"playwright": "1.58.0"}
 }
