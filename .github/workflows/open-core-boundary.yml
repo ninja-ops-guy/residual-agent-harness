@@ -1,0 +1,41 @@
+name: Open Core Boundary
+
+on:
+  pull_request:
+    paths:
+      - "LICENSING.md"
+      - "LICENSES/**"
+      - "NOTICE"
+      - "CONTRIBUTING.md"
+      - "SECURITY.md"
+      - "docs/open-source/**"
+      - "residual/**"
+      - "research/**"
+      - "ai_providers/**"
+      - "observation_layer/**"
+      - "verifier/**"
+      - "tools/check_open_core_boundary.py"
+  push:
+    branches: [main]
+    paths:
+      - "LICENSING.md"
+      - "LICENSES/**"
+      - "NOTICE"
+      - "docs/open-source/**"
+      - "tools/check_open_core_boundary.py"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate open/commercial license boundary
+        run: python tools/check_open_core_boundary.py
