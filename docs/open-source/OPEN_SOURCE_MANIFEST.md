@@ -34,8 +34,8 @@ The following paths are included in RESIDUAL Open Core:
 
 ## Included research and reproducibility material
 
-- `research/**`
 - `docs/research.md`
+- `docs/station/RESEARCH.md`
 - `docs/evaluation.md`
 - `docs/controlled-evaluation.md`
 - `docs/factory/SPEC-EVAL-001.md`
