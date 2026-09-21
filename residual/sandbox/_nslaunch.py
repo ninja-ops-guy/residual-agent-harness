@@ -113,12 +113,11 @@ def _build_root(cfg: dict) -> str:
             add(f, readonly=True)
         for f in _DEV_FILES:
             add(f, readonly=True)
-        etc = root + "/etc"
-        os.makedirs(etc, exist_ok=True)
-        with open(etc + "/passwd", "w") as fh:
-            fh.write("root:x:0:0:sandbox:/:/bin/false\n")
-        with open(etc + "/group", "w") as fh:
-            fh.write("root:x:0:\n")
+        # No synthetic /etc/passwd or /etc/group: a fake host-style account
+        # database would let sandboxed code read a canonical sensitive path
+        # outside the allowlist and would mask real containment checks. The
+        # runtime payload does not need account resolution; the jail's /etc
+        # only ever carries the loader cache bind above.
     for path in cfg.get("read", []):
         add(path, readonly=True)
     for path in cfg.get("write", []):
@@ -134,7 +133,8 @@ def _child(cfg: dict, argv: list[str]) -> None:  # PID 1 of the new pid ns
     import resource
     max_pids = int(cfg.get("max_pids") or 0)
     if max_pids > 0:
-        # RLIMIT_NPROC charges the real UID host-wide; budget = base + limit.
+        # RLIMIT_NPROC charges every task of the real UID host-wide
+        # (threads included); budget = measured task base + limit.
         budget = int(cfg.get("nproc_base") or 0) + max_pids
         resource.setrlimit(resource.RLIMIT_NPROC, (budget, budget))
     memory_mb = int(cfg.get("memory_mb") or 0)

@@ -37,7 +37,7 @@ async function main(){
   await page.locator('#local-model').fill('fixture-model:latest');await page.getByRole('button',{name:'Save model routes',exact:true}).click();await page.locator('.toast').filter({hasText:'Model routes saved'}).waitFor();await page.reload();await page.locator('#local-model').waitFor();assert.equal(await page.locator('#local-model').inputValue(),'fixture-model:latest');checks.push('Model route settings persist after reload');
   await page.locator('.route-details summary').filter({hasText:'Mission loop limits'}).click();
   await page.locator('#batch-passes').fill('8');await page.locator('#batch-tokens').fill('50000');
-  await page.getByRole('button',{name:'Save model routes',exact:true}).click();await page.reload();
+  await page.getByRole('button',{name:'Save model routes',exact:true}).click();await page.locator('.toast').filter({hasText:'Model routes saved'}).waitFor();await page.reload();
   await page.locator('#batch-passes').waitFor({state:'attached'});
   assert.equal(await page.locator('#batch-passes').inputValue(),'8');
   assert.equal(await page.locator('#batch-tokens').inputValue(),'50000');
@@ -49,7 +49,7 @@ async function main(){
   await page.locator('#cloud-model').fill('test-anthropic');await page.locator('#cloud-key').fill('UI-PRIVATE-KEY');
   await page.locator('.route-details summary').filter({hasText:'Cloud failover order'}).click();await page.getByRole('button',{name:'+ Add fallback provider',exact:true}).click();
   await page.locator('#fallback-0-kind').selectOption('google');await page.locator('#fallback-0-model').fill('test-google');
-  await page.getByRole('button',{name:'Save model routes',exact:true}).click();await page.reload();await page.locator('#cloud-kind').waitFor();
+  await page.getByRole('button',{name:'Save model routes',exact:true}).click();await page.locator('.toast').filter({hasText:'Model routes saved'}).waitFor();await page.reload();await page.locator('#cloud-kind').waitFor();
   assert.equal(await page.locator('#cloud-kind').inputValue(),'anthropic');assert.equal(await page.locator('#cloud-key').inputValue(),'');
   assert.equal(await page.locator('#fallback-0-kind').inputValue(),'google');
   assert(!(await page.evaluate(()=>fetch('/api/bootstrap').then(r=>r.text()))).includes('UI-PRIVATE-KEY'));
