@@ -25,6 +25,8 @@ DEFAULTS = {
     "review_placement": "local", "workers": 2, "max_output_tokens": 4096,
     "cloud_fallbacks": [], "local_failover": [], "observations_enabled": True,
     "batch_max_passes": 30, "batch_token_budget": 200000, "batch_wall_clock_s": 3600,
+    # EXP-M6-SLM observation export: collection-only, off unless a deployment opts in.
+    "slm_observation_export": False, "slm_observation_denylist": [],
 }
 CATALOG = [
     {"name": "qwen2.5-coder:3b", "label": "Light runner", "download": "1.9 GB", "description": "Small, scoped edits. Lower memory footprint.", "url": "https://ollama.com/library/qwen2.5-coder:3b"},
@@ -103,7 +105,8 @@ def model_call(store, pid, role, packet, system, schema=None, placement="local",
 def save_settings(store, incoming):
     allowed = {"local", "cloud", "cloud_key", "clear_cloud_key", "review_placement", "workers", "max_output_tokens",
                "provider_credentials", "local_credentials", "cloud_fallbacks", "local_failover", "observations_enabled",
-               "batch_max_passes", "batch_token_budget", "batch_wall_clock_s"}
+               "batch_max_passes", "batch_token_budget", "batch_wall_clock_s",
+               "slm_observation_export", "slm_observation_denylist"}
     if not isinstance(incoming, dict) or set(incoming) - allowed: raise ContractError("Unsupported setting")
     current = store.settings(); clean = {}; secrets = dict(current.get("provider_credentials", {}))
     # Bind a legacy key to its original provider before a route is changed.
@@ -141,6 +144,14 @@ def save_settings(store, incoming):
     if "observations_enabled" in incoming:
         if type(incoming["observations_enabled"]) is not bool: raise ContractError("Observation recording must be a boolean")
         clean["observations_enabled"]=incoming["observations_enabled"]
+    if "slm_observation_export" in incoming:
+        if type(incoming["slm_observation_export"]) is not bool: raise ContractError("SLM observation export must be a boolean")
+        clean["slm_observation_export"]=incoming["slm_observation_export"]
+    if "slm_observation_denylist" in incoming:
+        # Compile once at save time so invalid deployment patterns are rejected up front.
+        from .slm_observation import compile_denylist
+        compile_denylist(incoming["slm_observation_denylist"])
+        clean["slm_observation_denylist"]=list(incoming["slm_observation_denylist"])
     if "review_placement" in incoming:
         if incoming["review_placement"] not in {"local","cloud"}: raise ContractError("Review placement must be local or cloud")
         clean["review_placement"]=incoming["review_placement"]
@@ -249,21 +260,21 @@ class Ollama:
     def pull(self, name, progress):
         if not isinstance(name, str) or not MODEL_NAME.fullmatch(name) or ".." in name:
             raise ContractError("Enter a valid Ollama model tag")
-        with self.request("/api/pull", {"model": name, "stream": True}, timeout=600) as response:
+        with self.request("/api/pull", {"name": name, "stream": True}, timeout=600) as response:
             for line in response:
                 if len(line) > 100_000:
                     raise ContractError("Unexpected download response")
                 item = json.loads(line)
                 if "error" in item:
-                    raise ContractError("Model download failed. Check the model tag, connectivity, and available disk space.")
-                total, completed = item.get("total", 0), item.get("completed", 0)
-                progress(str(item.get("status", "Downloading"))[:160], round(100 * completed / total) if total else None)
+                    raise ContractError("Model download failed. Check model name, connectivity, and available disk space.")
+                total, completed = item.get("total"), item.get("completed")
+                progress(str(item.get("status", "Downloading model"))[:160], round(100 * completed / total) if total else None)
         return "Model downloaded; select it as the local runner"
 
     def unload(self, name):
         if not isinstance(name, str) or not MODEL_NAME.fullmatch(name):
             raise ContractError("Invalid model tag")
-        with self.request("/api/generate", {"model": name, "keep_alive": 0, "stream": False}, timeout=30) as response:
+        with self.request("/api/generate", {"model": name, "keep_alive": 0}, timeout=30) as response:
             response.read(10000)
 
     def install(self, progress):
@@ -280,18 +291,17 @@ class Ollama:
         h = hashlib.sha256()
         req = urllib.request.Request(asset["url"], headers={"User-Agent": "Residual-Command-Station/0.2"})
         with urllib.request.urlopen(req, timeout=60) as response, archive.open("wb") as f:
-            total = int(response.headers.get("Content-Length", "0")); done = 0
+            total = int(response.headers.get("Content-Length", 0)); done = 0
             while chunk := response.read(1024 * 1024):
                 f.write(chunk); h.update(chunk); done += len(chunk)
                 if done > 6_000_000_000:
                     raise ContractError("Runtime download exceeds 6 GB")
-                progress("Downloading verified Ollama runtime", round(done * 100 / total) if total else None)
+                progress("Downloading verified Ollama runtime", round(100 * done / total) if total else None)
         if h.hexdigest() != asset["sha256"]:
             archive.unlink(missing_ok=True)
             raise ContractError("Runtime checksum mismatch; download discarded")
         dest = self.store.root / "runtime"
         dest.mkdir(exist_ok=True)
-        progress("Extracting local runtime", None)
         if archive.suffix == ".zip":
             with zipfile.ZipFile(archive) as z:
                 for item in z.infolist():
@@ -307,8 +317,10 @@ class Ollama:
                 raise ContractError("Could not extract runtime archive")
         else:
             with tarfile.open(archive) as t:
+                for member in t.getmembers():
+                    if not (dest / member.name).resolve().is_relative_to(dest.resolve()):
+                        raise ContractError("Unsafe runtime archive member")
                 t.extractall(dest, filter="data")
         if not self.binary():
             raise ContractError("Runtime extracted but the executable was not found")
-        archive.unlink(missing_ok=True)
         return self.start()
