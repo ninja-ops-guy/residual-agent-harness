@@ -5,7 +5,11 @@ verifier suite and aggregates the frozen metrics of EVALUATION-PROTOCOL.md,
 emitting a results-store-format run record (research/slm/eval/results_store.py).
 
 Guarantees (hard rules):
-* items are NEVER mutated (passed to backends/verifiers as read-only views);
+* items are NEVER mutated (passed to verifiers as read-only views; backends
+  receive a freshly deep-copied whitelisted candidate payload per call --
+  G2-B1: only fields a live model would see; gold fields absent, KeyError on
+  access. Sole documented exception: the B3 oracle, ``requires_gold=True``,
+  which per BASELINES.yaml reads expected_output to define the ceiling);
 * every item's ``digest`` is verified (sha256 over the canonical JSON of the
   item minus its digest field) BEFORE any backend runs on it; a mismatch is a
   BENCHMARK_DEFECT and the backend is never invoked for that item;
@@ -45,7 +49,7 @@ import time
 from types import MappingProxyType
 from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence
 
-from .backends import BACKENDS, ModelBackend, MalformedOutput
+from .backends import BACKENDS, ModelBackend, MalformedOutput, candidate_payload
 from . import stats as stats_mod
 
 SCHEMA_VERSION = "slm-eval-runner-v0"
@@ -257,8 +261,15 @@ def run_evaluation(
             records.append(rec)
             continue
         # 2. Backend invocation (timed; latency is a frozen secondary metric).
+        #    G2-B1 structural control: non-oracle backends receive ONLY the
+        #    whitelisted candidate payload (fresh deep copy per call; gold
+        #    fields absent, KeyError on access). The B3 oracle is the single
+        #    documented exception (``requires_gold``): per BASELINES.yaml it
+        #    legitimately reads expected_output to define the ceiling.
+        view = (readonly if getattr(backend, "requires_gold", False)
+                else candidate_payload(readonly))
         start = time.perf_counter()
-        candidate = backend.predict(readonly, rng)
+        candidate = backend.predict(view, rng)
         rec["latency_ms"] = (time.perf_counter() - start) * 1000.0
         rec["schema_invalid"] = not isinstance(candidate, Mapping) or isinstance(
             candidate, MalformedOutput)
