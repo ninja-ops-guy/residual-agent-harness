@@ -26,7 +26,14 @@ class ModelConfig:
 
 @dataclass
 class TrainConfig:
-    """Optimization hyperparameters."""
+    """Optimization hyperparameters.
+
+    Data mapping: prefer ``split_manifest`` — a JSON file mapping
+    {"train": ..., "val": ..., "holdout": ...} to three DISTINCT bin
+    paths (see scaffold/data.resolve_split_bins; SLM-INFRA-QUAL
+    MATERIAL-5). The ``train_bin``/``val_bin`` fields are an explicit
+    fallback only and are validated to never alias the holdout.
+    """
 
     batch_size: int = 32
     grad_accum: int = 1
@@ -41,8 +48,9 @@ class TrainConfig:
     eval_steps: int = 50
     ckpt_interval: int = 1000
     out_dir: str = "runs/default"
-    train_bin: str = "data/train.bin"
-    val_bin: str = "data/val.bin"
+    split_manifest: str = ""
+    train_bin: str = ""
+    val_bin: str = ""
 
 
 @dataclass

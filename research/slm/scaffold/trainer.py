@@ -12,7 +12,7 @@ import numpy as np
 import torch
 
 from .config import Config
-from .data import PackedBinDataset
+from .data import PackedBinDataset, resolve_split_bins, validate_split_paths
 from .model import NanoLM
 
 
@@ -53,13 +53,32 @@ class Trainer:
             lr=cfg.train.lr,
             weight_decay=cfg.train.weight_decay,
         )
+        # MATERIAL-5: the validation bin must come from an explicit split
+        # mapping (train/val/holdout distinct). No implicit defaults;
+        # holdout can never be aliased as val.
+        train_bin, val_bin = self._resolve_bins(cfg)
         self.train_data = PackedBinDataset(
-            cfg.train.train_bin, cfg.model, seed=cfg.train.seed
+            train_bin, cfg.model, seed=cfg.train.seed
         )
         self.val_data = PackedBinDataset(
-            cfg.train.val_bin, cfg.model, seed=cfg.train.seed + 1
+            val_bin, cfg.model, seed=cfg.train.seed + 1
         )
         os.makedirs(cfg.train.out_dir, exist_ok=True)
+
+    @staticmethod
+    def _resolve_bins(cfg: Config) -> tuple[str, str]:
+        t = cfg.train
+        if t.split_manifest:
+            bins = resolve_split_bins(t.split_manifest)
+            return bins["train"], bins["val"]
+        if not t.train_bin or not t.val_bin:
+            raise ValueError(
+                "no split mapping configured: set train.split_manifest "
+                "(JSON {train,val,holdout} -> distinct bin paths) or "
+                "explicit train.train_bin/train.val_bin; the scaffold "
+                "never defaults a validation set")
+        validate_split_paths(t.train_bin, t.val_bin)
+        return t.train_bin, t.val_bin
 
     @torch.no_grad()
     def evaluate(self) -> float:
