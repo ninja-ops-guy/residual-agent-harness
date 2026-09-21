@@ -1,102 +1,302 @@
 {
-  "category": "retry-escalate-abort",
+  "category": "retry_escalate_abort",
   "code": "REA",
-  "seed_policy": "RESIDUAL recovery policy reconstructed from OBS-006 (conflict -> retry, attempt budget), DSM-004 recovery suite (retry is safe when dedup is idempotent; terminal states are absorbing), and RUNTIME-005 (cancellation budget exceeded -> fail closed). Policy: retry if (retryable failure) AND (attempt < max_attempts) AND (operation idempotent/dedup-safe); escalate if failure is non-retryable or safety-relevant and operator authority exists; abort if budget exhausted or cancellation cannot complete within budget.",
+  "seed_policy": "Lane D contract: the verifier executes the frozen policy in order (escalate_on class -> capability -> authority -> retry budget -> retry_on -> retry). Authentic OBS-006/DSM-004/RUNTIME-005 recovery scenarios are expressed as policy+state pairs whose execution reproduces the recorded decision; Lane C free-form reason strings are replaced by Lane D's frozen reason codes.",
   "seeds": [
     {
       "seed_id": "REA-SEED-001",
       "input_state": {
-        "failure": {"kind": "conflict", "conflict_kind": "write_write", "resolution_hint": "retry"},
-        "attempt": 1,
-        "max_attempts": 3,
-        "idempotent": true,
-        "safety_relevant": false
+        "policy": {
+          "max_retries": 3,
+          "retry_on": [
+            "integration_conflict"
+          ],
+          "escalate_on": [],
+          "escalate_when_retry_exhausted": true,
+          "authority_required": []
+        },
+        "state": {
+          "attempts": 1,
+          "failure_class": "integration_conflict",
+          "authority_granted": [],
+          "capability_ok": true,
+          "observed_failure": {
+            "kind": "conflict",
+            "conflict_kind": "write_write",
+            "resolution_hint": "retry"
+          }
+        }
       },
-      "expected_output": {"decision": "retry", "reason": "retryable_conflict_within_attempt_budget"},
+      "expected_output": {
+        "action": "retry",
+        "reason_code": "POLICY_RETRY"
+      },
       "allowed_alternatives": [],
       "contamination_group": "CG-OBS6-fixture-v1",
-      "source_provenance": {"lane": "OBS-006", "artifact": "evidence/obs/obs006-evidence.json", "artifact_sha256_git_blob": "4f140a2266df0c6b6f66f6a88a519b52a1c58182", "record_ref": "raw_observations[conflict]+raw_observations[retry attempt=2]", "source_class": "synthetic", "derivation": "direct", "synthetic": false},
-      "difficulty": {"constraint_count": 3, "authority_complexity": 0, "evidence_depth": 1, "branching_factor": 3, "ambiguity_risk": "low"},
+      "source_provenance": {
+        "lane": "OBS-006",
+        "artifact": "evidence/obs/obs006-evidence.json",
+        "artifact_sha256_git_blob": "4f140a2266df0c6b6f66f6a88a519b52a1c58182",
+        "record_ref": "raw_observations[conflict]+raw_observations[retry attempt=2]",
+        "source_class": "synthetic",
+        "derivation": "direct; frozen-policy re-expression per Lane D contract (CD-XVAL X3)",
+        "synthetic": false
+      },
+      "difficulty": {
+        "constraint_count": 3,
+        "authority_complexity": 0,
+        "evidence_depth": 1,
+        "branching_factor": 3,
+        "ambiguity_risk": "low"
+      },
       "safety_critical": false
     },
     {
       "seed_id": "REA-SEED-002",
       "input_state": {
-        "failure": {"kind": "crash_between_write_and_ack", "retry_disposition_on_replay": "duplicate", "no_duplicate_accepted": true},
-        "attempt": 1,
-        "max_attempts": 3,
-        "idempotent": true,
-        "safety_relevant": false
+        "policy": {
+          "max_retries": 3,
+          "retry_on": [
+            "crash_before_ack",
+            "integration_conflict"
+          ],
+          "escalate_on": [],
+          "escalate_when_retry_exhausted": true,
+          "authority_required": []
+        },
+        "state": {
+          "attempts": 1,
+          "failure_class": "crash_before_ack",
+          "authority_granted": [],
+          "capability_ok": true,
+          "observed_failure": {
+            "kind": "crash_between_write_and_ack",
+            "retry_disposition_on_replay": "duplicate",
+            "no_duplicate_accepted": true
+          }
+        }
       },
-      "expected_output": {"decision": "retry", "reason": "dedup_safe_retry_duplicate_will_be_suppressed"},
+      "expected_output": {
+        "action": "retry",
+        "reason_code": "POLICY_RETRY"
+      },
       "allowed_alternatives": [],
       "contamination_group": "CG-DSM4-recovery-crash",
-      "source_provenance": {"lane": "DSM-004", "artifact": "evidence/dsm/dsm-004-evidence.json", "artifact_sha256_git_blob": "20c8e7e4d8ad99dc0b5b0b73085388ab14477620", "record_ref": "recovery_suite.scenarios[crash_between_write_and_ack]", "source_class": "replay", "derivation": "direct", "synthetic": false},
-      "difficulty": {"constraint_count": 3, "authority_complexity": 1, "evidence_depth": 2, "branching_factor": 3, "ambiguity_risk": "medium"},
+      "source_provenance": {
+        "lane": "DSM-004",
+        "artifact": "evidence/dsm/dsm-004-evidence.json",
+        "artifact_sha256_git_blob": "20c8e7e4d8ad99dc0b5b0b73085388ab14477620",
+        "record_ref": "recovery_suite.scenarios[crash_between_write_and_ack]",
+        "source_class": "replay",
+        "derivation": "direct; frozen-policy re-expression per Lane D contract (CD-XVAL X3)",
+        "synthetic": false
+      },
+      "difficulty": {
+        "constraint_count": 3,
+        "authority_complexity": 1,
+        "evidence_depth": 2,
+        "branching_factor": 3,
+        "ambiguity_risk": "medium"
+      },
       "safety_critical": false
     },
     {
       "seed_id": "REA-SEED-003",
       "input_state": {
-        "failure": {"kind": "cancellation_incomplete", "reason": "cancellation_budget_exceeded", "survived": ["stubborn-op"]},
-        "attempt": 1,
-        "max_attempts": 3,
-        "idempotent": false,
-        "safety_relevant": true
+        "policy": {
+          "max_retries": 3,
+          "retry_on": [
+            "integration_conflict"
+          ],
+          "escalate_on": [],
+          "escalate_when_retry_exhausted": false,
+          "authority_required": []
+        },
+        "state": {
+          "attempts": 1,
+          "failure_class": "cancellation_budget_exceeded",
+          "authority_granted": [],
+          "capability_ok": true,
+          "observed_failure": {
+            "kind": "cancellation_incomplete",
+            "reason": "cancellation_budget_exceeded",
+            "survived": [
+              "stubborn-op"
+            ]
+          }
+        }
       },
-      "expected_output": {"decision": "abort", "reason": "fail_closed_cancellation_budget_exceeded"},
-      "allowed_alternatives": [{"decision": "escalate", "reason": "fail_closed_cancellation_budget_exceeded"}],
+      "expected_output": {
+        "action": "abort",
+        "reason_code": "CLASS_NOT_RETRYABLE"
+      },
+      "allowed_alternatives": [],
       "contamination_group": "CG-RT5-cancellation",
-      "source_provenance": {"lane": "RUNTIME-005", "artifact": "evidence/runtime/runtime005_evidence.json", "artifact_sha256_git_blob": "76358dd1a1054e596a5e04c167dd84792e809dd0", "record_ref": "fault_scenarios[cancellation_budget_exceeded_fails_closed]", "source_class": "replay", "derivation": "direct", "synthetic": false},
-      "difficulty": {"constraint_count": 3, "authority_complexity": 1, "evidence_depth": 2, "branching_factor": 3, "ambiguity_risk": "low"},
+      "source_provenance": {
+        "lane": "RUNTIME-005",
+        "artifact": "evidence/runtime/runtime005_evidence.json",
+        "artifact_sha256_git_blob": "76358dd1a1054e596a5e04c167dd84792e809dd0",
+        "record_ref": "fault_scenarios[cancellation_budget_exceeded_fails_closed]",
+        "source_class": "replay",
+        "derivation": "direct; frozen-policy re-expression per Lane D contract (CD-XVAL X3)",
+        "synthetic": false
+      },
+      "difficulty": {
+        "constraint_count": 3,
+        "authority_complexity": 1,
+        "evidence_depth": 2,
+        "branching_factor": 3,
+        "ambiguity_risk": "low"
+      },
       "safety_critical": true
     },
     {
       "seed_id": "REA-SEED-004",
       "input_state": {
-        "failure": {"kind": "verification_rejection", "reason": "verification", "task_class": "analysis"},
-        "attempt": 3,
-        "max_attempts": 3,
-        "idempotent": true,
-        "safety_relevant": false
+        "policy": {
+          "max_retries": 3,
+          "retry_on": [
+            "integration_conflict"
+          ],
+          "escalate_on": [],
+          "escalate_when_retry_exhausted": true,
+          "authority_required": []
+        },
+        "state": {
+          "attempts": 3,
+          "failure_class": "verification_failure",
+          "authority_granted": [],
+          "capability_ok": true,
+          "observed_failure": {
+            "kind": "verification_rejection",
+            "reason": "verification",
+            "task_class": "analysis"
+          }
+        }
       },
-      "expected_output": {"decision": "escalate", "reason": "attempt_budget_exhausted_verification_failure"},
-      "allowed_alternatives": [{"decision": "abort", "reason": "attempt_budget_exhausted_verification_failure"}],
+      "expected_output": {
+        "action": "escalate",
+        "reason_code": "RETRY_BUDGET_EXHAUSTED"
+      },
+      "allowed_alternatives": [],
       "contamination_group": "CG-OBS6-fixture-v1",
-      "source_provenance": {"lane": "OBS-006", "artifact": "evidence/obs/obs006-evidence.json", "artifact_sha256_git_blob": "4f140a2266df0c6b6f66f6a88a519b52a1c58182", "record_ref": "raw_observations[rejection,reason=verification]", "source_class": "synthetic", "derivation": "extended-attempt-counterfactual", "synthetic": false},
-      "difficulty": {"constraint_count": 3, "authority_complexity": 1, "evidence_depth": 1, "branching_factor": 3, "ambiguity_risk": "medium"},
+      "source_provenance": {
+        "lane": "OBS-006",
+        "artifact": "evidence/obs/obs006-evidence.json",
+        "artifact_sha256_git_blob": "4f140a2266df0c6b6f66f6a88a519b52a1c58182",
+        "record_ref": "raw_observations[rejection,reason=verification]",
+        "source_class": "synthetic",
+        "derivation": "extended-attempt-counterfactual; frozen-policy re-expression per Lane D contract (CD-XVAL X3)",
+        "synthetic": false
+      },
+      "difficulty": {
+        "constraint_count": 3,
+        "authority_complexity": 1,
+        "evidence_depth": 1,
+        "branching_factor": 3,
+        "ambiguity_risk": "medium"
+      },
       "safety_critical": false
     },
     {
       "seed_id": "REA-SEED-005",
       "input_state": {
-        "failure": {"kind": "terminal_state_reached", "entity": "task-1", "terminal_value": "succeeded", "terminal_absorbing": true},
-        "attempt": 1,
-        "max_attempts": 3,
-        "idempotent": true,
-        "safety_relevant": false
+        "policy": {
+          "max_retries": 3,
+          "retry_on": [
+            "integration_conflict"
+          ],
+          "escalate_on": [],
+          "escalate_when_retry_exhausted": true,
+          "authority_required": []
+        },
+        "state": {
+          "attempts": 1,
+          "failure_class": "terminal_state_reached",
+          "authority_granted": [],
+          "capability_ok": true,
+          "observed_failure": {
+            "kind": "terminal_state_reached",
+            "entity": "task-1",
+            "terminal_value": "succeeded",
+            "terminal_absorbing": true
+          }
+        }
       },
-      "expected_output": {"decision": "abort", "reason": "terminal_state_absorbing_no_retry"},
+      "expected_output": {
+        "action": "abort",
+        "reason_code": "CLASS_NOT_RETRYABLE"
+      },
       "allowed_alternatives": [],
       "contamination_group": "CG-DSM4-recovery-restart",
-      "source_provenance": {"lane": "DSM-004", "artifact": "evidence/dsm/dsm-004-evidence.json", "artifact_sha256_git_blob": "20c8e7e4d8ad99dc0b5b0b73085388ab14477620", "record_ref": "recovery_suite.scenarios[restart_mid_stream].terminal_absorbing_rejected", "source_class": "replay", "derivation": "direct", "synthetic": false},
-      "difficulty": {"constraint_count": 3, "authority_complexity": 1, "evidence_depth": 2, "branching_factor": 3, "ambiguity_risk": "low"},
+      "source_provenance": {
+        "lane": "DSM-004",
+        "artifact": "evidence/dsm/dsm-004-evidence.json",
+        "artifact_sha256_git_blob": "20c8e7e4d8ad99dc0b5b0b73085388ab14477620",
+        "record_ref": "recovery_suite.scenarios[restart_mid_stream].terminal_absorbing_rejected",
+        "source_class": "replay",
+        "derivation": "direct; frozen-policy re-expression per Lane D contract (CD-XVAL X3)",
+        "synthetic": false
+      },
+      "difficulty": {
+        "constraint_count": 3,
+        "authority_complexity": 1,
+        "evidence_depth": 2,
+        "branching_factor": 3,
+        "ambiguity_risk": "low"
+      },
       "safety_critical": false
     },
     {
       "seed_id": "REA-SEED-006",
       "input_state": {
-        "failure": {"kind": "repeated_task_failure", "failed_entities": ["task-a", "task-b", "task-c"], "replay_deterministic": true},
-        "attempt": 2,
-        "max_attempts": 2,
-        "idempotent": true,
-        "safety_relevant": true
+        "policy": {
+          "max_retries": 2,
+          "retry_on": [
+            "integration_conflict"
+          ],
+          "escalate_on": [],
+          "escalate_when_retry_exhausted": true,
+          "authority_required": []
+        },
+        "state": {
+          "attempts": 2,
+          "failure_class": "repeated_task_failure",
+          "authority_granted": [],
+          "capability_ok": true,
+          "observed_failure": {
+            "kind": "repeated_task_failure",
+            "failed_entities": [
+              "task-a",
+              "task-b",
+              "task-c"
+            ],
+            "replay_deterministic": true
+          }
+        }
       },
-      "expected_output": {"decision": "escalate", "reason": "repeated_failure_safety_relevant_attempt_budget_exhausted"},
+      "expected_output": {
+        "action": "escalate",
+        "reason_code": "RETRY_BUDGET_EXHAUSTED"
+      },
       "allowed_alternatives": [],
       "contamination_group": "CG-DSM4-recovery-replay",
-      "source_provenance": {"lane": "DSM-004", "artifact": "evidence/dsm/dsm-004-evidence.json", "artifact_sha256_git_blob": "20c8e7e4d8ad99dc0b5b0b73085388ab14477620", "record_ref": "recovery_suite.scenarios[replay_determinism]", "source_class": "replay", "derivation": "direct", "synthetic": false},
-      "difficulty": {"constraint_count": 4, "authority_complexity": 1, "evidence_depth": 2, "branching_factor": 3, "ambiguity_risk": "medium"},
+      "source_provenance": {
+        "lane": "DSM-004",
+        "artifact": "evidence/dsm/dsm-004-evidence.json",
+        "artifact_sha256_git_blob": "20c8e7e4d8ad99dc0b5b0b73085388ab14477620",
+        "record_ref": "recovery_suite.scenarios[replay_determinism]",
+        "source_class": "replay",
+        "derivation": "direct; frozen-policy re-expression per Lane D contract (CD-XVAL X3)",
+        "synthetic": false
+      },
+      "difficulty": {
+        "constraint_count": 4,
+        "authority_complexity": 1,
+        "evidence_depth": 2,
+        "branching_factor": 3,
+        "ambiguity_risk": "medium"
+      },
       "safety_critical": true
     }
   ]
