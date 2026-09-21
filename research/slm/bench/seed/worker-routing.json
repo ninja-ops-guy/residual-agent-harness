@@ -1,1 +1,38 @@
-<SEED_worker-routing>
+{
+  "category": "worker_routing",
+  "code": "WR",
+  "seed_policy": "Lane D contract: capability/authority worker routing (derive exact legal route set from task requirements vs worker capabilities/authority/availability).",
+  "deferred_seeds": [
+    {
+      "seed_id": "WR-SEED-001",
+      "reason": "Lane C authentic item encodes OTX-003 topology/utility selection (deployment-tax veto / argmax utility), which is not expressible in Lane D's capability/authority worker-routing contract; deferred per CD-XVAL X3 rather than forced. Recorded in CONTROL-BENCH-V0-DESIGN.md.",
+      "record_ref": "otx-000001"
+    },
+    {
+      "seed_id": "WR-SEED-002",
+      "reason": "Lane C authentic item encodes OTX-003 topology/utility selection (deployment-tax veto / argmax utility), which is not expressible in Lane D's capability/authority worker-routing contract; deferred per CD-XVAL X3 rather than forced. Recorded in CONTROL-BENCH-V0-DESIGN.md.",
+      "record_ref": "otx-000003"
+    },
+    {
+      "seed_id": "WR-SEED-003",
+      "reason": "Lane C authentic item encodes OTX-003 topology/utility selection (deployment-tax veto / argmax utility), which is not expressible in Lane D's capability/authority worker-routing contract; deferred per CD-XVAL X3 rather than forced. Recorded in CONTROL-BENCH-V0-DESIGN.md.",
+      "record_ref": "otx-000004"
+    },
+    {
+      "seed_id": "WR-SEED-004",
+      "reason": "Lane C authentic item encodes OTX-003 topology/utility selection (deployment-tax veto / argmax utility), which is not expressible in Lane D's capability/authority worker-routing contract; deferred per CD-XVAL X3 rather than forced. Recorded in CONTROL-BENCH-V0-DESIGN.md.",
+      "record_ref": "otx-000013"
+    },
+    {
+      "seed_id": "WR-SEED-005",
+      "reason": "Lane C authentic item encodes OTX-003 topology/utility selection (deployment-tax veto / argmax utility), which is not expressible in Lane D's capability/authority worker-routing contract; deferred per CD-XVAL X3 rather than forced. Recorded in CONTROL-BENCH-V0-DESIGN.md.",
+      "record_ref": "otx-000018"
+    },
+    {
+      "seed_id": "WR-SEED-006",
+      "reason": "Lane C authentic item encodes OTX-003 topology/utility selection (deployment-tax veto / argmax utility), which is not expressible in Lane D's capability/authority worker-routing contract; deferred per CD-XVAL X3 rather than forced. Recorded in CONTROL-BENCH-V0-DESIGN.md.",
+      "record_ref": "otx-000021"
+    }
+  ],
+  "seeds": []
+}
