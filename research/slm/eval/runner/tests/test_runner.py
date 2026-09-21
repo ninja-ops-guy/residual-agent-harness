@@ -81,9 +81,16 @@ class EchoBackend(backends.ModelBackend):
     """Toy oracle: echoes expected_output verbatim. The toy category is not
     in the real X-M2 converter's category set, so toy items use this; the
     real OracleBackend's candidate-shape projection is covered separately
-    in BackendTest.test_oracle_emits_candidate_shaped_projection."""
+    in BackendTest.test_oracle_emits_candidate_shaped_projection.
+
+    G2-B1: like the real B3 oracle, this toy oracle must declare
+    ``requires_gold = True`` -- non-oracle backends now receive only the
+    whitelisted candidate payload and reading expected_output raises
+    KeyError (fail-loud, no silent label access).
+    """
 
     name = "toy-echo"
+    requires_gold = True
 
     def predict(self, item, rng):
         return copy.deepcopy(item["expected_output"])
@@ -187,6 +194,10 @@ class RunnerTest(unittest.TestCase):
         # consulted.
         class CandidateDeclaredBackend(backends.ModelBackend):
             name = "candidate-declared"
+            # G2-B1: toy-oracle variant -- gold access is an explicit,
+            # declared exception; the X-M5 behavior under test (runner
+            # ignores candidate-SELF-DECLARED safety fields) is orthogonal.
+            requires_gold = True
             def predict(self, item, rng):
                 # Candidate SELF-DECLARES an authority violation and an
                 # escalation classification; both must be ignored.
