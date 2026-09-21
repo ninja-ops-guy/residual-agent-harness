@@ -161,6 +161,12 @@ class BridgeState:
     def _scope(self, project: str, thread: str, name: str) -> str:
         return f"{project}\0{thread}\0{name}"
 
+    def has_cursor(self, project: str, thread: str, name: str) -> bool:
+        row = self.db.execute(
+            "SELECT 1 FROM cursor_state WHERE scope=?", (self._scope(project, thread, name),)
+        ).fetchone()
+        return row is not None
+
     def cursor(self, project: str, thread: str, name: str) -> int:
         row = self.db.execute(
             "SELECT seq FROM cursor_state WHERE scope=?", (self._scope(project, thread, name),)
@@ -445,6 +451,7 @@ class BridgeConfig:
     timeout_s: int
     max_attempts: int
     max_batch: int
+    start_at: str
     advisory_prefix: str
     status_file: Path
 
@@ -494,6 +501,19 @@ class OpenClawSharedCommsBridge:
 
     def run_once(self) -> int:
         recovered = self.client.recover_outbox(self.state)
+        if not self.state.has_cursor(self.config.project, self.config.thread, self.config.name):
+            if self.config.start_at == "latest":
+                existing = self.client.messages(self.config.project, 0, self.config.thread)
+                latest = max((int(message.get("seq") or 0) for message in existing), default=0)
+                self.state.set_cursor(self.config.project, self.config.thread, self.config.name, latest)
+                self._write_status(
+                    state="ready",
+                    last_error=None,
+                    initialized_at_seq=latest,
+                    recovered_outbox=recovered,
+                )
+                return 0
+            self.state.set_cursor(self.config.project, self.config.thread, self.config.name, 0)
         cursor = self.state.cursor(self.config.project, self.config.thread, self.config.name)
         messages = sorted(
             self.client.messages(self.config.project, cursor, self.config.thread),
@@ -631,6 +651,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--timeout", type=int, default=int(_env("RESIDUAL_OPENCLAW_TIMEOUT", "300")))
     parser.add_argument("--max-attempts", type=int, default=int(_env("RESIDUAL_OPENCLAW_MAX_ATTEMPTS", "3")))
     parser.add_argument("--max-batch", type=int, default=int(_env("RESIDUAL_OPENCLAW_MAX_BATCH", "1")))
+    parser.add_argument("--start-at", choices=["latest", "zero"], default=_env("RESIDUAL_OPENCLAW_START_AT", "latest"))
     parser.add_argument("--warm-model", default=_env("RESIDUAL_OPENCLAW_WARM_MODEL"))
     parser.add_argument("--ollama-url", default=_env("RESIDUAL_OLLAMA_URL", "http://127.0.0.1:11434"))
     parser.add_argument("--ollama-keep-alive", default=_env("RESIDUAL_OLLAMA_KEEP_ALIVE", "5m"))
@@ -690,6 +711,7 @@ def main(argv: list[str] | None = None) -> int:
         timeout_s=args.timeout,
         max_attempts=args.max_attempts,
         max_batch=args.max_batch,
+        start_at=args.start_at,
         advisory_prefix=args.advisory_prefix,
         status_file=Path(args.status_file).expanduser(),
     )
