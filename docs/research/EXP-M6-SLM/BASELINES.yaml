@@ -1,0 +1,231 @@
+# EXP-M6-SLM / SLM-01 — Baseline Manifest (Lane F)
+#
+# Status: PREREGISTRATION DRAFT, pre-freeze. Per SLM-00-PROTOCOL.md, no benchmark
+# results may be inspected or reported under this manifest until Control Bench v0
+# is frozen and content-addressed. This file declares baseline identities and
+# configurations ONLY.
+#
+# Hard rules honored here:
+#  - No benchmark item was executed, and no configuration was tuned against any
+#    benchmark case. Values below are capability-neutral configuration choices.
+#  - No digest is fabricated. Every unverified artifact digest is explicitly
+#    `unknown-pending-pin` and MUST be resolved before the SLM-00 freeze gate.
+#  - Model identity choices are justified in comments; they reflect repo
+#    conventions (Ollama runtime, qwen2.5-coder:7b worker default) and wide
+#    artifact availability, not benchmark feedback.
+
+manifest_id: slm01-baselines-v0
+protocol_ref: docs/research/EXP-M6-SLM/SLM-00-PROTOCOL.md
+bench_spec_ref: docs/research/EXP-M6-SLM/CONTROL-BENCH-V0.md
+
+# Placeholder for the future frozen benchmark digest. UNFROZEN: must be replaced
+# with the SHA-256 of the Control Bench v0 item manifest at freeze time.
+benchmark_hash:
+  value: unfrozen-placeholder
+  status: unfrozen
+  notes: >
+    References the SHA-256 digest of the frozen Control Bench v0 item manifest
+    (item manifest + split manifest + verifier manifest) once SLM-00 freeze
+    completes. All baselines below MUST be re-anchored to the same frozen
+    digest before any result is recorded.
+
+# Shared conventions, aligned with this repo's existing local-model stack:
+#  - Local runtime: Ollama, pinned container ollama/ollama:0.34.0 (see Dockerfile),
+#    native chat API via ai_providers/adapters/ollama_adapter.py and
+#    residual/providers.py (kind: "ollama", base_url http://127.0.0.1:11434).
+#  - Structured outputs: Ollama schema-based formatting (docs/station/RESEARCH.md)
+#    so schema-invalid output rate is measurable per the SLM-00 metrics.
+#  - Remote/stronger reference: OpenAI-compatible provider (kind:
+#    "openai_compatible") since the harness already supports it.
+shared:
+  inference_runtime_local: "ollama 0.34.0 (container image ollama/ollama:0.34.0)"
+  harness_provider_kind_local: ollama
+  harness_provider_kind_remote: openai_compatible
+  output_mode: structured-schema  # schema-validated before task verification
+  decoding: &shared_decoding
+    temperature: 0.0        # deterministic decode for reproducibility
+    top_p: 1.0
+    top_k: -1               # disabled / runtime default
+    repetition_penalty: 1.0
+    seed: 0                 # fixed seed where runtime honors it
+    max_output_tokens: 1024 # generous bound; not tuned against benchmark items
+  prompt_template_id: exp-m6-slm-control-decision-v0  # to be frozen with bench
+  benchmark_hash_ref: unfrozen-placeholder
+
+baselines:
+
+  # 1. Deterministic / no-model policy -------------------------------------
+  - id: B0-deterministic-rules
+    role: deterministic_floor_reference
+    description: >
+      Pure rule-based control policy: routes decisions through the harness's
+      existing deterministic control-plane logic (Station routing, contract
+      compilation checks, retry/escalate/abort rules, fail-closed authority
+      enforcement) with no learned model in the loop. This is the preregistered
+      "deterministic/no-model policy where applicable" from SLM-00. Applicable
+      where a deterministic rule exists; categories without a constructible rule
+      (e.g. open-ended failure classification) are scored as not-applicable and
+      reported separately, not imputed.
+    artifact: residual-harness deterministic control plane at benchmark commit
+    model_artifact: none
+    version: source-tree-commit-of-benchmark-run
+    digest: unknown-pending-pin   # pin the harness source commit SHA at freeze
+    tokenizer: none
+    quantization: none
+    inference_runtime: "none (in-process deterministic code)"
+    prompt_template_id: none
+    decoding: none
+    hardware_class: "cpu-only (any; reference: 4-core x86_64)"
+    context_length: not-applicable
+    benchmark_hash: unfrozen-placeholder
+
+  # 2. Random-policy floor ---------------------------------------------------
+  - id: B1-random-policy
+    role: floor_random
+    description: >
+      Samples uniformly at random over the schema-valid decision space of each
+      item (uniform over allowed actions/labels, including allowed_alternatives
+      where the item declares them). Detects benchmark weakness: any learned or
+      rule baseline must beat this floor, and items where random does well are
+      flagged for difficulty review.
+    artifact: "none (numpy Generator with PCG64, seeded)"
+    model_artifact: none
+    version: "numpy >=1.24 (pin exact version in freeze lockfile)"
+    digest: unknown-pending-pin   # pin numpy wheel version + hash at freeze
+    tokenizer: none
+    quantization: none
+    inference_runtime: "python3 (repo-supported 3.11/3.12/3.13 matrix)"
+    prompt_template_id: none
+    decoding: {seed: 0}   # one fixed seed stream, item-order independent
+    hardware_class: cpu-only
+    context_length: not-applicable
+    benchmark_hash: unfrozen-placeholder
+
+  # 3. Trivial-policy floor --------------------------------------------------
+  - id: B2-trivial-majority
+    role: floor_trivial
+    description: >
+      Always emits the globally most common correct decision class (majority
+      class) computed from the frozen TRAIN split only; where the item schema is
+      not class-structured, emits the schema-minimal default action (e.g. always
+      escalate for safety-critical decisions, matching the protocol's asymmetry
+      that false non-escalation is costlier than unnecessary escalation).
+      Exposes class-imbalance weakness in Control Bench v0.
+    artifact: none
+    model_artifact: none
+    version: source-tree-commit-of-benchmark-run
+    digest: unknown-pending-pin
+    tokenizer: none
+    quantization: none
+    inference_runtime: python3
+    prompt_template_id: none
+    decoding: none
+    hardware_class: cpu-only
+    context_length: not-applicable
+    benchmark_hash: unfrozen-placeholder
+    note: majority statistics derive from train split only; holdout labels stay
+      inaccessible per SLM-00 split policy.
+
+  # 4. Oracle ceiling ---------------------------------------------------------
+  - id: B3-oracle
+    role: ceiling_oracle
+    description: >
+      Hand-authored perfect-decision policy: emits the item's declared
+      expected_output (or a declared allowed_alternative) directly. Only
+      constructible for items with executable deterministic verifiers and
+      declared expected outputs; items requiring adjudicated human judgment are
+      excluded from the oracle and reported as not-applicable. Provides the
+      upper bound against which verified success rates are normalized.
+    artifact: "none (reads frozen item manifest expected_output fields)"
+    model_artifact: none
+    version: benchmark-item-manifest-version
+    digest: unknown-pending-pin   # equals frozen item-manifest digest at freeze
+    tokenizer: none
+    quantization: none
+    inference_runtime: python3
+    prompt_template_id: none
+    decoding: none
+    hardware_class: cpu-only
+    context_length: not-applicable
+    benchmark_hash: unfrozen-placeholder
+    note: oracle reads labels only to define the ceiling; it is never eligible
+      as a candidate policy and its outputs are never used in training corpora.
+
+  # 5. Existing local 7B ------------------------------------------------------
+  - id: B4-local-7b
+    role: incumbent_local_7b
+    description: >
+      The harness's existing local 7B deployment convention. worker.py defaults
+      to --model qwen2.5-coder:7b on Ollama, and prior bounded PASS runs used
+      real local Ollama Qwen/Llama models (docs/research.md). We pin the base
+      instruct variant Qwen2.5-7B-Instruct rather than the coder variant because
+      Control Bench v0 measures control-plane decisions, not code generation;
+      the coder variant may be added as a supplementary arm later if desired.
+      Justification: matches repo runtime (Ollama), widely mirrored artifact,
+      Apache-2.0 license, well-documented model card.
+    model_artifact: "Qwen/Qwen2.5-7B-Instruct (HF) via Ollama tag qwen2.5:7b-instruct"
+    version: "Qwen2.5-7B-Instruct, released 2024-09; HF revision: unknown-pending-pin"
+    digest: unknown-pending-pin   # pin Ollama manifest digest + HF file SHA-256 at freeze
+    tokenizer: "Qwen2.5 BPE tokenizer (tokenizer.json in artifact; vocab 151,646 + control tokens)"
+    quantization: "q4_K_M (Ollama registry default for the 7b tag; verify at pull and pin digest)"
+    inference_runtime: "ollama 0.34.0 (ollama/ollama:0.34.0 container)"
+    prompt_template_id: exp-m6-slm-control-decision-v0
+    decoding: *shared_decoding
+    hardware_class: "single consumer GPU, 24 GB VRAM class (e.g. RTX 3090/4090) or Apple-silicon 32 GB unified memory; CPU fallback allowed but latency recorded"
+    context_length: "131072 (per model card; effective eval context capped by observation schema)"
+    benchmark_hash: unfrozen-placeholder
+
+  # 6. Off-the-shelf SLM (0.5–3B class) ---------------------------------------
+  - id: B5-slm-1p5b
+    role: off_the_shelf_slm
+    description: >
+      Qwen2.5-1.5B-Instruct chosen as the off-the-shelf small instruct model:
+      same tokenizer and chat template family as B4 (removes tokenizer as a
+      confound for the capacity comparison central to the research question),
+      Apache-2.0, first-class Ollama availability. SmolLM2-1.7B-Instruct is the
+      documented alternate if Qwen artifacts become unavailable; only one SLM
+      arm is primary for SLM-01.
+    model_artifact: "Qwen/Qwen2.5-1.5B-Instruct (HF) via Ollama tag qwen2.5:1.5b-instruct"
+    version: "Qwen2.5-1.5B-Instruct, released 2024-09; HF revision: unknown-pending-pin"
+    digest: unknown-pending-pin   # pin Ollama manifest digest + HF file SHA-256 at freeze
+    tokenizer: "Qwen2.5 BPE tokenizer (same family as B4)"
+    quantization: "q4_K_M (Ollama default; verify at pull and pin digest)"
+    inference_runtime: "ollama 0.34.0 (ollama/ollama:0.34.0 container)"
+    prompt_template_id: exp-m6-slm-control-decision-v0
+    decoding: *shared_decoding
+    hardware_class: "cpu-only feasible (8 GB RAM class) or any consumer GPU; hardware class recorded per run"
+    context_length: "32768 (per model card; 131072 with YaRN per card — YaRN NOT enabled for baseline)"
+    benchmark_hash: unfrozen-placeholder
+    alternate: "HuggingFaceTB/SmolLM2-1.7B-Instruct (digest: unknown-pending-pin)"
+
+  # 7. Stronger reference model ------------------------------------------------
+  - id: B6-reference-strong
+    role: stronger_reference
+    description: >
+      Qwen2.5-32B-Instruct as the stronger reference point for the SLM-05
+      capacity sweep and as an upper capability anchor below frontier APIs.
+      Stays in the same model/tokenizer family as B4/B5 to isolate capacity as
+      the manipulated variable. Served through the harness's openai_compatible
+      provider kind (vLLM or hosted endpoint) since 32B exceeds typical local
+      hardware. A frontier API reference (exact provider/model pinned at freeze)
+      MAY be added as a supplementary anchor; it is not required for SLM-01.
+    model_artifact: "Qwen/Qwen2.5-32B-Instruct (HF) served via vLLM OpenAI-compatible endpoint"
+    version: "Qwen2.5-32B-Instruct, released 2024-09; HF revision: unknown-pending-pin"
+    digest: unknown-pending-pin   # pin HF revision SHA + vLLM version at freeze
+    tokenizer: "Qwen2.5 BPE tokenizer (same family as B4/B5)"
+    quantization: "awq-int4 OR bf16 (choose one at freeze and pin; default proposal: bf16 on A100/H100 class, AWQ-int4 on 24 GB class)"
+    inference_runtime: "vLLM (version unknown-pending-pin) exposing OpenAI-compatible chat API; harness kind: openai_compatible"
+    prompt_template_id: exp-m6-slm-control-decision-v0
+    decoding: *shared_decoding
+    hardware_class: "datacenter GPU: 1x A100 80GB (bf16) or 1x 24 GB consumer GPU (AWQ-int4)"
+    context_length: "131072 (per model card)"
+    benchmark_hash: unfrozen-placeholder
+
+# Freeze TODO (blocking SLM-00 gate item 5/8):
+open_pins:
+  - pin all model digests (Ollama manifest digests / HF commit SHAs) at pull time; never transcribe unverified hashes
+  - pin numpy + python versions for B1/B2/B3 in a lockfile with wheel hashes
+  - pin vLLM version and quantization choice for B6
+  - freeze prompt template exp-m6-slm-control-decision-v0 and record its digest
+  - replace every `unfrozen-placeholder` benchmark_hash with the frozen Control Bench v0 manifest SHA-256
+  - record per-run hardware class in the run ledger (SLM-06 economics fields)
