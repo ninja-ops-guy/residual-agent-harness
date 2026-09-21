@@ -66,7 +66,7 @@ def paired_bootstrap_ci(
     alpha: float = FAMILY_ALPHA,
     group_key: str = "contamination_group",
 ) -> Dict[str, float]:
-    """95%% percentile paired bootstrap CI resampling contamination groups.
+    """95% percentile paired bootstrap CI resampling contamination groups.
 
     ``rows`` are per-item/per-mission observations sharing a
     ``contamination_group``; whole groups are resampled with replacement so
