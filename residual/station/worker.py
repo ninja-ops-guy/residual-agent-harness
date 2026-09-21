@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import queue
 import threading
 import time
 import urllib.parse
@@ -17,8 +18,12 @@ from .models import StationProvider
 from .service import FILES_SCHEMA, RUNNER_SYSTEM
 
 
+class WorkerAuthorityLost(ContractError):
+    """The runner can no longer prove that it still owns the claimed work."""
+
+
 class WorkerClient:
-    def __init__(self, station, token):
+    def __init__(self, station, token, heartbeat_interval=60.0, heartbeat_grace=180.0):
         url = urllib.parse.urlsplit(station)
         if url.scheme != "https" and not (url.scheme == "http" and url.hostname in {"localhost", "127.0.0.1", "::1"}):
             raise ContractError("Use HTTPS for remote stations or a loopback SSH tunnel")
@@ -26,7 +31,11 @@ class WorkerClient:
             raise ContractError("Station URL must not contain credentials, query, or fragment")
         if not token:
             raise ContractError("Set RESIDUAL_WORKER_TOKEN from Diagnostics → Connect another runner")
+        if heartbeat_interval <= 0 or heartbeat_grace < heartbeat_interval:
+            raise ContractError("Heartbeat grace must be at least one heartbeat interval")
         self.base, self.token = station.rstrip("/"), token
+        self.heartbeat_interval = float(heartbeat_interval)
+        self.heartbeat_grace = float(heartbeat_grace)
         self.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
 
     def request(self, route, data):
@@ -38,23 +47,57 @@ class WorkerClient:
                 raise ContractError("Worker packet is too large")
             return strict_json(value.decode())
 
+    def _generate_with_authority(self, provider, packet, max_tokens, envelope, stop):
+        """Run inference while separately proving lease continuity.
+
+        Provider transports are not assumed to support cooperative cancellation. If the
+        heartbeat grace is exceeded, the worker process surrenders authority immediately,
+        never submits the eventual proposal, and the CLI exits so daemon inference cannot
+        outlive the authority boundary indefinitely.
+        """
+        authority_lost = threading.Event()
+        finished = queue.Queue(maxsize=1)
+        last_success = [time.monotonic()]
+
+        def heartbeat():
+            while not stop.wait(self.heartbeat_interval):
+                try:
+                    self.request("heartbeat", envelope)
+                    last_success[0] = time.monotonic()
+                except Exception:
+                    if time.monotonic() - last_success[0] >= self.heartbeat_grace:
+                        authority_lost.set()
+                        return
+
+        def generate():
+            try:
+                finished.put((True, provider.generate(packet, max_tokens)))
+            except BaseException as exc:  # preserve provider exception identity for caller
+                finished.put((False, exc))
+
+        threading.Thread(target=heartbeat, daemon=True).start()
+        threading.Thread(target=generate, daemon=True).start()
+        while True:
+            if authority_lost.wait(0.05):
+                raise WorkerAuthorityLost("Runner authority was surrendered after persistent heartbeat loss")
+            try:
+                ok, value = finished.get_nowait()
+            except queue.Empty:
+                continue
+            if ok:
+                return value
+            raise value
+
     def run_once(self, project, name, provider, max_tokens=4096):
         work = self.request("claim", {"project_id": project, "name": name}).get("work")
         if not work:
             return False
         stop = threading.Event()
         envelope = {"project_id": project, "task_id": work["task_id"], "lease": work["lease"]}
-        def heartbeat():
-            while not stop.wait(60):
-                try:
-                    self.request("heartbeat", envelope)
-                except Exception:
-                    stop.set()
-        threading.Thread(target=heartbeat, daemon=True).start()
         try:
             if provider.placement == "remote" and not work.get("allow_cloud"):
                 raise ContractError("This mission does not permit cloud inference")
-            reply = provider.generate(work["packet"], max_tokens)
+            reply = self._generate_with_authority(provider, work["packet"], max_tokens, envelope, stop)
             response = strict_json(reply.text)
             usage = {**asdict(reply.usage), "source": "worker_reported", "placement": "cloud" if provider.placement == "remote" else "local",
                      "role": "remote_runner", "model": provider.model, "request_bytes": provider.wire_size(work["packet"], max_tokens)}
@@ -64,6 +107,9 @@ class WorkerClient:
                 self.request("result", data)
             except (OSError, TimeoutError):
                 self.request("result", data)
+        except WorkerAuthorityLost:
+            # Never attempt a proposal after the authority continuity proof has failed.
+            raise
         except Exception:
             # Empty proposals fail closed and produce a repair task, never a completion claim.
             try:
@@ -101,6 +147,9 @@ def main(argv=None):
             worked = client.run_once(args.project, args.name, provider)
             if worked:
                 print("Candidate submitted. The station owns verification and review.", flush=True)
+        except WorkerAuthorityLost as e:
+            print(str(e), file=sys.stderr if 'sys' in globals() else None)
+            return 1
         except Exception as e:
             print(str(e) if isinstance(e, ContractError) else "Runner request failed. Check connectivity and model configuration.", flush=True)
             if args.once:
