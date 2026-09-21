@@ -1,0 +1,29 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://residual.dev/research/exp-m6-slm/observation.schema.v0.1.json",
+  "title":"RESIDUAL SLM Observation v0.1",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["schema_version","observation_id","timestamp","provenance","state","proposed_decision","actual_decision","outcome","verification","cost","authority"],
+  "properties":{
+    "schema_version":{"enum":["slm-observation-v0","slm-observation-v0.1"]},
+    "observation_id":{"type":"string","minLength":1},
+    "timestamp":{"type":["string","null"],"format":"date-time"},
+    "provenance":{"type":"object","additionalProperties":true,"required":["source_class"],"properties":{"source_class":{"enum":["ax21","synthetic","benchmark","replay","other"]},"mission_id":{"type":["string","null"]},"incident_id":{"type":["string","null"]},"generation":{"type":["integer","null"]},"artifact_digests":{"type":"array","items":{"type":"string"}},"timestamp_erratum":{"const":"SCHEMA-ERRATUM-001"}}},
+    "contamination_group":{"type":["string","null"]},
+    "state":{"type":"object","additionalProperties":true},
+    "proposed_decision":{"type":["object","null"],"additionalProperties":true},
+    "actual_decision":{"type":"object","additionalProperties":true},
+    "outcome":{"type":"object","additionalProperties":true},
+    "verification":{"type":"object","additionalProperties":true,"required":["status"],"properties":{"status":{"enum":["verified_success","verified_failure","provisional","rejected","unknown"]},"verifier_refs":{"type":"array","items":{"type":"string"}}}},
+    "cost":{"type":"object","additionalProperties":true,"properties":{"inference_usd":{"type":["number","null"],"minimum":0},"energy_wh":{"type":["number","null"],"minimum":0},"latency_ms":{"type":["number","null"],"minimum":0},"operator_active_seconds":{"type":["number","null"],"minimum":0},"frontier_calls":{"type":["integer","null"],"minimum":0}}},
+    "authority":{"type":"object","additionalProperties":true,"required":["requested","granted","violation"],"properties":{"requested":{"type":"array","items":{"type":"string"}},"granted":{"type":"array","items":{"type":"string"}},"violation":{"type":"boolean"}}},
+    "escalation":{"type":"object","additionalProperties":true,"properties":{"required":{"type":["boolean","null"]},"taken":{"type":["boolean","null"]},"classification":{"enum":["correct_escalation","unnecessary_escalation","correct_non_escalation","false_non_escalation","unknown"]}}},
+    "labels":{"type":"array","items":{"type":"string"}},
+    "notes":{"type":["string","null"]}
+  },
+  "x-changelog":[
+    {"version":"slm-observation-v0.1","date":"2026-09-20","ratifies":"SCHEMA-ERRATUM-001","changes":["timestamp widened to [\"string\",\"null\"] (source lanes record no timestamps; null is permitted and never imputed)","provenance.timestamp_erratum added (const \"SCHEMA-ERRATUM-001\"): REQUIRED marker whenever timestamp is null; a null timestamp without the marker is invalid per the erratum and is rejected by corpus_linter","schema_version widened to enum [\"slm-observation-v0\",\"slm-observation-v0.1\"] so existing converted records remain valid","$id bumped to observation.schema.v0.1.json; original observation.schema.json (v0) is kept untouched for history"]},
+    {"version":"slm-observation-v0","note":"initial frozen schema; see docs/research/EXP-M6-SLM/SCHEMA-ERRATUM-001.md"}
+  ]
+}
