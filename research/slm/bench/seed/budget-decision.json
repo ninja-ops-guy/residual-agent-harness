@@ -42,7 +42,7 @@
         ]
       },
       "allowed_alternatives": [],
-      "contamination_group": "CG-OBS6-fixture-v1",
+      "contamination_group": "obs006-fixture-v1",
       "source_provenance": {
         "lane": "OBS-006",
         "artifact": "evidence/obs/obs006-evidence.json",
@@ -91,7 +91,7 @@
         "feasible_routes": []
       },
       "allowed_alternatives": [],
-      "contamination_group": "CG-OBS6-fixture-v1",
+      "contamination_group": "obs006-fixture-v1",
       "source_provenance": {
         "lane": "OBS-006",
         "artifact": "evidence/obs/obs006-evidence.json",
@@ -144,7 +144,7 @@
         "feasible_routes": []
       },
       "allowed_alternatives": [],
-      "contamination_group": "CG-RT5-cancellation",
+      "contamination_group": "runtime005:cancellation_budget_exceeded_fails_closed",
       "source_provenance": {
         "lane": "RUNTIME-005",
         "artifact": "evidence/runtime/runtime005_evidence.json",
@@ -196,7 +196,7 @@
         ]
       },
       "allowed_alternatives": [],
-      "contamination_group": "CG-OTX-lookup-atomic",
+      "contamination_group": "otx:lookup-atomic",
       "source_provenance": {
         "lane": "OTX-003",
         "artifact": "evidence/otx/observations.jsonl",
@@ -246,7 +246,7 @@
         "feasible_routes": []
       },
       "allowed_alternatives": [],
-      "contamination_group": "CG-OTX-lookup-atomic",
+      "contamination_group": "otx:lookup-atomic",
       "source_provenance": {
         "lane": "OTX-003",
         "artifact": "evidence/otx/observations.jsonl",
