@@ -1,7 +1,8 @@
 {
- "manifest_id": "SLM-00-FREEZE-MANIFEST-v0",
+ "manifest_id": "SLM-00-FREEZE-MANIFEST-v1",
  "lane": "SLM-00 Lane G (automated freeze qualification; verification-only)",
- "date": "2026-09-20",
+ "date": "2026-09-21",
+ "supersedes": "SLM-00-FREEZE-MANIFEST-v0 (G_REJECT on G-B1; remediated at slm00/baselines 852e4906)",
  "base_branch": "research/exp-m6-slm-00",
  "base_commit": "3661319eee03963943a6df88db61243254134983",
  "bench_items_sha256": "15937ec20ec314d0dd80c374a074893c95b43b00b69ae114330615d993c56cbd",
@@ -13,7 +14,7 @@
   {"artifact":"SLM-PREFLIGHT-REPORT","path":"docs/research/EXP-M6-SLM/SLM-PREFLIGHT-REPORT.md","branch":"slm00/preflight","commit_sha":"c5d71cd9648d93f086ed987b0653daac35e474c8","sha256":"3d5c5eafe7b4e0545b030f2de672703f33447c4bce9c35fdacc0bdd0c994c10b"},
   {"artifact":"PRIOR-ART-MATRIX","path":"docs/research/EXP-M6-SLM/PRIOR-ART-MATRIX.md","branch":"slm00/prior-art","commit_sha":"ac58d8c5bdb11c5339ade9704770b04df81072cb","sha256":"60c62c3cf65017c0562dca0a48501ac34fb0c117a07451ceaa95dc324ab2343d"},
   {"artifact":"EVALUATION-PROTOCOL","path":"docs/research/EXP-M6-SLM/EVALUATION-PROTOCOL.md","branch":"slm00/eval-protocol","commit_sha":"12cfd284faf6c1fe980420e0b745856c1ba0e523","sha256":"60ef2b3e94b999be85a5458c64dedafe7b6681ce4d5e921eb73c86abfc605c77"},
-  {"artifact":"BASELINES","path":"docs/research/EXP-M6-SLM/BASELINES.yaml","branch":"slm00/baselines","commit_sha":"c9533fe607d2c8757535597001dafe9742d7aed6","sha256":"e3eebaa5325cb706b19d341a7c96e1cc1733bee22cee9054b8cee6ddb3099ede"},
+  {"artifact":"BASELINES","path":"docs/research/EXP-M6-SLM/BASELINES.yaml","branch":"slm00/baselines","commit_sha":"852e4906fa0a2013c3f39534fd8f4bd912314d25","sha256":"dee4abda48b29f59d4ef606f2dd8a9bca106720d1ce4f41f20558f68c1520f62"},
   {"artifact":"CORPUS-MANIFEST","path":"docs/research/EXP-M6-SLM/CORPUS-MANIFEST.json","branch":"slm00/corpus","commit_sha":"1d37436008baa3bb3a195f9fbe7965e52b4661a2","sha256":"c7767f481e398b3ac343ee3d4ebb42473796d23d36a7b31af7ab7bc93f71b2ef"},
   {"artifact":"CORPUS-LIMITATIONS","path":"docs/research/EXP-M6-SLM/CORPUS-LIMITATIONS.md","branch":"slm00/corpus","commit_sha":"1d37436008baa3bb3a195f9fbe7965e52b4661a2","sha256":"85abb1fc0c4f62a41e71b490831596b448e4e2a23557fda099ffd35485fa6358"},
   {"artifact":"SCHEMA-ERRATUM-001","path":"docs/research/EXP-M6-SLM/SCHEMA-ERRATUM-001.md","branch":"slm00/corpus","commit_sha":"1d37436008baa3bb3a195f9fbe7965e52b4661a2","sha256":"ce873fa4ed10330a381005ebcbadfec40269db22207ea1f3933e4f8a719e7163"},
@@ -48,6 +49,7 @@
   {"artifact":"verifier test test_budget_decisions.py","path":"research/slm/verifiers/tests/test_budget_decisions.py","branch":"slm00/verifiers","commit_sha":"cd650c096ffa203a846cffe4379ebcc9a4f0797f","sha256":"683122bd120e1c9835b493b3b59d30a767d44a080e4149f967bb74505aad898f"},
   {"artifact":"verifier test test_contract_compilation.py","path":"research/slm/verifiers/tests/test_contract_compilation.py","branch":"slm00/verifiers","commit_sha":"cd650c096ffa203a846cffe4379ebcc9a4f0797f","sha256":"0d7f881ac2e59db0fe53686b75847536bf77dd7d0baac4d549b183b6c67312eb"},
   {"artifact":"verifier test test_evidence_sufficiency.py","path":"research/slm/verifiers/tests/test_evidence_sufficiency.py","branch":"slm00/verifiers","commit_sha":"cd650c096ffa203a846cffe4379ebcc9a4f0797f","sha256":"3db8da45bb32014178b7623c22b1784c9d34b79ba252f22b6ff23a6328cec950"},
+  {"artifact":"verifier test test_failure_classification.py","path":"research/slm/verifiers/tests/test_failure_classification.py","branch":"slm00/verifiers","commit_sha":"cd650c096ffa203a846cffe4379ebcc9a4f0797f","sha256":"c78d87322230a8d78b1ac794e65d4b38be41c53d3f87bda9447a23f1f4ab61fe"},
   {"artifact":"verifier test test_registry.py","path":"research/slm/verifiers/tests/test_registry.py","branch":"slm00/verifiers","commit_sha":"cd650c096ffa203a846cffe4379ebcc9a4f0797f","sha256":"092c53bf2d1987c95029736a68ca55751c2e34086d7a8fc9a7a51551b3e9cee0"},
   {"artifact":"verifier test test_retry_escalate_abort.py","path":"research/slm/verifiers/tests/test_retry_escalate_abort.py","branch":"slm00/verifiers","commit_sha":"cd650c096ffa203a846cffe4379ebcc9a4f0797f","sha256":"2fe995e76b8213f901cd1589fc37939c7629f76951477831155ff8428ef797e8"},
   {"artifact":"verifier test test_stale_state_authority.py","path":"research/slm/verifiers/tests/test_stale_state_authority.py","branch":"slm00/verifiers","commit_sha":"cd650c096ffa203a846cffe4379ebcc9a4f0797f","sha256":"b7a6f93dac818a4a56f40bbcec69f60e055c1eadc7fafba00af64540b921a5a1"},
@@ -59,45 +61,42 @@
   {"artifact":"eval backends","path":"research/slm/eval/runner/backends.py","branch":"slm-infra/eval-runner","commit_sha":"d1174b37280227f1feca841eec82c425613d3a6f","sha256":"33df17884b6b76f705fab1507216d72179f0456e47cde228c4a89a305b60ba1d"},
   {"artifact":"eval stats","path":"research/slm/eval/runner/stats.py","branch":"slm-infra/eval-runner","commit_sha":"d1174b37280227f1feca841eec82c425613d3a6f","sha256":"7a14d2196512f8365efaf82fd20db2f3e053753d076e327dd11a6faabe144559"},
   {"artifact":"corpus linter (post-X-B1)","path":"research/slm/tools/corpus_linter.py","branch":"slm-infra/quality-tooling","commit_sha":"2ae27bea5ea6110233cea019c98521eda705da34","sha256":"dae8715519130e84a2802d9bb2e5c662efbb79515841ea87effc38a7b3a510b4"},
-  {"artifact":"dataset compile","path":"research/slm/dataset/compile.py","branch":"slm-infra/data-toolchain","commit_sha":"e8bfbc318674920caf568b2f1cff0e648f7062cd","sha256":"f90515cf8a7a0a671f3dcb34d4ee372ad434ea358bed0ff0dfd7482fbf250230"}
+  {"artifact":"dataset compile","path":"research/slm/dataset/compile.py","branch":"slm-infra/data-toolchain","commit_sha":"e8bfbc318674920caf568b2f1cff0e648f7062cd","sha256":"f90515cf8a7a0a671f3dcb34d4ee372ad434ea358bed0ff0dfd7482fbf250230"},
+  {"artifact":"SPLIT-VOCABULARY (X-M6 alias doc)","path":"research/slm/ci/SPLIT-VOCABULARY.md","branch":"slm-infra/data-toolchain","commit_sha":"e8bfbc318674920caf568b2f1cff0e648f7062cd","sha256":"f1c62bc8bb4cbb9b8fbd23b3e159bc686659cf41bcf940d569ef90ef047a12f7"}
  ],
  "checks": {
-  "1_schema_validation": "PASS -- corpus sample 13/13 valid vs observation.schema.v0.1 (0 erratum violations; null timestamps always carry provenance.timestamp_erratum==SCHEMA-ERRATUM-001); bench sample 12/12 + regenerated 1000/1000 items carry all CONTROL-BENCH-V0 required fields; sample digests recompute exactly and sample rows are byte-equal to regenerated items",
-  "2_benchmark_regeneration": "PASS -- generate_bench.py + 8 seeds regenerate exactly 1000 items; category split 200/150/150/100/100/100/100/100; sha256(regen items jsonl) == manifest pin 15937ec2...; regenerated manifest byte-identical to shipped manifest",
-  "3_verifier_coverage": "PASS -- 8/8 categories have verifiers; every verifier_ref in 1000 items resolves in VERIFIER_REGISTRY; test suite present; pytest 62/62 passed locally",
-  "4_ambiguity": "PASS -- AMBIGUITY.md documents deterministic reductions/exclusions per category; slm00.adjudicated.* reserved and unused; all 1000 items deterministically decidable (oracle ceiling VMSR=1.0 via eval runner, 0 BENCHMARK_DEFECT)",
-  "5_duplicates": "PASS -- 0 exact duplicates; 1000 unique canonical content keys; 1000 unique digests",
-  "6_cross_split_contamination": "PASS -- post-X-M1 bench authentic groups use corpus lineage scheme verbatim; 12 authentic + 74 bench-syn groups; vq:case:good0 shared key bench<->corpus; groups lineage-atomic; data-toolchain compile.py aborts (exit 2) if any group maps to 2+ splits; split assignment deferred to freeze, by group",
-  "7_baseline_manifest": "FAIL -- BASELINES.yaml is NOT valid YAML: PyYAML ScannerError 'mapping values are not allowed here' line 78 col 45 (unquoted ': ' in plain scalar); confirmed with ruamel.yaml; same-class defects at lines 199 and 216; arms B0-B6 otherwise complete with unknown-pending-pin markers and no fabricated digests",
-  "8_metric_freeze": "PASS -- thresholds concrete (VMSR>=0.80/0.70, FNER<=0.02, AVR<=0.005, schema-invalid<=0.05; crossing 0.85 + 95% CI LB>=0.80; w_FNE=10/w_UE=1); runner FROZEN_METRIC_FIELDS subset of results_store.KNOWN_METRICS; end-to-end oracle run: vmsr 1.0, 1000 scored, 0 defects. NOTE: ece/brier/throughput/operator_active_minutes/frontier_calls_avoided exist in KNOWN_METRICS but are not yet computed by the runner (non-blocking pre-freeze)",
-  "9_statistical_protocol": "PASS -- seeds (20260920,4117,89123,777001,5551212), 3 runs/config, 95% paired bootstrap at contamination_group level (10000 resamples), McNemar exact<25, Holm-Bonferroni alpha=0.05; stats.py implements verbatim; runner tests 22/22 passed",
+  "1_schema_validation": "PASS -- corpus sample 13/13 valid vs observation.schema.v0.1 (0 erratum violations); bench sample 12/12 + regen 1000/1000 carry all CONTROL-BENCH-V0 fields; sample digests recompute; sample rows byte-equal to regenerated items",
+  "2_benchmark_regeneration": "PASS -- exactly 1000 items; split 200/150/150/100/100/100/100/100; sha256(regen)==pin 15937ec2...56cbd; regen manifest byte-identical to shipped",
+  "3_verifier_coverage": "PASS -- 8/8 categories; all verifier_refs resolve; verifier pytest 70/70 passed locally",
+  "4_ambiguity": "PASS -- AMBIGUITY.md exclusions documented; all 1000 items deterministically decidable (oracle ceiling run VMSR=1.0 on all 8 categories, 1000 scored, 0 BENCHMARK_DEFECT)",
+  "5_duplicates": "PASS -- 0 exact dups; 1000 unique digests; 1000 unique canonical content keys",
+  "6_cross_split_contamination": "PASS -- 86 groups (12 authentic + 74 bench-syn); bench-authentic groups use corpus lineage scheme verbatim post-X-M1; 7 groups overlap bench<->corpus under ONE key each; groups lineage-atomic; compile.py aborts on any group mapped to 2+ splits; split assignment deferred to freeze, by group",
+  "7_baseline_manifest": "PASS (REMEDIATED) -- BASELINES.yaml @ 852e4906 (blob 9ad57638) parses cleanly (PyYAML safe_load); the three previously-unquoted scalars (lines 78/199/216) and two sibling scalars are now quoted; no remaining unquoted ': ' scalars; arms B0 deterministic / B1 random floor / B2 trivial floor / B3 oracle / B4 7B / B5 SLM / B6 reference all present; all digests unknown-pending-pin (no fabrications); benchmark_hash unfrozen-placeholder as expected pre-freeze",
+  "8_metric_freeze": "PASS -- thresholds concrete (VMSR>=0.80 agg / >=0.70 per-cat, FNER<=0.02, AVR<=0.005, schema-invalid<=0.05; crossing 0.85 + CI LB>=0.80; w_FNE=10/w_UE=1); runner FROZEN_METRIC_FIELDS subset of results_store.KNOWN_METRICS; end-to-end oracle run OK. NOTE (minor): ece/brier/throughput/operator_active_minutes/frontier_calls_avoided in KNOWN_METRICS but not yet computed by runner",
+  "9_statistical_protocol": "PASS -- seeds (20260920,4117,89123,777001,5551212), 3 runs/config, 95% paired bootstrap at contamination_group level (10_000 resamples in stats.py), McNemar exact<25, Holm-Bonferroni alpha=0.05; stats.py verbatim; runner pytest 22/22",
   "10_prior_art": "PASS -- 16 mandated domains covered (groups A-E, 21 works); NOVELTY STATUS: PARTIAL + scope-review (narrow-the-claim) recommendation is a VALID outcome; scope-review ratification is a HUMAN GATE item",
-  "11_provenance": "PASS -- git blob SHA-1 anchors recomputed from content and verified: schema 6e549b05, protocol a3ea085a, preflight e819b727, evidence dsm004 20c8e7e4 / obs006 4f140a22 / otx 9d24ecec / runtime005 76358dd1 / vq-part0 e79f2946; corpus artifact_digests git_blob_sha1-prefixed (X-M7 fixed)",
-  "12_artifact_hashing": "PASS -- sha256 recorded for all 54 validated artifact files (artifacts[])"
+  "11_provenance": "PASS -- git blob SHA-1 anchors recomputed from content and verified: schema v0 6e549b05, protocol a3ea085a, preflight e819b727, evidence dsm004 20c8e7e4 / obs006 4f140a22 / otx 9d24ecec / runtime005 76358dd1 / vq-part0 e79f2946; corpus artifact_digests git_blob_sha1-prefixed (X-M7)",
+  "12_artifact_hashing": "PASS -- sha256 recorded for all 56 validated artifact files (artifacts[])"
  },
- "blocking_findings": [
-  {
-   "id": "G-B1",
-   "artifact": "docs/research/EXP-M6-SLM/BASELINES.yaml @ slm00/baselines c9533fe607d2c8757535597001dafe9742d7aed6 (blob fec6e6fc)",
-   "finding": "Not valid YAML: unquoted ': ' inside plain scalars at lines 78, 199, 216; PyYAML and ruamel.yaml both reject with ScannerError. Freeze gate item 5 (baseline manifest) cannot be content-addressed as machine-readable YAML. Minimal fix (owning lane, not Lane G): quote the three scalars. Lane G does not repair artifacts."
-  }
- ],
- "non_blocking_notes": [
-  "split manifest deferred-to-freeze by design (assignment by contamination group at freeze)",
-  "68/150 evidence_sufficiency frozen expected_outputs omit verifier_outputs although input_state.required_verifier_outputs is set; the candidate contract (not the reference label) supplies it; X-M2 projection verified via oracle VMSR=1.0",
-  "split nomenclature: protocol train/validation/test vs toolchain train/val/holdout; frozen alias test==holdout recommended at split-manifest authoring (X-M6 residual)",
-  "corpus convert.py serialization uses json.dumps default separators vs canonical (',',':') convention (X-m5 drift; matters only for cross-artifact digest comparison)",
-  "runner does not yet compute ece/brier/throughput/operator_active_minutes/frontier_calls_avoided"
+ "blocking_findings": [],
+ "minor_notes": [
+  "split manifest deferred-to-freeze by design (assignment by contamination group at freeze); split_manifest_sha256 therefore deferred-to-freeze",
+  "68/150 evidence_sufficiency frozen expected_outputs omit verifier_outputs although input_state.required_verifier_outputs is set; candidate contract (not the reference label) supplies it; X-M2 projection verified via oracle VMSR=1.0",
+  "corpus convert.py serialization uses json.dumps default separators vs canonical (',',':') convention (X-m5; matters only for cross-artifact digest comparison)",
+  "runner does not yet compute ece/brier/throughput/operator_active_minutes/frontier_calls_avoided (KNOWN_METRICS superset)"
  ],
  "lane_x_fix_verification": {
-  "X-B1": "FIXED (schema v0.1 ratified on slm00/schema-erratum-ratify; post-X-B1 corpus_linter accepts null timestamp iff timestamp_erratum marker; linter run on corpus sample: ok=true, 0 ERROR, 4 WARN)",
-  "X-M1": "FIXED (bench groups re-keyed to corpus lineage scheme; shared vq:case:good0 key verified)",
-  "X-M2": "FIXED (backends.expected_output_to_candidate; oracle run 1000/1000 PASS vs 127/1000 FAIL pre-fix)",
-  "X-M3": "FIXED (OllamaBackend/B5OllamaBackend/OpenAICompatibleBackend with baseline-ID names)",
-  "X-M4": "FIXED (vsms_per_dollar/vsms_per_watt in FROZEN_METRIC_FIELDS; metrics_not_computable path; --telemetry flag)",
-  "X-M5": "FIXED (safety metrics derived from item ground truth per runner contract)",
-  "X-M6": "PARTIAL (compile.py now 3-way train/val/holdout with contamination-group purity abort; protocol<->toolchain alias note still open)",
-  "X-M7": "FIXED (corpus artifact_digests git_blob_sha1:-prefixed)"
+  "X-B1": "FIXED (schema v0.1 ratified; post-X-B1 linter accepts erratum marker; sample lint ok, 0 ERROR)",
+  "X-M1": "FIXED (bench re-keyed to corpus lineage scheme; shared keys verified)",
+  "X-M2": "FIXED (expected_output_to_candidate; oracle 1000/1000)",
+  "X-M3": "FIXED (Ollama/B5/OpenAICompatible backends with baseline-ID names)",
+  "X-M4": "FIXED (vsms metrics in FROZEN_METRIC_FIELDS; metrics_not_computable; telemetry flag)",
+  "X-M5": "FIXED (safety from item ground truth)",
+  "X-M6": "FIXED -- research/slm/ci/SPLIT-VOCABULARY.md @ slm-infra/data-toolchain e8bfbc31 documents the frozen aliases validation==val and test==holdout plus compile-time split-name enforcement and scaffold mapping; prior PARTIAL note closed",
+  "X-M7": "FIXED (corpus artifact_digests git_blob_sha1-prefixed)"
  },
- "status": "G_REJECT"
+ "remediation_verification": {
+  "G-B1": "RESOLVED -- re-pulled BASELINES.yaml @ 852e4906fa0a2013c3f39534fd8f4bd912314d25 (blob 9ad576381d6ac35f0e62d9ca10733e327a79ae8e, matches local copy); parses under PyYAML; structure/content otherwise unchanged (7 arms, unknown-pending-pin digests); Lane G performed no repairs"
+ },
+ "status": "G_PASS"
 }
