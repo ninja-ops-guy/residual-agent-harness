@@ -34,6 +34,10 @@ The following paths are included in RESIDUAL Open Core:
 
 ## Included research and reproducibility material
 
+- `CITATION.cff`
+- `AUTHORS.md`
+- `docs/open-source/PROJECT_ORIGIN.md`
+- `docs/open-source/RESEARCH_CITATION_POLICY.md`
 - `docs/research.md`
 - `docs/station/RESEARCH.md`
 - `docs/evaluation.md`
