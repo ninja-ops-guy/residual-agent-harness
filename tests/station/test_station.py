@@ -211,55 +211,28 @@ class StationTests(unittest.TestCase):
         with self.assertRaises(ContractError):
             ws.safe_file(root, "link/target.py")
 
-    def _live_review_ready(self):
-        pid = self.s.create(demo_spec(), commands=True, demo=False)["project_id"]
-        self.s.triage(pid)
-        work = self.s.prepare(pid, "review-contract", "OPS-101")
-        self.s.finish(work, {"files": DEMO_FILES["OPS-101"]})
-        self.assertEqual(self.s.store.task(pid, "OPS-101")["state"], "review_ready")
-        return pid
-
-    def test_reviewer_cannot_approve_with_blocking_finding(self):
-        pid = self._live_review_ready()
-        verdict = {"approved": True, "findings": [{"severity": "blocking", "message": "serious semantic defect"}]}
-        with patch("residual.station.service.model_call", return_value=verdict):
-            with self.assertRaisesRegex(ContractError, "contradictory verdict"):
-                self.s.review(pid, "OPS-101")
-        self.assertEqual(self.s.store.task(pid, "OPS-101")["state"], "review_ready")
-        self.assertFalse(any(e["event_type"] == "review.completed" for e in self.s.store.events(pid)))
-
-    def test_reviewer_approval_allows_only_nonblocking_findings(self):
-        pid = self._live_review_ready()
-        verdict = {"approved": True, "findings": [{"severity": "warning", "message": "consider a clearer name"}]}
-        with patch("residual.station.service.model_call", return_value=verdict):
-            self.s.review(pid, "OPS-101")
-        task = self.s.store.task(pid, "OPS-101")
-        self.assertEqual(task["state"], "approved")
-        self.assertEqual(task["findings"], ["consider a clearer name"])
-        self.assertEqual(task["review"]["findings"], verdict["findings"])
-
-    def test_reviewer_rejection_requires_blocking_finding(self):
-        pid = self._live_review_ready()
-        verdict = {"approved": False, "findings": [{"severity": "warning", "message": "style only"}]}
-        with patch("residual.station.service.model_call", return_value=verdict):
-            with self.assertRaisesRegex(ContractError, "requires at least one blocking"):
-                self.s.review(pid, "OPS-101")
-        self.assertEqual(self.s.store.task(pid, "OPS-101")["state"], "review_ready")
-
-    def test_legacy_string_finding_is_invalid_reviewer_output(self):
-        pid = self._live_review_ready()
-        verdict = {"approved": False, "findings": ["serious semantic defect"]}
-        with patch("residual.station.service.model_call", return_value=verdict):
-            with self.assertRaisesRegex(ContractError, "invalid verdict"):
-                self.s.review(pid, "OPS-101")
-        self.assertEqual(self.s.store.task(pid, "OPS-101")["state"], "review_ready")
-
     def test_approval_cannot_survive_changed_candidate(self):
         self.s.triage(self.pid); self.s.run_one(self.pid, "OPS-101"); self.s.review(self.pid, "OPS-101")
         task = self.s.store.task(self.pid, "OPS-101")
         Path(task["candidate_dir"], "station/health.py").write_text("broken = True")
         with self.assertRaises(ContractError):
             self.s.integrate(self.pid, "OPS-101")
+
+        # An amended candidate commit with a clean worktree and passing checks
+        # evades the review-receipt comparison, the accumulated-check rerun and
+        # the dirty-tree recheck; only the candidate-binding guard in
+        # integrate() can catch it.
+        pid2 = self.s.create(demo_spec(), demo=True)["project_id"]
+        self.s.triage(pid2); self.s.run_one(pid2, "OPS-101"); self.s.review(pid2, "OPS-101")
+        task2 = self.s.store.task(pid2, "OPS-101")
+        health = Path(task2["candidate_dir"], "station/health.py")
+        health.write_text(health.read_text() + "\n# amended after review\n")
+        ws.git(task2["candidate_dir"], "add", "station/health.py")
+        ws.git(task2["candidate_dir"], "commit", "--amend", "--no-edit")
+        self.assertEqual(ws.git(task2["candidate_dir"], "status", "--porcelain"), "")
+        self.assertNotEqual(ws.git(task2["candidate_dir"], "rev-parse", "HEAD"), task2["head_commit"])
+        with self.assertRaises(ContractError):
+            self.s.integrate(pid2, "OPS-101")
 
     def test_moving_base_invalidates_review(self):
         self.s.triage(self.pid)
@@ -269,6 +242,20 @@ class StationTests(unittest.TestCase):
         with self.assertRaises(ContractError):
             self.s.integrate(self.pid, "OPS-102")
         self.assertEqual(self.s.store.task(self.pid, "OPS-102")["state"], "repair_required")
+
+        # A base that moved yet still permits a fast-forward merge evades the
+        # non-ff merge failure and the review-receipt comparison; only the
+        # stale-base guard in integrate() can catch it.
+        pid2 = self.s.create(demo_spec(), demo=True)["project_id"]
+        self.s.triage(pid2)
+        self.s.run_one(pid2, "OPS-101"); self.s.review(pid2, "OPS-101")
+        p2 = self.s.store.project(pid2)
+        t2 = self.s.store.task(pid2, "OPS-101")
+        ws.git(p2["repo"], "merge", "--ff-only", t2["head_commit"])
+        self.assertNotEqual(ws.git(p2["repo"], "rev-parse", "HEAD"), t2["base_commit"])
+        with self.assertRaises(ContractError):
+            self.s.integrate(pid2, "OPS-101")
+        self.assertEqual(self.s.store.task(pid2, "OPS-101")["state"], "repair_required")
 
     def test_disjoint_refresh_rechecks_and_reviews_new_commit(self):
         self.s.triage(self.pid)

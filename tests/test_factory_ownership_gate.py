@@ -24,6 +24,7 @@ EXPECTED_CORE = frozenset({
     "residual/factory/m4_evidence.py",
     "residual/factory/m4_git_evidence.py",
     "residual/factory/m4_integrator.py",
+    "residual/factory/m4_protocol.py",
     "residual/factory/m4_safety.py",
     "residual/factory/m4_sandbox.py",
     "residual/factory/m4_scheduler.py",
@@ -88,7 +89,7 @@ class FactoryOwnershipGateTests(unittest.TestCase):
 
     def test_core_set_matches_expected_trust_surface(self):
         self.assertEqual(gate.CORE_PROTECTED, EXPECTED_CORE)
-        self.assertEqual(len(gate.CORE_PROTECTED), 17)
+        self.assertEqual(len(gate.CORE_PROTECTED), 18)
 
     def test_repo_manifest_covers_core_set(self):
         repo_manifest = json.loads(

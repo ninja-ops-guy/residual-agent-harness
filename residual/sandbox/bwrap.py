@@ -50,6 +50,12 @@ class BwrapBackend:
             cmd += ["--ro-bind", path, path]
         for path in spec.fs.write:
             cmd += ["--bind", path, path]
+        # The synthetic bwrap root is otherwise a writable tmpfs. Remount only
+        # that root mount read-only after constructing the jail; bwrap documents
+        # that submounts below it are unaffected, so /tmp and explicit writable
+        # allowlist binds retain their intended permissions while paths such as
+        # /etc/hosts cannot be created in the synthetic root.
+        cmd += ["--remount-ro", "/"]
         cmd += ["--chdir", spec.workdir, "--"]
         return cmd + argv
 
