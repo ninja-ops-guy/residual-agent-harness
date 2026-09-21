@@ -4,7 +4,8 @@ Implements the frozen SLM-01 baseline roles (BASELINES.yaml):
 
 * ``DeterministicPolicyBackend``  -> B0 deterministic/no-model floor
 * ``RandomPolicyBackend``         -> B1 random-policy floor (seeded, uniform
-  over the schema-valid decision space incl. allowed_alternatives)
+  over the schema-valid decision space declared by ``output_schema`` and
+  ``input_state`` -- NEVER ``expected_output``; G2-B1 remediation)
 * ``TrivialMajorityBackend``      -> B2 trivial majority-class floor (fit on a
   provided TRAIN-split stats file only; holdout labels never read)
 * ``OracleBackend``               -> B3 oracle ceiling (emits the declared
@@ -52,12 +53,69 @@ class ModelBackend:
       ``MalformedOutput`` sentinel when their own output is unparseable;
     * make no network calls unless explicitly an HTTP backend;
     * never train or tune on benchmark items.
+
+    G2-B1 structural control: unless ``requires_gold`` is True, the runner
+    passes backends ONLY the whitelisted candidate payload built by
+    ``candidate_payload`` -- a fresh deep copy per call containing the fields
+    a live model would see. Gold/label-derived keys (``expected_output``,
+    ``expected_escalation``, gold rationale, contamination metadata, digest,
+    verifier_ref, ...) are ABSENT, so reading them fails loudly with
+    ``KeyError`` instead of silently leaking labels.
     """
 
     name: str = "abstract"
 
+    #: False for every candidate-eligible backend. True ONLY for the B3
+    #: oracle, which per BASELINES.yaml legitimately receives gold labels to
+    #: define the ceiling (never a candidate policy).
+    requires_gold: bool = False
+
     def predict(self, item: Mapping[str, Any], rng: random.Random) -> Any:
         raise NotImplementedError
+
+
+# G2-B1: the ONLY item fields a non-oracle backend may observe -- exactly
+# what a live deployed model would see at decision time.
+CANDIDATE_PAYLOAD_FIELDS = (
+    "item_id",
+    "category",
+    "input_state",
+    "output_schema",
+    "allowed_alternatives",
+    "safety_critical",
+    "difficulty",
+)
+
+#: Keys that must NEVER reach a non-oracle backend (gold labels, gold-derived
+#: fields, contamination/integrity metadata). Used by tests to audit the
+#: whitelist.
+GOLD_OR_METADATA_FIELDS = (
+    "expected_output",
+    "expected_escalation",
+    "gold_rationale",
+    "rationale",
+    "digest",
+    "verifier_ref",
+    "contamination_group",
+    "source_provenance",
+    "synthetic",
+    "bench_version",
+)
+
+
+def candidate_payload(item: Mapping[str, Any]) -> Dict[str, Any]:
+    """Whitelisted, freshly deep-copied view of an item for a backend (G2-B1).
+
+    Contains ONLY ``CANDIDATE_PAYLOAD_FIELDS`` present on the item. Each call
+    returns a fresh deep copy, so a backend mutating its payload can never
+    affect the frozen item or other backends. Gold fields are absent, and
+    because the payload is a plain ``dict`` (not a defaulting mapping), a
+    backend attempting to read a non-whitelisted key fails loudly with
+    ``KeyError`` -- the leak is structurally impossible, not merely
+    discouraged.
+    """
+    return {k: copy.deepcopy(item[k])
+            for k in CANDIDATE_PAYLOAD_FIELDS if k in item}
 
 
 def _schema_default(schema: Mapping[str, Any]) -> Any:
@@ -116,52 +174,102 @@ class DeterministicPolicyBackend(ModelBackend):
 class RandomPolicyBackend(ModelBackend):
     """B1: uniform random over the schema-valid decision space.
 
-    Prefers the item's declared ``allowed_alternatives`` (plus the declared
-    expected action class, which is part of the valid decision space); falls
-    back to a uniform draw over the first ``enum`` found in output_schema,
-    then to a random schema-default. Seeded via the runner-supplied RNG so
-    streams are item-order stable and reproducible.
+    G2-B1 remediation: the decision space is constructed ONLY from fields a
+    live model could see -- never from ``expected_output`` or any
+    label-derived field (the runner's whitelisted payload makes such reads
+    impossible; see ``candidate_payload``). Sources, in priority order:
+
+    1. the item's declared ``allowed_alternatives`` (top-level or under
+       ``input_state``): candidate-shaped objects declared as part of the
+       valid decision space -- sampled uniformly;
+    2. schema-driven sampling over ``output_schema``: each ``enum`` property
+       is sampled uniformly over its declared values, ``const`` properties
+       take their constant, and string-valued properties declared legal in
+       ``input_state`` (e.g. ``allowed_routes`` for ``route``, or the worker
+       ids of ``input_state.workers``) are sampled uniformly over those
+       declared legal values; everything else takes the schema-minimal
+       default.
+
+    Seeded via the runner-supplied RNG so streams are item-order stable and
+    reproducible. The expected B1 score is the random floor, far below any
+    qualification threshold; a B1 run approaching the ceiling indicates a
+    label leak or a trivially passable benchmark.
     """
 
     name = "B1-random-policy"
 
     def predict(self, item: Mapping[str, Any], rng: random.Random) -> Any:
-        alternatives = item.get("allowed_alternatives")
-        choices = []
-        if isinstance(alternatives, Sequence) and not isinstance(alternatives, str):
-            choices = [a for a in alternatives if isinstance(a, Mapping)]
-        expected = item.get("expected_output")
-        if isinstance(expected, Mapping):
-            choices.append(expected)
+        choices = self._declared_alternatives(item)
         if choices:
             return copy.deepcopy(rng.choice(choices))
         schema = item.get("output_schema")
-        enum_vals = self._first_enum(schema)
-        if enum_vals:
-            return {self._first_property_name(schema) or "action":
-                    rng.choice(list(enum_vals))}
         if isinstance(schema, Mapping):
-            return _schema_default(schema)
+            return self._sample_from_schema(schema, item, rng)
         return MalformedOutput(raw=None)
 
+    @staticmethod
+    def _declared_alternatives(item: Mapping[str, Any]) -> list:
+        """Declared candidate alternatives (decision-space, never labels)."""
+        for source in (item.get("allowed_alternatives"),
+                       (item.get("input_state") or {}).get("allowed_alternatives")
+                       if isinstance(item.get("input_state"), Mapping) else None):
+            if (isinstance(source, Sequence)
+                    and not isinstance(source, str) and source):
+                return [a for a in source if isinstance(a, Mapping)]
+        return []
+
     @classmethod
-    def _first_enum(cls, schema: Any) -> Optional[Sequence[Any]]:
-        if isinstance(schema, Mapping):
-            if isinstance(schema.get("enum"), Sequence) and schema["enum"]:
-                return schema["enum"]
-            for sub in schema.get("properties", {}).values():
-                found = cls._first_enum(sub)
-                if found:
-                    return found
-        return None
+    def _sample_from_schema(cls, schema: Mapping[str, Any],
+                            item: Mapping[str, Any],
+                            rng: random.Random) -> Any:
+        props = schema.get("properties")
+        if not isinstance(props, Mapping) or not props:
+            return _schema_default(schema)
+        state = item.get("input_state")
+        if not isinstance(state, Mapping):
+            state = {}
+        return {name: cls._sample_property(name, props[name], state, rng)
+                for name in sorted(props, key=str)}
+
+    @classmethod
+    def _sample_property(cls, name: str, sub: Any,
+                         state: Mapping[str, Any], rng: random.Random) -> Any:
+        if isinstance(sub, Mapping):
+            enum = sub.get("enum")
+            if (isinstance(enum, Sequence) and not isinstance(enum, str)
+                    and enum):
+                return rng.choice(list(enum))
+            if "const" in sub:
+                return sub["const"]
+            typ = sub.get("type")
+            types = typ if isinstance(typ, list) else [typ]
+            if "string" in types:
+                declared = cls._declared_legal_values(name, state)
+                if declared:
+                    return rng.choice(declared)
+        return _schema_default(sub)
 
     @staticmethod
-    def _first_property_name(schema: Any) -> Optional[str]:
-        if isinstance(schema, Mapping):
-            props = schema.get("properties")
-            if isinstance(props, Mapping) and props:
-                return sorted(props, key=str)[0]
-        return None
+    def _declared_legal_values(prop: str, state: Mapping[str, Any]) -> list:
+        """Legal values for a string property declared in ``input_state``.
+
+        Looks for ``input_state.allowed_<prop>s`` (e.g. ``allowed_routes``
+        for ``route``); for ``route`` additionally falls back to the worker
+        ids declared in ``input_state.workers`` plus ``None`` (a route may
+        legitimately be null). Only input_state-declared surfaces are used.
+        """
+        declared = state.get("allowed_" + prop + "s")
+        if (isinstance(declared, Sequence) and not isinstance(declared, str)
+                and declared):
+            return list(declared)
+        if prop == "route":
+            workers = state.get("workers")
+            if isinstance(workers, Sequence) and not isinstance(workers, str):
+                ids = [w.get("worker_id") for w in workers
+                       if isinstance(w, Mapping) and w.get("worker_id")]
+                if ids:
+                    return ids + [None]
+        return []
 
 
 class TrivialMajorityBackend(ModelBackend):
@@ -260,9 +368,16 @@ class OracleBackend(ModelBackend):
     is never eligible as a candidate policy and its outputs are never used in
     training corpora. Items whose expected_output is not convertible yield
     MalformedOutput (the verifier will surface the item defect).
+
+    G2-B1: this is the ONLY backend with ``requires_gold = True`` -- the
+    runner passes it the full read-only item instead of the whitelisted
+    candidate payload. This is the documented, spec-sanctioned gold-label
+    path (ceiling verification); every other backend is structurally
+    prevented from observing gold fields.
     """
 
     name = "B3-oracle"
+    requires_gold = True
 
     def predict(self, item: Mapping[str, Any], rng: random.Random) -> Any:
         return expected_output_to_candidate(item)
