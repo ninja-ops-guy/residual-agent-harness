@@ -25,6 +25,7 @@ The production bridge generalizes that one-shot proof into a supervised sidecar.
 - If the process dies after inference but before delivery, the exact prepared response is reused after restart instead of invoking the model again.
 - Only one OpenClaw turn is in flight per bridge process. `RESIDUAL_OPENCLAW_MAX_BATCH` bounds work admitted per poll.
 - Non-addressed messages advance the cursor without invoking an LLM.
+- A fresh bridge defaults to `start_at=latest`, establishing a baseline cursor without replaying historical addressed traffic. Use `start_at=zero` only for explicit replay/qualification.
 - A message that exceeds `RESIDUAL_OPENCLAW_MAX_ATTEMPTS` is marked failed and the cursor advances so one poison message cannot stall the thread forever.
 - The status JSON contains provider/model/transport/fallback evidence, but never the worker token.
 
@@ -56,6 +57,7 @@ RESIDUAL_OPENCLAW_TIMEOUT=300
 RESIDUAL_OPENCLAW_POLL_SECONDS=2
 RESIDUAL_OPENCLAW_MAX_ATTEMPTS=3
 RESIDUAL_OPENCLAW_MAX_BATCH=1
+RESIDUAL_OPENCLAW_START_AT=latest
 
 # Optional: only runs when an addressed message arrives. The bridge checks
 # /api/ps and warms the model if it is not resident.
