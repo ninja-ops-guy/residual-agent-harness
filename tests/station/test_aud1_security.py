@@ -8,7 +8,6 @@ import time
 import unittest
 import urllib.error
 import urllib.request
-from unittest.mock import patch
 
 from residual.core import ContractError, canonical
 from residual.providers import Reply, Usage
@@ -44,9 +43,14 @@ class AUD1HTTPTests(unittest.TestCase):
             data=canonical(body).encode() if body is not None else None,
             headers=supplied,
         )
-        with (opener or urllib.request).open(req) as response:
+        open_request = opener.open if opener is not None else urllib.request.urlopen
+        with open_request(req) as response:
             raw = response.read()
-            return json.loads(raw) if raw else None
+            if not raw:
+                return None
+            if response.headers.get_content_type() == "application/json":
+                return json.loads(raw)
+            return raw
 
     def make_project(self):
         pid = self.station.create(demo_spec(), demo=True)["project_id"]
