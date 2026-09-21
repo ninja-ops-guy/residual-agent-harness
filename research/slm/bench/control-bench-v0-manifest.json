@@ -1,10 +1,187 @@
 {
   "bench_version": "rcb-v0",
   "canonical_serialization": "json.dumps(item_without_digest, sort_keys=True, separators=(',', ':'), ensure_ascii=True) -> sha256, prefixed 'sha256:'",
+  "cd_xval": "X1/X2/X3 remediated; categories and verifier_ref use Lane D identifiers; item shapes conform to Lane D verifier contracts",
+  "coverage": {
+    "adversarial_malformed": {
+      "authentic_seed_items": 1,
+      "contamination_groups": [
+        "CG-AM-SYN-authority-bypass-b00",
+        "CG-AM-SYN-authority-bypass-b01",
+        "CG-AM-SYN-authority-bypass-b02",
+        "CG-AM-SYN-authority-bypass-b03",
+        "CG-AM-SYN-injection-b00",
+        "CG-AM-SYN-injection-b01",
+        "CG-AM-SYN-injection-b02",
+        "CG-AM-SYN-injection-b03",
+        "CG-AM-SYN-invalid-transition-b00",
+        "CG-AM-SYN-invalid-transition-b01",
+        "CG-AM-SYN-invalid-transition-b02",
+        "CG-AM-SYN-invalid-transition-b03",
+        "CG-AM-SYN-malformed-evidence-b00",
+        "CG-AM-SYN-malformed-evidence-b01",
+        "CG-AM-SYN-malformed-evidence-b02",
+        "CG-AM-SYN-malformed-evidence-b03",
+        "CG-AM-SYN-schema-invalid-b00",
+        "CG-AM-SYN-schema-invalid-b01",
+        "CG-AM-SYN-schema-invalid-b02",
+        "CG-AM-SYN-schema-invalid-b03",
+        "CG-AM-SYN-schema-invalid-b04",
+        "CG-AM-injection",
+        "CG-AM-schema",
+        "CG-AM-unverified-claim",
+        "CG-RT5-authority"
+      ],
+      "emitted": 100,
+      "safety_critical_items": 76,
+      "synthetic_expansion_items": 94,
+      "synthetic_seed_items": 5,
+      "target": 100
+    },
+    "budget_decisions": {
+      "authentic_seed_items": 5,
+      "contamination_groups": [
+        "CG-BD-SYN-hard-budget-b00",
+        "CG-BD-SYN-hard-budget-b01",
+        "CG-BD-SYN-hard-budget-b02",
+        "CG-BD-SYN-hard-budget-b03",
+        "CG-BD-SYN-hard-budget-b04",
+        "CG-OBS6-fixture-v1",
+        "CG-OTX-lookup-atomic",
+        "CG-RT5-cancellation"
+      ],
+      "emitted": 100,
+      "safety_critical_items": 96,
+      "synthetic_expansion_items": 95,
+      "synthetic_seed_items": 0,
+      "target": 100
+    },
+    "contract_compilation": {
+      "authentic_seed_items": 0,
+      "contamination_groups": [
+        "CG-CC-SCHEMA-authority",
+        "CG-CC-SCHEMA-cost",
+        "CG-CC-SCHEMA-escalation",
+        "CG-CC-SCHEMA-ingest",
+        "CG-CC-SCHEMA-routing",
+        "CG-CC-SCHEMA-verification",
+        "CG-CC-SYN-spec-invariant-b00",
+        "CG-CC-SYN-spec-invariant-b01",
+        "CG-CC-SYN-spec-invariant-b02",
+        "CG-CC-SYN-spec-invariant-b03",
+        "CG-CC-SYN-spec-invariant-b04",
+        "CG-CC-SYN-spec-invariant-b05",
+        "CG-CC-SYN-spec-invariant-b06"
+      ],
+      "emitted": 150,
+      "safety_critical_items": 86,
+      "synthetic_expansion_items": 144,
+      "synthetic_seed_items": 6,
+      "target": 150
+    },
+    "evidence_sufficiency": {
+      "authentic_seed_items": 6,
+      "contamination_groups": [
+        "CG-ES-SYN-kind-coverage-b00",
+        "CG-ES-SYN-kind-coverage-b01",
+        "CG-ES-SYN-kind-coverage-b02",
+        "CG-ES-SYN-kind-coverage-b03",
+        "CG-ES-SYN-kind-coverage-b04",
+        "CG-ES-SYN-kind-coverage-b05",
+        "CG-ES-SYN-kind-coverage-b06",
+        "CG-OBS6-fixture-v1",
+        "CG-VQ-adequate-part0"
+      ],
+      "emitted": 150,
+      "safety_critical_items": 93,
+      "synthetic_expansion_items": 144,
+      "synthetic_seed_items": 0,
+      "target": 150
+    },
+    "failure_classification": {
+      "authentic_seed_items": 7,
+      "contamination_groups": [
+        "CG-DSM4-fault-duplicate",
+        "CG-DSM4-fault-lost",
+        "CG-FC-SYN-taxonomy-b00",
+        "CG-FC-SYN-taxonomy-b01",
+        "CG-FC-SYN-taxonomy-b02",
+        "CG-FC-SYN-taxonomy-b03",
+        "CG-FC-SYN-taxonomy-b04",
+        "CG-OBS6-fixture-v1",
+        "CG-RT5-cancellation",
+        "CG-RT5-capability",
+        "CG-RT5-stale-telemetry"
+      ],
+      "emitted": 100,
+      "safety_critical_items": 29,
+      "synthetic_expansion_items": 93,
+      "synthetic_seed_items": 0,
+      "target": 100
+    },
+    "retry_escalate_abort": {
+      "authentic_seed_items": 6,
+      "contamination_groups": [
+        "CG-DSM4-recovery-crash",
+        "CG-DSM4-recovery-replay",
+        "CG-DSM4-recovery-restart",
+        "CG-OBS6-fixture-v1",
+        "CG-REA-SYN-frozen-policy-b00",
+        "CG-REA-SYN-frozen-policy-b01",
+        "CG-REA-SYN-frozen-policy-b02",
+        "CG-REA-SYN-frozen-policy-b03",
+        "CG-REA-SYN-frozen-policy-b04",
+        "CG-RT5-cancellation"
+      ],
+      "emitted": 100,
+      "safety_critical_items": 88,
+      "synthetic_expansion_items": 94,
+      "synthetic_seed_items": 0,
+      "target": 100
+    },
+    "stale_state_authority": {
+      "authentic_seed_items": 4,
+      "contamination_groups": [
+        "CG-DSM4-recovery-crash",
+        "CG-DSM4-recovery-restart",
+        "CG-RT5-stale-telemetry",
+        "CG-SA-SYN-generation-precedence-b00",
+        "CG-SA-SYN-generation-precedence-b01",
+        "CG-SA-SYN-generation-precedence-b02",
+        "CG-SA-SYN-generation-precedence-b03",
+        "CG-SA-SYN-generation-precedence-b04",
+        "CG-SA-advisory"
+      ],
+      "emitted": 100,
+      "safety_critical_items": 89,
+      "synthetic_expansion_items": 94,
+      "synthetic_seed_items": 2,
+      "target": 100
+    },
+    "worker_routing": {
+      "authentic_seed_items": 0,
+      "contamination_groups": [
+        "CG-WR-SYN-cap-auth-routing-b00",
+        "CG-WR-SYN-cap-auth-routing-b01",
+        "CG-WR-SYN-cap-auth-routing-b02",
+        "CG-WR-SYN-cap-auth-routing-b03",
+        "CG-WR-SYN-cap-auth-routing-b04",
+        "CG-WR-SYN-cap-auth-routing-b05",
+        "CG-WR-SYN-cap-auth-routing-b06",
+        "CG-WR-SYN-cap-auth-routing-b07",
+        "CG-WR-SYN-cap-auth-routing-b08"
+      ],
+      "emitted": 200,
+      "safety_critical_items": 102,
+      "synthetic_expansion_items": 200,
+      "synthetic_seed_items": 0,
+      "target": 200
+    }
+  },
   "generator": "research/slm/bench/generate_bench.py",
   "item_count": 1000,
-  "items_jsonl_sha256": "7aee3d73308cc7447838f8c590a82f044756112c89fa101ac3075659129e3b18",
+  "items_jsonl_sha256": "0a70f06ce1ab4907f365f2c2bbfb0ff3051392f479768c47caa3812664c2633a",
   "rng_seed": 20260920,
-  "note": "control-bench-v0.jsonl (1,000 items, ~1.3 MB) is byte-deterministic output of the generator with rng_seed 20260920 against the seed/ directory at this commit; it is regenerated on demand rather than committed. The sha256 above pins that byte output. Full per-category coverage (authentic/synthetic counts, safety-critical counts, contamination group lists) is reproduced by running the generator; see CONTROL-BENCH-V0-DESIGN.md for the frozen coverage table.",
-  "split_note": "Contamination groups are assigned here; train/validation/test split assignment happens at freeze, by group, never by item."
+  "split_note": "Contamination groups are assigned here; train/validation/test split assignment happens at freeze, by group, never by item.",
+  "verifier_suite": "research/slm/verifiers @ slm00/verifiers (Lane D registry IDs in verifier_ref)"
 }
