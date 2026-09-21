@@ -1,5 +1,7 @@
 # Licensing Policy (ENT8-R7)
 
+> **License-scope note:** This document describes product-tier behavior and commercial intent; it is not itself a license grant. The actual Apache-2.0 scope is defined by [../../../LICENSING.md](../../../LICENSING.md) and [../../open-source/OPEN_SOURCE_MANIFEST.md](../../open-source/OPEN_SOURCE_MANIFEST.md). Enterprise implementations remain reserved unless explicitly added to that manifest.
+
 Requirement: **ENT8-R7** — Residual MUST offer flexible licensing: open
 source (core platform), commercial (enterprise features), per-node /
 per-task / flat-rate pricing, and educational and non-profit discounts.
@@ -13,7 +15,7 @@ node/task limit enforcement in `UsageMeter`).
 ### Open Source (Tier.OPEN)
 - Core platform: task execution, HITL, brakes, receipts, modules
   (`OPEN_FEATURES`).
-- Free, permissive license; community support only.
+- Community/open-core features are distributed only when explicitly listed in the Open Source Manifest; community support only.
 
 ### Commercial (Tier.COMMERCIAL)
 Enterprise features (`COMMERCIAL_FEATURES`):
