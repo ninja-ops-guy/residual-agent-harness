@@ -26,6 +26,15 @@ class PRAgentAdvisoryGateTests(unittest.TestCase):
         self.assertIn('<!-- pr-agent:review:full -->', full_review)
         self.assertIn('failure/status comments do not satisfy this gate', self.workflow)
 
+    def test_reviewer_uses_append_only_exact_head_reviews(self) -> None:
+        # GITHUB_TOKEN cannot reliably prove the bot identity needed for a safe
+        # persistent-comment mutation. Each run therefore publishes a fresh full
+        # review; the structural gate below binds it to the current run window.
+        start = self.workflow.index("- name: Run advisory PR review")
+        end = self.workflow.index("- name: Verify substantive advisory review was published", start)
+        review_step = self.workflow[start:end]
+        self.assertIn('PR_REVIEWER.PERSISTENT_COMMENT: "false"', review_step)
+
     def test_bot_issue_comments_cannot_cancel_human_review_runs(self) -> None:
         # Concurrency identity must distinguish pull_request vs issue_comment and
         # User vs Bot senders. This prevents status bots from cancelling the

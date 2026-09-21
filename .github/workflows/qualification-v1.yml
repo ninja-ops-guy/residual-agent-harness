@@ -1,0 +1,712 @@
+name: RESIDUAL Qualification v1
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deterministic:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Provision real bubblewrap sandbox
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bubblewrap
+          command -v bwrap
+          bwrap --version
+          bwrap --die-with-parent --new-session --unshare-pid --unshare-net --ro-bind / / -- /bin/true
+      - name: Install qualification dependencies
+        run: python -m pip install '.[factory,qualification]'
+      - name: Full deterministic regression gate
+        run: |
+          mkdir -p runs/qualification-v1
+          python scripts/qualification_v1.py run \
+            --gate-id deterministic-regression \
+            --output runs/qualification-v1/deterministic.evidence.json \
+            --log runs/qualification-v1/deterministic.log \
+            --junit runs/qualification-v1/deterministic.xml \
+            --non-claim 'General regression capability skips are retained; security boundaries have separate zero-skip gates.' \
+            -- python -m pytest tests --ignore=tests/qualification -q \
+               --junitxml=runs/qualification-v1/deterministic.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-deterministic-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
+  discovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install discovery dependencies
+        run: python -m pip install '.[factory,qualification]'
+      - name: Stateful lifecycle qualification
+        continue-on-error: true
+        run: |
+          mkdir -p runs/qualification-v1
+          python scripts/qualification_v1.py run \
+            --gate-id stateful-runtime-journal \
+            --output runs/qualification-v1/stateful.evidence.json \
+            --log runs/qualification-v1/stateful.log \
+            --junit runs/qualification-v1/stateful.xml \
+            --zero-skips \
+            -- python -m pytest tests/qualification/test_stateful_runtime_journal.py -q \
+               --junitxml=runs/qualification-v1/stateful.xml
+      - name: Deterministic distributed history exploration
+        continue-on-error: true
+        run: |
+          python scripts/qualification_v1.py history \
+            --gate-id distributed-history \
+            --seeds 60 --steps 120 --lanes 3 \
+            --output runs/qualification-v1/history.evidence.json \
+            --report runs/qualification-v1/history-report.json
+      - name: Trust-boundary mutation canary
+        continue-on-error: true
+        run: |
+          python scripts/qualification_v1.py run \
+            --gate-id mutation-canary \
+            --output runs/qualification-v1/mutation.evidence.json \
+            --log runs/qualification-v1/mutation.log \
+            --evidence-path runs/qualification-v1/mutation-report.json \
+            -- python scripts/qualification_mutation_canary.py \
+               --output runs/qualification-v1/mutation-report.json
+      - name: Branch-coverage strength gate
+        continue-on-error: true
+        run: |
+          python scripts/qualification_v1.py run \
+            --gate-id coverage-strength \
+            --output runs/qualification-v1/coverage.evidence.json \
+            --log runs/qualification-v1/coverage.log \
+            --evidence-path runs/qualification-v1/coverage.json \
+            -- bash -lc "coverage erase && \
+              coverage run --branch -m pytest -q \
+                tests/qualification/test_evidence_manifest.py \
+                tests/qualification/test_trust_boundary_canaries.py \
+                tests/qualification/test_paired_stats.py \
+                tests/test_factory_worker_contract.py \
+                tests/test_factory_runtime.py && \
+              coverage json -o runs/qualification-v1/coverage.json && \
+              coverage report --include='residual/qualification/*,residual/factory/runtime_journal.py,residual/factory/worker_contract.py,residual/eval/stats.py' --fail-under=55"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-discovery-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
+  m4:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install M4 qualification dependencies
+        run: python -m pip install '.[factory,qualification]'
+      - name: M4 host capability gate
+        run: |
+          mkdir -p runs/qualification-v1
+          python scripts/qualification_v1.py run \
+            --gate-id m4-capability \
+            --output runs/qualification-v1/m4-capability.evidence.json \
+            --log runs/qualification-v1/m4-capability.log \
+            --evidence-path runs/qualification-v1/m4-capability-report.json \
+            -- python -m residual.factory.m4_qualification_prereq \
+               --output runs/qualification-v1/m4-capability-report.json \
+               --revision "$GITHUB_SHA"
+      - name: M4 zero-skip trust-boundary gate
+        env:
+          RESIDUAL_REQUIRE_SECCOMP: '1'
+        run: |
+          python scripts/qualification_v1.py run \
+            --gate-id m4-zero-skip \
+            --output runs/qualification-v1/m4-tests.evidence.json \
+            --log runs/qualification-v1/m4-tests.log \
+            --junit runs/qualification-v1/m4-tests.xml \
+            --zero-skips \
+            -- python -m pytest tests/test_factory_m4*.py \
+               tests/test_sandbox_timing_determinism.py::IsolatedTimeoutTypingTests -q \
+               --junitxml=runs/qualification-v1/m4-tests.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-m4-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
+  artifacts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build wheel once
+        run: |
+          mkdir -p runs/qualification-v1 dist
+          python -m pip wheel . --no-deps -w dist
+          test "$(find dist -maxdepth 1 -name '*.whl' | wc -l)" -eq 1
+          sha256sum dist/*.whl | tee runs/qualification-v1/wheel.sha256
+      - name: Qualify exact wheel bytes
+        run: |
+          WHEEL="$(find dist -maxdepth 1 -name '*.whl' -print -quit)"
+          python scripts/qualification_v1.py run \
+            --gate-id exact-wheel \
+            --output runs/qualification-v1/exact-wheel.evidence.json \
+            --log runs/qualification-v1/exact-wheel.log \
+            --evidence-path runs/qualification-v1/exact-wheel-report.json \
+            --evidence-path "$WHEEL" \
+            -- python scripts/qualify_exact_wheel.py \
+               --wheel "$WHEEL" --output runs/qualification-v1/exact-wheel-report.json
+      - name: Build and smoke exact container image
+        run: |
+          python scripts/qualification_v1.py run \
+            --gate-id container-smoke \
+            --output runs/qualification-v1/container.evidence.json \
+            --log runs/qualification-v1/container.log \
+            --evidence-path runs/qualification-v1/container-inspect.json \
+            -- bash -lc "docker build -t residual-qualification-v1 . && \
+              docker image inspect residual-qualification-v1 > runs/qualification-v1/container-inspect.json && \
+              docker run --rm --entrypoint python3 residual-qualification-v1 -c \\
+                \"from residual.station.service import Station,demo_spec; import tempfile; s=Station(tempfile.mkdtemp()); p=s.create(demo_spec(),demo=True)['project_id']; assert s.batch(p)['integrated']==3\""
+      - name: Attest promoted wheel provenance
+        if: github.event_name != 'pull_request'
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: 'dist/*.whl'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-artifacts-${{ github.sha }}
+          path: |
+            runs/qualification-v1
+            dist/*.whl
+          if-no-files-found: error
+          retention-days: 90
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Station and browser dependencies
+        run: |
+          python -m pip install -e '.[factory,qualification]'
+          npm install
+          npx playwright install --with-deps '${{ matrix.browser }}'
+      - name: Cross-browser Station user journey
+        env:
+          PLAYWRIGHT_BROWSER: ${{ matrix.browser }}
+          PLAYWRIGHT_MODULE: ${{ github.workspace }}/tests/playwright-browser-shim.cjs
+          STATION_QA_DIR: runs/qualification-v1/browser-${{ matrix.browser }}
+          STATION_QA_PORT: ${{ matrix.browser == 'chromium' && '8876' || matrix.browser == 'firefox' && '8877' || '8878' }}
+        run: |
+          mkdir -p "$STATION_QA_DIR"
+          python scripts/qualification_v1.py run \
+            --gate-id 'browser-${{ matrix.browser }}' \
+            --output 'runs/qualification-v1/browser-${{ matrix.browser }}.evidence.json' \
+            --log 'runs/qualification-v1/browser-${{ matrix.browser }}.log' \
+            --evidence-path "$STATION_QA_DIR/browser-results.json" \
+            -- node tests/browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-browser-${{ matrix.browser }}-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
+
+  concurrency:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: Real SQLite and authority race campaign
+        run: |
+          mkdir -p runs/qualification-v1
+          python scripts/qualification_v1.py run \
+            --gate-id real-concurrency \
+            --output runs/qualification-v1/concurrency.evidence.json \
+            --log runs/qualification-v1/concurrency.log \
+            --junit runs/qualification-v1/concurrency.xml \
+            --zero-skips \
+            -- python -m pytest tests/qualification/test_concurrency_lab.py -q \
+               --junitxml=runs/qualification-v1/concurrency.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-concurrency-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
+  protocol-fuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: Property-based contract and path fuzzing
+        run: |
+          mkdir -p runs/qualification-v1
+          python scripts/qualification_v1.py run \
+            --gate-id protocol-fuzz \
+            --output runs/qualification-v1/protocol-fuzz.evidence.json \
+            --log runs/qualification-v1/protocol-fuzz.log \
+            --junit runs/qualification-v1/protocol-fuzz.xml \
+            --zero-skips \
+            -- python -m pytest tests/qualification/test_protocol_fuzz.py -q \
+               --junitxml=runs/qualification-v1/protocol-fuzz.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-protocol-fuzz-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
+  toxic-provider:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: Deterministic toxic-provider matrix
+        run: |
+          mkdir -p runs/qualification-v1
+          python scripts/qualification_v1.py run \
+            --gate-id toxic-provider-matrix \
+            --output runs/qualification-v1/toxic-provider.evidence.json \
+            --log runs/qualification-v1/toxic-provider.log \
+            --junit runs/qualification-v1/toxic-provider.xml \
+            --zero-skips \
+            -- python -m pytest tests/qualification/test_toxic_provider_matrix.py \
+               tests/qualification/test_provider_mission.py -q \
+               --junitxml=runs/qualification-v1/toxic-provider.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-toxic-provider-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
+  active-workload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: Active fail-repair-review-integrate-export stress
+        run: |
+          mkdir -p runs/qualification-v1
+          python scripts/qualification_v1.py run \
+            --gate-id active-workload \
+            --output runs/qualification-v1/active-workload.evidence.json \
+            --log runs/qualification-v1/active-workload.log \
+            --evidence-path runs/qualification-v1/active-workload-report.json \
+            -- python scripts/qualification_active_workload.py \
+               --cycles 8 --output runs/qualification-v1/active-workload-report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-active-workload-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
+  browser-adversarial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          python -m pip install -e '.[factory,qualification]'
+          npm install
+          npx playwright install --with-deps chromium
+      - name: Real job chat and repair browser journey
+        env:
+          STATION_QA_DIR: runs/qualification-v1/adversarial-browser
+          STATION_QA_PORT: '8891'
+          TOXIC_PROVIDER_PORT: '8892'
+        run: |
+          mkdir -p "$STATION_QA_DIR"
+          python scripts/qualification_v1.py run \
+            --gate-id browser-adversarial-recovery \
+            --output runs/qualification-v1/browser-adversarial.evidence.json \
+            --log runs/qualification-v1/browser-adversarial.log \
+            --evidence-path "$STATION_QA_DIR/adversarial-browser-results.json" \
+            -- node tests/qualification/adversarial-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-browser-adversarial-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
+  redteam:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: Security red-team zero-skip gate
+        env:
+          RESIDUAL_REQUIRE_SECCOMP: '1'
+        run: |
+          mkdir -p runs/qualification-v1
+          python scripts/qualification_v1.py run \
+            --gate-id redteam-zero-skip \
+            --output runs/qualification-v1/redteam.evidence.json \
+            --log runs/qualification-v1/redteam.log \
+            --junit runs/qualification-v1/redteam.xml \
+            --zero-skips \
+            -- python -m pytest tests/redteam -q --junitxml=runs/qualification-v1/redteam.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-redteam-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
+  windows-lifecycle:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: Windows clean lifecycle and restart qualification
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force runs/qualification-v1 | Out-Null
+          python scripts/qualification_v1.py run --gate-id windows-lifecycle --output runs/qualification-v1/windows.evidence.json --log runs/qualification-v1/windows.log --junit runs/qualification-v1/windows.xml --zero-skips -- python -m pytest tests/station/test_station.py::StationTests::test_full_demo_real_git_tests_review_and_release tests/station/test_station.py::StationTests::test_lease_expiry_and_restart_recovery_preserve_evidence tests/qualification/test_active_workload.py -q --junitxml=runs/qualification-v1/windows.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-windows-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
+
+  fault-injection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: Persistence and I/O crash-point fault injection
+        run: |
+          mkdir -p runs/qualification-v1
+          python scripts/qualification_v1.py run \
+            --gate-id persistence-fault-injection \
+            --output runs/qualification-v1/fault-injection.evidence.json \
+            --log runs/qualification-v1/fault-injection.log \
+            --junit runs/qualification-v1/fault-injection.xml \
+            --zero-skips \
+            -- python -m pytest tests/qualification/test_fault_injection.py -q \
+               --junitxml=runs/qualification-v1/fault-injection.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-fault-injection-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
+
+  webvm-protocol-fuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: WebVM provider protocol deterministic fuzz corpus
+        run: |
+          mkdir -p runs/qualification-v1
+          python scripts/qualification_v1.py run \
+            --gate-id webvm-provider-protocol-fuzz \
+            --output runs/qualification-v1/webvm-protocol-fuzz.evidence.json \
+            --log runs/qualification-v1/webvm-protocol-fuzz.log \
+            -- node --test tests/qualification/webvm-provider-fuzz.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-webvm-protocol-fuzz-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
+
+  qualification-selftests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: Qualification framework self-tests
+        run: |
+          mkdir -p runs/qualification-v1
+          python scripts/qualification_v1.py run \
+            --gate-id qualification-selftests \
+            --output runs/qualification-v1/selftests.evidence.json \
+            --log runs/qualification-v1/selftests.log \
+            --junit runs/qualification-v1/selftests.xml \
+            --zero-skips \
+            -- python -m pytest -q \
+               tests/qualification/test_evidence_manifest.py \
+               tests/qualification/test_mutation_canary_harness.py \
+               tests/qualification/test_qualification_runner.py \
+               tests/qualification/test_process_soak.py \
+               tests/qualification/test_long_soak.py \
+               tests/qualification/test_paired_stats.py \
+               tests/qualification/test_schedule_campaign.py \
+               tests/qualification/test_provider_canary.py \
+               tests/qualification/test_provider_mission.py \
+               tests/qualification/test_platform_imports.py \
+               --junitxml=runs/qualification-v1/selftests.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-selftests-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
+
+  active-http-soak:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: Active HTTP job and resource soak
+        run: |
+          mkdir -p runs/qualification-v1
+          python scripts/qualification_v1.py run \
+            --gate-id active-http-soak \
+            --output runs/qualification-v1/active-http.evidence.json \
+            --log runs/qualification-v1/active-http-gate.log \
+            --evidence-path runs/qualification-v1/active-http-report.json \
+            -- python scripts/qualification_active_http_soak.py \
+               --cycles 6 --port 8893 \
+               --root runs/qualification-v1/active-http-state \
+               --output runs/qualification-v1/active-http-report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-active-http-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
+
+  macos-lifecycle:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: macOS clean lifecycle and restart qualification
+        run: |
+          mkdir -p runs/qualification-v1
+          python scripts/qualification_v1.py run \
+            --gate-id macos-lifecycle \
+            --output runs/qualification-v1/macos.evidence.json \
+            --log runs/qualification-v1/macos.log \
+            --junit runs/qualification-v1/macos.xml \
+            --zero-skips \
+            -- python -m pytest \
+               tests/station/test_station.py::StationTests::test_full_demo_real_git_tests_review_and_release \
+               tests/station/test_station.py::StationTests::test_lease_expiry_and_restart_recovery_preserve_evidence \
+               tests/qualification/test_active_workload.py -q \
+               --junitxml=runs/qualification-v1/macos.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-macos-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 30
+
+  aggregate:
+    if: always()
+    needs: [deterministic, discovery, m4, artifacts, browser, concurrency, protocol-fuzz, toxic-provider, active-workload, active-http-soak, browser-adversarial, redteam, windows-lifecycle, macos-lifecycle, fault-injection, webvm-protocol-fuzz, qualification-selftests]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: qualification-v1-*
+          path: collected
+          merge-multiple: true
+      - name: Build one fail-closed release qualification manifest
+        run: |
+          mkdir -p runs/qualification-v1/final
+          python scripts/aggregate_qualification_ci.py \
+            --root collected \
+            --output runs/qualification-v1/final/qualification-manifest.json
+          find collected -type f -print0 | sort -z | xargs -0 sha256sum > runs/qualification-v1/final/evidence-sha256.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-final-${{ github.sha }}
+          path: runs/qualification-v1/final
+          if-no-files-found: error
+          retention-days: 90
