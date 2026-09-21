@@ -72,10 +72,10 @@ baselines:
     digest: unknown-pending-pin   # pin the harness source commit SHA at freeze
     tokenizer: none
     quantization: none
-    inference_runtime: none (in-process deterministic code)
+    inference_runtime: "none (in-process deterministic code)"
     prompt_template_id: none
     decoding: none
-    hardware_class: cpu-only (any; reference: 4-core x86_64)
+    hardware_class: "cpu-only (any; reference: 4-core x86_64)"
     context_length: not-applicable
     benchmark_hash: unfrozen-placeholder
 
@@ -88,13 +88,13 @@ baselines:
       where the item declares them). Detects benchmark weakness: any learned or
       rule baseline must beat this floor, and items where random does well are
       flagged for difficulty review.
-    artifact: none (numpy Generator with PCG64, seeded)
+    artifact: "none (numpy Generator with PCG64, seeded)"
     model_artifact: none
-    version: numpy >=1.24 (pin exact version in freeze lockfile)
+    version: "numpy >=1.24 (pin exact version in freeze lockfile)"
     digest: unknown-pending-pin   # pin numpy wheel version + hash at freeze
     tokenizer: none
     quantization: none
-    inference_runtime: python3 (repo-supported 3.11/3.12/3.13 matrix)
+    inference_runtime: "python3 (repo-supported 3.11/3.12/3.13 matrix)"
     prompt_template_id: none
     decoding: {seed: 0}   # one fixed seed stream, item-order independent
     hardware_class: cpu-only
@@ -136,7 +136,7 @@ baselines:
       declared expected outputs; items requiring adjudicated human judgment are
       excluded from the oracle and reported as not-applicable. Provides the
       upper bound against which verified success rates are normalized.
-    artifact: none (reads frozen item manifest expected_output fields)
+    artifact: "none (reads frozen item manifest expected_output fields)"
     model_artifact: none
     version: benchmark-item-manifest-version
     digest: unknown-pending-pin   # equals frozen item-manifest digest at freeze
@@ -163,16 +163,16 @@ baselines:
       the coder variant may be added as a supplementary arm later if desired.
       Justification: matches repo runtime (Ollama), widely mirrored artifact,
       Apache-2.0 license, well-documented model card.
-    model_artifact: Qwen/Qwen2.5-7B-Instruct (HF) via Ollama tag qwen2.5:7b-instruct
+    model_artifact: "Qwen/Qwen2.5-7B-Instruct (HF) via Ollama tag qwen2.5:7b-instruct"
     version: "Qwen2.5-7B-Instruct, released 2024-09; HF revision: unknown-pending-pin"
     digest: unknown-pending-pin   # pin Ollama manifest digest + HF file SHA-256 at freeze
-    tokenizer: Qwen2.5 BPE tokenizer (tokenizer.json in artifact; vocab 151,646 + control tokens)
-    quantization: q4_K_M (Ollama registry default for the 7b tag; verify at pull and pin digest)
-    inference_runtime: ollama 0.34.0 (ollama/ollama:0.34.0 container)
+    tokenizer: "Qwen2.5 BPE tokenizer (tokenizer.json in artifact; vocab 151,646 + control tokens)"
+    quantization: "q4_K_M (Ollama registry default for the 7b tag; verify at pull and pin digest)"
+    inference_runtime: "ollama 0.34.0 (ollama/ollama:0.34.0 container)"
     prompt_template_id: exp-m6-slm-control-decision-v0
     decoding: *shared_decoding
     hardware_class: "single consumer GPU, 24 GB VRAM class (e.g. RTX 3090/4090) or Apple-silicon 32 GB unified memory; CPU fallback allowed but latency recorded"
-    context_length: 131072 (per model card; effective eval context capped by observation schema)
+    context_length: "131072 (per model card; effective eval context capped by observation schema)"
     benchmark_hash: unfrozen-placeholder
 
   # 6. Off-the-shelf SLM (0.5–3B class) ---------------------------------------
@@ -185,18 +185,18 @@ baselines:
       Apache-2.0, first-class Ollama availability. SmolLM2-1.7B-Instruct is the
       documented alternate if Qwen artifacts become unavailable; only one SLM
       arm is primary for SLM-01.
-    model_artifact: Qwen/Qwen2.5-1.5B-Instruct (HF) via Ollama tag qwen2.5:1.5b-instruct
+    model_artifact: "Qwen/Qwen2.5-1.5B-Instruct (HF) via Ollama tag qwen2.5:1.5b-instruct"
     version: "Qwen2.5-1.5B-Instruct, released 2024-09; HF revision: unknown-pending-pin"
     digest: unknown-pending-pin   # pin Ollama manifest digest + HF file SHA-256 at freeze
-    tokenizer: Qwen2.5 BPE tokenizer (same family as B4)
-    quantization: q4_K_M (Ollama default; verify at pull and pin digest)
-    inference_runtime: ollama 0.34.0 (ollama/ollama:0.34.0 container)
+    tokenizer: "Qwen2.5 BPE tokenizer (same family as B4)"
+    quantization: "q4_K_M (Ollama default; verify at pull and pin digest)"
+    inference_runtime: "ollama 0.34.0 (ollama/ollama:0.34.0 container)"
     prompt_template_id: exp-m6-slm-control-decision-v0
     decoding: *shared_decoding
     hardware_class: "cpu-only feasible (8 GB RAM class) or any consumer GPU; hardware class recorded per run"
-    context_length: 32768 (per model card; 131072 with YaRN per card — YaRN NOT enabled for baseline)
+    context_length: "32768 (per model card; 131072 with YaRN per card — YaRN NOT enabled for baseline)"
     benchmark_hash: unfrozen-placeholder
-    alternate: HuggingFaceTB/SmolLM2-1.7B-Instruct (digest: unknown-pending-pin)
+    alternate: "HuggingFaceTB/SmolLM2-1.7B-Instruct (digest: unknown-pending-pin)"
 
   # 7. Stronger reference model ------------------------------------------------
   - id: B6-reference-strong
@@ -209,16 +209,16 @@ baselines:
       provider kind (vLLM or hosted endpoint) since 32B exceeds typical local
       hardware. A frontier API reference (exact provider/model pinned at freeze)
       MAY be added as a supplementary anchor; it is not required for SLM-01.
-    model_artifact: Qwen/Qwen2.5-32B-Instruct (HF) served via vLLM OpenAI-compatible endpoint
+    model_artifact: "Qwen/Qwen2.5-32B-Instruct (HF) served via vLLM OpenAI-compatible endpoint"
     version: "Qwen2.5-32B-Instruct, released 2024-09; HF revision: unknown-pending-pin"
     digest: unknown-pending-pin   # pin HF revision SHA + vLLM version at freeze
-    tokenizer: Qwen2.5 BPE tokenizer (same family as B4/B5)
-    quantization: awq-int4 OR bf16 (choose one at freeze and pin; default proposal: bf16 on A100/H100 class, AWQ-int4 on 24 GB class)
+    tokenizer: "Qwen2.5 BPE tokenizer (same family as B4/B5)"
+    quantization: "awq-int4 OR bf16 (choose one at freeze and pin; default proposal: bf16 on A100/H100 class, AWQ-int4 on 24 GB class)"
     inference_runtime: "vLLM (version unknown-pending-pin) exposing OpenAI-compatible chat API; harness kind: openai_compatible"
     prompt_template_id: exp-m6-slm-control-decision-v0
     decoding: *shared_decoding
     hardware_class: "datacenter GPU: 1x A100 80GB (bf16) or 1x 24 GB consumer GPU (AWQ-int4)"
-    context_length: 131072 (per model card)
+    context_length: "131072 (per model card)"
     benchmark_hash: unfrozen-placeholder
 
 # Freeze TODO (blocking SLM-00 gate item 5/8):
