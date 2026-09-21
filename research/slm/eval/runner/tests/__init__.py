@@ -1,1 +1,1 @@
-__CONTENT_TESTS_INIT__
+"""Tests for the shared SLM evaluation runner."""
