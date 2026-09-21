@@ -66,6 +66,29 @@ def addressed_prompt(message: dict[str, Any], address: str, bridge_name: str) ->
     return prompt or None
 
 
+def _sanitize_fallback_attempts(value: Any) -> list[dict[str, Any]]:
+    allowed = {"provider", "model", "reason", "status", "code"}
+    if not isinstance(value, list):
+        return []
+    return [
+        {key: item[key] for key in allowed if key in item}
+        for item in value
+        if isinstance(item, dict)
+    ]
+
+
+def _openclaw_child_env() -> dict[str, str]:
+    env = dict(os.environ)
+    for key in (
+        "RESIDUAL_WORKER_TOKEN",
+        "RESIDUAL_WORKER_TOKEN_FILE",
+        "RESIDUAL_RUNNER_API_KEY",
+        "RESIDUAL_FALLBACK_API_KEY",
+    ):
+        env.pop(key, None)
+    return env
+
+
 def extract_openclaw_json(stdout: str) -> dict[str, Any]:
     """Extract the last useful JSON object from OpenClaw --json stdout."""
     decoder = json.JSONDecoder()
@@ -127,6 +150,10 @@ class BridgeState:
             """
         )
         self.db.commit()
+        try:
+            os.chmod(self.path, 0o600)
+        except OSError:
+            pass
 
     def close(self) -> None:
         self.db.close()
@@ -335,7 +362,11 @@ class OpenClawRunner:
             "--timeout", str(self.timeout_s),
         ]
         self._process = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            env=_openclaw_child_env(),
         )
         try:
             stdout, stderr = self._process.communicate(timeout=self.timeout_s + 30)
@@ -347,8 +378,7 @@ class OpenClawRunner:
             process = self._process
             self._process = None
         if process.returncode != 0:
-            detail = (stderr or stdout)[-2000:].strip()
-            raise BridgeError("OpenClaw invocation failed: " + detail)
+            raise BridgeError(f"OpenClaw invocation failed with exit code {process.returncode}")
         result = extract_openclaw_json(stdout)
         payloads = result.get("payloads") or []
         text = "\n".join(
@@ -365,7 +395,7 @@ class OpenClawRunner:
             model=agent_meta.get("model"),
             transport=meta.get("transport"),
             fallback_from=meta.get("fallbackFrom"),
-            fallback_attempts=list(agent_meta.get("fallbackAttempts") or []),
+            fallback_attempts=_sanitize_fallback_attempts(agent_meta.get("fallbackAttempts")),
         )
 
 
@@ -447,6 +477,10 @@ class OpenClawSharedCommsBridge:
         tmp = path.with_suffix(path.suffix + ".tmp")
         tmp.write_text(json.dumps(current, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         os.replace(tmp, path)
+        try:
+            os.chmod(path, 0o600)
+        except OSError:
+            pass
 
     def _response_payload(self, operation_id: str, text: str) -> dict[str, Any]:
         return {
