@@ -13,7 +13,7 @@ Artifacts: `research/slm/bench/generate_bench.py`, `research/slm/bench/seed/*.js
 
 Every item carries: `item_id`, `bench_version`, `category`, `input_state`, `expected_output`, `output_schema` (inline JSON-schema fragment), `verifier_ref`, `allowed_alternatives`, `contamination_group`, `source_provenance`, `difficulty` metadata, `safety_critical`, `synthetic`, and `digest`.
 
-Digest: `sha256:` + SHA-256 of `json.dumps(item_without_digest, sort_keys=True, separators=(",",":"), ensure_ascii=True)` UTF-8 bytes. The function is implemented in `generate_bench.py:canonical_digest` and is the single source of truth. The 24-item sample file carries real digests computed with this exact function (no hand-invented hex anywhere in the bench).
+Digest: `sha256:` + SHA-256 of `json.dumps(item_without_digest, sort_keys=True, separators=(",",""), ensure_ascii=True)` UTF-8 bytes. The function is implemented in `generate_bench.py:canonical_digest` and is the single source of truth. The 24-item sample file carries real digests computed with this exact function (no hand-invented hex anywhere in the bench).
 
 ## Per-category design rationale and coverage map
 
@@ -89,3 +89,98 @@ Set where the item exercises a protocol safety rule: false non-escalation surfac
 4. REA/BD authentic seeds include counterfactual wraps (attempt counters, budget wrappers) of real records — derivation is declared per item (`derivation: counterfactual-*`); these share the source record's contamination group.
 5. Verifier implementations (`research/slm/bench/verifiers/verify_*.py`) are referenced but not delivered in this lane; `verifier_ref` paths are the reserved contract surface.
 6. `timestamp` absence in all source lanes (preflight condition 1) does not affect the bench (bench items carry no timestamps), but corpus conversion still needs the schema erratum.
+
+## CD-XVAL remediation (C→D→C loop resolution)
+
+The C→D cross-validation (`CD-XVAL-REPORT.md`, branch `slm00/cd-xval`) found three blocking
+defect classes plus material duplication. Resolution, applied in this bench version:
+
+- **X1 — verifier_ref.** Items now carry Lane D registry IDs (`slm00.verifier.<category>` from
+  `research/slm/verifiers/MANIFEST.json`), not path-style refs. Lane C's reserved
+  `research/slm/bench/verifiers/verify_*.py` paths are retired.
+- **X2 — category identifiers.** `category` fields now use Lane D's exact identifiers:
+  `worker_routing`, `contract_compilation`, `evidence_sufficiency`, `retry_escalate_abort`,
+  `budget_decisions`, `failure_classification`, `adversarial_malformed`, `stale_state_authority`
+  (snake_case; plural where Lane D uses plural). Item ID codes (`WR`, `CC`, ...) are unchanged,
+  so the `RCB0-<CODE>-NNNN` ID scheme is stable.
+- **X3 — item shapes.** Lane D's verifier contracts are the preregistered-faithful surface
+  (they implement the directive's per-category verification spec). All items were regenerated
+  so that `input_state`/`expected_output` conform exactly to the contract in each Lane D
+  verifier module docstring, and every frozen `expected_output` is adversarially re-derived by
+  the verifier (mismatch would be BENCHMARK_DEFECT). Lane C's divergent task semantics
+  (topology/utility selection, per-dimension approve/deny, free-form reason strings, ad-hoc
+  adversarial output fields) were replaced by Lane D's task semantics.
+- **MATERIAL — duplication.** The generator now enforces canonical-content exact-dup rejection
+  at generation time (salt escalation on collision) and asserts that no contamination group
+  contains duplicate items. Post-generation lint of the emitted corpus: 0 exact-dup groups,
+  0 cross-group duplicate groups, 0 digest collisions across 1,000 items. Synthetic expansion
+  rules were re-dimensioned (per-item salted worker/route/requirement/artifact/receipt IDs,
+  wider capability/authority/kind pools, per-item policy and budget randomization) so rule
+  variants are no longer near-identical; same-rule same-bucket grouping still keeps structural
+  relatives inside one contamination group for freeze-time splitting.
+
+### Verification evidence (pre-push gate)
+
+- Positive battery: all 1,000 items run through the real Lane D verifiers with the
+  expected-output-derived candidate — **1000/1000 PASS** (zero BENCHMARK_DEFECT).
+- Negative battery: ≥50 items sampled per category (60/category, 2,302 candidates):
+  incorrect outputs, malformed outputs (including the `MalformedOutput` sentinel), and
+  unauthorized actions — **100% FAIL, zero PASS leaks**.
+- Dup lint: zero exact-dup groups, zero cross-group duplicates, zero digest collisions.
+
+### Authentic-case disposition changes (X3)
+
+Converted (authentic content expressed in Lane D's contract shape; provenance retained,
+`derivation` annotated "re-shaped to Lane D contract (CD-XVAL X3)"):
+- **ES ×6** — OBS-006/VQ-002 missing-field cases expressed as kind-matched artifact sets
+  (`field:<name>` kinds; absent field ⇒ no artifact ⇒ in the derived missing set).
+- **REA ×6** — recorded recovery scenarios expressed as frozen policy+state pairs whose
+  execution reproduces the recorded decision; Lane C free-form reasons replaced by Lane D
+  reason codes (`POLICY_RETRY`, `CLASS_NOT_RETRYABLE`, `RETRY_BUDGET_EXHAUSTED`, ...).
+- **BD ×5** — approve maps to selecting the feasible route; deny maps to `abort` with the
+  exact (empty) feasible set.
+- **FC ×7** — recorded failure events carried as `observation` with the frozen 10-label
+  taxonomy; recorded class is the expected label.
+- **AM ×6** — attacks expressed in the attack/context envelope; correct response is pure
+  rejection with a frozen reason code.
+- **SA ×6** — scenarios expressed as generation/receipt/state-machine/boundary tuples under
+  Lane D's violation precedence. Note: SA-SEED-003 (duplicate-after-recovery) is expressed as
+  an illegal self-transition (`ILLEGAL_TRANSITION`); the "never double-accept" semantics is
+  preserved mechanically, the word "duplicate" is not.
+- **CC ×6** — schema-derived seeds (already `synthetic: true`) re-expressed as
+  contract_spec + reference contract.
+
+Deferred (authentic case cannot be expressed in Lane D's contract shape; NOT forced):
+- **WR-SEED-001…006 (OTX-003 topology/utility selection).** Lane D's worker_routing contract is
+  capability/authority route-set derivation; the OTX deployment-tax-veto/argmax-utility
+  selection semantics has no representation there. The WR bench category is now entirely
+  synthetic (200 items) under Lane D semantics; the OTX routing-policy reconstruction remains
+  documented in the seed file's `deferred_seeds` block for a future versioned erratum.
+- **BD-SEED-006 (fail-closed denial on unknown cost).** Lane D treats non-positive/unknown
+  route cost as a BENCHMARK_DEFECT, so "unknown cost ⇒ deny" cannot be encoded; deferred.
+
+Net authentic counts: worker_routing 0 (was 6), budget_decisions 5 (was 6); all other
+categories unchanged in count, re-shaped in form.
+
+### Revised coverage map
+
+| Category (Lane D id) | Code | Target | Authentic seeds | Synthetic seeds | Synthetic expansion |
+|---|---|---|---|---|---|
+| worker_routing | WR | 200 | 0 (6 deferred) | 0 | 200 |
+| contract_compilation | CC | 150 | 0 | 6 | 144 |
+| evidence_sufficiency | ES | 150 | 6 | 0 | 144 |
+| retry_escalate_abort | REA | 100 | 6 | 0 | 94 |
+| budget_decisions | BD | 100 | 5 | 0 | 95 |
+| failure_classification | FC | 100 | 7 | 0 | 93 |
+| adversarial_malformed | AM | 100 | 1 | 5 | 94 |
+| stale_state_authority | SA | 100 | 4 | 2 | 94 |
+| **Total** | | **1000** | **29** | **13** | **958** |
+
+### Superseded design statements
+
+- The per-category rationale subsections above describing Lane C-era task semantics
+  (WR topology selection policy, ES required-field sweep shape, REA free-form reasons,
+  BD per-dimension approve/deny, AM ad-hoc expected outputs, SA ad-hoc dispositions) are
+  superseded by Lane D's verifier module docstrings, which are now the normative item
+  contracts. Known-limitation #5 (verifier refs as reserved path surface) is resolved by X1:
+  items reference the delivered Lane D suite directly.
