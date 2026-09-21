@@ -156,6 +156,7 @@ class OpenClawBridgeTests(unittest.TestCase):
                 timeout_s=30,
                 max_attempts=3,
                 max_batch=1,
+                start_at="zero",
                 advisory_prefix="ADVISORY\n\n",
                 status_file=status,
             )
@@ -179,6 +180,28 @@ class OpenClawBridgeTests(unittest.TestCase):
             self.assertEqual(report["last_request_seq"], 2)
             state.close()
 
+    def test_fresh_bridge_defaults_to_latest_without_replaying_history(self):
+        with tempfile.TemporaryDirectory() as td:
+            state = BridgeState(Path(td) / "state.sqlite3")
+            status = Path(td) / "status.json"
+            config = BridgeConfig(
+                station="http://127.0.0.1:8765", project="p", profile="agent2", agent="roofbot-reviewer",
+                name="OPENCLAW-AGENT2", address="@OPENCLAW-AGENT2", thread="main", poll_seconds=1,
+                timeout_s=30, max_attempts=3, max_batch=1, start_at="latest", advisory_prefix="", status_file=status,
+            )
+            client = FakeClient([
+                {"seq": 323, "actor": "operator", "thread_id": "main", "message": "@OPENCLAW-AGENT2 old request"},
+                {"seq": 324, "actor": "remote:OPENCLAW-AGENT2", "thread_id": "main", "message": "old response"},
+            ])
+            runner = FakeRunner()
+            bridge = OpenClawSharedCommsBridge(config, state, client, runner)
+            self.assertEqual(bridge.run_once(), 0)
+            self.assertEqual(state.cursor("p", "main", "OPENCLAW-AGENT2"), 324)
+            self.assertEqual(runner.calls, [])
+            report = json.loads(status.read_text())
+            self.assertEqual(report["initialized_at_seq"], 324)
+            state.close()
+
     def test_replay_after_done_does_not_reinvoke_agent(self):
         with tempfile.TemporaryDirectory() as td:
             state = BridgeState(Path(td) / "state.sqlite3")
@@ -186,7 +209,7 @@ class OpenClawBridgeTests(unittest.TestCase):
             config = BridgeConfig(
                 station="http://127.0.0.1:8765", project="p", profile="agent2", agent="roofbot-reviewer",
                 name="OPENCLAW-AGENT2", address="@OPENCLAW-AGENT2", thread="main", poll_seconds=1,
-                timeout_s=30, max_attempts=3, max_batch=1, advisory_prefix="", status_file=status,
+                timeout_s=30, max_attempts=3, max_batch=1, start_at="zero", advisory_prefix="", status_file=status,
             )
             message = {"seq": 5, "actor": "operator", "thread_id": "main", "message": "@OPENCLAW-AGENT2 hello"}
             client = FakeClient([message])
