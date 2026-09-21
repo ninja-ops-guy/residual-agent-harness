@@ -57,10 +57,55 @@ Anchored in RUNTIME-005 stale-telemetry suppression (value_suppressed: true) and
 
 ## Contamination-group assignment rules
 
-1. Authentic items inherit the source lane's natural lineage: OTX task family, OBS-006 single fixture (`CG-OBS6-fixture-v1` — one group, per preflight §4), VQ part file, DSM-004 fault schedule / recovery scenario, RUNTIME-005 scenario family.
-2. Synthetic items: `CG-<CODE>-SYN-<rule>-b<NN>` where `NN = seq // 25`; items produced by the same rule in the same sequence window are near-duplicates by construction and must never straddle a split.
+1. Authentic items inherit the corpus converter's canonical lineage group verbatim (see the frozen group-mapping table below): `otx:<class>-<granularity>`, `obs006-fixture-v1` (one group, per preflight §4), `vq:case:<case_id>`, `dsm004:<schedule>` / `dsm004:recovery/<scenario>`, `runtime005:<scenario>`.
+2. Synthetic items: `bench-syn:<code>:<rule>:b<NN>` where `NN = seq // 25`; items produced by the same rule in the same sequence window are near-duplicates by construction and must never straddle a split.
 3. Counterfactual wraps (e.g. BD budget wrap of an OTX latency) share the underlying record's group.
 4. Deduplication before splitting is by digest equality plus group inspection; digests are unique across the bench (asserted by the generator).
+
+
+### Frozen group-mapping table (X-M1 remediation, 2026-09-20)
+
+Bench contamination groups are now keyed by the corpus converter's
+canonical lineage scheme (`research/slm/corpus/convert.py` @ slm00/corpus
+head 1c127f9b), so a corpus record and a bench item derived from the same
+lineage share ONE group identifier and can never be split-invisible to
+each other. Frozen mapping (old bench id -> corpus-scheme id):
+
+| Legacy bench group | Corpus-scheme group |
+| --- | --- |
+| CG-OTX-lookup-atomic | otx:lookup-atomic |
+| CG-OBS6-fixture-v1 | obs006-fixture-v1 |
+| CG-VQ-adequate-part0 | vq:case:good0 |
+| CG-DSM4-fault-duplicate | dsm004:faults/duplicate |
+| CG-DSM4-fault-lost | dsm004:faults/lost |
+| CG-DSM4-recovery-crash | dsm004:recovery/crash_between_write_and_ack |
+| CG-DSM4-recovery-replay | dsm004:recovery/replay_determinism |
+| CG-DSM4-recovery-restart | dsm004:recovery/restart_mid_stream |
+| CG-RT5-authority | runtime005:provider_native_authority_never_overrides_residual |
+| CG-RT5-cancellation | runtime005:cancellation_budget_exceeded_fails_closed |
+| CG-RT5-capability | runtime005:capability_probe_fail_closed_and_local_preferred |
+| CG-RT5-stale-telemetry | runtime005:stale_telemetry_returns_unknown |
+
+Notes:
+* `CG-VQ-adequate-part0` was keyed by PART FILE (the exact file-keying
+  anti-pattern of SLM-INFRA-QUAL MATERIAL-2: adequate.part0 is
+  byte-identical to degraded.part0). It is re-keyed to the case lineage
+  `vq:case:good0` (the seed's `record_ref`), matching every corpus variant
+  of that case.
+* Bench-internal synthetic groups have no corpus counterpart and use the
+  `bench-syn:` scheme: `bench-syn:<code>:<rule>:b<NN>` for rule-expansion
+  items (NN = seq // 25), `bench-syn:cc:schema-<facet>`, `bench-syn:am:<kind>`,
+  `bench-syn:sa:advisory` for synthetic seeds (legacy `CG-*-SYN-*`,
+  `CG-CC-SCHEMA-*`, `CG-AM-*`, `CG-SA-advisory`). These prefix namespaces
+  are disjoint from every corpus lineage prefix (`otx:`, `vq:case:`,
+  `obs006-`, `dsm004:`, `runtime005:`).
+
+### Bench version identifier (X-m2 remediation)
+
+The bench version identifier is unified to `control-bench-v0` everywhere
+(item `bench_version` field and manifest `bench_version`); the legacy
+`rcb-v0` string is retired. failure-cost-matrix.yaml and the verifier
+MANIFEST already use `control-bench-v0`.
 
 ## Difficulty stratification scheme
 
