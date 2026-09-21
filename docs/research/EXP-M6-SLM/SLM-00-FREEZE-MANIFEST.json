@@ -1,8 +1,8 @@
 {
- "manifest_id": "SLM-00-FREEZE-MANIFEST-v1",
+ "manifest_id": "SLM-00-FREEZE-MANIFEST-v2",
  "lane": "SLM-00 Lane G (automated freeze qualification; verification-only)",
  "date": "2026-09-21",
- "supersedes": "SLM-00-FREEZE-MANIFEST-v0 (G_REJECT on G-B1; remediated at slm00/baselines 852e4906)",
+ "supersedes": "SLM-00-FREEZE-MANIFEST-v1 (G2 round 1 REJECT on G2-B1/G2-B2; both remediated and re-qualified here)",
  "base_branch": "research/exp-m6-slm-00",
  "base_commit": "3661319eee03963943a6df88db61243254134983",
  "bench_items_sha256": "15937ec20ec314d0dd80c374a074893c95b43b00b69ae114330615d993c56cbd",
@@ -56,34 +56,38 @@
   {"artifact":"verifier test test_worker_routing.py","path":"research/slm/verifiers/tests/test_worker_routing.py","branch":"slm00/verifiers","commit_sha":"cd650c096ffa203a846cffe4379ebcc9a4f0797f","sha256":"3b1d9d29e568a16e1aefc935aeb0b15ff4142c59eb73f29f6f932392da88fe58"},
   {"artifact":"Lane X cross-lane report","path":"docs/research/EXP-M6-SLM/SLM-00-CROSS-LANE-CONSISTENCY.md","branch":"slm00/lane-x","commit_sha":"d7a0879e2b45fcdd1a2ee1154fbda00c88c99a40","sha256":"fceaa2e5e36b09b454475011da12fab043f8b7da50a01c6992516c247a16c539"},
   {"artifact":"CD-XVAL report","path":"docs/research/EXP-M6-SLM/CD-XVAL-REPORT.md","branch":"slm00/cd-xval","commit_sha":"d6f613cb1c59e0865280cc04e1b2b742172fdcf0","sha256":"b34ac415735f30a7ca384e50a94b96080f64048bbdedbdb3fa9323a466258838"},
-  {"artifact":"CD-XVAL-R2 report","path":"docs/research/EXP-M6-SLM/CD-XVAL-R2-REPORT.md","branch":"slm00/cd-xval-r2","commit_sha":"c386b4e89ffba2e8481572a1baddd44df3f49d0b","sha256":"241311c8669785bd5475f623b2751f2f16266280fa68c9cde31f2bd32028425a"},
-  {"artifact":"eval runner","path":"research/slm/eval/runner/runner.py","branch":"slm-infra/eval-runner","commit_sha":"d1174b37280227f1feca841eec82c425613d3a6f","sha256":"0abf3f96f259f462ae5ae865bbbde78dbbbb59a21c0f6101b84a6793c8943819"},
-  {"artifact":"eval backends","path":"research/slm/eval/runner/backends.py","branch":"slm-infra/eval-runner","commit_sha":"d1174b37280227f1feca841eec82c425613d3a6f","sha256":"33df17884b6b76f705fab1507216d72179f0456e47cde228c4a89a305b60ba1d"},
-  {"artifact":"eval stats","path":"research/slm/eval/runner/stats.py","branch":"slm-infra/eval-runner","commit_sha":"d1174b37280227f1feca841eec82c425613d3a6f","sha256":"7a14d2196512f8365efaf82fd20db2f3e053753d076e327dd11a6faabe144559"},
+  {"artifact":"CD-XVAL-R2 report (SUPERSEDED -- stale refs; retained for history only, NOT current verification evidence)","path":"docs/research/EXP-M6-SLM/CD-XVAL-R2-REPORT.md","branch":"slm00/cd-xval-r2","commit_sha":"c386b4e89ffba2e8481572a1baddd44df3f49d0b","sha256":"241311c8669785bd5475f623b2751f2f16266280fa68c9cde31f2bd32028425a"},
+  {"artifact":"CD-XVAL-R3 report","path":"docs/research/EXP-M6-SLM/CD-XVAL-R3-REPORT.md","branch":"slm00/cd-xval-r3","commit_sha":"5cb36d2cb8c5867d50c726655e9834f3261ac625","sha256":"6a82e506278b676ed406da8b257959dae597eead330a445f416be142a2307f9e"},
+  {"artifact":"eval runner","path":"research/slm/eval/runner/runner.py","branch":"slm-infra/eval-runner","commit_sha":"28de46f90aa1ce6c352fa08898425de663126a9d","sha256":"220381d9f110d9467782e209482c1a152b33d21c1b2540b6198f659195323fcb"},
+  {"artifact":"eval backends","path":"research/slm/eval/runner/backends.py","branch":"slm-infra/eval-runner","commit_sha":"28de46f90aa1ce6c352fa08898425de663126a9d","sha256":"bf363cfb056a1318457558ec41d287742ea73c6b80dd992983941e30597f381c"},
+  {"artifact":"eval stats","path":"research/slm/eval/runner/stats.py","branch":"slm-infra/eval-runner","commit_sha":"28de46f90aa1ce6c352fa08898425de663126a9d","sha256":"7a14d2196512f8365efaf82fd20db2f3e053753d076e327dd11a6faabe144559"},
+  {"artifact":"eval runner tests","path":"research/slm/eval/runner/tests/test_runner.py","branch":"slm-infra/eval-runner","commit_sha":"28de46f90aa1ce6c352fa08898425de663126a9d","sha256":"ab35a592838e54185e462cec2d8775d6cf033b0970c07e8e980c2bd237705b26"},
+  {"artifact":"G2-B1 regression test","path":"research/slm/eval/runner/tests/test_g2b1_regression.py","branch":"slm-infra/eval-runner","commit_sha":"28de46f90aa1ce6c352fa08898425de663126a9d","sha256":"0e1056ec2f87e8b977d079a7d70692c96e04c93828c1d9f87cef48127c1352dd"},
   {"artifact":"corpus linter (post-X-B1)","path":"research/slm/tools/corpus_linter.py","branch":"slm-infra/quality-tooling","commit_sha":"2ae27bea5ea6110233cea019c98521eda705da34","sha256":"dae8715519130e84a2802d9bb2e5c662efbb79515841ea87effc38a7b3a510b4"},
   {"artifact":"dataset compile","path":"research/slm/dataset/compile.py","branch":"slm-infra/data-toolchain","commit_sha":"e8bfbc318674920caf568b2f1cff0e648f7062cd","sha256":"f90515cf8a7a0a671f3dcb34d4ee372ad434ea358bed0ff0dfd7482fbf250230"},
   {"artifact":"SPLIT-VOCABULARY (X-M6 alias doc)","path":"research/slm/ci/SPLIT-VOCABULARY.md","branch":"slm-infra/data-toolchain","commit_sha":"e8bfbc318674920caf568b2f1cff0e648f7062cd","sha256":"f1c62bc8bb4cbb9b8fbd23b3e159bc686659cf41bcf940d569ef90ef047a12f7"}
  ],
  "checks": {
-  "1_schema_validation": "PASS -- corpus sample 13/13 valid vs observation.schema.v0.1 (0 erratum violations); bench sample 12/12 + regen 1000/1000 carry all CONTROL-BENCH-V0 fields; sample digests recompute; sample rows byte-equal to regenerated items",
-  "2_benchmark_regeneration": "PASS -- exactly 1000 items; split 200/150/150/100/100/100/100/100; sha256(regen)==pin 15937ec2...56cbd; regen manifest byte-identical to shipped",
-  "3_verifier_coverage": "PASS -- 8/8 categories; all verifier_refs resolve; verifier pytest 70/70 passed locally",
-  "4_ambiguity": "PASS -- AMBIGUITY.md exclusions documented; all 1000 items deterministically decidable (oracle ceiling run VMSR=1.0 on all 8 categories, 1000 scored, 0 BENCHMARK_DEFECT)",
-  "5_duplicates": "PASS -- 0 exact dups; 1000 unique digests; 1000 unique canonical content keys",
-  "6_cross_split_contamination": "PASS -- 86 groups (12 authentic + 74 bench-syn); bench-authentic groups use corpus lineage scheme verbatim post-X-M1; 7 groups overlap bench<->corpus under ONE key each; groups lineage-atomic; compile.py aborts on any group mapped to 2+ splits; split assignment deferred to freeze, by group",
-  "7_baseline_manifest": "PASS (REMEDIATED) -- BASELINES.yaml @ 852e4906 (blob 9ad57638) parses cleanly (PyYAML safe_load); the three previously-unquoted scalars (lines 78/199/216) and two sibling scalars are now quoted; no remaining unquoted ': ' scalars; arms B0 deterministic / B1 random floor / B2 trivial floor / B3 oracle / B4 7B / B5 SLM / B6 reference all present; all digests unknown-pending-pin (no fabrications); benchmark_hash unfrozen-placeholder as expected pre-freeze",
-  "8_metric_freeze": "PASS -- thresholds concrete (VMSR>=0.80 agg / >=0.70 per-cat, FNER<=0.02, AVR<=0.005, schema-invalid<=0.05; crossing 0.85 + CI LB>=0.80; w_FNE=10/w_UE=1); runner FROZEN_METRIC_FIELDS subset of results_store.KNOWN_METRICS; end-to-end oracle run OK. NOTE (minor): ece/brier/throughput/operator_active_minutes/frontier_calls_avoided in KNOWN_METRICS but not yet computed by runner",
-  "9_statistical_protocol": "PASS -- seeds (20260920,4117,89123,777001,5551212), 3 runs/config, 95% paired bootstrap at contamination_group level (10_000 resamples in stats.py), McNemar exact<25, Holm-Bonferroni alpha=0.05; stats.py verbatim; runner pytest 22/22",
+  "1_schema_validation": "PASS -- corpus sample 13/13 valid vs observation.schema.v0.1 (jsonschema 4.25.1, 0 erratum violations); bench regen 1000/1000 carry all CONTROL-BENCH-V0 fields (14 keys, uniform per category); sample 12/12 rows byte-equal to regenerated items; sample digests recompute",
+  "2_benchmark_regeneration": "PASS (re-executed 2026-09-21) -- exactly 1000 items; split 200/150/150/100/100/100/100/100 exact; sha256(regen)==pin 15937ec2...56cbd UNCHANGED post-G2 remediation; regen manifest byte-identical to shipped",
+  "3_verifier_coverage": "PASS -- 8/8 categories; 0/1000 unresolved verifier_refs; verifier pytest 70/70 PASS; runner pytest 34/34 PASS (incl. test_g2b1_regression.py gold-inaccessibility battery) @ eval-runner 28de46f9",
+  "4_ambiguity": "PASS -- AMBIGUITY.md exclusions documented; all 1000 items deterministically decidable (re-executed oracle ceiling run @ 28de46f9: VMSR=1.0, 0 BENCHMARK_DEFECT)",
+  "5_duplicates": "PASS -- 0 exact dups re-verified: 1000 unique digests, 1000 unique item_ids, 1000 unique canonical content keys; all 1000 digests recompute",
+  "6_cross_split_contamination": "PASS (with confirmed caveat) -- 86 bench groups (12 authentic + 74 bench-syn) re-counted from regenerated items; 152 corpus groups re-derived by executing convert.py @ 1d37436 (387 records, 0 sanitation rejects, 10/10 source blob SHA-1 pins verified); shared bench<->corpus keys measured 12 (superset of the earlier-quoted 7; consistent with the 12-row frozen mapping table in CONTROL-BENCH-V0-DESIGN.md); groups lineage-atomic. SCOPE CORRECTION (G2-N2): compile.py's group-purity abort validates corpus observations only -- bench items never pass through it; bench<->corpus shared-key protection at split time is enforced procedurally at the human split-authoring gate (human-gate item 3), NOT by compile.py. CAVEAT (CD-XVAL-R3 F2, confirmed): cross-group near-duplicate clusters exist (R3 measured 9 clusters/22 items; Lane G re-execution under a slightly different seq-masking normalization measured 7 clusters/19 items -- counts normalization-sensitive; mechanism confirmed: FC period-10 label cycling vs seq//25 bucketing, plus 1 ES and 1 AM cross-group pair). Content-normalized clustering is REQUIRED at freeze-time split authoring (human-gate item 3). Check remains PASS because groups are lineage-atomic and split assignment is group-granular and human-gated, but the caveat is integral to the PASS.",
+  "7_baseline_manifest": "PASS (re-verified) -- BASELINES.yaml @ 852e4906 sha256 dee4abda...0f62 recomputed; parses cleanly (PyYAML 6.0.2 safe_load); 7 arms B0-B6 present; all digests unknown-pending-pin (no fabrications); benchmark_hash unfrozen-placeholder as expected pre-freeze",
+  "8_metric_freeze": "PASS -- thresholds concrete (VMSR>=0.80 agg / >=0.70 per-cat, FNER<=0.02, AVR<=0.005, schema-invalid<=0.05; crossing 0.85 + CI LB>=0.80; w_FNE=10/w_UE=1); runner FROZEN_METRIC_FIELDS subset of results_store.KNOWN_METRICS; end-to-end oracle + floor runs re-executed @ 28de46f9. NOTE (minor, unchanged): ece/brier/throughput/operator_active_minutes/frontier_calls_avoided in KNOWN_METRICS but not yet computed by runner",
+  "9_statistical_protocol": "PASS -- seeds (20260920,4117,89123,777001,5551212), 3 runs/config, 95% paired bootstrap at contamination_group level (10_000 resamples in stats.py), McNemar exact<25, Holm-Bonferroni alpha=0.05; stats.py verbatim @ 28de46f9 (sha256 7a14d219...4559 unchanged); runner pytest 34/34 (suite grew from 22 to 34 incl. G2-B1 regression tests)",
   "10_prior_art": "PASS -- 16 mandated domains covered (groups A-E, 21 works); NOVELTY STATUS: PARTIAL + scope-review (narrow-the-claim) recommendation is a VALID outcome; scope-review ratification is a HUMAN GATE item",
-  "11_provenance": "PASS -- git blob SHA-1 anchors recomputed from content and verified: schema v0 6e549b05, protocol a3ea085a, preflight e819b727, evidence dsm004 20c8e7e4 / obs006 4f140a22 / otx 9d24ecec / runtime005 76358dd1 / vq-part0 e79f2946; corpus artifact_digests git_blob_sha1-prefixed (X-M7)",
-  "12_artifact_hashing": "PASS -- sha256 recorded for all 56 validated artifact files (artifacts[])"
+  "11_provenance": "PASS -- git blob SHA-1 anchors recomputed from content and verified: schema v0 6e549b05, protocol a3ea085a, preflight e819b727, evidence dsm004 20c8e7e4 / obs006 4f140a22 / otx 9d24ecec / runtime005 76358dd1 / vq-part0 e79f2946 (10/10 SOURCE_SHAS pins re-verified by executing convert.py); corpus artifact_digests git_blob_sha1-prefixed (X-M7)",
+  "12_artifact_hashing": "PASS -- sha256 recomputed from content for all 59 artifact entries (56 v1 artifacts re-verified at pinned commits; eval-runner entries re-hashed at new head 28de46f9; 2 runner test files + CD-XVAL-R3 report added as deltas)"
  },
  "blocking_findings": [],
  "minor_notes": [
   "split manifest deferred-to-freeze by design (assignment by contamination group at freeze); split_manifest_sha256 therefore deferred-to-freeze",
   "68/150 evidence_sufficiency frozen expected_outputs omit verifier_outputs although input_state.required_verifier_outputs is set; candidate contract (not the reference label) supplies it; X-M2 projection verified via oracle VMSR=1.0",
   "corpus convert.py serialization uses json.dumps default separators vs canonical (',',':') convention (X-m5; matters only for cross-artifact digest comparison)",
-  "runner does not yet compute ece/brier/throughput/operator_active_minutes/frontier_calls_avoided (KNOWN_METRICS superset)"
+  "runner does not yet compute ece/brier/throughput/operator_active_minutes/frontier_calls_avoided (KNOWN_METRICS superset)",
+  "CD-XVAL-R3 F4 (INFO): CONTROL-BENCH-V0-DESIGN.md cites stale corpus head 1c127f9b; observed corpus head is 1d374360; doc reference only, executed converter behaves as documented"
  ],
  "lane_x_fix_verification": {
   "X-B1": "FIXED (schema v0.1 ratified; post-X-B1 linter accepts erratum marker; sample lint ok, 0 ERROR)",
@@ -96,7 +100,17 @@
   "X-M7": "FIXED (corpus artifact_digests git_blob_sha1-prefixed)"
  },
  "remediation_verification": {
-  "G-B1": "RESOLVED -- re-pulled BASELINES.yaml @ 852e4906fa0a2013c3f39534fd8f4bd912314d25 (blob 9ad576381d6ac35f0e62d9ca10733e327a79ae8e, matches local copy); parses under PyYAML; structure/content otherwise unchanged (7 arms, unknown-pending-pin digests); Lane G performed no repairs"
+  "G-B1": "RESOLVED -- re-pulled BASELINES.yaml @ 852e4906fa0a2013c3f39534fd8f4bd912314d25 (blob 9ad576381d6ac35f0e62d9ca10733e327a79ae8e, matches local copy); parses under PyYAML; structure/content otherwise unchanged (7 arms, unknown-pending-pin digests); Lane G performed no repairs",
+  "G2-B1": "RESOLVED -- B1 random-floor label leak fixed @ slm-infra/eval-runner 28de46f9 (blob sha1s verified: backends.py 722dafab, runner.py 11129a83, test_runner.py 4a22963a, test_g2b1_regression.py 009abee0). Lane G independently re-executed: runner pytest 34/34 PASS; B1-random-policy end-to-end on regenerated bench: VMSR=0.041 aggregate (was 0.873 with leak; per-category max 0.23 stale_state_authority, 0.09 worker_routing, 0.0 elsewhere) -- conformant to BASELINES.yaml @ 852e4906 floor_random spec (uniform over schema-valid decision space); gold inaccessible to non-oracle backends via candidate-payload whitelist (fresh deep copy, KeyError on gold access); B3-oracle requires_gold=True ceiling intact: VMSR=1.0, 0 BENCHMARK_DEFECT",
+  "G2-B2": "RESOLVED -- stale CD-XVAL-R2 evidence replaced by CD-XVAL-R3 @ slm00/cd-xval-r3 5cb36d2c (report blob sha1 dbd3df13 verified; sha256 6a82e506...07f9e; PR #394), disposition CLEAN-WITH-FINDINGS against the CURRENT frozen refs (bench dffc5ede, verifiers cd650c09, pin 15937ec2...56cbd). Lane G re-executed the material checks independently (regen/pin, verifier 70/70, digests, groups, shared keys, corpus converter) with matching numbers. R3 findings carried forward: F1 contract asymmetry (LOW), F2 near-dup clusters 9/22 normalization-sensitive (LOW, folded into check 6 caveat + human-gate 3), F3 shared keys 12 not 7 (LOW), F4 stale corpus head citation in design doc (INFO). R2 retained in artifacts[] marked SUPERSEDED, never presented as current evidence"
+ },
+ "g2_round_1": {
+  "report": "slm00/g2-redteam @ 42ab59ed (PR #393)",
+  "disposition": "REJECT (2 blocking findings)",
+  "G2-B1": "B1 random-floor label leak -> remediated at eval-runner 28de46f9; re-verified by Lane G (see remediation_verification.G2-B1)",
+  "G2-B2": "stale CD-XVAL-R2 evidence -> replaced by CD-XVAL-R3 5cb36d2c; re-verified by Lane G (see remediation_verification.G2-B2)",
+  "G2-N2": "non-blocking doc finding against Lane G receipt text (compile.py scope overclaim) -> receipt wording corrected in this round",
+  "g2_round_2": "PENDING -- re-review by G2 red team required; this re-qualification does not preempt it"
  },
  "status": "G_PASS"
 }
