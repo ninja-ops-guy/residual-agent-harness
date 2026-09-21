@@ -3,9 +3,10 @@
  *
  * The canonical journey predates the one-time launch capability and expects
  * `/api/bootstrap` to disclose an operator token. Rather than reintroducing
- * that authority leak, this test-only loader makes three narrow substitutions:
+ * that authority leak, this test-only loader makes narrow substitutions:
  * capture the real launch URL printed by the child Station, navigate through
- * that URL once, and rely on the resulting HttpOnly cookie for later API reads.
+ * that URL once, keep later absolute navigation on the authenticated launch
+ * origin, and rely on the resulting HttpOnly cookie for later API reads.
  * Every expected source fragment is asserted so drift fails closed.
  */
 const fs = require('node:fs');
@@ -42,6 +43,11 @@ replaceOnce(
   "await page.waitForFunction(async()=>{const b=await fetch('/api/bootstrap').then(r=>r.json());const r=await fetch('/api/projects',{headers:{'X-Station-Token':b.token}}).then(r=>r.json());return r.projects[0]?.tasks.every(t=>t.state==='integrated');},{},{timeout:45000});",
   "await page.waitForFunction(async()=>{const r=await fetch('/api/projects').then(r=>r.json());return r.projects[0]?.tasks.every(t=>t.state==='integrated');},{},{timeout:45000});",
   'cookie-authenticated project polling',
+);
+replaceOnce(
+  "await page.setViewportSize({width:390,height:844});await page.goto(url+'/#overview');",
+  "await page.setViewportSize({width:390,height:844});await page.goto(new URL('/#overview',launchUrl).href);",
+  'authenticated mobile navigation',
 );
 
 const loaded = new Module(filename, module);
