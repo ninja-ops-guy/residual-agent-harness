@@ -39,3 +39,5 @@ jobs:
           python-version: "3.11"
       - name: Validate open/commercial license boundary
         run: python tools/check_open_core_boundary.py
+      - name: Verify open-core export contains no reserved paths
+        run: python tools/export_open_core.py --list > /tmp/open-core-files.txt
