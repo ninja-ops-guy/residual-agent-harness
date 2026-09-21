@@ -100,6 +100,21 @@ def validate_manifest(manifest: ModuleManifest) -> None:
 
 _RESULT_PREFIX = "RESIDUAL_SANDBOX_RESULT:"
 _MAX_RESULT_BYTES = 1 << 20
+_SANDBOX_PYTHON = "/usr/bin/python3"
+
+
+def _sandbox_python() -> str:
+    """Return the Python runtime guaranteed to be visible in the minimal jail.
+
+    ``sys.executable`` may point at CI/toolcache locations such as ``/opt``
+    that B-R9 intentionally does not mount. The system interpreter lives below
+    the existing read-only ``/usr`` runtime bind; fail closed if it is absent
+    rather than widening the sandbox around the host's current interpreter.
+    """
+    if not os.path.isfile(_SANDBOX_PYTHON) or not os.access(_SANDBOX_PYTHON, os.X_OK):
+        raise ContractError("ENT5-R7: sandbox runtime interpreter unavailable")
+    return _SANDBOX_PYTHON
+
 
 # This wrapper is executed only inside a kernel-isolated sandbox selected by
 # residual.sandbox. Keeping arbitrary module source out of the parent process
@@ -216,7 +231,7 @@ def _kernel_execute(
     backend.start(spec)
     try:
         result = backend.exec(
-            [sys.executable, "-I", "-S", "-c", _ISOLATED_RUNNER],
+            [_sandbox_python(), "-I", "-S", "-c", _ISOLATED_RUNNER],
             stdin=envelope,
         )
     finally:
