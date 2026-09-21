@@ -23,7 +23,8 @@ SHA = re.compile(r"^[a-f0-9]{40,64}$")
 EVENT_TYPES = {"project.created", "project.paused", "project.resumed", "task.transition",
                "task.claimed", "task.finding", "checks.completed", "review.completed",
                "integration.completed", "usage.recorded", "report.generated", "release.exported",
-               "worker.joined", "worker.expired", "project.note"}
+               "worker.joined", "worker.expired", "project.note",
+               "station_lm.shadow_pair", "station_lm.fallback"}
 LDD_BASE = json.loads((Path(__file__).parent / "schemas" / "ldd-base.json").read_text())
 
 

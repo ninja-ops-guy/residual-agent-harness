@@ -13,6 +13,8 @@ from .model_registry import ModelManifest, ModelRegistry, RegistryEntry
 from .provider import AdvisoryResult, DecisionReceipt, StationLMProvider
 from .rollback import RollbackMonitor, RollbackTrigger
 from .shadow import PairedDecision, ShadowModeHook
+from .canary import CANARY_SCHEMA, DEFAULT_STEPS, CanaryRollout
+from .integration import FALLBACK_SCHEMA, StationShadowIntegration
 
 __all__ = [
     "DECISION_SCHEMA_VERSION", "DecisionModel", "DecisionProposal",
@@ -20,4 +22,6 @@ __all__ = [
     "ModelManifest", "ModelRegistry", "RegistryEntry",
     "AdvisoryResult", "DecisionReceipt", "StationLMProvider",
     "RollbackMonitor", "RollbackTrigger", "PairedDecision", "ShadowModeHook",
+    "CANARY_SCHEMA", "DEFAULT_STEPS", "CanaryRollout",
+    "FALLBACK_SCHEMA", "StationShadowIntegration",
 ]
