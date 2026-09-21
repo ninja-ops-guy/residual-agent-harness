@@ -53,6 +53,11 @@ jobs:
           CONFIG.MODEL: "gpt-4o"
           CONFIG.FALLBACK_MODELS: '["gpt-4o-mini"]'
           CONFIG.PROPAGATE_TOOL_ERRORS: "true"
+          # GitHub Actions' GITHUB_TOKEN cannot safely prove the bot identity
+          # required to mutate PR-Agent's persistent finding state on later pushes.
+          # Publish a fresh, append-only full review for each exact head instead.
+          # The gate below already binds acceptance to a bot comment from this run.
+          PR_REVIEWER.PERSISTENT_COMMENT: "false"
 
       - name: Verify substantive advisory review was published
         shell: bash
