@@ -70,6 +70,7 @@ def demo_spec():
 class Station:
     def __init__(self, root, *, extension_factory=None):
         self.store = Store(root)
+        self.station_lm = None
         self.store.settings(DEFAULTS, defaults=True)
         self.store.recover(startup=True)
         self.ollama = Ollama(self.store)
@@ -256,17 +257,56 @@ class Station:
                     self.store.transition(pid, t["id"], "repair_required", lease=lease, fields={"findings": [str(e)[:500] if isinstance(e, ContractError) else "Runner failed before verification"]})
                 raise
 
+    def attach_station_lm(self, integration):
+        """Attach an advisory StationLM shadow integration (advisory only).
+
+        The integration never gains execution authority; it only observes
+        route decisions when the ``station_lm.enabled`` setting is on.
+        """
+        from residual.station_lm import StationShadowIntegration
+        if not isinstance(integration, StationShadowIntegration):
+            raise ContractError("station_lm must be a StationShadowIntegration")
+        self.station_lm = integration
+
+    def _route_decision(self, pid, t):
+        """Authoritative route selection, optionally shadowed by StationLM.
+
+        The deterministic spec route is always authoritative. When shadow
+        mode is config-gated on (settings key ``station_lm.enabled``) and an
+        integration is attached, StationLM produces a paired advisory
+        decision for comparison; only the authoritative route is returned.
+        """
+        route = "cloud" if t["route"] == "cloud" else "local"
+        settings = self.store.settings().get("station_lm", {})
+        if self.station_lm is None or not isinstance(settings, dict) or settings.get("enabled") is not True:
+            return route
+        from residual.station_lm import DecisionRequest
+        request = DecisionRequest(
+            task_id=t["id"],
+            packet={"spec_route": t["route"], "instruction_sha": sha(t["instruction"]),
+                    "attempt": t["attempt"]},
+            allowed_routes=("local", "cloud"))
+        return self._shadow_route(pid, t, request, route)
+
+    def _shadow_route(self, pid, t, request, route):
+        def emit(event, payload):
+            self.store.event(pid, event, payload, t["id"])
+        integration = self.station_lm
+        integration.sink = emit
+        return integration.decide_route(request, lambda req: route)
+
     def run_one(self, pid, tid=None, owner="local-runner"):
         work = self.prepare(pid, owner, tid)
         if not work:
             return None
         p, t = self.store.project(pid), work["task"]
         try:
+            route = self._route_decision(pid, t)
             if p["mode"] == "demo":
                 response = {"files": DEMO_FILES[t["id"]]}
             else:
                 response = model_call(self.store, pid, "runner", work["packet"], RUNNER_SYSTEM, FILES_SCHEMA,
-                                      "cloud" if t["route"] == "cloud" else "local", t["id"], extensions=self.extensions(pid))
+                                      route, t["id"], extensions=self.extensions(pid))
             return self.finish(work, response)
         except Exception as e:
             if self.store.task(pid, t["id"])["state"] == "running":
