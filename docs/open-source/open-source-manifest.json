@@ -26,8 +26,8 @@
     "residual/study.py",
     "residual/study_tasks.py",
     "residual/verifier.py",
-    "research",
     "docs/research.md",
+    "docs/station/RESEARCH.md",
     "docs/evaluation.md",
     "docs/controlled-evaluation.md",
     "docs/factory/SPEC-EVAL-001.md"
