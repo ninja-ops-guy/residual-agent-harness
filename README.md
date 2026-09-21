@@ -16,6 +16,12 @@ See [LICENSING.md](LICENSING.md) and the authoritative [Open Source Manifest](do
 
 Enterprise identity, multi-tenancy, HA/DR, compliance, enterprise integrations, enterprise control-plane capabilities, commercial licensing and enterprise Studio work are outside the current Open Core unless explicitly added to the manifest.
 
+## Citation and project origin
+
+RESIDUAL was created and is maintained by **Mike Olivares (`ninja-ops-guy`)**. For software or research use, cite the exact version/commit through [CITATION.cff](CITATION.cff). The public provenance record is in [PROJECT_ORIGIN.md](docs/open-source/PROJECT_ORIGIN.md), and research-significant releases should preserve immutable revisions, evidence digests, and DOI-backed archives when available.
+
+AI coding and research systems are used extensively as development tools; human authorship, licensing authority, research claims, and integration authority remain with the human maintainer and credited human contributors.
+
 ## What is implemented
 
 RESIDUAL spans a connected platform rather than a single agent loop:
