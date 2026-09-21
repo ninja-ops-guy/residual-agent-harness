@@ -13,7 +13,7 @@ Artifacts: `research/slm/bench/generate_bench.py`, `research/slm/bench/seed/*.js
 
 Every item carries: `item_id`, `bench_version`, `category`, `input_state`, `expected_output`, `output_schema` (inline JSON-schema fragment), `verifier_ref`, `allowed_alternatives`, `contamination_group`, `source_provenance`, `difficulty` metadata, `safety_critical`, `synthetic`, and `digest`.
 
-Digest: `sha256:` + SHA-256 of `json.dumps(item_without_digest, sort_keys=True, separators=(",",""), ensure_ascii=True)` UTF-8 bytes. The function is implemented in `generate_bench.py:canonical_digest` and is the single source of truth. The 24-item sample file carries real digests computed with this exact function (no hand-invented hex anywhere in the bench).
+Digest: `sha256:` + SHA-256 of `json.dumps(item_without_digest, sort_keys=True, separators=(",",":"), ensure_ascii=True)` UTF-8 bytes. The function is implemented in `generate_bench.py:canonical_digest` and is the single source of truth. The 24-item sample file carries real digests computed with this exact function (no hand-invented hex anywhere in the bench).
 
 ## Per-category design rationale and coverage map
 
