@@ -8,16 +8,22 @@ Implements the frozen SLM-01 baseline roles (BASELINES.yaml):
 * ``TrivialMajorityBackend``      -> B2 trivial majority-class floor (fit on a
   provided TRAIN-split stats file only; holdout labels never read)
 * ``OracleBackend``               -> B3 oracle ceiling (emits the declared
-  expected_output; ceiling verification only, never a candidate policy)
-* ``HttpBackend``                 -> stub for external models (B4/B5/B6 class)
-  over an OpenAI-compatible/JSON HTTP endpoint
+  expected_output projected to candidate shape via
+  ``expected_output_to_candidate`` (X-M2); ceiling verification only,
+  never a candidate policy)
+* ``OllamaBackend``/``B5OllamaBackend`` -> B4/B5 real Ollama backends
+  (localhost /api/generate; model pinned from BASELINES.yaml; fail-closed
+  on unreachable endpoint) (X-M3)
+* ``OpenAICompatibleBackend``     -> B6 vLLM OpenAI-compatible backend
+  (/v1/chat/completions; fail-closed on unreachable endpoint) (X-M3)
 
 Floors and the oracle exist to expose weak benchmarks (random-majority
 exploits, trivially passable items); per protocol they are reported
 prominently, never hidden.
 
 All backends are pure functions of (item, per-call RNG) with no training, no
-tuning, and no benchmark mutation. Stdlib-only.
+tuning, and no benchmark mutation. Stdlib-only. Backend names are the exact
+baseline IDs of BASELINES.yaml (B0..B6, X-m1 unified casing).
 """
 from __future__ import annotations
 
@@ -88,7 +94,7 @@ class DeterministicPolicyBackend(ModelBackend):
     * otherwise emit the schema-minimal default for output_schema.
     """
 
-    name = "b0-deterministic-rules"
+    name = "B0-deterministic-rules"
 
     def predict(self, item: Mapping[str, Any], rng: random.Random) -> Any:
         input_state = item.get("input_state") or {}
@@ -117,7 +123,7 @@ class RandomPolicyBackend(ModelBackend):
     streams are item-order stable and reproducible.
     """
 
-    name = "b1-random-policy"
+    name = "B1-random-policy"
 
     def predict(self, item: Mapping[str, Any], rng: random.Random) -> Any:
         alternatives = item.get("allowed_alternatives")
@@ -172,7 +178,7 @@ class TrivialMajorityBackend(ModelBackend):
     schema-minimal default, escalating on safety-critical items.
     """
 
-    name = "b2-trivial-majority"
+    name = "B2-trivial-majority"
 
     def __init__(self, train_stats_path: str) -> None:
         with open(train_stats_path, "r", encoding="utf-8") as fh:
@@ -192,63 +198,211 @@ class TrivialMajorityBackend(ModelBackend):
         return MalformedOutput(raw=None)
 
 
+# --------------------------------------------------------------------- X-M2
+# expected_output -> candidate-output converter. Lane D verifier contracts
+# (research/slm/verifiers/*.py module docstrings) define the CANDIDATE shape
+# per category; the bench's expected_output carries verifier-internal fields
+# (allowed_routes, feasible_routes, ...) that are NOT candidate fields. The
+# converter projects expected_output to the exact candidate shape so the
+# B3 oracle and the positive battery produce candidate-shaped outputs.
+def expected_output_to_candidate(item: Mapping[str, Any]) -> Any:
+    """Project an item's expected_output into candidate-output shape (X-M2).
+
+    Returns a Mapping conforming to the category's candidate contract, or a
+    MalformedOutput sentinel when the item's category/expected_output is not
+    convertible (the verifier then surfaces BENCHMARK_DEFECT). Never imputes
+    fields absent from the item.
+    """
+    expected = item.get("expected_output")
+    if not isinstance(expected, Mapping):
+        return MalformedOutput(raw=expected)
+    category = item.get("category")
+    if category == "worker_routing":
+        action = expected.get("action")
+        if action == "route":
+            route = expected.get("selected_route")
+            if route is None:
+                allowed = expected.get("allowed_routes") or []
+                route = allowed[0] if allowed else None  # any legal route passes
+            return {"action": "route", "route": route}
+        return {"action": action, "route": None}
+    if category == "contract_compilation":
+        contract = expected.get("contract")
+        if not isinstance(contract, Mapping):
+            return MalformedOutput(raw=expected)
+        return {"contract": copy.deepcopy(contract)}
+    if category == "evidence_sufficiency":
+        state = item.get("input_state") or {}
+        return {
+            "sufficient": expected.get("sufficient"),
+            "missing_requirements": list(expected.get("missing_requirements") or []),
+            "verifier_outputs": list(state.get("required_verifier_outputs") or []),
+        }
+    if category == "retry_escalate_abort":
+        return {"action": expected.get("action"),
+                "reason_code": expected.get("reason_code")}
+    if category == "budget_decisions":
+        return {"decision": expected.get("decision")}
+    if category == "failure_classification":
+        return {"label": expected.get("label")}
+    if category == "adversarial_malformed":
+        return {"reject": True, "reason_code": expected.get("reason_code")}
+    if category == "stale_state_authority":
+        return {"legal": expected.get("legal"),
+                "violation": expected.get("violation")}
+    return MalformedOutput(raw={"unconvertible_category": category})
+
+
 class OracleBackend(ModelBackend):
-    """B3: emit the declared expected_output (ceiling verification only).
+    """B3: emit the candidate-shaped projection of expected_output (X-M2).
 
     Per BASELINES.yaml the oracle reads labels only to define the ceiling; it
     is never eligible as a candidate policy and its outputs are never used in
-    training corpora. Items whose expected_output is not an object yield
+    training corpora. Items whose expected_output is not convertible yield
     MalformedOutput (the verifier will surface the item defect).
     """
 
-    name = "b3-oracle"
+    name = "B3-oracle"
 
     def predict(self, item: Mapping[str, Any], rng: random.Random) -> Any:
-        expected = item.get("expected_output")
-        if isinstance(expected, Mapping):
-            return copy.deepcopy(expected)
-        return MalformedOutput(raw=expected)
+        return expected_output_to_candidate(item)
 
 
-class HttpBackend(ModelBackend):
-    """Stub backend for external models (B4/B5/B6 class).
+# --------------------------------------------------------------------- X-M3
+def render_prompt(item: Mapping[str, Any]) -> str:
+    """Prompt for live backends (template id exp-m6-slm-control-decision-v0).
 
-    POSTs a JSON body {"item_id", "input_state", "output_schema",
-    "decoding"} to ``endpoint`` and expects a JSON object response. Network
-    failures or non-object responses yield MalformedOutput (fail-closed;
-    attributed to the configuration per protocol section 8). Not used in
-    unit tests (no network in CI).
+    Canonical serialization convention (X-m5, one true form):
+    json.dumps(obj, sort_keys=True, separators=(",", ":")).
+    """
+    payload = {
+        "instruction": (
+            "You are a Residual control-decision component. Respond with ONE "
+            "JSON object conforming to output_schema. No prose, no markdown."
+        ),
+        "input_state": item.get("input_state"),
+        "output_schema": item.get("output_schema"),
+    }
+    return json.dumps(payload, sort_keys=True, separators=(",", ":"))
+
+
+def _parse_json_object(text: Any) -> Any:
+    if not isinstance(text, str):
+        return MalformedOutput(raw=text)
+    text = text.strip()
+    try:
+        obj = json.loads(text)
+    except Exception:
+        start, end = text.find("{"), text.rfind("}")
+        if start == -1 or end <= start:
+            return MalformedOutput(raw=text[:200])
+        try:
+            obj = json.loads(text[start:end + 1])
+        except Exception:
+            return MalformedOutput(raw=text[:200])
+    return obj if isinstance(obj, Mapping) else MalformedOutput(raw=obj)
+
+
+class OllamaBackend(ModelBackend):
+    """B4/B5: real Ollama backend via localhost /api/generate.
+
+    Model pinned from BASELINES.yaml (B4: qwen2.5:7b-instruct;
+    B5: qwen2.5:1.5b-instruct). Decoding from the BASELINES shared block
+    (temperature 0.0, seed 0). FAIL-CLOSED: any connection/parse failure
+    yields MalformedOutput (attributed to the configuration, never hidden).
+    Not exercised in unit tests (no live calls in CI).
     """
 
-    name = "http-external"
+    name = "B4-local-7b"
+    DEFAULT_MODEL = "qwen2.5:7b-instruct"
 
-    def __init__(self, endpoint: str, *, timeout_s: float = 60.0,
-                 headers: Optional[Mapping[str, str]] = None,
+    def __init__(self, base_url: str = "http://127.0.0.1:11434",
+                 *, model: Optional[str] = None, timeout_s: float = 120.0,
                  decoding: Optional[Mapping[str, Any]] = None) -> None:
-        self.endpoint = endpoint
+        self.base_url = base_url.rstrip("/")
+        self.model = model or self.DEFAULT_MODEL
         self.timeout_s = timeout_s
-        self.headers = dict(headers or {})
-        self.decoding = dict(decoding or {"temperature": 0.0, "seed": 0})
+        dec = {"temperature": 0.0, "top_p": 1.0, "top_k": -1,
+               "seed": 0, "num_predict": 1024}
+        dec.update(decoding or {})
+        self.decoding = dec
 
     def predict(self, item: Mapping[str, Any], rng: random.Random) -> Any:
-        body = json.dumps({
-            "item_id": item.get("item_id"),
-            "input_state": item.get("input_state"),
-            "output_schema": item.get("output_schema"),
-            "decoding": self.decoding,
-        }).encode("utf-8")
-        request = urllib.request.Request(
-            self.endpoint, data=body, method="POST",
-            headers={"Content-Type": "application/json", **self.headers},
-        )
+        schema = item.get("output_schema")
+        body = {
+            "model": self.model,
+            "prompt": render_prompt(item),
+            "stream": False,
+            "options": self.decoding,
+        }
+        if isinstance(schema, Mapping):
+            body["format"] = schema
+        req = urllib.request.Request(
+            self.base_url + "/api/generate",
+            data=json.dumps(body).encode("utf-8"), method="POST",
+            headers={"Content-Type": "application/json"})
         try:
-            with urllib.request.urlopen(request, timeout=self.timeout_s) as resp:
+            with urllib.request.urlopen(req, timeout=self.timeout_s) as resp:
                 payload = json.loads(resp.read().decode("utf-8"))
-        except Exception as exc:  # fail-closed: infrastructure/parse failure
-            return MalformedOutput(raw="%s: %s" % (type(exc).__name__, exc))
-        if isinstance(payload, Mapping):
-            return payload
-        return MalformedOutput(raw=payload)
+        except Exception as exc:  # fail-closed: unreachable/parse failure
+            return MalformedOutput(raw="ollama: %s: %s" % (type(exc).__name__, exc))
+        if not isinstance(payload, Mapping) or "response" not in payload:
+            return MalformedOutput(raw=payload)
+        return _parse_json_object(payload.get("response"))
+
+
+class B5OllamaBackend(OllamaBackend):
+    """B5: qwen2.5:1.5b-instruct via Ollama (same path, smaller pin)."""
+
+    name = "B5-slm-1p5b"
+    DEFAULT_MODEL = "qwen2.5:1.5b-instruct"
+
+
+class OpenAICompatibleBackend(ModelBackend):
+    """B6: OpenAI-compatible endpoint (vLLM), /v1/chat/completions.
+
+    Model pinned from BASELINES.yaml: Qwen/Qwen2.5-32B-Instruct served via
+    vLLM. FAIL-CLOSED: unreachable endpoint, HTTP error, or non-JSON output
+    yields MalformedOutput. No live calls in tests (socket-level mocked).
+    """
+
+    name = "B6-reference-strong"
+    DEFAULT_MODEL = "Qwen/Qwen2.5-32B-Instruct"
+
+    def __init__(self, base_url: str, *, model: Optional[str] = None,
+                 api_key: Optional[str] = None, timeout_s: float = 120.0,
+                 decoding: Optional[Mapping[str, Any]] = None) -> None:
+        self.base_url = base_url.rstrip("/")
+        self.model = model or self.DEFAULT_MODEL
+        self.api_key = api_key
+        self.timeout_s = timeout_s
+        dec = {"temperature": 0.0, "top_p": 1.0, "seed": 0,
+               "max_tokens": 1024}
+        dec.update(decoding or {})
+        self.decoding = dec
+
+    def predict(self, item: Mapping[str, Any], rng: random.Random) -> Any:
+        body = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": render_prompt(item)}],
+            "response_format": {"type": "json_object"},
+            **self.decoding,
+        }
+        headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            headers["Authorization"] = "Bearer " + self.api_key
+        req = urllib.request.Request(
+            self.base_url + "/v1/chat/completions",
+            data=json.dumps(body).encode("utf-8"), method="POST",
+            headers=headers)
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout_s) as resp:
+                payload = json.loads(resp.read().decode("utf-8"))
+            content = payload["choices"][0]["message"]["content"]
+        except Exception as exc:  # fail-closed
+            return MalformedOutput(raw="openai-compatible: %s: %s"
+                                   % (type(exc).__name__, exc))
+        return _parse_json_object(content)
 
 
 BACKENDS = {
@@ -256,5 +410,7 @@ BACKENDS = {
     RandomPolicyBackend.name: RandomPolicyBackend,
     TrivialMajorityBackend.name: TrivialMajorityBackend,
     OracleBackend.name: OracleBackend,
-    HttpBackend.name: HttpBackend,
+    OllamaBackend.name: OllamaBackend,
+    B5OllamaBackend.name: B5OllamaBackend,
+    OpenAICompatibleBackend.name: OpenAICompatibleBackend,
 }
