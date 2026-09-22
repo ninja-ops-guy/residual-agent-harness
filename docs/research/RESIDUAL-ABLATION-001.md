@@ -56,9 +56,13 @@ The paired block is `(task_id, repeat)`; every block contains R0–R5 exactly
 once. Minimum repeats are **3**. There is no outcome-dependent early stopping.
 
 Confirmatory comparisons are R4 vs R0 (COVD effect) and R5 vs R4 (incremental
-dynamic-swarm effect). R1–R3 are mechanism-attribution arms. Freeze statistical
-analysis code and uncertainty/multiplicity rules before confirmatory outcome
-access.
+dynamic-swarm effect). R1–R3 are mechanism-attribution arms.
+
+Inference is frozen in `confirmatory_analysis`: repeats are averaged within
+each task before paired inference so repeats are not treated as independent
+samples. Both primary and safety endpoints use deterministic 5,000-draw paired
+bootstrap intervals (seed 20260921) plus the existing paired test, and the four
+confirmatory p-values are corrected as one family with Holm-Bonferroni.
 
 ## Missingness
 
