@@ -220,6 +220,12 @@ class TaskMeasurement:
             _nonnegative_int(getattr(self, name), name)
         if self.state == "UNKNOWN" and (self.correct is not None or self.accepted):
             raise ContractError("UNKNOWN requires correct=None and accepted=False")
+        if self.state != "UNKNOWN" and self.correct is None:
+            raise ContractError("completed outcomes require an independent correctness verdict")
+        if self.accepted and self.verifier_rejected:
+            raise ContractError("accepted outcome cannot also be verifier_rejected")
+        if self.recovered_failures > self.recovery_attempts:
+            raise ContractError("recovered_failures cannot exceed recovery_attempts")
         if self.state == "PASS" and (self.correct is not True or not self.accepted):
             raise ContractError("PASS requires correct=True and accepted=True")
         if self.state == "FAIL" and (self.correct is not False or not self.accepted):
