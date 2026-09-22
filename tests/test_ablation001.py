@@ -131,7 +131,7 @@ def test_manifest_rejects_fixture_label_and_changed_arm_hashes():
         ExecutionManifest(
             protocol_sha256=protocol.sha256, workload_sha256=workload.sha256,
             source_commit="0" * 40, factors=_factors(),
-            config_hashes=(("R0", digest("changed")),),
+            arm_definition_hashes=(("R0", digest("changed")),),
         )
 
 
