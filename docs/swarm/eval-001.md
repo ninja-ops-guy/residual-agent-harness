@@ -16,7 +16,7 @@ layers (R1–R5) while holding worker/model capability constant.
 | `residual/eval_frozen/metrics.py` | EVAL-R6: AER/FAR, ISR, ASSR, acceptance coverage, false rejection, FCR (when fault labels exist), throughput, latency (mean/p50/p95), rework, conflicts, verifier rejection, token/compute cost. |
 | `residual/eval_frozen/report.py` | EVAL-R8/R9: hash-bound aggregate report (`residual.eval-report.v1`), paper-ready CSV, reproducible plotting inputs (reliability-vs-cost, reliability-vs-latency, state distributions). |
 | `residual/eval_frozen/evidence.py` | Gate B: evidence artifact (`residual.eval-evidence.v1`) with exact commit/tree identity (git or file-digest fallback), runtime versions, frozen inputs, raw observations, results. |
-| `residual/eval_frozen/__main__.py` | EVAL-R10: `python3 -m residual.eval_frozen --out evidence/eval` runs the CI fixture end-to-end; `--live` produces separately labeled `live_model` evidence. |
+| `residual/eval_frozen/__main__.py` | EVAL-R10: `python3 -m residual.eval_frozen --out evidence/eval` runs the CI fixture end-to-end. `--live` now fails closed because this module has no live model execution path. |
 
 ## Metric definitions
 
@@ -54,7 +54,7 @@ not live LLM capability.
 | EVAL-R7 paired run records | `test_r7_paired_records_enable_task_level_comparison` |
 | EVAL-R8 failed/aborted retained | `test_r8_failures_and_aborts_stay_in_aggregates`, `test_r8_states_distinct_and_typed` |
 | EVAL-R9 CSV/JSON + plotting inputs | `test_r9_csv_rows_parseable`, `test_r9_plotting_inputs_bound_to_report`, `test_r9_report_hash_bound_and_deterministic`, `test_r9_report_hash_reproducible_across_processes` |
-| EVAL-R10 CI fixture vs live labeling | `test_r10_fixture_labeled_development`, `test_r10_live_runs_separately_labeled`, `test_r10_invalid_evidence_level_rejected` |
+| EVAL-R10 fixture/live evidence separation | `test_r10_fixture_labeled_development`, `test_r10_scripted_runner_cannot_emit_live_model_evidence`, `test_r10_invalid_evidence_level_rejected`, `test_acceptance_cli_live_flag_fails_closed` |
 | Gate B evidence artifact | `test_gate_b_evidence_artifact_identity_and_contents` |
 | Gate C reproduction (P(X), P(A), P(X\|A)) | `test_gate_c_recompute_probabilities_from_raw_records`, `test_gate_c_aggregate_metrics_match_recomputed`, `test_gate_c_unknowns_stay_in_recompute_denominators` |
 | Acceptance (end-to-end R0–R5) | `test_acceptance_end_to_end_fixture_study`, `test_acceptance_cli_runs_end_to_end` |
@@ -88,6 +88,8 @@ report in Gate C tests.
 ## Limitations
 
 - Fixture outcomes are scripted; no live-model performance claim is made.
-  Live runs must use `--live` and are labeled `live_model` separately.
+  The scripted runner cannot emit `live_model` evidence. The historical
+  `--live` flag fails closed rather than relabeling deterministic fixture
+  outcomes. Live evidence must come from a measured execution adapter.
 - The evidence artifact records the commit/tree of the generating code; the
   artifact file itself is committed in a follow-up commit on the same branch.
