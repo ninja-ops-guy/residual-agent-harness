@@ -34,10 +34,10 @@ SECRET_KEYS = {
     "launch_url", "capability",
 }
 SENSITIVE_TEXT_PATTERNS = (
-    re.compile(r"(?i)\\b(?:authorization|api[_-]?key|token|secret|password|cookie)\\s*[:=]\\s*[^\\s,;]+"),
-    re.compile(r"(?i)\\b(?:bearer|basic)\\s+[A-Za-z0-9._~+/=-]{8,}"),
-    re.compile(r"\\bsk-[A-Za-z0-9_-]{12,}\\b"),
-    re.compile(r"(?i)https?://[^\\s]+/auth/[A-Za-z0-9._~%+-]{8,}"),
+    re.compile(r"(?i)\b(?:authorization|api[_-]?key|token|secret|password|cookie)\s*[:=]\s*[^\s,;]+"),
+    re.compile(r"(?i)\b(?:bearer|basic)\s+[A-Za-z0-9._~+/=-]{8,}"),
+    re.compile(r"\bsk-[A-Za-z0-9_-]{12,}\b"),
+    re.compile(r"(?i)https?://[^\s]+/auth/[A-Za-z0-9._~%+-]{8,}"),
 )
 OPAQUE_SECRET_RE = re.compile(r"^[A-Za-z0-9._~+/=-]{32,}$")
 
