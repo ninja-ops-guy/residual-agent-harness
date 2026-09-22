@@ -29,6 +29,18 @@ class F6DiagnosticsTests(unittest.TestCase):
         self.assertNotIn("provider-secret", rendered)
         self.assertTrue(clean["safe"]["remote_workers_enabled"])
 
+    def test_redactor_catches_secret_value_under_unexpected_key(self):
+        value = {
+            "mystery": "Authorization: Bearer this-is-a-secret-token-value",
+            "opaque": "A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8S9t0",
+            "safe": "worker reconnect completed",
+        }
+        clean = f6.redact(value)
+        rendered = json.dumps(clean)
+        self.assertNotIn("this-is-a-secret-token-value", rendered)
+        self.assertNotIn("A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8S9t0", rendered)
+        self.assertEqual(clean["safe"], "worker reconnect completed")
+
     def test_read_only_snapshot_captures_task_and_event_without_writing(self):
         with tempfile.TemporaryDirectory() as temp:
             db = pathlib.Path(temp) / "station.sqlite3"
@@ -55,6 +67,35 @@ class F6DiagnosticsTests(unittest.TestCase):
             self.assertEqual(snap["tasks"][0]["value"]["owner"], "remote:Hammer")
             self.assertEqual(snap["event_count"], 1)
             self.assertEqual(snap["settings_redacted"]["worker_token"], "<redacted>")
+
+    def test_attach_sanitizes_text_and_records_original_hash(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source = pathlib.Path(temp) / "remote-before.json"
+            source.write_text(
+                json.dumps({
+                    "credential_present": True,
+                    "unexpected": "Bearer this-is-a-secret-token-value",
+                    "state": "connected",
+                }) + "\n",
+                encoding="utf-8",
+            )
+            case = "F6-A-inside-window"
+            args = type("Args", (), {
+                "output": temp,
+                "case": case,
+                "file": str(source),
+                "name": "remote-before.json",
+            })()
+            original_hash = f6.sha256_file(source)
+            self.assertEqual(f6.attach(args), 0)
+            destination = pathlib.Path(temp) / case / "attachments" / "remote-before.json"
+            meta = json.loads(destination.with_suffix(".json.meta.json").read_text(encoding="utf-8"))
+            stored = destination.read_text(encoding="utf-8")
+            self.assertNotIn("this-is-a-secret-token-value", stored)
+            self.assertIn("<redacted>", stored)
+            self.assertEqual(meta["source_sha256"], original_hash)
+            self.assertTrue(meta["redacted_content"])
+            self.assertEqual(meta["stored_sha256"], f6.sha256_file(destination))
 
     def test_manifest_freeze_and_verify_detect_tampering(self):
         with tempfile.TemporaryDirectory() as temp:
