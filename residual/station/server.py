@@ -84,6 +84,14 @@ class Handler(BaseHTTPRequestHandler):
         if worker and not settings.get("remote_workers_enabled", False):
             raise PermissionError("Remote workers are disabled")
 
+    def mesh_auth(self):
+        self.check_host()
+        provided = self.headers.get("Authorization", "").removeprefix("Bearer ")
+        try:
+            return self.station.mesh.authenticate(provided)
+        except ContractError:
+            raise PermissionError("Mesh authentication failed") from None
+
     def body(self):
         size = int(self.headers.get("Content-Length", "0"))
         if not 0 < size <= 500_000:
@@ -103,6 +111,26 @@ class Handler(BaseHTTPRequestHandler):
             query = urllib.parse.parse_qs(parsed.query)
             if path == "/api/bootstrap":
                 return self.respond({"token": self.station.store.settings()["session_token"], "version": "0.3.0", "settings": public_settings(self.station.store), "demo_spec": demo_spec()})
+            if path.startswith("/api/mesh/worker/"):
+                worker = self.mesh_auth()
+                if path == "/api/mesh/worker/sync":
+                    pid = query.get("project_id", [""])[0]
+                    self.station.mesh.begin_sync(worker)
+                    return self.respond({"snapshot": self.station.mesh.snapshot(worker, pid)})
+                if path == "/api/mesh/worker/messages":
+                    pid = query.get("project_id", [""])[0]
+                    after = int(query.get("after", ["0"])[0])
+                    limit = int(query.get("limit", ["100"])[0])
+                    return self.respond(self.station.mesh.messages(worker, pid, after=after, limit=limit))
+                if path == "/api/mesh/worker/receipt":
+                    pid = query.get("project_id", [""])[0]
+                    key = query.get("idempotency_key", [""])[0]
+                    kind = query.get("kind", [None])[0]
+                    return self.respond({"receipt": self.station.mesh.receipt(worker, pid, key, kind=kind)})
+                raise ContractError("Unknown mesh worker endpoint")
+            if path == "/api/mesh/status":
+                self.auth()
+                return self.respond(self.station.mesh.status())
             if path.startswith("/api/worker/"):
                 self.auth(worker=True)
                 if path == "/api/worker/projects":
@@ -163,9 +191,13 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         try:
             path = urllib.parse.urlsplit(self.path).path
-            self.auth(worker=path.startswith("/api/worker/"))
+            mesh_worker = None
+            if path.startswith("/api/mesh/worker/"):
+                mesh_worker = self.mesh_auth()
+            else:
+                self.auth(worker=path.startswith("/api/worker/"))
             data = self.body()
-            result = self.post(path, data)
+            result = self.post(path, data, mesh_worker=mesh_worker)
             self.respond(result if result is not None else {"ok": True})
         except PermissionError as e:
             self.respond({"error": str(e)}, 403)
@@ -228,6 +260,100 @@ class Handler(BaseHTTPRequestHandler):
                 parse_spec(reply["text"])
                 return {"markdown": reply["text"]}
             return s.launch("draft-spec", plan)
+        if path == "/api/mesh/enroll":
+            allowed = set(s.store.settings().get("mesh_allowed_capabilities", []))
+            result = s.mesh.enroll(data, allowed_capabilities=allowed)
+            return {"worker": result["worker"], "token": result["token"]}
+        if path == "/api/mesh/revoke":
+            return s.mesh.revoke(bounded(data.get("worker_id"), "Worker ID", 128))
+        if path == "/api/mesh/generation":
+            pid = bounded(data.get("project_id"), "Project ID", 128)
+            generation = s.store.advance_generation(pid, bounded(data.get("reason"), "Reason", 300))
+            return {"project_id": pid, "generation": generation}
+        if path == "/api/mesh/stop":
+            pid = bounded(data.get("project_id"), "Project ID", 128)
+            return s.store.mesh_stop(pid)
+        if path == "/api/mesh/worker/presence":
+            return s.mesh.presence(mesh_worker, project_id=data.get("project_id"))
+        if path == "/api/mesh/worker/message":
+            return s.mesh.admit_message(mesh_worker, data)
+        if path == "/api/mesh/worker/ack":
+            return s.mesh.acknowledge(mesh_worker, data["project_id"], data["seq"])
+        if path == "/api/mesh/worker/claim":
+            pid = data["project_id"]
+            current, project = s.mesh.authorize(mesh_worker, pid)
+            routes = set()
+            if "model.local" in current["capabilities"]:
+                routes.add("local")
+            if "model.remote" in current["capabilities"]:
+                routes.add("cloud")
+            work = s.prepare(pid, "mesh:" + current["worker_id"], data.get("task_id"),
+                             routes=routes, capabilities=set(current["capabilities"]))
+            if not work:
+                return {"work": None}
+            t = work["task"]
+            return {"work": {
+                "project_id": pid, "generation": int(project.get("generation", 1)),
+                "task_id": t["id"], "attempt": t["attempt"], "lease_id": work["lease"],
+                "fencing_token": t.get("fencing_token", 0), "route": t["route"],
+                "packet": work["packet"], "allow_cloud": project["allow_cloud"],
+            }}
+        if path == "/api/mesh/worker/heartbeat":
+            current, project = s.mesh.authorize(mesh_worker, data["project_id"])
+            s.store.heartbeat(data["project_id"], data["task_id"], data["lease_id"],
+                              data["fencing_token"], renew=False)
+            s.mesh.presence(current, project_id=data["project_id"])
+            return {"ok": True, "lease_renewed": False, "generation": int(project.get("generation", 1))}
+        if path == "/api/mesh/worker/admit":
+            current, project = s.mesh.authorize(mesh_worker, data["project_id"])
+            s.store.validate_lease(data["project_id"], data["task_id"], data["lease_id"], data["fencing_token"])
+            placement = data.get("placement")
+            if placement not in {"local", "remote"}:
+                raise ContractError("Invalid provider placement")
+            if placement == "local" and "model.local" not in current["capabilities"]:
+                raise ContractError("Worker capability policy does not permit local model attempts")
+            if placement == "remote" and "model.remote" not in current["capabilities"]:
+                raise ContractError("Worker capability policy does not permit remote model attempts")
+            request_bytes = data.get("request_bytes")
+            if type(request_bytes) is not int or not 0 <= request_bytes <= project["request_byte_limit"]:
+                raise ContractError("Invalid provider request size")
+            s.store.reserve_call(data["project_id"], "mesh_runner", placement, request_bytes, data["task_id"])
+            return {"admitted": True, "generation": int(project.get("generation", 1))}
+        if path == "/api/mesh/worker/result":
+            pid, tid = data["project_id"], data["task_id"]
+            current, project = s.mesh.authorize(mesh_worker, pid)
+            if data.get("generation") != int(project.get("generation", 1)):
+                raise ContractError("Result generation is stale")
+            s.store.validate_lease(pid, tid, data["lease_id"], data["fencing_token"])
+            with s.project_lock(pid):
+                from .contracts import sha
+                sid = "mesh:" + current["worker_id"] + ":" + bounded(data.get("submission_id"), "Submission ID", 100)
+                fingerprint = sha(data)
+                with s.store.connect() as c:
+                    previous = c.execute("SELECT value FROM submissions WHERE id=?", (sid,)).fetchone()
+                if previous:
+                    previous = json.loads(previous[0])
+                    if previous["fingerprint"] != fingerprint:
+                        raise ContractError("Submission ID already belongs to another payload")
+                    return previous["result"]
+                task = s.store.task(pid, tid)
+                work = {"project_id": pid, "task": task, "lease": data["lease_id"]}
+                usage = data.get("usage")
+                if usage is not None:
+                    allowed_usage = {"input_tokens", "output_tokens", "cached_input_tokens", "cache_write_input_tokens", "source", "placement", "role", "model", "request_bytes", "provider_attempts"}
+                    if not isinstance(usage, dict) or set(usage) - allowed_usage:
+                        raise ContractError("Invalid mesh usage receipt")
+                    for key in ("input_tokens", "output_tokens", "cached_input_tokens", "cache_write_input_tokens", "request_bytes"):
+                        value = usage.get(key)
+                        if value is not None and (type(value) is not int or not 0 <= value <= 100_000_000):
+                            raise ContractError("Invalid mesh usage counter")
+                    usage = {**usage, "source": "worker_reported", "role": "mesh_runner",
+                             "model": bounded(usage.get("model", "unknown"), "Model", 200)}
+                result = s.finish(work, data["response"], usage)
+                with s.store.transaction() as c:
+                    c.execute("INSERT INTO submissions VALUES(?,?)",
+                              (sid, canonical({"fingerprint": fingerprint, "result": result})))
+                return result
         if path == "/api/workers/access":
             enabled = data.get("enabled")
             if type(enabled) is not bool:
