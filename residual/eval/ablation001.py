@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol, Sequence
 
-from residual.core import ContractError, digest
+from residual.core import ContractError, digest, identifier
 from residual.eval_frozen.configs import CONFIGURATIONS, ExperimentConfig
 from residual.eval_frozen.workload import FrozenTask, FrozenWorkload
 from .stats import compare_paired, holm_bonferroni
@@ -290,6 +290,48 @@ class MeasuredObservation:
     duplicate_work_items: int
     unauthorized_actions: int
     evidence_refs: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        _hash(self.record_id, "record_id")
+        _hash(self.protocol_sha256, "protocol_sha256")
+        _hash(self.execution_sha256, "execution_sha256")
+        _hash(self.workload_sha256, "workload_sha256")
+        identifier(self.task_id)
+        if self.slice not in {"development", "evaluation"}:
+            raise ContractError("invalid measured workload slice")
+        if self.config_id not in {c.config_id for c in CONFIGURATIONS}:
+            raise ContractError("invalid measured configuration")
+        _nonnegative_int(self.repeat, "repeat")
+        # Reuse the adapter-output contract so manually loaded/reconstructed
+        # observations cannot bypass the semantic checks applied to live cells.
+        TaskMeasurement(
+            state=self.state,
+            correct=self.correct,
+            accepted=self.accepted,
+            fault_caught=self.fault_caught,
+            verifier_rejected=self.verifier_rejected,
+            latency_ms=self.latency_ms,
+            input_tokens=self.input_tokens,
+            output_tokens=self.output_tokens,
+            cost_usd=self.cost_usd,
+            rework_attempts=self.rework_attempts,
+            conflicts=self.conflicts,
+            operator_interventions=self.operator_interventions,
+            recovery_attempts=self.recovery_attempts,
+            recovered_failures=self.recovered_failures,
+            duplicate_work_items=self.duplicate_work_items,
+            unauthorized_actions=self.unauthorized_actions,
+            evidence_refs=self.evidence_refs,
+        )
+        expected_record_id = digest({
+            "protocol_sha256": self.protocol_sha256,
+            "execution_sha256": self.execution_sha256,
+            "task_id": self.task_id,
+            "config_id": self.config_id,
+            "repeat": self.repeat,
+        })
+        if self.record_id != expected_record_id:
+            raise ContractError("measured observation record identity mismatch")
 
     def payload(self) -> dict[str, object]:
         return {
