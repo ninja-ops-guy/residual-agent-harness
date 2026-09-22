@@ -12,6 +12,7 @@ from residual.eval.ablation001 import (
     ExecutionManifest,
     MeasuredAblationRunner,
     TaskMeasurement,
+    confirmatory_analysis,
     verify_bundle,
 )
 from residual.eval_frozen.workload import development_workload
@@ -206,3 +207,53 @@ def test_fault_labeled_completed_run_requires_fault_capture_verdict():
     _, _, _, runner = _campaign(bad_adapter)
     with pytest.raises(ContractError):
         runner.run(repeats=3)
+
+
+def test_confirmatory_analysis_clusters_repeats_by_task():
+    _, _, _, runner = _campaign()
+    bundle = runner.run(repeats=3)
+    from residual.eval.ablation001 import MeasuredObservation
+
+    rows = [
+        MeasuredObservation(
+            record_id=r["record_id"],
+            protocol_sha256=r["protocol_sha256"],
+            execution_sha256=r["execution_sha256"],
+            workload_sha256=r["workload_sha256"],
+            task_id=r["task_id"],
+            slice=r["slice"],
+            config_id=r["config_id"],
+            repeat=r["repeat"],
+            state=r["state"],
+            correct=r["correct"],
+            accepted=r["accepted"],
+            fault_label=r["fault_label"],
+            fault_caught=r["fault_caught"],
+            verifier_rejected=r["verifier_rejected"],
+            latency_ms=r["latency_ms"],
+            input_tokens=r["input_tokens"],
+            output_tokens=r["output_tokens"],
+            cost_usd=r["cost_usd"],
+            rework_attempts=r["rework_attempts"],
+            conflicts=r["conflicts"],
+            operator_interventions=r["operator_interventions"],
+            recovery_attempts=r["recovery_attempts"],
+            recovered_failures=r["recovered_failures"],
+            duplicate_work_items=r["duplicate_work_items"],
+            unauthorized_actions=r["unauthorized_actions"],
+            evidence_refs=tuple(r["evidence_refs"]),
+        )
+        for r in bundle["records"]
+    ]
+    analysis = confirmatory_analysis(rows, bootstrap_iterations=200)
+    assert analysis["analysis_unit"] == "task_cluster_mean_across_repeats"
+    assert analysis["familywise_method"] == "holm_bonferroni"
+    assert set(analysis["comparisons"]) == {
+        "accepted_and_sound_rate:R4-vs-R0",
+        "accepted_and_sound_rate:R5-vs-R4",
+        "unsafe_acceptance_rate:R4-vs-R0",
+        "unsafe_acceptance_rate:R5-vs-R4",
+    }
+    for result in analysis["comparisons"].values():
+        assert result["n_pairs"] == 6
+        assert "holm_adjusted_p_value" in result
