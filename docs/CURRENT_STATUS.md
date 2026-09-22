@@ -1,6 +1,6 @@
 # RESIDUAL current status
 
-_Current-state check: 2026-09-22 15:04 UTC against `main@91d32fd8b713c68c1cd2e473013c9e1c33b93572`._
+_Current-state check: 2026-09-22 20:02 UTC against `main@91d32fd8b713c68c1cd2e473013c9e1c33b93572`._
 
 This document is a human-readable status summary. Exact repository bytes, exact-head workflow results, retained artifacts, explicit issues/PRs, and applicable maintainer/protected-byte governance are more authoritative than prose. Historical PASS/FAIL/BLOCKED evidence remains bound to the exact revision, run attempt, and environment that produced it; later candidate commits or reruns do not inherit, erase, or rewrite earlier evidence unless the governing acceptance process explicitly says so.
 
@@ -8,10 +8,9 @@ This document is a human-readable status summary. Exact repository bytes, exact-
 
 Accepted `main` remains **`91d32fd8b713c68c1cd2e473013c9e1c33b93572`**. No accepted-main commit or merged-PR movement occurred in this observation.
 
-The material changes are on unmerged candidates:
+The material change is on unmerged AUD-1 tooling candidate **#403**. Its prior exact head `f921d7ab...` had green hosted technical workflows, but PR-Agent identified a potential evidence-secret exposure boundary in value redaction. Candidate bytes then changed by two commits to fail closed on secret capture and add regression coverage. Current #403 exact head is **`10a355fc402aff7f0e8c5d8afc0ea02569667371`**. The current exact-head named CI subset is mixed: Controller/provider contracts, Control Plane, Factory ownership, measured-evaluation binding, clean install, Command Station, PR-Agent and Vercel are **PASS**, while RESIDUAL Qualification v1 is **FAIL** at the deterministic `Full deterministic regression gate`; the lower-level assertion/root cause remains **UNKNOWN** from retained workflow metadata. No physical F6 PASS evidence exists, so both required physical cases remain **UNKNOWN / not established**.
 
-- **#403** adds a read-only AUD-1 F6 physical-evidence kit bound to #399 exact candidate `8df77b832b3839ccd2a6944a65760ce3ab10dc9c`. Its hosted software qualification is green, but it has produced **no physical F6 PASS evidence**; the two required physical cases remain **UNKNOWN / not established**.
-- **#404** adds the first isolated `SPEC-SC-MESH-001` durable mesh/enrollment candidate on top of accepted main. It remains **DRAFT / UNMERGED / UNACCEPTED** and is currently **FAIL** at several exact-head qualification surfaces. Its lower-level test causes are not established by retained workflow metadata and therefore remain **UNKNOWN**.
+Draft **#404** remains unchanged at `cae9ab31...`, **UNMERGED / UNACCEPTED**, with its previously retained mixed/FAIL qualification state.
 
 Owner issue **#353 remains OPEN / P0 / BLOCKED at the release level**. No evidence in this observation authorizes merging #399, #403, #404, or the documentation PR.
 
@@ -39,7 +38,7 @@ The owner classified the #399 software gate as ready for physical P1 dogfood. Th
 
 ### #403 — read-only F6 physical evidence kit
 
-New draft **#403** (`tools(aud1): add read-only F6 physical evidence kit`) targets the #399 convergence branch rather than `main`. It is **DRAFT / UNMERGED / TOOLING-ONLY** at exact head **`f921d7abe6f17fabd61cf28934870eba17c38c69`**.
+Draft **#403** (`tools(aud1): add read-only F6 physical evidence kit`) targets the #399 convergence branch rather than `main`. It remains **DRAFT / UNMERGED / TOOLING-ONLY** and is now at exact head **`10a355fc402aff7f0e8c5d8afc0ea02569667371`**.
 
 The PR explicitly states that it **must not be merged into or used as the Station candidate under test**. It branches from #399 exact candidate `8df77b83...` only so its collector understands the same schema and independently verifies that the candidate checkout under test is clean and exactly bound to that SHA/tree.
 
@@ -53,13 +52,37 @@ The kit adds:
 - hashed remote evidence attachments plus immutable bundle manifest verification;
 - guided F6-A inside-window and F6-B outside-window/stale-return PowerShell runbooks;
 - a remote host/process/TCP/log probe;
-- focused tests for secret redaction, read-only behavior, and manifest tamper detection.
+- focused tests for secret redaction, read-only behavior, attachment handling and manifest tamper detection.
 
 The tooling deliberately does not claim work, heartbeat, submit or replay results, alter leases, edit Station SQLite, recover/reassign tasks, rotate credentials, approve/integrate, or declare PASS. The operator still controls the real tunnel interruption/restoration and natural Station/worker behavior remains the subject under test.
 
-At exact head `f921d7ab...`, observed hosted workflows are **PASS** for RESIDUAL Qualification v1, Pages PR-head/browser proof, Controller/provider contracts, Command Station checks, Factory ownership, Control Plane, measured-evaluation acceptance binding, clean-install qualification, PR-Agent advisory, and Vercel. Exact-head maintainer approval is **FAIL / no matching human attestation**.
+The prior exact head **`f921d7abe6f17fabd61cf28934870eba17c38c69`** had retained hosted PASS for Qualification v1 and the named technical workflows. PR-Agent's advisory review then identified a potential data-exposure weakness because redaction relied too heavily on key names. Those PASS results remain valid for the exact prior bytes but are **superseded for current-candidate qualification** after the candidate changed.
 
-Those software PASS results qualify the tooling candidate only. They do **not** manufacture the two physical F6 outcomes. Required physical outputs remain two separately frozen bundles:
+Two new commits advance the tooling branch from `f921d7ab...` to current `10a355fc...`:
+
+- `7cb4f0e29fd23baef4050de8a7dc155d0ff3901e` — `fix(aud1-tools): fail closed on evidence secret capture`;
+- `10a355fc402aff7f0e8c5d8afc0ea02569667371` — `test(aud1-tools): cover attachment and value redaction`.
+
+The diff from the prior qualified head is limited to `tools/aud1/f6_collect.py` and `tests/tools/test_aud1_f6_collect.py`.
+
+Current exact-head evidence for `10a355fc...` is mixed:
+
+- Controller/provider contracts: **PASS**
+- Control Plane: **PASS**
+- Factory ownership: **PASS**
+- measured-evaluation acceptance binding: **PASS**
+- clean-install qualification: **PASS**
+- Command Station checks: **PASS**
+- PR-Agent advisory: **PASS**
+- Vercel: **PASS**
+- RESIDUAL Qualification v1 aggregate: **FAIL**
+  - deterministic job: **FAIL** at `Full deterministic regression gate`
+  - discovery, M4 and observed browser jobs: **PASS**
+- exact-head maintainer approval: **FAIL / no matching human attestation**
+
+The retained Qualification-v1 workflow metadata identifies the deterministic failing job/step but does not establish the underlying test assertion/root cause. That lower-level cause remains **UNKNOWN**. Do not classify this as a tooling correctness defect, infrastructure defect, or repaired failure without retained evidence.
+
+Those software results still do **not** manufacture the two physical F6 outcomes. Required physical outputs remain two separately frozen bundles:
 
 1. `F6-A-inside-window`;
 2. `F6-B-outside-window`.
@@ -96,13 +119,13 @@ The PR explicitly states that accepted main lacks the locally qualified R3.4 Sta
 
 ### #404 — SPEC-SC-MESH-001 durable mesh foundation
 
-New draft **#404** (`feat(station): SPEC-SC-MESH-001 enrollment and durable comms foundation`) targets `main` from accepted baseline `91d32fd8...` and is currently **DRAFT / UNMERGED / UNACCEPTED** at exact head **`cae9ab31e0ca3acfd948af32726db388c589aeb2`**.
+Draft **#404** (`feat(station): SPEC-SC-MESH-001 enrollment and durable comms foundation`) targets `main` from accepted baseline `91d32fd8...` and remains **DRAFT / UNMERGED / UNACCEPTED** at exact head **`cae9ab31e0ca3acfd948af32726db388c589aeb2`**.
 
 The PR describes the first isolated mesh slice: typed per-worker enrollment and project/capability scope, hashed bearer credentials, an `ENROLLED → SYNCING → READY / DISCONNECTED / REVOKED` lifecycle, bounded/versioned message envelopes, namespaced idempotency/replay/dead-letter state, crash-durable worker outbox/inbox, project generation and fencing-token foundations, presence-only mesh heartbeat, scoped worker HTTP surfaces, and redacted status. It also adds setup/rollback/OpenClaw mesh documentation and regression coverage.
 
 The PR's own non-claims remain controlling: **no live deployment or service change, no merge authorization, no `MESH_QUALIFIED` claim**. W4 atomic assignment/budget integration is incomplete; W5 provider continuity/host containment/verified-evidence binding is incomplete; W6/W7 setup, rollback, and multi-host qualification remain pending. Preserved R3.4 evidence is not relabelled or mutated by this status summary.
 
-Current exact-head evidence is mixed and therefore #404 is **FAIL / NOT MERGE-READY**:
+Current retained exact-head evidence is mixed and therefore #404 remains **FAIL / NOT MERGE-READY**:
 
 - Control Plane: **PASS**
 - Factory ownership: **PASS**
@@ -197,9 +220,9 @@ The program remains **NOT FROZEN / UNACCEPTED / NO-TRAINING** until explicit hum
 
 ## Documentation scope
 
-This observation updates only `docs/CURRENT_STATUS.md` on the existing dedicated docs branch. The open docs PR continues to carry its earlier `README.md` and `HARNESS.md` reconciliation; neither required an additional edit for #403 or #404. `START-HERE.md` remains operator guidance and contains no stale accepted-main/qualification claim requiring this update. `implementation-status.yaml` remains accurate for its declared implementation-presence purpose and is intentionally unchanged.
+This observation updates only `docs/CURRENT_STATUS.md` on the existing dedicated docs branch. The open docs PR continues to carry its earlier `README.md` and `HARNESS.md` reconciliation; neither required an additional edit for the #403 redaction-hardening head change. `START-HERE.md` remains operator guidance and contains no stale accepted-main/qualification claim requiring this update. `implementation-status.yaml` remains accurate for its declared implementation-presence purpose and is intentionally unchanged.
 
-The immediately preceding docs head `b3bec48ceebe7911c894fe2e1cd9f26552bda790` completed exact-head PASS for RESIDUAL Qualification v1, Factory ownership, measured-evaluation binding, Control Plane, PR-Agent advisory, clean-install qualification, Command Station checks, and Controller/provider contracts; its maintainer-approval gate remained **FAIL** because no matching human attestation existed. Those results remain bound to that prior docs revision and are not inherited by this changed head.
+The immediately preceding docs head `ff80cc37baf50f75ead405ce1cd0b04e13821499` completed exact-head PASS for RESIDUAL Qualification v1, Factory ownership, measured-evaluation binding, Control Plane, PR-Agent advisory, clean-install qualification, Command Station checks, and Controller/provider contracts; its maintainer-approval gate remained **FAIL** because no matching human attestation existed. Those results remain bound to that prior docs revision and are not inherited by this changed head.
 
 No Factory/M4 implementation or tests, ownership baseline, qualification anchor, protected byte, verifier/evidence schema, provider authority, security implementation, licensing authority, or acceptance authority is modified by this docs branch.
 
