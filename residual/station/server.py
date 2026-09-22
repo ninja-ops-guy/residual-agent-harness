@@ -210,7 +210,7 @@ class Handler(BaseHTTPRequestHandler):
         except Exception:
             self.respond({"error": "Operation failed. Check the selected model, project state, and diagnostics."}, 500)
 
-    def post(self, path, data):
+    def post(self, path, data, mesh_worker=None):
         s = self.station
         if path == "/api/demo":
             return s.create(demo_spec(), demo=True)

@@ -19,11 +19,14 @@ TRANSITIONS = {
     "approved": {"integrated", "repair_required", "blocked"}, "integrated": set(),
 }
 ID = re.compile(r"^[A-Za-z][A-Za-z0-9_-]{0,63}$")
+TOKEN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,95}$")
 SHA = re.compile(r"^[a-f0-9]{40,64}$")
 EVENT_TYPES = {"project.created", "project.paused", "project.resumed", "task.transition",
                "task.claimed", "task.finding", "checks.completed", "review.completed",
                "integration.completed", "usage.recorded", "report.generated", "release.exported",
-               "worker.joined", "worker.expired", "project.note",\n               "mesh.worker.enrolled", "mesh.worker.revoked", "mesh.message",\n               "mesh.generation.advanced", "mesh.stop.requested", "mesh.stop.observed"}
+               "worker.joined", "worker.expired", "project.note",
+               "mesh.worker.enrolled", "mesh.worker.revoked", "mesh.message",
+               "mesh.generation.advanced", "mesh.stop.requested", "mesh.stop.observed"}
 LDD_BASE = json.loads((Path(__file__).parent / "schemas" / "ldd-base.json").read_text())
 
 
@@ -73,6 +76,11 @@ def parse_spec(markdown):
         if not isinstance(route, str) or route not in {"local", "cloud"}:
             raise ContractError("route must be local or cloud")
         task.setdefault("route", "local")
+        capabilities = task.setdefault("capabilities", [])
+        if (not isinstance(capabilities, list) or len(capabilities) > 20
+                or any(not isinstance(x, str) or not TOKEN.fullmatch(x) for x in capabilities)
+                or len(set(capabilities)) != len(capabilities)):
+            raise ContractError("capabilities must contain at most 20 unique capability tokens")
         for key in ("files", "context"):
             value = task.setdefault(key, [])
             if (not isinstance(value, list) or len(value) > 30

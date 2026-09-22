@@ -70,6 +70,8 @@ def demo_spec():
 class Station:
     def __init__(self, root, *, extension_factory=None):
         self.store = Store(root)
+        from .mesh_state import MeshState
+        self.mesh = MeshState(self.store)
         self.store.settings(DEFAULTS, defaults=True)
         self.store.recover(startup=True)
         self.ollama = Ollama(self.store)
@@ -177,10 +179,10 @@ class Station:
                     self.store.transition(pid, task["id"], "blocked", fields={"findings": [str(e)]})
             return {"message": "Triage complete. Failing baseline acceptance checks are expected for unimplemented specs."}
 
-    def prepare(self, pid, owner, tid=None):
+    def prepare(self, pid, owner, tid=None, routes=None, capabilities=None):
         with self.project_lock(pid):
             self.store.recover()
-            t = self.store.claim(pid, owner, tid)
+            t = self.store.claim(pid, owner, tid, routes=routes, capabilities=capabilities)
             if not t:
                 return None
             p = self.store.project(pid)
@@ -209,6 +211,9 @@ class Station:
             self.store.update_task(pid, t["id"], base_commit=base, candidate_dir=str(folder), head_commit=None)
             packet = {"project_goal": p["goal"], "task_id": t["id"], "instruction": t["instruction"],
                       "writable_files": t["files"], "files": files, "checks": t["checks"],
+                      "generation": int(p.get("generation", 1)),
+                      "fencing_token": t.get("fencing_token", 0),
+                      "required_capabilities": t.get("capabilities", []),
                       "repair_findings": t["findings"], "prior_candidate_files": prior_candidate_files,
                       "spec_hash": p["spec_hash"], "base_commit": base,
                       "parent_receipts": parent_receipts}
