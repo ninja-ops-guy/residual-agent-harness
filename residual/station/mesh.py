@@ -29,6 +29,10 @@ DEFAULT_TTL_S = 900
 MAX_TTL_S = 3600
 MAX_PAGE = 200
 MAX_REPLAY_AGE_S = 24 * 60 * 60
+MAX_PROJECT_MESSAGES = 5000
+MAX_BULK_MESSAGES = 4500
+MAX_DEAD_LETTERS = 1000
+BULK_KINDS = {"message", "status", "task.note"}
 
 WORKER_STATES = {"UNENROLLED", "ENROLLED", "SYNCING", "READY", "DRAINING", "DISCONNECTED", "REVOKED"}
 MESSAGE_KINDS = {
@@ -159,6 +163,8 @@ class MeshEnvelope:
         current = time.time() if now is None else now
         if expires <= current:
             raise ContractError("Mesh envelope has expired")
+        if created < current - MAX_REPLAY_AGE_S:
+            raise ContractError("Mesh envelope exceeds the maximum replay age")
         if expires - created <= 0 or expires - created > MAX_TTL_S:
             raise ContractError("Mesh envelope TTL exceeds the qualification profile")
         if created > current + 300:

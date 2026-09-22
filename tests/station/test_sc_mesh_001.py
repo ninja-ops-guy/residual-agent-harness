@@ -252,6 +252,29 @@ class MeshStateTests(unittest.TestCase):
         self.assertTrue(reconciled["reconciled"])
         self.assertEqual(self.station.store.project(self.pid)["calls_reserved"], 1)
 
+    def test_expired_message_not_replayed_and_integrity_failure_is_dead_lettered(self):
+        result, worker = self._enroll()
+        self.station.mesh.begin_sync(worker)
+        self.station.mesh.snapshot(worker, self.pid)
+        worker = self.station.mesh.authenticate(result["token"])
+        raw = new_envelope(project_id=self.pid, sender="claw-a", recipient="all", kind="message",
+                           generation=1, payload={"text": "hello"})
+        raw["payload_digest"] = "0" * 64
+        with self.assertRaises(ContractError):
+            self.station.mesh.admit_message(worker, raw)
+        self.assertGreaterEqual(self.station.mesh.status()["dead_letter_count"], 1)
+
+    def test_replay_gap_after_compaction_requires_snapshot(self):
+        result, worker = self._enroll()
+        self.station.mesh.begin_sync(worker)
+        self.station.mesh.snapshot(worker, self.pid)
+        worker = self.station.mesh.authenticate(result["token"])
+        with self.station.store.transaction() as c:
+            c.execute("INSERT OR REPLACE INTO mesh_retention(project,compacted_through,updated_at) VALUES(?,?,?)",
+                      (self.pid, 10, time.time()))
+        with self.assertRaises(ContractError):
+            self.station.mesh.messages(worker, self.pid, after=5)
+
 
 class MeshOutboxTests(unittest.TestCase):
     def test_outbox_is_durable_conflict_safe_and_inbox_deduplicates(self):

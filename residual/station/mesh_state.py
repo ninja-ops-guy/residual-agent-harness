@@ -17,6 +17,10 @@ from .mesh import (
     MeshEnvelope,
     MAX_PAGE,
     MAX_REPLAY_AGE_S,
+    MAX_PROJECT_MESSAGES,
+    MAX_BULK_MESSAGES,
+    MAX_DEAD_LETTERS,
+    BULK_KINDS,
     STATUS_SCHEMA,
 )
 
@@ -44,6 +48,7 @@ class MeshState:
                 digest TEXT NOT NULL,
                 value TEXT NOT NULL,
                 receipt_time REAL NOT NULL,
+                expires_at REAL,
                 station_event_seq INTEGER NOT NULL,
                 UNIQUE(project,sender,kind,idempotency_key)
             );
@@ -56,6 +61,11 @@ class MeshState:
                 updated_at REAL NOT NULL,
                 PRIMARY KEY(worker_id,project)
             );
+            CREATE TABLE IF NOT EXISTS mesh_retention(
+                project TEXT PRIMARY KEY,
+                compacted_through INTEGER NOT NULL DEFAULT 0,
+                updated_at REAL NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS mesh_dead_letters(
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 worker_id TEXT,
@@ -67,6 +77,42 @@ class MeshState:
                 value TEXT
             );
             """)
+            columns = {r["name"] for r in c.execute("PRAGMA table_info(mesh_messages)")}
+            if "expires_at" not in columns:
+                c.execute("ALTER TABLE mesh_messages ADD COLUMN expires_at REAL")
+                c.execute("UPDATE mesh_messages SET expires_at=receipt_time+? WHERE expires_at IS NULL",
+                          (MAX_REPLAY_AGE_S,))
+            c.execute("CREATE INDEX IF NOT EXISTS mesh_messages_expiry ON mesh_messages(project,expires_at)")
+
+    def _prune_messages(self, c, project_id, now):
+        cutoff = now - MAX_REPLAY_AGE_S
+        row = c.execute(
+            "SELECT COALESCE(MAX(seq),0) n FROM mesh_messages "
+            "WHERE project=? AND expires_at IS NOT NULL AND expires_at<?",
+            (project_id, cutoff),
+        ).fetchone()
+        compacted = int(row["n"])
+        if compacted:
+            c.execute("DELETE FROM mesh_messages WHERE project=? AND expires_at IS NOT NULL AND expires_at<?",
+                      (project_id, cutoff))
+            c.execute(
+                "INSERT INTO mesh_retention(project,compacted_through,updated_at) VALUES(?,?,?) "
+                "ON CONFLICT(project) DO UPDATE SET compacted_through=max(compacted_through,excluded.compacted_through),"
+                "updated_at=excluded.updated_at",
+                (project_id, compacted, now),
+            )
+        return compacted
+
+    def _dead_letter_tx(self, c, *, worker_id, project_id, operation, reason, digest=None):
+        c.execute(
+            "INSERT INTO mesh_dead_letters(worker_id,project,operation,reason,digest,created_at,value) "
+            "VALUES(?,?,?,?,?,?,NULL)",
+            (worker_id, project_id, operation, reason[:300], digest, time.time()),
+        )
+        excess = c.execute("SELECT count(*) n FROM mesh_dead_letters").fetchone()["n"] - MAX_DEAD_LETTERS
+        if excess > 0:
+            c.execute("DELETE FROM mesh_dead_letters WHERE id IN "
+                      "(SELECT id FROM mesh_dead_letters ORDER BY id LIMIT ?)", (excess,))
 
     def _load_worker(self, c, worker_id):
         row = c.execute("SELECT value FROM mesh_workers WHERE worker_id=?", (worker_id,)).fetchone()
@@ -254,15 +300,27 @@ class MeshState:
             raise ContractError("Task-scoped message belongs to another worker")
 
     def admit_message(self, worker, value):
-        envelope = MeshEnvelope.parse(value)
+        safe_digest = hashlib.sha256(canonical(value).encode("utf-8")).hexdigest()
+        try:
+            envelope = MeshEnvelope.parse(value)
+        except ContractError as exc:
+            self.dead_letter(worker_id=worker.get("worker_id"), project_id=value.get("project_id") if isinstance(value, dict) else None,
+                             operation="message.validation", reason=str(exc), digest=safe_digest)
+            raise
         if envelope.sender != worker["worker_id"]:
+            self.dead_letter(worker_id=worker["worker_id"], project_id=envelope.project_id,
+                             operation="message.sender", reason="authenticated sender mismatch", digest=safe_digest)
             raise ContractError("Authenticated worker does not match envelope sender")
         if envelope.project_id not in worker["project_ids"]:
+            self.dead_letter(worker_id=worker["worker_id"], project_id=envelope.project_id,
+                             operation="message.scope", reason="project scope denied", digest=safe_digest)
             raise ContractError("Worker is not authorized for this project")
         if worker["state"] != "READY":
             raise ContractError("Worker must synchronize before sending mesh messages")
         digest = hashlib.sha256(canonical(envelope.to_dict()).encode("utf-8")).hexdigest()
         now = time.time()
+        rejected = None
+        result = None
         with self.store.transaction() as c:
             project = self.store._project(c, envelope.project_id)
             if bool(project.get("stopped", False)):
@@ -278,34 +336,49 @@ class MeshState:
             ).fetchone()
             if previous:
                 if previous["digest"] != digest:
-                    raise ContractError("Mesh idempotency key conflicts with a different payload")
-                return {
-                    "seq": previous["seq"],
-                    "station_event_seq": previous["station_event_seq"],
-                    "receipt_time": previous["receipt_time"],
-                    "digest": previous["digest"],
-                    "duplicate": True,
-                }
-            event = self.store._event(
-                c, project, "mesh.message", "mesh:" + worker["worker_id"],
-                self.store._task(c, envelope.project_id, envelope.task_id) if envelope.task_id else None,
-                {"message_id": envelope.message_id, "kind": envelope.kind,
-                 "recipient": envelope.recipient, "payload_digest": envelope.payload_digest,
-                 "generation": envelope.generation, "idempotency_key": envelope.idempotency_key},
-            )
-            cur = c.execute(
-                "INSERT INTO mesh_messages(project,sender,kind,idempotency_key,digest,value,receipt_time,station_event_seq) "
-                "VALUES(?,?,?,?,?,?,?,?)",
-                (envelope.project_id, envelope.sender, envelope.kind, envelope.idempotency_key,
-                 digest, canonical(envelope.to_dict()), now, event["seq"]),
-            )
-            return {
-                "seq": cur.lastrowid,
-                "station_event_seq": event["seq"],
-                "receipt_time": now,
-                "digest": digest,
-                "duplicate": False,
-            }
+                    self._dead_letter_tx(c, worker_id=worker["worker_id"], project_id=envelope.project_id,
+                                         operation="message.conflict", reason="idempotency digest conflict", digest=digest)
+                    rejected = "Mesh idempotency key conflicts with a different payload"
+                else:
+                    result = {
+                        "seq": previous["seq"],
+                        "station_event_seq": previous["station_event_seq"],
+                        "receipt_time": previous["receipt_time"],
+                        "digest": previous["digest"],
+                        "duplicate": True,
+                    }
+            else:
+                self._prune_messages(c, envelope.project_id, now)
+                count = c.execute("SELECT count(*) n FROM mesh_messages WHERE project=?", (envelope.project_id,)).fetchone()["n"]
+                bulk = c.execute(
+                    "SELECT count(*) n FROM mesh_messages WHERE project=? AND kind IN ('message','status','task.note')",
+                    (envelope.project_id,),
+                ).fetchone()["n"]
+                if count >= MAX_PROJECT_MESSAGES or (envelope.kind in BULK_KINDS and bulk >= MAX_BULK_MESSAGES):
+                    self._dead_letter_tx(c, worker_id=worker["worker_id"], project_id=envelope.project_id,
+                                         operation="message.queue", reason="bounded queue pressure", digest=digest)
+                    rejected = "Mesh queue pressure rejected the message"
+                else:
+                    event = self.store._event(
+                        c, project, "mesh.message", "mesh:" + worker["worker_id"],
+                        self.store._task(c, envelope.project_id, envelope.task_id) if envelope.task_id else None,
+                        {"message_id": envelope.message_id, "kind": envelope.kind,
+                         "recipient": envelope.recipient, "payload_digest": envelope.payload_digest,
+                         "generation": envelope.generation, "idempotency_key": envelope.idempotency_key},
+                    )
+                    cur = c.execute(
+                        "INSERT INTO mesh_messages(project,sender,kind,idempotency_key,digest,value,receipt_time,expires_at,station_event_seq) "
+                        "VALUES(?,?,?,?,?,?,?,?,?)",
+                        (envelope.project_id, envelope.sender, envelope.kind, envelope.idempotency_key,
+                         digest, canonical(envelope.to_dict()), now, envelope.expires_at, event["seq"]),
+                    )
+                    result = {
+                        "seq": cur.lastrowid, "station_event_seq": event["seq"],
+                        "receipt_time": now, "digest": digest, "duplicate": False,
+                    }
+        if rejected:
+            raise ContractError(rejected)
+        return result
 
     def receipt(self, worker, project_id, idempotency_key, *, kind=None):
         if project_id not in worker["project_ids"]:
@@ -334,29 +407,33 @@ class MeshState:
             raise ContractError("Worker is not authorized for this project")
         if type(after) is not int or after < 0 or type(limit) is not int or not 1 <= limit <= MAX_PAGE:
             raise ContractError("Invalid mesh replay cursor/page")
-        with self.store.connect() as c:
+        now = time.time()
+        with self.store.transaction() as c:
+            self._prune_messages(c, project_id, now)
+            retained = c.execute("SELECT compacted_through FROM mesh_retention WHERE project=?", (project_id,)).fetchone()
+            compacted = int(retained["compacted_through"]) if retained else 0
+            if after and after <= compacted:
+                raise ContractError("Mesh replay gap requires a fresh authoritative snapshot")
             rows = c.execute(
                 "SELECT seq,value,receipt_time,station_event_seq FROM mesh_messages "
-                "WHERE project=? AND seq>? ORDER BY seq LIMIT ?",
-                (project_id, after, limit + 1),
+                "WHERE project=? AND seq>? AND (expires_at IS NULL OR expires_at>?) ORDER BY seq LIMIT ?",
+                (project_id, after, now, limit + 1),
             ).fetchall()
         visible = []
         topics = set(worker["topics"])
-        now = time.time()
         for row in rows[:limit]:
             envelope = json.loads(row["value"])
             recipient = envelope["recipient"]
             if recipient not in {"all", worker["worker_id"]}:
                 if not recipient.startswith("topic:") or recipient[6:] not in topics:
                     continue
-            if envelope["expires_at"] < now - MAX_REPLAY_AGE_S:
-                continue
             visible.append({
                 "seq": row["seq"], "receipt_time": row["receipt_time"],
                 "station_event_seq": row["station_event_seq"], "envelope": envelope,
             })
         return {"messages": visible, "has_more": len(rows) > limit,
-                "next_cursor": rows[min(len(rows), limit) - 1]["seq"] if rows else after}
+                "next_cursor": rows[min(len(rows), limit) - 1]["seq"] if rows else after,
+                "compacted_through": compacted}
 
     def acknowledge(self, worker, project_id, seq):
         if project_id not in worker["project_ids"]:
@@ -374,16 +451,14 @@ class MeshState:
             )
         return {"project_id": project_id, "cursor": seq}
 
-    def dead_letter(self, *, worker_id, project_id, operation, reason, value=None):
-        digest = hashlib.sha256(canonical(value).encode()).hexdigest() if value is not None else None
+    def dead_letter(self, *, worker_id, project_id, operation, reason, value=None, digest=None):
+        if digest is None and value is not None:
+            digest = hashlib.sha256(canonical(value).encode()).hexdigest()
         with self.store.transaction() as c:
-            cur = c.execute(
-                "INSERT INTO mesh_dead_letters(worker_id,project,operation,reason,digest,created_at,value) "
-                "VALUES(?,?,?,?,?,?,?)",
-                (worker_id, project_id, operation, reason[:300], digest, time.time(),
-                 canonical(value) if value is not None else None),
-            )
-        return {"id": cur.lastrowid, "digest": digest}
+            self._dead_letter_tx(c, worker_id=worker_id, project_id=project_id,
+                                 operation=operation, reason=reason, digest=digest)
+            row = c.execute("SELECT last_insert_rowid() id").fetchone()
+        return {"id": row["id"], "digest": digest}
 
     def status(self):
         now = time.time()
@@ -392,6 +467,7 @@ class MeshState:
             messages = c.execute("SELECT count(*) n, COALESCE(min(receipt_time),0) oldest FROM mesh_messages").fetchone()
             dead = c.execute("SELECT count(*) n FROM mesh_dead_letters").fetchone()["n"]
             cursors = [dict(r) for r in c.execute("SELECT worker_id,project,seq,updated_at FROM mesh_cursors ORDER BY worker_id,project")]
+            retention = [dict(r) for r in c.execute("SELECT project,compacted_through,updated_at FROM mesh_retention ORDER BY project")]
         return {
             "schema": STATUS_SCHEMA,
             "at": now,
@@ -405,5 +481,8 @@ class MeshState:
             "oldest_message_age_s": max(0, now - messages["oldest"]) if messages["n"] else 0,
             "dead_letter_count": dead,
             "cursors": cursors,
+            "retention": retention,
+            "limits": {"project_messages": MAX_PROJECT_MESSAGES, "bulk_messages": MAX_BULK_MESSAGES,
+                       "dead_letters": MAX_DEAD_LETTERS, "replay_age_s": MAX_REPLAY_AGE_S},
             "qualification": "health_only_not_mesh_qualification",
         }
