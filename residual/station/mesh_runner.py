@@ -79,6 +79,7 @@ class MeshClawRunner:
         self.provider_routes = provider_routes
         self.max_request_bytes = max_request_bytes
         self.current = None
+        self.current_assignment_id = None
 
     def synchronize(self):
         self.client.recover_outbox()
@@ -100,6 +101,7 @@ class MeshClawRunner:
             f"{work['project_id']}:{work['task_id']}:{work['attempt']}:"
             f"{work['fencing_token']}:{uuid.uuid4().hex[:12]}"
         )
+        self.current_assignment_id = assignment_id
         try:
             execution = self.adapter.execute({
                 "assignment_id": assignment_id,
@@ -132,12 +134,12 @@ class MeshClawRunner:
             raise
         finally:
             self.current = None
+            self.current_assignment_id = None
 
     def cancel_current(self):
-        if not self.current:
+        if not self.current_assignment_id:
             return {"requested": False, "observed_stopped": True}
-        identity = f"{self.current['project_id']}:{self.current['task_id']}:{self.current['attempt']}"
-        return self.adapter.cancel(identity)
+        return self.adapter.cancel(self.current_assignment_id)
 
     def shutdown(self):
         return self.adapter.shutdown()

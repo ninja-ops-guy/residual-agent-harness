@@ -1,0 +1,24 @@
+[Unit]
+Description=RESIDUAL scoped mesh worker %i
+After=network-online.target residual-station.service
+Wants=network-online.target
+ConditionPathExists=/etc/residual/mesh/%i.json
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/
+LoadCredential=mesh-token:/etc/residual/mesh/%i.token
+ExecStart=/root/.local/share/residual/venv/bin/python -m residual mesh-worker --config /etc/residual/mesh/%i.json
+Restart=on-failure
+RestartSec=10
+KillMode=control-group
+TimeoutStopSec=20
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=read-only
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target
