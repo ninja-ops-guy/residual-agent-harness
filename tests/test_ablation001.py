@@ -145,6 +145,7 @@ def test_runner_rejects_below_preregistered_repeat_floor():
     dict(state="FAIL", correct=True, accepted=True),
     dict(state="UNKNOWN", correct=True, accepted=False),
     dict(state="REJECTED", correct=False, accepted=True),
+    dict(state="REJECTED", correct=None, accepted=False),
 ])
 def test_task_measurement_rejects_state_inconsistency(kwargs):
     base = dict(
@@ -154,6 +155,25 @@ def test_task_measurement_rejects_state_inconsistency(kwargs):
     )
     with pytest.raises(ContractError):
         TaskMeasurement(**base, **kwargs)
+
+
+def test_task_measurement_rejects_acceptance_after_verifier_rejection():
+    with pytest.raises(ContractError):
+        TaskMeasurement(
+            state="PASS", correct=True, accepted=True, fault_caught=None,
+            verifier_rejected=True, latency_ms=1.0, input_tokens=1,
+            output_tokens=1, cost_usd=0.0, evidence_refs=("test://evidence",),
+        )
+
+
+def test_task_measurement_rejects_impossible_recovery_count():
+    with pytest.raises(ContractError):
+        TaskMeasurement(
+            state="PASS", correct=True, accepted=True, fault_caught=None,
+            verifier_rejected=False, latency_ms=1.0, input_tokens=1,
+            output_tokens=1, cost_usd=0.0, recovery_attempts=0,
+            recovered_failures=1, evidence_refs=("test://evidence",),
+        )
 
 
 def test_task_measurement_requires_retained_evidence_reference():
