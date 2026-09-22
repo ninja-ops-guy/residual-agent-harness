@@ -153,6 +153,16 @@ class MeshWorkerClient:
         value = self.request("claim", body).get("work")
         return value
 
+    def execution_admit(self, work, attempts):
+        return self.request("execution-admit", {
+            "project_id": work["project_id"],
+            "generation": work["generation"],
+            "task_id": work["task_id"],
+            "lease_id": work["lease_id"],
+            "fencing_token": work["fencing_token"],
+            "attempts": attempts,
+        })
+
     def heartbeat(self, work):
         return self.request("heartbeat", {
             "project_id": work["project_id"],
@@ -171,7 +181,7 @@ class MeshWorkerClient:
             "request_bytes": request_bytes,
         })
 
-    def submit_result(self, work, *, submission_id, response, usage=None):
+    def submit_result(self, work, *, submission_id, response, usage=None, provider_attempts=None):
         data = {
             "project_id": work["project_id"],
             "generation": work["generation"],
@@ -184,4 +194,6 @@ class MeshWorkerClient:
         }
         if usage is not None:
             data["usage"] = usage
+        if provider_attempts is not None:
+            data["provider_attempts"] = provider_attempts
         return self.request("result", data)
