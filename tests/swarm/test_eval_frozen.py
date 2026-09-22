@@ -313,11 +313,9 @@ def test_r10_fixture_labeled_development(report, records):
     assert all(r.evidence_level == "development_fixture" for r in records)
 
 
-def test_r10_live_runs_separately_labeled(workload):
-    live_records = run_study(workload, repeats=3, evidence_level="live_model")
-    assert all(r.evidence_level == "live_model" for r in live_records)
-    live_report = build_report(workload, live_records, evidence_level="live_model")
-    assert live_report["evidence_level"] == "live_model"
+def test_r10_scripted_runner_cannot_emit_live_model_evidence(workload):
+    with pytest.raises(ContractError):
+        run_study(workload, repeats=3, evidence_level="live_model")
 
 
 def test_r10_invalid_evidence_level_rejected(workload):
@@ -415,3 +413,13 @@ def test_r9_report_hash_reproducible_across_processes(tmp_path):
         hashes.append(summary["report_sha256"])
     assert hashes[0] == hashes[1]
     assert len(hashes[0]) == 64
+
+
+def test_acceptance_cli_live_flag_fails_closed(tmp_path):
+    result = subprocess.run(
+        [sys.executable, "-m", "residual.eval_frozen", "--out", str(tmp_path), "--live"],
+        capture_output=True, text=True, cwd=ROOT,
+    )
+    assert result.returncode != 0
+    assert "cannot produce live-model evidence" in result.stderr
+    assert not (tmp_path / "live-study-evidence.json").exists()
