@@ -257,3 +257,15 @@ def test_confirmatory_analysis_clusters_repeats_by_task():
     for result in analysis["comparisons"].values():
         assert result["n_pairs"] == 6
         assert "holm_adjusted_p_value" in result
+
+
+def test_measured_observation_rejects_reconstructed_identity_tampering():
+    from residual.eval.ablation001 import MeasuredObservation
+
+    _, _, _, runner = _campaign()
+    row = runner.run(repeats=3)["records"][0]
+    row = dict(row)
+    row["record_id"] = digest("tampered-record-id")
+    row["evidence_refs"] = tuple(row["evidence_refs"])
+    with pytest.raises(ContractError):
+        MeasuredObservation(**row)
