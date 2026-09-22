@@ -288,7 +288,8 @@ class Handler(BaseHTTPRequestHandler):
             if "model.remote" in current["capabilities"]:
                 routes.add("cloud")
             work = s.prepare(pid, "mesh:" + current["worker_id"], data.get("task_id"),
-                             routes=routes, capabilities=set(current["capabilities"]))
+                             routes=routes, capabilities=set(current["capabilities"]),
+                             reserve_budget=True)
             if not work:
                 return {"work": None}
             t = work["task"]
@@ -317,8 +318,9 @@ class Handler(BaseHTTPRequestHandler):
             request_bytes = data.get("request_bytes")
             if type(request_bytes) is not int or not 0 <= request_bytes <= project["request_byte_limit"]:
                 raise ContractError("Invalid provider request size")
-            s.store.reserve_call(data["project_id"], "mesh_runner", placement, request_bytes, data["task_id"])
-            return {"admitted": True, "generation": int(project.get("generation", 1))}
+            budget = s.store.reserve_mesh_attempt(data["project_id"], data["task_id"], data["lease_id"],
+                                                  data["fencing_token"], placement, request_bytes)
+            return {"admitted": True, "generation": int(project.get("generation", 1)), "budget": budget}
         if path == "/api/mesh/worker/result":
             pid, tid = data["project_id"], data["task_id"]
             current, project = s.mesh.authorize(mesh_worker, pid)

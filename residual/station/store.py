@@ -118,12 +118,14 @@ class Store(ObservationStore):
                    "spec_hash": sha(manifest), "created_at": now(), "repo": str(repo), "mode": mode,
                    "allow_cloud": bool(allow_cloud), "commands": bool(commands), "paused": False,
                    "generation": 1, "policy_revision": 1, "stopped": False,
+                   "mesh_assignments_reserved": 0, "mesh_cloud_assignments_reserved": 0,
                    "call_limit": 100, "cloud_call_limit": 30, "request_byte_limit": 5_000_000}
         with self.transaction() as c:
             c.execute("INSERT INTO projects VALUES(?,?)", (pid, canonical(project)))
             for definition in manifest["tasks"]:
                 task = {**definition, "state": "proposed", "attempt": 0, "owner": None, "lease": None,
-                        "lease_until": 0, "fencing_token": 0, "base_commit": None, "head_commit": None,
+                        "lease_until": 0, "fencing_token": 0, "mesh_budget_reserved": False,
+                        "base_commit": None, "head_commit": None,
                         "checks_result": [], "baseline": [], "findings": [], "artifacts": [], "updated_at": now()}
                 c.execute("INSERT INTO tasks VALUES(?,?,?)", (pid, task["id"], canonical(task)))
             self._event(c, project, "project.created", "operator", data={"name": project["name"], "tasks": len(manifest["tasks"]), "mode": mode})
@@ -184,12 +186,24 @@ class Store(ObservationStore):
                 if t["state"] == "running" and (t.get("owner") or "").startswith("mesh:"):
                     affected.append({"task_id": t["id"], "owner": t.get("owner"),
                                      "fencing_token": t.get("fencing_token", 0)})
+                    self._release_mesh_assignment(c, pid, t, p)
                     t.update(state="blocked", owner=None, lease=None, lease_until=0,
                              findings=["Mesh stop revoked execution authority; reconcile before retrying."])
                     self._write_task(c, pid, t)
             self._event(c, p, "mesh.stop.requested", actor,
                         data={"generation": p["generation"], "revoked_leases": affected})
             return {"generation": p["generation"], "revoked_leases": affected}
+
+    def _release_mesh_assignment(self, c, pid, task, project=None):
+        if not task.get("mesh_budget_reserved", False):
+            return project
+        p = project or self._project(c, pid)
+        p["mesh_assignments_reserved"] = max(0, int(p.get("mesh_assignments_reserved", 0)) - 1)
+        if task.get("route") == "cloud":
+            p["mesh_cloud_assignments_reserved"] = max(0, int(p.get("mesh_cloud_assignments_reserved", 0)) - 1)
+        task["mesh_budget_reserved"] = False
+        c.execute("UPDATE projects SET value=? WHERE id=?", (canonical(p), pid))
+        return p
 
     def transition(self, pid, tid, state, actor="coordinator", fields=None, lease=None, fencing_token=None):
         with self.transaction() as c:
@@ -205,6 +219,7 @@ class Store(ObservationStore):
             task.update(fields or {})
             task["state"] = state
             if prior == "running":
+                self._release_mesh_assignment(c, pid, task, p)
                 task.update(lease=None, lease_until=0)
             self._write_task(c, pid, task)
             self._event(c, p, "task.transition", actor, task, {"from": prior, "to": state, "findings": task.get("findings", [])[:5]})
@@ -219,7 +234,7 @@ class Store(ObservationStore):
             t.update(fields)
             self._write_task(c, pid, t)
 
-    def claim(self, pid, owner, tid=None, routes=None, capabilities=None):
+    def claim(self, pid, owner, tid=None, routes=None, capabilities=None, reserve_budget=False):
         with self.transaction() as c:
             p = self._project(c, pid)
             if p["paused"] or p.get("stopped", False):
@@ -239,14 +254,70 @@ class Store(ObservationStore):
                     continue
                 if t["attempt"] >= MAX_TASK_ATTEMPTS:
                     continue
+                if reserve_budget:
+                    held = int(p.get("mesh_assignments_reserved", 0))
+                    used = int(p.get("calls_reserved", 0))
+                    if used + held >= int(p["call_limit"]):
+                        continue
+                    if t["route"] == "cloud":
+                        cloud_held = int(p.get("mesh_cloud_assignments_reserved", 0))
+                        cloud_used = int(p.get("cloud_calls_reserved", 0))
+                        if cloud_used + cloud_held >= int(p["cloud_call_limit"]) or not p["allow_cloud"]:
+                            continue
+                    p["mesh_assignments_reserved"] = held + 1
+                    if t["route"] == "cloud":
+                        p["mesh_cloud_assignments_reserved"] = int(p.get("mesh_cloud_assignments_reserved", 0)) + 1
+                    c.execute("UPDATE projects SET value=? WHERE id=?", (canonical(p), pid))
                 t.update(state="running", owner=owner, attempt=t["attempt"] + 1,
                          lease=secrets.token_urlsafe(24), lease_until=time.time() + 900,
-                         fencing_token=t.get("fencing_token", 0) + 1)
+                         fencing_token=t.get("fencing_token", 0) + 1,
+                         mesh_budget_reserved=bool(reserve_budget))
                 self._write_task(c, pid, t)
                 self._event(c, p, "task.claimed", owner, t,
                             {"route": t["route"], "lease_seconds": 900, "fencing_token": t["fencing_token"]})
                 return t
             return None
+
+    def reserve_mesh_attempt(self, pid, tid, lease, fencing_token, placement, request_bytes):
+        if placement not in {"local", "remote"}:
+            raise ContractError("Invalid provider placement")
+        if type(request_bytes) is not int or request_bytes < 0:
+            raise ContractError("Invalid provider request size")
+        with self.transaction() as c:
+            p = self._project(c, pid)
+            t = self._task(c, pid, tid)
+            if t["state"] != "running" or t["lease_until"] < time.time() or not secrets.compare_digest(t.get("lease") or "", lease or ""):
+                raise ContractError("Stale task lease")
+            if t.get("fencing_token", 0) != fencing_token:
+                raise ContractError("Stale task fencing token")
+            required = "local" if t["route"] == "local" else "remote"
+            if placement != required:
+                raise ContractError("Cross-placement fallback is not approved for this task")
+            if placement == "remote" and not p["allow_cloud"]:
+                raise ContractError("Cloud sharing is disabled for this project")
+            held = bool(t.get("mesh_budget_reserved", False))
+            calls = int(p.get("calls_reserved", 0))
+            cloud = int(p.get("cloud_calls_reserved", 0))
+            sent = int(p.get("request_bytes_reserved", 0))
+            effective_calls = calls + int(p.get("mesh_assignments_reserved", 0)) - int(held)
+            effective_cloud = cloud + int(p.get("mesh_cloud_assignments_reserved", 0)) - int(held and t["route"] == "cloud")
+            if effective_calls >= int(p["call_limit"]):
+                raise ContractError("Project model-call budget is exhausted")
+            if placement == "remote" and effective_cloud >= int(p["cloud_call_limit"]):
+                raise ContractError("Project cloud model-call budget is exhausted")
+            if sent + request_bytes > int(p["request_byte_limit"]):
+                raise ContractError("Project request-byte budget is exhausted")
+            if held:
+                self._release_mesh_assignment(c, pid, t, p)
+                p = self._project(c, pid)
+            p["calls_reserved"] = int(p.get("calls_reserved", 0)) + 1
+            p["cloud_calls_reserved"] = int(p.get("cloud_calls_reserved", 0)) + int(placement == "remote")
+            p["request_bytes_reserved"] = int(p.get("request_bytes_reserved", 0)) + request_bytes
+            c.execute("UPDATE projects SET value=? WHERE id=?", (canonical(p), pid))
+            self._write_task(c, pid, t)
+            return {"calls_reserved": p["calls_reserved"],
+                    "cloud_calls_reserved": p["cloud_calls_reserved"],
+                    "request_bytes_reserved": p["request_bytes_reserved"]}
 
     def validate_lease(self, pid, tid, lease, fencing_token=None):
         with self.connect() as c:
@@ -278,6 +349,8 @@ class Store(ObservationStore):
                 if not (expired or interrupted):
                     continue
                 prior = t["state"]
+                if t["state"] == "running":
+                    self._release_mesh_assignment(c, row["project"], t)
                 t.update(state="blocked", owner=None, lease=None, lease_until=0,
                          findings=["Interrupted work requires re-triage. Existing evidence is retained."])
                 self._write_task(c, row["project"], t)

@@ -179,10 +179,11 @@ class Station:
                     self.store.transition(pid, task["id"], "blocked", fields={"findings": [str(e)]})
             return {"message": "Triage complete. Failing baseline acceptance checks are expected for unimplemented specs."}
 
-    def prepare(self, pid, owner, tid=None, routes=None, capabilities=None):
+    def prepare(self, pid, owner, tid=None, routes=None, capabilities=None, reserve_budget=False):
         with self.project_lock(pid):
             self.store.recover()
-            t = self.store.claim(pid, owner, tid, routes=routes, capabilities=capabilities)
+            t = self.store.claim(pid, owner, tid, routes=routes, capabilities=capabilities,
+                                 reserve_budget=reserve_budget)
             if not t:
                 return None
             p = self.store.project(pid)

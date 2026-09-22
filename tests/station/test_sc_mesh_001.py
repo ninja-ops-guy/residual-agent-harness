@@ -181,6 +181,38 @@ class MeshStateTests(unittest.TestCase):
         self.assertIsNone(self.station.store.claim(self.pid, "mesh:claw-a", routes={"local"},
                                                    capabilities=set(worker["capabilities"])))
 
+    def test_mesh_claim_reserves_budget_and_first_attempt_consumes_reservation(self):
+        result, worker = self._enroll()
+        self.station.mesh.begin_sync(worker)
+        self.station.mesh.snapshot(worker, self.pid)
+        worker = self.station.mesh.authenticate(result["token"])
+        work = self.station.prepare(self.pid, "mesh:claw-a", "OPS-101", routes={"local"},
+                                    capabilities=set(worker["capabilities"]), reserve_budget=True)
+        p = self.station.store.project(self.pid)
+        self.assertEqual(p["mesh_assignments_reserved"], 1)
+        budget = self.station.store.reserve_mesh_attempt(
+            self.pid, work["task"]["id"], work["lease"], work["task"]["fencing_token"], "local", 123)
+        self.assertEqual(budget["calls_reserved"], 1)
+        p = self.station.store.project(self.pid)
+        self.assertEqual(p["mesh_assignments_reserved"], 0)
+        self.assertEqual(p["request_bytes_reserved"], 123)
+
+    def test_mesh_claim_budget_and_cross_placement_fail_closed(self):
+        result, worker = self._enroll()
+        self.station.mesh.begin_sync(worker)
+        self.station.mesh.snapshot(worker, self.pid)
+        worker = self.station.mesh.authenticate(result["token"])
+        self.station.store.project_update(self.pid, call_limit=0)
+        self.assertIsNone(self.station.prepare(
+            self.pid, "mesh:claw-a", "OPS-101", routes={"local"},
+            capabilities=set(worker["capabilities"]), reserve_budget=True))
+        self.station.store.project_update(self.pid, call_limit=100)
+        work = self.station.prepare(self.pid, "mesh:claw-a", "OPS-101", routes={"local"},
+                                    capabilities=set(worker["capabilities"]), reserve_budget=True)
+        with self.assertRaises(ContractError):
+            self.station.store.reserve_mesh_attempt(
+                self.pid, work["task"]["id"], work["lease"], work["task"]["fencing_token"], "remote", 1)
+
 
 class MeshOutboxTests(unittest.TestCase):
     def test_outbox_is_durable_conflict_safe_and_inbox_deduplicates(self):
