@@ -127,6 +127,23 @@ class MeshState:
             raise ContractError("Mesh enrollment is revoked or expired")
         return worker
 
+    def authorize(self, worker, project_id, *, require_ready=True):
+        if project_id not in worker["project_ids"]:
+            raise ContractError("Worker is not authorized for this project")
+        with self.store.connect() as c:
+            current = self._load_worker(c, worker["worker_id"])
+            project = self.store._project(c, project_id)
+        if current["state"] == "REVOKED" or current["expires_at"] <= time.time():
+            raise ContractError("Mesh enrollment is revoked or expired")
+        if require_ready and current["state"] != "READY":
+            raise ContractError("Worker must synchronize before authority-bearing operations")
+        generation = int(project.get("generation", 1))
+        if require_ready and current.get("generation_seen", {}).get(project_id) != generation:
+            raise ContractError("Worker generation is stale; synchronize before continuing")
+        if project.get("stopped", False):
+            raise ContractError("Project is stopped")
+        return current, project
+
     def revoke(self, worker_id, *, actor="operator"):
         now = time.time()
         with self.store.transaction() as c:
