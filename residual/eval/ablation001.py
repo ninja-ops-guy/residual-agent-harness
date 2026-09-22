@@ -13,6 +13,7 @@ from typing import Protocol, Sequence
 from residual.core import ContractError, digest
 from residual.eval_frozen.configs import CONFIGURATIONS, ExperimentConfig
 from residual.eval_frozen.workload import FrozenTask, FrozenWorkload
+from .stats import compare_paired, holm_bonferroni
 
 PROTOCOL_SCHEMA = "residual.research.ablation001.protocol.v1"
 EXECUTION_SCHEMA = "residual.research.ablation001.execution.v1"
@@ -361,6 +362,88 @@ def summarize_observations(
             "unauthorized_actions": sum(r.unauthorized_actions for r in rows),
         }
     return out
+
+
+CONFIRMATORY_COMPARISONS = (("R4", "R0"), ("R5", "R4"))
+
+
+def confirmatory_analysis(
+    records: Sequence[MeasuredObservation],
+    *,
+    alpha: float = 0.05,
+    bootstrap_iterations: int = 5000,
+    bootstrap_seed: int = 20260921,
+) -> dict[str, object]:
+    """Pre-frozen paired analysis using task clusters, not raw repeats as iid rows.
+
+    Repeats are averaged within task before inference so repeated observations
+    of one task are not treated as independent experimental units.
+    """
+    rows = list(records)
+    if not rows:
+        raise ContractError("confirmatory analysis requires observations")
+    cell_index: dict[tuple[str, int, str], MeasuredObservation] = {}
+    for row in rows:
+        key = (row.task_id, row.repeat, row.config_id)
+        if key in cell_index:
+            raise ContractError("duplicate measured cell in confirmatory analysis")
+        cell_index[key] = row
+
+    task_ids = sorted({r.task_id for r in rows})
+    if len(task_ids) < 2:
+        raise ContractError("confirmatory analysis requires at least two task clusters")
+
+    endpoints = {
+        "accepted_and_sound_rate": lambda r: 1.0 if r.accepted and r.correct is True else 0.0,
+        "unsafe_acceptance_rate": lambda r: 1.0 if r.accepted and r.correct is False else 0.0,
+    }
+    reports: dict[str, dict[str, object]] = {}
+    raw_p: dict[str, float] = {}
+
+    for metric, score in endpoints.items():
+        for config_a, config_b in CONFIRMATORY_COMPARISONS:
+            a_values: list[float] = []
+            b_values: list[float] = []
+            for task_id in task_ids:
+                repeats_a = sorted(
+                    r.repeat for r in rows if r.task_id == task_id and r.config_id == config_a
+                )
+                repeats_b = sorted(
+                    r.repeat for r in rows if r.task_id == task_id and r.config_id == config_b
+                )
+                if repeats_a != repeats_b or not repeats_a:
+                    raise ContractError("confirmatory comparison is not paired within task")
+                a_values.append(
+                    sum(score(cell_index[(task_id, repeat, config_a)]) for repeat in repeats_a)
+                    / len(repeats_a)
+                )
+                b_values.append(
+                    sum(score(cell_index[(task_id, repeat, config_b)]) for repeat in repeats_b)
+                    / len(repeats_b)
+                )
+            comparison = compare_paired(
+                metric, config_a, a_values, config_b, b_values,
+                alpha=alpha,
+                bootstrap_iterations=bootstrap_iterations,
+                bootstrap_seed=bootstrap_seed,
+            )
+            key = f"{metric}:{config_a}-vs-{config_b}"
+            reports[key] = comparison.to_dict()
+            raw_p[key] = comparison.p_value
+
+    adjusted = holm_bonferroni(raw_p)
+    for key, value in reports.items():
+        value["holm_adjusted_p_value"] = adjusted[key]
+        value["holm_significant"] = adjusted[key] < alpha
+
+    return {
+        "analysis_unit": "task_cluster_mean_across_repeats",
+        "alpha": alpha,
+        "bootstrap_iterations": bootstrap_iterations,
+        "bootstrap_seed": bootstrap_seed,
+        "familywise_method": "holm_bonferroni",
+        "comparisons": reports,
+    }
 
 
 def build_bundle(
