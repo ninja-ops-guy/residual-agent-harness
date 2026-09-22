@@ -2,9 +2,9 @@
 
 Usage: python3 -m residual.eval_frozen [--out evidence/eval] [--repeats 3]
 
-CI runs this scripted development fixture (EVAL-R10). Live-model runs must
-pass --live and are labeled evidence_level=live_model, kept separate from
-fixture aggregates.
+CI runs this scripted development fixture (EVAL-R10). This module cannot
+produce live-model evidence. The historical --live flag is retained only as
+a fail-closed guard so scripted outcomes cannot be relabeled as empirical data.
 """
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ import argparse
 import json
 from pathlib import Path
 
+from ..core import ContractError
 from .configs import CONFIGURATIONS
 from .evidence import build_evidence_artifact, write_evidence_artifact
 from .report import build_report, plotting_inputs, report_csv_rows
@@ -24,7 +25,12 @@ def run_fixture_study(out_dir: Path, repeats: int = 3, *, live: bool = False,
     """End-to-end fixture study over R0-R5; returns the evidence artifact."""
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    evidence_level = "live_model" if live else "development_fixture"
+    if live:
+        raise ContractError(
+            "eval_frozen is a scripted development fixture and cannot produce "
+            "live-model evidence; use the measured ablation execution path"
+        )
+    evidence_level = "development_fixture"
     workload = development_workload()
     records = run_study(workload, repeats=repeats, evidence_level=evidence_level)
     report = build_report(workload, records, evidence_level=evidence_level)
@@ -51,8 +57,10 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="residual.eval_frozen")
     parser.add_argument("--out", default="evidence/eval")
     parser.add_argument("--repeats", type=int, default=3)
-    parser.add_argument("--live", action="store_true",
-                        help="label the run as live_model evidence")
+    parser.add_argument(
+        "--live", action="store_true",
+        help="deprecated fail-closed guard; scripted fixtures cannot be live evidence",
+    )
     args = parser.parse_args(argv)
     artifact = run_fixture_study(Path(args.out), args.repeats, live=args.live)
     print(json.dumps({"evidence_sha256": artifact["evidence_sha256"],
