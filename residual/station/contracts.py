@@ -23,7 +23,7 @@ SHA = re.compile(r"^[a-f0-9]{40,64}$")
 EVENT_TYPES = {"project.created", "project.paused", "project.resumed", "task.transition",
                "task.claimed", "task.finding", "checks.completed", "review.completed",
                "integration.completed", "usage.recorded", "report.generated", "release.exported",
-               "worker.joined", "worker.expired", "project.note"}
+               "worker.joined", "worker.expired", "project.note",\n               "mesh.worker.enrolled", "mesh.worker.revoked", "mesh.message",\n               "mesh.generation.advanced", "mesh.stop.requested", "mesh.stop.observed"}
 LDD_BASE = json.loads((Path(__file__).parent / "schemas" / "ldd-base.json").read_text())
 
 
@@ -61,7 +61,7 @@ def parse_spec(markdown):
         raise ContractError("A project needs 1–100 tasks")
     ids = set()
     for task in tasks:
-        if not isinstance(task, dict) or set(task) - {"id", "title", "instruction", "depends_on", "files", "context", "checks", "route"}:
+        if not isinstance(task, dict) or set(task) - {"id", "title", "instruction", "depends_on", "files", "context", "checks", "route", "capabilities"}:
             raise ContractError("Unknown task fields")
         tid = task.get("id", "")
         if not isinstance(tid, str) or not ID.fullmatch(tid) or tid in ids:
