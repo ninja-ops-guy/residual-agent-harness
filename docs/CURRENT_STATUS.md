@@ -1,229 +1,192 @@
 # RESIDUAL current status
 
-_Current-state check: 2026-09-18 UTC against `main@4608afabf5de4c87d77aaf149dfc12538d364f43`._
+_Current-state check: 2026-09-22 02:14 UTC against `main@91d32fd8b713c68c1cd2e473013c9e1c33b93572`._
 
-This document is a human-readable status summary. Exact code at the named revision, exact-head workflow results, retained machine-readable evidence, explicit issues/PRs, and applicable maintainer/protected-byte governance are more authoritative than prose. Historical evidence remains bound to the revision and environment that produced it.
+This document is a human-readable status summary. Exact repository bytes, exact-head workflow results, retained artifacts, explicit issues/PRs, and applicable maintainer/protected-byte governance are more authoritative than prose. Historical PASS/FAIL/BLOCKED evidence remains bound to the exact revision, run attempt, and environment that produced it; later candidate commits or reruns do not inherit, erase, or rewrite earlier evidence unless the governing acceptance process explicitly says so.
 
 ## Executive summary
 
-Current `main` is **`4608afabf5de4c87d77aaf149dfc12538d364f43`**.
+Current `main` is **`91d32fd8b713c68c1cd2e473013c9e1c33b93572`**. No accepted-main movement occurred in this observation.
 
-Meaningful accepted changes since `main@699e2869e294fe157b4bfd73a272057683a2f7e0`:
+### Accepted repository state
 
-- **#200** merged as `fc1eb8b19f4de9c4d3ecf9f797b76e29884a281d`: native setup defaults are now local/persistent and shell integration is opt-in.
-- **#205** merged as current main: Mission Control restores its private provider channel across reload/remount using validated session-scoped state and clears it on explicit close.
+**#397** (`fix(webvm): sync standalone workbench before reload`) remains **MERGED / accepted repository state**. Its exact PR head was `ed60fb135fea32baf603ff45ecb2d0a82b44828e`; the maintainer supplied the exact-head approval string, and GitHub merged the PR as `main@91d32fd8b713c68c1cd2e473013c9e1c33b93572`.
 
-Neither merge changes protected Factory/M4 implementation, ownership-baseline schemas, qualification anchors, verifier authority, or evidence schemas.
+The historical `main@b571b91a9615484a1b9b81cacc8b7d82c41498ea` Pages post-deploy failure remains retained **FAIL** evidence. It is not rewritten. The first authoritative push-triggered Pages workflow on repaired `main@91d32fd8...` completed **PASS**. Exact-main RESIDUAL Qualification v1 is also **PASS** at the retained observation. Other observed exact-main push workflows including Controller/provider contracts, Command Station checks, clean-install qualification and M4 qualification runner prerequisites are **PASS**; Vercel is **PASS**.
 
-The exact-current-main Actions query for `4608afa...` returned a completed run set with no pending, cancelled, or failing conclusion observed; a sampled Controller/provider run completed **PASS on attempt 1**. These are scoped automated results only. They do not establish every-host/capable-runner M4 qualification, blank-environment install, host-loss recovery, elapsed soak, live-provider semantic success, physical heavyweight-WebVM iPhone reliability, or confirmatory research.
+These are exact-revision results only. They do not establish physical-device reliability, successful paid/live provider semantics, every-host M4 qualification, elapsed soak, closure of AUD-1, or blanket production readiness.
 
-Since the prior status refresh, accepted `main` has not moved. New research evidence has, however, closed several previously pending experiment cells: #206 Campaign A completed with BLOCKED/FAIL outcomes in its repair/DAG/reliability scenarios, #212 reproduced the accounting-before-authority defect for missing usage while also retaining bounded fail-closed/recovery controls, and #215/#217 retained additional failed M6 self-maintenance trials. Draft #214 is a candidate repair for #208; it is not accepted main behavior.
+### AUD-1 security convergence
 
-## Accepted #200 setup hardening
+Owner issue **#353 remains OPEN and P0 / BLOCKED at the release level**. Focused convergence candidate **#399** remains open, unmerged, and based on accepted `main@91d32fd8...`.
 
-#200 is now accepted main behavior.
+The prior exact head `fb416efe29d245fcbbb03f6f8edb8c89a8212f3d` completed the named hosted technical workflows successfully, including Qualification v1. PR-Agent nevertheless identified that adversarial requirement #6 lacked an explicit positive coordinator-transition regression: the combined test proved worker denial but not that the corresponding authenticated coordinator/operator transition remained possible. Those `fb416efe...` PASS results remain retained exact-head software evidence, but they are **superseded for final acceptance** rather than treated as satisfying the complete ten-regression contract.
 
-The setup path now:
+Current #399 exact head is **`8df77b832b3839ccd2a6944a65760ce3ab10dc9c`**. It adds the missing explicit coordinator-vs-worker authority-separation regression. Because candidate bytes changed, current qualification and acceptance claims are bound to this exact revision.
 
-- defaults the managed venv/state to persistent XDG-style locations rather than `/tmp`;
-- binds Station to `127.0.0.1` by default;
-- makes the no-argument convenience shell macro opt-in, including non-interactive execution;
-- performs bounded repair of a broken/incomplete managed venv;
-- edits shell startup files only inside marked managed blocks, using atomic same-directory replacement;
-- invokes installation through the venv interpreter rather than relying on activation;
-- does not open a browser before the server is started.
+Fresh exact-head hosted software evidence is green:
 
-Claim discipline:
+- Factory ownership: **PASS**
+- Control Plane: **PASS**
+- clean-install qualification: **PASS**
+- PR-Agent advisory: **PASS**
+- Controller/provider contracts: **PASS**
+- Command Station checks: **PASS**
+- Pages PR-head/browser proof: **PASS**
+- measured-evaluation acceptance binding: **PASS**
+- Vercel: **PASS**
+- RESIDUAL Qualification v1 aggregate: **PASS**
+- exact-head maintainer approval: **FAIL / no matching human attestation**
 
-- accepted setup-hardening bytes: **PASS / on main**;
-- ordinary automated setup tests: **PASS within their tested scope**;
-- true blank-environment installation: **UNKNOWN / not established**;
-- broad portability across unsupported hosts: **UNKNOWN / not established**.
+The owner has now explicitly classified the **AUD-1 software gate as ready for physical P1 dogfood** on exact candidate `8df77b83...`. The maintainer-approval gate is intentionally unfulfilled until after the physical evidence and independent re-audit. This is a progression to the next evidence stage, **not** release acceptance, merge authorization, or closure of #353.
 
-A host Python 3.11+ installation and ordinary OS/network prerequisites remain external assumptions.
+Therefore #399 remains **UNACCEPTED / NOT MERGE-READY**. The two required physical F6 timing claims remain **UNKNOWN / not established** until distinct retained artifacts exist, followed by the standing Mason/LEGION independent read-only re-audit and the remaining governed qualification/attestation/merge/new-main sequence. Any candidate-byte change invalidates affected exact-head qualification/audit evidence.
 
-## Accepted #205 provider-channel recovery
+### OpenClaw Shared Comms bridge candidate
 
-#205 is now accepted main behavior.
+**#400** (`feat(openclaw): add durable Shared Comms bridge R0`) remains **DRAFT / UNMERGED / UNACCEPTED** at exact head **`c0c1f2cbd4677e0bc8fd2f710b40f3608db9cda7`**.
 
-The browser provider-session layer persists the private provider-channel token in `sessionStorage`, validates a restored token before reuse, reattaches the same session channel after Mission Control reload/remount, ignores invalid stored state fail-closed, and clears the token on explicit close.
+Its PR body describes an advisory OpenClaw bridge with durable SQLite/WAL state, deterministic identities/session keys, filtering and self-loop suppression, retained request/response receipts, bounded execution, provider/model/transport/fallback status, Ollama warm-up, and deployment/operator documentation. Those are candidate-branch claims, not accepted-main behavior.
 
-This supersedes the previously open provider-channel recovery problem represented by #190 at the accepted-byte level. Historical #190 candidate evidence remains historical and does not need to be reinterpreted as accepted proof.
+The PR explicitly states that accepted GitHub `main` does **not** contain the locally qualified R3.4 Station Shared Comms worker endpoints/outbox and that #400 should remain draft until that server-side contract lands or is otherwise resolved. The bridge is also explicitly advisory: it does not claim tasks or replace Station authority. That dependency remains a **BLOCKED acceptance boundary** for the integration; hosted CI cannot synthesize the missing server-side mainline contract.
 
-Claim discipline:
+At exact head `c0c1f2c...`, observed software workflows include **PASS** for RESIDUAL Qualification v1, Control Plane, Factory ownership, clean-install qualification, measured-evaluation binding, PR-Agent, Controller/provider contracts, and Command Station checks; Vercel is **PASS**. The PR Pages workflow is **CANCELLED**, not PASS, and exact-head maintainer approval is **FAIL** because no matching human attestation exists. None of these results changes the PR's DRAFT / dependency-blocked / unaccepted status.
 
-- accepted reload/remount channel recovery behavior: **PASS / on main**;
-- browser regression coverage for restored/invalid/closed channel state: **PASS within the tested scope**;
-- successful paid/live Puter inference: **UNKNOWN / not established**;
-- retained manual production SDK/sign-in success on exact current main: **UNKNOWN / not established**.
+### Research-maintenance check-in
 
-## Exact-current-main qualification boundary
+New draft **#401** (`docs(research): record 2026-09-21 AX-21 evidence check-in`) targets the research branch `research/exp-m6-slm-00`, not `main`. It is an append-only research-maintenance candidate at exact head **`277d775182d2cf55b986b93025e762959f1c6094`**.
 
-Exact `main@4608afa...` has a completed exact-SHA Actions set with no pending, cancelled, or failing run observed in the retained query used for this status refresh. The sampled Controller/provider workflow completed **PASS on attempt 1**.
+Its PR body records G2 round-1 falsification and round-2 remediation, stronger CD-XVAL-R3 evidence with remaining split/near-duplicate risks, explicit SLM-00 G-qualified-but-not-frozen status, narrowed AUD-1 wording, outstanding physical P1 evidence, retained WebVM failure/repair history, a Kimi-429→local-Ollama pilot observation, and pre-intervention P5/operator-friction status. These are **draft research observations**, not accepted-main or release claims.
 
-Do not broaden that statement. In particular:
+#401 explicitly does **not** authorize training, freeze SLM-00, close AUD-1, declare AX-21 finally frozen, or advance release status. Its existence therefore does not change the release gate or the human research-authority boundary.
 
-- exact-main named automated gates: **PASS where retained exact-SHA runs say PASS**;
-- historical exact-revision FAIL results: **still retained evidence**;
-- universal/capable-runner M4 qualification: **not established**;
-- blank-environment install: **not established**;
-- production long-run reliability: **not established**;
-- physical iPhone heavyweight-WebVM reliability: **not established**;
-- live-provider candidate→verifier→receipt success: **not established**.
+### Measured R0-R5 research-ablation candidate
 
-## Retained research evidence: #202
+New draft **#402** (`research: add measured R0-R5 reliability ablation lane`) targets `main` from accepted baseline `91d32fd8b713c68c1cd2e473013c9e1c33b93572` and is currently **DRAFT / UNMERGED / UNACCEPTED** at exact head **`2958ef726cab4deaaa997c0bf4b426a74349213e`**.
 
-Draft #202 remains research apparatus, not accepted product capability.
+The candidate adds a separately governed measured-only R0-R5 apparatus: complete paired `(task, repeat) × R0-R5` enforcement, held provider/model/prompt/inference/tool/grader/environment/budget hashes, ASSR and safety-UAR endpoints plus reliability/efficiency counters, UNKNOWN retention, no outcome-dependent early stopping, immutable observation references/content-addressed bundles, tests, and a human + machine-readable preregistration under `docs/research/`.
 
-An earlier exact-head heterogeneous DAG run on `6b30125...` remains a retained **FAIL**: 1/3 tasks integrated, repair did not recover the dependent branch, and run control escalated with no runnable tasks.
+Its scientific boundary is explicit: **apparatus only**. It does **not** claim live empirical support for H1, does not relabel the existing scripted `residual.eval_frozen` fixture as measured evidence, and does not modify or consume sealed AX/SLM evidence. A real Factory execution adapter and a frozen confirmatory workload/execution manifest remain future gates before confirmatory outcome access; protected Factory use remains subject to the existing measured-M4 acceptance-binding gates.
 
-A later distinct exact-head experiment on `03c77d12...` retained a bounded **PASS** using real local Ollama models across a three-task heterogeneous DAG with forced repair:
+At exact head `2958ef72...`, the observed GitHub technical workflows are **PASS**, including Factory ownership, Control Plane, measured-evaluation acceptance binding, PR-Agent advisory, clean-install qualification, Controller/provider contracts, Command Station checks, RESIDUAL Qualification v1, and Pages PR-head/browser proof. Exact-head maintainer approval is **FAIL / no matching human attestation**. Vercel is **FAIL due to deployment build-rate limiting**, not a demonstrated repository correctness failure. Therefore #402 remains a draft research candidate; its green hosted software evidence does not establish empirical H1 support, live-provider execution, Factory measured-run completion, or research acceptance.
 
-- runner: Qwen2.5-Coder 3B;
-- reviewer: Llama 3.2 1B;
-- 3/3 tasks integrated;
-- verification receipts present for all three tasks;
-- dependency lineage retained;
-- a deliberate first-candidate SyntaxError was rejected and transitioned to repair before a later candidate integrated;
-- an out-of-contract write was rejected before a later attempt succeeded;
-- invalid/truncated reviewer output was rejected before a valid review was accepted;
-- release export was produced.
+## Qualification v1 — accepted implementation, bounded claims
 
-The later PASS does **not** erase the earlier FAIL and does not establish general DAG/recovery reliability, production readiness, or provider-independent model quality.
+Qualification v1 remains implemented on accepted main. The prior #152/#355/#356 convergence and its exact-revision evidence/failure-ledger machinery remain accepted repository state.
 
-## Retained M6 self-host experiments: #203, #204, #215 and #217
+For current `main@91d32fd8...`:
 
-Draft #203 first-authoritative ImprovementSpec self-host trial remains **FAIL**: 0/1 integrated, three attempts, max-iteration escalation, no verification receipt, and no release.
+- RESIDUAL Qualification v1: **PASS** at the retained push-triggered observation.
+- Deploy GitHub Pages: **PASS** at the first authoritative repaired-main push observation.
+- Controller/provider contracts: **PASS**.
+- Command Station checks: **PASS**.
+- clean-install qualification: **PASS**.
+- M4 qualification runner prerequisites: **PASS**.
+- Vercel: **PASS**.
 
-Draft #204 repeated the bounded research question with Qwen2.5-Coder 7B. Its first-authoritative M6-SPEC-002 run also remains **FAIL**:
+These are exact-revision results, not a universal release claim.
 
-- batch outcome: escalated;
-- integrated: 0/1;
-- passes: 3;
-- run-control brake: max iteration;
-- verification receipt: absent;
-- release: absent.
+Still **UNKNOWN / not established** by those PASS results:
 
-Observed candidate defects changed across attempts, but the stronger model did not establish the requested contract within the frozen pass budget.
+- universal/every-host M4 qualification;
+- blank-environment installation beyond the tested clean-install contract;
+- true 24h/72h/30d elapsed soak evidence;
+- successful live-provider candidate→verifier→receipt execution;
+- physical-device reliability;
+- closure of AUD-1 #353;
+- SLM-00 human freeze/training authority.
 
-M6-SPEC-003 on draft #215 added prior-candidate repair context. The intervention was exercised and repair-context hashes were retained on attempts 2 and 3, but the first authoritative run remains **FAIL**: 0/1 integrated, three calls, no review/verification receipt/release/promotion. Retained candidates showed transport/source conflation rather than a successful `ImprovementSpec` implementation.
+## #397 retained-failure and acceptance boundary
 
-M6-SPEC-004 on draft #217 retained prior-candidate context and explicitly separated transport JSON from file-language content without changing acceptance policy. Its authoritative exact-head workflow retained evidence but the experiment remains **FAIL**: 0/1 integrated, three passes, max-iteration escalation, no review/receipt/release. The generated source changed from the M6-SPEC-003 data-object failure mode, but still failed checks: attempt 1 had an indentation error; attempts 2 and 3 imported a nonexistent `dataclasses.frozen` symbol.
+The evidence chain for #397 remains historically exact:
 
-The implementation candidate underlying the repair-context work (#213) remains unaccepted. These are negative research results, not proof of autonomous recursive self-improvement and not restoration of removed #132 capability.
+- old main `b571b91...` Pages attempt: **FAIL** at post-deploy published-WebVM/real-guest verification after preceding build/browser/deployment steps passed;
+- #397 exact PR head `ed60fb135...`: Qualification v1 and other named candidate checks ultimately passed; Controller/provider attempt 1 remained retained **FAIL** at external artifact-finalization with intermediary `403 Forbidden`, and same-head attempt 2 was retained **PASS** without rewriting attempt 1;
+- the owner later supplied exact-head maintainer approval for `ed60fb135...`;
+- #397 merged as `main@91d32fd8...`;
+- the first authoritative Pages workflow on that repaired main revision: **PASS**.
 
-## Deterministic stress campaign A: #206
+The acceptance of #397 does not erase its retained first failures. It establishes only that the governed candidate progressed and the repaired exact-main production Pages check passed.
 
-Draft #206 Campaign A has completed its authoritative corrected exact-head runs at `e173719...` against frozen baseline `699e286...`. The earlier apparatus revision is explicitly invalid because it would have used GitHub's synthetic pull-request merge commit; only the corrected exact-head campaign is used for claims below. Workflow `success` means the experiment executed and retained artifacts, not that each scenario passed.
+## AUD-1 / #399 trust-boundary details
 
-### STRESS-A4 — repair pressure: BLOCKED / invalid intervention
+#399 proposes candidate repairs for AUD-1 F1/F2/F3/F4/F6 and the ten required adversarial regressions. Test presence and current hosted PASS are implementation/qualification evidence, not closure evidence.
 
-The retained run recorded 0 injected faults. Its single provider call ended in a model-connection/structured-output failure, usage became unknown, run control aborted on `usage_unknown_or_invalid`, 0/1 integrated, and no verification receipt was produced. The intended repair-pressure intervention was not exercised, so this scenario is **BLOCKED / invalid for repair-pressure qualification**, not PASS.
+The retained candidate history remains important:
 
-### STRESS-A5 — DAG pressure: FAIL / incomplete
+- `3fee648151de9a4ea350ff8ab4ef2a247207ea38` retained a browser-harness failure;
+- `a7f1068...` retained Qualification-v1 `active-http-soak` and Command Station browser failures;
+- `8294b824...` repaired those surfaces but retained Qualification-v1 browser journey failures;
+- `fb416efe...` completed the named technical workflows **PASS**, but the PR-Agent review identified the missing explicit positive coordinator-transition half of adversarial requirement #6; its PASS remains exact-head evidence but is superseded for final acceptance;
+- current `8df77b832b3839ccd2a6944a65760ce3ab10dc9c` adds that missing regression and has fresh exact-head **RESIDUAL Qualification v1 PASS** plus the other named hosted software checks **PASS**, while exact-head maintainer approval remains **FAIL** by design.
 
-The retained six-task DAG integrated 3/6 tasks across five passes, then escalated on `no_runnable_tasks`. DAG-A/B/C integrated with receipts; DAG-D remained `repair_required`; DAG-E/F did not complete; no release export was attempted. This is **FAIL / incomplete for that frozen DAG-pressure scenario**, not evidence of general DAG reliability.
+Historical failures and superseded PASS results remain evidence for their exact revisions. Current PASS does not retroactively rewrite any of them.
 
-### STRESS-A6 — real-model reliability: FAIL in scope
+### Remaining mandatory #353 sequence
 
-Three frozen Qwen2.5-Coder 7B trials produced 0 successes and accepted rate 0.0. Each ended 0/1 integrated after the three-pass max-iteration brake. This is **FAIL for that exact model/spec/baseline campaign** and must not be generalized into a blanket model-quality claim.
+The owner issue still requires:
 
-Campaign A also retained bounded control/injection artifacts. They do not erase the BLOCKED/FAIL cells above.
+```text
+implementation
+  → ten adversarial regressions
+  → normal repository CI
+  → physical P1 F6 dogfood: reconnect inside window + reconnect outside window
+  → Mason independent re-audit
+  → exact-head qualification
+  → owner review / attestation
+  → merge
+  → authoritative new-main qualification
+```
 
-## Deterministic stress campaign B: #207
+The implementation/regression/hosted-CI stage is now considered **software-gate ready for physical P1 dogfood** on exact head `8df77b83...`. That classification is bounded to the current exact candidate and does not establish the physical claims.
 
-Draft #207 is research-only stress apparatus against a frozen baseline. A successful GitHub Actions workflow means the campaign executed and retained its artifacts; it does **not** mean every scenario passed.
+The two F6 cases remain **UNKNOWN / not established** until separately retained evidence exists on the LEGION / DELL7320 / DBOX topology:
 
-Retained campaign-B evidence contains two important governance failures and one bounded containment result:
+1. **inside-window reconnect:** interrupt the authenticated runner transport while it owns a real task, restore before the bounded retry/authority window expires, and prove the same valid authority resumes without duplicate ownership, duplicate acceptance, or invalid transition;
+2. **outside-window expiry + stale-result rejection:** interrupt beyond the authority-loss window until surrender/expiry, permit recovery/reassignment, restore the old runner, and prove its old lease/credential remains dead and its stale candidate/result is rejected rather than integrated.
 
-### STRESS-B1 — budget ordering: FAIL
+Do not collapse these into one reconnect PASS. They are distinct claims and require distinct retained artifacts.
 
-The run recorded a token-budget exhaustion, but accepted integration/release had already occurred before final accounting observed the exhausted budget. This is a **FAIL** for the stronger claim that exhausted budget accounting always prevents later accepted integration/release.
+After both physical artifacts exist for the exact candidate, Mason/LEGION's independent read-only re-audit of F1/F2/F3/F4/F6 remains required. The re-audit must classify the repairs against the original audit without modifying the candidate. A later candidate-byte change invalidates affected qualification/audit evidence.
 
-### STRESS-B2 — early convergence: PASS
+The current hosted Qualification-v1 PASS does not authorize skipping or reordering these gates. Exact-head maintainer approval remains intentionally **FAIL** until the preceding evidence stages are complete.
 
-The frozen early-convergence control completed with 2/2 integrated and the normal completion brake, without the budget/max-iteration trips under study. This is **PASS within that exact control scenario**.
+## Factory / M4 ownership boundary
 
-### STRESS-B3 — terminal verifier failure / release: FAIL
+The accepted Qualification-v1 convergence includes the owner-authorized #152 portability advance moving shared sandbox wire/exit constants into platform-neutral `residual/factory/m4_protocol.py` and adding that file to the protected core set. The committed ownership baseline records that pin alongside the previously authorized RuntimeJournal pin.
 
-The batch recorded a terminal verifier failure and aborted with 0 integrated, yet a non-empty release was still materialized after the terminal failure. This is a **FAIL** for the stronger fail-closed release-eligibility claim and is a current research blocker until repaired/requalified.
+Therefore:
 
-### STRESS-B4 — repeated repair pressure: mixed bounded result
+- the protected ownership-baseline advance remains **accepted main state**;
+- the exact protected-byte scope is whatever the committed ownership baseline records;
+- this documentation does **not** modify that baseline, protected Factory/M4 bytes, verifier authority, qualification anchors, or evidence schemas;
+- no unrelated M4, host, security, or production claim may inherit PASS from that baseline advance.
 
-Two deterministic corrupt candidates were injected and rejected; `corrupted_candidate_integrated=false` and integrated remained 0/1. The third attempt still failed its behavior check and the run escalated at the maximum pass count. Therefore:
+`implementation-status.yaml` remains an implementation-presence manifest, not a release-qualification manifest, and is intentionally unchanged by this documentation reconciliation.
 
-- corrupt-candidate containment in this exact scenario: **PASS**;
-- successful recovery-to-completion within the frozen pass budget: **FAIL / not achieved**;
-- general repair reliability: **UNKNOWN / not established**.
+## Live-provider / WebVM boundary
 
-These negative findings must remain visible and should drive a focused implementation/requalification sequence before stronger governance claims are made.
+Historical retained real-account iPhone/WebKit + Puter execution reached the configured model but failed closed as `provider_protocol_invalid`; no candidate crossed the protocol boundary. Successful live-provider semantic execution therefore remains **UNKNOWN**.
 
-## Deterministic failure matrix: #212
+The accepted iOS/iPadOS fallback routes that profile to the lightweight walkthrough before heavyweight guest boot. It is not proof that heavyweight WebVM is reliable on physical iPhone Safari. Issues #120/#126 and long-run WebVM reliability remain separate.
 
-Draft #212 Campaign C retained five deliberately different failure/recovery paths:
+#397's accepted hosted durability repair and exact-main Pages PASS do not convert those physical/live-provider claims into PASS.
 
-- malformed runner JSON was rejected three times with no review/integration: **PASS for fail-closed containment in that exact scenario**;
-- invalid reviewer schema was rejected three times while the valid candidate stayed `review_ready`, with no integration/receipt: **PASS for fail-closed containment in that exact scenario**;
-- reviewer denial followed by a repaired runner/reviewer cycle integrated on attempt 2: **PASS for that bounded recovery path**;
-- a transient HTTP 500 was marked retryable but had no alternate failover candidate; the call ended, usage became unknown, and the host budget aborted with no integration. Provider retry/failover success therefore remains **UNKNOWN / not established**;
-- missing usage allowed a valid runner and reviewer result to integrate and receive a receipt before the host later aborted on `usage_unknown_or_invalid`: **FAIL for the stronger accounting-before-authority claim**, corroborating #208 beyond the numeric over-budget case.
+## SLM-00 research boundary
 
-## #214 governance repair candidate: BLOCKED / unaccepted
+The previously retained SLM-00 evidence remains exact-revision research evidence:
 
-Draft #214 targets #208 by moving token/deadline checks ahead of Station review/integration authority effects and tightening release eligibility around successful run control. On its observed exact head, the ordinary technical workflows are green, but the maintainer approval gate remains **FAIL/BLOCKED** and the PR is still draft/unaccepted. Therefore no accepted-main claim is changed: the #207/#212 ordering defect remains open until a repair is accepted and the applicable scenarios are requalified.
+- Lane G has a `G_PASS` candidate for its pinned research bytes;
+- independent-context G2 round 2 reports `PASS_WITH_NONBLOCKING_FINDINGS` for the exact remediated candidate;
+- historical G2 round 1 `REJECT` remains retained evidence for the earlier candidate;
+- draft #401 records additional append-only research observations and a status-synchronization finding, but it targets a research branch and remains unaccepted.
 
-## WebVM runtime diagnostics and #133/#132 discrepancy
-
-Accepted #133 diagnostics narrow one reproducible failure family to a WebVM-specific CPython positive-duration timeout/wait conversion path affecting at least `time.sleep()` and empty `select.select()` in the tested guest/runtime combination. The exact lower-level CPython/i386 ABI/emulation cause remains **UNKNOWN**.
-
-#133 also removed the previously accepted #132 protected self-hosting/research-bundle implementation, tests, workflow, example and dedicated docs. #132 remains retained historical evidence, but that tooling is **not current accepted capability**. Whether removal was intentional retirement or an integration regression remains **UNKNOWN / unresolved** and should be decided explicitly rather than reconstructed in documentation.
-
-## Live-provider evidence
-
-Historical retained real-account iPhone/WebKit + Puter mission `m-b98fe1b9beb440cdb1b8dfe855ad5778` reached `openai/gpt-5.4-nano` twice; both counted calls ended `provider_protocol_invalid`. No candidate crossed the protocol boundary.
-
-Claim discipline remains:
-
-- historical live-provider result: **FAIL/BLOCKED**;
-- candidate correctness: **UNKNOWN**;
-- semantic verification: **UNKNOWN / not run**;
-- exact cause of the historical invalid responses: **UNKNOWN**;
-- current-main live-provider semantic success after #205: **UNKNOWN / not established**.
-
-A fresh retained real-account mission on the exact deployed accepted revision is required before paid/live provider success can become PASS.
-
-## iPhone/WebKit and WebVM reliability boundary
-
-The accepted #186 fallback detects iPhone/iPad/iPod and iPadOS WebKit before heavyweight guest/disk boot and routes that profile to the lightweight walkthrough, retaining the full VM only as an explicit diagnostic override.
-
-This is a fallback contract, not proof that heavyweight WebVM is reliable on physical iPhone Safari. Published physical-device validation remains open, and the lower-level WebKit process-kill cause remains **UNKNOWN**.
-
-Issues #120 and #126 remain open. Existing diagnostics and bounded lifecycle repairs do not quantify an acceptable recurrence rate or establish a production fix for the broader reliability family.
-
-## Factory / M4 boundary
-
-M2/M3/M4 are implemented. `implementation-status.yaml` remains an implementation-presence manifest, not a release-qualification manifest.
-
-Accepted #185/#187 protected-byte/ownership-baseline changes remain scoped to their reviewed behavior. The separate #139→ownership-baseline→fresh-qualification→#134 protected sequence remains independent and must not be treated as cleared by unrelated green CI.
-
-This documentation branch changes no Factory/M4 implementation or tests, ownership baselines, qualification anchors, protected bytes, verifier/evidence schemas, provider authorization, or acceptance authority.
-
-## Current priority blockers
-
-1. Repair and requalify the #207/#208 accounting/release-ordering failures, including #212's missing-usage case. #214 is only a draft candidate until accepted and requalified.
-2. Re-run a valid #206 repair-pressure intervention; A4 is BLOCKED because its intended fault was not injected. Preserve A5/A6 negative results rather than treating later experiments as erasure.
-3. Continue bounded M6 repair research without promoting #213/#215/#217 into accepted self-maintenance capability; M6-SPEC-003 and -004 both remain retained FAIL results.
-4. Retain a fresh exact-current-deployed-revision real-account Puter candidate→verifier→receipt success, or keep live-provider success UNKNOWN.
-5. Physically validate the accepted #186 fallback without broadening it into a heavyweight-WebVM reliability claim.
-6. Complete true blank-environment installation, recovery/host-loss qualification, and selected elapsed soak.
-7. Continue #120/#126 WebVM root-cause and long-run reliability work.
-8. Resolve the #133/#132 retirement-versus-restoration discrepancy explicitly.
-9. Keep #139→ownership-baseline→fresh-qualification→#134 independent.
-10. Refresh broader stale candidates such as #152/#177 before current claims use them.
-11. Freeze the confirmatory R0–R5 protocol before paper-facing outcome collection.
+The program remains **NOT FROZEN / UNACCEPTED / NO-TRAINING** until the explicit human freeze/authority gates close. Automated research PASS or a draft research-maintenance PR does not synthesize maintainer approval or training authority.
 
 ## Documentation scope
 
-`README.md`, `HARNESS.md`, this status document, the roadmap, research, and evaluation prose are descriptive. `START-HERE.md` remains valid operator guidance and does not make the stale current-main claims corrected here. `implementation-status.yaml` remains accurate as an implementation-presence manifest and is intentionally unchanged.
+This observation updates only `docs/CURRENT_STATUS.md` on the existing dedicated docs branch. The open docs PR continues to carry its earlier `README.md` and `HARNESS.md` reconciliation; neither required an additional change for #402. `START-HERE.md` remains operator guidance and contains no stale accepted-main/qualification claim requiring this update. `implementation-status.yaml` remains accurate for its declared implementation-presence purpose and is intentionally unchanged.
 
-No documentation-only change may be used to infer qualification beyond retained repository/CI/evidence artifacts.
+No Factory/M4 implementation or tests, ownership baseline, qualification anchor, protected byte, verifier/evidence schema, provider authority, security implementation, licensing authority, or acceptance authority is modified by this docs branch.
+
+Because this PR records ownership-baseline, qualification-anchor, retained-failure and active security/research evidence, it must **not** be merged automatically. Exact-head human review/attestation remains required.
