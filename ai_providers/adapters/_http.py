@@ -49,11 +49,32 @@ def validate_url(url, provider, local=False):
 
 
 def map_http_error(provider, status, body='', headers=None):
-    # Body may be JSON, HTML, a string error, or contain secrets. Do not echo it.
-    if status in (401, 403):
-        return AuthenticationError(provider=provider, code='authentication', status=status)
-    if status == 404: return ModelNotFoundError(provider=provider, code='model_not_found', status=status)
+    # Body may be JSON, HTML, a string error, or contain secrets. Never echo it.
+    # Only structured JSON error codes can classify quota exhaustion. Arbitrary
+    # text is not authority to widen routing.
+    if status == 401:
+        return AuthenticationError(provider=provider, code='auth_rejected', status=status,
+                                   failover_allowed=True)
+    if status == 403:
+        return ProviderError(provider=provider, code='policy_denied', status=status,
+                             retryable=False, failover_allowed=False)
+    if status == 404:
+        return ModelNotFoundError(provider=provider, code='model_not_found', status=status)
     if status == 429:
+        structured = None
+        try:
+            raw = body.decode('utf-8') if isinstance(body, (bytes, bytearray)) else str(body or '')
+            parsed = decode(raw)
+            err = parsed.get('error')
+            if isinstance(err, dict):
+                structured = err.get('code') or err.get('type')
+            elif isinstance(parsed.get('code'), str):
+                structured = parsed.get('code')
+        except (ValueError, TypeError, UnicodeError):
+            structured = None
+        if structured in {'insufficient_quota', 'quota_exhausted'}:
+            return ProviderError(provider=provider, code='quota_exhausted', status=status,
+                                 retryable=False, failover_allowed=True)
         retry = None
         hint = (headers or {}).get('Retry-After')
         if hint is not None:
@@ -146,8 +167,15 @@ class HTTPAdapter:
             with opener.open(request, timeout=self.timeout) as response:
                 yield response, start
         except urllib.error.HTTPError as exc:
-            exc.close()
-            raise map_http_error(self.name, exc.code, headers=exc.headers) from None
+            try:
+                body = exc.read(MAX_RESPONSE + 1)
+                if len(body) > MAX_RESPONSE:
+                    body = b''
+            except Exception:
+                body = b''
+            finally:
+                exc.close()
+            raise map_http_error(self.name, exc.code, body=body, headers=exc.headers) from None
         except ProviderError: raise
         except (TimeoutError, socket.timeout):
             raise ProviderError(provider=self.name, code='timeout', retryable=True) from None
