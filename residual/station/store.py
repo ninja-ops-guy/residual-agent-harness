@@ -117,6 +117,7 @@ class Store(ObservationStore):
         project = {"id": pid, "name": manifest["name"], "goal": manifest["goal"], "spec": markdown,
                    "spec_hash": sha(manifest), "created_at": now(), "repo": str(repo), "mode": mode,
                    "allow_cloud": bool(allow_cloud), "commands": bool(commands), "paused": False,
+                   "generation": 1, "policy_revision": 1, "stopped": False,
                    "call_limit": 100, "cloud_call_limit": 30, "request_byte_limit": 5_000_000}
         with self.transaction() as c:
             c.execute("INSERT INTO projects VALUES(?,?)", (pid, canonical(project)))
