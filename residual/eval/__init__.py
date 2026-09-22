@@ -47,6 +47,7 @@ from .ablation001 import (
     MeasuredObservation,
     TaskMeasurement,
     build_bundle,
+    confirmatory_analysis,
     summarize_observations,
     verify_bundle,
 )
@@ -91,6 +92,7 @@ __all__ = [
     "NaiveIterationResult",
     "NaiveLoopRunner",
     "build_bundle",
+    "confirmatory_analysis",
     "mann_whitney_u",
     "signed_report_from_observations",
     "summarize_observations",
