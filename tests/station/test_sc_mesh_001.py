@@ -213,6 +213,45 @@ class MeshStateTests(unittest.TestCase):
             self.station.store.reserve_mesh_attempt(
                 self.pid, work["task"]["id"], work["lease"], work["task"]["fencing_token"], "remote", 1)
 
+    def test_execution_policy_requires_explicit_cross_placement(self):
+        from residual.station.contracts import task_execution_policy
+        task = {"route": "local", "execution_policy": {
+            "placements": ["local", "remote"], "models": ["local/a", "cloud/b"],
+            "max_provider_attempts": 2, "cross_placement": False}}
+        with self.assertRaises(ContractError):
+            task_execution_policy(task)
+        task["execution_policy"]["cross_placement"] = True
+        self.assertTrue(task_execution_policy(task)["cross_placement"])
+
+    def test_conservative_execution_budget_is_admitted_before_opaque_fallback(self):
+        result, worker = self._enroll(capabilities=[
+            "model.local", "model.remote", "files.propose", "evidence.submit", "comms.read", "comms.write"])
+        self.station.mesh.begin_sync(worker)
+        self.station.mesh.snapshot(worker, self.pid)
+        worker = self.station.mesh.authenticate(result["token"])
+        # Explicitly approve cross placement on this task for the test.
+        self.station.store.update_task(self.pid, "OPS-101", execution_policy={
+            "placements": ["local", "remote"],
+            "models": ["ollama/qwen2.5-coder:7b", "kimi/kimi-code"],
+            "max_provider_attempts": 2, "cross_placement": True})
+        self.station.store.project_update(self.pid, allow_cloud=True)
+        work = self.station.prepare(self.pid, "mesh:claw-a", "OPS-101",
+                                    routes={"local", "cloud"}, capabilities=set(worker["capabilities"]),
+                                    reserve_budget=True)
+        budget = self.station.store.reserve_mesh_execution(
+            self.pid, "OPS-101", work["lease"], work["task"]["fencing_token"], 1, [
+                {"placement": "local", "model": "ollama/qwen2.5-coder:7b", "request_bytes": 100},
+                {"placement": "remote", "model": "kimi/kimi-code", "request_bytes": 100},
+            ])
+        self.assertEqual(budget["reserved_calls"], 2)
+        reconciled = self.station.store.reconcile_mesh_execution(
+            self.pid, "OPS-101", work["lease"], work["task"]["fencing_token"], [
+                {"placement": "local", "model": "ollama/qwen2.5-coder:7b", "request_bytes": 90,
+                 "status": "completed", "reason": "success", "usage_known": True}
+            ])
+        self.assertTrue(reconciled["reconciled"])
+        self.assertEqual(self.station.store.project(self.pid)["calls_reserved"], 1)
+
 
 class MeshOutboxTests(unittest.TestCase):
     def test_outbox_is_durable_conflict_safe_and_inbox_deduplicates(self):

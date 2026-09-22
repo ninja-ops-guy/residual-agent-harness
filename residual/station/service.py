@@ -210,11 +210,13 @@ class Station:
                         hashes = {name: sha(value) for name, value in sorted(prior_candidate_files.items())}
                         self.store.event(pid, "task.finding", {"message": "Repair context bound to prior candidate", "file_hashes": hashes}, t["id"])
             self.store.update_task(pid, t["id"], base_commit=base, candidate_dir=str(folder), head_commit=None)
+            from .contracts import task_execution_policy
             packet = {"project_goal": p["goal"], "task_id": t["id"], "instruction": t["instruction"],
                       "writable_files": t["files"], "files": files, "checks": t["checks"],
                       "generation": int(p.get("generation", 1)),
                       "fencing_token": t.get("fencing_token", 0),
                       "required_capabilities": t.get("capabilities", []),
+                      "execution_policy": task_execution_policy(t),
                       "repair_findings": t["findings"], "prior_candidate_files": prior_candidate_files,
                       "spec_hash": p["spec_hash"], "base_commit": base,
                       "parent_receipts": parent_receipts}

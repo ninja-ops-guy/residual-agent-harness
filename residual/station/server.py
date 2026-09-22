@@ -305,6 +305,25 @@ class Handler(BaseHTTPRequestHandler):
                               data["fencing_token"], renew=False)
             s.mesh.presence(current, project_id=data["project_id"])
             return {"ok": True, "lease_renewed": False, "generation": int(project.get("generation", 1))}
+        if path == "/api/mesh/worker/execution-admit":
+            current, project = s.mesh.authorize(mesh_worker, data["project_id"])
+            if data.get("generation") != int(project.get("generation", 1)):
+                raise ContractError("Execution generation is stale")
+            attempts = data.get("attempts")
+            if not isinstance(attempts, list):
+                raise ContractError("attempts must be a list")
+            for attempt in attempts:
+                if not isinstance(attempt, dict):
+                    raise ContractError("Invalid execution attempt plan")
+                placement = attempt.get("placement")
+                if placement == "local" and "model.local" not in current["capabilities"]:
+                    raise ContractError("Worker capability policy does not permit local model attempts")
+                if placement == "remote" and "model.remote" not in current["capabilities"]:
+                    raise ContractError("Worker capability policy does not permit remote model attempts")
+            budget = s.store.reserve_mesh_execution(
+                data["project_id"], data["task_id"], data["lease_id"], data["fencing_token"],
+                data["generation"], attempts)
+            return {"admitted": True, "generation": int(project.get("generation", 1)), "budget": budget}
         if path == "/api/mesh/worker/admit":
             current, project = s.mesh.authorize(mesh_worker, data["project_id"])
             s.store.validate_lease(data["project_id"], data["task_id"], data["lease_id"], data["fencing_token"])
@@ -327,6 +346,18 @@ class Handler(BaseHTTPRequestHandler):
             if data.get("generation") != int(project.get("generation", 1)):
                 raise ContractError("Result generation is stale")
             s.store.validate_lease(pid, tid, data["lease_id"], data["fencing_token"])
+            provider_attempts = data.get("provider_attempts")
+            reconciliation = None
+            if s.store.task(pid, tid).get("mesh_execution_budget") is not None:
+                reconciliation = s.store.reconcile_mesh_execution(
+                    pid, tid, data["lease_id"], data["fencing_token"], provider_attempts)
+            from .contracts import sha
+            s.store.event(pid, "mesh.result.submitted", {
+                "worker_id": current["worker_id"], "generation": data["generation"],
+                "task_id": tid, "attempt": data.get("attempt"), "fencing_token": data["fencing_token"],
+                "response_digest": sha(data.get("response")), "provider_attempts": provider_attempts or [],
+                "budget_reconciliation": reconciliation,
+            }, tid=tid, actor="mesh:" + current["worker_id"])
             with s.project_lock(pid):
                 from .contracts import sha
                 sid = "mesh:" + current["worker_id"] + ":" + bounded(data.get("submission_id"), "Submission ID", 100)
