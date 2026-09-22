@@ -59,7 +59,7 @@ class RunRecord:
     input_tokens: int
     output_tokens: int
     cost_usd: float
-    evidence_level: str         # "development_fixture" or "live_model" (EVAL-R10)
+    evidence_level: str         # scripted runner is always "development_fixture" (EVAL-R10)
     aborted: bool = False
     abort_reason: str | None = None
 
@@ -142,8 +142,10 @@ def _verifier_accepts(config: ExperimentConfig, task: FrozenTask, repeat: int,
 
 def run_task(config: ExperimentConfig, task: FrozenTask, repeat: int,
              workload_sha: str, evidence_level: str = "development_fixture") -> RunRecord:
-    if evidence_level not in ("development_fixture", "live_model"):
-        raise ContractError("invalid evidence level")
+    if evidence_level != "development_fixture":
+        raise ContractError(
+            "scripted eval_frozen runner cannot emit live-model evidence"
+        )
     aborted = _aborted(config, task, repeat, workload_sha)
     record_id = f"{workload_sha[:12]}:{task.task_id}:{config.config_id}:{repeat}"
     base_latency = 120.0 + 100.0 * len(config.control_layers)
