@@ -256,6 +256,31 @@ def record_command(args):
     return 0
 
 
+def attach(args):
+    out = bundle_dir(args.output, args.case)
+    out.mkdir(parents=True, exist_ok=True)
+    source = pathlib.Path(args.file).resolve()
+    if not source.is_file():
+        raise SystemExit(f"Attachment not found: {source}")
+    safe_name = "".join(ch for ch in (args.name or source.name) if ch.isalnum() or ch in "._-")[:160]
+    if not safe_name:
+        raise SystemExit("Attachment name is empty after sanitization")
+    destination = out / "attachments" / safe_name
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(source, destination)
+    record = {
+        "schema": SCHEMA,
+        "attached_at": utcnow(),
+        "source_name": source.name,
+        "destination": destination.relative_to(out).as_posix(),
+        "bytes": destination.stat().st_size,
+        "sha256": sha256_file(destination),
+    }
+    atomic_json(destination.with_suffix(destination.suffix + ".meta.json"), record)
+    print(json.dumps(record, indent=2))
+    return 0
+
+
 def freeze(args):
     out = bundle_dir(args.output, args.case)
     if not out.is_dir():
@@ -324,6 +349,12 @@ def parser():
     r.add_argument("--timeout", type=int, default=30)
     r.add_argument("command", nargs=argparse.REMAINDER)
     r.set_defaults(func=record_command)
+
+    a = sub.add_parser("attach")
+    a.add_argument("--case", required=True, choices=["F6-A-inside-window", "F6-B-outside-window"])
+    a.add_argument("--file", required=True)
+    a.add_argument("--name", default="")
+    a.set_defaults(func=attach)
 
     f = sub.add_parser("freeze")
     f.add_argument("--case", required=True, choices=["F6-A-inside-window", "F6-B-outside-window"])
