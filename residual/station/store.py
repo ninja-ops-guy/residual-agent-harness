@@ -198,6 +198,8 @@ class Store(ObservationStore):
             if task["state"] == "running":
                 if not lease or not secrets.compare_digest(lease, task.get("lease") or "") or task["lease_until"] < time.time():
                     raise ContractError("Task lease has expired or belongs to another worker")
+                if fencing_token is not None and task.get("fencing_token", 0) != fencing_token:
+                    raise ContractError("Task fencing token is stale")
             prior = task["state"]
             task.update(fields or {})
             task["state"] = state
@@ -216,24 +218,32 @@ class Store(ObservationStore):
             t.update(fields)
             self._write_task(c, pid, t)
 
-    def claim(self, pid, owner, tid=None):
+    def claim(self, pid, owner, tid=None, routes=None, capabilities=None):
         with self.transaction() as c:
             p = self._project(c, pid)
-            if p["paused"]:
+            if p["paused"] or p.get("stopped", False):
                 return None
+            routes = set(routes) if routes is not None else None
+            capabilities = None if capabilities is None else set(capabilities)
             tasks = [json.loads(r[0]) for r in c.execute("SELECT value FROM tasks WHERE project=? ORDER BY rowid", (pid,))]
             states = {t["id"]: t["state"] for t in tasks}
             for t in tasks:
                 if (tid and t["id"] != tid) or t["state"] not in {"ready", "repair_required"}:
+                    continue
+                if routes is not None and t["route"] not in routes:
+                    continue
+                if capabilities is not None and not set(t.get("capabilities", ())).issubset(capabilities):
                     continue
                 if any(states[d] != "integrated" for d in t["depends_on"]):
                     continue
                 if t["attempt"] >= MAX_TASK_ATTEMPTS:
                     continue
                 t.update(state="running", owner=owner, attempt=t["attempt"] + 1,
-                         lease=secrets.token_urlsafe(24), lease_until=time.time() + 900)
+                         lease=secrets.token_urlsafe(24), lease_until=time.time() + 900,
+                         fencing_token=t.get("fencing_token", 0) + 1)
                 self._write_task(c, pid, t)
-                self._event(c, p, "task.claimed", owner, t, {"route": t["route"], "lease_seconds": 900, "fencing_token": t["fencing_token"]})
+                self._event(c, p, "task.claimed", owner, t,
+                            {"route": t["route"], "lease_seconds": 900, "fencing_token": t["fencing_token"]})
                 return t
             return None
 
