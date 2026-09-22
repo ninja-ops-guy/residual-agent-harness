@@ -17,6 +17,8 @@ import json
 import os
 import pathlib
 import platform
+import re
+import shutil
 import sqlite3
 import subprocess
 import sys
@@ -28,8 +30,16 @@ TARGET_SHA = "8df77b832b3839ccd2a6944a65760ce3ab10dc9c"
 SCHEMA = "residual.aud1.f6.physical.v1"
 SECRET_KEYS = {
     "session_token", "worker_token", "provider_credentials", "local_credentials",
-    "api_key", "token", "secret", "password",
+    "api_key", "token", "secret", "password", "authorization", "cookie",
+    "launch_url", "capability",
 }
+SENSITIVE_TEXT_PATTERNS = (
+    re.compile(r"(?i)\\b(?:authorization|api[_-]?key|token|secret|password|cookie)\\s*[:=]\\s*[^\\s,;]+"),
+    re.compile(r"(?i)\\b(?:bearer|basic)\\s+[A-Za-z0-9._~+/=-]{8,}"),
+    re.compile(r"\\bsk-[A-Za-z0-9_-]{12,}\\b"),
+    re.compile(r"(?i)https?://[^\\s]+/auth/[A-Za-z0-9._~%+-]{8,}"),
+)
+OPAQUE_SECRET_RE = re.compile(r"^[A-Za-z0-9._~+/=-]{32,}$")
 
 
 def utcnow():
@@ -60,6 +70,20 @@ def atomic_json(path, value):
     os.replace(tmp, path)
 
 
+def redact_text(value):
+    if not isinstance(value, str):
+        return value
+    redacted = value
+    for pattern in SENSITIVE_TEXT_PATTERNS:
+        redacted = pattern.sub("<redacted>", redacted)
+    stripped = redacted.strip()
+    if stripped == redacted and OPAQUE_SECRET_RE.fullmatch(stripped):
+        # Evidence fields do not need opaque high-entropy scalar values. Fail closed
+        # rather than risk retaining a credential stored under an unexpected key.
+        return "<redacted>"
+    return redacted
+
+
 def redact(value, key=""):
     lowered = key.lower()
     if any(part in lowered for part in SECRET_KEYS):
@@ -72,13 +96,15 @@ def redact(value, key=""):
         return {str(k): redact(v, str(k)) for k, v in value.items()}
     if isinstance(value, list):
         return [redact(v) for v in value]
+    if isinstance(value, str):
+        return redact_text(value)
     return value
 
 
 def run(command, cwd=None, timeout=15):
     try:
         p = subprocess.run(command, cwd=cwd, text=True, capture_output=True, timeout=timeout, check=False)
-        return {"argv": command, "returncode": p.returncode, "stdout": p.stdout[-20000:], "stderr": p.stderr[-20000:]}
+        return redact({"argv": command, "returncode": p.returncode, "stdout": p.stdout[-20000:], "stderr": p.stderr[-20000:]})
     except Exception as exc:
         return {"argv": command, "error": f"{type(exc).__name__}: {exc}"}
 
@@ -228,7 +254,7 @@ def note(args):
         "timestamp": utcnow(),
         "case": args.case,
         "kind": args.kind,
-        "message": args.message,
+        "message": redact_text(args.message),
     }
     with open(path, "a", encoding="utf-8") as handle:
         handle.write(canonical(entry) + "\n")
@@ -256,6 +282,26 @@ def record_command(args):
     return 0
 
 
+def sanitize_attachment(source):
+    raw = source.read_bytes()
+    source_hash = sha256_bytes(raw)
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise SystemExit(
+            "REFUSE: non-UTF-8 attachment content is not stored by the evidence kit; "
+            "retain its SHA-256 separately and provide a reviewed textual export instead"
+        ) from exc
+    try:
+        parsed = json.loads(text)
+    except Exception:
+        clean_text = redact_text(text)
+        stored = clean_text.encode("utf-8")
+    else:
+        stored = (json.dumps(redact(parsed), indent=2, sort_keys=True) + "\n").encode("utf-8")
+    return stored, source_hash, stored != raw
+
+
 def attach(args):
     out = bundle_dir(args.output, args.case)
     out.mkdir(parents=True, exist_ok=True)
@@ -267,14 +313,20 @@ def attach(args):
         raise SystemExit("Attachment name is empty after sanitization")
     destination = out / "attachments" / safe_name
     destination.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(source, destination)
+    stored, source_hash, redacted_content = sanitize_attachment(source)
+    if redacted_content:
+        destination.write_bytes(stored)
+    else:
+        shutil.copyfile(source, destination)
     record = {
         "schema": SCHEMA,
         "attached_at": utcnow(),
         "source_name": source.name,
         "destination": destination.relative_to(out).as_posix(),
-        "bytes": destination.stat().st_size,
-        "sha256": sha256_file(destination),
+        "source_sha256": source_hash,
+        "stored_bytes": destination.stat().st_size,
+        "stored_sha256": sha256_file(destination),
+        "redacted_content": redacted_content,
     }
     atomic_json(destination.with_suffix(destination.suffix + ".meta.json"), record)
     print(json.dumps(record, indent=2))
