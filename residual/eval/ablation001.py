@@ -22,6 +22,15 @@ MIN_REPEATS = 3
 TERMINAL_STATES = frozenset({"PASS", "FAIL", "REJECTED", "UNKNOWN"})
 
 
+def _arm_definition_hash(config: ExperimentConfig) -> str:
+    """Hash the intervention itself, excluding scripted-fixture constants."""
+    return digest({
+        "config_id": config.config_id,
+        "control_layers": list(config.control_layers),
+        "varied_factors": list(config.varied_factors),
+    })
+
+
 def _hash(value: str, name: str, length: int = 64) -> str:
     if not isinstance(value, str) or len(value) != length:
         raise ContractError(f"invalid {name}")
@@ -144,8 +153,8 @@ class ExecutionManifest:
     workload_sha256: str
     source_commit: str
     factors: ControlledFactors
-    config_hashes: tuple[tuple[str, str], ...] = tuple(
-        (c.config_id, c.sha256) for c in CONFIGURATIONS
+    arm_definition_hashes: tuple[tuple[str, str], ...] = tuple(
+        (c.config_id, _arm_definition_hash(c)) for c in CONFIGURATIONS
     )
     evidence_level: str = "measured_live"
 
@@ -155,9 +164,9 @@ class ExecutionManifest:
         _hash(self.source_commit, "source_commit", 40)
         if not isinstance(self.factors, ControlledFactors):
             raise ContractError("ControlledFactors required")
-        expected = tuple((c.config_id, c.sha256) for c in CONFIGURATIONS)
-        if self.config_hashes != expected:
-            raise ContractError("execution manifest must bind canonical R0-R5 hashes")
+        expected = tuple((c.config_id, _arm_definition_hash(c)) for c in CONFIGURATIONS)
+        if self.arm_definition_hashes != expected:
+            raise ContractError("execution manifest must bind canonical R0-R5 arm definitions")
         if self.evidence_level != "measured_live":
             raise ContractError("measured campaign must use evidence_level='measured_live'")
 
@@ -169,8 +178,9 @@ class ExecutionManifest:
             "source_commit": self.source_commit,
             "factors": self.factors.payload(),
             "factors_sha256": self.factors.sha256,
-            "config_hashes": [
-                {"config_id": key, "sha256": value} for key, value in self.config_hashes
+            "arm_definition_hashes": [
+                {"config_id": key, "sha256": value}
+                for key, value in self.arm_definition_hashes
             ],
             "evidence_level": self.evidence_level,
         }
