@@ -122,7 +122,7 @@ class Store(ObservationStore):
             c.execute("INSERT INTO projects VALUES(?,?)", (pid, canonical(project)))
             for definition in manifest["tasks"]:
                 task = {**definition, "state": "proposed", "attempt": 0, "owner": None, "lease": None,
-                        "lease_until": 0, "base_commit": None, "head_commit": None,
+                        "lease_until": 0, "fencing_token": 0, "base_commit": None, "head_commit": None,
                         "checks_result": [], "baseline": [], "findings": [], "artifacts": [], "updated_at": now()}
                 c.execute("INSERT INTO tasks VALUES(?,?,?)", (pid, task["id"], canonical(task)))
             self._event(c, project, "project.created", "operator", data={"name": project["name"], "tasks": len(manifest["tasks"]), "mode": mode})
@@ -158,7 +158,39 @@ class Store(ObservationStore):
             c.execute("UPDATE projects SET value=? WHERE id=?", (canonical(p), pid))
             self._event(c, p, "project.paused" if paused else "project.resumed", "operator")
 
-    def transition(self, pid, tid, state, actor="coordinator", fields=None, lease=None):
+    def advance_generation(self, pid, reason, actor="operator"):
+        if not isinstance(reason, str) or not reason.strip() or len(reason) > 300:
+            raise ContractError("Generation change requires a bounded reason")
+        with self.transaction() as c:
+            p = self._project(c, pid)
+            p["generation"] = int(p.get("generation", 1)) + 1
+            c.execute("UPDATE projects SET value=? WHERE id=?", (canonical(p), pid))
+            self._event(c, p, "mesh.generation.advanced", actor,
+                        data={"generation": p["generation"], "reason": reason.strip()})
+            return p["generation"]
+
+    def mesh_stop(self, pid, actor="operator"):
+        """Fail closed: stop new claims and revoke currently running mesh leases."""
+        with self.transaction() as c:
+            p = self._project(c, pid)
+            p["stopped"] = True
+            p["paused"] = True
+            p["generation"] = int(p.get("generation", 1)) + 1
+            c.execute("UPDATE projects SET value=? WHERE id=?", (canonical(p), pid))
+            affected = []
+            for row in c.execute("SELECT id,value FROM tasks WHERE project=?", (pid,)).fetchall():
+                t = json.loads(row["value"])
+                if t["state"] == "running" and (t.get("owner") or "").startswith("mesh:"):
+                    affected.append({"task_id": t["id"], "owner": t.get("owner"),
+                                     "fencing_token": t.get("fencing_token", 0)})
+                    t.update(state="blocked", owner=None, lease=None, lease_until=0,
+                             findings=["Mesh stop revoked execution authority; reconcile before retrying."])
+                    self._write_task(c, pid, t)
+            self._event(c, p, "mesh.stop.requested", actor,
+                        data={"generation": p["generation"], "revoked_leases": affected})
+            return {"generation": p["generation"], "revoked_leases": affected}
+
+    def transition(self, pid, tid, state, actor="coordinator", fields=None, lease=None, fencing_token=None):
         with self.transaction() as c:
             p, task = self._project(c, pid), self._task(c, pid, tid)
             if state not in TRANSITIONS[task["state"]]:
@@ -201,17 +233,30 @@ class Store(ObservationStore):
                 t.update(state="running", owner=owner, attempt=t["attempt"] + 1,
                          lease=secrets.token_urlsafe(24), lease_until=time.time() + 900)
                 self._write_task(c, pid, t)
-                self._event(c, p, "task.claimed", owner, t, {"route": t["route"], "lease_seconds": 900})
+                self._event(c, p, "task.claimed", owner, t, {"route": t["route"], "lease_seconds": 900, "fencing_token": t["fencing_token"]})
                 return t
             return None
 
-    def heartbeat(self, pid, tid, lease):
+    def validate_lease(self, pid, tid, lease, fencing_token=None):
+        with self.connect() as c:
+            t = self._task(c, pid, tid)
+        if t["state"] != "running" or t["lease_until"] < time.time() or not secrets.compare_digest(t.get("lease") or "", lease or ""):
+            raise ContractError("Stale task lease")
+        if fencing_token is not None and t.get("fencing_token", 0) != fencing_token:
+            raise ContractError("Stale task fencing token")
+        return t
+
+    def heartbeat(self, pid, tid, lease, fencing_token=None, renew=True):
         with self.transaction() as c:
             t = self._task(c, pid, tid)
-            if t["state"] != "running" or t["lease_until"] < time.time() or not secrets.compare_digest(t["lease"] or "", lease):
+            if t["state"] != "running" or t["lease_until"] < time.time() or not secrets.compare_digest(t.get("lease") or "", lease or ""):
                 raise ContractError("Stale task lease")
-            t["lease_until"] = time.time() + 900
-            self._write_task(c, pid, t)
+            if fencing_token is not None and t.get("fencing_token", 0) != fencing_token:
+                raise ContractError("Stale task fencing token")
+            if renew:
+                t["lease_until"] = time.time() + 900
+                self._write_task(c, pid, t)
+            return t
 
     def recover(self, startup=False):
         with self.transaction() as c:
