@@ -9,19 +9,22 @@
 
 RESIDUAL already treats heterogeneous intelligence as a schedulable resource. After v1, extend that model so the scheduler can reason about inference-serving characteristics that materially affect latency, throughput, and cost without reimplementing the serving layer.
 
-The first post-v1 optimization set is intentionally narrow:
+RESIDUAL's serving-awareness model covers six mechanisms around an otherwise unchanged model:
 
-1. **prefix-cache awareness**;
-2. **continuous-batching awareness**;
-3. **chunked-prefill awareness**.
+1. **prefix caching** — reuse compatible shared-prefix prefill work;
+2. **dynamic / continuous batching** — account for concurrent sequence admission and queue pressure;
+3. **KV-cache allocation** — reason about cache capacity, pressure, locality, and compatibility without owning backend memory management;
+4. **serving scheduling** — select among eligible endpoints using fresh, deterministic execution evidence;
+5. **speculative decoding** — recognize provider support and later evaluate it as an opt-in acceleration path;
+6. **prefill/decode phase separation** — recognize and, only after qualification, route prefill and decode through distinct worker pools with explicit KV-state handoff.
 
-These three are prioritized because they directly match RESIDUAL workloads: repeated shared contracts/context across sibling workers, concurrent swarm requests that start and finish at different times, and long evidence/repository prompts that can otherwise delay active decode work.
+The first post-v1 implementation remains intentionally conservative: prefix-cache awareness, continuous-batching awareness, chunked-prefill awareness, KV-capacity signals, and deterministic serving-aware scheduling. These directly match RESIDUAL workloads: repeated shared contracts/context across sibling workers, concurrent swarm requests that start and finish at different times, and long evidence/repository prompts that can otherwise delay active decode work.
 
-The following are explicitly lower priority:
+More invasive mechanisms remain gated:
 
-- **paged KV / PagedAttention:** expose only as an opaque backend capability/capacity signal;
+- **paged KV / PagedAttention:** expose as an opaque backend capability/capacity signal rather than reimplementing backend memory management;
 - **speculative decoding:** experimental, opt-in, and not required for the initial implementation;
-- **prefill/decode disaggregation:** deferred until cluster-scale demand justifies separate worker pools and KV transfer.
+- **prefill/decode disaggregation:** specified here as a first-class future topology, but execution remains deferred until cluster-scale evidence shows that separate pools and KV transfer improve accepted useful work after transfer overhead.
 
 RESIDUAL MUST remain the control/assurance layer above inference. Provider-native optimization MUST NOT gain authority over mission policy, verification, HITL, budgets, receipts, or integration.
 
@@ -119,9 +122,25 @@ speculative_decode:
   mode: draft_model | self_speculative | provider_managed | UNKNOWN
   target_distribution_preserved: true | false | UNKNOWN
 
+serving_scheduler:
+  support: SUPPORTED | UNSUPPORTED | UNKNOWN
+  scheduler_mode: provider_managed | queue_aware | phase_aware | UNKNOWN
+  exposes_queue_state: true | false | UNKNOWN
+  exposes_admission_state: true | false | UNKNOWN
+
 prefill_decode_disaggregation:
   support: SUPPORTED | UNSUPPORTED | UNKNOWN
+  topology_id: string | UNKNOWN
+  topology_epoch: string | UNKNOWN
+  prefill_pool_id: string | UNKNOWN
+  decode_pool_id: string | UNKNOWN
   kv_transfer_supported: true | false | UNKNOWN
+  kv_format_id: string | UNKNOWN
+  kv_compatibility_id: string | UNKNOWN
+  transfer_transport: local | ipc | rdma | tcp | provider_managed | UNKNOWN
+  transfer_integrity_evidence: true | false | UNKNOWN
+  max_transfer_bytes: int | UNKNOWN
+  max_transfer_ms: float | UNKNOWN
 ```
 
 A stale manifest MUST be treated as stale evidence, not current truth.
@@ -135,6 +154,11 @@ task_id
 mission_revision
 prompt_tokens_estimate
 expected_output_tokens
+prefill_tokens_estimate
+decode_tokens_estimate
+prefill_intensity: low | medium | high | UNKNOWN
+decode_intensity: low | medium | high | UNKNOWN
+phase_separation_candidate: true | false | UNKNOWN
 shared_prefix_digest
 shared_prefix_tokens
 sibling_group_id
@@ -161,12 +185,21 @@ active_sequences
 batch_occupancy
 kv_tokens_used
 kv_tokens_capacity
+kv_pressure_ratio
 cache_hit_rate
 cached_tokens_reused
+prefill_queue_depth
+decode_queue_depth
+prefill_worker_utilization
+decode_worker_utilization
 prefill_tokens
 prefill_ms
 time_to_first_token_ms
 decode_tokens_per_second
+kv_transfer_bytes
+kv_transfer_ms
+phase_handoff_ms
+kv_transfer_failures
 estimated_wait_ms
 provider_reported_cost
 ```
@@ -266,6 +299,80 @@ This MAY extend the existing `RoutingDecision` evidence model rather than creati
 
 **IAR-R28.** Routing fallback MUST be explicit evidence with the rejected optimization path and fallback reason.
 
+### Six-mechanism serving awareness
+
+**IAR-R29.** Capability discovery MUST represent prefix caching, continuous batching, KV-cache allocation/capacity, serving scheduling, speculative decoding, and prefill/decode disaggregation independently. Support for one MUST NOT imply support for another.
+
+**IAR-R30.** A provider or adapter MAY expose additional serving features such as chunked prefill or paged KV, but those features MUST NOT be conflated with the six mechanism identities above.
+
+**IAR-R31.** KV-cache capacity, pressure, and locality MAY influence admission or placement only when bound to endpoint identity and freshness. RESIDUAL MUST NOT directly mutate provider KV allocation unless a later, separately authorized control contract explicitly permits it.
+
+**IAR-R32.** Provider-native scheduling MAY be used as an execution capability, but RESIDUAL MUST retain the authoritative eligible set, policy constraints, and selected execution strategy. Provider queue policy MUST NOT enlarge mission authority.
+
+**IAR-R33.** Workload profiling SHOULD distinguish estimated prefill work from expected decode work so that future phase-aware scheduling can be evaluated without changing model semantics.
+
+**IAR-R34.** Inference optimization decisions SHOULD optimize for accepted useful work rather than raw token throughput alone. Where measurable, evaluation SHOULD retain accepted useful work per accelerator-second in addition to wall-clock and monetary efficiency.
+
+**IAR-R35.** The same model weights/revision and tokenizer/serialization contract MUST be preserved across serving optimizations unless an experiment explicitly varies them and labels that variation.
+
+**IAR-R36.** No serving optimization MAY alter verification, evidence, budget, HITL, integration, or authority semantics merely because it improves latency or throughput.
+
+### Prefill/decode disaggregation extension
+
+The phase-separation topology is:
+
+```text
+authorized request
+      |
+      v
+prefill admission --> PREFILL POOL --> KV transfer envelope
+                                      |
+                                      v
+                                DECODE POOL
+                                      |
+                                      v
+                         normal candidate / verifier /
+                         receipt / integration boundary
+```
+
+The handoff is execution state, not accepted truth. A transferred KV cache cannot carry authority, verification status, or trusted conclusions.
+
+**PDD-R1.** Disaggregated execution MUST use separately identifiable prefill and decode pools or endpoints.
+
+**PDD-R2.** Prefill and decode MUST bind the same model identity, model revision, tokenizer identity, prompt serialization contract, and compatible KV format unless the experiment explicitly tests a transformation layer.
+
+**PDD-R3.** KV compatibility MUST be determined by an adapter-declared compatibility identity or an equivalent deterministic check. Matching model names alone are insufficient.
+
+**PDD-R4.** Every phase-separated execution MUST record a topology identity and topology epoch so that pool membership or configuration changes are observable.
+
+**PDD-R5.** The prefill result MUST produce a handoff record that binds request identity, workload-profile hash, model/tokenizer identities, prefill endpoint, KV compatibility identity, transfer size when known, and a content/integrity reference appropriate to the backend.
+
+**PDD-R6.** The decode phase MUST consume only a handoff compatible with its declared model/tokenizer/KV contract. Incompatibility MUST fail closed or fall back to an ordinary eligible route when policy permits.
+
+**PDD-R7.** KV transfer acknowledgement MUST NOT be interpreted as proof that decode successfully consumed the transferred state. Handoff, decode admission, decode start, and decode completion are distinct evidence states.
+
+**PDD-R8.** KV transfer failure, timeout, truncation, compatibility rejection, stale topology, or decode-pool loss MUST remain explicit failures or fallback events. They MUST NOT be erased by a later successful retry.
+
+**PDD-R9.** The scheduler MUST compare estimated phase-separation benefit against transfer and coordination cost. A disaggregated route MUST NOT be selected merely because the provider advertises support.
+
+**PDD-R10.** Phase-aware scoring SHOULD include prefill queue pressure, decode queue pressure, expected prefill cost, expected decode duration, KV transfer bytes/time, locality, and fallback cost when those values are fresh and available.
+
+**PDD-R11.** A large reusable shared prefix MAY increase the value of prefill locality or reuse, but cache affinity MUST NOT override privacy, locality, health, budget, or capability constraints.
+
+**PDD-R12.** KV state MUST be treated as sensitive execution state according to the originating workload's privacy class. Cross-host or cross-domain transfer MUST satisfy the same or stronger transport and locality policy as the original prompt.
+
+**PDD-R13.** RESIDUAL MUST NOT persist raw KV tensors merely for observability. Evidence SHOULD retain metadata, hashes/references where meaningful, transfer measurements, and backend attestations rather than model-state payloads.
+
+**PDD-R14.** A prefill worker and a decode worker remain untrusted compute. Neither phase may self-certify task success, accepted state, or verifier outcome.
+
+**PDD-R15.** Pool resizing or phase rebalancing MUST occur only through bounded scheduler policy and MUST be emitted as evidence; it MUST NOT mutate an already-frozen WorkerContract or MissionRevision.
+
+**PDD-R16.** Phase separation MUST support a deterministic monolithic fallback path when the disaggregated topology is unavailable and ordinary policy permits fallback.
+
+**PDD-R17.** If fallback would violate a hard latency, locality, privacy, cost, or model-capability constraint, the request MUST become blocked/failed/unknown according to existing policy rather than silently rerouted.
+
+**PDD-R18.** A topology capability is not production evidence. Production claims require retained end-to-end runs demonstrating compatible handoff, decode continuation, normal verification, and accepted-result accounting.
+
 ---
 
 ## 6. Deterministic scoring
@@ -300,6 +407,9 @@ Implement only:
 - prefix-cache awareness;
 - continuous-batching awareness;
 - chunked-prefill awareness;
+- KV capacity/pressure awareness;
+- serving-scheduler capability awareness;
+- speculative/disaggregation capability discovery as `SUPPORTED | UNSUPPORTED | UNKNOWN` without enabling those paths;
 - evidence and metrics.
 
 No custom inference kernels are required.
@@ -327,10 +437,15 @@ Evaluate, but do not require:
 
 Only after observed demand justifies it, preregister an experiment for:
 
-- prefill/decode disaggregation;
-- KV transfer overhead;
-- pool sizing;
-- cross-node failure/recovery behavior.
+- monolithic serving versus prefill/decode disaggregation;
+- KV transfer overhead and handoff latency;
+- prefill/decode pool sizing and imbalance;
+- cache-locality versus queue-pressure trade-offs;
+- same-host, same-rack, and cross-node transfer where available;
+- cross-node failure/recovery and monolithic fallback behavior;
+- accepted useful work per wall-clock hour, provider dollar, and accelerator-second where measurable.
+
+The experiment MUST hold model weights/revision, tokenizer, prompt policy, task corpus, verifier policy, and acceptance criteria constant. Phase separation is an execution-topology variable, not a model-capability variable.
 
 ---
 
@@ -350,7 +465,12 @@ Only after observed demand justifies it, preregister an experiment for:
 - cached tokens reused;
 - cache hit rate;
 - decode throughput;
+- prefill queue depth and decode queue depth;
+- KV pressure;
+- KV transfer bytes and transfer latency when applicable;
+- phase handoff latency when applicable;
 - queue wait;
+- accepted useful work per accelerator-second where measurable;
 - verifier rejection rate;
 - fallback count;
 - evidence completeness.
@@ -377,11 +497,12 @@ Phase A is implementation-complete only when all of the following are true:
 2. one adapter exercises a confirmed prefix-reuse path;
 3. one adapter exercises continuous-batching telemetry or returns explicit `UNSUPPORTED/UNKNOWN`;
 4. one adapter exercises chunked-prefill capability or returns explicit `UNSUPPORTED/UNKNOWN`;
-5. stale telemetry deterministically fails closed to `UNKNOWN` and does not masquerade as live capacity;
-6. routing remains deterministic under identical retained inputs;
-7. existing authority, verification, receipt, budget, and HITL tests remain unchanged or stronger;
-8. a frozen fixture reconstructs each `InferenceRouteDecision` from retained evidence;
-9. no raw prompt, secret, credential, or private artifact appears in the new telemetry records.
+5. every adapter reports an explicit `SUPPORTED/UNSUPPORTED/UNKNOWN` state for the six serving mechanisms: prefix caching, continuous batching, KV-cache allocation/capacity, serving scheduling, speculative decoding, and prefill/decode disaggregation;
+6. stale telemetry deterministically fails closed to `UNKNOWN` and does not masquerade as live capacity;
+7. routing remains deterministic under identical retained inputs;
+8. existing authority, verification, receipt, budget, and HITL tests remain unchanged or stronger;
+9. a frozen fixture reconstructs each `InferenceRouteDecision` from retained evidence;
+10. no raw prompt, secret, credential, or private artifact appears in the new telemetry records.
 
 Production-performance claims require Phase B live measurements and are not implied by Phase A software tests.
 
@@ -435,7 +556,10 @@ The post-v1 experiment should answer:
 4. Does chunked prefill reduce head-of-line blocking for long-context research/engineering tasks?
 5. How often do cache affinity and queue pressure disagree, and which signal better predicts end-to-end accepted-task latency?
 6. Do inference-serving gains remain meaningful after orchestration, verification, and integration costs are included?
-7. At what scale, if any, do speculative decoding or prefill/decode disaggregation justify their added complexity?
+7. At what scale, if any, does speculative decoding justify its added complexity?
+8. At what prompt/decode mix does separating prefill and decode outperform monolithic serving after KV-transfer cost?
+9. When prefill and decode pools become imbalanced, which bounded rebalancing policy best improves accepted useful work without destabilizing scheduling?
+10. How much benefit comes from phase separation itself versus prefix reuse, batching, or simple queue-aware routing?
 
 ---
 
