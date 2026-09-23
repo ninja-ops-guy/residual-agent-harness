@@ -1,0 +1,17 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/swarm/test_economics_integrity.py::test_nonfinite_measurements_are_refused_at_construction -q --tb=short
+FF.                                                                      [100%]
+=================================== FAILURES ===================================
+_________ test_nonfinite_measurements_are_refused_at_construction[nan] _________
+tests/swarm/test_economics_integrity.py:17: in test_nonfinite_measurements_are_refused_at_construction
+    with pytest.raises(ContractError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ContractError
+_________ test_nonfinite_measurements_are_refused_at_construction[inf] _________
+tests/swarm/test_economics_integrity.py:17: in test_nonfinite_measurements_are_refused_at_construction
+    with pytest.raises(ContractError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ContractError
+=========================== short test summary info ============================
+FAILED tests/swarm/test_economics_integrity.py::test_nonfinite_measurements_are_refused_at_construction[nan]
+FAILED tests/swarm/test_economics_integrity.py::test_nonfinite_measurements_are_refused_at_construction[inf]
+2 failed, 1 passed in 0.18s

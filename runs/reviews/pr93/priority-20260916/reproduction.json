@@ -1,0 +1,18 @@
+{
+  "files": {
+    "aggregate-report.json": "0f1785ad0aad8a6653f4384ddeaed213efc5b09c225e243855081703554a23e2",
+    "evidence.json": "7505d212931ff00025b48971bb8cc7c22587cd0ab0aafdff63f468f7c8a5c2a6",
+    "orchestration-tax.json": "111d3401742f22b5e3d073c917b6edc6c0b62e0a4a5843d31e51eb04ade4491f",
+    "pareto-inputs.json": "9b8d7dc41648437a73054c4d08aa324f8c92cc69face5b1450b2aff72cde062f",
+    "raw-timing-observations.json": "fe10960043de3d252692060853c013550678a1cd36a14deb295d8a6fda8c6a94",
+    "report.sha256": "686800eadc627df9da6f7544c290f2ff23aaea0a6015e668a8753b70bfa6dc11",
+    "topology-decisions.json": "3701d479b1183f010c77ef6b64047f7af324514d122c21ce334c9145e95c9d26"
+  },
+  "local_commit": "391c5bd552ac8994a3cbaac9f268ad685396be27",
+  "qualification_scope": "development fixtures only; not production SLO or confirmatory research evidence",
+  "repeated_bytes_equal": true,
+  "schema": "residual.economics.reproduction-check.v1",
+  "source_commit": "6f1ad33e1efee1b156eb7ced933b92425ffcfbcf",
+  "source_tree": "debf1425f2e0d88ff98c24dbda67d2e3f068009a",
+  "tracked_clean": true
+}

@@ -9,6 +9,7 @@ model runs are separately labeled and never mixed into fixture aggregates.
 from __future__ import annotations
 
 from .workload import FrozenTask, FrozenWorkload, development_workload
+from .economics import build_swarm5_evidence, fixture_observations
 from .configs import CONFIGURATIONS, CONTROLLED_CONSTANTS, ExperimentConfig, get_config
 from .runner import RunRecord, RunState, run_study, recompute_from_records
 from .metrics import SliceMetrics, compute_slice_metrics
@@ -50,6 +51,7 @@ __all__ = [
     "plotting_inputs",
     "build_evidence_artifact",
     "write_evidence_artifact",
+    "build_swarm5_evidence", "fixture_observations",
     "AcceptanceBindingError",
     "CHAIN_SCHEMA",
     "FreshRunRegistry",

@@ -1,6 +1,10 @@
 from .metrics import Counter, Gauge, Histogram, MetricsRegistry
 from .exporter import render_prometheus
-from .bridge import ObservationMetricsBridge
+from .bridge import ObservationMetricsBridge, ReliabilityMetricsProjection
+from .reliability import (
+    CostAccounting, ReliabilityObservation, TimingBreakdown,
+    build_reliability_report, pareto_inputs,
+)
 from .logging import structured_event
 from .http import MetricsEndpoint
 from .completeness import (
@@ -26,4 +30,6 @@ __all__ = [
     "DEFAULT_SLOS", "SLODefinition", "SLOStatus", "evaluate_slos",
     "DEFAULT_ALERT_RULES", "AlertEvent", "AlertRule", "evaluate_alerts",
     "CorrelationContext", "TraceReceiptIndex", "new_span_id", "new_trace_id",
+    "ReliabilityMetricsProjection", "CostAccounting", "ReliabilityObservation",
+    "TimingBreakdown", "build_reliability_report", "pareto_inputs",
 ]
