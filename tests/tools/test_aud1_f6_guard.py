@@ -192,7 +192,7 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
             attachments = out / "attachments"
             attachments.mkdir(parents=True)
             for name in guard.ATTACH["F6-A-inside-window"]:
-                self.write_attachment(attachments, name, {})
+                self.write_attachment(attachments, name, {"placeholder": True})
             errors = guard.validate_remote_evidence(out, "F6-A-inside-window")
             self.assertTrue(errors)
             self.assertTrue(any("schema mismatch" in error for error in errors), errors)
