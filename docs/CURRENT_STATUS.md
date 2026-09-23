@@ -1,6 +1,6 @@
 # RESIDUAL current status
 
-_Current-state check: 2026-09-23 00:15 UTC against `main@91d32fd8b713c68c1cd2e473013c9e1c33b93572`._
+_Current-state check: 2026-09-23 13:53 UTC against `main@91d32fd8b713c68c1cd2e473013c9e1c33b93572`._
 
 This document is a human-readable status summary. Exact repository bytes, exact-head workflow results, retained artifacts, explicit issues/PRs, and applicable maintainer/protected-byte governance are more authoritative than prose. Historical PASS/FAIL/BLOCKED evidence remains bound to the exact revision, run attempt, and environment that produced it; later candidate commits or reruns do not inherit, erase, or rewrite earlier evidence unless the governing acceptance process explicitly says so.
 
@@ -8,11 +8,13 @@ This document is a human-readable status summary. Exact repository bytes, exact-
 
 Accepted `main` remains **`91d32fd8b713c68c1cd2e473013c9e1c33b93572`**. No accepted-main commit or merged-PR movement occurred in this observation.
 
-The new material repository change is draft research-maintenance **#405** (`docs(research): record 2026-09-22 AX-21 evidence check-in`) at exact head **`2549bb1b81f6bdc6954896eb7ebedadfe82b2722`**. It adds one append-only research file under `docs/swarm/` and preserves the current boundaries rather than advancing them: measured R0-R5 remains apparatus without a confirmatory H1 result; the two physical AUD-1 F6 cases remain **UNKNOWN / not established**; #404 remains an unqualified mesh candidate without a multi-host/autonomy result; P5 operator-friction remains pre-intervention; and AX-21-BASELINE-R0 is not finally frozen because no formal release/tag cutover exists. Exact-head technical repository workflows for #405, including Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent, are **PASS**; Vercel is **PASS**; exact-head maintainer approval is **FAIL** because no matching human attestation exists. Those CI results qualify only the candidate bytes and do not promote the research claims.
+The new material repository change is draft post-v1 design **#406** (`[post-v1] Spec: inference-aware routing and serving capabilities`) at exact head **`c749e06afa5d86b05f894b9deb45434ce0efefda`**. It is two commits ahead of accepted main, changes exactly one file (`docs/specs/SPEC-INFERENCE-AWARE-ROUTING-001.md`), and adds no runtime implementation. The specification explicitly remains **DRAFT / POST-v1 / NO IMPLEMENTATION AUTHORIZED**: it must not become a v1 dependency, must not weaken Station/M4 authority or verification boundaries, and defers implementation until v1 release or explicit maintainer opening of the post-v1 window plus frozen baseline measurements and ordinary dedicated qualification. Exact-head Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent are **PASS**; Vercel is **PASS**; exact-head maintainer approval is **FAIL** because no matching human attestation exists. Those hosted PASS results qualify only the documentation candidate bytes; they do not authorize implementation or advance v1 release status.
+
+The previously recorded draft research-maintenance **#405** remains unchanged at exact head `2549bb1b81f6bdc6954896eb7ebedadfe82b2722`, with its append-only research boundaries and exact-head hosted technical PASS / maintainer-approval FAIL state unchanged.
 
 AUD-1 release state is otherwise unchanged. #399 remains the exact software candidate at `8df77b83...`; read-only helper #403 remains at `03a89dfe...` with hosted qualification **PASS**; neither physical F6 bundle has been established, so owner issue **#353 remains OPEN / P0 / BLOCKED at the release level**. Draft #404 remains unchanged at `cae9ab31...`, **UNMERGED / UNACCEPTED**, with its previously retained mixed/FAIL qualification state.
 
-No evidence in this observation authorizes merging #399, #403, #404, #405, or the documentation PR.
+No evidence in this observation authorizes merging #399, #403, #404, #405, #406, or the documentation PR.
 
 ## Accepted repository state
 
@@ -190,6 +192,37 @@ Current exact-head hosted evidence for #405 is:
 
 Those results qualify only the candidate revision and do not convert the recorded research boundaries into accepted scientific or release claims.
 
+## Post-v1 design candidates
+
+### #406 — inference-aware routing and serving capabilities
+
+Draft **#406** (`[post-v1] Spec: inference-aware routing and serving capabilities`) targets accepted `main@91d32fd8...` and is **DRAFT / UNMERGED / UNACCEPTED / POST-v1** at exact head **`c749e06afa5d86b05f894b9deb45434ce0efefda`**. It is two commits ahead of main, zero behind, and changes exactly one documentation file: `docs/specs/SPEC-INFERENCE-AWARE-ROUTING-001.md`.
+
+The specification introduces a future inference-awareness contract around six independent serving mechanisms: prefix caching, continuous batching, KV-cache allocation/capacity, provider serving scheduling, speculative decoding, and prefill/decode disaggregation. It also retains chunked-prefill and paged-KV awareness where providers expose those capabilities. The draft requires explicit `SUPPORTED | UNSUPPORTED | UNKNOWN` discovery, fresh telemetry, deterministic evidence-backed routing, content-minimized workload profiles, and retained route decisions.
+
+Its authority boundary is explicit and controlling:
+
+- it adds **no runtime code** and authorizes **no implementation**;
+- it **must not become a v1 release dependency**;
+- implementation is gated on v1 release or explicit maintainer opening of the post-v1 window, a frozen v1 scheduler/runtime baseline, retained baseline measurements, and ordinary dedicated implementation PRs/qualification;
+- provider optimization cannot enlarge mission authority or replace verification, HITL, budgets, receipts, WorkerContract, MissionRevision, or integration boundaries;
+- prefill/decode disaggregation remains deferred until preregistered cluster-scale evidence demonstrates improved **accepted useful work** after KV-transfer and coordination cost.
+
+Current exact-head hosted evidence for `c749e06a...` is:
+
+- RESIDUAL Qualification v1: **PASS**
+- Controller/provider contracts: **PASS**
+- Command Station checks: **PASS**
+- clean-install qualification: **PASS**
+- Factory ownership: **PASS**
+- measured-evaluation acceptance binding: **PASS**
+- Control Plane: **PASS**
+- PR-Agent advisory: **PASS**
+- Vercel: **PASS**
+- exact-head maintainer approval: **FAIL / no matching human attestation**
+
+These PASS results establish only that the exact documentation candidate passed the observed hosted gates. They do **not** establish implementation, performance benefit, model-serving support, cluster-scale qualification, production readiness, or permission to begin post-v1 work.
+
 ## Qualification v1 — accepted implementation, bounded claims
 
 Qualification v1 remains implemented on accepted main. The prior #152/#355/#356 convergence and its exact-revision evidence/failure-ledger machinery remain accepted repository state.
@@ -250,9 +283,9 @@ The program remains **NOT FROZEN / UNACCEPTED / NO-TRAINING** until explicit hum
 
 ## Documentation scope
 
-This observation updates only `docs/CURRENT_STATUS.md` on the existing dedicated docs branch. The open docs PR continues to carry its earlier `README.md` and `HARNESS.md` reconciliation; neither required an additional edit for #405 because the new material change is an unaccepted append-only research check-in, not a change to accepted-main product or operator behavior. `START-HERE.md` remains operator guidance and contains no stale accepted-main/qualification claim requiring this update. `implementation-status.yaml` remains accurate for its declared implementation-presence purpose and is intentionally unchanged.
+This observation updates only `docs/CURRENT_STATUS.md` on the existing dedicated docs branch. The open docs PR continues to carry its earlier `README.md` and `HARNESS.md` reconciliation; neither required an additional edit for #406 because the new material change is a documentation-only, explicitly post-v1 design candidate and does not change accepted-main product or operator behavior. `START-HERE.md` remains operator guidance and contains no stale accepted-main/qualification claim requiring this update. `implementation-status.yaml` remains accurate for its declared implementation-presence purpose and is intentionally unchanged.
 
-The immediately preceding docs head `d9e04d9d491e908d36f56ef1acea5409e43fabd3` completed exact-head technical workflows successfully: Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent were **PASS**; Vercel was **PASS**; maintainer approval remained **FAIL** because no matching human attestation existed. Those results remain bound to `d9e04d9...` and are not inherited by this changed documentation head.
+The immediately preceding docs head `970a810544cb575d60155da2425e74bff167736f` completed exact-head technical workflows successfully: Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent were **PASS**; Vercel was **PASS**; maintainer approval remained **FAIL** because no matching human attestation existed. Those results remain bound to `970a8105...` and are not inherited by this changed documentation head.
 
 No Factory/M4 implementation or tests, ownership baseline, qualification anchor, protected byte, verifier/evidence schema, provider authority, security implementation, licensing authority, or acceptance authority is modified by this docs branch.
 
