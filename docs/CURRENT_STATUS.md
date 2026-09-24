@@ -1,6 +1,6 @@
 # RESIDUAL current status
 
-_Observation: 2026-09-24 20:36 UTC. Exact revisions below are snapshots; changed heads require fresh evidence._
+_Observation: 2026-09-24 22:06 UTC. Exact revisions below are snapshots; changed heads require fresh evidence._
 
 This is a status record, not acceptance authority. Historical PASS/FAIL/UNKNOWN/BLOCKED remains bound to the exact revision, run attempt, and environment that produced it.
 
@@ -18,13 +18,15 @@ Fresh exact-head #448 repository workflows are now **PASS** for Qualification v1
 
 This is exact-head candidate qualification only. It does not select #448 as AUD-1 authority, close #446's historical findings on accepted sources, retarget #403, establish physical F6-A/F6-B, satisfy Mason/LEGION re-audit, merge the repair, or establish production acceptance.
 
+Since the preceding observation, **#447 changed review posture without changing code**: GitHub draft → ready-for-review completed at 2026-09-24 21:40:32 UTC on unchanged head `ad524c461aa60426695f226f541e172c557b8e98`. Submitted human reviews remain **0**. Review routing is explicitly **BLOCKED** until a named independent human reviewer or authorized human-review team is designated; the coordination comment is not itself a review, approval, verifier selection, or attestation.
+
 ## #447 — seal JSON-boundary successor
 
-#447 is **OPEN / DRAFT / UNMERGED / UNACCEPTED / NOT HUMAN-REVIEWED** at **`ad524c461aa60426695f226f541e172c557b8e98`**, stacked on #443 exact head `d2c8bb907da0c51f0bd56c9f5cb0114816b93205`.
+#447 is **OPEN / READY FOR REVIEW / UNMERGED / UNACCEPTED / NOT HUMAN-REVIEWED** at **`ad524c461aa60426695f226f541e172c557b8e98`**, stacked on #443 exact head `d2c8bb907da0c51f0bd56c9f5cb0114816b93205`. GitHub moved the unchanged head from draft to ready-for-review at **2026-09-24 21:40:32 UTC**.
 
-It rejects duplicate JSON keys, NaN/Infinity constants, non-object roots, malformed legacy parents, and fallback from a present invalid primary metadata block. Local exact-file replay recorded **39 methods PASS, zero skips**. Fresh exact-head hosted workflows are **PASS** for Qualification v1 **36049403636**, Controller/provider **36049403872**, Command Station **36049404018**, clean install **36049404011**, Factory ownership **36049403837**, measured-evaluation binding **36049403869**, and Control Plane **36049404090**. PR-Agent advisory **36049403994** is **FAIL**; maintainer approval is **FAIL**; Vercel is **PASS**; submitted human reviews remain **0**.
+It rejects duplicate JSON keys, NaN/Infinity constants, non-object roots, malformed legacy parents, and fallback from a present invalid primary metadata block. Local exact-file replay recorded **39 methods PASS, zero skips**. Exact-head hosted workflows remain **PASS** for Qualification v1 **36049403636**, Controller/provider **36049403872**, Command Station **36049404018**, clean install **36049404011**, Factory ownership **36049403837**, measured-evaluation binding **36049403869**, and Control Plane **36049404090**. The original PR-Agent advisory **36049403994** is **FAIL** and a later same-head advisory run **36062969333** is also **FAIL**; no failure cause is inferred here. Current combined status shows maintainer approval **FAIL** at run **36063099352** and Vercel **PASS**. Submitted human reviews remain **0**.
 
-These results are candidate-scoped only. Full **PR-G26 remains BLOCKED / NOT VERIFIED** pending human review, private direct-source semantic/provenance verification, and explicit package-closure policy.
+A 21:41 UTC coordination comment requests independent human review but explicitly records that no named independent human recipient is assigned. Therefore **review routing is BLOCKED**, and the request comment must not be counted as a formal review or approval. These results are candidate-scoped only. Full **PR-G26 remains BLOCKED / NOT VERIFIED** pending a named independent human review path, private direct-source semantic/provenance verification, verifier selection/freeze as a separate owner decision, and explicit package-closure policy.
 
 ## #448 — Station ownership / exposure successor
 
@@ -113,7 +115,7 @@ The ledger is coordination evidence only and does not override newer exact-head 
 
 ## Unresolved blockers
 
-Release remains **BLOCKED** on human review/selection and accepted-main integration of the now technically green #448 Station ownership/exposure successor; preservation of the retained #446 audited-source FAIL/BLOCKED record; Shared Comms inclusion/exclusion; PR-G26 human review plus private semantic/provenance verification and package-closure policy; full PR-G28 lock/offline-build evidence; owner/operations approval of claims and deployment profile; AUD-1 independent review, exact successor selection, physical F6-A/F6-B and Mason/LEGION re-audit; corrected/private seal verification and canary authorization; exact-RC recovery, incident, elapsed-soak, provenance, and final release authorization.
+Release remains **BLOCKED** on human review/selection and accepted-main integration of the now technically green #448 Station ownership/exposure successor; preservation of the retained #446 audited-source FAIL/BLOCKED record; Shared Comms inclusion/exclusion; **#447 / PR-G26 independent-review routing to a named human reviewer**, private semantic/provenance verification, verifier selection/freeze and package-closure policy; full PR-G28 lock/offline-build evidence; owner/operations approval of claims and deployment profile; AUD-1 independent review, exact successor selection, physical F6-A/F6-B and Mason/LEGION re-audit; corrected/private seal verification and canary authorization; exact-RC recovery, incident, elapsed-soak, provenance, and final release authorization.
 
 ## Documentation scope
 
