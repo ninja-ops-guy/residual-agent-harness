@@ -62,6 +62,13 @@ def _parse_manifest(raw_bytes: bytes) -> tuple[ManifestEntry, ...]:
     return tuple(entries)
 
 
+def _exact_nonnegative_int(value, field: str) -> int:
+    """Require JSON integer counters, rejecting bools/floats/strings."""
+    if type(value) is not int or value < 0:
+        raise ManifestError(f"seal {field} must be a nonnegative integer")
+    return value
+
+
 @contextmanager
 def _package_root(path: Path):
     """Anchor the caller-selected, stable package directory once.
@@ -174,12 +181,15 @@ def verify_seal_cardinality(manifest: Path, seal_json: Path) -> dict[str, object
     if not isinstance(recorded, dict):
         raise ManifestError("seal lacks authoritative manifest metadata")
     for key in keys:
-        if recorded.get(key) != derived["entry_count"]:
+        value = _exact_nonnegative_int(recorded.get(key), key)
+        if value != derived["entry_count"]:
             raise ManifestError(
-                f"seal {key} mismatch: recorded={recorded.get(key)!r} "
+                f"seal {key} mismatch: recorded={value!r} "
                 f"authoritative={derived['entry_count']}"
             )
-    if recorded.get("entries_failed") != 0 or recorded.get("verification") != "PASS":
+    if _exact_nonnegative_int(recorded.get("entries_failed"), "entries_failed") != 0:
+        raise ManifestError("seal authoritative_manifest disposition is not PASS")
+    if recorded.get("verification") != "PASS":
         raise ManifestError("seal authoritative_manifest disposition is not PASS")
     return derived
 
