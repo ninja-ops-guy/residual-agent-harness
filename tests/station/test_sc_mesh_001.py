@@ -295,6 +295,14 @@ class MeshOutboxTests(unittest.TestCase):
             self.assertEqual(applied, [1])
             self.assertEqual(two.cursor("p-1"), 7)
 
+    def test_exhausted_outbox_item_is_terminal_and_not_due(self):
+        with tempfile.TemporaryDirectory() as td:
+            box = MeshOutbox(Path(td) / "mesh.sqlite3")
+            box.enqueue("op-dead", {"schema": "example", "n": 1})
+            box.exhaust("op-dead")
+            self.assertEqual(box.due(now=time.time() + 10_000), [])
+            self.assertEqual(box.pending(), 0)
+
 
 class MeshHTTPTests(unittest.TestCase):
     def setUp(self):
