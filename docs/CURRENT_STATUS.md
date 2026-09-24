@@ -1,90 +1,109 @@
 # RESIDUAL current status
 
-_Current-state check: 2026-09-24 10:03 UTC against `main@d796f36b75e730a0bab71bdba564206174393719`._
+_Current-state check: 2026-09-24 11:08 UTC against `main@d796f36b75e730a0bab71bdba564206174393719`._
 
-This document is a human-readable current-state summary, not a replacement for exact repository bytes, retained artifacts, workflow logs, issue/PR history, or maintainer/protected-byte governance. Historical PASS/FAIL/BLOCKED evidence remains bound to the exact revision, run attempt, and environment that produced it. Git history retains earlier detailed versions of this status document.
+This document is a human-readable current-state summary, not a replacement for exact repository bytes, retained artifacts, workflow logs, issue/PR history, or maintainer/protected-byte governance. Historical PASS/FAIL/UNKNOWN/BLOCKED evidence remains bound to the exact revision, run attempt, and environment that produced it. Git history retains earlier detailed versions of this status document.
 
 ## Executive summary
 
 Accepted `main` remains **`d796f36b75e730a0bab71bdba564206174393719`**, the merge of #304 (`fix(station): typed fail-closed reviewer findings (#209)`). No newer PR has merged into accepted main during this observation.
 
-Release convergence remains **BLOCKED**. AUD-1 issue #353 remains **OPEN with no milestone**; physical F6-A/F6-B evidence remains **UNKNOWN / not established**; the independent Mason/LEGION re-audit is outstanding; the R4.1 seal-cardinality defect still prevents the erroneous seal from serving as authorization evidence; no corrected seal exists; and no canary, release candidate, deployment, or production acceptance has been authorized.
+Release convergence remains **BLOCKED**. AUD-1 issue #353 remains **OPEN with no milestone**; physical F6-A/F6-B evidence remains **UNKNOWN / not established**; the independent Mason/LEGION re-audit is outstanding; the R4.1 seal-cardinality defect still prevents the erroneous seal from serving as authorization evidence; no corrected seal exists; the v1 deployment profile remains owner/operations-undecided; and no canary, release candidate, deployment, or production acceptance has been authorized.
 
-Meaningful review-only movement since the previous observation is concentrated in two new candidates:
+Meaningful review-only movement since the previous observation is concentrated in release-preparation tooling and environment triage:
 
-- **#433** adds AUD1-C5, reproducing and repairing a stale-task-lease authority-loss path on top of #431. Its current exact head is green across the named repository technical workflows and Pages, but it remains draft/unaccepted and lacks exact-head human maintainer attestation.
-- **#434** adds the repository-side incident-response qualification plan for PR-G30. Its plan and validator are present and hosted technical CI is green, but **no incident drill has executed** and PR-G30 remains **IN_PROGRESS**, not VERIFIED.
+- **#435** adds a fail-closed evidence contract for v1 backup/restore and rollback qualification. Its current exact head has the retrieved repository technical workflows PASS, but no production-shaped recovery exercise has executed; PR-G07 and PR-G21 remain **IN_PROGRESS**.
+- **#436** classifies the previously reported broad-suite non-passing outcomes as environment/capability-sensitive evidence and reports the affected tests passing outside the managed process sandbox. It does not erase the retained first failures and does not establish blanket product PASS.
+- **#437** adds immutable GitHub Actions dependency-audit tooling. Accepted main still contains mutable major-tag action references such as `actions/checkout@v4` and `actions/upload-artifact@v4`; this is an observed supply-chain identity gap, **not evidence of compromise**. #437 now has fresh exact-head technical CI PASS, but PR-G27 remains **IN_PROGRESS** because active workflows have not yet been deliberately repinned to reviewed immutable commits.
+- **#427** advanced to a new review-only ledger head and records #435/#436/#437. Its 10:28 UTC delta captured an earlier #437 creation head and in-progress CI; that narrow #437 observation is superseded by the current exact-head evidence below.
 
-Neither candidate changes accepted-main release state.
+None of these review-only candidates changes accepted-main release authority.
 
 ## R4.1 evidence authority and canary boundary
 
 The prior external R4.1 qualification record remains bounded to its authoritative candidate, evidence bytes, hashes, and gate results. The previously propagated ready-for-canary seal statement `44/44` is **invalid derived seal metadata** and must not be used as an authority claim.
 
-**#415** (`fix(r4): derive seal cardinality from authoritative manifest`) remains **OPEN / UNMERGED / UNACCEPTED** at `3da0d8ec45adf8934b88906462706617aa22831f`. Its retained forensic result is that the literal `44` was manually embedded after `sha256sum -c` verified hashes without deriving cardinality; authoritative immutable `SHA256SUMS` contains **50** valid non-empty entries. The defect affects derived seal metadata and semantic seal validity, not the candidate identity, authoritative evidence bytes, authoritative hashes, qualification gate results, or the manifest itself.
+Open PR **#415** established that the literal `44` was manually embedded after `sha256sum -c` verified hashes without deriving cardinality; authoritative immutable `SHA256SUMS` contains **50** valid non-empty entries. The defect affects derived seal metadata and semantic seal validity, not the candidate identity, authoritative evidence bytes, authoritative hashes, qualification gate results, or the manifest itself.
 
 No corrected seal / Seal v3 exists. The current erroneous seal must not authorize canary execution. Canary execution remains **NOT AUTHORIZED / NOT EXECUTED**.
 
-**#422** remains **DRAFT / UNMERGED / UNACCEPTED** at `31dc9c1bf88ee69f417f53c0f4ff5558fc48f645`. Its exact-head named technical workflows are PASS, while extra-file closure, semantic binding, and provenance-DAG verification remain unresolved requirements. It does not repair an existing seal and does not authorize a canary.
-
-Any open candidate documentation that still states `44/44` as authoritative seal cardinality is superseded on that point by #415 and must not be merged unchanged.
-
 ## AUD-1 security convergence
 
-Owner issue **#353 remains OPEN with no milestone** and remains the pre-release security convergence boundary. Original candidate **#399** remains unchanged at `8df77b832b3839ccd2a6944a65760ce3ab10dc9c`; physical-evidence helper **#403** remains unchanged at `118ec3c795ae11c88b68278717fb781f4b059559`. The two required real-host F6 cases remain **UNKNOWN / not established**; no software fixture or hosted CI run substitutes for them.
+Owner issue **#353 remains OPEN with no milestone** and remains the pre-release security convergence boundary. Original candidate **#399** and physical-evidence helper **#403** remain frozen to their original bytes/evidence boundaries. The two required real-host F6 cases remain **UNKNOWN / not established**; no software fixture or hosted CI run substitutes for them.
 
-Draft **#431** remains the qualified C1-C4 predecessor at `a9c00474606b2bd5733ae5eef00a52d59b0aa89b`. Its exact-head Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, PR-Agent, and Pages are PASS. Vercel is PASS on the latest observed status for that exact head; maintainer approval remains **FAIL / no exact-head human attestation**. #431 is still unmerged and unaccepted.
+Draft **#433** remains the current C1-C5 software-successor lane at exact head **`9b4f32ce71ba2f4520dc1d7c2d8826fa329bdf60`**. Its retained test-only predecessor `9caaebe06214a7f8c280732eddbfdd18aeecd42c` preserves the first hosted C5 failure for an authoritative HTTP 400 `Stale task lease` entering generic result retry/fallback instead of surrender. The repaired head treats only that exact bounded Station denial as authority loss before generic transport retry.
 
-New draft **#433** (`fix(aud1): surrender on stale result lease`) is **DRAFT / OPEN / UNMERGED / UNACCEPTED**, stacked directly on #431. It adds **AUD1-C5**.
+Exact-head #433 repository technical evidence is PASS for Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, PR-Agent, and Pages. That PASS remains candidate-scoped. #433 is unmerged/unaccepted and does not select the release successor, retarget #403, establish either physical F6 case, provide Mason/LEGION independent review, or authorize merge/deployment/release.
 
-Retained test-only head `9caaebe06214a7f8c280732eddbfdd18aeecd42c` reproduced the defect against #431-derived bytes: Station returned HTTP 400 with exact structured error `{"error":"Stale task lease"}` after the authoritative server lease was expired while the same owner still held the task. The worker treated that `HTTPError` as generic transport failure, made three result attempts including the empty-proposal fallback, and did not raise `WorkerAuthorityLost`. Command Station run `35979195361` retains that first hosted failure; the unchanged failing head was not rerun for green.
-
-Current #433 repair head **`9b4f32ce71ba2f4520dc1d7c2d8826fa329bdf60`** treats only HTTP 400 responses parsing as the exact bounded Station error `{"error":"Stale task lease"}` as authoritative lease loss, revokes the local continuity proof, and raises `WorkerAuthorityLost` before generic transport retry. Other HTTP 400 contract/proposal failures retain their prior repair/fallback behavior.
-
-Exact-head #433 evidence is **PASS** for Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, PR-Agent, and Pages. Vercel is **PASS**. Maintainer approval is **FAIL / no exact-head human attestation**. The qualification manifest is reported as 25/25 required gates PASS, zero skips, zero UNKNOWN for this exact head.
-
-That PASS does **not** establish production acceptance. #433 does not select the release successor, retarget #403, establish either physical F6 case, supply Mason/LEGION independent review, authorize merge, or authorize deployment/release. Genuine independent human technical review must now include C1-C5 plus the admitted-operation drain/completion-barrier tradeoff before successor selection.
-
-Required AUD-1 sequence remains: independent review -> deliberate successor selection -> helper reconciliation for that exact target -> separately retained F6-A and F6-B physical evidence -> Mason/LEGION independent read-only re-audit -> exact-head qualification and owner attestation -> guarded merge -> authoritative new-main qualification -> final RC recovery/elapsed-soak evidence.
+Required AUD-1 sequence remains: independent human review -> deliberate successor selection -> helper reconciliation for that exact target -> separately retained F6-A and F6-B physical evidence -> Mason/LEGION independent read-only re-audit -> exact-head qualification and owner attestation -> guarded merge -> authoritative new-main qualification -> final RC recovery/elapsed-soak evidence.
 
 ## Release-readiness convergence ledger
 
-Draft **#427** (`docs(v1): add master release-readiness convergence ledger`) remains **DRAFT / OPEN / UNMERGED / UNACCEPTED** at `b556b3e63ac16d5c5e6ec4c086db4c682cd04530`.
+Draft **#427** (`docs(v1): add master release-readiness convergence ledger`) is **OPEN / DRAFT / UNMERGED / UNACCEPTED** at exact head **`1308115eda13af59b538fd3374a7e9f8a13f2b89`**, two commits beyond the previously observed `b556b3e...` head.
 
-Its canary-scope and deployment-scope worksheets remain fail-closed and **UNAPPROVED / UNDECIDED**. On that exact head, Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent are PASS; Vercel is PASS; maintainer approval is FAIL for lack of exact-head human attestation. Those PASS results qualify only the ledger bytes and do not establish physical, canary, deployment, or production claims.
+Its current deltas keep the release ordering fail-closed: canary remains unauthorized/unexecuted; the actual v1 deployment/trust/SLO/RPO/RTO/backup/HA/soak profile remains blocked on owner/operations decisions; AUD-1 independent/physical closure remains outstanding; and exact-RC recovery/soak/provenance plus explicit human release authorization remain future gates.
 
-The ledger continues to leave canary execution blocked on scope/authority prerequisites, production v1 blocked on AUD-1 physical/independent closure plus an approved deployment profile, and final release blocked on exact-RC recovery/soak/provenance plus explicit human release authorization.
+The ledger's 10:28 UTC delta correctly advanced #435 recovery tooling and #436 environment-triage evidence, but its #437 paragraph is now historical because #437 subsequently advanced from creation head `0170db05...` to repaired head `46bdfd51...` and completed fresh exact-head CI. Do not inherit the older in-progress CI state.
 
-## Release-operations and qualification candidates
+## PR-G07 / PR-G21 — recovery qualification
 
-These candidates are review-only; none is accepted-main state and none authorizes canary, RC, tag, deployment, or production acceptance.
+Draft **#435** (`feat(release): validate v1 recovery evidence`) is **OPEN / DRAFT / UNMERGED / UNACCEPTED** at exact head **`378207e511550532dbba60e8d4ae489666aa6c09`**, based directly on accepted main.
 
-- **#428** remains at `1bf6097f9c528f8bce7d15947bafbc2d5b58cf43`, separating frozen R4.1 canary provenance from the eventual post-convergence RC. No RC is selected.
-- **#429** remains at `9d38d87df9bfa5004d3eb5d7144e60ef1ced56f7`. Accepted main still has `pyproject.toml=0.5.0` versus `residual.__version__=0.4.0`; #429 proposes to align those declarations but does not set `1.0.0`.
-- **#430** remains at `756e540ca64fa953ca389e2d3441f9229d7969de`, adding ENV-G01 environment/capability preflight without reinterpreting restricted-environment failures as product failures or PASS.
-- **#432** remains at `f6487c8430f03e930c3ae22c99f41117d310372e`, adding a typed deployment-profile schema and fail-closed validator. It does not choose topology, tenancy, SLO, RPO, RTO, backup, soak, or HA policy; those remain **BLOCKED / UNDECIDED** until explicit owner/operations approval.
+It changes only:
 
-### PR-G30 incident-response qualification
+- `docs/v1/V1_RECOVERY_QUALIFICATION.md`
+- `scripts/validate_v1_recovery_evidence.py`
+- `tests/test_v1_recovery_evidence.py`
 
-New draft **#434** (`feat(v1): add incident-response qualification plan`) is **DRAFT / OPEN / UNMERGED / UNACCEPTED** at exact head **`76a2a69fa6c7c2959108de2369796a755d59ea84`**, based on accepted `main@d796f36...`.
+The contract deliberately prevents existing HADR simulation/unit tests from being mistaken for production recovery qualification. It requires future observed evidence bound to an approved deployment profile and exact RC, including backup readability/integrity, durable-component coverage, exact restore binding, measured RPO/RTO, rollback verification, immutable evidence retention, and human Qualification Lead approval. Validator output is `VALIDATION_ONLY`.
 
-It adds exactly four files: `docs/v1/V1_INCIDENT_RESPONSE_PLAN.json`, `docs/v1/V1_INCIDENT_RESPONSE_RUNBOOK.md`, `scripts/validate_v1_incident_response_plan.py`, and `tests/test_v1_incident_response_plan.py`. The plan covers five required scenarios: credential leak, database corruption, runaway work/resource exhaustion, host compromise, and evidence-integrity/confidentiality breach. It requires human authority for containment/recovery, first-failure/forensic preservation, redacted evidence, exact source identity, explicit PASS/FAIL/UNKNOWN/BLOCKED semantics, and rejects secret-bearing fields. Its validator explicitly emits `execution_claim: NONE`.
+Current exact-head #435 repository technical workflows are **PASS** for Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent. Maintainer approval is **FAIL / no exact-head human attestation**. Vercel is **FAIL** because the deployment service reports an external 24-hour build-rate limit; this is not reclassified as a RESIDUAL product-test failure.
 
-Observed exact-head #434 hosted technical workflows are **PASS** for Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent. Maintainer approval is **FAIL / no exact-head human attestation**. Vercel is **FAIL** because the deployment was rate-limited for 24 hours; this is an external deployment-service limit, not a demonstrated RESIDUAL product-test failure. No Pages PASS claim is made for #434 because a Pages workflow was not present in the observed exact-head PR-triggered run set.
+Repository-side PR-G07/PR-G21 tooling is **READY_FOR_REVIEW**. The actual backup/restore and rollback gates remain **IN_PROGRESS**, because no separately authorized production-shaped backup, restore, or rollback exercise has executed against the approved deployment profile and exact selected RC.
 
-Most importantly, **PR-G30 remains IN_PROGRESS, not VERIFIED**. No incident drill has executed. Verification still requires all five drills against the future owner-approved v1 deployment profile and the exact selected RC, with independently retained evidence bundles and release-authority disposition.
+## PR-G29 supporting evidence — broad-suite environment triage
 
-## Additional review-only findings
+Review-only **#436** (`[Review only] Document broad-suite environment triage`) is **OPEN / UNMERGED / UNACCEPTED** at exact head **`5cc1f40a048c2f99f8ec615d662e6e19a0d89468`**.
 
-**#423** records a production-readiness matrix and explicitly lacks authoritative production topology, SLO, RPO, and RTO inputs; its receipt-binding item remains a `BLOCKING_CANDIDATE_FINDING pending scope review`, not an accepted-main defect classification. **#426** records offline fault-space exploration and labels malformed/cross-bound receipt false ACK, recovery digest mismatch, and unfenced simultaneous recovery as candidate-scoped blocking findings requiring human scope disposition. Real fsync/power-loss, ENOSPC, and process-level fencing fixtures remain absent. Neither candidate executed a canary.
+It changes only `REPRODUCTION.md`, `TEST_ENVIRONMENT_MATRIX.md`, and `TEST_FAILURE_CLASSIFICATION.json`. It records the previously reported 1121-test broad-suite result as 5 failures / 95 errors / 29 skips, classifies all 129 non-passing outcomes, and reports 87/87 affected tests passing outside the managed process sandbox. No deterministic real product regression is claimed from that triage, and the original failures remain retained evidence rather than being erased.
 
-Other R4/R5/research/canary planning PRs remain unmerged and unaccepted. Their local or hosted PASS results do not authorize promotion, deployment, canary execution, or broad production-readiness claims.
+Current exact-head #436 repository technical workflows are **PASS** for Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent. Vercel is **PASS**. Maintainer approval is **FAIL / no exact-head human attestation**.
+
+This supports the environment/capability classification behind #430/ENV-G01. It does not establish production readiness and does not authorize reclassifying unrelated failures as PASS.
+
+## PR-G27 — immutable GitHub Actions dependency identity
+
+Draft **#437** (`feat(release): add immutable GitHub Actions pin audit`) is **OPEN / DRAFT / UNMERGED / UNACCEPTED** at repaired exact head **`46bdfd51c7ea1ff31ab7e3701b894b329010ff50`**.
+
+It changes only:
+
+- `docs/v1/V1_SUPPLY_CHAIN_ACTION_PINNING.md`
+- `scripts/validate_github_action_pins.py`
+- `tests/test_github_action_pins.py`
+
+Direct search of accepted `main@d796f36...` confirms active workflows still use mutable major-tag references including `actions/checkout@v4` and `actions/upload-artifact@v4`. This is a supply-chain identity/immutability gap; it is **not evidence that an action was compromised**.
+
+#437's validator requires external Actions/reusable-workflow references to use 40-hex commit identities, ignores repository-local `./` actions, leaves `docker://` digest policy to a separate gate, and emits `PASS | BLOCKED` with `execution_claim: VALIDATION_ONLY`. The current repaired head also fail-closes unexpected workflow enumeration/read/report-write I/O errors; the PR intentionally does **not** bulk-rewrite active workflows.
+
+Current exact-head #437 repository technical workflows are **PASS** for Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent. Maintainer approval is **FAIL / no exact-head human attestation**. Vercel is **FAIL** because of the same external 24-hour deployment build-rate limit, not a demonstrated RESIDUAL product-test failure.
+
+PR-G27 therefore remains **IN_PROGRESS**. Review of the audit contract, deliberate selection/review of exact external-action commits, remediation of active workflows without weakening existing checkout/security assertions, fresh exact-head CI, and a retained final-tree audit are still required before this gate can become VERIFIED.
+
+## Other release-preparation candidates
+
+These remain review-only/unaccepted and do not authorize canary, RC, tag, deployment, or production acceptance:
+
+- **#428** separates frozen R4.1 canary provenance from the eventual post-convergence RC; no RC is selected.
+- **#429** proposes to align `residual.__version__` with current project metadata; final `1.0.0` normalization remains an RC-creation action.
+- **#430** adds ENV-G01 capability preflight without retroactively converting restricted-environment failures into product failures or PASS.
+- **#432** adds a fail-closed deployment-profile schema/validator but does not choose topology, tenancy, SLO, RPO, RTO, backup, soak, or HA policy.
+- **#434** adds the PR-G30 incident-response qualification plan/validator; no incident drill has executed and PR-G30 remains **IN_PROGRESS**.
 
 ## Qualification and trust-boundary discipline
 
-`PASS`, `FAIL`, `UNKNOWN`, and `BLOCKED` remain exact-claim states. A PASS on one revision does not transfer to changed bytes. A candidate finding does not become an accepted defect until its scope and evidence are reviewed. A documented external result does not override contradictory or missing repository-local evidence. Missing physical evidence remains `UNKNOWN / not established` rather than inferred from software tests.
+`PASS`, `FAIL`, `UNKNOWN`, and `BLOCKED` remain exact-claim states. A PASS on one revision does not transfer to changed bytes. A candidate finding does not become an accepted defect until its scope and evidence are reviewed. A documented external result does not override contradictory or missing repository-local evidence. Missing physical or operational evidence remains `UNKNOWN / not established` or `BLOCKED`, as appropriate, rather than inferred from software tests.
 
-Still **UNKNOWN / not established** by accepted-main hosted PASS results:
+Still **UNKNOWN / not established** or **BLOCKED** by accepted-main hosted PASS results:
 
 - universal/every-host M4 qualification;
 - true 24h/72h/30d elapsed soak evidence;
@@ -93,8 +112,10 @@ Still **UNKNOWN / not established** by accepted-main hosted PASS results:
 - a valid corrected R4.1 seal suitable for authorization review;
 - live R4.1 canary success;
 - accepted R4.1/R5 Shared Comms implementation on main;
-- an approved v1 deployment/trust/SLO/RPO/RTO profile;
+- an approved v1 deployment/trust/SLO/RPO/RTO/backup/HA/soak profile;
 - executed and independently retained PR-G30 incident-response drill evidence;
+- executed and independently retained PR-G07/PR-G21 production-shaped recovery evidence;
+- immutable reviewed external GitHub Action pins across the final release workflow tree;
 - an exact post-convergence v1 release candidate with required recovery/soak/provenance evidence;
 - blanket production readiness.
 
@@ -104,6 +125,6 @@ The accepted Factory/M4 ownership baseline and protected-byte set remain whateve
 
 ## Documentation scope
 
-This reconciliation changes only `docs/CURRENT_STATUS.md` on the existing dedicated documentation branch. Accepted main has not changed since the previous observation. The newly observed work is review-only AUD-1 successor movement and incident-response qualification preparation; no new accepted-main claim requires an edit to `README.md`, `HARNESS.md`, `START-HERE.md`, or `implementation-status.yaml`. Those files are intentionally unchanged in this observation.
+This reconciliation changes only `docs/CURRENT_STATUS.md` on the existing dedicated documentation branch. Accepted main has not changed since the previous observation. No new accepted-main claim requires an edit to `README.md`, `HARNESS.md`, `START-HERE.md`, or `implementation-status.yaml`; those files are intentionally unchanged in this observation.
 
 Because this status document records qualification anchors, corrected evidence-authority interpretation, ownership-baseline context, active security successors, retained failures/unknowns, and release/canary trust-boundary state, the documentation PR must **not** be merged automatically. Exact-head human review/attestation remains required.
