@@ -104,6 +104,29 @@ class MeshRunnerTests(unittest.TestCase):
             runner.run_once()
         self.assertIsNone(client.submitted)
 
+    def test_unadmitted_winner_is_rejected(self):
+        client = FakeClient(work())
+        adapter = FakeAdapter(Result(
+            '{"files":{"a.py":"x=1"}}', "other", "unapproved/model", "embedded_exec",
+            (), {"input": 1, "output": 1},
+        ))
+        runner = MeshClawRunner(client, adapter, project_id="p-1",
+            provider_routes=[{"placement": "local", "model": "local/a"}])
+        with self.assertRaises(ContractError):
+            runner.run_once()
+        self.assertIsNone(client.submitted)
+
+    def test_oversized_request_is_rejected_before_execution_admission(self):
+        w = work()
+        w["packet"]["instruction"] = "x" * 100
+        client = FakeClient(w)
+        adapter = FakeAdapter(None)
+        runner = MeshClawRunner(client, adapter, project_id="p-1",
+            provider_routes=[{"placement": "local", "model": "local/a"}], max_request_bytes=64_050)
+        with self.assertRaises(ContractError):
+            runner.run_once()
+        self.assertIsNone(client.admitted)
+
 
 if __name__ == "__main__":
     unittest.main()
