@@ -112,7 +112,7 @@ class AuthoritativeContentTests(unittest.TestCase):
             WORKFLOW,
         )
         self.assertIn('needs: build-and-browser-proof', WORKFLOW)
-        self.assertIn('actions/deploy-pages@v4', WORKFLOW)
+        self.assertRegex(WORKFLOW, re.compile(r'actions/deploy-pages@[0-9a-f]{40}\\b'))
 
     def test_published_revision_reverified_after_deploy(self):
         self.assertIn('live-browser-evidence/desktop', WORKFLOW)
