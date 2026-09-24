@@ -146,6 +146,11 @@ class BindReached(Exception):
     pass
 
 
+def policy_exit_is_rejection(use_cli, code, attempts, diagnostic):
+    return (use_cli and type(code) is int and code == 2 and not attempts
+            and "Non-loopback Station exposure" in diagnostic)
+
+
 def bind_policy(repo, host, use_cli=False, configured=False):
     sys.path.insert(0, str(repo))
     from http.server import ThreadingHTTPServer
@@ -153,6 +158,7 @@ def bind_policy(repo, host, use_cli=False, configured=False):
     from residual.station import server as app
     from residual.station.service import Station
     attempts = []
+    diagnostic = io.StringIO()
     def intercepted(instance):
         attempts.append(list(instance.server_address))
         raise BindReached("intercepted before OS bind")
@@ -163,19 +169,24 @@ def bind_policy(repo, host, use_cli=False, configured=False):
                        RESIDUAL_PUBLIC_URL="https://example.invalid")
         with mock.patch.dict(os.environ, env, clear=True), mock.patch.object(ThreadingHTTPServer, "server_bind", intercepted):
             try:
-                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(diagnostic):
                     if use_cli:
                         app.main(["--host", host, "--port", "0", "--data", temporary])
                     else:
                         service = app.Server((host, 0), Station(temporary))
                         service.server_close()
+            except SystemExit as error:
+                if policy_exit_is_rejection(use_cli, error.code, attempts, diagnostic.getvalue()):
+                    result = "REJECTED_BEFORE_BIND"
+                else:
+                    return {"status": "BLOCKED", "error_type": "SystemExit", "bind_attempts": attempts}
             except BindReached:
                 result = "REACHED_BIND"
             except (ContractError, PermissionError, ValueError) as error:
                 result = "REJECTED_BEFORE_BIND" if not attempts else "BLOCKED"
                 rejection = type(error).__name__
             except Exception as error:
-                return {"status": "BLOCKED", "error_type": type(error).__name__, "bind_attempts": attempts}
+                return {"status": "BLOCKED", "error_type": type(error).__name__}
             else:
                 return {"status": "BLOCKED", "reason": "no terminal policy observation", "bind_attempts": attempts}
     if configured:
@@ -221,7 +232,7 @@ def main():
     if not args.expected_head or not args.output:
         parser.error("--expected-head and --output are required for audit")
     result = {"schema": "residual.v1-exclusion-audit.v1", "execution": "DISPOSABLE_RUNTIME_AND_BIND_INTERCEPTION",
-              "release_qualification": False, "python": platform.python_version(), "platform": platform.platform(), "cases": {}}
+              "release_qualification": False, "driver_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), "python": platform.python_version(), "platform": platform.platform(), "cases": {}}
     try:
         result["source"] = identity(repo, args.expected_head)
         # These create only bounded Python children and loopback-only temporary services.
@@ -230,6 +241,7 @@ def main():
         sys.addaudithook(no_external_effects)
         for case, host, cli, configured in (
             ("loopback_policy_positive", "127.0.0.1", False, False),
+            ("loopback_cli_positive", "127.0.0.1", True, False),
             ("CV-03_constructor_nonloopback_default", "0.0.0.0", False, False),
             ("CV-03_cli_nonloopback_default", "0.0.0.0", True, False),
             ("nonloopback_explicit_optin_observation", "0.0.0.0", False, True)):
