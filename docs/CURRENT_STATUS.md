@@ -1,96 +1,82 @@
 # RESIDUAL current status
 
-_Observation: 2026-09-24 17:10 UTC. Fresh scope: accepted main, #443 PR-G26
-schema-typing hardening, and #427 ledger reconciliation. Exact revisions below
-are observed snapshots, not promises that moving branches remain unchanged._
+_Observation: 2026-09-24 18:03 UTC. Exact revisions below are snapshots; changed heads require fresh evidence._
 
-This is a human-readable status record, not acceptance authority. Historical
-PASS/FAIL/UNKNOWN/BLOCKED remains bound to the exact revision, run attempt and
-environment that produced it. Earlier detailed snapshots remain in git history,
-including the 16:09 broad status at `2b106174...`, the 16:37 containment/CI
-status at `1d38400e...`, and the later #444/#445 status immediately preceding
-this observation. Those historical records are retained, not represented here as
-fresh re-audits.
+This is a status record, not acceptance authority. Historical PASS/FAIL/UNKNOWN/BLOCKED remains bound to the exact revision, run attempt, and environment that produced it.
 
 ## Executive summary
 
-Accepted `main` remains **`d796f36b75e730a0bab71bdba564206174393719`**. This
-observation does not merge any candidate into main. Release convergence remains
-**BLOCKED**.
+Accepted `main` remains **`d796f36b75e730a0bab71bdba564206174393719`**. No newer PR has merged.
 
-#443 is **OPEN / UNMERGED / UNACCEPTED** at observed head
-**`d2c8bb907da0c51f0bd56c9f5cb0114816b93205`**. The previous repaired head
-`4d70ddc7902237f4b7d1bd60ff1c82bd834e90a4` remains retained as the green
-symlink-containment repair: 26/26 focused local tests passed and all seven named
-technical workflows passed on that exact older head. The new `d2c8bb90...` head
-adds strict seal metadata integer typing and a new focused schema test module.
+Release convergence remains **BLOCKED**. The most meaningful new evidence is draft **#446**, which executed the proposed v1 enforceable-exclusion audit against exact claims source `9eba077817720021174671ba1652b59fb801b670` and exact AUD-1 source `e815f33484352f100e11b8d075bb954a815244cc`.
 
-At the time of this observation, GitHub Actions had not yet dispatched workflow
-runs for `d2c8bb90...`; therefore the new #443 head is **IN_PROGRESS / awaiting
-exact-head CI**. Old-head PASS results do not transfer.
+Custom audit run **36034977554** retained these claim states:
 
-Draft #427 is **OPEN / DRAFT / UNMERGED / UNACCEPTED** at observed head
-**`676cd6af84934762d130ed3f0998bdd2cde3cdda`**. It now contains the append-only
-`docs/v1/V1_MASTER_READINESS_DELTA_PR443_SCHEMA_TYPING.md`, recording the schema-
-typing finding, repair scope, and pending-CI status. Older ledger identities are
-historical snapshots only.
+- CV-06 one-authoritative-Station-per-data-directory: **FAIL** on both audited sources. Two Station processes using the same directory remained live concurrently, so process exclusivity is not established on those entry paths.
+- Non-loopback CLI default: claims source **FAIL**; AUD-1 source **PASS**.
+- Non-loopback direct Server-constructor default: **FAIL** on both sources at the intercepted bind-policy boundary. The audit did not create a live non-loopback listener.
+- CV-09 Shared Comms recovery/exclusion: **BLOCKED** because approved inclusion/exclusion and the selected source are not established.
+- Separate-directory and loopback positive controls: **PASS**.
 
-No corrected seal, private Seal v2 verification, independent human acceptance,
-canary authorization, physical F6 evidence, RC, deployment, release or production
-acceptance follows from these changes.
+These are bounded audit findings, not release qualification.
 
-## PR-G26 — current #443 state
+## #446 — exclusions audit
 
-The symlink-containment defect remains repaired in the prior exact head. That
-repair used anchored descriptor-relative no-follow traversal, regular-file checks
-on opened descriptors, canonical POSIX paths, same-read manifest digest binding,
-and fail-closed unsupported-platform behavior. Its limitations remain explicit:
-trusted/stable caller-selected package root, immutable input snapshot, no hard-
-link/mount isolation proof, no arbitrary concurrent-content-mutation proof, no
-closed-world membership, no semantic candidate/gate/safety-counter binding, and
-no provenance-DAG closure.
+#446 is **OPEN / DRAFT / UNMERGED / UNACCEPTED** at **`c2b124419b5c5a36f96262c742d4ababeccd15a1`**.
 
-The new #443 schema-typing hardening addresses a separate strictness issue: JSON
-booleans and floats could satisfy equality comparisons for one-entry seal counts
-because Python treats `true == 1` and `1.0 == 1`. The verifier now requires exact
-nonnegative JSON integer counters using `type(value) is int`, excluding bools,
-floats, strings and negatives.
+The claims-source retained artifact is **10823649834**, GitHub-reported digest `sha256:47b217bba8f8a1fdeba72d54ee7c15c2d4498110b8034812c5de0edb0b753891`. The AUD-1-source artifact is **10824660381**, GitHub-reported digest `sha256:cd1893d8537a17249f90eb8e54431458f5c9850afface94acf25ff6627d7b7da`.
 
-The check applies to:
+Normal repository workflows on the audit head are **PASS** for Qualification v1 **36034984717**, Controller/provider **36034984606**, Command Station **36034984706**, clean install **36034984593**, Factory ownership **36034984659**, measured-evaluation binding **36034984631**, and Control Plane **36034984705**. PR-Agent is **FAIL**; maintainer approval is **FAIL**; Vercel is externally rate-limited.
 
-- `authoritative_manifest.entry_count`;
-- `authoritative_manifest.entries_verified`;
-- `authoritative_manifest.entries_failed`;
-- legacy `authoritative_evidence.sha256sums_verification.entries_verified`;
-- legacy `authoritative_evidence.sha256sums_verification.entries_failed`.
+Those repository PASS results do not override the custom audit's FAIL/BLOCKED findings.
 
-New focused coverage is in `tests/test_r4_seal_manifest_schema.py`, including
-negative controls for booleans, floats, strings and negative values plus a
-positive exact-integer control.
+## #445 — claims contract
 
-## Current status and required next evidence
+#445 advanced from initial proposal `b91f574c...` to exact head **`9eba077817720021174671ba1652b59fb801b670`**.
 
-- #443 `d2c8bb90...`: **IN_PROGRESS / awaiting exact-head CI**.
-- #427 `676cd6af...`: **ledger updated / awaiting its own exact-head evidence if accepted**.
-- #364 current document: **documentation-only observation**, not review or acceptance.
-- PR-Agent and maintainer approval remain separate; this update does not create a
-  formal human review or attestation.
+The changed bytes remove circular RC/release dependencies and define the proposed lifecycle:
 
-Full **PR-G26 remains BLOCKED / NOT VERIFIED** pending exact-head CI for the new
-schema-hardening bytes, genuine independent human review, and separately retained
-private direct-source semantic/provenance verification of the authoritative
-runtime package and final Seal v2.
+`RC_SELECTED -> RC_QUALIFIED -> SOAK_VERIFIED -> RELEASE_AUTHORIZED`.
 
-## Other retained gates
+Exact-head Qualification v1 **36031593391**, Controller/provider **36031593150**, Command Station **36031592973**, clean install **36031593258**, Factory ownership **36031593219**, measured-evaluation **36031593096**, and Control Plane **36031593091** are **PASS**. PR-Agent and maintainer approval are **FAIL**; Vercel is externally rate-limited.
 
-#444 PR-G28 lock-contract tooling and #445 claims-contract proposal remain in
-their previously recorded states. They are not advanced by this #443 schema
-hardening. V1-CLAIMS-001 owner/operations approval, deployment/trust profile,
-AUD-1/#353 closure, physical F6-A/F6-B, Mason/LEGION re-audit, canary, exact-RC
-recovery/incident/elapsed-soak evidence and final human release authorization
-remain outstanding.
+The claims remain **PROPOSED / OWNER-OPERATIONS APPROVAL REQUIRED**. The #446 audit means CV-06 is currently **FAIL**, the claims-source non-loopback CLI default is **FAIL**, direct constructor enforcement is **FAIL**, and CV-09 is **BLOCKED**. No claims approval or RC selection follows.
 
-No frozen artifact, seal, authoritative runtime package, live service, credential,
-canary, production system, AUD-1 branch or research branch is modified. No merge,
-auto-merge, approval, attestation, physical execution, deployment, drill, soak,
-tag or release is requested or claimed.
+## #443 — PR-G26 exact-head CI
+
+#443 is **OPEN / READY FOR REVIEW / UNMERGED / UNACCEPTED** at **`d2c8bb907da0c51f0bd56c9f5cb0114816b93205`**. Relative to prior green head `4d70ddc7...`, it adds strict seal-counter integer typing and focused tests. Prior full-green evidence does not transfer.
+
+Current exact-head results:
+
+- Controller/provider **PASS**
+- clean install **PASS**
+- Factory ownership **PASS**
+- measured-evaluation binding **PASS**
+- Control Plane **PASS**
+- Qualification v1 **FAIL**
+- Command Station **FAIL**
+- PR-Agent **FAIL**
+- maintainer approval **FAIL**
+- Vercel **FAIL** from the external rate limit
+
+Qualification v1 run **36032203299** failed in container-smoke after the Ubuntu package service returned a 404 for a required package, so required container evidence was absent. Command Station run **36032203395** failed at the same external Docker package-fetch boundary; its Python 3.11/3.12/3.13 and browser jobs passed. The workflow conclusions remain **FAIL** and are not relabeled PASS.
+
+Full **PR-G26 remains BLOCKED / NOT VERIFIED** pending exact-head qualification closure, independent human review, and private direct-source semantic/provenance verification of the authoritative runtime package and final Seal v2.
+
+## #427 — readiness ledger
+
+#427 is **OPEN / DRAFT / UNMERGED / UNACCEPTED** at **`676cd6af84934762d130ed3f0998bdd2cde3cdda`**, adding the PR443 schema-typing delta.
+
+Controller/provider, clean install, Factory ownership, measured-evaluation binding, and Control Plane are **PASS**. Qualification v1 **36032252908** and Command Station **36032252960** are **FAIL** at the same external Ubuntu package-fetch boundary. PR-Agent and maintainer approval are **FAIL**; Vercel is externally rate-limited.
+
+The ledger is coordination evidence only and does not override newer exact-head findings.
+
+## Unresolved blockers
+
+Release remains **BLOCKED** on Station process exclusivity or approved claims revision; supported Server exposure-policy closure; Shared Comms inclusion/exclusion; #443 qualification and private PR-G26 verification; full PR-G28 lock/offline-build evidence; owner/operations approval of claims and deployment profile; AUD-1 independent review, physical F6-A/F6-B and Mason/LEGION re-audit; corrected/private seal verification and canary authorization; exact-RC recovery, incident, elapsed-soak, provenance, and final release authorization.
+
+## Documentation scope
+
+This reconciliation changes only **`docs/CURRENT_STATUS.md`** on the dedicated documentation branch. Accepted main has not changed, so no new accepted-main fact requires an edit to `README.md`, `HARNESS.md`, `START-HERE.md`, or `implementation-status.yaml`.
+
+No protected Factory/M4 implementation, ownership baseline, qualification anchor, protected byte, evidence schema, frozen artifact, seal, canary, deployment, merge, approval, or human attestation is changed or authorized. This documentation must not be auto-merged.
