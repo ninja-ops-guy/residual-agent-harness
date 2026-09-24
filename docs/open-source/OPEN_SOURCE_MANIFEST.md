@@ -2,37 +2,26 @@
 
 **License:** Apache License 2.0  
 **Copyright:** 2026 Mike Olivares  
-**Status:** Funding/readiness boundary v1
+**Status:** Candidate funding boundary — not merged to main
 
-This document defines the open-source portion of the RESIDUAL development monorepo. A path is Apache-2.0 licensed only when it is explicitly included below or carries its own compatible license notice.
+This file defines the intended Apache-2.0 portion of the RESIDUAL development monorepo for this candidate revision. A path is included only when explicitly listed below or when it carries its own compatible license notice.
 
-## Included open-core code
-
-The following paths are included in RESIDUAL Open Core:
+## Included verification/research kernel
 
 - `ai_providers/**`
 - `observation_layer/**`
 - `verifier/**`
-- `residual/assurance/**`
-- `residual/eval/**`
-- `residual/eval_frozen/**`
-- `residual/hitl/**`
-- `residual/runtime/**`
-- `residual/sandbox/**`
-- `residual/trajectory/**`
-- `residual/vq/**`
 - `residual/brakes.py`
 - `residual/core.py`
-- `residual/evaluation.py`
+- `residual/extensions.py`
 - `residual/goalspec.py`
-- `residual/loop.py`
 - `residual/quarantine.py`
 - `residual/receipts.py`
-- `residual/study.py`
-- `residual/study_tasks.py`
 - `residual/verifier.py`
 
-## Included research and reproducibility material
+This boundary is intentionally smaller than the full RESIDUAL product. It is designed to expose reusable evidence, verification, contract, provider-abstraction, observation, and policy primitives without licensing Factory, runtime orchestration, execution infrastructure, Studio, enterprise, or hosted-product implementations.
+
+## Included research and attribution material
 
 - `CITATION.cff`
 - `AUTHORS.md`
@@ -44,32 +33,28 @@ The following paths are included in RESIDUAL Open Core:
 - `docs/controlled-evaluation.md`
 - `docs/factory/SPEC-EVAL-001.md`
 
-Third-party vendored material remains under its original license even if it is referenced by the open core.
+Publication of a specification does not imply that the corresponding implementation is included.
 
-## Explicitly excluded / reserved
+## Reserved examples
 
-The following are not part of the Apache-2.0 grant unless a future file-specific notice says otherwise:
+The machine-readable manifest is authoritative for the exact candidate revision. Reserved paths include, among others:
 
-- `residual/iam/**`
-- `residual/compliance/**`
-- `residual/tenancy/**`
-- `residual/hadr/**`
-- `residual/integrations/**`
-- `residual/licensing/**`
-- `residual/control_plane/**`
-- `residual/cluster/**`
-- `residual/studio_frontend/**`
-- `docs/enterprise/**`
-- `docs/studio/**`
-- enterprise/commercial portions of `harness_specs/**`
-- hosted-service, premium integration, fleet-management, and future enterprise-only code unless explicitly moved into the open manifest
+- Factory and engine implementations
+- runtime/orchestration execution code
+- sandbox execution infrastructure
+- lifecycle/integration/provider implementation outside the kernel
+- enterprise IAM, multi-tenancy, HA/DR, compliance and integrations
+- commercial licensing/metering
+- cluster/control-plane and enterprise Studio implementation
 
-Visibility on GitHub is not itself a license grant for excluded material.
+Visibility in the public monorepo is not, by itself, an Apache-2.0 license grant.
 
 ## Boundary rule
 
-New code is not automatically open source because it is added to this repository. To enter the Apache-2.0 Open Core, a maintainer must update this manifest in the same reviewed change or add an explicit Apache-2.0 SPDX/file notice.
+No agent, automation, funding application, documentation update, or build step may expand the Apache-2.0 scope implicitly. Any expansion requires an explicit manifest change and human maintainer authorization.
 
 ## Funding rule
 
-Third-party research or open-source funding credited to RESIDUAL Open Core is used for the included open-source/research layer unless the funding agreement explicitly permits another use.
+Open-source/research funding represented as support for RESIDUAL Open Core should be used for the included research/kernel layer unless the applicable funding agreement expressly permits another use.
+
+Third-party vendored material remains governed by its original license.
