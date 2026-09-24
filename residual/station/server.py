@@ -23,7 +23,7 @@ from .models import model_call, public_settings, save_settings, credentials_for
 from residual.modular import normalize_profile, make_adapter
 from ai_providers import ProviderError as ModularError
 from .service import Station, demo_spec
-from .worker_access import WorkerAccessGate
+from .worker_access import WorkerAccessGate, WorkerControlDrainTimeout
 
 STATIC = Path(__file__).parent / "static"
 SESSION_COOKIE = "residual_session"
@@ -335,6 +335,8 @@ class Handler(BaseHTTPRequestHandler):
             if path in assets:
                 return self.respond((STATIC / path[1:]).read_bytes(), content_type=assets[path])
             self.respond({"error": "Page not found"}, 404)
+        except WorkerControlDrainTimeout as e:
+            self.respond({"error": str(e)}, 503)
         except PermissionError as e:
             self.respond({"error": str(e)}, 403)
         except (ContractError, ValueError, KeyError) as e:
@@ -356,6 +358,8 @@ class Handler(BaseHTTPRequestHandler):
                 data = self.body()
                 result = self.post(path, data)
             self.respond(result if result is not None else {"ok": True})
+        except WorkerControlDrainTimeout as e:
+            self.respond({"error": str(e)}, 503)
         except PermissionError as e:
             self.respond({"error": str(e)}, 403)
         except ModularError as e:
