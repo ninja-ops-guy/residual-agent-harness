@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://residual.invalid/schemas/experiment-registry-v1.json",
+  "title": "RESIDUAL experiment registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "generated_at", "source_boundary", "experiments"],
+  "properties": {
+    "schema_version": {"const": "residual-experiment-registry/1"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "source_boundary": {"type": "string", "minLength": 1},
+    "experiments": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/experiment"}
+    }
+  },
+  "$defs": {
+    "unknownableString": {"type": ["string", "null"]},
+    "stringList": {"type": "array", "items": {"type": "string"}},
+    "experiment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "experiment_id", "experiment_family", "hypothesis", "preregistration_status",
+        "independent_variables", "dependent_variables", "controls", "baseline",
+        "code_revision", "candidate_revision", "model_provider", "model_digest",
+        "environment", "seed_randomness_policy", "operator", "operator_interventions",
+        "start_timestamp", "end_timestamp", "evidence_path", "evidence_sha256", "outcome",
+        "failure_classification", "replication_count", "replication_status",
+        "known_confounders", "interpretation", "literature_review_status",
+        "metadata_completeness", "missing_metadata"
+      ],
+      "properties": {
+        "experiment_id": {"type": "string", "pattern": "^[A-Z0-9][A-Z0-9._-]+$"},
+        "experiment_family": {"type": "string", "minLength": 1},
+        "hypothesis": {"type": "string", "minLength": 1},
+        "preregistration_status": {"enum": ["PREREGISTERED", "RETROSPECTIVE", "EXPLORATORY"]},
+        "independent_variables": {"$ref": "#/$defs/stringList"},
+        "dependent_variables": {"$ref": "#/$defs/stringList"},
+        "controls": {"$ref": "#/$defs/stringList"},
+        "baseline": {"$ref": "#/$defs/unknownableString"},
+        "code_revision": {"$ref": "#/$defs/unknownableString"},
+        "candidate_revision": {"$ref": "#/$defs/unknownableString"},
+        "model_provider": {"$ref": "#/$defs/unknownableString"},
+        "model_digest": {"$ref": "#/$defs/unknownableString"},
+        "environment": {"$ref": "#/$defs/stringList"},
+        "seed_randomness_policy": {"$ref": "#/$defs/unknownableString"},
+        "operator": {"$ref": "#/$defs/unknownableString"},
+        "operator_interventions": {"$ref": "#/$defs/stringList"},
+        "start_timestamp": {"$ref": "#/$defs/unknownableString"},
+        "end_timestamp": {"$ref": "#/$defs/unknownableString"},
+        "evidence_path": {"$ref": "#/$defs/stringList"},
+        "evidence_sha256": {
+          "type": "array",
+          "items": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+        },
+        "outcome": {"type": "string", "minLength": 1},
+        "failure_classification": {"$ref": "#/$defs/unknownableString"},
+        "replication_count": {"type": ["integer", "null"], "minimum": 0},
+        "replication_status": {"enum": ["NOT_REPLICATED", "PARTIALLY_REPLICATED", "REPLICATED", "NOT_APPLICABLE", "UNKNOWN"]},
+        "known_confounders": {"$ref": "#/$defs/stringList"},
+        "interpretation": {"type": "string", "minLength": 1},
+        "literature_review_status": {"enum": ["NOT_STARTED", "INCOMPLETE", "COMPLETE", "UNKNOWN"]},
+        "metadata_completeness": {"enum": ["SUFFICIENT", "INSUFFICIENT"]},
+        "missing_metadata": {"$ref": "#/$defs/stringList"}
+      }
+    }
+  }
+}
