@@ -1,6 +1,6 @@
 # RESIDUAL current status
 
-_Current-state check: 2026-09-24 15:34 UTC against `main@d796f36b75e730a0bab71bdba564206174393719`._
+_Current-state check: 2026-09-24 16:09 UTC against `main@d796f36b75e730a0bab71bdba564206174393719`._
 
 This document is a human-readable current-state summary, not a replacement for exact repository bytes, retained artifacts, workflow logs, issue/PR history, or maintainer/protected-byte governance. Historical PASS/FAIL/UNKNOWN/BLOCKED evidence remains bound to the exact revision, run attempt, and environment that produced it. Git history retains earlier detailed versions of this status document.
 
@@ -10,16 +10,15 @@ Accepted `main` remains **`d796f36b75e730a0bab71bdba564206174393719`**, the merg
 
 Release convergence remains **BLOCKED**. AUD-1 issue #353 remains **OPEN with no milestone**; physical F6-A/F6-B evidence remains **UNKNOWN / not established**; the independent Mason/LEGION re-audit is outstanding; the R4.1 seal-cardinality defect still prevents the erroneous seal from serving as authorization evidence; no corrected seal exists; the v1 deployment profile remains owner/operations-undecided; and no canary, release candidate, deployment, or production acceptance has been authorized.
 
-Meaningful movement since the previous observation is concentrated in the master readiness ledger, the Open Core governance candidate, and AUD-1 review posture:
+Meaningful movement since the previous observation is concentrated in PR-G26 direct-source verification preparation and the master readiness ledger:
 
-- **#427** advanced from `41e427721858efdca8498cd524a7ce22439177b4` to **`485e9d797dbef0f9120f014f06fcd3d6fb905fda`**, adding append-only delta `V1_MASTER_READINESS_DELTA_20260924_1440.md`. That delta advances only the #430 / PR-G29 ENV-G01 **tooling** state to `READY_FOR_REVIEW`; the parent environment-qualification obligation remains unmerged and unrequalified on resulting main.
-- Exact-head #427 repository CI at `485e9d7...` is **PASS** for Qualification v1 (`36014070482`), Controller/provider contracts (`36014070590`), Command Station (`36014070539`), clean install (`36014070459`), Factory ownership (`36014070497`), measured-evaluation binding (`36014070647`), and Control Plane (`36014070472`). PR-Agent advisory is **FAIL**; maintainer approval is **FAIL / no exact-head human attestation**; Vercel is **FAIL** because of the external build-rate limit.
-- **#442** advanced from prior observed head `c12817e82d065861735e132f16fd0e887d349ff7` to **`f7281bcf37ae1f7b2da4bd27b0bc91238659079e`**. The ten-commit reconciliation culminates in `Merge current main into minimal open-core funding candidate`, bringing the candidate onto accepted `main@d796f36b...` without changing the candidate licensing boundary. Relative to the prior observed head, the changed files are accepted-main reviewer-contract/workbench durability bytes and their tests; this does not establish a new accepted license boundary.
-- Fresh exact-head #442 technical CI is **PASS** for Open Core Boundary (`36020814834`), Qualification v1 (`36020814851`), Controller/provider contracts (`36020814661`), Command Station (`36020814660`), clean install (`36020814325`), Factory ownership (`36020814750`), measured-evaluation binding (`36020814329`), and Control Plane (`36020814406`). PR-Agent advisory is **FAIL**; maintainer approval is **FAIL / no exact-head human attestation**; Vercel is **PASS**. #442 remains **DRAFT / UNMERGED / UNACCEPTED** and provides no legal, licensing, grant, release, or production authority.
-- **#438** code remains byte-identical at **`e815f33484352f100e11b8d075bb954a815244cc`**, but its PR is now marked ready for review rather than draft. A 15:33 UTC gate-order clarification re-verified **0 submitted human reviews**. C1-C6 remain software-repaired and exact-head CI-qualified only in the unmerged successor chain; independent human review, explicit successor selection, helper retarget/requalification, physical F6-A/F6-B, and Mason/LEGION re-audit remain outstanding.
+- New **#443** is **OPEN / READY FOR REVIEW / UNMERGED / UNACCEPTED** at exact head **`d4af45bd07abf96d60c834c060395e5619731583`**, based directly on accepted main. It integrates the repository-side seal-manifest/cardinality verifier and adversarial evidence-authority tests without modifying the frozen R4.1 candidate or authoritative evidence.
+- Exact-head #443 technical CI is **PASS** for Qualification v1 (`36021594859`), Controller/provider contracts (`36021595165`), Command Station (`36021596338`), clean install (`36021595076`), Factory ownership (`36021594991`), measured-evaluation binding (`36021595110`), and Control Plane (`36021594837`). PR-Agent advisory is **FAIL / unavailable as substantive review**; maintainer approval is **FAIL / no exact-head human attestation**; Vercel is externally deployment-rate-limited.
+- #443 advances only the repository-side direct-manifest/cardinality sub-requirement to **READY_FOR_REVIEW**. Full **PR-G26 remains BLOCKED / NOT VERIFIED** pending semantic source binding and independently retained read-only verification of the final authoritative package and Seal v2.
+- **#427** advanced from `485e9d797dbef0f9120f014f06fcd3d6fb905fda` to **`ace6968d156fa174639db6a738e9caee0a08cbf4`**, three commits ahead, adding append-only #443/PR-G26 deltas. Its final delta keeps PR-G26 **BLOCKED / NOT VERIFIED** while recording #443 repository tooling as **READY_FOR_REVIEW**.
+- Exact-head #427 technical CI is **PASS** for Qualification v1 (`36022546083`), Controller/provider contracts (`36022545976`), Command Station (`36022546174`), clean install (`36022545908`), Factory ownership (`36022546157`), measured-evaluation binding (`36022545966`), and Control Plane (`36022546011`). PR-Agent advisory is **FAIL** and maintainer approval is **FAIL / no exact-head human attestation**.
 
-Previously recorded #430 and #440 exact-head evidence remains unchanged in accepted-main authority. None of the movements above changes accepted `main`, closes #353, creates a valid corrected R4.1 seal, authorizes canary execution, or establishes production acceptance.
-
+Accepted `main` remains unchanged. None of this closes #353, creates a corrected R4.1 seal, authorizes canary execution, or establishes production acceptance.
 ## R4.1 evidence authority and canary boundary
 
 The prior external R4.1 qualification record remains bounded to its authoritative candidate, evidence bytes, hashes, and gate results. The previously propagated ready-for-canary seal statement `44/44` is **invalid derived seal metadata** and must not be used as an authority claim.
@@ -27,6 +26,15 @@ The prior external R4.1 qualification record remains bounded to its authoritativ
 Open PR **#415** established that the literal `44` was manually embedded after `sha256sum -c` verified hashes without deriving cardinality; authoritative immutable `SHA256SUMS` contains **50** valid non-empty entries. The defect affects derived seal metadata and semantic seal validity, not the candidate identity, authoritative evidence bytes, authoritative hashes, qualification gate results, or the manifest itself.
 
 No corrected seal / Seal v3 exists. The current erroneous seal must not authorize canary execution. Canary execution remains **NOT AUTHORIZED / NOT EXECUTED**.
+
+
+## PR-G26 — direct-source seal verification
+
+**#443** is **OPEN / READY FOR REVIEW / UNMERGED / UNACCEPTED** at exact head **`d4af45bd07abf96d60c834c060395e5619731583`**. The proposed verifier directly parses and hashes the authoritative manifest, derives cardinality from that manifest, rejects unsafe or duplicate entries, and rejects stale/mismatched seal cardinality.
+
+The parent PR-G26 gate remains **BLOCKED / NOT VERIFIED**. The repository CI does not establish closed-world package semantics, candidate HEAD/tree and gate/status/safety-counter binding, provenance termination, or independently retained verification of the final Seal v2 against its authoritative source package. Those remain required before the seal can participate in canary authorization.
+
+No corrected seal is created by #443, and no canary authority follows from its PASS workflows.
 
 ## AUD-1 security convergence
 
@@ -69,13 +77,13 @@ Required AUD-1 sequence remains: genuine independent human review of exact #438 
 
 ## Release-readiness convergence ledger
 
-Draft **#427** (`docs(v1): add master release-readiness convergence ledger`) is **OPEN / DRAFT / UNMERGED / UNACCEPTED** at exact head **`485e9d797dbef0f9120f014f06fcd3d6fb905fda`**.
+Draft **#427** (`docs(v1): add master release-readiness convergence ledger`) is **OPEN / DRAFT / UNMERGED / UNACCEPTED** at exact head **`ace6968d156fa174639db6a738e9caee0a08cbf4`**.
 
-Compared with the preceding observed head `41e427721858efdca8498cd524a7ce22439177b4`, the branch is one commit ahead and adds append-only evidence delta `V1_MASTER_READINESS_DELTA_20260924_1440.md`. That delta advances only the repository-side #430 / PR-G29 ENV-G01 tooling proposal to **READY_FOR_REVIEW** after exact-head technical CI completed. Parent environment-qualification obligations remain unmerged/unrequalified. The earlier `1425` and `1438` deltas remain historical snapshots rather than transferable acceptance.
+Compared with the preceding observed head `485e9d797dbef0f9120f014f06fcd3d6fb905fda`, the branch is three commits ahead and adds append-only PR-G26 deltas for the initial #443 integration state, its review-ready transition, and the 15:45 UTC evidence correction/refinement. The current ledger advances only #443 repository tooling to **READY_FOR_REVIEW**; full PR-G26 remains **BLOCKED / NOT VERIFIED**.
 
 The current normalized PR-G27 record still binds the immutable-action remediation to exact #440 head **`72fd1b5eeef6204db52cafc43ff1f6b48bbde5ce`**, dedicated pin-gate run **36002441103**, artifact **10809311094**, and digest `sha256:aae9486453c8747b58b488ebc1860d03b7419a708158015bd0d6e6f58b3cf612`. It classifies the focused immutable-action remediation as **READY_FOR_REVIEW / UNMERGED**, while keeping the parent PR-G27 production gate incomplete.
 
-Exact-head #427 workflow evidence at `485e9d7...` is **PASS** for Qualification v1 run **36014070482**, Controller/provider contracts run **36014070590**, Command Station run **36014070539**, clean install run **36014070459**, Factory ownership run **36014070497**, measured-evaluation binding run **36014070647**, and Control Plane run **36014070472**. PR-Agent advisory run **36014070499** is **FAIL**. Maintainer approval run **36014070470** is **FAIL** because no exact-head write-capable human attestation exists. Vercel is **FAIL** because the external deployment service reports a build-rate limit.
+Exact-head #427 workflow evidence at `ace6968...` is **PASS** for Qualification v1 run **36022546083**, Controller/provider contracts run **36022545976**, Command Station run **36022546174**, clean install run **36022545908**, Factory ownership run **36022546157**, measured-evaluation binding run **36022545966**, and Control Plane run **36022546011**. PR-Agent advisory run **36022546103** is **FAIL**. Maintainer approval run **36022546046** is **FAIL** because no exact-head write-capable human attestation exists.
 
 The ledger continues to keep release ordering fail-closed: canary remains unauthorized/unexecuted; the actual v1 deployment/trust/SLO/RPO/RTO/backup/HA/soak profile remains blocked on owner/operations decisions; AUD-1 independent/physical closure remains outstanding; and exact-RC recovery/soak/provenance plus explicit human release authorization remain future gates.
 
