@@ -11,7 +11,7 @@ url: "https://github.com/ninja-ops-guy/residual-agent-harness"
 license: "Apache-2.0"
 version: "0.5.0"
 abstract: >-
-  RESIDUAL Open Core is the open research and runtime layer of RESIDUAL,
+  RESIDUAL Open Core is the open verification and research kernel of RESIDUAL,
   an evidence-first platform for building, evaluating, and improving reliable
   AI-assisted and multi-agent software-engineering systems through explicit
   verification, evidence, receipts, bounded authority, and reproducible evaluation.
