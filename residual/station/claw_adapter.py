@@ -60,8 +60,8 @@ def _tool_calls(value):
     if summary is None and isinstance(value.get("meta"), dict):
         summary = value["meta"].get("toolSummary")
     if not isinstance(summary, dict):
-        return 0
-    calls = summary.get("calls", 0)
+        raise ContractError("OpenClaw tool-use evidence is missing")
+    calls = summary.get("calls")
     if type(calls) is not int or calls < 0:
         raise ContractError("OpenClaw tool summary is invalid")
     return calls
@@ -289,7 +289,9 @@ class OpenClawExecAdapter(ClawAdapter):
         with self._lock:
             unit = self._active.get(assignment_id)
         if not unit:
-            return {"requested": False, "observed_stopped": True}
+            # Absence from this process-local registry is not evidence that a
+            # previously launched unit is stopped (the runner may have restarted).
+            return {"requested": False, "observed_stopped": None, "reason": "assignment_not_locally_tracked"}
         try:
             stop = subprocess.run([self.systemctl, "stop", unit], capture_output=True,
                                   timeout=10, check=False)
