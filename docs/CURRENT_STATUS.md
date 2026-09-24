@@ -1,6 +1,6 @@
 # RESIDUAL current status
 
-_Current-state check: 2026-09-24 11:08 UTC against `main@d796f36b75e730a0bab71bdba564206174393719`._
+_Current-state check: 2026-09-24 11:38 UTC against `main@d796f36b75e730a0bab71bdba564206174393719`._
 
 This document is a human-readable current-state summary, not a replacement for exact repository bytes, retained artifacts, workflow logs, issue/PR history, or maintainer/protected-byte governance. Historical PASS/FAIL/UNKNOWN/BLOCKED evidence remains bound to the exact revision, run attempt, and environment that produced it. Git history retains earlier detailed versions of this status document.
 
@@ -10,14 +10,14 @@ Accepted `main` remains **`d796f36b75e730a0bab71bdba564206174393719`**, the merg
 
 Release convergence remains **BLOCKED**. AUD-1 issue #353 remains **OPEN with no milestone**; physical F6-A/F6-B evidence remains **UNKNOWN / not established**; the independent Mason/LEGION re-audit is outstanding; the R4.1 seal-cardinality defect still prevents the erroneous seal from serving as authorization evidence; no corrected seal exists; the v1 deployment profile remains owner/operations-undecided; and no canary, release candidate, deployment, or production acceptance has been authorized.
 
-Meaningful review-only movement since the previous observation is concentrated in release-preparation tooling and environment triage:
+Meaningful movement since the previous observation is concentrated in the AUD-1 successor chain:
 
-- **#435** adds a fail-closed evidence contract for v1 backup/restore and rollback qualification. Its current exact head has the retrieved repository technical workflows PASS, but no production-shaped recovery exercise has executed; PR-G07 and PR-G21 remain **IN_PROGRESS**.
-- **#436** classifies the previously reported broad-suite non-passing outcomes as environment/capability-sensitive evidence and reports the affected tests passing outside the managed process sandbox. It does not erase the retained first failures and does not establish blanket product PASS.
-- **#437** adds immutable GitHub Actions dependency-audit tooling. Accepted main still contains mutable major-tag action references such as `actions/checkout@v4` and `actions/upload-artifact@v4`; this is an observed supply-chain identity gap, **not evidence of compromise**. #437 now has fresh exact-head technical CI PASS, but PR-G27 remains **IN_PROGRESS** because active workflows have not yet been deliberately repinned to reviewed immutable commits.
-- **#427** advanced to a new review-only ledger head and records #435/#436/#437. Its 10:28 UTC delta captured an earlier #437 creation head and in-progress CI; that narrow #437 observation is superseded by the current exact-head evidence below.
+- **#438** is a new stacked draft successor on #433. It retains the first hosted **AUD1-C6** failure showing that the writer-preferred worker-access control barrier could wait indefinitely for an already-admitted operation to drain.
+- The repaired #438 head **`e815f33484352f100e11b8d075bb954a815244cc`** adds an independent 600-second monotonic control-drain deadline. Timeout raises `WorkerControlDrainTimeout` before control admission/mutation, returns HTTP 503 on the operator surface, releases writer-pending state, and leaves already-admitted work unpreempted.
+- Fresh exact-head repository technical CI for #438 is **PASS** for Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and Pages. Vercel is **PASS**. PR-Agent advisory is **FAIL** and produced no substantive review; the retained owner handoff attributes that advisory failure to exhausted configured OpenAI credits. Maintainer approval is **FAIL / no exact-head human attestation**.
+- C1-C6 are therefore software-repaired and CI-qualified only on the **unmerged successor chain ending at #438**. This is not candidate selection, production acceptance, physical F6 evidence, or release authorization.
 
-None of these review-only candidates changes accepted-main release authority.
+Previously observed release-preparation candidates #435/#436/#437 and readiness ledger #427 remain review-only/unaccepted; their status does not change accepted-main release authority.
 
 ## R4.1 evidence authority and canary boundary
 
@@ -31,19 +31,48 @@ No corrected seal / Seal v3 exists. The current erroneous seal must not authoriz
 
 Owner issue **#353 remains OPEN with no milestone** and remains the pre-release security convergence boundary. Original candidate **#399** and physical-evidence helper **#403** remain frozen to their original bytes/evidence boundaries. The two required real-host F6 cases remain **UNKNOWN / not established**; no software fixture or hosted CI run substitutes for them.
 
-Draft **#433** remains the current C1-C5 software-successor lane at exact head **`9b4f32ce71ba2f4520dc1d7c2d8826fa329bdf60`**. Its retained test-only predecessor `9caaebe06214a7f8c280732eddbfdd18aeecd42c` preserves the first hosted C5 failure for an authoritative HTTP 400 `Stale task lease` entering generic result retry/fallback instead of surrender. The repaired head treats only that exact bounded Station denial as authority loss before generic transport retry.
+Draft **#438** (`fix(aud1): bound worker control-plane drain`) is the current C1-C6 software-successor lane at exact head **`e815f33484352f100e11b8d075bb954a815244cc`**, stacked on #433 exact head `9b4f32ce71ba2f4520dc1d7c2d8826fa329bdf60`.
 
-Exact-head #433 repository technical evidence is PASS for Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, PR-Agent, and Pages. That PASS remains candidate-scoped. #433 is unmerged/unaccepted and does not select the release successor, retarget #403, establish either physical F6 case, provide Mason/LEGION independent review, or authorize merge/deployment/release.
+Its retained test-only predecessor **`8a2fc3eebef6821c2466a031968684f16b92861d`** preserves the first hosted C6 failure. Command Station run **35992708134** and Controller/provider run **35992708420** failed on that exact test-only head; Qualification v1 run **35992707951** also failed. The failing head was not rerun unchanged for green.
 
-Required AUD-1 sequence remains: independent human review -> deliberate successor selection -> helper reconciliation for that exact target -> separately retained F6-A and F6-B physical evidence -> Mason/LEGION independent read-only re-audit -> exact-head qualification and owner attestation -> guarded merge -> authoritative new-main qualification -> final RC recovery/elapsed-soak evidence.
+C6 is an availability defect in the C1 completion barrier: writer preference correctly blocked new admissions while credential rotation/disable waited for already-admitted worker operations, but the wait had no independent deadline. One admitted operation that never returned could therefore block the control operation indefinitely.
+
+The repaired head preserves the completion-barrier policy while adding bounded failure:
+
+- already-admitted worker operations are not preempted or rolled back;
+- a pending control operation remains writer-preferred and blocks new admissions;
+- successful rotation/disable still occurs only after admitted operations drain;
+- an independent **600-second monotonic drain deadline** bounds the wait;
+- deadline expiry raises `WorkerControlDrainTimeout` before the control context yields, so that control attempt has not applied credential/access mutation;
+- the operator HTTP surface returns **503** instead of reporting success;
+- writer-pending state is released after timeout so later admissions are not wedged.
+
+Fresh exact-head #438 repository technical evidence is **PASS** for:
+
+- Qualification v1 run **35993248678**;
+- Command Station run **35993248773**;
+- Controller/provider contracts run **35993248687**;
+- clean install run **35993248554**;
+- Factory ownership run **35993248841**;
+- measured-evaluation binding run **35993248642**;
+- Control Plane run **35993248873**;
+- Pages/browser proof run **35993248775**.
+
+The retained handoff records Qualification v1 as 25 required gates present with no missing gates, exact tree **`ee0009145f0dcc8207eceda98719db04a9af46cf`**, final qualification artifact **10805272548**, and artifact ZIP SHA-256 **`e65db86f0ab714526962f1d0417ab34a31805aa74a15ab19daaa2ad34953c4f2`**. These claims remain exact-head/candidate-scoped.
+
+PR-Agent advisory run **35993248511** is **FAIL** and is not security evidence or human approval. The owner handoff records that the configured OpenAI account had no credits remaining and that no substantive advisory review was produced. Vercel status is **PASS**. Maintainer approval is **FAIL** because there is no exact-head write-capable human attestation; submitted human reviews remain zero at the retained handoff boundary.
+
+#438 remains **OPEN / DRAFT / UNMERGED / UNACCEPTED**. It does not select the release successor, retarget #403, establish either physical F6 case, provide Mason/LEGION independent review, authorize merge/deployment/release, or change the frozen #399/#403 evidence boundary.
+
+Required AUD-1 sequence remains: genuine independent human review of exact #438 C1-C6 and the completion-barrier/bounded-failure tradeoff -> deliberate successor selection -> helper reconciliation for that exact target -> separately retained F6-A and F6-B physical evidence -> Mason/LEGION independent read-only re-audit -> exact-head qualification and owner attestation -> guarded merge -> authoritative new-main qualification -> final RC recovery/elapsed-soak evidence.
 
 ## Release-readiness convergence ledger
 
-Draft **#427** (`docs(v1): add master release-readiness convergence ledger`) is **OPEN / DRAFT / UNMERGED / UNACCEPTED** at exact head **`1308115eda13af59b538fd3374a7e9f8a13f2b89`**, two commits beyond the previously observed `b556b3e...` head.
+Draft **#427** (`docs(v1): add master release-readiness convergence ledger`) is **OPEN / DRAFT / UNMERGED / UNACCEPTED** at exact head **`1308115eda13af59b538fd3374a7e9f8a13f2b89`**.
 
 Its current deltas keep the release ordering fail-closed: canary remains unauthorized/unexecuted; the actual v1 deployment/trust/SLO/RPO/RTO/backup/HA/soak profile remains blocked on owner/operations decisions; AUD-1 independent/physical closure remains outstanding; and exact-RC recovery/soak/provenance plus explicit human release authorization remain future gates.
 
-The ledger's 10:28 UTC delta correctly advanced #435 recovery tooling and #436 environment-triage evidence, but its #437 paragraph is now historical because #437 subsequently advanced from creation head `0170db05...` to repaired head `46bdfd51...` and completed fresh exact-head CI. Do not inherit the older in-progress CI state.
+The ledger's 10:28 UTC delta correctly advanced #435 recovery tooling and #436 environment-triage evidence, but its #437 paragraph is historical because #437 subsequently advanced from creation head `0170db05...` to repaired head `46bdfd51...` and completed fresh exact-head CI. Do not inherit the older in-progress CI state.
 
 ## PR-G07 / PR-G21 — recovery qualification
 
