@@ -99,6 +99,38 @@ class EnvironmentPreflightTests(unittest.TestCase):
         self.assertTrue(fake.killed)
         self.assertEqual(fake.wait_calls, 1)
 
+    def test_signal_probe_contains_cleanup_kill_failure(self):
+        class FakeProcess:
+            def __init__(self):
+                self.kill_calls = 0
+                self.wait_calls = 0
+
+            def send_signal(self, _sig):
+                raise OSError("synthetic signal failure")
+
+            def poll(self):
+                return None
+
+            def kill(self):
+                self.kill_calls += 1
+                raise OSError("synthetic kill failure")
+
+            def wait(self, timeout=None):
+                self.wait_calls += 1
+                return -9
+
+        fake = FakeProcess()
+        completed = SimpleNamespace(stdout="ENV_G01_SUBPROCESS_OK\n", returncode=0)
+        with mock.patch.object(mod.subprocess, "run", return_value=completed), mock.patch.object(
+            mod.subprocess, "Popen", return_value=fake
+        ):
+            result = mod._subprocess_and_signal()
+
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertIn("synthetic signal failure", result["detail"])
+        self.assertEqual(fake.kill_calls, 1)
+        self.assertEqual(fake.wait_calls, 1)
+
 
 if __name__ == "__main__":
     unittest.main()
