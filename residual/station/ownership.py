@@ -46,8 +46,9 @@ class StationDataDirOwnership:
             self.close()
             raise
 
-    def _acquire_os_lock(self):
-        if os.name == "posix":
+    def _acquire_os_lock(self, platform=None):
+        platform = os.name if platform is None else platform
+        if platform == "posix":
             import fcntl
             if not all(hasattr(os, flag) for flag in ("O_NOFOLLOW", "O_CLOEXEC", "O_NONBLOCK")):
                 raise StationOwnershipError("Secure Station ownership locking is unavailable")
@@ -65,7 +66,7 @@ class StationDataDirOwnership:
                 raise StationOwnershipError("Station ownership lock unavailable or already owned") from exc
             # Persistent lock inode: never truncate, unlink or write through it.
             return
-        if os.name == "nt":
+        if platform == "nt":
             import ctypes
             from ctypes import wintypes
             kernel = ctypes.WinDLL("kernel32", use_last_error=True)

@@ -204,8 +204,9 @@ class AUD1WorkerContinuityTests(unittest.TestCase):
         def wire_size(self, packet, max_tokens):
             return 100
 
-    def client(self, delay, *, transient=False):
-        client = WorkerClient("http://127.0.0.1:8765", "test-token", heartbeat_interval=0.01, heartbeat_grace=0.04)
+    def client(self, delay, *, transient=False, heartbeat_grace=0.04):
+        client = WorkerClient("http://127.0.0.1:8765", "test-token", heartbeat_interval=0.01,
+                              heartbeat_grace=heartbeat_grace)
         calls = {"heartbeat": 0, "result": 0}
         work = {
             "project_id": "p-test",
@@ -242,7 +243,9 @@ class AUD1WorkerContinuityTests(unittest.TestCase):
 
     # AUD-1 regression 8: persistent heartbeat loss surrenders before a proposal can be submitted.
     def test_08_persistent_heartbeat_loss_surrenders_and_never_submits(self):
-        client, provider, calls = self.client(0.20, transient=False)
+        # Leave enough wall-clock margin for at least three heartbeat thread
+        # cycles on supported OS schedulers while still exceeding grace.
+        client, provider, calls = self.client(0.40, transient=False, heartbeat_grace=0.15)
         with self.assertRaises(WorkerAuthorityLost):
             client.run_once("p-test", "runner-a", provider)
         self.assertGreaterEqual(calls["heartbeat"], 3)

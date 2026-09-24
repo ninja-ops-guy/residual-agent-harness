@@ -114,11 +114,16 @@ class OwnershipTests(unittest.TestCase):
             finally:
                 outside.unlink(missing_ok=True)
 
-    def test_unsupported_platform_fails_closed_and_releases_local_guard(self):
-        import residual.station.ownership as ownership
+    def test_unsupported_platform_fails_closed(self):
+        candidate = StationDataDirOwnership.__new__(StationDataDirOwnership)
+        with self.assertRaisesRegex(StationOwnershipError, "unavailable"):
+            candidate._acquire_os_lock(platform="unsupported")
+
+    def test_failed_os_acquisition_releases_local_guard(self):
         from unittest import mock
         with tempfile.TemporaryDirectory() as td:
-            with mock.patch.object(ownership.os, "name", "unsupported"):
+            with mock.patch.object(StationDataDirOwnership, "_acquire_os_lock",
+                                   side_effect=StationOwnershipError("unavailable")):
                 with self.assertRaisesRegex(StationOwnershipError, "unavailable"):
                     StationDataDirOwnership(td)
             owner=StationDataDirOwnership(td)
