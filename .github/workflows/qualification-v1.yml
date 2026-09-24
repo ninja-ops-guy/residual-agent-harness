@@ -14,12 +14,12 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 35
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
       - name: Provision real bubblewrap sandbox
@@ -42,7 +42,7 @@ jobs:
             --non-claim 'General regression capability skips are retained; security boundaries have separate zero-skip gates.' \
             -- python -m pytest tests --ignore=tests/qualification -q \
                --junitxml=runs/qualification-v1/deterministic.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: qualification-v1-deterministic-${{ github.sha }}
@@ -54,12 +54,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
       - name: Install discovery dependencies
@@ -111,7 +111,7 @@ jobs:
                 tests/test_factory_runtime.py && \
               coverage json -o runs/qualification-v1/coverage.json && \
               coverage report --include='residual/qualification/*,residual/factory/runtime_journal.py,residual/factory/worker_contract.py,residual/eval/stats.py' --fail-under=55"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: qualification-v1-discovery-${{ github.sha }}
@@ -123,12 +123,12 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
       - name: Install M4 qualification dependencies
@@ -157,7 +157,7 @@ jobs:
             -- python -m pytest tests/test_factory_m4*.py \
                tests/test_sandbox_timing_determinism.py::IsolatedTimeoutTypingTests -q \
                --junitxml=runs/qualification-v1/m4-tests.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: qualification-v1-m4-${{ github.sha }}
@@ -173,12 +173,12 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
       - name: Build wheel once
@@ -214,7 +214,7 @@ jobs:
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: 'dist/*.whl'
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: qualification-v1-artifacts-${{ github.sha }}
@@ -232,15 +232,15 @@ jobs:
       matrix:
         browser: [chromium, firefox, webkit]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
       - name: Install Station and browser dependencies
@@ -262,7 +262,7 @@ jobs:
             --log 'runs/qualification-v1/browser-${{ matrix.browser }}.log' \
             --evidence-path "$STATION_QA_DIR/browser-results.json" \
             -- node tests/browser.cjs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: qualification-v1-browser-${{ matrix.browser }}-${{ github.sha }}
@@ -275,12 +275,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
       - run: python -m pip install '.[factory,qualification]'
@@ -295,7 +295,7 @@ jobs:
             --zero-skips \
             -- python -m pytest tests/qualification/test_concurrency_lab.py -q \
                --junitxml=runs/qualification-v1/concurrency.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: qualification-v1-concurrency-${{ github.sha }}
@@ -307,12 +307,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
       - run: python -m pip install '.[factory,qualification]'
@@ -327,7 +327,7 @@ jobs:
             --zero-skips \
             -- python -m pytest tests/qualification/test_protocol_fuzz.py -q \
                --junitxml=runs/qualification-v1/protocol-fuzz.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: qualification-v1-protocol-fuzz-${{ github.sha }}
@@ -339,12 +339,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
       - run: python -m pip install '.[factory,qualification]'
@@ -360,7 +360,7 @@ jobs:
             -- python -m pytest tests/qualification/test_toxic_provider_matrix.py \
                tests/qualification/test_provider_mission.py -q \
                --junitxml=runs/qualification-v1/toxic-provider.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: qualification-v1-toxic-provider-${{ github.sha }}
@@ -372,12 +372,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
       - run: python -m pip install '.[factory,qualification]'
@@ -391,7 +391,7 @@ jobs:
             --evidence-path runs/qualification-v1/active-workload-report.json \
             -- python scripts/qualification_active_workload.py \
                --cycles 8 --output runs/qualification-v1/active-workload-report.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: qualification-v1-active-workload-${{ github.sha }}
@@ -403,15 +403,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
       - run: |
@@ -431,7 +431,7 @@ jobs:
             --log runs/qualification-v1/browser-adversarial.log \
             --evidence-path "$STATION_QA_DIR/adversarial-browser-results.json" \
             -- node tests/qualification/adversarial-browser.cjs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: qualification-v1-browser-adversarial-${{ github.sha }}
@@ -443,12 +443,12 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
       - run: python -m pip install '.[factory,qualification]'
@@ -464,7 +464,7 @@ jobs:
             --junit runs/qualification-v1/redteam.xml \
             --zero-skips \
             -- python -m pytest tests/redteam -q --junitxml=runs/qualification-v1/redteam.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: qualification-v1-redteam-${{ github.sha }}
@@ -476,12 +476,12 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
       - run: python -m pip install '.[factory,qualification]'
@@ -490,7 +490,7 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force runs/qualification-v1 | Out-Null
           python scripts/qualification_v1.py run --gate-id windows-lifecycle --output runs/qualification-v1/windows.evidence.json --log runs/qualification-v1/windows.log --junit runs/qualification-v1/windows.xml --zero-skips -- python -m pytest tests/station/test_station.py::StationTests::test_full_demo_real_git_tests_review_and_release tests/station/test_station.py::StationTests::test_lease_expiry_and_restart_recovery_preserve_evidence tests/qualification/test_active_workload.py -q --junitxml=runs/qualification-v1/windows.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: qualification-v1-windows-${{ github.sha }}
@@ -503,12 +503,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
       - run: python -m pip install '.[factory,qualification]'
@@ -523,7 +523,7 @@ jobs:
             --zero-skips \
             -- python -m pytest tests/qualification/test_fault_injection.py -q \
                --junitxml=runs/qualification-v1/fault-injection.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: qualification-v1-fault-injection-${{ github.sha }}
@@ -536,15 +536,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
       - run: python -m pip install '.[factory,qualification]'
@@ -556,7 +556,7 @@ jobs:
             --output runs/qualification-v1/webvm-protocol-fuzz.evidence.json \
             --log runs/qualification-v1/webvm-protocol-fuzz.log \
             -- node --test tests/qualification/webvm-provider-fuzz.test.mjs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: qualification-v1-webvm-protocol-fuzz-${{ github.sha }}
@@ -569,12 +569,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
       - run: python -m pip install '.[factory,qualification]'
@@ -599,7 +599,7 @@ jobs:
                tests/qualification/test_provider_mission.py \
                tests/qualification/test_platform_imports.py \
                --junitxml=runs/qualification-v1/selftests.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: qualification-v1-selftests-${{ github.sha }}
@@ -612,12 +612,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
       - run: python -m pip install '.[factory,qualification]'
@@ -633,7 +633,7 @@ jobs:
                --cycles 6 --port 8893 \
                --root runs/qualification-v1/active-http-state \
                --output runs/qualification-v1/active-http-report.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: qualification-v1-active-http-${{ github.sha }}
@@ -646,12 +646,12 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
       - run: python -m pip install '.[factory,qualification]'
@@ -669,7 +669,7 @@ jobs:
                tests/station/test_station.py::StationTests::test_lease_expiry_and_restart_recovery_preserve_evidence \
                tests/qualification/test_active_workload.py -q \
                --junitxml=runs/qualification-v1/macos.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: qualification-v1-macos-${{ github.sha }}
@@ -683,15 +683,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           pattern: qualification-v1-*
           path: collected
@@ -703,7 +703,7 @@ jobs:
             --root collected \
             --output runs/qualification-v1/final/qualification-manifest.json
           find collected -type f -print0 | sort -z | xargs -0 sha256sum > runs/qualification-v1/final/evidence-sha256.txt
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: qualification-v1-final-${{ github.sha }}
