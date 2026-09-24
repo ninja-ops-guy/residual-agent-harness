@@ -1,0 +1,33 @@
+{
+  "authorization": {
+    "environment_variable": "RESIDUAL_R4_CANARY_GO",
+    "expected_value": "R4.1-CANARY-8701367D"
+  },
+  "candidate": {
+    "head": "8701367db6d3202f24b3eb9f4696b0cadf657985",
+    "parent": "eada7577cf6f2de875b508c6a82f47870e3aa673",
+    "tree": "79bfe6ed1743907065ed44aeb9c460c47527e0c6"
+  },
+  "execution_authorized": false,
+  "files": [
+    {"path": "CANARY_SPEC.md", "sha256": "3b29c5bd2f4506c8b619317449e05a274a22818cd04cc600ce52df2335254323"},
+    {"path": "README.md", "sha256": "9294e88bbf174d4f0f451e94a2eba8543b0dacfa730c43e5aacd1bba84f3f527"},
+    {"path": "canary_lib.py", "sha256": "b2f0f9e927e8c2951eba4752c5a6e4d15d3f1882dba637d508a090ee7b557886"},
+    {"path": "collect_evidence.py", "sha256": "bd191b0549af00ef49de06cbcd291c8ffabfe0160c9e9296cc5a4353c8cb588a"},
+    {"path": "preflight.py", "sha256": "3a7080d148890163f79dd4e62c7f32c636b7ee74d64f82db57f7695eaa293a5b"},
+    {"path": "rollback.py", "sha256": "aa4b86b8d76c2f6f13a3553f67134f12bfa1c5b766da6b6af743d293af72f903"},
+    {"path": "run_canary.py", "sha256": "872ba0850c4de53074f12346594c9b4655df039756a7b53e7adafee8e1dcdc17"},
+    {"path": "self_test.py", "sha256": "b73dd1a323bb2980101117db62f5a62b0cd725b149bfe702162ea781123a3bac"},
+    {"path": "verify_canary.py", "sha256": "d13d9d75fa143ab3782b0a6b5c8cfa428dece6efc3dc7bf5e176dd86c5fea38a"}
+  ],
+  "limits": {
+    "initial_post_attempts": 1,
+    "receipt_lookups_after_restart": 1,
+    "runner_timeout_seconds": 120
+  },
+  "schema": "residual-r4.1-canary-package/1",
+  "seal": {
+    "seal_json_sha256": "233768e74b3a06ea72c9f1b1a53b7cc522e0b4ffe0d6748ee241c8c7397bf380",
+    "seal_md_sha256": "8a19c9e211702d43c3bb35bb4fad1c435928b5cc7a7052d4da1af16cfd42028e"
+  }
+}
