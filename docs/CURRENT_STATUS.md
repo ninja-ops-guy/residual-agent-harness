@@ -1,6 +1,6 @@
 # RESIDUAL current status
 
-_Current-state check: 2026-09-24 06:05 UTC against `main@d796f36b75e730a0bab71bdba564206174393719`._
+_Current-state check: 2026-09-24 06:29 UTC against `main@d796f36b75e730a0bab71bdba564206174393719`._
 
 This document is a human-readable current-state summary, not a replacement for exact repository bytes, retained artifacts, workflow logs, issue/PR history, or maintainer/protected-byte governance. Historical PASS/FAIL/BLOCKED evidence remains bound to the exact revision, run attempt, and environment that produced it. Git history retains earlier detailed versions of this status document.
 
@@ -10,7 +10,7 @@ Accepted `main` remains **`d796f36b75e730a0bab71bdba564206174393719`**, the merg
 
 The exact #304 head `c3fde7b7db3e3dd1cc38fb08789e19e7d84cab90` completed the named repository technical workflows **PASS**, including RESIDUAL Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, PR-Agent, Pages, and the exact-head maintainer approval gate. Fresh push-triggered observations on accepted `main@d796f36...` also show **PASS** for Qualification v1, Controller/provider contracts, Command Station, measured-evaluation binding, and Pages. These observations are exact-revision evidence only.
 
-Release convergence is still **BLOCKED**. AUD-1 issue #353 remains open; the required physical F6-A/F6-B evidence is not established; the independent Mason/LEGION re-audit is outstanding; the R4.1 seal-cardinality defect still prevents the erroneous seal from serving as authorization evidence; and review-only convergence planning has not authorized a canary, release candidate, deployment, or production acceptance.
+Release convergence is still **BLOCKED**. AUD-1 issue #353 remains open; the required physical F6-A/F6-B evidence is not established; the independent Mason/LEGION re-audit is outstanding; the R4.1 seal-cardinality defect still prevents the erroneous seal from serving as authorization evidence; and review-only convergence planning has not authorized a canary, release candidate, deployment, or production acceptance. A new test-only AUD-1 probe (#431) also demonstrates that the previously green #416 corpus did not yet include an explicit result-denial surrender regression; no repair is claimed on that probe head.
 
 ## R4.1 evidence authority and canary boundary
 
@@ -35,19 +35,25 @@ Any open candidate documentation that still states `44/44` as authoritative seal
 
 Owner issue **#353 remains OPEN with no milestone** and remains the pre-release security convergence boundary. The original candidate **#399** remains unchanged at `8df77b832b3839ccd2a6944a65760ce3ab10dc9c`, and physical-evidence helper **#403** remains unchanged at `118ec3c795ae11c88b68278717fb781f4b059559`. The two required real-host F6 cases remain **UNKNOWN / not established**; no software fixture or hosted CI run substitutes for them.
 
-Draft successor **#416** (`fix(station): fence credential revocation and stalled heartbeat authority`) advanced two commits from the previously observed `30c8c640...` to **`d41a9428e8667963f85526f44a9616be19ca9d7f`**. It remains **DRAFT / OPEN / UNMERGED / UNACCEPTED**, based on accepted `main@d796f36...`, and preserves #399/#403 rather than silently retargeting them.
+Draft successor **#416** (`fix(station): fence credential revocation and stalled heartbeat authority`) remains at **`d41a9428e8667963f85526f44a9616be19ca9d7f`**. It is **DRAFT / OPEN / UNMERGED / UNACCEPTED**, based on accepted `main@d796f36...`, and preserves #399/#403 rather than silently retargeting them.
 
-#416 now covers three separately retained continuity schedules:
+#416 covers three separately retained continuity schedules:
 
 - **AUD1-C1**: a delayed worker request could authenticate before body read and still be admitted after credential rotation/worker disable;
 - **AUD1-C2**: a blocked heartbeat request could prevent the local worker from observing authority loss within the intended grace window;
 - **AUD1-C3**: a result request could begin while authority was fresh, stall beyond local continuity grace, fail at transport, and then begin a retry without rechecking authority.
 
-The C3 regression was first retained on test-only head `e82aca429812be71efd4590921e22fa703268d32`; its hosted Command Station and Controller/provider failures remain **FAIL** evidence for those exact bytes and were not converted into green by rerunning the unchanged failing head. Current `d41a9428...` adds a shared monotonic continuity proof through proposal submission so a new retry or generic empty-proposal fallback cannot start after local authority grace has expired.
+The C3 regression was first retained on test-only head `e82aca429812be71efd4590921e22fa703268d32`; its hosted Command Station and Controller/provider failures remain **FAIL** evidence for those exact bytes and were not converted into green by rerunning the unchanged failing head. Current #416 head `d41a9428...` adds a shared monotonic continuity proof through proposal submission so a new retry or generic empty-proposal fallback cannot start after local authority grace has expired.
 
 Fresh exact-head `d41a9428...` Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, PR-Agent, and Pages are **PASS**. Vercel is **PASS**. Exact-head maintainer approval is **FAIL / no matching human attestation**. Prior PASS results on `d291688b...` and `30c8c640...`, and the retained FAIL results on `e82aca42...`, remain historical exact-byte evidence only.
 
-#416 is not yet the selected release successor. Required sequence remains: genuine independent review of C1/C2/C3 and the completion-barrier semantics -> deliberate successor selection -> requalify the physical helper for that exact selected target -> separately retain F6-A and F6-B physical evidence -> Mason/LEGION independent read-only re-audit -> exact-head owner attestation -> guarded merge -> authoritative new-main qualification -> final RC recovery/elapsed-soak evidence. No physical execution or helper retarget is claimed here.
+New draft **#431** (`test(aud1): retain explicit result-denial surrender regression`) is a **DRAFT / OPEN / UNMERGED / UNACCEPTED** test-only probe stacked directly on #416 at exact head **`a980274c6a3d5b3b479a18466a7877d1207476ab`**. It adds exactly one regression file and no security repair. The probe targets a distinct schedule, **AUD1-C4**: an explicit HTTP 403 from `/api/worker/result` is currently eligible for the generic transport retry path because `urllib.error.HTTPError` subclasses `OSError`; the required behavior is immediate `WorkerAuthorityLost`, exactly one result attempt, and no retry or generic empty-proposal fallback after explicit authority denial.
+
+Observed exact-head #431 workflow state is mixed and must not be generalized. **Controller/provider contracts = FAIL** and **Command Station = FAIL** on the test-only head; **measured-evaluation binding = PASS**, **clean install = PASS**, **Factory ownership = PASS**, **Control Plane = PASS**, and **PR-Agent = PASS**. **RESIDUAL Qualification v1 = UNKNOWN / in progress** at this observation. Vercel is **PASS**. Exact-head maintainer approval is **FAIL / no matching human attestation**. The failing workflows are consistent with the intentionally retained probe, but workflow-level metadata alone is not used here to overclaim the exact failing assertion. The unchanged failing probe must not be rerun merely to obtain green.
+
+#431 does not repair C4, select a successor, retarget #403, establish either physical F6 case, or authorize merge/release activity. If C4 is reproduced and accepted into the convergence scope, a repair candidate requires changed bytes and therefore fresh exact-head CI/qualification; the earlier #416 PASS results do not transfer to that changed candidate.
+
+#416 is not yet the selected release successor. Required sequence remains: genuine independent review of C1/C2/C3 plus disposition of the retained C4 probe -> deliberate successor selection/repair -> requalify the physical helper for that exact selected target -> separately retain F6-A and F6-B physical evidence -> Mason/LEGION independent read-only re-audit -> exact-head owner attestation -> guarded merge -> authoritative new-main qualification -> final RC recovery/elapsed-soak evidence. No physical execution or helper retarget is claimed here.
 
 ## Release-readiness convergence ledger
 
@@ -97,6 +103,6 @@ The accepted Factory/M4 ownership baseline and protected-byte set remain whateve
 
 ## Documentation scope
 
-This reconciliation changes only `docs/CURRENT_STATUS.md` on the existing dedicated documentation branch. Accepted-main searches found no `44/44`, superseded #416 head, or release-version claim requiring a new edit in `README.md`, `HARNESS.md`, `START-HERE.md`, or `implementation-status.yaml`; historical/versioned `0.4.0` references elsewhere are not silently rewritten as current release metadata. They are intentionally unchanged in this observation.
+This reconciliation changes only `docs/CURRENT_STATUS.md` on the existing dedicated documentation branch. Accepted-main searches found no `44/44`, superseded #416-head/C4, or release-version claim requiring a new edit in `README.md`, `HARNESS.md`, `START-HERE.md`, or `implementation-status.yaml`; historical/versioned `0.4.0` references elsewhere are not silently rewritten as current release metadata. They are intentionally unchanged in this observation.
 
 Because this status document records qualification anchors, corrected evidence-authority interpretation, ownership-baseline context, active security successors, retained failures/unknowns, and release/canary trust-boundary state, the documentation PR must **not** be merged automatically. Exact-head human review/attestation remains required.
