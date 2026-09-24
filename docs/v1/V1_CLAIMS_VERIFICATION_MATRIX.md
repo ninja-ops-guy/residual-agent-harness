@@ -2,8 +2,10 @@
 
 **Status:** PROPOSED RC EXIT CRITERION  
 **Claims source:** `V1_CLAIMS_CONTRACT.md`  
-**Rule:** an exact RC exists only when every applicable row is `VERIFIED` and
-every non-applicable row has an owner-approved, fail-closed scope exclusion.
+**Rule:** selecting an exact RC records identity only; qualification, soak and
+release authorization follow the explicit lifecycle below. Every applicable
+claim still requires evidence, and every permitted non-applicable claim requires
+an owner-approved, fail-closed scope exclusion with enforcement evidence.
 
 | ID | Claim / exit criterion | Verification / evidence | Current status | Dependency / required action |
 |---|---|---|---|---|
@@ -24,16 +26,58 @@ every non-applicable row has an owner-approved, fail-closed scope exclusion.
 | CV-15 | Canary passes on the exact authorized candidate without expanding claims. | Hash-bound canary evidence + independent post-canary verification. | BLOCKED | Separate explicit canary authorization and execution. |
 | CV-16 | Exact RC passes all applicable repository qualification gates with no inherited results from other heads. | Qualification-v1 and release-specific gates on exact RC. | NOT_STARTED | Convergence merges + resulting-main selection. |
 | CV-17 | Exact RC survives the approved elapsed soak without claim-invalidating drift. | Soak manifest, periodic evidence, final disposition; reset on applicable RC change. | BLOCKED | Owner approve soak contract; CV-16. |
-| CV-18 | Human release authority reviews the complete claims/evidence matrix and explicitly authorizes v1.0.0. | Exact-RC human release receipt/attestation. | BLOCKED | All applicable CV rows VERIFIED. |
+| CV-18 | Human release authority reviews the complete claims/evidence matrix and explicitly authorizes v1.0.0. | Exact-RC human release receipt/attestation. | BLOCKED | All applicable CV-01..CV-17 satisfied before the distinct human decision; no self-dependency. |
 
-## RC rule
+## RC lifecycle (proposed, not authorization)
 
-`RC_READY` is forbidden while any applicable row is
-`NOT_STARTED`, `IN_PROGRESS`, or `BLOCKED`.
+The required order is explicit and acyclic. The table names the additional claim
+rows checked at each transition; previous requirements remain in force.
 
-`V1_RELEASE_READY` additionally requires CV-17 and CV-18.
+| State | Predecessor | Additional claim rows |
+|---|---|---|
+| `RC_SELECTED` | `NONE` | `NONE` |
+| `RC_QUALIFIED` | `RC_SELECTED` | `CV-01..CV-16` |
+| `SOAK_VERIFIED` | `RC_QUALIFIED` | `CV-17` |
+| `RELEASE_AUTHORIZED` | `SOAK_VERIFIED` | `CV-18` |
 
-No percentage substitutes for this matrix.
+**RC_SELECTED means identity only, not a passing result.** Before selection,
+owner/operations must approve claims and the deployment profile; release-critical
+convergence must pass its required guarded integration and resulting-main
+qualification; the owner must select one exact RC. Record its commit, tree,
+artifact digest, lock/config/profile identities and intended qualification
+environment. Missing identity or approval blocks selection. The NONE cells mean
+no dependency on future RC evidence, not an exemption from these prerequisites.
+An RC can then be tested without claiming its not-yet-observed results.
+
+**RC_QUALIFIED** requires every applicable CV-01..CV-16 row to be VERIFIED with
+accepted evidence for the identified scope. Permitted non-applicable rows require
+an explicit owner-approved exclusion and evidence that the RC enforces it.
+NOT_STARTED, IN_PROGRESS, BLOCKED, FAIL, UNKNOWN, missing or stale evidence cannot
+satisfy an applicable row. CV-16, CV-17 and CV-18 are mandatory and cannot be scope-excluded.
+This lifecycle does not replace or waive linked applicable parent release gates.
+
+**SOAK_VERIFIED** additionally requires accepted CV-17 elapsed-soak evidence on
+the selected RC under the separately approved policy. The existing reset rule
+applies to claim-affecting code, dependency, configuration or artifact changes;
+invalidated evidence must be re-established before advancing. No predecessor's
+elapsed time is silently inherited. The proposed 72-hour default is not approval.
+
+**RELEASE_AUTHORIZED** additionally requires the distinct, genuine human CV-18
+release decision after all applicable CV-01..CV-17 evidence is accepted. CV-18
+never depends on itself. The decision binds the exact RC and complete evidence
+index; an automated report or lifecycle label cannot manufacture that authority.
+
+`RC_READY` is an alias for `RC_QUALIFIED`, not for final release readiness.
+`V1_RELEASE_READY` is an alias for `RELEASE_AUTHORIZED`.
+
+Canary/physical/recovery/incident/soak execution still needs its separate authority.
+Candidate selection or a passing documentation test grants none. Historical
+canary evidence keeps its exact candidate binding; it is not automatically
+transferred to a changed RC. Preserve scope reconciliation and required replays.
+
+All row statuses above remain unchanged by this clarification. No approval,
+execution, candidate selection, merge, tag or release is claimed. No percentage
+substitutes for the matrix or the retained evidence.
 
 ## Freeze rule
 
