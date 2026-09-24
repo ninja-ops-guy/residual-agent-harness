@@ -18,6 +18,7 @@ on:
       - "verifier/**"
       - "tools/check_open_core_boundary.py"
       - "tools/export_open_core.py"
+      - "tools/check_open_core_import_closure.py"
       - "tests/test_open_core_export.py"
       - ".github/workflows/open-core-boundary.yml"
   push:
@@ -38,6 +39,7 @@ on:
       - "verifier/**"
       - "tools/check_open_core_boundary.py"
       - "tools/export_open_core.py"
+      - "tools/check_open_core_import_closure.py"
       - "tests/test_open_core_export.py"
       - ".github/workflows/open-core-boundary.yml"
 
@@ -60,3 +62,5 @@ jobs:
         run: python tools/check_open_core_boundary.py
       - name: Verify committed-snapshot export selection
         run: python tools/export_open_core.py --list > /tmp/open-core-files.txt
+      - name: Check Python import closure across the open-core boundary
+        run: python tools/check_open_core_import_closure.py
