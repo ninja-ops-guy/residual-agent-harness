@@ -1,23 +1,23 @@
 # RESIDUAL licensing
 
-RESIDUAL is developed as an open-core project. This repository is a mixed-license development monorepo.
+RESIDUAL is being structured as an open-core project. This repository is a mixed-scope development monorepo.
 
-## Open-source grant
+## Candidate open-source grant
 
-Only the paths explicitly listed in [docs/open-source/OPEN_SOURCE_MANIFEST.md](docs/open-source/OPEN_SOURCE_MANIFEST.md) are offered under the Apache License, Version 2.0. The license text is in [LICENSES/Apache-2.0.txt](LICENSES/Apache-2.0.txt).
+The intended Apache-2.0 component is a deliberately small **verification and research kernel**, not the complete RESIDUAL runtime or enterprise product.
 
-Files outside that manifest are **not** licensed under Apache-2.0 merely because they are visible in this public repository. Unless a file contains another explicit license notice, no license grant is made for excluded paths.
+Only paths explicitly listed in [docs/open-source/OPEN_SOURCE_MANIFEST.md](docs/open-source/OPEN_SOURCE_MANIFEST.md) are intended to receive the Apache License 2.0 grant at the corresponding accepted revision. The license text is stored at [LICENSES/Apache-2.0.txt](LICENSES/Apache-2.0.txt).
 
-This scoping exists so the research/runtime layer can remain genuinely open source while enterprise product work can be developed and commercialized separately.
+Files outside the manifest are not intended to become Apache-2.0 merely because they are visible in this repository.
+
+## Reserved product scope
+
+Factory execution, engine/runtime orchestration, sandbox execution, lifecycle/product integration, enterprise IAM, multi-tenancy, HA/DR, compliance, commercial licensing, control-plane, cluster, Studio and hosted-service capabilities remain outside the candidate Open Core unless explicitly added later.
 
 ## Trademarks
 
-The Apache-2.0 license does not grant rights to RESIDUAL names, logos, marks, product names, or branding except for reasonable nominative use as allowed by the license and applicable law.
+Apache-2.0 does not grant rights to RESIDUAL names, logos, marks, product names or branding beyond the license's trademark clause and applicable law.
 
-## Commercial licensing
+## Important status
 
-Commercial licensing, hosted services, enterprise features, support, and other proprietary offerings are separate from the Apache-2.0 open-core grant.
-
-## Before relying on this file
-
-This repository is under active development. The authoritative open-source boundary is the manifest at the exact revision you received.
+This file describes the project's intended licensing structure; it is not a legal opinion or a claim that all historical public licensing questions have been resolved. Before material commercialization, contributor/ownership provenance, employment invention-assignment obligations, historical public license activity, and the final distribution structure should receive qualified legal review.
