@@ -27,6 +27,12 @@ This ledger distinguishes submissions, fit inquiries, holds, and technical readi
 - **Question:** whether methodologically mature empirical systems/control work on agent authority, verification and acceptance fits Iliad's open call
 - **No application/award terms accepted**
 
+### Survival and Flourishing Fund — rolling / Speculation Grant route
+- **Status:** ELIGIBILITY INQUIRY SENT 2026-09-24
+- **Route:** sff-contact@googlegroups.com
+- **Question:** whether an unaffiliated individual can apply/receive directly, whether fiscal sponsorship/entity formation is needed, and whether grant-funded research can be separated from pre-existing commercial IP
+- **No application/award/investment terms accepted**
+
 ## Active prior applications — do not duplicate
 
 Prior funding records indicate active or previously submitted applications to:
