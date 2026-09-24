@@ -155,7 +155,22 @@ class WorkerClient:
             try:
                 return self.request("result", payload)
             except urllib.error.HTTPError as exc:
-                if exc.code in {401, 403}:
+                authority_denied = exc.code in {401, 403}
+                if exc.code == 400:
+                    # The Station uses this exact bounded structured error when the
+                    # submitted lease is no longer authoritative. Do not broaden all
+                    # contract 400s into authority loss: malformed proposals retain
+                    # their existing repair/fallback semantics.
+                    try:
+                        body = exc.read(4097)
+                        if len(body) <= 4096:
+                            value = strict_json(body.decode("utf-8"))
+                            authority_denied = (isinstance(value, dict)
+                                                and set(value) == {"error"}
+                                                and value["error"] == "Stale task lease")
+                    except Exception:
+                        authority_denied = False
+                if authority_denied:
                     authority.revoke()
                     raise WorkerAuthorityLost("Runner authority was rejected by the Station") from exc
                 raise
