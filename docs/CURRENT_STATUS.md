@@ -1,8 +1,8 @@
 # RESIDUAL current status
 
-_Observation: 2026-09-24 16:33 UTC. Fresh scope: accepted main, #443 containment
-repair and checks, and #427 ledger reconciliation. Exact revisions below are
-observed snapshots, not promises that moving branches remain unchanged._
+_Observation: 2026-09-24 16:37 UTC. Fresh scope: accepted main, #443 containment
+repair and terminal checks, and #427 ledger reconciliation. Exact revisions below
+are observed snapshots, not promises that moving branches remain unchanged._
 
 This is a human-readable status record, not acceptance authority. Historical
 PASS/FAIL/UNKNOWN/BLOCKED remains bound to the exact revision, run attempt and
@@ -10,6 +10,7 @@ environment that produced it. The full preceding 16:09 snapshot, including its
 AUD-1 and other tooling details, is retained in
 [git history at 2b106174](https://github.com/ninja-ops-guy/residual-agent-harness/blob/2b106174e5d084a0bc0e1116eea44ad23ff8d5da/docs/CURRENT_STATUS.md).
 Those historical observations are not represented as fresh re-audits here.
+The initial repair observation at 16:33 is also retained in this file's history.
 
 ## Executive summary
 
@@ -18,19 +19,20 @@ the merge of #304. This observation does not merge any candidate into main.
 Release convergence remains **BLOCKED**.
 
 The actual filesystem-containment defect in #443 has been reproduced and
-repaired on its own branch. #443 is **OPEN / UNMERGED / UNACCEPTED** at
-**`4d70ddc7902237f4b7d1bd60ff1c82bd834e90a4`**, tree
+repaired on its own branch. #443 is **OPEN / READY_FOR_REVIEW / UNMERGED /
+UNACCEPTED** at **`4d70ddc7902237f4b7d1bd60ff1c82bd834e90a4`**, tree
 `59bb37151bdda4434531557f33d38cef8cca178a`. Local focused tests pass 26/26;
-fresh hosted qualification is recorded separately below and is not inherited
-from the pre-repair head.
+all seven named hosted technical workflows now pass. Advisory review and human
+attestation remain separate unresolved checks. No pre-repair PASS is inherited.
 
 Draft #427 is **OPEN / DRAFT / UNMERGED / UNACCEPTED** at observed head
-**`07f7686643ccc9f2206fa146a78b01dc4568dd3b`**. The newly appended
-`docs/v1/V1_MASTER_READINESS_DELTA_PR443_CONTAINMENT.md` preserves the finding,
-repair identity, local evidence and pending hosted results. Its claims-contract
-and PR-G28 deltas remain intact. The older `485e9d79...`, `ace6968d...`,
-`e543c066...` and `4e648c6d...` references are historical snapshots, not this
-observation's ledger head.
+**`bb98d38ce3509a651af27020aa7c56f5794b35cc`**. Append-only records
+`docs/v1/V1_MASTER_READINESS_DELTA_PR443_CONTAINMENT.md` and
+`docs/v1/V1_MASTER_READINESS_DELTA_PR443_CONTAINMENT_CI.md` preserve, respectively,
+the reproduced finding/repair/pending observation and subsequent terminal CI.
+Its claims-contract and PR-G28 deltas remain intact. Older `485e9d79...`,
+`ace6968d...`, `e543c066...`, `4e648c6d...` and `07f76866...` references are
+historical snapshots, not this observation's ledger head.
 
 No corrected seal, private Seal v2 verification, independent human acceptance,
 canary authorization, physical F6 evidence, RC, deployment, release or production
@@ -83,16 +85,29 @@ See #443's `docs/v1/V1_PR_G26_DIRECT_SOURCE_HANDOFF.md` for the acceptance bound
 | Factory ownership | 36027756068 | PASS |
 | Control Plane | 36027755898 | PASS |
 | Measured-evaluation binding | 36027755923 | PASS |
-| Qualification-v1 | 36027756278 | IN_PROGRESS |
-| Controller/provider | 36027755996 | IN_PROGRESS; Python 3.11/3.13 jobs passed, 3.12 still running |
-| Command Station | 36027756038 | IN_PROGRESS |
+| Qualification-v1 | 36027756278 | PASS |
+| Controller/provider | 36027755996 | PASS |
+| Command Station | 36027756038 | PASS |
 | PR-Agent advisory | 36027755998 | FAIL at advisory review after secret preflight; publication verification skipped |
 | Maintainer approval | 36027756119 | Policy self-tests PASS; explicit exact-head approval requirement FAIL |
 
+Qualification artifacts name PR test-merge commit
+`28476c3e1f57fd57d46eded62686e72a328ef16d`. Its parents and tree were read
+from GitHub: parents are accepted main and the repair head; its tree is exactly
+`59bb37151bdda4434531557f33d38cef8cca178a`, identical to the repaired tree.
+This is test-merge tree equivalence, not a merge into accepted main.
+
+GitHub reports final artifact `10820442272` with archive digest
+`sha256:ec723e40a78db2c5395fbaa922e3a0aad2289cf3b41ec617dd29398c92242317`.
+The artifact metadata was observed, not independently redownloaded and rehashed.
+The 26 focused seal tests remain local evidence; the controller/provider hosted
+job inspected runs its own contract/provider suite, not those seal tests.
+
 No old-head PASS is transferred to this repair. The unavailable advisory is not
 product acceptance or independent review. No advisory retry, human approval or
-attestation was issued by the remediation lane. Later terminal results require
-a new timestamped observation.
+attestation was issued by the remediation lane. #427/#364 documentation changes
+need their own checks and human review; #443's green checks do not qualify those
+separate documentation heads.
 
 ## R4.1 evidence authority and canary boundary
 
