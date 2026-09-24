@@ -1,10 +1,10 @@
 # AUD-1 F6 physical evidence kit
 
-**Tooling only. Not part of PR #399 candidate bytes.**
+**Tooling only. Not part of selected PR #448 candidate bytes.**
 
 Qualified candidate under test:
 
-`8df77b832b3839ccd2a6944a65760ce3ab10dc9c`
+`7001bdf68355b7e5288a8cea3f4c827061aca37d`
 
 The scripts in this directory are deliberately maintained on a separate tooling branch.
 Do **not** copy or commit them into the candidate checkout before the physical test.
@@ -29,8 +29,8 @@ submit results, recover tasks, rotate credentials, change leases, or integrate c
 
 Keep two directories/checkouts separate:
 
-1. **candidate checkout** — exact clean #399 head, used to run Station:
-   `8df77b832b3839ccd2a6944a65760ce3ab10dc9c`
+1. **candidate checkout** — exact clean selected #448 head, used to run Station:
+   `7001bdf68355b7e5288a8cea3f4c827061aca37d`
 2. **diagnostics checkout/directory** — this tooling branch.
 
 Station default data is `~/.residual/station/station.sqlite3`.
@@ -75,7 +75,7 @@ Run:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\Run-F6-Physical.ps1 `
   -Case F6-A-inside-window `
-  -CandidateRepo C:\path\to\exact-399-checkout `
+  -CandidateRepo C:\path\to\exact-selected-448-checkout `
   -Project p-... `
   -Task OPS-... `
   -StationData C:\Users\USER\.residual\station `
@@ -161,7 +161,7 @@ Also provide:
 
 - original AUD-1 report;
 - original audited baseline `2f9dda38...`;
-- #399 exact candidate `8df77b83...`;
+- selected #448 exact candidate `7001bdf6...`;
 - candidate diff;
 - automated adversarial regression artifacts;
 - exact-head repository CI references.

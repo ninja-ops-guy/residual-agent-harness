@@ -11,7 +11,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$Target = "8df77b832b3839ccd2a6944a65760ce3ab10dc9c"
+$Target = "7001bdf68355b7e5288a8cea3f4c827061aca37d"
 $Collector = Join-Path $PSScriptRoot "f6_case_guard.py"
 $Db = Join-Path $StationData "station.sqlite3"
 $CaseDir = Join-Path $Output $Case
