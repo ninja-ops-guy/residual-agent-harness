@@ -1,6 +1,6 @@
 # RESIDUAL current status
 
-_Current-state check: 2026-09-23 21:15 UTC against `main@91d32fd8b713c68c1cd2e473013c9e1c33b93572`._
+_Current-state check: 2026-09-24 00:24 UTC against `main@91d32fd8b713c68c1cd2e473013c9e1c33b93572`._
 
 This document is a human-readable status summary. Exact repository bytes, exact-head workflow results, retained artifacts, explicit issues/PRs, and applicable maintainer/protected-byte governance are more authoritative than prose. Historical PASS/FAIL/BLOCKED evidence remains bound to the exact revision, run attempt, and environment that produced it; later candidate commits or reruns do not inherit, erase, or rewrite earlier evidence unless the governing acceptance process explicitly says so.
 
@@ -8,17 +8,17 @@ This document is a human-readable status summary. Exact repository bytes, exact-
 
 Accepted `main` remains **`91d32fd8b713c68c1cd2e473013c9e1c33b93572`**. No accepted-main commit or merged-PR movement occurred in this observation.
 
-The material change is draft AUD-1 helper **#403** (`tools(aud1): add read-only F6 physical evidence kit`), which advanced three commits from previously qualified helper head `4b3f6b019e8b617d4a796dac5cede09ef13d32b2` to exact head **`118ec3c795ae11c88b68278717fb781f4b059559`**. The strengthening remains confined to `tools/aud1/f6_case_guard.py` and `tests/tools/test_aud1_f6_guard.py`: remote evidence is now machine-validated as schema `residual.aud1.f6.remote.v2` bound to an explicit runner PID; Case A must prove the same live process/owner/lease regains Station connectivity inside the 180-second worker grace; Case B must retain `WorkerAuthorityLost`, prove old-process exit, prove reassignment to a different live runner, preserve host reachability after reconnect while the surrendered process stays dead, and bind the stale-result negative probe to the original project/task/lease plus the expected HTTP 403 `Task authority belongs to another runner` denial.
+The previously active AUD-1 helper **#403** remains unchanged at exact head **`118ec3c795ae11c88b68278717fb781f4b059559`**. Its exact-head hosted technical workflows remain **PASS**, Vercel remains **PASS**, and exact-head maintainer approval remains **FAIL** because no matching human attestation exists. Owner issue #353 still permits physical execution only on those exact helper bytes against unchanged clean `#399@8df77b832b3839ccd2a6944a65760ce3ab10dc9c`. Neither F6-A nor F6-B is yet **PASS**; both remain **UNKNOWN / not established**, followed by the standing Mason/LEGION independent read-only re-audit.
 
-The first Qualification-v1 attempt for superseded helper head **`4c1666a183ef92a397db757050719b9f2fcf0e94`** is retained **FAIL** evidence: `1889 passed, 387 subtests passed, 1 failed`. The sole failure was the new placeholder-evidence regression fixture using `{}`, which the guard correctly rejected as missing/invalid before reaching the narrower `schema mismatch` assertion. That run was not rerun unchanged. Current head `118ec3c...` changes only that regression fixture to a non-empty arbitrary placeholder (`{"placeholder": true}`), leaving the evidence-guard implementation unchanged; fresh exact-head Qualification v1 and the named hosted technical workflows are **PASS**. Vercel is **PASS** and exact-head maintainer approval remains **FAIL** because no matching human attestation exists.
+Two new documentation/research candidates are material to current status without changing accepted runtime state. Draft **#407** (`research: add RRI-005 Agent Privilege Firewall program`) is at exact head **`b15aa2aff58ee31391976e7d4cb89cf0f346a7ec`** and changes only three research-documentation files. It registers `RRI-005` / `SPEC-APF-001` as **DESIGN-FROZEN / POST-v1 / EXECUTION-DEFERRED**; it does not change v1 runtime behavior or establish an APF/security result. Draft **#409** (`docs(research): record 2026-09-23 AX-21 evidence check-in`) is at exact head **`9c0f8589b1dc83061ba018207f7bbde88f03ed06`**, changes exactly one append-only research file, and records current AX-21 evidence without closing AUD-1, widening physical F6 claims, reporting inference/APF effects, or finally freezing the AX-21 baseline.
 
-Owner issue #353 now explicitly **reopens the physical gate only on exact helper `118ec3c...`** against unchanged clean `#399@8df77b832b3839ccd2a6944a65760ce3ab10dc9c`. Neither F6-A nor F6-B is yet **PASS**; both remain **UNKNOWN / not established** until their separately frozen bundles machine-validate, after which Mason/LEGION's independent read-only F1/F2/F3/F4/F6 re-audit is still mandatory.
+For both #407 and #409, observed exact-head RESIDUAL Qualification v1, Controller/provider contracts, Command Station checks, clean-install qualification, Factory ownership, measured-evaluation acceptance binding, Control Plane, and PR-Agent are **PASS**; Vercel is **PASS**; exact-head maintainer approval is **FAIL / no matching human attestation**. Those PASS results qualify only the observed documentation candidates and do not convert their design/research statements into accepted implementation or empirical evidence.
 
 Draft post-v1 design **#406** remains unchanged at exact head `c749e06afa5d86b05f894b9deb45434ce0efefda`, explicitly **DRAFT / POST-v1 / NO IMPLEMENTATION AUTHORIZED**. Draft research-maintenance **#405** remains unchanged at exact head `2549bb1b81f6bdc6954896eb7ebedadfe82b2722`.
 
 AUD-1 release state remains blocked. #399 remains the exact software candidate at `8df77b83...`; neither physical F6 bundle has been established, so owner issue **#353 remains OPEN / P0 / BLOCKED at the release level**. Draft #404 remains unchanged at `cae9ab31...`, **UNMERGED / UNACCEPTED**, with its previously retained mixed/FAIL qualification state.
 
-No evidence in this observation authorizes merging #399, #403, #404, #405, #406, or the documentation PR.
+No evidence in this observation authorizes merging #399, #403, #404, #405, #406, #407, #409, or the documentation PR.
 
 ## Accepted repository state
 
@@ -198,6 +198,27 @@ Current exact-head hosted evidence for #405 is:
 
 Those results qualify only the candidate revision and do not convert the recorded research boundaries into accepted scientific or release claims.
 
+### #409 — AX-21 research check-in for 2026-09-23
+
+Draft **#409** (`docs(research): record 2026-09-23 AX-21 evidence check-in`) targets accepted `main@91d32fd8...` and remains **DRAFT / UNMERGED / UNACCEPTED** at exact head **`9c0f8589b1dc83061ba018207f7bbde88f03ed06`**. It changes exactly one append-only file, `docs/swarm/ax-21-research-checkin-2026-09-23.md`.
+
+The candidate preserves material research observations since the 2026-09-22 check-in while keeping claim scope bounded. It records the semantic-evidence strengthening and retained first-attempt failure in #403, keeps both physical F6 cases and Mason re-audit outstanding, records #406 as a post-v1 inference-aware design without empirical inference-performance evidence, and registers #407/RRI-005 as an execution-deferred research program rather than a v1 security result. It also leaves the P5 before-condition unchanged and explicitly states that no final AX-21 baseline freeze exists without a formal release-tag cutover.
+
+Current exact-head hosted evidence for #409 is:
+
+- RESIDUAL Qualification v1: **PASS**
+- Controller/provider contracts: **PASS**
+- Command Station checks: **PASS**
+- clean-install qualification: **PASS**
+- Factory ownership: **PASS**
+- measured-evaluation acceptance binding: **PASS**
+- Control Plane: **PASS**
+- PR-Agent advisory: **PASS**
+- Vercel: **PASS**
+- exact-head maintainer approval: **FAIL / no matching human attestation**
+
+These results establish only that the exact documentation candidate passed the observed hosted gates. They do **not** establish physical F6 PASS, close AUD-1, demonstrate inference-serving effects, demonstrate APF effectiveness, or finally freeze the AX-21 baseline.
+
 ## Post-v1 design candidates
 
 ### #406 — inference-aware routing and serving capabilities
@@ -228,6 +249,34 @@ Current exact-head hosted evidence for `c749e06a...` is:
 - exact-head maintainer approval: **FAIL / no matching human attestation**
 
 These PASS results establish only that the exact documentation candidate passed the observed hosted gates. They do **not** establish implementation, performance benefit, model-serving support, cluster-scale qualification, production readiness, or permission to begin post-v1 work.
+
+### #407 — RRI-005 Agent Privilege Firewall program
+
+Draft **#407** (`research: add RRI-005 Agent Privilege Firewall program`) targets accepted `main@91d32fd8...` and remains **DRAFT / UNMERGED / UNACCEPTED / POST-v1** at exact head **`b15aa2aff58ee31391976e7d4cb89cf0f346a7ec`**. It changes only `docs/research.md`, `docs/research/RRI-005-AGENT-PRIVILEGE-FIREWALL.md`, and `docs/research/RRI-005-SWARM-IMPLEMENTATION.md`.
+
+The program status is explicitly **DESIGN-FROZEN / POST-v1 / EXECUTION-DEFERRED**. It specifies a future Agent Privilege Firewall threat model, 24 normative invariants, capability/endpoint/intent/decision/effect/violation receipt contracts, adversarial corpus A01-A30 plus positive controls C01-C06, qualification gates Q0-Q10, and implementation lanes APF-A through APF-I. Its core proposed boundary is that compromise of a worker must not imply compromise of RESIDUAL's aggregate authority.
+
+The controlling boundary remains:
+
+- this PR is documentation/research only and changes no v1 runtime behavior;
+- it is not a demonstrated security result and does not qualify APF effectiveness;
+- implementation remains outside the v1 release gate until v1 convergence is complete and the owner explicitly starts post-v1 execution;
+- ordinary implementation PRs, adversarial execution, retained evidence, independent qualification, and acceptance remain required before any APF implementation claim can advance.
+
+Current exact-head hosted evidence for `b15aa2af...` is:
+
+- RESIDUAL Qualification v1: **PASS**
+- Controller/provider contracts: **PASS**
+- Command Station checks: **PASS**
+- clean-install qualification: **PASS**
+- Factory ownership: **PASS**
+- measured-evaluation acceptance binding: **PASS**
+- Control Plane: **PASS**
+- PR-Agent advisory: **PASS**
+- Vercel: **PASS**
+- exact-head maintainer approval: **FAIL / no matching human attestation**
+
+These PASS results qualify only the exact documentation candidate. They do **not** establish APF implementation, adversarial effectiveness, whole-system security, or permission to begin execution.
 
 ## Qualification v1 — accepted implementation, bounded claims
 
@@ -283,7 +332,7 @@ The previously retained SLM-00 evidence remains exact-revision research evidence
 - Lane G has a `G_PASS` candidate for its pinned research bytes;
 - independent-context G2 round 2 reports `PASS_WITH_NONBLOCKING_FINDINGS` for the exact remediated candidate;
 - historical G2 round 1 `REJECT` remains retained evidence for the earlier candidate;
-- draft #401 and newer draft #405 record append-only research observations but remain unaccepted.
+- draft #401, #405, and #409 record append-only research observations but remain unaccepted.
 
 The program remains **NOT FROZEN / UNACCEPTED / NO-TRAINING** until explicit human freeze/authority gates close. Automated research PASS or a draft research-maintenance PR does not synthesize maintainer approval or training authority.
 
@@ -291,7 +340,7 @@ The program remains **NOT FROZEN / UNACCEPTED / NO-TRAINING** until explicit hum
 
 This observation updates only `docs/CURRENT_STATUS.md` on the existing dedicated docs branch. The open docs PR continues to carry its earlier `README.md` and `HARNESS.md` reconciliation; neither required an additional edit because accepted-main product/operator behavior did not change. `START-HERE.md` remains operator guidance and contains no stale accepted-main/qualification claim requiring this update. `implementation-status.yaml` remains accurate for its declared implementation-presence purpose and is intentionally unchanged.
 
-The immediately preceding docs head `c4937df3935c73911b1f4b5d2de92f61160ae02c` completed exact-head technical workflows successfully: Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent were **PASS**; Vercel was **PASS**; maintainer approval remained **FAIL** because no matching human attestation existed. Those results remain bound to `c4937df...` and are not inherited by this changed documentation head.
+The immediately preceding docs head `a578a2a360e34bcaa409aa19869de7de9dbf052a` completed exact-head technical workflows successfully: Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent were **PASS**; Vercel was **PASS**; maintainer approval remained **FAIL** because no matching human attestation existed. Those results remain bound to `a578a2a...` and are not inherited by this changed documentation head.
 
 No Factory/M4 implementation or tests, ownership baseline, qualification anchor, protected byte, verifier/evidence schema, provider authority, security implementation, licensing authority, or acceptance authority is modified by this docs branch.
 
