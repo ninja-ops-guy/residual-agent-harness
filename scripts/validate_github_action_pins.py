@@ -26,6 +26,25 @@ def _parse_target(raw: str) -> str:
     return value
 
 
+def _report(
+    status: str,
+    reason: str,
+    *,
+    files_scanned: int = 0,
+    external_uses: int = 0,
+    findings: list[Finding] | None = None,
+) -> dict:
+    return {
+        "schema": SCHEMA,
+        "status": status,
+        "execution_claim": "VALIDATION_ONLY",
+        "reason": reason,
+        "files_scanned": files_scanned,
+        "external_uses": external_uses,
+        "violations": [asdict(finding) for finding in (findings or [])],
+    }
+
+
 def audit(root: Path) -> dict:
     workflows = root / ".github" / "workflows"
     findings: list[Finding] = []
@@ -33,20 +52,27 @@ def audit(root: Path) -> dict:
     external_uses = 0
 
     if not workflows.is_dir():
-        return {
-            "schema": SCHEMA,
-            "status": "BLOCKED",
-            "execution_claim": "VALIDATION_ONLY",
-            "reason": ".github/workflows is missing",
-            "files_scanned": 0,
-            "external_uses": 0,
-            "violations": [],
-        }
+        return _report("BLOCKED", ".github/workflows is missing")
 
-    paths = sorted([*workflows.glob("*.yml"), *workflows.glob("*.yaml")])
+    try:
+        paths = sorted([*workflows.glob("*.yml"), *workflows.glob("*.yaml")])
+    except OSError as exc:
+        return _report("BLOCKED", f"unable to enumerate workflows: {exc.__class__.__name__}")
+
     for path in paths:
         files_scanned += 1
-        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+        except (OSError, UnicodeError) as exc:
+            return _report(
+                "BLOCKED",
+                f"unable to read workflow {path.name}: {exc.__class__.__name__}",
+                files_scanned=files_scanned,
+                external_uses=external_uses,
+                findings=findings,
+            )
+
+        for lineno, line in enumerate(lines, 1):
             match = USES_RE.match(line)
             if not match:
                 continue
@@ -77,19 +103,17 @@ def audit(root: Path) -> dict:
                     )
                 )
 
-    return {
-        "schema": SCHEMA,
-        "status": "PASS" if not findings else "BLOCKED",
-        "execution_claim": "VALIDATION_ONLY",
-        "reason": (
+    return _report(
+        "PASS" if not findings else "BLOCKED",
+        (
             "all external workflow dependencies are commit-pinned"
             if not findings
             else "floating external workflow dependencies detected"
         ),
-        "files_scanned": files_scanned,
-        "external_uses": external_uses,
-        "violations": [asdict(finding) for finding in findings],
-    }
+        files_scanned=files_scanned,
+        external_uses=external_uses,
+        findings=findings,
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -108,8 +132,18 @@ def main(argv: list[str] | None = None) -> int:
     report = audit(args.root.resolve())
     rendered = json.dumps(report, sort_keys=True, indent=2) + "\n"
     if args.output:
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(rendered, encoding="utf-8")
+        try:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(rendered, encoding="utf-8")
+        except OSError as exc:
+            print(
+                json.dumps(
+                    _report("BLOCKED", f"unable to write report: {exc.__class__.__name__}"),
+                    sort_keys=True,
+                    indent=2,
+                )
+            )
+            return 2
     print(rendered, end="")
     return 0 if report["status"] == "PASS" else 2
 
