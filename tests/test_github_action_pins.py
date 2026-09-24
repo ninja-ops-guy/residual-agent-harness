@@ -1,6 +1,7 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from scripts.validate_github_action_pins import audit
 
@@ -64,6 +65,13 @@ class ActionPinAuditTests(unittest.TestCase):
         self.addCleanup(td.cleanup)
         result = audit(Path(td.name))
         self.assertEqual(result["status"], "BLOCKED")
+
+    def test_unreadable_workflow_fails_closed(self):
+        root = self._root(f"steps:\n  - uses: actions/checkout@{PIN}\n")
+        with mock.patch.object(Path, "read_text", side_effect=PermissionError("denied")):
+            result = audit(root)
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertIn("unable to read workflow", result["reason"])
 
 
 if __name__ == "__main__":
