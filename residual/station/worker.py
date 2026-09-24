@@ -150,6 +150,16 @@ class WorkerClient:
         stop = threading.Event()
         authority = _AuthorityWatch(self.heartbeat_grace)
         envelope = {"project_id": project, "task_id": work["task_id"], "lease": work["lease"]}
+
+        def submit_result(payload):
+            try:
+                return self.request("result", payload)
+            except urllib.error.HTTPError as exc:
+                if exc.code in {401, 403}:
+                    authority.revoke()
+                    raise WorkerAuthorityLost("Runner authority was rejected by the Station") from exc
+                raise
+
         try:
             if provider.placement == "remote" and not work.get("allow_cloud"):
                 raise ContractError("This mission does not permit cloud inference")
@@ -159,13 +169,14 @@ class WorkerClient:
                      "role": "remote_runner", "model": provider.model, "request_bytes": provider.wire_size(work["packet"], max_tokens)}
             data = {**envelope, "submission_id": uuid.uuid4().hex, "response": response, "usage": usage}
             # A transport retry repeats the same idempotency key and exact proposal, but
-            # must not begin after the local continuity proof has expired.
+            # must not begin after the local continuity proof has expired. Explicit
+            # Station authority denial is not a transport failure and is never retried.
             authority.require()
             try:
-                self.request("result", data)
+                submit_result(data)
             except (OSError, TimeoutError):
                 authority.require()
-                self.request("result", data)
+                submit_result(data)
         except WorkerAuthorityLost:
             # Never attempt a proposal after the authority continuity proof has failed.
             raise
@@ -174,7 +185,7 @@ class WorkerClient:
             # is still valid; a post-grace error must not start another submission.
             try:
                 authority.require()
-                self.request("result", {**envelope, "submission_id": uuid.uuid4().hex, "response": {"files": {}}})
+                submit_result({**envelope, "submission_id": uuid.uuid4().hex, "response": {"files": {}}})
             except WorkerAuthorityLost:
                 raise
             except Exception:
