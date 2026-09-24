@@ -140,7 +140,13 @@ class MeshWorkerClient:
                 self._deliver_envelope(item["value"])
                 acked += 1
             except (OSError, TimeoutError, urllib.error.URLError):
-                if item["attempts"] < max_attempts:
+                # attempts counts completed failures. The current failed delivery
+                # consumes the next attempt; once the configured bound is reached,
+                # move the operation to a visible terminal state instead of
+                # retrying forever on later recovery passes.
+                if item["attempts"] + 1 >= max_attempts:
+                    self.outbox.exhaust(item["operation_id"])
+                else:
                     self.outbox.fail(item["operation_id"])
         return {"acked": acked, "pending": self.outbox.pending(),
                 "oldest_age_s": self.outbox.oldest_age_s()}
