@@ -94,7 +94,9 @@ class MeshClawRunner:
         packet_bytes = len(canonical(work["packet"]).encode("utf-8"))
         # Bound includes wrapper/system text and implementation variance; admission
         # is intentionally conservative rather than using an optimistic estimate.
-        request_bound = min(self.max_request_bytes, packet_bytes + 64_000)
+        request_bound = packet_bytes + 64_000
+        if request_bound > self.max_request_bytes:
+            raise ContractError("Mesh assignment exceeds the configured request-byte bound")
         plan = provider_plan(work, self.provider_routes, request_bound)
         self.client.execution_admit(work, plan)
         assignment_id = (
@@ -113,7 +115,9 @@ class MeshClawRunner:
                 raise ContractError("Claw response must contain exactly the files object")
             winner = next((x for x in plan
                            if x["model"] in {execution.model, f"{execution.provider}/{execution.model}"}),
-                          plan[-1])
+                          None)
+            if winner is None:
+                raise ContractError("OpenClaw winner does not match the admitted provider plan")
             usage = normalized_openclaw_usage(
                 execution.usage, winner["model"], winner["placement"], winner["request_bytes"])
             attempts = list(execution.provider_attempts) if execution.provider_attempts else None
