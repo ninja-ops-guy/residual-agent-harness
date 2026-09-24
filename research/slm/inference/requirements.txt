@@ -1,0 +1,7 @@
+# Inference container dependencies (CPU-only; pinned).
+# torch CPU wheel is installed separately in Dockerfile.inference from the
+# PyTorch CPU index so the image stays small and CUDA-free.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.4.1+cpu
+numpy==1.26.4
+PyYAML==6.0.2
