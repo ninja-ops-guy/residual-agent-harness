@@ -24,7 +24,8 @@ class MeshOutbox:
                 created_at REAL NOT NULL,
                 attempts INTEGER NOT NULL DEFAULT 0,
                 next_attempt REAL NOT NULL DEFAULT 0,
-                receipt TEXT
+                receipt TEXT,
+                terminal_reason TEXT
             );
             CREATE TABLE IF NOT EXISTS inbox(
                 project TEXT NOT NULL,
@@ -39,6 +40,9 @@ class MeshOutbox:
                 updated_at REAL NOT NULL
             );
             """)
+            columns = {r["name"] for r in c.execute("PRAGMA table_info(outbox)").fetchall()}
+            if "terminal_reason" not in columns:
+                c.execute("ALTER TABLE outbox ADD COLUMN terminal_reason TEXT")
 
     def connect(self):
         c = sqlite3.connect(self.path, timeout=15)
@@ -65,7 +69,7 @@ class MeshOutbox:
         current = time.time() if now is None else now
         with self.connect() as c:
             rows = c.execute(
-                "SELECT * FROM outbox WHERE receipt IS NULL AND next_attempt<=? "
+                "SELECT * FROM outbox WHERE receipt IS NULL AND terminal_reason IS NULL AND next_attempt<=? "
                 "ORDER BY created_at LIMIT ?", (current, limit)
             ).fetchall()
         return [{"operation_id": r["operation_id"], "attempts": r["attempts"],
@@ -85,6 +89,17 @@ class MeshOutbox:
                       (attempts, time.time() + delay, operation_id))
             return {"attempts": attempts, "delay_s": delay}
 
+    def exhaust(self, operation_id, reason="retry_exhausted"):
+        with self.connect() as c:
+            row = c.execute("SELECT receipt,terminal_reason FROM outbox WHERE operation_id=?", (operation_id,)).fetchone()
+            if not row:
+                raise ContractError("Outbox operation was not found")
+            if row["receipt"] is not None:
+                raise ContractError("Acknowledged outbox operation cannot be exhausted")
+            if row["terminal_reason"] is None:
+                c.execute("UPDATE outbox SET terminal_reason=? WHERE operation_id=?", (str(reason)[:200], operation_id))
+        return {"operation_id": operation_id, "terminal_reason": reason}
+
     def ack(self, operation_id, receipt):
         with self.connect() as c:
             row = c.execute("SELECT receipt FROM outbox WHERE operation_id=?", (operation_id,)).fetchone()
@@ -101,11 +116,11 @@ class MeshOutbox:
 
     def pending(self):
         with self.connect() as c:
-            return c.execute("SELECT count(*) n FROM outbox WHERE receipt IS NULL").fetchone()["n"]
+            return c.execute("SELECT count(*) n FROM outbox WHERE receipt IS NULL AND terminal_reason IS NULL").fetchone()["n"]
 
     def oldest_age_s(self):
         with self.connect() as c:
-            row = c.execute("SELECT min(created_at) t FROM outbox WHERE receipt IS NULL").fetchone()
+            row = c.execute("SELECT min(created_at) t FROM outbox WHERE receipt IS NULL AND terminal_reason IS NULL").fetchone()
         return max(0.0, time.time() - row["t"]) if row["t"] is not None else 0.0
 
     def apply_inbox(self, project, seq, envelope, apply):
