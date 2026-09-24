@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
 import hashlib
 import ipaddress
 import json
@@ -22,6 +23,7 @@ from .models import model_call, public_settings, save_settings, credentials_for
 from residual.modular import normalize_profile, make_adapter
 from ai_providers import ProviderError as ModularError
 from .service import Station, demo_spec
+from .worker_access import WorkerAccessGate
 
 STATIC = Path(__file__).parent / "static"
 SESSION_COOKIE = "residual_session"
@@ -61,6 +63,7 @@ class Server(ThreadingHTTPServer):
         self.station = station
         self._launch_token_hash = hashlib.sha256(launch_token.encode()).hexdigest() if launch_token else None
         self._launch_lock = threading.Lock()
+        self._worker_gate = WorkerAccessGate()
         self.secure_cookie = bool(secure_cookie)
         super().__init__(address, Handler)
         self.allowed_hosts = {f"localhost:{self.server_port}", f"127.0.0.1:{self.server_port}"}
@@ -92,7 +95,36 @@ class Server(ThreadingHTTPServer):
                 credentials[cid] = {"token_hash": token_hash, "project_id": None, "runner": None, "active": True}
                 self.station.store.settings({"worker_token": token, "worker_credentials": credentials})
 
+    @contextmanager
+    def worker_operation(self, identity):
+        """Refresh auth after body read; keep rotation a completion barrier."""
+        with self._worker_gate.operation():
+            settings = self.station.store.settings()
+            if not settings.get("remote_workers_enabled", False):
+                raise PermissionError("Remote workers are disabled")
+            cid = identity["credential_id"]
+            record = settings.get("worker_credentials", {}).get(cid)
+            if not record or not record.get("active"):
+                raise PermissionError("Runner credential is invalid or expired")
+            yield {"credential_id": cid, "project_id": record.get("project_id"),
+                   "runner": record.get("runner")}
+
+    def configure_worker_access(self, enabled, rotate=False):
+        if type(enabled) is not bool or type(rotate) is not bool:
+            raise ContractError("enabled and rotate must be booleans")
+        with self._worker_gate.control():
+            token = self._issue_worker_credential(rotate) if enabled else None
+            self.station.store.settings({"remote_workers_enabled": enabled})
+            return {"enabled": enabled, "token": token}
+
     def issue_worker_credential(self, rotate=False):
+        if type(rotate) is not bool:
+            raise ContractError("rotate must be a boolean")
+        with self._worker_gate.control():
+            return self._issue_worker_credential(rotate)
+
+    def _issue_worker_credential(self, rotate=False):
+        """Caller holds the exclusive worker-access barrier."""
         with self.station.store.lock:
             settings = self.station.store.settings()
             credentials = dict(settings.get("worker_credentials", {}))
@@ -251,12 +283,15 @@ class Handler(BaseHTTPRequestHandler):
                 return self.respond({"version": "0.3.0", "settings": public_settings(self.station.store), "demo_spec": demo_spec()})
             if path.startswith("/api/worker/"):
                 identity = self.auth(worker=True)
-                if path == "/api/worker/projects":
-                    if not identity.get("project_id"):
-                        return self.respond({"projects": []})
-                    project = self.station.store.project(identity["project_id"])
-                    return self.respond({"projects": [{"id": project["id"], "name": project["name"]}] if project["mode"] == "live" else []})
-                raise ContractError("Unknown worker endpoint")
+                with self.server.worker_operation(identity) as current:
+                    if path != "/api/worker/projects":
+                        raise ContractError("Unknown worker endpoint")
+                    projects = []
+                    if current.get("project_id"):
+                        project = self.station.store.project(current["project_id"])
+                        if project["mode"] == "live":
+                            projects = [{"id": project["id"], "name": project["name"]}]
+                return self.respond({"projects": projects})
             if path.startswith("/api/"):
                 self.auth()
                 if path == "/api/projects":
@@ -343,6 +378,11 @@ class Handler(BaseHTTPRequestHandler):
         return owner
 
     def worker_post(self, path, data, identity):
+        """Never trust the authorization snapshot taken before reading the body."""
+        with self.server.worker_operation(identity) as current:
+            return self._worker_post(path, data, current)
+
+    def _worker_post(self, path, data, identity):
         """Strict worker capability surface. Worker routes cannot invoke operator transitions."""
         s = self.station
         if path == "/api/worker/claim":
@@ -440,14 +480,7 @@ class Handler(BaseHTTPRequestHandler):
                 return {"markdown": reply["text"]}
             return s.launch("draft-spec", plan)
         if path == "/api/workers/access":
-            enabled = data.get("enabled")
-            if type(enabled) is not bool:
-                raise ContractError("enabled must be a boolean")
-            token = None
-            if enabled:
-                token = self.server.issue_worker_credential(rotate=bool(data.get("rotate")))
-            s.store.settings({"remote_workers_enabled": enabled})
-            return {"enabled": enabled, "token": token}
+            return self.server.configure_worker_access(data.get("enabled"), data.get("rotate", False))
         parts = path.strip("/").split("/")
         if len(parts) == 4 and parts[:2] == ["api", "projects"]:
             pid, action = parts[2], parts[3]

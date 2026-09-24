@@ -3,11 +3,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import queue
 import sys
 import threading
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
@@ -32,7 +34,10 @@ class WorkerClient:
             raise ContractError("Station URL must not contain credentials, query, or fragment")
         if not token:
             raise ContractError("Set RESIDUAL_WORKER_TOKEN from Diagnostics → Connect another runner")
-        if heartbeat_interval <= 0 or heartbeat_grace < heartbeat_interval:
+        if (type(heartbeat_interval) not in (int, float)
+                or type(heartbeat_grace) not in (int, float)
+                or not math.isfinite(heartbeat_interval) or not math.isfinite(heartbeat_grace)
+                or heartbeat_interval <= 0 or heartbeat_grace < heartbeat_interval):
             raise ContractError("Heartbeat grace must be at least one heartbeat interval")
         self.base, self.token = station.rstrip("/"), token
         self.heartbeat_interval = float(heartbeat_interval)
@@ -42,7 +47,10 @@ class WorkerClient:
     def request(self, route, data):
         req = urllib.request.Request(self.base + "/api/worker/" + route, data=canonical(data).encode(),
             headers={"Authorization": "Bearer " + self.token, "Content-Type": "application/json"})
-        with self.opener.open(req, timeout=600) as r:
+        # The independent watchdog below also covers a transport that ignores
+        # this timeout. Result verification retains its existing longer timeout.
+        timeout = min(self.heartbeat_interval, self.heartbeat_grace) if route == "heartbeat" else 600
+        with self.opener.open(req, timeout=timeout) as r:
             value = r.read(500_001)
             if len(value) > 500_000:
                 raise ContractError("Worker packet is too large")
@@ -58,17 +66,40 @@ class WorkerClient:
         """
         authority_lost = threading.Event()
         finished = queue.Queue(maxsize=1)
-        last_success = [time.monotonic()]
+        last_success = time.monotonic()
+        continuity_lock = threading.Lock()
+
+        def expired():
+            with continuity_lock:
+                if time.monotonic() - last_success >= self.heartbeat_grace:
+                    authority_lost.set()
+                return authority_lost.is_set()
 
         def heartbeat():
+            nonlocal last_success
             while not stop.wait(self.heartbeat_interval):
+                if expired():
+                    return
                 try:
-                    self.request("heartbeat", envelope)
-                    last_success[0] = time.monotonic()
-                except Exception:
-                    if time.monotonic() - last_success[0] >= self.heartbeat_grace:
+                    result = self.request("heartbeat", envelope)
+                    if not isinstance(result, dict) or result.get("ok") is not True:
+                        raise ContractError("Heartbeat acknowledgement is invalid")
+                    with continuity_lock:
+                        now = time.monotonic()
+                        # A late ACK cannot revive an expired continuity proof.
+                        if (authority_lost.is_set() or stop.is_set()
+                                or now - last_success >= self.heartbeat_grace):
+                            authority_lost.set()
+                            return
+                        last_success = now
+                except urllib.error.HTTPError as exc:
+                    if exc.code in {400, 401, 403}:
                         authority_lost.set()
                         return
+                    # Temporary HTTP failures consume grace like transport loss.
+                except Exception:
+                    # The watchdog, not this request thread, owns the deadline.
+                    pass
 
         def generate():
             try:
@@ -79,12 +110,18 @@ class WorkerClient:
         threading.Thread(target=heartbeat, daemon=True).start()
         threading.Thread(target=generate, daemon=True).start()
         while True:
-            if authority_lost.wait(0.05):
+            authority_lost.wait(min(0.05, self.heartbeat_grace / 4))
+            # This test runs even while the heartbeat thread is stuck in I/O.
+            if expired():
+                stop.set()
                 raise WorkerAuthorityLost("Runner authority was surrendered after persistent heartbeat loss")
             try:
                 ok, value = finished.get_nowait()
             except queue.Empty:
                 continue
+            if expired():
+                stop.set()
+                raise WorkerAuthorityLost("Runner authority was surrendered after persistent heartbeat loss")
             if ok:
                 return value
             raise value
