@@ -19,12 +19,17 @@ FROZEN_TARGET_SHA = "8df77b832b3839ccd2a6944a65760ce3ab10dc9c"
 CODE_BINDINGS = {
     "tools/aud1/f6_collect.py": f'TARGET_SHA = "{FROZEN_TARGET_SHA}"',
     "tools/aud1/Run-F6-Physical.ps1": f'$Target = "{FROZEN_TARGET_SHA}"',
+    "tools/aud1/f6_bound_station.py": f'TARGET_SHA = "{FROZEN_TARGET_SHA}"',
 }
 TRANSITIVE_BINDINGS = {
     "tools/aud1/f6_case_guard.py": "TARGET_SHA = base.TARGET_SHA",
     "tests/tools/test_aud1_f6_guard.py": "guard.TARGET_SHA",
 }
-DOCUMENT_BINDING = "tools/aud1/README.md"
+DOCUMENT_BINDINGS = {
+    "tools/aud1/README.md": FROZEN_TARGET_SHA,
+    "tools/aud1/STRICT-PHYSICAL-GATE.md": FROZEN_TARGET_SHA,
+}
+TARGET_SCAN_ROOTS = ("tools/aud1", "tests/tools")
 
 
 def sha256_file(path):
@@ -64,23 +69,58 @@ def valid_sha(value):
     return isinstance(value, str) and re.fullmatch(r"[0-9a-fA-F]{40}", value) is not None
 
 
+def text_files(helper_repo):
+    helper_repo = pathlib.Path(helper_repo).resolve()
+    for root_name in TARGET_SCAN_ROOTS:
+        root = helper_repo / root_name
+        if not root.exists():
+            continue
+        for path in sorted(root.rglob("*")):
+            if path.is_file():
+                yield path
+
+
+def scoped_hashes(helper_repo):
+    helper_repo = pathlib.Path(helper_repo).resolve()
+    return {
+        path.relative_to(helper_repo).as_posix(): sha256_file(path)
+        for path in text_files(helper_repo)
+    }
+
+
+def literal_target_locations(helper_repo):
+    helper_repo = pathlib.Path(helper_repo).resolve()
+    locations = []
+    for path in text_files(helper_repo):
+        try:
+            body = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        count = body.count(FROZEN_TARGET_SHA)
+        if count:
+            locations.append({
+                "path": path.relative_to(helper_repo).as_posix(),
+                "count": count,
+            })
+    return locations
+
+
 def inspect_bindings(helper_repo, proposed_target):
     helper_repo = pathlib.Path(helper_repo).resolve()
     errors = []
     bindings = []
-    hashes_before = {}
+    hashes_before = scoped_hashes(helper_repo)
 
     for relative, marker in CODE_BINDINGS.items():
         path = helper_repo / relative
         if not path.is_file():
             errors.append(f"missing required helper binding file: {relative}")
             continue
-        hashes_before[relative] = sha256_file(path)
-        text = path.read_text(encoding="utf-8")
-        count = text.count(marker)
+        body = path.read_text(encoding="utf-8")
+        count = body.count(marker)
         if count != 1:
             errors.append(f"{relative}: expected exactly one frozen target binding, found {count}")
-        if proposed_target != FROZEN_TARGET_SHA and proposed_target in text:
+        if proposed_target != FROZEN_TARGET_SHA and proposed_target in body:
             errors.append(f"{relative}: proposed target is already embedded before selection")
         bindings.append({
             "path": relative,
@@ -96,9 +136,8 @@ def inspect_bindings(helper_repo, proposed_target):
         if not path.is_file():
             errors.append(f"missing required transitive binding file: {relative}")
             continue
-        hashes_before[relative] = sha256_file(path)
-        text = path.read_text(encoding="utf-8")
-        count = text.count(marker)
+        body = path.read_text(encoding="utf-8")
+        count = body.count(marker)
         if count < 1:
             errors.append(f"{relative}: target-binding invariant marker is missing")
         bindings.append({
@@ -109,30 +148,38 @@ def inspect_bindings(helper_repo, proposed_target):
             "change_required_after_selection": False,
         })
 
-    readme = helper_repo / DOCUMENT_BINDING
-    if not readme.is_file():
-        errors.append(f"missing helper documentation: {DOCUMENT_BINDING}")
-    else:
-        hashes_before[DOCUMENT_BINDING] = sha256_file(readme)
-        text = readme.read_text(encoding="utf-8")
-        count = text.count(FROZEN_TARGET_SHA)
+    for relative, marker in DOCUMENT_BINDINGS.items():
+        path = helper_repo / relative
+        if not path.is_file():
+            errors.append(f"missing helper documentation: {relative}")
+            continue
+        body = path.read_text(encoding="utf-8")
+        count = body.count(marker)
         if count < 1:
-            errors.append("README no longer documents the frozen #399 target")
+            errors.append(f"{relative}: frozen target documentation marker is missing")
         bindings.append({
-            "path": DOCUMENT_BINDING,
+            "path": relative,
             "kind": "documentation",
             "frozen_target_occurrences": count,
             "change_required_after_selection": proposed_target != FROZEN_TARGET_SHA,
         })
 
-    hashes_after = {
-        relative: sha256_file(helper_repo / relative)
-        for relative in hashes_before
-    }
+    literal_locations = literal_target_locations(helper_repo)
+    allowed_literal_files = set(CODE_BINDINGS) | set(DOCUMENT_BINDINGS)
+    unexpected = [
+        item for item in literal_locations
+        if item["path"] not in allowed_literal_files
+    ]
+    for item in unexpected:
+        errors.append(
+            f"unaccounted frozen target literal in {item['path']} ({item['count']} occurrence(s))"
+        )
+
+    hashes_after = scoped_hashes(helper_repo)
     if hashes_after != hashes_before:
         errors.append("helper files changed during read-only preflight")
 
-    return bindings, hashes_before, errors
+    return bindings, literal_locations, hashes_before, errors
 
 
 def preflight(helper_repo, candidate_repo, proposed_target):
@@ -162,7 +209,9 @@ def preflight(helper_repo, candidate_repo, proposed_target):
     if candidate["git_errors"]:
         errors.append("candidate git identity could not be read cleanly")
 
-    bindings, hashes, binding_errors = inspect_bindings(helper_repo, proposed_target)
+    bindings, literal_locations, hashes, binding_errors = inspect_bindings(
+        helper_repo, proposed_target
+    )
     errors.extend(binding_errors)
 
     if errors:
@@ -186,11 +235,12 @@ def preflight(helper_repo, candidate_repo, proposed_target):
         },
         "current_helper_target": FROZEN_TARGET_SHA,
         "bindings": bindings,
-        "helper_file_sha256": hashes,
+        "literal_target_locations": literal_locations,
+        "helper_scope_sha256": hashes,
         "required_after_selection": [
             "record explicit owner candidate selection bound to one exact SHA",
             "create a new helper successor from frozen #403; do not rewrite #403",
-            "atomically update both direct code bindings and helper documentation to the selected SHA",
+            "atomically update every direct code target pin and candidate-specific helper documentation",
             "retain exact-head/clean-worktree, Station-process provenance, stale-result, and closed-world evidence guards",
             "run fresh exact-head helper CI before any physical F6 execution",
         ],

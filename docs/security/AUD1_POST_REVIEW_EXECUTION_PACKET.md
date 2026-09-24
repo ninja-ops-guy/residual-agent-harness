@@ -73,12 +73,17 @@ For a not-yet-selected successor, the expected successful status is
 `PREPARED_NOT_AUTHORIZED`. That status means only that the two checkouts and
 retarget surface are coherent; it is not authorization to edit.
 
-After explicit selection, the helper successor must atomically reconcile all
-candidate bindings, including at minimum:
+After explicit selection, the helper successor must atomically reconcile every
+candidate binding, including at minimum:
 
 1. `tools/aud1/f6_collect.py::TARGET_SHA`;
 2. `tools/aud1/Run-F6-Physical.ps1::$Target`;
-3. candidate-specific helper documentation.
+3. `tools/aud1/f6_bound_station.py::TARGET_SHA`;
+4. `tools/aud1/README.md` and `tools/aud1/STRICT-PHYSICAL-GATE.md`.
+
+The preflight also performs a closed-world scan over `tools/aud1` and
+`tests/tools`; any literal frozen target SHA in an unaccounted file is a refusal,
+not an implicit extra retarget.
 
 Retain without weakening:
 
