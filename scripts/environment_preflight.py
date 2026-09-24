@@ -169,10 +169,13 @@ def _subprocess_and_signal() -> dict[str, Any]:
         return _result("subprocess_signal", False, f"subprocess/signal check failed: {type(exc).__name__}: {exc}")
     finally:
         if proc is not None and proc.poll() is None:
-            proc.kill()
+            try:
+                proc.kill()
+            except OSError:
+                pass
             try:
                 proc.wait(timeout=2)
-            except subprocess.SubprocessError:
+            except (OSError, subprocess.SubprocessError):
                 pass
 
 
