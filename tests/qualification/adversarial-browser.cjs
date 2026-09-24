@@ -8,7 +8,7 @@ const out=process.env.STATION_QA_DIR||path.join(root,'runs','qualification-v1','
 fs.mkdirSync(out,{recursive:true});
 const stationPort=Number(process.env.STATION_QA_PORT||8891);
 const providerPort=Number(process.env.TOXIC_PROVIDER_PORT||8892);
-const stationUrl=`http://127.0.0.1:${stationPort}`;
+let launchUrl;
 
 const draft='# Generated qualification mission\n\nA real persisted planner result.\n\n```json\n'+JSON.stringify({
   schema_version:1,name:'Generated QA Mission',goal:'Exercise persisted asynchronous planning',
@@ -51,16 +51,15 @@ const server=spawn(process.env.PYTHON||'python3',['-m','residual.station.server'
 async function waitStation(){
   await new Promise((resolve,reject)=>{
     let text='';const timer=setTimeout(()=>reject(Error('Station startup timeout')),15000);
-    server.stdout.on('data',b=>{text+=b;if(text.includes('Press Ctrl+C')){clearTimeout(timer);resolve();}});
+    server.stdout.on('data',b=>{text+=b;const match=text.match(/Open (https?:\/\/\S+\/auth\/\S+)/);if(match)launchUrl=match[1];if(text.includes('Press Ctrl+C')){if(!launchUrl)return reject(Error('Server did not print one-time launch URL'));clearTimeout(timer);resolve();}});
     server.once('exit',code=>reject(Error('Station exited '+code)));
   });
 }
 
 async function api(page,pathName,body){
   return page.evaluate(async ({pathName,body})=>{
-    const b=await fetch('/api/bootstrap').then(r=>r.json());
     const response=await fetch(pathName,{method:body===undefined?'GET':'POST',headers:{
-      'X-Station-Token':b.token,...(body===undefined?{}:{'Content-Type':'application/json'})
+      ...(body===undefined?{}:{'Content-Type':'application/json'})
     },...(body===undefined?{}:{body:JSON.stringify(body)})});
     const value=await response.json();
     if(!response.ok)throw Error(value.error||('HTTP '+response.status));
@@ -100,7 +99,8 @@ async function main(){
   const page=await browser.newPage({viewport:{width:1440,height:1000}});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error'&&!m.text().includes('400 (Bad Request)'))errors.push(m.text());});
   try{
-    await page.goto(stationUrl+'/#models');
+    await page.goto(launchUrl);
+    await page.goto(new URL('/#models',launchUrl).href);
     await page.getByRole('heading',{name:'Your model workshop.'}).waitFor();
     await api(page,'/api/settings',{local:{kind:'openai_compatible',model:'qa-model',base_url:`http://127.0.0.1:${providerPort}/v1`,output_token_field:'max_tokens'},local_credentials:{api_key:'QA-SECRET'}});
 
@@ -162,7 +162,7 @@ async function main(){
     await page.evaluate(pid=>localStorage.setItem('residual-project',pid),pid);
     // A hash-only goto is a same-document navigation and never reboots the app,
     // so the newly saved project selection would not load. Reload explicitly.
-    await page.goto(stationUrl+'/#board');await page.reload();
+    await page.goto(new URL('/#board',launchUrl).href);await page.reload();
     await page.getByRole('heading',{name:'Mission board',exact:true}).waitFor();
     const card=page.locator('.task-card[data-id="OPS-101"]');await card.waitFor();await card.click();
     await page.locator('#dialog-body').getByText('repair required',{exact:true}).waitFor();

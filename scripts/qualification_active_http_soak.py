@@ -2,12 +2,15 @@
 from __future__ import annotations
 
 import argparse
+import http.cookiejar
 import json
+import re
 import subprocess
 import sys
 import tempfile
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -19,33 +22,46 @@ else:
     from qualification_process_soak import fd_count, rss_bytes, slope_per_hour, terminate
 
 
-def request(url: str, path: str, *, token: str | None = None, body=None, timeout: float = 10.0):
+def request(opener, url: str, path: str, *, body=None, timeout: float = 10.0):
     data = None if body is None else json.dumps(body, separators=(",", ":")).encode()
     headers = {"Content-Type": "application/json"}
-    if token:
-        headers["X-Station-Token"] = token
     req = urllib.request.Request(url + path, data=data, headers=headers)
-    with urllib.request.urlopen(req, timeout=timeout) as response:
+    with opener.open(req, timeout=timeout) as response:
         payload = response.read(5_000_000)
         if not 200 <= response.status < 300:
             raise RuntimeError(f"HTTP {response.status}")
         return json.loads(payload)
 
 
-def wait_bootstrap(url: str, deadline: float):
+def wait_launch_url(log_path: Path, deadline: float) -> str:
+    last = ""
+    pattern = re.compile(r"^Open (https?://\S+/auth/\S+)$", re.MULTILINE)
+    while time.monotonic() < deadline:
+        try:
+            last = log_path.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            last = ""
+        match = pattern.search(last)
+        if match:
+            return match.group(1)
+        time.sleep(0.1)
+    raise RuntimeError("Station did not print a one-time launch URL")
+
+
+def wait_bootstrap(opener, url: str, deadline: float):
     last = None
     while time.monotonic() < deadline:
         try:
-            return request(url, "/api/bootstrap", timeout=1.0)
+            return request(opener, url, "/api/bootstrap", timeout=1.0)
         except Exception as exc:
             last = exc
             time.sleep(0.1)
     raise RuntimeError(f"Station did not become ready: {type(last).__name__ if last else 'unknown'}")
 
 
-def wait_job(url: str, token: str, jid: str, deadline: float):
+def wait_job(opener, url: str, jid: str, deadline: float):
     while time.monotonic() < deadline:
-        jobs = request(url, "/api/jobs", token=token)
+        jobs = request(opener, url, "/api/jobs")
         job = next((item for item in jobs["jobs"] if item["id"] == jid), None)
         if job and job["state"] in {"completed", "failed", "interrupted"}:
             return job
@@ -56,7 +72,6 @@ def wait_job(url: str, token: str, jid: str, deadline: float):
 def run_campaign(*, cycles: int, port: int, root: Path) -> dict:
     root.mkdir(parents=True, exist_ok=True)
     data_dir = root / "station-data"
-    url = f"http://127.0.0.1:{port}"
     log_path = root / "station.log"
     log = log_path.open("w", encoding="utf-8")
     proc = subprocess.Popen(
@@ -68,28 +83,33 @@ def run_campaign(*, cycles: int, port: int, root: Path) -> dict:
     failure = None
     samples = []
     try:
-        bootstrap = wait_bootstrap(url, time.monotonic() + 20)
-        token = bootstrap["token"]
+        launch_url = wait_launch_url(log_path, time.monotonic() + 20)
+        parsed = urllib.parse.urlsplit(launch_url)
+        url = f"{parsed.scheme}://{parsed.netloc}"
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+        with opener.open(launch_url, timeout=5.0) as response:
+            response.read(1_000_000)
+        wait_bootstrap(opener, url, time.monotonic() + 20)
         samples.append({"elapsed_s": 0.0, "rss_bytes": rss_bytes(proc.pid), "fd_count": fd_count(proc.pid)})
         for index in range(cycles):
             cycle_started = time.monotonic()
-            created = request(url, "/api/demo", token=token, body={})
+            created = request(opener, url, "/api/demo", body={})
             pid = created["project_id"]
 
-            launched = request(url, f"/api/projects/{pid}/run", token=token, body={})
-            job = wait_job(url, token, launched["job_id"], time.monotonic() + 90)
+            launched = request(opener, url, f"/api/projects/{pid}/run", body={})
+            job = wait_job(opener, url, launched["job_id"], time.monotonic() + 90)
             if job["state"] != "completed":
                 raise RuntimeError(f"mission job {job['state']}: {job.get('detail')}")
-            project = request(url, f"/api/projects/{pid}", token=token)["project"]
+            project = request(opener, url, f"/api/projects/{pid}")["project"]
             if not all(task["state"] == "integrated" for task in project["tasks"]):
                 raise AssertionError("HTTP mission returned without integrating every task")
 
-            exported = request(url, f"/api/projects/{pid}/export", token=token, body={})
-            release_job = wait_job(url, token, exported["job_id"], time.monotonic() + 30)
+            exported = request(opener, url, f"/api/projects/{pid}/export", body={})
+            release_job = wait_job(opener, url, exported["job_id"], time.monotonic() + 30)
             if release_job["state"] != "completed" or not release_job.get("result", {}).get("id"):
                 raise AssertionError("HTTP release export did not complete with an artifact")
 
-            jobs = request(url, "/api/jobs", token=token)["jobs"]
+            jobs = request(opener, url, "/api/jobs")["jobs"]
             orphan = [item["id"] for item in jobs if item["state"] in {"queued", "running"}]
             if orphan:
                 raise AssertionError(f"orphan active jobs after cycle: {orphan[:5]}")

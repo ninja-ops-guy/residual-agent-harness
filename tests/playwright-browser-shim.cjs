@@ -39,8 +39,6 @@ function instrumentWebKitPage(page) {
     screenshotActive = true;
     try {
       const result = await originalScreenshot(options);
-      // WebKit may dispatch the CSP console event just after the screenshot
-      // promise resolves. No application interaction occurs in this window.
       await page.waitForTimeout(25);
       return result;
     } finally {
