@@ -1,134 +1,76 @@
 # RESIDUAL current status
 
-_Current-state check: 2026-09-24 03:17 UTC against `main@91d32fd8b713c68c1cd2e473013c9e1c33b93572`._
+_Current-state check: 2026-09-24 03:45 UTC against `main@d796f36b75e730a0bab71bdba564206174393719`._
 
 This document is a human-readable current-state summary, not a replacement for exact repository bytes, retained artifacts, workflow logs, issue/PR history, or maintainer/protected-byte governance. Historical PASS/FAIL/BLOCKED evidence remains bound to the exact revision, run attempt, and environment that produced it. Git history retains earlier detailed versions of this status document.
 
 ## Executive summary
 
-Accepted `main` remains **`91d32fd8b713c68c1cd2e473013c9e1c33b93572`**. No new commit or merged PR has entered accepted repository state in this observation.
+Accepted `main` advanced from `91d32fd8b713c68c1cd2e473013c9e1c33b93572` to **`d796f36b75e730a0bab71bdba564206174393719`** when **#304** (`fix(station): typed fail-closed reviewer findings (#209)`) merged. The accepted change makes reviewer findings typed (`note|warning|blocking`), rejects contradictory approval with blocking findings, requires a blocking finding for rejection, rejects legacy string-only verdicts, and records blocking-finding count. It does not weaken mechanical verification, M4, integration, or release authority.
 
-Three new Shared Comms continuity candidates are material:
+The exact #304 head `c3fde7b7db3e3dd1cc38fb08789e19e7d84cab90` completed the named repository technical workflows **PASS**, including RESIDUAL Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, PR-Agent, Pages, and the exact-head maintainer approval gate. Fresh push-triggered observations on accepted `main@d796f36...` also show **PASS** for Qualification v1, Controller/provider contracts, Command Station, measured-evaluation binding, and Pages. These observations are exact-revision evidence only.
 
-- **#410** (`spec(r5): extract Shared Comms continuity backlog`) is **OPEN / UNMERGED / UNACCEPTED** at exact head `1c0f6015ca6be160efcf3a4f530f148e015403aa`. It adds one planning-only R5 backlog document and explicitly states that its 14 requirements are `POST_CANARY/R5`, not pre-canary blockers. Hosted exact-head Controller/provider, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent are **PASS**, and Vercel is **PASS**. RESIDUAL Qualification v1 is **FAIL** on that exact head; retained workflow metadata shows multiple qualification-job failures including deterministic, M4-host-capability, Windows lifecycle, and artifact qualification steps, while the lower-level root cause remains **UNKNOWN** from retained metadata. Maintainer approval is **FAIL / no exact-head human attestation**.
-- **#411** (`research(r4): document R4 to R4.1 qualification findings`) is **OPEN / UNMERGED / UNACCEPTED** at exact head `1e2592bfc81dfe94d0f39332ebd451862680cab4`. It adds one secondary research record describing an external sealed R4 → R4.1 qualification sequence. The document records R4 as `BLOCKED` at 15/17 gates and records external R4.1 candidate `8701367db6d3202f24b3eb9f4696b0cadf657985` / tree `79bfe6ed1743907065ed44aeb9c460c47527e0c6` as 17/17 with disposition `READY_FOR_CANARY`. Those source artifacts are explicitly external to this repository and are referenced by SHA-256; GitHub does not resolve `8701367d...` as a commit in this repository. Therefore `READY_FOR_CANARY` is a recorded external qualification disposition, not accepted-main state and not an independently re-derived repository claim. Hosted exact-head Controller/provider, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent are **PASS**, Vercel is **PASS**, RESIDUAL Qualification v1 is **FAIL**, and maintainer approval is **FAIL**. The hosted qualification failure does not erase the external R4.1 record, and the external record does not override the hosted PR-head failure; they are separate evidence domains.
-- **#412** (`spec(canary): prepare bounded R4.1 continuity canary`) is **OPEN / UNMERGED / UNACCEPTED** at exact head `2bcfc010c48c8d5d8d8b130ea10b3fb1e67583ef`. It adds an inert canary specification/package for the same externally referenced R4.1 candidate. Its specification says **prepared only; execution is not authorized** and requires an independent authorization receipt plus explicit operator GO before one bounded canary operation. Exact-head Qualification v1, Controller/provider, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent are **PASS**; Vercel is **PASS**; maintainer approval is **FAIL / no exact-head human attestation**. No canary execution, deployment, merge, promotion, or production success is established.
+Release convergence is still **BLOCKED**. AUD-1 issue #353 remains open; the required physical F6-A/F6-B evidence is not established; the independent Mason/LEGION re-audit is outstanding; and the R4.1 ready-for-canary seal has a confirmed semantic cardinality defect that prevents it from serving as canary authorization evidence in its current form.
 
-AUD-1 release state is unchanged. **#399** remains the exact software candidate at `8df77b832b3839ccd2a6944a65760ce3ab10dc9c`; **#403** remains the exact qualified physical-evidence helper at `118ec3c795ae11c88b68278717fb781f4b059559`. Physical F6-A and F6-B remain **UNKNOWN / not established**, Mason/LEGION's independent read-only re-audit remains outstanding, and **#353 remains OPEN / P0 / BLOCKED at the release level**.
+## R4.1 evidence authority and canary boundary
 
-No evidence in this observation authorizes merging #399, #403, #404, #405, #406, #407, #409, #410, #411, #412, or this documentation PR.
+The prior external R4.1 qualification record remains bounded to its authoritative candidate, evidence bytes, hashes, and gate results. However, the previously propagated statement that the ready-for-canary seal verified `44/44` evidence entries is **invalid seal metadata** and must not be used as an authority claim.
 
-## Accepted repository state
+**#415** (`fix(r4): derive seal cardinality from authoritative manifest`) is **OPEN / UNMERGED / UNACCEPTED** at exact head `3da0d8ec45adf8934b88906462706617aa22831f`. Its retained forensic result is:
 
-**#397** (`fix(webvm): sync standalone workbench before reload`) remains the latest accepted merge. Its exact PR head was `ed60fb135fea32baf603ff45ecb2d0a82b44828e`; GitHub merged it as `main@91d32fd8b713c68c1cd2e473013c9e1c33b93572`.
+- the literal value `44` was manually embedded in the first seal-creation patch after `sha256sum -c` verified hashes but did not derive cardinality;
+- the authoritative immutable `SHA256SUMS` contains **50** valid non-empty entries;
+- there is no demonstrated filter or traversal defect producing an authentic excluded-six set;
+- the defect affects derived count metadata and the seal's semantic validity, not the qualified candidate HEAD/tree, authoritative evidence bytes, authoritative SHA-256 values, qualification gate results, or the authoritative manifest itself.
 
-Retained exact-main observations remain bounded to those bytes: RESIDUAL Qualification v1, repaired-main Pages/browser proof, Controller/provider contracts, Command Station, clean install, M4 qualification prerequisites, and Vercel have retained **PASS** observations. They do not establish every-host M4 qualification, true elapsed soak, physical-device reliability, successful live-provider semantics, closure of AUD-1, or blanket production readiness.
+The proposed #415 tooling derives cardinality directly from `SHA256SUMS`, accepts no expected-count argument, rejects malformed/duplicate/unsafe paths, verifies every referenced hash, independently recomputes cardinality during seal verification, and rejects the existing `recorded=44 authoritative=50` mismatch. Exact-head Qualification v1, Controller/provider, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent are **PASS**; Vercel is **PASS**; exact-head maintainer approval is **FAIL / no matching human attestation**.
+
+No corrected seal / Seal v3 exists. The current erroneous seal must not authorize canary execution. Before any new seal or canary authorization review, the direct-source generator/verifier path requires human review and the final seal must pass an independently frozen verifier. Canary execution remains **NOT AUTHORIZED / NOT EXECUTED**.
+
+**#422** (`test(r4): adversarially qualify seal evidence authority`) is a **DRAFT / UNMERGED / UNACCEPTED** stacked candidate at `31dc9c1bf88ee69f417f53c0f4ff5558fc48f645`. Its 11 local manifest/adversarial tests are reported **PASS**, but it explicitly leaves extra-file closure, semantic binding, and provenance-DAG verification as requirements beyond the current cardinality verifier. At this observation, some exact-head hosted workflows are **PASS** while Qualification v1, Command Station, and Controller/provider are still **UNKNOWN/PENDING**. #422 does not repair an existing seal and does not authorize a canary.
+
+Any open candidate documentation that still states `44/44` as authoritative seal cardinality, including the earlier #411 record, is superseded on that point by the #415 root-cause evidence and must not be merged unchanged.
 
 ## AUD-1 security convergence
 
-Owner issue **#353 remains OPEN / P0 / BLOCKED at the release level**. Focused candidate **#399** remains open and unmerged at exact head `8df77b832b3839ccd2a6944a65760ce3ab10dc9c`.
+Owner issue **#353 remains OPEN with no milestone** and remains the pre-release security convergence boundary. The original candidate **#399** remains unchanged at `8df77b832b3839ccd2a6944a65760ce3ab10dc9c`, and physical-evidence helper **#403** remains unchanged at `118ec3c795ae11c88b68278717fb781f4b059559`. The two required real-host F6 cases remain **UNKNOWN / not established**; no software fixture or hosted CI run substitutes for them.
 
-Current software evidence for #399 remains hosted **PASS** for the named software gates, but the required physical authority-loss stage is not complete. Physical execution is permitted only with exact helper **#403@118ec3c795ae11c88b68278717fb781f4b059559** against unchanged #399 bytes.
+A new draft successor exists: **#416** (`fix(station): fence credential revocation and stalled heartbeat authority`) is **DRAFT / OPEN / UNMERGED / UNACCEPTED** at exact head `30c8c640e80a6d59a6db9e3199bf4cba81fb0296`, based on accepted `main@d796f36...`. It preserves #399/#403 rather than silently retargeting them and adds repairs for two newly reproduced schedules:
 
-Required physical outputs remain separate:
+- **AUD1-C1**: a delayed worker request could authenticate before body read and still be admitted after credential rotation/worker disable;
+- **AUD1-C2**: a blocked heartbeat request could prevent the local worker from observing authority loss within the intended grace window.
 
-1. `F6-A-inside-window` — prove the same runner process/owner/lease resumes when transport is restored inside the 180-second worker grace without duplicate authority or invalid transition.
-2. `F6-B-outside-window` — after natural surrender/expiry/reassignment, prove the old process remains dead and an exact old project/task/lease result is rejected with the expected bounded denial after host reachability returns.
+The #416 PR reports parent probes of **3 FAIL + 1 ERROR** and a repaired focused suite of **12 PASS**; a prior repair head `d291688b...` had 25/25 Qualification-v1 gates PASS, but that result remains bound to those prior bytes. Fresh exact-head `30c8c640...` Qualification v1, Controller/provider, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent are **PASS**. Vercel is **PASS**; exact-head maintainer approval is **FAIL / no matching human attestation**; Pages was **UNKNOWN/PENDING** at this observation.
 
-Until both independently frozen bundles exist and machine-validate, both claims remain **UNKNOWN / not established**. Mason/LEGION's independent read-only F1/F2/F3/F4/F6 re-audit still follows those physical observations. No current status changes #399 candidate bytes, #403 helper bytes, or that sequence.
+#416 is not yet the selected release successor. Required sequence remains: independent review and exact-head CI -> deliberate successor selection -> requalify the physical helper for that exact selected target -> separately retain F6-A and F6-B physical evidence -> Mason/LEGION independent read-only re-audit -> exact-head owner attestation -> guarded merge -> authoritative new-main qualification -> final RC recovery/elapsed-soak evidence. No physical execution or helper retarget is claimed here.
 
-## Shared Comms / continuity candidates
+## Additional review-only findings
 
-### #400 — OpenClaw Shared Comms bridge
+Several new candidate lanes add useful evidence without changing accepted release state. **#423** records a production-readiness matrix and explicitly lacks authoritative production topology, SLO, RPO, and RTO inputs; its receipt-binding item is a **BLOCKING_CANDIDATE_FINDING pending scope review**, not an accepted-main defect classification. **#426** records offline fault-space exploration and labels malformed/cross-bound receipt false ACK, recovery digest mismatch, and unfenced simultaneous recovery as **BLOCKING_CANDIDATE_FINDING** items requiring human scope disposition; real fsync/power-loss, ENOSPC, and process-level fencing fixtures remain absent. Neither candidate executed a canary.
 
-**#400** remains **DRAFT / UNMERGED / UNACCEPTED** at exact head `c0c1f2cbd4677e0bc8fd2f710b40f3608db9cda7`. Its own PR boundary remains controlling: accepted main does not yet contain the server-side Shared Comms contract it expects, so that dependency remains **BLOCKED** for accepted-main use.
-
-### #404 — SPEC-SC-MESH-001 durable mesh foundation
-
-**#404** remains **DRAFT / UNMERGED / UNACCEPTED / NOT MERGE-READY** at exact head `cae9ab31e0ca3acfd948af32726db388c589aeb2`. Its retained exact-head state remains mixed: Control Plane, Factory ownership, measured-evaluation binding, clean install, PR-Agent, Pages/browser proof, and Vercel are retained **PASS**; Factory runtime evidence, Qualification v1, Controller/provider contracts, and Command Station have retained **FAIL** observations. Lower-level causes not established by retained metadata remain **UNKNOWN**. No `MESH_QUALIFIED` or multi-host production claim exists.
-
-### #410 — R5 Shared Comms continuity backlog
-
-**#410** is planning-only. It adds `docs/research/R5_SHARED_COMMS_CONTINUITY_BACKLOG.md`, references the externally supplied R4.1 disposition, and defines 14 post-canary requirements covering fenced recovery ownership, authenticated/request-bound receipts, durable reconciliation states, malformed-receipt handling, crash-safe ACK persistence, corruption and storage failures, stale-operation policy, multi-process/multi-host recovery, observability, protocol negotiation, distributed lookup, receipt retention/GC, and formal at-most-once claim boundaries.
-
-Its own stated disposition is that there are **no BLOCKING** or `SHOULD_FIX_BEFORE_CANARY` findings for the already-qualified external R4.1 boundary; all backlog items are `POST_CANARY/R5`. That statement is a candidate planning conclusion, not accepted release authority. Exact-head hosted Qualification v1 is **FAIL** while the other named technical workflows are **PASS**; do not infer merge-readiness from the green subset.
-
-### #411 — R4 → R4.1 qualification findings
-
-**#411** adds `docs/research/R4_R4.1_QUALIFICATION_FINDINGS.md`. It preserves two distinct findings from an external qualification program:
-
-- `R4-F01`: G11 was classified as a qualification-instrumentation defect caused by reading a stale task snapshot rather than authoritative Station state.
-- `R4-F02`: G13 was classified as a candidate protocol defect because, after remote commit + ACK loss + sender restart, the sender performed a retransmission before authoritative receipt reconciliation even though receiver idempotency kept the receiver event count at one.
-
-The secondary record says R4.1 changed restart recovery to perform authoritative receipt lookup before retransmission, then recorded 17/17 gates and `READY_FOR_CANARY`. The record also explicitly states that canary execution did **not** occur, the result is bounded to the recorded conditions, and no novelty claim is made without literature review.
-
-The authoritative R4/R4.1 runtime artifacts and ready-for-canary seal are not copied into this repository; #411 references them by run identity and SHA-256. GitHub cannot resolve the cited R4.1 candidate commit in this repository. Treat the record as a documented external evidence handoff, not accepted-main code or a repository-local reproducibility result.
-
-Hosted PR-head state for #411 is mixed: the named non-aggregate technical workflows are **PASS**, Vercel is **PASS**, RESIDUAL Qualification v1 is **FAIL**, and maintainer approval is **FAIL**. Do not rewrite either the external 17/17 record or the hosted failure into the other.
-
-### #412 — bounded R4.1 continuity canary package
-
-**#412** adds `canary/R4.1/` with a specification, manifest, preflight, runner, evidence collection, rollback, verification, helper library, self-test, and README. The package is explicitly inert by default.
-
-The canary specification requires exact candidate/seal identity, a clean candidate worktree with no remotes, expected protected-service state, an independently approved authorization receipt, a safe new evidence destination, a deployment-specific adapter, and explicit `RESIDUAL_R4_CANARY_GO=R4.1-CANARY-8701367D`. Its intended operation is exactly one Shared Comms canary action with induced sender interruption after remote commit and before local ACK, followed by receipt-first reconciliation. It forbids deployment, merge, promotion, push, credential mutation, protected-service restart, and writes outside the designated scope.
-
-Machine-verifiable success would require exactly one initial POST, then a receipt GET after restart with no retransmission POST, durable `PENDING -> SENT_INDETERMINATE -> ACKED`, exactly one receiver event, stable protected services, complete hashed evidence, zero safety counters, and no abort condition. None of those live canary conditions has been executed or established by this PR.
-
-Hosted exact-head evidence for #412 is currently:
-
-- RESIDUAL Qualification v1: **PASS**
-- Controller/provider contracts: **PASS**
-- Command Station checks: **PASS**
-- clean-install qualification: **PASS**
-- Factory ownership: **PASS**
-- measured-evaluation acceptance binding: **PASS**
-- Control Plane: **PASS**
-- PR-Agent advisory: **PASS**
-- Vercel: **PASS**
-- exact-head maintainer approval: **FAIL / no matching human attestation**
-
-These results qualify only the repository package on `2bcfc010...`. They do not authorize or prove the external R4.1 canary.
-
-## Research-maintenance candidates
-
-**#401** remains an append-only AX-21 research-maintenance candidate on the SLM research branch. It does not authorize training, freeze SLM-00, close AUD-1, or advance release status.
-
-**#402** remains **DRAFT / UNMERGED / UNACCEPTED** at `2958ef726cab4deaaa997c0bf4b426a74349213e`. It adds measured R0-R5 apparatus and preregistration only; no confirmatory live H1 result exists.
-
-**#405** remains **DRAFT / UNMERGED / UNACCEPTED** at `2549bb1b81f6bdc6954896eb7ebedadfe82b2722`. It records the 2026-09-22 AX-21 check-in without closing AUD-1, qualifying mesh, claiming measured R0-R5 effects, or finally freezing AX-21.
-
-**#409** remains **DRAFT / UNMERGED / UNACCEPTED** at `9c0f8589b1dc83061ba018207f7bbde88f03ed06`. It records the 2026-09-23 AX-21 check-in while preserving physical-F6, inference, APF, P5, and baseline-freeze boundaries.
-
-## Post-v1 design candidates
-
-**#406** remains **DRAFT / POST-v1 / NO IMPLEMENTATION AUTHORIZED** at `c749e06afa5d86b05f894b9deb45434ce0efefda`. It specifies inference-aware routing/serving capabilities but adds no runtime implementation and establishes no performance benefit.
-
-**#407** remains **DRAFT / POST-v1 / EXECUTION-DEFERRED** at `b15aa2aff58ee31391976e7d4cb89cf0f346a7ec`. It registers RRI-005 / SPEC-APF-001 as a future Agent Privilege Firewall research program. It is not an implemented or demonstrated security result.
+Other R4/R5/research/canary planning PRs remain unmerged and unaccepted. Their local or hosted PASS results do not authorize promotion, deployment, canary execution, or broad production-readiness claims.
 
 ## Qualification and trust-boundary discipline
 
-Qualification v1 remains accepted implementation on main, but every PASS/FAIL is exact-revision evidence only. Missing, superseded, externally referenced, or pending evidence does not inherit another revision's status.
+`PASS`, `FAIL`, `UNKNOWN`, and `BLOCKED` remain exact-claim states. A PASS on one revision does not transfer to changed bytes. A candidate finding does not become an accepted defect until its scope and evidence are reviewed. A documented external result does not override contradictory or missing repository-local evidence. Missing physical evidence remains `UNKNOWN / not established` rather than inferred from software tests.
 
 Still **UNKNOWN / not established** by accepted-main hosted PASS results:
 
 - universal/every-host M4 qualification;
 - true 24h/72h/30d elapsed soak evidence;
-- successful live-provider candidate→verifier→receipt semantics;
-- physical-device reliability;
-- closure of AUD-1 #353;
+- physical F6-A/F6-B authority-loss reliability;
+- Mason/LEGION closure of AUD-1;
+- a valid corrected R4.1 seal suitable for authorization review;
 - live R4.1 canary success;
 - accepted R4.1/R5 Shared Comms implementation on main;
-- SLM-00 human freeze/training authority;
-- #404 mesh qualification or multi-host production readiness.
+- blanket production readiness.
 
-The accepted Factory/M4 ownership baseline and protected-byte set remain whatever the committed ownership baseline on main records. This documentation does not modify protected Factory/M4 implementation or tests, ownership baselines, qualification anchors, verifier/evidence schemas, provider authority, security implementation, licensing authority, or acceptance authority.
+The accepted Factory/M4 ownership baseline and protected-byte set remain whatever the committed ownership baseline on main records. This documentation does not modify Factory/M4 implementation or tests, ownership baselines, qualification anchors, protected bytes, evidence schemas, provider authority, security implementation, licensing authority, or acceptance authority.
 
-`implementation-status.yaml` remains an implementation-presence manifest, not a release-qualification manifest. It is intentionally unchanged.
+`implementation-status.yaml` remains an implementation-presence manifest, not a release-qualification manifest.
 
 ## Documentation scope
 
-This reconciliation changes only `docs/CURRENT_STATUS.md` on the existing dedicated docs branch. The open documentation PR continues to carry earlier `README.md` and `HARNESS.md` reconciliation; neither requires another edit because accepted-main product/operator behavior did not change. `START-HERE.md` remains accurate operator guidance. `implementation-status.yaml` remains accurate for its declared implementation-presence purpose.
+This reconciliation changes only `docs/CURRENT_STATUS.md` on the existing dedicated documentation branch. Searches of accepted main found no `44/44` or prior-main-hash claim requiring a new edit in `README.md`, `HARNESS.md`, `START-HERE.md`, or `implementation-status.yaml`, and the accepted #304 reviewer-contract change does not create a contradictory claim in those documents. They are intentionally unchanged in this observation.
 
-The immediately preceding docs head `5a4a628fb33fb3399e45fbfbddf0003d1e1b21e6` completed exact-head Qualification v1, Controller/provider, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent **PASS**; Vercel was **PASS**; maintainer approval was **FAIL / no matching human attestation**. Those results remain bound to `5a4a628f...` and are not inherited by this changed documentation head.
-
-Because this status document records ownership-baseline context, qualification anchors, retained failures, external evidence boundaries, and active security/canary trust-boundary state, this documentation PR must **not** be merged automatically. Exact-head human review/attestation remains required.
+Because this status document records qualification anchors, corrected evidence-authority interpretation, ownership-baseline context, active security successors, and other trust-boundary state, the documentation PR must **not** be merged automatically. Exact-head human review/attestation remains required.
