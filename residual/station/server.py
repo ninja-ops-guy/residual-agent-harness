@@ -22,6 +22,7 @@ from .contracts import bounded, parse_spec
 from .models import model_call, public_settings, save_settings, credentials_for
 from residual.modular import normalize_profile, make_adapter
 from ai_providers import ProviderError as ModularError
+from .ownership import StationOwnershipError
 from .service import Station, demo_spec
 from .worker_access import WorkerAccessGate, WorkerControlDrainTimeout
 
@@ -60,15 +61,44 @@ class Server(ThreadingHTTPServer):
     allow_reuse_address = True
 
     def __init__(self, address, station, launch_token=None, secure_cookie=False):
-        self.station = station
-        self._launch_token_hash = hashlib.sha256(launch_token.encode()).hexdigest() if launch_token else None
-        self._launch_lock = threading.Lock()
-        self._worker_gate = WorkerAccessGate()
-        self.secure_cookie = bool(secure_cookie)
-        super().__init__(address, Handler)
-        self.allowed_hosts = {f"localhost:{self.server_port}", f"127.0.0.1:{self.server_port}"}
-        self.allowed_hosts.update(h.strip() for h in os.environ.get("RESIDUAL_ALLOWED_HOSTS", "").split(",") if h.strip())
-        self._register_legacy_worker_key()
+        public_origin = validate_exposure(
+            address[0], os.environ.get("RESIDUAL_ALLOWED_HOSTS", ""),
+            os.environ.get("RESIDUAL_REMOTE_EXPOSURE", "") == "1",
+            os.environ.get("RESIDUAL_PUBLIC_URL", ""),
+        )
+        if address[0] == "localhost":
+            address = ("127.0.0.1", *address[1:])
+        self._lifetime = station._lifecycle.reserve()
+        try:
+            self.station = station
+            self._launch_token_hash = hashlib.sha256(launch_token.encode()).hexdigest() if launch_token else None
+            self._launch_lock = threading.Lock()
+            self._worker_gate = WorkerAccessGate()
+            self.secure_cookie = bool(secure_cookie or public_origin)
+            super().__init__(address, Handler)
+            self.allowed_hosts = {f"localhost:{self.server_port}", f"127.0.0.1:{self.server_port}"}
+            self.allowed_hosts.update(h.strip() for h in os.environ.get("RESIDUAL_ALLOWED_HOSTS", "").split(",") if h.strip())
+            self._register_legacy_worker_key()
+        except BaseException:
+            if hasattr(self, "socket"):
+                self.socket.close()
+            self._lifetime.cancel()
+            raise
+
+    def server_close(self):
+        try:
+            super().server_close()
+        finally:
+            lifetime = getattr(self, "_lifetime", None)
+            if lifetime is not None:
+                lifetime.cancel()
+
+    def process_request_thread(self, request, client_address):
+        try:
+            with self.station._lifecycle.operation():
+                super().process_request_thread(request, client_address)
+        except StationOwnershipError:
+            self.shutdown_request(request)
 
     def consume_launch_token(self, value):
         if not value or not self._launch_token_hash:
@@ -539,26 +569,32 @@ def main(argv=None):
     except ContractError as e:
         parser.error(str(e))
     station = Station(args.data)
-    launch_token = secrets.token_urlsafe(32)
-    server = Server((args.host, args.port), station, launch_token=launch_token, secure_cookie=bool(public_origin))
-    if args.start_ollama:
-        try:
-            station.ollama.start()
-        except ContractError as e:
-            print(str(e), file=sys.stderr)
-    origin = public_origin or f"http://localhost:{server.server_port}"
-    url = f"{origin}/auth/{urllib.parse.quote(launch_token, safe='')}"
-    print(f"RESIDUAL Command Station 0.3\nOpen {url}\nPress Ctrl+C to stop.", flush=True)
-    if args.open:
-        threading.Timer(0.5, lambda: webbrowser.open(url)).start()
+    server = None
     try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        pass
+        launch_token = secrets.token_urlsafe(32)
+        server = Server((args.host, args.port), station, launch_token=launch_token, secure_cookie=bool(public_origin))
+        if args.start_ollama:
+            try:
+                station.ollama.start()
+            except ContractError as e:
+                print(str(e), file=sys.stderr)
+        origin = public_origin or f"http://localhost:{server.server_port}"
+        url = f"{origin}/auth/{urllib.parse.quote(launch_token, safe='')}"
+        print(f"RESIDUAL Command Station 0.3\nOpen {url}\nPress Ctrl+C to stop.", flush=True)
+        if args.open:
+            threading.Timer(0.5, lambda: webbrowser.open(url)).start()
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            pass
     finally:
-        server.server_close()
-        if station.ollama.process and station.ollama.process.poll() is None:
-            station.ollama.stop()
+        try:
+            if server is not None:
+                server.server_close()
+            if station.ollama.process and station.ollama.process.poll() is None:
+                station.ollama.stop()
+        finally:
+            station.close()
 
 
 if __name__ == "__main__":
