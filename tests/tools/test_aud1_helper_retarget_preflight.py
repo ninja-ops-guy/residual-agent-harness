@@ -7,145 +7,88 @@ import unittest
 from unittest import mock
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-SPEC = importlib.util.spec_from_file_location(
-    "helper_retarget_preflight",
-    ROOT / "tools" / "aud1" / "helper_retarget_preflight.py",
-)
+SPEC = importlib.util.spec_from_file_location("helper_retarget_preflight", ROOT / "tools/aud1/helper_retarget_preflight.py")
 preflight = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(preflight)
+HELPER_HEAD = "a" * 40
 
 
-PROPOSED = "e815f33484352f100e11b8d075bb954a815244cc"
-
-
-class HelperRetargetPreflightTests(unittest.TestCase):
+class HelperReconciliationTests(unittest.TestCase):
     def make_helper(self, root):
         root = pathlib.Path(root)
         files = {
-            "tools/aud1/f6_collect.py":
-                f'TARGET_SHA = "{preflight.FROZEN_TARGET_SHA}"\n',
-            "tools/aud1/Run-F6-Physical.ps1":
-                f'$Target = "{preflight.FROZEN_TARGET_SHA}"\n',
-            "tools/aud1/f6_bound_station.py":
-                f'TARGET_SHA = "{preflight.FROZEN_TARGET_SHA}"\n',
-            "tools/aud1/f6_case_guard.py":
-                "TARGET_SHA = base.TARGET_SHA\n",
-            "tests/tools/test_aud1_f6_guard.py":
-                "self.assertEqual(identity['head_sha'], guard.TARGET_SHA)\n",
-            "tools/aud1/README.md":
-                f"Qualified candidate under test: {preflight.FROZEN_TARGET_SHA}\n",
-            "tools/aud1/STRICT-PHYSICAL-GATE.md":
-                f"Qualified Station candidate under test: {preflight.FROZEN_TARGET_SHA}\n",
+            "tools/aud1/f6_collect.py": f'TARGET_SHA = "{preflight.SELECTED_SHA}"\n',
+            "tools/aud1/Run-F6-Physical.ps1": f'$Target = "{preflight.SELECTED_SHA}"\n',
+            "tools/aud1/f6_bound_station.py": f'TARGET_SHA = "{preflight.SELECTED_SHA}"\n',
+            "tools/aud1/f6_case_guard.py": "TARGET_SHA = base.TARGET_SHA\n",
+            "tests/tools/test_aud1_f6_guard.py": "assert guard.TARGET_SHA\n",
+            "tools/aud1/README.md": f"Selected candidate: {preflight.SELECTED_SHA}\n",
+            "tools/aud1/STRICT-PHYSICAL-GATE.md": f"Selected candidate: {preflight.SELECTED_SHA}\n",
         }
-        for relative, content in files.items():
+        for relative, body in files.items():
             path = root / relative
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(content, encoding="utf-8")
+            path.write_text(body, encoding="utf-8")
         return root
 
-    def identity(self, head, clean=True):
-        return {
-            "path": "/fixture",
-            "head_sha": head,
-            "tree_sha": "a" * 40,
-            "clean_worktree": clean,
-            "git_errors": [],
-        }
+    def identity(self, head=HELPER_HEAD, tree="b" * 40, clean=True, ancestor=True):
+        return {"path": "/fixture", "head_sha": head, "tree_sha": tree, "clean_worktree": clean, "frozen_403_ancestor": ancestor, "git_errors": []}
 
     def run_preflight(self, helper, candidate_temp, helper_identity=None, candidate_identity=None):
-        helper_identity = helper_identity or self.identity(preflight.FROZEN_HELPER_SHA)
-        candidate_identity = candidate_identity or self.identity(PROPOSED)
-        with mock.patch.object(
-            preflight,
-            "repo_identity",
-            side_effect=[helper_identity, candidate_identity],
-        ):
-            return preflight.preflight(helper, candidate_temp, PROPOSED)
+        helper_identity = helper_identity or self.identity()
+        candidate_identity = candidate_identity or self.identity(preflight.SELECTED_SHA, preflight.SELECTED_TREE)
+        with mock.patch.object(preflight, "repo_identity", side_effect=[helper_identity, candidate_identity]):
+            return preflight.preflight(helper, candidate_temp, HELPER_HEAD)
 
-    def test_preflight_reports_atomic_plan_without_mutating_helper(self):
+    def test_all_known_pins_atomically_reconciled_passes_without_physical_execution(self):
+        with tempfile.TemporaryDirectory() as helper_temp, tempfile.TemporaryDirectory() as candidate_temp:
+            result = self.run_preflight(self.make_helper(helper_temp), candidate_temp)
+        self.assertEqual(result["status"], "PASS")
+        self.assertFalse(result["physical_f6_executed"])
+        self.assertEqual({b["path"] for b in result["bindings"] if b["kind"] == "executable"}, set(preflight.CODE_BINDINGS))
+
+    def test_wrong_selected_sha_fails(self):
+        with tempfile.TemporaryDirectory() as helper_temp, tempfile.TemporaryDirectory() as candidate_temp:
+            result = self.run_preflight(self.make_helper(helper_temp), candidate_temp, candidate_identity=self.identity("c" * 40, preflight.SELECTED_TREE))
+        self.assertEqual(result["status"], "REFUSE")
+        self.assertTrue(any("expected selected candidate" in e for e in result["errors"]))
+
+    def test_stale_438_sha_fails(self):
+        with tempfile.TemporaryDirectory() as helper_temp, tempfile.TemporaryDirectory() as candidate_temp:
+            result = self.run_preflight(self.make_helper(helper_temp), candidate_temp, candidate_identity=self.identity(preflight.STALE_438_SHA, preflight.SELECTED_TREE))
+        self.assertEqual(result["status"], "REFUSE")
+
+    def test_frozen_403_left_executable_fails(self):
         with tempfile.TemporaryDirectory() as helper_temp, tempfile.TemporaryDirectory() as candidate_temp:
             helper = self.make_helper(helper_temp)
-            before = {
-                p.relative_to(helper).as_posix(): preflight.sha256_file(p)
-                for p in helper.rglob("*") if p.is_file()
-            }
+            (helper / "tools/aud1/f6_collect.py").write_text(f'TARGET_SHA = "{preflight.FROZEN_HELPER_SHA}"\n', encoding="utf-8")
             result = self.run_preflight(helper, candidate_temp)
-            after = {
-                p.relative_to(helper).as_posix(): preflight.sha256_file(p)
-                for p in helper.rglob("*") if p.is_file()
-            }
-            self.assertEqual(result["status"], "PREPARED_NOT_AUTHORIZED")
-            self.assertFalse(result["mutated"])
-            self.assertEqual(before, after)
-            direct = [b for b in result["bindings"] if b["kind"] == "direct-code"]
-            self.assertEqual({b["path"] for b in direct}, set(preflight.CODE_BINDINGS))
-            self.assertTrue(all(b["change_required_after_selection"] for b in direct))
-            self.assertEqual(
-                {x["path"] for x in result["literal_target_locations"]},
-                set(preflight.CODE_BINDINGS) | set(preflight.DOCUMENT_BINDINGS),
-            )
+        self.assertEqual(result["status"], "REFUSE")
 
-    def test_refuses_wrong_or_dirty_helper(self):
+    def test_unknown_literal_fails(self):
         with tempfile.TemporaryDirectory() as helper_temp, tempfile.TemporaryDirectory() as candidate_temp:
             helper = self.make_helper(helper_temp)
-            result = self.run_preflight(
-                helper,
-                candidate_temp,
-                helper_identity=self.identity("b" * 40, clean=False),
-            )
-            self.assertEqual(result["status"], "REFUSE")
-            self.assertTrue(any("expected frozen #403 head" in e for e in result["errors"]))
-            self.assertIn("helper checkout is dirty", result["errors"])
-
-    def test_refuses_candidate_identity_mismatch(self):
-        with tempfile.TemporaryDirectory() as helper_temp, tempfile.TemporaryDirectory() as candidate_temp:
-            helper = self.make_helper(helper_temp)
-            result = self.run_preflight(
-                helper,
-                candidate_temp,
-                candidate_identity=self.identity("c" * 40),
-            )
-            self.assertEqual(result["status"], "REFUSE")
-            self.assertTrue(any("expected proposed target" in e for e in result["errors"]))
-
-    def test_refuses_missing_direct_target_binding(self):
-        with tempfile.TemporaryDirectory() as helper_temp, tempfile.TemporaryDirectory() as candidate_temp:
-            helper = self.make_helper(helper_temp)
-            (helper / "tools/aud1/Run-F6-Physical.ps1").write_text(
-                '$Target = "deadbeef"\n',
-                encoding="utf-8",
-            )
+            (helper / "tools/aud1/future.py").write_text(f'PIN = "{"d" * 40}"\n', encoding="utf-8")
             result = self.run_preflight(helper, candidate_temp)
-            self.assertEqual(result["status"], "REFUSE")
-            self.assertTrue(any("expected exactly one frozen target binding" in e for e in result["errors"]))
+        self.assertEqual(result["status"], "REFUSE")
+        self.assertTrue(any("unaccounted target-like literal" in e for e in result["errors"]))
 
-    def test_refuses_unaccounted_literal_target_binding(self):
+    def test_document_executable_mismatch_fails(self):
         with tempfile.TemporaryDirectory() as helper_temp, tempfile.TemporaryDirectory() as candidate_temp:
             helper = self.make_helper(helper_temp)
-            unexpected = helper / "tools/aud1/future_helper.py"
-            unexpected.write_text(
-                f'PIN = "{preflight.FROZEN_TARGET_SHA}"\n',
-                encoding="utf-8",
-            )
+            (helper / "tools/aud1/README.md").write_text("Selected candidate: omitted\n", encoding="utf-8")
             result = self.run_preflight(helper, candidate_temp)
-            self.assertEqual(result["status"], "REFUSE")
-            self.assertTrue(any("unaccounted frozen target literal" in e for e in result["errors"]))
+        self.assertEqual(result["status"], "REFUSE")
+        self.assertTrue(any("documentation pin is missing" in e for e in result["errors"]))
 
-    def test_current_frozen_target_is_not_misreported_as_retarget(self):
+    def test_candidate_tree_and_helper_identity_fail_closed(self):
         with tempfile.TemporaryDirectory() as helper_temp, tempfile.TemporaryDirectory() as candidate_temp:
             helper = self.make_helper(helper_temp)
-            with mock.patch.object(
-                preflight,
-                "repo_identity",
-                side_effect=[
-                    self.identity(preflight.FROZEN_HELPER_SHA),
-                    self.identity(preflight.FROZEN_TARGET_SHA),
-                ],
-            ):
-                result = preflight.preflight(
-                    helper, candidate_temp, preflight.FROZEN_TARGET_SHA
-                )
-            self.assertEqual(result["status"], "CURRENT_TARGET_MATCH")
+            with mock.patch.object(preflight, "repo_identity", side_effect=[self.identity("e" * 40), self.identity(preflight.SELECTED_SHA, "f" * 40)]):
+                result = preflight.preflight(helper, candidate_temp, HELPER_HEAD)
+        self.assertEqual(result["status"], "REFUSE")
+        self.assertTrue(any("expected helper identity" in e for e in result["errors"]))
+        self.assertTrue(any("expected selected tree" in e for e in result["errors"]))
 
 
 if __name__ == "__main__":

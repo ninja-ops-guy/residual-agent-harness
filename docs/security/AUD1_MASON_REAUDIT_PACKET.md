@@ -6,11 +6,11 @@ This is a reviewer packet, not an approval. The final F1/F2/F3/F4/F6 re-audit
 must be performed independently against the exact selected AUD-1 candidate and
 the separately retained physical F6 evidence.
 
-Current provisional successor under review:
+Selected successor awaiting physical evidence:
 
-`#438 @ e815f33484352f100e11b8d075bb954a815244cc`
+`#448 @ 7001bdf68355b7e5288a8cea3f4c827061aca37d`
 
-Do not treat that SHA as selected until the owner explicitly records selection.
+Physical F6-A and F6-B remain pending and must not be inferred from software CI.
 
 ## Inputs
 
@@ -26,7 +26,7 @@ At final audit time, bind every conclusion to:
 - retained first-failure evidence for C1-C6;
 - separately frozen F6-A and F6-B physical bundles.
 
-For provisional #438 only, current software evidence is:
+For historical #438 only, retained software evidence is:
 
 - Qualification-v1 run `35993248678` — PASS;
 - final artifact `10805272548`;

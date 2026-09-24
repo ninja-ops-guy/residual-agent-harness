@@ -26,7 +26,7 @@ import time
 import urllib.error
 import urllib.request
 
-TARGET_SHA = "8df77b832b3839ccd2a6944a65760ce3ab10dc9c"
+TARGET_SHA = "7001bdf68355b7e5288a8cea3f4c827061aca37d"
 SCHEMA = "residual.aud1.f6.physical.v1"
 SECRET_KEYS = {
     "session_token", "worker_token", "provider_credentials", "local_credentials",

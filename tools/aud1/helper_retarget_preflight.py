@@ -1,273 +1,163 @@
 #!/usr/bin/env python3
-"""Read-only AUD-1 helper/candidate reconciliation preflight.
-
-This tool never edits either checkout. It exists so the eventual #403 successor
-retarget is explicit, exact-SHA bound, and reviewable after candidate selection.
-"""
+"""Fail-closed reconciliation validator for the selected AUD-1 F6 helper."""
 from __future__ import annotations
 
-import argparse
-import hashlib
-import json
-import pathlib
-import re
-import subprocess
+import argparse, hashlib, json, pathlib, re, subprocess
 
+FROZEN_399_SHA = "8df77b832b3839ccd2a6944a65760ce3ab10dc9c"
 FROZEN_HELPER_SHA = "118ec3c795ae11c88b68278717fb781f4b059559"
-FROZEN_TARGET_SHA = "8df77b832b3839ccd2a6944a65760ce3ab10dc9c"
+PREPARATION_SHA = "2edee868c30c0a349adb45bff8fbded102fb783c"
+STALE_438_SHA = "e815f33484352f100e11b8d075bb954a815244cc"
+SELECTED_SHA = "7001bdf68355b7e5288a8cea3f4c827061aca37d"
+SELECTED_TREE = "6d60dd39d8c3af8d900843eb5661ca974d9a91b5"
 
 CODE_BINDINGS = {
-    "tools/aud1/f6_collect.py": f'TARGET_SHA = "{FROZEN_TARGET_SHA}"',
-    "tools/aud1/Run-F6-Physical.ps1": f'$Target = "{FROZEN_TARGET_SHA}"',
-    "tools/aud1/f6_bound_station.py": f'TARGET_SHA = "{FROZEN_TARGET_SHA}"',
+    "tools/aud1/f6_collect.py": f'TARGET_SHA = "{SELECTED_SHA}"',
+    "tools/aud1/Run-F6-Physical.ps1": f'$Target = "{SELECTED_SHA}"',
+    "tools/aud1/f6_bound_station.py": f'TARGET_SHA = "{SELECTED_SHA}"',
 }
 TRANSITIVE_BINDINGS = {
     "tools/aud1/f6_case_guard.py": "TARGET_SHA = base.TARGET_SHA",
     "tests/tools/test_aud1_f6_guard.py": "guard.TARGET_SHA",
 }
 DOCUMENT_BINDINGS = {
-    "tools/aud1/README.md": FROZEN_TARGET_SHA,
-    "tools/aud1/STRICT-PHYSICAL-GATE.md": FROZEN_TARGET_SHA,
+    "tools/aud1/README.md": SELECTED_SHA,
+    "tools/aud1/STRICT-PHYSICAL-GATE.md": SELECTED_SHA,
 }
-TARGET_SCAN_ROOTS = ("tools/aud1", "tests/tools")
+SCAN_ROOTS = ("tools/aud1", "tests/tools")
+EXTRA_SCAN_FILES = ("docs/security/AUD1_POST_REVIEW_EXECUTION_PACKET.md", "docs/security/AUD1_MASON_REAUDIT_PACKET.md")
+SHA_RE = re.compile(r"(?<![0-9a-fA-F])[0-9a-fA-F]{40}(?![0-9a-fA-F])")
+HISTORICAL_LITERALS = {
+    ("tools/aud1/STRICT-PHYSICAL-GATE.md", "03a89dfe0c76e4eaea1406304e9f41a78255a402"): "historical helper-review evidence",
+    ("tools/aud1/helper_retarget_preflight.py", FROZEN_399_SHA): "frozen #399 evidence identity",
+    ("tools/aud1/helper_retarget_preflight.py", FROZEN_HELPER_SHA): "frozen #403 ancestry identity",
+    ("tools/aud1/helper_retarget_preflight.py", PREPARATION_SHA): "unchanged #439 preparation reference",
+    ("tools/aud1/helper_retarget_preflight.py", STALE_438_SHA): "stale #438 negative-test identity",
+    ("tools/aud1/helper_retarget_preflight.py", SELECTED_TREE): "selected candidate tree binding",
+    ("tools/aud1/helper_retarget_preflight.py", "03a89dfe0c76e4eaea1406304e9f41a78255a402"): "historical helper-review evidence allowlist",
+    ("tools/aud1/helper_retarget_preflight.py", "2f9dda3882f39c28a1c766859b1bf9579eea7911"): "original audit baseline evidence allowlist",
+    ("tools/aud1/helper_retarget_preflight.py", "ee0009145f0dcc8207eceda98719db04a9af46cf"): "historical #438 tree evidence allowlist",
+    ("tests/tools/test_aud1_helper_retarget_preflight.py", FROZEN_399_SHA): "frozen #399 negative-test fixture",
+    ("tests/tools/test_aud1_helper_retarget_preflight.py", FROZEN_HELPER_SHA): "frozen #403 negative-test fixture",
+    ("tests/tools/test_aud1_helper_retarget_preflight.py", STALE_438_SHA): "stale #438 negative-test fixture",
+    ("docs/security/AUD1_POST_REVIEW_EXECUTION_PACKET.md", FROZEN_399_SHA): "frozen #399 evidence identity",
+    ("docs/security/AUD1_POST_REVIEW_EXECUTION_PACKET.md", FROZEN_HELPER_SHA): "frozen #403 ancestry identity",
+    ("docs/security/AUD1_POST_REVIEW_EXECUTION_PACKET.md", STALE_438_SHA): "historical #438 review evidence",
+    ("docs/security/AUD1_MASON_REAUDIT_PACKET.md", FROZEN_399_SHA): "frozen #399 evidence identity",
+    ("docs/security/AUD1_MASON_REAUDIT_PACKET.md", STALE_438_SHA): "historical #438 review evidence",
+    ("docs/security/AUD1_MASON_REAUDIT_PACKET.md", "2f9dda3882f39c28a1c766859b1bf9579eea7911"): "original audit baseline evidence",
+    ("docs/security/AUD1_MASON_REAUDIT_PACKET.md", "ee0009145f0dcc8207eceda98719db04a9af46cf"): "historical #438 tree evidence",
+}
 
 
 def sha256_file(path):
-    h = hashlib.sha256()
+    digest = hashlib.sha256()
     with open(path, "rb") as handle:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
-            h.update(block)
-    return h.hexdigest()
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def git(repo, *args):
-    p = subprocess.run(
-        ["git", "-C", str(repo), *args],
-        text=True,
-        capture_output=True,
-        timeout=15,
-        check=False,
-    )
-    return p.returncode, p.stdout.strip(), p.stderr.strip()
+    proc = subprocess.run(["git", "-C", str(repo), *args], text=True, capture_output=True, timeout=15, check=False)
+    return proc.returncode, proc.stdout.strip(), proc.stderr.strip()
 
 
 def repo_identity(repo):
     repo = pathlib.Path(repo).resolve()
-    rc_head, head, err_head = git(repo, "rev-parse", "HEAD")
-    rc_tree, tree, err_tree = git(repo, "rev-parse", "HEAD^{tree}")
-    rc_status, status, err_status = git(repo, "status", "--porcelain=v1")
-    return {
-        "path": str(repo),
-        "head_sha": head if rc_head == 0 else "",
-        "tree_sha": tree if rc_tree == 0 else "",
-        "clean_worktree": rc_status == 0 and not status,
-        "git_errors": [x for x in (err_head, err_tree, err_status) if x],
-    }
-
-
-def valid_sha(value):
-    return isinstance(value, str) and re.fullmatch(r"[0-9a-fA-F]{40}", value) is not None
+    rh, head, eh = git(repo, "rev-parse", "HEAD")
+    rt, tree, et = git(repo, "rev-parse", "HEAD^{tree}")
+    rs, status, es = git(repo, "status", "--porcelain=v1")
+    ra, _, ea = git(repo, "merge-base", "--is-ancestor", FROZEN_HELPER_SHA, "HEAD")
+    return {"path": str(repo), "head_sha": head if rh == 0 else "", "tree_sha": tree if rt == 0 else "", "clean_worktree": rs == 0 and not status, "frozen_403_ancestor": ra == 0, "git_errors": [x for x in (eh, et, es) if x] + ([] if ra in (0, 1) else [ea])}
 
 
 def text_files(helper_repo):
-    helper_repo = pathlib.Path(helper_repo).resolve()
-    for root_name in TARGET_SCAN_ROOTS:
-        root = helper_repo / root_name
-        if not root.exists():
-            continue
-        for path in sorted(root.rglob("*")):
-            if path.is_file():
-                yield path
+    root = pathlib.Path(helper_repo).resolve()
+    for root_name in SCAN_ROOTS:
+        scan_root = root / root_name
+        if scan_root.exists():
+            yield from (path for path in sorted(scan_root.rglob("*")) if path.is_file())
+    for relative in EXTRA_SCAN_FILES:
+        path = root / relative
+        if path.is_file():
+            yield path
 
 
 def scoped_hashes(helper_repo):
-    helper_repo = pathlib.Path(helper_repo).resolve()
-    return {
-        path.relative_to(helper_repo).as_posix(): sha256_file(path)
-        for path in text_files(helper_repo)
-    }
+    root = pathlib.Path(helper_repo).resolve()
+    return {p.relative_to(root).as_posix(): sha256_file(p) for p in text_files(root)}
 
 
-def literal_target_locations(helper_repo):
-    helper_repo = pathlib.Path(helper_repo).resolve()
-    locations = []
-    for path in text_files(helper_repo):
+def inspect_bindings(helper_repo):
+    root = pathlib.Path(helper_repo).resolve()
+    errors, bindings, literals = [], [], []
+    before = scoped_hashes(root)
+    for relative, marker in CODE_BINDINGS.items():
+        path = root / relative
+        body = path.read_text(encoding="utf-8") if path.is_file() else ""
+        count = body.count(marker)
+        if count != 1:
+            errors.append(f"{relative}: expected exactly one selected executable pin, found {count}")
+        bindings.append({"path": relative, "kind": "executable", "count": count})
+    for relative, marker in TRANSITIVE_BINDINGS.items():
+        path = root / relative
+        body = path.read_text(encoding="utf-8") if path.is_file() else ""
+        count = body.count(marker)
+        if count < 1:
+            errors.append(f"{relative}: target-binding invariant marker is missing")
+        bindings.append({"path": relative, "kind": "transitive", "count": count})
+    for relative, marker in DOCUMENT_BINDINGS.items():
+        path = root / relative
+        body = path.read_text(encoding="utf-8") if path.is_file() else ""
+        count = body.count(marker)
+        if count < 1:
+            errors.append(f"{relative}: selected documentation pin is missing")
+        bindings.append({"path": relative, "kind": "documentation", "count": count})
+    for path in text_files(root):
+        relative = path.relative_to(root).as_posix()
         try:
             body = path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             continue
-        count = body.count(FROZEN_TARGET_SHA)
-        if count:
-            locations.append({
-                "path": path.relative_to(helper_repo).as_posix(),
-                "count": count,
-            })
-    return locations
-
-
-def inspect_bindings(helper_repo, proposed_target):
-    helper_repo = pathlib.Path(helper_repo).resolve()
-    errors = []
-    bindings = []
-    hashes_before = scoped_hashes(helper_repo)
-
-    for relative, marker in CODE_BINDINGS.items():
-        path = helper_repo / relative
-        if not path.is_file():
-            errors.append(f"missing required helper binding file: {relative}")
-            continue
-        body = path.read_text(encoding="utf-8")
-        count = body.count(marker)
-        if count != 1:
-            errors.append(f"{relative}: expected exactly one frozen target binding, found {count}")
-        if proposed_target != FROZEN_TARGET_SHA and proposed_target in body:
-            errors.append(f"{relative}: proposed target is already embedded before selection")
-        bindings.append({
-            "path": relative,
-            "kind": "direct-code",
-            "frozen_marker_count": count,
-            "current_target": FROZEN_TARGET_SHA,
-            "proposed_target": proposed_target,
-            "change_required_after_selection": proposed_target != FROZEN_TARGET_SHA,
-        })
-
-    for relative, marker in TRANSITIVE_BINDINGS.items():
-        path = helper_repo / relative
-        if not path.is_file():
-            errors.append(f"missing required transitive binding file: {relative}")
-            continue
-        body = path.read_text(encoding="utf-8")
-        count = body.count(marker)
-        if count < 1:
-            errors.append(f"{relative}: target-binding invariant marker is missing")
-        bindings.append({
-            "path": relative,
-            "kind": "transitive-guard",
-            "marker": marker,
-            "marker_count": count,
-            "change_required_after_selection": False,
-        })
-
-    for relative, marker in DOCUMENT_BINDINGS.items():
-        path = helper_repo / relative
-        if not path.is_file():
-            errors.append(f"missing helper documentation: {relative}")
-            continue
-        body = path.read_text(encoding="utf-8")
-        count = body.count(marker)
-        if count < 1:
-            errors.append(f"{relative}: frozen target documentation marker is missing")
-        bindings.append({
-            "path": relative,
-            "kind": "documentation",
-            "frozen_target_occurrences": count,
-            "change_required_after_selection": proposed_target != FROZEN_TARGET_SHA,
-        })
-
-    literal_locations = literal_target_locations(helper_repo)
-    allowed_literal_files = set(CODE_BINDINGS) | set(DOCUMENT_BINDINGS)
-    unexpected = [
-        item for item in literal_locations
-        if item["path"] not in allowed_literal_files
-    ]
-    for item in unexpected:
-        errors.append(
-            f"unaccounted frozen target literal in {item['path']} ({item['count']} occurrence(s))"
-        )
-
-    hashes_after = scoped_hashes(helper_repo)
-    if hashes_after != hashes_before:
+        for sha in SHA_RE.findall(body):
+            classification = "selected-candidate" if sha == SELECTED_SHA else HISTORICAL_LITERALS.get((relative, sha))
+            literals.append({"path": relative, "sha": sha, "classification": classification})
+            if classification is None:
+                errors.append(f"unaccounted target-like literal {sha} in {relative}")
+    if scoped_hashes(root) != before:
         errors.append("helper files changed during read-only preflight")
+    return bindings, literals, before, errors
 
-    return bindings, literal_locations, hashes_before, errors
 
-
-def preflight(helper_repo, candidate_repo, proposed_target):
-    if not valid_sha(proposed_target):
-        raise ValueError("proposed target must be an exact 40-character hexadecimal commit SHA")
-    proposed_target = proposed_target.lower()
-
-    helper = repo_identity(helper_repo)
-    candidate = repo_identity(candidate_repo)
+def preflight(helper_repo, candidate_repo, expected_helper_head):
+    if not re.fullmatch(r"[0-9a-fA-F]{40}", expected_helper_head or ""):
+        raise ValueError("expected helper head must be an exact 40-character hexadecimal commit SHA")
+    helper, candidate = repo_identity(helper_repo), repo_identity(candidate_repo)
     errors = []
-
-    if helper["head_sha"] != FROZEN_HELPER_SHA:
-        errors.append(
-            f"helper checkout is {helper['head_sha']!r}; expected frozen #403 head {FROZEN_HELPER_SHA}"
-        )
-    if not helper["clean_worktree"]:
-        errors.append("helper checkout is dirty")
-    if helper["git_errors"]:
-        errors.append("helper git identity could not be read cleanly")
-
-    if candidate["head_sha"].lower() != proposed_target:
-        errors.append(
-            f"candidate checkout is {candidate['head_sha']!r}; expected proposed target {proposed_target}"
-        )
-    if not candidate["clean_worktree"]:
-        errors.append("candidate checkout is dirty")
-    if candidate["git_errors"]:
-        errors.append("candidate git identity could not be read cleanly")
-
-    bindings, literal_locations, hashes, binding_errors = inspect_bindings(
-        helper_repo, proposed_target
-    )
-    errors.extend(binding_errors)
-
-    if errors:
-        status = "REFUSE"
-    elif proposed_target == FROZEN_TARGET_SHA:
-        status = "CURRENT_TARGET_MATCH"
-    else:
-        status = "PREPARED_NOT_AUTHORIZED"
-
-    return {
-        "schema": "residual.aud1.helper-retarget-preflight.v1",
-        "status": status,
-        "mutated": False,
-        "frozen_helper": {
-            "expected_head": FROZEN_HELPER_SHA,
-            **helper,
-        },
-        "candidate": {
-            "proposed_target": proposed_target,
-            **candidate,
-        },
-        "current_helper_target": FROZEN_TARGET_SHA,
-        "bindings": bindings,
-        "literal_target_locations": literal_locations,
-        "helper_scope_sha256": hashes,
-        "required_after_selection": [
-            "record explicit owner candidate selection bound to one exact SHA",
-            "create a new helper successor from frozen #403; do not rewrite #403",
-            "atomically update every direct code target pin and candidate-specific helper documentation",
-            "retain exact-head/clean-worktree, Station-process provenance, stale-result, and closed-world evidence guards",
-            "run fresh exact-head helper CI before any physical F6 execution",
-        ],
-        "errors": errors,
-    }
+    if helper["head_sha"] != expected_helper_head.lower(): errors.append(f"helper checkout is {helper['head_sha']!r}; expected helper identity {expected_helper_head.lower()}")
+    if not helper["clean_worktree"]: errors.append("helper checkout is dirty")
+    if not helper["frozen_403_ancestor"]: errors.append(f"helper is not derived from frozen #403 {FROZEN_HELPER_SHA}")
+    if helper["git_errors"]: errors.append("helper git identity could not be read cleanly")
+    if candidate["head_sha"] != SELECTED_SHA: errors.append(f"candidate checkout is {candidate['head_sha']!r}; expected selected candidate {SELECTED_SHA}")
+    if candidate["tree_sha"] != SELECTED_TREE: errors.append(f"candidate tree is {candidate['tree_sha']!r}; expected selected tree {SELECTED_TREE}")
+    if not candidate["clean_worktree"]: errors.append("candidate checkout is dirty")
+    if candidate["git_errors"]: errors.append("candidate git identity could not be read cleanly")
+    bindings, literals, hashes, scan_errors = inspect_bindings(helper_repo)
+    errors.extend(scan_errors)
+    return {"schema": "residual.aud1.helper-reconciliation.v2", "status": "PASS" if not errors else "REFUSE", "mutated": False, "frozen_helper_sha": FROZEN_HELPER_SHA, "preparation_reference": PREPARATION_SHA, "selected_sha": SELECTED_SHA, "selected_tree": SELECTED_TREE, "helper": helper, "candidate": candidate, "bindings": bindings, "literal_inventory": literals, "helper_scope_sha256": hashes, "errors": errors, "physical_f6_executed": False}
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(
-        description="Read-only preflight for a future AUD-1 #403 helper reconciliation"
-    )
+    parser = argparse.ArgumentParser(description="Validate selected AUD-1 helper reconciliation without physical execution")
     parser.add_argument("--helper-repo", required=True)
     parser.add_argument("--candidate-repo", required=True)
-    parser.add_argument("--proposed-target", required=True)
+    parser.add_argument("--expected-helper-head", required=True)
     args = parser.parse_args(argv)
-
-    try:
-        result = preflight(args.helper_repo, args.candidate_repo, args.proposed_target)
-    except ValueError as exc:
-        result = {
-            "schema": "residual.aud1.helper-retarget-preflight.v1",
-            "status": "REFUSE",
-            "mutated": False,
-            "errors": [str(exc)],
-        }
+    try: result = preflight(args.helper_repo, args.candidate_repo, args.expected_helper_head)
+    except ValueError as exc: result = {"schema": "residual.aud1.helper-reconciliation.v2", "status": "REFUSE", "mutated": False, "errors": [str(exc)]}
     print(json.dumps(result, indent=2, sort_keys=True))
-    return 0 if result["status"] in {"CURRENT_TARGET_MATCH", "PREPARED_NOT_AUTHORIZED"} else 2
+    return 0 if result["status"] == "PASS" else 2
 
 
 if __name__ == "__main__":

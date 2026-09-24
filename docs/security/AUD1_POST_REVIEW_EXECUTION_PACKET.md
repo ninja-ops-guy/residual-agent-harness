@@ -1,29 +1,29 @@
 # AUD-1 post-review execution packet
 
-Status: **PREPARATION ONLY — NO CANDIDATE SELECTED**
+Status: **HELPER RECONCILIATION PREPARED — PHYSICAL F6 NOT EXECUTED**
 
 This packet belongs to the AUD-1 implementation lane. It does not replace the v1
 Release Convergence master checklist, shipping documentation, canary procedures,
 or release authorization.
 
-Current provisional software successor under independent review:
+Selected software candidate for helper reconciliation:
 
-`#438 @ e815f33484352f100e11b8d075bb954a815244cc`
+`#448 @ 7001bdf68355b7e5288a8cea3f4c827061aca37d`
 
 Current frozen physical helper:
 
 `#403 @ 118ec3c795ae11c88b68278717fb781f4b059559`, still bound to
 `#399 @ 8df77b832b3839ccd2a6944a65760ce3ab10dc9c`.
 
-The #438 SHA above is **not** selected merely because it is qualified. No helper
-retarget, physical test, owner attestation, merge, or release action is authorized
-by this document.
+The exact candidate was selected by the owner record on #448. This document
+authorizes no physical test, owner attestation, merge, or release action.
 
 ## Gate 0 — independent human technical review
 
 Required before candidate selection:
 
-- review exact #438 head `e815f33484352f100e11b8d075bb954a815244cc`;
+- retained historical review target: #438 head
+  `e815f33484352f100e11b8d075bb954a815244cc` (evidence only; not executable);
 - explicitly cover C1-C6;
 - explicitly assess the completion-barrier policy:
   - admitted work drains rather than being preempted;
@@ -64,14 +64,13 @@ two clean checkouts:
 
 ```text
 python tools/aud1/helper_retarget_preflight.py \
-  --helper-repo <exact-clean-403-checkout> \
+  --helper-repo <exact-clean-successor-checkout> \
   --candidate-repo <exact-clean-selected-candidate-checkout> \
-  --proposed-target <selected-40-char-SHA>
+  --expected-helper-head <exact-successor-40-char-SHA>
 ```
 
-For a not-yet-selected successor, the expected successful status is
-`PREPARED_NOT_AUTHORIZED`. That status means only that the two checkouts and
-retarget surface are coherent; it is not authorization to edit.
+For this selected successor, the expected validation status is `PASS`. It means
+only that helper reconciliation is coherent; it does not authorize physical F6.
 
 After explicit selection, the helper successor must atomically reconcile every
 candidate binding, including at minimum:
