@@ -1,0 +1,74 @@
+{
+  "schema_version": "residual-acceleration-control-plane-v1",
+  "release_freeze": true,
+  "lanes": [
+    {
+      "id": "release",
+      "title": "v1 convergence",
+      "benefit": "Ship a stable, reproducible release before expanding scope"
+    },
+    {
+      "id": "ax22",
+      "title": "AX-22 comparison",
+      "benefit": "Measure whether RESIDUAL reduces operator coordination effort"
+    },
+    {
+      "id": "slm",
+      "title": "SLM program",
+      "benefit": "Move narrow control decisions to cheaper, faster specialized models"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "qual-v1",
+      "lane": "release",
+      "scope": "required",
+      "state": "complete",
+      "depends_on": [],
+      "preparable": false,
+      "summary": "Complete release qualification"
+    },
+    {
+      "id": "tag-v1",
+      "lane": "release",
+      "scope": "required",
+      "state": "human_gate",
+      "depends_on": [
+        "qual-v1"
+      ],
+      "preparable": false,
+      "summary": "Authorize exact release candidate",
+      "owner_action": {
+        "summary": "Human release authorization",
+        "approval_text": "EXAMPLE-ONLY: replace with the repository's exact approval string",
+        "evidence_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "risk_class": "A",
+        "checks_passed": true,
+        "independent_review_passed": true,
+        "unresolved_findings": 0
+      }
+    },
+    {
+      "id": "ax22-prep",
+      "lane": "ax22",
+      "scope": "post_v1",
+      "state": "pending",
+      "depends_on": [
+        "tag-v1"
+      ],
+      "preparable": true,
+      "summary": "Prepare frozen AX-22 comparison inputs"
+    },
+    {
+      "id": "slm-00",
+      "lane": "slm",
+      "scope": "research",
+      "state": "pending",
+      "depends_on": [
+        "tag-v1"
+      ],
+      "preparable": true,
+      "summary": "Prepare SLM-00 corpus, verifiers, and benchmark freeze"
+    }
+  ]
+}
