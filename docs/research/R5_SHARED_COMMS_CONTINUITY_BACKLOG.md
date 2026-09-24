@@ -4,6 +4,11 @@ Status: planning only
 Prepared: 2026-09-23  
 R4.1 disposition supplied by the coordination handoff: `READY_FOR_CANARY`
 
+> This source backlog is preserved for provenance. Its requirements are
+> normalized into the acyclic machine-readable DAG and qualification program in
+> `docs/r5/R5_DAG.json`, `R5_QUALIFICATION_MATRIX.md`, `R5_PHASE_PLAN.md`,
+> `R5_GATE_SPECIFICATIONS.md`, and `R5_TEST_CORPUS_SPECIFICATIONS.md`.
+
 ## Scope and evidence boundary
 
 This document extracts valuable work that is explicitly **not required for the
