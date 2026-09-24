@@ -1,0 +1,32 @@
+{
+  "manifest_version": "slm-dataset-manifest-v0",
+  "created_utc": "2025-01-01T00:00:00Z",
+  "seed": 1234,
+  "tokenizer": "r50k_base",
+  "input_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "null_field_counts": {
+    "proposed_decision": 3,
+    "contamination_group": 12,
+    "notes": 40
+  },
+  "unknown_field_counts": {},
+  "splits": {
+    "train": {
+      "record_count": 900,
+      "token_count": 1823441,
+      "bin_file": "train.bin",
+      "bin_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "dtype": "uint32-le"
+    },
+    "holdout": {
+      "record_count": 100,
+      "token_count": 201553,
+      "bin_file": "holdout.bin",
+      "bin_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "dtype": "uint32-le"
+    }
+  },
+  "index_file": "index.jsonl",
+  "index_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+  "total_records": 1000
+}
