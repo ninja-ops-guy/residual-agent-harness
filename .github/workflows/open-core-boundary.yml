@@ -6,6 +6,8 @@ on:
       - "LICENSING.md"
       - "LICENSES/**"
       - "NOTICE"
+      - "CITATION.cff"
+      - "AUTHORS.md"
       - "CONTRIBUTING.md"
       - "SECURITY.md"
       - "docs/open-source/**"
@@ -15,14 +17,31 @@ on:
       - "observation_layer/**"
       - "verifier/**"
       - "tools/check_open_core_boundary.py"
+      - "tools/export_open_core.py"
+      - "tools/check_open_core_import_closure.py"
+      - "tests/test_open_core_export.py"
+      - ".github/workflows/open-core-boundary.yml"
   push:
     branches: [main]
     paths:
       - "LICENSING.md"
       - "LICENSES/**"
       - "NOTICE"
+      - "CITATION.cff"
+      - "AUTHORS.md"
+      - "CONTRIBUTING.md"
+      - "SECURITY.md"
       - "docs/open-source/**"
+      - "residual/**"
+      - "research/**"
+      - "ai_providers/**"
+      - "observation_layer/**"
+      - "verifier/**"
       - "tools/check_open_core_boundary.py"
+      - "tools/export_open_core.py"
+      - "tools/check_open_core_import_closure.py"
+      - "tests/test_open_core_export.py"
+      - ".github/workflows/open-core-boundary.yml"
 
 permissions:
   contents: read
@@ -37,7 +56,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Exercise adversarial export fixtures
+        run: python -m unittest discover -s tests -p 'test_open_core_export.py' -v
       - name: Validate open/commercial license boundary
         run: python tools/check_open_core_boundary.py
-      - name: Verify open-core export contains no reserved paths
+      - name: Verify committed-snapshot export selection
         run: python tools/export_open_core.py --list > /tmp/open-core-files.txt
+      - name: Check Python import closure across the open-core boundary
+        run: python tools/check_open_core_import_closure.py
