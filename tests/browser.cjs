@@ -6,17 +6,17 @@ const root=path.resolve(__dirname,'..'),data=fs.mkdtempSync(path.join(os.tmpdir(
 const out=process.env.STATION_QA_DIR||path.join(root,'runs','browser');fs.mkdirSync(out,{recursive:true});
 const port=Number(process.env.STATION_QA_PORT||8876),url=`http://127.0.0.1:${port}`;
 const server=spawn(process.env.PYTHON||'python3',['-m','residual.station.server','--port',String(port),'--data',data],{cwd:root,stdio:['ignore','pipe','pipe']});
-const errors=[],checks=[];let browser;
+const errors=[],checks=[];let browser,launchUrl;
 async function main(){
-  await new Promise((resolve,reject)=>{let text='';const timer=setTimeout(()=>reject(Error('Server startup timeout')),15000);server.stdout.on('data',b=>{text+=b;if(text.includes('Press Ctrl+C')){clearTimeout(timer);resolve();}});server.once('exit',code=>reject(Error('Server exited '+code)));});
+  await new Promise((resolve,reject)=>{let text='';const timer=setTimeout(()=>reject(Error('Server startup timeout')),15000);server.stdout.on('data',b=>{text+=b;const match=text.match(/Open (https?:\/\/\S+\/auth\/\S+)/);if(match)launchUrl=match[1];if(text.includes('Press Ctrl+C')){if(!launchUrl)return reject(Error('Server did not print one-time launch URL'));clearTimeout(timer);resolve();}});server.once('exit',code=>reject(Error('Server exited '+code)));});
   browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
   const context=await browser.newContext({viewport:{width:1440,height:1040}}),page=await context.newPage();
   page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error'&&!m.text().includes('400 (Bad Request)'))errors.push(m.text());});
-  await page.goto(url);await page.getByRole('heading',{name:'Welcome to the night shift.'}).waitFor();
+  await page.goto(launchUrl);await page.getByRole('heading',{name:'Welcome to the night shift.'}).waitFor();
   await page.screenshot({path:path.join(out,'01-overview-empty.png'),fullPage:true});checks.push('Empty state and onboarding render');
   await page.getByRole('button',{name:'▶ Run training mission',exact:true}).click();
   // Observe actual persisted state, rather than relying on animation timing.
-  await page.waitForFunction(async()=>{const b=await fetch('/api/bootstrap').then(r=>r.json());const r=await fetch('/api/projects',{headers:{'X-Station-Token':b.token}}).then(r=>r.json());return r.projects[0]?.tasks.every(t=>t.state==='integrated');},{},{timeout:45000});
+  await page.waitForFunction(async()=>{const r=await fetch('/api/projects').then(r=>r.json());return r.projects[0]?.tasks.every(t=>t.state==='integrated');},{},{timeout:45000});
   await page.locator('#main').click({position:{x:5,y:5}});await page.waitForTimeout(2500);
   while(await page.locator('.toast button').count()) await page.locator('.toast button').first().click();
   await page.screenshot({path:path.join(out,'02-overview-complete.png'),fullPage:true});checks.push('Training mission implements and integrates all tasks');
@@ -61,7 +61,7 @@ async function main(){
   await page.locator('[data-view="overview"]').click();await page.getByRole('button',{name:'+ New mission',exact:true}).last().click();await page.getByRole('button',{name:'Load template',exact:true}).click();await page.getByRole('button',{name:'Validate specification',exact:true}).click();await page.locator('#spec-feedback .callout').waitFor();checks.push('Markdown template validates from UI');
   await page.locator('#project-spec').fill('# Invalid specification');await page.getByRole('button',{name:'Validate specification',exact:true}).click();await page.locator('.toast.error').waitFor();checks.push('Invalid Markdown produces actionable feedback');await page.getByRole('button',{name:'Close dialog',exact:true}).click();
   while(await page.locator('.toast button').count()) await page.locator('.toast button').first().click();
-  await page.setViewportSize({width:390,height:844});await page.goto(url+'/#overview');await page.getByRole('heading',{name:'Welcome to the night shift.'}).waitFor();
+  await page.setViewportSize({width:390,height:844});await page.goto(new URL('/#overview',launchUrl).href);await page.getByRole('heading',{name:'Welcome to the night shift.'}).waitFor();
   await page.getByRole('button',{name:'Switch mission',exact:true}).click();await page.getByRole('button',{name:'Open mission',exact:true}).click();
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:path.join(out,'07-mobile-overview.png'),fullPage:true});
   await page.locator('[data-view="board"]').click();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:path.join(out,'08-mobile-board.png'),fullPage:true});checks.push('390px mobile mission switching, navigation and board have no horizontal overflow');
