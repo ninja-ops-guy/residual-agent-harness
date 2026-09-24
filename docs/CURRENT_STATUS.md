@@ -1,6 +1,6 @@
 # RESIDUAL current status
 
-_Current-state check: 2026-09-24 12:32 UTC against `main@d796f36b75e730a0bab71bdba564206174393719`._
+_Current-state check: 2026-09-24 14:23 UTC against `main@d796f36b75e730a0bab71bdba564206174393719`._
 
 This document is a human-readable current-state summary, not a replacement for exact repository bytes, retained artifacts, workflow logs, issue/PR history, or maintainer/protected-byte governance. Historical PASS/FAIL/UNKNOWN/BLOCKED evidence remains bound to the exact revision, run attempt, and environment that produced it. Git history retains earlier detailed versions of this status document.
 
@@ -10,12 +10,15 @@ Accepted `main` remains **`d796f36b75e730a0bab71bdba564206174393719`**, the merg
 
 Release convergence remains **BLOCKED**. AUD-1 issue #353 remains **OPEN with no milestone**; physical F6-A/F6-B evidence remains **UNKNOWN / not established**; the independent Mason/LEGION re-audit is outstanding; the R4.1 seal-cardinality defect still prevents the erroneous seal from serving as authorization evidence; no corrected seal exists; the v1 deployment profile remains owner/operations-undecided; and no canary, release candidate, deployment, or production acceptance has been authorized.
 
-Meaningful movement since the previous observation is concentrated in the release-readiness ledger:
+Meaningful movement since the previous observation is concentrated in PR-G27 release supply-chain work and its master ledger:
 
-- **#427** advanced from `1308115eda13af59b538fd3374a7e9f8a13f2b89` to **`9f959bc0021ec7f127978eb5cb50b020ceff05ce`** with an append-only 11:37 UTC delta recording PR-G27 action-pin audit tooling and AUD-1 C6 convergence.
-- The delta correctly keeps PR-G27 itself **IN_PROGRESS**: #437's audit tooling is review-ready, but accepted-main workflows still use mutable external-action refs and final-tree immutable pin verification is not complete.
-- It also records #438 as the unmerged C1-C6 AUD-1 successor lane and preserves the remaining independent-human, physical F6, Mason/LEGION, selected-head, integration, and resulting-main gates.
-- Exact-head #427 repository technical CI is **PASS** for Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, and Control Plane. PR-Agent advisory is **FAIL**; its retrieved job summary shows the advisory execution failed and substantive-review verification was skipped, so no advisory PASS or human review is inferred. Vercel is **FAIL** because of the external deployment build-rate limit. Maintainer approval is **FAIL / no exact-head human attestation**.
+- **#427** advanced from `9f959bc0021ec7f127978eb5cb50b020ceff05ce` to **`70f9140d2528ec7583a6a5131815c33279c72488`**, four commits ahead, adding append-only PR-G27 deltas plus a normalized exact-head evidence record.
+- **#440** is now the concrete immutable-GitHub-Actions remediation candidate at exact head **`72fd1b5eeef6204db52cafc43ff1f6b48bbde5ce`**. The dedicated `GitHub Action Pin Gate` is **PASS** on run **36002441103** and retained artifact **10809311094** is bound to that head with digest `sha256:aae9486453c8747b58b488ebc1860d03b7419a708158015bd0d6e6f58b3cf612`.
+- On the same #440 head, Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, Pages, and the dedicated pin gate are **PASS**. The retained WebVM discriminator/diagnostic workflows remain **FAIL** as a separate runtime investigation; they are not reclassified as PR-G27 failures or erased. PR-Agent advisory is **FAIL**, maintainer approval is **FAIL / no exact-head human attestation**, and Vercel is **FAIL** because of the external deployment rate limit.
+- #440 therefore advances only the immutable-action sub-requirement to **READY_FOR_REVIEW**. Parent gate PR-G27 remains **IN_PROGRESS** because independent review, guarded integration, resulting-main requalification, and broader SBOM/provenance/tamper-verification work remain incomplete.
+- Exact-head #427 repository technical CI at `70f9140...` is **PASS** for Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, and Control Plane. PR-Agent advisory is **FAIL**; maintainer approval is **FAIL / no exact-head human attestation**; Vercel is **PASS**.
+
+A separate governance/funding lane also moved: draft #441 hardens Open Core export source selection without changing accepted licensing authority, and draft #442 proposes a smaller dependency-closed Open Core boundary. #442's `Open Core Boundary` workflow and the observed repository technical workflows are **PASS** at exact head `c12817e82d065861735e132f16fd0e887d349ff7`; maintainer approval is **FAIL**, PR-Agent advisory is **FAIL**, and Vercel is externally rate-limited. Neither PR changes `main`, establishes legal approval, or authorizes a license-boundary change.
 
 The AUD-1 #438 exact head and its prior C6 qualification evidence are unchanged from the preceding observation; their status does not change accepted-main release authority.
 
@@ -68,16 +71,13 @@ Required AUD-1 sequence remains: genuine independent human review of exact #438 
 
 ## Release-readiness convergence ledger
 
-Draft **#427** (`docs(v1): add master release-readiness convergence ledger`) is **OPEN / DRAFT / UNMERGED / UNACCEPTED** at exact head **`9f959bc0021ec7f127978eb5cb50b020ceff05ce`**.
+Draft **#427** (`docs(v1): add master release-readiness convergence ledger`) is **OPEN / DRAFT / UNMERGED / UNACCEPTED** at exact head **`70f9140d2528ec7583a6a5131815c33279c72488`**.
 
-Its latest commit, `docs(v1): record PR-G27 and AUD-1 C6 convergence`, has parent `1308115eda13af59b538fd3374a7e9f8a13f2b89` and adds only `docs/v1/V1_MASTER_READINESS_DELTA_20260924_1137.md`. The delta is review-only and authorizes no canary, merge, physical test, deployment, attestation, tag, release, provider workload, elapsed soak, credential/topology mutation, or modification of frozen R4.1/Seal v2 evidence.
+Compared with the preceding observed head `9f959bc0021ec7f127978eb5cb50b020ceff05ce`, the branch is four commits ahead and adds four documentation/evidence files for PR-G27: two timestamped readiness deltas, a PR-440 delta, and `docs/v1/evidence/PR_G27_EXACT_HEAD_72fd1b5e.md`. Earlier append-only head notes are historical snapshots; the exact-head evidence appendix and current PR metadata govern the current #440 identity.
 
-The new delta records two bounded changes without broadening acceptance:
+The current normalized PR-G27 record binds the immutable-action remediation to exact #440 head **`72fd1b5eeef6204db52cafc43ff1f6b48bbde5ce`**, dedicated pin-gate run **36002441103**, artifact **10809311094**, and digest `sha256:aae9486453c8747b58b488ebc1860d03b7419a708158015bd0d6e6f58b3cf612`. It classifies the focused immutable-action remediation as **READY_FOR_REVIEW / UNMERGED**, while keeping the parent PR-G27 production gate incomplete.
 
-- **PR-G27:** #437 audit tooling advances to **READY_FOR_REVIEW**, while PR-G27 remains **IN_PROGRESS** because active accepted-main workflows still contain mutable external-action references, reviewed immutable commit selections have not been applied across the active workflow set, pinned-syntax/security assertions still need reconciliation, and final-candidate retained audit evidence is absent. Docker/container image digests remain separate.
-- **AUD-1 C6:** #438 is recorded as the current unmerged C1-C6 successor with exact-head technical PASS evidence, while independent human review, deliberate successor selection, #403/helper reconciliation, physical F6-A/F6-B, Mason/LEGION re-audit, owner attestation, guarded integration, and authoritative resulting-main qualification all remain outstanding.
-
-Exact-head #427 workflow evidence at `9f959bc...` is **PASS** for Qualification v1 run **35994440481**, Controller/provider contracts run **35994440459**, Command Station run **35994440524**, clean install run **35994440425**, Factory ownership run **35994440423**, measured-evaluation binding run **35994440510**, and Control Plane run **35994440496**. PR-Agent advisory run **35994440447** is **FAIL**; the retrieved job summary shows the advisory execution step failed and the substantive-review verification step was skipped. Maintainer approval run **35994440422** is **FAIL** because no exact-head write-capable human attestation exists. Vercel is **FAIL** with the explicit external status `Deployment rate limited — retry in 24 hours.`
+Exact-head #427 workflow evidence at `70f9140...` is **PASS** for Qualification v1 run **36009550221**, Controller/provider contracts run **36009550281**, Command Station run **36009550538**, clean install run **36009550358**, Factory ownership run **36009550212**, measured-evaluation binding run **36009550190**, and Control Plane run **36009550322**. PR-Agent advisory run **36009550290** is **FAIL**. Maintainer approval is **FAIL** because no exact-head write-capable human attestation exists. Vercel is **PASS**.
 
 The ledger continues to keep release ordering fail-closed: canary remains unauthorized/unexecuted; the actual v1 deployment/trust/SLO/RPO/RTO/backup/HA/soak profile remains blocked on owner/operations decisions; AUD-1 independent/physical closure remains outstanding; and exact-RC recovery/soak/provenance plus explicit human release authorization remain future gates.
 
@@ -109,21 +109,27 @@ This supports the environment/capability classification behind #430/ENV-G01. It 
 
 ## PR-G27 — immutable GitHub Actions dependency identity
 
-Draft **#437** (`feat(release): add immutable GitHub Actions pin audit`) is **OPEN / DRAFT / UNMERGED / UNACCEPTED** at repaired exact head **`46bdfd51c7ea1ff31ab7e3701b894b329010ff50`**.
+Draft audit **#437** (`feat(release): add immutable GitHub Actions pin audit`) remains **OPEN / DRAFT / UNMERGED / UNACCEPTED** at repaired exact head **`46bdfd51c7ea1ff31ab7e3701b894b329010ff50`**. It established the fail-closed audit contract without bulk-rewriting active workflows.
 
-It changes only:
+Successor **#440** (`fix(release): pin GitHub Actions dependencies`) is **OPEN / UNMERGED / UNACCEPTED** at exact head **`72fd1b5eeef6204db52cafc43ff1f6b48bbde5ce`**. It applies the reviewed immutable commit identities across the candidate workflow tree, records the selected pin set, preserves checkout credential-hardening assertions, requires an immutable `deploy-pages` ref, and adds the dedicated fully pinned acceptance workflow.
 
-- `docs/v1/V1_SUPPLY_CHAIN_ACTION_PINNING.md`
-- `scripts/validate_github_action_pins.py`
-- `tests/test_github_action_pins.py`
+The dedicated `GitHub Action Pin Gate` is **PASS** on run **36002441103**. Retained artifact **10809311094** is bound to the exact head with digest `sha256:aae9486453c8747b58b488ebc1860d03b7419a708158015bd0d6e6f58b3cf612`. Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and Pages are also **PASS** on the same exact head.
 
-Direct search of accepted `main@d796f36...` confirms active workflows still use mutable major-tag references including `actions/checkout@v4` and `actions/upload-artifact@v4`. This is a supply-chain identity/immutability gap; it is **not evidence that an action was compromised**.
+The branch preserved an earlier dedicated-gate failure that found a remaining mutable `actions/attest-build-provenance@v2` reference, then resolved the repository's existing v2 choice to immutable commit `e8998f949152b193b063cb0ec769d69d929409be` without weakening the audit rule. Retained WebVM discriminator/diagnostic failures remain separate and are not converted to PASS.
 
-#437's validator requires external Actions/reusable-workflow references to use 40-hex commit identities, ignores repository-local `./` actions, leaves `docker://` digest policy to a separate gate, and emits `PASS | BLOCKED` with `execution_claim: VALIDATION_ONLY`. The current repaired head also fail-closes unexpected workflow enumeration/read/report-write I/O errors; the PR intentionally does **not** bulk-rewrite active workflows.
+PR-Agent advisory remains **FAIL** and is not independent review evidence. Maintainer approval is **FAIL / no exact-head human attestation**. Vercel is **FAIL** because of the external deployment rate limit.
 
-Current exact-head #437 repository technical workflows are **PASS** for Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent. Maintainer approval is **FAIL / no exact-head human attestation**. Vercel is **FAIL** because of the same external 24-hour deployment build-rate limit, not a demonstrated RESIDUAL product-test failure.
+The focused immutable-action remediation is therefore **READY_FOR_REVIEW**, not production-verified. Parent PR-G27 remains **IN_PROGRESS** pending independent review, broader SBOM/signature/provenance/dependency-and-artifact tamper verification, guarded merge, and authoritative resulting-main requalification. Accepted `main` still contains the pre-remediation workflow bytes until an authorized merge occurs.
 
-PR-G27 therefore remains **IN_PROGRESS**. Review of the audit contract, deliberate selection/review of exact external-action commits, remediation of active workflows without weakening existing checkout/security assertions, fresh exact-head CI, and a retained final-tree audit are still required before this gate can become VERIFIED.
+## Open Core funding / governance candidates
+
+Draft **#441** (`fix: harden funding open-core exports without expanding license scope`) is stacked on the earlier open-core proposal and remains **UNMERGED / UNACCEPTED**. It hardens export source selection to one immutable Git commit, rejects unsafe/noncanonical paths and symlinks/submodules, and produces a reproducible archive receipt. It explicitly does not change either licensing manifest, the license text, protected Factory bytes, runtime implementation, or accepted `main`.
+
+Draft **#442** (`governance: candidate minimal RESIDUAL Open Core boundary`) is **OPEN / DRAFT / UNMERGED / UNACCEPTED** at exact head **`c12817e82d065861735e132f16fd0e887d349ff7`**. It proposes a narrower Apache-2.0 candidate scope centered on provider abstraction, observation, verifier tooling, and a dependency-closed verification/evidence kernel while keeping Factory, runtime orchestration, sandbox execution, lifecycle/product integration, Studio, control-plane/cluster, licensing, and enterprise implementation reserved.
+
+At exact #442 head, `Open Core Boundary`, Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, and Control Plane are **PASS**. PR-Agent advisory is **FAIL**. Maintainer approval is **FAIL / no exact-head human attestation**. Vercel is **FAIL** because of the external deployment rate limit.
+
+These results establish only candidate technical consistency. They do **not** establish legal review, ownership/provenance clearance, maintainer acceptance, a license grant on accepted `main`, grant eligibility, funding acceptance, or release authority.
 
 ## Other release-preparation candidates
 
@@ -151,7 +157,7 @@ Still **UNKNOWN / not established** or **BLOCKED** by accepted-main hosted PASS 
 - an approved v1 deployment/trust/SLO/RPO/RTO/backup/HA/soak profile;
 - executed and independently retained PR-G30 incident-response drill evidence;
 - executed and independently retained PR-G07/PR-G21 production-shaped recovery evidence;
-- immutable reviewed external GitHub Action pins across the final release workflow tree;
+- immutable reviewed external GitHub Action pins on accepted integrated main plus the broader PR-G27 SBOM/provenance/tamper-verification evidence;
 - an exact post-convergence v1 release candidate with required recovery/soak/provenance evidence;
 - blanket production readiness.
 
@@ -163,4 +169,4 @@ The accepted Factory/M4 ownership baseline and protected-byte set remain whateve
 
 This reconciliation changes only `docs/CURRENT_STATUS.md` on the existing dedicated documentation branch. Accepted main has not changed since the previous observation. No new accepted-main claim requires an edit to `README.md`, `HARNESS.md`, `START-HERE.md`, or `implementation-status.yaml`; those files are intentionally unchanged in this observation.
 
-Because this status document records qualification anchors, corrected evidence-authority interpretation, ownership-baseline context, active security successors, retained failures/unknowns, and release/canary trust-boundary state, the documentation PR must **not** be merged automatically. Exact-head human review/attestation remains required.
+Because this status document records qualification anchors, corrected evidence-authority interpretation, ownership-baseline context, active security successors, retained failures/unknowns, release/canary trust-boundary state, and an unaccepted licensing-boundary candidate, the documentation PR must **not** be merged automatically. Exact-head human review/attestation remains required.
