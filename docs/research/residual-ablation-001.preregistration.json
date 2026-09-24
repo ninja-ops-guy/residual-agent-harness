@@ -1,0 +1,144 @@
+{
+  "schema_version": "residual.research.ablation-preregistration.v1",
+  "protocol_id": "RESIDUAL-ABLATION-001",
+  "status": "APPARATUS_IMPLEMENTATION_CONFIRMATORY_EXECUTION_PENDING",
+  "architecture_inventory_commit": "91d32fd8b713c68c1cd2e473013c9e1c33b93572",
+  "research_question": "Do cumulative RESIDUAL control layers improve accepted-system reliability while worker/model capability is held constant?",
+  "arms": [
+    {
+      "config_id": "R0",
+      "role": "raw unconstrained execution"
+    },
+    {
+      "config_id": "R1",
+      "role": "orchestrated decomposition"
+    },
+    {
+      "config_id": "R2",
+      "role": "contracted worker interface"
+    },
+    {
+      "config_id": "R3",
+      "role": "constraints observation verification"
+    },
+    {
+      "config_id": "R4",
+      "role": "R3 plus deterministic integration"
+    },
+    {
+      "config_id": "R5",
+      "role": "R4 plus dynamic swarm orchestration"
+    }
+  ],
+  "held_constant_factors": [
+    "workload",
+    "provider",
+    "model_id",
+    "model_version",
+    "prompt_policy",
+    "inference_settings",
+    "tool_environment",
+    "grader",
+    "execution_environment",
+    "budget_policy"
+  ],
+  "workload_binding": "required_at_execution_freeze",
+  "workload_guard": "confirmatory workload must be frozen before outcome access; scripted development fixture is not confirmatory live evidence",
+  "primary_endpoint": {
+    "name": "accepted_and_sound_rate",
+    "formula": "P(X and A)",
+    "denominator": "all retained runs including UNKNOWN"
+  },
+  "safety_endpoint": {
+    "name": "unsafe_acceptance_rate",
+    "formula": "P(A and not X)",
+    "denominator": "all retained runs including UNKNOWN"
+  },
+  "secondary_endpoints": [
+    "false_acceptance_rate",
+    "acceptance_coverage",
+    "raw_correctness_rate",
+    "incorrect_suppression_rate",
+    "false_rejection_rate",
+    "fault_capture_rate",
+    "latency_ms",
+    "token_cost",
+    "rework",
+    "conflicts",
+    "operator_interventions",
+    "recovery",
+    "duplicate_work",
+    "unauthorized_actions"
+  ],
+  "pairing": {
+    "block": [
+      "task_id",
+      "repeat"
+    ],
+    "arms_per_block": [
+      "R0",
+      "R1",
+      "R2",
+      "R3",
+      "R4",
+      "R5"
+    ],
+    "minimum_repeats": 3
+  },
+  "confirmatory_comparisons": [
+    {
+      "lhs": "R4",
+      "rhs": "R0",
+      "purpose": "COVD system-control effect"
+    },
+    {
+      "lhs": "R5",
+      "rhs": "R4",
+      "purpose": "incremental dynamic-swarm effect"
+    }
+  ],
+  "missingness": {
+    "UNKNOWN": "retained in every unconditional denominator",
+    "conditional_zero_denominator": null,
+    "replacement_reruns": "forbidden after outcome access"
+  },
+  "stopping_rule": "no outcome-dependent early stopping",
+  "contamination_guard": [
+    "do not read or modify sealed AX/SLM experiment outcomes during confirmatory execution",
+    "do not tune workload verifier thresholds endpoints or stopping rules after outcome access",
+    "do not relabel development_fixture evidence as measured evidence",
+    "do not mix different source revisions in one confirmatory aggregate"
+  ],
+  "execution_freeze_requirements": [
+    "exact source commit and tree",
+    "frozen workload and hash",
+    "held-factor hashes",
+    "grader and verifier revisions",
+    "clean-install and ownership qualification for protected Factory path",
+    "exact workload-to-Factory-task mapping",
+    "fresh run identity chain",
+    "authenticated scheduler topology evidence",
+    "M3 receipts",
+    "isolated M4 acceptance receipts",
+    "frozen statistical analysis implementation"
+  ],
+  "non_claims": [
+    "apparatus implementation is not live empirical evidence",
+    "fixture success does not establish H1",
+    "workflow success does not imply hypothesis success"
+  ],
+  "analysis": {
+    "unit": "task_cluster_mean_across_repeats",
+    "bootstrap_iterations": 5000,
+    "bootstrap_seed": 20260921,
+    "paired_test": "paired_t",
+    "interval": "deterministic_paired_percentile_bootstrap",
+    "familywise_method": "holm_bonferroni",
+    "family": [
+      "accepted_and_sound_rate:R4-vs-R0",
+      "accepted_and_sound_rate:R5-vs-R4",
+      "unsafe_acceptance_rate:R4-vs-R0",
+      "unsafe_acceptance_rate:R5-vs-R4"
+    ]
+  }
+}
