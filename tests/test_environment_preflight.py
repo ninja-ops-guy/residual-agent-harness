@@ -1,6 +1,7 @@
 import importlib.util
 import os
 from pathlib import Path
+from types import SimpleNamespace
 import unittest
 from unittest import mock
 
@@ -67,6 +68,36 @@ class EnvironmentPreflightTests(unittest.TestCase):
             mod.REQUIRED_DISTRIBUTIONS,
             ("cryptography", "PyYAML", "hypothesis", "coverage", "pytest"),
         )
+
+    def test_signal_probe_cleans_up_child_when_signal_delivery_raises(self):
+        class FakeProcess:
+            def __init__(self):
+                self.killed = False
+                self.wait_calls = 0
+
+            def send_signal(self, _sig):
+                raise OSError("synthetic signal failure")
+
+            def poll(self):
+                return None if not self.killed else -9
+
+            def kill(self):
+                self.killed = True
+
+            def wait(self, timeout=None):
+                self.wait_calls += 1
+                return -9
+
+        fake = FakeProcess()
+        completed = SimpleNamespace(stdout="ENV_G01_SUBPROCESS_OK\n", returncode=0)
+        with mock.patch.object(mod.subprocess, "run", return_value=completed), mock.patch.object(
+            mod.subprocess, "Popen", return_value=fake
+        ):
+            result = mod._subprocess_and_signal()
+
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertTrue(fake.killed)
+        self.assertEqual(fake.wait_calls, 1)
 
 
 if __name__ == "__main__":
