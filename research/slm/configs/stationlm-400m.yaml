@@ -1,0 +1,22 @@
+# stationlm-400m.yaml — StationLM architecture config (UNTRAINED; see ../SECURITY-BOUNDARY.md)
+# Architecture only — no training has been or may be run before the SLM-00 freeze.
+#
+# Estimated parameter count: 397,570,560 (~397.57M), tied input/output embeddings.
+# Arithmetic (vocab=32000, max_seq=2048, d_model=1280, n_layers=18, ffn_mult=4):
+#   token embedding      = 32000 * 1280               = 40,960,000
+#   positional embedding = 2048 * 1280                = 2,621,440
+#   per layer            = attn 4*d^2 + ffn 8*d^2 + 2 LayerNorms 4*d
+#                        = 12*1280^2 + 4*1280         = 19,665,920
+#   18 layers            = 18 * 19,665,920            = 353,986,560
+#   final LayerNorm      = 2*1280                     = 2,560
+#   lm_head              = tied to token embedding    = 0
+#   total                = 397,570,560
+model:
+  d_model: 1280
+  n_layers: 18
+  n_heads: 20   # head_dim = 64
+  vocab_size: 32000
+  max_seq: 2048
+  ffn_mult: 4
+  dropout: 0.0
+  tie_embeddings: true
