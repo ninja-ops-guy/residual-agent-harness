@@ -1,6 +1,6 @@
 # RESIDUAL current status
 
-_Observation: 2026-09-24 18:03 UTC. Exact revisions below are snapshots; changed heads require fresh evidence._
+_Observation: 2026-09-24 20:15 UTC. Exact revisions below are snapshots; changed heads require fresh evidence._
 
 This is a status record, not acceptance authority. Historical PASS/FAIL/UNKNOWN/BLOCKED remains bound to the exact revision, run attempt, and environment that produced it.
 
@@ -19,6 +19,24 @@ Custom audit run **36034977554** retained these claim states:
 - Separate-directory and loopback positive controls: **PASS**.
 
 These are bounded audit findings, not release qualification.
+
+## #447 — seal JSON-boundary successor
+
+#447 is **OPEN / DRAFT / UNMERGED / UNACCEPTED / NOT HUMAN-REVIEWED** at **`ad524c461aa60426695f226f541e172c557b8e98`**, stacked on #443 exact head `d2c8bb907da0c51f0bd56c9f5cb0114816b93205`.
+
+It rejects duplicate JSON keys, NaN/Infinity constants, non-object roots, malformed legacy parents, and fallback from a present invalid primary metadata block. Local exact-file replay recorded **39 methods PASS, zero skips**. Fresh exact-head hosted workflows are **PASS** for Qualification v1 **36049403636**, Controller/provider **36049403872**, Command Station **36049404018**, clean install **36049404011**, Factory ownership **36049403837**, measured-evaluation binding **36049403869**, and Control Plane **36049404090**. PR-Agent advisory **36049403994** is **FAIL**; maintainer approval is **FAIL**; Vercel is **PASS**; submitted human reviews remain **0**.
+
+These results are candidate-scoped only. Full **PR-G26 remains BLOCKED / NOT VERIFIED** pending human review, private direct-source semantic/provenance verification, and explicit package-closure policy.
+
+## #448 — Station ownership / exposure successor
+
+#448 is **OPEN / DRAFT / UNMERGED / UNACCEPTED / NOT HUMAN-REVIEWED** at **`a873123f0e97441bf8aad30acbe9c223d18089b3`**, stacked on #438 exact head `e815f33484352f100e11b8d075bb954a815244cc`.
+
+It proposes exclusive Station data-directory ownership and routes direct Server construction through the existing AUD-1 exposure validator. Local focused evidence reports **39 methods PASS, zero skips**, but hosted exact-head CI is mixed: clean install **PASS** **36050962782**, Factory ownership **PASS** **36050962781**, Control Plane **PASS** **36050962770**, measured-evaluation **PASS** **36050962808**, Pages **PASS** **36050962799**; Command Station **FAIL** **36050962794**, Controller/provider **FAIL** **36050962818**, Qualification v1 **FAIL** **36050962822**, and PR-Agent **FAIL** **36050962802**. Maintainer approval is **FAIL**; Vercel is **PASS**; submitted human reviews remain **0**.
+
+The observed Python 3.11 Command Station and Controller/provider failures include existing same-directory restart/concurrency fixtures creating a second live `Station`; the candidate raises `StationOwnershipError: Station data directory is already owned`. Qualification v1 also has multiple failed subjobs. Their workflow conclusions remain **FAIL** and no broader root-cause claim is inferred.
+
+#448 therefore does **not** establish qualified CV-06 closure, supported-platform ownership behavior, or constructor exposure-policy closure. Fresh qualification is required after test/recovery reconciliation that preserves the one-owner invariant.
 
 ## #446 — exclusions audit
 
@@ -73,7 +91,7 @@ The ledger is coordination evidence only and does not override newer exact-head 
 
 ## Unresolved blockers
 
-Release remains **BLOCKED** on Station process exclusivity or approved claims revision; supported Server exposure-policy closure; Shared Comms inclusion/exclusion; #443 qualification and private PR-G26 verification; full PR-G28 lock/offline-build evidence; owner/operations approval of claims and deployment profile; AUD-1 independent review, physical F6-A/F6-B and Mason/LEGION re-audit; corrected/private seal verification and canary authorization; exact-RC recovery, incident, elapsed-soak, provenance, and final release authorization.
+Release remains **BLOCKED** on qualification-clean Station process exclusivity and supported Server exposure enforcement; reconciliation of restart/recovery fixtures without weakening the one-owner invariant; Shared Comms inclusion/exclusion; PR-G26 human review plus private semantic/provenance verification and package-closure policy; full PR-G28 lock/offline-build evidence; owner/operations approval of claims and deployment profile; AUD-1 independent review, exact successor selection, physical F6-A/F6-B and Mason/LEGION re-audit; corrected/private seal verification and canary authorization; exact-RC recovery, incident, elapsed-soak, provenance, and final release authorization.
 
 ## Documentation scope
 
