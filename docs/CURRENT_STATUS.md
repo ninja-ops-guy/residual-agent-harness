@@ -1,6 +1,6 @@
 # RESIDUAL current status
 
-_Current-state check: 2026-09-24 05:10 UTC against `main@d796f36b75e730a0bab71bdba564206174393719`._
+_Current-state check: 2026-09-24 06:05 UTC against `main@d796f36b75e730a0bab71bdba564206174393719`._
 
 This document is a human-readable current-state summary, not a replacement for exact repository bytes, retained artifacts, workflow logs, issue/PR history, or maintainer/protected-byte governance. Historical PASS/FAIL/BLOCKED evidence remains bound to the exact revision, run attempt, and environment that produced it. Git history retains earlier detailed versions of this status document.
 
@@ -51,13 +51,23 @@ Fresh exact-head `d41a9428...` Qualification v1, Controller/provider contracts, 
 
 ## Release-readiness convergence ledger
 
-New draft **#427** (`docs(v1): add master release-readiness convergence ledger`) is **DRAFT / OPEN / UNMERGED / UNACCEPTED** at exact head `570b82f05042725f01ab4dc1916a9c13b5d60ea0`. It adds only `docs/v1/V1_MASTER_READINESS.md` and is explicitly review-only planning/coordination. It does not authorize a canary, merge, deployment, physical test, tag, attestation, or production mutation.
+Draft **#427** (`docs(v1): add master release-readiness convergence ledger`) is **DRAFT / OPEN / UNMERGED / UNACCEPTED** at exact head `570b82f05042725f01ab4dc1916a9c13b5d60ea0`. It adds only `docs/v1/V1_MASTER_READINESS.md` and is explicitly review-only planning/coordination. It does not authorize a canary, merge, deployment, physical test, tag, attestation, or production mutation.
 
 The ledger consolidates pre-canary, canary, post-canary, AUD-1, production-qualification, RC/release, R5/post-v1, and research dependencies. It keeps #399/#403/#416 under the existing AUD-1 closure lane, records the #415 50-entry cardinality correction, treats #423/#426 findings as scope decisions rather than silently accepted live defects, and keeps optional research/post-v1 work off the v1 critical path unless separately promoted by verified evidence.
 
-At this observation, #427 exact-head Clean install, PR-Agent, measured-evaluation binding, Control Plane, and Factory ownership are **PASS**. Vercel is **PASS**. Maintainer approval is **FAIL / no matching human attestation**. Qualification v1, Controller/provider contracts, and Command Station are **UNKNOWN / in progress**. No incomplete #427 CI result is promoted to PASS here.
+Fresh exact-head #427 Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent are **PASS**. Vercel is **PASS**. Exact-head maintainer approval is **FAIL / no matching human attestation**. These PASS results qualify only #427's exact bytes; they do not convert the ledger into release authorization or establish the underlying physical/canary/production claims it tracks.
 
 The ledger itself does not close existing blockers. Its current dependency model still leaves canary authorization blocked on explicit scope/authority prerequisites, production v1 blocked on AUD-1 physical/independent closure and deployment-scope authority, and final release blocked on exact-RC recovery/soak/provenance plus human release authorization.
+
+## Release-operations candidates
+
+Three new review-only release/convergence candidates are present; none is accepted-main state and none authorizes a canary, release candidate, tag, deployment, or production acceptance.
+
+**#428** (`fix(release): bind v1 receipt to post-convergence RC`) is **DRAFT / OPEN / UNMERGED / UNACCEPTED** at exact head `1bf6097f9c528f8bce7d15947bafbc2d5b58cf43`. It is stacked on the #418 release-operations branch rather than directly on `main`. It preserves the frozen R4.1 identity as `canary_provenance`, separates the eventual release `candidate` as an exact post-convergence RC identity, requires RC/final tags to bind to the selected candidate, and adds a cross-field release-receipt validator plus negative regressions. Exact-head Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent are **PASS**; Vercel is **PASS**; maintainer approval is **FAIL / no matching human attestation**. No RC has been selected and #428 does not repair or authorize the R4.1 seal/canary boundary.
+
+**#429** (`fix(release): align package version metadata`) is **DRAFT / OPEN / UNMERGED / UNACCEPTED** at exact head `9d38d87df9bfa5004d3eb5d7144e60ef1ced56f7`, directly based on `main@d796f36...`. Accepted main currently has a release-metadata mismatch: `pyproject.toml` declares `0.5.0` while `residual.__version__` declares `0.4.0`. #429 proposes only to align `residual.__version__` to `0.5.0` and add a regression requiring those declarations to remain equal. Exact-head Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, PR-Agent, and Pages are **PASS**; Vercel is **PASS**; maintainer approval is **FAIL / no matching human attestation**. This does **not** set `1.0.0`; final v1 version normalization remains a later RC gate.
+
+**#430** (`feat(qualification): add ENV-G01 capability preflight`) is **DRAFT / OPEN / UNMERGED / UNACCEPTED** at exact head `756e540ca64fa953ca389e2d3441f9229d7969de`, directly based on `main@d796f36...`. It adds a stdlib-only machine-readable environment/capability preflight that reports per-capability and overall `PASS | BLOCKED`, fails closed on missing reference/runtime capabilities, and records only an allowlisted environment subset. It explicitly does **not** reinterpret #425's restricted-environment broad-suite failures as product failures or PASS and does not yet change existing Qualification-v1 workflow execution. Exact-head Qualification v1, Controller/provider contracts, Command Station, clean install, Factory ownership, measured-evaluation binding, Control Plane, and PR-Agent are **PASS**; Vercel is **PASS**; maintainer approval is **FAIL / no matching human attestation**.
 
 ## Additional review-only findings
 
@@ -87,6 +97,6 @@ The accepted Factory/M4 ownership baseline and protected-byte set remain whateve
 
 ## Documentation scope
 
-This reconciliation changes only `docs/CURRENT_STATUS.md` on the existing dedicated documentation branch. Accepted-main searches found no `44/44` or prior #416-head claim requiring a new edit in `README.md`, `HARNESS.md`, `START-HERE.md`, or `implementation-status.yaml`. They are intentionally unchanged in this observation.
+This reconciliation changes only `docs/CURRENT_STATUS.md` on the existing dedicated documentation branch. Accepted-main searches found no `44/44`, superseded #416 head, or release-version claim requiring a new edit in `README.md`, `HARNESS.md`, `START-HERE.md`, or `implementation-status.yaml`; historical/versioned `0.4.0` references elsewhere are not silently rewritten as current release metadata. They are intentionally unchanged in this observation.
 
 Because this status document records qualification anchors, corrected evidence-authority interpretation, ownership-baseline context, active security successors, retained failures/unknowns, and release/canary trust-boundary state, the documentation PR must **not** be merged automatically. Exact-head human review/attestation remains required.
