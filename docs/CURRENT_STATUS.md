@@ -1,8 +1,6 @@
 # RESIDUAL current status
 
-_Observation: 2026-09-24 16:37 UTC. Fresh scope: accepted main, #443 containment
-repair and terminal checks, and #427 ledger reconciliation. Exact revisions below
-are observed snapshots, not promises that moving branches remain unchanged._
+_Observation: 2026-09-24 17:02 UTC. Fresh scope: accepted main, current #443 PR-G26 containment state, #444 PR-G28 parser-contract repair and terminal checks, #445 claims-contract proposal, and #427 ledger exact-head CI. Exact revisions below are observed snapshots, not promises that moving branches remain unchanged._
 
 This is a human-readable status record, not acceptance authority. Historical
 PASS/FAIL/UNKNOWN/BLOCKED remains bound to the exact revision, run attempt and
@@ -30,9 +28,28 @@ Draft #427 is **OPEN / DRAFT / UNMERGED / UNACCEPTED** at observed head
 `docs/v1/V1_MASTER_READINESS_DELTA_PR443_CONTAINMENT.md` and
 `docs/v1/V1_MASTER_READINESS_DELTA_PR443_CONTAINMENT_CI.md` preserve, respectively,
 the reproduced finding/repair/pending observation and subsequent terminal CI.
-Its claims-contract and PR-G28 deltas remain intact. Older `485e9d79...`,
-`ace6968d...`, `e543c066...`, `4e648c6d...` and `07f76866...` references are
-historical snapshots, not this observation's ledger head.
+Its exact-head Qualification-v1, controller/provider, Command Station, clean-install,
+Factory ownership, Control Plane and measured-evaluation workflows are **PASS**;
+PR-Agent advisory and maintainer approval are **FAIL**, and Vercel is externally
+rate-limited. Older `485e9d79...`, `ace6968d...`, `e543c066...`,
+`4e648c6d...` and `07f76866...` references are historical snapshots.
+
+#444 is now **OPEN / REPAIRED / UNMERGED / UNACCEPTED** at exact head
+**`78c34d3d7fde7b5edf8488a0842acb96270cfb95`** after retaining parser-contract
+failures on a test-only predecessor and hardening the release-lock validator.
+All seven named exact-head technical workflows are **PASS**; PR-Agent advisory and
+maintainer approval are **FAIL** and Vercel is **PASS**. This advances only
+repository-side PR-G28 tooling. A complete authoritative transitive lock, trusted
+resolution/build environment, offline hash-enforced install/build and exact-RC
+reproducibility remain **BLOCKED / NOT VERIFIED**.
+
+#445 is **OPEN / DRAFT / UNMERGED / UNACCEPTED** at exact head
+**`b91f574c0c73f51b5dc30302f7ab33a5e5563e09`**. It proposes the v1 claims
+contract and RC verification matrix; it is **OWNER/OPERATIONS APPROVAL REQUIRED**,
+not an approval receipt. Its seven named technical workflows are **PASS**;
+PR-Agent advisory and maintainer approval are **FAIL**, and Vercel is externally
+rate-limited. No product claim, exclusion, deployment profile, canary GO or release
+authority becomes accepted merely because the proposal's CI is green.
 
 No corrected seal, private Seal v2 verification, independent human acceptance,
 canary authorization, physical F6 evidence, RC, deployment, release or production
@@ -124,23 +141,75 @@ retained ledger. No sealed artifact or private runtime source is modified here.
 
 ## Claims contract, deployment profile and dependency matrix
 
-The retained #427 claims delta makes **V1-CLAIMS-001 / #445** the controlling
-owner/operations decision: approve v1 promises and enforceable exclusions before
-closing applicability decisions. #445 is a proposal, not an approval receipt.
-Deployment/trust profile, canary threat model, release dependency matrix and
-acceptance/soak procedures derive from that approved contract.
+Draft **#445** (`docs(v1): propose claims contract and RC verification matrix`) is
+**OPEN / DRAFT / UNMERGED / UNACCEPTED** at exact head
+**`b91f574c0c73f51b5dc30302f7ab33a5e5563e09`**, two commits ahead of accepted
+main and changing only:
 
-The #444 PR-G28 tooling snapshot is
-`1403429dbdcb3abf04bcb1fb75fd1a2bad93cfbc`. Its recorded technical checks are
-review-ready, but a validator is not a complete authoritative transitive lock.
-Approved release matrix, separately authorized dependency resolution, hashed
-artifacts, offline/reproducible build and exact-RC binding remain outstanding.
-PR-G28 remains **BLOCKED / NOT VERIFIED**.
+- `docs/v1/V1_CLAIMS_CONTRACT.md`
+- `docs/v1/V1_CLAIMS_VERIFICATION_MATRIX.md`
+
+The proposal places explicit v1 promises/exclusions ahead of release mechanics.
+Its current proposal includes a trusted single-user/local-operator boundary,
+loopback-only direct Station exposure, remote-worker eligibility only after an
+approved authenticated transport plus AUD-1 acceptance, one authoritative Station
+process per v1 data directory, no automatic-HA/shared-multi-host-SQLite claim, and
+a proposed 72-hour continuous soak default with reset on claim-affecting RC
+changes. These are **proposed contract terms**, not accepted product claims.
+
+Exact-head #445 repository evidence is **PASS** for Qualification-v1
+**36026747306**, controller/provider **36026747278**, Command Station
+**36026747311**, clean install **36026747436**, Factory ownership **36026747313**,
+Control Plane **36026747354**, and measured-evaluation binding **36026747340**.
+PR-Agent advisory **36026747493** is **FAIL**. Maintainer approval
+**36026747293** is **FAIL**; no exact-head human acceptance is established.
+Vercel is **FAIL** because of the external build-rate limit.
+
+Owner/operations approval of the claims and enforceable exclusions remains the
+controlling decision before closing applicability questions. Approval of #445
+would still not itself approve #438, authorize canary execution, select an RC,
+deploy production, create a release tag, or satisfy final release authorization.
+
+**#444** (`feat(release): add PR-G28 dependency lock contract`) is
+**OPEN / REPAIRED / UNMERGED / UNACCEPTED** at exact repair head
+**`78c34d3d7fde7b5edf8488a0842acb96270cfb95`**, tree
+`72bd0e0e4024dc1e7afdec42955eb65389e1260b`. Relative to the previously
+recorded review/tooling head `1403429dbdcb3abf04bcb1fb75fd1a2bad93cfbc`,
+the repair is two commits ahead and changes the handoff document, validator and
+new adversarial regression corpus.
+
+The retained finding is bounded to the parser contract: the earlier validator
+accepted wildcard versions, normalized-name duplicates expressed with different
+separator forms, arbitrary trailing tokens and a URL-shaped version. A retained
+test-only predecessor records the failures. The repaired validator fully consumes
+a deliberately narrow lock grammar, normalizes project-name separator runs and
+case before duplicate checks, requires complete SHA-256 tokens, rejects
+unsupported sources/options/markers and malformed versions, and fails closed on
+unreadable or invalid-UTF-8 input. Local Linux/Python 3.13.5 evidence records
+**27 test methods PASS, zero skips** on repaired source; this is separate from
+hosted repository qualification.
+
+Fresh exact-head #444 repository evidence is **PASS** for Qualification-v1
+**36031075835**, controller/provider **36031075526**, Command Station
+**36031075781**, clean install **36031075619**, Factory ownership **36031075436**,
+Control Plane **36031075765**, and measured-evaluation binding **36031075822**.
+PR-Agent advisory **36031075856** is **FAIL**. Maintainer approval
+**36031075980** is **FAIL**; no exact-head human attestation exists. Vercel is
+**PASS**.
+
+These results advance the repaired parser/validator only. **PR-G28 remains
+BLOCKED / NOT VERIFIED**: there is still no authoritative
+`requirements-release.lock`, no authorized complete transitive resolution,
+no authenticated package-artifact hash set, no network-disabled hash-enforced
+install/build proof, and no reproducibility evidence bound to the exact selected
+RC. The #427 PR-G28 delta still points to the older `1403429d...` snapshot and
+must therefore be treated as historical for current #444 exact-head claims until
+the ledger itself is append-only reconciled.
 
 #426 / V1-PC-002..004 findings still require explicit scope/threat-model
 reconciliation. An exclusion must be approved and enforced; documentation alone
 does not exclude a reachable capability. None of these parent gates advances
-through the #443 containment patch.
+through #443, #444 or #445 alone.
 
 ## AUD-1 security convergence — retained, not re-audited here
 
@@ -195,7 +264,8 @@ ownership baselines, qualification anchors, evidence schemas, provider authority
 security implementation, licensing authority or acceptance authority.
 
 This observation changes only `docs/CURRENT_STATUS.md` on #364. Earlier README
-and HARNESS edits on that branch are not changed. No main write, merge,
+and HARNESS edits on that branch are not changed. `START-HERE.md` and
+`implementation-status.yaml` are unchanged; accepted main itself is unchanged. No main write, merge,
 auto-merge, approval, attestation, canary, live-service action, credential change,
 physical test, seal operation, deployment, tag or release is authorized. Exact-head
 human review remains required before accepting this documentation PR.
