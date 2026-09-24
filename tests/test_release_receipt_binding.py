@@ -53,6 +53,12 @@ class ReleaseReceiptBindingTests(unittest.TestCase):
         with self.assertRaisesRegex(mod.ReceiptBindingError, "rc_tag.commit"):
             mod.validate_binding(doc)
 
+    def test_rejects_unverified_rc_tag_signature(self):
+        doc = copy.deepcopy(self.doc)
+        doc["rc_tag"]["signature_verified"] = False
+        with self.assertRaisesRegex(mod.ReceiptBindingError, "rc_tag signature"):
+            mod.validate_binding(doc)
+
     def test_rejects_wrong_canary_provenance(self):
         doc = copy.deepcopy(self.doc)
         doc["canary_provenance"]["candidate"]["commit"] = "5" * 40
@@ -71,6 +77,17 @@ class ReleaseReceiptBindingTests(unittest.TestCase):
 
         doc["final_tag"]["commit"] = "6" * 40
         with self.assertRaisesRegex(mod.ReceiptBindingError, "final_tag.commit"):
+            mod.validate_binding(doc)
+
+    def test_rejects_unverified_final_tag_signature(self):
+        doc = copy.deepcopy(self.doc)
+        doc["final_tag"] = {
+            "name": "v1.0.0",
+            "commit": doc["candidate"]["commit"],
+            "signature_verified": False,
+        }
+        doc["binding_verification"]["candidate_final_equal"] = True
+        with self.assertRaisesRegex(mod.ReceiptBindingError, "final_tag signature"):
             mod.validate_binding(doc)
 
     def test_binding_flags_fail_closed(self):
