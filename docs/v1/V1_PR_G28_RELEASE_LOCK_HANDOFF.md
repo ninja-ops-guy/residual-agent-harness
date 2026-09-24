@@ -64,3 +64,44 @@ enforced. It does not make PR-G28 VERIFIED.
 
 No dependency downloads, installs, canary, production action, tag, release,
 attestation, merge, or frozen-evidence mutation are authorized by this proposal.
+
+## PAR-20260924-D grammar repair
+
+The original parser at `1403429dbdcb3abf04bcb1fb75fd1a2bad93cfbc`
+accepted a wildcard version, dot/hyphen duplicate aliases, ignored trailing
+text, and a URL-shaped version. The earlier report is retained at
+https://github.com/ninja-ops-guy/residual-agent-harness/pull/444#issuecomment-5818161454 .
+
+The repaired validator consumes every token. Its supported input is deliberately
+narrower than pip's general requirements format:
+
+- ASCII project names start/end with an alphanumeric character; comparisons
+  normalize every run of `-`, `_`, and `.` to one hyphen and lowercase the name.
+- Versions use `[N!]N(.N)*[{a|b|rc}N][.postN][.devN]`, where each N is a
+  nonnegative decimal integer without leading zeros except zero itself.
+  Optional local labels use `+` and lowercase alphanumeric dot-separated segments.
+  Wildcards, legacy/version aliases, URLs and ranges are not accepted.
+- Each subsequent token is exactly `--hash=sha256:` plus 64 lowercase hex digits.
+  At least one such token is mandatory; any unconsumed token rejects the entry.
+- Spaces/tabs, LF/CRLF, blank lines and standalone comments are supported.
+  A continuation backslash must follow whitespace after a complete token;
+  unterminated, blank/comment-interrupted and token-splitting continuations fail.
+- Environment markers, extras in names, inline comments, source/index options,
+  included requirement files and other pip directives are not supported.
+  Generate a separately approved concrete lock per support-matrix target when
+  required; never silently drop unsupported syntax from a supplied lock.
+- Invalid, unreadable or undecodable input fails with a typed error. The CLI
+  returns exit 2 and BLOCKED, with no PASS output, for these contract failures.
+
+This is a validation grammar, not a version resolver or a general PEP 440
+normalizer. Hash syntax does not authenticate package bytes, prove transitive
+closure or establish an offline/reproducible build. All parent PR-G28 gates above
+remain unchanged.
+
+Primary syntax references:
+https://packaging.python.org/en/latest/specifications/name-normalization/
+https://packaging.python.org/en/latest/specifications/version-specifiers/
+https://pip.pypa.io/en/stable/topics/secure-installs/
+
+Run the original and additive adversarial suites together:
+`python -m unittest -v tests.test_release_lock_contract tests.test_release_lock_adversarial`
