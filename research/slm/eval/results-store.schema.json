@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "slm-results-store-v0",
+  "title": "EXP-M6-SLM research results store record",
+  "description": "One appended run record in the digest-chained, append-only research results store. Separate from production logs. Metric names follow EVALUATION-PROTOCOL.md (eval-protocol-v1.0.0): VMSR, VSMS/$, VSMS/W, FNER, AVR, frontier calls avoided, UER, operator-active minutes, latency, schema-invalid output rate, ECE, Brier, throughput.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "seq",
+    "run_id",
+    "prev_digest",
+    "digest",
+    "model_hash",
+    "benchmark_hash",
+    "harness_condition",
+    "seed",
+    "seed_index",
+    "hardware",
+    "metrics"
+  ],
+  "properties": {
+    "schema_version": {"const": "slm-results-store-v0"},
+    "seq": {"type": "integer", "minimum": 0},
+    "run_id": {"type": "string", "pattern": "^slm-run-[0-9a-f]{12}-[0-9]{6}$"},
+    "prev_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "model_hash": {
+      "type": "string",
+      "description": "SHA-256 digest of the exact model artifact (incl. quantization variant)."
+    },
+    "benchmark_hash": {
+      "type": "string",
+      "description": "Hash of the frozen benchmark manifest (Control Bench v0 or later version)."
+    },
+    "harness_condition": {
+      "type": "string",
+      "enum": ["A", "B", "C", "D", "E", "F"],
+      "description": "SLM-05 harness ablation condition."
+    },
+    "seed": {
+      "type": "integer",
+      "enum": [20260920, 4117, 89123, 777001, 5551212],
+      "description": "Seed drawn from the frozen seed list, in order."
+    },
+    "seed_index": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4,
+      "description": "Index into the frozen seed list (recorded per run per protocol section 7)."
+    },
+    "hardware": {
+      "type": "object",
+      "description": "Exact SKU/class, memory, driver/runtime versions, node count, thermal/power-capping state.",
+      "required": ["sku"],
+      "properties": {
+        "sku": {"type": "string"},
+        "memory_gb": {"type": "number"},
+        "driver_runtime": {"type": "string"},
+        "node_count": {"type": "integer", "minimum": 1},
+        "power_capping": {"type": "string"}
+      }
+    },
+    "inference_config": {
+      "type": "object",
+      "description": "Runtime+version, prompt/template digest, decoding params, context length, batch size."
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Frozen metric names only; values are numbers. Safety metrics (fner, avr) are reported standalone and never composited.",
+      "properties": {
+        "vmsr": {"type": "number"},
+        "vsms_per_dollar": {"type": "number"},
+        "vsms_per_watt": {"type": "number"},
+        "fner": {"type": "number", "minimum": 0, "maximum": 1},
+        "avr": {"type": "number", "minimum": 0, "maximum": 1},
+        "frontier_calls_avoided": {"type": "number"},
+        "uer": {"type": "number", "minimum": 0, "maximum": 1},
+        "operator_active_minutes": {"type": "number", "minimum": 0},
+        "latency_ms_median": {"type": "number", "minimum": 0},
+        "latency_ms_p95": {"type": "number", "minimum": 0},
+        "latency_ms_p99": {"type": "number", "minimum": 0},
+        "schema_invalid_rate": {"type": "number", "minimum": 0, "maximum": 1},
+        "ece": {"type": "number", "minimum": 0},
+        "brier": {"type": "number", "minimum": 0, "maximum": 1},
+        "throughput_decisions_per_sec": {"type": "number", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "raw_outputs": {
+      "type": "array",
+      "description": "Raw per-item outputs (or content-addressed references to them) needed for replay/audit without secret material.",
+      "items": {"type": ["object", "string"]}
+    },
+    "exclusions": {
+      "type": "array",
+      "description": "Preregistered exclusions only (protocol section 8), each with reason and affected item_ids/contamination_groups.",
+      "items": {"type": "object"}
+    }
+  },
+  "additionalProperties": false
+}
