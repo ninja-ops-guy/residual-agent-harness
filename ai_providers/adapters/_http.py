@@ -56,8 +56,10 @@ def map_http_error(provider, status, body='', headers=None):
         return AuthenticationError(provider=provider, code='auth_rejected', status=status,
                                    failover_allowed=True)
     if status == 403:
-        return ProviderError(provider=provider, code='policy_denied', status=status,
-                             retryable=False, failover_allowed=False)
+        # Preserve the public authentication-error type expected by existing
+        # adapters while keeping policy denial fail-closed for continuity.
+        return AuthenticationError(provider=provider, code='policy_denied', status=status,
+                                   retryable=False, failover_allowed=False)
     if status == 404:
         return ModelNotFoundError(provider=provider, code='model_not_found', status=status)
     if status == 429:
