@@ -15,25 +15,38 @@ PROVIDERS={
  'google':{'label':'Google Gemini','base_url':'https://generativelanguage.googleapis.com/v1beta'},
  'azure':{'label':'Azure OpenAI','base_url':''},
  'bedrock':{'label':'AWS Bedrock','base_url':''},
+ 'moonshot':{'label':'Moonshot / Kimi','base_url':'https://api.moonshot.ai/v1'},
+ 'kimi_claw':{'label':'Kimi Claw / OpenClaw','base_url':'http://127.0.0.1:18789/v1'},
 }
-ENV_KEYS={'openai':'OPENAI_API_KEY','openai_compatible':'LLM_API_KEY','anthropic':'ANTHROPIC_API_KEY','google':'GEMINI_API_KEY','azure':'AZURE_OPENAI_API_KEY','ollama':'OLLAMA_API_KEY'}
+ENV_KEYS={'openai':'OPENAI_API_KEY','openai_compatible':'LLM_API_KEY','anthropic':'ANTHROPIC_API_KEY','google':'GEMINI_API_KEY','azure':'AZURE_OPENAI_API_KEY','ollama':'OLLAMA_API_KEY','moonshot':'MOONSHOT_API_KEY','kimi_claw':'KIMI_CLAW_TOKEN'}
 
 
 def normalize_profile(profile,placement):
     if not isinstance(profile,dict) or profile.get('kind') not in PROVIDERS: raise ContractError('Choose a supported provider')
     kind=profile['kind']; model=profile.get('model','')
     if not isinstance(model,str) or not model or len(model)>500 or any(ord(c)<32 for c in model): raise ContractError('Enter a model or deployment ID')
-    if placement=='local' and kind not in {'ollama','openai_compatible'}: raise ContractError('Local routes require Ollama or a compatible loopback server')
+    if placement=='local' and kind not in {'ollama','openai_compatible','kimi_claw'}: raise ContractError('Local routes require Ollama, Kimi Claw, or a compatible loopback server')
     region=profile.get('region') or 'us-east-1'
     base=profile.get('base_url') or PROVIDERS[kind]['base_url']
     if kind=='bedrock' and not base:
         import re
         if not re.fullmatch(r'[a-z]{2}(?:-[a-z]+)+-\d',region): raise ContractError('Enter a valid AWS region')
         base=f'https://bedrock-runtime.{region}.amazonaws.com'
-    try: base=validate_url(base,kind,local=placement=='local')
-    except ProviderError: raise ContractError('Local endpoints must use loopback; network endpoints require HTTPS without credentials or query parameters') from None
+    try:
+        if kind=='kimi_claw':
+            if placement!='local': raise ProviderError(provider=kind,code='config')
+            from ai_providers.adapters.kimi_claw_adapter import _kimi_claw_agent_target, _kimi_claw_base_url
+            base=_kimi_claw_base_url(base)
+            model=_kimi_claw_agent_target(model)
+        elif kind=='moonshot':
+            from ai_providers.adapters.moonshot_adapter import _moonshot_base_url
+            base=_moonshot_base_url(base)
+        else:
+            base=validate_url(base,kind,local=placement=='local')
+    except ProviderError:
+        raise ContractError('Provider endpoint is not permitted for the selected provider identity/placement') from None
     if placement=='local' and kind=='ollama' and (model.endswith(('-cloud',':cloud')) or ':cloud-' in model): raise ContractError('Ollama cloud models belong in a cloud route')
-    cap=profile.get('output_token_field','max_completion_tokens')
+    cap=profile.get('output_token_field','max_tokens' if kind=='moonshot' else 'max_completion_tokens')
     if cap not in {'max_tokens','max_completion_tokens'}: raise ContractError('Invalid output-limit field')
     return {'kind':kind,'model':model,'base_url':base,'placement':placement,'output_token_field':cap,
             'region':region,'api_version':profile.get('api_version') or '2024-10-21'}
@@ -41,7 +54,11 @@ def normalize_profile(profile,placement):
 
 def make_adapter(profile,credentials=None):
     p=profile; kind=p['kind']; c=credentials or {}
-    key=c.get('api_key') or (os.environ.get('RESIDUAL_LOCAL_API_KEY') if p.get('placement')=='local' else os.environ.get(ENV_KEYS.get(kind,'')))
+    if kind=='kimi_claw':
+        from ai_providers.adapters.kimi_claw_adapter import resolve_kimi_claw_secret
+        key=c.get('api_key') or resolve_kimi_claw_secret() or os.environ.get('RESIDUAL_LOCAL_API_KEY')
+    else:
+        key=c.get('api_key') or (os.environ.get('RESIDUAL_LOCAL_API_KEY') if p.get('placement')=='local' else os.environ.get(ENV_KEYS.get(kind,'')))
     if kind=='google': key=key or os.environ.get('GOOGLE_API_KEY')
     if kind in {'openai','openai_compatible'}:
         from ai_providers.adapters.openai_adapter import OpenAIAdapter,OpenAICompatibleAdapter
@@ -49,6 +66,12 @@ def make_adapter(profile,credentials=None):
     if kind=='ollama':
         from ai_providers.adapters.ollama_adapter import OllamaAdapter
         return OllamaAdapter(p['base_url'],api_key=key)
+    if kind=='moonshot':
+        from ai_providers.adapters.moonshot_adapter import MoonshotAdapter
+        return MoonshotAdapter(key,p['base_url'],output_token_field=p['output_token_field'])
+    if kind=='kimi_claw':
+        from ai_providers.adapters.kimi_claw_adapter import KimiClawAdapter
+        return KimiClawAdapter(key,p['base_url'],output_token_field=p['output_token_field'])
     if kind=='anthropic':
         from ai_providers.adapters.anthropic_adapter import AnthropicAdapter
         return AnthropicAdapter(key,p['base_url'])
