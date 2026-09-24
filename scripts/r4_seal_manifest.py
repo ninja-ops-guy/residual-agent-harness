@@ -9,13 +9,19 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+from contextlib import contextmanager
 import hashlib
 import json
+import os
 from pathlib import Path, PurePosixPath
 import re
+import stat
 
 
 LINE = re.compile(r"^([0-9a-f]{64})  (.+)$")
+_SECURE_OPEN = os.open in os.supports_dir_fd and all(
+    hasattr(os, flag) for flag in ("O_NOFOLLOW", "O_DIRECTORY", "O_NONBLOCK")
+)
 
 
 class ManifestError(ValueError):
@@ -28,11 +34,15 @@ class ManifestEntry:
     relative_path: str
 
 
-def parse_authoritative_manifest(manifest: Path) -> tuple[ManifestEntry, ...]:
-    """Parse every non-empty manifest line and reject ambiguity."""
+def _parse_manifest(raw_bytes: bytes) -> tuple[ManifestEntry, ...]:
+    """Parse the same manifest bytes that are bound into the result digest."""
+    try:
+        text = raw_bytes.decode("utf-8")
+    except UnicodeError as error:
+        raise ManifestError("manifest is not UTF-8") from error
     entries: list[ManifestEntry] = []
     seen: set[str] = set()
-    for line_number, raw in enumerate(manifest.read_text(encoding="utf-8").splitlines(), 1):
+    for line_number, raw in enumerate(text.splitlines(), 1):
         if not raw.strip():
             continue
         match = LINE.fullmatch(raw)
@@ -40,7 +50,8 @@ def parse_authoritative_manifest(manifest: Path) -> tuple[ManifestEntry, ...]:
             raise ManifestError(f"invalid SHA256SUMS entry at line {line_number}")
         digest, name = match.groups()
         path = PurePosixPath(name)
-        if path.is_absolute() or ".." in path.parts or name in {"", "."}:
+        if (path.is_absolute() or ".." in path.parts or name in {"", "."}
+                or path.as_posix() != name or "\x00" in name or "\\" in name):
             raise ManifestError(f"unsafe manifest path at line {line_number}: {name!r}")
         if name in seen:
             raise ManifestError(f"duplicate manifest path at line {line_number}: {name!r}")
@@ -51,30 +62,102 @@ def parse_authoritative_manifest(manifest: Path) -> tuple[ManifestEntry, ...]:
     return tuple(entries)
 
 
+@contextmanager
+def _package_root(path: Path):
+    """Anchor the caller-selected, stable package directory once.
+
+    Root selection is trusted. This is not a mount/hard-link isolation or a
+    concurrent-content-mutation proof. Unsupported platforms fail closed.
+    """
+    if not _SECURE_OPEN:
+        raise ManifestError("secure no-follow verification is unavailable on this platform")
+    try:
+        root = path.parent.resolve(strict=True)
+        descriptor = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    except (OSError, RuntimeError) as error:
+        raise ManifestError("cannot open package root") from error
+    try:
+        yield descriptor
+    finally:
+        os.close(descriptor)
+
+
+@contextmanager
+def _regular_file(root_fd: int, name: str):
+    """Walk from an anchored descriptor; never reopen a checked pathname.
+
+    O_NOFOLLOW applies at every component, including the leaf. O_NONBLOCK
+    prevents a FIFO from hanging before fstat rejects non-regular files.
+    """
+    parts = PurePosixPath(name).parts
+    if not parts or PurePosixPath(name).is_absolute() or ".." in parts:
+        raise ManifestError(f"unsafe file path: {name!r}")
+    parent_fd = os.dup(root_fd)
+    file_fd = None
+    try:
+        for part in parts[:-1]:
+            next_fd = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+                              dir_fd=parent_fd)
+            os.close(parent_fd)
+            parent_fd = next_fd
+        file_fd = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
+                          dir_fd=parent_fd)
+        if not stat.S_ISREG(os.fstat(file_fd).st_mode):
+            raise ManifestError(f"not a regular file: {name!r}")
+        source = os.fdopen(file_fd, "rb")
+        file_fd = None  # ownership transferred to source
+        with source:
+            yield source
+    except (OSError, ValueError) as error:
+        if isinstance(error, ManifestError):
+            raise
+        raise ManifestError(f"cannot read regular file without symlinks: {name!r}") from error
+    finally:
+        if file_fd is not None:
+            os.close(file_fd)
+        os.close(parent_fd)
+
+
+def parse_authoritative_manifest(manifest: Path) -> tuple[ManifestEntry, ...]:
+    """Parse a regular, non-symlink manifest without following its leaf."""
+    with _package_root(manifest) as root_fd:
+        with _regular_file(root_fd, manifest.name) as source:
+            return _parse_manifest(source.read())
+
+
 def file_sha256(path: Path) -> str:
     digest = hashlib.sha256()
-    with path.open("rb") as source:
-        for block in iter(lambda: source.read(1024 * 1024), b""):
-            digest.update(block)
+    with _package_root(path) as root_fd:
+        with _regular_file(root_fd, path.name) as source:
+            for block in iter(lambda: source.read(1024 * 1024), b""):
+                digest.update(block)
     return digest.hexdigest()
 
 
 def verify_authoritative_manifest(manifest: Path) -> dict[str, object]:
-    """Verify all entries and return count derived directly from the manifest."""
-    manifest = manifest.resolve()
-    entries = parse_authoritative_manifest(manifest)
+    """Verify regular, non-symlink entries below one anchored package root."""
     failures: list[str] = []
-    for entry in entries:
-        target = manifest.parent / entry.relative_path
-        if not target.is_file() or file_sha256(target) != entry.sha256:
-            failures.append(entry.relative_path)
+    with _package_root(manifest) as root_fd:
+        with _regular_file(root_fd, manifest.name) as source:
+            raw_manifest = source.read()
+        entries = _parse_manifest(raw_manifest)
+        for entry in entries:
+            try:
+                digest = hashlib.sha256()
+                with _regular_file(root_fd, entry.relative_path) as source:
+                    for block in iter(lambda: source.read(1024 * 1024), b""):
+                        digest.update(block)
+                if digest.hexdigest() != entry.sha256:
+                    failures.append(entry.relative_path)
+            except ManifestError:
+                failures.append(entry.relative_path)
     if failures:
         raise ManifestError("authoritative manifest verification failed: " + ", ".join(failures))
     return {
         "entry_count": len(entries),
         "entries_verified": len(entries),
         "entries_failed": 0,
-        "sha256sums_sha256": file_sha256(manifest),
+        "sha256sums_sha256": hashlib.sha256(raw_manifest).hexdigest(),
         "verification": "PASS",
     }
 
