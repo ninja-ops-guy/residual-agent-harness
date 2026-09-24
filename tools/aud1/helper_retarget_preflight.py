@@ -77,7 +77,10 @@ def text_files(helper_repo):
     for root_name in SCAN_ROOTS:
         scan_root = root / root_name
         if scan_root.exists():
-            yield from (path for path in sorted(scan_root.rglob("*")) if path.is_file())
+            yield from (
+                path for path in sorted(scan_root.rglob("*"))
+                if path.is_file() and "__pycache__" not in path.parts and path.suffix != ".pyc"
+            )
     for relative in EXTRA_SCAN_FILES:
         path = root / relative
         if path.is_file():
