@@ -3,28 +3,32 @@
 Status: planning only. This document grants no authority to run a canary,
 promote, tag, deploy, or change production.
 
-Candidate source: `8701367db6d3202f24b3eb9f4696b0cadf657985`
+Canary provenance candidate: `8701367db6d3202f24b3eb9f4696b0cadf657985`
 
-Candidate tree: `79bfe6ed1743907065ed44aeb9c460c47527e0c6`
+Canary provenance tree: `79bfe6ed1743907065ed44aeb9c460c47527e0c6`
 
-Candidate parent: `eada7577cf6f2de875b508c6a82f47870e3aa673`
+Canary provenance parent: `eada7577cf6f2de875b508c6a82f47870e3aa673`
 
-Entry condition: independently verified `CANARY_PASS` for the candidate above.
+Entry condition: independently verified `CANARY_PASS` for the canary provenance
+candidate above. The final v1 release candidate is selected later from the accepted
+post-convergence repository state and is not pre-bound to the R4.1 canary commit.
 
 ## Shortest safe critical path
 
 1. **Post-canary verification:** freeze the canary bundle; verify its hashes,
-   authorization, exact candidate identity, one receiver effect, receipt-first
-   recovery, stable protected services, zero unauthorized mutation, and a
-   successful rollback rehearsal. Human gate: Canary Verifier signs the result.
+   authorization, exact canary-candidate identity, one receiver effect,
+   receipt-first recovery, stable protected services, zero unauthorized mutation,
+   and a successful rollback rehearsal. Human gate: Canary Verifier signs the
+   result.
 2. **Promotion eligibility:** an independent reviewer confirms all R4.1 and
    canary evidence is complete and no open severity-1/2 defect or unaccepted
    release exception exists. Human gate: Release Manager records `GO`.
-3. **Release candidate:** recover the candidate into a controlled repository,
-   require the supplied commit/tree/parent to match, create a protected RC branch,
-   normalize the package version to `1.0.0`, build once, and sign/attest the exact
-   artifacts. Human gate: Release Manager authorizes RC creation; authorized
-   Maintainer performs it.
+3. **Release candidate:** after all approved release-critical changes have landed
+   and resulting main has authoritative qualification, select one exact repository
+   commit/tree/parent as the RC source, create a protected RC branch, normalize the
+   package version to `1.0.0`, build once, and sign/attest the exact artifacts.
+   Record the R4.1 canary candidate separately as provenance. Human gate: Release
+   Manager authorizes RC creation; authorized Maintainer performs it.
 4. **Production qualification:** qualify those exact artifact bytes, including
    fresh install, full required suite, SBOM/signature verification, migration
    rehearsal, configuration compatibility, backup restore drill, security scan,
@@ -72,7 +76,7 @@ expires at the end of its deployment window.
 |---|---|---|---|
 | `CANARY_PASS` | Post-canary evidence verified | Canary Verifier | `POST_CANARY_VERIFIED` |
 | `POST_CANARY_VERIFIED` | Promotion packet complete | Release Manager | `PROMOTION_ELIGIBLE` |
-| `PROMOTION_ELIGIBLE` | Provenance recovered and version fixed | Release Manager + Maintainer | `RC_CREATED` |
+| `PROMOTION_ELIGIBLE` | Post-convergence RC source selected and version fixed | Release Manager + Maintainer | `RC_CREATED` |
 | `RC_CREATED` | Exact-artifact qualification passes | Qualification Lead | `PROD_QUALIFIED` |
 | `PROD_QUALIFIED` | All approvals and window valid | Security + Operations + Product Owner + Release Manager | `RELEASE_APPROVED` |
 | `RELEASE_APPROVED` | Preflight/backup/prestate pass | Incident Commander + Deployment Operator | `DEPLOYING` |
@@ -87,17 +91,25 @@ perform one of these transitions automatically.
 
 The RC packet must contain:
 
-- commit, tree, parent, clean-tree assertion, and a signed mapping from the
-  isolated qualification candidate to the controlled repository object;
-- R4.1 seal, 17/17 qualification result, authoritative 50-entry manifest, canary
-  bundle, post-canary decision, and every referenced SHA-256;
-- two-person verification that the recovered commit is byte-for-byte identical;
+- selected release commit, tree, parent, clean-tree assertion, accepted-main
+  qualification identity, and the human decision that selected those bytes;
+- separate canary provenance binding to R4.1 commit/tree/parent, Seal v2, 17/17
+  qualification result, authoritative 50-entry manifest, canary bundle,
+  post-canary decision, and every referenced SHA-256;
+- independent verification that RC tag target equals the selected release commit;
+  the same equality is reverified for the final `v1.0.0` tag;
 - source archive hash; dependency lock/toolchain/runner identities; build command,
   UTC time, builder identity, build logs, and hermeticity/network declaration;
 - artifact name, media type, byte size, SHA-256, registry digest, signature,
   provenance attestation, and SBOM hash for every deployable unit;
 - test/scan/soak reports bound to the same artifact digest; no mutable tags as
   evidence; and a signed changelog/release-note hash.
+
+`RELEASE_RECEIPT_SCHEMA.json` deliberately treats the final release candidate as
+a separate identity from the fixed R4.1 canary provenance. JSON Schema alone does
+not provide portable cross-field equality, so `scripts/validate_release_receipt.py`
+must also PASS to prove `rc_tag.commit == candidate.commit` and, after closure,
+`final_tag.commit == candidate.commit`.
 
 Build once after the version metadata gate. The exact qualified bytes are the
 only bytes deployable. Copying between registries must preserve and reverify the
@@ -109,8 +121,8 @@ an amended commit creates a new RC and invalidates downstream approvals.
 - Resolve the current metadata mismatch (`pyproject.toml` says `0.5.0` while
   `residual.__version__` says `0.4.0`) before RC creation. Both must report
   `1.0.0`, and an automated assertion must prevent recurrence.
-- Use signed annotated `v1.0.0-rc.N` tags on the exact RC commit after human RC
-  authorization. RC numbering is monotonic; never move or reuse a tag.
+- Use signed annotated `v1.0.0-rc.N` tags on the exact selected RC commit after
+  human RC authorization. RC numbering is monotonic; never move or reuse a tag.
 - After the rollback window, place signed annotated `v1.0.0` on that same commit.
   The final tag identifies already deployed/qualified bytes; it triggers no build
   or deployment. Registry aliases such as `stable` are optional pointers only.
