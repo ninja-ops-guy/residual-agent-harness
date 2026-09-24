@@ -1,6 +1,6 @@
 # RESIDUAL current status
 
-_Observation: 2026-09-24 20:15 UTC. Exact revisions below are snapshots; changed heads require fresh evidence._
+_Observation: 2026-09-24 20:36 UTC. Exact revisions below are snapshots; changed heads require fresh evidence._
 
 This is a status record, not acceptance authority. Historical PASS/FAIL/UNKNOWN/BLOCKED remains bound to the exact revision, run attempt, and environment that produced it.
 
@@ -8,17 +8,15 @@ This is a status record, not acceptance authority. Historical PASS/FAIL/UNKNOWN/
 
 Accepted `main` remains **`d796f36b75e730a0bab71bdba564206174393719`**. No newer PR has merged.
 
-Release convergence remains **BLOCKED**. The most meaningful new evidence is draft **#446**, which executed the proposed v1 enforceable-exclusion audit against exact claims source `9eba077817720021174671ba1652b59fb801b670` and exact AUD-1 source `e815f33484352f100e11b8d075bb954a815244cc`.
+Release convergence remains **BLOCKED**. The most meaningful new evidence is the #448 Station-ownership/exposure successor advancing from retained failing head `a873123f0e97441bf8aad30acbe9c223d18089b3` to **`7001bdf68355b7e5288a8cea3f4c827061aca37d`** after reconciling legacy restart/recovery fixtures with the one-live-owner invariant.
 
-Custom audit run **36034977554** retained these claim states:
+The original #446 audit findings remain authoritative for the audited sources: CV-06 process exclusivity **FAIL** on both audited sources; claims-source non-loopback CLI default **FAIL**; AUD-1-source CLI default **PASS**; direct Server-constructor enforcement **FAIL** on both audited sources; and CV-09 Shared Comms recovery/exclusion **BLOCKED**. Those retained FAIL/BLOCKED observations are not erased by later candidate work.
 
-- CV-06 one-authoritative-Station-per-data-directory: **FAIL** on both audited sources. Two Station processes using the same directory remained live concurrently, so process exclusivity is not established on those entry paths.
-- Non-loopback CLI default: claims source **FAIL**; AUD-1 source **PASS**.
-- Non-loopback direct Server-constructor default: **FAIL** on both sources at the intercepted bind-policy boundary. The audit did not create a live non-loopback listener.
-- CV-09 Shared Comms recovery/exclusion: **BLOCKED** because approved inclusion/exclusion and the selected source are not established.
-- Separate-directory and loopback positive controls: **PASS**.
+At the new #448 head, the four commits after `a873123f...` modify only test/qualification fixtures: restart paths now explicitly close the prior Station owner before reopen, observation concurrency remains concurrent within one admitted owner before close/reopen, active-workload recovery uses explicit owner handoff, and persistence fault probes close the prior owner before reopen. No ownership/exposure production implementation was weakened.
 
-These are bounded audit findings, not release qualification.
+Fresh exact-head #448 repository workflows are now **PASS** for Qualification v1 **36055071092**, Controller/provider **36055071013**, Command Station **36055070941**, clean install **36055070983**, Factory ownership **36055071115**, measured-evaluation **36055070939**, Control Plane **36055070914**, and Pages **36055071006**. Qualification-v1 macOS lifecycle, Windows lifecycle, deterministic, active-workload, persistence fault-injection, M4, browser, concurrency, red-team, and aggregate jobs also completed successfully. Final qualification artifact **10832271898** has GitHub-reported digest `sha256:f64a9d3b6b8d59a6e2b5e0428830a360232f60c0b426f54943e1c7f36ccd11e9`; workflow metadata reports head SHA `7001bdf...`. PR-Agent is **FAIL**; maintainer approval is **FAIL**; Vercel is **FAIL** from the external deployment-rate limit; submitted human reviews remain **0**.
+
+This is exact-head candidate qualification only. It does not select #448 as AUD-1 authority, close #446's historical findings on accepted sources, retarget #403, establish physical F6-A/F6-B, satisfy Mason/LEGION re-audit, merge the repair, or establish production acceptance.
 
 ## #447 — seal JSON-boundary successor
 
@@ -30,13 +28,37 @@ These results are candidate-scoped only. Full **PR-G26 remains BLOCKED / NOT VER
 
 ## #448 — Station ownership / exposure successor
 
-#448 is **OPEN / DRAFT / UNMERGED / UNACCEPTED / NOT HUMAN-REVIEWED** at **`a873123f0e97441bf8aad30acbe9c223d18089b3`**, stacked on #438 exact head `e815f33484352f100e11b8d075bb954a815244cc`.
+#448 is **OPEN / DRAFT / UNMERGED / UNACCEPTED / NOT HUMAN-REVIEWED** at **`7001bdf68355b7e5288a8cea3f4c827061aca37d`**, stacked on #438 exact head `e815f33484352f100e11b8d075bb954a815244cc`.
 
-It proposes exclusive Station data-directory ownership and routes direct Server construction through the existing AUD-1 exposure validator. Local focused evidence reports **39 methods PASS, zero skips**, but hosted exact-head CI is mixed: clean install **PASS** **36050962782**, Factory ownership **PASS** **36050962781**, Control Plane **PASS** **36050962770**, measured-evaluation **PASS** **36050962808**, Pages **PASS** **36050962799**; Command Station **FAIL** **36050962794**, Controller/provider **FAIL** **36050962818**, Qualification v1 **FAIL** **36050962822**, and PR-Agent **FAIL** **36050962802**. Maintainer approval is **FAIL**; Vercel is **PASS**; submitted human reviews remain **0**.
+Its production candidate still proposes exclusive Station data-directory ownership and routes direct Server construction through the existing AUD-1 exposure validator. Predecessor head **`a873123f0e97441bf8aad30acbe9c223d18089b3`** is retained as the first hosted integration failure: Command Station **36050962794 FAIL**, Controller/provider **36050962818 FAIL**, and Qualification v1 **36050962822 FAIL**, with final qualification artifact **10830043598** / `sha256:b54ef839c8541a1559a8b13da2c06a6845f70c9fca61f3db1d7b98a524a5847d`.
 
-The observed Python 3.11 Command Station and Controller/provider failures include existing same-directory restart/concurrency fixtures creating a second live `Station`; the candidate raises `StationOwnershipError: Station data directory is already owned`. Qualification v1 also has multiple failed subjobs. Their workflow conclusions remain **FAIL** and no broader root-cause claim is inferred.
+Those predecessor failures traced to legacy restart/recovery fixtures constructing a second live `Station` over the same data directory while the prior owner remained alive. The successor does **not** weaken exclusivity. The four commits from `a873123f...` to current head change only:
 
-#448 therefore does **not** establish qualified CV-06 closure, supported-platform ownership behavior, or constructor exposure-policy closure. Fresh qualification is required after test/recovery reconciliation that preserves the one-owner invariant.
+- `tests/station/test_station.py`
+- `tests/modular/test_observations.py`
+- `scripts/qualification_active_workload.py`
+- `tests/qualification/test_fault_injection.py`
+
+The reconciled fixtures explicitly close the prior owner before reopen while preserving stale-lease, recovery, concurrency, fail/repair/review/integrate/export, and corruption assertions.
+
+Fresh current-head repository evidence is:
+
+- Qualification v1 **36055071092 — PASS**
+- Controller/provider **36055071013 — PASS**
+- Command Station **36055070941 — PASS**
+- clean install **36055070983 — PASS**
+- Factory ownership **36055071115 — PASS**
+- measured-evaluation **36055070939 — PASS**
+- Control Plane **36055070914 — PASS**
+- Pages **36055071006 — PASS**
+- PR-Agent **36055070906 — FAIL**
+- maintainer approval — **FAIL**
+- Vercel — **FAIL**, external deployment-rate limit
+- submitted human reviews — **0**
+
+Qualification-v1's macOS lifecycle, Windows lifecycle, deterministic, active-workload, fault-injection, M4, browser, concurrency, red-team and aggregate jobs all completed **PASS**. Final qualification artifact **10832271898** has GitHub-reported digest `sha256:f64a9d3b6b8d59a6e2b5e0428830a360232f60c0b426f54943e1c7f36ccd11e9`; workflow metadata reports head SHA **`7001bdf...`**. Artifact metadata was inspected; this observation does not claim an independent archive redownload/re-hash.
+
+Candidate-level software qualification therefore advanced materially from retained **FAIL** at `a873123f...` to exact-head technical **PASS** at `7001bdf...`. The original #446 audited-source findings remain retained history and accepted `main` still lacks this repair. #448 remains unselected and not human-reviewed; it does not establish AUD-1 acceptance, physical F6 evidence, Mason/LEGION closure, or production readiness.
 
 ## #446 — exclusions audit
 
@@ -91,7 +113,7 @@ The ledger is coordination evidence only and does not override newer exact-head 
 
 ## Unresolved blockers
 
-Release remains **BLOCKED** on qualification-clean Station process exclusivity and supported Server exposure enforcement; reconciliation of restart/recovery fixtures without weakening the one-owner invariant; Shared Comms inclusion/exclusion; PR-G26 human review plus private semantic/provenance verification and package-closure policy; full PR-G28 lock/offline-build evidence; owner/operations approval of claims and deployment profile; AUD-1 independent review, exact successor selection, physical F6-A/F6-B and Mason/LEGION re-audit; corrected/private seal verification and canary authorization; exact-RC recovery, incident, elapsed-soak, provenance, and final release authorization.
+Release remains **BLOCKED** on human review/selection and accepted-main integration of the now technically green #448 Station ownership/exposure successor; preservation of the retained #446 audited-source FAIL/BLOCKED record; Shared Comms inclusion/exclusion; PR-G26 human review plus private semantic/provenance verification and package-closure policy; full PR-G28 lock/offline-build evidence; owner/operations approval of claims and deployment profile; AUD-1 independent review, exact successor selection, physical F6-A/F6-B and Mason/LEGION re-audit; corrected/private seal verification and canary authorization; exact-RC recovery, incident, elapsed-soak, provenance, and final release authorization.
 
 ## Documentation scope
 
