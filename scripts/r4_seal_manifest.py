@@ -169,14 +169,44 @@ def verify_authoritative_manifest(manifest: Path) -> dict[str, object]:
     }
 
 
+def _unique_seal_object(pairs):
+    """Reject ambiguous duplicate names at every JSON object depth."""
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ManifestError(f"duplicate seal JSON key: {key!r}")
+        result[key] = value
+    return result
+
+
+def _reject_seal_constant(value):
+    raise ManifestError(f"nonstandard seal JSON constant: {value}")
+
+
+def _load_seal_object(seal_json: Path) -> dict:
+    try:
+        seal = json.loads(seal_json.read_text(encoding="utf-8"),
+                          object_pairs_hook=_unique_seal_object,
+                          parse_constant=_reject_seal_constant)
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise ManifestError("seal is not readable valid UTF-8 JSON") from error
+    if not isinstance(seal, dict):
+        raise ManifestError("seal JSON root must be an object")
+    return seal
+
+
 def verify_seal_cardinality(manifest: Path, seal_json: Path) -> dict[str, object]:
     """Independently recompute cardinality and reject seal metadata mismatch."""
     derived = verify_authoritative_manifest(manifest)
-    seal = json.loads(seal_json.read_text(encoding="utf-8"))
-    recorded = seal.get("authoritative_manifest")
-    keys = ("entry_count", "entries_verified")
-    if not isinstance(recorded, dict):
-        recorded = seal.get("authoritative_evidence", {}).get("sha256sums_verification")
+    seal = _load_seal_object(seal_json)
+    if "authoritative_manifest" in seal:
+        recorded = seal["authoritative_manifest"]
+        keys = ("entry_count", "entries_verified")
+    else:
+        legacy = seal.get("authoritative_evidence")
+        if not isinstance(legacy, dict):
+            raise ManifestError("seal lacks an authoritative evidence object")
+        recorded = legacy.get("sha256sums_verification")
         keys = ("entries_verified",)
     if not isinstance(recorded, dict):
         raise ManifestError("seal lacks authoritative manifest metadata")
