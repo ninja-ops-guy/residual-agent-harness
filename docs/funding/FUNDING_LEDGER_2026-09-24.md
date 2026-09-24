@@ -33,6 +33,13 @@ This ledger distinguishes submissions, fit inquiries, holds, and technical readi
 - **Question:** whether an unaffiliated individual can apply/receive directly, whether fiscal sponsorship/entity formation is needed, and whether grant-funded research can be separated from pre-existing commercial IP
 - **No application/award/investment terms accepted**
 
+### RAAIS Foundation — rolling open-source AI grants
+- **Status:** FIT INQUIRY SENT 2026-09-24
+- **Route:** info@raais.org
+- **Official program:** rolling three-month open-source AI research/project grants
+- **Question:** whether a fully open grant-funded research workstream is eligible when pre-existing/independently funded commercial RESIDUAL implementation remains outside the grant
+- **No application/award/licensing terms accepted**
+
 ## Active prior applications — do not duplicate
 
 Prior funding records indicate active or previously submitted applications to:
