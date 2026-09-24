@@ -231,7 +231,7 @@
       .terminal-bar b { color: var(--g); letter-spacing: .12em; }
       .command-line { display: flex; gap: 10px; min-height: 25px; color: var(--w); }
       .command-line::before { content: "$"; color: var(--g); }
-      .typed-command { display: inline-block; overflow: hidden; white-space: nowrap; width: 0; border-right: 2px solid var(--g); animation: type-command 4.8s steps(39,end) infinite; }
+      .typed-command { display: inline-block; overflow: hidden; white-space: nowrap; width: 0; border-right: 2px solid var(--g); animation: type-command 4.8s steps(78,end) infinite; }
       .terminal-output { color: var(--d); opacity: 0; transform: translateY(4px); animation: reveal-output 4.8s ease infinite; }
       .terminal-output .pass { color: var(--g); }
       .command-copy { padding: 20px; display: flex; flex-direction: column; justify-content: center; }
@@ -240,7 +240,7 @@
       .command-copy p { color: #a5d8ae; margin: 0 0 14px; }
       .command-chips { display: flex; flex-wrap: wrap; gap: 7px; }
       .command-chips code { border: 1px solid #285d32; color: var(--c); padding: 5px 7px; font-size: 12px; }
-      @keyframes type-command { 0%,10% { width:0 } 42%,88% { width:39ch } 96%,100% { width:0 } }
+      @keyframes type-command { 0%,10% { width:0 } 42%,88% { width:78ch } 96%,100% { width:0 } }
       @keyframes reveal-output { 0%,45% { opacity:0; transform:translateY(4px) } 55%,88% { opacity:1; transform:none } 96%,100% { opacity:0 } }
       @media (prefers-reduced-motion: reduce) {
         html { scroll-behavior: auto; }
@@ -696,7 +696,7 @@
         <div class="command-stage" aria-label="Animated RESIDUAL command example">
           <div class="terminal-demo">
             <div class="terminal-bar"><b>RESIDUAL CLI</b><span>REAL COMMAND SURFACE</span></div>
-            <div class="command-line"><span class="typed-command">residual run examples/demo.toml --json</span></div>
+            <div class="command-line"><span class="typed-command">residual run examples/incident/task.json --config examples/demo.toml</span></div>
             <div class="terminal-output">
               contract&nbsp;&nbsp;7 obligations frozen<br />
               verifier&nbsp;&nbsp;<span class="fail">FAIL · quoted-field counterexample</span><br />
@@ -725,7 +725,7 @@
           >
         </div>
         <div class="authority" aria-label="Local quickstart">
-          <b>RUN LOCALLY:</b> <code>python -m pip install -e . &amp;&amp; residual run examples/demo.toml</code>
+          <b>RUN LOCALLY:</b> <code>python -m pip install -e . &amp;&amp; residual run examples/incident/task.json --config examples/demo.toml</code>
           &nbsp;·&nbsp; <a href="https://github.com/ninja-ops-guy/residual-agent-harness/blob/main/docs/quickstart.md">FULL QUICKSTART ↗</a>
         </div>
         <div class="thesis">
