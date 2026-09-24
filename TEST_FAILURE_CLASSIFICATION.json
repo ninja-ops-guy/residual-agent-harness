@@ -1,0 +1,134 @@
+{
+  "schema": "residual-test-failure-classification-v1",
+  "scope": "reported broad unittest result only",
+  "source": {
+    "branch": "main",
+    "branch_sha": "2f9dda3882f39c28a1c766859b1bf9579eea7911",
+    "main_sha_at_reproduction_start": "2f9dda3882f39c28a1c766859b1bf9579eea7911",
+    "current_main_sha_after_fetch": "d796f36b75e730a0bab71bdba564206174393719",
+    "stale_branch_at_reproduction_start": false,
+    "stale_branch_after_final_fetch": true
+  },
+  "reported": {
+    "tests_run": 1121,
+    "failures": 5,
+    "errors": 95,
+    "skips": 29,
+    "passes": 992,
+    "reproduced": true
+  },
+  "classification_counts": {
+    "ENVIRONMENT_SETUP": {"reported_outcomes": 38, "ancillary_findings": 0},
+    "MISSING_OPTIONAL_DEPENDENCY": {"reported_outcomes": 62, "ancillary_findings": 0},
+    "STALE_BRANCH": {"reported_outcomes": 0, "ancillary_findings": 1},
+    "TEST_DISCOVERY": {"reported_outcomes": 0, "ancillary_findings": 1},
+    "PLATFORM_SPECIFIC": {"reported_outcomes": 0, "ancillary_findings": 1},
+    "EXPECTED_SKIP": {"reported_outcomes": 29, "ancillary_findings": 0},
+    "HISTORICAL_FAILURE": {"reported_outcomes": 0, "ancillary_findings": 0},
+    "REAL_REGRESSION": {"reported_outcomes": 0, "ancillary_findings": 0},
+    "UNKNOWN": {"reported_outcomes": 0, "ancillary_findings": 0}
+  },
+  "groups": [
+    {
+      "id": "E-SOCKET-001",
+      "classification": "ENVIRONMENT_SETUP",
+      "count": 33,
+      "outcome": "error",
+      "affected": [
+        "tests/modular/test_adapters.py (12 subtest outcomes)",
+        "tests/modular/test_routing.py (5)",
+        "tests/station/test_station.py (4)",
+        "tests/test_authority_lab.py::AuthorityLabTests::test_local_observation_ui_and_run_endpoint_smoke (1)",
+        "tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_unix_socket_rejected_by_snapshot (1)",
+        "tests/test_providers.py::ProviderTests (10)"
+      ],
+      "exact_failure": "PermissionError: [Errno 1] Operation not permitted at socket.socket(...) or ThreadingHTTPServer(('127.0.0.1', 0), ...)",
+      "reproduction": "33/33 reproduced in the managed process sandbox; all affected focused modules passed outside it",
+      "deterministic": true
+    },
+    {
+      "id": "E-CRYPTO-001",
+      "classification": "MISSING_OPTIONAL_DEPENDENCY",
+      "count": 62,
+      "outcome": "error",
+      "affected": [
+        "tests/test_assurance_factory_admission_partial.py (1)",
+        "tests/test_assurance_factory_dynamic.py (2)",
+        "tests/test_factory_evidence_bus.py (19)",
+        "tests/test_factory_m4_attribution.py (8)",
+        "tests/test_factory_m4_evidence.py (7)",
+        "tests/test_factory_m4_integrator.py (5)",
+        "tests/test_factory_m4_safety.py (15)",
+        "tests/test_factory_m4_tree_binding.py (4)",
+        "tests/test_sandbox_timing_determinism.py::IntegratorTimeoutTypingTests::test_verification_timeout_is_timeout_not_fail (1)"
+      ],
+      "exact_failure": "residual.factory.evidence_receipts.EvidenceError: cryptography Ed25519 support is required",
+      "reproduction": "62/62 reproduced without cryptography; zero instances remained after installing the declared factory extra",
+      "requirement": "cryptography>=43 via project optional dependency factory",
+      "deterministic": true
+    },
+    {
+      "id": "F-RUNTIME-001",
+      "classification": "ENVIRONMENT_SETUP",
+      "count": 5,
+      "outcome": "failure",
+      "affected": [
+        "tests/test_factory_runtime_startup.py::StartupOrderingTests::test_resources_still_enforced_while_started_persistence_is_blocked",
+        "tests/test_factory_runtime_startup.py::StartupOrderingTests::test_startup_database_lock_does_not_preempt_durable_start",
+        "tests/test_factory_runtime_startup.py::StartupOrderingTests::test_watchdog_tick_before_started_persistence_cannot_fence_reserved_attempt",
+        "tests/test_sandbox_timing_determinism.py::JournalContentionReadTests::test_readiness_polling_survives_concurrent_writer",
+        "tests/test_sandbox_timing_determinism.py::LeaseTriStateTests::test_one_shot_locked_read_does_not_kill_or_retype"
+      ],
+      "exact_failures": [
+        "AssertionError: False is not true : resource watchdog was blocked by persistence",
+        "AssertionError: RuntimeResult status 'FAILED' != 'CANDIDATE'; returncode=122; reason='worker_failed_or_incomplete'",
+        "AssertionError: RuntimeResult status 'FAILED' != 'CANDIDATE'; returncode=122; reason='worker_failed_or_incomplete'",
+        "AssertionError: RuntimeResult status 'FAILED' != 'CANDIDATE'; returncode=122; reason='worker_failed_or_incomplete'",
+        "AssertionError: False is not true : injection did not reach the lease read path"
+      ],
+      "reproduction": "5/5 reproduced in the managed process sandbox; 5/5 passed outside it in the focused 87-test run",
+      "deterministic": true
+    },
+    {
+      "id": "S-KERNEL-001",
+      "classification": "EXPECTED_SKIP",
+      "count": 22,
+      "outcome": "skip",
+      "affected": [
+        "tests/test_factory_m4_sandbox.py::IsolatedRunnerTests (16)",
+        "tests/test_factory_m4_tree_binding.py::IsolatedTreeBindingTests (5)",
+        "tests/test_sandbox_timing_determinism.py::IsolatedTimeoutTypingTests (1)"
+      ],
+      "exact_failure": "skipped 'kernel namespace isolation unavailable on this platform'",
+      "reproduction": "22/22 explicit skips on the managed WSL run",
+      "deterministic": true
+    },
+    {
+      "id": "S-SECCOMP-001",
+      "classification": "EXPECTED_SKIP",
+      "count": 7,
+      "outcome": "skip",
+      "affected": [
+        "tests/test_factory_runtime.py::ExecutionTests setUpClass (1)",
+        "tests/test_sandbox_timing_determinism.py::TypedOutcomeDeterminismTests (6)"
+      ],
+      "exact_failure": "skipped 'libseccomp/kernel backend unavailable (no fallback)'",
+      "reproduction": "7/7 explicit skips on the managed WSL run",
+      "deterministic": true
+    }
+  ],
+  "discovery_observation": {
+    "classification": "TEST_DISCOVERY",
+    "count_in_reported_outcomes": 0,
+    "authoritative_command_count": 1121,
+    "raw_pytest_collection_count": 1884,
+    "note": "Raw pytest has a broader discovery surface and must not be compared as the same suite."
+  },
+  "readiness": {
+    "canary_blocked_by_reported_regression": false,
+    "canary_executed": false,
+    "production_qualification_established": false,
+    "current_main_cleared_by_this_triage": false,
+    "reason": "No regression remained at the tested SHA, but the reproduction environment omitted factory dependencies and skipped isolation coverage, and main advanced before triage completed."
+  }
+}
