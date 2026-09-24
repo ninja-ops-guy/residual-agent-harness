@@ -81,7 +81,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          docker run --rm --platform linux/386 i386/debian:bookworm-slim sh -lc '
+          docker run --rm --platform linux/386 i386/debian:bookworm-slim@sha256:605e8292d9d3e5288094fb9dffd68869a19771546cc11d7c3c777f9d7e0f705d sh -lc '
             apt-get update >/dev/null && apt-get install -y --no-install-recommends python3 >/dev/null &&
             python3 - <<"PY"
           import time
