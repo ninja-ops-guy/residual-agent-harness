@@ -82,9 +82,13 @@ class StationDataDirOwnership:
             handle = create(None, False, "Global\\RESIDUAL-Station-" + digest)
             if not handle:
                 raise StationOwnershipError("Station ownership locking is unavailable")
-            if ctypes.get_last_error() == 183:
+            error = ctypes.get_last_error()
+            if error == 183:
                 close(handle)
                 raise StationOwnershipError("Station data directory is already owned")
+            if error:
+                close(handle)
+                raise StationOwnershipError("Station ownership locking returned an unexpected status")
             self._handle = (handle, close)
             return
         raise StationOwnershipError("Station ownership locking is unavailable")
