@@ -1,0 +1,30 @@
+{
+  "schema": "residual.v1.webvm-base-image-pin/1",
+  "selected_at": "2026-09-24",
+  "image": "docker.io/i386/debian:bookworm-slim",
+  "platform": "linux/386",
+  "manifest_digest": "sha256:605e8292d9d3e5288094fb9dffd68869a19771546cc11d7c3c777f9d7e0f705d",
+  "observed_aliases": [
+    "bookworm-slim",
+    "bookworm-20260918-slim",
+    "12.15-slim",
+    "12-slim"
+  ],
+  "source_urls": [
+    "https://hub.docker.com/r/i386/debian/tags",
+    "https://hub.docker.com/layers/library/debian/bookworm-slim/images/sha256-605e8292d9d3e5288094fb9dffd68869a19771546cc11d7c3c777f9d7e0f705d"
+  ],
+  "governed_paths": [
+    "demo/vm/Dockerfile",
+    ".github/workflows/webvm-runtime-wait-primitive.yml",
+    ".github/workflows/webvm-runtime-clock-path.yml",
+    ".github/workflows/webvm-runtime-sleep-threshold.yml",
+    ".github/workflows/webvm-runtime-libc-sleep-wrapper.yml",
+    ".github/workflows/webvm-runtime-raw-sleep-syscall.yml"
+  ],
+  "non_claims": [
+    "This records a proposed immutable WebVM base-image identity; it does not claim the branch is merged or production-qualified.",
+    "Digest pinning does not establish vulnerability-free content or replace SBOM/vulnerability review.",
+    "No newer Debian image is selected by this change; it freezes the repository's existing bookworm-slim choice."
+  ]
+}
