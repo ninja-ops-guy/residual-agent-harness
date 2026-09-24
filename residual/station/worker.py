@@ -25,6 +25,39 @@ class WorkerAuthorityLost(ContractError):
     """The runner can no longer prove that it still owns the claimed work."""
 
 
+class _AuthorityWatch:
+    """Monotonic local continuity proof shared through generation and submission."""
+
+    def __init__(self, grace):
+        self.grace = float(grace)
+        self.lost = threading.Event()
+        self._last_success = time.monotonic()
+        self._lock = threading.Lock()
+
+    def expired(self):
+        with self._lock:
+            if time.monotonic() - self._last_success >= self.grace:
+                self.lost.set()
+            return self.lost.is_set()
+
+    def refresh(self):
+        with self._lock:
+            now = time.monotonic()
+            # A late ACK cannot revive an expired continuity proof.
+            if self.lost.is_set() or now - self._last_success >= self.grace:
+                self.lost.set()
+                return False
+            self._last_success = now
+            return True
+
+    def revoke(self):
+        self.lost.set()
+
+    def require(self):
+        if self.expired():
+            raise WorkerAuthorityLost("Runner authority was surrendered after persistent heartbeat loss")
+
+
 class WorkerClient:
     def __init__(self, station, token, heartbeat_interval=60.0, heartbeat_grace=180.0):
         url = urllib.parse.urlsplit(station)
@@ -56,45 +89,31 @@ class WorkerClient:
                 raise ContractError("Worker packet is too large")
             return strict_json(value.decode())
 
-    def _generate_with_authority(self, provider, packet, max_tokens, envelope, stop):
+    def _generate_with_authority(self, provider, packet, max_tokens, envelope, stop, authority=None):
         """Run inference while separately proving lease continuity.
 
         Provider transports are not assumed to support cooperative cancellation. If the
         heartbeat grace is exceeded, the worker process surrenders authority immediately,
         never submits the eventual proposal, and the CLI exits so daemon inference cannot
-        outlive the authority boundary indefinitely.
+        outlive the authority boundary indefinitely. The same continuity proof may be
+        retained by run_once through result submission and any transport retry.
         """
-        authority_lost = threading.Event()
+        authority = authority or _AuthorityWatch(self.heartbeat_grace)
         finished = queue.Queue(maxsize=1)
-        last_success = time.monotonic()
-        continuity_lock = threading.Lock()
-
-        def expired():
-            with continuity_lock:
-                if time.monotonic() - last_success >= self.heartbeat_grace:
-                    authority_lost.set()
-                return authority_lost.is_set()
 
         def heartbeat():
-            nonlocal last_success
             while not stop.wait(self.heartbeat_interval):
-                if expired():
+                if authority.expired():
                     return
                 try:
                     result = self.request("heartbeat", envelope)
                     if not isinstance(result, dict) or result.get("ok") is not True:
                         raise ContractError("Heartbeat acknowledgement is invalid")
-                    with continuity_lock:
-                        now = time.monotonic()
-                        # A late ACK cannot revive an expired continuity proof.
-                        if (authority_lost.is_set() or stop.is_set()
-                                or now - last_success >= self.heartbeat_grace):
-                            authority_lost.set()
-                            return
-                        last_success = now
+                    if stop.is_set() or not authority.refresh():
+                        return
                 except urllib.error.HTTPError as exc:
                     if exc.code in {400, 401, 403}:
-                        authority_lost.set()
+                        authority.revoke()
                         return
                     # Temporary HTTP failures consume grace like transport loss.
                 except Exception:
@@ -110,18 +129,16 @@ class WorkerClient:
         threading.Thread(target=heartbeat, daemon=True).start()
         threading.Thread(target=generate, daemon=True).start()
         while True:
-            authority_lost.wait(min(0.05, self.heartbeat_grace / 4))
+            authority.lost.wait(min(0.05, self.heartbeat_grace / 4))
             # This test runs even while the heartbeat thread is stuck in I/O.
-            if expired():
+            if authority.expired():
                 stop.set()
-                raise WorkerAuthorityLost("Runner authority was surrendered after persistent heartbeat loss")
+                authority.require()
             try:
                 ok, value = finished.get_nowait()
             except queue.Empty:
                 continue
-            if expired():
-                stop.set()
-                raise WorkerAuthorityLost("Runner authority was surrendered after persistent heartbeat loss")
+            authority.require()
             if ok:
                 return value
             raise value
@@ -131,27 +148,35 @@ class WorkerClient:
         if not work:
             return False
         stop = threading.Event()
+        authority = _AuthorityWatch(self.heartbeat_grace)
         envelope = {"project_id": project, "task_id": work["task_id"], "lease": work["lease"]}
         try:
             if provider.placement == "remote" and not work.get("allow_cloud"):
                 raise ContractError("This mission does not permit cloud inference")
-            reply = self._generate_with_authority(provider, work["packet"], max_tokens, envelope, stop)
+            reply = self._generate_with_authority(provider, work["packet"], max_tokens, envelope, stop, authority)
             response = strict_json(reply.text)
             usage = {**asdict(reply.usage), "source": "worker_reported", "placement": "cloud" if provider.placement == "remote" else "local",
                      "role": "remote_runner", "model": provider.model, "request_bytes": provider.wire_size(work["packet"], max_tokens)}
             data = {**envelope, "submission_id": uuid.uuid4().hex, "response": response, "usage": usage}
-            # A transport retry repeats the same idempotency key and exact proposal.
+            # A transport retry repeats the same idempotency key and exact proposal, but
+            # must not begin after the local continuity proof has expired.
+            authority.require()
             try:
                 self.request("result", data)
             except (OSError, TimeoutError):
+                authority.require()
                 self.request("result", data)
         except WorkerAuthorityLost:
             # Never attempt a proposal after the authority continuity proof has failed.
             raise
         except Exception:
-            # Empty proposals fail closed and produce a repair task, never a completion claim.
+            # Empty proposals fail closed and produce a repair task only while authority
+            # is still valid; a post-grace error must not start another submission.
             try:
+                authority.require()
                 self.request("result", {**envelope, "submission_id": uuid.uuid4().hex, "response": {"files": {}}})
+            except WorkerAuthorityLost:
+                raise
             except Exception:
                 pass
             raise
