@@ -19,6 +19,7 @@ on:
       - "tools/check_open_core_boundary.py"
       - "tools/export_open_core.py"
       - "tools/check_open_core_import_closure.py"
+      - "tools/smoke_open_core_archive.py"
       - "tests/test_open_core_export.py"
       - ".github/workflows/open-core-boundary.yml"
   push:
@@ -40,6 +41,7 @@ on:
       - "tools/check_open_core_boundary.py"
       - "tools/export_open_core.py"
       - "tools/check_open_core_import_closure.py"
+      - "tools/smoke_open_core_archive.py"
       - "tests/test_open_core_export.py"
       - ".github/workflows/open-core-boundary.yml"
 
@@ -64,3 +66,7 @@ jobs:
         run: python tools/export_open_core.py --list > /tmp/open-core-files.txt
       - name: Check Python import closure across the open-core boundary
         run: python tools/check_open_core_import_closure.py
+      - name: Build immutable open-core source archive
+        run: python tools/export_open_core.py --output dist/residual-open-core-ci.tar.gz
+      - name: Smoke-test exported source archive in isolation
+        run: python tools/smoke_open_core_archive.py dist/residual-open-core-ci.tar.gz
