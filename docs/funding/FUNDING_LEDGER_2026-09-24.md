@@ -40,6 +40,20 @@ This ledger distinguishes submissions, fit inquiries, holds, and technical readi
 - **Question:** whether a fully open grant-funded research workstream is eligible when pre-existing/independently funded commercial RESIDUAL implementation remains outside the grant
 - **No application/award/licensing terms accepted**
 
+### FAR.AI — collaboration / nomination route
+- **Status:** FIT INQUIRY SENT 2026-09-24
+- **Route:** hello@far.ai
+- **Current public status:** targeted grantmaking is nomination-based; public RFPs are planned but not currently open
+- **Question:** whether RESIDUAL fits collaboration, FAR.Labs, future RFP, or a nomination pathway
+- **No grant/application terms accepted**
+
+### Marius Hobbhahn / Manifund evals regrant
+- **Status:** FIT CHECK SENT 2026-09-24
+- **Route:** marius.hobbhahn@gmail.com
+- **Existing proposal reused:** https://manifund.org/projects/residual-evidence-bound-controls-for-ai-software-agents
+- **Focused fallback:** `docs/funding/MANIFUND_EVAL_TRANCHE_DRAFT.md` — $7,500 eval-only tranche
+- **No duplicate Manifund proposal created; no agreement accepted**
+
 ## Active prior applications — do not duplicate
 
 Prior funding records indicate active or previously submitted applications to:
