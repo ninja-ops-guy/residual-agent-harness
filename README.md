@@ -10,11 +10,11 @@ For exact current claims, start with [`docs/CURRENT_STATUS.md`](docs/CURRENT_STA
 
 ## Licensing and editions
 
-RESIDUAL is developed as an **open-core** project. The Apache-2.0-licensed research/runtime layer is **RESIDUAL Open Core**. This development repository also contains reserved enterprise/product work, so visibility of a file on GitHub does not mean the entire monorepo is Apache-2.0 licensed.
+RESIDUAL is being structured as an **open-core** project. The candidate Apache-2.0 component is a deliberately small **verification and research kernel**, not the complete runtime or enterprise platform. This development repository contains reserved product code, so GitHub visibility is not itself a license grant.
 
-See [LICENSING.md](LICENSING.md) and the authoritative [Open Source Manifest](docs/open-source/OPEN_SOURCE_MANIFEST.md) before redistributing code.
+See [LICENSING.md](LICENSING.md) and the exact-revision [Open Source Manifest](docs/open-source/OPEN_SOURCE_MANIFEST.md) before relying on license scope.
 
-Enterprise identity, multi-tenancy, HA/DR, compliance, enterprise integrations, enterprise control-plane capabilities, commercial licensing and enterprise Studio work are outside the current Open Core unless explicitly added to the manifest.
+Factory execution, engine/runtime orchestration, sandbox execution, enterprise identity, multi-tenancy, HA/DR, compliance, commercial licensing, cluster/control-plane and enterprise Studio implementations remain reserved unless explicitly added to an accepted manifest.
 
 ## Citation and project origin
 
