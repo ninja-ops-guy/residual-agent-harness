@@ -26,6 +26,12 @@ class OpenClawAdapterContractTests(unittest.TestCase):
         value = {"toolSummary": {"calls": 2}}
         self.assertEqual(_tool_calls(value), 2)
 
+    def test_missing_tool_use_evidence_fails_closed(self):
+        with self.assertRaises(ContractError):
+            _tool_calls({})
+        with self.assertRaises(ContractError):
+            _tool_calls({"toolSummary": {}})
+
     def test_malformed_or_ambiguous_stdout_rejected(self):
         with self.assertRaises(ContractError):
             parse_openclaw_json("not json")
