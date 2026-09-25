@@ -1,0 +1,30 @@
+{
+  "format": "zip",
+  "case": "nested",
+  "mode": "real",
+  "fixture_sha256": "f456e7a1bfca6de97f4a0aa4f1ec95dc2d96082af7274e68a4cc6ebdcaeb3aae",
+  "error": {
+    "type": "ContractError",
+    "message": "Unsafe runtime archive member"
+  },
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": false,
+  "external_commands": [],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [],
+  "outside_authority": [],
+  "authority_probes": [],
+  "outside_after_probe": {
+    "source": "original"
+  },
+  "files": {},
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "BLOCKED",
+  "protection_layer": "RESIDUAL",
+  "protection_detail": "Resolved member path containment check"
+}

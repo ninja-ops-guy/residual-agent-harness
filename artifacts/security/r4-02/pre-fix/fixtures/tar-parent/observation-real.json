@@ -1,0 +1,30 @@
+{
+  "format": "tar",
+  "case": "parent",
+  "mode": "real",
+  "fixture_sha256": "4ef2c09120af844c2b05372f55daaa67259e6d809518ac9e56cd0c41959ab221",
+  "error": {
+    "type": "OutsideDestinationError",
+    "message": "'../outside/marker' would be extracted to '/tmp/r4-02-audit-o8042bk9/tar-parent/outside/marker', which is outside the destination"
+  },
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": false,
+  "external_commands": [],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [],
+  "outside_authority": [],
+  "authority_probes": [],
+  "outside_after_probe": {
+    "source": "original"
+  },
+  "files": {},
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "BLOCKED",
+  "protection_layer": "PYTHON_RUNTIME",
+  "protection_detail": "Python tarfile data filter"
+}

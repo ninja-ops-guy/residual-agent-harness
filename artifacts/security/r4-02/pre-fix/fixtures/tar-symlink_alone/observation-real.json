@@ -1,0 +1,30 @@
+{
+  "format": "tar",
+  "case": "symlink_alone",
+  "mode": "real",
+  "fixture_sha256": "b05a3d0a8dcb5cd5938a1e6a3c7393eeee60b8cbd84ff0e8038dba7607b86174",
+  "error": {
+    "type": "AbsoluteLinkError",
+    "message": "'link' is a link to an absolute path"
+  },
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": false,
+  "external_commands": [],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [],
+  "outside_authority": [],
+  "authority_probes": [],
+  "outside_after_probe": {
+    "source": "original"
+  },
+  "files": {},
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "BLOCKED",
+  "protection_layer": "PYTHON_RUNTIME",
+  "protection_detail": "Python tarfile data filter"
+}

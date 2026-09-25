@@ -1,11 +1,15 @@
-FROM --platform=linux/386 docker.io/i386/debian:bookworm-slim
+FROM --platform=linux/386 docker.io/library/python:3.11.16-slim-bookworm
 
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-       bash ca-certificates git python3 python3-pip python3-venv less procps \
+       bash ca-certificates git less procps \
     && rm -rf /var/lib/apt/lists/*
+
+# Preserve diagnostic paths used by the published Bookworm VM.
+RUN ln -s /usr/local/bin/python3.11 /usr/bin/python3.11 \
+    && ln -s /usr/local/lib/python3.11 /usr/lib/python3.11
 
 RUN useradd --create-home --uid 1000 --shell /bin/bash residual \
     && mkdir -p /home/user/documents \
@@ -13,7 +17,8 @@ RUN useradd --create-home --uid 1000 --shell /bin/bash residual \
 
 COPY --chown=residual:residual residual-src/ /opt/residual/
 
-RUN python3 -m pip install --break-system-packages --no-deps -e /opt/residual \
+RUN python3 -m pip install --no-deps -e /opt/residual \
+    && python3 -c "import platform; from residual.station.archive import require_data_filter; require_data_filter(); print(platform.python_version())" \
     && printf '%s\n' \
       'stty sane 2>/dev/null || true' \
       'stty echo 2>/dev/null || true' \

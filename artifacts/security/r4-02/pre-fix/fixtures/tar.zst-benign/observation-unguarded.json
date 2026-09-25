@@ -1,0 +1,29 @@
+{
+  "format": "tar.zst",
+  "case": "benign",
+  "mode": "unguarded",
+  "fixture_sha256": "73c5905f9c319bc8f8cf4cd2b225de21ba170f5301eaf29ff8ebdd2946cec232",
+  "error": null,
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": false,
+  "external_commands": [],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [],
+  "outside_authority": [],
+  "authority_probes": [],
+  "outside_after_probe": {
+    "source": "original"
+  },
+  "files": {
+    "bin/ollama": "fixture"
+  },
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "ALLOWED_BUT_CONFINED",
+  "protection_layer": "NONE",
+  "protection_detail": "Intentionally unsafe control"
+}

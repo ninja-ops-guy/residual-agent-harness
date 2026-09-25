@@ -1,0 +1,30 @@
+{
+  "format": "tar",
+  "case": "hardlink_relative",
+  "mode": "real",
+  "fixture_sha256": "b4cb6e978512756c3c4161b69c7ef8e7a16172a78cb56ea66b53cd96e6a0cc0d",
+  "error": {
+    "type": "LinkOutsideDestinationError",
+    "message": "'marker' would link to '/tmp/r4-02-audit-o8042bk9/tar-hardlink_relative/outside/source', which is outside the destination"
+  },
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": false,
+  "external_commands": [],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [],
+  "outside_authority": [],
+  "authority_probes": [],
+  "outside_after_probe": {
+    "source": "original"
+  },
+  "files": {},
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "BLOCKED",
+  "protection_layer": "PYTHON_RUNTIME",
+  "protection_detail": "Python tarfile data filter"
+}

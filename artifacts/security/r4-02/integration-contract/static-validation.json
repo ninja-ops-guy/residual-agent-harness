@@ -1,0 +1,12 @@
+{
+  "result": "PASS",
+  "original_head": "ff410b5fb8695104f1dc78ffae7cc78199e15da9",
+  "workflow_yaml_files_parsed": 30,
+  "actionlint": "1.7.12 PASS (workflow syntax/expressions; shellcheck/pyflakes disabled)",
+  "patched_native_builds_available": true,
+  "official_container_architectures_verified": true,
+  "security_floor_and_source_unchanged": true,
+  "original_ci_files_verified": 396,
+  "local_and_prefix_evidence_preserved": true,
+  "docker_build": "NOT_RUN: Docker unavailable in local WSL; delegated to fresh CI"
+}

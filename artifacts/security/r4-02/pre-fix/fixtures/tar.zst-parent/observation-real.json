@@ -1,0 +1,43 @@
+{
+  "format": "tar.zst",
+  "case": "parent",
+  "mode": "real",
+  "fixture_sha256": "d08d8c1f57402041147f80c7d690156308c2ae00d5a193121306053f519ee1e4",
+  "error": {
+    "type": "ContractError",
+    "message": "Could not extract runtime archive"
+  },
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": false,
+  "external_commands": [
+    {
+      "argv": [
+        "tar",
+        "--zstd",
+        "-xf",
+        "/tmp/r4-02-audit-o8042bk9/tar.zst-parent/runtime-download/fixture.tar.zst",
+        "-C",
+        "/tmp/r4-02-audit-o8042bk9/tar.zst-parent/runtime"
+      ],
+      "returncode": 2,
+      "stderr": "tar: Removing leading `../' from member names\ntar: ../outside/marker: Member name contains '..'\ntar: Exiting with failure status due to previous errors\n"
+    }
+  ],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [],
+  "outside_authority": [],
+  "authority_probes": [],
+  "outside_after_probe": {
+    "source": "original"
+  },
+  "files": {},
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "BLOCKED",
+  "protection_layer": "FILESYSTEM",
+  "protection_detail": "External GNU tar 1.34 --zstd -xf archive -C dest; see captured stderr"
+}

@@ -1,0 +1,48 @@
+{
+  "format": "tar",
+  "case": "existing_symlink",
+  "mode": "real",
+  "fixture_sha256": "682eb8715c44e59ea74c45b54392bad8337bdac65aa573873b89227eeefda312",
+  "error": {
+    "type": "OutsideDestinationError",
+    "message": "'link/marker' would be extracted to '/tmp/r4-02-audit-o8042bk9/tar-existing_symlink/outside/marker', which is outside the destination"
+  },
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": true,
+  "external_commands": [],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [
+    {
+      "path": "link",
+      "target": "/tmp/r4-02-audit-o8042bk9/tar-existing_symlink/outside",
+      "outside_dest": true
+    }
+  ],
+  "outside_authority": [
+    {
+      "path": "link",
+      "kind": "symlink"
+    }
+  ],
+  "authority_probes": [
+    {
+      "path": "link",
+      "target": "/tmp/r4-02-audit-o8042bk9/tar-existing_symlink/outside/authority_probe",
+      "verified": true
+    }
+  ],
+  "outside_after_probe": {
+    "authority_probe": "authority-probe",
+    "source": "original"
+  },
+  "files": {},
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "BLOCKED",
+  "protection_layer": "PYTHON_RUNTIME",
+  "protection_detail": "Python tarfile data filter"
+}

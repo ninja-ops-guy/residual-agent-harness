@@ -1,0 +1,11 @@
+{
+  "unpublished_validated_commit": "b235e0b778e58e0fa9350e3563938c5c57065887",
+  "push_result": "REJECTED_NON_FAST_FORWARD; no remote change made",
+  "concurrent_remote_head": "bafac690b3443e195196b77e49a22693ecb91dbe",
+  "concurrent_commits": [
+    "ef17c0bf39b6fb1a7b7778ca46f8cd278efc431d",
+    "898f8e68e3a56bb514e8a77e500a0a02c94e7678",
+    "bafac690b3443e195196b77e49a22693ecb91dbe"
+  ],
+  "resolution": "Preserve remote history. Reapply validated final runtime files on top; pin 3.13.15, prefer upstream patched Python3.11/Bookworm to changing VM OS and minor, retain extra Station runtime fix. No force push."
+}

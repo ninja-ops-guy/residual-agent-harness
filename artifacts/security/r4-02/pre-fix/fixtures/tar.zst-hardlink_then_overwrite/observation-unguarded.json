@@ -1,0 +1,40 @@
+{
+  "format": "tar.zst",
+  "case": "hardlink_then_overwrite",
+  "mode": "unguarded",
+  "fixture_sha256": "09dfc0deef6615efd3844eedcff84f203ee6fcf708ff0e7b32499dd81f661445",
+  "error": null,
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": false,
+  "external_commands": [],
+  "outside_before_probe": {
+    "source": "overwrite"
+  },
+  "outside_write": true,
+  "links": [],
+  "outside_authority": [
+    {
+      "path": "marker",
+      "kind": "hardlink"
+    }
+  ],
+  "authority_probes": [
+    {
+      "path": "marker",
+      "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-hardlink_then_overwrite/runtime/marker",
+      "verified": true
+    }
+  ],
+  "outside_after_probe": {
+    "source": "authority-probe"
+  },
+  "files": {
+    "marker": "overwrite"
+  },
+  "dest_exists": true,
+  "authority_created": true,
+  "classification": "OUTSIDE_WRITE_OCCURRED",
+  "protection_layer": "NONE",
+  "protection_detail": "Intentionally unsafe control"
+}

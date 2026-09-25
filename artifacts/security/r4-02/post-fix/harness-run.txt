@@ -1,0 +1,62 @@
+{
+  "checks": {
+    "source_unchanged": true,
+    "paired_fixture_digests_identical": true,
+    "benign_all_formats": true,
+    "negative_parent_controls_all_formats": true,
+    "negative_traversal_controls_all_formats": true,
+    "negative_tar_link_controls": true,
+    "all_authority_probes_verified": true,
+    "duplicate_overwrite_confined": true,
+    "bad_digest_all_formats": true
+  },
+  "rows": 90,
+  "temp_root": "/tmp/r4-02-audit-hxbwhg5y",
+  "real_effects": [
+    {
+      "format": "tar",
+      "case": "existing_symlink",
+      "outside_write": false,
+      "authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "error": {
+        "type": "ContractError",
+        "message": "Runtime destination already exists; existing runtime left unchanged"
+      }
+    },
+    {
+      "format": "zip",
+      "case": "existing_symlink",
+      "outside_write": false,
+      "authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "error": {
+        "type": "ContractError",
+        "message": "Runtime destination already exists; existing runtime left unchanged"
+      }
+    },
+    {
+      "format": "tar.zst",
+      "case": "existing_symlink",
+      "outside_write": false,
+      "authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "error": {
+        "type": "ContractError",
+        "message": "Runtime destination already exists; existing runtime left unchanged"
+      }
+    }
+  ]
+}

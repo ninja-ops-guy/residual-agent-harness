@@ -1,0 +1,75 @@
+{
+  "cycles_completed": 8,
+  "cycles_requested": 8,
+  "elapsed_s": 11.730134,
+  "failure": null,
+  "non_claim": "This is an active lifecycle/recovery stress campaign, not elapsed 24h/72h/30d operational evidence.",
+  "records": [
+    {
+      "cycle": 0,
+      "elapsed_s": 1.746823,
+      "events": 40,
+      "project_id": "p-5c9f8ba82a59",
+      "release_id": "p-5c9f8ba82a59:f2a9ff685e3bb593ea256227d57b74624860ecfcafe2ce7420456cb262041e7b",
+      "repair_attempt": 2
+    },
+    {
+      "cycle": 1,
+      "elapsed_s": 1.386952,
+      "events": 40,
+      "project_id": "p-56a1995384ad",
+      "release_id": "p-56a1995384ad:71d3aa766f41627a609f60240b1f4189d959f8d4775c42471c299c846ef78734",
+      "repair_attempt": 2
+    },
+    {
+      "cycle": 2,
+      "elapsed_s": 1.391704,
+      "events": 40,
+      "project_id": "p-513b27e2f240",
+      "release_id": "p-513b27e2f240:71d3aa766f41627a609f60240b1f4189d959f8d4775c42471c299c846ef78734",
+      "repair_attempt": 2
+    },
+    {
+      "cycle": 3,
+      "elapsed_s": 1.423812,
+      "events": 40,
+      "project_id": "p-f95b8c22f34a",
+      "release_id": "p-f95b8c22f34a:145231333026fad0fd4545ba1975acf98b0a7d6de97b6b541e583022fb377be3",
+      "repair_attempt": 2
+    },
+    {
+      "cycle": 4,
+      "elapsed_s": 1.418166,
+      "events": 40,
+      "project_id": "p-b897477c3e6d",
+      "release_id": "p-b897477c3e6d:c5ffbbaa8f66b7b1fcee06f768ef7ca0eb2affad65ba83316d0c29cc85370cdc",
+      "repair_attempt": 2
+    },
+    {
+      "cycle": 5,
+      "elapsed_s": 1.458028,
+      "events": 40,
+      "project_id": "p-918acc1896df",
+      "release_id": "p-918acc1896df:e4fd95f24a4508903e947be107a3ecb50c51b3f2b8f0d3085d21d0138f868f49",
+      "repair_attempt": 2
+    },
+    {
+      "cycle": 6,
+      "elapsed_s": 1.406545,
+      "events": 40,
+      "project_id": "p-63c82a54f188",
+      "release_id": "p-63c82a54f188:e4fd95f24a4508903e947be107a3ecb50c51b3f2b8f0d3085d21d0138f868f49",
+      "repair_attempt": 2
+    },
+    {
+      "cycle": 7,
+      "elapsed_s": 1.392726,
+      "events": 40,
+      "project_id": "p-42afc5081d4d",
+      "release_id": "p-42afc5081d4d:3fb205e1189a941bffcfcbf1bbd53d2a70d78a9b90b0ed00546309cc437fa872",
+      "repair_attempt": 2
+    }
+  ],
+  "result": "PASS",
+  "schema": "residual.qualification.active-workload.v1"
+}

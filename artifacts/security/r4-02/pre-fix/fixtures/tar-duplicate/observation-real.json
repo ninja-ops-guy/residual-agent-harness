@@ -1,0 +1,29 @@
+{
+  "format": "tar",
+  "case": "duplicate",
+  "mode": "real",
+  "fixture_sha256": "2e1e4417dec283351c781c0f031df90da2bdd64998bb6b876aea09bc34ca299b",
+  "error": null,
+  "returned": "started",
+  "start_calls": 1,
+  "preexisting_link": false,
+  "external_commands": [],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [],
+  "outside_authority": [],
+  "authority_probes": [],
+  "outside_after_probe": {
+    "source": "original"
+  },
+  "files": {
+    "bin/ollama": "second"
+  },
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "ALLOWED_BUT_CONFINED",
+  "protection_layer": "NONE",
+  "protection_detail": "Duplicate overwrite allowed inside destination; not a path escape"
+}

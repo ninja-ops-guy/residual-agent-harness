@@ -1,0 +1,29 @@
+{
+  "format": "tar",
+  "case": "backslash",
+  "mode": "unguarded",
+  "fixture_sha256": "e2a4ef79ff15f1eff88b80568fc227b5c0e50d5b2476f3ab5e595c0075b5e660",
+  "error": null,
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": false,
+  "external_commands": [],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [],
+  "outside_authority": [],
+  "authority_probes": [],
+  "outside_after_probe": {
+    "source": "original"
+  },
+  "files": {
+    "..\\outside\\marker": "fixture"
+  },
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "ALLOWED_BUT_CONFINED",
+  "protection_layer": "FILESYSTEM",
+  "protection_detail": "POSIX path/file behavior; ZIP control does not emulate links"
+}

@@ -1,0 +1,168 @@
+$ /tmp/residual-r4-venv/bin/python -m pytest -q -p no:cacheprovider tests/station --junitxml=artifacts/security/r4-02/post-fix/station.xml
+
+[stdout]
+.................................FFFF                                    [100%]
+=================================== FAILURES ===================================
+_________________ HTTPTests.test_bootstrap_contains_no_api_key _________________
+
+self = <tests.station.test_station.HTTPTests testMethod=test_bootstrap_contains_no_api_key>
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.s = Station(self.temp.name)
+>       self.http = Server(("127.0.0.1", 0), self.s)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/station/test_station.py:335: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+residual/station/server.py:32: in __init__
+    super().__init__(address, Handler)
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socketserver.py:453: in __init__
+    self.socket = socket.socket(self.address_family,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <socket.socket fd=-1, family=0, type=0, proto=0>
+family = <AddressFamily.AF_INET: 2>, type = <SocketKind.SOCK_STREAM: 1>
+proto = 0, fileno = None
+
+    def __init__(self, family=-1, type=-1, proto=-1, fileno=None):
+        # For user code address family and type values are IntEnum members, but
+        # for the underlying _socket.socket they're just integers. The
+        # constructor of _socket.socket converts the given argument to an
+        # integer automatically.
+        if fileno is None:
+            if family == -1:
+                family = AF_INET
+            if type == -1:
+                type = SOCK_STREAM
+            if proto == -1:
+                proto = 0
+>       _socket.socket.__init__(self, family, type, proto, fileno)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socket.py:233: PermissionError
+_______________ HTTPTests.test_csrf_and_origin_and_host_enforced _______________
+
+self = <tests.station.test_station.HTTPTests testMethod=test_csrf_and_origin_and_host_enforced>
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.s = Station(self.temp.name)
+>       self.http = Server(("127.0.0.1", 0), self.s)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/station/test_station.py:335: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+residual/station/server.py:32: in __init__
+    super().__init__(address, Handler)
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socketserver.py:453: in __init__
+    self.socket = socket.socket(self.address_family,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <socket.socket fd=-1, family=0, type=0, proto=0>
+family = <AddressFamily.AF_INET: 2>, type = <SocketKind.SOCK_STREAM: 1>
+proto = 0, fileno = None
+
+    def __init__(self, family=-1, type=-1, proto=-1, fileno=None):
+        # For user code address family and type values are IntEnum members, but
+        # for the underlying _socket.socket they're just integers. The
+        # constructor of _socket.socket converts the given argument to an
+        # integer automatically.
+        if fileno is None:
+            if family == -1:
+                family = AF_INET
+            if type == -1:
+                type = SOCK_STREAM
+            if proto == -1:
+                proto = 0
+>       _socket.socket.__init__(self, family, type, proto, fileno)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socket.py:233: PermissionError
+_ HTTPTests.test_remote_candidate_submission_is_idempotent_and_unable_to_approve _
+
+self = <tests.station.test_station.HTTPTests testMethod=test_remote_candidate_submission_is_idempotent_and_unable_to_approve>
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.s = Station(self.temp.name)
+>       self.http = Server(("127.0.0.1", 0), self.s)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/station/test_station.py:335: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+residual/station/server.py:32: in __init__
+    super().__init__(address, Handler)
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socketserver.py:453: in __init__
+    self.socket = socket.socket(self.address_family,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <socket.socket fd=-1, family=0, type=0, proto=0>
+family = <AddressFamily.AF_INET: 2>, type = <SocketKind.SOCK_STREAM: 1>
+proto = 0, fileno = None
+
+    def __init__(self, family=-1, type=-1, proto=-1, fileno=None):
+        # For user code address family and type values are IntEnum members, but
+        # for the underlying _socket.socket they're just integers. The
+        # constructor of _socket.socket converts the given argument to an
+        # integer automatically.
+        if fileno is None:
+            if family == -1:
+                family = AF_INET
+            if type == -1:
+                type = SOCK_STREAM
+            if proto == -1:
+                proto = 0
+>       _socket.socket.__init__(self, family, type, proto, fileno)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socket.py:233: PermissionError
+_ ProviderHTTPTests.test_station_uses_actual_ollama_http_framing_and_reported_usage _
+
+self = <tests.station.test_station.ProviderHTTPTests testMethod=test_station_uses_actual_ollama_http_framing_and_reported_usage>
+
+    def test_station_uses_actual_ollama_http_framing_and_reported_usage(self):
+        requests = []
+        class Fake(BaseHTTPRequestHandler):
+            def do_POST(self):
+                packet = json.loads(self.rfile.read(int(self.headers["Content-Length"]))); requests.append((self.path, packet))
+                body = canonical({"message": {"content": '{"files":{"a.py":"x=1"}}'}, "done": True, "done_reason": "stop", "prompt_eval_count": 24, "eval_count": 12}).encode()
+                self.send_response(200);self.send_header("Content-Length",str(len(body)));self.end_headers();self.wfile.write(body)
+            def log_message(self,*a):pass
+>       http = ThreadingHTTPServer(("127.0.0.1",0),Fake)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/station/test_station.py:385: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socketserver.py:453: in __init__
+    self.socket = socket.socket(self.address_family,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <socket.socket fd=-1, family=0, type=0, proto=0>
+family = <AddressFamily.AF_INET: 2>, type = <SocketKind.SOCK_STREAM: 1>
+proto = 0, fileno = None
+
+    def __init__(self, family=-1, type=-1, proto=-1, fileno=None):
+        # For user code address family and type values are IntEnum members, but
+        # for the underlying _socket.socket they're just integers. The
+        # constructor of _socket.socket converts the given argument to an
+        # integer automatically.
+        if fileno is None:
+            if family == -1:
+                family = AF_INET
+            if type == -1:
+                type = SOCK_STREAM
+            if proto == -1:
+                proto = 0
+>       _socket.socket.__init__(self, family, type, proto, fileno)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socket.py:233: PermissionError
+=========================== short test summary info ============================
+FAILED tests/station/test_station.py::HTTPTests::test_bootstrap_contains_no_api_key
+FAILED tests/station/test_station.py::HTTPTests::test_csrf_and_origin_and_host_enforced
+FAILED tests/station/test_station.py::HTTPTests::test_remote_candidate_submission_is_idempotent_and_unable_to_approve
+FAILED tests/station/test_station.py::ProviderHTTPTests::test_station_uses_actual_ollama_http_framing_and_reported_usage
+4 failed, 33 passed in 41.05s
+
+[stderr]

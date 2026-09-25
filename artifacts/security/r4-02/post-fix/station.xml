@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="4" skipped="0" tests="37" time="40.366" timestamp="2026-09-25T14:05:52.552035-04:00" hostname="LEGION"><testcase classname="tests.station.test_budget_authority.BudgetAuthorityTests" name="test_aborted_run_cannot_produce_releasable_successor" time="4.825" /><testcase classname="tests.station.test_budget_authority.BudgetAuthorityTests" name="test_first_task_consumes_budget_second_task_never_dispatched" time="0.930" /><testcase classname="tests.station.test_budget_authority.BudgetAuthorityTests" name="test_parallel_dispatch_first_consumes_budget_no_authority_effects" time="1.160" /><testcase classname="tests.station.test_budget_authority.BudgetAuthorityTests" name="test_unknown_usage_conservative_policy_blocks_dispatch_and_effects" time="0.857" /><testcase classname="tests.station.test_budget_authority.BudgetAuthorityTests" name="test_wall_clock_trip_racing_in_flight_dispatch_blocks_effects" time="1.944" /><testcase classname="tests.station.test_reviewer_contract.ReviewerContractTests" name="test_legacy_string_finding_is_invalid_reviewer_output" time="0.953" /><testcase classname="tests.station.test_reviewer_contract.ReviewerContractTests" name="test_reviewer_approval_allows_only_nonblocking_findings" time="1.006" /><testcase classname="tests.station.test_reviewer_contract.ReviewerContractTests" name="test_reviewer_cannot_approve_with_blocking_finding" time="0.973" /><testcase classname="tests.station.test_reviewer_contract.ReviewerContractTests" name="test_reviewer_rejection_requires_blocking_finding" time="0.977" /><testcase classname="tests.station.test_station.StationTests" name="test_api_key_is_not_public_or_in_project_exports" time="0.208" /><testcase classname="tests.station.test_station.StationTests" name="test_approval_cannot_survive_changed_candidate" time="1.974" /><testcase classname="tests.station.test_station.StationTests" name="test_artifact_tampering_is_rejected" time="0.161" /><testcase classname="tests.station.test_station.StationTests" name="test_batch_can_repair_on_fourth_attempt_without_weakening_checks" time="2.167" /><testcase classname="tests.station.test_station.StationTests" name="test_budget_reservation_is_atomic_and_survives_failed_call" time="0.165" /><testcase classname="tests.station.test_station.StationTests" name="test_concurrent_claims_are_exclusive_and_dependencies_wait" time="0.551" /><testcase classname="tests.station.test_station.StationTests" name="test_disjoint_refresh_rechecks_and_reviews_new_commit" time="1.398" /><testcase classname="tests.station.test_station.StationTests" name="test_event_chain_and_report_cursor_are_deterministic" time="0.537" /><testcase classname="tests.station.test_station.StationTests" name="test_failed_checks_do_not_reach_review" time="0.732" /><testcase classname="tests.station.test_station.StationTests" name="test_full_demo_real_git_tests_review_and_release" time="2.812" /><testcase classname="tests.station.test_station.StationTests" name="test_invalid_manifest_rejects_cycles_unknown_fields_and_paths" time="0.174" /><testcase classname="tests.station.test_station.StationTests" name="test_lease_expiry_and_restart_recovery_preserve_evidence" time="0.733" /><testcase classname="tests.station.test_station.StationTests" name="test_live_cloud_enabled_batch_generates_assessment_after_work" time="3.321" /><testcase classname="tests.station.test_station.StationTests" name="test_minimal_log_cannot_be_admitted_as_workflow_event" time="0.175" /><testcase classname="tests.station.test_station.StationTests" name="test_moving_base_invalidates_review" time="2.355" /><testcase classname="tests.station.test_station.StationTests" name="test_pause_prevents_claim_and_cloud_disabled_prevents_transport" time="0.528" /><testcase classname="tests.station.test_station.StationTests" name="test_release_rejects_dirty_or_unaccepted_revision" time="2.652" /><testcase classname="tests.station.test_station.StationTests" name="test_repair_attempt_receives_previous_candidate_without_mutating_fresh_baseline" time="0.765" /><testcase classname="tests.station.test_station.StationTests" name="test_repair_detail_retains_terminal_root_cause_within_bound" time="0.151" /><testcase classname="tests.station.test_station.StationTests" name="test_repeated_failed_patch_is_explicit_repair_finding" time="0.912" /><testcase classname="tests.station.test_station.StationTests" name="test_runtime_base_schema_is_upstream_copy" time="0.171" /><testcase classname="tests.station.test_station.StationTests" name="test_stale_worker_cannot_write_candidate" time="0.503" /><testcase classname="tests.station.test_station.StationTests" name="test_test_commands_require_project_permission" time="0.166" /><testcase classname="tests.station.test_station.StationTests" name="test_write_scope_and_symlink_are_enforced" time="0.522" /><testcase classname="tests.station.test_station.HTTPTests" name="test_bootstrap_contains_no_api_key" time="0.070"><failure message="PermissionError: [Errno 1] Operation not permitted">self = &lt;tests.station.test_station.HTTPTests testMethod=test_bootstrap_contains_no_api_key&gt;
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.s = Station(self.temp.name)
+&gt;       self.http = Server(("127.0.0.1", 0), self.s)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/station/test_station.py:335: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+residual/station/server.py:32: in __init__
+    super().__init__(address, Handler)
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socketserver.py:453: in __init__
+    self.socket = socket.socket(self.address_family,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;socket.socket fd=-1, family=0, type=0, proto=0&gt;
+family = &lt;AddressFamily.AF_INET: 2&gt;, type = &lt;SocketKind.SOCK_STREAM: 1&gt;
+proto = 0, fileno = None
+
+    def __init__(self, family=-1, type=-1, proto=-1, fileno=None):
+        # For user code address family and type values are IntEnum members, but
+        # for the underlying _socket.socket they're just integers. The
+        # constructor of _socket.socket converts the given argument to an
+        # integer automatically.
+        if fileno is None:
+            if family == -1:
+                family = AF_INET
+            if type == -1:
+                type = SOCK_STREAM
+            if proto == -1:
+                proto = 0
+&gt;       _socket.socket.__init__(self, family, type, proto, fileno)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socket.py:233: PermissionError</failure></testcase><testcase classname="tests.station.test_station.HTTPTests" name="test_csrf_and_origin_and_host_enforced" time="0.026"><failure message="PermissionError: [Errno 1] Operation not permitted">self = &lt;tests.station.test_station.HTTPTests testMethod=test_csrf_and_origin_and_host_enforced&gt;
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.s = Station(self.temp.name)
+&gt;       self.http = Server(("127.0.0.1", 0), self.s)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/station/test_station.py:335: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+residual/station/server.py:32: in __init__
+    super().__init__(address, Handler)
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socketserver.py:453: in __init__
+    self.socket = socket.socket(self.address_family,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;socket.socket fd=-1, family=0, type=0, proto=0&gt;
+family = &lt;AddressFamily.AF_INET: 2&gt;, type = &lt;SocketKind.SOCK_STREAM: 1&gt;
+proto = 0, fileno = None
+
+    def __init__(self, family=-1, type=-1, proto=-1, fileno=None):
+        # For user code address family and type values are IntEnum members, but
+        # for the underlying _socket.socket they're just integers. The
+        # constructor of _socket.socket converts the given argument to an
+        # integer automatically.
+        if fileno is None:
+            if family == -1:
+                family = AF_INET
+            if type == -1:
+                type = SOCK_STREAM
+            if proto == -1:
+                proto = 0
+&gt;       _socket.socket.__init__(self, family, type, proto, fileno)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socket.py:233: PermissionError</failure></testcase><testcase classname="tests.station.test_station.HTTPTests" name="test_remote_candidate_submission_is_idempotent_and_unable_to_approve" time="0.063"><failure message="PermissionError: [Errno 1] Operation not permitted">self = &lt;tests.station.test_station.HTTPTests testMethod=test_remote_candidate_submission_is_idempotent_and_unable_to_approve&gt;
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.s = Station(self.temp.name)
+&gt;       self.http = Server(("127.0.0.1", 0), self.s)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/station/test_station.py:335: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+residual/station/server.py:32: in __init__
+    super().__init__(address, Handler)
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socketserver.py:453: in __init__
+    self.socket = socket.socket(self.address_family,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;socket.socket fd=-1, family=0, type=0, proto=0&gt;
+family = &lt;AddressFamily.AF_INET: 2&gt;, type = &lt;SocketKind.SOCK_STREAM: 1&gt;
+proto = 0, fileno = None
+
+    def __init__(self, family=-1, type=-1, proto=-1, fileno=None):
+        # For user code address family and type values are IntEnum members, but
+        # for the underlying _socket.socket they're just integers. The
+        # constructor of _socket.socket converts the given argument to an
+        # integer automatically.
+        if fileno is None:
+            if family == -1:
+                family = AF_INET
+            if type == -1:
+                type = SOCK_STREAM
+            if proto == -1:
+                proto = 0
+&gt;       _socket.socket.__init__(self, family, type, proto, fileno)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socket.py:233: PermissionError</failure></testcase><testcase classname="tests.station.test_station.ProviderHTTPTests" name="test_station_uses_actual_ollama_http_framing_and_reported_usage" time="0.001"><failure message="PermissionError: [Errno 1] Operation not permitted">self = &lt;tests.station.test_station.ProviderHTTPTests testMethod=test_station_uses_actual_ollama_http_framing_and_reported_usage&gt;
+
+    def test_station_uses_actual_ollama_http_framing_and_reported_usage(self):
+        requests = []
+        class Fake(BaseHTTPRequestHandler):
+            def do_POST(self):
+                packet = json.loads(self.rfile.read(int(self.headers["Content-Length"]))); requests.append((self.path, packet))
+                body = canonical({"message": {"content": '{"files":{"a.py":"x=1"}}'}, "done": True, "done_reason": "stop", "prompt_eval_count": 24, "eval_count": 12}).encode()
+                self.send_response(200);self.send_header("Content-Length",str(len(body)));self.end_headers();self.wfile.write(body)
+            def log_message(self,*a):pass
+&gt;       http = ThreadingHTTPServer(("127.0.0.1",0),Fake)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/station/test_station.py:385: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socketserver.py:453: in __init__
+    self.socket = socket.socket(self.address_family,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;socket.socket fd=-1, family=0, type=0, proto=0&gt;
+family = &lt;AddressFamily.AF_INET: 2&gt;, type = &lt;SocketKind.SOCK_STREAM: 1&gt;
+proto = 0, fileno = None
+
+    def __init__(self, family=-1, type=-1, proto=-1, fileno=None):
+        # For user code address family and type values are IntEnum members, but
+        # for the underlying _socket.socket they're just integers. The
+        # constructor of _socket.socket converts the given argument to an
+        # integer automatically.
+        if fileno is None:
+            if family == -1:
+                family = AF_INET
+            if type == -1:
+                type = SOCK_STREAM
+            if proto == -1:
+                proto = 0
+&gt;       _socket.socket.__init__(self, family, type, proto, fileno)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socket.py:233: PermissionError</failure></testcase></testsuite></testsuites>

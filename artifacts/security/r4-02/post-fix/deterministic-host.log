@@ -1,0 +1,3105 @@
+$ /tmp/residual-r4-venv/bin/python -m pytest tests --ignore=tests/qualification -q -p no:cacheprovider --junitxml=artifacts/security/r4-02/post-fix/deterministic-host.xml
+
+[stdout]
+........................................................................ [  3%]
+........................................................................ [  7%]
+.....................................................................sss [ 10%]
+sssssssss.......................................................................................F [ 15%]
+........................................................................ [ 19%]
+........................................................................ [ 22%]
+........................................................................ [ 26%]
+........................................................................ [ 29%]
+........................................................................ [ 33%]
+........................................................................ [ 36%]
+............................................. [ 39%]
+............................................................... [ 42%]
+..................................................... [ 44%]
+........................................................................ [ 48%]
+............................................................ [ 51%]
+........................................................................... [ 55%]
+.........FFFFFFFFFFFFFFFF..............F........... [ 57%]
+...........................FF.FF.F.F.FF.F.FFFFFFFFFFFF.FFFF...... [ 60%]
+...........F....FFFF........FFFFF.FFFFFFFFFFF.FFF.s............................................................................................................................ [ 69%]
+........................................................................ [ 73%]
+........................................................................ [ 76%]
+........................................................................ [ 80%]
+...................................................................FF... [ 83%]
+.....F....FFFF...FFF.........F......F.FFFF.............................. [ 87%]
+.......................................................... [ 90%]
+........................................................................ [ 93%]
+.............................................................................................................................                                           [100%]
+=================================== FAILURES ===================================
+__________ TestSandboxEscapeAttempts.test_ptrace_host_process_attempt __________
+
+self = <tests.redteam.test_worker_attacks.TestSandboxEscapeAttempts object at 0x78fa7fcde810>
+backend = <residual.sandbox.bwrap.BwrapBackend object at 0x78fa7dcfc860>
+spec = SandboxSpec(name='redteam', limits=SandboxLimits(cpu_seconds=15, memory_mb=128, max_pids=25, timeout_seconds=8, max_ou...attem0',)), network=<NetworkPolicy.DENY: 'deny'>, proxy_host='', proxy_port=0, proxy_allowlist=(), workdir='/', env=())
+
+    def test_ptrace_host_process_attempt(self, backend, spec):
+        """Attack: ptrace a host process (should find none / be denied)."""
+        if backend.enforcement < Enforcement.KERNEL:
+            pytest.skip("kernel isolation unavailable")
+        backend.start(spec)
+        code = ("import ctypes\n"
+                "libc = ctypes.CDLL('libc.so.6', use_errno=True)\n"
+                "r = libc.ptrace(16, 1, 0, 0)  # PTRACE_ATTACH host pid 1\n"
+                "print('PTRACE_RC', r)\n")
+        result = backend.exec([SANDBOX_PY, "-c", code])
+        # The probe itself must execute inside the jail; an unavailable host-toolcache
+        # interpreter is not evidence that ptrace was denied.
+        assert result.exit_code != 127
+>       assert "PTRACE_RC 0" not in result.stdout
+E       AssertionError: assert 'PTRACE_RC 0' not in 'PTRACE_RC 0\n'
+E         
+E         'PTRACE_RC 0' is contained here:
+E         Strings contain only whitespace, escaping them using repr()
+E           'PTRACE_RC 0\n'
+
+tests/redteam/test_worker_attacks.py:63: AssertionError
+____ IsolatedRunnerTests.test_candidate_exit_125_is_fail_not_sandbox_error _____
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_candidate_exit_125_is_fail_not_sandbox_error>
+
+    def test_candidate_exit_125_is_fail_not_sandbox_error(self):
+        # Exit code 125 from candidate code must not be mistyped as a
+        # sandbox infrastructure ERROR.
+        result = self.check("import sys; sys.exit(125)")
+>       self.assertEqual(result.status, "fail")
+E       AssertionError: 'error' != 'fail'
+E       - error
+E       + fail
+
+tests/test_factory_m4_sandbox.py:213: AssertionError
+__________ IsolatedRunnerTests.test_child_surviving_timeout_is_killed __________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_child_surviving_timeout_is_killed>
+
+    def test_child_surviving_timeout_is_killed(self):
+        code = (
+            "import os, time\n"
+            "if os.fork() == 0:\n"
+            "    time.sleep(300)\n"
+            "    os._exit(0)\n"
+            "while True: pass\n"
+        )
+        result = self.check(code, timeout_s=3)
+>       self.assertEqual(result.status, "timeout")
+E       AssertionError: 'error' != 'timeout'
+E       - error
+E       + timeout
+
+tests/test_factory_m4_sandbox.py:138: AssertionError
+_______ IsolatedRunnerTests.test_external_filesystem_write_attempt_fails _______
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_external_filesystem_write_attempt_fails>
+
+    def test_external_filesystem_write_attempt_fails(self):
+        code = (
+            "import os, sys\n"
+            f"targets = ['/etc/hostname', {str(self.sentinel)!r}, '/root/x', '/usr/local/x']\n"
+            "for t in targets:\n"
+            "    if not os.path.exists(t):\n"
+            "        continue\n"
+            "    try:\n"
+            "        open(t, 'a').write('evil')\n"
+            "    except OSError:\n"
+            "        continue\n"
+            "    sys.exit(42)\n"
+            "sys.exit(0)\n"
+        )
+        result = self.check(code)
+>       self.assertEqual(result.status, "pass")  # every target was unreachable/unwritable
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: 'error' != 'pass'
+E       - error
+E       + pass
+
+tests/test_factory_m4_sandbox.py:82: AssertionError
+___________ IsolatedRunnerTests.test_fork_descendants_do_not_escape ____________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_fork_descendants_do_not_escape>
+
+    def test_fork_descendants_do_not_escape(self):
+        code = (
+            "import os, time\n"
+            "if os.fork() == 0:\n"
+            "    if os.fork() == 0:\n"
+            "        time.sleep(300)\n"
+            "        os._exit(0)\n"
+            "print('leader exits')"
+        )
+        result = self.check(code)
+>       self.assertEqual(result.status, "pass")
+E       AssertionError: 'error' != 'pass'
+E       - error
+E       + pass
+
+tests/test_factory_m4_sandbox.py:122: AssertionError
+_______________ IsolatedRunnerTests.test_host_paths_not_visible ________________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_host_paths_not_visible>
+
+    def test_host_paths_not_visible(self):
+        result = self.check(
+            "import os, sys; sys.exit(0 if not os.path.exists('/etc/hostname') "
+            "and not os.path.exists(os.path.expanduser('~/.ssh')) else 1)"
+        )
+>       self.assertEqual(result.status, "pass")
+E       AssertionError: 'error' != 'pass'
+E       - error
+E       + pass
+
+tests/test_factory_m4_sandbox.py:90: AssertionError
+______ IsolatedRunnerTests.test_infinite_loop_hits_deterministic_timeout _______
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_infinite_loop_hits_deterministic_timeout>
+
+    def test_infinite_loop_hits_deterministic_timeout(self):
+        import time
+        start = time.monotonic()
+        result = self.check("while True: pass", timeout_s=3)
+        # Typed TIMEOUT: distinct status, deterministic returncode 124, and
+        # the timed_out marker — never retyped as candidate FAIL or ERROR.
+>       self.assertEqual(result.status, "timeout")
+E       AssertionError: 'error' != 'timeout'
+E       - error
+E       + timeout
+
+tests/test_factory_m4_sandbox.py:98: AssertionError
+________ IsolatedRunnerTests.test_infinite_output_is_bounded_and_killed ________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_infinite_output_is_bounded_and_killed>
+
+    def test_infinite_output_is_bounded_and_killed(self):
+        result = self.check(
+            "import sys\nwhile True: sys.stdout.write('x' * 65536)",
+            timeout_s=30, output_limit=1 << 16,
+        )
+>       self.assertEqual(result.status, "fail")
+E       AssertionError: 'error' != 'fail'
+E       - error
+E       + fail
+
+tests/test_factory_m4_sandbox.py:109: AssertionError
+_______ IsolatedRunnerTests.test_ipc_namespace_hides_sysv_shm_from_host ________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_ipc_namespace_hides_sysv_shm_from_host>
+
+    def test_ipc_namespace_hides_sysv_shm_from_host(self):
+        # Candidate creates a SysV shared-memory segment (and deliberately
+        # does not IPC_RMID it). With a private IPC namespace the segment
+        # must never appear in the host's segment table.
+        def host_shmids() -> set:
+            ids = set()
+            with open("/proc/sysvipc/shm") as fh:
+                next(fh, None)
+                for line in fh:
+                    parts = line.split()
+                    if parts:
+                        ids.add(parts[1])
+            return ids
+    
+        before = host_shmids()
+        code = (
+            "import ctypes\n"
+            "libc = ctypes.CDLL(None, use_errno=True)\n"
+            "IPC_PRIVATE = 0\n"
+            "IPC_CREAT = 0o1000\n"
+            "shmid = libc.shmget(IPC_PRIVATE, 65536, IPC_CREAT | 0o600)\n"
+            "assert shmid >= 0, 'shmget failed inside sandbox'\n"
+        )
+        result = self.check(code)
+>       self.assertEqual(result.status, "pass")  # shmget itself succeeded
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: 'error' != 'pass'
+E       - error
+E       + pass
+
+tests/test_factory_m4_sandbox.py:182: AssertionError
+________ IsolatedRunnerTests.test_memory_limit_fails_runaway_allocation ________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_memory_limit_fails_runaway_allocation>
+
+    def test_memory_limit_fails_runaway_allocation(self):
+        result = self.check("x = bytearray(10 * 1024**3)", memory_mb=64)
+>       self.assertEqual(result.status, "fail")
+E       AssertionError: 'error' != 'fail'
+E       - error
+E       + fail
+
+tests/test_factory_m4_sandbox.py:156: AssertionError
+_ IsolatedRunnerTests.test_missing_executable_is_launch_failed_not_sandbox_error _
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_missing_executable_is_launch_failed_not_sandbox_error>
+
+    def test_missing_executable_is_launch_failed_not_sandbox_error(self):
+        # The sandbox was set up (ready byte sent) but exec() failed: the
+        # candidate never launched -> unknown/launch_failed, matching the
+        # fixture lane's typing.
+        result = run_isolated(
+            ("/definitely/not/a/real/binary-m4",), self.worktree,
+            timeout_s=20, output_limit=1 << 20,
+        )
+>       self.assertEqual(result.status, "unknown")
+E       AssertionError: 'error' != 'unknown'
+E       - error
+E       + unknown
+
+tests/test_factory_m4_sandbox.py:225: AssertionError
+________________ IsolatedRunnerTests.test_network_attempt_fails ________________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_network_attempt_fails>
+
+    def test_network_attempt_fails(self):
+        result = self.check(
+            "import socket; socket.create_connection(('203.0.113.1', 80), timeout=3)"
+        )
+>       self.assertEqual(result.status, "fail")
+E       AssertionError: 'error' != 'fail'
+E       - error
+E       + fail
+
+tests/test_factory_m4_sandbox.py:64: AssertionError
+______________ IsolatedRunnerTests.test_pass_and_fail_and_hashes _______________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_pass_and_fail_and_hashes>
+
+    def test_pass_and_fail_and_hashes(self):
+        ok = self.check("import sys; sys.stdout.write('out'); sys.stderr.write('err')")
+>       self.assertEqual(ok.status, "pass")
+E       AssertionError: 'error' != 'pass'
+E       - error
+E       + pass
+
+tests/test_factory_m4_sandbox.py:45: AssertionError
+___________ IsolatedRunnerTests.test_posix_mqueue_namespace_isolated ___________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_posix_mqueue_namespace_isolated>
+
+    def test_posix_mqueue_namespace_isolated(self):
+        # Candidate creates a POSIX mqueue; the host's /dev/mqueue must not
+        # gain a new entry.
+        code = (
+            "import ctypes\n"
+            "libc = ctypes.CDLL(None, use_errno=True)\n"
+            "name = b'/m4-probe-queue'\n"
+            "mqd = libc.mq_open(name, 0o100 | 0o200, 0o600, None)  # O_CREAT|O_EXCL\n"
+            "assert mqd >= 0 or ctypes.get_errno() != 0  # either way, not host-visible\n"
+        )
+        host_mq = Path("/dev/mqueue")
+        before = set(host_mq.iterdir()) if host_mq.is_dir() else set()
+        result = self.check(code)
+>       self.assertEqual(result.status, "pass")
+E       AssertionError: 'error' != 'pass'
+E       - error
+E       + pass
+
+tests/test_factory_m4_sandbox.py:205: AssertionError
+______________ IsolatedRunnerTests.test_tmpfs_scratch_is_bounded _______________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_tmpfs_scratch_is_bounded>
+
+    def test_tmpfs_scratch_is_bounded(self):
+        # RLIMIT_FSIZE is 64 MiB, so write many small files: 300 x 1 MiB
+        # exceeds the 256 MiB tmpfs ceiling and must hit ENOSPC (exit 42).
+        # Without a size= bound this would succeed (exit 0).
+        code = (
+            "import os, sys\n"
+            "block = b'x' * (1 << 20)\n"
+            "written = 0\n"
+            "try:\n"
+            "    for i in range(300):\n"
+            "        with open(f'/tmp/fill-{i}', 'wb') as fh:\n"
+            "            fh.write(block)\n"
+            "        written += 1\n"
+            "except OSError:\n"
+            "    sys.exit(42)\n"
+            "sys.exit(0)\n"
+        )
+        result = self.check(code, memory_mb=1024)
+>       self.assertEqual(result.status, "fail")
+E       AssertionError: 'error' != 'fail'
+E       - error
+E       + fail
+
+tests/test_factory_m4_sandbox.py:246: AssertionError
+__________ IsolatedRunnerTests.test_verifier_crash_is_fail_not_error ___________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_verifier_crash_is_fail_not_error>
+
+    def test_verifier_crash_is_fail_not_error(self):
+        result = self.check("import ctypes; ctypes.string_at(0)")
+>       self.assertEqual(result.status, "fail")
+E       AssertionError: 'error' != 'fail'
+E       - error
+E       + fail
+
+tests/test_factory_m4_sandbox.py:150: AssertionError
+___________ IsolatedRunnerTests.test_worktree_readable_but_read_only ___________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_worktree_readable_but_read_only>
+
+    def test_worktree_readable_but_read_only(self):
+        read = self.check("import pathlib; assert pathlib.Path('candidate.txt').read_text() == 'candidate-bytes'")
+>       self.assertEqual(read.status, "pass")
+E       AssertionError: 'error' != 'pass'
+E       - error
+E       + pass
+
+tests/test_factory_m4_sandbox.py:55: AssertionError
+_ IsolatedTreeBindingTests.test_isolated_verification_issues_receipt_bound_to_verified_tree _
+
+self = <tests.test_factory_m4_tree_binding.IsolatedTreeBindingTests testMethod=test_isolated_verification_issues_receipt_bound_to_verified_tree>
+
+    def test_isolated_verification_issues_receipt_bound_to_verified_tree(self):
+>       outcome = self.integrate(self.isolated_policy("raise SystemExit(0)"))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_factory_m4_tree_binding.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_m4_tree_binding.py:44: in integrate
+    return self.f.integrator.integrate(self.plan, policy=policy,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <residual.factory.m4_integrator.DeterministicIntegrator object at 0x78fa7d211e20>
+plan = EvidenceIntegrationPlan(execution_plan_hash='cb53c90d6c74b366b4dc798b24237f61decd4838903716b7f3813f0429dadb3f', ordere...ed=False, source_receipt_hashes=('9c6db737afdb2106ad61c0082bce7f1f872d8e5ce3af4ec0a0223ba90ccdc057',)),), conflicts=())
+policy = ProjectVerificationPolicy(commands=(VerificationCommand(name='tests', category='full_test_suite', argv=('/usr/bin/pyth..., 'raise SystemExit(0)'), timeout_s=120.0, max_output_bytes=1048576)), secops_active=False, trusted_fixture_mode=False)
+station_identity = <residual.factory.evidence_receipts.StationIdentity object at 0x78fa7d212510>
+resolutions = ()
+
+    def integrate(self, plan: EvidenceIntegrationPlan, *, policy: ProjectVerificationPolicy,
+                  station_identity: StationIdentity,
+                  resolutions: Sequence[ConflictResolution] = ()) -> IntegrationOutcome:
+        self._require_execution_policy(policy)
+        boundary = self._execution_boundary(policy)
+        if not isinstance(plan, EvidenceIntegrationPlan):
+            raise M4IntegrationError("EvidenceIntegrationPlan required")
+        if station_identity.key_id != _sha256(self.station_public_key):
+            raise M4IntegrationError("Station signing identity does not match Evidence Bus trust root")
+    
+        receipts = self._receipts(plan)
+        root_commit = self._root_commit(receipts)
+        winners, conflicts = self._classify_overlaps(receipts)
+        by_resolution = {resolution.path: resolution for resolution in resolutions}
+        if len(by_resolution) != len(tuple(resolutions)):
+            raise M4IntegrationError("duplicate HITL conflict resolution path")
+        for conflict in conflicts:
+            resolution = by_resolution.get(conflict.path)
+            if resolution is None:
+                self._emit("M4IntegrationConflict", path=conflict.path,
+                           receipt_hashes=list(conflict.receipt_hashes), action="hitl_required")
+                raise IntegrationConflictError("true integration conflict requires HITL resolution")
+            if resolution.selected_receipt_hash not in conflict.receipt_hashes:
+                raise M4IntegrationError("HITL resolution selects receipt outside conflict")
+            winners[conflict.path] = resolution.selected_receipt_hash
+            self._emit("M4ConflictResolved", path=conflict.path,
+                       selected_receipt_hash=resolution.selected_receipt_hash,
+                       approved_by=resolution.approved_by.strip())
+        if set(by_resolution) - {conflict.path for conflict in conflicts}:
+            raise M4IntegrationError("HITL resolution supplied for non-conflicting path")
+    
+        worktree = self._worktree(f"integrate-{plan.plan_hash[:16]}", root_commit)
+        try:
+            snapshot(worktree)  # Reject links/special files inherited from the root.
+            self._apply_receipts(worktree, receipts, winners)
+            tree = self._freeze_tree(worktree, root_commit, receipts, winners)
+            results = self._run_verification(worktree, policy)
+            passed = self._passes(results)
+            self._emit("M4ProjectVerification", integration_plan_hash=plan.plan_hash,
+                       passed=passed, checks=[result.to_dict() for result in results])
+            if not passed:
+                offender = None
+                if self._verification_available(results):
+                    try:
+                        offender = self._attribute_failure(root_commit, receipts, policy)
+                    except WorkerContractError:
+                        self._emit("M4AttributionUnavailable", reason="counterfactual_evidence_unavailable")
+                else:
+                    self._emit("M4AttributionUnavailable", reason="verification_unavailable_or_resource_limited")
+                if offender is not None:
+                    task_id = next(r.task_id for r in receipts if r.receipt_hash == offender)
+                    self._emit("M4ReceiptRevisionRequired", receipt_hash=offender,
+                               task_id=task_id, action="replan")
+>               raise ProjectVerificationError(
+                    "accumulated project verification failed",
+                    offending_receipt_hash=offender,
+                )
+E               residual.factory.m4_integrator.ProjectVerificationError: accumulated project verification failed
+
+residual/factory/m4_integrator.py:608: ProjectVerificationError
+_____________ ExecutionTests.test_cancellation_reaps_real_process ______________
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_cancellation_reaps_real_process>
+
+    def test_cancellation_reaps_real_process(self):
+        c = self.contract()
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(self.runtime.run, self.plan, self.approval, c, 'while True: pass')
+>           self.wait_active()
+
+tests/test_factory_runtime.py:434: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_runtime.py:80: in wait_active
+    self.fail('worker did not become ready')
+E   AssertionError: worker did not become ready
+______________ ExecutionTests.test_cli_runs_the_same_real_backend ______________
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_cli_runs_the_same_real_backend>
+
+    def test_cli_runs_the_same_real_backend(self):
+        c = self.contract()
+        for name, value in [('plan', self.plan.to_dict()), ('approval', self.approval.to_dict()), ('contract', c.to_dict())]:
+            (self.root / (name + '.json')).write_text(json.dumps(value))
+        source = self.root / 'controller.py'
+        source.write_text("write_file('output.txt','cli')")
+        result = subprocess.run([sys.executable, '-m', 'residual.factory.runtime',
+                                 '--repo', str(self.repo), '--runtime-root', str(self.root / 'work'),
+                                 '--journal', str(self.journal.path), '--run-id', 'test-run',
+                                 '--plan', str(self.root / 'plan.json'), '--approval', str(self.root / 'approval.json'),
+                                 '--contract', str(self.root / 'contract.json'), '--source', str(source),
+                                 '--allow-local-worker-code'], cwd=ROOT, capture_output=True, timeout=8)
+>       self.assertEqual(result.returncode, 0, result.stderr)
+E       AssertionError: 2 != 0 : b"<frozen runpy>:128: RuntimeWarning: 'residual.factory.runtime' found in sys.modules after import of package 'residual.factory', but prior to execution of 'residual.factory.runtime'; this may result in unpredictable behaviour\n"
+
+tests/test_factory_runtime.py:279: AssertionError
+__ ExecutionTests.test_complete_candidate_preserves_source_and_is_not_receipt __
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_complete_candidate_preserves_source_and_is_not_receipt>
+
+    def test_complete_candidate_preserves_source_and_is_not_receipt(self):
+        c, result = self.run_source("write_file('output.txt', read_file('input.txt') + ' world')")
+>       self.assertEqual(result.status, 'CANDIDATE', result)
+E       AssertionError: 'FAILED' != 'CANDIDATE'
+E       - FAILED
+E       + CANDIDATE
+E        : RuntimeResult(attempt_id='attempt1', status='FAILED', contract_hash='c8af34d9af164a79bf1ed3daf8af0244ea475fd89255c01f95f4543580f0c6d9', execution_plan_hash='58fb9d19994c80ea1c2b1291d828223e7d838249debd402d7c74c6c7c21f1fe8', returncode=-9, process_reaped=True, usage={'tokens': 0, 'tool_calls': 0, 'file_writes': 0, 'reserved_tokens': 0}, candidate=None, reason='RuntimeError', termination=None, engine_name='brokered-python', engine_version='linux-seccomp-broker-v1')
+
+tests/test_factory_runtime.py:240: AssertionError
+______ ExecutionTests.test_delete_produces_tombstone_not_source_mutation _______
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_delete_produces_tombstone_not_source_mutation>
+
+    def test_delete_produces_tombstone_not_source_mutation(self):
+        _, result = self.run_source("delete_file('obsolete.txt')")
+>       self.assertEqual(result.status, 'CANDIDATE', result)
+E       AssertionError: 'FAILED' != 'CANDIDATE'
+E       - FAILED
+E       + CANDIDATE
+E        : RuntimeResult(attempt_id='attempt1', status='FAILED', contract_hash='8eda3c888e8c136dbe77b1758745142e17cb76a057aa1fb9b92bfd9ef8daca2f', execution_plan_hash='58fb9d19994c80ea1c2b1291d828223e7d838249debd402d7c74c6c7c21f1fe8', returncode=-9, process_reaped=True, usage={'tokens': 0, 'tool_calls': 0, 'file_writes': 0, 'reserved_tokens': 0}, candidate=None, reason='RuntimeError', termination=None, engine_name='brokered-python', engine_version='linux-seccomp-broker-v1')
+
+tests/test_factory_runtime.py:287: AssertionError
+__________ ExecutionTests.test_durable_revocation_reaps_real_process ___________
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_durable_revocation_reaps_real_process>
+
+    def test_durable_revocation_reaps_real_process(self):
+        c = self.contract()
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(self.runtime.run, self.plan, self.approval, c, 'while True: pass')
+>           self.wait_active()
+
+tests/test_factory_runtime.py:445: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_runtime.py:80: in wait_active
+    self.fail('worker did not become ready')
+E   AssertionError: worker did not become ready
+__________________ ExecutionTests.test_exec_is_kernel_killed ___________________
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_exec_is_kernel_killed>
+
+    def test_exec_is_kernel_killed(self):
+        _, result = self.run_source("import os\nos.execv('/bin/true', ['true'])")
+>       self.assertEqual(result.returncode, -signal.SIGSYS)
+E       AssertionError: -9 != -31
+
+tests/test_factory_runtime.py:371: AssertionError
+_____________ ExecutionTests.test_external_sigkill_remains_unknown _____________
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_external_sigkill_remains_unknown>
+
+    def test_external_sigkill_remains_unknown(self):
+        c = self.contract(wall_clock_budget_s=30)
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(self.runtime.run, self.plan, self.approval, c, 'while True: pass')
+>           self.wait_active()
+
+tests/test_factory_runtime.py:410: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_runtime.py:80: in wait_active
+    self.fail('worker did not become ready')
+E   AssertionError: worker did not become ready
+___________ ExecutionTests.test_forbidden_tool_protocol_is_terminal ____________
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_forbidden_tool_protocol_is_terminal>
+
+    def test_forbidden_tool_protocol_is_terminal(self):
+        message = json.dumps({'sequence': 1, 'operation': 'shell', 'arguments': {}}).encode() + b'\n'
+        _, result = self.run_source(f"import os,time\nos.write(1,{message!r})\ntime.sleep(2)")
+>       self.assertEqual((result.status, result.reason), ('VIOLATED', 'allowed_tools'))
+E       AssertionError: Tuples differ: ('FAILED', 'RuntimeError') != ('VIOLATED', 'allowed_tools')
+E       
+E       First differing element 0:
+E       'FAILED'
+E       'VIOLATED'
+E       
+E       - ('FAILED', 'RuntimeError')
+E       + ('VIOLATED', 'allowed_tools')
+
+tests/test_factory_runtime.py:384: AssertionError
+_______ ExecutionTests.test_lease_revocation_kills_with_lease_generation _______
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_lease_revocation_kills_with_lease_generation>
+
+    def test_lease_revocation_kills_with_lease_generation(self):
+        # A durably revoked lease must terminate the worker with the typed
+        # primary reason ('lease', 'lease_generation') — never retyped.
+        c = self.contract()
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(self.runtime.run, self.plan, self.approval, c, 'while True: pass')
+>           self.wait_active()
+
+tests/test_factory_runtime.py:458: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_runtime.py:80: in wait_active
+    self.fail('worker did not become ready')
+E   AssertionError: worker did not become ready
+___________ ExecutionTests.test_oversized_protocol_frame_terminates ____________
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_oversized_protocol_frame_terminates>
+
+    def test_oversized_protocol_frame_terminates(self):
+        _, result = self.run_source("import os\nos.write(1,b'x'*(3*1024*1024))")
+>       self.assertEqual((result.status, result.reason), ('VIOLATED', 'protocol_frame_bytes'))
+E       AssertionError: Tuples differ: ('FAILED', 'RuntimeError') != ('VIOLATED', 'protocol_frame_bytes')
+E       
+E       First differing element 0:
+E       'FAILED'
+E       'VIOLATED'
+E       
+E       - ('FAILED', 'RuntimeError')
+E       + ('VIOLATED', 'protocol_frame_bytes')
+
+tests/test_factory_runtime.py:428: AssertionError
+____________ ExecutionTests.test_process_creation_is_kernel_killed _____________
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_process_creation_is_kernel_killed>
+
+    def test_process_creation_is_kernel_killed(self):
+        _, result = self.run_source("import os\nos.fork()")
+>       self.assertEqual(result.returncode, -signal.SIGSYS)
+E       AssertionError: -9 != -31
+
+tests/test_factory_runtime.py:366: AssertionError
+_________________ ExecutionTests.test_ptrace_is_kernel_killed __________________
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_ptrace_is_kernel_killed>
+
+    def test_ptrace_is_kernel_killed(self):
+        _, result = self.run_source("import ctypes\nctypes.CDLL(None).ptrace(0,0,0,0)")
+>       self.assertEqual(result.returncode, -signal.SIGSYS)
+E       AssertionError: -9 != -31
+
+tests/test_factory_runtime.py:375: AssertionError
+_________ ExecutionTests.test_purge_expired_uses_configured_retention __________
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_purge_expired_uses_configured_retention>
+
+    def test_purge_expired_uses_configured_retention(self):
+        c, result = self.run_source('pass')
+>       self.assertEqual(result.status, 'CANDIDATE')
+E       AssertionError: 'FAILED' != 'CANDIDATE'
+E       - FAILED
+E       + CANDIDATE
+
+tests/test_factory_runtime.py:534: AssertionError
+____________ ExecutionTests.test_raw_file_syscall_is_kernel_killed _____________
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_raw_file_syscall_is_kernel_killed>
+
+    def test_raw_file_syscall_is_kernel_killed(self):
+        c, result = self.run_source("open('/etc/passwd').read()")
+>       self.assertEqual(result.returncode, -signal.SIGSYS)
+E       AssertionError: -9 != -31
+
+tests/test_factory_runtime.py:351: AssertionError
+___________ ExecutionTests.test_raw_network_syscall_is_kernel_killed ___________
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_raw_network_syscall_is_kernel_killed>
+
+    def test_raw_network_syscall_is_kernel_killed(self):
+        _, result = self.run_source("import ctypes\nctypes.CDLL(None).socket(2, 1, 0)")
+>       self.assertEqual(result.returncode, -signal.SIGSYS)
+E       AssertionError: -9 != -31
+
+tests/test_factory_runtime.py:361: AssertionError
+_______________ ExecutionTests.test_replayed_request_is_terminal _______________
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_replayed_request_is_terminal>
+
+    def test_replayed_request_is_terminal(self):
+        message = json.dumps({'sequence': 1, 'operation': 'read_file', 'arguments': {'path': 'input.txt'}}).encode() + b'\n'
+        _, result = self.run_source(f"import os,time\nos.write(1,{message * 2!r})\ntime.sleep(2)")
+>       self.assertEqual((result.status, result.reason), ('VIOLATED', 'broker_protocol'))
+E       AssertionError: Tuples differ: ('FAILED', 'RuntimeError') != ('VIOLATED', 'broker_protocol')
+E       
+E       First differing element 0:
+E       'FAILED'
+E       'VIOLATED'
+E       
+E       - ('FAILED', 'RuntimeError')
+E       + ('VIOLATED', 'broker_protocol')
+
+tests/test_factory_runtime.py:389: AssertionError
+_____________ ExecutionTests.test_thread_creation_is_kernel_killed _____________
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_thread_creation_is_kernel_killed>
+
+    def test_thread_creation_is_kernel_killed(self):
+        _, result = self.run_source("import _thread\n_thread.start_new_thread(lambda: None, ())")
+>       self.assertEqual(result.returncode, -signal.SIGSYS)
+E       AssertionError: -9 != -31
+
+tests/test_factory_runtime.py:379: AssertionError
+___________ ExecutionTests.test_tool_limit_enforced_before_dispatch ____________
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_tool_limit_enforced_before_dispatch>
+
+    def test_tool_limit_enforced_before_dispatch(self):
+        _, result = self.run_source("write_file('output.txt','x')", max_tool_calls=0)
+>       self.assertEqual(result.reason, 'max_tool_calls')
+E       AssertionError: 'RuntimeError' != 'max_tool_calls'
+E       - RuntimeError
+E       + max_tool_calls
+
+tests/test_factory_runtime.py:341: AssertionError
+______ ExecutionTests.test_two_swarms_have_distinct_workers_and_worktrees ______
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_two_swarms_have_distinct_workers_and_worktrees>
+
+    def test_two_swarms_have_distinct_workers_and_worktrees(self):
+        self.plan = ExecutionPlan('parallel', (Requirement('R1', 'one', ('unit',)), Requirement('R2', 'two', ('unit',))),
+                                  (FactoryTask('task1', 'one', ('R1',), swarm='swarm1'),
+                                   FactoryTask('task2', 'two', ('R2',), swarm='swarm2')))
+        self.approval = FrozenPlan.approve(self.plan, 'operator')
+        c1 = self.contract()
+        c2 = self.contract(task_id='task2', swarm_id='swarm2', requirements=('R2',),
+                           workspace_root=str(self.root / 'work' / 'swarm2' / 'attempt2'))
+        workers = [(c1, "import time\ntime.sleep(.2)\nwrite_file('output.txt','one')"),
+                   (c2, "import time\ntime.sleep(.2)\nwrite_file('output.txt','two')")]
+        results = self.runtime.run_many(self.plan, self.approval, workers, capacity=2)
+>       self.assertEqual([x.status for x in results], ['CANDIDATE', 'CANDIDATE'], results)
+E       AssertionError: Lists differ: ['FAILED', 'FAILED'] != ['CANDIDATE', 'CANDIDATE']
+E       
+E       First differing element 0:
+E       'FAILED'
+E       'CANDIDATE'
+E       
+E       - ['FAILED', 'FAILED']
+E       + ['CANDIDATE', 'CANDIDATE'] : [RuntimeResult(attempt_id='attempt1', status='FAILED', contract_hash='51ac13c53af100a0decd1a0a988a453209fed60d8c3b63349611cec4023a52e0', execution_plan_hash='1ab875760a7952dcfd83f8e588c01f017b9c53e6f44b67c709c9a0fc95f9f99e', returncode=-9, process_reaped=True, usage={'tokens': 0, 'tool_calls': 0, 'file_writes': 0, 'reserved_tokens': 0}, candidate=None, reason='RuntimeError', termination=None, engine_name='brokered-python', engine_version='linux-seccomp-broker-v1'), RuntimeResult(attempt_id='attempt2', status='FAILED', contract_hash='7d507bb6bc6d74d0ad8d7315c32548525389e8ece4dc677e20642b9590b836f1', execution_plan_hash='1ab875760a7952dcfd83f8e588c01f017b9c53e6f44b67c709c9a0fc95f9f99e', returncode=-9, process_reaped=True, usage={'tokens': 0, 'tool_calls': 0, 'file_writes': 0, 'reserved_tokens': 0}, candidate=None, reason='RuntimeError', termination=None, engine_name='brokered-python', engine_version='linux-seccomp-broker-v1')]
+
+tests/test_factory_runtime.py:551: AssertionError
+_____ ExecutionTests.test_unauthorized_broker_read_terminates_and_discards _____
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_unauthorized_broker_read_terminates_and_discards>
+
+    def test_unauthorized_broker_read_terminates_and_discards(self):
+        c, result = self.run_source("read_file('secret.txt')")
+>       self.assertEqual((result.status, result.reason), ('VIOLATED', 'inputs'))
+E       AssertionError: Tuples differ: ('FAILED', 'RuntimeError') != ('VIOLATED', 'inputs')
+E       
+E       First differing element 0:
+E       'FAILED'
+E       'VIOLATED'
+E       
+E       - ('FAILED', 'RuntimeError')
+E       + ('VIOLATED', 'inputs')
+
+tests/test_factory_runtime.py:329: AssertionError
+_ ExecutionTests.test_unauthorized_broker_write_terminates_and_preserves_source _
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_unauthorized_broker_write_terminates_and_preserves_source>
+
+    def test_unauthorized_broker_write_terminates_and_preserves_source(self):
+        _, result = self.run_source("write_file('secret.txt', 'bad')")
+>       self.assertEqual((result.status, result.reason), ('VIOLATED', 'allowed_outputs'))
+E       AssertionError: Tuples differ: ('FAILED', 'RuntimeError') != ('VIOLATED', 'allowed_outputs')
+E       
+E       First differing element 0:
+E       'FAILED'
+E       'VIOLATED'
+E       
+E       - ('FAILED', 'RuntimeError')
+E       + ('VIOLATED', 'allowed_outputs')
+
+tests/test_factory_runtime.py:336: AssertionError
+__________ ExecutionTests.test_wall_clock_kills_noncooperative_worker __________
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_wall_clock_kills_noncooperative_worker>
+
+    def test_wall_clock_kills_noncooperative_worker(self):
+        c, result = self.run_source('while True: pass', wall_clock_budget_s=0.2)
+>       self.assertEqual((result.status, result.reason), ('VIOLATED', 'wall_clock_budget_s'))
+E       AssertionError: Tuples differ: ('FAILED', 'RuntimeError') != ('VIOLATED', 'wall_clock_budget_s')
+E       
+E       First differing element 0:
+E       'FAILED'
+E       'VIOLATED'
+E       
+E       - ('FAILED', 'RuntimeError')
+E       + ('VIOLATED', 'wall_clock_budget_s')
+
+tests/test_factory_runtime.py:398: AssertionError
+_ ExecutionTests.test_watchdog_termination_is_independent_of_blocked_audit_callback _
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_watchdog_termination_is_independent_of_blocked_audit_callback>
+
+    def test_watchdog_termination_is_independent_of_blocked_audit_callback(self):
+        entered, release = threading.Event(), threading.Event()
+        original = self.journal.observe
+    
+        def blocked(payload):
+            if payload['event'] == 'PathAuthorized':
+                entered.set()
+                release.wait(3)
+            original(payload)
+    
+        def deterministic_clock_ns():
+            return 31_000_000_000 if entered.is_set() else 0
+    
+        runtime = FactoryRuntime(self.repo, self.root / 'work', self.journal,
+                                 allow_local_worker_code=True,
+                                 monotonic_ns=deterministic_clock_ns,
+                                 clock=lambda: 31.0 if entered.is_set() else 0.0)
+        c = self.contract(wall_clock_budget_s=30)
+        with patch.object(self.journal, 'observe', side_effect=blocked), ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(runtime.run, self.plan, self.approval, c, "write_file('output.txt','no')")
+>           self.assertTrue(entered.wait(10), 'worker never reached deterministic PathAuthorized barrier')
+E           AssertionError: False is not true : worker never reached deterministic PathAuthorized barrier
+
+tests/test_factory_runtime.py:513: AssertionError
+_______ ExecutionTests.test_worker_does_not_inherit_provider_credentials _______
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_worker_does_not_inherit_provider_credentials>
+
+    def test_worker_does_not_inherit_provider_credentials(self):
+        with patch.dict(os.environ, {'RESIDUAL_TEST_SECRET': 'DO-NOT-LEAK'}):
+            c, result = self.run_source("import os\nwrite_file('output.txt', str(dict(os.environ)))")
+>       self.assertEqual(result.status, 'CANDIDATE', result)
+E       AssertionError: 'FAILED' != 'CANDIDATE'
+E       - FAILED
+E       + CANDIDATE
+E        : RuntimeResult(attempt_id='attempt1', status='FAILED', contract_hash='f67783f8bb53584d2fe0c6806f925c8b57887c691b93e848b7a33ecba2152a2d', execution_plan_hash='58fb9d19994c80ea1c2b1291d828223e7d838249debd402d7c74c6c7c21f1fe8', returncode=-9, process_reaped=True, usage={'tokens': 0, 'tool_calls': 0, 'file_writes': 0, 'reserved_tokens': 0}, candidate=None, reason='RuntimeError', termination=None, engine_name='brokered-python', engine_version='linux-seccomp-broker-v1')
+
+tests/test_factory_runtime.py:324: AssertionError
+___________ ExecutionTests.test_write_limit_enforced_before_mutation ___________
+
+self = <tests.test_factory_runtime.ExecutionTests testMethod=test_write_limit_enforced_before_mutation>
+
+    def test_write_limit_enforced_before_mutation(self):
+        _, result = self.run_source("write_file('output.txt','x')", max_file_writes=0)
+>       self.assertEqual(result.reason, 'max_file_writes')
+E       AssertionError: 'RuntimeError' != 'max_file_writes'
+E       - RuntimeError
+E       + max_file_writes
+
+tests/test_factory_runtime.py:346: AssertionError
+_ WatchdogIntentGuards.test_kill_records_intent_before_signal_and_single_reap __
+
+self = <tests.test_factory_runtime_lifecycle.WatchdogIntentGuards testMethod=test_kill_records_intent_before_signal_and_single_reap>
+
+    def test_kill_records_intent_before_signal_and_single_reap(self):
+        process = Mock(pid=12345, args=['fixture'])
+        process.returncode = None
+        def wait(timeout):
+            process.returncode = -signal.SIGKILL
+            return process.returncode
+        process.wait.side_effect = wait
+        reason = ('tool', 'broker_protocol', {'reason': 'primary'})
+        observed = {}
+>       with patch('residual.factory.termination_provenance.os.pidfd_open', return_value=10), \
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+             patch('residual.factory.termination_provenance.select.select',
+                   side_effect=[([], [], []), ([10], [], [])]), \
+             patch('residual.factory.termination_provenance.os.waitid',
+                   return_value=SimpleNamespace(si_code=2, si_status=signal.SIGKILL)), \
+             patch('residual.factory.termination_provenance.signal.pidfd_send_signal') as send:
+
+tests/test_factory_runtime_lifecycle.py:217: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7dd6ce60>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+_ StartupOrderingTests.test_inconsistent_wait_status_cannot_publish_candidate __
+
+self = <tests.test_factory_runtime_startup.StartupOrderingTests testMethod=test_inconsistent_wait_status_cannot_publish_candidate>
+
+    def test_inconsistent_wait_status_cannot_publish_candidate(self):
+        import os
+        import signal
+        info = SimpleNamespace(si_code=os.CLD_KILLED, si_status=signal.SIGKILL)
+        with patch('residual.factory.termination_provenance.os.waitid', return_value=info):
+            _, result = self.run_source("write_file('output.txt', 'no')")
+        self.assertEqual(result.status, 'FAILED')
+>       self.assertEqual(result.termination['classification'], 'unknown_wait_status')
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not subscriptable
+
+tests/test_factory_runtime_startup.py:131: TypeError
+_ StartupOrderingTests.test_resources_still_enforced_while_started_persistence_is_blocked _
+
+self = <tests.test_factory_runtime_startup.StartupOrderingTests testMethod=test_resources_still_enforced_while_started_persistence_is_blocked>
+
+    def test_resources_still_enforced_while_started_persistence_is_blocked(self):
+        from concurrent.futures import ThreadPoolExecutor
+        entered, release = threading.Event(), threading.Event()
+        original_started = self.journal.started
+        def started(contract, pid):
+            entered.set()
+            if not release.wait(5):
+                raise RuntimeError('fixture persistence barrier timed out')
+            original_started(contract, pid)
+        clock = lambda: 31.0 if entered.is_set() else 0.0
+        self.runtime._clock = clock
+        with patch.object(self.journal, 'started', side_effect=started), \
+             ThreadPoolExecutor(max_workers=1) as pool:
+            c = self.contract(wall_clock_budget_s=30)
+            future = pool.submit(self.runtime.run, self.plan, self.approval, c, "write_file('output.txt','no')")
+            try:
+>               self.assertTrue(entered.wait(5))
+E               AssertionError: False is not true
+
+tests/test_factory_runtime_startup.py:104: AssertionError
+_ StartupOrderingTests.test_startup_database_lock_does_not_preempt_durable_start _
+
+self = <tests.test_factory_runtime_startup.StartupOrderingTests testMethod=test_startup_database_lock_does_not_preempt_durable_start>
+
+    def test_startup_database_lock_does_not_preempt_durable_start(self):
+        """Force a real SQLite read failure only during started() persistence.
+    
+        This reproduces a startup-unavailability mechanism, not attribution of
+        the historical CI failure (which did not retain its read exception).
+        """
+        locked, first_tick = threading.Event(), threading.Event()
+        original_watch, original_started = self.runtime._watch, self.journal.started
+        errors = []
+    
+        def watch(control, contract, started_ns, done, *args):
+            try:
+                self.assertTrue(locked.wait(5))
+                original_watch(control, contract, started_ns, OneWatchdogTick(), *args)
+            except BaseException as exc:
+                errors.append(exc)
+            finally:
+                first_tick.set()
+            original_watch(control, contract, started_ns, done, *args)
+    
+        def started(contract, pid):
+            db = sqlite3.connect(self.journal.path, isolation_level=None)
+            try:
+                db.execute('PRAGMA locking_mode=EXCLUSIVE')
+                db.execute('BEGIN EXCLUSIVE')
+                locked.set()
+                self.assertTrue(first_tick.wait(5), 'pre-persistence tick did not finish')
+                db.execute('ROLLBACK')
+            finally:
+                db.close()
+            original_started(contract, pid)
+    
+        with patch.object(self.runtime, '_watch', side_effect=watch), \
+             patch.object(self.journal, 'started', side_effect=started):
+            _, result = self.run_source("write_file('output.txt', 'safe')", wall_clock_budget_s=30)
+        self.assertFalse(errors, errors)
+>       self.assertEqual(result.status, 'CANDIDATE', result)
+E       AssertionError: 'FAILED' != 'CANDIDATE'
+E       - FAILED
+E       + CANDIDATE
+E        : RuntimeResult(attempt_id='attempt1', status='FAILED', contract_hash='acb39ccb2dd3b3248a060ea859d92a9a9eefe1cdfa0240440919985940d1e6eb', execution_plan_hash='58fb9d19994c80ea1c2b1291d828223e7d838249debd402d7c74c6c7c21f1fe8', returncode=-9, process_reaped=True, usage={'tokens': 0, 'tool_calls': 0, 'file_writes': 0, 'reserved_tokens': 0}, candidate=None, reason='RuntimeError', termination=None, engine_name='brokered-python', engine_version='linux-seccomp-broker-v1')
+
+tests/test_factory_runtime_startup.py:86: AssertionError
+_ StartupOrderingTests.test_watchdog_tick_before_started_persistence_cannot_fence_reserved_attempt _
+
+self = <tests.test_factory_runtime_startup.StartupOrderingTests testMethod=test_watchdog_tick_before_started_persistence_cannot_fence_reserved_attempt>
+
+    def test_watchdog_tick_before_started_persistence_cannot_fence_reserved_attempt(self):
+        first_tick = threading.Event()
+        original_watch = self.runtime._watch
+        original_started = self.journal.started
+        errors = []
+    
+        def watch(control, contract, started_ns, done, *args):
+            try:
+                original_watch(control, contract, started_ns, OneWatchdogTick(), *args)
+            except BaseException as exc:
+                errors.append(exc)
+            finally:
+                first_tick.set()
+            original_watch(control, contract, started_ns, done, *args)
+    
+        def started(contract, pid):
+            self.assertTrue(first_tick.wait(5), 'forced pre-persistence watchdog tick did not complete')
+            original_started(contract, pid)
+    
+        with patch.object(self.runtime, '_watch', side_effect=watch), \
+             patch.object(self.journal, 'started', side_effect=started):
+            _, result = self.run_source("write_file('output.txt', 'safe')", wall_clock_budget_s=30)
+        self.assertFalse(errors, errors)
+>       self.assertEqual(result.status, 'CANDIDATE', result)
+E       AssertionError: 'FAILED' != 'CANDIDATE'
+E       - FAILED
+E       + CANDIDATE
+E        : RuntimeResult(attempt_id='attempt1', status='FAILED', contract_hash='6fad36fd3f31df850c5cc1aaed6c6e044ef12c38c100f7160997cf5050dad753', execution_plan_hash='58fb9d19994c80ea1c2b1291d828223e7d838249debd402d7c74c6c7c21f1fe8', returncode=-9, process_reaped=True, usage={'tokens': 0, 'tool_calls': 0, 'file_writes': 0, 'reserved_tokens': 0}, candidate=None, reason='RuntimeError', termination=None, engine_name='brokered-python', engine_version='linux-seccomp-broker-v1')
+
+tests/test_factory_runtime_startup.py:47: AssertionError
+________ ProcessControlTests.test_bad_descriptor_is_not_treated_as_exit ________
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_bad_descriptor_is_not_treated_as_exit>
+
+    def test_bad_descriptor_is_not_treated_as_exit(self):
+>       c, p = self.control()
+               ^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:114: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7d409850>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+___ ProcessControlTests.test_close_before_reap_is_rejected_without_losing_fd ___
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_close_before_reap_is_rejected_without_losing_fd>
+
+    def test_close_before_reap_is_rejected_without_losing_fd(self):
+>       c, _ = self.control()
+               ^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:122: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7d1e38f0>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+___________ ProcessControlTests.test_close_is_idempotent_after_reap ____________
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_close_is_idempotent_after_reap>
+
+    def test_close_is_idempotent_after_reap(self):
+>       c, _ = self.control()
+               ^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:129: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7d3ea6f0>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+___ ProcessControlTests.test_concurrent_reap_allows_signal_and_consumes_once ___
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_concurrent_reap_allows_signal_and_consumes_once>
+
+    def test_concurrent_reap_allows_signal_and_consumes_once(self):
+>       c, p = self.control(-signal.SIGKILL)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:240: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7c47dd00>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+_ ProcessControlTests.test_contradictory_wait_results_remain_unknown_and_keep_both _
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_contradictory_wait_results_remain_unknown_and_keep_both>
+
+    def test_contradictory_wait_results_remain_unknown_and_keep_both(self):
+>       c, _ = self.control(0, code=os.CLD_KILLED, status=signal.SIGKILL)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:181: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7d3fef00>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+_ ProcessControlTests.test_exit_winning_signal_race_does_not_become_watchdog_kill (returncode=0) _
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_exit_winning_signal_race_does_not_become_watchdog_kill>
+
+    def test_exit_winning_signal_race_does_not_become_watchdog_kill(self):
+        for rc in (0, 7, -signal.SIGSYS, -signal.SIGTERM, -signal.SIGKILL):
+            with self.subTest(returncode=rc):
+>               c, _ = self.control(rc)
+                       ^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:157: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7c41c5c0>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+_ ProcessControlTests.test_exit_winning_signal_race_does_not_become_watchdog_kill (returncode=7) _
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_exit_winning_signal_race_does_not_become_watchdog_kill>
+
+    def test_exit_winning_signal_race_does_not_become_watchdog_kill(self):
+        for rc in (0, 7, -signal.SIGSYS, -signal.SIGTERM, -signal.SIGKILL):
+            with self.subTest(returncode=rc):
+>               c, _ = self.control(rc)
+                       ^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:157: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7c41d820>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+_ ProcessControlTests.test_exit_winning_signal_race_does_not_become_watchdog_kill (returncode=-31) _
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_exit_winning_signal_race_does_not_become_watchdog_kill>
+
+    def test_exit_winning_signal_race_does_not_become_watchdog_kill(self):
+        for rc in (0, 7, -signal.SIGSYS, -signal.SIGTERM, -signal.SIGKILL):
+            with self.subTest(returncode=rc):
+>               c, _ = self.control(rc)
+                       ^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:157: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7c41ce00>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+_ ProcessControlTests.test_exit_winning_signal_race_does_not_become_watchdog_kill (returncode=-15) _
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_exit_winning_signal_race_does_not_become_watchdog_kill>
+
+    def test_exit_winning_signal_race_does_not_become_watchdog_kill(self):
+        for rc in (0, 7, -signal.SIGSYS, -signal.SIGTERM, -signal.SIGKILL):
+            with self.subTest(returncode=rc):
+>               c, _ = self.control(rc)
+                       ^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:157: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7c41c770>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+_ ProcessControlTests.test_exit_winning_signal_race_does_not_become_watchdog_kill (returncode=-9) _
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_exit_winning_signal_race_does_not_become_watchdog_kill>
+
+    def test_exit_winning_signal_race_does_not_become_watchdog_kill(self):
+        for rc in (0, 7, -signal.SIGSYS, -signal.SIGTERM, -signal.SIGKILL):
+            with self.subTest(returncode=rc):
+>               c, _ = self.control(rc)
+                       ^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:157: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7d2d42c0>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+_______________ ProcessControlTests.test_exited_is_non_consuming _______________
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_exited_is_non_consuming>
+
+    def test_exited_is_non_consuming(self):
+>       c, p = self.control()
+               ^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:91: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7d3fe5a0>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+___________ ProcessControlTests.test_identity_is_bound_and_immutable ___________
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_identity_is_bound_and_immutable>
+
+    def test_identity_is_bound_and_immutable(self):
+>       c, _ = self.control()
+               ^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:48: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7c422960>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+________ ProcessControlTests.test_invalid_waitid_code_is_not_clean_exit ________
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_invalid_waitid_code_is_not_clean_exit>
+
+    def test_invalid_waitid_code_is_not_clean_exit(self):
+>       c, _ = self.control(0, code=os.CLD_STOPPED, status=signal.SIGSTOP)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:189: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7dd1f860>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+_____ ProcessControlTests.test_kill_records_request_before_signal_and_reap _____
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_kill_records_request_before_signal_and_reap>
+
+    def test_kill_records_request_before_signal_and_reap(self):
+>       c, p = self.control(-signal.SIGKILL)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7c47d190>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+_ ProcessControlTests.test_late_kill_preserves_already_exited_signal_and_has_no_requester _
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_late_kill_preserves_already_exited_signal_and_has_no_requester>
+
+    def test_late_kill_preserves_already_exited_signal_and_has_no_requester(self):
+>       c, p = self.control(-signal.SIGSYS)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:144: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7d49ed50>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+____ ProcessControlTests.test_lost_child_ownership_is_not_fallback_success _____
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_lost_child_ownership_is_not_fallback_success>
+
+    def test_lost_child_ownership_is_not_fallback_success(self):
+>       c, _ = self.control(0)
+               ^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:202: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7d213d40>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+_______ ProcessControlTests.test_probe_holds_state_lock_through_syscall ________
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_probe_holds_state_lock_through_syscall>
+
+    def test_probe_holds_state_lock_through_syscall(self):
+>       c, _ = self.control()
+               ^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:100: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7dd6e900>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+_____ ProcessControlTests.test_reap_is_idempotent_and_only_consuming_path ______
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_reap_is_idempotent_and_only_consuming_path>
+
+    def test_reap_is_idempotent_and_only_consuming_path(self):
+>       c, p = self.control(7)
+               ^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:81: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7d212a20>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+______ ProcessControlTests.test_reasonless_kill_still_records_host_intent ______
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_reasonless_kill_still_records_host_intent>
+
+    def test_reasonless_kill_still_records_host_intent(self):
+>       c, _ = self.control(-signal.SIGKILL)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:73: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7d213f80>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+_ ProcessControlTests.test_record_is_frozen_once_and_nested_exports_are_detached _
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_record_is_frozen_once_and_nested_exports_are_detached>
+
+    def test_record_is_frozen_once_and_nested_exports_are_detached(self):
+>       c, _ = self.control(-signal.SIGKILL)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:216: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7d3a61e0>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+_ ProcessControlTests.test_shared_cgroup_oom_activity_is_not_process_attribution _
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_shared_cgroup_oom_activity_is_not_process_attribution>
+
+    def test_shared_cgroup_oom_activity_is_not_process_attribution(self):
+>       c, _ = self.control(-signal.SIGKILL)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:208: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7d212570>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+_ ProcessControlTests.test_successful_send_still_cannot_explain_sigsys_or_normal_exit (returncode=0) _
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_successful_send_still_cannot_explain_sigsys_or_normal_exit>
+
+    def test_successful_send_still_cannot_explain_sigsys_or_normal_exit(self):
+        for rc, expected in ((0, 'clean_exit'), (-signal.SIGSYS, 'kernel_sigsys')):
+            with self.subTest(returncode=rc):
+>               c, _ = self.control(rc)
+                       ^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:168: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7d3a4b90>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+_ ProcessControlTests.test_successful_send_still_cannot_explain_sigsys_or_normal_exit (returncode=-31) _
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_successful_send_still_cannot_explain_sigsys_or_normal_exit>
+
+    def test_successful_send_still_cannot_explain_sigsys_or_normal_exit(self):
+        for rc, expected in ((0, 'clean_exit'), (-signal.SIGSYS, 'kernel_sigsys')):
+            with self.subTest(returncode=rc):
+>               c, _ = self.control(rc)
+                       ^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:168: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7d3a7830>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+_____ ProcessControlTests.test_termination_record_requires_reaped_process ______
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_termination_record_requires_reaped_process>
+
+    def test_termination_record_requires_reaped_process(self):
+>       c, _ = self.control()
+               ^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:139: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7d3a5640>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+____________ ProcessControlTests.test_timeout_does_not_claim_reaped ____________
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_timeout_does_not_claim_reaped>
+
+    def test_timeout_does_not_claim_reaped(self):
+>       c, p = self.control(ready=False)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:232: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7d3a56d0>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+___ ProcessControlTests.test_unavailable_waitid_falls_back_to_reaped_status ____
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_unavailable_waitid_falls_back_to_reaped_status>
+
+    def test_unavailable_waitid_falls_back_to_reaped_status(self):
+>       c, _ = self.control(-signal.SIGSYS)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:194: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7e36b350>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+__ ProcessControlTests.test_waitid_handles_killed_dumped_and_exited (code=2) ___
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_waitid_handles_killed_dumped_and_exited>
+
+    def test_waitid_handles_killed_dumped_and_exited(self):
+        for code, status, rc, expected in ((os.CLD_KILLED,signal.SIGSYS,-signal.SIGSYS,'kernel_sigsys'),(os.CLD_DUMPED,signal.SIGSYS,-signal.SIGSYS,'kernel_sigsys'),(os.CLD_EXITED,137,137,'process_exit_nonzero')):
+            with self.subTest(code=code):
+>               c, _ = self.control(rc, code=code, status=status)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:176: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7d2747a0>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+__ ProcessControlTests.test_waitid_handles_killed_dumped_and_exited (code=3) ___
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_waitid_handles_killed_dumped_and_exited>
+
+    def test_waitid_handles_killed_dumped_and_exited(self):
+        for code, status, rc, expected in ((os.CLD_KILLED,signal.SIGSYS,-signal.SIGSYS,'kernel_sigsys'),(os.CLD_DUMPED,signal.SIGSYS,-signal.SIGSYS,'kernel_sigsys'),(os.CLD_EXITED,137,137,'process_exit_nonzero')):
+            with self.subTest(code=code):
+>               c, _ = self.control(rc, code=code, status=status)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:176: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7d274d10>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+__ ProcessControlTests.test_waitid_handles_killed_dumped_and_exited (code=1) ___
+
+self = <tests.test_factory_termination_provenance.ProcessControlTests testMethod=test_waitid_handles_killed_dumped_and_exited>
+
+    def test_waitid_handles_killed_dumped_and_exited(self):
+        for code, status, rc, expected in ((os.CLD_KILLED,signal.SIGSYS,-signal.SIGSYS,'kernel_sigsys'),(os.CLD_DUMPED,signal.SIGSYS,-signal.SIGSYS,'kernel_sigsys'),(os.CLD_EXITED,137,137,'process_exit_nonzero')):
+            with self.subTest(code=code):
+>               c, _ = self.control(rc, code=code, status=status)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_factory_termination_provenance.py:176: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_termination_provenance.py:31: in control
+    stack.enter_context(patch.object(provenance.os, 'pidfd_open', return_value=10))
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x78fa7e3d6450>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'os' (frozen)> does not have the attribute 'pidfd_open'
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py:1437: AttributeError
+_ ReapTimeoutSemanticsTests.test_reap_timeout_does_not_publish_stopped_as_completion _
+
+self = <tests.test_sandbox_timing_adversarial.ReapTimeoutSemanticsTests testMethod=test_reap_timeout_does_not_publish_stopped_as_completion>
+
+    def test_reap_timeout_does_not_publish_stopped_as_completion(self):
+        from residual.factory.termination_provenance import ProcessControl
+        proc = subprocess.Popen(["sleep", "30"])
+        self.addCleanup(lambda: (proc.kill(), proc.wait()))
+>       pc = ProcessControl(proc, correlation_id="adv-b3")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_sandbox_timing_adversarial.py:256: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <residual.factory.termination_provenance.ProcessControl object at 0x78fa7d34cc80>
+process = <Popen: returncode: -9 args: ['sleep', '30']>
+correlation_id = 'adv-b3', clock_ns = <built-in function monotonic_ns>
+
+    def __init__(self, process: subprocess.Popen, *, correlation_id: str,
+                 clock_ns: Callable[[], int] = time.monotonic_ns):
+        if not hasattr(os, "pidfd_open") or not hasattr(signal, "pidfd_send_signal"):
+>           raise RuntimeError("pidfd-based process ownership is required")
+E           RuntimeError: pidfd-based process ownership is required
+
+residual/factory/termination_provenance.py:133: RuntimeError
+____ ReapTimeoutSemanticsTests.test_reap_timeout_reason_is_typed_not_silent ____
+
+self = <tests.test_sandbox_timing_adversarial.ReapTimeoutSemanticsTests testMethod=test_reap_timeout_reason_is_typed_not_silent>
+
+    def test_reap_timeout_reason_is_typed_not_silent(self):
+        """Mutant-catcher: a reap timeout must surface the typed
+        reap_timed_out condition AND a reap_timeout reason when no primary
+        reason exists; a fix that swallows the timeout fails here."""
+        from residual.factory.termination_provenance import ProcessControl
+        proc = subprocess.Popen(["sleep", "30"])
+        self.addCleanup(lambda: (proc.kill(), proc.wait()))
+>       pc = ProcessControl(proc, correlation_id="adv-b3b")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_sandbox_timing_adversarial.py:285: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <residual.factory.termination_provenance.ProcessControl object at 0x78fa7c47f410>
+process = <Popen: returncode: -9 args: ['sleep', '30']>
+correlation_id = 'adv-b3b', clock_ns = <built-in function monotonic_ns>
+
+    def __init__(self, process: subprocess.Popen, *, correlation_id: str,
+                 clock_ns: Callable[[], int] = time.monotonic_ns):
+        if not hasattr(os, "pidfd_open") or not hasattr(signal, "pidfd_send_signal"):
+>           raise RuntimeError("pidfd-based process ownership is required")
+E           RuntimeError: pidfd-based process ownership is required
+
+residual/factory/termination_provenance.py:133: RuntimeError
+_____ LeaseTriStateTests.test_one_shot_locked_read_does_not_kill_or_retype _____
+
+self = <tests.test_sandbox_timing_determinism.LeaseTriStateTests testMethod=test_one_shot_locked_read_does_not_kill_or_retype>
+
+    def test_one_shot_locked_read_does_not_kill_or_retype(self):
+        # A single transient 'database is locked' on the lease read path must
+        # NOT kill the worker — and must never be retyped as lease_generation.
+        fired = threading.Event()
+        real_connect = sqlite3.connect
+    
+        def flaky_connect(path, *args, **kwargs):
+            timeout = kwargs.get('timeout')
+            # The lease read path is the bounded one (budget <= the 2s lease
+            # read cap); journal writers (0.2s) and bulk readers (5s) differ.
+            if isinstance(timeout, float) and 0.2 < timeout <= RuntimeJournal.LEASE_READ_TIMEOUT_S \
+                    and not fired.is_set():
+                fired.set()
+                raise sqlite3.OperationalError('database is locked')
+            return real_connect(path, *args, **kwargs)
+    
+        with patch('residual.factory.runtime_journal.sqlite3.connect', side_effect=flaky_connect):
+            _, result = self.run_source("write_file('output.txt', 'fine')")
+>       self.assertTrue(fired.is_set(), 'injection did not reach the lease read path')
+E       AssertionError: False is not true : injection did not reach the lease read path
+
+tests/test_sandbox_timing_determinism.py:120: AssertionError
+_ ReapTimeoutProvenanceTests.test_reap_timeout_does_not_overwrite_primary_reason _
+
+self = <tests.test_sandbox_timing_determinism.ReapTimeoutProvenanceTests testMethod=test_reap_timeout_does_not_overwrite_primary_reason>
+
+    def test_reap_timeout_does_not_overwrite_primary_reason(self):
+>       control = self._control()
+                  ^^^^^^^^^^^^^^^
+
+tests/test_sandbox_timing_determinism.py:306: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_sandbox_timing_determinism.py:241: in _control
+    control = ProcessControl(process, correlation_id='reap-timeout-test')
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <residual.factory.termination_provenance.ProcessControl object at 0x78fa7e3e36e0>
+process = <Popen: returncode: None args: ['/tmp/residual-r4-venv/bin/python', '-c', 'i...>
+correlation_id = 'reap-timeout-test'
+clock_ns = <built-in function monotonic_ns>
+
+    def __init__(self, process: subprocess.Popen, *, correlation_id: str,
+                 clock_ns: Callable[[], int] = time.monotonic_ns):
+        if not hasattr(os, "pidfd_open") or not hasattr(signal, "pidfd_send_signal"):
+>           raise RuntimeError("pidfd-based process ownership is required")
+E           RuntimeError: pidfd-based process ownership is required
+
+residual/factory/termination_provenance.py:133: RuntimeError
+__ ReapTimeoutProvenanceTests.test_reap_timeout_emits_typed_event_and_reason ___
+
+self = <tests.test_sandbox_timing_determinism.ReapTimeoutProvenanceTests testMethod=test_reap_timeout_emits_typed_event_and_reason>
+
+    def test_reap_timeout_emits_typed_event_and_reason(self):
+>       control = self._control()
+                  ^^^^^^^^^^^^^^^
+
+tests/test_sandbox_timing_determinism.py:263: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_sandbox_timing_determinism.py:241: in _control
+    control = ProcessControl(process, correlation_id='reap-timeout-test')
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <residual.factory.termination_provenance.ProcessControl object at 0x78fa7d273620>
+process = <Popen: returncode: None args: ['/tmp/residual-r4-venv/bin/python', '-c', 'i...>
+correlation_id = 'reap-timeout-test'
+clock_ns = <built-in function monotonic_ns>
+
+    def __init__(self, process: subprocess.Popen, *, correlation_id: str,
+                 clock_ns: Callable[[], int] = time.monotonic_ns):
+        if not hasattr(os, "pidfd_open") or not hasattr(signal, "pidfd_send_signal"):
+>           raise RuntimeError("pidfd-based process ownership is required")
+E           RuntimeError: pidfd-based process ownership is required
+
+residual/factory/termination_provenance.py:133: RuntimeError
+_ ReapTimeoutProvenanceTests.test_reap_timeout_then_successful_followup_reap_restores_invariants _
+
+self = <tests.test_sandbox_timing_determinism.ReapTimeoutProvenanceTests testMethod=test_reap_timeout_then_successful_followup_reap_restores_invariants>
+
+    def test_reap_timeout_then_successful_followup_reap_restores_invariants(self):
+        # Review blocker 3 (lifecycle): after a reap timeout, a mandatory
+        # follow-up reap restores the stopped/reaped invariant exactly once
+        # the process is actually reaped.
+>       control = self._control()
+                  ^^^^^^^^^^^^^^^
+
+tests/test_sandbox_timing_determinism.py:290: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_sandbox_timing_determinism.py:241: in _control
+    control = ProcessControl(process, correlation_id='reap-timeout-test')
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <residual.factory.termination_provenance.ProcessControl object at 0x78fa7d271be0>
+process = <Popen: returncode: None args: ['/tmp/residual-r4-venv/bin/python', '-c', 'i...>
+correlation_id = 'reap-timeout-test'
+clock_ns = <built-in function monotonic_ns>
+
+    def __init__(self, process: subprocess.Popen, *, correlation_id: str,
+                 clock_ns: Callable[[], int] = time.monotonic_ns):
+        if not hasattr(os, "pidfd_open") or not hasattr(signal, "pidfd_send_signal"):
+>           raise RuntimeError("pidfd-based process ownership is required")
+E           RuntimeError: pidfd-based process ownership is required
+
+residual/factory/termination_provenance.py:133: RuntimeError
+___ TypedOutcomeDeterminismTests.test_cancel_after_publication_returns_false ___
+
+self = <tests.test_sandbox_timing_determinism.TypedOutcomeDeterminismTests testMethod=test_cancel_after_publication_returns_false>
+
+    def test_cancel_after_publication_returns_false(self):
+        contract, result = self.run_source("write_file('output.txt', 'ok')")
+>       self.assertEqual(result.status, 'CANDIDATE')
+E       AssertionError: 'FAILED' != 'CANDIDATE'
+E       - FAILED
+E       + CANDIDATE
+
+tests/test_sandbox_timing_determinism.py:371: AssertionError
+_ TypedOutcomeDeterminismTests.test_closed_fds_then_spin_single_typed_outcome __
+
+self = <tests.test_sandbox_timing_determinism.TypedOutcomeDeterminismTests testMethod=test_closed_fds_then_spin_single_typed_outcome>
+
+    def test_closed_fds_then_spin_single_typed_outcome(self):
+        # A worker that closes its protocol fds and then spins must produce
+        # exactly one typed outcome: VIOLATED / wall_clock_budget_s / SIGKILL,
+        # identical across repetitions.
+        source = 'import os\nos.close(1)\nos.close(2)\nwhile True: pass'
+        outcomes = []
+        for _ in range(3):
+            _, result = self.run_source(source, wall_clock_budget_s=0.5)
+            outcomes.append((result.status, result.reason, result.returncode))
+>       self.assertEqual(outcomes, [('VIOLATED', 'wall_clock_budget_s', -signal.SIGKILL)] * 3)
+E       AssertionError: Lists differ: [('FAILED', 'RuntimeError', -9), ('FAILED', [47 chars] -9)] != [('VIOLATED', 'wall_clock_budget_s', -9), ('[74 chars] -9)]
+E       
+E       First differing element 0:
+E       ('FAILED', 'RuntimeError', -9)
+E       ('VIOLATED', 'wall_clock_budget_s', -9)
+E       
+E       - [('FAILED', 'RuntimeError', -9),
+E       -  ('FAILED', 'RuntimeError', -9),
+E       -  ('FAILED', 'RuntimeError', -9)]
+E       + [('VIOLATED', 'wall_clock_budget_s', -9),
+E       +  ('VIOLATED', 'wall_clock_budget_s', -9),
+E       +  ('VIOLATED', 'wall_clock_budget_s', -9)]
+
+tests/test_sandbox_timing_determinism.py:345: AssertionError
+_ TypedOutcomeDeterminismTests.test_n10_determinism_proof_three_worker_corpus __
+
+self = <tests.test_sandbox_timing_determinism.TypedOutcomeDeterminismTests testMethod=test_n10_determinism_proof_three_worker_corpus>
+
+    def test_n10_determinism_proof_three_worker_corpus(self):
+        corpus = [
+            ("write_file('output.txt', 'ok')", {}),
+            ('while True: pass', {'wall_clock_budget_s': 0.3}),
+            ("read_file('secret.txt')", {}),
+        ]
+        table = []
+        for _iteration in range(10):
+            row = []
+            for source, overrides in corpus:
+                contract, result = self.run_source(source, **overrides)
+                row.append((result.status, result.reason, result.returncode))
+                if result.status == 'CANDIDATE':
+                    self.runtime.purge(contract)  # free the task slot for the next round
+            table.append(tuple(row))
+        first = table[0]
+        for row in table:
+            self.assertEqual(row, first)
+>       self.assertEqual(first[0], ('CANDIDATE', 'awaiting_station_verification', 0))
+E       AssertionError: Tuples differ: ('FAILED', 'RuntimeError', -9) != ('CANDIDATE', 'awaiting_station_verification', 0)
+E       
+E       First differing element 0:
+E       'FAILED'
+E       'CANDIDATE'
+E       
+E       - ('FAILED', 'RuntimeError', -9)
+E       + ('CANDIDATE', 'awaiting_station_verification', 0)
+
+tests/test_sandbox_timing_determinism.py:365: AssertionError
+______ IsolatedTimeoutTypingTests.test_timeout_is_distinct_typed_outcome _______
+
+self = <tests.test_sandbox_timing_determinism.IsolatedTimeoutTypingTests testMethod=test_timeout_is_distinct_typed_outcome>
+
+    def test_timeout_is_distinct_typed_outcome(self):
+        python = '/usr/bin/python3'
+        timed = m4_sandbox.run_isolated(
+            (python, '-c', 'import time; time.sleep(30)'), self.worktree,
+            timeout_s=1, output_limit=1 << 16)
+>       self.assertEqual(timed.status, 'timeout')
+E       AssertionError: 'error' != 'timeout'
+E       - error
+E       + timeout
+
+tests/test_sandbox_timing_determinism.py:446: AssertionError
+_ JournalContentionReadTests.test_readiness_polling_survives_concurrent_writer _
+
+self = <tests.test_sandbox_timing_determinism.JournalContentionReadTests testMethod=test_readiness_polling_survives_concurrent_writer>
+
+    def test_readiness_polling_survives_concurrent_writer(self):
+        # Mirrors the failed CI scenario (test_lease_revocation_kills_with_
+        # lease_generation): wait_active()-style observations() polling from a
+        # reader thread while the runtime writes journal events must not raise.
+        errors = []
+        stop = threading.Event()
+    
+        def poll():
+            while not stop.is_set():
+                try:
+                    self.journal.observations()
+                except Exception as exc:  # noqa: BLE001 - record, assert below
+                    errors.append(exc)
+                    return
+    
+        reader = threading.Thread(target=poll, daemon=True)
+        reader.start()
+        try:
+            _, result = self.run_source("write_file('output.txt', 'fine')")
+        finally:
+            stop.set()
+            reader.join(timeout=15)
+        self.assertFalse(reader.is_alive())
+        self.assertEqual(errors, [])
+>       self.assertEqual(result.status, 'CANDIDATE', result)
+E       AssertionError: 'FAILED' != 'CANDIDATE'
+E       - FAILED
+E       + CANDIDATE
+E        : RuntimeResult(attempt_id='attempt1', status='FAILED', contract_hash='188f1604310fb1eb672d336ed7abe4ce90d721868b19e5cdf300cbc7a5a16033', execution_plan_hash='58fb9d19994c80ea1c2b1291d828223e7d838249debd402d7c74c6c7c21f1fe8', returncode=-9, process_reaped=True, usage={'tokens': 0, 'tool_calls': 0, 'file_writes': 0, 'reserved_tokens': 0}, candidate=None, reason='RuntimeError', termination=None, engine_name='brokered-python', engine_version='linux-seccomp-broker-v1')
+
+tests/test_sandbox_timing_determinism.py:676: AssertionError
+__ ContentionBudgetTests.test_watchdog_deadline_during_real_lease_contention ___
+
+self = <tests.test_sandbox_timing_repairs.ContentionBudgetTests testMethod=test_watchdog_deadline_during_real_lease_contention>
+
+    def test_watchdog_deadline_during_real_lease_contention(self):
+        contract = self.seed()
+        contract.wall_clock_budget_s, contract.memory_limit_mb = 0.3, 128
+        process = subprocess.Popen(['/bin/sleep', '30'])
+>       control = ProcessControl(process, correlation_id='contention-budget')
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_sandbox_timing_repairs.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <residual.factory.termination_provenance.ProcessControl object at 0x78fa7cc32cc0>
+process = <Popen: returncode: None args: ['/bin/sleep', '30']>
+correlation_id = 'contention-budget'
+clock_ns = <built-in function monotonic_ns>
+
+    def __init__(self, process: subprocess.Popen, *, correlation_id: str,
+                 clock_ns: Callable[[], int] = time.monotonic_ns):
+        if not hasattr(os, "pidfd_open") or not hasattr(signal, "pidfd_send_signal"):
+>           raise RuntimeError("pidfd-based process ownership is required")
+E           RuntimeError: pidfd-based process ownership is required
+
+residual/factory/termination_provenance.py:133: RuntimeError
+_____ PendingReapTests.test_deferred_reap_preserves_operator_cancellation ______
+
+repository = PosixPath('/tmp/tmperze3i2i/repo'), data = None, extra_env = None
+arguments = ('worktree', 'remove', '--force', '/tmp/tmperze3i2i/work/swarm1/attempt1')
+
+    def git(repository: Path, *arguments: str, data: bytes | None = None,
+            extra_env: dict[str, str] | None = None) -> bytes:
+        env = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8",
+               "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": os.devnull,
+               "GIT_TERMINAL_PROMPT": "0", "GIT_OPTIONAL_LOCKS": "0"}
+        env.update(extra_env or {})
+        command = ["git", "-c", f"core.hooksPath={os.devnull}", "-c", "core.fsmonitor=false",
+                   "-c", "submodule.recurse=false", "-c", "commit.gpgSign=false",
+                   "-C", str(repository), *arguments]
+        try:
+>           result = subprocess.run(command, input=data, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    timeout=20, env=env, check=False)
+
+residual/factory/runtime_workspace.py:42: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py:550: in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py:1209: in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py:2116: in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Popen: returncode: -9 args: ['/bin/sleep', '30']>
+endtime = 71654.423513777, orig_timeout = 20, stdout_seq = [], stderr_seq = []
+skip_check_and_raise = False
+
+    def _check_timeout(self, endtime, orig_timeout, stdout_seq, stderr_seq,
+                       skip_check_and_raise=False):
+        """Convenience for checking if a timeout has expired."""
+        if endtime is None:
+            return
+        if skip_check_and_raise or _time() > endtime:
+>           raise TimeoutExpired(
+                    self.args, orig_timeout,
+                    output=b''.join(stdout_seq) if stdout_seq else None,
+                    stderr=b''.join(stderr_seq) if stderr_seq else None)
+E           subprocess.TimeoutExpired: Command '['/bin/sleep', '30']' timed out after 20 seconds
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py:1253: TimeoutExpired
+
+The above exception was the direct cause of the following exception:
+
+self = <tests.test_sandbox_timing_repairs.PendingReapTests testMethod=test_deferred_reap_preserves_operator_cancellation>
+
+    def test_deferred_reap_preserves_operator_cancellation(self):
+>       _, control = self.deferred_attempt(primary=(
+            'operator', ('cancellation', 'operator_cancel', {'reason': 'local_operator'})))
+
+tests/test_sandbox_timing_repairs.py:266: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_sandbox_timing_repairs.py:196: in deferred_attempt
+    result = self.runtime.run(self.plan, self.approval, contract, 'pass')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+residual/factory/runtime.py:495: in run
+    finalize_resources()
+residual/factory/runtime.py:479: in finalize_resources
+    workspace.discard()
+residual/factory/runtime_workspace.py:99: in discard
+    git(self.repository, "worktree", "remove", "--force", str(self.path))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+repository = PosixPath('/tmp/tmperze3i2i/repo'), data = None, extra_env = None
+arguments = ('worktree', 'remove', '--force', '/tmp/tmperze3i2i/work/swarm1/attempt1')
+
+    def git(repository: Path, *arguments: str, data: bytes | None = None,
+            extra_env: dict[str, str] | None = None) -> bytes:
+        env = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8",
+               "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": os.devnull,
+               "GIT_TERMINAL_PROMPT": "0", "GIT_OPTIONAL_LOCKS": "0"}
+        env.update(extra_env or {})
+        command = ["git", "-c", f"core.hooksPath={os.devnull}", "-c", "core.fsmonitor=false",
+                   "-c", "submodule.recurse=false", "-c", "commit.gpgSign=false",
+                   "-C", str(repository), *arguments]
+        try:
+            result = subprocess.run(command, input=data, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    timeout=20, env=env, check=False)
+        except subprocess.TimeoutExpired as exc:
+>           raise GitOperationTimeout("managed Git operation timed out") from exc
+E           residual.factory.runtime_workspace.GitOperationTimeout: managed Git operation timed out
+
+residual/factory/runtime_workspace.py:45: GitOperationTimeout
+____ PendingReapTests.test_deferred_reap_preserves_watchdog_primary_reason _____
+
+repository = PosixPath('/tmp/tmpun65cr3d/repo'), data = None, extra_env = None
+arguments = ('worktree', 'remove', '--force', '/tmp/tmpun65cr3d/work/swarm1/attempt1')
+
+    def git(repository: Path, *arguments: str, data: bytes | None = None,
+            extra_env: dict[str, str] | None = None) -> bytes:
+        env = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8",
+               "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": os.devnull,
+               "GIT_TERMINAL_PROMPT": "0", "GIT_OPTIONAL_LOCKS": "0"}
+        env.update(extra_env or {})
+        command = ["git", "-c", f"core.hooksPath={os.devnull}", "-c", "core.fsmonitor=false",
+                   "-c", "submodule.recurse=false", "-c", "commit.gpgSign=false",
+                   "-C", str(repository), *arguments]
+        try:
+>           result = subprocess.run(command, input=data, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    timeout=20, env=env, check=False)
+
+residual/factory/runtime_workspace.py:42: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py:550: in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py:1209: in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py:2116: in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Popen: returncode: -9 args: ['/bin/sleep', '30']>
+endtime = 71674.616797636, orig_timeout = 20, stdout_seq = [], stderr_seq = []
+skip_check_and_raise = False
+
+    def _check_timeout(self, endtime, orig_timeout, stdout_seq, stderr_seq,
+                       skip_check_and_raise=False):
+        """Convenience for checking if a timeout has expired."""
+        if endtime is None:
+            return
+        if skip_check_and_raise or _time() > endtime:
+>           raise TimeoutExpired(
+                    self.args, orig_timeout,
+                    output=b''.join(stdout_seq) if stdout_seq else None,
+                    stderr=b''.join(stderr_seq) if stderr_seq else None)
+E           subprocess.TimeoutExpired: Command '['/bin/sleep', '30']' timed out after 20 seconds
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py:1253: TimeoutExpired
+
+The above exception was the direct cause of the following exception:
+
+self = <tests.test_sandbox_timing_repairs.PendingReapTests testMethod=test_deferred_reap_preserves_watchdog_primary_reason>
+
+    def test_deferred_reap_preserves_watchdog_primary_reason(self):
+>       _, control = self.deferred_attempt(primary=(
+            'watchdog', ('resource', 'wall_clock_budget_s', {'elapsed_s': 5.0})))
+
+tests/test_sandbox_timing_repairs.py:258: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_sandbox_timing_repairs.py:196: in deferred_attempt
+    result = self.runtime.run(self.plan, self.approval, contract, 'pass')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+residual/factory/runtime.py:495: in run
+    finalize_resources()
+residual/factory/runtime.py:479: in finalize_resources
+    workspace.discard()
+residual/factory/runtime_workspace.py:99: in discard
+    git(self.repository, "worktree", "remove", "--force", str(self.path))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+repository = PosixPath('/tmp/tmpun65cr3d/repo'), data = None, extra_env = None
+arguments = ('worktree', 'remove', '--force', '/tmp/tmpun65cr3d/work/swarm1/attempt1')
+
+    def git(repository: Path, *arguments: str, data: bytes | None = None,
+            extra_env: dict[str, str] | None = None) -> bytes:
+        env = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8",
+               "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": os.devnull,
+               "GIT_TERMINAL_PROMPT": "0", "GIT_OPTIONAL_LOCKS": "0"}
+        env.update(extra_env or {})
+        command = ["git", "-c", f"core.hooksPath={os.devnull}", "-c", "core.fsmonitor=false",
+                   "-c", "submodule.recurse=false", "-c", "commit.gpgSign=false",
+                   "-C", str(repository), *arguments]
+        try:
+            result = subprocess.run(command, input=data, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    timeout=20, env=env, check=False)
+        except subprocess.TimeoutExpired as exc:
+>           raise GitOperationTimeout("managed Git operation timed out") from exc
+E           residual.factory.runtime_workspace.GitOperationTimeout: managed Git operation timed out
+
+residual/factory/runtime_workspace.py:45: GitOperationTimeout
+_ PendingReapTests.test_failed_deferred_publication_stays_pending_with_diagnostic _
+
+repository = PosixPath('/tmp/tmp5kwe1tud/repo'), data = None, extra_env = None
+arguments = ('worktree', 'remove', '--force', '/tmp/tmp5kwe1tud/work/swarm1/attempt1')
+
+    def git(repository: Path, *arguments: str, data: bytes | None = None,
+            extra_env: dict[str, str] | None = None) -> bytes:
+        env = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8",
+               "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": os.devnull,
+               "GIT_TERMINAL_PROMPT": "0", "GIT_OPTIONAL_LOCKS": "0"}
+        env.update(extra_env or {})
+        command = ["git", "-c", f"core.hooksPath={os.devnull}", "-c", "core.fsmonitor=false",
+                   "-c", "submodule.recurse=false", "-c", "commit.gpgSign=false",
+                   "-C", str(repository), *arguments]
+        try:
+>           result = subprocess.run(command, input=data, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    timeout=20, env=env, check=False)
+
+residual/factory/runtime_workspace.py:42: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py:550: in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py:1209: in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py:2116: in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Popen: returncode: -9 args: ['/bin/sleep', '30']>
+endtime = 71694.786125043, orig_timeout = 20, stdout_seq = [], stderr_seq = []
+skip_check_and_raise = False
+
+    def _check_timeout(self, endtime, orig_timeout, stdout_seq, stderr_seq,
+                       skip_check_and_raise=False):
+        """Convenience for checking if a timeout has expired."""
+        if endtime is None:
+            return
+        if skip_check_and_raise or _time() > endtime:
+>           raise TimeoutExpired(
+                    self.args, orig_timeout,
+                    output=b''.join(stdout_seq) if stdout_seq else None,
+                    stderr=b''.join(stderr_seq) if stderr_seq else None)
+E           subprocess.TimeoutExpired: Command '['/bin/sleep', '30']' timed out after 20 seconds
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py:1253: TimeoutExpired
+
+The above exception was the direct cause of the following exception:
+
+self = <tests.test_sandbox_timing_repairs.PendingReapTests testMethod=test_failed_deferred_publication_stays_pending_with_diagnostic>
+
+    def test_failed_deferred_publication_stays_pending_with_diagnostic(self):
+>       contract, _ = self.deferred_attempt(failed_finish=True)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_sandbox_timing_repairs.py:251: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_sandbox_timing_repairs.py:196: in deferred_attempt
+    result = self.runtime.run(self.plan, self.approval, contract, 'pass')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+residual/factory/runtime.py:495: in run
+    finalize_resources()
+residual/factory/runtime.py:479: in finalize_resources
+    workspace.discard()
+residual/factory/runtime_workspace.py:99: in discard
+    git(self.repository, "worktree", "remove", "--force", str(self.path))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+repository = PosixPath('/tmp/tmp5kwe1tud/repo'), data = None, extra_env = None
+arguments = ('worktree', 'remove', '--force', '/tmp/tmp5kwe1tud/work/swarm1/attempt1')
+
+    def git(repository: Path, *arguments: str, data: bytes | None = None,
+            extra_env: dict[str, str] | None = None) -> bytes:
+        env = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8",
+               "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": os.devnull,
+               "GIT_TERMINAL_PROMPT": "0", "GIT_OPTIONAL_LOCKS": "0"}
+        env.update(extra_env or {})
+        command = ["git", "-c", f"core.hooksPath={os.devnull}", "-c", "core.fsmonitor=false",
+                   "-c", "submodule.recurse=false", "-c", "commit.gpgSign=false",
+                   "-C", str(repository), *arguments]
+        try:
+            result = subprocess.run(command, input=data, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    timeout=20, env=env, check=False)
+        except subprocess.TimeoutExpired as exc:
+>           raise GitOperationTimeout("managed Git operation timed out") from exc
+E           residual.factory.runtime_workspace.GitOperationTimeout: managed Git operation timed out
+
+residual/factory/runtime_workspace.py:45: GitOperationTimeout
+_ PendingReapTests.test_pending_reap_fences_then_publishes_exactly_once_after_recovery _
+
+repository = PosixPath('/tmp/tmpggzdjj9w/repo'), data = None, extra_env = None
+arguments = ('worktree', 'remove', '--force', '/tmp/tmpggzdjj9w/work/swarm1/attempt1')
+
+    def git(repository: Path, *arguments: str, data: bytes | None = None,
+            extra_env: dict[str, str] | None = None) -> bytes:
+        env = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8",
+               "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": os.devnull,
+               "GIT_TERMINAL_PROMPT": "0", "GIT_OPTIONAL_LOCKS": "0"}
+        env.update(extra_env or {})
+        command = ["git", "-c", f"core.hooksPath={os.devnull}", "-c", "core.fsmonitor=false",
+                   "-c", "submodule.recurse=false", "-c", "commit.gpgSign=false",
+                   "-C", str(repository), *arguments]
+        try:
+>           result = subprocess.run(command, input=data, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    timeout=20, env=env, check=False)
+
+residual/factory/runtime_workspace.py:42: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py:550: in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py:1209: in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py:2116: in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Popen: returncode: -9 args: ['/bin/sleep', '30']>
+endtime = 71714.980801399, orig_timeout = 20, stdout_seq = [], stderr_seq = []
+skip_check_and_raise = False
+
+    def _check_timeout(self, endtime, orig_timeout, stdout_seq, stderr_seq,
+                       skip_check_and_raise=False):
+        """Convenience for checking if a timeout has expired."""
+        if endtime is None:
+            return
+        if skip_check_and_raise or _time() > endtime:
+>           raise TimeoutExpired(
+                    self.args, orig_timeout,
+                    output=b''.join(stdout_seq) if stdout_seq else None,
+                    stderr=b''.join(stderr_seq) if stderr_seq else None)
+E           subprocess.TimeoutExpired: Command '['/bin/sleep', '30']' timed out after 20 seconds
+
+/tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py:1253: TimeoutExpired
+
+The above exception was the direct cause of the following exception:
+
+self = <tests.test_sandbox_timing_repairs.PendingReapTests testMethod=test_pending_reap_fences_then_publishes_exactly_once_after_recovery>
+
+    def test_pending_reap_fences_then_publishes_exactly_once_after_recovery(self):
+>       contract, control = self.deferred_attempt()
+                            ^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_sandbox_timing_repairs.py:238: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_sandbox_timing_repairs.py:196: in deferred_attempt
+    result = self.runtime.run(self.plan, self.approval, contract, 'pass')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+residual/factory/runtime.py:495: in run
+    finalize_resources()
+residual/factory/runtime.py:479: in finalize_resources
+    workspace.discard()
+residual/factory/runtime_workspace.py:99: in discard
+    git(self.repository, "worktree", "remove", "--force", str(self.path))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+repository = PosixPath('/tmp/tmpggzdjj9w/repo'), data = None, extra_env = None
+arguments = ('worktree', 'remove', '--force', '/tmp/tmpggzdjj9w/work/swarm1/attempt1')
+
+    def git(repository: Path, *arguments: str, data: bytes | None = None,
+            extra_env: dict[str, str] | None = None) -> bytes:
+        env = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8",
+               "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": os.devnull,
+               "GIT_TERMINAL_PROMPT": "0", "GIT_OPTIONAL_LOCKS": "0"}
+        env.update(extra_env or {})
+        command = ["git", "-c", f"core.hooksPath={os.devnull}", "-c", "core.fsmonitor=false",
+                   "-c", "submodule.recurse=false", "-c", "commit.gpgSign=false",
+                   "-C", str(repository), *arguments]
+        try:
+            result = subprocess.run(command, input=data, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    timeout=20, env=env, check=False)
+        except subprocess.TimeoutExpired as exc:
+>           raise GitOperationTimeout("managed Git operation timed out") from exc
+E           residual.factory.runtime_workspace.GitOperationTimeout: managed Git operation timed out
+
+residual/factory/runtime_workspace.py:45: GitOperationTimeout
+=============================== warnings summary ===============================
+tests/security/test_r4_02_archive_authority.py::test_duplicate_members_last_wins_inside_destination[zip]
+  /tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/zipfile/__init__.py:1624: UserWarning: Duplicate name: 'bin/ollama'
+    return self._open_to_write(zinfo, force_zip64=force_zip64)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/redteam/test_worker_attacks.py::TestSandboxEscapeAttempts::test_ptrace_host_process_attempt
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_candidate_exit_125_is_fail_not_sandbox_error
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_child_surviving_timeout_is_killed
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_external_filesystem_write_attempt_fails
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_fork_descendants_do_not_escape
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_host_paths_not_visible
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_infinite_loop_hits_deterministic_timeout
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_infinite_output_is_bounded_and_killed
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_ipc_namespace_hides_sysv_shm_from_host
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_memory_limit_fails_runaway_allocation
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_missing_executable_is_launch_failed_not_sandbox_error
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_network_attempt_fails
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_pass_and_fail_and_hashes
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_posix_mqueue_namespace_isolated
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_tmpfs_scratch_is_bounded
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_verifier_crash_is_fail_not_error
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_worktree_readable_but_read_only
+FAILED tests/test_factory_m4_tree_binding.py::IsolatedTreeBindingTests::test_isolated_verification_issues_receipt_bound_to_verified_tree
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_cancellation_reaps_real_process
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_cli_runs_the_same_real_backend
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_complete_candidate_preserves_source_and_is_not_receipt
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_delete_produces_tombstone_not_source_mutation
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_durable_revocation_reaps_real_process
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_exec_is_kernel_killed
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_external_sigkill_remains_unknown
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_forbidden_tool_protocol_is_terminal
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_lease_revocation_kills_with_lease_generation
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_oversized_protocol_frame_terminates
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_process_creation_is_kernel_killed
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_ptrace_is_kernel_killed
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_purge_expired_uses_configured_retention
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_raw_file_syscall_is_kernel_killed
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_raw_network_syscall_is_kernel_killed
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_replayed_request_is_terminal
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_thread_creation_is_kernel_killed
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_tool_limit_enforced_before_dispatch
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_two_swarms_have_distinct_workers_and_worktrees
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_unauthorized_broker_read_terminates_and_discards
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_unauthorized_broker_write_terminates_and_preserves_source
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_wall_clock_kills_noncooperative_worker
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_watchdog_termination_is_independent_of_blocked_audit_callback
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_worker_does_not_inherit_provider_credentials
+FAILED tests/test_factory_runtime.py::ExecutionTests::test_write_limit_enforced_before_mutation
+FAILED tests/test_factory_runtime_lifecycle.py::WatchdogIntentGuards::test_kill_records_intent_before_signal_and_single_reap
+FAILED tests/test_factory_runtime_startup.py::StartupOrderingTests::test_inconsistent_wait_status_cannot_publish_candidate
+FAILED tests/test_factory_runtime_startup.py::StartupOrderingTests::test_resources_still_enforced_while_started_persistence_is_blocked
+FAILED tests/test_factory_runtime_startup.py::StartupOrderingTests::test_startup_database_lock_does_not_preempt_durable_start
+FAILED tests/test_factory_runtime_startup.py::StartupOrderingTests::test_watchdog_tick_before_started_persistence_cannot_fence_reserved_attempt
+FAILED tests/test_factory_termination_provenance.py::ProcessControlTests::test_bad_descriptor_is_not_treated_as_exit
+FAILED tests/test_factory_termination_provenance.py::ProcessControlTests::test_close_before_reap_is_rejected_without_losing_fd
+FAILED tests/test_factory_termination_provenance.py::ProcessControlTests::test_close_is_idempotent_after_reap
+FAILED tests/test_factory_termination_provenance.py::ProcessControlTests::test_concurrent_reap_allows_signal_and_consumes_once
+FAILED tests/test_factory_termination_provenance.py::ProcessControlTests::test_contradictory_wait_results_remain_unknown_and_keep_both
+SUBFAILED(returncode=0) tests/test_factory_termination_provenance.py::ProcessControlTests::test_exit_winning_signal_race_does_not_become_watchdog_kill
+SUBFAILED(returncode=7) tests/test_factory_termination_provenance.py::ProcessControlTests::test_exit_winning_signal_race_does_not_become_watchdog_kill
+SUBFAILED(returncode=-31) tests/test_factory_termination_provenance.py::ProcessControlTests::test_exit_winning_signal_race_does_not_become_watchdog_kill
+SUBFAILED(returncode=-15) tests/test_factory_termination_provenance.py::ProcessControlTests::test_exit_winning_signal_race_does_not_become_watchdog_kill
+SUBFAILED(returncode=-9) tests/test_factory_termination_provenance.py::ProcessControlTests::test_exit_winning_signal_race_does_not_become_watchdog_kill
+FAILED tests/test_factory_termination_provenance.py::ProcessControlTests::test_exited_is_non_consuming
+FAILED tests/test_factory_termination_provenance.py::ProcessControlTests::test_identity_is_bound_and_immutable
+FAILED tests/test_factory_termination_provenance.py::ProcessControlTests::test_invalid_waitid_code_is_not_clean_exit
+FAILED tests/test_factory_termination_provenance.py::ProcessControlTests::test_kill_records_request_before_signal_and_reap
+FAILED tests/test_factory_termination_provenance.py::ProcessControlTests::test_late_kill_preserves_already_exited_signal_and_has_no_requester
+FAILED tests/test_factory_termination_provenance.py::ProcessControlTests::test_lost_child_ownership_is_not_fallback_success
+FAILED tests/test_factory_termination_provenance.py::ProcessControlTests::test_probe_holds_state_lock_through_syscall
+FAILED tests/test_factory_termination_provenance.py::ProcessControlTests::test_reap_is_idempotent_and_only_consuming_path
+FAILED tests/test_factory_termination_provenance.py::ProcessControlTests::test_reasonless_kill_still_records_host_intent
+FAILED tests/test_factory_termination_provenance.py::ProcessControlTests::test_record_is_frozen_once_and_nested_exports_are_detached
+FAILED tests/test_factory_termination_provenance.py::ProcessControlTests::test_shared_cgroup_oom_activity_is_not_process_attribution
+SUBFAILED(returncode=0) tests/test_factory_termination_provenance.py::ProcessControlTests::test_successful_send_still_cannot_explain_sigsys_or_normal_exit
+SUBFAILED(returncode=-31) tests/test_factory_termination_provenance.py::ProcessControlTests::test_successful_send_still_cannot_explain_sigsys_or_normal_exit
+FAILED tests/test_factory_termination_provenance.py::ProcessControlTests::test_termination_record_requires_reaped_process
+FAILED tests/test_factory_termination_provenance.py::ProcessControlTests::test_timeout_does_not_claim_reaped
+FAILED tests/test_factory_termination_provenance.py::ProcessControlTests::test_unavailable_waitid_falls_back_to_reaped_status
+SUBFAILED(code=2) tests/test_factory_termination_provenance.py::ProcessControlTests::test_waitid_handles_killed_dumped_and_exited
+SUBFAILED(code=3) tests/test_factory_termination_provenance.py::ProcessControlTests::test_waitid_handles_killed_dumped_and_exited
+SUBFAILED(code=1) tests/test_factory_termination_provenance.py::ProcessControlTests::test_waitid_handles_killed_dumped_and_exited
+FAILED tests/test_sandbox_timing_adversarial.py::ReapTimeoutSemanticsTests::test_reap_timeout_does_not_publish_stopped_as_completion
+FAILED tests/test_sandbox_timing_adversarial.py::ReapTimeoutSemanticsTests::test_reap_timeout_reason_is_typed_not_silent
+FAILED tests/test_sandbox_timing_determinism.py::LeaseTriStateTests::test_one_shot_locked_read_does_not_kill_or_retype
+FAILED tests/test_sandbox_timing_determinism.py::ReapTimeoutProvenanceTests::test_reap_timeout_does_not_overwrite_primary_reason
+FAILED tests/test_sandbox_timing_determinism.py::ReapTimeoutProvenanceTests::test_reap_timeout_emits_typed_event_and_reason
+FAILED tests/test_sandbox_timing_determinism.py::ReapTimeoutProvenanceTests::test_reap_timeout_then_successful_followup_reap_restores_invariants
+FAILED tests/test_sandbox_timing_determinism.py::TypedOutcomeDeterminismTests::test_cancel_after_publication_returns_false
+FAILED tests/test_sandbox_timing_determinism.py::TypedOutcomeDeterminismTests::test_closed_fds_then_spin_single_typed_outcome
+FAILED tests/test_sandbox_timing_determinism.py::TypedOutcomeDeterminismTests::test_n10_determinism_proof_three_worker_corpus
+FAILED tests/test_sandbox_timing_determinism.py::IsolatedTimeoutTypingTests::test_timeout_is_distinct_typed_outcome
+FAILED tests/test_sandbox_timing_determinism.py::JournalContentionReadTests::test_readiness_polling_survives_concurrent_writer
+FAILED tests/test_sandbox_timing_repairs.py::ContentionBudgetTests::test_watchdog_deadline_during_real_lease_contention
+FAILED tests/test_sandbox_timing_repairs.py::PendingReapTests::test_deferred_reap_preserves_operator_cancellation
+FAILED tests/test_sandbox_timing_repairs.py::PendingReapTests::test_deferred_reap_preserves_watchdog_primary_reason
+FAILED tests/test_sandbox_timing_repairs.py::PendingReapTests::test_failed_deferred_publication_stays_pending_with_diagnostic
+FAILED tests/test_sandbox_timing_repairs.py::PendingReapTests::test_pending_reap_fences_then_publishes_exactly_once_after_recovery
+93 failed, 1923 passed, 13 skipped, 1 warning, 377 subtests passed in 332.86s (0:05:32)
+
+[stderr]

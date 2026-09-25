@@ -1,0 +1,42 @@
+{
+  "format": "tar.zst",
+  "case": "mixed",
+  "mode": "real",
+  "fixture_sha256": "70340ea84d413f49cfac65e61d1d3e07b9b52ccd2d7fc2472fc00041859e4095",
+  "error": null,
+  "returned": "started",
+  "start_calls": 1,
+  "preexisting_link": false,
+  "external_commands": [
+    {
+      "argv": [
+        "tar",
+        "--zstd",
+        "-xf",
+        "/tmp/r4-02-audit-o8042bk9/tar.zst-mixed/runtime-download/fixture.tar.zst",
+        "-C",
+        "/tmp/r4-02-audit-o8042bk9/tar.zst-mixed/runtime"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    }
+  ],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [],
+  "outside_authority": [],
+  "authority_probes": [],
+  "outside_after_probe": {
+    "source": "original"
+  },
+  "files": {
+    "a/..\\..\\outside/marker": "fixture"
+  },
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "ALLOWED_BUT_CONFINED",
+  "protection_layer": "FILESYSTEM",
+  "protection_detail": "External GNU tar 1.34 --zstd -xf archive -C dest; see captured stderr"
+}

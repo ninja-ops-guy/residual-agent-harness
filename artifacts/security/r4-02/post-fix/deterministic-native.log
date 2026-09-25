@@ -1,0 +1,548 @@
+$ setpriv --reuid=65534 --regid=65534 --clear-groups env PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/mnt/c/Users/jinis/residual-snyk-r4 GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=/mnt/c/Users/jinis/residual-snyk-r4 /tmp/residual-r4-02-native-venv/bin/python -m pytest tests --ignore=tests/qualification -q -p no:cacheprovider --basetemp=/tmp/r4-02-qualification-native-1 --junitxml=artifacts/security/r4-02/post-fix/deterministic-native.xml
+
+[stdout]
+........................................................................ [  3%]
+........................................................................ [  7%]
+........................................................................ [ 10%]
+................................................................................................. [ 15%]
+........................................................................ [ 19%]
+........................................................................ [ 22%]
+.......................................................................F [ 26%]
+........................................................................ [ 29%]
+........................................................................ [ 33%]
+........................................................................ [ 36%]
+............................................. [ 39%]
+............................................................... [ 42%]
+..................................................... [ 44%]
+........................................................................ [ 48%]
+............................................................ [ 51%]
+........................................................................... [ 55%]
+.........FFFFFFFFFFFFFFFF..............F........... [ 57%]
+......F.......................................................... [ 60%]
+............................................................................................................................................................................... [ 69%]
+........................................................................ [ 73%]
+.............................................................FF......... [ 76%]
+........................................................................ [ 80%]
+........................................................................ [ 83%]
+...................F.................................................... [ 87%]
+.......................................................... [ 90%]
+........................................................................ [ 93%]
+.............................................................................................................................                                           [100%]
+=================================== FAILURES ===================================
+____________ test_gate_b_evidence_artifact_regenerates_identically _____________
+
+tmp_path = PosixPath('/tmp/r4-02-qualification-native-1/test_gate_b_evidence_artifact_0')
+
+    def test_gate_b_evidence_artifact_regenerates_identically(tmp_path):
+        repo = Path(__file__).resolve().parents[2]
+        p1, h1 = generate_evidence(tmp_path / "a", repo)
+        p2, h2 = generate_evidence(tmp_path / "b", repo)
+        assert p1.exists() and h1 == h2  # deterministic artifact content
+        artifact = json.loads(p1.read_text())
+        assert artifact["results"]["ok"]
+        assert artifact["results"]["no_duplicate_accepted_transition"]
+>       assert artifact["source_identity"]["commit"]
+E       assert None
+
+tests/swarm/test_dsm.py:374: AssertionError
+____ IsolatedRunnerTests.test_candidate_exit_125_is_fail_not_sandbox_error _____
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_candidate_exit_125_is_fail_not_sandbox_error>
+
+    def test_candidate_exit_125_is_fail_not_sandbox_error(self):
+        # Exit code 125 from candidate code must not be mistyped as a
+        # sandbox infrastructure ERROR.
+        result = self.check("import sys; sys.exit(125)")
+>       self.assertEqual(result.status, "fail")
+E       AssertionError: 'error' != 'fail'
+E       - error
+E       + fail
+
+tests/test_factory_m4_sandbox.py:213: AssertionError
+__________ IsolatedRunnerTests.test_child_surviving_timeout_is_killed __________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_child_surviving_timeout_is_killed>
+
+    def test_child_surviving_timeout_is_killed(self):
+        code = (
+            "import os, time\n"
+            "if os.fork() == 0:\n"
+            "    time.sleep(300)\n"
+            "    os._exit(0)\n"
+            "while True: pass\n"
+        )
+        result = self.check(code, timeout_s=3)
+>       self.assertEqual(result.status, "timeout")
+E       AssertionError: 'error' != 'timeout'
+E       - error
+E       + timeout
+
+tests/test_factory_m4_sandbox.py:138: AssertionError
+_______ IsolatedRunnerTests.test_external_filesystem_write_attempt_fails _______
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_external_filesystem_write_attempt_fails>
+
+    def test_external_filesystem_write_attempt_fails(self):
+        code = (
+            "import os, sys\n"
+            f"targets = ['/etc/hostname', {str(self.sentinel)!r}, '/root/x', '/usr/local/x']\n"
+            "for t in targets:\n"
+            "    if not os.path.exists(t):\n"
+            "        continue\n"
+            "    try:\n"
+            "        open(t, 'a').write('evil')\n"
+            "    except OSError:\n"
+            "        continue\n"
+            "    sys.exit(42)\n"
+            "sys.exit(0)\n"
+        )
+        result = self.check(code)
+>       self.assertEqual(result.status, "pass")  # every target was unreachable/unwritable
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: 'error' != 'pass'
+E       - error
+E       + pass
+
+tests/test_factory_m4_sandbox.py:82: AssertionError
+___________ IsolatedRunnerTests.test_fork_descendants_do_not_escape ____________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_fork_descendants_do_not_escape>
+
+    def test_fork_descendants_do_not_escape(self):
+        code = (
+            "import os, time\n"
+            "if os.fork() == 0:\n"
+            "    if os.fork() == 0:\n"
+            "        time.sleep(300)\n"
+            "        os._exit(0)\n"
+            "print('leader exits')"
+        )
+        result = self.check(code)
+>       self.assertEqual(result.status, "pass")
+E       AssertionError: 'error' != 'pass'
+E       - error
+E       + pass
+
+tests/test_factory_m4_sandbox.py:122: AssertionError
+_______________ IsolatedRunnerTests.test_host_paths_not_visible ________________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_host_paths_not_visible>
+
+    def test_host_paths_not_visible(self):
+        result = self.check(
+            "import os, sys; sys.exit(0 if not os.path.exists('/etc/hostname') "
+            "and not os.path.exists(os.path.expanduser('~/.ssh')) else 1)"
+        )
+>       self.assertEqual(result.status, "pass")
+E       AssertionError: 'error' != 'pass'
+E       - error
+E       + pass
+
+tests/test_factory_m4_sandbox.py:90: AssertionError
+______ IsolatedRunnerTests.test_infinite_loop_hits_deterministic_timeout _______
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_infinite_loop_hits_deterministic_timeout>
+
+    def test_infinite_loop_hits_deterministic_timeout(self):
+        import time
+        start = time.monotonic()
+        result = self.check("while True: pass", timeout_s=3)
+        # Typed TIMEOUT: distinct status, deterministic returncode 124, and
+        # the timed_out marker — never retyped as candidate FAIL or ERROR.
+>       self.assertEqual(result.status, "timeout")
+E       AssertionError: 'error' != 'timeout'
+E       - error
+E       + timeout
+
+tests/test_factory_m4_sandbox.py:98: AssertionError
+________ IsolatedRunnerTests.test_infinite_output_is_bounded_and_killed ________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_infinite_output_is_bounded_and_killed>
+
+    def test_infinite_output_is_bounded_and_killed(self):
+        result = self.check(
+            "import sys\nwhile True: sys.stdout.write('x' * 65536)",
+            timeout_s=30, output_limit=1 << 16,
+        )
+>       self.assertEqual(result.status, "fail")
+E       AssertionError: 'error' != 'fail'
+E       - error
+E       + fail
+
+tests/test_factory_m4_sandbox.py:109: AssertionError
+_______ IsolatedRunnerTests.test_ipc_namespace_hides_sysv_shm_from_host ________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_ipc_namespace_hides_sysv_shm_from_host>
+
+    def test_ipc_namespace_hides_sysv_shm_from_host(self):
+        # Candidate creates a SysV shared-memory segment (and deliberately
+        # does not IPC_RMID it). With a private IPC namespace the segment
+        # must never appear in the host's segment table.
+        def host_shmids() -> set:
+            ids = set()
+            with open("/proc/sysvipc/shm") as fh:
+                next(fh, None)
+                for line in fh:
+                    parts = line.split()
+                    if parts:
+                        ids.add(parts[1])
+            return ids
+    
+        before = host_shmids()
+        code = (
+            "import ctypes\n"
+            "libc = ctypes.CDLL(None, use_errno=True)\n"
+            "IPC_PRIVATE = 0\n"
+            "IPC_CREAT = 0o1000\n"
+            "shmid = libc.shmget(IPC_PRIVATE, 65536, IPC_CREAT | 0o600)\n"
+            "assert shmid >= 0, 'shmget failed inside sandbox'\n"
+        )
+        result = self.check(code)
+>       self.assertEqual(result.status, "pass")  # shmget itself succeeded
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: 'error' != 'pass'
+E       - error
+E       + pass
+
+tests/test_factory_m4_sandbox.py:182: AssertionError
+________ IsolatedRunnerTests.test_memory_limit_fails_runaway_allocation ________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_memory_limit_fails_runaway_allocation>
+
+    def test_memory_limit_fails_runaway_allocation(self):
+        result = self.check("x = bytearray(10 * 1024**3)", memory_mb=64)
+>       self.assertEqual(result.status, "fail")
+E       AssertionError: 'error' != 'fail'
+E       - error
+E       + fail
+
+tests/test_factory_m4_sandbox.py:156: AssertionError
+_ IsolatedRunnerTests.test_missing_executable_is_launch_failed_not_sandbox_error _
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_missing_executable_is_launch_failed_not_sandbox_error>
+
+    def test_missing_executable_is_launch_failed_not_sandbox_error(self):
+        # The sandbox was set up (ready byte sent) but exec() failed: the
+        # candidate never launched -> unknown/launch_failed, matching the
+        # fixture lane's typing.
+        result = run_isolated(
+            ("/definitely/not/a/real/binary-m4",), self.worktree,
+            timeout_s=20, output_limit=1 << 20,
+        )
+>       self.assertEqual(result.status, "unknown")
+E       AssertionError: 'error' != 'unknown'
+E       - error
+E       + unknown
+
+tests/test_factory_m4_sandbox.py:225: AssertionError
+________________ IsolatedRunnerTests.test_network_attempt_fails ________________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_network_attempt_fails>
+
+    def test_network_attempt_fails(self):
+        result = self.check(
+            "import socket; socket.create_connection(('203.0.113.1', 80), timeout=3)"
+        )
+>       self.assertEqual(result.status, "fail")
+E       AssertionError: 'error' != 'fail'
+E       - error
+E       + fail
+
+tests/test_factory_m4_sandbox.py:64: AssertionError
+______________ IsolatedRunnerTests.test_pass_and_fail_and_hashes _______________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_pass_and_fail_and_hashes>
+
+    def test_pass_and_fail_and_hashes(self):
+        ok = self.check("import sys; sys.stdout.write('out'); sys.stderr.write('err')")
+>       self.assertEqual(ok.status, "pass")
+E       AssertionError: 'error' != 'pass'
+E       - error
+E       + pass
+
+tests/test_factory_m4_sandbox.py:45: AssertionError
+___________ IsolatedRunnerTests.test_posix_mqueue_namespace_isolated ___________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_posix_mqueue_namespace_isolated>
+
+    def test_posix_mqueue_namespace_isolated(self):
+        # Candidate creates a POSIX mqueue; the host's /dev/mqueue must not
+        # gain a new entry.
+        code = (
+            "import ctypes\n"
+            "libc = ctypes.CDLL(None, use_errno=True)\n"
+            "name = b'/m4-probe-queue'\n"
+            "mqd = libc.mq_open(name, 0o100 | 0o200, 0o600, None)  # O_CREAT|O_EXCL\n"
+            "assert mqd >= 0 or ctypes.get_errno() != 0  # either way, not host-visible\n"
+        )
+        host_mq = Path("/dev/mqueue")
+        before = set(host_mq.iterdir()) if host_mq.is_dir() else set()
+        result = self.check(code)
+>       self.assertEqual(result.status, "pass")
+E       AssertionError: 'error' != 'pass'
+E       - error
+E       + pass
+
+tests/test_factory_m4_sandbox.py:205: AssertionError
+______________ IsolatedRunnerTests.test_tmpfs_scratch_is_bounded _______________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_tmpfs_scratch_is_bounded>
+
+    def test_tmpfs_scratch_is_bounded(self):
+        # RLIMIT_FSIZE is 64 MiB, so write many small files: 300 x 1 MiB
+        # exceeds the 256 MiB tmpfs ceiling and must hit ENOSPC (exit 42).
+        # Without a size= bound this would succeed (exit 0).
+        code = (
+            "import os, sys\n"
+            "block = b'x' * (1 << 20)\n"
+            "written = 0\n"
+            "try:\n"
+            "    for i in range(300):\n"
+            "        with open(f'/tmp/fill-{i}', 'wb') as fh:\n"
+            "            fh.write(block)\n"
+            "        written += 1\n"
+            "except OSError:\n"
+            "    sys.exit(42)\n"
+            "sys.exit(0)\n"
+        )
+        result = self.check(code, memory_mb=1024)
+>       self.assertEqual(result.status, "fail")
+E       AssertionError: 'error' != 'fail'
+E       - error
+E       + fail
+
+tests/test_factory_m4_sandbox.py:246: AssertionError
+__________ IsolatedRunnerTests.test_verifier_crash_is_fail_not_error ___________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_verifier_crash_is_fail_not_error>
+
+    def test_verifier_crash_is_fail_not_error(self):
+        result = self.check("import ctypes; ctypes.string_at(0)")
+>       self.assertEqual(result.status, "fail")
+E       AssertionError: 'error' != 'fail'
+E       - error
+E       + fail
+
+tests/test_factory_m4_sandbox.py:150: AssertionError
+___________ IsolatedRunnerTests.test_worktree_readable_but_read_only ___________
+
+self = <tests.test_factory_m4_sandbox.IsolatedRunnerTests testMethod=test_worktree_readable_but_read_only>
+
+    def test_worktree_readable_but_read_only(self):
+        read = self.check("import pathlib; assert pathlib.Path('candidate.txt').read_text() == 'candidate-bytes'")
+>       self.assertEqual(read.status, "pass")
+E       AssertionError: 'error' != 'pass'
+E       - error
+E       + pass
+
+tests/test_factory_m4_sandbox.py:55: AssertionError
+_ IsolatedTreeBindingTests.test_isolated_verification_issues_receipt_bound_to_verified_tree _
+
+self = <tests.test_factory_m4_tree_binding.IsolatedTreeBindingTests testMethod=test_isolated_verification_issues_receipt_bound_to_verified_tree>
+
+    def test_isolated_verification_issues_receipt_bound_to_verified_tree(self):
+>       outcome = self.integrate(self.isolated_policy("raise SystemExit(0)"))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_factory_m4_tree_binding.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_factory_m4_tree_binding.py:44: in integrate
+    return self.f.integrator.integrate(self.plan, policy=policy,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <residual.factory.m4_integrator.DeterministicIntegrator object at 0x72d7223ca2a0>
+plan = EvidenceIntegrationPlan(execution_plan_hash='cb53c90d6c74b366b4dc798b24237f61decd4838903716b7f3813f0429dadb3f', ordere...ed=False, source_receipt_hashes=('462a37a2493d17b4f527b6ff4ee3fcd9561c291262193d7ccaca2987bf17f29f',)),), conflicts=())
+policy = ProjectVerificationPolicy(commands=(VerificationCommand(name='tests', category='full_test_suite', argv=('/usr/bin/pyth..., 'raise SystemExit(0)'), timeout_s=120.0, max_output_bytes=1048576)), secops_active=False, trusted_fixture_mode=False)
+station_identity = <residual.factory.evidence_receipts.StationIdentity object at 0x72d7223ca1b0>
+resolutions = ()
+
+    def integrate(self, plan: EvidenceIntegrationPlan, *, policy: ProjectVerificationPolicy,
+                  station_identity: StationIdentity,
+                  resolutions: Sequence[ConflictResolution] = ()) -> IntegrationOutcome:
+        self._require_execution_policy(policy)
+        boundary = self._execution_boundary(policy)
+        if not isinstance(plan, EvidenceIntegrationPlan):
+            raise M4IntegrationError("EvidenceIntegrationPlan required")
+        if station_identity.key_id != _sha256(self.station_public_key):
+            raise M4IntegrationError("Station signing identity does not match Evidence Bus trust root")
+    
+        receipts = self._receipts(plan)
+        root_commit = self._root_commit(receipts)
+        winners, conflicts = self._classify_overlaps(receipts)
+        by_resolution = {resolution.path: resolution for resolution in resolutions}
+        if len(by_resolution) != len(tuple(resolutions)):
+            raise M4IntegrationError("duplicate HITL conflict resolution path")
+        for conflict in conflicts:
+            resolution = by_resolution.get(conflict.path)
+            if resolution is None:
+                self._emit("M4IntegrationConflict", path=conflict.path,
+                           receipt_hashes=list(conflict.receipt_hashes), action="hitl_required")
+                raise IntegrationConflictError("true integration conflict requires HITL resolution")
+            if resolution.selected_receipt_hash not in conflict.receipt_hashes:
+                raise M4IntegrationError("HITL resolution selects receipt outside conflict")
+            winners[conflict.path] = resolution.selected_receipt_hash
+            self._emit("M4ConflictResolved", path=conflict.path,
+                       selected_receipt_hash=resolution.selected_receipt_hash,
+                       approved_by=resolution.approved_by.strip())
+        if set(by_resolution) - {conflict.path for conflict in conflicts}:
+            raise M4IntegrationError("HITL resolution supplied for non-conflicting path")
+    
+        worktree = self._worktree(f"integrate-{plan.plan_hash[:16]}", root_commit)
+        try:
+            snapshot(worktree)  # Reject links/special files inherited from the root.
+            self._apply_receipts(worktree, receipts, winners)
+            tree = self._freeze_tree(worktree, root_commit, receipts, winners)
+            results = self._run_verification(worktree, policy)
+            passed = self._passes(results)
+            self._emit("M4ProjectVerification", integration_plan_hash=plan.plan_hash,
+                       passed=passed, checks=[result.to_dict() for result in results])
+            if not passed:
+                offender = None
+                if self._verification_available(results):
+                    try:
+                        offender = self._attribute_failure(root_commit, receipts, policy)
+                    except WorkerContractError:
+                        self._emit("M4AttributionUnavailable", reason="counterfactual_evidence_unavailable")
+                else:
+                    self._emit("M4AttributionUnavailable", reason="verification_unavailable_or_resource_limited")
+                if offender is not None:
+                    task_id = next(r.task_id for r in receipts if r.receipt_hash == offender)
+                    self._emit("M4ReceiptRevisionRequired", receipt_hash=offender,
+                               task_id=task_id, action="replan")
+>               raise ProjectVerificationError(
+                    "accumulated project verification failed",
+                    offending_receipt_hash=offender,
+                )
+E               residual.factory.m4_integrator.ProjectVerificationError: accumulated project verification failed
+
+residual/factory/m4_integrator.py:608: ProjectVerificationError
+_____ FactoryOwnershipGateTests.test_repo_manifest_matches_committed_tree ______
+
+self = <tests.test_factory_ownership_gate.FactoryOwnershipGateTests testMethod=test_repo_manifest_matches_committed_tree>
+
+    def test_repo_manifest_matches_committed_tree(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        manifest = repo_root / "verifier/v3/factory_ownership_baseline.json"
+        report, failures = gate.evaluate_ownership(repo_root, manifest)
+>       self.assertEqual(failures, [], report)
+E       AssertionError: Lists differ: ['protected file missing or unreadable at [7836 chars]r4)'] != []
+E       
+E       First list contains 39 additional elements.
+E       First extra element 0:
+E       'protected file missing or unreadable at HEAD: residual/factory/__init__.py (fatal: not a git repository: /root/.openclaw-anvil/workspace/residual-agent-harness/.git/worktrees/residual-snyk-r4)'
+E       
+E       Diff is 8473 characters long. Set self.maxDiff to None to see it. : {'scope': 'factory-ownership-blob-pin', 'manifest': '/mnt/c/Users/jinis/residual-snyk-r4/verifier/v3/factory_ownership_baseline.json', 'pinned_at': '3d9d4b92bd1b40e2dae83d263cf75e9eba7cd66a', 'protected_files': 39, 'checked': 0, 'mismatches': []}
+
+tests/test_factory_ownership_gate.py:106: AssertionError
+_______________________ test_quickstart_commands_execute _______________________
+
+workspace = (PosixPath('/tmp/r4-02-qualification-native-1/test_quickstart_commands_execu0'), {'PYTHONDONTWRITEBYTECODE': '1', 'SHELL': '/bin/bash', 'COLORTERM': '', 'WSL2_GUI_APPS_ENABLED': '1', ...})
+
+    def test_quickstart_commands_execute(workspace):
+        tmp_path, env = workspace
+        text = QUICKSTART.read_text()
+        blocks = [b for b in _bash_blocks(text) if "pip install" not in b]
+        assert len(blocks) >= 3, "quickstart must contain runnable command blocks"
+        for block in blocks:
+            proc = _run(block, tmp_path, env)
+>           assert proc.returncode == 0, (
+                f"quickstart block failed ({proc.returncode}):\n{block}\n"
+                f"stdout: {proc.stdout[-2000:]}\nstderr: {proc.stderr[-2000:]}")
+E           AssertionError: quickstart block failed (1):
+E             python3 -m residual run examples/onboarding/sample_project/task.json \
+E               --config examples/onboarding/config.toml --output runs/quickstart
+E             
+E             stdout: 
+E             stderr: Traceback (most recent call last):
+E               File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+E                 return _run_code(code, main_globals, None,
+E               File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
+E                 exec(code, run_globals)
+E               File "/mnt/c/Users/jinis/residual-snyk-r4/residual/__main__.py", line 1, in <module>
+E                 from .cli import main
+E               File "/mnt/c/Users/jinis/residual-snyk-r4/residual/cli.py", line 9, in <module>
+E                 from .config import build_harness, load_config
+E               File "/mnt/c/Users/jinis/residual-snyk-r4/residual/config.py", line 3, in <module>
+E                 import tomllib
+E             ModuleNotFoundError: No module named 'tomllib'
+E             
+E           assert 1 == 0
+E            +  where 1 = CompletedProcess(args=['bash', '-c', 'python3 -m residual run examples/onboarding/sample_project/task.json \\\n  --con...k-r4/residual/config.py", line 3, in <module>\n    import tomllib\nModuleNotFoundError: No module named \'tomllib\'\n').returncode
+
+tests/test_onboarding.py:49: AssertionError
+_________________________ test_demo_script_exits_zero __________________________
+
+workspace = (PosixPath('/tmp/r4-02-qualification-native-1/test_demo_script_exits_zero0'), {'PYTHONDONTWRITEBYTECODE': '1', 'SHELL': '/bin/bash', 'COLORTERM': '', 'WSL2_GUI_APPS_ENABLED': '1', ...})
+
+    def test_demo_script_exits_zero(workspace):
+        tmp_path, env = workspace
+        proc = _run("bash examples/onboarding/demo.sh runs/onboarding-demo", tmp_path, env)
+>       assert proc.returncode == 0, (
+            f"demo.sh failed:\n{proc.stdout[-2000:]}\n{proc.stderr[-2000:]}")
+E       AssertionError: demo.sh failed:
+E         ==> residual run examples/onboarding/sample_project (scripted demo providers)
+E         
+E         Traceback (most recent call last):
+E           File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+E             return _run_code(code, main_globals, None,
+E           File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
+E             exec(code, run_globals)
+E           File "/mnt/c/Users/jinis/residual-snyk-r4/residual/__main__.py", line 1, in <module>
+E             from .cli import main
+E           File "/mnt/c/Users/jinis/residual-snyk-r4/residual/cli.py", line 9, in <module>
+E             from .config import build_harness, load_config
+E           File "/mnt/c/Users/jinis/residual-snyk-r4/residual/config.py", line 3, in <module>
+E             import tomllib
+E         ModuleNotFoundError: No module named 'tomllib'
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['bash', '-c', 'bash examples/onboarding/demo.sh runs/onboarding-demo'], returncode=1, stdout='=...k-r4/residual/config.py", line 3, in <module>\n    import tomllib\nModuleNotFoundError: No module named \'tomllib\'\n').returncode
+
+tests/test_onboarding.py:62: AssertionError
+______ IsolatedTimeoutTypingTests.test_timeout_is_distinct_typed_outcome _______
+
+self = <tests.test_sandbox_timing_determinism.IsolatedTimeoutTypingTests testMethod=test_timeout_is_distinct_typed_outcome>
+
+    def test_timeout_is_distinct_typed_outcome(self):
+        python = '/usr/bin/python3'
+        timed = m4_sandbox.run_isolated(
+            (python, '-c', 'import time; time.sleep(30)'), self.worktree,
+            timeout_s=1, output_limit=1 << 16)
+>       self.assertEqual(timed.status, 'timeout')
+E       AssertionError: 'error' != 'timeout'
+E       - error
+E       + timeout
+
+tests/test_sandbox_timing_determinism.py:446: AssertionError
+=============================== warnings summary ===============================
+tests/security/test_r4_02_archive_authority.py::test_duplicate_members_last_wins_inside_destination[zip]
+  /tmp/residual-r4-02-native/install/lib/python3.12/zipfile/__init__.py:1624: UserWarning: Duplicate name: 'bin/ollama'
+    return self._open_to_write(zinfo, force_zip64=force_zip64)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/swarm/test_dsm.py::test_gate_b_evidence_artifact_regenerates_identically
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_candidate_exit_125_is_fail_not_sandbox_error
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_child_surviving_timeout_is_killed
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_external_filesystem_write_attempt_fails
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_fork_descendants_do_not_escape
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_host_paths_not_visible
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_infinite_loop_hits_deterministic_timeout
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_infinite_output_is_bounded_and_killed
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_ipc_namespace_hides_sysv_shm_from_host
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_memory_limit_fails_runaway_allocation
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_missing_executable_is_launch_failed_not_sandbox_error
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_network_attempt_fails
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_pass_and_fail_and_hashes
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_posix_mqueue_namespace_isolated
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_tmpfs_scratch_is_bounded
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_verifier_crash_is_fail_not_error
+FAILED tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_worktree_readable_but_read_only
+FAILED tests/test_factory_m4_tree_binding.py::IsolatedTreeBindingTests::test_isolated_verification_issues_receipt_bound_to_verified_tree
+FAILED tests/test_factory_ownership_gate.py::FactoryOwnershipGateTests::test_repo_manifest_matches_committed_tree
+FAILED tests/test_onboarding.py::test_quickstart_commands_execute - Assertion...
+FAILED tests/test_onboarding.py::test_demo_script_exits_zero - AssertionError...
+FAILED tests/test_sandbox_timing_determinism.py::IsolatedTimeoutTypingTests::test_timeout_is_distinct_typed_outcome
+22 failed, 1997 passed, 1 warning, 387 subtests passed in 169.34s (0:02:49)
+
+[stderr]

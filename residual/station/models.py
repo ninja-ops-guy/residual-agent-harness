@@ -9,6 +9,7 @@ import re
 import shutil
 import subprocess
 import tarfile
+import tempfile
 import time
 import urllib.error
 import urllib.request
@@ -18,6 +19,7 @@ from pathlib import Path
 
 from residual.core import ContractError, canonical, strict_json
 from residual.providers import HTTPProvider, NoRedirect, ProviderError
+from residual.station.archive import require_data_filter, extract_tar, extract_zip, validate_tree
 
 DEFAULTS = {
     "local": {"kind": "ollama", "model": "qwen2.5-coder:7b", "base_url": "http://127.0.0.1:11434", "placement": "local", "output_token_field": "max_tokens"},
@@ -274,41 +276,51 @@ class Ollama:
         asset = manifest["assets"].get(key)
         if not asset:
             raise ContractError("Use the Docker launcher or install Ollama from ollama.com/download for this platform")
-        staging = self.store.root / "runtime-download"
-        staging.mkdir(exist_ok=True)
-        archive = staging / asset["name"]
-        h = hashlib.sha256()
-        req = urllib.request.Request(asset["url"], headers={"User-Agent": "Residual-Command-Station/0.2"})
-        with urllib.request.urlopen(req, timeout=60) as response, archive.open("wb") as f:
-            total = int(response.headers.get("Content-Length", "0")); done = 0
-            while chunk := response.read(1024 * 1024):
-                f.write(chunk); h.update(chunk); done += len(chunk)
-                if done > 6_000_000_000:
-                    raise ContractError("Runtime download exceeds 6 GB")
-                progress("Downloading verified Ollama runtime", round(done * 100 / total) if total else None)
-        if h.hexdigest() != asset["sha256"]:
-            archive.unlink(missing_ok=True)
-            raise ContractError("Runtime checksum mismatch; download discarded")
         dest = self.store.root / "runtime"
-        dest.mkdir(exist_ok=True)
-        progress("Extracting local runtime", None)
-        if archive.suffix == ".zip":
-            with zipfile.ZipFile(archive) as z:
-                for item in z.infolist():
-                    if not (dest / item.filename).resolve().is_relative_to(dest.resolve()):
-                        raise ContractError("Unsafe runtime archive member")
-                z.extractall(dest)
-        elif archive.name.endswith(".tar.zst"):
-            # Official signed-content digest is checked above. GNU tar needs zstd on native Linux.
-            if not shutil.which("zstd"):
-                raise ContractError("Native Linux extraction requires zstd. Install zstd or use the included Docker launcher.")
-            result = subprocess.run(["tar", "--zstd", "-xf", str(archive), "-C", str(dest)], capture_output=True, timeout=300)
-            if result.returncode:
-                raise ContractError("Could not extract runtime archive")
-        else:
-            with tarfile.open(archive) as t:
-                t.extractall(dest, filter="data")
+        if dest.exists() or dest.is_symlink():
+            raise ContractError("Runtime destination already exists; existing runtime left unchanged")
+        # The private directory is on the destination filesystem. Only a complete,
+        # validated tree is renamed into authority; failed attempts are disposable.
+        with tempfile.TemporaryDirectory(prefix=".runtime-install-", dir=self.store.root) as temporary:
+            staging = Path(temporary)
+            archive = staging / "download"
+            h = hashlib.sha256()
+            req = urllib.request.Request(asset["url"], headers={"User-Agent": "Residual-Command-Station/0.2"})
+            with urllib.request.urlopen(req, timeout=60) as response, archive.open("wb") as f:
+                total = int(response.headers.get("Content-Length", "0")); done = 0
+                while chunk := response.read(1024 * 1024):
+                    f.write(chunk); h.update(chunk); done += len(chunk)
+                    if done > 6_000_000_000:
+                        raise ContractError("Runtime download exceeds 6 GB")
+                    progress("Downloading verified Ollama runtime", round(done * 100 / total) if total else None)
+            if h.hexdigest() != asset["sha256"]:
+                raise ContractError("Runtime checksum mismatch; download discarded")
+            require_data_filter()
+            root = staging / "runtime"
+            root.mkdir()
+            progress("Extracting local runtime", None)
+            if asset["name"].endswith(".zip"):
+                extract_zip(archive, root)
+            else:
+                if asset["name"].endswith(".tar.zst"):
+                    if not shutil.which("zstd"):
+                        raise ContractError("Native Linux extraction requires zstd. Install zstd or use the included Docker launcher.")
+                    unpacked = staging / "download.tar"
+                    with unpacked.open("wb") as output:
+                        result = subprocess.run(["zstd", "--decompress", "--stdout", str(archive)],
+                                                stdout=output, stderr=subprocess.PIPE, timeout=300)
+                    if result.returncode:
+                        raise ContractError("Could not decompress runtime archive")
+                    archive = unpacked
+                extract_tar(archive, root)
+            validate_tree(root)
+            # Check the actual staged binary, without resolving a PATH fallback.
+            exe = "ollama.exe" if os.name == "nt" else "ollama"
+            if not any(p.is_file() for p in (root / "bin" / exe, root / exe)):
+                raise ContractError("Runtime extracted but the executable was not found")
+            if dest.exists() or dest.is_symlink():
+                raise ContractError("Runtime destination appeared during installation")
+            root.rename(dest)
         if not self.binary():
             raise ContractError("Runtime extracted but the executable was not found")
-        archive.unlink(missing_ok=True)
         return self.start()

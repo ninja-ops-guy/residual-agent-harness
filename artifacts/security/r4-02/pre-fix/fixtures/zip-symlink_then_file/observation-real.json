@@ -1,0 +1,32 @@
+{
+  "format": "zip",
+  "case": "symlink_then_file",
+  "mode": "real",
+  "fixture_sha256": "2ac42d80f91f7c992e41ec10297ad2a7aa876c0625063b05045771f5acb3647e",
+  "error": {
+    "type": "NotADirectoryError",
+    "message": "[Errno 20] Not a directory: '/tmp/r4-02-audit-o8042bk9/zip-symlink_then_file/runtime/link/marker'"
+  },
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": false,
+  "external_commands": [],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [],
+  "outside_authority": [],
+  "authority_probes": [],
+  "outside_after_probe": {
+    "source": "original"
+  },
+  "files": {
+    "link": "/tmp/r4-02-audit-o8042bk9/zip-symlink_then_file/outside"
+  },
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "BLOCKED",
+  "protection_layer": "PYTHON_RUNTIME",
+  "protection_detail": "zipfile materializes link metadata as a regular file; child write hits ENOTDIR"
+}

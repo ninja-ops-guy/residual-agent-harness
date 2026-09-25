@@ -1,0 +1,12 @@
+{
+  "/tmp/residual-r4-gemma-lab/audit_archive.py": "d80080e82447741d8f43091d74d0c77fee4be95b144dcec45f625299485ac051",
+  "/tmp/residual-r4-gemma-lab/write_report.py": "65221ce3e79c7e96fef7c95c582bdfead2b1f95b4d885efa428b036b4feb6bf5",
+  "/tmp/residual-r4-gemma-lab/findings.json": "3636f66eea7e57216cadd956afe6d887356f2f28b10ff94f16c0f99c91f93e8d",
+  "/tmp/residual-r4-gemma-lab/disposition.json": "38dc34715fcee7904447e90928ff450cd895279f20183dd6603a1fa172dcdf18",
+  "/tmp/residual-r4-gemma-lab/R4-02-findings.md": "1bc3ae4df415ec1a2fb3a8381a03f36ccaac66c2f1f46bdb634cd5afc998605e",
+  "/tmp/residual-r4-gemma-lab/harness-run.txt": "59e45a900d50068e1bf7e1286facc0039f80325601545b8d7f758135734e1d30",
+  "/tmp/residual-r4-gemma-lab/existing-tests.txt": "094c3b4f21544682a7000e9e2ef2c17f35d562d6da2b60daf216902cc228b058",
+  "/mnt/c/Users/jinis/residual-snyk-r4/artifacts/security/r4-02/gemma-session.jsonl": "224181fa0ae1c25b5d145d66b63b6ae8262f540c7233d2950ae1b2ac91900f7e",
+  "/mnt/c/Users/jinis/residual-snyk-r4/artifacts/security/r4-02/gemma-final.txt": "3c818a9ecd45fe10d364b5059b9cae4f792d4c2557b975e086cabd1c6aae26f4",
+  "/mnt/c/Users/jinis/residual-snyk-r4/artifacts/security/r4-02/gemma-stderr.txt": "af74a272e59fd4e15b5bb5b6eb89624413901a6b6cb403a76d9a724d6101e234"
+}

@@ -1,0 +1,34 @@
+{
+  "command": [
+    "/tmp/residual-r4-venv/bin/python",
+    "scripts/qualification_active_workload.py",
+    "--cycles",
+    "8",
+    "--output",
+    "artifacts/security/r4-02/post-fix/active-workload-report.json"
+  ],
+  "environment": {
+    "ci": {},
+    "machine": "x86_64",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]"
+  },
+  "evidence": {
+    "artifacts/security/r4-02/post-fix/active-workload-report.json": "65334e1d95165a88f5dee789aea1c477781d65c69bd4d31c8e072c8095ff0e22",
+    "artifacts/security/r4-02/post-fix/active-workload.log": "bd12351d0f9aa180c30e60d7a6d83bf221b931162e7901504c12d6eab64c11c3"
+  },
+  "finished_at": "2026-09-25T18:09:33.052641Z",
+  "gate_id": "active-workload",
+  "non_claims": [],
+  "notes": [],
+  "result": "PASS",
+  "schema": "residual.qualification.evidence.v1",
+  "skip_count": 0,
+  "source": {
+    "commit": "4d6d53d22ce15400a9880f5f44cd190596798339",
+    "tracked_source_dirty": true,
+    "tree": "33d99819dad5bea3c4ff70edefdd5ad45395ac29"
+  },
+  "started_at": "2026-09-25T18:09:20.912915Z",
+  "unknown_count": 0
+}

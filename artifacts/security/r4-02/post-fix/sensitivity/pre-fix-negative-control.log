@@ -1,0 +1,63 @@
+R4_02_MODELS_SOURCE /tmp/r4-02-mutant-431dxk3h/candidate.py 4e3f43e2998579b6f731b5ec43913b29397baec66c9a9b5d3aa553638b45817c
+FF
+=================================== FAILURES ===================================
+_________ test_tar_zst_never_creates_outside_authority[symlink_alone] __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-6/test_tar_zst_never_creates_out0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ebb807b4b60>
+case = 'symlink_alone'
+
+    @pytest.mark.parametrize('case', ['symlink_alone', 'symlink_then_file'])
+    def test_tar_zst_never_creates_outside_authority(tmp_path, monkeypatch, case):
+        # These two oracles must fail on the frozen pre-fix implementation even if
+        # GNU tar raises and never writes the marker during extraction itself.
+        outside = tmp_path/'station/outside'
+        members = [('file', 'bin/ollama', b'fixture'), ('symlink', 'link', str(outside))]
+        if case == 'symlink_then_file':
+            members.append(('file', 'link/marker', b'fixture'))
+        raw = make_archive('tar.zst', members)
+        installer, outside, root = raw_installer(tmp_path, monkeypatch, 'tar.zst', raw)
+        try:
+            installer.install(lambda *a: None)
+        except (ContractError, tarfile.TarError, OSError):
+            pass
+>       assert not (root/'runtime/link').is_symlink(), 'outside symlink authority survived'
+E       AssertionError: outside symlink authority survived
+E       assert not True
+E        +  where True = is_symlink()
+E        +    where is_symlink = (PosixPath('/tmp/pytest-of-root/pytest-6/test_tar_zst_never_creates_out0/station') / 'runtime/link').is_symlink
+
+tests/security/test_r4_02_archive_authority.py:171: AssertionError
+_______ test_tar_zst_never_creates_outside_authority[symlink_then_file] ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-6/test_tar_zst_never_creates_out1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ebb807b4a40>
+case = 'symlink_then_file'
+
+    @pytest.mark.parametrize('case', ['symlink_alone', 'symlink_then_file'])
+    def test_tar_zst_never_creates_outside_authority(tmp_path, monkeypatch, case):
+        # These two oracles must fail on the frozen pre-fix implementation even if
+        # GNU tar raises and never writes the marker during extraction itself.
+        outside = tmp_path/'station/outside'
+        members = [('file', 'bin/ollama', b'fixture'), ('symlink', 'link', str(outside))]
+        if case == 'symlink_then_file':
+            members.append(('file', 'link/marker', b'fixture'))
+        raw = make_archive('tar.zst', members)
+        installer, outside, root = raw_installer(tmp_path, monkeypatch, 'tar.zst', raw)
+        try:
+            installer.install(lambda *a: None)
+        except (ContractError, tarfile.TarError, OSError):
+            pass
+>       assert not (root/'runtime/link').is_symlink(), 'outside symlink authority survived'
+E       AssertionError: outside symlink authority survived
+E       assert not True
+E        +  where True = is_symlink()
+E        +    where is_symlink = (PosixPath('/tmp/pytest-of-root/pytest-6/test_tar_zst_never_creates_out1/station') / 'runtime/link').is_symlink
+
+tests/security/test_r4_02_archive_authority.py:171: AssertionError
+=========================== short test summary info ============================
+FAILED tests/security/test_r4_02_archive_authority.py::test_tar_zst_never_creates_outside_authority[symlink_alone]
+FAILED tests/security/test_r4_02_archive_authority.py::test_tar_zst_never_creates_outside_authority[symlink_then_file]
+2 failed in 2.46s
+
+[stderr]

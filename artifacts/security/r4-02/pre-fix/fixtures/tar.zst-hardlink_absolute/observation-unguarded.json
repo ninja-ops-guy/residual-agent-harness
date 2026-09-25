@@ -1,0 +1,40 @@
+{
+  "format": "tar.zst",
+  "case": "hardlink_absolute",
+  "mode": "unguarded",
+  "fixture_sha256": "f8de8d08389ef93847db5094a75040ed7cdd3519753b7acb909a5735c53961a8",
+  "error": null,
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": false,
+  "external_commands": [],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [],
+  "outside_authority": [
+    {
+      "path": "marker",
+      "kind": "hardlink"
+    }
+  ],
+  "authority_probes": [
+    {
+      "path": "marker",
+      "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-hardlink_absolute/runtime/marker",
+      "verified": true
+    }
+  ],
+  "outside_after_probe": {
+    "source": "authority-probe"
+  },
+  "files": {
+    "marker": "original"
+  },
+  "dest_exists": true,
+  "authority_created": true,
+  "classification": "OUTSIDE_AUTHORITY_CREATED",
+  "protection_layer": "NONE",
+  "protection_detail": "Intentionally unsafe control"
+}

@@ -1,0 +1,58 @@
+{
+  "format": "tar.zst",
+  "case": "symlink_alone",
+  "mode": "real",
+  "fixture_sha256": "46ca510159875f741baae4bfa4d1e6813be77ea8581edee40c7b02773c9fd02b",
+  "error": null,
+  "returned": "started",
+  "start_calls": 1,
+  "preexisting_link": false,
+  "external_commands": [
+    {
+      "argv": [
+        "tar",
+        "--zstd",
+        "-xf",
+        "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_alone/runtime-download/fixture.tar.zst",
+        "-C",
+        "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_alone/runtime"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    }
+  ],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [
+    {
+      "path": "link",
+      "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_alone/outside",
+      "outside_dest": true
+    }
+  ],
+  "outside_authority": [
+    {
+      "path": "link",
+      "kind": "symlink"
+    }
+  ],
+  "authority_probes": [
+    {
+      "path": "link",
+      "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_alone/outside/authority_probe",
+      "verified": true
+    }
+  ],
+  "outside_after_probe": {
+    "authority_probe": "authority-probe",
+    "source": "original"
+  },
+  "files": {},
+  "dest_exists": true,
+  "authority_created": true,
+  "classification": "OUTSIDE_AUTHORITY_CREATED",
+  "protection_layer": "NONE",
+  "protection_detail": "GNU tar creates outside symlink; later error does not remove it"
+}

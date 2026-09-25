@@ -1,0 +1,67 @@
+{
+  "result": "PASS",
+  "SUBAGENT_RESULT": "INCOMPLETE",
+  "finding_author": "Astra direct audit",
+  "results": [
+    {
+      "name": "pre-fix-negative-control",
+      "result": "KILLED",
+      "command": [
+        "/tmp/residual-r4-venv/bin/python",
+        "-m",
+        "pytest",
+        "-s",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/security/test_r4_02_archive_authority.py::test_tar_zst_never_creates_outside_authority",
+        "--junitxml=/mnt/c/Users/jinis/residual-snyk-r4/artifacts/security/r4-02/post-fix/sensitivity/pre-fix-negative-control.xml"
+      ],
+      "returncode": 1,
+      "failures": 2,
+      "errors": 0,
+      "source_sha256": "4e3f43e2998579b6f731b5ec43913b29397baec66c9a9b5d3aa553638b45817c",
+      "loaded_source_verified": true
+    },
+    {
+      "name": "link-validation-removed",
+      "result": "KILLED",
+      "command": [
+        "/tmp/residual-r4-venv/bin/python",
+        "-m",
+        "pytest",
+        "-s",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/security/test_r4_02_archive_authority.py::test_explicit_link_target_validation",
+        "--junitxml=/mnt/c/Users/jinis/residual-snyk-r4/artifacts/security/r4-02/post-fix/sensitivity/link-validation-removed.xml"
+      ],
+      "returncode": 1,
+      "failures": 8,
+      "errors": 0,
+      "source_sha256": "954267cc95194d7a96735a37e12847bd98684a14ab231711924daab0cb976cf0",
+      "loaded_source_verified": true
+    },
+    {
+      "name": "staging-cleanup-removed",
+      "result": "KILLED",
+      "command": [
+        "/tmp/residual-r4-venv/bin/python",
+        "-m",
+        "pytest",
+        "-s",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/security/test_r4_02_archive_authority.py::test_partial_extraction_rollback",
+        "--junitxml=/mnt/c/Users/jinis/residual-snyk-r4/artifacts/security/r4-02/post-fix/sensitivity/staging-cleanup-removed.xml"
+      ],
+      "returncode": 1,
+      "failures": 3,
+      "errors": 0,
+      "source_sha256": "524e60ffaab5d047fd4267b68c227fe4d75f9f7745b5060147970a0f57839220",
+      "loaded_source_verified": true
+    }
+  ]
+}

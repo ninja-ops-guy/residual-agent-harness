@@ -1,0 +1,14 @@
+$ /tmp/residual-r4-venv/bin/python -m pytest -q -p no:cacheprovider tests/security/test_r4_02_archive_authority.py --junitxml=artifacts/security/r4-02/post-fix/targeted.xml
+
+[stdout]
+........................................................................ [ 86%]
+...........                                                              [100%]
+=============================== warnings summary ===============================
+tests/security/test_r4_02_archive_authority.py::test_duplicate_members_last_wins_inside_destination[zip]
+  /tmp/residual-r4-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/zipfile/__init__.py:1624: UserWarning: Duplicate name: 'bin/ollama'
+    return self._open_to_write(zinfo, force_zip64=force_zip64)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+83 passed, 1 warning in 3.57s
+
+[stderr]

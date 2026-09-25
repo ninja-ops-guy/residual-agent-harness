@@ -1,0 +1,61 @@
+{
+  "format": "tar.zst",
+  "case": "existing_symlink",
+  "mode": "real",
+  "fixture_sha256": "0cdafc4168538630bd2b125abcb8ae0c1773c7ec1aca182c27638abc5664c6bf",
+  "error": {
+    "type": "ContractError",
+    "message": "Could not extract runtime archive"
+  },
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": true,
+  "external_commands": [
+    {
+      "argv": [
+        "tar",
+        "--zstd",
+        "-xf",
+        "/tmp/r4-02-audit-o8042bk9/tar.zst-existing_symlink/runtime-download/fixture.tar.zst",
+        "-C",
+        "/tmp/r4-02-audit-o8042bk9/tar.zst-existing_symlink/runtime"
+      ],
+      "returncode": 2,
+      "stderr": "tar: link/marker: Cannot open: Invalid cross-device link\ntar: Exiting with failure status due to previous errors\n"
+    }
+  ],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [
+    {
+      "path": "link",
+      "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-existing_symlink/outside",
+      "outside_dest": true
+    }
+  ],
+  "outside_authority": [
+    {
+      "path": "link",
+      "kind": "symlink"
+    }
+  ],
+  "authority_probes": [
+    {
+      "path": "link",
+      "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-existing_symlink/outside/authority_probe",
+      "verified": true
+    }
+  ],
+  "outside_after_probe": {
+    "authority_probe": "authority-probe",
+    "source": "original"
+  },
+  "files": {},
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "BLOCKED",
+  "protection_layer": "FILESYSTEM",
+  "protection_detail": "External GNU tar 1.34 --zstd -xf archive -C dest; see captured stderr"
+}

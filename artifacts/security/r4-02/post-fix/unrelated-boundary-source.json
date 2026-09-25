@@ -1,0 +1,18 @@
+{
+  "residual/factory/m4_sandbox.py": {
+    "unchanged_from_HEAD": true,
+    "sha256": "75f07ac90d2849db52d7f2198101ea1037160997cd9d9142621752e1fe73bd6b"
+  },
+  "residual/factory/_isolated_child.py": {
+    "unchanged_from_HEAD": true,
+    "sha256": "e74c777eae62c73fb284e577b5898885fad90ee4addfd02eb11184f865d67ce4"
+  },
+  "residual/factory/termination_provenance.py": {
+    "unchanged_from_HEAD": true,
+    "sha256": "c0658b573ac0f8b1dbb8b0044f4784daeac897785a26f205ca5a6a636b96e119"
+  },
+  "tests/test_factory_m4_sandbox.py": {
+    "unchanged_from_HEAD": true,
+    "sha256": "79b2e32d212984f4c51ad0a74da33f8cdb6f9f6825c8c711fa261da13f764567"
+  }
+}

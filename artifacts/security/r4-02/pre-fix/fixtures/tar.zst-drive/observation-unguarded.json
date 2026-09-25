@@ -1,0 +1,29 @@
+{
+  "format": "tar.zst",
+  "case": "drive",
+  "mode": "unguarded",
+  "fixture_sha256": "eaf18d2b73fdd6a3f90a8415639c37788a534a4489a45e72d0122e1eab990c37",
+  "error": null,
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": false,
+  "external_commands": [],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [],
+  "outside_authority": [],
+  "authority_probes": [],
+  "outside_after_probe": {
+    "source": "original"
+  },
+  "files": {
+    "C:/outside/marker": "fixture"
+  },
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "ALLOWED_BUT_CONFINED",
+  "protection_layer": "FILESYSTEM",
+  "protection_detail": "POSIX path/file behavior; ZIP control does not emulate links"
+}

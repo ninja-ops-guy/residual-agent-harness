@@ -1,0 +1,151 @@
+R4_02_ARCHIVE_SOURCE /tmp/r4-02-mutant-zhlkgxeo/candidate.py 954267cc95194d7a96735a37e12847bd98684a14ab231711924daab0cb976cf0
+FFFFFFFF
+=================================== FAILURES ===================================
+__________ test_explicit_link_target_validation[../outside/source-2] ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-7/test_explicit_link_target_vali0')
+typ = b'2', target = '../outside/source'
+
+    @pytest.mark.parametrize('typ', [tarfile.SYMTYPE, tarfile.LNKTYPE])
+    @pytest.mark.parametrize('target', ['../outside/source', '/absolute', 'C:/outside', '..\\outside'])
+    def test_explicit_link_target_validation(tmp_path, typ, target):
+        member = tarfile.TarInfo('link')
+        member.type, member.linkname = typ, target
+        # This independently tests the required RESIDUAL-owned layer. A redundant
+        # tarfile filter must not conceal removal of explicit target validation.
+>       with pytest.raises(ContractError, match='link target'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ContractError
+
+tests/security/test_r4_02_archive_authority.py:267: Failed
+__________ test_explicit_link_target_validation[../outside/source-1] ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-7/test_explicit_link_target_vali1')
+typ = b'1', target = '../outside/source'
+
+    @pytest.mark.parametrize('typ', [tarfile.SYMTYPE, tarfile.LNKTYPE])
+    @pytest.mark.parametrize('target', ['../outside/source', '/absolute', 'C:/outside', '..\\outside'])
+    def test_explicit_link_target_validation(tmp_path, typ, target):
+        member = tarfile.TarInfo('link')
+        member.type, member.linkname = typ, target
+        # This independently tests the required RESIDUAL-owned layer. A redundant
+        # tarfile filter must not conceal removal of explicit target validation.
+>       with pytest.raises(ContractError, match='link target'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ContractError
+
+tests/security/test_r4_02_archive_authority.py:267: Failed
+______________ test_explicit_link_target_validation[/absolute-2] _______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-7/test_explicit_link_target_vali2')
+typ = b'2', target = '/absolute'
+
+    @pytest.mark.parametrize('typ', [tarfile.SYMTYPE, tarfile.LNKTYPE])
+    @pytest.mark.parametrize('target', ['../outside/source', '/absolute', 'C:/outside', '..\\outside'])
+    def test_explicit_link_target_validation(tmp_path, typ, target):
+        member = tarfile.TarInfo('link')
+        member.type, member.linkname = typ, target
+        # This independently tests the required RESIDUAL-owned layer. A redundant
+        # tarfile filter must not conceal removal of explicit target validation.
+>       with pytest.raises(ContractError, match='link target'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ContractError
+
+tests/security/test_r4_02_archive_authority.py:267: Failed
+______________ test_explicit_link_target_validation[/absolute-1] _______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-7/test_explicit_link_target_vali3')
+typ = b'1', target = '/absolute'
+
+    @pytest.mark.parametrize('typ', [tarfile.SYMTYPE, tarfile.LNKTYPE])
+    @pytest.mark.parametrize('target', ['../outside/source', '/absolute', 'C:/outside', '..\\outside'])
+    def test_explicit_link_target_validation(tmp_path, typ, target):
+        member = tarfile.TarInfo('link')
+        member.type, member.linkname = typ, target
+        # This independently tests the required RESIDUAL-owned layer. A redundant
+        # tarfile filter must not conceal removal of explicit target validation.
+>       with pytest.raises(ContractError, match='link target'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ContractError
+
+tests/security/test_r4_02_archive_authority.py:267: Failed
+______________ test_explicit_link_target_validation[C:/outside-2] ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-7/test_explicit_link_target_vali4')
+typ = b'2', target = 'C:/outside'
+
+    @pytest.mark.parametrize('typ', [tarfile.SYMTYPE, tarfile.LNKTYPE])
+    @pytest.mark.parametrize('target', ['../outside/source', '/absolute', 'C:/outside', '..\\outside'])
+    def test_explicit_link_target_validation(tmp_path, typ, target):
+        member = tarfile.TarInfo('link')
+        member.type, member.linkname = typ, target
+        # This independently tests the required RESIDUAL-owned layer. A redundant
+        # tarfile filter must not conceal removal of explicit target validation.
+>       with pytest.raises(ContractError, match='link target'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ContractError
+
+tests/security/test_r4_02_archive_authority.py:267: Failed
+______________ test_explicit_link_target_validation[C:/outside-1] ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-7/test_explicit_link_target_vali5')
+typ = b'1', target = 'C:/outside'
+
+    @pytest.mark.parametrize('typ', [tarfile.SYMTYPE, tarfile.LNKTYPE])
+    @pytest.mark.parametrize('target', ['../outside/source', '/absolute', 'C:/outside', '..\\outside'])
+    def test_explicit_link_target_validation(tmp_path, typ, target):
+        member = tarfile.TarInfo('link')
+        member.type, member.linkname = typ, target
+        # This independently tests the required RESIDUAL-owned layer. A redundant
+        # tarfile filter must not conceal removal of explicit target validation.
+>       with pytest.raises(ContractError, match='link target'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ContractError
+
+tests/security/test_r4_02_archive_authority.py:267: Failed
+_____________ test_explicit_link_target_validation[..\\outside-2] ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-7/test_explicit_link_target_vali6')
+typ = b'2', target = '..\\outside'
+
+    @pytest.mark.parametrize('typ', [tarfile.SYMTYPE, tarfile.LNKTYPE])
+    @pytest.mark.parametrize('target', ['../outside/source', '/absolute', 'C:/outside', '..\\outside'])
+    def test_explicit_link_target_validation(tmp_path, typ, target):
+        member = tarfile.TarInfo('link')
+        member.type, member.linkname = typ, target
+        # This independently tests the required RESIDUAL-owned layer. A redundant
+        # tarfile filter must not conceal removal of explicit target validation.
+>       with pytest.raises(ContractError, match='link target'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ContractError
+
+tests/security/test_r4_02_archive_authority.py:267: Failed
+_____________ test_explicit_link_target_validation[..\\outside-1] ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-7/test_explicit_link_target_vali7')
+typ = b'1', target = '..\\outside'
+
+    @pytest.mark.parametrize('typ', [tarfile.SYMTYPE, tarfile.LNKTYPE])
+    @pytest.mark.parametrize('target', ['../outside/source', '/absolute', 'C:/outside', '..\\outside'])
+    def test_explicit_link_target_validation(tmp_path, typ, target):
+        member = tarfile.TarInfo('link')
+        member.type, member.linkname = typ, target
+        # This independently tests the required RESIDUAL-owned layer. A redundant
+        # tarfile filter must not conceal removal of explicit target validation.
+>       with pytest.raises(ContractError, match='link target'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ContractError
+
+tests/security/test_r4_02_archive_authority.py:267: Failed
+=========================== short test summary info ============================
+FAILED tests/security/test_r4_02_archive_authority.py::test_explicit_link_target_validation[../outside/source-2]
+FAILED tests/security/test_r4_02_archive_authority.py::test_explicit_link_target_validation[../outside/source-1]
+FAILED tests/security/test_r4_02_archive_authority.py::test_explicit_link_target_validation[/absolute-2]
+FAILED tests/security/test_r4_02_archive_authority.py::test_explicit_link_target_validation[/absolute-1]
+FAILED tests/security/test_r4_02_archive_authority.py::test_explicit_link_target_validation[C:/outside-2]
+FAILED tests/security/test_r4_02_archive_authority.py::test_explicit_link_target_validation[C:/outside-1]
+FAILED tests/security/test_r4_02_archive_authority.py::test_explicit_link_target_validation[..\\outside-2]
+FAILED tests/security/test_r4_02_archive_authority.py::test_explicit_link_target_validation[..\\outside-1]
+8 failed in 2.47s
+
+[stderr]
