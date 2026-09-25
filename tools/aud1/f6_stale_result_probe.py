@@ -42,14 +42,12 @@ def main(argv=None):
         raise SystemExit(f"REFUSE: {args.token_env} is not set")
 
     submission_id = "f6-stale-" + secrets.token_hex(8)
-    # The live Station API requires the original lease. Attempt/owner are
+    # The live Station API requires the original raw lease. Attempt/owner are
     # evidence bindings only and are deliberately not added to the wire schema.
     body = {
         "project_id": args.project,
         "task_id": args.task,
-        "lease_fingerprint": "sha256:" + hashlib.sha256(args.lease.encode("utf-8")).hexdigest(),
-        "attempt": args.attempt,
-        "owner": args.owner,
+        "lease": args.lease,
         "submission_id": submission_id,
         "response": {"files": {}},
     }
@@ -86,7 +84,9 @@ def main(argv=None):
         "station_url": args.station_url.rstrip("/"),
         "project_id": args.project,
         "task_id": args.task,
-        "lease": args.lease,
+        "lease_fingerprint": "sha256:" + hashlib.sha256(args.lease.encode("utf-8")).hexdigest(),
+        "attempt": args.attempt,
+        "owner": args.owner,
         "submission_id": submission_id,
         "credential_source": args.token_env,
         "credential_value_retained": False,
