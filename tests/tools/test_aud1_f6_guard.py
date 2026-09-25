@@ -248,7 +248,7 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
             "rejected": True,
             "accepted": False,
             "credential_value_retained": False,
-            "response_excerpt": json.dumps({"error": guard.STALE_REJECTION_TEXT}),
+            "response_excerpt": guard.STALE_REJECTION_TEXT,
         }
         self.assertEqual(guard.validate_stale_probe(good, before), [])
 
@@ -293,7 +293,7 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
             "rejected": True,
             "accepted": False,
             "credential_value_retained": False,
-            "response_excerpt": json.dumps({"error": guard.STALE_REJECTION_TEXT}),
+            "response_excerpt": guard.STALE_REJECTION_TEXT,
         }
         self.assertEqual(guard.validate_stale_probe(good, before), [])
 
