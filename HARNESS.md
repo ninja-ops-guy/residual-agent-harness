@@ -59,15 +59,11 @@ The built-in demo is scripted and credential-free. It demonstrates controller be
 
 ## Current repository boundary
 
-Current `main` is **`4608afabf5de4c87d77aaf149dfc12538d364f43`**.
+Accepted `main` at this status snapshot is **`d796f36b75e730a0bab71bdba564206174393719`**.
 
-Merged **#200** hardens native setup defaults: persistent XDG locations, loopback Station binding, opt-in shell convenience, bounded venv repair, and constrained shell-rc edits. This is accepted onboarding behavior, not blank-environment qualification.
+This core-harness document is intentionally not the volatile release ledger. Exact current candidate identities, qualification outcomes, owner/governance state, and blockers are recorded in [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md). A candidate-branch PASS is exact-head evidence only; it does not qualify accepted `main`, authorize physical execution, or establish production readiness.
 
-Merged **#205** restores the private provider channel across Mission Control reload/remount by validating and reusing a session-scoped channel token, and clears it on explicit close. This is accepted lifecycle behavior, not live-provider semantic evidence.
-
-The exact-current-main Actions set observed for `4608afa...` is complete with no pending, cancelled, or failing run in the retained exact-SHA query; the sampled Controller/provider workflow is **PASS on attempt 1**. Treat those results as exact-revision automated evidence only. They do not establish universal/capable-runner M4 qualification, live Puter success, physical-device reliability, recovery/soak, or confirmatory research.
-
-Historical failures remain retained evidence rather than being erased by later PASS results.
+Current release convergence remains **BLOCKED**. Historical failures remain retained evidence rather than being erased by later PASS results.
 
 ## Live provider / WebVM boundary
 
