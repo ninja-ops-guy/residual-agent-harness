@@ -91,13 +91,9 @@ python3 -m residual benchmark --output runs/benchmark.json
 
 ## Current priority gates
 
-1. Repair and requalify the stress-campaign governance-ordering defects before making stronger fail-closed budget/release claims.
-2. Retain a fresh real-account Puter candidate→verifier→receipt success on the accepted deployed revision, or keep live-provider success `UNKNOWN`.
-3. Physically validate the #186 mobile fallback without broadening it into a heavyweight-WebVM reliability claim.
-4. Complete true blank-environment installation, recovery/host-loss qualification, and selected elapsed soak for the exact release artifact.
-5. Continue #120/#126 long-run WebVM reliability work and the separate #139→ownership-baseline→#134 protected sequence.
-6. Resolve the #133/#132 retirement-versus-restoration discrepancy explicitly rather than reconstructing capability in prose.
-7. Freeze the confirmatory live-evaluation protocol before outcome access, then run R0–R5 and the planned degradation/routing studies.
+The dependency-ordered release gate list is maintained in [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md). Release is currently **BLOCKED**.
+
+Do not infer completion of a gate from a different branch, earlier revision, or adjacent PASS.
 
 ## Scope and non-claims
 
