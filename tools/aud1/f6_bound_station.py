@@ -19,7 +19,7 @@ import runpy
 import subprocess
 import sys
 
-TARGET_SHA = "8df77b832b3839ccd2a6944a65760ce3ab10dc9c"
+TARGET_SHA = "943c77a28ada1bc3931408c5f9b40d40c25eb2dc"
 SCHEMA = "residual.aud1.f6.station-launch.v1"
 
 
@@ -54,7 +54,7 @@ def atomic_json(path, value):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Launch exact #399 Station with a process-binding witness")
+    parser = argparse.ArgumentParser(description="Launch exact #448 Station with a process-binding witness")
     parser.add_argument("--candidate-repo", required=True)
     parser.add_argument("--launch-record", required=True)
     parser.add_argument("--data", required=True)
