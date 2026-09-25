@@ -25,6 +25,15 @@ def utcnow():
     return dt.datetime.now(dt.timezone.utc).isoformat()
 
 
+def sanitize_response_excerpt(text, *secret_values):
+    """Retain bounded denial context without ever retaining request secrets."""
+    safe = str(text)
+    for value in secret_values:
+        if value:
+            safe = safe.replace(str(value), "<redacted>")
+    return safe[:1000]
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description="Attempt one stale worker result and require HTTP 403")
     p.add_argument("--station-url", required=True)
@@ -78,6 +87,7 @@ def main(argv=None):
         response_text = f"{type(exc).__name__}: {exc}"
 
     rejected = status == 403
+    response_excerpt = sanitize_response_excerpt(response_text, args.lease, token)
     record = {
         "schema": SCHEMA,
         "captured_at": utcnow(),
@@ -94,7 +104,7 @@ def main(argv=None):
         "observed_status": status,
         "accepted": accepted,
         "rejected": rejected,
-        "response_excerpt": response_text[:1000],
+        "response_excerpt": response_excerpt,
     }
     path = pathlib.Path(args.output).resolve()
     path.parent.mkdir(parents=True, exist_ok=True)
