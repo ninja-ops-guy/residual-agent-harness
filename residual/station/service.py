@@ -13,6 +13,7 @@ from residual.core import ContractError, canonical
 from .contracts import bounded, parse_spec, sha
 from ai_providers import ProviderError as ModularError
 from .models import DEFAULTS, Ollama, model_call
+from .ownership import StationDataDirOwnership, StationLifecycle, station_operation
 from .store import Store
 from . import workspace as ws
 
@@ -72,17 +73,34 @@ def demo_spec():
 
 class Station:
     def __init__(self, root, *, extension_factory=None):
-        self.store = Store(root)
-        self.store.settings(DEFAULTS, defaults=True)
-        self.store.recover(startup=True)
-        self.ollama = Ollama(self.store)
-        self.mutex = threading.RLock()
-        self.project_locks = {}
-        self.active = set()
-        from .extensions import default_registry
-        self._extension_factory = extension_factory or default_registry
-        self._extensions = {}
+        self._ownership = StationDataDirOwnership(root)
+        self._lifecycle = StationLifecycle(self._ownership)
+        try:
+            self.store = Store(self._ownership.root)
+            self.store.settings(DEFAULTS, defaults=True)
+            self.store.recover(startup=True)
+            self.ollama = Ollama(self.store)
+            self.mutex = threading.RLock()
+            self.project_locks = {}
+            self.active = set()
+            from .extensions import default_registry
+            self._extension_factory = extension_factory or default_registry
+            self._extensions = {}
+        except BaseException:
+            self._lifecycle.close(timeout=0)
+            raise
 
+    def close(self, timeout=5.0):
+        self._lifecycle.close(timeout)
+
+    def __enter__(self):
+        self._ownership.assert_live()
+        return self
+
+    def __exit__(self, *exc):
+        self.close()
+
+    @station_operation
     def extensions(self, pid):
         with self.mutex:
             if pid not in self._extensions:
@@ -113,33 +131,50 @@ class Station:
             self.store.event(pid, "task.finding", {"message": "SecOps inspection blocked candidate before Git staging"}, task["id"])
             raise ContractError("SecOps inspection did not pass; inspect candidate files before retrying") from None
 
+    @station_operation
     def project_lock(self, pid):
         with self.mutex:
             return self.project_locks.setdefault(pid, threading.RLock())
 
+    @station_operation
     def launch(self, kind, fn, pid=None):
         key = (pid, kind)
         with self.mutex:
             if key in self.active:
                 raise ContractError("This operation is already running")
             self.active.add(key)
-        jid = self.store.job(kind, pid)
+        try:
+            jid = self.store.job(kind, pid)
+        except BaseException:
+            with self.mutex:
+                self.active.discard(key)
+            raise
         def progress(detail, percent=None):
             self.store.job_update(jid, detail=detail, progress=percent)
+        reservation = self._lifecycle.reserve()
         def execute():
-            self.store.job_update(jid, state="running")
-            try:
-                result = fn(progress)
-                self.store.job_update(jid, state="completed", detail="Completed", progress=100, result=result)
-            except Exception as e:
-                safe = str(e)[:500] if isinstance(e, (ContractError, ModularError)) else "Operation failed. Check connectivity, model configuration, and project diagnostics."
-                self.store.job_update(jid, state="failed", detail=safe, result={"error":e.to_dict()} if isinstance(e, ModularError) else None)
-            finally:
-                with self.mutex:
-                    self.active.discard(key)
-        threading.Thread(target=execute, daemon=True, name=f"station-{kind}").start()
+            with reservation:
+                try:
+                    self.store.job_update(jid, state="running")
+                    result = fn(progress)
+                    self.store.job_update(jid, state="completed", detail="Completed", progress=100, result=result)
+                except Exception as e:
+                    safe = str(e)[:500] if isinstance(e, (ContractError, ModularError)) else "Operation failed. Check connectivity, model configuration, and project diagnostics."
+                    self.store.job_update(jid, state="failed", detail=safe, result={"error":e.to_dict()} if isinstance(e, ModularError) else None)
+                finally:
+                    with self.mutex:
+                        self.active.discard(key)
+        try:
+            threading.Thread(target=execute, daemon=True, name=f"station-{kind}").start()
+        except BaseException:
+            reservation.cancel()
+            with self.mutex:
+                self.active.discard(key)
+            self.store.job_update(jid, state="failed", detail="Background job could not start")
+            raise
         return {"job_id": jid}
 
+    @station_operation
     def create(self, markdown, source="", allow_cloud=False, commands=False, demo=False):
         if type(allow_cloud) is not bool or type(commands) is not bool or not isinstance(source, str):
             raise ContractError("Cloud and command-execution options must be booleans; source must be a path")
@@ -154,6 +189,7 @@ class Station:
         pid = self.store.create_project(manifest, markdown, root, "demo" if demo else "live", allow_cloud, commands or demo)
         return {"project_id": pid}
 
+    @station_operation
     def triage(self, pid, progress=lambda *a: None):
         with self.project_lock(pid):
             p = self.store.project(pid)
@@ -180,6 +216,7 @@ class Station:
                     self.store.transition(pid, task["id"], "blocked", fields={"findings": [str(e)]})
             return {"message": "Triage complete. Failing baseline acceptance checks are expected for unimplemented specs."}
 
+    @station_operation
     def prepare(self, pid, owner, tid=None):
         with self.project_lock(pid):
             self.store.recover()
@@ -217,6 +254,7 @@ class Station:
                       "parent_receipts": parent_receipts}
             return {"task": t, "packet": packet, "lease": t["lease"], "project_id": pid}
 
+    @station_operation
     def finish(self, work, response, usage=None):
         pid, t, lease = work["project_id"], work["task"], work["lease"]
         with self.project_lock(pid):
@@ -259,6 +297,7 @@ class Station:
                     self.store.transition(pid, t["id"], "repair_required", lease=lease, fields={"findings": [str(e)[:500] if isinstance(e, ContractError) else "Runner failed before verification"]})
                 raise
 
+    @station_operation
     def run_one(self, pid, tid=None, owner="local-runner"):
         work = self.prepare(pid, owner, tid)
         if not work:
@@ -276,6 +315,7 @@ class Station:
                 self.store.transition(pid, t["id"], "repair_required", lease=work["lease"], fields={"findings": [str(e)[:500] if isinstance(e, ContractError) else "Model connection or structured-output failure"]})
             return {"task_id": t["id"], "state": "repair_required"}
 
+    @station_operation
     def rebase_disjoint(self, pid, tid):
         """Refresh a candidate only when every declared read/write path is unchanged."""
         p, t = self.store.project(pid), self.store.task(pid, tid)
@@ -297,6 +337,7 @@ class Station:
         artifact = self.store.add_artifact(pid, f"{tid}-refreshed-checks.json", canonical(receipt), "checks")
         self.store.update_task(pid, tid, base_commit=current, head_commit=head, checks_result=checks, checks_hash=sha(receipt), artifacts=t["artifacts"] + [artifact])
 
+    @station_operation
     def review(self, pid, tid):
         with self.project_lock(pid):
             t = self.store.task(pid, tid)
@@ -341,6 +382,7 @@ class Station:
                                           "artifacts": t["artifacts"] + [artifact]})
             return result
 
+    @station_operation
     def integrate(self, pid, tid):
         with self.project_lock(pid):
             p, t = self.store.project(pid), self.store.task(pid, tid)
@@ -376,6 +418,7 @@ class Station:
             self.store.event(pid, "integration.completed", {"head_commit": t["head_commit"], "evidence": artifact["id"]}, tid)
             return {"head_commit": t["head_commit"]}
 
+    @station_operation
     def batch(self, pid, progress=lambda *a: None):
         from .control import run_controlled_batch
         result = run_controlled_batch(self, pid, progress)
@@ -390,6 +433,7 @@ class Station:
                 result["assessment_error"] = "Cloud assessment unavailable; verified task progress is retained"
         return result
 
+    @station_operation
     def cloud_report(self, pid, progress=lambda *a: None):
         p = self.store.project(pid)
         if not p["allow_cloud"]:
@@ -417,6 +461,7 @@ class Station:
         self.store.acknowledge(pid, "cloud-review", report["through_seq"])
         return artifact
 
+    @station_operation
     def export(self, pid):
         with self.project_lock(pid):
             p = self.store.project(pid)
@@ -440,6 +485,7 @@ class Station:
             self.store.event(pid, "release.exported", {"head_commit": head, "evidence": artifact["id"]}, actor="operator")
             return artifact
 
+    @station_operation
     def metrics(self, pid):
         events = self.store.events(pid, 0, 100000)
         calls = [e["data"] for e in events if e["event_type"] == "usage.recorded"]

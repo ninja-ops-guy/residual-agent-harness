@@ -13,6 +13,76 @@ concurrency:
 permissions:
   contents: read
 jobs:
+  windows-ownership:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install project qualification dependencies
+        run: python -m pip install -e '.[factory,qualification]' pytest
+      - name: Native Windows ownership qualification
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force runs/windows-ownership | Out-Null
+          python scripts/qualification_v1.py run `
+            --gate-id windows-c01-c02 `
+            --output runs/windows-ownership/evidence.json `
+            --log runs/windows-ownership/qualification.log `
+            --junit runs/windows-ownership/qualification.xml `
+            --zero-skips `
+            -- python -m pytest tests/station/test_windows_ownership_qualification.py -vv -s `
+               --junitxml=runs/windows-ownership/qualification.xml
+      - name: Complete applicable Station suite
+        run: >-
+          python -m pytest tests/station -q
+          --junitxml=runs/windows-ownership/station.xml
+      - name: Sensitivity — second owner mutation must be detected
+        shell: pwsh
+        run: |
+          $path = 'residual/station/ownership.py'
+          $source = [IO.File]::ReadAllText($path)
+          $mutant = $source.Replace(
+            'error = ctypes.get_last_error()',
+            'error = 0  # deliberate CI sensitivity mutation')
+          if ($mutant -eq $source) { throw 'second-owner mutation point not found' }
+          [IO.File]::WriteAllText($path, $mutant)
+          python -m pytest `
+            tests/station/test_windows_ownership_qualification.py::NativeWindowsOwnershipQualification::test_w02_twenty_round_four_process_race_has_exactly_one_owner `
+            -vv 2>&1 | Tee-Object runs/windows-ownership/sensitivity-second-owner.log
+          $detected = $LASTEXITCODE -ne 0
+          git restore -- $path
+          if (-not $detected) { throw 'qualification missed second-owner mutation' }
+      - name: Sensitivity — early release mutation must be detected
+        shell: pwsh
+        run: |
+          $path = 'residual/station/ownership.py'
+          $source = [IO.File]::ReadAllText($path)
+          $needle = '            self._state = "CLOSING"'
+          $replacement = $needle + "`r`n            self.ownership.close()  # deliberate CI sensitivity mutation"
+          $mutant = $source.Replace($needle, $replacement)
+          if ($mutant -eq $source) { throw 'early-release mutation point not found' }
+          [IO.File]::WriteAllText($path, $mutant)
+          python -m pytest `
+            tests/station/test_windows_ownership_qualification.py::NativeWindowsOwnershipQualification::test_w05_closing_reservation_retains_owner `
+            -vv 2>&1 | Tee-Object runs/windows-ownership/sensitivity-early-release.log
+          $detected = $LASTEXITCODE -ne 0
+          git restore -- $path
+          if (-not $detected) { throw 'qualification missed early-release mutation' }
+      - name: Verify deliberate mutations were restored
+        run: git diff --exit-code -- residual/station/ownership.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-station-ownership-${{ github.sha }}
+          path: runs/windows-ownership
+          if-no-files-found: error
+          retention-days: 30
   python:
     runs-on: ubuntu-latest
     strategy:
