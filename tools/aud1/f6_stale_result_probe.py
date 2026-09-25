@@ -42,6 +42,8 @@ def main(argv=None):
         raise SystemExit(f"REFUSE: {args.token_env} is not set")
 
     submission_id = "f6-stale-" + secrets.token_hex(8)
+    # The live Station API requires the original lease. Attempt/owner are
+    # evidence bindings only and are deliberately not added to the wire schema.
     body = {
         "project_id": args.project,
         "task_id": args.task,
