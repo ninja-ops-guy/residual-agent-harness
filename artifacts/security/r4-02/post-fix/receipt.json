@@ -1,0 +1,742 @@
+{
+  "schema": "residual.security.r4-02.v1",
+  "DISPOSITION": "FIXED",
+  "QUALIFICATION": "BLOCKED",
+  "R4_03_MAY_BEGIN": false,
+  "FIX_REQUIRED": "NO (demonstrated bounded defect remediated)",
+  "SUBAGENT_RESULT": "INCOMPLETE",
+  "finding_author": "Astra direct audit",
+  "source": {
+    "HEAD": "4d6d53d22ce15400a9880f5f44cd190596798339",
+    "tree": "33d99819dad5bea3c4ff70edefdd5ad45395ac29"
+  },
+  "committed_source_verified": false,
+  "source_sha256": {
+    "residual/station/models.py": "cb9a62b9538ba1786a19114fbb55fc780c77e3da0b2c593b3b1e5b07987592b5",
+    "residual/station/archive.py": "6657d7334795e23fe6f484b96b4c33a5552d3c92d244df173fa69579a8a4e2e5",
+    "pyproject.toml": "b3f4525ae06b65bc83ecb6cfb6d340da3f0ce43f7db9f704c64c88b76d1cd0f1",
+    "tests/security/test_r4_02_archive_authority.py": "c7727755adfb9223bd204c88156348fe2d6a7020fbab664fa3ecfd5e3809dc1a",
+    "scripts/security/r4_02_sensitivity.py": "7be698368082d214d174a2e1c2b5b7d73078867689ebf7e3c5691a235bc486eb",
+    "scripts/security/r4_02_receipt.py": "b3f9aa1cae99c569cc2100ab7ef5018a205c8595a9ed16c9f55921af0e6d6df7",
+    "docs/security/SNYK_R4_02.md": "f6ab4dca780c73601278f8fc2cd4f118bf20cb5db736f509722cd0ff86bbc0b8"
+  },
+  "pre_fix_frozen_unchanged": true,
+  "audit_harness_byte_identical": true,
+  "pre_counts": {
+    "ALLOWED_BUT_CONFINED": 18,
+    "BLOCKED": 22,
+    "OUTSIDE_AUTHORITY_CREATED": 2
+  },
+  "post_counts": {
+    "ALLOWED_BUT_CONFINED": 6,
+    "BLOCKED": 36
+  },
+  "gates": {
+    "targeted": {
+      "result": "PASS",
+      "skip_count": 0,
+      "envelope_sha256": "fef4a4e600659952aafb0326b65abc23107f964fdd79941e5debefc87fb5b823"
+    },
+    "station-host": {
+      "result": "PASS",
+      "skip_count": 0,
+      "envelope_sha256": "a3c87704c17d7c36446c32f857d3ceec1b5acc60788a8f8cf4285979cf9462d9"
+    },
+    "deterministic-native": {
+      "result": "FAIL",
+      "skip_count": 0,
+      "envelope_sha256": "c7d459aa60f081d629ad81f7628d5eef018cf4e187ebd080f5df573b672ed509"
+    },
+    "active-workload": {
+      "result": "PASS",
+      "skip_count": 0,
+      "envelope_sha256": "37d597530b917faf81e1c24af427886465c5288b1a35247e46ea65474ae673c2"
+    },
+    "exact-wheel-isolated": {
+      "result": "PASS",
+      "skip_count": 0,
+      "envelope_sha256": "a114b2790a072afe87f6cba0b8d91ef16ef7b72fabd57df5e59b4707755bbb71"
+    }
+  },
+  "sensitivity": {
+    "result": "PASS",
+    "SUBAGENT_RESULT": "INCOMPLETE",
+    "finding_author": "Astra direct audit",
+    "results": [
+      {
+        "name": "pre-fix-negative-control",
+        "result": "KILLED",
+        "command": [
+          "/tmp/residual-r4-venv/bin/python",
+          "-m",
+          "pytest",
+          "-s",
+          "-q",
+          "-p",
+          "no:cacheprovider",
+          "tests/security/test_r4_02_archive_authority.py::test_tar_zst_never_creates_outside_authority",
+          "--junitxml=/mnt/c/Users/jinis/residual-snyk-r4/artifacts/security/r4-02/post-fix/sensitivity/pre-fix-negative-control.xml"
+        ],
+        "returncode": 1,
+        "failures": 2,
+        "errors": 0,
+        "source_sha256": "4e3f43e2998579b6f731b5ec43913b29397baec66c9a9b5d3aa553638b45817c",
+        "loaded_source_verified": true
+      },
+      {
+        "name": "link-validation-removed",
+        "result": "KILLED",
+        "command": [
+          "/tmp/residual-r4-venv/bin/python",
+          "-m",
+          "pytest",
+          "-s",
+          "-q",
+          "-p",
+          "no:cacheprovider",
+          "tests/security/test_r4_02_archive_authority.py::test_explicit_link_target_validation",
+          "--junitxml=/mnt/c/Users/jinis/residual-snyk-r4/artifacts/security/r4-02/post-fix/sensitivity/link-validation-removed.xml"
+        ],
+        "returncode": 1,
+        "failures": 8,
+        "errors": 0,
+        "source_sha256": "954267cc95194d7a96735a37e12847bd98684a14ab231711924daab0cb976cf0",
+        "loaded_source_verified": true
+      },
+      {
+        "name": "staging-cleanup-removed",
+        "result": "KILLED",
+        "command": [
+          "/tmp/residual-r4-venv/bin/python",
+          "-m",
+          "pytest",
+          "-s",
+          "-q",
+          "-p",
+          "no:cacheprovider",
+          "tests/security/test_r4_02_archive_authority.py::test_partial_extraction_rollback",
+          "--junitxml=/mnt/c/Users/jinis/residual-snyk-r4/artifacts/security/r4-02/post-fix/sensitivity/staging-cleanup-removed.xml"
+        ],
+        "returncode": 1,
+        "failures": 3,
+        "errors": 0,
+        "source_sha256": "524e60ffaab5d047fd4267b68c227fe4d75f9f7745b5060147970a0f57839220",
+        "loaded_source_verified": true
+      }
+    ]
+  },
+  "matrix": [
+    {
+      "format": "tar",
+      "case": "benign",
+      "pre": "ALLOWED_BUT_CONFINED",
+      "post": "ALLOWED_BUT_CONFINED",
+      "post_error": null,
+      "pre_layer": "PYTHON_RUNTIME",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar",
+      "case": "parent",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "PYTHON_RUNTIME",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar",
+      "case": "absolute",
+      "pre": "ALLOWED_BUT_CONFINED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "PYTHON_RUNTIME",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar",
+      "case": "nested",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "PYTHON_RUNTIME",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar",
+      "case": "dot",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "PYTHON_RUNTIME",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar",
+      "case": "backslash",
+      "pre": "ALLOWED_BUT_CONFINED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "FILESYSTEM",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar",
+      "case": "mixed",
+      "pre": "ALLOWED_BUT_CONFINED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "FILESYSTEM",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar",
+      "case": "drive",
+      "pre": "ALLOWED_BUT_CONFINED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "FILESYSTEM",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar",
+      "case": "symlink_alone",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive link target"
+      },
+      "pre_layer": "PYTHON_RUNTIME",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar",
+      "case": "symlink_then_file",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive link target"
+      },
+      "pre_layer": "PYTHON_RUNTIME",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar",
+      "case": "hardlink_absolute",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive link target"
+      },
+      "pre_layer": "PYTHON_RUNTIME",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar",
+      "case": "hardlink_relative",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive link target"
+      },
+      "pre_layer": "PYTHON_RUNTIME",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar",
+      "case": "hardlink_then_overwrite",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive link target"
+      },
+      "pre_layer": "PYTHON_RUNTIME",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar",
+      "case": "existing_symlink",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Runtime destination already exists; existing runtime left unchanged"
+      },
+      "pre_layer": "PYTHON_RUNTIME",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar",
+      "case": "duplicate",
+      "pre": "ALLOWED_BUT_CONFINED",
+      "post": "ALLOWED_BUT_CONFINED",
+      "post_error": null,
+      "pre_layer": "NONE",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "zip",
+      "case": "benign",
+      "pre": "ALLOWED_BUT_CONFINED",
+      "post": "ALLOWED_BUT_CONFINED",
+      "post_error": null,
+      "pre_layer": "RESIDUAL",
+      "post_layer": "RESIDUAL ZIP path/type validation + staging",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "zip",
+      "case": "parent",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "RESIDUAL",
+      "post_layer": "RESIDUAL ZIP path/type validation + staging",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "zip",
+      "case": "absolute",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "RESIDUAL",
+      "post_layer": "RESIDUAL ZIP path/type validation + staging",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "zip",
+      "case": "nested",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "RESIDUAL",
+      "post_layer": "RESIDUAL ZIP path/type validation + staging",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "zip",
+      "case": "dot",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "RESIDUAL",
+      "post_layer": "RESIDUAL ZIP path/type validation + staging",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "zip",
+      "case": "backslash",
+      "pre": "ALLOWED_BUT_CONFINED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "FILESYSTEM",
+      "post_layer": "RESIDUAL ZIP path/type validation + staging",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "zip",
+      "case": "mixed",
+      "pre": "ALLOWED_BUT_CONFINED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "FILESYSTEM",
+      "post_layer": "RESIDUAL ZIP path/type validation + staging",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "zip",
+      "case": "drive",
+      "pre": "ALLOWED_BUT_CONFINED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "FILESYSTEM",
+      "post_layer": "RESIDUAL ZIP path/type validation + staging",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "zip",
+      "case": "symlink_alone",
+      "pre": "ALLOWED_BUT_CONFINED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsupported runtime ZIP member type"
+      },
+      "pre_layer": "PYTHON_RUNTIME",
+      "post_layer": "RESIDUAL ZIP path/type validation + staging",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "zip",
+      "case": "symlink_then_file",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsupported runtime ZIP member type"
+      },
+      "pre_layer": "PYTHON_RUNTIME",
+      "post_layer": "RESIDUAL ZIP path/type validation + staging",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "zip",
+      "case": "hardlink_absolute",
+      "pre": "UNSUPPORTED_FIXTURE",
+      "post": "UNSUPPORTED_FIXTURE",
+      "post_error": null,
+      "pre_layer": null,
+      "post_layer": "RESIDUAL ZIP path/type validation + staging",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "zip",
+      "case": "hardlink_relative",
+      "pre": "UNSUPPORTED_FIXTURE",
+      "post": "UNSUPPORTED_FIXTURE",
+      "post_error": null,
+      "pre_layer": null,
+      "post_layer": "RESIDUAL ZIP path/type validation + staging",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "zip",
+      "case": "hardlink_then_overwrite",
+      "pre": "UNSUPPORTED_FIXTURE",
+      "post": "UNSUPPORTED_FIXTURE",
+      "post_error": null,
+      "pre_layer": null,
+      "post_layer": "RESIDUAL ZIP path/type validation + staging",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "zip",
+      "case": "existing_symlink",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Runtime destination already exists; existing runtime left unchanged"
+      },
+      "pre_layer": "RESIDUAL",
+      "post_layer": "RESIDUAL ZIP path/type validation + staging",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "zip",
+      "case": "duplicate",
+      "pre": "ALLOWED_BUT_CONFINED",
+      "post": "ALLOWED_BUT_CONFINED",
+      "post_error": null,
+      "pre_layer": "NONE",
+      "post_layer": "RESIDUAL ZIP path/type validation + staging",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar.zst",
+      "case": "benign",
+      "pre": "ALLOWED_BUT_CONFINED",
+      "post": "ALLOWED_BUT_CONFINED",
+      "post_error": null,
+      "pre_layer": "FILESYSTEM",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar.zst",
+      "case": "parent",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "FILESYSTEM",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar.zst",
+      "case": "absolute",
+      "pre": "ALLOWED_BUT_CONFINED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "FILESYSTEM",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar.zst",
+      "case": "nested",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "FILESYSTEM",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar.zst",
+      "case": "dot",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "FILESYSTEM",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar.zst",
+      "case": "backslash",
+      "pre": "ALLOWED_BUT_CONFINED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "FILESYSTEM",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar.zst",
+      "case": "mixed",
+      "pre": "ALLOWED_BUT_CONFINED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "FILESYSTEM",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar.zst",
+      "case": "drive",
+      "pre": "ALLOWED_BUT_CONFINED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "pre_layer": "FILESYSTEM",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar.zst",
+      "case": "symlink_alone",
+      "pre": "OUTSIDE_AUTHORITY_CREATED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive link target"
+      },
+      "pre_layer": "NONE",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar.zst",
+      "case": "symlink_then_file",
+      "pre": "OUTSIDE_AUTHORITY_CREATED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive link target"
+      },
+      "pre_layer": "NONE",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar.zst",
+      "case": "hardlink_absolute",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive link target"
+      },
+      "pre_layer": "FILESYSTEM",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar.zst",
+      "case": "hardlink_relative",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive link target"
+      },
+      "pre_layer": "FILESYSTEM",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar.zst",
+      "case": "hardlink_then_overwrite",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive link target"
+      },
+      "pre_layer": "FILESYSTEM",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar.zst",
+      "case": "existing_symlink",
+      "pre": "BLOCKED",
+      "post": "BLOCKED",
+      "post_error": {
+        "type": "ContractError",
+        "message": "Runtime destination already exists; existing runtime left unchanged"
+      },
+      "pre_layer": "FILESYSTEM",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    },
+    {
+      "format": "tar.zst",
+      "case": "duplicate",
+      "pre": "ALLOWED_BUT_CONFINED",
+      "post": "ALLOWED_BUT_CONFINED",
+      "post_error": null,
+      "pre_layer": "NONE",
+      "post_layer": "RESIDUAL explicit staging/member/link validation + Python data filter",
+      "new_outside_authority": false,
+      "outside_write_during_extraction": false
+    }
+  ],
+  "non_claims": [
+    "Digest-matched attacker-controlled archive abstraction; production manifest boundary not bypassed.",
+    "Local Linux/WSL2 Python 3.12.13 execution; no new native Windows/macOS or multi-interpreter receipt.",
+    "Runtime floors include documented filter security fixes; not a universal minimum-safe-runtime guarantee.",
+    "Existing runtime directories are refused unchanged; no in-place updater implemented.",
+    "No full release qualification or post-fix Snyk scan claim; only the recorded affected gates.",
+    "Frozen harness protection_layer labels describe pre-fix routing; use this matrix and product source for post-fix attribution.",
+    "Gate envelopes record base HEAD plus dirty candidate; source hashes bind their tested bytes to this exact commit when committed_source_verified is true."
+  ]
+}

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="3" time="1.724" timestamp="2026-09-25T14:05:22.819018-04:00" hostname="LEGION"><testcase classname="tests.security.test_r4_02_archive_authority" name="test_partial_extraction_rollback[tar]" time="0.040"><failure message="AssertionError: failed extraction retained staging&#10;assert not [PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba0/station/.runtime-install-ss5046xt')]&#10; +  where [PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba0/station/.runtime-install-ss5046xt')] = list(&lt;generator object Path.glob at 0x7ea50afd47b0&gt;)&#10; +    where &lt;generator object Path.glob at 0x7ea50afd47b0&gt; = glob('.runtime-install-*')&#10; +      where glob = PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba0/station').glob">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7ea50b32a300&gt;
+kind = 'tar'
+
+    @pytest.mark.parametrize('kind', ['tar', 'tar.zst', 'zip'])
+    def test_partial_extraction_rollback(tmp_path, monkeypatch, kind):
+        # Passing inspection cannot imply successful extraction: induce an I/O failure
+        # after a real member has been written into the private extraction directory.
+        installer, outside, root = setup_installer(tmp_path, monkeypatch, kind, 'valid')
+        actual = models.extract_zip if kind == 'zip' else models.extract_tar
+        def fail_after_write(archive, stage):
+            actual(archive, stage)
+            assert (stage/'bin/ollama').read_bytes() == b'fixture'
+            (stage/'outside-link').symlink_to(outside, target_is_directory=True)
+            raise OSError('injected extraction failure after partial write')
+        monkeypatch.setattr(models, 'extract_zip' if kind == 'zip' else 'extract_tar', fail_after_write)
+        with pytest.raises(OSError, match='injected extraction failure'):
+            installer.install(lambda *a: None)
+&gt;       assert_no_partial_runtime(root)
+
+tests/security/test_r4_02_archive_authority.py:222: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+root = PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba0/station')
+
+    def assert_no_partial_runtime(root):
+        assert not (root/'runtime').exists(), 'failed extraction promoted partial runtime'
+&gt;       assert not list(root.glob('.runtime-install-*')), 'failed extraction retained staging'
+E       AssertionError: failed extraction retained staging
+E       assert not [PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba0/station/.runtime-install-ss5046xt')]
+E        +  where [PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba0/station/.runtime-install-ss5046xt')] = list(&lt;generator object Path.glob at 0x7ea50afd47b0&gt;)
+E        +    where &lt;generator object Path.glob at 0x7ea50afd47b0&gt; = glob('.runtime-install-*')
+E        +      where glob = PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba0/station').glob
+
+tests/security/test_r4_02_archive_authority.py:154: AssertionError</failure></testcase><testcase classname="tests.security.test_r4_02_archive_authority" name="test_partial_extraction_rollback[tar.zst]" time="0.050"><failure message="AssertionError: failed extraction retained staging&#10;assert not [PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba1/station/.runtime-install-c3msrchs')]&#10; +  where [PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba1/station/.runtime-install-c3msrchs')] = list(&lt;generator object Path.glob at 0x7ea50afd5ad0&gt;)&#10; +    where &lt;generator object Path.glob at 0x7ea50afd5ad0&gt; = glob('.runtime-install-*')&#10; +      where glob = PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba1/station').glob">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba1')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7ea50b396b70&gt;
+kind = 'tar.zst'
+
+    @pytest.mark.parametrize('kind', ['tar', 'tar.zst', 'zip'])
+    def test_partial_extraction_rollback(tmp_path, monkeypatch, kind):
+        # Passing inspection cannot imply successful extraction: induce an I/O failure
+        # after a real member has been written into the private extraction directory.
+        installer, outside, root = setup_installer(tmp_path, monkeypatch, kind, 'valid')
+        actual = models.extract_zip if kind == 'zip' else models.extract_tar
+        def fail_after_write(archive, stage):
+            actual(archive, stage)
+            assert (stage/'bin/ollama').read_bytes() == b'fixture'
+            (stage/'outside-link').symlink_to(outside, target_is_directory=True)
+            raise OSError('injected extraction failure after partial write')
+        monkeypatch.setattr(models, 'extract_zip' if kind == 'zip' else 'extract_tar', fail_after_write)
+        with pytest.raises(OSError, match='injected extraction failure'):
+            installer.install(lambda *a: None)
+&gt;       assert_no_partial_runtime(root)
+
+tests/security/test_r4_02_archive_authority.py:222: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+root = PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba1/station')
+
+    def assert_no_partial_runtime(root):
+        assert not (root/'runtime').exists(), 'failed extraction promoted partial runtime'
+&gt;       assert not list(root.glob('.runtime-install-*')), 'failed extraction retained staging'
+E       AssertionError: failed extraction retained staging
+E       assert not [PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba1/station/.runtime-install-c3msrchs')]
+E        +  where [PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba1/station/.runtime-install-c3msrchs')] = list(&lt;generator object Path.glob at 0x7ea50afd5ad0&gt;)
+E        +    where &lt;generator object Path.glob at 0x7ea50afd5ad0&gt; = glob('.runtime-install-*')
+E        +      where glob = PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba1/station').glob
+
+tests/security/test_r4_02_archive_authority.py:154: AssertionError</failure></testcase><testcase classname="tests.security.test_r4_02_archive_authority" name="test_partial_extraction_rollback[zip]" time="0.028"><failure message="AssertionError: failed extraction retained staging&#10;assert not [PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba2/station/.runtime-install-zrmpnf4j')]&#10; +  where [PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba2/station/.runtime-install-zrmpnf4j')] = list(&lt;generator object Path.glob at 0x7ea50afd47b0&gt;)&#10; +    where &lt;generator object Path.glob at 0x7ea50afd47b0&gt; = glob('.runtime-install-*')&#10; +      where glob = PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba2/station').glob">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba2')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7ea50b330200&gt;
+kind = 'zip'
+
+    @pytest.mark.parametrize('kind', ['tar', 'tar.zst', 'zip'])
+    def test_partial_extraction_rollback(tmp_path, monkeypatch, kind):
+        # Passing inspection cannot imply successful extraction: induce an I/O failure
+        # after a real member has been written into the private extraction directory.
+        installer, outside, root = setup_installer(tmp_path, monkeypatch, kind, 'valid')
+        actual = models.extract_zip if kind == 'zip' else models.extract_tar
+        def fail_after_write(archive, stage):
+            actual(archive, stage)
+            assert (stage/'bin/ollama').read_bytes() == b'fixture'
+            (stage/'outside-link').symlink_to(outside, target_is_directory=True)
+            raise OSError('injected extraction failure after partial write')
+        monkeypatch.setattr(models, 'extract_zip' if kind == 'zip' else 'extract_tar', fail_after_write)
+        with pytest.raises(OSError, match='injected extraction failure'):
+            installer.install(lambda *a: None)
+&gt;       assert_no_partial_runtime(root)
+
+tests/security/test_r4_02_archive_authority.py:222: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+root = PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba2/station')
+
+    def assert_no_partial_runtime(root):
+        assert not (root/'runtime').exists(), 'failed extraction promoted partial runtime'
+&gt;       assert not list(root.glob('.runtime-install-*')), 'failed extraction retained staging'
+E       AssertionError: failed extraction retained staging
+E       assert not [PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba2/station/.runtime-install-zrmpnf4j')]
+E        +  where [PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba2/station/.runtime-install-zrmpnf4j')] = list(&lt;generator object Path.glob at 0x7ea50afd47b0&gt;)
+E        +    where &lt;generator object Path.glob at 0x7ea50afd47b0&gt; = glob('.runtime-install-*')
+E        +      where glob = PosixPath('/tmp/pytest-of-root/pytest-8/test_partial_extraction_rollba2/station').glob
+
+tests/security/test_r4_02_archive_authority.py:154: AssertionError</failure></testcase></testsuite></testsuites>

@@ -1,0 +1,61 @@
+{
+  "format": "tar.zst",
+  "case": "symlink_then_file",
+  "mode": "real",
+  "fixture_sha256": "07aa42dd3768a4ccb9323df1f18dd9fc96b473786417480edb1a689ada2c099d",
+  "error": {
+    "type": "ContractError",
+    "message": "Could not extract runtime archive"
+  },
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": false,
+  "external_commands": [
+    {
+      "argv": [
+        "tar",
+        "--zstd",
+        "-xf",
+        "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_then_file/runtime-download/fixture.tar.zst",
+        "-C",
+        "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_then_file/runtime"
+      ],
+      "returncode": 2,
+      "stderr": "tar: link/marker: Cannot open: Not a directory\ntar: Exiting with failure status due to previous errors\n"
+    }
+  ],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [
+    {
+      "path": "link",
+      "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_then_file/outside",
+      "outside_dest": true
+    }
+  ],
+  "outside_authority": [
+    {
+      "path": "link",
+      "kind": "symlink"
+    }
+  ],
+  "authority_probes": [
+    {
+      "path": "link",
+      "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_then_file/outside/authority_probe",
+      "verified": true
+    }
+  ],
+  "outside_after_probe": {
+    "authority_probe": "authority-probe",
+    "source": "original"
+  },
+  "files": {},
+  "dest_exists": true,
+  "authority_created": true,
+  "classification": "OUTSIDE_AUTHORITY_CREATED",
+  "protection_layer": "NONE",
+  "protection_detail": "GNU tar creates outside symlink; later error does not remove it"
+}

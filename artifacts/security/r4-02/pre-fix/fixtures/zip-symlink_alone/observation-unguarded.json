@@ -1,0 +1,29 @@
+{
+  "format": "zip",
+  "case": "symlink_alone",
+  "mode": "unguarded",
+  "fixture_sha256": "d5bed93003040958bb8da5808f98cac70d50f708025aa90a1005f2a6c38e3195",
+  "error": null,
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": false,
+  "external_commands": [],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [],
+  "outside_authority": [],
+  "authority_probes": [],
+  "outside_after_probe": {
+    "source": "original"
+  },
+  "files": {
+    "link": "/tmp/r4-02-audit-o8042bk9/zip-symlink_alone/outside"
+  },
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "ALLOWED_BUT_CONFINED",
+  "protection_layer": "FILESYSTEM",
+  "protection_detail": "POSIX path/file behavior; ZIP control does not emulate links"
+}

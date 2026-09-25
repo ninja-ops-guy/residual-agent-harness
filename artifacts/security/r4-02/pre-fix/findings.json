@@ -1,0 +1,3076 @@
+{
+  "metadata": {
+    "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+    "python_executable": "/tmp/residual-r4-venv/bin/python",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "tar": "tar (GNU tar) 1.34",
+    "zstd": "*** zstd command line interface 64-bits v1.4.8, by Yann Collet ***",
+    "source": "/mnt/c/Users/jinis/residual-snyk-r4/residual/station/models.py",
+    "source_sha256": "4e3f43e2998579b6f731b5ec43913b29397baec66c9a9b5d3aa553638b45817c",
+    "requires_python": ">=3.11",
+    "tar_options": null,
+    "temp_root": "/tmp/r4-02-audit-o8042bk9",
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/mnt/c/Users/jinis/residual-snyk-r4 /tmp/residual-r4-venv/bin/python /tmp/residual-r4-gemma-lab/audit_archive.py"
+  },
+  "checks": {
+    "source_unchanged": true,
+    "paired_fixture_digests_identical": true,
+    "benign_all_formats": true,
+    "negative_parent_controls_all_formats": true,
+    "negative_traversal_controls_all_formats": true,
+    "negative_tar_link_controls": true,
+    "all_authority_probes_verified": true,
+    "duplicate_overwrite_confined": true,
+    "bad_digest_all_formats": true
+  },
+  "results": [
+    {
+      "format": "tar",
+      "case": "benign",
+      "mode": "real",
+      "fixture_sha256": "cf4661dddd557999ad0a1e23c7118a6c79a14258e30d7e1e0fafb13da1122847",
+      "error": null,
+      "returned": "started",
+      "start_calls": 1,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "bin/ollama": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "PYTHON_RUNTIME",
+      "protection_detail": "Python tarfile data filter"
+    },
+    {
+      "format": "tar",
+      "case": "benign",
+      "mode": "unguarded",
+      "fixture_sha256": "cf4661dddd557999ad0a1e23c7118a6c79a14258e30d7e1e0fafb13da1122847",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "bin/ollama": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar",
+      "case": "parent",
+      "mode": "real",
+      "fixture_sha256": "4ef2c09120af844c2b05372f55daaa67259e6d809518ac9e56cd0c41959ab221",
+      "error": {
+        "type": "OutsideDestinationError",
+        "message": "'../outside/marker' would be extracted to '/tmp/r4-02-audit-o8042bk9/tar-parent/outside/marker', which is outside the destination"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "PYTHON_RUNTIME",
+      "protection_detail": "Python tarfile data filter"
+    },
+    {
+      "format": "tar",
+      "case": "parent",
+      "mode": "unguarded",
+      "fixture_sha256": "4ef2c09120af844c2b05372f55daaa67259e6d809518ac9e56cd0c41959ab221",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "outside_write": true,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "OUTSIDE_WRITE_OCCURRED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar",
+      "case": "parent",
+      "mode": "bad_digest",
+      "fixture_sha256": "4ef2c09120af844c2b05372f55daaa67259e6d809518ac9e56cd0c41959ab221",
+      "error": {
+        "type": "ContractError",
+        "message": "Runtime checksum mismatch; download discarded"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": false,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "RESIDUAL",
+      "protection_detail": "SHA-256 verification before extraction"
+    },
+    {
+      "format": "tar",
+      "case": "absolute",
+      "mode": "real",
+      "fixture_sha256": "7ee0d968cf1b4c3a89c811a5992548f4486954e3f0840a119641d08b97013ac3",
+      "error": null,
+      "returned": "started",
+      "start_calls": 1,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "tmp/r4-02-audit-o8042bk9/tar-absolute/outside/marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "PYTHON_RUNTIME",
+      "protection_detail": "Python tarfile data filter"
+    },
+    {
+      "format": "tar",
+      "case": "absolute",
+      "mode": "unguarded",
+      "fixture_sha256": "7ee0d968cf1b4c3a89c811a5992548f4486954e3f0840a119641d08b97013ac3",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "outside_write": true,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "OUTSIDE_WRITE_OCCURRED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar",
+      "case": "nested",
+      "mode": "real",
+      "fixture_sha256": "87fc367866eff531e8263fdd319963caae328ea3000b73738e75c92dc655c9a7",
+      "error": {
+        "type": "OutsideDestinationError",
+        "message": "'a/../../outside/marker' would be extracted to '/tmp/r4-02-audit-o8042bk9/tar-nested/outside/marker', which is outside the destination"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "PYTHON_RUNTIME",
+      "protection_detail": "Python tarfile data filter"
+    },
+    {
+      "format": "tar",
+      "case": "nested",
+      "mode": "unguarded",
+      "fixture_sha256": "87fc367866eff531e8263fdd319963caae328ea3000b73738e75c92dc655c9a7",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "outside_write": true,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "OUTSIDE_WRITE_OCCURRED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar",
+      "case": "dot",
+      "mode": "real",
+      "fixture_sha256": "70c6c23dbcc8c282ea5132b454f627c03f69a832eda88e72a6fc1f29acdfbed5",
+      "error": {
+        "type": "OutsideDestinationError",
+        "message": "'./../outside/marker' would be extracted to '/tmp/r4-02-audit-o8042bk9/tar-dot/outside/marker', which is outside the destination"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "PYTHON_RUNTIME",
+      "protection_detail": "Python tarfile data filter"
+    },
+    {
+      "format": "tar",
+      "case": "dot",
+      "mode": "unguarded",
+      "fixture_sha256": "70c6c23dbcc8c282ea5132b454f627c03f69a832eda88e72a6fc1f29acdfbed5",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "outside_write": true,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "OUTSIDE_WRITE_OCCURRED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar",
+      "case": "backslash",
+      "mode": "real",
+      "fixture_sha256": "e2a4ef79ff15f1eff88b80568fc227b5c0e50d5b2476f3ab5e595c0075b5e660",
+      "error": null,
+      "returned": "started",
+      "start_calls": 1,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "..\\outside\\marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "POSIX treats backslashes and drive names literally"
+    },
+    {
+      "format": "tar",
+      "case": "backslash",
+      "mode": "unguarded",
+      "fixture_sha256": "e2a4ef79ff15f1eff88b80568fc227b5c0e50d5b2476f3ab5e595c0075b5e660",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "..\\outside\\marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "POSIX path/file behavior; ZIP control does not emulate links"
+    },
+    {
+      "format": "tar",
+      "case": "mixed",
+      "mode": "real",
+      "fixture_sha256": "2847d7a69fffb3be0c8255c2fea60dfbb22c334ae203474fae08a8c8e7c75926",
+      "error": null,
+      "returned": "started",
+      "start_calls": 1,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "a/..\\..\\outside/marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "POSIX treats backslashes and drive names literally"
+    },
+    {
+      "format": "tar",
+      "case": "mixed",
+      "mode": "unguarded",
+      "fixture_sha256": "2847d7a69fffb3be0c8255c2fea60dfbb22c334ae203474fae08a8c8e7c75926",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "a/..\\..\\outside/marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "POSIX path/file behavior; ZIP control does not emulate links"
+    },
+    {
+      "format": "tar",
+      "case": "drive",
+      "mode": "real",
+      "fixture_sha256": "7ecc70530cb207516abee4599b4d98cdd7f8374c1a5314a406cf87a2b40ff8d8",
+      "error": null,
+      "returned": "started",
+      "start_calls": 1,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "C:/outside/marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "POSIX treats backslashes and drive names literally"
+    },
+    {
+      "format": "tar",
+      "case": "drive",
+      "mode": "unguarded",
+      "fixture_sha256": "7ecc70530cb207516abee4599b4d98cdd7f8374c1a5314a406cf87a2b40ff8d8",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "C:/outside/marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "POSIX path/file behavior; ZIP control does not emulate links"
+    },
+    {
+      "format": "tar",
+      "case": "symlink_alone",
+      "mode": "real",
+      "fixture_sha256": "b05a3d0a8dcb5cd5938a1e6a3c7393eeee60b8cbd84ff0e8038dba7607b86174",
+      "error": {
+        "type": "AbsoluteLinkError",
+        "message": "'link' is a link to an absolute path"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "PYTHON_RUNTIME",
+      "protection_detail": "Python tarfile data filter"
+    },
+    {
+      "format": "tar",
+      "case": "symlink_alone",
+      "mode": "unguarded",
+      "fixture_sha256": "b05a3d0a8dcb5cd5938a1e6a3c7393eeee60b8cbd84ff0e8038dba7607b86174",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar-symlink_alone/outside",
+          "outside_dest": true
+        }
+      ],
+      "outside_authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "authority_probes": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar-symlink_alone/outside/authority_probe",
+          "verified": true
+        }
+      ],
+      "outside_after_probe": {
+        "authority_probe": "authority-probe",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": true,
+      "classification": "OUTSIDE_AUTHORITY_CREATED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar",
+      "case": "symlink_then_file",
+      "mode": "real",
+      "fixture_sha256": "0e289133bc6a85f3a53e76d5944a142a6a93da2b7f20c9b64645ed03265d0ffa",
+      "error": {
+        "type": "AbsoluteLinkError",
+        "message": "'link' is a link to an absolute path"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "PYTHON_RUNTIME",
+      "protection_detail": "Python tarfile data filter"
+    },
+    {
+      "format": "tar",
+      "case": "symlink_then_file",
+      "mode": "unguarded",
+      "fixture_sha256": "0e289133bc6a85f3a53e76d5944a142a6a93da2b7f20c9b64645ed03265d0ffa",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "outside_write": true,
+      "links": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar-symlink_then_file/outside",
+          "outside_dest": true
+        }
+      ],
+      "outside_authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "authority_probes": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar-symlink_then_file/outside/authority_probe",
+          "verified": true
+        }
+      ],
+      "outside_after_probe": {
+        "authority_probe": "authority-probe",
+        "marker": "fixture",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": true,
+      "classification": "OUTSIDE_WRITE_OCCURRED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar",
+      "case": "hardlink_absolute",
+      "mode": "real",
+      "fixture_sha256": "c8b2b0397a695e68eb6aba9be26454d83e66ed3bfc59b9d2e7fb7c1a9906ca2e",
+      "error": {
+        "type": "AbsoluteLinkError",
+        "message": "'marker' is a link to an absolute path"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "PYTHON_RUNTIME",
+      "protection_detail": "Python tarfile data filter"
+    },
+    {
+      "format": "tar",
+      "case": "hardlink_absolute",
+      "mode": "unguarded",
+      "fixture_sha256": "c8b2b0397a695e68eb6aba9be26454d83e66ed3bfc59b9d2e7fb7c1a9906ca2e",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [
+        {
+          "path": "marker",
+          "kind": "hardlink"
+        }
+      ],
+      "authority_probes": [
+        {
+          "path": "marker",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar-hardlink_absolute/runtime/marker",
+          "verified": true
+        }
+      ],
+      "outside_after_probe": {
+        "source": "authority-probe"
+      },
+      "files": {
+        "marker": "original"
+      },
+      "dest_exists": true,
+      "authority_created": true,
+      "classification": "OUTSIDE_AUTHORITY_CREATED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar",
+      "case": "hardlink_relative",
+      "mode": "real",
+      "fixture_sha256": "b4cb6e978512756c3c4161b69c7ef8e7a16172a78cb56ea66b53cd96e6a0cc0d",
+      "error": {
+        "type": "LinkOutsideDestinationError",
+        "message": "'marker' would link to '/tmp/r4-02-audit-o8042bk9/tar-hardlink_relative/outside/source', which is outside the destination"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "PYTHON_RUNTIME",
+      "protection_detail": "Python tarfile data filter"
+    },
+    {
+      "format": "tar",
+      "case": "hardlink_relative",
+      "mode": "unguarded",
+      "fixture_sha256": "b4cb6e978512756c3c4161b69c7ef8e7a16172a78cb56ea66b53cd96e6a0cc0d",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [
+        {
+          "path": "marker",
+          "kind": "hardlink"
+        }
+      ],
+      "authority_probes": [
+        {
+          "path": "marker",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar-hardlink_relative/runtime/marker",
+          "verified": true
+        }
+      ],
+      "outside_after_probe": {
+        "source": "authority-probe"
+      },
+      "files": {
+        "marker": "original"
+      },
+      "dest_exists": true,
+      "authority_created": true,
+      "classification": "OUTSIDE_AUTHORITY_CREATED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar",
+      "case": "hardlink_then_overwrite",
+      "mode": "real",
+      "fixture_sha256": "92dbe73b48542e73747063a7fff86e1d33136ad219a50edd375584a8d6d80a62",
+      "error": {
+        "type": "AbsoluteLinkError",
+        "message": "'marker' is a link to an absolute path"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "PYTHON_RUNTIME",
+      "protection_detail": "Python tarfile data filter"
+    },
+    {
+      "format": "tar",
+      "case": "hardlink_then_overwrite",
+      "mode": "unguarded",
+      "fixture_sha256": "92dbe73b48542e73747063a7fff86e1d33136ad219a50edd375584a8d6d80a62",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "overwrite"
+      },
+      "outside_write": true,
+      "links": [],
+      "outside_authority": [
+        {
+          "path": "marker",
+          "kind": "hardlink"
+        }
+      ],
+      "authority_probes": [
+        {
+          "path": "marker",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar-hardlink_then_overwrite/runtime/marker",
+          "verified": true
+        }
+      ],
+      "outside_after_probe": {
+        "source": "authority-probe"
+      },
+      "files": {
+        "marker": "overwrite"
+      },
+      "dest_exists": true,
+      "authority_created": true,
+      "classification": "OUTSIDE_WRITE_OCCURRED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar",
+      "case": "existing_symlink",
+      "mode": "real",
+      "fixture_sha256": "682eb8715c44e59ea74c45b54392bad8337bdac65aa573873b89227eeefda312",
+      "error": {
+        "type": "OutsideDestinationError",
+        "message": "'link/marker' would be extracted to '/tmp/r4-02-audit-o8042bk9/tar-existing_symlink/outside/marker', which is outside the destination"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": true,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar-existing_symlink/outside",
+          "outside_dest": true
+        }
+      ],
+      "outside_authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "authority_probes": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar-existing_symlink/outside/authority_probe",
+          "verified": true
+        }
+      ],
+      "outside_after_probe": {
+        "authority_probe": "authority-probe",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "PYTHON_RUNTIME",
+      "protection_detail": "Python tarfile data filter"
+    },
+    {
+      "format": "tar",
+      "case": "existing_symlink",
+      "mode": "unguarded",
+      "fixture_sha256": "682eb8715c44e59ea74c45b54392bad8337bdac65aa573873b89227eeefda312",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": true,
+      "external_commands": [],
+      "outside_before_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "outside_write": true,
+      "links": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar-existing_symlink/outside",
+          "outside_dest": true
+        }
+      ],
+      "outside_authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "authority_probes": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar-existing_symlink/outside/authority_probe",
+          "verified": true
+        }
+      ],
+      "outside_after_probe": {
+        "authority_probe": "authority-probe",
+        "marker": "fixture",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "OUTSIDE_WRITE_OCCURRED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar",
+      "case": "duplicate",
+      "mode": "real",
+      "fixture_sha256": "2e1e4417dec283351c781c0f031df90da2bdd64998bb6b876aea09bc34ca299b",
+      "error": null,
+      "returned": "started",
+      "start_calls": 1,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "bin/ollama": "second"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "NONE",
+      "protection_detail": "Duplicate overwrite allowed inside destination; not a path escape"
+    },
+    {
+      "format": "tar",
+      "case": "duplicate",
+      "mode": "unguarded",
+      "fixture_sha256": "2e1e4417dec283351c781c0f031df90da2bdd64998bb6b876aea09bc34ca299b",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "bin/ollama": "second"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "NONE",
+      "protection_detail": "Duplicate overwrite allowed inside destination; not a path escape"
+    },
+    {
+      "format": "zip",
+      "case": "benign",
+      "mode": "real",
+      "fixture_sha256": "66695f419c8b0a6b7c6d407aceb7dd7b713569263b27e33b917a9b5f930cfb9e",
+      "error": null,
+      "returned": "started",
+      "start_calls": 1,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "bin/ollama": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "RESIDUAL",
+      "protection_detail": "Resolved member path containment check"
+    },
+    {
+      "format": "zip",
+      "case": "benign",
+      "mode": "unguarded",
+      "fixture_sha256": "66695f419c8b0a6b7c6d407aceb7dd7b713569263b27e33b917a9b5f930cfb9e",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "bin/ollama": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "zip",
+      "case": "parent",
+      "mode": "real",
+      "fixture_sha256": "f5a2da9947d25b92c4810ab078a9117759e14ddeffc8e5a2be352d4e98e5cb7c",
+      "error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "RESIDUAL",
+      "protection_detail": "Resolved member path containment check"
+    },
+    {
+      "format": "zip",
+      "case": "parent",
+      "mode": "unguarded",
+      "fixture_sha256": "f5a2da9947d25b92c4810ab078a9117759e14ddeffc8e5a2be352d4e98e5cb7c",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "outside_write": true,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "OUTSIDE_WRITE_OCCURRED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "zip",
+      "case": "parent",
+      "mode": "bad_digest",
+      "fixture_sha256": "f5a2da9947d25b92c4810ab078a9117759e14ddeffc8e5a2be352d4e98e5cb7c",
+      "error": {
+        "type": "ContractError",
+        "message": "Runtime checksum mismatch; download discarded"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": false,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "RESIDUAL",
+      "protection_detail": "SHA-256 verification before extraction"
+    },
+    {
+      "format": "zip",
+      "case": "absolute",
+      "mode": "real",
+      "fixture_sha256": "4de90d922c3a36f8b9ad86328d0c2fcc3db3e653750cef8a5645fa1ef15ab4b6",
+      "error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "RESIDUAL",
+      "protection_detail": "Resolved member path containment check"
+    },
+    {
+      "format": "zip",
+      "case": "absolute",
+      "mode": "unguarded",
+      "fixture_sha256": "4de90d922c3a36f8b9ad86328d0c2fcc3db3e653750cef8a5645fa1ef15ab4b6",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "outside_write": true,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "OUTSIDE_WRITE_OCCURRED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "zip",
+      "case": "nested",
+      "mode": "real",
+      "fixture_sha256": "f456e7a1bfca6de97f4a0aa4f1ec95dc2d96082af7274e68a4cc6ebdcaeb3aae",
+      "error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "RESIDUAL",
+      "protection_detail": "Resolved member path containment check"
+    },
+    {
+      "format": "zip",
+      "case": "nested",
+      "mode": "unguarded",
+      "fixture_sha256": "f456e7a1bfca6de97f4a0aa4f1ec95dc2d96082af7274e68a4cc6ebdcaeb3aae",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "outside_write": true,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "OUTSIDE_WRITE_OCCURRED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "zip",
+      "case": "dot",
+      "mode": "real",
+      "fixture_sha256": "48fa363bde1f75b31936deed15ca0823024be70fe84396380f242fc24e5f04bc",
+      "error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "RESIDUAL",
+      "protection_detail": "Resolved member path containment check"
+    },
+    {
+      "format": "zip",
+      "case": "dot",
+      "mode": "unguarded",
+      "fixture_sha256": "48fa363bde1f75b31936deed15ca0823024be70fe84396380f242fc24e5f04bc",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "outside_write": true,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "OUTSIDE_WRITE_OCCURRED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "zip",
+      "case": "backslash",
+      "mode": "real",
+      "fixture_sha256": "fcbbd870e8b6841c60ffb089e6b5134d3cb89213ee1c8c9604abe97726071c7b",
+      "error": null,
+      "returned": "started",
+      "start_calls": 1,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "..\\outside\\marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "POSIX treats backslashes and drive names literally"
+    },
+    {
+      "format": "zip",
+      "case": "backslash",
+      "mode": "unguarded",
+      "fixture_sha256": "fcbbd870e8b6841c60ffb089e6b5134d3cb89213ee1c8c9604abe97726071c7b",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "..\\outside\\marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "POSIX path/file behavior; ZIP control does not emulate links"
+    },
+    {
+      "format": "zip",
+      "case": "mixed",
+      "mode": "real",
+      "fixture_sha256": "a22643fcca26976cbd4dcf3afc2163df8091361e40e1d2d6ecdf675533b1070b",
+      "error": null,
+      "returned": "started",
+      "start_calls": 1,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "a/..\\..\\outside/marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "POSIX treats backslashes and drive names literally"
+    },
+    {
+      "format": "zip",
+      "case": "mixed",
+      "mode": "unguarded",
+      "fixture_sha256": "a22643fcca26976cbd4dcf3afc2163df8091361e40e1d2d6ecdf675533b1070b",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "a/..\\..\\outside/marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "POSIX path/file behavior; ZIP control does not emulate links"
+    },
+    {
+      "format": "zip",
+      "case": "drive",
+      "mode": "real",
+      "fixture_sha256": "af5c2a5538cb03d6ec8986a61c19fb1e1d0852eb3b9b3be0203863a8407bc260",
+      "error": null,
+      "returned": "started",
+      "start_calls": 1,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "C:/outside/marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "POSIX treats backslashes and drive names literally"
+    },
+    {
+      "format": "zip",
+      "case": "drive",
+      "mode": "unguarded",
+      "fixture_sha256": "af5c2a5538cb03d6ec8986a61c19fb1e1d0852eb3b9b3be0203863a8407bc260",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "C:/outside/marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "POSIX path/file behavior; ZIP control does not emulate links"
+    },
+    {
+      "format": "zip",
+      "case": "symlink_alone",
+      "mode": "real",
+      "fixture_sha256": "d5bed93003040958bb8da5808f98cac70d50f708025aa90a1005f2a6c38e3195",
+      "error": null,
+      "returned": "started",
+      "start_calls": 1,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "link": "/tmp/r4-02-audit-o8042bk9/zip-symlink_alone/outside"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "PYTHON_RUNTIME",
+      "protection_detail": "zipfile materializes link metadata as a regular file; child write hits ENOTDIR"
+    },
+    {
+      "format": "zip",
+      "case": "symlink_alone",
+      "mode": "unguarded",
+      "fixture_sha256": "d5bed93003040958bb8da5808f98cac70d50f708025aa90a1005f2a6c38e3195",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "link": "/tmp/r4-02-audit-o8042bk9/zip-symlink_alone/outside"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "POSIX path/file behavior; ZIP control does not emulate links"
+    },
+    {
+      "format": "zip",
+      "case": "symlink_then_file",
+      "mode": "real",
+      "fixture_sha256": "2ac42d80f91f7c992e41ec10297ad2a7aa876c0625063b05045771f5acb3647e",
+      "error": {
+        "type": "NotADirectoryError",
+        "message": "[Errno 20] Not a directory: '/tmp/r4-02-audit-o8042bk9/zip-symlink_then_file/runtime/link/marker'"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "link": "/tmp/r4-02-audit-o8042bk9/zip-symlink_then_file/outside"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "PYTHON_RUNTIME",
+      "protection_detail": "zipfile materializes link metadata as a regular file; child write hits ENOTDIR"
+    },
+    {
+      "format": "zip",
+      "case": "symlink_then_file",
+      "mode": "unguarded",
+      "fixture_sha256": "2ac42d80f91f7c992e41ec10297ad2a7aa876c0625063b05045771f5acb3647e",
+      "error": {
+        "type": "FileExistsError",
+        "message": "[Errno 17] File exists: '/tmp/r4-02-audit-o8042bk9/zip-symlink_then_file/runtime/link'"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "link": "/tmp/r4-02-audit-o8042bk9/zip-symlink_then_file/outside"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "POSIX path/file behavior; ZIP control does not emulate links"
+    },
+    {
+      "format": "zip",
+      "case": "hardlink_absolute",
+      "mode": "unsupported",
+      "classification": "UNSUPPORTED_FIXTURE",
+      "reason": "No native ZIP hardlink fixture; not emulated as a regular file."
+    },
+    {
+      "format": "zip",
+      "case": "hardlink_relative",
+      "mode": "unsupported",
+      "classification": "UNSUPPORTED_FIXTURE",
+      "reason": "No native ZIP hardlink fixture; not emulated as a regular file."
+    },
+    {
+      "format": "zip",
+      "case": "hardlink_then_overwrite",
+      "mode": "unsupported",
+      "classification": "UNSUPPORTED_FIXTURE",
+      "reason": "No native ZIP hardlink fixture; not emulated as a regular file."
+    },
+    {
+      "format": "zip",
+      "case": "existing_symlink",
+      "mode": "real",
+      "fixture_sha256": "7c0f47652c1dac9ca43d4c5f30483ecadd774f6b2669e150ef37a52889222528",
+      "error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": true,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/zip-existing_symlink/outside",
+          "outside_dest": true
+        }
+      ],
+      "outside_authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "authority_probes": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/zip-existing_symlink/outside/authority_probe",
+          "verified": true
+        }
+      ],
+      "outside_after_probe": {
+        "authority_probe": "authority-probe",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "RESIDUAL",
+      "protection_detail": "Resolved member path containment check"
+    },
+    {
+      "format": "zip",
+      "case": "existing_symlink",
+      "mode": "unguarded",
+      "fixture_sha256": "7c0f47652c1dac9ca43d4c5f30483ecadd774f6b2669e150ef37a52889222528",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": true,
+      "external_commands": [],
+      "outside_before_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "outside_write": true,
+      "links": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/zip-existing_symlink/outside",
+          "outside_dest": true
+        }
+      ],
+      "outside_authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "authority_probes": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/zip-existing_symlink/outside/authority_probe",
+          "verified": true
+        }
+      ],
+      "outside_after_probe": {
+        "authority_probe": "authority-probe",
+        "marker": "fixture",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "OUTSIDE_WRITE_OCCURRED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "zip",
+      "case": "duplicate",
+      "mode": "real",
+      "fixture_sha256": "bc26bef7be002df482ac4f1f84fb4930494524a91ebed152658ccfcf1d8b004e",
+      "error": null,
+      "returned": "started",
+      "start_calls": 1,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "bin/ollama": "second"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "NONE",
+      "protection_detail": "Duplicate overwrite allowed inside destination; not a path escape"
+    },
+    {
+      "format": "zip",
+      "case": "duplicate",
+      "mode": "unguarded",
+      "fixture_sha256": "bc26bef7be002df482ac4f1f84fb4930494524a91ebed152658ccfcf1d8b004e",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "bin/ollama": "second"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "NONE",
+      "protection_detail": "Duplicate overwrite allowed inside destination; not a path escape"
+    },
+    {
+      "format": "tar.zst",
+      "case": "benign",
+      "mode": "real",
+      "fixture_sha256": "73c5905f9c319bc8f8cf4cd2b225de21ba170f5301eaf29ff8ebdd2946cec232",
+      "error": null,
+      "returned": "started",
+      "start_calls": 1,
+      "preexisting_link": false,
+      "external_commands": [
+        {
+          "argv": [
+            "tar",
+            "--zstd",
+            "-xf",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-benign/runtime-download/fixture.tar.zst",
+            "-C",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-benign/runtime"
+          ],
+          "returncode": 0,
+          "stderr": ""
+        }
+      ],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "bin/ollama": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "External GNU tar 1.34 --zstd -xf archive -C dest; see captured stderr"
+    },
+    {
+      "format": "tar.zst",
+      "case": "benign",
+      "mode": "unguarded",
+      "fixture_sha256": "73c5905f9c319bc8f8cf4cd2b225de21ba170f5301eaf29ff8ebdd2946cec232",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "bin/ollama": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar.zst",
+      "case": "parent",
+      "mode": "real",
+      "fixture_sha256": "d08d8c1f57402041147f80c7d690156308c2ae00d5a193121306053f519ee1e4",
+      "error": {
+        "type": "ContractError",
+        "message": "Could not extract runtime archive"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [
+        {
+          "argv": [
+            "tar",
+            "--zstd",
+            "-xf",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-parent/runtime-download/fixture.tar.zst",
+            "-C",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-parent/runtime"
+          ],
+          "returncode": 2,
+          "stderr": "tar: Removing leading `../' from member names\ntar: ../outside/marker: Member name contains '..'\ntar: Exiting with failure status due to previous errors\n"
+        }
+      ],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "External GNU tar 1.34 --zstd -xf archive -C dest; see captured stderr"
+    },
+    {
+      "format": "tar.zst",
+      "case": "parent",
+      "mode": "unguarded",
+      "fixture_sha256": "d08d8c1f57402041147f80c7d690156308c2ae00d5a193121306053f519ee1e4",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "outside_write": true,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "OUTSIDE_WRITE_OCCURRED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar.zst",
+      "case": "parent",
+      "mode": "bad_digest",
+      "fixture_sha256": "d08d8c1f57402041147f80c7d690156308c2ae00d5a193121306053f519ee1e4",
+      "error": {
+        "type": "ContractError",
+        "message": "Runtime checksum mismatch; download discarded"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": false,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "RESIDUAL",
+      "protection_detail": "SHA-256 verification before extraction"
+    },
+    {
+      "format": "tar.zst",
+      "case": "absolute",
+      "mode": "real",
+      "fixture_sha256": "48757421365cc54c536b477cb0a7af90eb79e9c0a68194a3ee53d451486419df",
+      "error": null,
+      "returned": "started",
+      "start_calls": 1,
+      "preexisting_link": false,
+      "external_commands": [
+        {
+          "argv": [
+            "tar",
+            "--zstd",
+            "-xf",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-absolute/runtime-download/fixture.tar.zst",
+            "-C",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-absolute/runtime"
+          ],
+          "returncode": 0,
+          "stderr": "tar: Removing leading `/' from member names\n"
+        }
+      ],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "tmp/r4-02-audit-o8042bk9/tar.zst-absolute/outside/marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "External GNU tar 1.34 --zstd -xf archive -C dest; see captured stderr"
+    },
+    {
+      "format": "tar.zst",
+      "case": "absolute",
+      "mode": "unguarded",
+      "fixture_sha256": "48757421365cc54c536b477cb0a7af90eb79e9c0a68194a3ee53d451486419df",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "outside_write": true,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "OUTSIDE_WRITE_OCCURRED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar.zst",
+      "case": "nested",
+      "mode": "real",
+      "fixture_sha256": "b5b6465af436327f10e789d1b729a5d5f9aecf316e772418e642249449b8c360",
+      "error": {
+        "type": "ContractError",
+        "message": "Could not extract runtime archive"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [
+        {
+          "argv": [
+            "tar",
+            "--zstd",
+            "-xf",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-nested/runtime-download/fixture.tar.zst",
+            "-C",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-nested/runtime"
+          ],
+          "returncode": 2,
+          "stderr": "tar: Removing leading `a/../../' from member names\ntar: a/../../outside/marker: Member name contains '..'\ntar: Exiting with failure status due to previous errors\n"
+        }
+      ],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "External GNU tar 1.34 --zstd -xf archive -C dest; see captured stderr"
+    },
+    {
+      "format": "tar.zst",
+      "case": "nested",
+      "mode": "unguarded",
+      "fixture_sha256": "b5b6465af436327f10e789d1b729a5d5f9aecf316e772418e642249449b8c360",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "outside_write": true,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "OUTSIDE_WRITE_OCCURRED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar.zst",
+      "case": "dot",
+      "mode": "real",
+      "fixture_sha256": "e8311d1008f676f3f36185194bbc6a2d51cfe33fd7df1403bd90713fc8fb0461",
+      "error": {
+        "type": "ContractError",
+        "message": "Could not extract runtime archive"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [
+        {
+          "argv": [
+            "tar",
+            "--zstd",
+            "-xf",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-dot/runtime-download/fixture.tar.zst",
+            "-C",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-dot/runtime"
+          ],
+          "returncode": 2,
+          "stderr": "tar: Removing leading `./../' from member names\ntar: ./../outside/marker: Member name contains '..'\ntar: Exiting with failure status due to previous errors\n"
+        }
+      ],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "External GNU tar 1.34 --zstd -xf archive -C dest; see captured stderr"
+    },
+    {
+      "format": "tar.zst",
+      "case": "dot",
+      "mode": "unguarded",
+      "fixture_sha256": "e8311d1008f676f3f36185194bbc6a2d51cfe33fd7df1403bd90713fc8fb0461",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "outside_write": true,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "OUTSIDE_WRITE_OCCURRED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar.zst",
+      "case": "backslash",
+      "mode": "real",
+      "fixture_sha256": "478a683d466637764b9a0681fd8936d5ee6cad39b3954cc40745ff90dc36e100",
+      "error": null,
+      "returned": "started",
+      "start_calls": 1,
+      "preexisting_link": false,
+      "external_commands": [
+        {
+          "argv": [
+            "tar",
+            "--zstd",
+            "-xf",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-backslash/runtime-download/fixture.tar.zst",
+            "-C",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-backslash/runtime"
+          ],
+          "returncode": 0,
+          "stderr": ""
+        }
+      ],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "..\\outside\\marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "External GNU tar 1.34 --zstd -xf archive -C dest; see captured stderr"
+    },
+    {
+      "format": "tar.zst",
+      "case": "backslash",
+      "mode": "unguarded",
+      "fixture_sha256": "478a683d466637764b9a0681fd8936d5ee6cad39b3954cc40745ff90dc36e100",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "..\\outside\\marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "POSIX path/file behavior; ZIP control does not emulate links"
+    },
+    {
+      "format": "tar.zst",
+      "case": "mixed",
+      "mode": "real",
+      "fixture_sha256": "70340ea84d413f49cfac65e61d1d3e07b9b52ccd2d7fc2472fc00041859e4095",
+      "error": null,
+      "returned": "started",
+      "start_calls": 1,
+      "preexisting_link": false,
+      "external_commands": [
+        {
+          "argv": [
+            "tar",
+            "--zstd",
+            "-xf",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-mixed/runtime-download/fixture.tar.zst",
+            "-C",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-mixed/runtime"
+          ],
+          "returncode": 0,
+          "stderr": ""
+        }
+      ],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "a/..\\..\\outside/marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "External GNU tar 1.34 --zstd -xf archive -C dest; see captured stderr"
+    },
+    {
+      "format": "tar.zst",
+      "case": "mixed",
+      "mode": "unguarded",
+      "fixture_sha256": "70340ea84d413f49cfac65e61d1d3e07b9b52ccd2d7fc2472fc00041859e4095",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "a/..\\..\\outside/marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "POSIX path/file behavior; ZIP control does not emulate links"
+    },
+    {
+      "format": "tar.zst",
+      "case": "drive",
+      "mode": "real",
+      "fixture_sha256": "eaf18d2b73fdd6a3f90a8415639c37788a534a4489a45e72d0122e1eab990c37",
+      "error": null,
+      "returned": "started",
+      "start_calls": 1,
+      "preexisting_link": false,
+      "external_commands": [
+        {
+          "argv": [
+            "tar",
+            "--zstd",
+            "-xf",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-drive/runtime-download/fixture.tar.zst",
+            "-C",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-drive/runtime"
+          ],
+          "returncode": 0,
+          "stderr": ""
+        }
+      ],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "C:/outside/marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "External GNU tar 1.34 --zstd -xf archive -C dest; see captured stderr"
+    },
+    {
+      "format": "tar.zst",
+      "case": "drive",
+      "mode": "unguarded",
+      "fixture_sha256": "eaf18d2b73fdd6a3f90a8415639c37788a534a4489a45e72d0122e1eab990c37",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "C:/outside/marker": "fixture"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "POSIX path/file behavior; ZIP control does not emulate links"
+    },
+    {
+      "format": "tar.zst",
+      "case": "symlink_alone",
+      "mode": "real",
+      "fixture_sha256": "46ca510159875f741baae4bfa4d1e6813be77ea8581edee40c7b02773c9fd02b",
+      "error": null,
+      "returned": "started",
+      "start_calls": 1,
+      "preexisting_link": false,
+      "external_commands": [
+        {
+          "argv": [
+            "tar",
+            "--zstd",
+            "-xf",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_alone/runtime-download/fixture.tar.zst",
+            "-C",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_alone/runtime"
+          ],
+          "returncode": 0,
+          "stderr": ""
+        }
+      ],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_alone/outside",
+          "outside_dest": true
+        }
+      ],
+      "outside_authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "authority_probes": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_alone/outside/authority_probe",
+          "verified": true
+        }
+      ],
+      "outside_after_probe": {
+        "authority_probe": "authority-probe",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": true,
+      "classification": "OUTSIDE_AUTHORITY_CREATED",
+      "protection_layer": "NONE",
+      "protection_detail": "GNU tar creates outside symlink; later error does not remove it"
+    },
+    {
+      "format": "tar.zst",
+      "case": "symlink_alone",
+      "mode": "unguarded",
+      "fixture_sha256": "46ca510159875f741baae4bfa4d1e6813be77ea8581edee40c7b02773c9fd02b",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_alone/outside",
+          "outside_dest": true
+        }
+      ],
+      "outside_authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "authority_probes": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_alone/outside/authority_probe",
+          "verified": true
+        }
+      ],
+      "outside_after_probe": {
+        "authority_probe": "authority-probe",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": true,
+      "classification": "OUTSIDE_AUTHORITY_CREATED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar.zst",
+      "case": "symlink_then_file",
+      "mode": "real",
+      "fixture_sha256": "07aa42dd3768a4ccb9323df1f18dd9fc96b473786417480edb1a689ada2c099d",
+      "error": {
+        "type": "ContractError",
+        "message": "Could not extract runtime archive"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [
+        {
+          "argv": [
+            "tar",
+            "--zstd",
+            "-xf",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_then_file/runtime-download/fixture.tar.zst",
+            "-C",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_then_file/runtime"
+          ],
+          "returncode": 2,
+          "stderr": "tar: link/marker: Cannot open: Not a directory\ntar: Exiting with failure status due to previous errors\n"
+        }
+      ],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_then_file/outside",
+          "outside_dest": true
+        }
+      ],
+      "outside_authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "authority_probes": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_then_file/outside/authority_probe",
+          "verified": true
+        }
+      ],
+      "outside_after_probe": {
+        "authority_probe": "authority-probe",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": true,
+      "classification": "OUTSIDE_AUTHORITY_CREATED",
+      "protection_layer": "NONE",
+      "protection_detail": "GNU tar creates outside symlink; later error does not remove it"
+    },
+    {
+      "format": "tar.zst",
+      "case": "symlink_then_file",
+      "mode": "unguarded",
+      "fixture_sha256": "07aa42dd3768a4ccb9323df1f18dd9fc96b473786417480edb1a689ada2c099d",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "outside_write": true,
+      "links": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_then_file/outside",
+          "outside_dest": true
+        }
+      ],
+      "outside_authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "authority_probes": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-symlink_then_file/outside/authority_probe",
+          "verified": true
+        }
+      ],
+      "outside_after_probe": {
+        "authority_probe": "authority-probe",
+        "marker": "fixture",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": true,
+      "classification": "OUTSIDE_WRITE_OCCURRED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar.zst",
+      "case": "hardlink_absolute",
+      "mode": "real",
+      "fixture_sha256": "f8de8d08389ef93847db5094a75040ed7cdd3519753b7acb909a5735c53961a8",
+      "error": {
+        "type": "ContractError",
+        "message": "Could not extract runtime archive"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [
+        {
+          "argv": [
+            "tar",
+            "--zstd",
+            "-xf",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-hardlink_absolute/runtime-download/fixture.tar.zst",
+            "-C",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-hardlink_absolute/runtime"
+          ],
+          "returncode": 2,
+          "stderr": "tar: Removing leading `/' from hard link targets\ntar: marker: Cannot hard link to \u2018tmp/r4-02-audit-o8042bk9/tar.zst-hardlink_absolute/outside/source\u2019: No such file or directory\ntar: Exiting with failure status due to previous errors\n"
+        }
+      ],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "External GNU tar 1.34 --zstd -xf archive -C dest; see captured stderr"
+    },
+    {
+      "format": "tar.zst",
+      "case": "hardlink_absolute",
+      "mode": "unguarded",
+      "fixture_sha256": "f8de8d08389ef93847db5094a75040ed7cdd3519753b7acb909a5735c53961a8",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [
+        {
+          "path": "marker",
+          "kind": "hardlink"
+        }
+      ],
+      "authority_probes": [
+        {
+          "path": "marker",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-hardlink_absolute/runtime/marker",
+          "verified": true
+        }
+      ],
+      "outside_after_probe": {
+        "source": "authority-probe"
+      },
+      "files": {
+        "marker": "original"
+      },
+      "dest_exists": true,
+      "authority_created": true,
+      "classification": "OUTSIDE_AUTHORITY_CREATED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar.zst",
+      "case": "hardlink_relative",
+      "mode": "real",
+      "fixture_sha256": "6449f9745df1401ee2983013abc96c60da613e23163d742b2e09110785ea371f",
+      "error": {
+        "type": "ContractError",
+        "message": "Could not extract runtime archive"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [
+        {
+          "argv": [
+            "tar",
+            "--zstd",
+            "-xf",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-hardlink_relative/runtime-download/fixture.tar.zst",
+            "-C",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-hardlink_relative/runtime"
+          ],
+          "returncode": 2,
+          "stderr": "tar: Removing leading `../' from hard link targets\ntar: marker: Cannot hard link to \u2018outside/source\u2019: No such file or directory\ntar: Exiting with failure status due to previous errors\n"
+        }
+      ],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "External GNU tar 1.34 --zstd -xf archive -C dest; see captured stderr"
+    },
+    {
+      "format": "tar.zst",
+      "case": "hardlink_relative",
+      "mode": "unguarded",
+      "fixture_sha256": "6449f9745df1401ee2983013abc96c60da613e23163d742b2e09110785ea371f",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [
+        {
+          "path": "marker",
+          "kind": "hardlink"
+        }
+      ],
+      "authority_probes": [
+        {
+          "path": "marker",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-hardlink_relative/runtime/marker",
+          "verified": true
+        }
+      ],
+      "outside_after_probe": {
+        "source": "authority-probe"
+      },
+      "files": {
+        "marker": "original"
+      },
+      "dest_exists": true,
+      "authority_created": true,
+      "classification": "OUTSIDE_AUTHORITY_CREATED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar.zst",
+      "case": "hardlink_then_overwrite",
+      "mode": "real",
+      "fixture_sha256": "09dfc0deef6615efd3844eedcff84f203ee6fcf708ff0e7b32499dd81f661445",
+      "error": {
+        "type": "ContractError",
+        "message": "Could not extract runtime archive"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [
+        {
+          "argv": [
+            "tar",
+            "--zstd",
+            "-xf",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-hardlink_then_overwrite/runtime-download/fixture.tar.zst",
+            "-C",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-hardlink_then_overwrite/runtime"
+          ],
+          "returncode": 2,
+          "stderr": "tar: Removing leading `/' from hard link targets\ntar: marker: Cannot hard link to \u2018tmp/r4-02-audit-o8042bk9/tar.zst-hardlink_then_overwrite/outside/source\u2019: No such file or directory\ntar: Exiting with failure status due to previous errors\n"
+        }
+      ],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "marker": "overwrite"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "External GNU tar 1.34 --zstd -xf archive -C dest; see captured stderr"
+    },
+    {
+      "format": "tar.zst",
+      "case": "hardlink_then_overwrite",
+      "mode": "unguarded",
+      "fixture_sha256": "09dfc0deef6615efd3844eedcff84f203ee6fcf708ff0e7b32499dd81f661445",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "overwrite"
+      },
+      "outside_write": true,
+      "links": [],
+      "outside_authority": [
+        {
+          "path": "marker",
+          "kind": "hardlink"
+        }
+      ],
+      "authority_probes": [
+        {
+          "path": "marker",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-hardlink_then_overwrite/runtime/marker",
+          "verified": true
+        }
+      ],
+      "outside_after_probe": {
+        "source": "authority-probe"
+      },
+      "files": {
+        "marker": "overwrite"
+      },
+      "dest_exists": true,
+      "authority_created": true,
+      "classification": "OUTSIDE_WRITE_OCCURRED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar.zst",
+      "case": "existing_symlink",
+      "mode": "real",
+      "fixture_sha256": "0cdafc4168538630bd2b125abcb8ae0c1773c7ec1aca182c27638abc5664c6bf",
+      "error": {
+        "type": "ContractError",
+        "message": "Could not extract runtime archive"
+      },
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": true,
+      "external_commands": [
+        {
+          "argv": [
+            "tar",
+            "--zstd",
+            "-xf",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-existing_symlink/runtime-download/fixture.tar.zst",
+            "-C",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-existing_symlink/runtime"
+          ],
+          "returncode": 2,
+          "stderr": "tar: link/marker: Cannot open: Invalid cross-device link\ntar: Exiting with failure status due to previous errors\n"
+        }
+      ],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-existing_symlink/outside",
+          "outside_dest": true
+        }
+      ],
+      "outside_authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "authority_probes": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-existing_symlink/outside/authority_probe",
+          "verified": true
+        }
+      ],
+      "outside_after_probe": {
+        "authority_probe": "authority-probe",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "BLOCKED",
+      "protection_layer": "FILESYSTEM",
+      "protection_detail": "External GNU tar 1.34 --zstd -xf archive -C dest; see captured stderr"
+    },
+    {
+      "format": "tar.zst",
+      "case": "existing_symlink",
+      "mode": "unguarded",
+      "fixture_sha256": "0cdafc4168538630bd2b125abcb8ae0c1773c7ec1aca182c27638abc5664c6bf",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": true,
+      "external_commands": [],
+      "outside_before_probe": {
+        "marker": "fixture",
+        "source": "original"
+      },
+      "outside_write": true,
+      "links": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-existing_symlink/outside",
+          "outside_dest": true
+        }
+      ],
+      "outside_authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "authority_probes": [
+        {
+          "path": "link",
+          "target": "/tmp/r4-02-audit-o8042bk9/tar.zst-existing_symlink/outside/authority_probe",
+          "verified": true
+        }
+      ],
+      "outside_after_probe": {
+        "authority_probe": "authority-probe",
+        "marker": "fixture",
+        "source": "original"
+      },
+      "files": {},
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "OUTSIDE_WRITE_OCCURRED",
+      "protection_layer": "NONE",
+      "protection_detail": "Intentionally unsafe control"
+    },
+    {
+      "format": "tar.zst",
+      "case": "duplicate",
+      "mode": "real",
+      "fixture_sha256": "4bf79efd46ba4e20b4af47c8bfe55fccd76d76356233bcae746634e9275df1ea",
+      "error": null,
+      "returned": "started",
+      "start_calls": 1,
+      "preexisting_link": false,
+      "external_commands": [
+        {
+          "argv": [
+            "tar",
+            "--zstd",
+            "-xf",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-duplicate/runtime-download/fixture.tar.zst",
+            "-C",
+            "/tmp/r4-02-audit-o8042bk9/tar.zst-duplicate/runtime"
+          ],
+          "returncode": 0,
+          "stderr": ""
+        }
+      ],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "bin/ollama": "second"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "NONE",
+      "protection_detail": "Duplicate overwrite allowed inside destination; not a path escape"
+    },
+    {
+      "format": "tar.zst",
+      "case": "duplicate",
+      "mode": "unguarded",
+      "fixture_sha256": "4bf79efd46ba4e20b4af47c8bfe55fccd76d76356233bcae746634e9275df1ea",
+      "error": null,
+      "returned": null,
+      "start_calls": 0,
+      "preexisting_link": false,
+      "external_commands": [],
+      "outside_before_probe": {
+        "source": "original"
+      },
+      "outside_write": false,
+      "links": [],
+      "outside_authority": [],
+      "authority_probes": [],
+      "outside_after_probe": {
+        "source": "original"
+      },
+      "files": {
+        "bin/ollama": "second"
+      },
+      "dest_exists": true,
+      "authority_created": false,
+      "classification": "ALLOWED_BUT_CONFINED",
+      "protection_layer": "NONE",
+      "protection_detail": "Duplicate overwrite allowed inside destination; not a path escape"
+    }
+  ]
+}

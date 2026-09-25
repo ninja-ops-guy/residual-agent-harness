@@ -1,0 +1,53 @@
+$ env -u PYTHONPATH /bin/bash -c cd /tmp && exec /tmp/residual-r4-venv/bin/python /mnt/c/Users/jinis/residual-snyk-r4/scripts/qualify_exact_wheel.py --wheel /tmp/residual-r4-02-wheel/residual_agent_harness-0.5.0-py3-none-any.whl --work-dir /tmp/residual-r4-02-wheel-isolated --output /mnt/c/Users/jinis/residual-snyk-r4/artifacts/security/r4-02/post-fix/exact-wheel-isolated-report.json
+
+[stdout]
+{
+  "commit": "4d6d53d22ce15400a9880f5f44cd190596798339",
+  "installed": "cffi==2.1.1\ncryptography==50.0.1\ndefusedxml==0.7.1\npycparser==3.0\nPyYAML==6.0.3\nresidual-agent-harness @ file:///tmp/residual-r4-02-wheel/residual_agent_harness-0.5.0-py3-none-any.whl#sha256=b6d9307baa4b2645eab2f228cdc7771c1bea66461d2961eb5e1ff18863efdf77\n",
+  "ownership": {
+    "checked": 39,
+    "manifest": "/mnt/c/Users/jinis/residual-snyk-r4/verifier/v3/factory_ownership_baseline.json",
+    "mismatches": [],
+    "passed": true,
+    "pinned_at": "3d9d4b92bd1b40e2dae83d263cf75e9eba7cd66a",
+    "protected_files": 39,
+    "scope": "factory-ownership-blob-pin"
+  },
+  "scope": "exact prebuilt wheel qualification; no rebuild performed",
+  "smoke": {
+    "cli": {
+      "residual": "PASS",
+      "residual-module": "PASS",
+      "residual-station": "PASS",
+      "residual-worker": "PASS"
+    },
+    "distribution_version": "0.5.0",
+    "module_origins": {
+      "ai_providers": "/tmp/residual-r4-02-wheel-isolated/installed-venv/lib/python3.12/site-packages/ai_providers/__init__.py",
+      "observation_layer": "/tmp/residual-r4-02-wheel-isolated/installed-venv/lib/python3.12/site-packages/observation_layer/__init__.py",
+      "residual": "/tmp/residual-r4-02-wheel-isolated/installed-venv/lib/python3.12/site-packages/residual/__init__.py",
+      "residual.factory.evidence_bus": "/tmp/residual-r4-02-wheel-isolated/installed-venv/lib/python3.12/site-packages/residual/factory/evidence_bus.py",
+      "residual.factory.m4_integrator": "/tmp/residual-r4-02-wheel-isolated/installed-venv/lib/python3.12/site-packages/residual/factory/m4_integrator.py",
+      "residual.factory.m4_safety": "/tmp/residual-r4-02-wheel-isolated/installed-venv/lib/python3.12/site-packages/residual/factory/m4_safety.py",
+      "residual.factory.runtime": "/tmp/residual-r4-02-wheel-isolated/installed-venv/lib/python3.12/site-packages/residual/factory/runtime.py",
+      "residual.marketplace.cli": "/tmp/residual-r4-02-wheel-isolated/installed-venv/lib/python3.12/site-packages/residual/marketplace/cli.py",
+      "residual.station.server": "/tmp/residual-r4-02-wheel-isolated/installed-venv/lib/python3.12/site-packages/residual/station/server.py"
+    },
+    "resources": [
+      "/tmp/residual-r4-02-wheel-isolated/installed-venv/lib/python3.12/site-packages/residual/station/static/index.html",
+      "/tmp/residual-r4-02-wheel-isolated/installed-venv/lib/python3.12/site-packages/residual/station/static/app.js",
+      "/tmp/residual-r4-02-wheel-isolated/installed-venv/lib/python3.12/site-packages/residual/station/static/style.css",
+      "/tmp/residual-r4-02-wheel-isolated/installed-venv/lib/python3.12/site-packages/residual/station/schemas/runtime.json",
+      "/tmp/residual-r4-02-wheel-isolated/installed-venv/lib/python3.12/site-packages/residual/station/schemas/ldd-base.json",
+      "/tmp/residual-r4-02-wheel-isolated/installed-venv/lib/python3.12/site-packages/residual/station/schemas/workflow-event.json"
+    ]
+  },
+  "status": "PASS",
+  "tree": "33d99819dad5bea3c4ff70edefdd5ad45395ac29",
+  "wheel": {
+    "name": "residual_agent_harness-0.5.0-py3-none-any.whl",
+    "sha256": "b6d9307baa4b2645eab2f228cdc7771c1bea66461d2961eb5e1ff18863efdf77"
+  }
+}
+
+[stderr]

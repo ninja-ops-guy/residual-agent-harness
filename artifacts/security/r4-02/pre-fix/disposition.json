@@ -1,0 +1,56 @@
+{
+  "RUNTIME_TESTED": {
+    "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+    "python_executable": "/tmp/residual-r4-venv/bin/python",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "tar": "tar (GNU tar) 1.34",
+    "zstd": "*** zstd command line interface 64-bits v1.4.8, by Yann Collet ***"
+  },
+  "BENIGN_CONTROL": "PASS: all three real extractors produce bin/ollama=fixture and reach mocked start.",
+  "UNGUARDED_NEGATIVE_CONTROL": "VERIFIED: parent/absolute/nested/dot/preexisting-symlink writes in all formats; TAR and decompressed TAR.ZST fully_trusted controls grant symlink/hardlink authority.",
+  "REAL_EXTRACTOR_RESULT": "42 cases: no immediate extraction outside writes; two TAR.ZST cases create verified outside symlink authority. Three checksum-negative cases reject before destination creation.",
+  "TRAVERSAL": "parent/nested/dot BLOCKED in all real formats, with distinct protection layers.",
+  "ABSOLUTE_PATH": "TAR and TAR.ZST ALLOWED_BUT_CONFINED after leading slash stripping; ZIP BLOCKED by RESIDUAL.",
+  "SYMLINK_ESCAPE": "TAR.ZST symlink_alone and symlink_then_file OUTSIDE_AUTHORITY_CREATED, verified by bounded follow-up writes; TAR rejects; ZIP materializes regular files.",
+  "HARDLINK_ESCAPE": "No real outside hardlink authority in these fixtures. TAR filter rejects; GNU tar rewrites targets then fails lookup; ZIP UNSUPPORTED_FIXTURE.",
+  "NORMALIZATION_VARIANTS": "backslash/mixed/drive ALLOWED_BUT_CONFINED on POSIX. Native Windows semantics untested.",
+  "DUPLICATE_MEMBER_OVERWRITE": "Allowed in all formats: second member wins inside destination; separate from path escape.",
+  "PROTECTION_LAYER": "MIXED",
+  "MINIMUM_SAFE_RUNTIME": "UNKNOWN",
+  "PYTHON_FILTER_API_FIRST_3_11_RELEASE": "3.11.4",
+  "PYTHON_KNOWN_FILTER_SECURITY_FIX_RELEASE": "3.11.13 (documented 2025 fixes; not a universal minimum-safe guarantee)",
+  "PYTHON_SUPPORT_A": "YES: modern maintained 3.11 releases provide the data-filter API and behavior.",
+  "PYTHON_SUPPORT_B": "YES: reconcile >=3.11 with required filter capability/security patch level through a supported-runtime floor and/or explicit fail-closed capability guard or maintained backport. No change applied.",
+  "PYTHON_SUPPORT_C": "NO, not exclusively rc1: early stable 3.11.0-3.11.3 also precede filter support; absence causes failure, not an automatic unsafe fallback.",
+  "DISPOSITION": "CONSTRAINED",
+  "ABSTRACTION_RESULT": "EXPLOITABLE outside-authority creation in the attacker-controlled, digest-matched TAR.ZST abstraction.",
+  "FIX_REQUIRED": "YES",
+  "FIX_SCOPE": "TAR.ZST outside-link authority and residual state after failure; separately align runtime support policy. Product source unchanged.",
+  "SUBAGENT_RESULT": "INCOMPLETE",
+  "LIMITATIONS": [
+    "Attacker-controlled archive abstraction with matching mocked manifest digest; no production digest bypass established.",
+    "Linux/WSL2 POSIX filesystem, CPython 3.12.13, GNU tar 1.34, zstd 1.4.8 only; no native Windows/macOS execution.",
+    "Modern 3.11 support determined from official documentation, not a fresh 3.11 interpreter run. Reported 3.11.0rc1 failure not rerun here.",
+    "Finite fixtures, not a proof against all archive constructions, races, resource exhaustion, or alternate GNU tar versions/options.",
+    "ZIP hardlink fixtures unsupported; Unix ZIP symlink metadata tested, but zipfile and the ZIP unsafe control do not create symlinks.",
+    "Existing links are intentionally seeded and recorded as retained authority, never as newly archive-created authority.",
+    "binary/start are mocked; no actual runtime service or extracted executable is launched.",
+    "Each mode reuses/reset the same paths for byte-identical absolute targets. JSON snapshots preserve mode-specific observations; final on-disk trees reflect the last mode."
+  ],
+  "classification_counts_real": {
+    "ALLOWED_BUT_CONFINED": 18,
+    "BLOCKED": 22,
+    "OUTSIDE_AUTHORITY_CREATED": 2
+  },
+  "checks": {
+    "source_unchanged": true,
+    "paired_fixture_digests_identical": true,
+    "benign_all_formats": true,
+    "negative_parent_controls_all_formats": true,
+    "negative_traversal_controls_all_formats": true,
+    "negative_tar_link_controls": true,
+    "all_authority_probes_verified": true,
+    "duplicate_overwrite_confined": true,
+    "bad_digest_all_formats": true
+  }
+}

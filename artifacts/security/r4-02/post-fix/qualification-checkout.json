@@ -1,0 +1,13 @@
+{
+  "checkout": "/tmp/residual-r4-02-qualification-checkout",
+  "files": {
+    "residual/station/models.py": "cb9a62b9538ba1786a19114fbb55fc780c77e3da0b2c593b3b1e5b07987592b5",
+    "residual/station/archive.py": "6657d7334795e23fe6f484b96b4c33a5552d3c92d244df173fa69579a8a4e2e5",
+    "pyproject.toml": "b3f4525ae06b65bc83ecb6cfb6d340da3f0ce43f7db9f704c64c88b76d1cd0f1",
+    "tests/security/test_r4_02_archive_authority.py": "c7727755adfb9223bd204c88156348fe2d6a7020fbab664fa3ecfd5e3809dc1a",
+    "scripts/security/r4_02_sensitivity.py": "7be698368082d214d174a2e1c2b5b7d73078867689ebf7e3c5691a235bc486eb",
+    "scripts/security/r4_02_receipt.py": "bdf39f9bc0de783b13470812e000b8793102e90bc9dbbf752c575ea127cecbe7",
+    "docs/security/SNYK_R4_02.md": "f6ab4dca780c73601278f8fc2cd4f118bf20cb5db736f509722cd0ff86bbc0b8",
+    "tests/security/test_r4_01_network_authority.py": "f30fd622c021bfb691066c9efb2f1244609c9e1394e6fe06a8f10bc7d348535e"
+  }
+}

@@ -1,0 +1,1 @@
+I'll start by listing the files in the current directory (`/tmp/residual-r4-gemma-lab`) to get a lay of the land. This will help determine how to structure the focused test runner.

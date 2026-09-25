@@ -1,0 +1,7 @@
+$ /tmp/residual-r4-venv/bin/python -m pytest -q -p no:cacheprovider tests/station --junitxml=artifacts/security/r4-02/post-fix/station-host.xml
+
+[stdout]
+.....................................                                    [100%]
+37 passed in 21.37s
+
+[stderr]

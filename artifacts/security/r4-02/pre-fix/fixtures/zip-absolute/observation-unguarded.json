@@ -1,0 +1,29 @@
+{
+  "format": "zip",
+  "case": "absolute",
+  "mode": "unguarded",
+  "fixture_sha256": "4de90d922c3a36f8b9ad86328d0c2fcc3db3e653750cef8a5645fa1ef15ab4b6",
+  "error": null,
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": false,
+  "external_commands": [],
+  "outside_before_probe": {
+    "marker": "fixture",
+    "source": "original"
+  },
+  "outside_write": true,
+  "links": [],
+  "outside_authority": [],
+  "authority_probes": [],
+  "outside_after_probe": {
+    "marker": "fixture",
+    "source": "original"
+  },
+  "files": {},
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "OUTSIDE_WRITE_OCCURRED",
+  "protection_layer": "NONE",
+  "protection_detail": "Intentionally unsafe control"
+}

@@ -1,0 +1,53 @@
+{
+  "python": "3.12.13 (main, Sep 25 2026, 14:37:11) [GCC 11.4.0]",
+  "executable": "/tmp/residual-r4-02-native-venv/bin/python",
+  "pidfd_open": true,
+  "pidfd_send_signal": true,
+  "sqlite": "3.37.2",
+  "test_uid": 65534,
+  "source_url": "https://www.python.org/ftp/python/3.12.13/Python-3.12.13.tar.xz",
+  "python_source_sha256": "c08bc65a81971c1dd5783182826503369466c7e67374d1646519adf05207b684",
+  "dependencies": {
+    "residual-agent-harness": "0.5.0",
+    "PyYAML": "6.0.3",
+    "pip": "25.0.1",
+    "sortedcontainers": "2.4.0",
+    "iniconfig": "2.3.0",
+    "coverage": "7.16.1",
+    "pluggy": "1.6.0",
+    "cryptography": "50.0.1",
+    "packaging": "26.3",
+    "Pygments": "2.21.0",
+    "pytest": "9.1.1",
+    "defusedxml": "0.7.1",
+    "cffi": "2.1.1",
+    "pycparser": "3.0",
+    "hypothesis": "6.168.0"
+  },
+  "observations": [
+    {
+      "run": "station",
+      "result": "ENVIRONMENT_FAILURE",
+      "reason": "Sandbox denies local socket creation; host retry passed 37 tests."
+    },
+    {
+      "run": "deterministic",
+      "result": "ABORTED",
+      "exit_code": 130,
+      "reason": "Sandbox run interrupted after known socket restrictions; no PASS claimed."
+    },
+    {
+      "run": "deterministic-host",
+      "result": "FAIL",
+      "passed": 1923,
+      "failed": 93,
+      "skipped": 13,
+      "reason": "Supplied standalone interpreter lacks pidfd APIs; privileged ptrace test also fails. Native unprivileged retry recorded separately."
+    },
+    {
+      "run": "exact-wheel",
+      "result": "ENVIRONMENT_FAILURE",
+      "reason": "Checkout PYTHONPATH/current directory made pip see existing metadata; same wheel passes installed-origin checks from /tmp without PYTHONPATH."
+    }
+  ]
+}

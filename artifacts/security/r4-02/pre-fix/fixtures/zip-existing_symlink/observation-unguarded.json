@@ -1,0 +1,47 @@
+{
+  "format": "zip",
+  "case": "existing_symlink",
+  "mode": "unguarded",
+  "fixture_sha256": "7c0f47652c1dac9ca43d4c5f30483ecadd774f6b2669e150ef37a52889222528",
+  "error": null,
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": true,
+  "external_commands": [],
+  "outside_before_probe": {
+    "marker": "fixture",
+    "source": "original"
+  },
+  "outside_write": true,
+  "links": [
+    {
+      "path": "link",
+      "target": "/tmp/r4-02-audit-o8042bk9/zip-existing_symlink/outside",
+      "outside_dest": true
+    }
+  ],
+  "outside_authority": [
+    {
+      "path": "link",
+      "kind": "symlink"
+    }
+  ],
+  "authority_probes": [
+    {
+      "path": "link",
+      "target": "/tmp/r4-02-audit-o8042bk9/zip-existing_symlink/outside/authority_probe",
+      "verified": true
+    }
+  ],
+  "outside_after_probe": {
+    "authority_probe": "authority-probe",
+    "marker": "fixture",
+    "source": "original"
+  },
+  "files": {},
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "OUTSIDE_WRITE_OCCURRED",
+  "protection_layer": "NONE",
+  "protection_detail": "Intentionally unsafe control"
+}

@@ -1,0 +1,29 @@
+{
+  "format": "zip",
+  "case": "backslash",
+  "mode": "real",
+  "fixture_sha256": "fcbbd870e8b6841c60ffb089e6b5134d3cb89213ee1c8c9604abe97726071c7b",
+  "error": null,
+  "returned": "started",
+  "start_calls": 1,
+  "preexisting_link": false,
+  "external_commands": [],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [],
+  "outside_authority": [],
+  "authority_probes": [],
+  "outside_after_probe": {
+    "source": "original"
+  },
+  "files": {
+    "..\\outside\\marker": "fixture"
+  },
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "ALLOWED_BUT_CONFINED",
+  "protection_layer": "FILESYSTEM",
+  "protection_detail": "POSIX treats backslashes and drive names literally"
+}

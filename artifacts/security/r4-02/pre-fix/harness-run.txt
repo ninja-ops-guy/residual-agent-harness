@@ -1,0 +1,89 @@
+{
+  "checks": {
+    "source_unchanged": true,
+    "paired_fixture_digests_identical": true,
+    "benign_all_formats": true,
+    "negative_parent_controls_all_formats": true,
+    "negative_traversal_controls_all_formats": true,
+    "negative_tar_link_controls": true,
+    "all_authority_probes_verified": true,
+    "duplicate_overwrite_confined": true,
+    "bad_digest_all_formats": true
+  },
+  "rows": 90,
+  "temp_root": "/tmp/r4-02-audit-o8042bk9",
+  "real_effects": [
+    {
+      "format": "tar",
+      "case": "existing_symlink",
+      "outside_write": false,
+      "authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "error": {
+        "type": "OutsideDestinationError",
+        "message": "'link/marker' would be extracted to '/tmp/r4-02-audit-o8042bk9/tar-existing_symlink/outside/marker', which is outside the destination"
+      }
+    },
+    {
+      "format": "zip",
+      "case": "existing_symlink",
+      "outside_write": false,
+      "authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "error": {
+        "type": "ContractError",
+        "message": "Unsafe runtime archive member"
+      }
+    },
+    {
+      "format": "tar.zst",
+      "case": "symlink_alone",
+      "outside_write": false,
+      "authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "error": null
+    },
+    {
+      "format": "tar.zst",
+      "case": "symlink_then_file",
+      "outside_write": false,
+      "authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "error": {
+        "type": "ContractError",
+        "message": "Could not extract runtime archive"
+      }
+    },
+    {
+      "format": "tar.zst",
+      "case": "existing_symlink",
+      "outside_write": false,
+      "authority": [
+        {
+          "path": "link",
+          "kind": "symlink"
+        }
+      ],
+      "error": {
+        "type": "ContractError",
+        "message": "Could not extract runtime archive"
+      }
+    }
+  ]
+}

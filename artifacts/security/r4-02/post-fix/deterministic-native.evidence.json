@@ -1,0 +1,50 @@
+{
+  "command": [
+    "setpriv",
+    "--reuid=65534",
+    "--regid=65534",
+    "--clear-groups",
+    "env",
+    "PYTHONDONTWRITEBYTECODE=1",
+    "PYTHONPATH=/mnt/c/Users/jinis/residual-snyk-r4",
+    "GIT_CONFIG_COUNT=1",
+    "GIT_CONFIG_KEY_0=safe.directory",
+    "GIT_CONFIG_VALUE_0=/mnt/c/Users/jinis/residual-snyk-r4",
+    "/tmp/residual-r4-02-native-venv/bin/python",
+    "-m",
+    "pytest",
+    "tests",
+    "--ignore=tests/qualification",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "--basetemp=/tmp/r4-02-qualification-native-1",
+    "--junitxml=artifacts/security/r4-02/post-fix/deterministic-native.xml"
+  ],
+  "environment": {
+    "ci": {},
+    "machine": "x86_64",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.12.13 (main, Sep 25 2026, 14:37:11) [GCC 11.4.0]"
+  },
+  "evidence": {
+    "artifacts/security/r4-02/post-fix/deterministic-native.log": "c179f6d6b240d1ae6e2a168e7fea06510be872b14d7f0f6b6b8c4970bab770f5",
+    "artifacts/security/r4-02/post-fix/deterministic-native.xml": "d51d81388e097823aac9be3e28c00099ca6625e0f22cd6b0dfd1470c47e81177"
+  },
+  "finished_at": "2026-09-25T18:44:35.811564Z",
+  "gate_id": "deterministic-regression",
+  "non_claims": [
+    "Local native CPython 3.12.13 under unprivileged UID 65534; general regression capability skips retained; not full release qualification."
+  ],
+  "notes": [],
+  "result": "FAIL",
+  "schema": "residual.qualification.evidence.v1",
+  "skip_count": 0,
+  "source": {
+    "commit": "4d6d53d22ce15400a9880f5f44cd190596798339",
+    "tracked_source_dirty": true,
+    "tree": "33d99819dad5bea3c4ff70edefdd5ad45395ac29"
+  },
+  "started_at": "2026-09-25T18:41:45.748032Z",
+  "unknown_count": 0
+}

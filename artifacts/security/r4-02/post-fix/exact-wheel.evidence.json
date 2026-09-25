@@ -1,0 +1,36 @@
+{
+  "command": [
+    "/tmp/residual-r4-venv/bin/python",
+    "scripts/qualify_exact_wheel.py",
+    "--wheel",
+    "/tmp/residual-r4-02-wheel/residual_agent_harness-0.5.0-py3-none-any.whl",
+    "--work-dir",
+    "/tmp/residual-r4-02-wheel-qualification",
+    "--output",
+    "artifacts/security/r4-02/post-fix/exact-wheel-report.json"
+  ],
+  "environment": {
+    "ci": {},
+    "machine": "x86_64",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]"
+  },
+  "evidence": {
+    "artifacts/security/r4-02/post-fix/exact-wheel-report.json": "3ada09477b4ab20cb8b9c1ea45abc5446b6e133f45567fa15b97f1cdbbf9979a",
+    "artifacts/security/r4-02/post-fix/exact-wheel.log": "bbdb37e8afd9096e3e64c74c2f2a00e6a0ee113ce09b8179c1ab0af60675f3b3"
+  },
+  "finished_at": "2026-09-25T18:16:06.179519Z",
+  "gate_id": "exact-wheel",
+  "non_claims": [],
+  "notes": [],
+  "result": "FAIL",
+  "schema": "residual.qualification.evidence.v1",
+  "skip_count": 0,
+  "source": {
+    "commit": "4d6d53d22ce15400a9880f5f44cd190596798339",
+    "tracked_source_dirty": true,
+    "tree": "33d99819dad5bea3c4ff70edefdd5ad45395ac29"
+  },
+  "started_at": "2026-09-25T18:16:02.624038Z",
+  "unknown_count": 0
+}

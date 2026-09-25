@@ -1,0 +1,29 @@
+{
+  "format": "zip",
+  "case": "duplicate",
+  "mode": "real",
+  "fixture_sha256": "bc26bef7be002df482ac4f1f84fb4930494524a91ebed152658ccfcf1d8b004e",
+  "error": null,
+  "returned": "started",
+  "start_calls": 1,
+  "preexisting_link": false,
+  "external_commands": [],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [],
+  "outside_authority": [],
+  "authority_probes": [],
+  "outside_after_probe": {
+    "source": "original"
+  },
+  "files": {
+    "bin/ollama": "second"
+  },
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "ALLOWED_BUT_CONFINED",
+  "protection_layer": "NONE",
+  "protection_detail": "Duplicate overwrite allowed inside destination; not a path escape"
+}

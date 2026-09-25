@@ -1,0 +1,29 @@
+{
+  "format": "tar",
+  "case": "absolute",
+  "mode": "unguarded",
+  "fixture_sha256": "7ee0d968cf1b4c3a89c811a5992548f4486954e3f0840a119641d08b97013ac3",
+  "error": null,
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": false,
+  "external_commands": [],
+  "outside_before_probe": {
+    "marker": "fixture",
+    "source": "original"
+  },
+  "outside_write": true,
+  "links": [],
+  "outside_authority": [],
+  "authority_probes": [],
+  "outside_after_probe": {
+    "marker": "fixture",
+    "source": "original"
+  },
+  "files": {},
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "OUTSIDE_WRITE_OCCURRED",
+  "protection_layer": "NONE",
+  "protection_detail": "Intentionally unsafe control"
+}

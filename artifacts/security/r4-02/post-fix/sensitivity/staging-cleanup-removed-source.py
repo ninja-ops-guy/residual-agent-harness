@@ -281,7 +281,7 @@ class Ollama:
             raise ContractError("Runtime destination already exists; existing runtime left unchanged")
         # The private directory is on the destination filesystem. Only a complete,
         # validated tree is renamed into authority; failed attempts are disposable.
-        with tempfile.TemporaryDirectory(prefix=".runtime-install-", dir=self.store.root) as temporary:
+        with __import__("contextlib").nullcontext(tempfile.mkdtemp(prefix=".runtime-install-", dir=self.store.root)) as temporary:
             staging = Path(temporary)
             archive = staging / "download"
             h = hashlib.sha256()

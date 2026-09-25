@@ -1,0 +1,29 @@
+{
+  "format": "tar.zst",
+  "case": "dot",
+  "mode": "unguarded",
+  "fixture_sha256": "e8311d1008f676f3f36185194bbc6a2d51cfe33fd7df1403bd90713fc8fb0461",
+  "error": null,
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": false,
+  "external_commands": [],
+  "outside_before_probe": {
+    "marker": "fixture",
+    "source": "original"
+  },
+  "outside_write": true,
+  "links": [],
+  "outside_authority": [],
+  "authority_probes": [],
+  "outside_after_probe": {
+    "marker": "fixture",
+    "source": "original"
+  },
+  "files": {},
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "OUTSIDE_WRITE_OCCURRED",
+  "protection_layer": "NONE",
+  "protection_detail": "Intentionally unsafe control"
+}

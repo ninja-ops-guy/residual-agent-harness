@@ -1,0 +1,30 @@
+{
+  "format": "zip",
+  "case": "parent",
+  "mode": "bad_digest",
+  "fixture_sha256": "f5a2da9947d25b92c4810ab078a9117759e14ddeffc8e5a2be352d4e98e5cb7c",
+  "error": {
+    "type": "ContractError",
+    "message": "Runtime checksum mismatch; download discarded"
+  },
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": false,
+  "external_commands": [],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [],
+  "outside_authority": [],
+  "authority_probes": [],
+  "outside_after_probe": {
+    "source": "original"
+  },
+  "files": {},
+  "dest_exists": false,
+  "authority_created": false,
+  "classification": "BLOCKED",
+  "protection_layer": "RESIDUAL",
+  "protection_detail": "SHA-256 verification before extraction"
+}

@@ -1,0 +1,29 @@
+{
+  "format": "tar",
+  "case": "benign",
+  "mode": "unguarded",
+  "fixture_sha256": "cf4661dddd557999ad0a1e23c7118a6c79a14258e30d7e1e0fafb13da1122847",
+  "error": null,
+  "returned": null,
+  "start_calls": 0,
+  "preexisting_link": false,
+  "external_commands": [],
+  "outside_before_probe": {
+    "source": "original"
+  },
+  "outside_write": false,
+  "links": [],
+  "outside_authority": [],
+  "authority_probes": [],
+  "outside_after_probe": {
+    "source": "original"
+  },
+  "files": {
+    "bin/ollama": "fixture"
+  },
+  "dest_exists": true,
+  "authority_created": false,
+  "classification": "ALLOWED_BUT_CONFINED",
+  "protection_layer": "NONE",
+  "protection_detail": "Intentionally unsafe control"
+}
