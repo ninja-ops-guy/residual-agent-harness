@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import hashlib
 import json
 import os
 import pathlib
@@ -17,11 +18,19 @@ import secrets
 import urllib.error
 import urllib.request
 
-SCHEMA = "residual.aud1.f6.stale-probe.v1"
+SCHEMA = "residual.aud1.f6.stale-probe.v2"
+STALE_REJECTION_TEXT = "Task authority belongs to another runner"
 
 
 def utcnow():
     return dt.datetime.now(dt.timezone.utc).isoformat()
+
+
+def sanitize_response_excerpt(text, *secret_values):
+    """Retain only the denial class; never retain server-controlled response text."""
+    if STALE_REJECTION_TEXT in str(text):
+        return STALE_REJECTION_TEXT
+    return "<redacted-response>"
 
 
 def main(argv=None):
@@ -30,6 +39,8 @@ def main(argv=None):
     p.add_argument("--project", required=True)
     p.add_argument("--task", required=True)
     p.add_argument("--lease", required=True)
+    p.add_argument("--attempt", required=True, type=int)
+    p.add_argument("--owner", required=True)
     p.add_argument("--output", required=True)
     p.add_argument("--token-env", default="RESIDUAL_WORKER_TOKEN")
     args = p.parse_args(argv)
@@ -39,6 +50,8 @@ def main(argv=None):
         raise SystemExit(f"REFUSE: {args.token_env} is not set")
 
     submission_id = "f6-stale-" + secrets.token_hex(8)
+    # The live Station API requires the original raw lease. Attempt/owner are
+    # evidence bindings only and are deliberately not added to the wire schema.
     body = {
         "project_id": args.project,
         "task_id": args.task,
@@ -73,13 +86,16 @@ def main(argv=None):
         response_text = f"{type(exc).__name__}: {exc}"
 
     rejected = status == 403
+    response_excerpt = sanitize_response_excerpt(response_text, args.lease, token)
     record = {
         "schema": SCHEMA,
         "captured_at": utcnow(),
         "station_url": args.station_url.rstrip("/"),
         "project_id": args.project,
         "task_id": args.task,
-        "lease": args.lease,
+        "lease_fingerprint": "sha256:" + hashlib.sha256(args.lease.encode("utf-8")).hexdigest(),
+        "attempt": args.attempt,
+        "owner": args.owner,
         "submission_id": submission_id,
         "credential_source": args.token_env,
         "credential_value_retained": False,
@@ -87,7 +103,7 @@ def main(argv=None):
         "observed_status": status,
         "accepted": accepted,
         "rejected": rejected,
-        "response_excerpt": response_text[:1000],
+        "response_excerpt": response_excerpt,
     }
     path = pathlib.Path(args.output).resolve()
     path.parent.mkdir(parents=True, exist_ok=True)

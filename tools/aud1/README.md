@@ -113,9 +113,9 @@ credential or claim. Retain its terminal/log evidence proving either:
 - proposal submission was suppressed because `WorkerAuthorityLost` fired; and/or
 - any stale result attempt was rejected by the Station.
 
-If an explicit stale-result HTTP replay is desired, use a separately reviewed test
-driver that never logs the credential. The read-only collector intentionally does not
-perform authority-bearing worker operations.
+Case B requires the reviewed `f6_stale_result_probe.py` after reassignment. Run it on the old runner with the original project, task, attempt, and owner from the pre-interrupt snapshot plus the original raw lease held transiently by the runner/operator at claim time. The raw lease is used only for the request and is not retained in the probe artifact; the artifact stores a SHA-256 lease fingerprint. The guard binds that fingerprint, attempt, and owner back to snapshot 01 and requires HTTP 403, `rejected=true`, and `accepted=false` exactly.
+
+The read-only collector intentionally does not perform authority-bearing worker operations.
 
 ## Snapshot contents
 
@@ -175,3 +175,8 @@ A later PASS does not erase an earlier failure. If a physical run fails because 
 real product/authority defect, freeze that failed bundle before remediation. If the
 candidate changes, the prior exact-head qualification/re-audit is historical evidence
 and affected gates must be rerun on the new bytes.
+
+
+## Supplemental controller evidence
+
+Keep the canonical F6-A/F6-B bundles unchanged as the machine gate. In parallel, retain a separate redacted transport-controller audit covering the DBOX dedicated NIC, SSH endpoint and public-key fingerprint, tunnel PID/process start, DOWN/UP UTC plus monotonic timestamps, replacement tunnel PID, and immediate remote probes. This corroborates physical transport causation and timing during independent reconciliation; it is supplemental evidence, not a substitute for the helper validator.

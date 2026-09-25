@@ -13,6 +13,7 @@ import argparse
 import datetime as dt
 import importlib.util
 import json
+import math
 import os
 import pathlib
 import subprocess
@@ -23,9 +24,9 @@ base = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(base)
 
 TARGET_SHA = base.TARGET_SHA
-SCHEMA = "residual.aud1.f6.physical.v2"
+SCHEMA = "residual.aud1.f6.physical.v3"
 REMOTE_SCHEMA = "residual.aud1.f6.remote.v2"
-STALE_SCHEMA = "residual.aud1.f6.stale-probe.v1"
+STALE_SCHEMA = "residual.aud1.f6.stale-probe.v2"
 GRACE = 180.0
 SURRENDER_TEXT = "Runner authority was surrendered after persistent heartbeat loss"
 STALE_REJECTION_TEXT = "Task authority belongs to another runner"
@@ -176,11 +177,16 @@ def station_record(path, repo, db, url):
     repo_path = pathlib.Path(repo).resolve()
     db_path = pathlib.Path(db).resolve()
     module_path = pathlib.Path(record.get("server_module", ".")).resolve()
+    tree_rc, observed_tree, tree_err = git(repo_path, "rev-parse", "HEAD^{tree}")
 
     if record.get("schema") != "residual.aud1.f6.station-launch.v1":
         errors.append("station launch schema mismatch")
     if record.get("candidate_head") != TARGET_SHA:
         errors.append("station process not bound to target candidate")
+    if tree_rc != 0:
+        errors.append("station candidate tree could not be resolved" + (f": {tree_err}" if tree_err else ""))
+    elif record.get("candidate_tree") != observed_tree:
+        errors.append("station process candidate tree mismatch")
     if pathlib.Path(record.get("candidate_repo", ".")).resolve() != repo_path:
         errors.append("station process candidate repo mismatch")
     if not within(module_path, repo_path) or not module_path.is_file():
@@ -195,6 +201,12 @@ def station_record(path, repo, db, url):
         errors.append("station launch PID is not alive")
 
     safe = base.redact(record)
+    # Cryptographic identity material is public evidence, not credential material.
+    # The generic opaque-value redactor intentionally fails closed for arbitrary
+    # high-entropy strings, so restore only the fields already verified above.
+    for key in ("candidate_head", "candidate_tree", "server_module_sha256"):
+        if key in record:
+            safe[key] = record[key]
     safe["record_sha256"] = actual
     safe["process_alive"] = alive(record.get("pid"))
     return safe, errors
@@ -295,6 +307,200 @@ def task_id(snapshot):
     return tasks[0].get("id") if tasks else None
 
 
+def event_rows(snapshot):
+    return snapshot.get("station", {}).get("events", [])
+
+
+def event_value(row):
+    value = row.get("value") if isinstance(row, dict) else None
+    return value if isinstance(value, dict) else {}
+
+
+def validate_event_chain(snapshot, label):
+    errors = []
+    previous = "0" * 64
+    last_seq = 0
+    for row in event_rows(snapshot):
+        if not isinstance(row, dict):
+            errors.append(f"snapshot {label} contains non-object event")
+            continue
+        seq = row.get("seq")
+        if type(seq) is not int or seq <= last_seq:
+            errors.append(f"snapshot {label} event sequence is not strictly increasing")
+            continue
+        value = event_value(row)
+        if not value:
+            errors.append(f"snapshot {label} event {seq} lacks structured value")
+            continue
+        if row.get("prev_hash") != previous:
+            errors.append(f"snapshot {label} event {seq} prev_hash mismatch")
+        expected = base.sha256_bytes(
+            base.canonical({"previous": previous, "event": value}).encode("utf-8")
+        )
+        if row.get("hash") != expected:
+            errors.append(f"snapshot {label} event {seq} hash mismatch")
+        previous = row.get("hash") or previous
+        last_seq = seq
+    return errors
+
+
+def validate_snapshot_sequence(shots, case):
+    errors = []
+    previous_events = []
+    previous_monotonic = None
+    for label in LABELS[case]:
+        snapshot = shots.get(label)
+        if not snapshot:
+            continue
+        station = snapshot.get("station", {})
+        captured = station.get("captured_at")
+        try:
+            parse_utc(captured)
+        except Exception:
+            errors.append(f"snapshot {label} has invalid capture timestamp")
+
+        current_monotonic = station.get("captured_monotonic_ns")
+        if type(current_monotonic) is not int or current_monotonic <= 0:
+            errors.append(f"snapshot {label} lacks monotonic capture time")
+        elif previous_monotonic is not None and current_monotonic <= previous_monotonic:
+            errors.append(f"snapshot {label} monotonic capture order regressed")
+        else:
+            previous_monotonic = current_monotonic
+
+        current_events = event_rows(snapshot)
+        if len(current_events) < len(previous_events):
+            errors.append(f"snapshot {label} event history regressed")
+        else:
+            for old, new in zip(previous_events, current_events):
+                if old.get("seq") != new.get("seq") or old.get("hash") != new.get("hash"):
+                    errors.append(f"snapshot {label} event history is not a prefix extension")
+                    break
+        previous_events = current_events
+    return errors
+
+
+def find_event(snapshot, event_type, tid, *, attempt=None, actor=None, after_seq=0):
+    matches = []
+    for row in event_rows(snapshot):
+        value = event_value(row)
+        if row.get("seq", 0) <= after_seq:
+            continue
+        if value.get("event_type") != event_type or value.get("task_id") != tid:
+            continue
+        if attempt is not None and value.get("attempt") != attempt:
+            continue
+        if actor is not None and value.get("actor") != actor:
+            continue
+        matches.append((row, value))
+    return matches
+
+
+def validate_scope_identity(shots, case):
+    errors = []
+    baseline_project = None
+    baseline_task = None
+    for label in LABELS[case]:
+        snapshot = shots.get(label)
+        if not snapshot:
+            continue
+        station = snapshot.get("station", {})
+        project = station.get("project_id")
+        selected_task = task_id(snapshot)
+        if not project:
+            errors.append(f"snapshot {label} lacks project identity")
+        elif baseline_project is None:
+            baseline_project = project
+        elif project != baseline_project:
+            errors.append(f"snapshot {label} project identity differs from pre-interrupt scope")
+        if not selected_task:
+            errors.append(f"snapshot {label} lacks selected task identity")
+        elif baseline_task is None:
+            baseline_task = selected_task
+        elif selected_task != baseline_task:
+            errors.append(f"snapshot {label} task identity differs from pre-interrupt scope")
+    return errors
+
+
+def validate_f6_b_authority_order(shots):
+    errors = []
+    before_snapshot = shots.get("01-owned-before-interrupt", {})
+    down_snapshot = shots.get("02-transport-down", {})
+    reassigned_snapshot = shots.get("04-reassigned", {})
+    before = task(before_snapshot)
+    down_task = task(down_snapshot)
+    reassigned = task(reassigned_snapshot)
+    tid = task_id(before_snapshot)
+
+    old_owner = before.get("owner")
+    old_lease_fingerprint = before.get("lease_fingerprint")
+    old_attempt = before.get("attempt")
+    if (
+        not old_owner
+        or not before.get("lease_present")
+        or not old_lease_fingerprint
+        or type(old_attempt) is not int
+    ):
+        return ["pre-interrupt authority tuple is incomplete"]
+
+    if (
+        down_task.get("owner") != old_owner
+        or down_task.get("lease_present") is not True
+        or down_task.get("lease_fingerprint") != old_lease_fingerprint
+    ):
+        errors.append("transport-down snapshot does not retain the original authority tuple")
+    if down_task.get("attempt") != old_attempt:
+        errors.append("transport-down attempt differs from pre-interrupt attempt")
+
+    new_owner = reassigned.get("owner")
+    new_attempt = reassigned.get("attempt")
+    if not new_owner or new_owner == old_owner:
+        errors.append("reassignment to different owner not proven")
+    if type(new_attempt) is not int or new_attempt != old_attempt + 1:
+        errors.append("reassignment attempt is not the next task attempt")
+
+    down_events = event_rows(down_snapshot)
+    down_seq = max((row.get("seq", 0) for row in down_events if isinstance(row, dict)), default=0)
+    expired = find_event(
+        reassigned_snapshot, "worker.expired", tid, attempt=old_attempt, after_seq=down_seq
+    )
+    if not expired:
+        errors.append("natural worker expiry/recovery event not proven after transport down")
+        return errors
+    expired_row, expired_value = expired[-1]
+    if expired_value.get("data", {}).get("from") != "running":
+        errors.append("worker expiry event is not recovery from running authority")
+
+    before_lease_until = before.get("lease_until")
+    down_lease_until = down_task.get("lease_until")
+    try:
+        before_lease_until = float(before_lease_until)
+        down_lease_until = float(down_lease_until)
+        expired_at = parse_utc(expired_value.get("timestamp")).timestamp()
+        if not all(math.isfinite(value) for value in (
+            before_lease_until, down_lease_until, expired_at
+        )):
+            raise ValueError("non-finite authority timestamp")
+        if down_lease_until + 1e-6 < before_lease_until:
+            errors.append("transport-down lease deadline regressed from pre-interrupt authority")
+        authoritative_lease_until = max(before_lease_until, down_lease_until)
+        if expired_at + 1e-6 < authoritative_lease_until:
+            errors.append("worker expiry event predates the authoritative lease deadline")
+    except Exception:
+        errors.append("natural lease-expiry timing is not machine-verifiable")
+
+    claims = find_event(
+        reassigned_snapshot,
+        "task.claimed",
+        tid,
+        attempt=new_attempt if type(new_attempt) is int else None,
+        actor=new_owner,
+        after_seq=expired_row.get("seq", 0),
+    )
+    if not claims:
+        errors.append("replacement claim is not proven after natural recovery")
+    return errors
+
+
 def attached(out, name):
     path = out / "attachments" / name
     try:
@@ -354,6 +560,8 @@ def validate_remote_evidence(out, case):
     old_identity = runner_identity(before) if before else None
 
     if before:
+        if old_identity is None:
+            errors.append("pre-interrupt runner process identity is incomplete")
         if not residual_worker_running(before):
             errors.append("pre-interrupt evidence is not bound to a live RESIDUAL worker")
         if before.get("runner_has_station_connection") is not True:
@@ -462,23 +670,28 @@ def validate_stale_probe(stale, before_snapshot):
         errors.append("stale probe schema mismatch")
     if stale.get("observed_status") != 403 or stale.get("rejected") is not True:
         errors.append("stale result not explicitly rejected with HTTP 403")
-    if stale.get("accepted") is True:
-        errors.append("stale result was accepted")
+    if stale.get("accepted") is not False:
+        errors.append("stale result accepted flag is not exactly false")
     if stale.get("credential_value_retained") is not False:
         errors.append("stale probe retained credential material")
 
     expected_project = before_snapshot.get("station", {}).get("project_id")
     expected_task = task_id(before_snapshot)
-    expected_lease = task(before_snapshot).get("lease")
+    expected_authority = task(before_snapshot)
+    expected_lease_fingerprint = expected_authority.get("lease_fingerprint")
     if stale.get("project_id") != expected_project:
         errors.append("stale probe project does not match pre-interrupt project")
     if stale.get("task_id") != expected_task:
         errors.append("stale probe task does not match pre-interrupt task")
-    if stale.get("lease") != expected_lease:
+    if stale.get("lease_fingerprint") != expected_lease_fingerprint:
         errors.append("stale probe lease does not match pre-interrupt lease")
+    if stale.get("attempt") != expected_authority.get("attempt"):
+        errors.append("stale probe attempt does not match pre-interrupt attempt")
+    if stale.get("owner") != expected_authority.get("owner"):
+        errors.append("stale probe owner does not match pre-interrupt owner")
 
     response_excerpt = stale.get("response_excerpt", "")
-    if STALE_REJECTION_TEXT not in response_excerpt:
+    if response_excerpt != STALE_REJECTION_TEXT:
         errors.append(
             "stale probe 403 is not bound to the expected reassigned-authority denial"
         )
@@ -508,6 +721,10 @@ def validate(out, case):
             errors.append(f"snapshot {label} bootstrap proof failed")
         if snapshot.get("station", {}).get("sqlite_integrity") != "ok":
             errors.append(f"snapshot {label} SQLite integrity failed")
+        errors.extend(validate_event_chain(snapshot, label))
+
+    errors.extend(validate_snapshot_sequence(shots, case))
+    errors.extend(validate_scope_identity(shots, case))
 
     for name in ATTACH[case]:
         if not (out / "attachments" / name).is_file():
@@ -538,7 +755,12 @@ def validate(out, case):
         reconnect = task(shots.get("03-reconnected-inside-window", {}))
         if not before.get("owner") or before.get("owner") != reconnect.get("owner"):
             errors.append("inside-window same owner not proven")
-        if not before.get("lease") or before.get("lease") != reconnect.get("lease"):
+        if (
+            before.get("lease_present") is not True
+            or reconnect.get("lease_present") is not True
+            or not before.get("lease_fingerprint")
+            or before.get("lease_fingerprint") != reconnect.get("lease_fingerprint")
+        ):
             errors.append("inside-window same lease not proven")
     else:
         down_time = (
@@ -567,6 +789,8 @@ def validate(out, case):
             errors.append("reassignment to different owner not proven")
         if old_return.get("owner") != reassigned.get("owner"):
             errors.append("old runner return changed ownership")
+
+        errors.extend(validate_f6_b_authority_order(shots))
 
         stale = attached(out, "stale-result-rejection.json")
         errors.extend(validate_stale_probe(stale, before_snapshot))

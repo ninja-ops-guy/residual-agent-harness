@@ -41,10 +41,17 @@ The harness records tunnel-down/up timestamps and requires reconnect to occur st
 
 The harness holds the old runner beyond the 180-second worker authority grace, waits for natural server lease expiry/recovery, requires a different valid runner to own the task, then restores the old runner without granting it a new claim or credential.
 
-Case B additionally requires `f6_stale_result_probe.py` on the old runner. The probe reads the existing worker credential only from the environment and submits exactly one harmless stale `/api/worker/result` attempt using the old lease. The retained artifact must show HTTP `403`, `rejected=true`, and `accepted=false`. Local proposal suppression by itself is not sufficient for this gate.
+Case B additionally requires `f6_stale_result_probe.py` on the old runner. The probe reads the existing worker credential only from the environment and submits exactly one harmless stale `/api/worker/result` attempt using the original lease supplied transiently on the old runner. Canonical Station snapshots retain only a SHA-256 lease fingerprint, not the raw bearer lease. The stale-probe artifact also does **not** retain the raw lease; it stores a `sha256:` lease fingerprint plus the original attempt and owner binding. The guard requires those fields to match the pre-interrupt snapshot and requires HTTP `403`, `rejected=true`, and `accepted=false` exactly. Local proposal suppression by itself is not sufficient for this gate.
+
+For F6-B the guard also requires machine-visible natural recovery ordering: the transport-down snapshot must retain the original owner/lease/attempt, the later authoritative event history must contain a `worker.expired` event after that snapshot and not before the recorded lease deadline, and a distinct `task.claimed` event for the next attempt/new owner must occur after the expiry event. Event-chain hashes and cross-snapshot history prefixes are validated.
 
 ## Freeze semantics
 
 `f6_case_guard.py freeze` always writes a manifest, even for a failed attempt. The manifest contains machine-readable `validation.ok` and errors. `verify` rejects changed, missing, or newly added files after freeze and rejects a manifest whose physical validation failed.
 
 A machine-valid bundle is still **not** an AUD-1 `FIXED` verdict. Keep F6-A and F6-B separate, then provide both immutable bundles to Mason/LEGION for the standing independent read-only F1/F2/F3/F4/F6 classification.
+
+
+## Supplemental transport-controller audit
+
+The canonical helper validates Station/runner state and bundle integrity. Physical causation of tunnel DOWN/UP remains independently reconciled from the transport controller. Retain a separate redacted controller record for each case containing the dedicated DBOX NIC identity, SSH destination, SSH public-key fingerprint, tunnel PID/process-start identity, DOWN/UP UTC and monotonic timestamps, replacement tunnel PID, and immediate remote probes. This supplemental record strengthens causation/timing review; it does not replace the canonical F6 bundle or alter its PASS/FAIL contract.
