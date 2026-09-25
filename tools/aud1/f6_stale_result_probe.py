@@ -18,7 +18,7 @@ import secrets
 import urllib.error
 import urllib.request
 
-SCHEMA = "residual.aud1.f6.stale-probe.v2"
+SCHEMA = "residual.aud1.f6.stale-probe.v2"\nSTALE_REJECTION_TEXT = "Task authority belongs to another runner"
 
 
 def utcnow():
