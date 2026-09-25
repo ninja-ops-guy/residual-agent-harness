@@ -173,6 +173,7 @@ def station_snapshot(db, project, task=None):
         integrity = conn.execute("PRAGMA integrity_check").fetchone()[0]
     return {
         "captured_at": utcnow(),
+        "captured_monotonic_ns": time.monotonic_ns(),
         "project_id": project,
         "project": project_value,
         "tasks": tasks,
