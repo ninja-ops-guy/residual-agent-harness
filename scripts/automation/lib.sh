@@ -14,7 +14,9 @@ AUTOMATION_ROOT="${RESIDUAL_AUTOMATION_ROOT:-${XDG_STATE_HOME:-$HOME/.local/stat
 mkdir -p "$AUTOMATION_ROOT"/{runs,worktrees,repairs,locks}
 
 log() {
-  printf '[%s] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"
+  # Diagnostics belong on stderr so helper functions can safely return machine
+  # values on stdout and be used inside command substitution.
+  printf '[%s] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" >&2
 }
 
 die() {
