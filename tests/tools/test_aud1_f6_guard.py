@@ -103,7 +103,7 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
                     "authority_key_names_present": False,
                 },
                 "station": {
-                    "captured_at": "2026-09-23T18:00:00+00:00",
+                    "captured_at": f"2026-09-23T18:00:{index:02d}+00:00",
                     "project_id": "p-test",
                     "sqlite_integrity": "ok",
                     "tasks": [
@@ -224,7 +224,9 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
                         "id": "OPS-101",
                         "value": {
                             "owner": "remote:old",
-                            "lease": "lease-old",
+                            "lease": "abcdefghijklmnopqrstuvwxyzABCDEF",
+                            "lease_until": 1000.0,
+                            "attempt": 1,
                         },
                     }
                 ],
@@ -234,7 +236,11 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
             "schema": guard.STALE_SCHEMA,
             "project_id": "p-test",
             "task_id": "OPS-101",
-            "lease": "lease-old",
+            "lease_fingerprint": "sha256:" + guard.base.sha256_bytes(
+                b"abcdefghijklmnopqrstuvwxyzABCDEF"
+            ),
+            "attempt": 1,
+            "owner": "remote:old",
             "observed_status": 403,
             "rejected": True,
             "accepted": False,
@@ -245,7 +251,7 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
 
         wrong = dict(good)
         wrong["task_id"] = "OPS-999"
-        wrong["lease"] = "other-lease"
+        wrong["lease_fingerprint"] = "sha256:" + ("0" * 64)
         wrong["response_excerpt"] = '{"error":"Remote workers are disabled"}'
         errors = guard.validate_stale_probe(wrong, before)
         self.assertTrue(any("task does not match" in error for error in errors), errors)
@@ -254,6 +260,201 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
             any("reassigned-authority denial" in error for error in errors),
             errors,
         )
+
+
+    def test_stale_probe_requires_exact_false_and_original_authority_tuple(self):
+        before = {
+            "station": {
+                "project_id": "p-test",
+                "tasks": [{
+                    "id": "OPS-101",
+                    "value": {
+                        "owner": "remote:old",
+                        "lease": "abcdefghijklmnopqrstuvwxyzABCDEF",
+                        "attempt": 3,
+                    },
+                }],
+            },
+        }
+        good = {
+            "schema": guard.STALE_SCHEMA,
+            "project_id": "p-test",
+            "task_id": "OPS-101",
+            "lease_fingerprint": "sha256:" + guard.base.sha256_bytes(
+                b"abcdefghijklmnopqrstuvwxyzABCDEF"
+            ),
+            "attempt": 3,
+            "owner": "remote:old",
+            "observed_status": 403,
+            "rejected": True,
+            "accepted": False,
+            "credential_value_retained": False,
+            "response_excerpt": json.dumps({"error": guard.STALE_REJECTION_TEXT}),
+        }
+        self.assertEqual(guard.validate_stale_probe(good, before), [])
+
+        for invalid in (None, 0, "false"):
+            bad = dict(good)
+            bad["accepted"] = invalid
+            errors = guard.validate_stale_probe(bad, before)
+            self.assertTrue(any("exactly false" in error for error in errors), errors)
+
+        missing = dict(good)
+        missing.pop("accepted")
+        errors = guard.validate_stale_probe(missing, before)
+        self.assertTrue(any("exactly false" in error for error in errors), errors)
+
+        bad_attempt = dict(good)
+        bad_attempt["attempt"] = 4
+        self.assertTrue(any(
+            "attempt does not match" in error
+            for error in guard.validate_stale_probe(bad_attempt, before)
+        ))
+
+        bad_owner = dict(good)
+        bad_owner["owner"] = "remote:new"
+        self.assertTrue(any(
+            "owner does not match" in error
+            for error in guard.validate_stale_probe(bad_owner, before)
+        ))
+
+    def test_station_record_preserves_verified_public_identity_digests(self):
+        with tempfile.TemporaryDirectory() as temp:
+            repo = pathlib.Path(temp) / "repo"
+            data = pathlib.Path(temp) / "data"
+            repo.mkdir()
+            data.mkdir()
+            module = repo / "server.py"
+            module.write_text("pass\n", encoding="utf-8")
+            record_path = pathlib.Path(temp) / "station-launch.json"
+            record = {
+                "schema": "residual.aud1.f6.station-launch.v1",
+                "candidate_head": guard.TARGET_SHA,
+                "candidate_tree": "b" * 40,
+                "candidate_repo": str(repo),
+                "server_module": str(module),
+                "server_module_sha256": guard.base.sha256_file(module),
+                "station_data": str(data),
+                "station_url": "http://127.0.0.1:8766",
+                "pid": 123,
+            }
+            record_path.write_text(json.dumps(record), encoding="utf-8")
+            pathlib.Path(str(record_path) + ".sha256").write_text(
+                guard.base.sha256_file(record_path) + "  station-launch.json\n",
+                encoding="utf-8",
+            )
+
+            def fake_git(_repo, *args):
+                if args == ("rev-parse", "HEAD^{tree}"):
+                    return 0, "b" * 40, ""
+                raise AssertionError(args)
+
+            with mock.patch.object(guard, "git", side_effect=fake_git), \
+                 mock.patch.object(guard, "alive", return_value=True):
+                safe, errors = guard.station_record(
+                    record_path, repo, data / "station.sqlite3", "http://127.0.0.1:8766"
+                )
+            self.assertEqual(errors, [])
+            self.assertEqual(safe["candidate_head"], guard.TARGET_SHA)
+            self.assertEqual(safe["candidate_tree"], "b" * 40)
+            self.assertEqual(
+                safe["server_module_sha256"], guard.base.sha256_file(module)
+            )
+
+    def test_snapshot_sequence_rejects_replay_or_regression(self):
+        shots = {}
+        for index, label in enumerate(guard.LABELS["F6-A-inside-window"], 1):
+            shots[label] = {
+                "station": {
+                    "captured_at": f"2026-09-23T18:00:{index:02d}+00:00",
+                    "events": [{"seq": 1, "hash": "h1"}],
+                },
+            }
+        self.assertEqual(
+            guard.validate_snapshot_sequence(shots, "F6-A-inside-window"), []
+        )
+        shots["03-reconnected-inside-window"]["station"]["captured_at"] = (
+            "2026-09-23T18:00:01+00:00"
+        )
+        errors = guard.validate_snapshot_sequence(shots, "F6-A-inside-window")
+        self.assertTrue(any("not later" in error for error in errors), errors)
+
+    def test_case_b_requires_natural_expiry_before_reassignment(self):
+        old_lease_until = 1_795_000_000.0
+        tid = "OPS-101"
+        old_owner = "remote:old"
+        new_owner = "remote:new"
+
+        def event(seq, event_type, actor, attempt, timestamp, data=None):
+            value = {
+                "schema_version": 1,
+                "event_id": f"e-{seq}",
+                "event_type": event_type,
+                "timestamp": timestamp,
+                "project_id": "p-test",
+                "task_id": tid,
+                "actor": actor,
+                "attempt": attempt,
+                "spec_hash": "spec",
+                "data": data or {},
+            }
+            previous = "0" * 64 if seq == 1 else None
+            return {"seq": seq, "value": value, "prev_hash": previous, "hash": "unused"}
+
+        before_task = {
+            "owner": old_owner,
+            "lease": "abcdefghijklmnopqrstuvwxyzABCDEF",
+            "lease_until": old_lease_until,
+            "attempt": 1,
+        }
+        shots = {
+            "01-owned-before-interrupt": {
+                "station": {
+                    "project_id": "p-test",
+                    "tasks": [{"id": tid, "value": dict(before_task)}],
+                    "events": [],
+                },
+            },
+            "02-transport-down": {
+                "station": {
+                    "project_id": "p-test",
+                    "tasks": [{"id": tid, "value": dict(before_task)}],
+                    "events": [],
+                },
+            },
+            "04-reassigned": {
+                "station": {
+                    "project_id": "p-test",
+                    "tasks": [{
+                        "id": tid,
+                        "value": {
+                            "owner": new_owner,
+                            "lease": "new-lease",
+                            "lease_until": old_lease_until + 900,
+                            "attempt": 2,
+                        },
+                    }],
+                    "events": [
+                        event(
+                            1, "worker.expired", "coordinator", 1,
+                            "2026-11-18T22:13:21+00:00", {"from": "running"}
+                        ),
+                        event(
+                            2, "task.claimed", new_owner, 2,
+                            "2026-11-18T22:13:22+00:00", {"route": "local", "lease_seconds": 900}
+                        ),
+                    ],
+                },
+            },
+        }
+        self.assertEqual(guard.validate_f6_b_authority_order(shots), [])
+
+        missing_expiry = json.loads(json.dumps(shots))
+        missing_expiry["04-reassigned"]["station"]["events"] = [
+            missing_expiry["04-reassigned"]["station"]["events"][1]
+        ]
+        errors = guard.validate_f6_b_authority_order(missing_expiry)
+        self.assertTrue(any("expiry/recovery" in error for error in errors), errors)
 
     def test_closed_world_manifest_rejects_late_file(self):
         with tempfile.TemporaryDirectory() as temp:
