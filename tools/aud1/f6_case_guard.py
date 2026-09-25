@@ -13,6 +13,7 @@ import argparse
 import datetime as dt
 import importlib.util
 import json
+import math
 import os
 import pathlib
 import subprocess
@@ -465,10 +466,14 @@ def validate_f6_b_authority_order(shots):
     try:
         before_lease_until = float(before_lease_until)
         down_lease_until = float(down_lease_until)
+        expired_at = parse_utc(expired_value.get("timestamp")).timestamp()
+        if not all(math.isfinite(value) for value in (
+            before_lease_until, down_lease_until, expired_at
+        )):
+            raise ValueError("non-finite authority timestamp")
         if down_lease_until + 1e-6 < before_lease_until:
             errors.append("transport-down lease deadline regressed from pre-interrupt authority")
         authoritative_lease_until = max(before_lease_until, down_lease_until)
-        expired_at = parse_utc(expired_value.get("timestamp")).timestamp()
         if expired_at + 1e-6 < authoritative_lease_until:
             errors.append("worker expiry event predates the authoritative lease deadline")
     except Exception:
@@ -681,7 +686,7 @@ def validate_stale_probe(stale, before_snapshot):
         errors.append("stale probe owner does not match pre-interrupt owner")
 
     response_excerpt = stale.get("response_excerpt", "")
-    if STALE_REJECTION_TEXT not in response_excerpt:
+    if response_excerpt != STALE_REJECTION_TEXT:
         errors.append(
             "stale probe 403 is not bound to the expected reassigned-authority denial"
         )
