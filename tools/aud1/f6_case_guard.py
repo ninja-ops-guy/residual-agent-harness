@@ -394,6 +394,32 @@ def find_event(snapshot, event_type, tid, *, attempt=None, actor=None, after_seq
     return matches
 
 
+def validate_scope_identity(shots, case):
+    errors = []
+    baseline_project = None
+    baseline_task = None
+    for label in LABELS[case]:
+        snapshot = shots.get(label)
+        if not snapshot:
+            continue
+        station = snapshot.get("station", {})
+        project = station.get("project_id")
+        selected_task = task_id(snapshot)
+        if not project:
+            errors.append(f"snapshot {label} lacks project identity")
+        elif baseline_project is None:
+            baseline_project = project
+        elif project != baseline_project:
+            errors.append(f"snapshot {label} project identity differs from pre-interrupt scope")
+        if not selected_task:
+            errors.append(f"snapshot {label} lacks selected task identity")
+        elif baseline_task is None:
+            baseline_task = selected_task
+        elif selected_task != baseline_task:
+            errors.append(f"snapshot {label} task identity differs from pre-interrupt scope")
+    return errors
+
+
 def validate_f6_b_authority_order(shots):
     errors = []
     before_snapshot = shots.get("01-owned-before-interrupt", {})
@@ -434,11 +460,16 @@ def validate_f6_b_authority_order(shots):
     if expired_value.get("data", {}).get("from") != "running":
         errors.append("worker expiry event is not recovery from running authority")
 
-    lease_until = down_task.get("lease_until")
+    before_lease_until = before.get("lease_until")
+    down_lease_until = down_task.get("lease_until")
     try:
-        lease_until = float(lease_until)
+        before_lease_until = float(before_lease_until)
+        down_lease_until = float(down_lease_until)
+        if down_lease_until + 1e-6 < before_lease_until:
+            errors.append("transport-down lease deadline regressed from pre-interrupt authority")
+        authoritative_lease_until = max(before_lease_until, down_lease_until)
         expired_at = parse_utc(expired_value.get("timestamp")).timestamp()
-        if expired_at + 1e-6 < lease_until:
+        if expired_at + 1e-6 < authoritative_lease_until:
             errors.append("worker expiry event predates the authoritative lease deadline")
     except Exception:
         errors.append("natural lease-expiry timing is not machine-verifiable")
@@ -683,6 +714,7 @@ def validate(out, case):
         errors.extend(validate_event_chain(snapshot, label))
 
     errors.extend(validate_snapshot_sequence(shots, case))
+    errors.extend(validate_scope_identity(shots, case))
 
     for name in ATTACH[case]:
         if not (out / "attachments" / name).is_file():
