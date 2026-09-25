@@ -104,6 +104,7 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
                 },
                 "station": {
                     "captured_at": f"2026-09-23T18:00:{index:02d}+00:00",
+                    "captured_monotonic_ns": index,
                     "project_id": "p-test",
                     "sqlite_integrity": "ok",
                     "tasks": [
@@ -367,17 +368,16 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
             shots[label] = {
                 "station": {
                     "captured_at": f"2026-09-23T18:00:{index:02d}+00:00",
+                    "captured_monotonic_ns": index,
                     "events": [{"seq": 1, "hash": "h1"}],
                 },
             }
         self.assertEqual(
             guard.validate_snapshot_sequence(shots, "F6-A-inside-window"), []
         )
-        shots["03-reconnected-inside-window"]["station"]["captured_at"] = (
-            "2026-09-23T18:00:01+00:00"
-        )
+        shots["03-reconnected-inside-window"]["station"]["captured_monotonic_ns"] = 1
         errors = guard.validate_snapshot_sequence(shots, "F6-A-inside-window")
-        self.assertTrue(any("not later" in error for error in errors), errors)
+        self.assertTrue(any("monotonic capture order regressed" in error for error in errors), errors)
 
     def test_case_b_requires_natural_expiry_before_reassignment(self):
         old_lease_until = 1_795_000_000.0
