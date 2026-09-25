@@ -7,6 +7,10 @@ RUN apt-get update \
        bash ca-certificates git less procps \
     && rm -rf /var/lib/apt/lists/*
 
+# Preserve diagnostic paths used by the published Bookworm VM.
+RUN ln -s /usr/local/bin/python3.11 /usr/bin/python3.11 \
+    && ln -s /usr/local/lib/python3.11 /usr/lib/python3.11
+
 RUN useradd --create-home --uid 1000 --shell /bin/bash residual \
     && mkdir -p /home/user/documents \
     && chmod 0755 /home/user /home/user/documents
