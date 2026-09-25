@@ -36,12 +36,42 @@ def member_path(name: str, root: Path) -> Path:
     return target
 
 
-def validate_link(member: tarfile.TarInfo, root: Path):
+def logical_link_target(member: tarfile.TarInfo) -> PurePosixPath:
+    """Resolve a TAR link in the logical runtime namespace.
+
+    Safety must survive staging-directory relocation: an archive link is rejected
+    if lexical normalization would ever climb above the logical runtime root,
+    even when the physical staging path could make it resolve back inside before
+    promotion.
+    """
     target = member.linkname
-    if not target or "\\" in target or ":" in target or ntpath.splitdrive(target)[0] or PurePosixPath(target).is_absolute():
+    if not target or "\\" in target or ":" in target or ntpath.splitdrive(target)[0]:
         raise ContractError("Unsafe runtime archive link target")
-    base = (root / member.name).parent if member.issym() else root
-    if not (base / target).resolve().is_relative_to(root.resolve()):
+    target_path = PurePosixPath(target)
+    if target_path.is_absolute():
+        raise ContractError("Unsafe runtime archive link target")
+
+    parts = list(PurePosixPath(member.name).parent.parts) if member.issym() else []
+    parts.extend(target_path.parts)
+    normalized = []
+    for part in parts:
+        if part in ("", "."):
+            continue
+        if part == "..":
+            if not normalized:
+                raise ContractError("Unsafe runtime archive link target")
+            normalized.pop()
+            continue
+        normalized.append(part)
+    if not normalized:
+        raise ContractError("Unsafe runtime archive link target")
+    return PurePosixPath(*normalized)
+
+
+def validate_link(member: tarfile.TarInfo, root: Path):
+    logical = logical_link_target(member)
+    target = root.joinpath(*logical.parts)
+    if not target.resolve().is_relative_to(root.resolve()):
         raise ContractError("Unsafe runtime archive link target")
 
 
