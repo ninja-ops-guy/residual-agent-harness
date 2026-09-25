@@ -520,7 +520,9 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
         expiry_before_original = json.loads(json.dumps(shots))
         expiry_before_original["01-owned-before-interrupt"]["station"]["tasks"][0]["value"]["lease_until"] = 1_795_000_100.0
         expiry_before_original["02-transport-down"]["station"]["tasks"][0]["value"]["lease_until"] = 1_795_000_200.0
-        expiry_before_original["04-reassigned"]["station"]["events"][0]["value"]["timestamp"] = "2026-11-18T22:15:00+00:00"
+        # 1_795_000_200 == 2026-11-18T11:10:00Z; choose an expiry
+        # one minute earlier so the negative case is actually before authority expiry.
+        expiry_before_original["04-reassigned"]["station"]["events"][0]["value"]["timestamp"] = "2026-11-18T11:09:00+00:00"
         errors = guard.validate_f6_b_authority_order(expiry_before_original)
         self.assertTrue(any("predates the authoritative lease deadline" in error for error in errors), errors)
 
