@@ -362,6 +362,39 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
                 safe["server_module_sha256"], guard.base.sha256_file(module)
             )
 
+    def test_event_chain_recomputes_hashes_and_rejects_mutation(self):
+        previous = "0" * 64
+        value = {
+            "schema_version": 1,
+            "event_id": "e-1",
+            "event_type": "project.created",
+            "timestamp": "2026-09-23T18:00:00+00:00",
+            "project_id": "p-test",
+            "task_id": None,
+            "actor": "operator",
+            "attempt": 0,
+            "spec_hash": "a" * 64,
+            "data": {"name": "fixture", "tasks": 1, "mode": "live"},
+        }
+        digest = guard.base.sha256_bytes(
+            guard.base.canonical({"previous": previous, "event": value}).encode("utf-8")
+        )
+        snapshot = {
+            "station": {
+                "events": [{
+                    "seq": 1,
+                    "value": value,
+                    "prev_hash": previous,
+                    "hash": digest,
+                }],
+            },
+        }
+        self.assertEqual(guard.validate_event_chain(snapshot, "fixture"), [])
+
+        snapshot["station"]["events"][0]["value"]["actor"] = "tampered"
+        errors = guard.validate_event_chain(snapshot, "fixture")
+        self.assertTrue(any("hash mismatch" in error for error in errors), errors)
+
     def test_snapshot_sequence_rejects_replay_or_regression(self):
         shots = {}
         for index, label in enumerate(guard.LABELS["F6-A-inside-window"], 1):
