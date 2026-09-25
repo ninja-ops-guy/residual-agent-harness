@@ -1,4 +1,4 @@
-FROM python:3.15.0rc1-slim-bookworm
+FROM python:3.14.7-slim-bookworm
 WORKDIR /app
 COPY demo/cloud_gateway/server.py /app/server.py
 ENV PYTHONUNBUFFERED=1 PORT=8080
