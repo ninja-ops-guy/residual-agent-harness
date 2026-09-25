@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import hashlib
 import json
 import os
 import pathlib
@@ -17,7 +18,7 @@ import secrets
 import urllib.error
 import urllib.request
 
-SCHEMA = "residual.aud1.f6.stale-probe.v1"
+SCHEMA = "residual.aud1.f6.stale-probe.v2"
 
 
 def utcnow():
@@ -30,6 +31,8 @@ def main(argv=None):
     p.add_argument("--project", required=True)
     p.add_argument("--task", required=True)
     p.add_argument("--lease", required=True)
+    p.add_argument("--attempt", required=True, type=int)
+    p.add_argument("--owner", required=True)
     p.add_argument("--output", required=True)
     p.add_argument("--token-env", default="RESIDUAL_WORKER_TOKEN")
     args = p.parse_args(argv)
@@ -42,7 +45,9 @@ def main(argv=None):
     body = {
         "project_id": args.project,
         "task_id": args.task,
-        "lease": args.lease,
+        "lease_fingerprint": "sha256:" + hashlib.sha256(args.lease.encode("utf-8")).hexdigest(),
+        "attempt": args.attempt,
+        "owner": args.owner,
         "submission_id": submission_id,
         "response": {"files": {}},
     }
