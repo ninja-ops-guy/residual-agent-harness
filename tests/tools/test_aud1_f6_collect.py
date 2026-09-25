@@ -67,6 +67,12 @@ class F6DiagnosticsTests(unittest.TestCase):
             self.assertIsInstance(snap["captured_monotonic_ns"], int)
             self.assertGreater(snap["captured_monotonic_ns"], 0)
             self.assertEqual(snap["tasks"][0]["value"]["owner"], "remote:Hammer")
+            self.assertNotIn("lease", snap["tasks"][0]["value"])
+            self.assertTrue(snap["tasks"][0]["value"]["lease_present"])
+            self.assertEqual(
+                snap["tasks"][0]["value"]["lease_fingerprint"],
+                "sha256:" + f6.sha256_bytes(b"lease-a"),
+            )
             self.assertEqual(snap["event_count"], 1)
             self.assertEqual(snap["settings_redacted"]["worker_token"], "<redacted>")
 
