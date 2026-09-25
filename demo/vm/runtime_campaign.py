@@ -166,11 +166,11 @@ async def main() -> int:
             shell_command = (
                 "printf 'RUNTIME_PROBE_LABEL=%s\\n' '" + label + "'; "
                 "printf 'ARCH '; getconf LONG_BIT 2>/dev/null || true; "
-                "timeout 15s sha256sum /usr/bin/python3.11 "
-                "/usr/lib/python3.11/re/_parser.py /usr/lib/python3.11/re/_compiler.py "
-                "/usr/lib/python3.11/hashlib.py /usr/lib/python3.11/uuid.py /usr/lib/python3.11/platform.py "
+                "timeout 15s sha256sum /usr/local/bin/python3.11 "
+                "/usr/local/lib/python3.11/re/_parser.py /usr/local/lib/python3.11/re/_compiler.py "
+                "/usr/local/lib/python3.11/hashlib.py /usr/local/lib/python3.11/uuid.py /usr/local/lib/python3.11/platform.py "
                 "|| echo PROBE_HASH_TIMEOUT=core; "
-                "for f in /usr/lib/python3.11/lib-dynload/_sha512*.so; do "
+                "for f in /usr/local/lib/python3.11/lib-dynload/_sha512*.so; do "
                 "if [ -e \"$f\" ]; then timeout 5s sha256sum \"$f\" || echo PROBE_HASH_TIMEOUT=_sha512; fi; "
                 "done; echo RUNTIME_PROBE_SHELL_DONE"
             )
