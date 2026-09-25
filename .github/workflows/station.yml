@@ -36,7 +36,7 @@ jobs:
             --log runs/windows-ownership/qualification.log `
             --junit runs/windows-ownership/qualification.xml `
             --zero-skips `
-            -- python -m pytest tests/station/test_windows_ownership_qualification.py -vv `
+            -- python -m pytest tests/station/test_windows_ownership_qualification.py -vv -s `
                --junitxml=runs/windows-ownership/qualification.xml
       - name: Complete applicable Station suite
         run: >-
