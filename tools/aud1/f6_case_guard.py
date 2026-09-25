@@ -23,7 +23,7 @@ base = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(base)
 
 TARGET_SHA = base.TARGET_SHA
-SCHEMA = "residual.aud1.f6.physical.v2"
+SCHEMA = "residual.aud1.f6.physical.v3"
 REMOTE_SCHEMA = "residual.aud1.f6.remote.v2"
 STALE_SCHEMA = "residual.aud1.f6.stale-probe.v2"
 GRACE = 180.0
