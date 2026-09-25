@@ -47,7 +47,7 @@ The project intentionally distinguishes:
 | Hypothesized | Expected system property that still requires controlled evaluation |
 | Established | Reserved for conclusions supported by appropriate experimental evidence |
 
-## 6. Extend the system
+## 6. Use the Wiki and setup agent\n\nCommand Station includes a documentation Wiki that indexes this \`docs/\` tree directly. It supports local search, grounded Q&A with source citations, and host-controlled setup skills for common integrations. See [\`wiki/README.md\`](wiki/README.md).\n\n## 7. Extend the system
 
 Use [`extending.md`](extending.md) for the extension model and [`module-tutorial.md`](module-tutorial.md) for a small module walkthrough. New execution engines, verifiers, integrations, or worker runtimes should preserve the project's authority boundaries: workers propose, verifiers decide, and the harness integrates accepted state.
 

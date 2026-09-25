@@ -1,0 +1,39 @@
+{
+  "id": "cicd-integration",
+  "title": "Integrate RESIDUAL with CI/CD",
+  "category": "integrations",
+  "summary": "Adopt RESIDUAL's evidence and qualification gates in CI/CD without turning CI into an alternate authority path.",
+  "keywords": [
+    "ci",
+    "cd",
+    "cicd",
+    "github actions",
+    "pipeline",
+    "workflow",
+    "qualification"
+  ],
+  "docs": [
+    "architecture/ci-cd.md",
+    "cic-integration.md",
+    "status/CLEAN_INSTALL_QUALIFICATION.md",
+    "status/FACTORY_OWNERSHIP_GATE.md"
+  ],
+  "inputs": [],
+  "steps": [
+    {
+      "kind": "read",
+      "title": "Map existing qualification gates",
+      "detail": "Identify which RESIDUAL checks are authoritative and which outputs are advisory."
+    },
+    {
+      "kind": "manual",
+      "title": "Pin the release head",
+      "detail": "Run qualification on the exact commit that will be promoted; do not reuse stale approval/evidence."
+    },
+    {
+      "kind": "verify",
+      "title": "Preserve evidence",
+      "detail": "Retain run IDs, hashes, and generated evidence artifacts with the release candidate."
+    }
+  ]
+}

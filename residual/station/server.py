@@ -19,6 +19,7 @@ from .models import model_call, public_settings, save_settings, credentials_for
 from residual.modular import normalize_profile, make_adapter
 from ai_providers import ProviderError as ModularError
 from .service import Station, demo_spec
+from residual.wiki import SkillRegistry, WikiAssistant, WikiIndex
 
 STATIC = Path(__file__).parent / "static"
 
@@ -29,6 +30,19 @@ class Server(ThreadingHTTPServer):
 
     def __init__(self, address, station):
         self.station = station
+        self.wiki_index = None
+        self.wiki_skills = None
+        self.wiki_agent = None
+        self.wiki_error = None
+        try:
+            self.wiki_index = WikiIndex()
+            self.wiki_skills = SkillRegistry()
+            for skill in self.wiki_skills.skills:
+                for doc_path in skill.docs:
+                    self.wiki_index.read(doc_path)
+            self.wiki_agent = WikiAssistant(self.wiki_index, self.wiki_skills)
+        except ContractError as exc:
+            self.wiki_error = str(exc)
         super().__init__(address, Handler)
         self.allowed_hosts = {f"localhost:{self.server_port}", f"127.0.0.1:{self.server_port}"}
         self.allowed_hosts.update(h.strip() for h in os.environ.get("RESIDUAL_ALLOWED_HOSTS", "").split(",") if h.strip())
@@ -118,6 +132,36 @@ class Handler(BaseHTTPRequestHandler):
                     return self.respond(self.station.ollama.status())
                 if path == "/api/settings":
                     return self.respond(public_settings(self.station.store))
+                if path == "/api/wiki":
+                    if self.server.wiki_error:
+                        raise ContractError("Wiki unavailable: " + self.server.wiki_error)
+                    return self.respond({
+                        "summary": self.server.wiki_index.summary(),
+                        "skills": [skill.public() for skill in self.server.wiki_skills.skills],
+                    })
+                if path == "/api/wiki/search":
+                    if self.server.wiki_error:
+                        raise ContractError("Wiki unavailable: " + self.server.wiki_error)
+                    term = query.get("q", [""])[0]
+                    category = query.get("category", [""])[0]
+                    if term:
+                        return self.respond({
+                            "results": [hit.to_dict() for hit in self.server.wiki_index.search(term)]
+                        })
+                    return self.respond({
+                        "documents": self.server.wiki_index.list_documents(category or None)
+                    })
+                if path == "/api/wiki/doc":
+                    if self.server.wiki_error:
+                        raise ContractError("Wiki unavailable: " + self.server.wiki_error)
+                    doc = self.server.wiki_index.read(query.get("path", [""])[0])
+                    return self.respond({"document": doc.public(include_content=True)})
+                if path == "/api/wiki/skills":
+                    if self.server.wiki_error:
+                        raise ContractError("Wiki unavailable: " + self.server.wiki_error)
+                    return self.respond({
+                        "skills": [skill.public() for skill in self.server.wiki_skills.skills]
+                    })
                 if path == "/api/diagnostics":
                     import platform, shutil
                     return self.respond({"version": "0.3.0", "python": platform.python_version(), "platform": platform.system(),
@@ -217,6 +261,30 @@ class Handler(BaseHTTPRequestHandler):
             if placement not in {"local", "cloud"}:
                 raise ContractError("Invalid model placement")
             return s.launch("playground", lambda progress: model_call(s.store, None, "playground", {"message": prompt}, "You are the RESIDUAL station assistant. Help with code and operational questions. Be concise.", placement=placement))
+        if path == "/api/wiki/ask":
+            if self.server.wiki_error:
+                raise ContractError("Wiki unavailable: " + self.server.wiki_error)
+            question = bounded(data.get("question"), "Question", 6000)
+            placement = data.get("placement", "local")
+            if placement not in {"local", "cloud"}:
+                raise ContractError("Invalid wiki model placement")
+            def call_wiki_model(payload, system):
+                return model_call(
+                    s.store, None, "wiki_agent", payload, system,
+                    placement=placement,
+                )
+            return self.server.wiki_agent.answer(question, call_wiki_model)
+        if path in {"/api/wiki/skills/plan", "/api/wiki/skills/run"}:
+            if self.server.wiki_error:
+                raise ContractError("Wiki unavailable: " + self.server.wiki_error)
+            skill_id = bounded(data.get("skill_id"), "Skill ID", 100)
+            inputs = data.get("inputs", {})
+            if not isinstance(inputs, dict):
+                raise ContractError("Skill inputs must be an object")
+            result = self.server.wiki_skills.plan(skill_id, inputs).to_dict()
+            result["side_effects"] = "none"
+            result["status"] = "ready"
+            return result
         if path == "/api/plan":
             goal = bounded(data.get("goal"), "Goal", 10000)
             placement = data.get("placement", "local")

@@ -36,6 +36,7 @@ include = ["residual*", "ai_providers*", "observation_layer*"]
 
 [tool.setuptools.package-data]
 "residual.station" = ["static/*", "schemas/*.json"]
+"residual.wiki" = ["skill_manifests/*.json"]
 
 [tool.coverage.run]
 branch = true

@@ -1,0 +1,46 @@
+{
+  "id": "openai-compatible",
+  "title": "Connect an OpenAI-compatible provider",
+  "category": "providers",
+  "summary": "Configure a cloud or compatible provider through the Model Workshop without sending credentials through the wiki agent.",
+  "keywords": [
+    "openai",
+    "compatible provider",
+    "cloud provider",
+    "api provider",
+    "azure",
+    "anthropic",
+    "provider"
+  ],
+  "docs": [
+    "extending.md",
+    "station/ARCHITECTURE.md",
+    "station/RUN-CONTROL.md"
+  ],
+  "inputs": [
+    {
+      "name": "endpoint",
+      "type": "url",
+      "required": false,
+      "label": "Provider endpoint"
+    }
+  ],
+  "steps": [
+    {
+      "kind": "read",
+      "title": "Review provider contract",
+      "detail": "Confirm the selected provider exposes the request/usage contract RESIDUAL expects."
+    },
+    {
+      "kind": "navigate",
+      "title": "Open Model Workshop",
+      "detail": "Enter endpoint, model ID, and credentials in the Station's provider form. The wiki does not collect secrets.",
+      "target": "#models"
+    },
+    {
+      "kind": "verify",
+      "title": "Run the provider test",
+      "detail": "Use Station's connection test and model discovery before allowing the route in a live mission."
+    }
+  ]
+}
