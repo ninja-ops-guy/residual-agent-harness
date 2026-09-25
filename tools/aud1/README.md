@@ -113,7 +113,7 @@ credential or claim. Retain its terminal/log evidence proving either:
 - proposal submission was suppressed because `WorkerAuthorityLost` fired; and/or
 - any stale result attempt was rejected by the Station.
 
-Case B requires the reviewed `f6_stale_result_probe.py` after reassignment. Run it on the old runner with the original project, task, raw lease, attempt, and owner from the pre-interrupt snapshot. The raw lease is used only for the request and is not retained in the probe artifact; the artifact stores a SHA-256 lease fingerprint. The guard binds that fingerprint, attempt, and owner back to snapshot 01 and requires HTTP 403, `rejected=true`, and `accepted=false` exactly.
+Case B requires the reviewed `f6_stale_result_probe.py` after reassignment. Run it on the old runner with the original project, task, attempt, and owner from the pre-interrupt snapshot plus the original raw lease held transiently by the runner/operator at claim time. The raw lease is used only for the request and is not retained in the probe artifact; the artifact stores a SHA-256 lease fingerprint. The guard binds that fingerprint, attempt, and owner back to snapshot 01 and requires HTTP 403, `rejected=true`, and `accepted=false` exactly.
 
 The read-only collector intentionally does not perform authority-bearing worker operations.
 
