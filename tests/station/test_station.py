@@ -372,6 +372,114 @@ class HTTPTests(unittest.TestCase):
         with self.assertRaises(urllib.error.HTTPError):
             self.request(f"/api/projects/{pid}/task", {"task_id": "OPS-101", "action": "integrate"}, {**headers, "X-Station-Token": ""})
 
+    def test_shared_comms_reaches_runners_without_changing_task_authority(self):
+        pid = self.s.create(demo_spec(), demo=True)["project_id"]
+        self.s.triage(pid)
+        task = self.s.store.task(pid, "OPS-101")
+        self.s.store.settings({"remote_workers_enabled": True})
+        worker_headers = {"Authorization": "Bearer " + self.s.store.settings()["worker_token"]}
+
+        operator_message = self.request(f"/api/projects/{pid}/chat", {
+            "message": "Please pay attention to the health edge case.",
+            "audience": "runners",
+            "kind": "message",
+        })
+        self.request(f"/api/projects/{pid}/chat", {
+            "message": "Coordinator-only bookkeeping note.",
+            "audience": "coordinator",
+            "kind": "message",
+        })
+
+        visible = self.request(f"/api/worker/comms?project_id={pid}&after=0", None, worker_headers)["messages"]
+        self.assertEqual([m["message"] for m in visible], ["Please pay attention to the health edge case."])
+        self.assertEqual(visible[0]["actor"], "operator")
+        self.assertEqual(operator_message["event_type"], "comms.message")
+
+        work = self.request("/api/worker/claim", {
+            "project_id": pid, "task_id": "OPS-101", "name": "Hammer",
+        }, worker_headers)["work"]
+        self.assertEqual(work["packet"]["instruction"], task["instruction"])
+        self.assertEqual(work["packet"]["writable_files"], task["files"])
+        self.assertEqual(work["packet"]["checks"], task["checks"])
+        self.assertEqual([m["message"] for m in work["packet"]["shared_comms"]],
+                         ["Please pay attention to the health edge case."])
+
+        reply = self.request("/api/worker/comms", {
+            "project_id": pid, "name": "Hammer", "message": "Acknowledged.", "audience": "all",
+        }, worker_headers)
+        self.assertEqual(reply["actor"], "remote:Hammer")
+        self.assertEqual(reply["data"]["message"], "Acknowledged.")
+
+        research = self.request(f"/api/projects/{pid}/chat", {
+            "message": "AX-21 finding: preserve the disagreement.",
+            "audience": "coordinator",
+            "kind": "evidence",
+            "thread_id": "research/ax-21",
+            "reply_to": operator_message["seq"],
+        })
+        self.assertEqual(research["data"]["thread_id"], "research/ax-21")
+        self.assertEqual(research["data"]["reply_to"], operator_message["seq"])
+        self.assertEqual(
+            [m["message"] for m in self.request(
+                f"/api/projects/{pid}/comms?thread_id=research%2Fax-21", None
+            )["messages"]],
+            ["AX-21 finding: preserve the disagreement."],
+        )
+        self.assertEqual(
+            self.request(f"/api/projects/{pid}/comms?thread_id=main", None)["messages"][0]["message"],
+            "Please pay attention to the health edge case.",
+        )
+        runner_thread = self.request("/api/worker/comms", {
+            "project_id": pid, "name": "Hammer", "message": "Thread-scoped runner note.",
+            "audience": "operator", "thread_id": "mission/ops-101",
+        }, worker_headers)
+        self.assertEqual(runner_thread["data"]["thread_id"], "mission/ops-101")
+        self.assertEqual(
+            self.request(
+                f"/api/worker/comms?project_id={pid}&thread_id=mission%2Fops-101", None, worker_headers
+            )["messages"],
+            [],
+        )
+
+        with self.assertRaises(urllib.error.HTTPError) as error:
+            self.request("/api/worker/comms", {
+                "project_id": pid, "name": "Hammer", "message": "nope", "audience": "cloud",
+            }, worker_headers)
+        self.assertEqual(error.exception.code, 400)
+
+    def test_connected_runner_roster_is_live_ephemeral_and_project_scoped(self):
+        pid = self.s.create(demo_spec(), demo=True)["project_id"]
+        other = self.s.create(demo_spec(), demo=True)["project_id"]
+        self.s.triage(pid)
+        self.s.store.settings({"remote_workers_enabled": True})
+        worker_headers = {"Authorization": "Bearer " + self.s.store.settings()["worker_token"]}
+
+        work = self.request("/api/worker/claim", {
+            "project_id": pid, "task_id": "OPS-101", "name": "Hammer",
+            "model": "qwen2.5-coder:7b", "placement": "local", "presence_ttl_s": 45,
+        }, worker_headers)["work"]
+        roster = self.request(f"/api/projects/{pid}/runners")["runners"]
+        self.assertEqual(len(roster), 1)
+        self.assertEqual(roster[0]["name"], "Hammer")
+        self.assertEqual(roster[0]["status"], "working")
+        self.assertEqual(roster[0]["task_id"], "OPS-101")
+        self.assertEqual(roster[0]["model"], "qwen2.5-coder:7b")
+        self.assertEqual(roster[0]["placement"], "local")
+        self.assertEqual(self.request(f"/api/projects/{other}/runners")["runners"], [])
+
+        result = self.request("/api/worker/result", {
+            "project_id": pid, "task_id": "OPS-101", "lease": work["lease"],
+            "presence_ttl_s": 45, "submission_id": "presence-result-1",
+            "response": {"files": DEMO_FILES["OPS-101"]},
+        }, worker_headers)
+        self.assertEqual(result["state"], "review_ready")
+        roster = self.request(f"/api/projects/{pid}/runners")["runners"]
+        self.assertEqual(roster[0]["status"], "review_ready")
+
+        with self.s.mutex:
+            self.s.runner_presence[(pid, "Hammer")]["expires_at"] = time.monotonic() - 1
+        self.assertEqual(self.request(f"/api/projects/{pid}/runners")["runners"], [])
+
 
 class ProviderHTTPTests(unittest.TestCase):
     def test_station_uses_actual_ollama_http_framing_and_reported_usage(self):
