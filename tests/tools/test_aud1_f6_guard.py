@@ -412,6 +412,35 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
         errors = guard.validate_snapshot_sequence(shots, "F6-A-inside-window")
         self.assertTrue(any("monotonic capture order regressed" in error for error in errors), errors)
 
+    def test_scope_identity_rejects_project_or_task_substitution(self):
+        labels = guard.LABELS["F6-B-outside-window"]
+        shots = {
+            label: {
+                "station": {
+                    "project_id": "p-test",
+                    "tasks": [{"id": "OPS-101", "value": {}}],
+                },
+            }
+            for label in labels
+        }
+        self.assertEqual(
+            guard.validate_scope_identity(shots, "F6-B-outside-window"), []
+        )
+
+        changed_project = json.loads(json.dumps(shots))
+        changed_project["04-reassigned"]["station"]["project_id"] = "p-other"
+        errors = guard.validate_scope_identity(
+            changed_project, "F6-B-outside-window"
+        )
+        self.assertTrue(any("project identity differs" in error for error in errors), errors)
+
+        changed_task = json.loads(json.dumps(shots))
+        changed_task["04-reassigned"]["station"]["tasks"][0]["id"] = "OPS-999"
+        errors = guard.validate_scope_identity(
+            changed_task, "F6-B-outside-window"
+        )
+        self.assertTrue(any("task identity differs" in error for error in errors), errors)
+
     def test_case_b_requires_natural_expiry_before_reassignment(self):
         old_lease_until = 1_795_000_000.0
         tid = "OPS-101"
@@ -481,6 +510,19 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
             },
         }
         self.assertEqual(guard.validate_f6_b_authority_order(shots), [])
+
+        regressed_deadline = json.loads(json.dumps(shots))
+        regressed_deadline["01-owned-before-interrupt"]["station"]["tasks"][0]["value"]["lease_until"] = 1_795_000_100.0
+        regressed_deadline["02-transport-down"]["station"]["tasks"][0]["value"]["lease_until"] = 1_795_000_000.0
+        errors = guard.validate_f6_b_authority_order(regressed_deadline)
+        self.assertTrue(any("lease deadline regressed" in error for error in errors), errors)
+
+        expiry_before_original = json.loads(json.dumps(shots))
+        expiry_before_original["01-owned-before-interrupt"]["station"]["tasks"][0]["value"]["lease_until"] = 1_795_000_100.0
+        expiry_before_original["02-transport-down"]["station"]["tasks"][0]["value"]["lease_until"] = 1_795_000_200.0
+        expiry_before_original["04-reassigned"]["station"]["events"][0]["value"]["timestamp"] = "2026-11-18T22:15:00+00:00"
+        errors = guard.validate_f6_b_authority_order(expiry_before_original)
+        self.assertTrue(any("predates the authoritative lease deadline" in error for error in errors), errors)
 
         missing_expiry = json.loads(json.dumps(shots))
         missing_expiry["04-reassigned"]["station"]["events"] = [
