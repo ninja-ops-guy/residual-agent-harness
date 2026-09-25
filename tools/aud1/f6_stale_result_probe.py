@@ -26,12 +26,10 @@ def utcnow():
 
 
 def sanitize_response_excerpt(text, *secret_values):
-    """Retain bounded denial context without ever retaining request secrets."""
-    safe = str(text)
-    for value in secret_values:
-        if value:
-            safe = safe.replace(str(value), "<redacted>")
-    return safe[:1000]
+    """Retain only the denial class; never retain server-controlled response text."""
+    if STALE_REJECTION_TEXT in str(text):
+        return STALE_REJECTION_TEXT
+    return "<redacted-response>"
 
 
 def main(argv=None):
