@@ -20,18 +20,13 @@ RESIDUAL spans a connected platform rather than a single agent loop:
 
 `FAIL`, `UNKNOWN`, `BLOCKED`, malformed output, verifier exceptions, provider failures and abstention do not silently become `PASS`.
 
-## Current main
+## Current repository status
 
-Current `main` is **`4608afabf5de4c87d77aaf149dfc12538d364f43`**.
+Accepted `main` at this status snapshot is **`d796f36b75e730a0bab71bdba564206174393719`**.
 
-Two accepted changes landed since the previous documented snapshot:
+For exact current PR identities, qualification runs, governance state, and release blockers, use [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md). Candidate-branch CI does not change accepted-main status, and a green candidate does not establish resulting-main or release qualification until the governed merge and fresh post-merge evidence exist.
 
-- **#200** — native setup hardening. The setup path now defaults to persistent XDG state, binds Station to `127.0.0.1`, makes the convenience shell macro opt-in, uses bounded venv repair, and constrains shell startup-file edits. This is onboarding hardening, **not** blank-environment qualification or a portability proof.
-- **#205** — WebVM provider-channel recovery. Mission Control now restores the private provider channel token from `sessionStorage` across reload/remount, validates it fail-closed, reuses it only for the active browser session, and clears it on explicit close. This is accepted provider-session lifecycle behavior, **not** retained proof of live Puter inference.
-
-The exact-current-main Actions set observed for `main@4608afa...` is complete with no pending, cancelled, or failing run in the retained exact-SHA query; the sampled Controller/provider workflow is **PASS on attempt 1**. Those results remain scoped to their named automated gates. They do not establish every-host/capable-runner M4 qualification, physical iPhone reliability, blank-environment install, host-loss recovery, elapsed soak, live-provider semantic success, or confirmatory research.
-
-Historical failures remain evidence even when later revisions pass.
+Release convergence is currently **BLOCKED**. Historical failures remain evidence even when later exact revisions pass.
 
 ## Live-provider and WebVM boundary
 
