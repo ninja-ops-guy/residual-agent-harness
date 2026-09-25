@@ -134,13 +134,14 @@ else {
 
     Write-Host ""
     Write-Host "Case B now requires an explicit stale-result rejection, not merely local no-submit." -ForegroundColor Yellow
-    Write-Host "On the OLD runner, run f6_stale_result_probe.py with its existing RESIDUAL_WORKER_TOKEN, this project/task, and the OLD lease from snapshot 01."
-    Write-Host "The probe must produce observed_status=403 and rejected=true. It never writes the credential to evidence."
+    Write-Host "On the OLD runner, run f6_stale_result_probe.py with its existing RESIDUAL_WORKER_TOKEN and the ORIGINAL project/task/lease/attempt/owner from snapshot 01."
+    Write-Host "The probe retains only a SHA-256 fingerprint of the lease and must produce observed_status=403, rejected=true, and accepted=false."
+    Write-Host "Do not paste the raw lease into chat, comments, or retained evidence."
     $stalePath = Read-Host "Path to the transferred stale-result probe JSON"
     if (-not (Test-Path $stalePath)) { throw "Required stale-result rejection artifact not found: $stalePath" }
     Invoke-Collector attach --case $Case --file $stalePath --name "stale-result-rejection.json"
     $stale = Get-Content $stalePath -Raw | ConvertFrom-Json
-    if ($stale.observed_status -ne 403 -or -not $stale.rejected -or $stale.accepted) {
+    if ($stale.observed_status -ne 403 -or $stale.rejected -ne $true -or $stale.accepted -ne $false) {
         Note "ERROR" "Explicit stale-result rejection probe did not return the required HTTP 403. Preserve as failure."
     } else {
         Note "STALE_RESULT" "Explicit stale result attempt from the old runner was rejected with HTTP 403 after reassignment."
