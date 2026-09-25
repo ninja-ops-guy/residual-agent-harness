@@ -1,0 +1,634 @@
+...............FFFFFFFF.FFFFFFFFFFFFFF.FFFFFFFFFFFFFF.FFFFFF...          [100%]
+=================================== FAILURES ===================================
+___ test_redirect_cannot_delegate_destination[json-http://127.0.0.1/private] ___
+
+transport = ({'redirect': 'http://127.0.0.1/private'}, ['https://allowed.invalid/api', 'http://127.0.0.1/private'])
+target = 'http://127.0.0.1/private', helper = 'json'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+___ test_redirect_cannot_delegate_destination[json-http://10.0.0.1/private] ____
+
+transport = ({'redirect': 'http://10.0.0.1/private'}, ['https://allowed.invalid/api', 'http://10.0.0.1/private'])
+target = 'http://10.0.0.1/private', helper = 'json'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+__ test_redirect_cannot_delegate_destination[json-http://172.16.0.1/private] ___
+
+transport = ({'redirect': 'http://172.16.0.1/private'}, ['https://allowed.invalid/api', 'http://172.16.0.1/private'])
+target = 'http://172.16.0.1/private', helper = 'json'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+__ test_redirect_cannot_delegate_destination[json-http://192.168.1.1/private] __
+
+transport = ({'redirect': 'http://192.168.1.1/private'}, ['https://allowed.invalid/api', 'http://192.168.1.1/private'])
+target = 'http://192.168.1.1/private', helper = 'json'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_ test_redirect_cannot_delegate_destination[json-http://169.254.169.254/private] _
+
+transport = ({'redirect': 'http://169.254.169.254/private'}, ['https://allowed.invalid/api', 'http://169.254.169.254/private'])
+target = 'http://169.254.169.254/private', helper = 'json'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_____ test_redirect_cannot_delegate_destination[json-http://[::1]/private] _____
+
+transport = ({'redirect': 'http://[::1]/private'}, ['https://allowed.invalid/api', 'http://[::1]/private'])
+target = 'http://[::1]/private', helper = 'json'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_ test_redirect_cannot_delegate_destination[json-http://[::ffff:127.0.0.1]/private] _
+
+transport = ({'redirect': 'http://[::ffff:127.0.0.1]/private'}, ['https://allowed.invalid/api', 'http://[::ffff:127.0.0.1]/private'])
+target = 'http://[::ffff:127.0.0.1]/private', helper = 'json'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_ test_redirect_cannot_delegate_destination[json-http://private.invalid/private] _
+
+transport = ({'redirect': 'http://private.invalid/private'}, ['https://allowed.invalid/api', 'http://private.invalid/private'])
+target = 'http://private.invalid/private', helper = 'json'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_ test_redirect_cannot_delegate_destination[json-ftp://private.invalid/private] _
+
+transport = ({'redirect': 'ftp://private.invalid/private'}, ['https://allowed.invalid/api', 'ftp://private.invalid/private'])
+target = 'ftp://private.invalid/private', helper = 'json'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+__ test_redirect_cannot_delegate_destination[json-http://2130706433/private] ___
+
+transport = ({'redirect': 'http://2130706433/private'}, ['https://allowed.invalid/api', 'http://2130706433/private'])
+target = 'http://2130706433/private', helper = 'json'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+__ test_redirect_cannot_delegate_destination[json-http://0x7f000001/private] ___
+
+transport = ({'redirect': 'http://0x7f000001/private'}, ['https://allowed.invalid/api', 'http://0x7f000001/private'])
+target = 'http://0x7f000001/private', helper = 'json'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_____ test_redirect_cannot_delegate_destination[json-http://127.1/private] _____
+
+transport = ({'redirect': 'http://127.1/private'}, ['https://allowed.invalid/api', 'http://127.1/private'])
+target = 'http://127.1/private', helper = 'json'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_ test_redirect_cannot_delegate_destination[json-http://%31%32%37.0.0.1/private] _
+
+transport = ({'redirect': 'http://%31%32%37.0.0.1/private'}, ['https://allowed.invalid/api', 'http://%31%32%37.0.0.1/private'])
+target = 'http://%31%32%37.0.0.1/private', helper = 'json'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_ test_redirect_cannot_delegate_destination[json-http://allowed.invalid@127.0.0.1/private] _
+
+transport = ({'redirect': 'http://allowed.invalid@127.0.0.1/private'}, ['https://allowed.invalid/api', 'http://allowed.invalid@127.0.0.1/private'])
+target = 'http://allowed.invalid@127.0.0.1/private', helper = 'json'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+___ test_redirect_cannot_delegate_destination[form-http://127.0.0.1/private] ___
+
+transport = ({'redirect': 'http://127.0.0.1/private'}, ['https://allowed.invalid/api', 'http://127.0.0.1/private'])
+target = 'http://127.0.0.1/private', helper = 'form'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+___ test_redirect_cannot_delegate_destination[form-http://10.0.0.1/private] ____
+
+transport = ({'redirect': 'http://10.0.0.1/private'}, ['https://allowed.invalid/api', 'http://10.0.0.1/private'])
+target = 'http://10.0.0.1/private', helper = 'form'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+__ test_redirect_cannot_delegate_destination[form-http://172.16.0.1/private] ___
+
+transport = ({'redirect': 'http://172.16.0.1/private'}, ['https://allowed.invalid/api', 'http://172.16.0.1/private'])
+target = 'http://172.16.0.1/private', helper = 'form'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+__ test_redirect_cannot_delegate_destination[form-http://192.168.1.1/private] __
+
+transport = ({'redirect': 'http://192.168.1.1/private'}, ['https://allowed.invalid/api', 'http://192.168.1.1/private'])
+target = 'http://192.168.1.1/private', helper = 'form'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_ test_redirect_cannot_delegate_destination[form-http://169.254.169.254/private] _
+
+transport = ({'redirect': 'http://169.254.169.254/private'}, ['https://allowed.invalid/api', 'http://169.254.169.254/private'])
+target = 'http://169.254.169.254/private', helper = 'form'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_____ test_redirect_cannot_delegate_destination[form-http://[::1]/private] _____
+
+transport = ({'redirect': 'http://[::1]/private'}, ['https://allowed.invalid/api', 'http://[::1]/private'])
+target = 'http://[::1]/private', helper = 'form'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_ test_redirect_cannot_delegate_destination[form-http://[::ffff:127.0.0.1]/private] _
+
+transport = ({'redirect': 'http://[::ffff:127.0.0.1]/private'}, ['https://allowed.invalid/api', 'http://[::ffff:127.0.0.1]/private'])
+target = 'http://[::ffff:127.0.0.1]/private', helper = 'form'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_ test_redirect_cannot_delegate_destination[form-http://private.invalid/private] _
+
+transport = ({'redirect': 'http://private.invalid/private'}, ['https://allowed.invalid/api', 'http://private.invalid/private'])
+target = 'http://private.invalid/private', helper = 'form'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_ test_redirect_cannot_delegate_destination[form-ftp://private.invalid/private] _
+
+transport = ({'redirect': 'ftp://private.invalid/private'}, ['https://allowed.invalid/api', 'ftp://private.invalid/private'])
+target = 'ftp://private.invalid/private', helper = 'form'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+__ test_redirect_cannot_delegate_destination[form-http://2130706433/private] ___
+
+transport = ({'redirect': 'http://2130706433/private'}, ['https://allowed.invalid/api', 'http://2130706433/private'])
+target = 'http://2130706433/private', helper = 'form'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+__ test_redirect_cannot_delegate_destination[form-http://0x7f000001/private] ___
+
+transport = ({'redirect': 'http://0x7f000001/private'}, ['https://allowed.invalid/api', 'http://0x7f000001/private'])
+target = 'http://0x7f000001/private', helper = 'form'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_____ test_redirect_cannot_delegate_destination[form-http://127.1/private] _____
+
+transport = ({'redirect': 'http://127.1/private'}, ['https://allowed.invalid/api', 'http://127.1/private'])
+target = 'http://127.1/private', helper = 'form'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_ test_redirect_cannot_delegate_destination[form-http://%31%32%37.0.0.1/private] _
+
+transport = ({'redirect': 'http://%31%32%37.0.0.1/private'}, ['https://allowed.invalid/api', 'http://%31%32%37.0.0.1/private'])
+target = 'http://%31%32%37.0.0.1/private', helper = 'form'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_ test_redirect_cannot_delegate_destination[form-http://allowed.invalid@127.0.0.1/private] _
+
+transport = ({'redirect': 'http://allowed.invalid@127.0.0.1/private'}, ['https://allowed.invalid/api', 'http://allowed.invalid@127.0.0.1/private'])
+target = 'http://allowed.invalid@127.0.0.1/private', helper = 'form'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+___ test_redirect_cannot_delegate_destination[soak-http://127.0.0.1/private] ___
+
+transport = ({'redirect': 'http://127.0.0.1/private'}, ['http://127.0.0.1:8893/api/bootstrap', 'http://127.0.0.1/private'])
+target = 'http://127.0.0.1/private', helper = 'soak'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+___ test_redirect_cannot_delegate_destination[soak-http://10.0.0.1/private] ____
+
+transport = ({'redirect': 'http://10.0.0.1/private'}, ['http://127.0.0.1:8893/api/bootstrap', 'http://10.0.0.1/private'])
+target = 'http://10.0.0.1/private', helper = 'soak'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+__ test_redirect_cannot_delegate_destination[soak-http://172.16.0.1/private] ___
+
+transport = ({'redirect': 'http://172.16.0.1/private'}, ['http://127.0.0.1:8893/api/bootstrap', 'http://172.16.0.1/private'])
+target = 'http://172.16.0.1/private', helper = 'soak'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+__ test_redirect_cannot_delegate_destination[soak-http://192.168.1.1/private] __
+
+transport = ({'redirect': 'http://192.168.1.1/private'}, ['http://127.0.0.1:8893/api/bootstrap', 'http://192.168.1.1/private'])
+target = 'http://192.168.1.1/private', helper = 'soak'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_ test_redirect_cannot_delegate_destination[soak-http://169.254.169.254/private] _
+
+transport = ({'redirect': 'http://169.254.169.254/private'}, ['http://127.0.0.1:8893/api/bootstrap', 'http://169.254.169.254/private'])
+target = 'http://169.254.169.254/private', helper = 'soak'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_____ test_redirect_cannot_delegate_destination[soak-http://[::1]/private] _____
+
+transport = ({'redirect': 'http://[::1]/private'}, ['http://127.0.0.1:8893/api/bootstrap', 'http://[::1]/private'])
+target = 'http://[::1]/private', helper = 'soak'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_ test_redirect_cannot_delegate_destination[soak-http://[::ffff:127.0.0.1]/private] _
+
+transport = ({'redirect': 'http://[::ffff:127.0.0.1]/private'}, ['http://127.0.0.1:8893/api/bootstrap', 'http://[::ffff:127.0.0.1]/private'])
+target = 'http://[::ffff:127.0.0.1]/private', helper = 'soak'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_ test_redirect_cannot_delegate_destination[soak-http://private.invalid/private] _
+
+transport = ({'redirect': 'http://private.invalid/private'}, ['http://127.0.0.1:8893/api/bootstrap', 'http://private.invalid/private'])
+target = 'http://private.invalid/private', helper = 'soak'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_ test_redirect_cannot_delegate_destination[soak-ftp://private.invalid/private] _
+
+transport = ({'redirect': 'ftp://private.invalid/private'}, ['http://127.0.0.1:8893/api/bootstrap', 'ftp://private.invalid/private'])
+target = 'ftp://private.invalid/private', helper = 'soak'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+__ test_redirect_cannot_delegate_destination[soak-http://2130706433/private] ___
+
+transport = ({'redirect': 'http://2130706433/private'}, ['http://127.0.0.1:8893/api/bootstrap', 'http://2130706433/private'])
+target = 'http://2130706433/private', helper = 'soak'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+__ test_redirect_cannot_delegate_destination[soak-http://0x7f000001/private] ___
+
+transport = ({'redirect': 'http://0x7f000001/private'}, ['http://127.0.0.1:8893/api/bootstrap', 'http://0x7f000001/private'])
+target = 'http://0x7f000001/private', helper = 'soak'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_____ test_redirect_cannot_delegate_destination[soak-http://127.1/private] _____
+
+transport = ({'redirect': 'http://127.1/private'}, ['http://127.0.0.1:8893/api/bootstrap', 'http://127.1/private'])
+target = 'http://127.1/private', helper = 'soak'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_ test_redirect_cannot_delegate_destination[soak-http://%31%32%37.0.0.1/private] _
+
+transport = ({'redirect': 'http://%31%32%37.0.0.1/private'}, ['http://127.0.0.1:8893/api/bootstrap', 'http://%31%32%37.0.0.1/private'])
+target = 'http://%31%32%37.0.0.1/private', helper = 'soak'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+_ test_redirect_cannot_delegate_destination[soak-http://allowed.invalid@127.0.0.1/private] _
+
+transport = ({'redirect': 'http://allowed.invalid@127.0.0.1/private'}, ['http://127.0.0.1:8893/api/bootstrap', 'http://allowed.invalid@127.0.0.1/private'])
+target = 'http://allowed.invalid@127.0.0.1/private', helper = 'soak'
+
+    @pytest.mark.parametrize('target', TARGETS)
+    @pytest.mark.parametrize('helper', ['json','form','soak'])
+    def test_redirect_cannot_delegate_destination(transport, target, helper):
+        state, seen = transport
+        state['redirect'] = target
+>       with pytest.raises(error.HTTPError):
+E       Failed: DID NOT RAISE HTTPError
+
+tests/security/test_r4_01_network_authority.py:82: Failed
+=========================== short test summary info ============================
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[json-http://127.0.0.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[json-http://10.0.0.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[json-http://172.16.0.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[json-http://192.168.1.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[json-http://169.254.169.254/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[json-http://[::1]/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[json-http://[::ffff:127.0.0.1]/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[json-http://private.invalid/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[json-ftp://private.invalid/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[json-http://2130706433/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[json-http://0x7f000001/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[json-http://127.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[json-http://%31%32%37.0.0.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[json-http://allowed.invalid@127.0.0.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[form-http://127.0.0.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[form-http://10.0.0.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[form-http://172.16.0.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[form-http://192.168.1.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[form-http://169.254.169.254/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[form-http://[::1]/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[form-http://[::ffff:127.0.0.1]/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[form-http://private.invalid/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[form-ftp://private.invalid/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[form-http://2130706433/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[form-http://0x7f000001/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[form-http://127.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[form-http://%31%32%37.0.0.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[form-http://allowed.invalid@127.0.0.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[soak-http://127.0.0.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[soak-http://10.0.0.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[soak-http://172.16.0.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[soak-http://192.168.1.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[soak-http://169.254.169.254/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[soak-http://[::1]/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[soak-http://[::ffff:127.0.0.1]/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[soak-http://private.invalid/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[soak-ftp://private.invalid/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[soak-http://2130706433/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[soak-http://0x7f000001/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[soak-http://127.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[soak-http://%31%32%37.0.0.1/private]
+FAILED tests/security/test_r4_01_network_authority.py::test_redirect_cannot_delegate_destination[soak-http://allowed.invalid@127.0.0.1/private]
+42 failed, 21 passed in 0.89s

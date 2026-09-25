@@ -1,0 +1,87 @@
+[
+  {
+    "id": "python/Ssrf:demo/cloud_gateway/server.py:64",
+    "threat_class": "SNYK-R4-01",
+    "severity": "HIGH",
+    "canonical_path": "demo/cloud_gateway/server.py",
+    "sink": "demo/cloud_gateway/server.py:64 (baseline urllib.request.urlopen)",
+    "original_paths": [
+      "demo/cloud_gateway/server.py"
+    ],
+    "original_lines": [
+      64
+    ],
+    "duplicate_group": "demo/cloud_gateway/server.py:outbound-request",
+    "source_taint_origin": "HTTP request body; destination from operator environment; redirect from upstream response",
+    "disposition": "EXPLOITABLE",
+    "direct_request_destination_control": "CONSTRAINED",
+    "post_fix_status": "FIXED",
+    "reproduced": true,
+    "negative_control": "Base-commit modules: 42 redirect-confinement assertion failures; 21 passes; exit 1",
+    "fix_commit": null,
+    "fix_commit_record": "Bounded commit SHA will be entered after commit creation; source hashes in r4-01/evidence.json",
+    "tests": [
+      "tests/security/test_r4_01_network_authority.py",
+      "tests/test_demo_cloud_gateway.py",
+      "tests/qualification/test_active_http_soak.py"
+    ],
+    "evidence": [
+      "artifacts/security/r4-01/evidence.json",
+      "artifacts/security/r4-01/negative-control.txt",
+      "artifacts/security/r4-01/targeted-tests.txt",
+      "artifacts/security/r4-01/surrounding-http.txt",
+      "artifacts/security/r4-01/loopback-guard-check.txt"
+    ],
+    "limitations": [
+      "Exploit precondition: upstream/local server controls redirect; not direct request-body destination control",
+      "DNS responses simulated; no production network actions",
+      "Other threat classes and full Qualification-v1 pending"
+    ]
+  },
+  {
+    "id": "python/Ssrf:scripts/qualification_active_http_soak.py:28",
+    "threat_class": "SNYK-R4-01",
+    "severity": "MEDIUM",
+    "canonical_path": "scripts/qualification_active_http_soak.py",
+    "sink": "scripts/qualification_active_http_soak.py:28 (baseline urllib.request.urlopen)",
+    "original_paths": [
+      "scripts/qualification_active_http_soak.py"
+    ],
+    "original_lines": [
+      28,
+      76,
+      79,
+      80,
+      83,
+      87,
+      88,
+      92
+    ],
+    "duplicate_group": "scripts/qualification_active_http_soak.py:outbound-request",
+    "source_taint_origin": "Local CLI integer port; station response fields in paths; redirect from local server response",
+    "disposition": "EXPLOITABLE",
+    "direct_request_destination_control": "CONSTRAINED",
+    "post_fix_status": "FIXED",
+    "reproduced": true,
+    "negative_control": "Base-commit modules: 42 redirect-confinement assertion failures; 21 passes; exit 1",
+    "fix_commit": null,
+    "fix_commit_record": "Bounded commit SHA will be entered after commit creation; source hashes in r4-01/evidence.json",
+    "tests": [
+      "tests/security/test_r4_01_network_authority.py",
+      "tests/test_demo_cloud_gateway.py",
+      "tests/qualification/test_active_http_soak.py"
+    ],
+    "evidence": [
+      "artifacts/security/r4-01/evidence.json",
+      "artifacts/security/r4-01/negative-control.txt",
+      "artifacts/security/r4-01/targeted-tests.txt",
+      "artifacts/security/r4-01/surrounding-http.txt",
+      "artifacts/security/r4-01/loopback-guard-check.txt"
+    ],
+    "limitations": [
+      "Exploit precondition: upstream/local server controls redirect; not direct request-body destination control",
+      "DNS responses simulated; no production network actions",
+      "Other threat classes and full Qualification-v1 pending"
+    ]
+  }
+]

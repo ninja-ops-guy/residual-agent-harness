@@ -19,13 +19,19 @@ else:
     from qualification_process_soak import fd_count, rss_bytes, slope_per_hour, terminate
 
 
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    """An upstream response cannot delegate this process's network authority."""
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise urllib.error.HTTPError(req.full_url, code, "redirect refused", headers, fp)
+
+
 def request(url: str, path: str, *, token: str | None = None, body=None, timeout: float = 10.0):
     data = None if body is None else json.dumps(body, separators=(",", ":")).encode()
     headers = {"Content-Type": "application/json"}
     if token:
         headers["X-Station-Token"] = token
     req = urllib.request.Request(url + path, data=data, headers=headers)
-    with urllib.request.urlopen(req, timeout=timeout) as response:
+    with urllib.request.build_opener(NoRedirect()).open(req, timeout=timeout) as response:
         payload = response.read(5_000_000)
         if not 200 <= response.status < 300:
             raise RuntimeError(f"HTTP {response.status}")

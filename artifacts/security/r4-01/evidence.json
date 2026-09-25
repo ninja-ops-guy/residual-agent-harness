@@ -1,0 +1,33 @@
+{
+  "schema": "residual.security.r4-01.evidence.v1",
+  "base_head": "d796f36b75e730a0bab71bdba564206174393719",
+  "base_tree": "39d23b7a8d395664329866d43a3fb9c97e8d83fb",
+  "tested_source_sha256": {
+    "demo/cloud_gateway/server.py": "a698a412442849e27785bd1a5d1628222e50312ad33703c3703f6613021505fc",
+    "scripts/qualification_active_http_soak.py": "2ca50e3730c0f840bcb587c594cd97efc3828f131c98e2a2788c16e11e565011",
+    "tests/security/test_r4_01_network_authority.py": "f30fd622c021bfb691066c9efb2f1244609c9e1394e6fe06a8f10bc7d348535e"
+  },
+  "original_negative_control": {
+    "exit_code": 1,
+    "redirect_assertions_failed": 42,
+    "passed": 21
+  },
+  "post_fix_targeted": {
+    "exit_code": 0,
+    "passed": 70
+  },
+  "surrounding_http": {
+    "exit_code": 0,
+    "passed": 1,
+    "cycles": 2,
+    "network_policy": "numeric loopback only via inherited Python audit hook"
+  },
+  "direct_request_destination_control": "CONSTRAINED",
+  "redirect_authority_delegation_pre_fix": "EXPLOITABLE",
+  "post_fix_status": "FIXED",
+  "product_tool_changed_files": [
+    "demo/cloud_gateway/server.py",
+    "scripts/qualification_active_http_soak.py"
+  ],
+  "limitations_document": "docs/security/SNYK_R4_01.md"
+}

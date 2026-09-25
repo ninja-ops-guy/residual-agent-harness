@@ -1,0 +1,159 @@
+{
+  "source_sha256": "3c7c3f4c2c7a751bfd0553e174e602e34403a42edd526258335f4a2ff170b360",
+  "raw_count": 9,
+  "locations": [
+    [
+      {
+        "id": 0,
+        "physicalLocation": {
+          "artifactLocation": {
+            "uri": "demo/cloud_gateway/server.py",
+            "uriBaseId": "%SRCROOT%"
+          },
+          "region": {
+            "startLine": 64,
+            "endLine": 64,
+            "startColumn": 10,
+            "endColumn": 32
+          }
+        }
+      }
+    ],
+    [
+      {
+        "id": 0,
+        "physicalLocation": {
+          "artifactLocation": {
+            "uri": "scripts/qualification_active_http_soak.py",
+            "uriBaseId": "%SRCROOT%"
+          },
+          "region": {
+            "startLine": 28,
+            "endLine": 28,
+            "startColumn": 10,
+            "endColumn": 32
+          }
+        }
+      }
+    ],
+    [
+      {
+        "id": 0,
+        "physicalLocation": {
+          "artifactLocation": {
+            "uri": "scripts/qualification_active_http_soak.py",
+            "uriBaseId": "%SRCROOT%"
+          },
+          "region": {
+            "startLine": 76,
+            "endLine": 76,
+            "startColumn": 23,
+            "endColumn": 30
+          }
+        }
+      }
+    ],
+    [
+      {
+        "id": 0,
+        "physicalLocation": {
+          "artifactLocation": {
+            "uri": "scripts/qualification_active_http_soak.py",
+            "uriBaseId": "%SRCROOT%"
+          },
+          "region": {
+            "startLine": 79,
+            "endLine": 79,
+            "startColumn": 24,
+            "endColumn": 31
+          }
+        }
+      }
+    ],
+    [
+      {
+        "id": 0,
+        "physicalLocation": {
+          "artifactLocation": {
+            "uri": "scripts/qualification_active_http_soak.py",
+            "uriBaseId": "%SRCROOT%"
+          },
+          "region": {
+            "startLine": 80,
+            "endLine": 80,
+            "startColumn": 19,
+            "endColumn": 27
+          }
+        }
+      }
+    ],
+    [
+      {
+        "id": 0,
+        "physicalLocation": {
+          "artifactLocation": {
+            "uri": "scripts/qualification_active_http_soak.py",
+            "uriBaseId": "%SRCROOT%"
+          },
+          "region": {
+            "startLine": 83,
+            "endLine": 83,
+            "startColumn": 23,
+            "endColumn": 30
+          }
+        }
+      }
+    ],
+    [
+      {
+        "id": 0,
+        "physicalLocation": {
+          "artifactLocation": {
+            "uri": "scripts/qualification_active_http_soak.py",
+            "uriBaseId": "%SRCROOT%"
+          },
+          "region": {
+            "startLine": 87,
+            "endLine": 87,
+            "startColumn": 24,
+            "endColumn": 31
+          }
+        }
+      }
+    ],
+    [
+      {
+        "id": 0,
+        "physicalLocation": {
+          "artifactLocation": {
+            "uri": "scripts/qualification_active_http_soak.py",
+            "uriBaseId": "%SRCROOT%"
+          },
+          "region": {
+            "startLine": 88,
+            "endLine": 88,
+            "startColumn": 27,
+            "endColumn": 35
+          }
+        }
+      }
+    ],
+    [
+      {
+        "id": 0,
+        "physicalLocation": {
+          "artifactLocation": {
+            "uri": "scripts/qualification_active_http_soak.py",
+            "uriBaseId": "%SRCROOT%"
+          },
+          "region": {
+            "startLine": 92,
+            "endLine": 92,
+            "startColumn": 20,
+            "endColumn": 27
+          }
+        }
+      }
+    ]
+  ]
+}

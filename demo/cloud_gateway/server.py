@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json, os, secrets, sqlite3, threading, time, urllib.parse, urllib.request
+import json, os, secrets, sqlite3, threading, time, urllib.parse, urllib.request, urllib.error
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -55,13 +55,19 @@ def _db():
     return conn
 
 
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    """An upstream response cannot delegate this process's network authority."""
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise urllib.error.HTTPError(req.full_url, code, "redirect refused", headers, fp)
+
+
 def _json(url, method='GET', body=None, headers=None, timeout=20):
     data = None if body is None else json.dumps(body).encode()
     hdr = {'Accept': 'application/json'}
     if body is not None: hdr['Content-Type'] = 'application/json'
     if headers: hdr.update(headers)
     req = urllib.request.Request(url, data=data, headers=hdr, method=method)
-    with urllib.request.urlopen(req, timeout=timeout) as r:
+    with urllib.request.build_opener(NoRedirect()).open(req, timeout=timeout) as r:
         raw = r.read(MAX_UPSTREAM_BYTES + 1)
         if len(raw) > MAX_UPSTREAM_BYTES:
             raise RuntimeError('upstream response exceeds configured limit')
@@ -73,7 +79,7 @@ def _form(url, body, headers=None, timeout=20):
     hdr = {'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json'}
     if headers: hdr.update(headers)
     req = urllib.request.Request(url, data=data, headers=hdr, method='POST')
-    with urllib.request.urlopen(req, timeout=timeout) as r:
+    with urllib.request.build_opener(NoRedirect()).open(req, timeout=timeout) as r:
         raw = r.read(MAX_UPSTREAM_BYTES + 1)
         if len(raw) > MAX_UPSTREAM_BYTES:
             raise RuntimeError('upstream response exceeds configured limit')
