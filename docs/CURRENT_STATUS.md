@@ -1,6 +1,6 @@
 # RESIDUAL current status
 
-_Observation: 2026-09-24 23:59 UTC. Exact revisions below are snapshots; changed heads require fresh evidence._
+_Observation: 2026-09-25 01:02 UTC. Exact revisions below are snapshots; changed heads require fresh evidence._
 
 This is a status record, not acceptance authority. Historical PASS/FAIL/UNKNOWN/BLOCKED remains bound to the exact revision, run attempt, and environment that produced it.
 
@@ -8,20 +8,21 @@ This is a status record, not acceptance authority. Historical PASS/FAIL/UNKNOWN/
 
 Accepted `main` remains **`d796f36b75e730a0bab71bdba564206174393719`**. No newer PR has merged. AUD-1 issue #353 remains **OPEN with no milestone**.
 
-Release convergence remains **BLOCKED**. The most meaningful change since the preceding observation is a security supersession of the previously selected #448 candidate plus creation of an F6-helper successor that is now bound to that withdrawn candidate.
+Release convergence remains **BLOCKED**. The most meaningful change since the preceding observation is another #448 head advance that corrects how native Windows evidence is bound to the pull-request head.
 
-**#448:** the prior selection of `7001bdf68355b7e5288a8cea3f4c827061aca37d` is historical only. At 23:29 UTC the owner security review explicitly withdrew that SHA from final approval consideration after identifying lifecycle-admission gaps in exposed Store, Ollama/runtime, and direct Server mutation surfaces. GitHub now reports live #448 head **`6a69b1d5bf5fe3c8a89d92b8ae99bc3ebfc05d63`**, two commits ahead of the withdrawn SHA. The current PR body still contains an older sentence saying the live head is `7001bdf...`; that sentence is stale relative to GitHub PR metadata and must not be used as current identity.
+**#448:** GitHub now reports live head **`e9f5ba7eaba80a461c0676035a37c578e073f925`**, one commit ahead of previously observed `6a69b1d5bf5fe3c8a89d92b8ae99bc3ebfc05d63`. The new commit changes only `.github/workflows/station.yml`, adding an explicit checkout ref of `${{ github.event.pull_request.head.sha || github.sha }}` to the native Windows ownership job. This closes an evidence-binding ambiguity: the Windows job now checks out the exact PR head instead of relying on GitHub's default pull-request checkout behavior. No Station production implementation, protected Factory/M4 surface, ownership baseline, qualification anchor, or evidence schema changed in this commit.
 
-Fresh exact-head #448 repository workflows on `6a69b1d...` are **PASS** for Qualification v1 **36074390458**, Controller/provider **36074390436**, Command Station **36074390463**, clean install **36074390453**, Factory ownership **36074390420**, measured-evaluation **36074390642**, Control Plane **36074390383**, and Pages **36074390393**. Command Station's native **windows-ownership** job is PASS; Qualification-v1's **windows-lifecycle** and **macos-lifecycle** jobs are also PASS. PR-Agent **36074390417 is FAIL**. Current exact-head combined status reports Vercel **FAIL** from the external deployment-rate limit; a current exact-head maintainer-approval result was **not observed** in the returned workflow/status evidence and remains **UNKNOWN / not established** here. Submitted human reviews remain **0**.
+All named PR-associated workflows on the new head are **PASS**: Qualification v1 **36076825445**, Controller/provider **36076825515**, Command Station **36076825542**, clean install **36076825405**, Factory ownership **36076825544**, measured-evaluation **36076825634**, Control Plane **36076825593**, and Pages **36076825519**. Command Station's native **windows-ownership** job is **PASS** on the explicit PR-head checkout. Qualification-v1's **windows-lifecycle** and **macos-lifecycle** jobs are **PASS**, along with aggregate, concurrency, deterministic, active-workload, fault-injection, M4, browser, and red-team jobs.
 
-Those fresh PASS results satisfy the supersession comment's requirement for a published repaired successor with fresh cross-platform exact-head technical qualification. They do **not** renew the withdrawn owner selection. No owner disposition selecting or approving `6a69b1d...` was observed after the head change. #448 therefore remains **OPEN / DRAFT / UNMERGED / UNACCEPTED / NOT SELECTED** pending a new exact-SHA owner review/selection cycle.
+Qualification-v1 retained final artifact **10840244051**, GitHub-reported digest **`sha256:89548201f3ead4514b7020ab257efe0e97ef2f40311862d92fb95bd58b5bc16f`**. The qualification artifact names synthetic PR test-merge commit **`8c8908fabdd9da6780d5486ec184ec9036ef3427`**; repository comparison between that commit and exact #448 head `e9f5ba7...` reports **zero file differences**, so the tested merge tree is byte-equivalent to the current candidate tree. This is not an accepted-main merge.
 
-**#449:** new draft helper successor **`a30212c463ee317ed110600f3d29f319930ca560`** was derived from frozen #403 and is explicitly bound to the old selected target `7001bdf...`. Its exact-head Qualification v1 **36070369120**, Controller/provider **36070369079**, Command Station **36070369156**, clean install **36070369215**, Factory ownership **36070369070**, measured-evaluation **36070369221**, and Control Plane **36070369194** are **PASS**; PR-Agent **36070369181 is FAIL**; maintainer approval is **FAIL**; Vercel is **PASS**; submitted human reviews remain **0**. Physical F6-A/F6-B are explicitly **PENDING / NOT EXECUTED**.
+PR-Agent **36076825550 is FAIL**. Current combined status reports Vercel **FAIL** because of the external deployment-rate limit. A current-head maintainer-approval result was **not observed** in the returned workflow/status evidence and remains **UNKNOWN / not established** here. Submitted GitHub human reviews remain **0**.
 
-Because #448 withdrew `7001bdf...` from final approval and helper use after #449 was prepared, #449's exact-head CI does **not** make its target current. The helper is **BLOCKED for physical F6 use** until a current #448 successor is explicitly selected, every target pin is reconciled to that exact selected SHA, and the resulting helper head receives fresh qualification. No physical F6, merge, canary, deployment, production mutation, tag, or release is authorized.
+The prior owner-selected SHA `7001bdf...` remains withdrawn. No renewed owner review/selection bound to `e9f5ba7...` was observed after the latest head change. #448 therefore remains **OPEN / DRAFT / UNMERGED / UNACCEPTED / NOT SELECTED**. Green technical evidence does not authorize helper retargeting, F6, merge, deployment, canary, production use, tag, or release.
+
+**#449:** helper head **`a30212c463ee317ed110600f3d29f319930ca560`** remains unchanged and still binds to withdrawn target `7001bdf...`. Its historical PASS evidence remains valid only for those helper bytes and that obsolete binding. #449 is therefore still **BLOCKED for physical F6 use** until a current #448 SHA is explicitly selected, every helper target pin is reconciled to that exact SHA, and the changed helper receives fresh qualification. F6-A/F6-B remain **PENDING / NOT EXECUTED**.
 
 The original #446 audit findings remain retained evidence for the audited sources. Later candidate PASS results do not rewrite those historical FAIL/BLOCKED observations.
-
 ## #447 — seal JSON-boundary successor
 
 #447 is **OPEN / READY FOR REVIEW / UNMERGED / UNACCEPTED / NOT HUMAN-REVIEWED** at **`ad524c461aa60426695f226f541e172c557b8e98`**, stacked on #443 exact head `d2c8bb907da0c51f0bd56c9f5cb0114816b93205`. GitHub moved the unchanged head from draft to ready-for-review at **2026-09-24 21:40:32 UTC**.
@@ -32,31 +33,36 @@ A 21:41 UTC coordination comment requests independent human review but explicitl
 
 ## #448 — Station ownership / exposure successor
 
-#448 is **OPEN / DRAFT / UNMERGED / UNACCEPTED / NOT SELECTED** at current GitHub head **`6a69b1d5bf5fe3c8a89d92b8ae99bc3ebfc05d63`**, stacked on #438 exact head `e815f33484352f100e11b8d075bb954a815244cc`.
+#448 is **OPEN / DRAFT / UNMERGED / UNACCEPTED / NOT SELECTED** at current GitHub head **`e9f5ba7eaba80a461c0676035a37c578e073f925`**, stacked on #438 exact head `e815f33484352f100e11b8d075bb954a815244cc`.
 
-The earlier owner-selected SHA **`7001bdf68355b7e5288a8cea3f4c827061aca37d`** is **WITHDRAWN from final approval consideration**. The 23:29 UTC security supersession records lifecycle-admission gaps affecting exposed Store, Ollama/runtime, and direct Server mutation surfaces and requires a repaired published successor, fresh exact-head Linux/native-Windows qualification, then a new owner disposition. Any prior selection comment for `7001bdf...` is historical evidence only.
+The earlier owner-selected SHA **`7001bdf68355b7e5288a8cea3f4c827061aca37d`** remains **WITHDRAWN from final approval consideration**. The 23:29 UTC security supersession remains controlling over the older selection comments.
 
-GitHub now reports #448 at `6a69b1d...`, two commits ahead of `7001bdf...`. The delta adds/stabilizes native Windows ownership qualification and associated ownership/security tests/workflow wiring. The latest commit is `test(station): stabilize native Windows coverage`.
+Relative to previously observed repaired head `6a69b1d5bf5fe3c8a89d92b8ae99bc3ebfc05d63`, the current head is one commit ahead. Commit `ci(station): bind Windows evidence to PR head` changes only `.github/workflows/station.yml` and adds:
 
-Fresh exact-head evidence:
+`ref: ${{ github.event.pull_request.head.sha || github.sha }}`
 
-- Qualification v1 **36074390458 — PASS**
-- Controller/provider **36074390436 — PASS**
-- Command Station **36074390463 — PASS**
-- clean install **36074390453 — PASS**
-- Factory ownership **36074390420 — PASS**
-- measured-evaluation **36074390642 — PASS**
-- Control Plane **36074390383 — PASS**
-- Pages **36074390393 — PASS**
-- PR-Agent **36074390417 — FAIL**
+to the native Windows ownership checkout. This is an evidence-binding repair only; no Station production implementation changed in this latest commit.
+
+Current PR-associated technical evidence:
+
+- Qualification v1 **36076825445 — PASS**
+- Controller/provider **36076825515 — PASS**
+- Command Station **36076825542 — PASS**
+- clean install **36076825405 — PASS**
+- Factory ownership **36076825544 — PASS**
+- measured-evaluation **36076825634 — PASS**
+- Control Plane **36076825593 — PASS**
+- Pages **36076825519 — PASS**
+- PR-Agent **36076825550 — FAIL**
 - Vercel — **FAIL**, external deployment-rate limit
-- exact-head maintainer-approval result — **UNKNOWN / not observed in returned current-head workflow/status evidence**
-- submitted human reviews — **0**
+- exact-head maintainer-approval result — **UNKNOWN / not observed**
+- submitted GitHub human reviews — **0**
 
-Command Station's **windows-ownership** job is **PASS**. Qualification-v1's **windows-lifecycle** and **macos-lifecycle** jobs are **PASS**, along with aggregate, concurrency, active-workload, fault-injection, M4, browser and red-team jobs.
+Command Station's **windows-ownership** job is **PASS** and, because of the new explicit checkout ref, is bound to exact PR head `e9f5ba7...`. Qualification-v1's **windows-lifecycle** and **macos-lifecycle** jobs are also **PASS**, as are aggregate, concurrency, deterministic, active-workload, fault-injection, M4, browser, and red-team jobs.
 
-This establishes fresh exact-head technical qualification only. It does **not** restore the withdrawn owner selection, establish independent human review, retarget #403, authorize F6, merge the successor, or establish production acceptance. A new exact-SHA owner disposition is still required before downstream helper/F6 authority can advance.
+Qualification-v1 final artifact **10840244051** has GitHub-reported digest **`sha256:89548201f3ead4514b7020ab257efe0e97ef2f40311862d92fb95bd58b5bc16f`**. Its artifact name uses synthetic PR test-merge commit **`8c8908fabdd9da6780d5486ec184ec9036ef3427`**. A repository compare from exact head `e9f5ba7...` to that test-merge reports **zero changed files**, establishing tree equivalence for this qualification run without implying any merge into accepted main.
 
+This establishes current candidate technical evidence only. It does **not** renew the withdrawn owner selection, establish independent human review, make #449 current, authorize physical F6, merge the successor, or establish production acceptance. A new exact-SHA owner disposition remains required before helper/F6 authority can advance.
 ## #449 — F6 helper successor bound to withdrawn target
 
 #449 is **OPEN / DRAFT / UNMERGED / UNACCEPTED** at exact head **`a30212c463ee317ed110600f3d29f319930ca560`**, derived from frozen helper #403 exact head `118ec3c795ae11c88b68278717fb781f4b059559`.
@@ -129,7 +135,7 @@ The ledger remains coordination evidence only and does not override newer exact-
 
 ## Unresolved blockers
 
-Release remains **BLOCKED** on a renewed exact-SHA owner review/selection of current #448 after the prior `7001bdf...` selection was withdrawn; replacement/reconciliation of #449's helper binding to that future selected SHA plus fresh helper qualification; physical F6-A/F6-B; Mason/LEGION re-audit; preservation of #446's retained audited-source FAIL/BLOCKED record; Shared Comms inclusion/exclusion; #447 / PR-G26 independent-review routing to a named human reviewer, private semantic/provenance verification, verifier selection/freeze and package-closure policy; full PR-G27 transitive-input/SBOM/provenance closure; full PR-G28 lock/offline-build evidence; owner/operations approval of claims and deployment profile; corrected/private seal verification and canary authorization; accepted-main integration/requalification; exact-RC recovery, incident, elapsed-soak, provenance, and final release authorization.
+Release remains **BLOCKED** on a renewed exact-SHA owner review/selection of current #448 `e9f5ba7...` after the prior `7001bdf...` selection was withdrawn; replacement/reconciliation of #449's helper binding to that future selected SHA plus fresh helper qualification; physical F6-A/F6-B; Mason/LEGION re-audit; preservation of #446's retained audited-source FAIL/BLOCKED record; Shared Comms inclusion/exclusion; #447 / PR-G26 independent-review routing to a named human reviewer, private semantic/provenance verification, verifier selection/freeze and package-closure policy; full PR-G27 transitive-input/SBOM/provenance closure; full PR-G28 lock/offline-build evidence; owner/operations approval of claims and deployment profile; corrected/private seal verification and canary authorization; accepted-main integration/requalification; exact-RC recovery, incident, elapsed-soak, provenance, and final release authorization.
 
 ## Documentation scope
 
