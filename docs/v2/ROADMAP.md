@@ -120,3 +120,76 @@ Likely progression:
 single-host evidenced v1 baseline -> least-privilege enterprise profile -> multi-session/cross-user qualification -> hardened local threat model -> explicit storage matrix -> distributed/HA fencing -> independent enterprise assurance.
 
 Reuse the Environment Bank by retaining PR #448 Windows first-failure evidence, exact-head artifacts, sensitivity mutations and accepted scope boundaries as replayable v2 qualification inputs.
+
+
+## Harness-neutral evaluation track — HarnessBench
+
+**Spec:** [`SPEC-HARNESSBENCH-V2.md`](SPEC-HARNESSBENCH-V2.md)
+
+HarnessBench makes the agent harness/orchestration layer a controlled experimental variable. The same frozen task, repository/environment, model/runtime, tool surface, budgets, and verifier can be executed through different harnesses while RESIDUAL retains raw evidence, produces rebuildable normalized traces, independently verifies outcomes, and reports multidimensional tradeoffs rather than a universal ranking.
+
+This track is deliberately coupled to the existing v2 program:
+
+- **EVPR-001** supplies evidence-preserving reduction and receipt verification.
+- **OBSH-003 / CMPE-004** supply explicit context identity, recall, and compaction accounting so context policy does not become an invisible confounder.
+- **ENVB-002** supplies immutable replayable environments and screening/validation/held-out split discipline.
+- **SC-MESH / shared communications** becomes the declared communication plane for later distributed and heterogeneous-harness experiments.
+- **M6 / AX-21** consumes HarnessBench as an experimental instrument for separating model, harness, topology, context, and control-layer effects.
+
+### HarnessBench delivery sequence
+
+1. **HB-00 — Experiment schema and canonical serialization**
+   - Freeze experiment identities, treatment variables, invariants, budgets, and terminal-state vocabulary.
+
+2. **HB-01 — FrozenMission**
+   - Hash the immutable mission/acceptance/tool/budget envelope before execution.
+
+3. **HB-02 — HarnessAdapter contract**
+   - Establish harness-neutral lifecycle, capability, event, interruption, termination, and artifact collection boundaries.
+
+4. **HB-03 — Generic CLI adapter**
+   - Prove the interface does not depend on a privileged first-party harness.
+
+5. **HB-04 / HB-05 — Codex and OpenClaw adapters**
+   - Establish the first practical controlled comparison pair.
+
+6. **HB-06 — Normalized trace projection**
+   - Preserve raw harness-native evidence and build a deterministic/rebuildable common event projection.
+
+7. **HB-07 / HB-08 — Independent verifier + HarnessBenchReceipt**
+   - Harness-native completion never equals PASS; bind every admissible outcome to independent verification and sealed identities.
+
+8. **HB-09 / HB-10 — Replay bundles + contamination/drift detection**
+   - Detect cross-run state leakage, cached-solution exposure, model/runtime/harness drift, undeclared memory, repository mutation, and other invalidating conditions.
+
+9. **HB-11 / HB-12 — Campaign scheduler + statistical/Pareto reporting**
+   - Add paired/randomized repeated trials, preregistered exclusions, uncertainty/effect reporting, and reliability/latency/compute/intervention tradeoff surfaces.
+
+10. **HB-15 / HB-16 — Local telemetry + Environment Bank held-out integration**
+    - Bind local hardware/inference manifests and enforce immutable screening/validation/confirmatory environment generations.
+
+11. **HB-13 / HB-14 — Distributed and heterogeneous-harness campaigns**
+    - Compare homogeneous versus mixed harness/model/host swarms only after the relevant shared-communications identity and continuity contracts qualify.
+
+12. **HB-17 — Adversarial qualification**
+    - False completion, child-process escape, out-of-worktree mutation, drift, dropped/duplicated/reordered events, budget overrun, network escape, cached-solution/shared-memory contamination, verifier crash, RESIDUAL restart, host loss, undeclared communications, and normalized-trace corruption.
+
+### HarnessBench release gates
+
+HarnessBench remains research-only until:
+- at least two independent adapters execute the same frozen corpus against the same frozen model/runtime and environment;
+- raw evidence and normalized projections are independently inspectable and projection rebuild succeeds;
+- false-completion and contamination injections are detected with live sensitivity controls;
+- campaign repetition/randomization rules are preregistered;
+- every admissible result has a valid HarnessBenchReceipt;
+- comparative results can be reconstructed from sealed artifacts without trusting the UI.
+
+Heterogeneous-swarm claims require additional SC-MESH qualification for communications identity, continuity, host loss/rejoin, and cross-harness evidence propagation.
+
+### Intended first practical campaign
+
+After v2 kickoff and adapter qualification, use a controlled local inference profile as an early campaign: one frozen local model/runtime and host profile, one frozen coding corpus, and Codex versus OpenClaw (plus `generic_cli` as a minimal control where useful). This campaign is intended to validate the experimental machinery; it must not be presented as a universal harness ranking.
+
+The progression is:
+
+`frozen single-agent comparisons -> repeated controlled campaigns -> Environment Bank held-out validation -> distributed homogeneous swarms -> heterogeneous harness/model swarms -> M6/AX-21 causal studies`.
