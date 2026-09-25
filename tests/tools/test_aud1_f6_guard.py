@@ -112,7 +112,8 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
                             "id": "OPS-101",
                             "value": {
                                 "owner": "remote:runner-a",
-                                "lease": "lease-a",
+                                "lease_present": True,
+                                "lease_fingerprint": "sha256:" + guard.base.sha256_bytes(b"lease-a"),
                             },
                         }
                     ],
@@ -225,7 +226,8 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
                         "id": "OPS-101",
                         "value": {
                             "owner": "remote:old",
-                            "lease": "abcdefghijklmnopqrstuvwxyzABCDEF",
+                            "lease_present": True,
+                            "lease_fingerprint": "sha256:" + guard.base.sha256_bytes(b"abcdefghijklmnopqrstuvwxyzABCDEF"),
                             "lease_until": 1000.0,
                             "attempt": 1,
                         },
@@ -271,7 +273,8 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
                     "id": "OPS-101",
                     "value": {
                         "owner": "remote:old",
-                        "lease": "abcdefghijklmnopqrstuvwxyzABCDEF",
+                        "lease_present": True,
+                            "lease_fingerprint": "sha256:" + guard.base.sha256_bytes(b"abcdefghijklmnopqrstuvwxyzABCDEF"),
                         "attempt": 3,
                     },
                 }],
@@ -465,7 +468,8 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
 
         before_task = {
             "owner": old_owner,
-            "lease": "abcdefghijklmnopqrstuvwxyzABCDEF",
+            "lease_present": True,
+                            "lease_fingerprint": "sha256:" + guard.base.sha256_bytes(b"abcdefghijklmnopqrstuvwxyzABCDEF"),
             "lease_until": old_lease_until,
             "attempt": 1,
         }
@@ -491,7 +495,8 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
                         "id": tid,
                         "value": {
                             "owner": new_owner,
-                            "lease": "new-lease",
+                            "lease_present": True,
+                            "lease_fingerprint": "sha256:" + guard.base.sha256_bytes(b"new-lease"),
                             "lease_until": old_lease_until + 900,
                             "attempt": 2,
                         },
@@ -525,6 +530,16 @@ class PhysicalEvidenceGuardTests(unittest.TestCase):
         expiry_before_original["04-reassigned"]["station"]["events"][0]["value"]["timestamp"] = "2026-11-18T11:09:00+00:00"
         errors = guard.validate_f6_b_authority_order(expiry_before_original)
         self.assertTrue(any("predates the authoritative lease deadline" in error for error in errors), errors)
+
+        nan_deadline = json.loads(json.dumps(shots))
+        nan_deadline["01-owned-before-interrupt"]["station"]["tasks"][0]["value"]["lease_until"] = "NaN"
+        errors = guard.validate_f6_b_authority_order(nan_deadline)
+        self.assertTrue(any("not machine-verifiable" in error for error in errors), errors)
+
+        infinite_deadline = json.loads(json.dumps(shots))
+        infinite_deadline["02-transport-down"]["station"]["tasks"][0]["value"]["lease_until"] = "Infinity"
+        errors = guard.validate_f6_b_authority_order(infinite_deadline)
+        self.assertTrue(any("not machine-verifiable" in error for error in errors), errors)
 
         missing_expiry = json.loads(json.dumps(shots))
         missing_expiry["04-reassigned"]["station"]["events"] = [
