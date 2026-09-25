@@ -5,6 +5,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import tarfile
 import zipfile
@@ -311,6 +312,67 @@ def test_member_names_have_cross_platform_confinement(tmp_path):
                  '..\\escape', 'file:stream', '//server/share']:
         with pytest.raises(ContractError):
             archive_security.member_path(name, tmp_path)
+
+
+class DeterministicTemporaryDirectory:
+    def __init__(self, *, prefix, dir, name):
+        self.path = Path(dir) / name
+
+    def __enter__(self):
+        self.path.mkdir()
+        return str(self.path)
+
+    def __exit__(self, exc_type, exc, tb):
+        shutil.rmtree(self.path, ignore_errors=True)
+
+
+@pytest.mark.parametrize('kind', ['tar', 'tar.zst'])
+@pytest.mark.parametrize('referenced_name', ['.runtime-install-fixed123', '.runtime-install-wrong'])
+def test_link_confinement_survives_staging_promotion(tmp_path, monkeypatch, kind, referenced_name):
+    actual_name = '.runtime-install-fixed123'
+    monkeypatch.setattr(
+        models.tempfile,
+        'TemporaryDirectory',
+        lambda *, prefix, dir: DeterministicTemporaryDirectory(
+            prefix=prefix, dir=dir, name=actual_name
+        ),
+    )
+    target = f"../../{referenced_name}/runtime/victim"
+    members = [
+        ('file', 'bin/ollama', b'fixture'),
+        ('file', 'victim', b'original'),
+        ('symlink', 'link', target),
+    ]
+    installer, _, root = raw_installer(
+        tmp_path, monkeypatch, kind, make_archive(kind, members)
+    )
+    with pytest.raises(ContractError, match='link target'):
+        installer.install(lambda *a: None)
+    assert_no_partial_runtime(root)
+    installer.start.assert_not_called()
+
+
+@pytest.mark.parametrize('kind', ['tar', 'tar.zst'])
+def test_confined_parent_relative_symlink_survives_promotion(tmp_path, monkeypatch, kind):
+    members = [
+        ('file', 'bin/ollama', b'fixture'),
+        ('symlink', 'lib/ollama-link', '../bin/ollama'),
+    ]
+    installer, _, root = raw_installer(
+        tmp_path, monkeypatch, kind, make_archive(kind, members)
+    )
+    assert installer.install(lambda *a: None) == 'started'
+    link = root/'runtime/lib/ollama-link'
+    assert link.is_symlink()
+    assert link.resolve() == (root/'runtime/bin/ollama').resolve()
+
+
+def test_logical_link_target_rejects_root_underflow(tmp_path):
+    member = tarfile.TarInfo('link')
+    member.type = tarfile.SYMTYPE
+    member.linkname = '../../.runtime-install-fixed123/runtime/victim'
+    with pytest.raises(ContractError, match='link target'):
+        archive_security.validate_link(member, tmp_path)
 
 
 def test_manifest_python_support_matches_guard():
