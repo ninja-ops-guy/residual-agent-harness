@@ -143,6 +143,17 @@ def parse_value(raw):
         return {"_unparsed": str(raw)[:1000]}
 
 
+def evidence_task_value(value):
+    """Retain authority identity without persisting the bearer lease itself."""
+    safe = dict(value) if isinstance(value, dict) else {}
+    lease = safe.pop("lease", None)
+    safe["lease_present"] = bool(lease)
+    safe["lease_fingerprint"] = (
+        "sha256:" + sha256_bytes(str(lease).encode("utf-8")) if lease else None
+    )
+    return safe
+
+
 def station_snapshot(db, project, task=None):
     with connect_ro(db) as conn:
         project_row = conn.execute("SELECT value FROM projects WHERE id=?", (project,)).fetchone()
@@ -157,7 +168,10 @@ def station_snapshot(db, project, task=None):
             params.append(task)
         query += " ORDER BY id"
         for row in conn.execute(query, params):
-            tasks.append({"id": row["id"], "value": parse_value(row["value"])})
+            tasks.append({
+                "id": row["id"],
+                "value": evidence_task_value(parse_value(row["value"])),
+            })
         events = []
         for row in conn.execute(
             "SELECT seq,event_id,value,prev_hash,hash FROM events WHERE project=? ORDER BY seq", (project,)
