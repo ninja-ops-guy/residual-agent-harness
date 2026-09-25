@@ -64,6 +64,8 @@ class F6DiagnosticsTests(unittest.TestCase):
             after = f6.sha256_file(db)
             self.assertEqual(before, after)
             self.assertEqual(snap["sqlite_integrity"], "ok")
+            self.assertIsInstance(snap["captured_monotonic_ns"], int)
+            self.assertGreater(snap["captured_monotonic_ns"], 0)
             self.assertEqual(snap["tasks"][0]["value"]["owner"], "remote:Hammer")
             self.assertEqual(snap["event_count"], 1)
             self.assertEqual(snap["settings_redacted"]["worker_token"], "<redacted>")
