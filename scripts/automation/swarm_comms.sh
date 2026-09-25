@@ -58,6 +58,17 @@ EOF
 
 MESH_VERIFY="python -m pytest -q tests/station/test_sc_mesh_001.py tests/station/test_sc_mesh_continuity.py tests/station/test_sc_mesh_openclaw.py tests/station/test_sc_mesh_runner.py"
 
+# Any unexpected operational error after initialization is evidence. Disable the
+# trap before entering the Codex repair path so a failed repair cannot recurse.
+swarm_error_handler() {
+  local rc=$? line="$1" command="$2"
+  trap - ERR
+  printf 'rc=%s\nline=%s\ncommand=%s\n' "$rc" "$line" "$command" > "$RUN_DIR/unexpected-error.txt"
+  log "unexpected swarm recovery failure rc=$rc line=$line command=$command"
+  fail_with_codex "$WT" "$MESH_VERIFY" "$RUN_DIR/repair-contract.txt"
+}
+trap 'swarm_error_handler "$LINENO" "$BASH_COMMAND"' ERR
+
 station_alive() {
   [[ -f "$PIDFILE" ]] || return 1
   local pid
