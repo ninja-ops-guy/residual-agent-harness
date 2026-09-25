@@ -1,11 +1,11 @@
 # AUD-1 F6 strict physical gate
 
 This document supersedes the earlier physical-execution instructions in this tooling PR.
-It does **not** change PR #399 candidate bytes.
+It does **not** change PR #448 candidate bytes.
 
 Qualified Station candidate under test:
 
-`8df77b832b3839ccd2a6944a65760ce3ab10dc9c`
+`943c77a28ada1bc3931408c5f9b40d40c25eb2dc`
 
 ## Why the stricter front end exists
 
@@ -15,11 +15,11 @@ The release candidate remains unchanged. These are helper/evidence defects only.
 
 ## Required launch
 
-Start the Station from the exact clean #399 checkout through `f6_bound_station.py` so the same process that executes `residual.station.server` emits a hashed launch witness:
+Start the Station from the exact clean #448 checkout through `f6_bound_station.py` so the same process that executes `residual.station.server` emits a hashed launch witness:
 
 ```powershell
 python .\f6_bound_station.py `
-  --candidate-repo C:\path\to\exact-399-checkout `
+  --candidate-repo C:\path\to\exact-448-checkout `
   --launch-record C:\evidence\station-launch.json `
   --data C:\evidence\station-data `
   --host 127.0.0.1 --port 8765

@@ -1,10 +1,10 @@
 # AUD-1 F6 physical evidence kit
 
-**Tooling only. Not part of PR #399 candidate bytes.**
+**Tooling only. Not part of PR #448 candidate bytes.**
 
 Qualified candidate under test:
 
-`8df77b832b3839ccd2a6944a65760ce3ab10dc9c`
+`943c77a28ada1bc3931408c5f9b40d40c25eb2dc`
 
 The scripts in this directory are deliberately maintained on a separate tooling branch.
 Do **not** copy or commit them into the candidate checkout before the physical test.
@@ -29,8 +29,8 @@ submit results, recover tasks, rotate credentials, change leases, or integrate c
 
 Keep two directories/checkouts separate:
 
-1. **candidate checkout** — exact clean #399 head, used to run Station:
-   `8df77b832b3839ccd2a6944a65760ce3ab10dc9c`
+1. **candidate checkout** — exact clean #448 head, used to run Station:
+   `943c77a28ada1bc3931408c5f9b40d40c25eb2dc`
 2. **diagnostics checkout/directory** — this tooling branch.
 
 Station default data is `~/.residual/station/station.sqlite3`.
@@ -64,7 +64,7 @@ python .\f6_collect.py --output .\AUD1-F6-EVIDENCE attach `
 
 ## F6-A — interruption inside grace window
 
-The #399 worker defaults are:
+The selected #448 worker defaults are:
 
 - heartbeat interval: 60 seconds
 - worker heartbeat grace: 180 seconds
@@ -161,7 +161,7 @@ Also provide:
 
 - original AUD-1 report;
 - original audited baseline `2f9dda38...`;
-- #399 exact candidate `8df77b83...`;
+- #448 exact candidate `943c77a2...`;
 - candidate diff;
 - automated adversarial regression artifacts;
 - exact-head repository CI references.
