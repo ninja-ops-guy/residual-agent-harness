@@ -47,3 +47,13 @@ def test_log_diagnostics_do_not_pollute_stdout_values():
     text = (ROOT / "scripts/automation/lib.sh").read_text(encoding="utf-8")
     assert 'printf \'[%s] %s\\n\'' in text
     assert '"$*" >&2' in text
+
+
+def test_r4_02_runner_requires_supported_python_and_specific_negative_oracle():
+    text = (ROOT / "scripts/automation/r4_02_b1.sh").read_text(encoding="utf-8")
+    assert "select_r4_python" in text
+    assert "tarfile.data_filter" in text
+    assert "R4_02_PYTHON" in text
+    assert "DID NOT RAISE" in text
+    assert "len(cases) == 2" in text
+    assert "link_confinement_survives_staging_promotion and fixed123" in text
