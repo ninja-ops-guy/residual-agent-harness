@@ -19,4 +19,4 @@ Status:
 
 The #423 production-scope decisions and #426 Shared Comms findings remain unresolved. Historical R4.1 READY_FOR_CANARY remains scoped historical qualification only.
 
-New PR #456 `b69104064522fba0f0854f61300150016d47d6b2` changes only the demo cloud-gateway Python base image to a Python 3.15 release candidate. It is not treated as a v1 requirement while #445's owner-approved runtime/support matrix remains unresolved.
+New PR #456 `77a556736aaa9ef0ba01fe3ee5b4f6194faa0e05` changes only the demo cloud-gateway Python base image to a Python 3.15 release candidate. It is not treated as a v1 requirement while #445's owner-approved runtime/support matrix remains unresolved.
