@@ -346,21 +346,25 @@ def validate_event_chain(snapshot, label):
 def validate_snapshot_sequence(shots, case):
     errors = []
     previous_events = []
-    previous_time = None
+    previous_monotonic = None
     for label in LABELS[case]:
         snapshot = shots.get(label)
         if not snapshot:
             continue
-        captured = snapshot.get("station", {}).get("captured_at")
+        station = snapshot.get("station", {})
+        captured = station.get("captured_at")
         try:
-            current_time = parse_utc(captured)
+            parse_utc(captured)
         except Exception:
             errors.append(f"snapshot {label} has invalid capture timestamp")
-            current_time = None
-        if previous_time is not None and current_time is not None and current_time <= previous_time:
-            errors.append(f"snapshot {label} is not later than the preceding snapshot")
-        if current_time is not None:
-            previous_time = current_time
+
+        current_monotonic = station.get("captured_monotonic_ns")
+        if type(current_monotonic) is not int or current_monotonic <= 0:
+            errors.append(f"snapshot {label} lacks monotonic capture time")
+        elif previous_monotonic is not None and current_monotonic <= previous_monotonic:
+            errors.append(f"snapshot {label} monotonic capture order regressed")
+        else:
+            previous_monotonic = current_monotonic
 
         current_events = event_rows(snapshot)
         if len(current_events) < len(previous_events):
