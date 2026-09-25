@@ -432,12 +432,21 @@ def validate_f6_b_authority_order(shots):
     tid = task_id(before_snapshot)
 
     old_owner = before.get("owner")
-    old_lease = before.get("lease")
+    old_lease_fingerprint = before.get("lease_fingerprint")
     old_attempt = before.get("attempt")
-    if not old_owner or not old_lease or type(old_attempt) is not int:
+    if (
+        not old_owner
+        or not before.get("lease_present")
+        or not old_lease_fingerprint
+        or type(old_attempt) is not int
+    ):
         return ["pre-interrupt authority tuple is incomplete"]
 
-    if down_task.get("owner") != old_owner or down_task.get("lease") != old_lease:
+    if (
+        down_task.get("owner") != old_owner
+        or down_task.get("lease_present") is not True
+        or down_task.get("lease_fingerprint") != old_lease_fingerprint
+    ):
         errors.append("transport-down snapshot does not retain the original authority tuple")
     if down_task.get("attempt") != old_attempt:
         errors.append("transport-down attempt differs from pre-interrupt attempt")
@@ -669,11 +678,7 @@ def validate_stale_probe(stale, before_snapshot):
     expected_project = before_snapshot.get("station", {}).get("project_id")
     expected_task = task_id(before_snapshot)
     expected_authority = task(before_snapshot)
-    expected_lease = expected_authority.get("lease")
-    expected_lease_fingerprint = (
-        "sha256:" + base.sha256_bytes(str(expected_lease).encode("utf-8"))
-        if expected_lease else None
-    )
+    expected_lease_fingerprint = expected_authority.get("lease_fingerprint")
     if stale.get("project_id") != expected_project:
         errors.append("stale probe project does not match pre-interrupt project")
     if stale.get("task_id") != expected_task:
@@ -750,7 +755,12 @@ def validate(out, case):
         reconnect = task(shots.get("03-reconnected-inside-window", {}))
         if not before.get("owner") or before.get("owner") != reconnect.get("owner"):
             errors.append("inside-window same owner not proven")
-        if not before.get("lease") or before.get("lease") != reconnect.get("lease"):
+        if (
+            before.get("lease_present") is not True
+            or reconnect.get("lease_present") is not True
+            or not before.get("lease_fingerprint")
+            or before.get("lease_fingerprint") != reconnect.get("lease_fingerprint")
+        ):
             errors.append("inside-window same lease not proven")
     else:
         down_time = (
