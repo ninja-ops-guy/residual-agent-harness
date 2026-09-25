@@ -75,7 +75,7 @@ Run:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\Run-F6-Physical.ps1 `
   -Case F6-A-inside-window `
-  -CandidateRepo C:\path\to\exact-399-checkout `
+  -CandidateRepo C:\path\to\exact-448-checkout `
   -Project p-... `
   -Task OPS-... `
   -StationData C:\Users\USER\.residual\station `
