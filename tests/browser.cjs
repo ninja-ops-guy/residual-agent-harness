@@ -79,9 +79,9 @@ async function main(){
 
   const generatedDraft='# Generated mission\\n\\nPersistent draft body';
   await page.route('**/api/jobs',async route=>{const response=await route.fetch();const body=await response.json();body.jobs=[{id:'persisted-draft',kind:'draft-spec',state:'completed',detail:'Completed',progress:100,result:{markdown:generatedDraft}},...body.jobs];await route.fulfill({response,json:body});});
-  const dismissDraft=page.getByRole('button',{name:'Dismiss generated draft'});await dismissDraft.waitFor({timeout:7000});await dismissDraft.click();assert.equal(await page.getByRole('button',{name:/DRAFT SPEC.*Open generated draft/}).count(),0);await page.reload();assert.equal(await page.getByRole('button',{name:/DRAFT SPEC.*Open generated draft/}).count(),0);checks.push('Completed generated drafts can be dismissed persistently');
   const draftResult=page.getByRole('button',{name:/DRAFT SPEC.*Open generated draft/});await draftResult.waitFor({timeout:7000});await draftResult.click();
   await page.getByRole('heading',{name:'Start a new mission',exact:true}).waitFor();assert.equal(await page.locator('#project-spec').inputValue(),generatedDraft);checks.push('Completed generated draft stays visible and opens from the job tray');await page.getByRole('button',{name:'Close dialog',exact:true}).click();
+  const dismissDraft=page.getByRole('button',{name:'Dismiss generated draft'});await dismissDraft.waitFor({timeout:7000});await dismissDraft.click();assert.equal(await page.getByRole('button',{name:/DRAFT SPEC.*Open generated draft/}).count(),0);await page.reload();assert.equal(await page.getByRole('button',{name:/DRAFT SPEC.*Open generated draft/}).count(),0);checks.push('Completed generated drafts can be dismissed persistently');
 
   assert.deepEqual(errors,[]);checks.push('No unexpected browser console errors');
   fs.writeFileSync(path.join(out,'browser-results.json'),JSON.stringify({passed:true,checks,errors},null,2));console.log(JSON.stringify({passed:true,checks,output:out},null,2));
