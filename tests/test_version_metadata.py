@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import pathlib
 import tomllib
+import json
 import unittest
 
 
@@ -25,6 +26,18 @@ class VersionMetadataTests(unittest.TestCase):
     def test_package_version_matches_project_metadata(self) -> None:
         project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
         self.assertEqual(project["version"], _package_version())
+
+    def test_frontend_package_version_matches_project_metadata(self) -> None:
+        project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+        frontend = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
+        self.assertEqual(project["version"], frontend["version"])
+
+    def test_station_reports_package_version(self) -> None:
+        from residual import __version__
+        from residual.station import server
+        self.assertEqual(server.Handler.server_version, f"ResidualStation/{__version__}")
+        source = (ROOT / "residual" / "station" / "server.py").read_text(encoding="utf-8")
+        self.assertNotIn('"version": "0.3.0"', source)
 
 
 if __name__ == "__main__":
