@@ -1,156 +1,221 @@
-# RESIDUAL v1 master readiness checklist
+# RESIDUAL v1 master remaining-work list
 
-Status: **review-only release-convergence ledger**. This file does not authorize a canary, merge, deployment, release, tag, physical test, or production mutation.
+**Current review-only view: 2026-09-26. Single master PR: #427. No release authority.**
 
-## Snapshot / authority boundary
+This is the current entry point for v1 convergence, replacing the stale #416-era summary in this file. Historical observations are preserved at [the immutable preceding snapshot](https://github.com/ninja-ops-guy/residual-agent-harness/blob/fb63b4b4fd1dedb1db72f14183f558833ab027b3/docs/v1/V1_MASTER_READINESS.md) and in the unchanged `V1_MASTER_READINESS_DELTA*.md` files. This refresh changes planning/read-model state, not frozen experimental evidence, an evaluator, acceptance criteria, or execution authority.
 
-- Repository main observed for this ledger: `d796f36b75e730a0bab71bdba564206174393719` (tree `39d23b7a8d395664329866d43a3fb9c97e8d83fb`).
-- Frozen R4.1 candidate referenced by the overnight lanes: `8701367db6d3202f24b3eb9f4696b0cadf657985`, tree `79bfe6ed1743907065ed44aeb9c460c47527e0c6`.
-- The frozen R4.1 candidate is not modified by this branch. Historical R4.1 qualification remains evidence for its exact tested scope; it is not whole-platform production acceptance.
-- Seal v2, authoritative `runtime-20260924T025450Z`, original failed evidence/seal, and frozen research experiments are outside this branch.
-- `PR Agent` is advisory. Human review/attestation and physical evidence are not inferred from CI.
+## Baseline and status rules
 
-Allowed status values: `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VERIFIED`, `READY_FOR_REVIEW`, `MERGED_AND_REQUALIFIED`.
+- Accepted main: `d796f36b75e730a0bab71bdba564206174393719`.
+- Master predecessor read immediately before this update: `fb63b4b4fd1dedb1db72f14183f558833ab027b3`.
+- Frozen R4.1 candidate: `8701367db6d3202f24b3eb9f4696b0cadf657985`; tree `79bfe6ed1743907065ed44aeb9c460c47527e0c6`. Reference only. Historical 17/17 READY_FOR_CANARY is not v1 production qualification or canary authorization.
+- Seal v2, authoritative `runtime-20260924T025450Z`, original failed evidence, frozen research and live hosts/services are unchanged and unavailable as execution targets in this task.
+- Status vocabulary: `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VERIFIED`, `READY_FOR_REVIEW`, `MERGED_AND_REQUALIFIED`. Each row's status applies only to its stated acceptance criterion. A reviewable implementation does not complete its parent operational gate.
+- Sources marked **retained** below are previous exact-head records, not newly executed or independently requalified in this pass. Author reports, submitted reviews, owner decisions, hosted tests and private operational evidence remain distinct.
+- No percentage substitutes for satisfied applicable gates. No row is promoted to MERGED_AND_REQUALIFIED here.
+- The main ruleset `23436488` was read: strict tests/qualify/python 3.11-3.13, browser, docker, factory-ownership and maintainer-approval contexts remain required. Repository review-count settings do not waive the separately required human/security review process. No rule or protected pin was changed.
 
-## Release-critical dependency order
+## Exact source registry
 
-```text
-PRE-CANARY scope/evidence disposition
-  -> authorized bounded canary
-  -> frozen post-canary evaluation
-  -> AUD-1/security convergence + exact physical F6 + independent re-audit
-  -> deployment-scope decisions + applicable production qualification gates
-  -> exact release candidate + recovery/soak/provenance
-  -> human release GO + deployment/rollback window
-  -> v1 closure receipt/tag/archive
-```
+Aliases in the tables bind requirements and evidence to these exact sources, not to a moving branch name.
+
+| Alias | Exact source | Interpretation |
+|---|---|---|
+| AUDIT | #423 `324a8421205c664cb4cfbfda9582a6e79d43ee64`, `docs/research/PRODUCTION_READINESS_MATRIX_2026-09-23.md` | Original static production audit; PR-G01..33 proposed applicability depends on approved scope |
+| FAULTS | #426 `494dac7c0702a285c33ceddd3f0237f63ceea425`, `docs/research/R4_OFFLINE_FAULT_SPACE_2026-09-23.md` | Retained disposable/synthetic receipt, recovery-digest and concurrent-recovery observations; not independently reproduced in this pass |
+| CLAIMS | #445 `9eba077817720021174671ba1652b59fb801b670` | Proposed claims/CV lifecycle; later owner scope inputs reconcile subsets, not wholesale approval |
+| MATRIX | #465 `d9e16bf92ba59b3d778666e11b0a948303b9475e`, `docs/v1/V1_RELEASE_MATRIX.md` and `V1_OWNER_DECISION_PACKET.md`; comment `5843059963` | Recorded owner-supplied platform/provider-class matrix and distribution direction; specific remaining decisions below |
+| DOCKER | #469 `935498ecd42982bc682d7ed69b562c642b74a8fe`, tree `8d8ecb2970d3dc2cf304ba8c8c6997a05b45370b`; owner comment `5842785986` | Approved bounded Docker/AUD-1 direction FOR subsequent immutable selection/helper reconciliation; not an inferred completed selection or F6 GO |
+| AUD1 | Issue #353 and DOCKER; frozen #403 `118ec3c795ae11c88b68278717fb781f4b059559` | Existing Closure single writer owns security/candidate/helper work and physical qualification |
+| OLDHELPER | #455 `a2567103c7e634310d696e421692fa1f86624e3b`, bound to #448 `943c77a28ada1bc3931408c5f9b40d40c25eb2dc` | Prior qualified/approved helper; DOCKER owner disposition forbids using its historical binding for current physical F6 |
+| PROFILE | #472 `9d9740d3d6d551d1861214ea9f835dc484726ee5`, tree `3e48689ce6a79f56c58d6a391308fbaf21f4fcdc` | Now published, hosted-qualified and non-draft; original #432 `f6487c8430f03e930c3ae22c99f41117d310372e` remains unchanged |
+| SUPPLY | #468 `f30a1e16f14d92b623770b3866b5c249d9dee263`, stacked on #467 `7aa21a7b2cd3e49c27aba2d360380a36cd7f266e` | Now non-draft; structural/transitive pinning chain, not completed provenance acceptance |
+| SEAL | #447 `ad524c461aa60426695f226f541e172c557b8e98`, parent #443 `d2c8bb907da0c51f0bd56c9f5cb0114816b93205` | Bounded JSON/containment/cardinality tooling, not private semantic/package-closure verification |
+| LOCK | #444 `78c34d3d7fde7b5edf8488a0842acb96270cfb95` | Python lock grammar tooling only; no authoritative transitive lock/offline build |
+| RECOVERY | #461 `d4027aa261bc3a4e2fa029479498850e7a9a5564`; source #435 `378207e511550532dbba60e8d4ae489666aa6c09` | Reviewable numeric/JSON recovery-evidence validator successor; no recovery exercise |
+| ARCHIVE | #458 `e8894c443936710b86efc85e9cbcc29a5f70840e`, parent #457 `2b75b42cd8cf1a7f13eac64a77d86ddfb619d169` | Retained promotion-invariant archive-confinement repair candidate; separate review/scope/current-main integration needed |
+| CANARY | #412 `2bcfc010c48c8d5d8d8b130ea10b3fb1e67583ef` | Retained refusal-default procedure proposal; not an executed canary |
+| POST | #413 `466951e63bd8d48d0aba726ef0c0c7d2f8ba4f8c` | Retained post-canary verifier proposal; independent freeze required before use |
+| RELEASE | #418 `695e35733f75d0b4bd5f02941aa29ac9fd57a987`; #428 `e666c7e746d159b63b0a9fab034e2d1419c7717e` | Retained release tooling and RC-binding successor; no live release receipt |
+| OPS | #434 `76a2a69fa6c7c2959108de2369796a755d59ea84`; #430 `2dd7f5c04b3fff51ecb2646443d6f5120b12043b` | Retained incident-plan and environment-preflight tooling, not operational acceptance |
+| VERSION | #466 `edc3e47ea14de77ce3ca7140bd34e729f4cea9bd`, successor to #429 `9d38d87df9bfa5004d3eb5d7144e60ef1ced56f7` | Retained review-ready 0.5.0 metadata normalization; not a 1.0.0 release |
+
+## Material work completed in this pass
+
+### PROFILE: published and hosted-qualified, not an approved profile
+
+#472 was opened from the existing repair branch rather than creating a duplicate implementation. After exact-head CI completed it was made ready for review; source/base stayed unchanged and submitted reviews were zero. Comment `5848229066` records the terminal evidence.
+
+| Technical workflow | Exact-head run | Result |
+|---|---|---|
+| Qualification-v1 | 36258053638 | PASS |
+| Command Station | 36258053839 | PASS |
+| Controller/provider | 36258053501 | PASS |
+| Clean install | 36258053603 | PASS |
+| Factory ownership | 36258053489 | PASS |
+| Control Plane | 36258053479 | PASS |
+| Measured binding | 36258053667 | PASS |
+
+Deterministic artifact `10911516718` was downloaded and independently hashed: SHA-256 `fb529d9250c7ddeb6ca4a976a50cab9de4b327459d8b9c331244fc7126832435`, matching GitHub metadata. Its source envelope binds PROFILE HEAD/tree, clean tracked source, Ubuntu/X64 and Python 3.12.14. The JUnit artifact includes **19 deployment-profile tests with zero failures, errors or skips**, including all three inactive padded-UNDECIDED controls. Hosted command: `python -m pytest tests --ignore=tests/qualification -q --junitxml=runs/qualification-v1/deterministic.xml`.
+
+The retained first-failure predecessor `20adc626cf7200afc101d2cb3c9ea0f078e7b27d` and prior negative-control replay are not rewritten. No local product suite was newly executed in this pass. Maintainer run `36258053581` fails at explicit exact-head approval after policy tests pass. PR-Agent `36258053522` fails at advisory execution after build/secret preflight; publication verification is skipped. Its model-call cause was not re-established here.
+
+### SUPPLY: review state unblocked, provenance still open
+
+#468 was changed from draft to ready for review with unchanged HEAD/base. Action Pin Gate `36211835639`, Qualification-v1 `36211835517`, Command Station `36211835404`, controller/provider `36211835438`, clean install `36211835650`, Factory ownership `36211835469`, Control Plane `36211835363`, and measured binding `36211835399` all have successful exact-head results. Submitted reviews were zero.
+
+PR-Agent `36211835483` pulled the pinned digest and completed its command, but its substantive-publication verification failed. Successful command exit is not a published review. The upstream image source/build-attestation acceptance is still open. The image digest, not the tag spelling, supplies content identity.
+
+## Consolidated owner decision packet
+
+This is the residual-action view of MATRIX's existing decision packet, not a competing scope proposal. No unresolved value is chosen by an agent and no approval token is supplied here.
+
+| Decision | Already recorded input | Exact remaining owner/operations action | Unlocks |
+|---|---|---|---|
+| D1 / Docker | DOCKER approves a single trusted local Compose host, loopback publication, trusted daemon/project-network participants; no public/Kubernetes/multi-tenant/HA-container claim | Closure owner records explicit immutable candidate selection, preserves helper hardening, reconciles and qualifies the new helper, then requests separate F6 GO | AUD1 helper/F6 chain |
+| D2 / distribution | MATRIX records Apache-2.0 Open Core plus reserved/proprietary commercial layers | Accept final boundary and verify exported license/NOTICE, reserved-code exclusion and artifact provenance; record private commercial repository/terms privately | Public artifact/license closure, not a new choice of business model |
+| D3 / supported matrix | Windows x64/Linux x64 native; Linux Docker Engine/Docker Desktop Windows/NVIDIA overlay; desktop Chromium/Firefox/automated WebKit; local Ollama; one real hosted-provider success required. Native macOS and Docker Desktop macOS are v2; physical-iPhone heavyweight WebVM unsupported | Name each admitted hosted provider/model/deployment; finalize exact OS/Python/filesystem/artifact/extras identities needed for locking/builds. Authorize credential use and a bounded paid workload separately, never post secrets | Release matrix completion, LOCK, exact-RC provider acceptance |
+| D4 / Shared Comms | Separate research/integration by default is a proposed boundary; no confirmed enforced v1 exclusion is established here | Explicitly INCLUDE and repair/qualify applicable FAULTS findings, or EXCLUDE with release/configuration/entrypoint enforcement and negative tests. Map the old canary's applicability explicitly; do not silently cancel or repurpose it | V1-PC-002..004 and applicable canary gates |
+| D5 / operations | No complete approved operational profile located in the inspected sources | Supply availability/SLO, recovery bound, RPO/RTO, backup schedule/retention, supported durability/storage semantics, disk/log/evidence budgets, host/region-loss claims, exact soak environment/workload/duration/cadence/reset rules, and named incident/release/evidence owners | V1-PP-001, operational acceptance and final release |
+| Build-input provenance | Docker is supported; LOCK covers Python grammar only | Approve immutable base-image identity and reproducible/authenticated OS-package source policy; authorize trusted transitive resolution/build environment and later offline build comparison | PR-G27/28; no snapshot policy or digest is invented |
+
+The proposed 72-hour soak in CLAIMS is not an adopted duration. Required physical/provider/operational work remains separately authorized. An owner-approved supported platform is not yet a qualified platform.
+
+## Dependency order and ownership
+
+Preparation and review can proceed in disjoint lanes. No optional research lane must finish before release triage. The physical chain is owned entirely by the existing RESIDUAL v1 Closure task:
+
+`DOCKER immutable selection -> new qualified helper -> separate F6 GO -> distinct F6-A/F6-B bundles -> Mason/LEGION read-only re-audit -> exact-head qualification/disposition -> separately authorized integration -> resulting-main qualification`.
+
+In parallel: resolve D3/D4/D5 and build inputs, review PROFILE/SEAL/SUPPLY/LOCK/RECOVERY, and resolve applicable archive and license boundaries. Canary applicability/procedure/authority must be explicitly disposed before execution; no predeclared criterion changes in this ledger. Exact-RC operational gates occur after RC identity exists, not as circular prerequisites to selecting that identity. CLAIMS' proposed lifecycle remains `RC_SELECTED -> RC_QUALIFIED -> SOAK_VERIFIED -> RELEASE_AUTHORIZED`.
 
 ## PRE-CANARY
 
-| ID | Requirement / acceptance criterion | Source / exact head | Classification | Dependencies | Owner | Implementation PR | Test / evidence | Status | Human action |
+Each Source alias refers to the exact registry above. None means no implementation/evidence exists in this ledger, not proof of its absence elsewhere.
+
+| ID | Acceptance criterion | Source | Classification | Dependencies | Owner | Implementation | Test/evidence | Status | Required human action |
 |---|---|---|---|---|---|---|---|---|---|
-| V1-PC-001 | Seal authorization must recompute claims directly from the authoritative manifest; no supplied/derived count may become authority. Independent verifier must reject stale count/digest/unsafe paths. | #415 `3da0d8ec45adf8934b88906462706617aa22831f`; #422 `31dc9c1bf88ee69f417f53c0f4ff5558fc48f645` | observed defect + verified proposed tooling | none | release/evidence | #415, #422 | #415 reports 50-entry derivation and four unit tests; #422 reports 11 adversarial tests; exact-head repository qualification workflows reported green | READY_FOR_REVIEW | review the verifier/tooling; do not alter existing Seal v2 |
-| V1-PC-002 | Decide whether the canary threat model requires client-side semantic binding of receipt object, project, operation, actor/payload identity. If required pre-canary, a new successor candidate and fresh qualification are mandatory. | #423 `324a8421205c664cb4cfbfda9582a6e79d43ee64` PR-G32; #426 `494dac7c0702a285c33ceddd3f0237f63ceea425` | reported observed finding / scope decision | V1-PC-001 | owner + canary reviewer | none yet | #426 reports malformed, wrong-project, wrong-operation receipts becoming `ACKED` under synthetic transport substitution; not independently reproduced by this ledger | BLOCKED | explicitly include or exclude this adversary from the bounded canary scope; record rationale |
-| V1-PC-003 | Decide whether recovery must verify the stored payload digest before any network action in the bounded canary. If included, mismatch must quarantine/fail closed with zero POST. | #426 `494dac7c0702a285c33ceddd3f0237f63ceea425` | reported observed finding / scope decision | V1-PC-001 | owner + canary reviewer | none yet | #426 reports a tampered stored payload POSTed and later ACKed because recovery did not re-check the stored digest | BLOCKED | scope disposition; successor required if pre-canary |
-| V1-PC-004 | Decide whether more than one recovery owner/process is permitted by canary topology. If yes, require fencing before live canary; if no, prove and document single-owner exclusion in preflight. | #426 `494dac7c0702a285c33ceddd3f0237f63ceea425` | reported observed finding / scope decision | V1-PC-001 | owner + canary reviewer | none yet | #426 reports synchronized recoverers each issuing POST after both observed no receipt | BLOCKED | choose threat/topology scope and record enforcement/evidence |
-| V1-PC-005 | Canary package must remain refusal-default and be bound to a deployment-specific adapter, expected service baseline, safe evidence destination, independent authorization receipt and exact operator GO. | #412 `2bcfc010c48c8d5d8d8b130ea10b3fb1e67583ef` | missing live/environment evidence | V1-PC-002..004 | canary owner/operator | #412 | package compile/self-tests and manifest checks reported PASS; canary NOT RUN | BLOCKED | supply/review deployment adapter, baseline, destination, authorization receipt and GO |
-| V1-PC-006 | Freeze the post-canary verifier before observing canary results; retain authorization-receipt trust anchor independently; evidence producer must emit exact schema. | #413 `466951e63bd8d48d0aba726ef0c0c7d2f8ba4f8c` | verified proposed tooling | V1-PC-005 | independent verifier reviewer | #413 | 9 targeted tests, schemas and deterministic negative controls reported PASS | READY_FOR_REVIEW | review/freeze exact verifier bytes and trust anchor before execution |
-| V1-PC-007 | Canary attack corpus remains review evidence; unexecuted R5 candidates/hypotheses must not be promoted to R4.1 defects. Any executed oracle violation becomes an explicit blocker. | #417 `cc7b9558a4c64c721c488bcd50226bfec6d09d31` | qualification planning | V1-PC-002..004 | canary/research reviewers | #417 | 36 deterministic cases; 2 PROVEN, 5 OBSERVED, 26 R5_CANDIDATE, 3 OPEN_HYPOTHESIS | READY_FOR_REVIEW | review corpus classification and keep unexecuted cases off critical path |
+| V1-PC-001 | Freeze reviewed independent verifier and recompute authoritative seal claims, package membership and semantic/provenance bindings from immutable direct sources | AUDIT; SEAL | missing evidence | reviewed verifier; trusted private snapshot | release/evidence reviewer | #447/#443 lineage | Bounded tooling only; no private verification executed here | BLOCKED | Select verifier, authorize private read-only verification and accept sanitized evidence/hashes |
+| V1-PC-002 | Receipt object/type/project/operation/actor/payload binding is proven before ACK, or capability exclusion is approved and enforced | FAULTS; AUDIT PR-G32; MATRIX D4 | reported finding | D4 scope; selected source | owner plus comms/canary reviewer | none selected | Synthetic false-ACK reports retained; require missing versus explicit-null and cross-binding negative controls | BLOCKED | Decide applicability without downgrading observed risk; assign disjoint successor if applicable |
+| V1-PC-003 | Recovery rejects stored-payload digest mismatch before network actions, or approved exclusion is demonstrably enforced | FAULTS | reported finding | D4 scope; selected source | comms/recovery owner | none selected | Retained tampered-payload POST; require isolated zero-POST mismatch control | BLOCKED | Approve disposition and applicable repair/test scope |
+| V1-PC-004 | One durable recovery authority is enforced; overlapping recoverers cannot issue unsafe duplicate POST; unsupported topology must be rejected | FAULTS | reported finding | D4 scope; process/topology contract | comms/recovery owner | none selected | Two synchronized POSTs reported; Station exclusivity is not automatically an outbox-recovery proof | BLOCKED | Require isolated ownership/fencing controls or verified exclusion |
+| V1-PC-005 | Applicable canary package is refusal-default and bound to approved adapter, service baseline, evidence destination and candidate | CANARY | missing evidence | V1-PC-001..004 | canary owner/operator | #412 or reviewed successor | Retained package tests only; no live adapter/baseline acceptance here | BLOCKED | Approve exact applicability and operator handoff before GO |
+| V1-PC-006 | Independent post-canary evaluator and authorization trust anchor are frozen before observing results | POST | missing evidence | applicable V1-PC-005 schema/procedure | independent verifier reviewer | #413 | Retained nine-test proposal; no current freeze receipt | READY_FOR_REVIEW | Review/freeze exact bytes; changes require a distinct proposal |
+| V1-PC-007 | Corpus classifications remain evidence-bound; unexecuted R5 hypotheses do not become release defects | #417 cc7b9558a4c64c721c488bcd50226bfec6d09d31 | optional hardening | applicable canary scope | corpus/research reviewer | #417 | Retained corpus, not newly executed | READY_FOR_REVIEW | Review only applicable observations; do not wait for every research case |
 
 ## CANARY
 
-| ID | Requirement / acceptance criterion | Source | Classification | Dependencies | Owner | Implementation PR | Evidence | Status | Human action |
+| ID | Acceptance criterion | Source | Classification | Dependencies | Owner | Implementation | Test/evidence | Status | Required human action |
 |---|---|---|---|---|---|---|---|---|---|
-| V1-CAN-001 | Explicit human authorization receipt and GO must bind exact candidate, exact canary procedure, adapter, environment, evidence destination, time window and operator. | #412/#413 | human gate | all V1-PC applicable items | owner/change authority | none | no live authorization retained in repository | BLOCKED | issue authorization only after pre-canary scope is resolved |
-| V1-CAN-002 | Execute exactly the bounded R4.1 continuity operation under the frozen procedure: durable intent, one initial POST, induced post-commit/pre-ACK interruption, receipt-first restart reconciliation, bounded time/network actions, no forbidden mutations. | #412 | live evidence | V1-CAN-001 | canary operator | none | NOT EXECUTED | NOT_STARTED | perform separately authorized live canary |
-| V1-CAN-003 | Preserve raw canary evidence, pre/post service state, exact network trace, outbox transition, receiver effect count, rollback rehearsal and manifest hashes without rewriting failed evidence. | #412/#413/#418 | evidence requirement | V1-CAN-002 | evidence custodian | none | no live bundle exists | NOT_STARTED | retain evidence even on FAIL/INCOMPLETE |
+| V1-CAN-001 | Explicit GO binds candidate/procedure/evaluator/adapter/environment/operator/window/destination | CANARY; POST | missing evidence | applicable V1-PC gates | owner/change authority | none | No applicable current authorization in this pass | BLOCKED | Issue separate authorization after prerequisite acceptance |
+| V1-CAN-002 | Execute only the frozen bounded continuity procedure; retain failed attempts as failed | CANARY | missing evidence | V1-CAN-001 | canary operator | frozen accepted procedure | Not executed by this task | NOT_STARTED | Execute only after GO; no silent shortening or altered oracle |
+| V1-CAN-003 | Retain raw traces, state transitions, effect counts, rollback evidence and manifest hashes without private-data publication | CANARY; POST; RELEASE | missing evidence | V1-CAN-002 attempt | evidence custodian | accepted evidence collector | No current bundle inspected | NOT_STARTED | Preserve immutable private bundle even on FAIL/INCOMPLETE |
 
 ## POST-CANARY
 
-| ID | Requirement / acceptance criterion | Source | Classification | Dependencies | Owner | Implementation PR | Evidence | Status | Human action |
+| ID | Acceptance criterion | Source | Classification | Dependencies | Owner | Implementation | Test/evidence | Status | Required human action |
 |---|---|---|---|---|---|---|---|---|---|
-| V1-POST-001 | Evaluate the completed bundle with the pre-frozen verifier; disposition must be one of `ROLLBACK_REQUIRED`, `EVIDENCE_INCOMPLETE`, `CANARY_FAILED`, `PROMOTION_ELIGIBLE` with unsafe-state precedence preserved. | #413 | deterministic evaluation | V1-CAN-003 | independent verifier | #413 | verifier tests only; no live bundle | NOT_STARTED | independently run verifier after canary |
-| V1-POST-002 | `PROMOTION_ELIGIBLE` is evidence only, not authorization. Any candidate/evaluator byte change invalidates transferred qualification and requires a new identified candidate/review. | #413/#418 | authority boundary | V1-POST-001 | owner/release authority | none | no promotion decision exists | NOT_STARTED | record explicit disposition and next path |
+| V1-POST-001 | Frozen verifier evaluates the retained bundle with unsafe-state precedence and typed failure/incomplete/promotion-eligible outcomes | POST | missing evidence | V1-CAN-003 | independent verifier | #413 or selected successor | Tooling tests are not live evaluation | NOT_STARTED | Run independently on the authorized bundle |
+| V1-POST-002 | Evidence disposition is recorded separately from promotion authority; changed bytes invalidate affected evidence | POST; RELEASE | missing evidence | V1-POST-001 | release owner | disposition record | None for current path | NOT_STARTED | Explicitly accept/reject next step; no automatic promotion |
 
-## PRE-PRODUCTION — scope and security convergence
+## PRE-PRODUCTION: profile, security and focused implementations
 
-| ID | Requirement / acceptance criterion | Source / exact head | Classification | Dependencies | Owner | Implementation PR | Test / evidence | Status | Human action |
+| ID | Acceptance criterion | Source | Classification | Dependencies | Owner | Implementation | Test/evidence | Status | Required human action |
 |---|---|---|---|---|---|---|---|---|---|
-| V1-PP-001 | Freeze the supported v1 deployment topology/trust boundary and service objectives: loopback/local vs remote exposure, supported proxy/TLS pattern, user/tenant model, supported OS/filesystem/runtime, SLO, RPO and RTO. Production gates are evaluated against this declared scope. | #423 `324a8421205c664cb4cfbfda9582a6e79d43ee64` | missing product authority / scope decision | V1-POST-002 may proceed in parallel for planning | owner + operations | none | audit explicitly reports no authoritative topology/SLO/RPO/RTO | BLOCKED | publish owner-approved scope and objectives; do not silently broaden or narrow to clear gates |
-| V1-PP-002 | Select the AUD-1 successor containing F1/F2/F3/F4/F6 plus C1/C2/C3 continuity repairs; exact current head must pass full exact-head CI. | issue #353; #416 current observed head `d41a9428e8667963f85526f44a9616be19ca9d7f` | verified unmerged implementation | none | AUD-1 closure lane | #416 | exact-head Control Plane, Factory ownership, clean install, measured binding, controller/provider, Command Station, Qualification-v1 and Pages reported success; maintainer gate fails because no attestation | READY_FOR_REVIEW | select candidate only after independent technical review |
-| V1-PP-003 | Obtain genuine independent human review of C1/C2/C3 and completion-barrier semantics; PR Agent does not satisfy this. | #416 / issue #353 | missing review evidence | V1-PP-002 | independent reviewer | #416 | no submitted PR reviews observed at current head | BLOCKED | independent technical review |
-| V1-PP-004 | Qualify the physical F6 helper against the deliberately selected successor rather than silently reusing/retargeting #403 bound to #399. | #403 `118ec3c795ae11c88b68278717fb781f4b059559`; #416 | missing exact-target evidence | V1-PP-002, V1-PP-003 | AUD-1 operator | successor helper required/reconciled | current helper is bound to original #399 bytes | BLOCKED | explicitly reconcile/select target and requalify helper |
-| V1-PP-005 | Real-host F6-A: interrupt/recover inside authority window, prove same valid owner continuity with no duplicate authority/invalid transition; retain independent frozen evidence bundle. | issue #353 | required physical evidence | V1-PP-004 | physical test operator | none | not established for #416 successor | BLOCKED | separately authorize/execute physical case A |
-| V1-PP-006 | Real-host F6-B: exceed authority window, restore after reassignment, prove old worker/lease/result stays dead; retain separate frozen bundle. | issue #353 | required physical evidence | V1-PP-004 | physical test operator | none | not established for #416 successor | BLOCKED | separately authorize/execute physical case B |
-| V1-PP-007 | Mason/LEGION independent read-only re-audit must classify F1/F2/F3/F4/F6 for exact selected bytes and attempt falsification. | issue #353 | independent audit gate | V1-PP-005, V1-PP-006 | Mason/LEGION | none | outstanding | BLOCKED | perform independent re-audit without modifying candidate |
-| V1-PP-008 | Fresh exact-head qualification and genuine owner attestation on unchanged selected AUD-1 head. | issue #353/#416 | human + exact-head gate | V1-PP-007 | owner/maintainer | #416 or successor | current technical CI green, owner attestation intentionally absent | BLOCKED | attest only after all preceding evidence |
+| V1-CLAIMS-001 | Current claims are reconciled with recorded D1-D3 decisions and remaining D3/D4/D5 values, then explicitly approved | CLAIMS; MATRIX; DOCKER | scope decision | owner decision packet | owner/operations | #445/#465 inputs | Partial recorded scope is not complete claims approval | BLOCKED | Approve exact reconciled revision without weakening promises to ship |
+| V1-PP-001 | Complete topology/trust/runtime/durability/SLO/RPO/RTO/retention/soak profile is approved and content-bound | AUDIT; MATRIX; PROFILE | scope decision | V1-CLAIMS-001; D3/D4/D5 | owner/operations | #472 tooling; profile still pending | Supported broad matrix recorded, actual full profile absent | BLOCKED | Supply/approve unresolved values and their evidence contract |
+| V1-PP-DP-PLACEHOLDER-05 | Inactive optional fields cannot hide trimmed UNDECIDED; original parser/unknown-field controls remain effective | PROFILE; first failure 20adc626cf7200afc101d2cb3c9ea0f078e7b27d | observed finding | human implementation review | repository release-preparation | #472 | Fresh hosted 19 tests PASS and seven technical workflows PASS; no human review | READY_FOR_REVIEW | Review exact repair; reconcile #432 overlap before integration |
+| V1-PP-002 | Immutable AUD-1 candidate SHA/tree is explicitly selected under the approved Docker direction | DOCKER; AUD1 | missing evidence | exact-head technical/security disposition | existing Closure single writer and owner | #469 | Direction approved; selection/helper steps expressly still required | IN_PROGRESS | Record exact immutable selection, not inferred from CI or this list |
+| V1-PP-003 | Required exact-head technical/security review and any explicitly scoped owner review-process disposition are retained | AUD1; DOCKER | missing evidence | V1-PP-002 selected bytes | security reviewer/owner | #469 lineage | Owner direction is not independent third-party review; prior-head reviews do not transfer automatically | BLOCKED | Complete governed review; disclose any authorized compensating process precisely |
+| V1-PP-004 | New #403-lineage helper atomically binds selected candidate SHA/tree and preserves later evidence-hardening fixes | AUD1; OLDHELPER; DOCKER | missing evidence | V1-PP-002, V1-PP-003 | existing Closure single writer | new helper required | No #469-bound helper discovered; old #455 target cannot be used | BLOCKED | Review/requalify successor; then obtain separate exact-identity physical GO |
+| V1-PP-005 | Real F6-A proves recovery inside unchanged authority window with valid owner continuity and no duplicate authority | AUD1 | missing evidence | V1-PP-004; separate GO; live preflight | physical operator | selected helper | No physical A bundle inspected | BLOCKED | Provide exact launch witness, owned disposable task and transport/runner evidence; execute separately |
+| V1-PP-006 | Real F6-B proves old worker/lease/result remains dead after outside-window loss and reassignment | AUD1 | missing evidence | V1-PP-004; separate GO; live preflight | physical operator | selected helper | No physical B bundle inspected | BLOCKED | Retain a distinct B bundle; do not manipulate state to manufacture expected outcome |
+| V1-PP-007 | Independent read-only re-audit attempts falsification and classifies F1/F2/F3/F4/F6 on exact selected bytes | AUD1 | missing evidence | V1-PP-005, V1-PP-006 | Mason/LEGION | audit receipt, not implementation | Post-F6 evidence absent | BLOCKED | Perform re-audit without changing candidate; no agent report substitutes for a required human gate |
+| V1-PP-008 | Final unchanged-head qualification and genuine owner disposition precede guarded integration | AUD1 | missing evidence | V1-PP-007 | owner/maintainer | selected successor | Earlier technical CI is not post-F6 acceptance | BLOCKED | Review final evidence; attest only with the required authority |
+| V1-PC-R4-02-B1 | Archive confinement remains invariant across staging/promotion, including TAR/TAR.ZST; applicable v1 source is integrated and requalified | ARCHIVE | reported finding | scope disposition; independent review | archive security owner | #458 stacked proposal | Retained technical repair/negative controls; not re-executed here | BLOCKED | Decide applicable trust boundary, then reviewed current-main successor; no edit to frozen research |
+| HOSTED-PROVIDER-01 | Each admitted hosted target completes real candidate-to-verifier-to-receipt success on exact RC | MATRIX | missing evidence | named provider/model/deployment; V1-REL-002; separate budget/credential authorization | provider qualification lead | admitted existing adapter | No real provider workload executed here | BLOCKED | Select target and authorize bounded execution separately; never post credentials |
+| LICENSE-ARTIFACT-01 | Exported public artifact carries correct license/NOTICE and excludes reserved implementation, with manifest/SBOM binding | MATRIX D2 | missing evidence | reviewed final open-core boundary; artifact identity | owner/legal/provenance reviewer | #442 or selected successor | MATRIX reports progress; no new independent private-repository or legal verification here | BLOCKED | Accept final boundary and private commercial record without publishing commercial code |
 
-## PRE-PRODUCTION — production qualification matrix
+## PRE-PRODUCTION: complete PR-G01..PR-G33 audit inventory
 
-The #423 audit is a proposal, not automatic proof that every gate applies to every topology. `V1-PP-001` determines applicability. Items already covered by the AUD-1 lane or pre-canary work are deduplicated below rather than counted twice.
+These are **parent acceptance gates**, not counts of PRs. Every row inherits exact requirement source AUDIT; referenced aliases supply implementation/evidence. Applicability is UNRESOLVED unless an approved source explicitly resolves it. NONE in Implementation means none selected in this master view. Optional or unsupported-scope items are not automatically release blockers, and observed risks cannot be made optional merely to clear a gate. Operational rows needing an RC are evaluated after V1-REL-002; they are not prerequisites to their own RC identity.
 
-| Gate | Acceptance criterion | Classification | Dependency / overlap | Status |
-|---|---|---|---|---|
-| PR-G01 | Prove bootstrap/operator authority is unreachable to untrusted clients in every supported bind/proxy topology. | security qualification | V1-PP-001; overlaps AUD-1 F1/F3 | IN_PROGRESS |
-| PR-G02 | Principal/role/project matrix rejects cross-project confused-deputy operations. | security qualification | V1-PP-001; overlaps AUD-1 F2/F4 | IN_PROGRESS |
-| PR-G03 | Rotate/revoke/expire every supported credential during active and queued work with deterministic old-authority rejection. | security qualification | AUD-1 C1 + credential policy | IN_PROGRESS |
-| PR-G04 | Secret-taint corpus proves no key/token leakage via APIs, logs, errors, exports, backups or environment. | security qualification | V1-PP-001 | NOT_STARTED |
-| PR-G05 | Supported remote topology proves trusted proxy/TLS/certificate validation and downgrade/redirect refusal. | topology/security qualification | V1-PP-001 | BLOCKED |
-| PR-G06 | Declare SQLite/filesystem durability assumptions and prove power-loss/WAL/fsync behavior on every supported filesystem. | durability qualification | V1-PP-001 | NOT_STARTED |
-| PR-G07 | Versioned encrypted backup/restore contract meets declared RPO/RTO and passes integrity rehearsal. | recovery qualification | V1-PP-001 | BLOCKED |
-| PR-G08 | Crash at every durable-state/external-effect boundary; no false success/duplicate unsafe effect. | crash-consistency qualification | R5 fault corpus may supply fixtures | NOT_STARTED |
-| PR-G09 | Explicitly support or fail closed for multi-process/multi-host ownership; contention must preserve uniqueness. | concurrency qualification | V1-PC-004; V1-PP-001 | BLOCKED |
-| PR-G10 | Required security/operation event schema survives loss injection/redaction/reconciliation. | observability qualification | V1-PP-001 | NOT_STARTED |
-| PR-G11 | Log rotation/retention/disk budget and hostile-content/disk-full tests pass. | operations qualification | V1-PP-001 | NOT_STARTED |
-| PR-G12 | Low-cardinality service metrics can be recomputed from authoritative state/journal and bound to SLOs. | observability qualification | V1-PP-001 | BLOCKED |
-| PR-G13 | End-to-end trace continuity, sampling/loss/clock-skew and secret-leak corpus. | optional/post-v1 unless topology/SLO makes mandatory | V1-PP-001 | NOT_STARTED |
-| PR-G14 | CPU/memory/fd/thread/process/disk/network/model/install/job budgets fail safely under exhaustion. | resource qualification | V1-PP-001 | NOT_STARTED |
-| PR-G15 | Enumerate every blocking operation and prove a global upper bound/cancellation path compatible with SLO. | timeout qualification | V1-PP-001; AUD-1 C2/C3 contributes | IN_PROGRESS |
-| PR-G16 | System-wide retries are bounded with backoff/jitter and no amplification/retry storm. | reliability qualification | V1-PP-001 | NOT_STARTED |
-| PR-G17 | Per-principal/IP/operation rate-limit policy and bypass/recovery tests where externally reachable. | security/availability qualification | V1-PP-001 | BLOCKED |
-| PR-G18 | ENOSPC/inode/quota/read-only faults at DB/artifacts/logs/evidence fail closed with preserved forensic state. | durability qualification | #426 explicitly leaves real ENOSPC open | NOT_STARTED |
-| PR-G19 | SQLite page/WAL/schema corruption corpus triggers bounded quarantine/preservation/restore rather than unsafe network actions. | durability/recovery qualification | #426 reports truncated/corrupt cases only partially explored | NOT_STARTED |
-| PR-G20 | Reproduce supported install/start/health/isolation from exact immutable release artifact on clean target host. | deployment qualification | V1-PP-001 | NOT_STARTED |
-| PR-G21 | N/N-1 code+data rollback with in-flight work preserves audit/effect uniqueness and passes rehearsal. | rollback qualification | V1-PP-001 | NOT_STARTED |
-| PR-G22 | Old/new compatibility matrix and unknown-major fail-closed behavior for persisted schemas/protocols. | upgrade qualification | V1-PP-001 | NOT_STARTED |
-| PR-G23 | Boot-time complete config validation rejects unknown/typo/unsafe cross-field deployment states. | configuration qualification | V1-PP-001 | NOT_STARTED |
-| PR-G24 | Authenticated/audited stop, drain, quarantine, resume and break-glass controls are tested. | operator qualification | V1-PP-001 | NOT_STARTED |
-| PR-G25 | Action-to-audit completeness plus tamper/truncation/tail-deletion detection. | audit qualification | evidence-authority work contributes | NOT_STARTED |
-| PR-G26 | Direct-source evidence recomputation and frozen verifier before canary/release. | evidence integrity | V1-PC-001 | READY_FOR_REVIEW |
-| PR-G27 | Actions/dependencies/artifacts have SBOM, signatures/provenance and tamper verification; remove unjustified floating trust where release-critical. | supply-chain qualification | release candidate | NOT_STARTED |
-| PR-G28 | Reproducible/offline release build from hash-locked dependency set. | supply-chain qualification | release candidate | NOT_STARTED |
-| PR-G29 | CI lanes perform capability preflight and fail closed when required capability is absent; preserve first failure and environment identity. | CI qualification | #425 `052065c76955f772bb2ac6c49fe67fcc66ecfc20` proposes ENV-G01 | READY_FOR_REVIEW |
-| PR-G30 | Incident drills cover credential leak, corruption, runaway work, compromise and evidence breach. | operational qualification | V1-PP-001 | NOT_STARTED |
-| PR-G31 | Host/region-loss restore meets RPO/RTO and preserves fencing/uniqueness; if unsupported, topology must explicitly exclude the claim. | DR qualification | V1-PP-001 | BLOCKED |
-| PR-G32 | Exact receipt binding before local ACK. | receipt safety | V1-PC-002 | BLOCKED |
-| PR-G33 | Durable stale/indeterminate/quarantined state and authorized operator disposition; clock anomalies cannot imply resend/success/delete. | state-model qualification | R5 program | NOT_STARTED |
+| ID | Acceptance criterion | Classification | Dependencies | Owner | Implementation | Test/evidence | Status | Required human action |
+|---|---|---|---|---|---|---|---|---|
+| PR-G01 | Untrusted clients cannot obtain bootstrap/operator authority in supported topology | missing evidence | V1-PP-001; AUD1 | Closure/security | #469 lineage | Candidate tests contribute; final topology evidence incomplete | IN_PROGRESS | Accept supported-topology negatives |
+| PR-G02 | Principal/role/project checks reject cross-project confused-deputy operations | missing evidence | V1-PP-001; AUD1 | Closure/security | AUD1 lineage | Candidate regressions, not final RC acceptance | IN_PROGRESS | Review authority matrix and final evidence |
+| PR-G03 | Supported credential rotation/revocation/expiry rejects old authority during active/queued work | missing evidence | credential policy; AUD1 | Closure/security | AUD1 lineage | C1-C6 retained tests contribute | IN_PROGRESS | Approve policy and exercise evidence |
+| PR-G04 | Secret-taint controls cover APIs/logs/errors/exports/backups/environment | missing evidence | V1-PP-001 | security qualification | NONE selected | Full supported-surface corpus missing | NOT_STARTED | Approve scope and inspect retained redaction evidence |
+| PR-G05 | Admitted remote transport validates TLS/certificates/proxy trust and rejects downgrade/redirect abuse | scope decision | transport profile | network/security | NONE selected | Local Docker decision does not approve arbitrary remote proxying | BLOCKED | Name admitted transport; require applicable negatives |
+| PR-G06 | Declared SQLite/WAL/fsync/filesystem assumptions withstand required crash/power-loss cases | missing evidence | durability profile; V1-REL-002 | storage/qualification | NONE selected | FAULTS does not prove real fsync/power-loss durability | NOT_STARTED | Approve filesystem/guarantee set and separate tests |
+| PR-G07 | Encrypted application-consistent backup/restore satisfies approved RPO/RTO with integrity evidence | missing evidence | D5; V1-REL-002 | recovery/operations | RECOVERY | Validator is reviewable; actual exercise missing | BLOCKED | Authorize exact-RC recovery exercise and independent evidence acceptance |
+| PR-G08 | Crashes at durable-state/external-effect boundaries cannot produce false success or unsafe duplicates | missing evidence | applicable effect inventory | runtime/qualification | NONE selected | Scoped CI and FAULTS contribute; complete boundary matrix missing | NOT_STARTED | Approve bounded failure campaign |
+| PR-G09 | Supported process/host ownership is unique or unsupported modes are rejected before mutation | missing evidence | V1-PP-001; V1-PC-004; AUD1 | runtime/qualification | AUD1 lineage | Station ownership does not prove every recovery owner path | IN_PROGRESS | Accept final ownership scope and independent controls |
+| PR-G10 | Required security/operation events survive loss/redaction/reconciliation | missing evidence | audit/event profile | observability owner | NONE selected | Complete supported-event contract not accepted | NOT_STARTED | Approve required event set and loss controls |
+| PR-G11 | Log rotation/retention/disk budgets survive disk-full and hostile-content cases | missing evidence | D5 storage/retention | operations owner | NONE selected | Accepted exact-RC evidence missing | NOT_STARTED | Set budgets and authorize bounded tests |
+| PR-G12 | Declared service SLO metrics are recomputable from authoritative state/journal | scope decision | D5 SLO | operations/metrics | NONE selected | SLO undefined | BLOCKED | Define objective and evidence measurement |
+| PR-G13 | If promised, trace continuity/sampling/loss/skew/secret controls pass | optional hardening | explicit trace/SLO claim | observability owner | NONE selected | Post-v1 unless approved scope makes applicable | NOT_STARTED | Decide applicability; do not delay v1 for an unclaimed feature |
+| PR-G14 | CPU/memory/fd/thread/process/disk/network/model/install/job exhaustion fails safely | missing evidence | resource profile | runtime/qualification | NONE selected | Full profile-bound matrix missing | NOT_STARTED | Approve limits and safe test fixtures |
+| PR-G15 | Blocking operations have bounded completion/cancellation compatible with the declared objective | missing evidence | D5 recovery bound; AUD1 | runtime/qualification | AUD1 contributes | Bounded worker/control tests are partial evidence | IN_PROGRESS | Accept full applicable timeout inventory |
+| PR-G16 | Retry budgets/backoff avoid unbounded amplification under faults | missing evidence | retry/service profile | runtime/qualification | NONE selected | Scoped worker proofs not full-system acceptance | NOT_STARTED | Approve applicable retry matrix |
+| PR-G17 | Externally reachable/multi-user operations meet approved rate-limit and bypass requirements | scope decision | V1-PP-001 | security/operations | NONE selected | Do not infer Internet-facing scope from local Docker support | BLOCKED | Resolve applicability; require controls where reachable |
+| PR-G18 | ENOSPC/inode/quota/read-only faults preserve safety and forensic state | missing evidence | supported storage; bounded test authority | storage/qualification | NONE selected | FAULTS leaves real exhaustion open | NOT_STARTED | Approve safe fault fixtures |
+| PR-G19 | Page/WAL/schema corruption is preserved/quarantined without unsafe network action | missing evidence | storage/recovery profile | recovery/qualification | NONE selected | FAULTS partial/truncated cases not full acceptance | NOT_STARTED | Approve corruption corpus and restore policy |
+| PR-G20 | Exact artifact installs/starts/isolates correctly on every supported entry | missing evidence | MATRIX completed; V1-REL-002 | release qualification | existing install tooling | Windows Docker/NVIDIA/local inference still need applicable exact-RC evidence | NOT_STARTED | Authorize clean-platform qualification |
+| PR-G21 | Claimed N/N-1 code/data rollback preserves authority, audit and in-flight-work semantics | missing evidence | upgrade claim; V1-REL-002 | recovery/operations | RECOVERY | No real rollback exercise in this pass | BLOCKED | Define claimed upgrade path and approve exercise |
+| PR-G22 | Persisted-schema/protocol compatibility and unknown-major refusal are qualified | scope decision | admitted upgrade/protocol matrix | compatibility owner | NONE selected | Compatibility scope not accepted | NOT_STARTED | Define supported version transitions |
+| PR-G23 | Full boot/config validation rejects typo/unknown/unsafe topology states | missing evidence | V1-PP-001 | release/runtime | PROFILE contributes | #472 validates a document; runtime enforcement remains separately required | IN_PROGRESS | Review validator and prove applicable runtime admission |
+| PR-G24 | Authorized stop/drain/quarantine/resume/break-glass actions preserve audit and safety | missing evidence | operator policy; AUD1 | operations/security | existing controls contribute | Complete operator exercise missing | NOT_STARTED | Approve operator policy and exact-RC controls |
+| PR-G25 | Required actions are auditable; tamper/truncation/tail deletion is detected | missing evidence | audit profile | evidence/security | existing observation chain contributes | Full action-to-audit completeness not accepted | NOT_STARTED | Approve audit scope and independent checks |
+| PR-G26 | Independent direct-source seal/manifest/semantic/package/provenance verification passes | missing evidence | V1-PC-001 | evidence reviewer | SEAL | Bounded #447 tooling is not private-source verification | BLOCKED | Select verifier and inspect immutable private bundle |
+| PR-G27 | Released execution dependencies/artifacts have reviewed immutable identity, SBOM and acceptable provenance/tamper controls | missing evidence | review; license/artifact identity | supply-chain reviewer | SUPPLY | Pin gate and technical CI PASS; upstream attestation and integration remain | BLOCKED | Review entire stack and accept provenance, not just digest spelling |
+| PR-G28 | Complete hash-locked Python and container inputs produce offline/reproducible artifacts bound to selected RC | missing evidence | completed build matrix; trusted resolver authorization | release/build owner | LOCK | Grammar tooling only; no authoritative lock, OS-package policy or offline comparison | BLOCKED | Approve inputs/environment, resolve/build separately, retain and accept evidence |
+| PR-G29 | Required CI capabilities are checked and missing capability fails closed without skipped authority | missing evidence | supported test matrix | CI/release owner | OPS/#430 | Retained preflight tooling; no blanket environment-only disposition | IN_PROGRESS | Review capabilities for exact integration/RC lanes |
+| PR-G30 | Credential leak/corruption/runaway work/compromise/evidence-breach procedures pass applicable drills | missing evidence | D5; V1-REL-002 | incident/operations lead | OPS/#434 | Plan/validator only; no drill acceptance | BLOCKED | Name lead and authorize separate exact-RC exercises |
+| PR-G31 | Any host/region-loss restore/failover claim meets RPO/RTO and uniqueness guarantees | scope decision | D5 loss claims | recovery/operations | NONE selected | No distributed/HA container claim admitted by DOCKER | BLOCKED | Explicitly define applicable restore/loss claims; no implied HA |
+| PR-G32 | Receipt type/project/operation/actor/payload binding precedes ACK | reported finding | V1-PC-002 | comms/security owner | NONE selected | FAULTS synthetic observations retained | BLOCKED | Approve applicability then repair/qualify or enforce exclusion |
+| PR-G33 | Applicable stale/indeterminate/quarantine states require authorized disposition; age cannot imply success/resend/delete | scope decision | D4; state contract | comms/recovery owner | R5 proposals only | FAULTS separates observation from durable policy | NOT_STARTED | Decide admitted state contract; do not automatically promote all R5 work |
 
-## RELEASE / RC CLOSURE
+## RELEASE
 
-| ID | Requirement / acceptance criterion | Source | Dependencies | Status | Human action |
-|---|---|---|---|---|---|
-| V1-REL-001 | Reconcile and integrate only release-critical PRs after exact-head review/qualification; after each merge require authoritative resulting-main qualification. No stale-head evidence transfer. | issue #353, repository governance | all applicable pre-production blockers | BLOCKED | guarded merges remain separate owner actions |
-| V1-REL-002 | Define exact RC commit/tree from resulting main and create immutable build artifacts, SBOM, provenance and hashes; no rebuild between qualified RC and final tag. | #418 `695e35733f75d0b4bd5f02941aa29ac9fd57a987` | V1-REL-001, PR-G27/28 | NOT_STARTED | review corrected release schema before use |
-| V1-REL-003 | Correct release-receipt schema so final v1 candidate/tag bind to the selected post-convergence RC, not permanently to frozen R4.1 `8701367d...`. R4.1 identity belongs in canary provenance, not as the immutable final release commit unless owner explicitly chooses that exact code as v1. | #418 current schema | V1-REL-002 | BLOCKED | release-ops lane should revise schema before acceptance |
-| V1-REL-004 | Clean-environment install/recovery from exact RC artifact passes supported platform matrix with retained evidence. | #418 + PR-G20 | V1-REL-002 | NOT_STARTED | execute after RC selection |
-| V1-REL-005 | Backup/restore and rollback rehearsal pass against exact RC/data schema; previous artifact and recovery point retained. | #418 + PR-G07/G21 | V1-REL-002 | NOT_STARTED | operations/data-owner authorization |
-| V1-REL-006 | Required elapsed burn-in/soak window completes without fabricating or shortening elapsed time; failure evidence retained. | release policy / #418 | V1-REL-004/005 | NOT_STARTED | approve exact soak duration and environment |
-| V1-REL-007 | Release manager/maintainer/security/operations/product approvals produce explicit GO/NO_GO/ROLLBACK/EVIDENCE_INCOMPLETE decisions bound to exact RC/evidence. | #418 | all applicable release gates | NOT_STARTED | human approvals |
-| V1-REL-008 | Deploy exact approved artifact using staged checklist; observe guardrails and rollback window; no automatic promotion. | #418 | V1-REL-007 | NOT_STARTED | deployment authorization |
-| V1-REL-009 | Complete release receipt/evidence archive; verify independent copy; final signed `v1.0.0` references exact qualified RC without rebuild. | #418 | V1-REL-008 | NOT_STARTED | release closure authorization |
+| ID | Acceptance criterion | Source | Classification | Dependencies | Owner | Implementation | Test/evidence | Status | Required human action |
+|---|---|---|---|---|---|---|---|---|---|
+| V1-REL-001 | Review and integrate only selected release changes; qualify resulting main without stale-head transfer | AUD1; CLAIMS; repository ruleset | missing evidence | applicable pre-integration gates, not future exact-RC operational results | release owner | reviewed successor set | No convergence/main mutation by this task | BLOCKED | Authorize guarded integration separately |
+| V1-REL-002 | Select immutable RC source/tree/artifact/config/profile/lock identities after convergence and prerequisite builds | CLAIMS; RELEASE; LOCK | missing evidence | V1-REL-001; completed scope/build identities | release owner | candidate manifest/receipt | No selected converged RC | NOT_STARTED | Select identity explicitly; selection alone grants no test/release authority |
+| V1-REL-003 | Release receipt keeps historical canary provenance separate from actual RC/final-tag binding | RELEASE | missing evidence | reviewed schema; bind final values after V1-REL-002 | release tooling owner | #428 retained proposal | Proposal is not a completed release receipt | IN_PROGRESS | Review schema before use; confirm final exact identity later |
+| V1-REL-004 | Clean installation and recovery on applicable supported entries pass on exact RC artifacts | MATRIX; PR-G20 | missing evidence | V1-REL-002; separate operator authorization | platform qualification | accepted install tooling | No exact-RC evidence | NOT_STARTED | Execute supported Windows/Linux/Docker/browser/provider matrix |
+| V1-REL-005 | Approved backup/restore and any claimed rollback preserve data/authority and meet objectives | RECOVERY; PR-G07/G21 | missing evidence | V1-REL-002; D5; separate exercise GO | recovery/operations lead | #461 tooling plus accepted procedure | Validator tests do not authenticate or create observations | NOT_STARTED | Perform and independently accept immutable exercise evidence |
+| V1-REL-006 | Approved continuous soak completes on unchanged RC under the declared workload and reset rule | CLAIMS; D5 | missing evidence | applicable exact-RC prerequisite tests; separate soak GO | operations/qualification lead | approved observation procedure | No elapsed soak claimed here | NOT_STARTED | Approve parameters, then measure actual elapsed time |
+| V1-REL-007 | Final human GO/NO_GO/ROLLBACK/EVIDENCE_INCOMPLETE disposition binds exact RC and all applicable evidence | CLAIMS; RELEASE | missing evidence | applicable CV-01..17 and linked release gates | release/security/operations/product authority | human decision record | No release authorization | NOT_STARTED | Review and issue genuine final disposition |
+| V1-REL-008 | Deploy only approved immutable artifact within the authorized staged/rollback window | RELEASE | missing evidence | V1-REL-007; separate deployment GO | release operator | accepted runbook | No deployment by this task | NOT_STARTED | Authorize and execute separately |
+| V1-REL-009 | Final receipt/archive/independent copy and signed release identity bind the qualified artifact without rebuild | RELEASE | missing evidence | V1-REL-007; applicable deployment disposition | release/evidence custodian | accepted release tooling | No tag/release publication | NOT_STARTED | Authorize final publication/archive explicitly |
 
-## R5 / POST-v1
+## R5 / POST-V1
 
-R5 planning does not automatically block the bounded R4.1 canary or v1. Scope-disposition items V1-PC-002..004 may promote a subset into pre-v1 requirements.
+Exact retained planning sources: #410 `49b625b87ba6aea5e62c04af2afe89ebc7ca4266`, #419 `6c417103417b89d6adba1e880f919c20ba98f7dc`, #421 `5d8b9a41671201ac0c0a822ed5d0e5a9124c30ea`. These entries do not become v1 blockers merely because they are incomplete. Promoting an observed invariant violation requires explicit linkage to an applicable v1 gate.
 
-| ID | Requirement | Source | Status |
-|---|---|---|---|
-| V1-R5-P0 | Evidence authority, deterministic fault/corpus infrastructure, independent phase convergence. | #410 `49b625b87ba6aea5e62c04af2afe89ebc7ca4266`; #419 `6c417103417b89d6adba1e880f919c20ba98f7dc`; #421 `5d8b9a41671201ac0c0a822ed5d0e5a9124c30ea` | READY_FOR_REVIEW |
-| V1-R5-P1 | Versioned protocol + authenticated request-bound receipt authority. | #410/#419 | NOT_STARTED |
-| V1-R5-P2 | Fenced recovery/reconciliation with single durable authority. | #410/#419/#426 | NOT_STARTED |
-| V1-R5-P3 | Crash durability, corruption handling, explicit indeterminate/quarantine/stale disposition. | #410/#419/#426 | NOT_STARTED |
-| V1-R5-P4 | Multi-process/topology/observability/lookup/lifecycle hardening. | #410/#419 | NOT_STARTED |
-| V1-R5-P5 | Formal claim/convergence qualification and accepted immutable phase receipts. | #410/#419 | NOT_STARTED |
+| ID | Acceptance criterion | Source | Classification | Dependencies | Owner | Implementation | Test/evidence | Status | Required human action |
+|---|---|---|---|---|---|---|---|---|---|
+| V1-R5-P0 | Review evidence authority and deterministic corpus/phase infrastructure | retained #410/#419/#421 above | optional hardening | post-v1 program review | R5 owner | planning proposals | Retained plans, not current execution | READY_FOR_REVIEW | Review separately from v1 |
+| V1-R5-P1 | Qualify versioned authenticated request-bound receipts for admitted scope | retained #410/#419 | optional hardening | V1-R5-P0 | R5 owner | NONE selected | Unexecuted program | NOT_STARTED | Authorize phase independently |
+| V1-R5-P2 | Qualify fenced recovery and one durable authority | retained #410/#419; FAULTS | optional hardening | V1-R5-P1 | R5 owner | NONE selected | V1-PC-004 remains independently tracked if applicable | NOT_STARTED | Do not wait for whole R5 program to resolve v1 finding |
+| V1-R5-P3 | Qualify crash/corruption/indeterminate/quarantine/stale behavior | retained #410/#419; FAULTS | optional hardening | V1-R5-P2 | R5 owner | NONE selected | Proposed corpus only | NOT_STARTED | Preserve preregistration and first failures |
+| V1-R5-P4 | Qualify extended process/topology/lookup/lifecycle/observability | retained #410/#419 | optional hardening | V1-R5-P3 | R5 owner | NONE selected | No phase acceptance | NOT_STARTED | Authorize scope separately |
+| V1-R5-P5 | Independently accept immutable phase receipts and final R5 claims | retained #410/#419 | optional hardening | V1-R5-P4 | R5 reviewer | NONE selected | No final phase receipt | NOT_STARTED | Review without granting v1 authority |
 
-Post-v1-only research/features such as APF/RRI-005 (#407), inference-aware routing (#406), measured research lanes and other optional adapters are not on the v1 critical path unless a verified production blocker explicitly promotes them.
+## RESEARCH
 
-## RESEARCH / METHODS (not release gates by default)
+| ID | Acceptance criterion | Source | Classification | Dependencies | Owner | Implementation | Test/evidence | Status | Required human action |
+|---|---|---|---|---|---|---|---|---|---|
+| V1-RES-001 | Published chronology marks old derived 44/44 claims superseded by direct-manifest evidence; no invented corrected seal | #411 1e2592bfc81dfe94d0f39332ebd451862680cab4; #415 3da0d8ec45adf8934b88906462706617aa22831f | missing evidence | publication/source verification | research/evidence owner | original docs, unchanged | Historical publication reconciliation, not private verification | BLOCKED | Review before that research publication; not an automatic extra v1 experiment |
+| V1-RES-002 | Maintain claim/evidence alternatives, ablations and replication without unsupported novelty claims | #424 352029e88573023cbe81a7288601189bd93311c7 | hypothesis | research review | research owner | #424 | Retained research matrix | READY_FOR_REVIEW | Review separately |
+| V1-RES-003 | Reproducibility registry distinguishes retrospective observations from preregistration | #420 b36b15f1b161ff8d7a913ca47f8a3bea3fab660c | optional hardening | research review | research owner | #420 | Retained registry | READY_FOR_REVIEW | Preserve frozen protocols |
+| V1-RES-004 | Environment drift and unavailable capabilities are recorded before interpreting results | #425 052065c76955f772bb2ac6c49fe67fcc66ecfc20 | reported finding | exact environment evidence | research/CI owner | OPS preflight contributes | Historical count/capability discrepancies retained | READY_FOR_REVIEW | Separate observer/test-environment failure from target failure |
 
-| ID | Requirement | Source | Status |
-|---|---|---|---|
-| V1-RES-001 | Preserve R4/R4.1 chronology with corrected evidence cardinality: any `44/44` derived-seal wording must be corrected or explicitly marked superseded by authoritative 50-entry manifest evidence before publication/merge. | #411 `1e2592bfc81dfe94d0f39332ebd451862680cab4`; #415 | BLOCKED |
-| V1-RES-002 | Maintain claim/evidence matrix with alternatives, ablations, replication and literature review; do not claim novelty from architecture alone. | #424 `352029e88573023cbe81a7288601189bd93311c7` | READY_FOR_REVIEW |
-| V1-RES-003 | Maintain reproducibility registry without relabeling retrospective observations as preregistered. | #420 `b36b15f1b161ff8d7a913ca47f8a3bea3fab660c` | READY_FOR_REVIEW |
-| V1-RES-004 | Preserve test-environment drift as an explicit finding: broad-suite count did not reproduce exactly and missing loopback/crypto/bubblewrap capabilities must be machine-recorded before interpreting failures. | #425 `052065c76955f772bb2ac6c49fe67fcc66ecfc20` | READY_FOR_REVIEW |
+#450/#451/#459/#460/#470/#471 and other research/UX/automation work do not enter the v1 critical path unless a separately evidenced applicable blocker is linked. No research branch is rebased or bulk-integrated here.
 
-## Current release blockers / owner queue
+## Current disposition
 
-1. **Canary scope decision:** receipt semantic binding, recovery digest verification, and concurrent recovery fencing reported by #426 require explicit bounded-canary scope disposition before GO.
-2. **AUD-1 successor:** #416 exact head has current technical CI success, but no independent human review, no successor-bound physical F6-A/F6-B, no Mason/LEGION re-audit and no genuine owner attestation.
-3. **Deployment contract:** v1 topology/trust model and SLO/RPO/RTO are not yet authoritative; this determines which #423 production gates apply.
-4. **Release schema:** #418 currently hard-binds final `v1.0.0` candidate/tag to the frozen R4.1 candidate. That must be intentionally reconciled with the actual post-convergence RC before release tooling is accepted.
-5. **Canary itself:** not executed; post-canary disposition is therefore not available.
+PROFILE and SUPPLY are actually non-draft and technically qualified on their stated heads, but unmerged and not human-reviewed. This consolidating master revision needs its own exact-head CI and human review; predecessor CI does not qualify it. There is no selected converged release tree, completed current F6 bundle, current canary acceptance, private direct-source verification, authoritative offline reproducible release build, exact-RC operational evidence or final release authorization established by this task.
 
-## Readiness statement
-
-No exact percentage is asserted. Current evidence supports: R4.1 has a historical exact-scope `READY_FOR_CANARY` qualification; canary execution remains blocked on explicit scope/authority prerequisites; production v1 remains blocked on AUD-1 physical/independent closure, deployment-scope authority, applicable production qualification, exact RC recovery/soak/provenance and human release authorization.
+Only the master read-model and review-routing metadata changed in this pass. No frozen source/evidence, helper, live service, credentials, ownership pins, assertions, required test, deployment topology, schedule, main, canary, physical F6, provider workload, recovery exercise, elapsed soak, tag, release, approval or human attestation was changed or executed.
