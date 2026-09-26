@@ -10,6 +10,7 @@ on:
       - 'tests/test_checkout_credentials.py'
       - 'tests/test_pages_main_qualification_gate.py'
       - 'docs/v1/V1_GITHUB_ACTION_PIN_SET.json'
+      - 'docs/v1/V1_GITHUB_ACTION_TRANSITIVE_REVIEW.json'
       - 'docs/v1/V1_SUPPLY_CHAIN_ACTION_PINNING.md'
   workflow_dispatch:
 
