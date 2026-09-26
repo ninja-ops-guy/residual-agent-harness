@@ -1,0 +1,27 @@
+{
+  "schema": "residual.v1.convergence-discipline/1",
+  "mode": "CONVERGENCE_FREEZE",
+  "new_v1_features": "BLOCKED_BY_DEFAULT",
+  "admission_reasons": [
+    "existing_v1_invariant_violation",
+    "owner_approved_release_matrix_requirement",
+    "release_qualification_or_security_defect",
+    "release_claim_evidence_reconciliation"
+  ],
+  "active_holds": {
+    "ghost_p3_3": "do_not_disturb_except_current_bounded_protocol",
+    "shared_comms_widening": "anvil_canary_only",
+    "dogfood_e0": "do_not_rerun_without_new_admitted_evidence",
+    "physical_f6": "wait_for_accepted_product_head_and_requalified_helper"
+  },
+  "authority_separation": {
+    "coordinator": "propose_route_synthesize",
+    "orchestrator": "structure",
+    "station": "authorize",
+    "worker": "execute",
+    "verifier": "accept_or_reject",
+    "human": "protected_disposition"
+  },
+  "superseded_evidence_policy": "append_only_exact_identity",
+  "default_defer_target": "v2_or_post_v1"
+}
