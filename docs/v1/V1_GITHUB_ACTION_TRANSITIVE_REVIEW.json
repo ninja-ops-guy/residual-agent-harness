@@ -1,0 +1,30 @@
+{
+  "schema": "residual.v1.github-action-transitive-review/1",
+  "candidate_parent": "72fd1b5eeef6204db52cafc43ff1f6b48bbde5ce",
+  "reviewed_at": "2026-09-25",
+  "findings": [
+    {
+      "dependency": "actions/upload-pages-artifact",
+      "direct_pin": "56afc609e74202658d3ffba0e8f6dda462b719fa",
+      "upstream_source": "action.yml",
+      "observed_transitive": "actions/upload-artifact@v4",
+      "status": "RESOLVED_IN_SUCCESSOR",
+      "resolution": "Remove the composite action from the workflow. Reproduce its Linux tar archive step locally and upload artifact.tar with the already reviewed immutable actions/upload-artifact pin.",
+      "release_authority": "pages artifact production path"
+    },
+    {
+      "dependency": "The-PR-Agent/pr-agent",
+      "direct_pin": "f3b385ea2927247ddcff2fe252472380b9c8f5fc",
+      "upstream_source": "Dockerfile.github_action_dockerhub",
+      "observed_transitive": "FROM pragent/pr-agent:github_action",
+      "status": "HUMAN_SCOPE_DECISION_REQUIRED",
+      "resolution": "The workflow is advisory and is not used as release authority, but its mutable transitive container base remains real. Either exclude this advisory integration from the v1 authoritative supply-chain claim or replace it with a digest/source-built path before claiming full transitive immutability.",
+      "release_authority": "advisory PR review only"
+    }
+  ],
+  "non_claims": [
+    "A direct commit pin does not prove that an upstream composite or Docker action has immutable transitive dependencies.",
+    "This review does not claim the PR-Agent container tag is compromised.",
+    "The PR-Agent disposition remains a human release-scope decision."
+  ]
+}
