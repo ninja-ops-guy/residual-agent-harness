@@ -10,6 +10,7 @@ from scripts.validate_github_action_pins import PIN_RE, external_uses
 ROOT = Path(__file__).resolve().parents[1]
 PIN_SET = ROOT / "docs" / "v1" / "V1_GITHUB_ACTION_PIN_SET.json"
 WORKFLOWS = ROOT / ".github" / "workflows"
+ACTIONS = ROOT / ".github" / "actions"
 
 
 class ActionPinSetTests(unittest.TestCase):
@@ -30,7 +31,11 @@ class ActionPinSetTests(unittest.TestCase):
     def test_every_external_workflow_ref_matches_reviewed_pin_set(self):
         allowed = self._allowed()
         seen: set[str] = set()
-        for path in sorted((*WORKFLOWS.glob("*.yml"), *WORKFLOWS.glob("*.yaml"))):
+        paths = [*WORKFLOWS.glob("*.yml"), *WORKFLOWS.glob("*.yaml")]
+        if ACTIONS.is_dir():
+            paths.extend(ACTIONS.glob("**/action.yml"))
+            paths.extend(ACTIONS.glob("**/action.yaml"))
+        for path in sorted(set(paths)):
             uses, structural_findings = external_uses(path)
             self.assertFalse(
                 structural_findings,

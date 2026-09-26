@@ -214,7 +214,9 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
       - name: Upload only browser-qualified Pages artifact
-        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        # Vendored from actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa.
+        # The local composite pins its nested upload-artifact dependency immutably.
+        uses: ./.github/actions/upload-pages-artifact-pinned
         with:
           path: _site
           name: ${{ steps.pages-artifact.outputs.name }}

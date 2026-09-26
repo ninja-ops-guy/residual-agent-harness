@@ -153,10 +153,18 @@ def audit(root: Path) -> dict:
     if not workflows.is_dir():
         return _report("BLOCKED", ".github/workflows is missing")
 
+    actions = root / ".github" / "actions"
     try:
-        paths = sorted([*workflows.glob("*.yml"), *workflows.glob("*.yaml")])
+        paths = [
+            *workflows.glob("*.yml"),
+            *workflows.glob("*.yaml"),
+        ]
+        if actions.is_dir():
+            paths.extend(actions.glob("**/action.yml"))
+            paths.extend(actions.glob("**/action.yaml"))
+        paths = sorted(set(paths))
     except OSError as exc:
-        return _report("BLOCKED", f"unable to enumerate workflows: {exc.__class__.__name__}")
+        return _report("BLOCKED", f"unable to enumerate workflow/action files: {exc.__class__.__name__}")
 
     for path in paths:
         files_scanned += 1
