@@ -13,10 +13,7 @@ Observed #448 candidate behavior:
 - Compose publishes host `127.0.0.1:8765` but does not supply the required Station exposure policy.
 - current Docker CI overrides the image entrypoint, so it does not test default startup.
 
-Choose one:
-
-- D1-A — container is supported in v1. Define the protected ingress contract, repair default startup in a successor to #448, add a real startup test, and requalify before physical F6.
-- D1-B — container is excluded from v1. State the exclusion explicitly in the release matrix and public claims.
+Decision recorded 2026-09-25: **D1-A — container is supported in v1.** A dedicated successor to #448 must define and qualify the protected local-container ingress contract before physical F6.
 
 Do not weaken `validate_exposure()` merely to make the image start.
 
@@ -78,7 +75,7 @@ These must be performed against the exact RC artifact rather than inherited from
 ## Decision record
 
 ```text
-D1_CONTAINER_SUPPORT: A_SUPPORTED | B_EXCLUDED | UNDECIDED
+D1_CONTAINER_SUPPORT: A_SUPPORTED
 D2_DISTRIBUTION_LICENSE: <selected terms or UNDECIDED>
 D3_RELEASE_MATRIX: <approved matrix reference or UNDECIDED>
 D4_SHARED_COMMS_V1: INCLUDED | EXCLUDED_BY_DEFAULT | UNDECIDED
