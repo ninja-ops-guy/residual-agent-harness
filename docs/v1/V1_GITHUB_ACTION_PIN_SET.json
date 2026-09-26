@@ -50,12 +50,6 @@
       "source_ref": "v4",
       "sha": "ea165f8d65b6e75b540449e92b4886f43607fa02",
       "upstream_commit_url": "https://github.com/actions/upload-artifact/commit/ea165f8d65b6e75b540449e92b4886f43607fa02"
-    },
-    {
-      "action": "The-PR-Agent/pr-agent",
-      "source_ref": "existing-v0.45.0-pin",
-      "sha": "f3b385ea2927247ddcff2fe252472380b9c8f5fc",
-      "upstream_commit_url": "https://github.com/The-PR-Agent/pr-agent/commit/f3b385ea2927247ddcff2fe252472380b9c8f5fc"
     }
   ],
   "non_claims": [
@@ -72,6 +66,15 @@
       "upstream_commit_url": "https://github.com/actions/upload-pages-artifact/commit/56afc609e74202658d3ffba0e8f6dda462b719fa",
       "local_path": ".github/actions/upload-pages-artifact-pinned/action.yml",
       "modification": "nested actions/upload-artifact ref pinned to ea165f8d65b6e75b540449e92b4886f43607fa02"
+    }
+  ],
+  "container_images": [
+    {
+      "image": "pragent/pr-agent",
+      "source_ref": "0.45.0-github_action",
+      "digest": "sha256:548b760b81ab4b3f729182428695ccc1194bbf87528c2b1e2b2b07e5223af7b6",
+      "source_commit": "f3b385ea2927247ddcff2fe252472380b9c8f5fc",
+      "note": "Observed Docker Hub multi-platform index digest; upstream attestation verification remains an acceptance step."
     }
   ]
 }
