@@ -1,0 +1,365 @@
+{
+  "$id": "https://residual.local/schemas/v1-deployment-profile.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "approval_timestamp": {
+      "minLength": 1,
+      "not": {
+        "const": "UNDECIDED"
+      },
+      "type": "string"
+    },
+    "decision_owner": {
+      "minLength": 1,
+      "not": {
+        "const": "UNDECIDED"
+      },
+      "type": "string"
+    },
+    "network": {
+      "additionalProperties": false,
+      "properties": {
+        "bind_addresses": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "certificate_policy": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "outbound_provider_access": {
+          "additionalProperties": false,
+          "properties": {
+            "boundary": {
+              "type": "string"
+            },
+            "mode": {
+              "enum": [
+                "DISALLOWED",
+                "SUPPORTED"
+              ]
+            }
+          },
+          "required": [
+            "mode"
+          ],
+          "type": "object"
+        },
+        "proxy_header_trust": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "remote_workers": {
+          "additionalProperties": false,
+          "properties": {
+            "mode": {
+              "enum": [
+                "DISALLOWED",
+                "SUPPORTED"
+              ]
+            },
+            "topology": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "mode"
+          ],
+          "type": "object"
+        },
+        "reverse_proxy": {
+          "additionalProperties": false,
+          "properties": {
+            "mode": {
+              "enum": [
+                "NONE",
+                "TRUSTED_PROXY"
+              ]
+            },
+            "name": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "mode"
+          ],
+          "type": "object"
+        },
+        "station_exposure": {
+          "enum": [
+            "LOOPBACK_ONLY",
+            "PRIVATE_NETWORK",
+            "INTERNET_FACING"
+          ]
+        },
+        "tls_termination": {
+          "enum": [
+            "NONE_LOCAL_ONLY",
+            "STATION",
+            "TRUSTED_PROXY"
+          ]
+        }
+      },
+      "required": [
+        "station_exposure",
+        "bind_addresses",
+        "reverse_proxy",
+        "tls_termination",
+        "proxy_header_trust",
+        "certificate_policy",
+        "remote_workers",
+        "outbound_provider_access"
+      ],
+      "type": "object"
+    },
+    "objectives": {
+      "additionalProperties": false,
+      "properties": {
+        "availability_slo": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "backup_frequency_seconds": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "backup_retention_seconds": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "evidence_retention_seconds": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "host_loss_claim": {
+          "enum": [
+            "NONE",
+            "RESTORE_ONLY",
+            "FAILOVER"
+          ]
+        },
+        "log_disk_budget_bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "log_retention_seconds": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "max_operation_recovery_seconds": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "regional_loss_claim": {
+          "enum": [
+            "NONE",
+            "RESTORE_ONLY",
+            "FAILOVER"
+          ]
+        },
+        "rpo_seconds": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "rto_seconds": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "soak_environment": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "soak_seconds": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "availability_slo",
+        "max_operation_recovery_seconds",
+        "rpo_seconds",
+        "rto_seconds",
+        "backup_frequency_seconds",
+        "backup_retention_seconds",
+        "evidence_retention_seconds",
+        "log_retention_seconds",
+        "log_disk_budget_bytes",
+        "host_loss_claim",
+        "regional_loss_claim",
+        "soak_seconds",
+        "soak_environment"
+      ],
+      "type": "object"
+    },
+    "operations_owner": {
+      "minLength": 1,
+      "not": {
+        "const": "UNDECIDED"
+      },
+      "type": "string"
+    },
+    "profile_id": {
+      "minLength": 1,
+      "not": {
+        "const": "UNDECIDED"
+      },
+      "type": "string"
+    },
+    "profile_version": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "release": {
+      "const": "v1.0.0"
+    },
+    "runtime": {
+      "additionalProperties": false,
+      "properties": {
+        "architectures": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "filesystems": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "installation_artifact": {
+          "enum": [
+            "WHEEL",
+            "CONTAINER"
+          ]
+        },
+        "multi_host_shared_database": {
+          "enum": [
+            "SUPPORTED",
+            "DISALLOWED"
+          ]
+        },
+        "multi_process_station": {
+          "enum": [
+            "SUPPORTED",
+            "DISALLOWED"
+          ]
+        },
+        "operating_systems": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "persistent_volume_semantics": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "python_versions": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "sqlite_durability_mode": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "sqlite_version": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "operating_systems",
+        "architectures",
+        "python_versions",
+        "installation_artifact",
+        "filesystems",
+        "sqlite_version",
+        "sqlite_durability_mode",
+        "persistent_volume_semantics",
+        "multi_process_station",
+        "multi_host_shared_database"
+      ],
+      "type": "object"
+    },
+    "schema": {
+      "const": "residual.v1-deployment-profile.v1"
+    },
+    "source_revision": {
+      "pattern": "^[0-9a-f]{40}$",
+      "type": "string"
+    },
+    "tenancy": {
+      "additionalProperties": false,
+      "properties": {
+        "authorization_boundary": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "break_glass_authority": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "credential_custody": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "operator_model": {
+          "enum": [
+            "SINGLE_TRUSTED_OPERATOR",
+            "MULTI_OPERATOR"
+          ]
+        },
+        "user_model": {
+          "enum": [
+            "LOCAL_OPERATOR_ONLY",
+            "SINGLE_TENANT_MULTI_USER",
+            "MULTI_TENANT"
+          ]
+        }
+      },
+      "required": [
+        "operator_model",
+        "user_model",
+        "authorization_boundary",
+        "break_glass_authority",
+        "credential_custody"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema",
+    "profile_id",
+    "profile_version",
+    "release",
+    "decision_owner",
+    "operations_owner",
+    "approval_timestamp",
+    "source_revision",
+    "network",
+    "tenancy",
+    "runtime",
+    "objectives"
+  ],
+  "title": "RESIDUAL v1 deployment qualification profile",
+  "type": "object"
+}
