@@ -126,5 +126,63 @@ jobs:
         with:
           persist-credentials: false
       - run: docker compose config --quiet
-      - run: docker build -t residual-station-ci .
-      - run: docker run --rm --entrypoint python3 residual-station-ci -c "from residual.station.service import Station,demo_spec; import tempfile; s=Station(tempfile.mkdtemp()); p=s.create(demo_spec(),demo=True)['project_id']; assert s.batch(p)['integrated']==3"
+      - name: Prove the documented default Docker startup path
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker compose up --build -d
+          cleanup() {
+            docker compose logs --no-color > docker-startup.log 2>&1 || true
+            docker compose down -v >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          ready=0
+          for _ in $(seq 1 80); do
+            if curl -fsS http://127.0.0.1:8765/api/bootstrap > docker-bootstrap.json; then
+              ready=1
+              break
+            fi
+            sleep 0.5
+          done
+          test "$ready" -eq 1
+          python - <<'PY'
+          import json
+          value = json.load(open("docker-bootstrap.json", encoding="utf-8"))
+          assert value["version"] == "0.3.0"
+          PY
+
+          # The browser-facing port is a container TCP forwarder. The Station
+          # process itself must remain on loopback so the C01/C02 exposure guard
+          # is not bypassed merely to make Docker port publishing work.
+          docker compose exec -T station python3 - <<'PY'
+          import pathlib, urllib.request
+          with urllib.request.urlopen("http://127.0.0.1:8766/api/bootstrap", timeout=3) as response:
+              assert response.status == 200
+          commands = []
+          for path in pathlib.Path("/proc").glob("[0-9]*/cmdline"):
+              try:
+                  value = path.read_bytes().replace(b"\0", b" ").decode("utf-8", "replace")
+              except OSError:
+                  continue
+              if "residual.station.server" in value:
+                  commands.append(value)
+          assert len(commands) == 1, commands
+          command = commands[0]
+          assert "--host 127.0.0.1" in command, command
+          assert "--port 8766" in command, command
+          assert "--host 0.0.0.0" not in command, command
+          print(command)
+          PY
+      - name: Exercise Station service logic in the built image
+        run: >-
+          docker run --rm --entrypoint python3 residual-command-station:0.2.0
+          -c "from residual.station.service import Station,demo_spec; import tempfile; s=Station(tempfile.mkdtemp()); p=s.create(demo_spec(),demo=True)['project_id']; assert s.batch(p)['integrated']==3"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: docker-default-startup-${{ github.sha }}
+          path: |
+            docker-startup.log
+            docker-bootstrap.json
+          if-no-files-found: warn
