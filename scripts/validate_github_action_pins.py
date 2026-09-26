@@ -6,9 +6,17 @@ import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-SCHEMA = "residual.github-action-pin-audit.v1"
+import yaml
+from yaml.events import AliasEvent
+from yaml.nodes import MappingNode, ScalarNode, SequenceNode
+
+SCHEMA = "residual.github-action-pin-audit.v2"
 PIN_RE = re.compile(r"^[0-9a-fA-F]{40}$")
-USES_RE = re.compile(r"^\s*(?:-\s*)?uses:\s*(.+?)\s*$")
+SAFE_TAGS = {
+    "tag:yaml.org,2002:map",
+    "tag:yaml.org,2002:seq",
+    "tag:yaml.org,2002:str",
+}
 
 
 @dataclass(frozen=True)
@@ -17,13 +25,6 @@ class Finding:
     line: int
     target: str
     reason: str
-
-
-def _parse_target(raw: str) -> str:
-    value = raw.split(" #", 1)[0].strip()
-    if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
-        value = value[1:-1].strip()
-    return value
 
 
 def _report(
@@ -45,11 +46,109 @@ def _report(
     }
 
 
+def _line(node) -> int:
+    return int(getattr(getattr(node, "start_mark", None), "line", 0)) + 1
+
+
+def _scalar_key(node) -> str | None:
+    if isinstance(node, ScalarNode):
+        return str(node.value)
+    return None
+
+
+def _validate_node(node, path: Path, findings: list[Finding], seen: set[int]) -> None:
+    # compose() is deliberately used instead of load(): no arbitrary Python
+    # object construction occurs. Reject aliases/merges/custom tags so the
+    # audit semantics stay simple and deterministic.
+    if id(node) in seen:
+        findings.append(Finding(str(path), _line(node), "", "YAML aliases are unsupported by the pin auditor"))
+        return
+    seen.add(id(node))
+
+    if getattr(node, "tag", None) not in SAFE_TAGS:
+        findings.append(
+            Finding(str(path), _line(node), "", f"unsupported YAML tag: {getattr(node, 'tag', None)}")
+        )
+        return
+
+    if isinstance(node, MappingNode):
+        keys: set[str] = set()
+        for key_node, value_node in node.value:
+            key = _scalar_key(key_node)
+            if key is None:
+                findings.append(Finding(str(path), _line(key_node), "", "workflow mapping key must be a string"))
+                continue
+            if key == "<<":
+                findings.append(Finding(str(path), _line(key_node), "", "YAML merge keys are unsupported by the pin auditor"))
+                continue
+            if key in keys:
+                findings.append(Finding(str(path), _line(key_node), key, "duplicate YAML mapping key"))
+                continue
+            keys.add(key)
+            _validate_node(value_node, path, findings, seen)
+    elif isinstance(node, SequenceNode):
+        for value_node in node.value:
+            _validate_node(value_node, path, findings, seen)
+
+
+def _iter_uses(node):
+    if isinstance(node, MappingNode):
+        for key_node, value_node in node.value:
+            if _scalar_key(key_node) == "uses":
+                yield value_node
+            yield from _iter_uses(value_node)
+    elif isinstance(node, SequenceNode):
+        for value_node in node.value:
+            yield from _iter_uses(value_node)
+
+
+def parse_workflow(path: Path):
+    text = path.read_text(encoding="utf-8")
+    if len(text.encode("utf-8")) > 2_000_000:
+        raise ValueError("workflow exceeds 2 MB pin-audit bound")
+
+    # Explicitly reject aliases/anchors before compose() folds aliases into
+    # shared node identities.
+    for event in yaml.parse(text, Loader=yaml.BaseLoader):
+        if isinstance(event, AliasEvent) or getattr(event, "anchor", None):
+            raise ValueError("YAML aliases/anchors are unsupported by the pin auditor")
+
+    root = yaml.compose(text, Loader=yaml.BaseLoader)
+    if root is None:
+        raise ValueError("workflow YAML is empty")
+
+    structural_findings: list[Finding] = []
+    _validate_node(root, path, structural_findings, set())
+    if structural_findings:
+        return root, structural_findings
+    return root, []
+
+
+def external_uses(path: Path):
+    root, structural_findings = parse_workflow(path)
+    if structural_findings:
+        return [], structural_findings
+
+    values: list[tuple[int, str]] = []
+    findings: list[Finding] = []
+    for value_node in _iter_uses(root):
+        if not isinstance(value_node, ScalarNode) or value_node.tag != "tag:yaml.org,2002:str":
+            findings.append(
+                Finding(str(path), _line(value_node), "", "uses value must be a scalar string")
+            )
+            continue
+        target = str(value_node.value).strip()
+        if target.startswith("./") or target.startswith("docker://"):
+            continue
+        values.append((_line(value_node), target))
+    return values, findings
+
+
 def audit(root: Path) -> dict:
     workflows = root / ".github" / "workflows"
     findings: list[Finding] = []
     files_scanned = 0
-    external_uses = 0
+    external_count = 0
 
     if not workflows.is_dir():
         return _report("BLOCKED", ".github/workflows is missing")
@@ -61,34 +160,28 @@ def audit(root: Path) -> dict:
 
     for path in paths:
         files_scanned += 1
+        rel = path.relative_to(root)
         try:
-            lines = path.read_text(encoding="utf-8").splitlines()
-        except (OSError, UnicodeError) as exc:
+            uses, structural_findings = external_uses(path)
+        except (OSError, UnicodeError, yaml.YAMLError, ValueError) as exc:
             return _report(
                 "BLOCKED",
-                f"unable to read workflow {path.name}: {exc.__class__.__name__}",
+                f"unable to structurally parse workflow {path.name}: {exc}",
                 files_scanned=files_scanned,
-                external_uses=external_uses,
+                external_uses=external_count,
                 findings=findings,
             )
 
-        for lineno, line in enumerate(lines, 1):
-            match = USES_RE.match(line)
-            if not match:
-                continue
-            target = _parse_target(match.group(1))
-            if target.startswith("./") or target.startswith("docker://"):
-                continue
+        for finding in structural_findings:
+            findings.append(
+                Finding(str(rel), finding.line, finding.target, finding.reason)
+            )
 
-            external_uses += 1
+        for lineno, target in uses:
+            external_count += 1
             if "@" not in target:
                 findings.append(
-                    Finding(
-                        str(path.relative_to(root)),
-                        lineno,
-                        target,
-                        "external action/workflow has no ref",
-                    )
+                    Finding(str(rel), lineno, target, "external action/workflow has no ref")
                 )
                 continue
 
@@ -96,7 +189,7 @@ def audit(root: Path) -> dict:
             if not PIN_RE.fullmatch(ref):
                 findings.append(
                     Finding(
-                        str(path.relative_to(root)),
+                        str(rel),
                         lineno,
                         target,
                         "external action/workflow ref is not an immutable 40-hex commit SHA",
@@ -108,10 +201,10 @@ def audit(root: Path) -> dict:
         (
             "all external workflow dependencies are commit-pinned"
             if not findings
-            else "floating external workflow dependencies detected"
+            else "floating or structurally invalid workflow dependencies detected"
         ),
         files_scanned=files_scanned,
-        external_uses=external_uses,
+        external_uses=external_count,
         findings=findings,
     )
 

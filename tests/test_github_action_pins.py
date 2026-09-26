@@ -60,6 +60,86 @@ class ActionPinAuditTests(unittest.TestCase):
         )
         self.assertEqual(result["status"], "PASS")
 
+    def test_inline_mapping_uses_is_detected(self):
+        result = audit(self._root("steps: [{uses: actions/checkout@v4}]\n"))
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertEqual(result["external_uses"], 1)
+
+    def test_quoted_uses_key_is_detected(self):
+        result = audit(self._root('"steps":\n  - "uses": actions/checkout@v4\n'))
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertEqual(result["external_uses"], 1)
+
+    def test_uses_text_inside_run_block_is_not_an_action(self):
+        result = audit(
+            self._root(
+                "steps:\n"
+                "  - run: |\n"
+                "      echo 'uses: actions/checkout@v4'\n"
+            )
+        )
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["external_uses"], 0)
+
+    def test_uses_text_inside_environment_value_is_not_an_action(self):
+        result = audit(
+            self._root(
+                "env:\n"
+                "  SAMPLE: 'uses: actions/checkout@v4'\n"
+                "steps:\n"
+                f"  - uses: actions/checkout@{PIN}\n"
+            )
+        )
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["external_uses"], 1)
+
+    def test_duplicate_uses_key_is_blocked(self):
+        result = audit(
+            self._root(
+                "steps:\n"
+                f"  - uses: actions/checkout@{PIN}\n"
+                "    uses: actions/setup-python@v5\n"
+            )
+        )
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertTrue(any("duplicate YAML mapping key" in x["reason"] for x in result["violations"]))
+
+    def test_alias_is_blocked(self):
+        result = audit(
+            self._root(
+                "steps:\n"
+                f"  - &base {{uses: actions/checkout@{PIN}}}\n"
+                "  - *base\n"
+            )
+        )
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertIn("aliases/anchors", result["reason"])
+
+    def test_merge_key_is_blocked(self):
+        result = audit(
+            self._root(
+                f"base: &base\n  uses: actions/checkout@{PIN}\n"
+                "steps:\n"
+                "  - <<: *base\n"
+            )
+        )
+        self.assertEqual(result["status"], "BLOCKED")
+
+    def test_custom_tag_is_blocked(self):
+        result = audit(self._root("steps: !custom []\n"))
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertTrue(any("unsupported YAML tag" in x["reason"] for x in result["violations"]))
+
+    def test_malformed_yaml_is_blocked(self):
+        result = audit(self._root("steps: [\n"))
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertIn("structurally parse", result["reason"])
+
+    def test_non_scalar_uses_value_is_blocked(self):
+        result = audit(self._root("steps:\n  - uses: [actions/checkout@v4]\n"))
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertTrue(any("uses value must be a scalar string" in x["reason"] for x in result["violations"]))
+
     def test_missing_workflow_directory_fails_closed(self):
         td = tempfile.TemporaryDirectory()
         self.addCleanup(td.cleanup)
@@ -71,7 +151,7 @@ class ActionPinAuditTests(unittest.TestCase):
         with mock.patch.object(Path, "read_text", side_effect=PermissionError("denied")):
             result = audit(root)
         self.assertEqual(result["status"], "BLOCKED")
-        self.assertIn("unable to read workflow", result["reason"])
+        self.assertIn("unable to structurally parse workflow", result["reason"])
 
 
 if __name__ == "__main__":

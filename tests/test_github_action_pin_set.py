@@ -5,7 +5,7 @@ import re
 import unittest
 from pathlib import Path
 
-from scripts.validate_github_action_pins import PIN_RE, USES_RE, _parse_target
+from scripts.validate_github_action_pins import PIN_RE, external_uses
 
 ROOT = Path(__file__).resolve().parents[1]
 PIN_SET = ROOT / "docs" / "v1" / "V1_GITHUB_ACTION_PIN_SET.json"
@@ -31,13 +31,12 @@ class ActionPinSetTests(unittest.TestCase):
         allowed = self._allowed()
         seen: set[str] = set()
         for path in sorted((*WORKFLOWS.glob("*.yml"), *WORKFLOWS.glob("*.yaml"))):
-            for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-                match = USES_RE.match(line)
-                if not match:
-                    continue
-                target = _parse_target(match.group(1))
-                if target.startswith("./") or target.startswith("docker://"):
-                    continue
+            uses, structural_findings = external_uses(path)
+            self.assertFalse(
+                structural_findings,
+                f"{path} has structurally invalid workflow syntax: {structural_findings}",
+            )
+            for lineno, target in uses:
                 self.assertIn("@", target, f"{path}:{lineno} external use has no ref")
                 action, ref = target.rsplit("@", 1)
                 self.assertRegex(ref, PIN_RE, f"{path}:{lineno} ref is not immutable: {target}")
