@@ -138,7 +138,7 @@ def external_uses(path: Path):
             )
             continue
         target = str(value_node.value).strip()
-        if target.startswith("./") or target.startswith("docker://"):
+        if target.startswith("./"):
             continue
         values.append((_line(value_node), target))
     return values, findings
@@ -187,6 +187,19 @@ def audit(root: Path) -> dict:
 
         for lineno, target in uses:
             external_count += 1
+            if target.startswith("docker://"):
+                image = target[len("docker://"):]
+                if "@sha256:" not in image:
+                    findings.append(
+                        Finding(str(rel), lineno, target, "docker action image is not pinned by sha256 digest")
+                    )
+                else:
+                    _, digest = image.rsplit("@sha256:", 1)
+                    if not re.fullmatch(r"[0-9a-fA-F]{64}", digest):
+                        findings.append(
+                            Finding(str(rel), lineno, target, "docker action image digest is not 64-hex SHA-256")
+                        )
+                continue
             if "@" not in target:
                 findings.append(
                     Finding(str(rel), lineno, target, "external action/workflow has no ref")

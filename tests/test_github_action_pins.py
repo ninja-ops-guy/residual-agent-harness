@@ -47,10 +47,16 @@ class ActionPinAuditTests(unittest.TestCase):
         self.assertEqual(result["status"], "PASS")
         self.assertEqual(result["external_uses"], 0)
 
-    def test_docker_reference_is_outside_action_pin_gate(self):
+    def test_mutable_docker_reference_is_blocked(self):
         result = audit(self._root("steps:\n  - uses: docker://alpine:3.20\n"))
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertEqual(result["external_uses"], 1)
+
+    def test_digest_pinned_docker_reference_passes(self):
+        digest = "a" * 64
+        result = audit(self._root(f"steps:\n  - uses: docker://example/image@sha256:{digest}\n"))
         self.assertEqual(result["status"], "PASS")
-        self.assertEqual(result["external_uses"], 0)
+        self.assertEqual(result["external_uses"], 1)
 
     def test_quoted_target_and_comment_are_parsed(self):
         result = audit(
