@@ -16,10 +16,6 @@ SAFE_TAGS = {
     "tag:yaml.org,2002:map",
     "tag:yaml.org,2002:seq",
     "tag:yaml.org,2002:str",
-    "tag:yaml.org,2002:null",
-    "tag:yaml.org,2002:bool",
-    "tag:yaml.org,2002:int",
-    "tag:yaml.org,2002:float",
 }
 
 
@@ -55,7 +51,7 @@ def _line(node) -> int:
 
 
 def _scalar_key(node) -> str | None:
-    if isinstance(node, ScalarNode) and node.tag == "tag:yaml.org,2002:str":
+    if isinstance(node, ScalarNode):
         return str(node.value)
     return None
 
@@ -113,11 +109,11 @@ def parse_workflow(path: Path):
 
     # Explicitly reject aliases/anchors before compose() folds aliases into
     # shared node identities.
-    for event in yaml.parse(text, Loader=yaml.SafeLoader):
+    for event in yaml.parse(text, Loader=yaml.BaseLoader):
         if isinstance(event, AliasEvent) or getattr(event, "anchor", None):
             raise ValueError("YAML aliases/anchors are unsupported by the pin auditor")
 
-    root = yaml.compose(text, Loader=yaml.SafeLoader)
+    root = yaml.compose(text, Loader=yaml.BaseLoader)
     if root is None:
         raise ValueError("workflow YAML is empty")
 
