@@ -25,6 +25,34 @@ class ProfileError(ValueError):
     pass
 
 
+def _reject_unknown_keys(obj: dict[str, Any], allowed: set[str], path: str) -> None:
+    unknown = sorted(set(obj) - allowed)
+    if unknown:
+        raise ProfileError(f"{path}: unknown field(s): {', '.join(unknown)}")
+
+
+def _json_object_no_duplicates(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    obj: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in obj:
+            raise ProfileError(f"duplicate JSON field: {key}")
+        obj[key] = value
+    return obj
+
+
+def _reject_json_constant(value: str) -> None:
+    raise ProfileError(f"non-standard JSON constant is forbidden: {value}")
+
+
+def _load_profile_text(text: str) -> dict[str, Any]:
+    value = json.loads(
+        text,
+        object_pairs_hook=_json_object_no_duplicates,
+        parse_constant=_reject_json_constant,
+    )
+    return _require_dict(value, "$")
+
+
 def _require_dict(value: Any, path: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ProfileError(f"{path}: expected object")
@@ -40,7 +68,7 @@ def _require_list(value: Any, path: str) -> list[Any]:
 def _require_str(value: Any, path: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ProfileError(f"{path}: expected non-empty string")
-    if value == "UNDECIDED":
+    if value.strip() == "UNDECIDED":
         raise ProfileError(f"{path}: UNDECIDED is fail-closed")
     return value
 
@@ -101,6 +129,15 @@ def _is_loopback_address(value: str) -> bool:
 def validate_profile(profile: dict[str, Any]) -> dict[str, Any]:
     _walk_no_undecided_or_secrets(profile)
     root = _require_dict(profile, "$")
+    _reject_unknown_keys(
+        root,
+        {
+            "schema", "profile_id", "profile_version", "release",
+            "decision_owner", "operations_owner", "approval_timestamp",
+            "source_revision", "network", "tenancy", "runtime", "objectives",
+        },
+        "$",
+    )
 
     if root.get("schema") != SCHEMA_ID:
         raise ProfileError(f"$.schema: expected {SCHEMA_ID!r}")
@@ -117,6 +154,15 @@ def validate_profile(profile: dict[str, Any]) -> dict[str, Any]:
         raise ProfileError("$.source_revision: expected lowercase 40-hex Git commit")
 
     network = _require_dict(root.get("network"), "$.network")
+    _reject_unknown_keys(
+        network,
+        {
+            "station_exposure", "bind_addresses", "reverse_proxy",
+            "tls_termination", "proxy_header_trust", "certificate_policy",
+            "remote_workers", "outbound_provider_access",
+        },
+        "$.network",
+    )
     exposure = _require_enum(
         network.get("station_exposure"),
         {"LOOPBACK_ONLY", "PRIVATE_NETWORK", "INTERNET_FACING"},
@@ -127,6 +173,7 @@ def validate_profile(profile: dict[str, Any]) -> dict[str, Any]:
         for i, v in enumerate(_require_list(network.get("bind_addresses"), "$.network.bind_addresses"))
     ]
     reverse_proxy = _require_dict(network.get("reverse_proxy"), "$.network.reverse_proxy")
+    _reject_unknown_keys(reverse_proxy, {"mode", "name", "version"}, "$.network.reverse_proxy")
     proxy_mode = _require_enum(
         reverse_proxy.get("mode"), {"NONE", "TRUSTED_PROXY"}, "$.network.reverse_proxy.mode"
     )
@@ -161,6 +208,7 @@ def validate_profile(profile: dict[str, Any]) -> dict[str, Any]:
         _require_str(proxy_header_trust, "$.network.proxy_header_trust")
 
     remote_workers = _require_dict(network.get("remote_workers"), "$.network.remote_workers")
+    _reject_unknown_keys(remote_workers, {"mode", "topology"}, "$.network.remote_workers")
     remote_mode = _require_enum(
         remote_workers.get("mode"), {"DISALLOWED", "SUPPORTED"}, "$.network.remote_workers.mode"
     )
@@ -168,6 +216,7 @@ def validate_profile(profile: dict[str, Any]) -> dict[str, Any]:
         _require_str(remote_workers.get("topology"), "$.network.remote_workers.topology")
 
     outbound = _require_dict(network.get("outbound_provider_access"), "$.network.outbound_provider_access")
+    _reject_unknown_keys(outbound, {"mode", "boundary"}, "$.network.outbound_provider_access")
     outbound_mode = _require_enum(
         outbound.get("mode"), {"DISALLOWED", "SUPPORTED"}, "$.network.outbound_provider_access.mode"
     )
@@ -175,6 +224,14 @@ def validate_profile(profile: dict[str, Any]) -> dict[str, Any]:
         _require_str(outbound.get("boundary"), "$.network.outbound_provider_access.boundary")
 
     tenancy = _require_dict(root.get("tenancy"), "$.tenancy")
+    _reject_unknown_keys(
+        tenancy,
+        {
+            "operator_model", "user_model", "authorization_boundary",
+            "break_glass_authority", "credential_custody",
+        },
+        "$.tenancy",
+    )
     _require_enum(
         tenancy.get("operator_model"),
         {"SINGLE_TRUSTED_OPERATOR", "MULTI_OPERATOR"},
@@ -192,6 +249,16 @@ def validate_profile(profile: dict[str, Any]) -> dict[str, Any]:
         raise ProfileError("$.tenancy.authorization_boundary: multi-user profile requires explicit policy")
 
     runtime = _require_dict(root.get("runtime"), "$.runtime")
+    _reject_unknown_keys(
+        runtime,
+        {
+            "operating_systems", "architectures", "python_versions",
+            "installation_artifact", "filesystems", "sqlite_version",
+            "sqlite_durability_mode", "persistent_volume_semantics",
+            "multi_process_station", "multi_host_shared_database",
+        },
+        "$.runtime",
+    )
     for field in ("operating_systems", "architectures", "python_versions", "filesystems"):
         values = _require_list(runtime.get(field), f"$.runtime.{field}")
         for i, value in enumerate(values):
@@ -212,6 +279,18 @@ def validate_profile(profile: dict[str, Any]) -> dict[str, Any]:
         raise ProfileError("$.runtime: multi-host shared database requires multi-process Station support")
 
     objectives = _require_dict(root.get("objectives"), "$.objectives")
+    _reject_unknown_keys(
+        objectives,
+        {
+            "availability_slo", "max_operation_recovery_seconds",
+            "rpo_seconds", "rto_seconds", "backup_frequency_seconds",
+            "backup_retention_seconds", "evidence_retention_seconds",
+            "log_retention_seconds", "log_disk_budget_bytes",
+            "host_loss_claim", "regional_loss_claim", "soak_seconds",
+            "soak_environment",
+        },
+        "$.objectives",
+    )
     _require_str(objectives.get("availability_slo"), "$.objectives.availability_slo")
     _require_positive_int(objectives.get("max_operation_recovery_seconds"), "$.objectives.max_operation_recovery_seconds")
     _require_nonnegative_int(objectives.get("rpo_seconds"), "$.objectives.rpo_seconds")
@@ -259,9 +338,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        profile = json.loads(args.profile.read_text(encoding="utf-8"))
+        profile = _load_profile_text(args.profile.read_text(encoding="utf-8"))
         result = validate_profile(profile)
-    except (OSError, json.JSONDecodeError, ProfileError) as exc:
+    except (OSError, UnicodeError, json.JSONDecodeError, ProfileError) as exc:
         result = {
             "schema": "residual.v1-deployment-profile-validation.v1",
             "status": "BLOCKED",
