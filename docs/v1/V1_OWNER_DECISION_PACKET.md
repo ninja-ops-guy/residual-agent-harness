@@ -19,34 +19,39 @@ Do not weaken `validate_exposure()` merely to make the image start.
 
 ## D2 — Distribution license
 
-Current repository observations:
+The project direction is already selected: **Apache-2.0 Open Core with reserved/proprietary commercial and enterprise layers**.
 
-- no root `LICENSE` or `COPYING` file exists on observed main;
-- `pyproject.toml` declares no project license metadata;
-- `docs/enterprise/commercial/licensing.md` says the core uses a free, permissive license;
-- commercial licensing/enforcement concepts also exist.
+Current GitHub reconciliation shows the legal boundary work in #391 and the narrower #442 candidate. #442 contains Apache-2.0 license material, an explicit open-source manifest/exporter, and reserved commercial boundaries, but remains open/unmerged. The GitHub installation visible to this convergence lane does not expose a separate RESIDUAL commercial/enterprise repository, so existence and license state of that repository cannot be treated as independently verified here.
 
-Before public v1 distribution, select and record the actual source/distribution terms. This packet does not select legal terms.
+This is therefore no longer a "choose a license model" decision. The remaining release work is implementation/provenance reconciliation:
 
-After the choice:
-1. add authoritative root license text;
-2. add package metadata;
-3. reconcile README/docs;
-4. identify third-party notices/attributions;
-5. bind license files into release artifacts.
+1. accept the final open-core boundary (#442 or its reviewed successor);
+2. ensure the exported/public v1 artifact carries the Apache-2.0 grant and NOTICE/attribution material;
+3. verify reserved/commercial implementation is not accidentally included in the open-core release artifact;
+4. record the separately controlled commercial repository identity and its license terms in the private/commercial release ledger;
+5. bind the public artifact's license manifest into SBOM/provenance/release receipts.
+
+No commercial source needs to be published merely to satisfy this gate.
 
 ## D3 — Supported release matrix
 
-Approve an exact initial support matrix before final dependency locking and RC qualification, including:
-- OS families;
-- architectures;
-- Python patch-level floors;
-- native versus Docker support;
-- browser/WebVM claim scope;
-- local Ollama scope;
-- cloud/live-provider claims included or explicitly UNKNOWN/out-of-scope.
+Decision recorded 2026-09-26 in `docs/v1/V1_RELEASE_MATRIX.md`.
 
-The matrix becomes an input to clean-install, reproducibility, recovery and soak evidence. Do not infer support merely from incidental CI runners.
+v1 scope:
+- native Windows x64 and Linux x64;
+- Docker local-workstation on Linux Docker Engine and Docker Desktop Windows;
+- NVIDIA Compose overlay;
+- desktop Chromium, Firefox and automated WebKit browser contracts;
+- local Ollama;
+- at least one real hosted-provider end-to-end success.
+
+Held for v2:
+- native macOS x64 and ARM64;
+- Docker Desktop macOS.
+
+Physical iPhone heavyweight WebVM is explicitly unsupported in v1.
+
+Remaining D3 sub-decision: name the hosted provider/model or deployment target(s) whose real candidate -> verifier -> receipt success will satisfy the hosted-provider release gate.
 
 ## D4 — Shared Comms relationship to v1
 
@@ -76,8 +81,8 @@ These must be performed against the exact RC artifact rather than inherited from
 
 ```text
 D1_CONTAINER_SUPPORT: A_SUPPORTED
-D2_DISTRIBUTION_LICENSE: <selected terms or UNDECIDED>
-D3_RELEASE_MATRIX: <approved matrix reference or UNDECIDED>
+D2_DISTRIBUTION_LICENSE: APACHE-2.0 OPEN CORE + RESERVED/PROPRIETARY COMMERCIAL LAYERS — implementation/repository verification pending
+D3_RELEASE_MATRIX: docs/v1/V1_RELEASE_MATRIX.md
 D4_SHARED_COMMS_V1: INCLUDED | EXCLUDED_BY_DEFAULT | UNDECIDED
 D5_RC_OPERATIONS_PROFILE: <approved profile/reference or UNDECIDED>
 ```
