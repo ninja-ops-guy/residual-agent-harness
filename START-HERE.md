@@ -13,6 +13,8 @@ Your local agent workshop: Markdown missions, parallel runners, LDD events, revi
 
 The single container includes Python, Git, Node.js/npm and Ollama with its runtime libraries. SQLite and the web server are built into Python. There is no frontend build or cloud account requirement. Model weights download on demand from the same interface. Weights, Docker images, GPU drivers, and all host operating-system prerequisites are **not embedded in the source ZIP**; the first setup needs internet access.
 
+The supported v1 Compose profile is **local-workstation only**: Docker publishes Station on host loopback (`127.0.0.1:8765`) while Station binds the container interface so the port mapping can reach it. The Compose file declares an explicit local-container exposure policy, and Station refuses that policy outside a recognized container runtime or when Host/Origin values are not loopback-only. This is not an internet-facing deployment mode. Docker-daemon administrators and containers deliberately joined to the same Docker network are inside the local container trust boundary; use the separate authenticated-TLS remote exposure mode for any non-local deployment. Running the image directly without the Compose policy remains fail-closed.
+
 For NVIDIA acceleration on a configured NVIDIA Container Toolkit host:
 
 ```bash

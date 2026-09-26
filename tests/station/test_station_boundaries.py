@@ -32,7 +32,7 @@ class StationBoundaryTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.env = mock.patch.dict(os.environ, {
             'RESIDUAL_REMOTE_EXPOSURE': '', 'RESIDUAL_ALLOWED_HOSTS': '',
-            'RESIDUAL_PUBLIC_URL': ''})
+            'RESIDUAL_PUBLIC_URL': '', 'RESIDUAL_CONTAINER_LOCAL_ONLY': ''})
         self.env.start(); self.addCleanup(self.env.stop)
 
     def station(self, root=None):
@@ -171,6 +171,81 @@ class StationBoundaryTests(unittest.TestCase):
         first = self.station(); http = server.Server(('localhost', 0), first)
         try: self.assertEqual(http.server_address[0], '127.0.0.1')
         finally: http.server_close()
+
+    def test_local_container_policy_requires_container_runtime(self):
+        with self.assertRaisesRegex(ContractError, 'recognized container runtime'):
+            server.validate_exposure(
+                '0.0.0.0',
+                'localhost:8765,127.0.0.1:8765',
+                False,
+                'http://localhost:8765',
+                container_local_only=True,
+                containerized=False,
+            )
+
+    def test_local_container_policy_accepts_loopback_published_origin(self):
+        self.assertIsNone(server.validate_exposure(
+            '0.0.0.0',
+            'localhost:8765,127.0.0.1:8765',
+            False,
+            'http://localhost:8765',
+            container_local_only=True,
+            containerized=True,
+        ))
+
+    def test_local_container_policy_rejects_nonloopback_allowed_host(self):
+        with self.assertRaisesRegex(ContractError, 'loopback-only'):
+            server.validate_exposure(
+                '0.0.0.0',
+                'localhost:8765,station.example:8765',
+                False,
+                'http://localhost:8765',
+                container_local_only=True,
+                containerized=True,
+            )
+
+    def test_local_container_policy_rejects_remote_mode_combination(self):
+        with self.assertRaisesRegex(ContractError, 'cannot be combined'):
+            server.validate_exposure(
+                '0.0.0.0',
+                'localhost:8765',
+                True,
+                'http://localhost:8765',
+                container_local_only=True,
+                containerized=True,
+            )
+
+    def test_local_container_policy_rejects_nonloopback_public_url(self):
+        with self.assertRaisesRegex(ContractError, 'loopback HTTP'):
+            server.validate_exposure(
+                '0.0.0.0',
+                'localhost:8765,127.0.0.1:8765',
+                False,
+                'http://station.example:8765',
+                container_local_only=True,
+                containerized=True,
+            )
+
+    def test_server_accepts_explicit_local_container_boundary_before_bind(self):
+        first = self.station(); captured = []
+        def intercepted(instance, address, handler):
+            captured.append(address)
+            instance.server_port = 8765
+        with mock.patch.dict(os.environ, {
+                'RESIDUAL_CONTAINER_LOCAL_ONLY': '1',
+                'RESIDUAL_ALLOWED_HOSTS': 'localhost:8765,127.0.0.1:8765',
+                'RESIDUAL_PUBLIC_URL': 'http://localhost:8765',
+                'RESIDUAL_REMOTE_EXPOSURE': '',
+             }), \
+             mock.patch.object(server, '_container_runtime_detected', return_value=True), \
+             mock.patch.object(server.ThreadingHTTPServer, '__init__', intercepted), \
+             mock.patch.object(server.Server, '_register_legacy_worker_key'):
+            http = server.Server(('0.0.0.0', 8765), first)
+            self.assertFalse(http.secure_cookie)
+            self.assertEqual(captured, [('0.0.0.0', 8765)])
+            self.assertIn('localhost:8765', http.allowed_hosts)
+            self.assertIn('127.0.0.1:8765', http.allowed_hosts)
+            http._lifetime.cancel()
 
     def test_explicit_remote_policy_has_shared_boundary(self):
         first = self.station(); captured = []

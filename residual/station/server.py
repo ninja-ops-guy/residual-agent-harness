@@ -39,13 +39,79 @@ def _loopback_host(host):
         return False
 
 
-def validate_exposure(host, allowed_hosts, enabled=False, public_url=""):
-    """Return a normalized public origin, or None for the default loopback-only mode."""
+def _container_runtime_detected():
+    """Best-effort runtime marker used only to narrow the local-container exception."""
+    return Path("/.dockerenv").is_file() or Path("/run/.containerenv").is_file()
+
+
+def _allowed_hosts_are_loopback(allowed):
+    if not allowed:
+        return False
+    for value in allowed:
+        parsed = urllib.parse.urlsplit("//" + value)
+        if (
+            not parsed.hostname
+            or not _loopback_host(parsed.hostname)
+            or parsed.username
+            or parsed.password
+            or parsed.path not in {"", "/"}
+            or parsed.query
+            or parsed.fragment
+        ):
+            return False
+    return True
+
+
+def validate_exposure(
+    host,
+    allowed_hosts,
+    enabled=False,
+    public_url="",
+    *,
+    container_local_only=False,
+    containerized=None,
+):
+    """Return an HTTPS public origin, or None for a local-only trust boundary.
+
+    Non-loopback binds normally require an authenticated TLS proxy. The sole
+    HTTP exception is the explicitly configured local-container mode used by
+    the supported Compose launcher: Station binds the container interface so
+    Docker can publish it, while the host mapping and accepted Host/Origin
+    values remain loopback-only. Docker-daemon authority and containers
+    intentionally joined to the same network are part of that local trust
+    boundary; this mode is not a remote-exposure mechanism.
+    """
     if _loopback_host(host):
         return None
+
+    allowed = {value.strip() for value in allowed_hosts.split(",") if value.strip()}
+
+    if container_local_only:
+        in_container = _container_runtime_detected() if containerized is None else bool(containerized)
+        if not in_container:
+            raise ContractError("Local-container Station exposure is valid only inside a recognized container runtime")
+        if enabled:
+            raise ContractError("Local-container Station exposure cannot be combined with remote exposure")
+        if not _allowed_hosts_are_loopback(allowed):
+            raise ContractError("Local-container Station exposure requires loopback-only RESIDUAL_ALLOWED_HOSTS")
+        parsed = urllib.parse.urlsplit(public_url)
+        if (
+            parsed.scheme != "http"
+            or not parsed.netloc
+            or not parsed.hostname
+            or not _loopback_host(parsed.hostname)
+            or parsed.netloc not in allowed
+            or parsed.username
+            or parsed.password
+            or parsed.query
+            or parsed.fragment
+            or parsed.path not in {"", "/"}
+        ):
+            raise ContractError("Local-container Station exposure requires a loopback HTTP RESIDUAL_PUBLIC_URL matching RESIDUAL_ALLOWED_HOSTS")
+        return None
+
     if not enabled:
         raise ContractError("Non-loopback Station exposure is disabled. Set RESIDUAL_REMOTE_EXPOSURE=1 only behind an authenticated TLS proxy or equivalent protected transport.")
-    allowed = {value.strip() for value in allowed_hosts.split(",") if value.strip()}
     if not allowed:
         raise ContractError("Non-loopback Station exposure requires explicit RESIDUAL_ALLOWED_HOSTS")
     parsed = urllib.parse.urlsplit(public_url)
@@ -65,6 +131,7 @@ class Server(ThreadingHTTPServer):
             address[0], os.environ.get("RESIDUAL_ALLOWED_HOSTS", ""),
             os.environ.get("RESIDUAL_REMOTE_EXPOSURE", "") == "1",
             os.environ.get("RESIDUAL_PUBLIC_URL", ""),
+            container_local_only=os.environ.get("RESIDUAL_CONTAINER_LOCAL_ONLY", "") == "1",
         )
         if address[0] == "localhost":
             address = ("127.0.0.1", *address[1:])
@@ -565,6 +632,7 @@ def main(argv=None):
             allowed_hosts,
             os.environ.get("RESIDUAL_REMOTE_EXPOSURE", "") == "1",
             os.environ.get("RESIDUAL_PUBLIC_URL", ""),
+            container_local_only=os.environ.get("RESIDUAL_CONTAINER_LOCAL_ONLY", "") == "1",
         )
     except ContractError as e:
         parser.error(str(e))

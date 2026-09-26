@@ -126,5 +126,43 @@ jobs:
         with:
           persist-credentials: false
       - run: docker compose config --quiet
+      - name: Exercise supported default Compose startup
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p runs
+          cleanup() {
+            docker compose logs --no-color > runs/station-docker.log 2>&1 || true
+            docker compose down -v --remove-orphans || true
+          }
+          trap cleanup EXIT
+          docker compose up --build -d
+          ready=0
+          for _ in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8765/api/bootstrap > runs/station-docker-bootstrap.json; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          test "$ready" = "1"
+          python - <<'PY'
+          import json
+          value = json.load(open("runs/station-docker-bootstrap.json", encoding="utf-8"))
+          assert isinstance(value.get("version"), str) and value["version"]
+          assert "token" not in value and "session_token" not in value
+          PY
+          code="$(curl -sS -o runs/station-docker-bad-host.json -w '%{http_code}'             -H 'Host: station.example:8765' http://127.0.0.1:8765/api/bootstrap)"
+          test "$code" = "403"
+          docker compose ps
       - run: docker build -t residual-station-ci .
       - run: docker run --rm --entrypoint python3 residual-station-ci -c "from residual.station.service import Station,demo_spec; import tempfile; s=Station(tempfile.mkdtemp()); p=s.create(demo_spec(),demo=True)['project_id']; assert s.batch(p)['integrated']==3"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: station-docker-startup-evidence
+          path: |
+            runs/station-docker.log
+            runs/station-docker-bootstrap.json
+            runs/station-docker-bad-host.json
+          if-no-files-found: warn
