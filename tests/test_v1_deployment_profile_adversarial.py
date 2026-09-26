@@ -125,5 +125,26 @@ class DeploymentProfileBoundaryTests(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertEqual(payload["status"], "BLOCKED")
 
+    def test_inactive_reverse_proxy_fields_cannot_hide_padded_undecided(self):
+        profile = local_profile()
+        profile["network"]["reverse_proxy"].update({
+            "name": "  UNDECIDED  ",
+            "version": "  UNDECIDED  ",
+        })
+        with self.assertRaises(module.ProfileError):
+            module.validate_profile(profile)
+
+    def test_disallowed_remote_worker_topology_cannot_hide_padded_undecided(self):
+        profile = local_profile()
+        profile["network"]["remote_workers"]["topology"] = "  UNDECIDED  "
+        with self.assertRaises(module.ProfileError):
+            module.validate_profile(profile)
+
+    def test_disallowed_outbound_boundary_cannot_hide_padded_undecided(self):
+        profile = local_profile()
+        profile["network"]["outbound_provider_access"]["boundary"] = "  UNDECIDED  "
+        with self.assertRaises(module.ProfileError):
+            module.validate_profile(profile)
+
 if __name__ == "__main__":
     unittest.main()
