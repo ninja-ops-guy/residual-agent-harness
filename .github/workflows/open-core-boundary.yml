@@ -1,0 +1,72 @@
+name: Open Core Boundary
+
+on:
+  pull_request:
+    paths:
+      - "LICENSING.md"
+      - "LICENSES/**"
+      - "NOTICE"
+      - "CITATION.cff"
+      - "AUTHORS.md"
+      - "CONTRIBUTING.md"
+      - "SECURITY.md"
+      - "docs/open-source/**"
+      - "residual/**"
+      - "research/**"
+      - "ai_providers/**"
+      - "observation_layer/**"
+      - "verifier/**"
+      - "tools/check_open_core_boundary.py"
+      - "tools/export_open_core.py"
+      - "tools/check_open_core_import_closure.py"
+      - "tools/smoke_open_core_archive.py"
+      - "tests/test_open_core_export.py"
+      - ".github/workflows/open-core-boundary.yml"
+  push:
+    branches: [main]
+    paths:
+      - "LICENSING.md"
+      - "LICENSES/**"
+      - "NOTICE"
+      - "CITATION.cff"
+      - "AUTHORS.md"
+      - "CONTRIBUTING.md"
+      - "SECURITY.md"
+      - "docs/open-source/**"
+      - "residual/**"
+      - "research/**"
+      - "ai_providers/**"
+      - "observation_layer/**"
+      - "verifier/**"
+      - "tools/check_open_core_boundary.py"
+      - "tools/export_open_core.py"
+      - "tools/check_open_core_import_closure.py"
+      - "tools/smoke_open_core_archive.py"
+      - "tests/test_open_core_export.py"
+      - ".github/workflows/open-core-boundary.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Exercise adversarial export fixtures
+        run: python -m unittest discover -s tests -p 'test_open_core_export.py' -v
+      - name: Validate open/commercial license boundary
+        run: python tools/check_open_core_boundary.py
+      - name: Verify committed-snapshot export selection
+        run: python tools/export_open_core.py --list > /tmp/open-core-files.txt
+      - name: Check Python import closure across the open-core boundary
+        run: python tools/check_open_core_import_closure.py
+      - name: Build immutable open-core source archive
+        run: python tools/export_open_core.py --output dist/residual-open-core-ci.tar.gz
+      - name: Smoke-test exported source archive in isolation
+        run: python tools/smoke_open_core_archive.py dist/residual-open-core-ci.tar.gz

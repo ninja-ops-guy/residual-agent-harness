@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use RESIDUAL Open Core or build research on it, please cite this software and the relevant versioned research artifact."
+title: "RESIDUAL Open Core"
+type: software
+authors:
+  - family-names: "Olivares"
+    given-names: "Mike"
+    alias: "ninja-ops-guy"
+repository-code: "https://github.com/ninja-ops-guy/residual-agent-harness"
+url: "https://github.com/ninja-ops-guy/residual-agent-harness"
+license: "Apache-2.0"
+version: "0.5.0"
+abstract: >-
+  RESIDUAL Open Core is the open verification and research kernel of RESIDUAL,
+  an evidence-first platform for building, evaluating, and improving reliable
+  AI-assisted and multi-agent software-engineering systems through explicit
+  verification, evidence, receipts, bounded authority, and reproducible evaluation.
+keywords:
+  - AI agents
+  - software engineering agents
+  - agent reliability
+  - multi-agent systems
+  - verification
+  - reproducible evaluation
+  - AI systems

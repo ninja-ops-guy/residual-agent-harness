@@ -8,6 +8,20 @@ RESIDUAL is an evidence-first reliability and control plane for AI-assisted engi
 
 For exact current claims, start with [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md).
 
+## Licensing and editions
+
+RESIDUAL is being structured as an **open-core** project. The candidate Apache-2.0 component is a deliberately small **verification and research kernel**, not the complete runtime or enterprise platform. This development repository contains reserved product code, so GitHub visibility is not itself a license grant.
+
+See [LICENSING.md](LICENSING.md) and the exact-revision [Open Source Manifest](docs/open-source/OPEN_SOURCE_MANIFEST.md) before relying on license scope.
+
+Factory execution, engine/runtime orchestration, sandbox execution, enterprise identity, multi-tenancy, HA/DR, compliance, commercial licensing, cluster/control-plane and enterprise Studio implementations remain reserved unless explicitly added to an accepted manifest.
+
+## Citation and project origin
+
+RESIDUAL was created and is maintained by **Mike Olivares (`ninja-ops-guy`)**. For software or research use, cite the exact version/commit through [CITATION.cff](CITATION.cff). The public provenance record is in [PROJECT_ORIGIN.md](docs/open-source/PROJECT_ORIGIN.md), and research-significant releases should preserve immutable revisions, evidence digests, and DOI-backed archives when available.
+
+AI coding and research systems are used extensively as development tools; human authorship, licensing authority, research claims, and integration authority remain with the human maintainer and credited human contributors.
+
 ## What is implemented
 
 RESIDUAL spans a connected platform rather than a single agent loop:
