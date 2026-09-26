@@ -102,7 +102,7 @@ def _walk_no_undecided_or_secrets(value: Any, path: str = "$") -> None:
     elif isinstance(value, list):
         for index, child in enumerate(value):
             _walk_no_undecided_or_secrets(child, f"{path}[{index}]")
-    elif value == "UNDECIDED":
+    elif isinstance(value, str) and value.strip() == "UNDECIDED":
         raise ProfileError(f"{path}: UNDECIDED is fail-closed")
 
 
