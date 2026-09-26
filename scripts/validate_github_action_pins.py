@@ -6,9 +6,22 @@ import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-SCHEMA = "residual.github-action-pin-audit.v1"
+try:
+    import yaml
+    from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
+except Exception:  # pragma: no cover - exercised by runtime BLOCKED handling
+    yaml = None
+    MappingNode = Node = ScalarNode = SequenceNode = object
+
+SCHEMA = "residual.github-action-pin-audit.v2"
 PIN_RE = re.compile(r"^[0-9a-fA-F]{40}$")
-USES_RE = re.compile(r"^\s*(?:-\s*)?uses:\s*(.+?)\s*$")
+
+
+@dataclass(frozen=True)
+class UseReference:
+    path: str
+    line: int
+    target: str
 
 
 @dataclass(frozen=True)
@@ -19,11 +32,8 @@ class Finding:
     reason: str
 
 
-def _parse_target(raw: str) -> str:
-    value = raw.split(" #", 1)[0].strip()
-    if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
-        value = value[1:-1].strip()
-    return value
+class WorkflowParseError(RuntimeError):
+    pass
 
 
 def _report(
@@ -45,63 +55,105 @@ def _report(
     }
 
 
-def audit(root: Path) -> dict:
-    workflows = root / ".github" / "workflows"
-    findings: list[Finding] = []
-    files_scanned = 0
-    external_uses = 0
+def _walk_uses(node: Node, path: Path, root: Path, output: list[UseReference]) -> None:
+    """Traverse the YAML syntax tree and collect every structural uses: scalar.
 
+    A syntax-tree walk avoids the false-PASS class caused by line-oriented regex
+    parsing: inline mappings, quoted keys, folded scalars, and aliases are all
+    interpreted as YAML rather than guessed from source text.
+    """
+    if isinstance(node, MappingNode):
+        seen_keys: set[str] = set()
+        for key_node, value_node in node.value:
+            if isinstance(key_node, ScalarNode):
+                key = str(key_node.value)
+                if key in seen_keys:
+                    raise WorkflowParseError(
+                        f"duplicate mapping key {key!r} at line {key_node.start_mark.line + 1}"
+                    )
+                seen_keys.add(key)
+                if key == "uses":
+                    if not isinstance(value_node, ScalarNode):
+                        raise WorkflowParseError(
+                            f"uses must be a scalar at line {value_node.start_mark.line + 1}"
+                        )
+                    target = str(value_node.value).strip()
+                    output.append(
+                        UseReference(
+                            str(path.relative_to(root)),
+                            value_node.start_mark.line + 1,
+                            target,
+                        )
+                    )
+            _walk_uses(value_node, path, root, output)
+    elif isinstance(node, SequenceNode):
+        for child in node.value:
+            _walk_uses(child, path, root, output)
+
+
+def scan_workflow_uses(root: Path) -> tuple[list[UseReference], int]:
+    workflows = root / ".github" / "workflows"
     if not workflows.is_dir():
-        return _report("BLOCKED", ".github/workflows is missing")
+        raise WorkflowParseError(".github/workflows is missing")
+    if yaml is None:
+        raise WorkflowParseError("PyYAML is unavailable")
 
     try:
         paths = sorted([*workflows.glob("*.yml"), *workflows.glob("*.yaml")])
     except OSError as exc:
-        return _report("BLOCKED", f"unable to enumerate workflows: {exc.__class__.__name__}")
+        raise WorkflowParseError(f"unable to enumerate workflows: {exc.__class__.__name__}") from exc
 
+    references: list[UseReference] = []
+    files_scanned = 0
     for path in paths:
         files_scanned += 1
         try:
-            lines = path.read_text(encoding="utf-8").splitlines()
+            text = path.read_text(encoding="utf-8")
         except (OSError, UnicodeError) as exc:
-            return _report(
-                "BLOCKED",
-                f"unable to read workflow {path.name}: {exc.__class__.__name__}",
-                files_scanned=files_scanned,
-                external_uses=external_uses,
-                findings=findings,
+            raise WorkflowParseError(
+                f"unable to read workflow {path.name}: {exc.__class__.__name__}"
+            ) from exc
+        try:
+            document = yaml.compose(text, Loader=yaml.BaseLoader)
+        except yaml.YAMLError as exc:
+            mark = getattr(exc, "problem_mark", None)
+            suffix = f" at line {mark.line + 1}" if mark is not None else ""
+            raise WorkflowParseError(f"invalid workflow YAML {path.name}{suffix}") from exc
+        if document is not None:
+            _walk_uses(document, path, root, references)
+    return references, files_scanned
+
+
+def audit(root: Path) -> dict:
+    findings: list[Finding] = []
+    external_uses = 0
+    try:
+        references, files_scanned = scan_workflow_uses(root)
+    except WorkflowParseError as exc:
+        return _report("BLOCKED", str(exc))
+
+    for reference in references:
+        target = reference.target
+        if target.startswith("./") or target.startswith("docker://"):
+            continue
+
+        external_uses += 1
+        if "@" not in target:
+            findings.append(
+                Finding(reference.path, reference.line, target, "external action/workflow has no ref")
             )
+            continue
 
-        for lineno, line in enumerate(lines, 1):
-            match = USES_RE.match(line)
-            if not match:
-                continue
-            target = _parse_target(match.group(1))
-            if target.startswith("./") or target.startswith("docker://"):
-                continue
-
-            external_uses += 1
-            if "@" not in target:
-                findings.append(
-                    Finding(
-                        str(path.relative_to(root)),
-                        lineno,
-                        target,
-                        "external action/workflow has no ref",
-                    )
+        _, ref = target.rsplit("@", 1)
+        if not PIN_RE.fullmatch(ref):
+            findings.append(
+                Finding(
+                    reference.path,
+                    reference.line,
+                    target,
+                    "external action/workflow ref is not an immutable 40-hex commit SHA",
                 )
-                continue
-
-            _, ref = target.rsplit("@", 1)
-            if not PIN_RE.fullmatch(ref):
-                findings.append(
-                    Finding(
-                        str(path.relative_to(root)),
-                        lineno,
-                        target,
-                        "external action/workflow ref is not an immutable 40-hex commit SHA",
-                    )
-                )
+            )
 
     return _report(
         "PASS" if not findings else "BLOCKED",

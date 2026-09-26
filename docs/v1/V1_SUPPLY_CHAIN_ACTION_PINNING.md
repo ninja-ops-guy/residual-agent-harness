@@ -23,12 +23,23 @@ Passing this rule proves only immutable workflow dependency identity. PR-G27 sti
 
 ## Tooling in this lane
 
-`scripts/validate_github_action_pins.py` scans workflow `uses:` directives and emits `residual.github-action-pin-audit.v1` with `PASS | BLOCKED`, counts, and exact path/line/target violations. It exits non-zero on a blocked result and labels its output `VALIDATION_ONLY`.
+`scripts/validate_github_action_pins.py` parses workflow YAML structurally with PyYAML and emits `residual.github-action-pin-audit.v2` with `PASS | BLOCKED`, counts, and exact path/line/target violations. It exits non-zero on malformed/ambiguous YAML, duplicate mapping keys, or mutable external refs and labels its output `VALIDATION_ONLY`. Structural parsing closes the line-oriented false-PASS class for inline mappings, quoted keys, folded scalars, and aliases.
 
-`tests/test_github_action_pins.py` covers immutable commit pins, mutable semver/branch refs, external reusable workflows, repository-local actions, Docker references, quoted targets, comments, and fail-closed behavior when the workflow directory is absent.
+`tests/test_github_action_pins.py` covers immutable commit pins, mutable semver/branch refs, external reusable workflows, repository-local actions, Docker references, quoted targets/comments, inline mappings, folded scalars, malformed YAML, duplicate keys, and fail-closed behavior when the workflow directory is absent.
 
 ## Remediation boundary
 
 This PR intentionally does **not** bulk-rewrite active workflows. Pinning should be a separately reviewed remediation after each currently selected action/tag is resolved to an exact commit and the repository confirms that existing workflow-policy tests (including checkout credential-persistence checks) are reconciled without weakening their security assertion.
 
 After remediation, qualification should run the validator against the exact candidate tree and retain its JSON output as release evidence.
+
+## Transitive dependency review
+
+A direct 40-hex pin binds the selected upstream repository commit, but it does not by itself make dependencies referenced *inside* that upstream action immutable.
+
+The successor records two concrete transitive findings in `V1_GITHUB_ACTION_TRANSITIVE_REVIEW.json`:
+
+- `actions/upload-pages-artifact@56af...` invokes `actions/upload-artifact@v4` from its composite `action.yml`. The successor removes that composite dependency from the release Pages path, reproduces its Linux archive step locally, and uploads the resulting `artifact.tar` with the already reviewed immutable `actions/upload-artifact` SHA.
+- `The-PR-Agent/pr-agent@f3b...` uses `Dockerfile.github_action_dockerhub`, whose base is the mutable `pragent/pr-agent:github_action` image tag. PR-Agent is advisory and does not provide release authority, but whether that advisory integration is excluded from the authoritative v1 transitive-supply-chain claim or replaced with a digest/source-built execution path remains an explicit human scope decision.
+
+The action-pin gate therefore proves immutable direct workflow refs plus the removal of the known release-path Pages composite. It does **not** silently upgrade the remaining PR-Agent transitive finding into a PASS.

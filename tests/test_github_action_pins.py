@@ -60,6 +60,42 @@ class ActionPinAuditTests(unittest.TestCase):
         )
         self.assertEqual(result["status"], "PASS")
 
+
+    def test_inline_mapping_is_structurally_audited(self):
+        result = audit(self._root("steps:\n  - { uses: actions/checkout@v4 }\n"))
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertEqual(result["external_uses"], 1)
+
+    def test_quoted_uses_key_is_structurally_audited(self):
+        result = audit(self._root('steps:\n  - "uses": actions/checkout@v4\n'))
+        self.assertEqual(result["status"], "BLOCKED")
+
+    def test_folded_scalar_is_structurally_audited(self):
+        result = audit(
+            self._root(
+                "jobs:\n"
+                "  call:\n"
+                "    uses: >-\n"
+                "      owner/repo/.github/workflows/reuse.yml@release\n"
+            )
+        )
+        self.assertEqual(result["status"], "BLOCKED")
+
+    def test_malformed_yaml_fails_closed(self):
+        result = audit(self._root("steps:\n  - uses: [unterminated\n"))
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertIn("invalid workflow YAML", result["reason"])
+
+    def test_duplicate_uses_key_fails_closed(self):
+        result = audit(
+            self._root(
+                f"steps:\n  - uses: actions/checkout@{PIN}\n"
+                f"    uses: actions/setup-python@{PIN}\n"
+            )
+        )
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertIn("duplicate mapping key", result["reason"])
+
     def test_missing_workflow_directory_fails_closed(self):
         td = tempfile.TemporaryDirectory()
         self.addCleanup(td.cleanup)
