@@ -547,7 +547,7 @@ class ProgramControl:
         if kind not in RELATION_KINDS:
             raise ContractError("invalid program relation kind")
         overrides = self._overrides()
-        relation = {"from": source, "to": target, "kind": kind}
+        relation = {"from": source, "to": target, "kind": kind, "authority": "program"}
         if relation not in overrides["relations"]:
             overrides["relations"].append(relation)
             _atomic_json(self.overrides_path, overrides)
@@ -765,7 +765,7 @@ class ProgramControl:
             for kind, number in item.pop("relation_hints", []):
                 target = number_map.get(number)
                 if target and target != item["item_id"]:
-                    relation = {"from": item["item_id"], "to": target, "kind": kind}
+                    relation = {"from": item["item_id"], "to": target, "kind": kind, "authority": "source_hint"}
                     if relation not in relations:
                         relations.append(relation)
         for relation in overrides["relations"]:
@@ -784,12 +784,16 @@ class ProgramControl:
             source = by_id.get(relation.get("from"))
             target = by_id.get(relation.get("to"))
             kind = relation.get("kind")
+            authority = relation.get("authority", "program")
             if not source or not target or kind not in RELATION_KINDS:
                 continue
             if kind == "supersedes":
                 source["supersedes"].append(target["item_id"])
                 target["superseded_by"].append(source["item_id"])
-                if target["state"] not in TERMINAL_STATES:
+                # Source prose may suggest succession, but it is observational.
+                # Only an explicit RESIDUAL program relation may change the
+                # predecessor's authoritative program state.
+                if authority == "program" and target["state"] not in TERMINAL_STATES:
                     target["state"] = "SUPERSEDED"
             elif kind == "blocked_by":
                 source["blocked_by"].append(target["item_id"])
@@ -869,7 +873,7 @@ class ProgramControl:
             "workstreams": dict(sorted(workstreams.items(), key=lambda kv: (-kv[1], kv[0]))),
         }
 
-    def dashboard(self, limit: int = 200) -> dict[str, Any]:
+    def dashboard(self, limit: int = 500) -> dict[str, Any]:
         snapshot = self.current()
         items = snapshot["items"]
         active = [item for item in items if item.get("active")]
@@ -889,6 +893,7 @@ class ProgramControl:
             "owner_actions": sorted(owner, key=key)[:limit],
             "v1_critical": sorted(critical, key=key)[:limit],
             "active_items": sorted(active, key=key)[:limit],
+            "all_items": sorted(items, key=key)[:limit],
             "workstreams": [
                 {"name": name, "count": count}
                 for name, count in snapshot["summary"].get("workstreams", {}).items()
