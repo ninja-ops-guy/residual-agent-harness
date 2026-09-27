@@ -79,7 +79,7 @@ residual program add "Owner disposition: D4 Shared Comms" \
   --owner-action
 ```
 
-Record explicit relationships:
+Record explicit authoritative relationships. GitHub prose such as “successor to #123” may be retained as a source hint, but only a RESIDUAL `program link ... supersedes ...` relation can actually project the predecessor to `SUPERSEDED`:
 
 ```bash
 residual program link GH-PR-0478 supersedes GH-PR-0428
@@ -109,7 +109,7 @@ Open **Program control** in the sidebar. The view shows:
 - v1 required/supporting surface;
 - unclassified work;
 - active workstreams;
-- normalized active inventory;
+- full tracked inventory, including superseded/historical/deferred items;
 - exact source identity for revisioned PRs;
 - stale authority warnings.
 
