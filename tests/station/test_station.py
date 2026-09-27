@@ -3,6 +3,8 @@ from __future__ import annotations
 import concurrent.futures
 import io
 import json
+import os
+import sys
 import tempfile
 import threading
 import time
@@ -30,6 +32,7 @@ class StationTests(unittest.TestCase):
         self.pid = self.s.create(demo_spec(), demo=True)["project_id"]
 
     def tearDown(self):
+        self.s.close()
         self.temp.cleanup()
 
     def test_full_demo_real_git_tests_review_and_release(self):
@@ -97,7 +100,10 @@ class StationTests(unittest.TestCase):
     def test_lease_expiry_and_restart_recovery_preserve_evidence(self):
         self.s.triage(self.pid)
         work = self.s.prepare(self.pid, "local-runner", "OPS-101")
+        # A restart is a lifecycle transition, not a second live owner.
+        self.s.close()
         reopened = Station(self.temp.name)
+        self.addCleanup(reopened.close)
         self.assertEqual(reopened.store.task(self.pid, "OPS-101")["state"], "blocked")
         with self.assertRaises(ContractError):
             reopened.finish(work, {"files": DEMO_FILES["OPS-101"]})
@@ -296,6 +302,28 @@ class StationTests(unittest.TestCase):
         checks = [{"kind": "command", "argv": ["{python}", "-c", "print('ok')"]}]
         result = ws.run_checks(self.temp.name, checks, False)
         self.assertFalse(result[0]["passed"])
+
+    def test_run_checks_preserves_systemdrive_in_subprocess_env(self):
+        # Regression (QD-1): the check-subprocess env whitelist stripped SystemDrive,
+        # so on Windows a child Python expanded %SystemDrive% literally and wrote
+        # cache .db files into the candidate tree (dirty-tree ContractError).
+        fake = {k: os.environ[k] for k in ("PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP") if k in os.environ}
+        fake["SystemDrive"] = "C:\\"  # mixed-case spelling must still be preserved
+        # QD-2: the expansion probe must match platform semantics — POSIX
+        # expandvars never expands %VAR%, so the original probe failed on every
+        # Linux runner regardless of the fix. On POSIX prove functional
+        # visibility via $SystemDrive instead; both forms fail when the
+        # variable is stripped (predecessor behavior).
+        probe_ref = "%SystemDrive%\\\\probe" if sys.platform == "win32" else "$SystemDrive/probe"
+        probe = ("import os; ok = 'SYSTEMDRIVE' in {k.upper() for k in os.environ}; "
+                 "p = os.path.expandvars(" + repr(probe_ref) + "); "
+                 "unexpanded = p.startswith('%') or '$SystemDrive' in p; "
+                 "print('PRESENT' if ok and not unexpanded else 'ABSENT:' + p)")
+        checks = [{"kind": "command", "argv": ["{python}", "-c", probe]}]
+        with patch.dict(os.environ, fake, clear=True):
+            result = ws.run_checks(self.temp.name, checks, True)
+        self.assertTrue(result[0]["passed"], result[0]["detail"])
+        self.assertIn("PRESENT", result[0]["detail"])
 
     def test_artifact_tampering_is_rejected(self):
         a = self.s.store.add_artifact(self.pid, "receipt", "original")

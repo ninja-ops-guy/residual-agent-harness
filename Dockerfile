@@ -1,4 +1,4 @@
-FROM ollama/ollama:0.34.0
+FROM ollama/ollama:0.34.0@sha256:aa6f86f01fee264c81f1edd9083ebfb07c8116d95d8bedd1ad470874b66a40b4
 
 # Ollama's pinned image supplies the native CPU/GPU runtime and its libraries.
 RUN apt-get update && apt-get install -y --no-install-recommends python3 git zstd nodejs npm \

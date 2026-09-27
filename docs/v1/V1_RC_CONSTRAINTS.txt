@@ -1,0 +1,33 @@
+# V1 RC constraints — residual-agent-harness 0.5.0
+#
+# Exact pins for the v1 release-build install contract
+#   pip install '.[factory,qualification]'  ->  constrained by this file:
+#   pip install -c docs/v1/V1_RC_CONSTRAINTS.txt '.[factory,qualification]'
+#
+# Derived from pyproject.toml on 2026-09-26 (Python 3.12, pip resolver):
+#   runtime:        defusedxml>=0.7.1,<1
+#   factory extra:  cryptography>=43, PyYAML>=6
+#   qualification:  pytest==9.1.1, PyYAML==6.0.3, hypothesis==6.168.0, coverage[toml]==7.16.1
+#   build:          setuptools>=68 (pinned via wheelhouse build env)
+# plus their transitive closure (cffi, pycparser, pluggy, iniconfig,
+# packaging, sortedcontainers, colorama, pygments).
+#
+# pyproject compatibility metadata (>= ranges) is unchanged; constraints
+# apply only when this file is passed with -c. Wheelhouse copies of these
+# exact wheels (win_amd64 + manylinux2014_x86_64) with per-file SHA256 live
+# in the H3 lane evidence bundle (lanes/H3/wheelhouse/, WHEELHOUSE_SHA256.json).
+defusedxml==0.7.1
+cryptography==50.0.1
+PyYAML==6.0.3
+pytest==9.1.1
+hypothesis==6.168.0
+coverage==7.16.1
+cffi==2.1.1
+pycparser==3.0
+pluggy==1.6.0
+iniconfig==2.3.0
+packaging==26.3
+sortedcontainers==2.4.0
+colorama==0.4.6
+pygments==2.21.0
+setuptools==84.0.0

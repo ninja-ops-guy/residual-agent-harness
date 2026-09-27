@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = ROOT / ".github" / "workflows"
-CHECKOUT = "uses: actions/checkout@v4"
+CHECKOUT = "uses: actions/checkout@"
 
 
 class CheckoutCredentialPersistenceTests(unittest.TestCase):
@@ -39,7 +39,7 @@ class CheckoutCredentialPersistenceTests(unittest.TestCase):
                     block[with_pos + 1 :],
                     f"{path.relative_to(ROOT)} checkout at line {index + 1} persists credentials",
                 )
-        self.assertGreater(seen, 0, "no actions/checkout@v4 steps discovered")
+        self.assertGreater(seen, 0, "no actions/checkout steps discovered")
 
 
 if __name__ == "__main__":
