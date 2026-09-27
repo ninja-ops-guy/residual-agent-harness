@@ -147,3 +147,14 @@ A positive result requires `P(X|A)` to improve meaningfully over `P(X)` without 
 The repository does not currently claim a new foundation model, a universal verifier/proof system, universally optimal routing, guaranteed token/cost savings, blanket production readiness, successful exact-current-main real-provider inference, physical heavyweight-WebVM iPhone reliability, acceptable long-run WebVM reliability, independent human assurance from the solo-maintainer merge model, live-model proof of the central hypothesis, completed long-duration soak, autonomous recursive self-improvement, autonomous merge authority or first-in-literature status.
 
 Receipts establish that stated checks ran over stated evidence under stated identities/revisions. They do not certify arbitrary truth beyond those contracts.
+
+## RRI-005 — Agent Privilege Firewall
+
+**Status:** DESIGN-FROZEN / POST-v1 / EXECUTION-DEFERRED.
+
+RRI-005 turns privileged-agent hijack into a bounded RESIDUAL research and qualification program. It specifies an Agent Privilege Firewall that externalizes privileged authority from workers, binds capabilities to principals and destinations, protects trust-root mutation, and requires receipt-backed execution, revocation, and adversarial qualification.
+
+- [Formal specification and attack corpus](research/RRI-005-AGENT-PRIVILEGE-FIREWALL.md)
+- [Swarm implementation plan](research/RRI-005-SWARM-IMPLEMENTATION.md)
+
+The implementation target is zero unauthorized privileged effects across the mandatory APF-enabled corpus while preserving positive controls. This program MUST remain outside the v1 release gate until v1 convergence is complete and the owner explicitly starts the post-v1 implementation.
