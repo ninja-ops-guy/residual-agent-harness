@@ -532,6 +532,7 @@ class ProgramControl:
             snapshot["items"][-1]["supersedes"] = []
             snapshot["items"][-1]["superseded_by"] = []
             snapshot["items"][-1]["related"] = []
+            snapshot["items"][-1]["source_relation_hints"] = []
             snapshot["items"][-1]["active"] = snapshot["items"][-1]["state"] not in TERMINAL_STATES
             snapshot = self._freeze_local_projection(snapshot)
         self._event("program.manual_item_added", {
