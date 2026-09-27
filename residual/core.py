@@ -1,4 +1,4 @@
-"""Small, explicit contracts. No model-generated code is executed."""
+"""Small, explicit verification contracts; this module treats model output as data and does not itself execute generated code."""
 from __future__ import annotations
 
 import hashlib

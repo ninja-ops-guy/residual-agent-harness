@@ -1,0 +1,146 @@
+{
+  "schema_version": "residual.v1-claim-registry.v1",
+  "base_main": "59f3ac7d1dfb9444060bd884ee9d67b8d758514d",
+  "controlling_rule": "Qualification does not confer admission. Admission does not confer support. Support does not exist until the corresponding admitted and qualified capability is included in an authorized release.",
+  "vocabularies": {
+    "admission_state": [
+      "NOT_ADMITTED",
+      "ADMITTED_D3"
+    ],
+    "qualification_state": [
+      "NOT_QUALIFIED",
+      "EXPERIMENTAL_EVIDENCE",
+      "D3_QUALIFIED",
+      "RC_QUALIFIED"
+    ],
+    "release_state": [
+      "NOT_RELEASED",
+      "RELEASE_CANDIDATE",
+      "RELEASED"
+    ],
+    "support_state": [
+      "NOT_SUPPORTED",
+      "SUPPORTED"
+    ],
+    "provider_state": [
+      "ADAPTER_IMPLEMENTED",
+      "PROVIDER_OBSERVED",
+      "PROVIDER_V1_QUALIFIED"
+    ],
+    "documented_state": [
+      "UNDOCUMENTED",
+      "DOCUMENTED"
+    ]
+  },
+  "claims": [
+    {
+      "claim_id": "D3-NATIVE-WINDOWS-X64",
+      "capability": "native_windows_x64",
+      "documented_state": "DOCUMENTED",
+      "implemented": true,
+      "admission_state": "ADMITTED_D3",
+      "qualification_state": "NOT_QUALIFIED",
+      "release_state": "NOT_RELEASED",
+      "support_state": "NOT_SUPPORTED",
+      "public_claim": "Admitted but not yet evidence-bound as qualified in this registry for the v1 candidate surface; not yet released or supported as v1.",
+      "qualification_evidence": []
+    },
+    {
+      "claim_id": "D3-NATIVE-LINUX-X64",
+      "capability": "native_linux_x64",
+      "documented_state": "DOCUMENTED",
+      "implemented": true,
+      "admission_state": "ADMITTED_D3",
+      "qualification_state": "NOT_QUALIFIED",
+      "release_state": "NOT_RELEASED",
+      "support_state": "NOT_SUPPORTED",
+      "public_claim": "Admitted but not yet evidence-bound as qualified in this registry for the v1 candidate surface; not yet released or supported as v1.",
+      "qualification_evidence": []
+    },
+    {
+      "claim_id": "D3-DOCKER-LOCAL",
+      "capability": "single_host_local_docker",
+      "documented_state": "DOCUMENTED",
+      "implemented": true,
+      "admission_state": "ADMITTED_D3",
+      "qualification_state": "NOT_QUALIFIED",
+      "release_state": "NOT_RELEASED",
+      "support_state": "NOT_SUPPORTED",
+      "public_claim": "Docker is admitted only for the bounded trusted-local single-host v1 profile; release support begins only after release authorization.",
+      "qualification_evidence": []
+    },
+    {
+      "claim_id": "D3-NATIVE-MACOS",
+      "capability": "native_macos",
+      "documented_state": "DOCUMENTED",
+      "implemented": true,
+      "admission_state": "NOT_ADMITTED",
+      "qualification_state": "NOT_QUALIFIED",
+      "release_state": "NOT_RELEASED",
+      "support_state": "NOT_SUPPORTED",
+      "public_claim": "Implemented/experimental path; qualification evidence is not yet bound in this registry; not an admitted or supported v1 platform.",
+      "qualification_evidence": []
+    },
+    {
+      "claim_id": "D3-NATIVE-LINUX-ARM64",
+      "capability": "native_linux_arm64",
+      "documented_state": "DOCUMENTED",
+      "implemented": true,
+      "admission_state": "NOT_ADMITTED",
+      "qualification_state": "NOT_QUALIFIED",
+      "release_state": "NOT_RELEASED",
+      "support_state": "NOT_SUPPORTED",
+      "public_claim": "Installer/runtime capability may exist, but Linux ARM64 is not an admitted or supported v1 platform.",
+      "qualification_evidence": []
+    },
+    {
+      "claim_id": "D3-HOSTED-PROVIDERS",
+      "capability": "hosted_provider_adapters",
+      "documented_state": "DOCUMENTED",
+      "implemented": true,
+      "admission_state": "ADMITTED_D3",
+      "qualification_state": "NOT_QUALIFIED",
+      "release_state": "NOT_RELEASED",
+      "support_state": "NOT_SUPPORTED",
+      "public_claim": "Adapters may be implemented, but v1 support applies only to the exact hosted provider/model/deployment that completes exact-RC candidate-to-verifier-to-receipt qualification.",
+      "qualification_evidence": []
+    },
+    {
+      "claim_id": "D4-SHARED-COMMS",
+      "capability": "shared_comms",
+      "documented_state": "DOCUMENTED",
+      "implemented": true,
+      "admission_state": "NOT_ADMITTED",
+      "qualification_state": "NOT_QUALIFIED",
+      "release_state": "NOT_RELEASED",
+      "support_state": "NOT_SUPPORTED",
+      "public_claim": "Research/foundation capability; qualification evidence is not yet bound in this registry until an explicit D4 inclusion decision and applicable qualification are recorded.",
+      "qualification_evidence": []
+    },
+    {
+      "claim_id": "ENTERPRISE-HA-DR",
+      "capability": "enterprise_ha_dr",
+      "documented_state": "DOCUMENTED",
+      "implemented": true,
+      "admission_state": "NOT_ADMITTED",
+      "qualification_state": "NOT_QUALIFIED",
+      "release_state": "NOT_RELEASED",
+      "support_state": "NOT_SUPPORTED",
+      "public_claim": "Enterprise roadmap/reference implementation; not an admitted v1 capability.",
+      "qualification_evidence": []
+    },
+    {
+      "claim_id": "COMMERCIAL-SUPPORT",
+      "capability": "commercial_support_slas",
+      "documented_state": "DOCUMENTED",
+      "implemented": false,
+      "admission_state": "NOT_ADMITTED",
+      "qualification_state": "NOT_QUALIFIED",
+      "release_state": "NOT_RELEASED",
+      "support_state": "NOT_SUPPORTED",
+      "public_claim": "Commercial-policy template only; no operational SLA or staffed support commitment is created by the repository.",
+      "qualification_evidence": []
+    }
+  ],
+  "evidence_binding_rule": "Qualification evidence is structural provenance, not self-authenticating proof. D3/RC qualification requires PASS evidence bound to one exact subject HEAD/TREE. RELEASED additionally requires a release-authorization object bound to that RC-qualified subject and an artifact-set digest. External evidence resolvers remain responsible for authenticating referenced receipts/artifacts."
+}

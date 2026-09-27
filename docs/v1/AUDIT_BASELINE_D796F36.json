@@ -1,0 +1,303 @@
+{
+  "schema_version": "residual.v1-claim-audit-baseline.v1",
+  "baseline_name": "AUDIT-BASELINE-D796F36",
+  "baseline_main": "d796f36b75e730a0bab71bdba564206174393719",
+  "reproduction_main": "59f3ac7d1dfb9444060bd884ee9d67b8d758514d",
+  "allowed_status": [
+    "PENDING_REPRODUCTION",
+    "STILL_PRESENT",
+    "PARTIALLY_RESOLVED",
+    "SUPERSEDED",
+    "NEW_FORM"
+  ],
+  "findings": [
+    {
+      "id": "P01",
+      "status": "STILL_PRESENT",
+      "evidence": [
+        "README/START-HERE on current main present macOS alongside ordinary launch paths without a nearby D3 exclusion."
+      ]
+    },
+    {
+      "id": "P02",
+      "status": "STILL_PRESENT",
+      "evidence": [
+        "START-HERE on current main advertises managed Ollama installation on Linux ARM64 although D3 admits native Linux x64."
+      ]
+    },
+    {
+      "id": "P03",
+      "status": "STILL_PRESENT",
+      "evidence": [
+        "START-HERE lists multiple hosted adapters and connection testing without a v1 qualification distinction."
+      ]
+    },
+    {
+      "id": "P04",
+      "status": "STILL_PRESENT",
+      "evidence": [
+        "DISTRIBUTED.md provides remote SSH/TLS recipes without making deployment qualification subordinate to D3 gates."
+      ]
+    },
+    {
+      "id": "P05",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "P06",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "P07",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "S01",
+      "status": "STILL_PRESENT",
+      "evidence": [
+        "Enterprise security package presents current release scan counts without exact candidate/report binding."
+      ]
+    },
+    {
+      "id": "S02",
+      "status": "STILL_PRESENT",
+      "evidence": [
+        "Enterprise security package presents latest pentest/retest completion without retained exact release-bound evidence in the page."
+      ]
+    },
+    {
+      "id": "S03",
+      "status": "STILL_PRESENT",
+      "evidence": [
+        "Absolute no-generated-code statement remains in enterprise security prose and residual/core.py."
+      ]
+    },
+    {
+      "id": "S04",
+      "status": "STILL_PRESENT",
+      "evidence": [
+        "Enterprise review package generalizes egress allowlisting beyond execution-surface-specific controls."
+      ]
+    },
+    {
+      "id": "S05",
+      "status": "STILL_PRESENT",
+      "evidence": [
+        "Enterprise review package presents IAM/TLS/roles as general operating boundary rather than profile-specific target controls."
+      ]
+    },
+    {
+      "id": "S06",
+      "status": "STILL_PRESENT",
+      "evidence": [
+        "Enterprise review package overstates hash-chain properties as immutable/non-repudiable evidence."
+      ]
+    },
+    {
+      "id": "S07",
+      "status": "STILL_PRESENT",
+      "evidence": [
+        "Enterprise review package implies complete external-call observation despite best-effort/gap semantics elsewhere."
+      ]
+    },
+    {
+      "id": "S08",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "S09",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "S10",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "S11",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "S12",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "S13",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "S14",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "S15",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "L01",
+      "status": "PARTIALLY_RESOLVED",
+      "evidence": [
+        "#442 merged and narrowed the Apache-2.0 grant to the manifest-defined verification/research kernel; commercial policy prose remains broader."
+      ]
+    },
+    {
+      "id": "L02",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "L03",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "L04",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "L05",
+      "status": "STILL_PRESENT",
+      "evidence": [
+        "Support tiers still present 24x7 staffing, response SLAs, dedicated engineers, on-site support and credits as current commitments."
+      ]
+    },
+    {
+      "id": "L06",
+      "status": "PARTIALLY_RESOLVED",
+      "evidence": [
+        "Root SECURITY.md now supplies a real reporting route, but the enterprise disclosure template still advertises placeholder email/timelines/safe-harbor commitments."
+      ]
+    },
+    {
+      "id": "L07",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "L08",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "L09",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "L10",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "L11",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "R01",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "R02",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "R03",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "R04",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "R05",
+      "status": "STILL_PRESENT",
+      "evidence": [
+        "#428 V1_RELEASE_GATES.json still binds generic candidate_commit/tree to R4.1 canary provenance; repair is isolated in #478."
+      ]
+    },
+    {
+      "id": "R06",
+      "status": "STILL_PRESENT",
+      "evidence": [
+        "#428 schema/validator do not condition final_tag null on closure.state; repair is isolated in #478."
+      ]
+    },
+    {
+      "id": "R07",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "R08",
+      "status": "PENDING_REPRODUCTION",
+      "evidence": []
+    },
+    {
+      "id": "L12",
+      "status": "NEW_FORM",
+      "evidence": [
+        "After #442 merged, OPEN_SOURCE_MANIFEST.md still stated the boundary was not merged to main. Existing PR #475 owns this repair."
+      ]
+    }
+  ],
+  "known_current_main_deltas": [
+    {
+      "id": "L01",
+      "status": "PARTIALLY_RESOLVED",
+      "evidence": [
+        "#442 merged as main 59f3ac7d... and narrows the Apache-2.0 grant to the manifest-defined kernel."
+      ]
+    },
+    {
+      "id": "L06",
+      "status": "PARTIALLY_RESOLVED",
+      "evidence": [
+        "Root SECURITY.md now exists with a real GitHub private-reporting route; enterprise policy still advertises placeholder email/timelines."
+      ]
+    },
+    {
+      "id": "L12",
+      "status": "NEW_FORM",
+      "evidence": [
+        "OPEN_SOURCE_MANIFEST.md states 'not merged to main' after #442 merged; owned by existing PR #475 and excluded from duplicate repair here."
+      ]
+    },
+    {
+      "id": "S03",
+      "status": "STILL_PRESENT",
+      "evidence": [
+        "The absolute no-model-generated-code statement remains in enterprise security prose and residual/core.py."
+      ]
+    },
+    {
+      "id": "R05",
+      "status": "STILL_PRESENT",
+      "evidence": [
+        "#428 V1_RELEASE_GATES.json still binds generic candidate_commit/candidate_tree to frozen R4.1 provenance."
+      ]
+    },
+    {
+      "id": "R06",
+      "status": "STILL_PRESENT",
+      "evidence": [
+        "#428 schema/validator allow final_tag null without conditioning that branch on closure.state != V1_CLOSED."
+      ]
+    }
+  ]
+}
