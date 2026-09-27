@@ -3,6 +3,7 @@ import io
 import json
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from residual.cli import main
@@ -11,6 +12,25 @@ from residual.evaluation import benchmark
 
 
 class CLITests(unittest.TestCase):
+    def test_doctor_command_is_first_class_and_read_only_surface(self):
+        report = {"residual_version": "0.5.0", "update_blockers": []}
+        with patch("residual.cli.doctor_report", return_value=report), \
+             patch("residual.cli.format_doctor", return_value="RESIDUAL Doctor") as formatter, \
+             contextlib.redirect_stdout(io.StringIO()) as output:
+            self.assertEqual(main(["doctor"]), 0)
+        formatter.assert_called_once_with(report)
+        self.assertIn("RESIDUAL Doctor", output.getvalue())
+
+    def test_update_check_uses_check_path_not_mutating_update(self):
+        result = {"target_revision": "a" * 40, "update_available": True}
+        with patch("residual.cli.update_status", return_value=result) as check, \
+             patch("residual.cli.perform_update") as mutate, \
+             patch("residual.cli.format_update", return_value="RESIDUAL Update Check"), \
+             contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(main(["update", "--check"]), 0)
+        check.assert_called_once_with(version=None)
+        mutate.assert_not_called()
+
     def test_demo_and_trace_result_binding(self):
         with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(main(["demo", "--output", tmp]), 0)
