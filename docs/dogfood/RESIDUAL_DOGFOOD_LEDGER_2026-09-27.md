@@ -17,7 +17,7 @@ This ledger is append-only dogfood evidence. A corrective PR is not closure; clo
 | DF-SCMESH-008 | Automatic cloud assessment may fail after deterministic work is preserved | OPEN / INVESTIGATE | Improve secondary failure diagnostics without changing mission truth |
 | DF-CLI-001 | No first-class CLI self-update path | CORRECTIVE_CHANGE / RETEST_PENDING | Adds `residual update --check` and bounded `residual update` |
 | DF-CLI-002 | No installation/runtime diagnostic command | CORRECTIVE_CHANGE / RETEST_PENDING | Adds read-only `residual doctor` |
-| DF-CLI-003 | Runtime `__version__` drifted from package metadata | CORRECTIVE_CHANGE / RETEST_PENDING | Runtime version now derives from installed package metadata |
+| DF-CLI-003 | Runtime `__version__` drifted from package metadata | CORRECTIVE_CHANGE / RETEST_PENDING | Runtime version now derives from installed package metadata |\n| DF-CLI-004 | Development package version alone does not prove installed source revision | CORRECTIVE_CHANGE / RETEST_PENDING | Package installs now retain VCS commit identity for update checks; updater force-reinstalls the exact repository target |
 
 ## Update safety contract
 
@@ -42,3 +42,8 @@ This ledger is append-only dogfood evidence. A corrective PR is not closure; clo
 5. dirty source checkout: update MUST refuse without modifying files
 6. Draft Spec running card exposes and honors dismiss ×
 7. rerun the unchanged OpenClaw onboarding GoalSpec and verify DF-OC-001/002 behavior
+
+
+## DF-CLI-004 observed reproduction
+
+A LEGION bootstrap against `main` installed package metadata `0.5.0` while the executable still exposed the pre-#481 command surface because #481 had not yet merged to `main`. This demonstrates that package version alone is insufficient to prove development-channel source identity. Update checks for package installs therefore compare the recorded VCS commit from `direct_url.json` to the resolved remote target, and package updates force-reinstall the exact requested repository target.
