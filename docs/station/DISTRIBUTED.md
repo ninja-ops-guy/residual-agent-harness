@@ -1,5 +1,7 @@
 # Distributed inference runners
 
+> **Authority / support status:** this page documents implemented transport and runner configuration. It is not, by itself, evidence that remote/distributed deployment is admitted or qualified for v1. Any supported deployment must remain inside the approved D3/deployment profile and satisfy the applicable exposure, worker-authority, physical-evidence, and exact-release qualification gates.
+
 The station can accept additional inference-only machines. Workers read scoped source and propose files; the coordinator applies the proposal, executes checks, reviews and integrates. Distributed test execution is not included.
 
 1. Open **Diagnostics → Connect another runner**, enable access, and copy the key onto a trusted machine.
