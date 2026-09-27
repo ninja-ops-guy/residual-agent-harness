@@ -83,6 +83,35 @@ class MaintenanceTests(unittest.TestCase):
         self.assertNotIn("reset", flat)
         self.assertNotIn("stash", flat)
 
+    def test_package_update_check_uses_installed_vcs_commit_identity(self):
+        install = Installation("package", "/site/residual", None, False, "1" * 40)
+        with patch("residual.maintenance.inspect_installation", return_value=install), \
+             patch("residual.maintenance._remote_target", return_value="2" * 40):
+            result = update_status()
+        self.assertEqual(result["current_revision"], "1" * 40)
+        self.assertTrue(result["update_available"])
+
+    def test_package_update_force_reinstalls_exact_repository_target(self):
+        install = Installation("package", "/site/residual", None, False, "1" * 40)
+        calls = []
+
+        def record(argv, **kwargs):
+            calls.append(argv)
+            class Result:
+                stdout = "0.5.0\n" if "-c" in argv else ""
+                stderr = ""
+            return Result()
+
+        with patch("residual.maintenance.inspect_installation", return_value=install), \
+             patch("residual.maintenance._remote_target", return_value="2" * 40), \
+             patch("residual.maintenance._run", side_effect=record):
+            result = perform_update()
+
+        pip_call = next(call for call in calls if "pip" in call)
+        self.assertIn("--force-reinstall", pip_call)
+        self.assertIn("--no-deps", pip_call)
+        self.assertTrue(result["updated"])
+
     def test_update_check_resolves_remote_without_source_mutation(self):
         install = Installation("source-checkout", "/repo/residual", "/repo", False)
         facts = {
