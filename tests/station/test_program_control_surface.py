@@ -30,3 +30,4 @@ def test_program_control_ui_names_authority_boundary():
     assert "GitHub remains observational input" in program
     assert "STALE AUTHORITY OVERRIDE" in program
     assert "Owner action queue" in program
+    assert "Full tracked inventory" in program
