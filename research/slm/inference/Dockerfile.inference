@@ -1,0 +1,29 @@
+# CPU-first inference container for EXP-M6-SLM. Separate from the training
+# image (research/slm/training/Dockerfile): no CUDA, minimal pinned deps.
+# Machinery only — all artifacts are non-production test artifacts until
+# the SLM-00 benchmark freeze lifts (see ../SECURITY-BOUNDARY.md).
+FROM python:3.11-slim-bookworm
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    SLM_DEVICE=cpu \
+    OMP_NUM_THREADS=4
+
+WORKDIR /app
+
+COPY inference/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+# Model scaffold (architecture source of truth) + inference package.
+COPY scaffold /app/scaffold
+COPY inference /app/inference
+
+# Non-root user for all inference work.
+RUN useradd --create-home --uid 10002 slm-infer \
+    && mkdir -p /app/artifacts \
+    && chown -R slm-infer:slm-infer /app
+USER slm-infer
+
+# Build context: research/slm/ (docker build -f inference/Dockerfile.inference .)
+ENTRYPOINT ["python", "-m", "inference.serve"]
+CMD ["--help"]
