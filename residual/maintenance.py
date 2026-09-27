@@ -6,7 +6,7 @@ import os
 import shutil
 import subprocess
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from importlib import metadata
 from pathlib import Path
 from urllib.parse import unquote, urlparse
