@@ -12,6 +12,8 @@ from .demo import make_case
 from .engine import MODES
 from .evaluation import benchmark, markdown_report
 from .storage import verify_ledger
+from .maintenance import doctor_report, format_doctor, format_update, perform_update, update_status
+from .version import current_version
 
 
 def write_json(path, value):
@@ -44,6 +46,7 @@ def main(argv=None):
         from .cluster.cli import cluster_main
         return cluster_main(argv[1:])
     parser = argparse.ArgumentParser(description="RESIDUAL — hybrid agents with verifiable task boundaries")
+    parser.add_argument("--version", action="version", version=f"RESIDUAL {current_version()}")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("factory", help="Plan and approve headless multi-swarm Factory Mode work")
     sub.add_parser("evaluate", help="Run SPEC-EVAL-001 comparative evidence (evaluate --help)")
@@ -52,6 +55,12 @@ def main(argv=None):
     sub.add_parser("study", help="Freeze/run independently graded studies (study --help)")
     sub.add_parser("node", help="Join/leave the distributed cluster (node --help)")
     sub.add_parser("cluster", help="Show cluster status (cluster --help)")
+    doctor = sub.add_parser("doctor", help="Inspect installation, source identity, state location, and update readiness")
+    doctor.add_argument("--json", action="store_true", help="Emit the diagnostic report as JSON")
+    update = sub.add_parser("update", help="Check for or apply a bounded RESIDUAL update")
+    update.add_argument("--check", action="store_true", help="Check the repository update target without changing the installation")
+    update.add_argument("--version", dest="target_version", help="Target a published vVERSION tag for package installs")
+    update.add_argument("--json", action="store_true", help="Emit update/check output as JSON")
     for name in ("demo", "run"):
         run = sub.add_parser(name)
         if name == "run":
@@ -76,6 +85,14 @@ def main(argv=None):
     verify.add_argument("--result", help="Also check the final event binds this result JSON")
     args = parser.parse_args(argv)
     try:
+        if args.command == "doctor":
+            report = doctor_report()
+            print(json.dumps(report, indent=2) if args.json else format_doctor(report))
+            return 0
+        if args.command == "update":
+            result = update_status(version=args.target_version) if args.check else perform_update(version=args.target_version)
+            print(json.dumps(result, indent=2) if args.json else format_update(result))
+            return 0
         if args.command == "verify-trace":
             result = verify_ledger(args.trace, args.expected_root)
             if args.result:
