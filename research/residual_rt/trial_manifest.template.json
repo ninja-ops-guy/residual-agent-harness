@@ -1,0 +1,75 @@
+{
+  "schema_version": "residual-rt-trial-manifest-v1",
+  "trial_id": "PB-YYYYMMDD-model-r10",
+  "phase": "B",
+  "trial_class": "pilot",
+  "status": "planned",
+  "operator": "",
+  "created_at_utc": "",
+  "started_at_utc": null,
+  "completed_at_utc": null,
+  "source": {
+    "repository": "ninja-ops-guy/residual-agent-harness",
+    "branch_or_ref": "research/residual-rt-ieee",
+    "commit_sha": "",
+    "working_tree_clean": null
+  },
+  "artifacts": {
+    "engagements_path": "research/residual_rt/engagements.json",
+    "engagements_sha256": "",
+    "protocol_path": "research/residual_rt/protocol.json",
+    "protocol_sha256": "",
+    "runner_path": "residual/eval/residual_rt_models.py",
+    "runner_sha256": "",
+    "result_path": "",
+    "result_sha256": null,
+    "investigation_notes_path": ""
+  },
+  "provider": {
+    "kind": "ollama",
+    "model": "qwen2.5-coder:7b",
+    "base_url": "http://127.0.0.1:11434",
+    "placement": "local",
+    "provider_version": "",
+    "model_identity_notes": ""
+  },
+  "sampling": {
+    "repeats": 10,
+    "temperature": 0,
+    "seed_base": 20260918,
+    "max_output_tokens": 1024
+  },
+  "environment": {
+    "os": "",
+    "python_version": "",
+    "hardware_notes": "",
+    "network_notes": "Local provider path only; no execution adapter."
+  },
+  "protocol_identity": {
+    "system_prompt_hash": null,
+    "output_schema_hash": null
+  },
+  "preflight": {
+    "focused_tests_passed": null,
+    "provider_reachable": null,
+    "model_available": null,
+    "engagements_reviewed_before_outcomes": null
+  },
+  "execution": {
+    "command": "",
+    "process_exit_code": null,
+    "infrastructure_valid": null,
+    "anomalies": []
+  },
+  "retention_policy": {
+    "retain_invalid_proposals": true,
+    "retain_provider_errors": true,
+    "retain_unknown": true,
+    "no_silent_reruns": true,
+    "raw_result_immutable_after_completion": true
+  },
+  "investigation": {
+    "overall_pilot_verdict": null,
+    "notes": ""
+  }
+}

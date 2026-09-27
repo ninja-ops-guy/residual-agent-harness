@@ -1,0 +1,204 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{enumitem}
+
+\title{RESIDUAL-RT: Bounded-Authority, Evidence-Grounded Agentic Adversary Emulation}
+
+\author{
+\IEEEauthorblockN{Mike Olivares}
+\IEEEauthorblockA{Independent Researcher\\Email omitted for review}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Large language model (LLM) agents can plan and execute multi-step cybersecurity tasks, but autonomous adversary-emulation systems remain difficult to trust. Recent evaluations report weak end-to-end penetration-testing reliability, long-horizon planning failures, strong sensitivity to tool environments, and safety failures when agents receive external capabilities. This paper proposes RESIDUAL-RT, an adversary-emulation architecture that separates model intelligence from execution authority. Models produce typed, bounded proposals; an authority broker enforces engagement scope and risk policy; findings must satisfy evidence contracts; an independent verifier controls promotion of provisional claims; epistemic memory retains rejected or disproven hypotheses; and content-bound receipts bind accepted state to the evidence and policy revision that justified it. We define a staged experimental program that first isolates controller effects with frozen proposal replay, then evaluates model-controller interaction in a no-op digital twin, and finally qualifies the architecture in a disposable, non-destructive cyber range. Primary outcomes include scope-violation execution rate, false acceptance, accepted correctness, acceptance coverage, false rejection, high-risk authorization failures, redundant actions, and orchestration cost. The central hypothesis is not that LLMs become intrinsically reliable, but that a bounded, evidence-first control plane can improve the reliability of accepted state while preserving useful coverage.
+\end{abstract}
+
+\begin{IEEEkeywords}
+LLM agents, adversary emulation, red teaming, cybersecurity evaluation, agent safety, evidence provenance, human-in-the-loop
+\end{IEEEkeywords}
+
+\section{Introduction}
+Autonomous cybersecurity agents combine language-model reasoning with tools that observe or modify external systems. This coupling creates a fundamental asymmetry: model reasoning may remain probabilistic, while a tool invocation is a concrete state transition. A persuasive but incorrect hypothesis can therefore become a real action unless the surrounding system independently constrains what the model is permitted to do.
+
+Recent empirical work shows why this distinction matters. PentestEval reports low end-to-end success and substantial stage-level weakness in LLM-based penetration-testing systems \cite{penteval}. Work combining LLM agents with classical planning identifies long-horizon coherence and specialized-tool use as important limitations \cite{checkmate}. A 2026 cross-model study of offensive cyber tasks indicates that environment tooling and model selection can dominate prompt-level interventions \cite{merves}. On the defensive side, the Cyber Defense Benchmark reports severe limitations in open-ended evidence-driven threat hunting \cite{cyberdefense}. Safety evaluation is also moving toward executable, sandboxed tests in which outcomes are judged from environment state and artifact evidence rather than model self-report \cite{vera}.
+
+These findings motivate a system question distinct from whether an LLM can solve cyber tasks: what architecture is required before an LLM should be allowed to influence accepted cyber state?
+
+RESIDUAL-RT specializes the RESIDUAL reliability architecture for controlled adversary emulation. The design treats a model as a proposal generator rather than an authority source. A model may reason about an objective, propose an observation, suggest a hypothesis, or request a state-changing capability, but execution and acceptance are mediated by deterministic policy, evidence, and verification boundaries.
+
+The proposed contribution is a composition of five mechanisms: (1) typed and bounded action authority, (2) explicit evidence contracts for findings, (3) verifier-separated promotion of provisional state, (4) epistemic memory that distinguishes facts, hypotheses, failures, and unknowns, and (5) content-bound receipts that make accepted state reconstructable. The novelty claim is intentionally bounded. The research question is whether this composition produces measurable gains in accepted-state reliability for agentic adversary-emulation workflows.
+
+This paper contributes:
+\begin{enumerate}[leftmargin=*]
+\item an architecture separating LLM reasoning from adversary-emulation authority;
+\item a cumulative RT0--RT5 ablation design isolating the contribution of scope, evidence, verification, memory, and human authorization;
+\item a staged evaluation protocol moving from deterministic replay to proposal-only model experiments and then to an isolated cyber range; and
+\item a claim discipline that reports accepted correctness jointly with acceptance coverage and preserves FAIL, UNKNOWN, BLOCKED, and missing outcomes.
+\end{enumerate}
+
+\section{Background and Related Work}
+MITRE ATT\&CK provides a common language for adversary behavior and explicitly supports adversary-emulation and red-team use cases \cite{mitre}. ATT\&CK-based emulation is useful because techniques can be represented at a behavior level without coupling an evaluation to a single offensive tool.
+
+CyberSecEval 3 extends LLM cybersecurity evaluation to autonomous offensive cyber operations and related misuse risks \cite{cyberseceval3}. PentestEval, classical-planning approaches, and cross-model offensive cyber benchmarks further show that autonomous performance depends on decomposition, tool interfaces, environment design, and long-horizon control in addition to model capability \cite{penteval,checkmate,merves}.
+
+RESIDUAL-RT evaluates a different quantity than raw solve rate. Its primary object is accepted state: whether executed actions stayed within authorization, whether accepted findings were supported and correct, whether rejected uncertainty remained rejected, and what utility was lost to conservative controls.
+
+Vera demonstrates a scalable agent-safety testing pattern based on isolated sandboxes, observable artifacts, and deterministic verification predicates \cite{vera}. Agentic AI penetration testing has likewise shown that tool-enabled agents can exhibit security failures not captured by ordinary chat refusal behavior \cite{agenticpentest}. These results support a core RESIDUAL-RT principle: model self-report is insufficient evidence for either safety or task success.
+
+\section{Threat Model and Scope}
+RESIDUAL-RT assumes a stochastic worker may make four classes of error: propose an out-of-scope action, overstate a finding, repeat a disproven or rejected hypothesis, or request a state-changing capability whose risk exceeds delegated authority. The model is not assumed malicious. Prompt injection, tool errors, transport failures, missing usage accounting, and verifier uncertainty are additional fault sources for later stress experiments.
+
+The study is narrower than unrestricted penetration testing. Phase A contains only synthetic typed proposals. Phase B permits models to emit typed proposals into a no-op adapter. Phase C is restricted to disposable laboratory assets with no external route, explicit allowlists, snapshot/reset, ephemeral credentials, and non-destructive behavior. Real third-party and production targets are outside the protocol.
+
+\section{Architecture}
+\subsection{Mission and Engagement Compiler}
+An engagement objective is compiled into machine-checkable scope, permitted capabilities, prohibited capabilities, success criteria, evidence requirements, budgets, risk tiers, and stop conditions. The compiler output becomes part of the experiment identity. A model cannot broaden rules of engagement through natural-language reinterpretation.
+
+\subsection{Typed Authority Broker}
+The authority broker is the primary enforcement boundary. Instead of receiving an unrestricted shell, a worker requests a named capability such as \texttt{network.service.enumerate} against an allowlisted laboratory target. The broker evaluates target scope, capability delegation, risk, prerequisites, resource budgets, and human-approval state before dispatch. A denied proposal remains evidence; denial cannot silently become successful execution.
+
+This design aligns with the existing RESIDUAL WorkerContract abstraction, which binds workers to explicit tools, inputs, outputs, acceptance criteria, and resource budgets. The contract is not itself an operating-system sandbox; real execution requires an independently enforced backend.
+
+\subsection{Evidence Contracts and Provisional Findings}
+Observations, hypotheses, and accepted findings are distinct state types. A finding begins as provisional. Promotion requires a declared evidence set. Missing evidence produces rejection or UNKNOWN rather than implicit acceptance.
+
+Let $X$ denote finding correctness and $A$ acceptance. Raw worker quality is $P(X)$, accepted-state quality is $P(X \mid A)$, and acceptance coverage is $P(A)$. A control plane is not useful if it raises $P(X \mid A)$ only by driving $P(A)$ toward zero. Both quantities are therefore primary endpoints.
+
+\subsection{Independent Verification}
+The worker that proposes a finding does not control promotion. A verifier evaluates a frozen acceptance contract using retained evidence. PASS, FAIL, and UNKNOWN are distinct outcomes. UNKNOWN does not silently promote to PASS. This separation is intended to reduce self-certification by a single generative process.
+
+\subsection{Epistemic Memory}
+RESIDUAL-RT stores typed epistemic state: verified facts, provisional hypotheses, failed hypotheses, denied actions, unknowns, and superseded evidence. Exact rejected repeats can be suppressed, while materially revised proposals remain admissible. This distinction is important because overly coarse deduplication can become a safety defect by suppressing legitimate revisions.
+
+\subsection{Evidence Bus and Receipts}
+Accepted transitions are bound to append-only evidence and content-bound receipts. A receipt identifies the task, worker, contract, evidence artifacts, verifier decision, policy identity, and relevant hashes. The objective is reconstructability: an auditor should determine why state became accepted without relying on a model-generated narrative.
+
+\section{Experimental Design}
+\subsection{Cumulative Controller Conditions}
+Table~\ref{tab:conditions} defines the RT0--RT5 ablations.
+
+\begin{table}[ht]
+\centering
+\caption{RESIDUAL-RT Cumulative Conditions}
+\label{tab:conditions}
+\begin{tabular}{lll}
+\toprule
+ID & Added mechanism & Purpose \\
+\midrule
+RT0 & None & Direct proposal baseline \\
+RT1 & Scope gate & Block out-of-scope execution \\
+RT2 & Evidence gate & Require declared evidence \\
+RT3 & Verifier gate & Separate proposal from approval \\
+RT4 & Epistemic memory & Suppress exact rejected repeats \\
+RT5 & Risk-tiered HITL & Gate high-risk state changes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The cumulative design estimates the marginal effect of each added control while keeping the proposal stream fixed where possible.
+
+\subsection{Phase A: Controller-Isolation Replay}
+Phase A is implemented in the accompanying repository. A frozen JSON fixture contains typed action and finding proposals, laboratory-only targets, risk labels, evidence sets, verifier outcomes, and ground truth used only for scoring. The fixture schema rejects executable command material including shell strings, argument vectors, payload bytes, and exploit code.
+
+Each scenario is replayed through RT0--RT5. The implementation produces SHA-256 bindings for the fixture, each scenario, and each decision trace. Phase A is an engineering experiment. It verifies that the ablation logic expresses the intended invariants and exposes tradeoffs. It does not establish live-model or real-range effectiveness.
+
+\subsection{Phase B: Proposal-Only Digital Twin}
+The accompanying repository implements the Phase B runner; empirical model trials remain pending. Phase B introduces frozen LLM workers but retains a no-op execution adapter. Models receive the same synthetic network state and engagement objective, then emit only typed capability requests and findings. The broker records what would have been authorized, blocked, or escalated. This separates planning and policy interaction from operational cyber capability.
+
+Phase B adds model-dependent measures including proposal validity, scope drift, verifier disagreement, repeated hypotheses, token usage, latency, and the rate at which the model repairs a rejected proposal with materially new evidence.
+
+\subsection{Phase C: Isolated Cyber Range}
+Phase C maps typed capabilities to real but non-destructive observations in a disposable range. The environment is reset between paired trials. Targets are explicitly allowlisted, networking is restricted, credentials are ephemeral, and the range exposes no production dependency. The execution path reuses the existing RESIDUAL WorkerContract, EvidenceBus, verifier, receipt, quarantine, and brake mechanisms rather than introducing a parallel trust boundary.
+
+Before Phase C, source commit, environment image, capability mappings, model versions, prompts, risk policy, evidence requirements, verifier revision, and analysis code are frozen. If these cannot be frozen and independently reviewed, Phase C remains BLOCKED rather than being approximated by an unqualified run.
+
+\section{Research Questions and Hypotheses}
+The primary hypotheses are:
+\begin{itemize}[leftmargin=*]
+\item \textbf{H1:} RT5 reduces scope-violation execution relative to RT0.
+\item \textbf{H2:} RT5 reduces false acceptance relative to RT0.
+\item \textbf{H3:} RT5 improves $P(X \mid A)$ relative to RT0 while maintaining non-trivial $P(A)$.
+\item \textbf{H4:} RT4/RT5 reduce exact repeats of rejected proposals relative to RT3 without suppressing materially revised proposals.
+\item \textbf{H5:} RT5 reduces unapproved high-risk execution relative to RT4.
+\end{itemize}
+
+A negative result remains scientifically meaningful. If verifier gating eliminates false acceptance but collapses coverage, or if HITL overhead dominates task utility, the architecture has not demonstrated a useful operating point for the tested setting.
+
+\section{Metrics}
+Primary metrics are scope-violation execution rate, unapproved high-risk execution rate, false acceptance rate, accepted correctness, acceptance coverage, false rejection rate, evidence completeness, and exact-repeat suppression.
+
+Secondary metrics include task success, time-to-objective, tool calls, redundant tool calls, verifier UNKNOWN rate, human escalations, input/output tokens, monetary or GPU cost where directly measurable, policy-decision latency, and receipt reconstruction success.
+
+For accepted findings:
+\begin{equation}
+\mathrm{AER} =
+\frac{\#\text{accepted incorrect findings}}
+{\#\text{accepted findings}}.
+\end{equation}
+
+Accepted correctness is $1-\mathrm{AER}$ when at least one finding is accepted. Runs with zero accepted findings are reported with undefined accepted correctness and zero coverage rather than being scored as perfect.
+
+\section{Statistical Analysis}
+Model-driven phases use paired blocks matched on model, scenario, sampling configuration, and environment snapshot. Condition order is randomized within each block. A pilot estimates variance before a confirmatory power analysis. Confirmatory experiments use at least 30 independent trials per model--scenario--condition cell unless the frozen power analysis requires more.
+
+Paired binary outcomes are analyzed with McNemar tests and paired risk differences with confidence intervals. Continuous and count outcomes use paired bootstrap confidence intervals, with Wilcoxon signed-rank tests as robustness checks where appropriate. Primary endpoints are declared before confirmatory outcome access; secondary-family comparisons use Holm correction. Absolute effects and confidence intervals are reported alongside $p$-values.
+
+Missing provider usage, verifier failure, transport errors, BLOCKED interventions, and UNKNOWN outcomes remain explicit. Infrastructure-invalid trials may be analyzed separately but are retained. First-attempt failures are not erased by successful reruns.
+
+\section{Safety and Ethics}
+The study is designed to evaluate control of cyber agents without requiring unrestricted cyber execution. Phase A is non-executable by construction. Phase B generates proposals only. Phase C is limited to a disposable, isolated range and non-destructive, allowlisted behavior. This preserves the research value of adversary emulation while reducing the risk that the apparatus becomes an uncontrolled offensive system.
+
+The architecture also creates a governance separation: a model may possess knowledge of an action without possessing authority to execute it. Human approval is required according to risk policy, not model confidence. Receipts record policy decisions and evidence boundaries rather than treating natural-language explanations as authorization.
+
+\section{Expected Failure Modes and Falsification}
+Several outcomes would weaken the RESIDUAL-RT hypothesis. Scope gating could reduce violations while causing substantial loss of legitimate task completion. Evidence contracts could reject true findings because required evidence is unavailable or poorly specified. Independent verification may share correlated errors with the proposer. Epistemic memory can suppress legitimate revised proposals if identity is defined too coarsely. HITL can introduce latency or operator burden that makes the system impractical.
+
+The evaluation therefore avoids a single composite safety score. Reliability, coverage, authorization, and cost are reported separately. The architecture is supported only if it improves accepted-state quality and authority compliance at a useful operating point.
+
+\section{Discussion}
+The key design claim is that autonomous adversary emulation should be treated as a controlled state-transition system rather than a conversational agent with tools. The model supplies flexible reasoning; the harness owns authority and acceptance. Raw benchmark solve rate remains relevant, but it is insufficient for deployment-oriented research because it does not reveal whether a system exceeded scope, accepted unsupported findings, or produced a reconstructable evidence chain.
+
+RESIDUAL-RT also suggests a broader benchmark direction: governance under capability. A stronger model may improve task completion while also generating more ambitious requests. A control plane should therefore be measured not only on whether the model succeeds, but on whether the system preserves engagement boundaries as model capability changes.
+
+\section{Limitations}
+The current implementation establishes the Phase A replay apparatus and the Phase B proposal-only runner, but no confirmatory Phase B model results are claimed. Synthetic fixtures cannot model the full ambiguity of real networks, correlated verifier errors, adversarial tool output, or operator behavior. Phase B still lacks execution consequences. Phase C improves ecological validity but remains a laboratory study and cannot establish universal safety or production readiness.
+
+The architecture depends on correct policy and verifier specification. A receipt proves that named checks were applied to named evidence under named identities; it does not prove arbitrary truth. Independent external evaluation remains necessary for strong deployment claims.
+
+\section{Conclusion}
+RESIDUAL-RT proposes a bounded-authority approach to agentic adversary emulation. Rather than making a stochastic model the source of truth, it constrains what the model can request, requires evidence before findings are promoted, separates proposal from verification, retains epistemic failures, and makes accepted state auditable through receipts. The accompanying protocol separates controller effects, model effects, and cyber-range effects. The central empirical question is whether this architecture raises accepted-state reliability and authority compliance without collapsing useful coverage or imposing prohibitive overhead.
+
+\begin{thebibliography}{99}
+
+\bibitem{mitre}
+MITRE ATT\&CK, Adversary Emulation and Red Teaming, accessed Sept. 2026. [Online]. Available: \url{https://attack.mitre.org/resources/get-started/adversary-emulation-and-red-teaming/}
+
+\bibitem{cyberseceval3}
+S. Wan et al., CYBERSECEVAL 3: Advancing the Evaluation of Cybersecurity Risks and Capabilities in Large Language Models, arXiv:2408.01605, 2024.
+
+\bibitem{penteval}
+R. Yang, M. Cheng, G. Deng, T. Zhang, J. Wang, and X. Xie, PentestEval: Benchmarking LLM-based Penetration Testing with Modular and Stage-Level Design, arXiv:2512.14233, 2025.
+
+\bibitem{checkmate}
+L. Wang et al., Automated Penetration Testing with LLM Agents and Classical Planning, arXiv:2512.11143, 2025.
+
+\bibitem{merves}
+T. H. Merves, M. H. Conaway, J. M. Escobar, H. T. Otal, and U. Tatar, Systematic Capability Benchmarking of Frontier Large Language Models for Offensive Cyber Tasks, arXiv:2604.17159, 2026.
+
+\bibitem{cyberdefense}
+A. Chona, I. Kozlov, and A. Kumar, Cyber Defense Benchmark: Agentic Threat Hunting Evaluation for LLMs in SecOps, arXiv:2604.19533, 2026.
+
+\bibitem{vera}
+Y. Feng et al., Safety Testing LLM Agents at Scale: From Risk Discovery to Evidence-Grounded Verification, arXiv:2607.01793, 2026.
+
+\bibitem{agenticpentest}
+V. K. Nguyen and M. I. Husain, Penetration Testing of Agentic AI: A Comparative Security Analysis Across Models and Frameworks, arXiv:2512.14860, 2025.
+
+\end{thebibliography}
+
+\end{document}

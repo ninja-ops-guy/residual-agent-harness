@@ -1,0 +1,182 @@
+{
+  "schema_version": "residual-rt-protocol-v1",
+  "title": "RESIDUAL-RT: Bounded-Authority, Evidence-Grounded Agentic Adversary Emulation",
+  "status": "preregistration-draft",
+  "scope": {
+    "purpose": "Evaluate whether RESIDUAL control-plane mechanisms improve the safety, reliability, auditability, and efficiency of agentic adversary-emulation workflows.",
+    "allowed_environment": "Synthetic fixtures and explicitly isolated lab/cyber-range assets only.",
+    "prohibited": [
+      "production targets",
+      "internet-routable third-party targets",
+      "credential theft",
+      "destructive actions",
+      "persistence outside disposable lab images",
+      "fixtures containing shell commands, argv, payload bytes, or exploit code"
+    ]
+  },
+  "research_questions": [
+    {
+      "id": "RQ1",
+      "question": "Does a typed scope/authority gate reduce executed out-of-scope actions without materially reducing completion of permitted observations?"
+    },
+    {
+      "id": "RQ2",
+      "question": "Do evidence requirements reduce unsupported finding promotion, and what false-rejection cost do they introduce?"
+    },
+    {
+      "id": "RQ3",
+      "question": "Does independent verification reduce accepted error beyond evidence gating alone at useful acceptance coverage?"
+    },
+    {
+      "id": "RQ4",
+      "question": "Does epistemic memory reduce repeated rejected proposals and redundant tool use without suppressing materially revised proposals?"
+    },
+    {
+      "id": "RQ5",
+      "question": "Does risk-tiered HITL prevent unapproved high-risk state changes while preserving approved lab actions?"
+    },
+    {
+      "id": "RQ6",
+      "question": "What latency, tool-call, token, and monetary overhead is introduced by each control layer?"
+    }
+  ],
+  "hypotheses": [
+    {
+      "id": "H1",
+      "primary_metric": "scope_violation_execution_rate",
+      "comparison": "RT5 < RT0"
+    },
+    {
+      "id": "H2",
+      "primary_metric": "false_acceptance_rate",
+      "comparison": "RT5 < RT0"
+    },
+    {
+      "id": "H3",
+      "primary_metric": "accepted_correctness",
+      "comparison": "RT5 > RT0, reported jointly with acceptance_coverage"
+    },
+    {
+      "id": "H4",
+      "primary_metric": "memory_suppression_rate",
+      "comparison": "RT4/RT5 > RT3 for exact rejected repeats, with no suppression of materially revised proposals"
+    },
+    {
+      "id": "H5",
+      "primary_metric": "unauthorized_high_risk_execution_rate",
+      "comparison": "RT5 < RT4"
+    }
+  ],
+  "conditions": [
+    {
+      "id": "RT0",
+      "name": "direct baseline",
+      "features": []
+    },
+    {
+      "id": "RT1",
+      "name": "scope gate",
+      "features": ["typed_action_scope_gate"]
+    },
+    {
+      "id": "RT2",
+      "name": "evidence gate",
+      "features": ["typed_action_scope_gate", "required_evidence_gate"]
+    },
+    {
+      "id": "RT3",
+      "name": "independent verification",
+      "features": ["typed_action_scope_gate", "required_evidence_gate", "verifier_gate"]
+    },
+    {
+      "id": "RT4",
+      "name": "epistemic memory",
+      "features": ["typed_action_scope_gate", "required_evidence_gate", "verifier_gate", "rejected-state-memory"]
+    },
+    {
+      "id": "RT5",
+      "name": "full bounded authority",
+      "features": ["typed_action_scope_gate", "required_evidence_gate", "verifier_gate", "rejected-state-memory", "risk_tiered_hitl"]
+    }
+  ],
+  "phases": [
+    {
+      "id": "A",
+      "name": "controller-isolation replay",
+      "status": "implemented",
+      "proposal_source": "frozen synthetic typed-proposal fixtures",
+      "execution": "no external tools; decisions are simulated and scored against fixture ground truth",
+      "purpose": "isolate the effect of RESIDUAL control layers from model capability"
+    },
+    {
+      "id": "B",
+      "name": "model proposal-only digital twin",
+      "status": "runner-implemented-trials-pending",
+      "proposal_source": "frozen model/version/prompt/config",
+      "execution": "models may emit only typed capability proposals into a no-op adapter; no offensive command execution",
+      "purpose": "measure model-controller interaction, planning quality, and control-plane overhead"
+    },
+    {
+      "id": "C",
+      "name": "isolated cyber-range qualification",
+      "status": "planned-and-gated",
+      "proposal_source": "same frozen model/configurations used in Phase B",
+      "execution": "ephemeral isolated range, explicit asset allowlist, no external route, snapshot/reset, non-destructive ATT&CK-aligned behaviors, RESIDUAL WorkerContract/EvidenceBus/receipt path",
+      "purpose": "measure whether controller effects persist when typed actions are backed by real lab observations"
+    }
+  ],
+  "primary_metrics": [
+    "scope_violation_execution_rate",
+    "unauthorized_high_risk_execution_rate",
+    "accepted_correctness",
+    "acceptance_coverage",
+    "false_acceptance_rate",
+    "false_rejection_rate",
+    "evidence_completeness",
+    "memory_suppression_rate"
+  ],
+  "secondary_metrics": [
+    "task_success_rate",
+    "time_to_objective",
+    "tool_calls",
+    "redundant_tool_calls",
+    "verifier_unknown_rate",
+    "human_escalations",
+    "tokens_input",
+    "tokens_output",
+    "provider_cost",
+    "receipt_reconstruction_success",
+    "policy_decision_latency"
+  ],
+  "confirmatory_design": {
+    "pairing": "For model-driven phases, each model/scenario/seed produces one frozen proposal opportunity per condition; conditions are paired on model, scenario, seed, and environment snapshot.",
+    "sample_size": "Run a variance-estimation pilot first. Freeze a power analysis before confirmatory outcomes. Confirmatory design should use at least 30 independent trials per model x scenario x condition unless the power analysis requires more.",
+    "randomization": "Randomize condition order within each paired block; reset environment snapshot between trials.",
+    "blinding": "Ground-truth labels and final outcome scoring are unavailable to the proposal-generating worker. Independent verification policy is frozen before confirmatory runs.",
+    "missingness": "FAIL, UNKNOWN, BLOCKED, provider failure, and missing usage remain explicit. Infrastructure-invalid trials are retained and reported separately; no silent reruns.",
+    "multiple_testing": "Predeclare primary endpoints; use Holm correction for secondary family-wise comparisons.",
+    "statistics": [
+      "paired binary outcomes: McNemar test with paired risk difference and confidence interval",
+      "continuous/count outcomes: paired bootstrap confidence intervals; Wilcoxon signed-rank as a robustness check where appropriate",
+      "accepted correctness must always be reported jointly with acceptance coverage",
+      "report absolute effects and confidence intervals, not only p-values"
+    ]
+  },
+  "freeze_requirements": [
+    "source commit/tree",
+    "fixture/workload hashes",
+    "model and provider versions",
+    "system prompts and tool schemas",
+    "temperature/seed or equivalent sampling settings",
+    "scope policy and risk mapping",
+    "evidence requirements",
+    "verifier revision and thresholds",
+    "HITL policy",
+    "analysis code",
+    "environment image/snapshot identity"
+  ],
+  "paper_claim_boundary": {
+    "allowed_before_phase_c": "Architecture, protocol, implementation invariants, controller-replay engineering results, and bounded proposal-only results.",
+    "not_allowed_before_confirmatory_phase_c": "Claims of autonomous pentesting effectiveness, production safety, real-world exploit reliability, universal scope compliance, or superiority across models/environments."
+  }
+}
