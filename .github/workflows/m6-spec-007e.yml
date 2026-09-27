@@ -1,0 +1,60 @@
+name: M6-SPEC-007E typed discovery repair
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  m6-spec-007e:
+    if: github.head_ref == 'experiment/m6-spec-007e-typed-repair'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      OLLAMA_HOST: 127.0.0.1:11447
+      OLLAMA_NO_CLOUD: "1"
+      OLLAMA_MODEL: qwen2.5-coder:7b
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install RESIDUAL
+        run: python -m pip install -e '.[factory]'
+      - name: Syntax-check experiment
+        run: python -m py_compile scripts/m6_spec_007e.py
+      - name: Install Ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+      - name: Start dedicated Ollama endpoint
+        run: |
+          nohup ollama serve > /tmp/ollama-m6-spec-007e.log 2>&1 &
+          echo $! > /tmp/ollama-m6-spec-007e.pid
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:11447/api/tags >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ollama-m6-spec-007e.log
+          exit 1
+      - name: Pull analysis model
+        run: ollama pull "$OLLAMA_MODEL"
+      - name: Record runtime identity
+        run: |
+          ollama --version
+          ollama list | tee /tmp/ollama-models-m6-spec-007e.txt
+          sha256sum scripts/m6_spec_007e.py | tee /tmp/m6-spec-007e-script-sha256.txt
+      - name: Execute authoritative typed repair trial
+        run: python scripts/m6_spec_007e.py --model "$OLLAMA_MODEL" --base-url http://127.0.0.1:11447 --output runs/m6-spec-007e/evidence.json
+      - name: Retain evidence
+        if: always()
+        run: |
+          test ! -f runs/m6-spec-007e/evidence.json || cat runs/m6-spec-007e/evidence.json
+          tail -300 /tmp/ollama-m6-spec-007e.log || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m6-spec-007e-typed-repair-evidence
+          path: |
+            runs/m6-spec-007e
+            /tmp/ollama-m6-spec-007e.log
+            /tmp/ollama-m6-spec-007e.pid
+            /tmp/ollama-models-m6-spec-007e.txt
+            /tmp/m6-spec-007e-script-sha256.txt
