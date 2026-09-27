@@ -25,6 +25,7 @@ class Installation:
     package_path: str
     repo_path: str | None
     editable: bool
+    vcs_commit: str | None = None
 
 
 def _run(argv: list[str], *, cwd: Path | None = None, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -91,7 +92,9 @@ def inspect_installation() -> Installation:
     else:
         method = "package"
 
-    return Installation(method, str(package_path), str(repo) if repo else None, editable)
+    vcs = direct.get("vcs_info") if isinstance(direct.get("vcs_info"), dict) else {}
+    commit = vcs.get("commit_id") if isinstance(vcs.get("commit_id"), str) else None
+    return Installation(method, str(package_path), str(repo) if repo else None, editable, commit)
 
 
 def _git(repo: Path, *args: str, check: bool = True) -> str:
@@ -149,6 +152,7 @@ def doctor_report() -> dict:
         "package_path": install.package_path,
         "install_method": install.method,
         "source_repo": install.repo_path,
+        "installed_vcs_commit": install.vcs_commit,
         **facts,
         "git_available": git_available,
         "update_channel": "repository-main",
@@ -168,6 +172,7 @@ def format_doctor(report: dict) -> str:
         ("Package", report["package_path"]),
         ("Install method", report["install_method"]),
         ("Source repo", report["source_repo"] or "not resolved"),
+        ("Installed VCS", report["installed_vcs_commit"] or "not recorded"),
         ("Source HEAD", report["source_head"] or "not available"),
         ("Source branch", report["source_branch"] or "not available"),
         ("Worktree clean", "yes" if report["working_tree_clean"] is True else "no" if report["working_tree_clean"] is False else "unknown"),
@@ -216,7 +221,7 @@ def update_status(*, version: str | None = None) -> dict:
     else:
         facts = {}
         remote = REPOSITORY
-        current = None
+        current = install.vcs_commit
 
     target = _remote_target(remote, ref)
     return {
@@ -281,7 +286,7 @@ def perform_update(*, version: str | None = None) -> dict:
     before = current_version()
     _run([
         sys.executable, "-m", "pip", "install", "--disable-pip-version-check",
-        "--upgrade", spec,
+        "--force-reinstall", "--no-deps", spec,
     ])
     check = _run([
         sys.executable, "-c",
