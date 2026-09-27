@@ -209,7 +209,7 @@ def test_program_seed_applies_head_bound_triage_relations_and_manual_gates(tmp_p
         "items": [
             {
                 "item_id": "GH-PR-0476",
-                "bind_current_head": True,
+                "expected_head": "4"*40,
                 "patch": {
                     "state": "VERIFYING",
                     "v1_disposition": "V1_REQUIRED",
@@ -219,7 +219,7 @@ def test_program_seed_applies_head_bound_triage_relations_and_manual_gates(tmp_p
             },
             {
                 "item_id": "GH-PR-0483",
-                "bind_current_head": True,
+                "expected_head": "8"*40,
                 "patch": {
                     "state": "VERIFYING",
                     "v1_disposition": "V1_REQUIRED",
@@ -244,7 +244,7 @@ def test_program_seed_applies_head_bound_triage_relations_and_manual_gates(tmp_p
     }
 
     result = control.apply_seed(seed)
-    assert result == {"items": 2, "relations": 1, "manual_items": 1}
+    assert result == {"items": 2, "relations": 1, "manual_items": 1, "already_applied": False}
     assert control.item("GH-PR-0476")["state"] == "VERIFYING"
     helper = control.item("GH-PR-0483")
     assert helper["depends_on"] == ["GH-PR-0476"]
@@ -254,6 +254,10 @@ def test_program_seed_applies_head_bound_triage_relations_and_manual_gates(tmp_p
     owner_items = control.dashboard()["owner_actions"]
     assert len(owner_items) == 1
     assert owner_items[0]["title"] == "Owner decides D4"
+
+    repeated = control.apply_seed(seed)
+    assert repeated == {"items": 2, "relations": 1, "manual_items": 1, "already_applied": True}
+    assert len([x for x in control.current()["items"] if x["title"] == "Owner decides D4"]) == 1
 
     # The seed's HEAD-bound decision is not transferable to a successor head.
     control.sync(
@@ -268,6 +272,35 @@ def test_program_seed_applies_head_bound_triage_relations_and_manual_gates(tmp_p
     assert product["override_stale"] is True
 
 
+
+def test_seed_refuses_changed_expected_head_before_any_mutation(tmp_path):
+    control = ProgramControl(tmp_path)
+    control.sync(
+        "owner/repo",
+        fetcher=FakeGitHub([pr(476, "QD2 product", head="5"*40)], []),
+    )
+    before = control.current()["snapshot_sha256"]
+    seed = {
+        "schema_version": "residual.program-seed.v1",
+        "seed_id": "stale-seed",
+        "items": [{
+            "item_id": "GH-PR-0476",
+            "expected_head": "4"*40,
+            "patch": {
+                "state": "READY_FOR_OWNER_GATE",
+                "v1_disposition": "V1_REQUIRED",
+                "priority": "P0",
+            },
+        }],
+        "relations": [],
+        "manual_items": [],
+    }
+    with pytest.raises(ContractError, match="HEAD mismatch"):
+        control.apply_seed(seed)
+    assert control.current()["snapshot_sha256"] == before
+    assert control.item("GH-PR-0476")["state"] == "VERIFYING"
+    assert control.item("GH-PR-0476")["v1_disposition"] == "V1_SUPPORTING"
+
 def test_seed_rejects_unknown_schema_and_requires_prior_sync(tmp_path):
     control = ProgramControl(tmp_path)
     with pytest.raises(ContractError):
@@ -281,6 +314,35 @@ def test_seed_rejects_unknown_schema_and_requires_prior_sync(tmp_path):
             "relations": [],
             "manual_items": [],
         })
+
+
+def test_program_cli_accepts_repo_after_sync_subcommand(tmp_path, monkeypatch, capsys):
+    from residual import program_cli
+
+    seen = {}
+
+    class FakeControl:
+        def __init__(self, root):
+            seen["root"] = root
+
+        def sync(self, repo, token=None):
+            seen["repo"] = repo
+            return {
+                "snapshot_sha256": "a"*64,
+                "inventory_sha256": "b"*64,
+                "summary": {"total": 0},
+            }
+
+    monkeypatch.setattr(program_cli, "ProgramControl", FakeControl)
+    assert program_cli.main([
+        "--data", str(tmp_path),
+        "sync",
+        "--repo", "owner/repo",
+        "--json",
+    ]) == 0
+    assert seen["repo"] == "owner/repo"
+    output = capsys.readouterr().out
+    assert '"snapshot_sha256"' in output
 
 def test_invalid_mutations_fail_closed(tmp_path):
     control = ProgramControl(tmp_path)
