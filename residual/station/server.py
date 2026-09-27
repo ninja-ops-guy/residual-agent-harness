@@ -114,6 +114,10 @@ class Handler(BaseHTTPRequestHandler):
                     return self.respond({"projects": self.station.store.list_projects()})
                 if path == "/api/jobs":
                     return self.respond({"jobs": self.station.store.jobs()})
+                if path == "/api/program":
+                    return self.respond(self.station.program.dashboard())
+                if path == "/api/program/item":
+                    return self.respond(self.station.program.item(query.get("id", [""])[0]))
                 if path == "/api/models":
                     return self.respond(self.station.ollama.status())
                 if path == "/api/settings":
@@ -180,6 +184,31 @@ class Handler(BaseHTTPRequestHandler):
 
     def post(self, path, data):
         s = self.station
+        if path == "/api/program/sync":
+            repo = data.get("repo") or os.environ.get("RESIDUAL_PROGRAM_REPO", "ninja-ops-guy/residual-agent-harness")
+            token = os.environ.get("GITHUB_TOKEN")
+            def sync_program(progress):
+                snapshot = s.program.sync(repo, token=token, progress=progress)
+                return {
+                    "snapshot_sha256": snapshot["snapshot_sha256"],
+                    "inventory_sha256": snapshot["inventory_sha256"],
+                    "summary": snapshot["summary"],
+                }
+            return s.launch("program-sync", sync_program)
+        if path == "/api/program/item":
+            item_id = bounded(data.get("item_id"), "Program item ID", 80)
+            patch = data.get("patch")
+            if not isinstance(patch, dict):
+                raise ContractError("Program item patch must be an object")
+            bind_head = "current" if data.get("bind_current_head") is True else None
+            s.program.set_item(item_id, patch, bind_head=bind_head)
+            return {"item": s.program.item(item_id)}
+        if path == "/api/program/link":
+            source = bounded(data.get("source"), "Source item", 80)
+            target = bounded(data.get("target"), "Target item", 80)
+            kind = bounded(data.get("kind"), "Relation kind", 40)
+            s.program.link(source, target, kind)
+            return {"ok": True}
         if path == "/api/demo":
             return s.create(demo_spec(), demo=True)
         if path == "/api/spec/validate":
