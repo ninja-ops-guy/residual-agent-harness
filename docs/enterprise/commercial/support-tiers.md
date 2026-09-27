@@ -1,11 +1,10 @@
 # Support Tiers (ENT8-R2)
 
-Requirement: **ENT8-R2** — Residual MUST offer Standard, Premium, and
-Enterprise support tiers. SLAs are enforced in code by
-`residual/licensing/support.py` (`SlaTracker`, `SupportTier`, `Severity`),
-including the 1-hour P1 response timer.
+> **COMMERCIAL POLICY TEMPLATE / FUTURE OFFERING.** This file does not create a current RESIDUAL v1 support offering, staffing commitment, contractual SLA, service-credit obligation, dedicated-engineer commitment, or on-site support promise. Commercial availability requires an identified contracting entity and executed agreement.
 
-## Tier Matrix
+Target requirement: **ENT8-R2** describes proposed Standard, Premium, and Enterprise support tiers. `residual/licensing/support.py` (`SlaTracker`, `SupportTier`, `Severity`) models timers/compliance mechanics; it does not establish staffing, contractual coverage, actual response capability, or payment of credits.
+
+## Proposed Tier Matrix
 
 | | **Standard** | **Premium** | **Enterprise** |
 |---|---|---|---|
@@ -36,11 +35,8 @@ including the 1-hour P1 response timer.
 
 ## SLA Credits
 
-Missed response SLAs accrue service credits: 5% of the monthly support fee
-per breached P1, capped at 50% per month, claimed against the next invoice.
+If adopted in an executed commercial agreement, a service-credit schedule may use the modeled percentages below. No credit obligation exists from this repository document alone.
 
 ## Escalation
 
-Enterprise: dedicated engineer → support manager → VP Engineering
-(30-minute P1 cadence). Premium/Standard: tier queue → on-call engineer
-per severity timer.
+Proposed enterprise escalation: dedicated engineer → support manager → executive escalation. Proposed Premium/Standard routing uses tier queues/on-call roles. These are policy targets, not evidence of currently staffed roles.
