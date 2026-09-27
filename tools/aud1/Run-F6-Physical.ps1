@@ -11,9 +11,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-# Owner-disposition-approved #469 successor candidate (2026-09-26).
-$Target = "935498ecd42982bc682d7ed69b562c642b74a8fe"
-$TargetTree = "8d8ecb2970d3dc2cf304ba8c8c6997a05b45370b"
+# Proposed V1 product candidate, feature-frozen per coordination/DEVELOPMENT_FREEZE.md (2026-09-26).
+$Target = "efd8ffd06a866c4ebec1dfeeab1d0c4779beb503"
+$TargetTree = "72b44bcfe21876639b17a048bc0184f4c35aa3cf"
 $Collector = Join-Path $PSScriptRoot "f6_case_guard.py"
 $Db = Join-Path $StationData "station.sqlite3"
 $CaseDir = Join-Path $Output $Case

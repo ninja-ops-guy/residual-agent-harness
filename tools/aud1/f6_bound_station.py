@@ -19,11 +19,11 @@ import runpy
 import subprocess
 import sys
 
-# Owner-disposition-approved #469 successor candidate (2026-09-26):
-#   head 935498ecd42982bc682d7ed69b562c642b74a8fe
-#   tree 8d8ecb2970d3dc2cf304ba8c8c6997a05b45370b
-TARGET_SHA = "935498ecd42982bc682d7ed69b562c642b74a8fe"
-TARGET_TREE = "8d8ecb2970d3dc2cf304ba8c8c6997a05b45370b"
+# Proposed V1 product candidate, feature-frozen per coordination/DEVELOPMENT_FREEZE.md (2026-09-26):
+#   head efd8ffd06a866c4ebec1dfeeab1d0c4779beb503
+#   tree 72b44bcfe21876639b17a048bc0184f4c35aa3cf
+TARGET_SHA = "efd8ffd06a866c4ebec1dfeeab1d0c4779beb503"
+TARGET_TREE = "72b44bcfe21876639b17a048bc0184f4c35aa3cf"
 SCHEMA = "residual.aud1.f6.station-launch.v1"
 
 
@@ -58,7 +58,7 @@ def atomic_json(path, value):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Launch exact #469 Station with a process-binding witness")
+    parser = argparse.ArgumentParser(description="Launch exact proposed-V1 Station with a process-binding witness")
     parser.add_argument("--candidate-repo", required=True)
     parser.add_argument("--launch-record", required=True)
     parser.add_argument("--data", required=True)

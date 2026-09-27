@@ -27,12 +27,12 @@ import time
 import urllib.error
 import urllib.request
 
-# Owner-disposition-approved #469 successor candidate (2026-09-26):
-#   head 935498ecd42982bc682d7ed69b562c642b74a8fe
-#   tree 8d8ecb2970d3dc2cf304ba8c8c6997a05b45370b
+# Proposed V1 product candidate, feature-frozen per coordination/DEVELOPMENT_FREEZE.md (2026-09-26):
+#   head efd8ffd06a866c4ebec1dfeeab1d0c4779beb503
+#   tree 72b44bcfe21876639b17a048bc0184f4c35aa3cf
 # This helper is bound atomically to BOTH identities; either mismatch refuses capture.
-TARGET_SHA = "935498ecd42982bc682d7ed69b562c642b74a8fe"
-TARGET_TREE = "8d8ecb2970d3dc2cf304ba8c8c6997a05b45370b"
+TARGET_SHA = "efd8ffd06a866c4ebec1dfeeab1d0c4779beb503"
+TARGET_TREE = "72b44bcfe21876639b17a048bc0184f4c35aa3cf"
 SCHEMA = "residual.aud1.f6.physical.v1"
 SECRET_KEYS = {
     "session_token", "worker_token", "provider_credentials", "local_credentials",

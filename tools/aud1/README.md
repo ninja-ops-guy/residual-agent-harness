@@ -1,15 +1,16 @@
 # AUD-1 F6 physical evidence kit
 
-**Tooling only. Not part of PR #469 candidate bytes.**
+**Tooling only. Not part of the candidate product bytes.**
 
-Owner-disposition-approved #469 successor candidate under test (2026-09-26):
+Proposed V1 product candidate under test, feature-frozen per
+`coordination/DEVELOPMENT_FREEZE.md` (2026-09-26):
 
-- head: `935498ecd42982bc682d7ed69b562c642b74a8fe`
-- tree: `8d8ecb2970d3dc2cf304ba8c8c6997a05b45370b`
+- head: `efd8ffd06a866c4ebec1dfeeab1d0c4779beb503`
+- tree: `72b44bcfe21876639b17a048bc0184f4c35aa3cf`
 
 This helper is the F6 successor re-bound from the frozen helper lineage (#403 → #453 →
-#455) after the owner disposition on #469 superseded the #448/#455 candidate-binding
-path. It is derived from frozen #403's lineage and bound atomically to BOTH the #469
+#455 → #469). The #469-bound predecessor (head `42259d99…`, tree `31e997bd…`) was
+qualified against PR #469; this successor binds atomically to BOTH the proposed-V1
 head and tree above; either mismatch refuses capture.
 
 The scripts in this directory are deliberately maintained on a separate tooling branch.
@@ -35,8 +36,8 @@ submit results, recover tasks, rotate credentials, change leases, or integrate c
 
 Keep two directories/checkouts separate:
 
-1. **candidate checkout** — exact clean #469 head, used to run Station:
-   `935498ecd42982bc682d7ed69b562c642b74a8fe` (tree `8d8ecb2970d3dc2cf304ba8c8c6997a05b45370b`)
+1. **candidate checkout** — exact clean proposed-V1 head, used to run Station:
+   `efd8ffd06a866c4ebec1dfeeab1d0c4779beb503` (tree `72b44bcfe21876639b17a048bc0184f4c35aa3cf`)
 2. **diagnostics checkout/directory** — this tooling branch.
 
 Station default data is `~/.residual/station/station.sqlite3`.
@@ -70,7 +71,7 @@ python .\f6_collect.py --output .\AUD1-F6-EVIDENCE attach `
 
 ## F6-A — interruption inside grace window
 
-The selected #469 worker defaults are:
+The selected proposed-V1 worker defaults are:
 
 - heartbeat interval: 60 seconds
 - worker heartbeat grace: 180 seconds
@@ -81,7 +82,7 @@ Run:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\Run-F6-Physical.ps1 `
   -Case F6-A-inside-window `
-  -CandidateRepo C:\path\to\exact-469-checkout `
+  -CandidateRepo C:\path\to\exact-proposed-v1-checkout `
   -Project p-... `
   -Task OPS-... `
   -StationData C:\Users\USER\.residual\station `
@@ -167,7 +168,7 @@ Also provide:
 
 - original AUD-1 report;
 - original audited baseline `2f9dda38...`;
-- #469 exact candidate head `935498ec...` and tree `8d8ecb29...`;
+- proposed-V1 exact candidate head `efd8ffd0...` and tree `72b44bcf...`;
 - candidate diff;
 - automated adversarial regression artifacts;
 - exact-head repository CI references.

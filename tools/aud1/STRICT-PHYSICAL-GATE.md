@@ -1,12 +1,13 @@
 # AUD-1 F6 strict physical gate
 
 This document supersedes the earlier physical-execution instructions in this tooling PR.
-It does **not** change PR #469 candidate bytes.
+It does **not** change the proposed-V1 product candidate bytes.
 
-Owner-disposition-approved Station candidate under test (2026-09-26):
+Proposed V1 Station candidate under test, feature-frozen per
+`coordination/DEVELOPMENT_FREEZE.md` (2026-09-26):
 
-- head: `935498ecd42982bc682d7ed69b562c642b74a8fe`
-- tree: `8d8ecb2970d3dc2cf304ba8c8c6997a05b45370b`
+- head: `efd8ffd06a866c4ebec1dfeeab1d0c4779beb503`
+- tree: `72b44bcfe21876639b17a048bc0184f4c35aa3cf`
 
 This helper successor is bound atomically to BOTH identities above. Any helper-byte
 change withdraws physical-execution authorization pending fresh qualification.
@@ -19,11 +20,11 @@ The release candidate remains unchanged. These are helper/evidence defects only.
 
 ## Required launch
 
-Start the Station from the exact clean #469 checkout through `f6_bound_station.py` so the same process that executes `residual.station.server` emits a hashed launch witness:
+Start the Station from the exact clean proposed-V1 checkout through `f6_bound_station.py` so the same process that executes `residual.station.server` emits a hashed launch witness:
 
 ```powershell
 python .\f6_bound_station.py `
-  --candidate-repo C:\path\to\exact-469-checkout `
+  --candidate-repo C:\path\to\exact-proposed-v1-checkout `
   --launch-record C:\evidence\station-launch.json `
   --data C:\evidence\station-data `
   --host 127.0.0.1 --port 8765
