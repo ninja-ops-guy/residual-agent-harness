@@ -779,6 +779,7 @@ class ProgramControl:
             item["supersedes"] = []
             item["superseded_by"] = []
             item["related"] = []
+            item["source_relation_hints"] = []
 
         for relation in relations:
             source = by_id.get(relation.get("from"))
@@ -787,13 +788,16 @@ class ProgramControl:
             authority = relation.get("authority", "program")
             if not source or not target or kind not in RELATION_KINDS:
                 continue
+            if authority != "program":
+                source["source_relation_hints"].append({
+                    "kind": kind,
+                    "target": target["item_id"],
+                })
+                continue
             if kind == "supersedes":
                 source["supersedes"].append(target["item_id"])
                 target["superseded_by"].append(source["item_id"])
-                # Source prose may suggest succession, but it is observational.
-                # Only an explicit RESIDUAL program relation may change the
-                # predecessor's authoritative program state.
-                if authority == "program" and target["state"] not in TERMINAL_STATES:
+                if target["state"] not in TERMINAL_STATES:
                     target["state"] = "SUPERSEDED"
             elif kind == "blocked_by":
                 source["blocked_by"].append(target["item_id"])
@@ -816,6 +820,10 @@ class ProgramControl:
             item["supersedes"] = sorted(set(item["supersedes"]))
             item["superseded_by"] = sorted(set(item["superseded_by"]))
             item["related"] = sorted(set(item["related"]))
+            item["source_relation_hints"] = sorted(
+                item["source_relation_hints"],
+                key=lambda value: (value["kind"], value["target"]),
+            )
 
         items.sort(key=lambda x: (
             {"P0": 0, "P1": 1, "P2": 2, "P3": 3}.get(x["priority"], 9),
@@ -893,7 +901,7 @@ class ProgramControl:
             "owner_actions": sorted(owner, key=key)[:limit],
             "v1_critical": sorted(critical, key=key)[:limit],
             "active_items": sorted(active, key=key)[:limit],
-            "all_items": sorted(items, key=key)[:limit],
+            "all_items": sorted(items, key=key),
             "workstreams": [
                 {"name": name, "count": count}
                 for name, count in snapshot["summary"].get("workstreams", {}).items()
