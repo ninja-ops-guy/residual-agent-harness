@@ -30,7 +30,7 @@ residual program status
 residual program owner
 ```
 
-The seed records the known 2026-09-27 v1/post-v1 dispositions and successor relations. Active PR decisions are bound to the PR HEAD present when the seed is applied. If that HEAD later moves, the decision becomes stale and Program Control surfaces `HUMAN_ACTION_REQUIRED` instead of transferring it.
+The seed records the known 2026-09-27 v1/post-v1 dispositions and successor relations. Active PR decisions carry an exact `expected_head` captured when the seed was authored. Seed application refuses if any expected PR HEAD has already moved. After successful application, later HEAD movement makes the decision stale and Program Control surfaces `HUMAN_ACTION_REQUIRED` instead of transferring it. The seed is idempotent by `seed_id`; reapplying it does not recreate manual gates or rebind authority.
 
 If GitHub authentication is needed, set `GITHUB_TOKEN` in the process environment. The token is used only for GitHub API requests and is not written into Program Control snapshots.
 
