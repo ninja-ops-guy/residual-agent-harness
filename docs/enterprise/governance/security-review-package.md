@@ -1,5 +1,7 @@
 # Security Review Package (ENT7-R3)
 
+> **REFERENCE TEMPLATE — NOT CURRENT V1 SECURITY EVIDENCE.** This document describes an enterprise review-package target. It does not establish scan results, penetration-test completion, independent assurance, support commitments, or controls for the current v1 candidate. Any populated result must bind to an exact source/artifact identity, tool/configuration, timestamp, retained report, and applicable deployment profile.
+
 Requirement: **ENT7-R3** — Residual MUST provide a security review package
 including a threat model, attack surface analysis, mitigation strategies,
 compliance mapping (per SPEC-ENT-002), vulnerability scan results (per
@@ -16,10 +18,10 @@ payloads.
 | Forged receipts | Tampering | Attacker modifies receipt store | SHA-256 hash chain; `hash_id` validation; verify-on-read |
 | Replayed approvals | Spoofing | Reuse of HITL approval tokens | Per-challenge nonces; approval receipts bound to task ID |
 | Malicious module | Elevation of privilege | Install of backdoored module | Install-time validation, quarantine, rollback (ENT7-R4); module allowlist |
-| Prompt-injected task output | Tampering / Info disclosure | Engine output smuggles instructions | No model-generated code is executed; verifier checks all outputs |
-| Secret exfiltration | Information disclosure | Engine adapter leaks credentials | Secret isolation; egress allowlist; observation of every external call (ENT6-R7) |
+| Prompt-injected task output | Tampering / Info disclosure | Engine output smuggles instructions | At the verification boundary, model output is candidate data and is not trusted merely because a model produced it. Generated/derived code may execute only on explicitly documented execution surfaces, each with its own authority and containment boundary |
+| Secret exfiltration | Information disclosure | Engine adapter leaks credentials | Secret handling plus profile-specific egress/observation controls. Do not infer a universal egress block or complete observation coverage unless the exact execution surface/profile is qualified |
 | Denial of service | DoS | Task flood, verifier CPU exhaustion | Rate limits, task quotas, brake thresholds |
-| Log/receipt repudiation | Repudiation | Operator denies an approval | Immutable hash-chained receipt trail; auditor verification (ENT7-R5) |
+| Log/receipt repudiation | Repudiation | Operator denies an approval | Hash-chained receipt trail provides tamper-evident linkage. Authenticated authorship/non-repudiation requires separate signature/MAC and trust-anchor evidence |
 
 ## 2. Attack Surface Analysis
 
@@ -36,8 +38,7 @@ payloads.
 
 - **Defense in depth**: contract layer, verifier layer, brake layer, and
   quarantine layer each independently halt unsafe behavior.
-- **Immutable evidence**: every action receipts; the chain is verifiable
-  offline by auditors without vendor tooling.
+- **Evidence integrity**: receipt/hash-chain mechanisms provide verifiable tamper-evident linkage for the event classes actually captured. They do not, by themselves, prove immutable storage, authenticated authorship, non-repudiation, or complete event coverage.
 - **Zero-trust modules**: modules are untrusted until validated; execution
   runs under station policy with brakes armed.
 - **Incident response**: runbooks in `governance/runbooks/` (ENT7-R4).
@@ -53,41 +54,18 @@ payloads.
 | Data protection | GDPR Art. 32 | DPA (ENT8-R8), encryption in transit/at rest |
 | Vendor/supply chain | SOC 2 CC9.2 | Module validation, SBOM (SPEC-ENT-005) |
 
-## 5. Vulnerability Scan Results (per SPEC-ENT-005)
+## 5. Vulnerability Scan Evidence Template (per SPEC-ENT-005)
 
-Scans run per release: dependency scanning (stdlib-only core keeps the
-dependency surface near zero), container image scanning, and SAST over
-`residual/`. Current release summary:
+A current release claim requires retained scan reports bound to the exact candidate/artifact, scanner/ruleset identity, configuration, timestamp, and finding disposition. This reference document intentionally carries **no current v1 scan counts**. Historical or example counts MUST NOT be promoted into release evidence without their original exact identity.
 
-| Scan | Tool class | Findings (C/H/M/L) | Status |
-|---|---|---|---|
-| SAST | Semgrep rules | 0/0/2/5 | Mediums triaged, fixes merged |
-| Dependencies | pip-audit | 0/0/0/0 | Clean (stdlib-only core) |
-| Container | Image scanner | 0/0/1/4 | Base image patched |
+## 6. Penetration-Test Evidence Template
 
-Full scan artifacts are attached to the release evidence bundle.
+A production/commercial security package may require a third-party or scoped penetration test. A current claim must identify the assessor, methodology, tested boundary, exact candidate/artifact, dates, retained report digest, findings, remediation, and retest evidence.
 
-## 6. Penetration Test Plan and Results
-
-**Plan**: annual third-party pen test plus per-major-release scoped tests.
-Scope: Station API, module installation path, HITL approval flow, receipt
-store integrity, engine adapter sandbox. Out of scope: customer-managed IAM.
-
-**Latest test summary** (methodology: OWASP Testing Guide + API-focused
-manual testing):
-
-| Area | Findings | Severity | Remediation |
-|---|---|---|---|
-| Station API | 1 auth-bypass attempt blocked by IAM | Low | Informational |
-| Module install | Signature bypass attempt rejected | None | — |
-| Receipt store | No chain forgery achieved | None | — |
-| HITL flow | Challenge-replay rejected by nonce | None | — |
-
-Retest after remediation confirmed closure of all medium+ findings. The
-full report is available under NDA to customers' security teams.
+This repository template does **not** claim that a v1 penetration test or retest has been completed, that medium-or-higher findings have been closed, or that a current report is available under NDA.
 
 ## 7. Reviewer Sign-off
 
-This package is designed for direct submission to a security review board.
+This file is a reference template for a security review package. It is not suitable as an accepted submission until deployment-specific controls and exact release-bound evidence are populated and reviewed.
 Sign-off is recorded as the `security_signoff` graduation criterion in the
 pilot framework (ENT7-R1).
