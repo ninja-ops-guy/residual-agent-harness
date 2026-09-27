@@ -15,6 +15,7 @@ This directory contains reviewer-facing material for moving one exact, feature-f
 - `V1_RELEASE_NOTES_TEMPLATE.md` — evidence-bound v1.0.0 release-notes skeleton.
 - `V1_KNOWN_LIMITATIONS_TEMPLATE.md` — release-note non-claims and limitations template.
 - `V1_QUALIFICATION_HANDOFF_TEMPLATE.md` — one-page handoff from feature freeze into Q1/Q2/Q3/Q4.
+- `V1_SENSITIVE_EVIDENCE_HANDLING.md` — quarantine/redaction/provenance rules for secret-bearing evidence.
 - `STABILIZATION_2026-09-17.md` — historical stabilization context; not current release authority unless independently rebound to the final candidate.
 
 ## Authority rule
