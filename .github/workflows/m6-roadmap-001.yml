@@ -1,0 +1,64 @@
+name: M6-ROADMAP-001 ImprovementSpec shipment
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  m6-roadmap-001:
+    if: github.head_ref == 'experiment/m6-roadmap-001-improvementspec'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      OLLAMA_HOST: 127.0.0.1:11438
+      OLLAMA_NO_CLOUD: "1"
+      OLLAMA_MODEL: qwen2.5-coder:7b
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install current RESIDUAL
+        run: python -m pip install -e '.[factory]'
+      - name: Run repair-loop regressions
+        run: |
+          python -m unittest \
+            tests.station.test_station.StationTests.test_repair_attempt_receives_previous_candidate_without_mutating_fresh_baseline \
+            tests.station.test_station.StationTests.test_batch_can_repair_on_fourth_attempt_without_weakening_checks -v
+      - name: Install Ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+      - name: Start dedicated Ollama endpoint
+        run: |
+          nohup ollama serve > /tmp/ollama-roadmap-001.log 2>&1 &
+          echo $! > /tmp/ollama-roadmap-001.pid
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:11438/api/tags >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ollama-roadmap-001.log
+          exit 1
+      - name: Pull implementation model
+        run: ollama pull "$OLLAMA_MODEL"
+      - name: Record runtime identity
+        run: |
+          ollama --version | tee /tmp/ollama-version-roadmap-001.txt
+          ollama list | tee /tmp/ollama-models-roadmap-001.txt
+          curl -fsS http://127.0.0.1:11438/api/tags > /tmp/ollama-tags-roadmap-001.json
+      - name: Execute authoritative roadmap task
+        run: python scripts/m6_roadmap_001_improvementspec.py --model "$OLLAMA_MODEL" --base-url http://127.0.0.1:11438 --output runs/m6-roadmap-001/evidence.json
+      - name: Retain evidence
+        if: always()
+        run: |
+          test ! -f runs/m6-roadmap-001/evidence.json || cat runs/m6-roadmap-001/evidence.json
+          tail -300 /tmp/ollama-roadmap-001.log || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m6-roadmap-001-improvementspec-evidence
+          path: |
+            runs/m6-roadmap-001
+            /tmp/ollama-roadmap-001.log
+            /tmp/ollama-roadmap-001.pid
+            /tmp/ollama-version-roadmap-001.txt
+            /tmp/ollama-models-roadmap-001.txt
+            /tmp/ollama-tags-roadmap-001.json
