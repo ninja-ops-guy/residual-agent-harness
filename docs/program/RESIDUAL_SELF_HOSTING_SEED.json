@@ -385,11 +385,6 @@
       "kind": "supersedes"
     },
     {
-      "from": "GH-PR-0476",
-      "to": "GH-PR-0483",
-      "kind": "blocked_by"
-    },
-    {
       "from": "GH-PR-0483",
       "to": "GH-PR-0476",
       "kind": "depends_on"
