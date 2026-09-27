@@ -4,6 +4,7 @@ import concurrent.futures
 import io
 import json
 import os
+import sys
 import tempfile
 import threading
 import time
@@ -308,9 +309,16 @@ class StationTests(unittest.TestCase):
         # cache .db files into the candidate tree (dirty-tree ContractError).
         fake = {k: os.environ[k] for k in ("PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP") if k in os.environ}
         fake["SystemDrive"] = "C:\\"  # mixed-case spelling must still be preserved
+        # QD-2: the expansion probe must match platform semantics — POSIX
+        # expandvars never expands %VAR%, so the original probe failed on every
+        # Linux runner regardless of the fix. On POSIX prove functional
+        # visibility via $SystemDrive instead; both forms fail when the
+        # variable is stripped (predecessor behavior).
+        probe_ref = "%SystemDrive%\\\\probe" if sys.platform == "win32" else "$SystemDrive/probe"
         probe = ("import os; ok = 'SYSTEMDRIVE' in {k.upper() for k in os.environ}; "
-                 "p = os.path.expandvars('%SystemDrive%\\\\probe'); "
-                 "print('PRESENT' if ok and not p.startswith('%') else 'ABSENT:' + p)")
+                 "p = os.path.expandvars(" + repr(probe_ref) + "); "
+                 "unexpanded = p.startswith('%') or '$SystemDrive' in p; "
+                 "print('PRESENT' if ok and not unexpanded else 'ABSENT:' + p)")
         checks = [{"kind": "command", "argv": ["{python}", "-c", probe]}]
         with patch.dict(os.environ, fake, clear=True):
             result = ws.run_checks(self.temp.name, checks, True)
