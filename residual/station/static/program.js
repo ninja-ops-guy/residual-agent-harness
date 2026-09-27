@@ -77,7 +77,7 @@ function program(){
       <p>Sync the repository to import open PRs and issues without treating repository-open state as authoritative program state.</p>
     </div>`;
   }
-  const m=p.summary||{},owners=p.owner_actions||[],critical=p.v1_critical||[],active=p.active_items||[],streams=p.workstreams||[];
+  const m=p.summary||{},owners=p.owner_actions||[],critical=p.v1_critical||[],active=p.active_items||[],tracked=p.all_items||active,streams=p.workstreams||[];
   return pageTitle(
     "SELF-HOSTING / PROGRAM CONTROL",
     "RESIDUAL program control.",
@@ -110,9 +110,9 @@ function program(){
     <tbody>${critical.length?critical.slice(0,80).map(programRow).join(""):'<tr><td colspan="5">No V1 items classified yet.</td></tr>'}</tbody></table></div>
   </section>
   <section class="panel section-gap">
-    <div class="panel-head"><h2>Active normalized inventory</h2><span class="tag gray">${active.length} shown</span></div>
+    <div class="panel-head"><h2>Full tracked inventory</h2><span class="tag gray">${tracked.length} shown</span></div>
     <div class="table-wrap"><table><thead><tr><th>Item</th><th>State</th><th>Disposition</th><th>Workstream</th><th>Next action</th></tr></thead>
-    <tbody>${active.length?active.slice(0,100).map(programRow).join(""):'<tr><td colspan="5">No active program items.</td></tr>'}</tbody></table></div>
+    <tbody>${tracked.length?tracked.map(programRow).join(""):'<tr><td colspan="5">No tracked program items.</td></tr>'}</tbody></table></div>
   </section>`;
 }
 
