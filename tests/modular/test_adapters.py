@@ -142,6 +142,35 @@ class AdapterTests(unittest.TestCase):
         o=OllamaAdapter()._parse({**OLLAMA,'message':{'tool_calls':[{'function':{'name':'lookup','arguments':{'x':1}}}]}},'test')
         self.assertEqual(json.loads(o.tool_calls[0].arguments),{'x':1})
 
+    def test_ollama_model_identity_returns_digest_bound_metadata(self):
+        tags={"models":[{
+            "name":"tiny:test",
+            "digest":"sha256:"+"a"*64,
+            "size":398000000,
+            "modified_at":"2026-09-18T00:00:00Z",
+            "details":{
+                "format":"gguf","family":"qwen2","parameter_size":"0.5B",
+                "quantization_level":"Q4_K_M"
+            },
+        }]}
+        with endpoint(lambda _:(200,tags,{})) as (url,_):
+            identity=OllamaAdapter(url).model_identity("tiny:test")
+        self.assertEqual(identity["sha256"],"a"*64)
+        self.assertEqual(identity["size_bytes"],398000000)
+        self.assertEqual(identity["parameter_size"],"0.5B")
+        self.assertEqual(identity["quantization_level"],"Q4_K_M")
+
+    def test_ollama_model_identity_fails_closed_on_missing_or_invalid_digest(self):
+        with endpoint(lambda _:(200,{"models":[]},{})) as (url,_):
+            with self.assertRaises(ProviderError) as error:
+                OllamaAdapter(url).model_identity("missing:test")
+            self.assertEqual(error.exception.code,"model_not_found")
+        bad={"models":[{"name":"tiny:test","digest":"not-a-digest","size":1}]}
+        with endpoint(lambda _:(200,bad,{})) as (url,_):
+            with self.assertRaises(ProviderError) as error:
+                OllamaAdapter(url).model_identity("tiny:test")
+            self.assertEqual(error.exception.code,"invalid_response")
+
     def test_provider_names_roles_and_models_are_closed(self):
         with self.assertRaises(ValueError): Message('hacker','x')
         with self.assertRaises(ValueError): Registry().register('random',lambda:None)

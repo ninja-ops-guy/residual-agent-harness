@@ -42,6 +42,39 @@ class OllamaAdapter(HTTPAdapter):
             state['tools']=True; yield StreamChunk(tool_call=t)
         if data.get('done') is True: yield StreamChunk(finish_reason=finish(data.get('done_reason') or ('tool_calls' if state.get('tools') else 'stop')),usage=self._usage(data))
     def list_models(self): return sorted(m['name'] for m in self._json(self.base_url+'/api/tags')['models'])
+    def model_identity(self,model):
+        if not isinstance(model,str) or not model or len(model)>200:
+            raise ProviderError(provider=self.name,code='invalid_request')
+        data=self._json(self.base_url+'/api/tags')
+        models=data.get('models')
+        if not isinstance(models,list):
+            raise ProviderError(provider=self.name,code='invalid_response')
+        for entry in models:
+            if not isinstance(entry,dict) or entry.get('name')!=model:
+                continue
+            raw_digest=entry.get('digest')
+            if not isinstance(raw_digest,str):
+                raise ProviderError(provider=self.name,code='invalid_response')
+            digest=raw_digest.removeprefix('sha256:')
+            if len(digest)!=64 or any(ch not in '0123456789abcdef' for ch in digest.lower()):
+                raise ProviderError(provider=self.name,code='invalid_response')
+            details=entry.get('details') if isinstance(entry.get('details'),dict) else {}
+            def bounded(value):
+                return value if isinstance(value,str) and len(value)<=200 else None
+            size=entry.get('size')
+            if type(size) is not int or size<0:
+                size=None
+            return {
+                'name':model,
+                'sha256':digest.lower(),
+                'size_bytes':size,
+                'modified_at':bounded(entry.get('modified_at')),
+                'format':bounded(details.get('format')),
+                'family':bounded(details.get('family')),
+                'parameter_size':bounded(details.get('parameter_size')),
+                'quantization_level':bounded(details.get('quantization_level')),
+            }
+        raise ProviderError(provider=self.name,code='model_not_found')
     def pull(self,model):
         if not isinstance(model,str) or not model or len(model)>200: raise ProviderError(provider=self.name,code='invalid_request')
         for event in self._events(self.base_url+'/api/pull',encode({'model':model,'stream':True}),ndjson=True):
