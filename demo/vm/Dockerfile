@@ -1,4 +1,4 @@
-FROM --platform=linux/386 docker.io/i386/debian:bookworm-slim
+FROM --platform=linux/386 docker.io/i386/debian:bookworm-slim@sha256:605e8292d9d3e5288094fb9dffd68869a19771546cc11d7c3c777f9d7e0f705d
 
 ARG DEBIAN_FRONTEND=noninteractive
 
