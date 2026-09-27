@@ -80,6 +80,12 @@ Merged **#168** establishes the repository's solo-maintainer control model:
 
 Describe that as **maintainer-reviewed with automated qualification**. It is not independent human assurance. Claim-specific independent or third-party evidence remains required wherever a security, release or research claim depends on it.
 
+## v1 release-scope boundary
+
+Launchers and implementation paths exist beyond the admitted v1 surface. For v1, the admitted platform/deployment scope is Windows x64 and Linux x64 native, plus Linux Docker Engine, Docker Desktop on Windows, and the reviewed NVIDIA Compose overlay. Native macOS, Docker Desktop on macOS, and Linux ARM64 are not v1-supported surfaces merely because launchers/installers exist. Implemented/working paths do not become supported until admitted, qualified, and included in an authorized release.
+
+Hosted provider adapters are likewise broader than v1 provider support. A provider/model/deployment becomes v1-qualified only after the selected exact RC completes real inference -> candidate -> verifier -> receipt evidence without disguised fallback.
+
 ## Quick start
 
 ### Command Station
