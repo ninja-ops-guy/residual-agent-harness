@@ -1,0 +1,41 @@
+name: V1 enforced-exclusion audit
+on:
+  push:
+    branches: [audit/v1-exclusions-20260924]
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        source:
+          - 9eba077817720021174671ba1652b59fb801b670
+          - e815f33484352f100e11b8d075bb954a815244cc
+    steps:
+      - name: Exact audit driver
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          path: audit
+          persist-credentials: false
+      - name: Exact read-only runtime source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ matrix.source }}
+          path: source
+          persist-credentials: false
+      - name: Execute bounded audit with no dependency installation
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python3 audit/tools/audits/v1_exclusions.py --repo source --expected-head '${{ matrix.source }}' --output 'audit-results/${{ matrix.source }}.json'
+      - name: Retain first result including FAIL and BLOCKED
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v1-exclusions-${{ matrix.source }}-${{ github.run_id }}
+          path: audit-results/*.json
+          if-no-files-found: error
+          retention-days: 30
