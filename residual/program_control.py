@@ -351,13 +351,14 @@ class ProgramControl:
     def _overrides(self) -> dict[str, Any]:
         value = _load_json(
             self.overrides_path,
-            {"schema_version": OVERRIDE_VERSION, "items": {}, "relations": [], "manual_items": []},
+            {"schema_version": OVERRIDE_VERSION, "items": {}, "relations": [], "manual_items": [], "applied_seeds": {}},
         )
         if not isinstance(value, dict) or value.get("schema_version") != OVERRIDE_VERSION:
             raise ContractError("program overrides have an unsupported schema")
         value.setdefault("items", {})
         value.setdefault("relations", [])
         value.setdefault("manual_items", [])
+        value.setdefault("applied_seeds", {})
         return value
 
     def _event(self, kind: str, data: dict[str, Any]) -> None:
@@ -489,13 +490,22 @@ class ProgramControl:
         priority: str = "P2",
         next_action: str | None = None,
         owner_action_required: bool = False,
+        item_id: str | None = None,
     ) -> str:
         if not isinstance(title, str) or not title.strip():
             raise ContractError("manual item title is required")
         if state not in STATES or disposition not in DISPOSITIONS or priority not in PRIORITIES:
             raise ContractError("manual item state, disposition, or priority is invalid")
         overrides = self._overrides()
-        item_id = "LOCAL-" + uuid.uuid4().hex[:8].upper()
+        if item_id is None:
+            item_id = "LOCAL-" + uuid.uuid4().hex[:8].upper()
+        if not isinstance(item_id, str) or not ITEM_RE.fullmatch(item_id) or not item_id.startswith("LOCAL-"):
+            raise ContractError("manual item id must use LOCAL- followed by 8 hexadecimal characters")
+        existing = next((x for x in overrides["manual_items"] if x.get("item_id") == item_id), None)
+        if existing is not None:
+            if existing.get("title") != title.strip()[:300]:
+                raise ContractError("manual item id already belongs to another title")
+            return item_id
         overrides["manual_items"].append({
             "item_id": item_id,
             "title": title.strip()[:300],
@@ -574,47 +584,107 @@ class ProgramControl:
     def apply_seed(self, seed: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(seed, dict) or seed.get("schema_version") != "residual.program-seed.v1":
             raise ContractError("program seed has an unsupported schema")
+        seed_id = seed.get("seed_id")
+        if not isinstance(seed_id, str) or not seed_id.strip():
+            raise ContractError("program seed_id is required")
         if not self.current().get("repo"):
             raise ContractError("sync a repository before applying a program seed")
 
-        applied = {"items": 0, "relations": 0, "manual_items": 0}
-        for entry in seed.get("items", []):
+        overrides = self._overrides()
+        prior = overrides["applied_seeds"].get(seed_id)
+        if isinstance(prior, dict):
+            return {**(prior.get("result") or {}), "already_applied": True}
+
+        current = self.current()
+        by_id = {item["item_id"]: item for item in current["items"]}
+        item_entries = seed.get("items", [])
+        relation_entries = seed.get("relations", [])
+        manual_entries = seed.get("manual_items", [])
+        if not all(isinstance(value, list) for value in (item_entries, relation_entries, manual_entries)):
+            raise ContractError("program seed item, relation and manual inventories must be arrays")
+
+        # Preflight every referenced identity before the first mutation. Exact
+        # expected_head values prevent a seed authored for one PR revision from
+        # silently binding itself to a later revision.
+        for entry in item_entries:
             if not isinstance(entry, dict):
                 raise ContractError("program seed item must be an object")
             item_id = entry.get("item_id")
-            if not isinstance(item_id, str):
-                raise ContractError("program seed item_id is required")
-            patch = entry.get("patch") or {}
-            bind = "current" if entry.get("bind_current_head") is True else None
-            self.set_item(item_id, patch, bind_head=bind)
-            applied["items"] += 1
+            if not isinstance(item_id, str) or item_id not in by_id:
+                raise ContractError(f"program seed item was not found: {item_id}")
+            _validate_patch(entry.get("patch") or {})
+            expected = entry.get("expected_head")
+            if expected is not None:
+                if not isinstance(expected, str) or re.fullmatch(r"[0-9a-f]{40}", expected) is None:
+                    raise ContractError(f"program seed expected_head is invalid for {item_id}")
+                actual = by_id[item_id].get("source", {}).get("head")
+                if actual != expected:
+                    raise ContractError(
+                        f"program seed HEAD mismatch for {item_id}: expected {expected[:10]}, current {str(actual)[:10]}"
+                    )
 
-        for relation in seed.get("relations", []):
+        for relation in relation_entries:
             if not isinstance(relation, dict):
                 raise ContractError("program seed relation must be an object")
-            self.link(relation.get("from"), relation.get("to"), relation.get("kind"))
+            source, target, kind = relation.get("from"), relation.get("to"), relation.get("kind")
+            if source not in by_id or target not in by_id:
+                raise ContractError("program seed relation references an item not present in the current snapshot")
+            if kind not in RELATION_KINDS or source == target:
+                raise ContractError("program seed relation is invalid")
+
+        for entry in manual_entries:
+            if not isinstance(entry, dict) or not isinstance(entry.get("title"), str) or not entry["title"].strip():
+                raise ContractError("program seed manual item title is required")
+            if entry.get("state", "DISCOVERED") not in STATES:
+                raise ContractError("program seed manual item state is invalid")
+            if entry.get("v1_disposition", "UNCLASSIFIED") not in DISPOSITIONS:
+                raise ContractError("program seed manual item disposition is invalid")
+            if entry.get("priority", "P2") not in PRIORITIES:
+                raise ContractError("program seed manual item priority is invalid")
+
+        applied = {"items": 0, "relations": 0, "manual_items": 0}
+        for entry in item_entries:
+            item_id = entry["item_id"]
+            expected = entry.get("expected_head")
+            bind: str | None = expected
+            if bind is None and entry.get("bind_current_head") is True:
+                bind = "current"
+            self.set_item(item_id, entry.get("patch") or {}, bind_head=bind)
+            applied["items"] += 1
+
+        for relation in relation_entries:
+            self.link(relation["from"], relation["to"], relation["kind"])
             applied["relations"] += 1
 
-        for entry in seed.get("manual_items", []):
-            if not isinstance(entry, dict):
-                raise ContractError("program seed manual item must be an object")
+        for entry in manual_entries:
+            stable_id = entry.get("item_id")
+            if stable_id is None:
+                stable_id = "LOCAL-" + digest({"seed_id": seed_id, "title": entry["title"]})[:8].upper()
             self.add_manual(
-                entry.get("title"),
+                entry["title"],
                 state=entry.get("state", "DISCOVERED"),
                 disposition=entry.get("v1_disposition", "UNCLASSIFIED"),
                 workstream=entry.get("workstream", "BACKLOG"),
                 priority=entry.get("priority", "P2"),
                 next_action=entry.get("next_action"),
                 owner_action_required=bool(entry.get("owner_action_required", False)),
+                item_id=stable_id,
             )
             applied["manual_items"] += 1
 
+        overrides = self._overrides()
+        overrides["applied_seeds"][seed_id] = {
+            "applied_at": _now(),
+            "snapshot_sha256": self.current().get("snapshot_sha256"),
+            "result": applied,
+        }
+        _atomic_json(self.overrides_path, overrides)
         self._event("program.seed_applied", {
-            "seed_id": seed.get("seed_id"),
+            "seed_id": seed_id,
             **applied,
             "snapshot_sha256": self.current().get("snapshot_sha256"),
         })
-        return applied
+        return {**applied, "already_applied": False}
 
     def _apply_overrides(self, items: list[dict[str, Any]], overrides: dict[str, Any]) -> None:
         by_id = {item["item_id"]: item for item in items}
