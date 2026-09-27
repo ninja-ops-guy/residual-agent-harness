@@ -32,6 +32,7 @@ def main(argv=None):
     sub = parser.add_subparsers(dest="command", required=True)
 
     sync = sub.add_parser("sync", help="Import and freeze the current open GitHub inventory")
+    sync.add_argument("--repo", default=argparse.SUPPRESS, help="Repository in owner/name form")
     sync.add_argument("--json", action="store_true")
 
     status = sub.add_parser("status", help="Show current program summary")
