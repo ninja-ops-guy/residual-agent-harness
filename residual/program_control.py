@@ -401,6 +401,30 @@ class ProgramControl:
             raise ContractError("program snapshot has an unsupported schema")
         return value
 
+    def _freeze_local_projection(self, snapshot: dict[str, Any]) -> dict[str, Any]:
+        if not snapshot.get("repo"):
+            return snapshot
+        previous_sha = snapshot.get("snapshot_sha256")
+        inventory = {
+            "repo": snapshot["repo"],
+            "items": snapshot["items"],
+            "relations": snapshot["relations"],
+        }
+        snapshot = {
+            **snapshot,
+            "generated_at": _now(),
+            "inventory_sha256": digest(inventory),
+            "previous_snapshot_sha256": previous_sha,
+            "summary": self._summary(snapshot["items"]),
+        }
+        snapshot.pop("snapshot_sha256", None)
+        snapshot["snapshot_sha256"] = digest(snapshot)
+        _atomic_json(self.current_path, snapshot)
+        path = self.snapshots / f"{snapshot['snapshot_sha256']}.json"
+        if not path.exists():
+            _atomic_json(path, snapshot)
+        return snapshot
+
     def set_item(
         self,
         item_id: str,
@@ -428,8 +452,32 @@ class ProgramControl:
         record["updated_at"] = _now()
         overrides["items"][item_id] = record
         _atomic_json(self.overrides_path, overrides)
-        self._event("program.item_override", {"item_id": item_id, "patch": clean, "expected_head": record.get("expected_head")})
-        return record
+
+        snapshot = self.current()
+        projected = next((x for x in snapshot["items"] if x["item_id"] == item_id), None)
+        if projected is not None:
+            expected = record.get("expected_head")
+            actual = projected.get("source", {}).get("head")
+            if expected is not None and actual != expected:
+                projected["override_stale"] = True
+                projected["state"] = "HUMAN_ACTION_REQUIRED"
+                projected["owner_action_required"] = True
+                projected["next_action"] = (
+                    f"Reconcile stale authority override: expected {expected[:10]}, current {str(actual)[:10]}"
+                )
+            else:
+                projected.update(clean)
+                projected["override_stale"] = False
+            projected["active"] = projected["state"] not in TERMINAL_STATES
+            snapshot = self._freeze_local_projection(snapshot)
+
+        self._event("program.item_override", {
+            "item_id": item_id,
+            "patch": clean,
+            "expected_head": record.get("expected_head"),
+            "snapshot_sha256": snapshot.get("snapshot_sha256"),
+        })
+        return projected if projected is not None else record
 
     def add_manual(
         self,
@@ -466,7 +514,21 @@ class ProgramControl:
             "override_stale": False,
         })
         _atomic_json(self.overrides_path, overrides)
-        self._event("program.manual_item_added", {"item_id": item_id, "title": title.strip()[:300]})
+        snapshot = self.current()
+        if snapshot.get("repo"):
+            snapshot["items"].append(json.loads(json.dumps(overrides["manual_items"][-1])))
+            snapshot["items"][-1]["blocked_by"] = []
+            snapshot["items"][-1]["depends_on"] = []
+            snapshot["items"][-1]["supersedes"] = []
+            snapshot["items"][-1]["superseded_by"] = []
+            snapshot["items"][-1]["related"] = []
+            snapshot["items"][-1]["active"] = snapshot["items"][-1]["state"] not in TERMINAL_STATES
+            snapshot = self._freeze_local_projection(snapshot)
+        self._event("program.manual_item_added", {
+            "item_id": item_id,
+            "title": title.strip()[:300],
+            "snapshot_sha256": snapshot.get("snapshot_sha256"),
+        })
         return item_id
 
     def link(self, source: str, target: str, kind: str) -> None:
@@ -479,7 +541,35 @@ class ProgramControl:
         if relation not in overrides["relations"]:
             overrides["relations"].append(relation)
             _atomic_json(self.overrides_path, overrides)
-            self._event("program.relation_added", relation)
+            snapshot = self.current()
+            if relation not in snapshot.get("relations", []):
+                snapshot.setdefault("relations", []).append(relation)
+                by_id = {item["item_id"]: item for item in snapshot.get("items", [])}
+                source_item = by_id.get(source)
+                target_item = by_id.get(target)
+                if source_item and target_item:
+                    if kind == "supersedes":
+                        source_item.setdefault("supersedes", []).append(target)
+                        target_item.setdefault("superseded_by", []).append(source)
+                        target_item["state"] = "SUPERSEDED"
+                        target_item["active"] = False
+                    elif kind == "blocked_by":
+                        source_item.setdefault("blocked_by", []).append(target)
+                        if target_item.get("active") and source_item["state"] in {"DISCOVERED", "TRIAGED", "READY"}:
+                            source_item["state"] = "BLOCKED"
+                    elif kind == "depends_on":
+                        source_item.setdefault("depends_on", []).append(target)
+                        if target_item.get("active") and source_item["state"] in {"DISCOVERED", "TRIAGED", "READY"}:
+                            source_item["state"] = "BLOCKED"
+                    else:
+                        source_item.setdefault("related", []).append(target)
+                        target_item.setdefault("related", []).append(source)
+                    source_item["active"] = source_item["state"] not in TERMINAL_STATES
+                snapshot = self._freeze_local_projection(snapshot)
+            self._event("program.relation_added", {
+                **relation,
+                "snapshot_sha256": snapshot.get("snapshot_sha256"),
+            })
 
     def _apply_overrides(self, items: list[dict[str, Any]], overrides: dict[str, Any]) -> None:
         by_id = {item["item_id"]: item for item in items}
