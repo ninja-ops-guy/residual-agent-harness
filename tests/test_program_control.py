@@ -298,8 +298,8 @@ def test_seed_refuses_changed_expected_head_before_any_mutation(tmp_path):
     with pytest.raises(ContractError, match="HEAD mismatch"):
         control.apply_seed(seed)
     assert control.current()["snapshot_sha256"] == before
-    assert control.item("GH-PR-0476")["state"] == "VERIFYING"
-    assert control.item("GH-PR-0476")["v1_disposition"] == "V1_SUPPORTING"
+    assert control.item("GH-PR-0476")["state"] == "READY"
+    assert control.item("GH-PR-0476")["v1_disposition"] == "UNCLASSIFIED"
 
 def test_seed_rejects_unknown_schema_and_requires_prior_sync(tmp_path):
     control = ProgramControl(tmp_path)
