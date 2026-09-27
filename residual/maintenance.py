@@ -127,7 +127,7 @@ def doctor_report() -> dict:
         "origin": None,
     }
     data_dir = Path(os.environ.get("RESIDUAL_DATA", str(Path.home() / ".residual" / "station"))).expanduser()
-    database = data_dir / "station.db"
+    database = data_dir / "station.sqlite3"
     git_available = bool(shutil.which("git"))
 
     blockers = []
@@ -258,7 +258,7 @@ def perform_update(*, version: str | None = None) -> dict:
         if version is not None:
             raise ContractError("version-pinned update is not supported for a live source checkout; use a clean release checkout")
 
-        _run(["git", "-C", str(repo), "fetch", "--quiet", "origin", DEFAULT_BRANCH])
+        _run(["git", "-C", str(repo), "fetch", "--quiet", remote, DEFAULT_BRANCH])
         _run(["git", "-C", str(repo), "merge", "--ff-only", "FETCH_HEAD"])
         after = _git(repo, "rev-parse", "HEAD")
         if after != target:
