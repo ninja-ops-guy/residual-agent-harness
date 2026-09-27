@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://residual.invalid/schemas/r4.1-canary-evidence-v1.json",
+  "title": "RESIDUAL R4.1 completed canary evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "run_id", "candidate", "authorization", "bounds", "prestate", "poststate", "events", "receiver", "outbox", "crash_restart", "protected_services", "production_mutations", "credential_mutations", "rollback", "operator_interventions", "artifacts"],
+  "properties": {
+    "schema": {"const": "residual.r4.1.canary-evidence/v1"},
+    "run_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "candidate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["head", "tree"],
+      "properties": {
+        "head": {"const": "8701367db6d3202f24b3eb9f4696b0cadf657985"},
+        "tree": {"const": "79bfe6ed1743907065ed44aeb9c460c47527e0c6"}
+      }
+    },
+    "authorization": {
+      "type": "object", "additionalProperties": false,
+      "required": ["receipt_artifact", "run_id", "candidate_head", "candidate_tree", "environment", "not_before", "not_after", "authorized_by", "canary_only", "promotion_authorized"],
+      "properties": {
+        "receipt_artifact": {"type": "string"}, "run_id": {"type": "string"},
+        "candidate_head": {"type": "string"}, "candidate_tree": {"type": "string"},
+        "environment": {"type": "string", "minLength": 1},
+        "not_before": {"type": "string", "format": "date-time"}, "not_after": {"type": "string", "format": "date-time"},
+        "authorized_by": {"type": "string", "minLength": 1},
+        "canary_only": {"const": true}, "promotion_authorized": {"const": false}
+      }
+    },
+    "bounds": {
+      "type": "object", "additionalProperties": false,
+      "required": ["started_at", "finished_at", "max_duration_seconds", "max_network_attempts", "observed_network_attempts", "timed_out"],
+      "properties": {
+        "started_at": {"type": "string", "format": "date-time"}, "finished_at": {"type": "string", "format": "date-time"},
+        "max_duration_seconds": {"type": "integer", "minimum": 1},
+        "max_network_attempts": {"type": "integer", "minimum": 1},
+        "observed_network_attempts": {"type": "integer", "minimum": 0}, "timed_out": {"type": "boolean"}
+      }
+    },
+    "prestate": {"$ref": "#/$defs/state"},
+    "poststate": {"$ref": "#/$defs/state"},
+    "events": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/event"}},
+    "receiver": {
+      "type": "object", "additionalProperties": false,
+      "required": ["operation_id", "side_effect_count", "side_effect_ids"],
+      "properties": {"operation_id": {"type": "string", "minLength": 1}, "side_effect_count": {"type": "integer", "minimum": 0}, "side_effect_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true}}
+    },
+    "outbox": {
+      "type": "object", "additionalProperties": false,
+      "required": ["operation_id", "pre_state", "post_state", "durable_before_send", "durable_terminal", "journal_artifact"],
+      "properties": {"operation_id": {"type": "string"}, "pre_state": {"const": "pending"}, "post_state": {"const": "acknowledged"}, "durable_before_send": {"type": "boolean"}, "durable_terminal": {"type": "boolean"}, "journal_artifact": {"type": "string"}}
+    },
+    "crash_restart": {
+      "type": "object", "additionalProperties": false,
+      "required": ["injected", "operation_id_before", "operation_id_after", "receipt_checked_before_retry", "retry_suppressed_by_receipt", "receiver_side_effect_count_after_restart", "trace_artifact"],
+      "properties": {"injected": {"type": "boolean"}, "operation_id_before": {"type": "string"}, "operation_id_after": {"type": "string"}, "receipt_checked_before_retry": {"type": "boolean"}, "retry_suppressed_by_receipt": {"type": "boolean"}, "receiver_side_effect_count_after_restart": {"type": "integer", "minimum": 0}, "trace_artifact": {"type": "string"}}
+    },
+    "protected_services": {"$ref": "#/$defs/integrityCheck"},
+    "production_mutations": {"$ref": "#/$defs/mutationCheck"},
+    "credential_mutations": {"$ref": "#/$defs/mutationCheck"},
+    "rollback": {
+      "type": "object", "additionalProperties": false,
+      "required": ["rehearsed", "succeeded", "restored_state_digest", "expected_state_digest", "within_seconds", "max_seconds", "artifact"],
+      "properties": {"rehearsed": {"type": "boolean"}, "succeeded": {"type": "boolean"}, "restored_state_digest": {"$ref": "#/$defs/sha256"}, "expected_state_digest": {"$ref": "#/$defs/sha256"}, "within_seconds": {"type": "integer", "minimum": 0}, "max_seconds": {"type": "integer", "minimum": 1}, "artifact": {"type": "string"}}
+    },
+    "operator_interventions": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["at", "actor", "action", "reason", "authorized"], "properties": {"at": {"type": "string", "format": "date-time"}, "actor": {"type": "string", "minLength": 1}, "action": {"type": "string", "minLength": 1}, "reason": {"type": "string", "minLength": 1}, "authorized": {"type": "boolean"}}}},
+    "artifacts": {"type": "array", "minItems": 5, "items": {"$ref": "#/$defs/artifact"}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "state": {"type": "object", "additionalProperties": false, "required": ["captured_at", "candidate_head", "candidate_tree", "environment_digest", "protected_services_digest", "credentials_digest", "production_state_digest"], "properties": {"captured_at": {"type": "string", "format": "date-time"}, "candidate_head": {"type": "string"}, "candidate_tree": {"type": "string"}, "environment_digest": {"$ref": "#/$defs/sha256"}, "protected_services_digest": {"$ref": "#/$defs/sha256"}, "credentials_digest": {"$ref": "#/$defs/sha256"}, "production_state_digest": {"$ref": "#/$defs/sha256"}}},
+    "event": {"type": "object", "additionalProperties": false, "required": ["seq", "at", "kind", "operation_id", "artifact"], "properties": {"seq": {"type": "integer", "minimum": 0}, "at": {"type": "string", "format": "date-time"}, "kind": {"enum": ["outbox_durable", "network_send", "receiver_effect", "receipt_durable", "crash", "restart", "receipt_lookup", "outbox_ack"]}, "operation_id": {"type": "string", "minLength": 1}, "artifact": {"type": "string"}}},
+    "integrityCheck": {"type": "object", "additionalProperties": false, "required": ["stable", "before_digest", "after_digest", "artifact"], "properties": {"stable": {"type": "boolean"}, "before_digest": {"$ref": "#/$defs/sha256"}, "after_digest": {"$ref": "#/$defs/sha256"}, "artifact": {"type": "string"}}},
+    "mutationCheck": {"type": "object", "additionalProperties": false, "required": ["count", "authorized_count", "artifact"], "properties": {"count": {"type": "integer", "minimum": 0}, "authorized_count": {"const": 0}, "artifact": {"type": "string"}}},
+    "artifact": {"type": "object", "additionalProperties": false, "required": ["path", "sha256", "bytes", "media_type", "producer"], "properties": {"path": {"type": "string", "pattern": "^(?!/)(?!.*(?:^|/)[.][.](?:/|$)).+$"}, "sha256": {"$ref": "#/$defs/sha256"}, "bytes": {"type": "integer", "minimum": 0}, "media_type": {"type": "string", "minLength": 1}, "producer": {"type": "string", "minLength": 1}}}
+  }
+}

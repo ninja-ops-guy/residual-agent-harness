@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://residual.invalid/schemas/r4.1-rollback-decision-v1.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "required", "triggers", "rollback_executed", "execution_authorized"],
+  "properties": {
+    "schema": {"const": "residual.r4.1.rollback-decision/v1"},
+    "required": {"type": "boolean"}, "triggers": {"type": "array", "items": {"type": "string"}},
+    "rollback_executed": {"const": false}, "execution_authorized": {"const": false}
+  }
+}

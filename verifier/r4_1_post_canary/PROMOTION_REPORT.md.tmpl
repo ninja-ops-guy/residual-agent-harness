@@ -1,0 +1,29 @@
+# RESIDUAL R4.1 post-canary promotion report
+
+Disposition: **{{DISPOSITION}}**
+
+Candidate HEAD: `{{CANDIDATE_HEAD}}`  
+Candidate tree: `{{CANDIDATE_TREE}}`  
+Canary run: `{{RUN_ID}}`  
+Evidence SHA-256: `{{EVIDENCE_SHA256}}`  
+Authorization receipt SHA-256: `{{AUTHORIZATION_SHA256}}`
+
+## Gate results
+
+{{CHECKS}}
+
+## Findings
+
+{{REASONS}}
+
+## Rollback decision
+
+Rollback required: **{{ROLLBACK_REQUIRED}}**
+
+{{ROLLBACK_TRIGGERS}}
+
+## Authority boundary
+
+This report did not deploy, promote, or roll back the candidate. A
+`PROMOTION_ELIGIBLE` disposition means only that the supplied evidence permits
+a later human promotion decision. It is not promotion authorization.
