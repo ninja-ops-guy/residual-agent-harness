@@ -82,8 +82,8 @@
         "toolchain_and_builder_identity",
         "dependency_lock",
         "no_rebuild",
-        "rc_artifact_digest",
-        "qualified_artifact_digest_equal"
+        "rc_artifact_set_sha256",
+        "qualified_artifact_set_sha256_equal"
       ],
       "human_gate": [
         "Qualification Lead",
@@ -187,7 +187,7 @@
         "final_tag_signed",
         "no_rebuild",
         "final_tag_target_sha_equals_rc_source_sha",
-        "qualified_artifact_digest_unchanged"
+        "qualified_artifact_set_sha256_unchanged"
       ],
       "human_gate": [
         "Release Manager",
@@ -202,8 +202,8 @@
   "convergence_source_sha": null,
   "rc_source_sha": null,
   "rc_tree_sha": null,
-  "rc_artifact_digest": null,
-  "qualified_artifact_digest": null,
   "final_tag_target_sha": null,
-  "identity_rule": "R4 canary provenance is historical evidence only and MUST NOT populate RC identity. RC source/tree are selected after convergence; the qualified artifact digest must equal the built RC artifact digest; the final v1.0.0 tag must target rc_source_sha."
+  "identity_rule": "R4 canary provenance is historical evidence only and MUST NOT populate RC identity. RC source/tree are selected after convergence. Every shipped release artifact must appear exactly once in the RC/qualified artifact binding set; the complete RC artifact set must equal the complete qualified artifact set. The final v1.0.0 tag must target rc_source_sha.",
+  "rc_artifact_set_sha256": null,
+  "qualified_artifact_set_sha256": null
 }
