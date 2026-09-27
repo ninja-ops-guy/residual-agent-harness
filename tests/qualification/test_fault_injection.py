@@ -55,6 +55,7 @@ def test_running_async_job_is_marked_interrupted_after_station_restart(tmp_path)
     station.store.job_update(jid, state="running", detail="provider request in progress")
     assert next(job for job in station.store.jobs() if job["id"] == jid)["state"] == "running"
 
+    station.close()
     reopened = Station(root)
     job = next(job for job in reopened.store.jobs() if job["id"] == jid)
     assert job["state"] == "interrupted"
@@ -102,6 +103,7 @@ time.sleep(60)
         if child.poll() is None:
             child.kill(); child.wait(timeout=10)
 
+    station.close()
     reopened = Station(root)
     task = reopened.store.task(pid, "OPS-101")
     assert task["state"] == "ready"
@@ -115,6 +117,7 @@ def test_corrupt_station_database_fails_closed_without_silent_reset(tmp_path):
     database = station.store.db
     database.write_bytes(b"not-a-sqlite-database\x00retained-corruption-marker")
     corrupted = database.read_bytes()
+    station.close()
 
     with pytest.raises(sqlite3.DatabaseError):
         Station(root)

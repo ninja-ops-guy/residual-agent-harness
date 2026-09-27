@@ -34,7 +34,9 @@ def run_campaign(*, cycles: int, root: Path) -> dict:
                 raise AssertionError("injected bad candidate did not enter repair_required")
 
             # Reopen periodically to exercise recovery from durable state mid-mission.
+            # Restart is an explicit owner handoff; two live Station owners are forbidden.
             if index % 2:
+                station.close()
                 station = Station(root)
                 if station.store.task(pid, "OPS-101")["state"] != "repair_required":
                     raise AssertionError("repair_required state did not survive Station reopen")
@@ -55,6 +57,7 @@ def run_campaign(*, cycles: int, root: Path) -> dict:
             release = station.export(pid)
             if not release.get("id"):
                 raise AssertionError("release export did not produce an artifact")
+            station.close()
             reopened = Station(root)
             persisted = reopened.store.project(pid)
             if not all(task["state"] == "integrated" for task in persisted["tasks"]):
@@ -72,6 +75,12 @@ def run_campaign(*, cycles: int, root: Path) -> dict:
             })
     except Exception as exc:
         failure = f"{type(exc).__name__}: {exc}"
+    finally:
+        try:
+            station.close()
+        except Exception as close_exc:
+            if failure is None:
+                failure = f"{type(close_exc).__name__}: {close_exc}"
 
     return {
         "schema": "residual.qualification.active-workload.v1",

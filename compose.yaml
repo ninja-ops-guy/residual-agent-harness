@@ -6,6 +6,14 @@ services:
     init: true
     ports:
       - "127.0.0.1:8765:8765"
+    environment:
+      # The Station must bind the container interface for Docker port
+      # publishing, but the supported v1 container contract is host-loopback
+      # only. The server independently verifies this explicit mode and refuses
+      # it outside a recognized container runtime.
+      RESIDUAL_CONTAINER_LOCAL_ONLY: "1"
+      RESIDUAL_ALLOWED_HOSTS: "localhost:8765,127.0.0.1:8765"
+      RESIDUAL_PUBLIC_URL: "http://localhost:8765"
     volumes:
       - station-data:/data
       - ./projects:/projects:ro
