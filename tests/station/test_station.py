@@ -30,6 +30,7 @@ class StationTests(unittest.TestCase):
         self.pid = self.s.create(demo_spec(), demo=True)["project_id"]
 
     def tearDown(self):
+        self.s.close()
         self.temp.cleanup()
 
     def test_full_demo_real_git_tests_review_and_release(self):
@@ -97,7 +98,10 @@ class StationTests(unittest.TestCase):
     def test_lease_expiry_and_restart_recovery_preserve_evidence(self):
         self.s.triage(self.pid)
         work = self.s.prepare(self.pid, "local-runner", "OPS-101")
+        # A restart is a lifecycle transition, not a second live owner.
+        self.s.close()
         reopened = Station(self.temp.name)
+        self.addCleanup(reopened.close)
         self.assertEqual(reopened.store.task(self.pid, "OPS-101")["state"], "blocked")
         with self.assertRaises(ContractError):
             reopened.finish(work, {"files": DEMO_FILES["OPS-101"]})

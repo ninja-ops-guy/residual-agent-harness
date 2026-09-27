@@ -77,11 +77,13 @@ class ObservationIntegrityTests(unittest.TestCase):
 
     def test_station_restart_concurrency_and_export_preserve_checkpoint(self):
         with tempfile.TemporaryDirectory() as d:
-            a=Station(d);pid=a.create(demo_spec(),demo=True)['project_id'];b=Station(d)
+            a=Station(d);pid=a.create(demo_spec(),demo=True)['project_id']
             def write(i):
-                bus=(a if i%2 else b).store.observation_bus(pid)
+                # Concurrent writers share the one admitted Station owner.
+                bus=a.store.observation_bus(pid)
                 bus.emit(ObservationKind.CHECKPOINT,{'i':i})
             with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool: list(pool.map(write,range(30)))
+            a.close()
             c=Station(d);summary=c.store.observation_summary(pid)
             self.assertEqual(summary['integrity'],'verified');self.assertEqual(summary['event_count'],31)
             records=[Observation(**json.loads(line)) for line in c.store.observation_export(pid).splitlines()]
@@ -90,6 +92,7 @@ class ObservationIntegrityTests(unittest.TestCase):
             self.assertTrue(page['has_more']);self.assertFalse({e['obs_id'] for e in page['events']}&{e['obs_id'] for e in page2['events']})
             with c.store.transaction() as conn: conn.execute('DELETE FROM observations WHERE seq=(SELECT max(seq) FROM observations WHERE trace=?)',(pid,))
             self.assertEqual(c.store.observation_summary(pid)['integrity'],'failed')
+            c.close()
 
     def test_observations_off_and_broken_sink_do_not_change_ldd_authority(self):
         with tempfile.TemporaryDirectory() as d:
@@ -103,3 +106,4 @@ class ObservationIntegrityTests(unittest.TestCase):
             self.assertEqual(s.store.events(pid)[-1]['data']['message'],'LDD fact')
             self.assertEqual(s.store.observation_failures,1)
             self.assertNotIn('llm.request',s.store.report(pid)['changes'])
+            s.close()

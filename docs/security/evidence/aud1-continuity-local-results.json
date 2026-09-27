@@ -1,0 +1,32 @@
+{
+  "schema": "residual.aud1.continuity.local-results.v1",
+  "parent_commit": "8df77b832b3839ccd2a6944a65760ce3ab10dc9c",
+  "parent_tree": "f8143fedebbfe27b3c0a7925259cdaa5e9eff91a",
+  "source_artifact_id": 10671967623,
+  "source_run_id": 35673263914,
+  "source_archive_sha256": "5159d888e9e31200d33c4de7a4aa0417b97c5ab24ae2e3055ab3e48b0b533225",
+  "source_wheel_sha256": "4861159d2ef3f8a3c906a191deb2d2536ffea98ff328d3ddb96ec4fcb22e69f7",
+  "python": "3.13.5",
+  "baseline_probe": {"tests": 4, "failures": 3, "errors": 1, "status": "FAIL"},
+  "repaired_suite": {"tests": 12, "skips": 0, "status": "PASS"},
+  "source_reversion_canaries": {"server_rotation": "FAIL_AS_EXPECTED", "worker_stall": "FAIL_AS_EXPECTED"},
+  "station_demo": {"integrated": 3, "export": "PASS", "model_calls": 0, "proposal_source": "scripted"},
+  "tested_blobs": {
+    "residual/station/server.py": "405126bd810e72b2551d4bfffd56a134386c9bc4",
+    "residual/station/worker.py": "536ea9c91d3a10c9150d490788af353583a3c005",
+    "residual/station/worker_access.py": "3fcc993ab675519ea2e94edd911a27047fe98363",
+    "tests/station/test_aud1_release_continuity.py": "607c2b374c0574f08ca0b2edb3e538ec8d88c7ad"
+  },
+  "retained_local_log_sha256": {
+    "00-original-399-regressions.log": "39977a69d272446fe885d97e6152c15eb12af1bfb621a9382ad2e7881a35aced",
+    "03-final-regressions.log": "340f378221f8dd412a828a26b5bde3c0aaa5c5f8e373e5abf1d666e0e0aebdf3",
+    "04-reversion-server.log": "6ce53a7a5c807ec7d3afef665379f42501bd0a0e9d90c6de859c38c1de007e25",
+    "04-reversion-worker.log": "2900188c7b9a0f1f2e371d772b24f74e4d6770ea508e33c46bd1401ec9f7d1b7",
+    "05-demo-and-compile.log": "a07b9f2be4630bd3d77d5a79dc0b57870e6bdc08da89a911c2a67cbed100f0fc"
+  },
+  "physical_f6": "NOT_EXECUTED",
+  "independent_review": "REQUIRED",
+  "production_authority": false,
+  "r4_mutation": false,
+  "non_claims": ["full repository local qualification", "live fleet or model qualification", "physical F6", "blank-VM installation", "24h/72h soak", "independent approval", "release readiness"]
+}
