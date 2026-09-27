@@ -68,6 +68,9 @@ def main(argv=None):
     link.add_argument("kind", choices=sorted(RELATION_KINDS))
     link.add_argument("target")
 
+    seed = sub.add_parser("seed", help="Apply an explicit program disposition/relation seed after sync")
+    seed.add_argument("path")
+
     add = sub.add_parser("add", help="Add a non-GitHub program item")
     add.add_argument("title")
     add.add_argument("--state", choices=sorted(STATES), default="DISCOVERED")
@@ -172,6 +175,11 @@ def main(argv=None):
                 owner_action_required=args.owner_action,
             )
             print(item_id)
+            return 0
+
+        if args.command == "seed":
+            value = json.loads(Path(args.path).read_text(encoding="utf-8"))
+            _print(control.apply_seed(value), True)
             return 0
 
         if args.command == "export":
