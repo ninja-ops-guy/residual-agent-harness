@@ -17,6 +17,7 @@ from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+from residual import __version__
 from residual.core import ContractError, canonical, strict_json
 from .contracts import bounded, parse_spec
 from .models import model_call, public_settings, save_settings, credentials_for
@@ -273,7 +274,7 @@ class Server(ThreadingHTTPServer):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "ResidualStation/0.3"
+    server_version = f"ResidualStation/{__version__}"
 
     def log_message(self, *args):
         # Request URLs can carry identifiers. Routine HTTP access logging is deliberately quiet.
@@ -377,7 +378,7 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/bootstrap":
                 # Public bootstrap is metadata only. Operator authority is delivered out-of-band
                 # through the one-time launch capability and an HttpOnly same-site cookie.
-                return self.respond({"version": "0.3.0", "settings": public_settings(self.station.store), "demo_spec": demo_spec()})
+                return self.respond({"version": __version__, "settings": public_settings(self.station.store), "demo_spec": demo_spec()})
             if path.startswith("/api/worker/"):
                 identity = self.auth(worker=True)
                 with self.server.worker_operation(identity) as current:
@@ -401,7 +402,7 @@ class Handler(BaseHTTPRequestHandler):
                     return self.respond(public_settings(self.station.store))
                 if path == "/api/diagnostics":
                     import platform, shutil
-                    return self.respond({"version": "0.3.0", "python": platform.python_version(), "platform": platform.system(),
+                    return self.respond({"version": __version__, "python": platform.python_version(), "platform": platform.system(),
                         "git": bool(shutil.which("git")), "ollama": bool(self.station.ollama.binary()), "data_directory": str(self.station.store.root),
                         "database": "SQLite WAL", "event_contract": "LDD workflow v1", "remote_workers_enabled": self.station.store.settings().get("remote_workers_enabled", False)})
                 if path in {"/api/observations", "/api/observations/summary", "/api/observations/export"}:
