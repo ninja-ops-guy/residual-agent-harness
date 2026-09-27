@@ -87,6 +87,14 @@ expires at the end of its deployment window.
 No CI job, verifier, merge, tag, registry event, or successful health check may
 perform one of these transitions automatically.
 
+## Machine-readable identity roles
+
+`V1_RELEASE_GATES.json` uses distinct identity fields and MUST NOT reuse historical canary provenance as release-candidate identity:
+
+`R4_CANARY_PROVENANCE_SHA -> CONVERGENCE_SOURCE_SHA -> RC_SOURCE_SHA + RC_TREE_SHA -> RC_ARTIFACT_SET_SHA256 -> QUALIFIED_ARTIFACT_SET_SHA256 -> FINAL_TAG_TARGET_SHA`.
+
+The R4.1 SHA/tree are immutable canary provenance only. `RC_SOURCE_SHA` and `RC_TREE_SHA` are populated only after post-convergence candidate selection. Each shipped release artifact has its own name and SHA-256 binding; the canonical RC artifact-set digest must remain byte-identical to the canonical qualified artifact-set digest, with no missing or additional release artifact. Release closure requires the signed `v1.0.0` tag to target the exact RC source SHA; no rebuild may occur after qualification.
+
 ## Release candidate and artifact provenance
 
 The RC packet must contain:
