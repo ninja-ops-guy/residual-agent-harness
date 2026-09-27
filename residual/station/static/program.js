@@ -54,6 +54,7 @@ function programItemDialog(item){
       <div class="detail-cell"><dt>Owner</dt><dd>${e(item.owner||"unassigned")}</dd></div>
       <div class="detail-cell"><dt>Blocked by</dt><dd>${e((item.blocked_by||[]).join(", ")||"none")}</dd></div>
       <div class="detail-cell"><dt>Superseded by</dt><dd>${e((item.superseded_by||[]).join(", ")||"none")}</dd></div>
+      <div class="detail-cell"><dt>Source relation hints</dt><dd>${e((item.source_relation_hints||[]).map(x=>x.kind+" → "+x.target).join(", ")||"none")}</dd></div>
     </dl>
     <p class="small-text"><b>Next action:</b> ${e(item.next_action||"Not classified yet.")}</p>
     ${item.override_stale?'<div class="callout warn"><b>STALE AUTHORITY OVERRIDE</b> · Source identity changed; an earlier HEAD-bound decision was not transferred.</div>':""}
