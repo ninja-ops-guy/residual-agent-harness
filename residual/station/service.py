@@ -10,6 +10,7 @@ import uuid
 from pathlib import Path
 
 from residual.core import ContractError, canonical
+from residual.program_control import ProgramControl
 from .contracts import bounded, parse_spec, sha
 from ai_providers import ProviderError as ModularError
 from .models import DEFAULTS, Ollama, model_call
@@ -73,6 +74,7 @@ def demo_spec():
 class Station:
     def __init__(self, root, *, extension_factory=None):
         self.store = Store(root)
+        self.program = ProgramControl(self.store.root / "program-control")
         self.store.settings(DEFAULTS, defaults=True)
         self.store.recover(startup=True)
         self.ollama = Ollama(self.store)
