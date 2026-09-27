@@ -605,7 +605,34 @@ class ProgramControl:
         issue_rows = _fetch_pages(repo, "issues", token=token, fetcher=fetcher)
         issues = [row for row in issue_rows if not row.get("pull_request")]
 
+        previous = self.current()
         items = [_normalize_pr(row) for row in pulls] + [_normalize_issue(row) for row in issues]
+        current_source_ids = {item["item_id"] for item in items}
+
+        # Repository-open state is observational only. If a previously active
+        # GitHub item disappears from the open inventory, carry it forward for
+        # explicit owner reconciliation rather than fabricating program closure.
+        for prior in previous.get("items", []):
+            if prior.get("item_id") in current_source_ids:
+                continue
+            if prior.get("source", {}).get("type") not in {"github_pr", "github_issue"}:
+                continue
+            if prior.get("state") in TERMINAL_STATES:
+                continue
+            carried = json.loads(json.dumps(prior))
+            carried["source_open"] = False
+            carried["source_missing_from_open_inventory"] = True
+            carried["state"] = "HUMAN_ACTION_REQUIRED"
+            carried["owner_action_required"] = True
+            carried["active"] = True
+            carried["next_action"] = (
+                "Reconcile source closure/merge; GitHub disappearance does not close the RESIDUAL program item"
+            )
+            carried.setdefault("notes", []).append(
+                "Source disappeared from GitHub open inventory and remains open in RESIDUAL until explicitly dispositioned."
+            )
+            items.append(carried)
+
         overrides = self._overrides()
         items.extend(json.loads(json.dumps(overrides["manual_items"])))
         self._apply_overrides(items, overrides)
@@ -683,7 +710,6 @@ class ProgramControl:
             "relations": relations,
         }
         inventory_sha = digest(inventory)
-        previous = self.current()
         previous_sha = previous.get("snapshot_sha256")
         summary = self._summary(items)
         snapshot = {
