@@ -2,9 +2,9 @@
 
 **License:** Apache License 2.0  
 **Copyright:** 2026 Mike Olivares  
-**Status:** Candidate funding boundary — not merged to main
+**Status:** Current Open Core boundary — accepted on `main` via PR #442
 
-This file defines the intended Apache-2.0 portion of the RESIDUAL development monorepo for this candidate revision. A path is included only when explicitly listed below or when it carries its own compatible license notice.
+This file defines the Apache-2.0 portion of the RESIDUAL development monorepo for this accepted revision. A path is included only when explicitly listed below or when it carries its own compatible license notice.
 
 ## Included verification/research kernel
 
@@ -37,7 +37,7 @@ Publication of a specification does not imply that the corresponding implementat
 
 ## Reserved examples
 
-The machine-readable manifest is authoritative for the exact candidate revision. Reserved paths include, among others:
+The machine-readable manifest is authoritative for the exact accepted revision. Reserved paths include, among others:
 
 - Factory and engine implementations
 - runtime/orchestration execution code
