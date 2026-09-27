@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "telemetry.schema.json",
+  "title": "SLM economic telemetry events (EXP-M6-SLM / SLM-06)",
+  "description": "JSONL events emitted by residual.telemetry.slm. Field names are aligned to the frozen evaluation protocol eval-protocol-v1.0.0 and the slm-observation-v0 cost block. Counterfactual/counterfactual-cost fields are ALWAYS estimate:true and must never be reported as observed savings. Null cost/energy fields mean unknown/unmeasurable - never imputed.",
+  "type": "object",
+  "required": [
+    "kind",
+    "schema_version",
+    "run_id",
+    "ts"
+  ],
+  "properties": {
+    "kind": {
+      "enum": [
+        "inference_call",
+        "routing_decision",
+        "escalation_outcome",
+        "operator_active",
+        "telemetry_degradation"
+      ]
+    },
+    "schema_version": {
+      "const": "slm-telemetry-v0"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "decision_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "ts": {
+      "type": "number"
+    },
+    "worker_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "model": {
+      "type": "string"
+    },
+    "provider": {
+      "type": "string"
+    },
+    "tokens": {
+      "type": "object",
+      "properties": {
+        "in": {
+          "type": "integer"
+        },
+        "out": {
+          "type": "integer"
+        }
+      }
+    },
+    "cost": {
+      "type": "object",
+      "description": "Names aligned to slm-observation-v0 cost block",
+      "properties": {
+        "inference_usd": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "realized cost; null = unmeasurable, flagged"
+        },
+        "energy_wh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "measured only; null = not measurable"
+        },
+        "latency_ms": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "frontier_calls": {
+          "type": "integer"
+        },
+        "operator_active_seconds": {
+          "type": "number"
+        }
+      }
+    },
+    "power_w": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "energy_measurable": {
+      "type": "boolean"
+    },
+    "price_table_version": {
+      "type": "string"
+    },
+    "price_source": {
+      "type": "string"
+    },
+    "price_date": {
+      "type": "string"
+    },
+    "verification": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "enum": [
+            "verified_success",
+            "verified_failure",
+            "provisional",
+            "rejected",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "schema_valid": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "confidence": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "selected": {
+      "type": "object",
+      "properties": {
+        "model": {
+          "type": "string"
+        },
+        "worker_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "alternatives": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "model",
+          "available",
+          "counterfactual_cost_usd",
+          "estimate"
+        ],
+        "properties": {
+          "model": {
+            "type": "string"
+          },
+          "worker_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "available": {
+            "const": true
+          },
+          "counterfactual_cost_usd": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "estimate": {
+            "const": true
+          }
+        }
+      }
+    },
+    "escalation": {
+      "type": "object",
+      "properties": {
+        "required": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "taken": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "classification": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "false_non_escalation",
+            "unnecessary_escalation",
+            "correct_escalation",
+            "correct_non_escalation",
+            null
+          ]
+        }
+      }
+    },
+    "escalation_correct": {
+      "type": "boolean"
+    },
+    "estimate": {
+      "type": "boolean",
+      "description": "true => estimated/counterfactual; false => realized observation"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "detail": {
+      "type": "string"
+    }
+  },
+  "x-frozen-metric-alignment": {
+    "vmsr": "verification.status == verified_success (mission terminal observation)",
+    "vsms_per_dollar": "verified successes / sum(cost.inference_usd); null cost excluded and flagged",
+    "vsms_per_watt": "verified successes / sum(cost.energy_wh); where measurable only",
+    "frontier_calls_avoided": "sum(cost.frontier_calls) vs all-frontier reference; counterfactual labeled estimate:true",
+    "latency": "cost.latency_ms per decision (median/p95/p99)",
+    "operator_active_minutes": "sum(cost.operator_active_seconds)/60",
+    "fner": "escalation.classification == false_non_escalation among escalation.required",
+    "uer": "escalation.classification == unnecessary_escalation among escalation.taken",
+    "avr": "authority.violation (recorded by station authority layer; not emitted here)",
+    "schema_invalid_rate": "schema_valid == false fraction",
+    "ece": "confidence vs verification.status, 10 equal-width buckets",
+    "brier": "confidence vs verification.status",
+    "throughput": "verified decisions per second from inference_call/routing_decision rates"
+  }
+}

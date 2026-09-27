@@ -23,12 +23,15 @@ class ModelRef:
 
 
 class Router:
-    def __init__(self,registry=None,default_provider='openai',observation_bus=None,before_attempt=None,after_attempt=None):
+    def __init__(self,registry=None,default_provider='openai',observation_bus=None,before_attempt=None,after_attempt=None,slm_recorder=None):
         self.registry=registry if registry is not None else DEFAULT_REGISTRY
         self.default_provider=ProviderName(default_provider).value
         self.bus=observation_bus
         # Accounting/policy callbacks are authoritative and deliberately NOT swallowed.
         self.before_attempt,self.after_attempt=before_attempt,after_attempt
+        # SLM telemetry (residual.telemetry.slm) is NOT authoritative:
+        # fail-open; degradations are logged inside the recorder.
+        self.slm_recorder=slm_recorder
         self.observation_errors=0
 
     def _emit(self,kind,payload,tags):
@@ -62,6 +65,18 @@ class Router:
                  'usage':dict(resp.usage) if resp else {},'finish_reason':resp.finish_reason if resp else None,'error':error.to_dict() if error else None}
         self._emit('llm.failed' if error else 'llm.response',receipt,tags)
         if self.after_attempt: self.after_attempt(receipt)
+        if self.slm_recorder is not None:
+            try:
+                usage=receipt.get('usage') or {}
+                self.slm_recorder.record_inference_call(
+                    model=meta['model'],provider=meta['provider'],
+                    tokens_in=usage.get('prompt_tokens',0),
+                    tokens_out=usage.get('completion_tokens',0),
+                    latency_ms=receipt['elapsed_ms'],
+                    verification_status='unknown')
+            except Exception:
+                # Telemetry must never block or alter an authoritative path.
+                self.observation_errors+=1
 
     def chat(self,model,req,failover=None):
         request_id=uuid.uuid4().hex; last=None
