@@ -3,13 +3,13 @@
   "seed_id": "RESIDUAL-SELFHOST-2026-09-27-R1",
   "notes": [
     "Seed records known program dispositions only; it does not import PASS claims or authorize merge/release.",
-    "Active PR decisions are bound to the current PR HEAD at seed-application time.",
+    "Active PR decisions are bound to the exact expected_head recorded here. A changed PR HEAD causes seed application to fail rather than transferring the decision.",
+    "The seed is idempotent by seed_id; reapplying an already-applied seed is a no-op.",
     "Qualification does not confer admission; admission does not confer support."
   ],
   "items": [
     {
       "item_id": "GH-PR-0476",
-      "bind_current_head": true,
       "patch": {
         "state": "VERIFYING",
         "v1_disposition": "V1_REQUIRED",
@@ -17,11 +17,11 @@
         "priority": "P0",
         "next_action": "Complete exact-head QD2/Q1 qualification and successor reconciliation; NO MERGE.",
         "owner_action_required": false
-      }
+      },
+      "expected_head": "05e01731208957e85cf72cf02a925b0660fca144"
     },
     {
       "item_id": "GH-PR-0477",
-      "bind_current_head": true,
       "patch": {
         "state": "VERIFYING",
         "v1_disposition": "V1_REQUIRED",
@@ -29,11 +29,11 @@
         "priority": "P0",
         "next_action": "Complete exact-head human review of claim-control successor.",
         "owner_action_required": false
-      }
+      },
+      "expected_head": "7ec1467f114c48e629473decc64cb5009439e82e"
     },
     {
       "item_id": "GH-PR-0478",
-      "bind_current_head": true,
       "patch": {
         "state": "VERIFYING",
         "v1_disposition": "V1_REQUIRED",
@@ -41,11 +41,11 @@
         "priority": "P0",
         "next_action": "Complete exact-head qualification and human review of release-control successor.",
         "owner_action_required": false
-      }
+      },
+      "expected_head": "a91d89d9e0b7767e174646324afb38fb0cd90c61"
     },
     {
       "item_id": "GH-PR-0483",
-      "bind_current_head": true,
       "patch": {
         "state": "VERIFYING",
         "v1_disposition": "V1_REQUIRED",
@@ -53,11 +53,11 @@
         "priority": "P0",
         "next_action": "Freeze exact helper only after hosted qualification and review; physical F6 remains separately authorized.",
         "owner_action_required": false
-      }
+      },
+      "expected_head": "558b37c2d552e20f18192c73a642b31038ee7b83"
     },
     {
       "item_id": "GH-PR-0427",
-      "bind_current_head": true,
       "patch": {
         "state": "VERIFYING",
         "v1_disposition": "V1_SUPPORTING",
@@ -65,11 +65,11 @@
         "priority": "P1",
         "next_action": "Remain master reconciliation ledger; do not become competing release authority.",
         "owner_action_required": false
-      }
+      },
+      "expected_head": "560e296aae465d98fcd7ef10c9896bf26ae92a48"
     },
     {
       "item_id": "GH-PR-0447",
-      "bind_current_head": true,
       "patch": {
         "state": "VERIFYING",
         "v1_disposition": "V1_SUPPORTING",
@@ -77,11 +77,11 @@
         "priority": "P1",
         "next_action": "Complete remaining private/authoritative Seal verification before release use.",
         "owner_action_required": false
-      }
+      },
+      "expected_head": "ad524c461aa60426695f226f541e172c557b8e98"
     },
     {
       "item_id": "GH-PR-0468",
-      "bind_current_head": true,
       "patch": {
         "state": "VERIFYING",
         "v1_disposition": "V1_SUPPORTING",
@@ -89,11 +89,11 @@
         "priority": "P1",
         "next_action": "Reconcile supply-chain provenance/integration before final release qualification.",
         "owner_action_required": false
-      }
+      },
+      "expected_head": "f30a1e16f14d92b623770b3866b5c249d9dee263"
     },
     {
       "item_id": "GH-PR-0469",
-      "bind_current_head": true,
       "patch": {
         "state": "VERIFYING",
         "v1_disposition": "V1_SUPPORTING",
@@ -101,11 +101,11 @@
         "priority": "P1",
         "next_action": "Retain bounded Docker/AUD-1 evidence; current physical helper binding is owned by #483.",
         "owner_action_required": false
-      }
+      },
+      "expected_head": "935498ecd42982bc682d7ed69b562c642b74a8fe"
     },
     {
       "item_id": "GH-PR-0423",
-      "bind_current_head": true,
       "patch": {
         "state": "VERIFYING",
         "v1_disposition": "V1_SUPPORTING",
@@ -113,11 +113,11 @@
         "priority": "P1",
         "next_action": "Reconcile PR-G26/PR-G32 applicability and unresolved production qualification rows.",
         "owner_action_required": false
-      }
+      },
+      "expected_head": "324a8421205c664cb4cfbfda9582a6e79d43ee64"
     },
     {
       "item_id": "GH-PR-0426",
-      "bind_current_head": true,
       "patch": {
         "state": "VERIFYING",
         "v1_disposition": "V1_SUPPORTING",
@@ -125,11 +125,11 @@
         "priority": "P1",
         "next_action": "Retain malformed/cross-bound receipt, digest-order and simultaneous-recoverer findings until explicitly closed or excluded.",
         "owner_action_required": false
-      }
+      },
+      "expected_head": "494dac7c0702a285c33ceddd3f0237f63ceea425"
     },
     {
       "item_id": "GH-PR-0482",
-      "bind_current_head": true,
       "patch": {
         "state": "VERIFYING",
         "v1_disposition": "V1_SUPPORTING",
@@ -137,11 +137,11 @@
         "priority": "P2",
         "next_action": "Review positioning copy against Claim Registry before publication.",
         "owner_action_required": false
-      }
+      },
+      "expected_head": "6a3edb0755712ddf2bfcf54371dcf8552de4cef5"
     },
     {
       "item_id": "GH-PR-0481",
-      "bind_current_head": true,
       "patch": {
         "state": "DEFERRED_POST_V1",
         "v1_disposition": "POST_V1",
@@ -149,11 +149,11 @@
         "priority": "P3",
         "next_action": "Resolve Pages projection timeout and production update-channel semantics after v1.",
         "owner_action_required": false
-      }
+      },
+      "expected_head": "8d3d2973d17b437b47fcd55c3a4bceccbf4440f5"
     },
     {
       "item_id": "GH-PR-0404",
-      "bind_current_head": true,
       "patch": {
         "state": "RESEARCH_ONLY",
         "v1_disposition": "V1_EXCLUDED",
@@ -161,11 +161,11 @@
         "priority": "P3",
         "next_action": "Continue SC-MESH research independently of v1 unless D4 is explicitly changed.",
         "owner_action_required": false
-      }
+      },
+      "expected_head": "7783081c858ad9ddf98b2e64e740e1104ae5d08b"
     },
     {
       "item_id": "GH-PR-0450",
-      "bind_current_head": true,
       "patch": {
         "state": "RESEARCH_ONLY",
         "v1_disposition": "RESEARCH_ONLY",
@@ -173,11 +173,11 @@
         "priority": "P3",
         "next_action": "Retain AX-21 observer-livelock and shared epistemic comms research evidence.",
         "owner_action_required": false
-      }
+      },
+      "expected_head": "433c6228f1f535b2b5bce28aa6f7450bc4990503"
     },
     {
       "item_id": "GH-PR-0451",
-      "bind_current_head": true,
       "patch": {
         "state": "DEFERRED_POST_V1",
         "v1_disposition": "POST_V1",
@@ -185,11 +185,11 @@
         "priority": "P3",
         "next_action": "Resume AOM gap program after v1.",
         "owner_action_required": false
-      }
+      },
+      "expected_head": "db6330935ba9c025f7dbd7e45e0b854a6888ceaa"
     },
     {
       "item_id": "GH-PR-0406",
-      "bind_current_head": true,
       "patch": {
         "state": "DEFERRED_POST_V1",
         "v1_disposition": "POST_V1",
@@ -197,7 +197,8 @@
         "priority": "P3",
         "next_action": "Resume inference-aware routing/serving program after v1.",
         "owner_action_required": false
-      }
+      },
+      "expected_head": "c749e06afa5d86b05f894b9deb45434ce0efefda"
     },
     {
       "item_id": "GH-ISSUE-0353",
