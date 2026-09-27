@@ -15,8 +15,7 @@ from .loop import HarnessPass, LoopController, RunOutcome, RunResult
 from .integration import QuarantinedProvider, default_policies
 from .receipts import StationReceipt, ReceiptReference, validate_receipt_graph
 from .extensions import StationExtensionRegistry, StationModule, VerifierDescriptor, VerifierRevision
-
-__version__ = "0.4.0"
+from .version import __version__
 
 __all__ = [
     "AmendmentRule", "CheckType", "GoalSpec", "SuccessCriterion",
