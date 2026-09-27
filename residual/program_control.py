@@ -571,6 +571,51 @@ class ProgramControl:
                 "snapshot_sha256": snapshot.get("snapshot_sha256"),
             })
 
+    def apply_seed(self, seed: dict[str, Any]) -> dict[str, Any]:
+        if not isinstance(seed, dict) or seed.get("schema_version") != "residual.program-seed.v1":
+            raise ContractError("program seed has an unsupported schema")
+        if not self.current().get("repo"):
+            raise ContractError("sync a repository before applying a program seed")
+
+        applied = {"items": 0, "relations": 0, "manual_items": 0}
+        for entry in seed.get("items", []):
+            if not isinstance(entry, dict):
+                raise ContractError("program seed item must be an object")
+            item_id = entry.get("item_id")
+            if not isinstance(item_id, str):
+                raise ContractError("program seed item_id is required")
+            patch = entry.get("patch") or {}
+            bind = "current" if entry.get("bind_current_head") is True else None
+            self.set_item(item_id, patch, bind_head=bind)
+            applied["items"] += 1
+
+        for relation in seed.get("relations", []):
+            if not isinstance(relation, dict):
+                raise ContractError("program seed relation must be an object")
+            self.link(relation.get("from"), relation.get("to"), relation.get("kind"))
+            applied["relations"] += 1
+
+        for entry in seed.get("manual_items", []):
+            if not isinstance(entry, dict):
+                raise ContractError("program seed manual item must be an object")
+            self.add_manual(
+                entry.get("title"),
+                state=entry.get("state", "DISCOVERED"),
+                disposition=entry.get("v1_disposition", "UNCLASSIFIED"),
+                workstream=entry.get("workstream", "BACKLOG"),
+                priority=entry.get("priority", "P2"),
+                next_action=entry.get("next_action"),
+                owner_action_required=bool(entry.get("owner_action_required", False)),
+            )
+            applied["manual_items"] += 1
+
+        self._event("program.seed_applied", {
+            "seed_id": seed.get("seed_id"),
+            **applied,
+            "snapshot_sha256": self.current().get("snapshot_sha256"),
+        })
+        return applied
+
     def _apply_overrides(self, items: list[dict[str, Any]], overrides: dict[str, Any]) -> None:
         by_id = {item["item_id"]: item for item in items}
         for item_id, record in overrides["items"].items():
