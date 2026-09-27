@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "candidates": [
+    {
+      "id": "SI-DOC-001",
+      "title": "Create self-improvement operations runbook",
+      "instruction": "Create a concise operator runbook for the recursive self-improvement mission. Explain plan, run, evidence inspection, export inspection, and the external promotion boundary. Include a Generation promotion checklist. Do not claim a generation passed unless receipts prove it.",
+      "files": [
+        "docs/self-improvement/OPERATIONS.md"
+      ],
+      "context": [
+        "docs/self-improvement/MISSION.md",
+        "docs/station/RUN-CONTROL.md",
+        "docs/roadmap/README.md"
+      ],
+      "depends_on": [],
+      "checks": [
+        {
+          "kind": "exists",
+          "path": "docs/self-improvement/OPERATIONS.md"
+        },
+        {
+          "kind": "contains",
+          "path": "docs/self-improvement/OPERATIONS.md",
+          "text": "Generation promotion checklist"
+        },
+        {
+          "kind": "contains",
+          "path": "docs/self-improvement/OPERATIONS.md",
+          "text": "export"
+        }
+      ],
+      "route": "local",
+      "evaluator_files": []
+    }
+  ]
+}

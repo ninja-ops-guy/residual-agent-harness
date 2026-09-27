@@ -22,6 +22,12 @@ def write_json(path, value):
 
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
+    if argv and argv[0] == "revision":
+        from .self_improvement import revision_main
+        return revision_main(argv[1:])
+    if argv and argv[0] == "self-improve":
+        from .self_improvement import self_improve_main
+        return self_improve_main(argv[1:])
     if argv and argv[0] == "factory":
         from .factory.cli import main as factory
         return factory(argv[1:])
@@ -52,6 +58,8 @@ def main(argv=None):
     sub.add_parser("study", help="Freeze/run independently graded studies (study --help)")
     sub.add_parser("node", help="Join/leave the distributed cluster (node --help)")
     sub.add_parser("cluster", help="Show cluster status (cluster --help)")
+    sub.add_parser("revision", help="Inspect repository health (revision doctor --help)")
+    sub.add_parser("self-improve", help="Plan/run governed recursive self-improvement")
     for name in ("demo", "run"):
         run = sub.add_parser(name)
         if name == "run":

@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "generation": "0001",
+  "status": "bootstrap-implemented-qualification-pending",
+  "observed_main": "3cff6bcd52e352a6ba048c958949a7bbb2a039eb",
+  "source_commit_message": "ci: harden PR Agent as advisory review (#197)",
+  "mission_issue": 291,
+  "observations": [
+    "Accepted main did not contain an indexed revision doctor command at bootstrap.",
+    "The checked-in roadmap status snapshot trails the observed main and must be treated as historical evidence rather than rewritten blindly.",
+    "M6 research work is present in open pull requests but is not production authority until merged and qualified.",
+    "Existing Station and GoalSpec machinery can host bounded self-improvement without creating a second implementation authority."
+  ],
+  "bootstrap_actions": [
+    "Add read-only Revision Doctor.",
+    "Add content-addressed hierarchical mission planning.",
+    "Add strict ImprovementCandidate validation and frozen-evaluator overlap rejection.",
+    "Block bootstrap autonomous writes to protected trust-boundary paths.",
+    "Delegate execution to a Station-managed clone and export only after successful controlled integration.",
+    "Add an intentionally low-risk first candidate and regression tests."
+  ],
+  "nonclaims": [
+    "This record is not evidence that an autonomous generation completed successfully.",
+    "Open M6 research pull requests are not treated as accepted main capability.",
+    "A Station export is not equivalent to production merge or production qualification."
+  ],
+  "roadmap_recorded_main": "4608afabf5de4c87d77aaf149dfc12538d364f43",
+  "roadmap_delta_commits": 8,
+  "roadmap_compare_status": "roadmap_ancestor_observed_main_ahead_by_8",
+  "evidence_note": "GitHub compare confirms the recorded roadmap main is an ancestor of observed main, 8 commits behind and 0 commits ahead. This is roadmap/status lag, not history divergence and not implicit qualification of the later commits.",
+  "implemented_controls": [
+    "Content-addressed Revision Doctor binds roadmap, current status, M7 mission policy, and Factory ownership baseline bytes.",
+    "Two independent Station scout tasks feed one dependent candidate composer.",
+    "Generated proposals have proposal authority only and are retained as Station artifacts before deterministic admission.",
+    "Candidate writable scopes may not overlap and generation-wide frozen evaluator files cannot be writable.",
+    "Executable-code candidates declare frozen tests/test_*.py evaluators; the Mission Governor derives pytest commands and rejects all model-authored executable checks.",
+    "Factory ownership-manifest paths plus M7/Station/verifier/governance surfaces are blocked from autonomous writes.",
+    "Every managed Station clone is checked against the doctor-certified source HEAD before execution.",
+    "Cycle execution revalidates source HEAD, source report identity, and mission plan identity after origination.",
+    "Production merge remains external governed authority.",
+    "No-op successful batches are not exported as successors; accepted generations must change the Git tree.",
+    "Bounded experimental lineage can feed an accepted Station successor into the next generation without modifying the original checkout.",
+    "The initiating M7 governor implementation remains frozen for an experimental lineage even if candidate source edits the future controller.",
+    "The entire tests/ tree plus pytest/import-control surfaces are protected from autonomous writes, preventing one lineage generation from weakening a later generation's evaluator.",
+    "Governor-derived pytest starts under Python isolated mode with third-party plugin autoload disabled before the candidate repository is added to the evaluator path.",
+    "Autonomous execution blocks when the source revision is behind or diverged from the repository's known main revision.",
+    "Without explicit command-check permission, origination is constrained to non-executable documentation/data candidates and executable proposals fail before Station execution.",
+    "Revision Doctor identity additionally binds the M7 controller, CLI dispatch surface, and M7 safety regression bytes."
+  ]
+}
