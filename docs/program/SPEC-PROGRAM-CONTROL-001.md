@@ -59,7 +59,7 @@ Relations:
 - depends_on
 - related
 
-An explicit open successor may project its predecessor to SUPERSEDED. A dependency relation may project ordinary READY/TRIAGED/DISCOVERED work to BLOCKED while the dependency remains active.
+GitHub source wording may produce a non-authoritative relation hint, but it MUST NOT by itself project another item to SUPERSEDED. Only an explicit RESIDUAL program relation/seed may change a predecessor to SUPERSEDED. A dependency relation may project ordinary READY/TRIAGED/DISCOVERED work to BLOCKED while the dependency remains active.
 
 Manual authority overrides are persisted separately from GitHub facts and survive synchronization. When an override is HEAD-bound and the PR head changes, it MUST NOT transfer.
 
