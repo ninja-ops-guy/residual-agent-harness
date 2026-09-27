@@ -1,12 +1,134 @@
 # RESIDUAL
 
-**Build reliable AI systems from unreliable computation.**
+**Evidence-bound acceptance and control for autonomous systems.**
 
-RESIDUAL is an evidence-first reliability and control plane for AI-assisted engineering. Workers propose bounded work; the harness owns acceptance. Execution is observed, evidence is retained, candidate outputs are checked, and only accepted state is allowed across controlled integration boundaries.
+RESIDUAL is an evidence-first reliability and control plane for AI-assisted engineering and autonomous systems. Workers, models, tools, and external systems may produce candidate work; **the harness owns acceptance**. Candidate outputs are bound to evidence and provenance, independently checkable conditions can be applied, and only accepted state is allowed across controlled integration boundaries.
 
-> **AI reliability does not necessarily require making each individual model reliable. Reliability can emerge from constraining, observing, verifying, and deterministically integrating unreliable computation.**
+> **A worker may propose a state transition. It does not get to declare that transition valid.**
 
 For exact current claims, start with [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md).
+
+## Why RESIDUAL exists
+
+As autonomous systems become capable of modifying code, infrastructure, security controls, business systems, and other consequential environments, the problem is no longer only whether an agent can perform a task.
+
+The harder questions are:
+
+- What actually happened?
+- Which exact execution and candidate produced the evidence?
+- Does that evidence remain valid after failure, restart, retry, or recovery?
+- Did an independent verifier confirm the conditions required by the acceptance contract?
+- Who has authority to allow the resulting state transition?
+
+RESIDUAL is designed around those questions.
+
+```text
+Models / Agents / Tools
+          |
+          v
+     Candidate Work
+          |
+          v
+   Evidence + Provenance
+          |
+          v
+ Independent Verification
+          |
+          v
+ Acceptance Authority
+          |
+          v
+ Qualified State Transition
+```
+
+## Core model
+
+RESIDUAL separates **execution** from **authority**.
+
+Workers may reason, call tools, modify artifacts, collaborate, recover from failures, and propose results. Worker completion alone does not establish an accepted result.
+
+```text
+Candidate
+   |
+   v
+Evidence
+   |
+   v
+Challenge
+   |
+   v
+Verification
+   |
+   v
+Authority
+   |
+   v
+Accepted State
+```
+
+The objective is not to make unreliable computation disappear. It is to prevent worker failure, provider interruption, stale or replayed evidence, duplicate results, candidate identity drift, transport faults, partial execution, verifier errors, or incorrect completion claims from silently becoming accepted state.
+
+## Competitive boundary
+
+RESIDUAL is not primarily another chatbot framework, prompt library, model router, or replacement for existing agent frameworks. Models and agent frameworks can operate as execution substrates beneath RESIDUAL's evidence and acceptance controls.
+
+The trust boundary is intentionally above the individual model or worker:
+
+**Agents produce candidates. Evidence establishes what happened. Verifiers challenge the evidence. Authority decides what becomes state.**
+
+This makes provider and framework independence more than a routing concern: a provider response, worker completion, or external-system claim is evidence about an execution, not automatic authority over system state.
+
+## Distributed and self-hosting direction
+
+RESIDUAL's distributed execution work is aimed at allowing specialized workers to communicate, replace failed workers, recover, challenge results, and operate across hosts while preserving evidence and acceptance boundaries.
+
+A longer-term self-hosting direction is governed self-development:
+
+```text
+Requirement
+    |
+    v
+Distributed Work
+    |
+    v
+Candidate Change
+    |
+    v
+Independent Challenge
+    |
+    v
+Verification
+    |
+    v
+Qualification
+    |
+    v
+Human / Host Authority
+    |
+    v
+Accepted Change
+```
+
+This is not a claim of unrestricted recursive self-modification or autonomous merge authority. The intended model is that autonomous systems may propose, implement, test, and challenge changes without unilaterally authorizing them.
+
+## Enterprise direction
+
+The same architecture can extend to enterprise systems while those systems remain authoritative. Governed evidence adapters can expose observations and claims; separately permissioned action paths can control mutations.
+
+Potential integration domains include ERP, CRM, MES, QMS, ITSM, IAM, SIEM/security platforms, observability, databases and data warehouses, document systems, and collaboration platforms.
+
+The architectural goal is an evidence fabric in which raw observations, derived facts, external claims, RESIDUAL-generated claims, verifier results, and authority decisions retain distinct provenance instead of collapsing into a single trusted agent response.
+
+## Maturity path
+
+The immediate objective remains a narrowly defined, reproducible v1 with qualified release invariants. Post-v1 maturity work should not delay v1 unless new evidence demonstrates violation of an existing v1 invariant or release criterion.
+
+The intended post-v1 sequence is:
+
+**exact release qualification -> performance and verification-tax characterization -> provider qualification -> qualification control plane/analytics -> independent operator reproduction -> bounded enterprise pilot**
+
+That sequence is intended to answer not only whether RESIDUAL works, but what additional assurance costs and whether an independent operator can reproduce the same qualified behavior.
+
 
 ## Licensing and editions
 
