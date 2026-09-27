@@ -193,6 +193,95 @@ def test_event_log_is_hash_chained_and_snapshots_are_retained(tmp_path):
     assert (control.snapshots / f"{first['snapshot_sha256']}.json").exists()
 
 
+
+def test_program_seed_applies_head_bound_triage_relations_and_manual_gates(tmp_path):
+    control = ProgramControl(tmp_path)
+    control.sync(
+        "owner/repo",
+        fetcher=FakeGitHub([
+            pr(476, "QD2 product", head="4"*40),
+            pr(483, "F6 helper", head="8"*40),
+        ], []),
+    )
+    seed = {
+        "schema_version": "residual.program-seed.v1",
+        "seed_id": "seed-test",
+        "items": [
+            {
+                "item_id": "GH-PR-0476",
+                "bind_current_head": True,
+                "patch": {
+                    "state": "VERIFYING",
+                    "v1_disposition": "V1_REQUIRED",
+                    "workstream": "PRODUCT_CANDIDATE",
+                    "priority": "P0",
+                },
+            },
+            {
+                "item_id": "GH-PR-0483",
+                "bind_current_head": True,
+                "patch": {
+                    "state": "VERIFYING",
+                    "v1_disposition": "V1_REQUIRED",
+                    "workstream": "AUD1_F6",
+                    "priority": "P0",
+                },
+            },
+        ],
+        "relations": [
+            {"from": "GH-PR-0483", "to": "GH-PR-0476", "kind": "depends_on"},
+        ],
+        "manual_items": [
+            {
+                "title": "Owner decides D4",
+                "state": "HUMAN_ACTION_REQUIRED",
+                "v1_disposition": "V1_REQUIRED",
+                "workstream": "RELEASE_CONTROL",
+                "priority": "P0",
+                "owner_action_required": True,
+            }
+        ],
+    }
+
+    result = control.apply_seed(seed)
+    assert result == {"items": 2, "relations": 1, "manual_items": 1}
+    assert control.item("GH-PR-0476")["state"] == "VERIFYING"
+    helper = control.item("GH-PR-0483")
+    assert helper["depends_on"] == ["GH-PR-0476"]
+    assert helper["state"] == "VERIFYING"
+    assert control.item("GH-PR-0476")["blocked_by"] == []
+
+    owner_items = control.dashboard()["owner_actions"]
+    assert len(owner_items) == 1
+    assert owner_items[0]["title"] == "Owner decides D4"
+
+    # The seed's HEAD-bound decision is not transferable to a successor head.
+    control.sync(
+        "owner/repo",
+        fetcher=FakeGitHub([
+            pr(476, "QD2 product", head="5"*40),
+            pr(483, "F6 helper", head="8"*40),
+        ], []),
+    )
+    product = control.item("GH-PR-0476")
+    assert product["state"] == "HUMAN_ACTION_REQUIRED"
+    assert product["override_stale"] is True
+
+
+def test_seed_rejects_unknown_schema_and_requires_prior_sync(tmp_path):
+    control = ProgramControl(tmp_path)
+    with pytest.raises(ContractError):
+        control.apply_seed({"schema_version": "wrong"})
+
+    with pytest.raises(ContractError):
+        control.apply_seed({
+            "schema_version": "residual.program-seed.v1",
+            "seed_id": "no-sync",
+            "items": [],
+            "relations": [],
+            "manual_items": [],
+        })
+
 def test_invalid_mutations_fail_closed(tmp_path):
     control = ProgramControl(tmp_path)
     control.sync("owner/repo", fetcher=FakeGitHub([pr(1, "one")], []))
