@@ -70,9 +70,13 @@ def test_sync_tracks_all_sources_without_double_counting_pull_shadow(tmp_path):
 
     old = control.item("GH-PR-0009")
     new = control.item("GH-PR-0010")
-    assert old["state"] == "SUPERSEDED"
+    # Source wording is preserved as a relation hint but cannot itself close
+    # or supersede another program item.
+    assert old["state"] == "VERIFYING"
     assert old["superseded_by"] == ["GH-PR-0010"]
     assert new["supersedes"] == ["GH-PR-0009"]
+    relation = next(r for r in snapshot["relations"] if r["from"] == "GH-PR-0010")
+    assert relation["authority"] == "source_hint"
 
     research = control.item("GH-ISSUE-0020")
     assert research["state"] == "RESEARCH_ONLY"
@@ -149,6 +153,8 @@ def test_manual_supersession_relation_projects_immediately(tmp_path):
     control.link("GH-PR-0002", "GH-PR-0001", "supersedes")
     assert control.item("GH-PR-0001")["state"] == "SUPERSEDED"
     assert control.item("GH-PR-0002")["supersedes"] == ["GH-PR-0001"]
+    relation = next(r for r in control.current()["relations"] if r["kind"] == "supersedes")
+    assert relation["authority"] == "program"
 
 
 def test_owner_action_and_v1_dashboard_are_separate_from_github_open_state(tmp_path):
@@ -174,6 +180,7 @@ def test_owner_action_and_v1_dashboard_are_separate_from_github_open_state(tmp_p
     assert [x["item_id"] for x in dashboard["owner_actions"]] == ["GH-PR-0008"]
     assert "GH-PR-0008" in {x["item_id"] for x in dashboard["v1_critical"]}
     assert dashboard["summary"]["total"] == 3
+    assert len(dashboard["all_items"]) == 3
 
 
 def test_event_log_is_hash_chained_and_snapshots_are_retained(tmp_path):
