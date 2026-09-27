@@ -12,8 +12,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 # Proposed V1 product candidate, feature-frozen per coordination/DEVELOPMENT_FREEZE.md (2026-09-26).
-$Target = "efd8ffd06a866c4ebec1dfeeab1d0c4779beb503"
-$TargetTree = "72b44bcfe21876639b17a048bc0184f4c35aa3cf"
+$Target = "05e01731208957e85cf72cf02a925b0660fca144"
+$TargetTree = "92276b7d9883a57fd061c749e319ec10b527d586"
 $Collector = Join-Path $PSScriptRoot "f6_case_guard.py"
 $Db = Join-Path $StationData "station.sqlite3"
 $CaseDir = Join-Path $Output $Case

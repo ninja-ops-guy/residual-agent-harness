@@ -5,8 +5,8 @@
 Proposed V1 product candidate under test, feature-frozen per
 `coordination/DEVELOPMENT_FREEZE.md` (2026-09-26):
 
-- head: `efd8ffd06a866c4ebec1dfeeab1d0c4779beb503`
-- tree: `72b44bcfe21876639b17a048bc0184f4c35aa3cf`
+- head: `05e01731208957e85cf72cf02a925b0660fca144`
+- tree: `92276b7d9883a57fd061c749e319ec10b527d586`
 
 This helper is the F6 successor re-bound from the frozen helper lineage (#403 → #453 →
 #455 → #469). The #469-bound predecessor (head `42259d99…`, tree `31e997bd…`) was
@@ -37,7 +37,7 @@ submit results, recover tasks, rotate credentials, change leases, or integrate c
 Keep two directories/checkouts separate:
 
 1. **candidate checkout** — exact clean proposed-V1 head, used to run Station:
-   `efd8ffd06a866c4ebec1dfeeab1d0c4779beb503` (tree `72b44bcfe21876639b17a048bc0184f4c35aa3cf`)
+   `05e01731208957e85cf72cf02a925b0660fca144` (tree `92276b7d9883a57fd061c749e319ec10b527d586`)
 2. **diagnostics checkout/directory** — this tooling branch.
 
 Station default data is `~/.residual/station/station.sqlite3`.

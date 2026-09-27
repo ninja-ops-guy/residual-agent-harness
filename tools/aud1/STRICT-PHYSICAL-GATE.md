@@ -6,8 +6,8 @@ It does **not** change the proposed-V1 product candidate bytes.
 Proposed V1 Station candidate under test, feature-frozen per
 `coordination/DEVELOPMENT_FREEZE.md` (2026-09-26):
 
-- head: `efd8ffd06a866c4ebec1dfeeab1d0c4779beb503`
-- tree: `72b44bcfe21876639b17a048bc0184f4c35aa3cf`
+- head: `05e01731208957e85cf72cf02a925b0660fca144`
+- tree: `92276b7d9883a57fd061c749e319ec10b527d586`
 
 This helper successor is bound atomically to BOTH identities above. Any helper-byte
 change withdraws physical-execution authorization pending fresh qualification.

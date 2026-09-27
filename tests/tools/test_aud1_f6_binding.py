@@ -27,8 +27,8 @@ f6 = _load("f6_collect_under_test", AUD1 / "f6_collect.py")
 bound = _load("f6_bound_station_under_test", AUD1 / "f6_bound_station.py")
 guard = _load("f6_guard_under_test", AUD1 / "f6_case_guard.py")
 
-PROPOSED_V1_HEAD = "efd8ffd06a866c4ebec1dfeeab1d0c4779beb503"
-PROPOSED_V1_TREE = "72b44bcfe21876639b17a048bc0184f4c35aa3cf"
+PROPOSED_V1_HEAD = "05e01731208957e85cf72cf02a925b0660fca144"
+PROPOSED_V1_TREE = "92276b7d9883a57fd061c749e319ec10b527d586"
 SUPERSEDED_PR469_HEAD = "935498ecd42982bc682d7ed69b562c642b74a8fe"
 SUPERSEDED_PR469_TREE = "8d8ecb2970d3dc2cf304ba8c8c6997a05b45370b"
 
