@@ -1,0 +1,2098 @@
+{
+  "allowed_classifications": [
+    "OBSERVED",
+    "PROVEN",
+    "OPEN_HYPOTHESIS",
+    "R5_CANDIDATE"
+  ],
+  "canary_authorized": false,
+  "candidate": {
+    "head": "8701367db6d3202f24b3eb9f4696b0cadf657985",
+    "qualification_disposition": "READY_FOR_CANARY",
+    "r4_1_gates": "17/17 PASS",
+    "tree": "79bfe6ed1743907065ed44aeb9c460c47527e0c6"
+  },
+  "cases": [
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-001",
+      "category": "lost_ack",
+      "classification": "PROVEN",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "POST comms -> indeterminate transport result",
+        "PROCESS_RESTART",
+        "GET comms/receipt -> matching receipt",
+        "LOCAL_ACK"
+      ],
+      "expected_outbox_state": "ACKED",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "matching authoritative receipt",
+      "expected_receiver_event_count": 1,
+      "initial_durable_state": "PENDING payload not yet known locally to be committed",
+      "injected_fault": "Remote commit succeeds; ACK is lost before local persistence.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-LOST-ACK",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13",
+          "R4-G14"
+        ],
+        "status": "DIRECT"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Core R4-F02 counterexample and repaired receipt-first invariant.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "commit succeeds + ACK lost"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-002",
+      "category": "reconciliation",
+      "classification": "OBSERVED",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET comms/receipt -> unavailable"
+      ],
+      "expected_outbox_state": "PENDING",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "UNKNOWN",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "Receipt service is unreachable on restart.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-RECONCILIATION",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "receipt lookup unavailable"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-003",
+      "category": "reconciliation",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET comms/receipt -> timeout"
+      ],
+      "expected_outbox_state": "PENDING",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "UNKNOWN",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "Receipt GET exceeds the bounded lookup timeout.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-RECONCILIATION",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "HIGH",
+      "title": "receipt lookup timeout"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-004",
+      "category": "http_semantics",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET comms/receipt -> 4xx",
+        "ABORT"
+      ],
+      "expected_outbox_state": "PENDING",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "REJECTED_OR_UNKNOWN",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "Receipt GET returns a non-auth 4xx response.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-HTTP-SEMANTICS",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13"
+        ],
+        "status": "NONE"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "HIGH",
+      "title": "receipt endpoint 4xx"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-005",
+      "category": "http_semantics",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET comms/receipt -> 5xx",
+        "ABORT"
+      ],
+      "expected_outbox_state": "PENDING",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "UNKNOWN",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "Receipt GET returns 5xx.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-HTTP-SEMANTICS",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13"
+        ],
+        "status": "NONE"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "HIGH",
+      "title": "receipt endpoint 5xx"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-006",
+      "category": "receipt_integrity",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET comms/receipt -> malformed",
+        "ABORT"
+      ],
+      "expected_outbox_state": "PENDING",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "INVALID",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "Receipt endpoint returns invalid schema or undecodable JSON.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-RECEIPT-INTEGRITY",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G11",
+          "R4-G13"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "malformed receipt"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-007",
+      "category": "receipt_integrity",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET comms/receipt -> mismatched operation_id",
+        "ABORT"
+      ],
+      "expected_outbox_state": "PENDING",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "MISMATCHED",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "Receipt is validly shaped but binds another operation_id.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-RECEIPT-INTEGRITY",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13"
+        ],
+        "status": "NONE"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "wrong operation_id receipt"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-008",
+      "category": "receipt_integrity",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET comms/receipt -> mismatched project",
+        "ABORT"
+      ],
+      "expected_outbox_state": "PENDING",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "MISMATCHED",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "Receipt binds the operation_id in another project.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-RECEIPT-INTEGRITY",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13"
+        ],
+        "status": "NONE"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "wrong project receipt"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-009",
+      "category": "receipt_integrity",
+      "classification": "OPEN_HYPOTHESIS",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET comms/receipt -> stale receipt",
+        "ABORT"
+      ],
+      "expected_outbox_state": "PENDING",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "STALE",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "A valid old receipt is replayed outside the authorized operation epoch.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-RECEIPT-INTEGRITY",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13"
+        ],
+        "status": "NONE"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "stale receipt"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-010",
+      "category": "idempotency",
+      "classification": "OBSERVED",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "POST comms",
+        "POST comms same key/payload"
+      ],
+      "expected_outbox_state": "ACKED",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "same receipt returned twice",
+      "expected_receiver_event_count": 1,
+      "initial_durable_state": "first invocation PENDING; second invocation uses identical canonical payload",
+      "injected_fault": "Submit the same operation_id and byte-identical canonical payload twice.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-IDEMPOTENCY",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G10",
+          "R4-G17"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "HIGH",
+      "title": "duplicate operation_id / same payload"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-011",
+      "category": "idempotency",
+      "classification": "OBSERVED",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "POST comms payload A",
+        "POST comms payload B -> reject"
+      ],
+      "expected_outbox_state": "ACKED_FOR_A_AND_REJECT_B",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "receipt binds payload A only",
+      "expected_receiver_event_count": 1,
+      "initial_durable_state": "payload A is durably associated with operation_id",
+      "injected_fault": "Reuse operation_id with a different canonical payload.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-IDEMPOTENCY",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G10",
+          "R4-G17"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "duplicate operation_id / different payload"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-012",
+      "category": "crash_boundary",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "PROCESS_EXIT",
+        "PROCESS_RESTART",
+        "GET comms/receipt -> absent",
+        "POST comms",
+        "LOCAL_ACK"
+      ],
+      "expected_outbox_state": "ACKED",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "matching new receipt",
+      "expected_receiver_event_count": 1,
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "SIGKILL after durable enqueue and before POST.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-CRASH-BOUNDARY",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G10",
+          "R4-G14"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "HIGH",
+      "title": "sender crash before POST"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-013",
+      "category": "crash_boundary",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "POST comms -> indeterminate",
+        "PROCESS_EXIT",
+        "PROCESS_RESTART",
+        "GET comms/receipt -> receipt_or_absent",
+        "POST only if absent",
+        "LOCAL_ACK"
+      ],
+      "expected_outbox_state": "ACKED_OR_PENDING_FAIL_CLOSED",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "MATCHING_OR_UNKNOWN",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "SIGKILL while POST outcome is indeterminate.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-CRASH-BOUNDARY",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13",
+          "R4-G14"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "sender crash during POST"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-014",
+      "category": "crash_boundary",
+      "classification": "PROVEN",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "POST comms -> remote commit",
+        "PROCESS_EXIT",
+        "PROCESS_RESTART",
+        "GET comms/receipt -> matching receipt",
+        "LOCAL_ACK"
+      ],
+      "expected_outbox_state": "ACKED",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "matching authoritative receipt",
+      "expected_receiver_event_count": 1,
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "SIGKILL after server commit but before response completion.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-CRASH-BOUNDARY",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13",
+          "R4-G14"
+        ],
+        "status": "DIRECT"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "sender crash after remote commit"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-015",
+      "category": "crash_boundary",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET comms/receipt -> matching receipt",
+        "PROCESS_EXIT",
+        "PROCESS_RESTART",
+        "GET comms/receipt -> matching receipt",
+        "LOCAL_ACK"
+      ],
+      "expected_outbox_state": "ACKED",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "matching authoritative receipt",
+      "expected_receiver_event_count": 1,
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "SIGKILL after matching receipt response and before local ACK begins.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-CRASH-BOUNDARY",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13",
+          "R4-G14"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "HIGH",
+      "title": "sender crash before local ACK"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-016",
+      "category": "crash_boundary",
+      "classification": "OPEN_HYPOTHESIS",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET comms/receipt -> matching receipt",
+        "PROCESS_EXIT",
+        "PROCESS_RESTART",
+        "GET comms/receipt -> matching receipt",
+        "LOCAL_ACK"
+      ],
+      "expected_outbox_state": "ACKED_AFTER_ATOMIC_RECOVERY",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "matching authoritative receipt",
+      "expected_receiver_event_count": 1,
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "SIGKILL inside the local ACK transaction.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-CRASH-BOUNDARY",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G10",
+          "R4-G14"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest",
+        "sqlite_transaction_and_integrity_check"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "sender crash during local ACK persistence"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-017",
+      "category": "restart",
+      "classification": "OBSERVED",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "RESTART",
+        "RESTART",
+        "RESTART"
+      ],
+      "expected_outbox_state": "ACKED",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "matching receipt retained",
+      "expected_receiver_event_count": 1,
+      "initial_durable_state": "operation is ACKED after prior receipt-first recovery",
+      "injected_fault": "Restart recovery repeatedly after reconciliation completed.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-RESTART",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13",
+          "R4-G14"
+        ],
+        "status": "DIRECT"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "HIGH",
+      "title": "repeated restart"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-018",
+      "category": "concurrency",
+      "classification": "OPEN_HYPOTHESIS",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET receipt by A",
+        "GET receipt by B",
+        "at most one POST if absent"
+      ],
+      "expected_outbox_state": "ACKED_ONCE_OR_PENDING_FAIL_CLOSED",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "single matching receipt or unknown",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "Release two recovery processes against one outbox row at the same barrier.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-CONCURRENCY",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G10",
+          "R4-G13"
+        ],
+        "status": "NONE"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest",
+        "process_barrier_trace",
+        "sqlite_lock_trace"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "two simultaneous recovery processes"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-019",
+      "category": "storage",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET receipt only if durable row can be read safely",
+        "NO_POST_ON_STORAGE_UNCERTAINTY"
+      ],
+      "expected_outbox_state": "PENDING_OR_EXPLICIT_STORAGE_ERROR",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "UNCHANGED_OR_UNKNOWN",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "Hold a conflicting SQLite lock through the bounded recovery interval.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-STORAGE",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G10"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest",
+        "sqlite_lock_trace"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "HIGH",
+      "title": "SQLite lock/contention"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-020",
+      "category": "storage",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [],
+      "expected_outbox_state": "QUARANTINED_OR_EXPLICIT_ERROR",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "UNQUERIED",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "disposable copy contains a PENDING row before controlled corruption",
+      "injected_fault": "Mutate disposable outbox pages/checksum so integrity_check fails.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-STORAGE",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G10"
+        ],
+        "status": "NONE"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest",
+        "before_after_outbox_hash",
+        "sqlite_integrity_check"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "corrupted outbox"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-021",
+      "category": "storage",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [],
+      "expected_outbox_state": "QUARANTINED_OR_EXPLICIT_ERROR",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "UNQUERIED",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "disposable copy contains a PENDING row before controlled truncation",
+      "injected_fault": "Truncate a disposable outbox file at a deterministic byte offset.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-STORAGE",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G10"
+        ],
+        "status": "NONE"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest",
+        "before_after_outbox_size_hash",
+        "sqlite_integrity_check"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "truncated outbox"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-022",
+      "category": "retention",
+      "classification": "OBSERVED",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [],
+      "expected_outbox_state": "PENDING_STALE_NOT_AUTO_SENT",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "UNQUERIED",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "PENDING operation timestamp is older than max_age_s",
+      "injected_fault": "Advance synthetic clock beyond the recovery age bound.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-RETENTION",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G10",
+          "R4-G17"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "HIGH",
+      "title": "stale pending operation"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-023",
+      "category": "server_lifecycle",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET receipt -> disconnect_or_timeout",
+        "ABORT_WITHOUT_POST"
+      ],
+      "expected_outbox_state": "PENDING",
+      "expected_process_service_state": "disposable receiver may restart; protected services remain unchanged",
+      "expected_receipt_state": "UNKNOWN",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "Restart only a disposable receiver between request acceptance and receipt response.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-SERVER-LIFECYCLE",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13",
+          "R4-G15"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "server restart during reconciliation"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-024",
+      "category": "evidence",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "CANARY_PASS is emitted or evidence loss is hidden",
+        "incomplete_when": "collector failure itself is not retained by an independent channel",
+        "pass_when": "verifier returns EVIDENCE_INCOMPLETE and never CANARY_PASS"
+      },
+      "expected_network_action_sequence": [
+        "protocol actions may complete",
+        "NO_SUCCESS_DECLARATION"
+      ],
+      "expected_outbox_state": "ACKED_OR_PENDING_AS_OBSERVED",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "as observed but not sufficient for PASS",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "Inject deterministic collector write/hash failure after protocol completion.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-EVIDENCE",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G16"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest",
+        "collector_failure_record"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "evidence collector failure"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-025",
+      "category": "rollback",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "failure is hidden or authority widens",
+        "incomplete_when": "rollback trace is absent",
+        "pass_when": "canary aborts, records rollback failure, and never declares PASS"
+      },
+      "expected_network_action_sequence": [],
+      "expected_outbox_state": "PRESERVED",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "UNCHANGED",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "Make the disposable rollback adapter return nonzero.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-ROLLBACK",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G16"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest",
+        "rollback_exit_status_and_trace"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "HIGH",
+      "title": "rollback invocation failure"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-026",
+      "category": "network",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET receipt -> unavailable",
+        "ABORT_WITHOUT_POST"
+      ],
+      "expected_outbox_state": "PENDING",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "UNKNOWN",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "Partition the disposable sender from the receiver for the bounded interval.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-NETWORK",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G02",
+          "R4-G13"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest",
+        "partition_rule_and_lifetime"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "network partition"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-027",
+      "category": "authorization",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET receipt -> auth failure",
+        "ABORT_WITHOUT_POST"
+      ],
+      "expected_outbox_state": "PENDING",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "UNKNOWN",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "Expire transport authentication immediately before receipt lookup.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-AUTHORIZATION",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13"
+        ],
+        "status": "NONE"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "authentication expiration"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-028",
+      "category": "authorization",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any POST, receipt GET, credential mutation, or authority widening occurs",
+        "incomplete_when": "preflight trace is absent",
+        "pass_when": "preflight refuses before evidence directory mutation or network action"
+      },
+      "expected_network_action_sequence": [],
+      "expected_outbox_state": "UNCHANGED",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "UNQUERIED",
+      "expected_receiver_event_count": 0,
+      "initial_durable_state": "no canary durable operation may be created",
+      "injected_fault": "Provide absent, expired, mismatched, or out-of-scope operator authorization.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-AUTHORIZATION",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G11",
+          "R4-G12"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "authorization rejection"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-029",
+      "category": "storage",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "NO_POST_IF_DURABLE_ENQUEUE_OR_SCOPE_EVIDENCE_FAILED"
+      ],
+      "expected_outbox_state": "PENDING_IF_PREEXISTING_OTHERWISE_ABSENT",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "UNQUERIED_OR_UNKNOWN",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "Inject ENOSPC/EIO into a disposable outbox or evidence filesystem.",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-STORAGE",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G10",
+          "R4-G16"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest",
+        "fault_injection_mount_or_shim_trace"
+      ],
+      "research_relevance": "Tests whether receipt-first recovery remains fail-closed under adversarial timing and durable-state faults.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "disk-write failure"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-030A",
+      "category": "sigkill_matrix",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "PROCESS_RESTART",
+        "GET comms/receipt"
+      ],
+      "expected_outbox_state": "ACKED_IF_MATCHING_RECEIPT_ELSE_PENDING_FAIL_CLOSED",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "MATCHING_OR_UNKNOWN",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "PROCESS_EXIT; after restart first network action must be GET receipt",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-SIGKILL-MATRIX",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13",
+          "R4-G14"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Systematically locates crash-consistency boundaries in receipt-first recovery.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "SIGKILL before receipt lookup"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-030B",
+      "category": "sigkill_matrix",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET comms/receipt -> indeterminate",
+        "PROCESS_EXIT",
+        "PROCESS_RESTART",
+        "GET comms/receipt"
+      ],
+      "expected_outbox_state": "ACKED_IF_MATCHING_RECEIPT_ELSE_PENDING_FAIL_CLOSED",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "MATCHING_OR_UNKNOWN",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "GET becomes indeterminate; restart must issue GET again and no POST first",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-SIGKILL-MATRIX",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13",
+          "R4-G14"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Systematically locates crash-consistency boundaries in receipt-first recovery.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "SIGKILL during receipt lookup"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-030C",
+      "category": "sigkill_matrix",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET comms/receipt -> matching receipt",
+        "PROCESS_EXIT",
+        "PROCESS_RESTART",
+        "GET comms/receipt -> matching receipt",
+        "LOCAL_ACK"
+      ],
+      "expected_outbox_state": "ACKED_IF_MATCHING_RECEIPT_ELSE_PENDING_FAIL_CLOSED",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "MATCHING_OR_UNKNOWN",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "matching receipt is known only in volatile memory",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-SIGKILL-MATRIX",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13",
+          "R4-G14"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Systematically locates crash-consistency boundaries in receipt-first recovery.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "SIGKILL after receipt hit before ACK"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-030D",
+      "category": "sigkill_matrix",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET comms/receipt -> matching receipt",
+        "LOCAL_ACK -> interrupted",
+        "PROCESS_RESTART",
+        "GET comms/receipt -> matching receipt",
+        "LOCAL_ACK"
+      ],
+      "expected_outbox_state": "ACKED_IF_MATCHING_RECEIPT_ELSE_PENDING_FAIL_CLOSED",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "MATCHING_OR_UNKNOWN",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "ACK transaction is interrupted atomically",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-SIGKILL-MATRIX",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13",
+          "R4-G14"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Systematically locates crash-consistency boundaries in receipt-first recovery.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "SIGKILL during ACK transaction"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-030E",
+      "category": "sigkill_matrix",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "PROCESS_EXIT",
+        "PROCESS_RESTART"
+      ],
+      "expected_outbox_state": "ACKED_IF_MATCHING_RECEIPT_ELSE_PENDING_FAIL_CLOSED",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "MATCHING_OR_UNKNOWN",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "durable ACK exists before process death",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-SIGKILL-MATRIX",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13",
+          "R4-G14"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Systematically locates crash-consistency boundaries in receipt-first recovery.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "SIGKILL after ACK commit before exit"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-030F",
+      "category": "sigkill_matrix",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET comms/receipt -> absent",
+        "PROCESS_EXIT",
+        "PROCESS_RESTART",
+        "GET comms/receipt",
+        "POST only if still absent"
+      ],
+      "expected_outbox_state": "ACKED_IF_MATCHING_RECEIPT_ELSE_PENDING_FAIL_CLOSED",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "MATCHING_OR_UNKNOWN",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "receipt absence is volatile and cannot authorize later blind POST",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-SIGKILL-MATRIX",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13",
+          "R4-G14"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Systematically locates crash-consistency boundaries in receipt-first recovery.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "SIGKILL after absent receipt before POST"
+    },
+    {
+      "abort_condition": "any action or state outside the expected oracle; preserve evidence and stop further network actions",
+      "attack_id": "CAA-030G",
+      "category": "sigkill_matrix",
+      "classification": "R5_CANDIDATE",
+      "deterministic_oracle": {
+        "fail_when": "any unexpected POST, duplicate effect, authority widening, protected-service drift, or evidence mismatch",
+        "incomplete_when": "any required evidence is absent, malformed, or hash-invalid",
+        "pass_when": "observed sequence, durable states, receipt state, receiver count, and protected-service state exactly equal expected values"
+      },
+      "expected_network_action_sequence": [
+        "GET comms/receipt -> absent",
+        "POST comms -> indeterminate",
+        "PROCESS_EXIT",
+        "PROCESS_RESTART",
+        "GET comms/receipt"
+      ],
+      "expected_outbox_state": "ACKED_IF_MATCHING_RECEIPT_ELSE_PENDING_FAIL_CLOSED",
+      "expected_process_service_state": "only the experiment-owned sender may stop; protected services remain byte/state stable",
+      "expected_receipt_state": "MATCHING_OR_UNKNOWN",
+      "expected_receiver_event_count": [
+        0,
+        1
+      ],
+      "initial_durable_state": "one authorized operation is durably PENDING with a stable operation_id",
+      "injected_fault": "POST outcome is indeterminate",
+      "preconditions": [
+        "synthetic/disposable receiver and outbox",
+        "exact candidate identity",
+        "bounded authorization scope",
+        "canary execution remains disabled"
+      ],
+      "proposed_future_gate": "R5-SIGKILL-MATRIX",
+      "r4_1_coverage": {
+        "basis": "No untested case is classified as an R4.1 defect; coverage states only what the completed gate exercised.",
+        "gates": [
+          "R4-G13",
+          "R4-G14"
+        ],
+        "status": "PARTIAL"
+      },
+      "required_evidence": [
+        "candidate_identity",
+        "authorization_receipt",
+        "prestate",
+        "network_action_trace",
+        "operation_id",
+        "outbox_transitions",
+        "receipt_lookup_and_result",
+        "receiver_event_count",
+        "process_service_prestate_and_poststate",
+        "timestamps",
+        "operator_interventions",
+        "rollback_evidence",
+        "sha256_manifest"
+      ],
+      "research_relevance": "Systematically locates crash-consistency boundaries in receipt-first recovery.",
+      "risk_if_oracle_violated": "PRE_CANARY_BLOCKER",
+      "severity": "CRITICAL",
+      "title": "SIGKILL during conditional POST"
+    }
+  ],
+  "conditional_blocker_label": "PRE_CANARY_BLOCKER",
+  "corpus_id": "CANARY_ATTACK_CORPUS_V1",
+  "method": "deterministic synthetic/disposable fixtures only; no live canary execution",
+  "schema": "residual-canary-attack-corpus/1",
+  "seal_v2_status": "VALID"
+}
