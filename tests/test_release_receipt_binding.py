@@ -16,6 +16,7 @@ class ReleaseReceiptBindingTests(unittest.TestCase):
     def setUp(self):
         release_commit = "1" * 40
         artifact = "c" * 64
+        artifact_map = {"residual.whl": artifact}
         self.doc = {
             "schema_version": "residual.release-receipt.v1",
             "release": "v1.0.0",
@@ -43,9 +44,13 @@ class ReleaseReceiptBindingTests(unittest.TestCase):
                 "signature_verified":True,"sbom_sha256":"d"*64,"provenance_sha256":"e"*64,
             }],
             "artifact_binding": {
-                "rc_artifact_sha256": artifact,
-                "qualified_artifact_sha256": artifact,
-                "artifact_equal": True,
+                "artifact_set_sha256": mod._artifact_set_digest(artifact_map),
+                "artifacts": [{
+                    "name": "residual.whl",
+                    "rc_artifact_sha256": artifact,
+                    "qualified_artifact_sha256": artifact,
+                    "artifact_equal": True,
+                }],
             },
             "environment": {
                 "name":"synthetic","identity_sha256":"a"*64,
@@ -84,17 +89,24 @@ class ReleaseReceiptBindingTests(unittest.TestCase):
             },
         }
 
+    def artifact_map(self, doc):
+        return {item["name"]: item["sha256"] for item in doc["artifact"]}
+
+    def refresh_artifact_set_digest(self, doc):
+        bound = {item["name"]: item["rc_artifact_sha256"] for item in doc["artifact_binding"]["artifacts"]}
+        doc["artifact_binding"]["artifact_set_sha256"] = mod._artifact_set_digest(bound)
+
     def close(self, doc):
         doc["closure"]["state"]="V1_CLOSED"
         doc["final_tag"]={"name":"v1.0.0","commit":doc["candidate"]["commit"],"signature_verified":True}
         doc["binding_verification"]["candidate_final_equal"]=True
 
-    def validate_closed(self, doc):
+    def validate_closed(self, doc, *, expected_artifacts=None):
         mod.validate_binding(
             doc,
             expected_rc_source=doc["candidate"]["commit"],
             expected_rc_tree=doc["candidate"]["tree"],
-            expected_artifact_sha256=doc["artifact_binding"]["rc_artifact_sha256"],
+            expected_artifacts=expected_artifacts if expected_artifacts is not None else self.artifact_map(doc),
         )
 
     def test_rc_binding_passes_before_final_tag(self):
@@ -105,6 +117,43 @@ class ReleaseReceiptBindingTests(unittest.TestCase):
         with self.assertRaisesRegex(mod.ReceiptBindingError,"trusted expected"):
             mod.validate_binding(doc)
         self.validate_closed(doc)
+
+    def test_rejects_extra_unbound_artifact(self):
+        doc=copy.deepcopy(self.doc)
+        extra="9"*64
+        doc["artifact"].append({
+            "name":"container","media_type":"application/vnd.oci.image.manifest.v1+json","size":1,
+            "sha256":extra,"registry_digest":"sha256:"+extra,"signature_verified":True,
+            "sbom_sha256":"1"*64,"provenance_sha256":"2"*64,
+        })
+        with self.assertRaisesRegex(mod.ReceiptBindingError,"exact release artifact set"):
+            mod.validate_binding(doc)
+
+    def test_multi_artifact_binding_requires_complete_exact_set(self):
+        doc=copy.deepcopy(self.doc)
+        extra="9"*64
+        doc["artifact"].append({
+            "name":"container","media_type":"application/vnd.oci.image.manifest.v1+json","size":1,
+            "sha256":extra,"registry_digest":"sha256:"+extra,"signature_verified":True,
+            "sbom_sha256":"1"*64,"provenance_sha256":"2"*64,
+        })
+        doc["artifact_binding"]["artifacts"].append({
+            "name":"container","rc_artifact_sha256":extra,
+            "qualified_artifact_sha256":extra,"artifact_equal":True,
+        })
+        self.refresh_artifact_set_digest(doc)
+        mod.validate_binding(doc)
+
+        self.close(doc)
+        with self.assertRaisesRegex(mod.ReceiptBindingError,"externally selected qualified artifact set"):
+            self.validate_closed(doc, expected_artifacts={"residual.whl":"c"*64})
+        self.validate_closed(doc, expected_artifacts=self.artifact_map(doc))
+
+    def test_artifact_set_digest_must_match_bound_set(self):
+        doc=copy.deepcopy(self.doc)
+        doc["artifact_binding"]["artifact_set_sha256"]="0"*64
+        with self.assertRaisesRegex(mod.ReceiptBindingError,"artifact_set_sha256"):
+            mod.validate_binding(doc)
 
     def test_rejects_rc_tag_on_different_commit(self):
         doc=copy.deepcopy(self.doc); doc["rc_tag"]["commit"]="4"*40
@@ -157,7 +206,7 @@ class ReleaseReceiptBindingTests(unittest.TestCase):
         with self.assertRaisesRegex(mod.ReceiptBindingError,"externally selected RC source"):
             mod.validate_binding(doc, expected_rc_source=expected_commit,
                                  expected_rc_tree=expected_tree,
-                                 expected_artifact_sha256=doc["artifact_binding"]["rc_artifact_sha256"])
+                                 expected_artifacts=self.artifact_map(doc))
 
     def test_unbound_tree_rejected_by_expected_identity(self):
         doc=copy.deepcopy(self.doc); self.close(doc)
@@ -166,24 +215,26 @@ class ReleaseReceiptBindingTests(unittest.TestCase):
         with self.assertRaisesRegex(mod.ReceiptBindingError,"externally selected RC tree"):
             mod.validate_binding(doc, expected_rc_source=doc["candidate"]["commit"],
                                  expected_rc_tree=expected_tree,
-                                 expected_artifact_sha256=doc["artifact_binding"]["rc_artifact_sha256"])
+                                 expected_artifacts=self.artifact_map(doc))
 
-    def test_consistent_artifact_substitution_rejected_by_expected_identity(self):
+    def test_consistent_artifact_substitution_rejected_by_expected_set(self):
         doc=copy.deepcopy(self.doc); self.close(doc)
-        expected=doc["artifact_binding"]["rc_artifact_sha256"]
+        expected=self.artifact_map(doc)
         new="8"*64
         doc["artifact"][0]["sha256"]=new
         doc["artifact"][0]["registry_digest"]="sha256:"+new
-        doc["artifact_binding"]["rc_artifact_sha256"]=new
-        doc["artifact_binding"]["qualified_artifact_sha256"]=new
-        with self.assertRaisesRegex(mod.ReceiptBindingError,"externally selected qualified artifact"):
+        binding=doc["artifact_binding"]["artifacts"][0]
+        binding["rc_artifact_sha256"]=new
+        binding["qualified_artifact_sha256"]=new
+        self.refresh_artifact_set_digest(doc)
+        with self.assertRaisesRegex(mod.ReceiptBindingError,"externally selected qualified artifact set"):
             mod.validate_binding(doc, expected_rc_source=doc["candidate"]["commit"],
                                  expected_rc_tree=doc["candidate"]["tree"],
-                                 expected_artifact_sha256=expected)
+                                 expected_artifacts=expected)
 
     def test_rejects_correct_source_wrong_artifact(self):
         doc=copy.deepcopy(self.doc)
-        doc["artifact_binding"]["qualified_artifact_sha256"]="9"*64
+        doc["artifact_binding"]["artifacts"][0]["qualified_artifact_sha256"]="9"*64
         with self.assertRaisesRegex(mod.ReceiptBindingError,"qualified artifact"):
             mod.validate_binding(doc)
 
@@ -200,9 +251,12 @@ class ReleaseReceiptBindingTests(unittest.TestCase):
         self.assertNotIn("candidate_tree",gates)
         self.assertEqual(gates["r4_canary_provenance_sha"],mod.CANARY_COMMIT)
         self.assertEqual(gates["r4_canary_provenance_tree"],mod.CANARY_TREE)
+        self.assertNotIn("rc_artifact_digest",gates)
+        self.assertNotIn("qualified_artifact_digest",gates)
         for key in ("convergence_source_sha","rc_source_sha","rc_tree_sha",
-                    "rc_artifact_digest","qualified_artifact_digest","final_tag_target_sha"):
+                    "rc_artifact_set_sha256","qualified_artifact_set_sha256","final_tag_target_sha"):
             self.assertIn(key,gates)
+
 
 if __name__ == "__main__":
     unittest.main()
