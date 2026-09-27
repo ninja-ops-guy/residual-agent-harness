@@ -3,6 +3,12 @@
 
 R4.1 identity is canary provenance only. The post-convergence RC source/tree,
 qualified artifact, and final tag are distinct authority roles.
+
+This validator checks structural/cross-field release binding. It does not itself
+perform Git signature verification, artifact hashing, or human authorization.
+For V1_CLOSED it requires trusted expected RC source/tree/artifact inputs from
+the caller so internally consistent self-reported identities cannot substitute
+for the selected release identity.
 """
 
 from __future__ import annotations
@@ -21,6 +27,7 @@ HEX64 = re.compile(r"^[0-9a-f]{64}$")
 RC_TAG = re.compile(r"^v1\.0\.0-rc\.[1-9][0-9]*$")
 FINAL_TAG = "v1.0.0"
 CLOSURE_STATES = {"PRE_CLOSURE", "V1_CLOSED", "ROLLED_BACK"}
+REQUIRED_GATES = {f"V1-G{i:02d}" for i in range(1, 11)}
 
 
 class ReceiptBindingError(ValueError):
@@ -39,7 +46,50 @@ def _hex(value: Any, name: str, pattern: re.Pattern[str]) -> str:
     return value
 
 
-def validate_binding(doc: dict[str, Any]) -> None:
+def _closed_prerequisites(doc: dict[str, Any]) -> None:
+    decisions = doc.get("decisions")
+    if not isinstance(decisions, list):
+        raise ReceiptBindingError("V1_CLOSED requires the full gate decision inventory")
+    seen: dict[str, str] = {}
+    for entry in decisions:
+        gate = _mapping(entry, "decision").get("gate_id")
+        state = entry.get("state")
+        if gate in seen:
+            raise ReceiptBindingError(f"duplicate release gate decision: {gate}")
+        if not isinstance(gate, str):
+            raise ReceiptBindingError("release gate decision missing gate_id")
+        seen[gate] = state
+    if set(seen) != REQUIRED_GATES:
+        missing = sorted(REQUIRED_GATES - set(seen))
+        extra = sorted(set(seen) - REQUIRED_GATES)
+        raise ReceiptBindingError(f"V1_CLOSED requires exactly V1-G01..V1-G10; missing={missing} extra={extra}")
+    not_go = sorted(g for g, state in seen.items() if state != "GO")
+    if not_go:
+        raise ReceiptBindingError(f"V1_CLOSED requires GO for every release gate; non_go={not_go}")
+
+    verification = _mapping(doc.get("verification"), "verification")
+    if verification.get("result") != "GO":
+        raise ReceiptBindingError("V1_CLOSED requires verification.result=GO")
+    for field in ("health", "readiness", "critical_journeys", "observability"):
+        if verification.get(field) is not True:
+            raise ReceiptBindingError(f"V1_CLOSED requires verification.{field}=true")
+
+    deployment = _mapping(doc.get("deployment"), "deployment")
+    if deployment.get("result") != "DEPLOYED":
+        raise ReceiptBindingError("V1_CLOSED requires deployment.result=DEPLOYED")
+
+    rollback = _mapping(doc.get("rollback_window"), "rollback_window")
+    if rollback.get("outcome") != "PASSED":
+        raise ReceiptBindingError("V1_CLOSED requires rollback_window.outcome=PASSED")
+
+
+def validate_binding(
+    doc: dict[str, Any],
+    *,
+    expected_rc_source: str | None = None,
+    expected_rc_tree: str | None = None,
+    expected_artifact_sha256: str | None = None,
+) -> None:
     if doc.get("schema_version") != "residual.release-receipt.v1":
         raise ReceiptBindingError("unsupported schema_version")
     if doc.get("release") != "v1.0.0":
@@ -52,7 +102,7 @@ def validate_binding(doc: dict[str, Any]) -> None:
 
     candidate = _mapping(doc.get("candidate"), "candidate")
     rc_source_commit = _hex(candidate.get("commit"), "candidate.commit", HEX40)
-    _hex(candidate.get("tree"), "candidate.tree", HEX40)
+    rc_source_tree = _hex(candidate.get("tree"), "candidate.tree", HEX40)
     _hex(candidate.get("parent"), "candidate.parent", HEX40)
     if rc_source_commit == CANARY_COMMIT:
         raise ReceiptBindingError("R4 canary provenance cannot populate RC source identity")
@@ -118,16 +168,38 @@ def validate_binding(doc: dict[str, Any]) -> None:
     if binding.get("candidate_final_equal") is not True:
         raise ReceiptBindingError("binding_verification.candidate_final_equal must be true after final tag exists")
 
+    if closure_state == "V1_CLOSED":
+        _closed_prerequisites(doc)
+        if expected_rc_source is None or expected_rc_tree is None or expected_artifact_sha256 is None:
+            raise ReceiptBindingError("V1_CLOSED requires trusted expected RC source/tree/artifact inputs")
+        expected_rc_source = _hex(expected_rc_source, "expected_rc_source", HEX40)
+        expected_rc_tree = _hex(expected_rc_tree, "expected_rc_tree", HEX40)
+        expected_artifact_sha256 = _hex(expected_artifact_sha256, "expected_artifact_sha256", HEX64)
+        if rc_source_commit != expected_rc_source:
+            raise ReceiptBindingError("receipt RC source does not equal externally selected RC source")
+        if rc_source_tree != expected_rc_tree:
+            raise ReceiptBindingError("receipt RC tree does not equal externally selected RC tree")
+        if rc_artifact != expected_artifact_sha256:
+            raise ReceiptBindingError("receipt artifact does not equal externally selected qualified artifact")
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("receipt", type=Path)
+    parser.add_argument("--expected-rc-source")
+    parser.add_argument("--expected-rc-tree")
+    parser.add_argument("--expected-artifact-sha256")
     args = parser.parse_args()
     try:
         doc = json.loads(args.receipt.read_text(encoding="utf-8"))
         if not isinstance(doc, dict):
             raise ReceiptBindingError("receipt root must be an object")
-        validate_binding(doc)
+        validate_binding(
+            doc,
+            expected_rc_source=args.expected_rc_source,
+            expected_rc_tree=args.expected_rc_tree,
+            expected_artifact_sha256=args.expected_artifact_sha256,
+        )
     except (OSError, json.JSONDecodeError, ReceiptBindingError) as exc:
         print(f"FAIL: {exc}")
         return 1
