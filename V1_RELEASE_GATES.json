@@ -1,0 +1,22 @@
+{
+  "schema_version": "residual.v1-release-gates.v1",
+  "release": "v1.0.0",
+  "candidate_commit": "8701367db6d3202f24b3eb9f4696b0cadf657985",
+  "candidate_tree": "79bfe6ed1743907065ed44aeb9c460c47527e0c6",
+  "automated_promotion": false,
+  "decision_states": ["GO", "NO_GO", "ROLLBACK", "EVIDENCE_INCOMPLETE"],
+  "decision_precedence": ["ROLLBACK", "EVIDENCE_INCOMPLETE", "NO_GO", "GO"],
+  "gates": [
+    {"id":"V1-G01","name":"post_canary_verification","requires":["CANARY_PASS","hash_bound_canary_bundle","authorization_receipt","candidate_identity","single_receiver_effect","receipt_first_recovery","zero_unauthorized_mutation","stable_protected_services","rollback_rehearsal"],"human_gate":["Canary Verifier"],"next":"POST_CANARY_VERIFIED"},
+    {"id":"V1-G02","name":"promotion_eligibility","requires":["R4.1_seal","R4.1_17_of_17","authoritative_manifest","post_canary_report","no_open_unexceptionable_blocker"],"human_gate":["Release Manager"],"next":"PROMOTION_ELIGIBLE"},
+    {"id":"V1-G03","name":"release_candidate_creation","requires":["recoverable_exact_commit_tree_parent","two_person_byte_identity","clean_protected_branch","version_1.0.0_consistent","approved_changelog","RC_number"],"human_gate":["Release Manager","Authorized Maintainer"],"next":"RC_CREATED"},
+    {"id":"V1-G04","name":"artifact_provenance","requires":["single_build","source_hash","artifact_sha256_and_registry_digest","signed_provenance","SBOM","toolchain_and_builder_identity","dependency_lock","no_rebuild"],"human_gate":["Qualification Lead","Security Approver"],"next":"ARTIFACT_VERIFIED"},
+    {"id":"V1-G05","name":"production_qualification","requires":["exact_artifact_install","required_test_manifest","security_scan","production_shaped_migration_rehearsal","configuration_compatibility","backup_restore_drill","release_soak","zero_unknown_or_skipped_required_gate"],"human_gate":["Qualification Lead"],"next":"PROD_QUALIFIED"},
+    {"id":"V1-G06","name":"release_approval","requires":["immutable_evidence_index","approved_window","numeric_guardrails","on_call_roster","incident_channel","completed_deploy_and_rollback_plans"],"human_gate":["Security Approver","Operations Approver","Product Owner","Release Manager"],"next":"RELEASE_APPROVED"},
+    {"id":"V1-G07","name":"deployment_start","requires":["unexpired_approval_receipt","operator_identity","production_prestate","validated_deployment_backup","rollback_ready","change_freeze"],"human_gate":["Incident Commander","Deployment Operator"],"next":"DEPLOYING"},
+    {"id":"V1-G08","name":"post_deploy_acceptance","requires":["health_and_readiness","critical_journeys","data_integrity","observability_green","guardrails_green","no_rollback_trigger"],"human_gate":["Operations Approver","Product Owner"],"next":"OBSERVING"},
+    {"id":"V1-G09","name":"rollback_window_exit","requires":["window_elapsed","sustained_guardrails","previous_artifact_and_restore_point_retained","incident_review_complete_or_none"],"human_gate":["Incident Commander","Operations Approver"],"next":"CLOSURE_ELIGIBLE"},
+    {"id":"V1-G10","name":"release_closure","requires":["release_receipt_valid","evidence_archive_verified","final_tag_same_commit","final_tag_signed","no_rebuild"],"human_gate":["Release Manager","Authorized Maintainer"],"next":"V1_CLOSED"}
+  ],
+  "transition_rule": "A gate may emit GO only after every required item is independently verified and every named human has approved the one bounded transition. Any missing or invalid evidence emits EVIDENCE_INCOMPLETE. A verified failed requirement emits NO_GO. A verified unsafe deployed state emits ROLLBACK. No output performs an action automatically."
+}

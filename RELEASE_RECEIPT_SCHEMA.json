@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://residual.invalid/schemas/release-receipt-v1.json",
+  "title": "RESIDUAL v1 release receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","release","candidate","rc_tag","final_tag","artifact","environment","decisions","approvals","deployment","verification","rollback_window","evidence_archive","closure"],
+  "properties": {
+    "schema_version": {"const":"residual.release-receipt.v1"},
+    "release": {"const":"v1.0.0"},
+    "candidate": {"$ref":"#/$defs/candidate"},
+    "rc_tag": {"$ref":"#/$defs/tag"},
+    "final_tag": {"anyOf":[{"type":"null"},{"$ref":"#/$defs/tag"}]},
+    "artifact": {"type":"array","minItems":1,"items":{"$ref":"#/$defs/artifact"}},
+    "environment": {"type":"object","additionalProperties":false,"required":["name","identity_sha256","configuration_sha256","schema_version"],"properties":{"name":{"type":"string","minLength":1},"identity_sha256":{"$ref":"#/$defs/sha256"},"configuration_sha256":{"$ref":"#/$defs/sha256"},"schema_version":{"type":"string","minLength":1}}},
+    "decisions": {"type":"array","minItems":1,"items":{"$ref":"#/$defs/decision"}},
+    "approvals": {"type":"array","minItems":4,"items":{"$ref":"#/$defs/approval"}},
+    "deployment": {"type":"object","additionalProperties":false,"required":["procedure_revision","started_at","completed_at","operator","result","log_sha256","backup_id","prestate_sha256","poststate_sha256"],"properties":{"procedure_revision":{"type":"string","minLength":1},"started_at":{"$ref":"#/$defs/timestamp"},"completed_at":{"$ref":"#/$defs/timestamp"},"operator":{"type":"string","minLength":1},"result":{"enum":["DEPLOYED","ROLLED_BACK"]},"log_sha256":{"$ref":"#/$defs/sha256"},"backup_id":{"type":"string","minLength":1},"prestate_sha256":{"$ref":"#/$defs/sha256"},"poststate_sha256":{"$ref":"#/$defs/sha256"}}},
+    "verification": {"type":"object","additionalProperties":false,"required":["result","report_sha256","health","readiness","critical_journeys","observability"],"properties":{"result":{"enum":["GO","NO_GO","ROLLBACK","EVIDENCE_INCOMPLETE"]},"report_sha256":{"$ref":"#/$defs/sha256"},"health":{"type":"boolean"},"readiness":{"type":"boolean"},"critical_journeys":{"type":"boolean"},"observability":{"type":"boolean"}}},
+    "rollback_window": {"type":"object","additionalProperties":false,"required":["opened_at","closed_at","outcome","previous_artifact_retained","restore_point_retained"],"properties":{"opened_at":{"$ref":"#/$defs/timestamp"},"closed_at":{"$ref":"#/$defs/timestamp"},"outcome":{"enum":["PASSED","ROLLED_BACK"]},"previous_artifact_retained":{"type":"boolean"},"restore_point_retained":{"type":"boolean"},"incident_id":{"type":["string","null"]}}},
+    "evidence_archive": {"type":"object","additionalProperties":false,"required":["uri","manifest_sha256","immutable","independent_copy_verified","retention_until"],"properties":{"uri":{"type":"string","minLength":1},"manifest_sha256":{"$ref":"#/$defs/sha256"},"immutable":{"const":true},"independent_copy_verified":{"const":true},"retention_until":{"$ref":"#/$defs/timestamp"}}},
+    "closure": {"type":"object","additionalProperties":false,"required":["state","closed_at","release_manager","receipt_sha256","no_rebuild"],"properties":{"state":{"enum":["V1_CLOSED","ROLLED_BACK"]},"closed_at":{"$ref":"#/$defs/timestamp"},"release_manager":{"type":"string","minLength":1},"receipt_sha256":{"$ref":"#/$defs/sha256"},"no_rebuild":{"const":true}}}
+  },
+  "$defs": {
+    "sha256": {"type":"string","pattern":"^[0-9a-f]{64}$"},
+    "timestamp": {"type":"string","format":"date-time","pattern":"Z$"},
+    "candidate": {"type":"object","additionalProperties":false,"required":["commit","tree","parent"],"properties":{"commit":{"const":"8701367db6d3202f24b3eb9f4696b0cadf657985"},"tree":{"const":"79bfe6ed1743907065ed44aeb9c460c47527e0c6"},"parent":{"const":"eada7577cf6f2de875b508c6a82f47870e3aa673"}}},
+    "tag": {"type":"object","additionalProperties":false,"required":["name","commit","signature_verified"],"properties":{"name":{"type":"string","pattern":"^v1\\.0\\.0(?:-rc\\.[1-9][0-9]*)?$"},"commit":{"const":"8701367db6d3202f24b3eb9f4696b0cadf657985"},"signature_verified":{"const":true}}},
+    "artifact": {"type":"object","additionalProperties":false,"required":["name","media_type","size","sha256","registry_digest","signature_verified","sbom_sha256","provenance_sha256"],"properties":{"name":{"type":"string","minLength":1},"media_type":{"type":"string","minLength":1},"size":{"type":"integer","minimum":1},"sha256":{"$ref":"#/$defs/sha256"},"registry_digest":{"type":"string","pattern":"^sha256:[0-9a-f]{64}$"},"signature_verified":{"const":true},"sbom_sha256":{"$ref":"#/$defs/sha256"},"provenance_sha256":{"$ref":"#/$defs/sha256"}}},
+    "decision": {"type":"object","additionalProperties":false,"required":["gate_id","state","decided_at","decided_by","evidence_sha256"],"properties":{"gate_id":{"type":"string","pattern":"^V1-G(0[1-9]|10)$"},"state":{"enum":["GO","NO_GO","ROLLBACK","EVIDENCE_INCOMPLETE"]},"decided_at":{"$ref":"#/$defs/timestamp"},"decided_by":{"type":"array","minItems":1,"uniqueItems":true,"items":{"type":"string","minLength":1}},"evidence_sha256":{"$ref":"#/$defs/sha256"}}},
+    "approval": {"type":"object","additionalProperties":false,"required":["role","identity","approved_at","scope","expires_at","signature"],"properties":{"role":{"enum":["Canary Verifier","Release Manager","Authorized Maintainer","Qualification Lead","Security Approver","Operations Approver","Product Owner","Incident Commander","Deployment Operator","Data Owner"]},"identity":{"type":"string","minLength":1},"approved_at":{"$ref":"#/$defs/timestamp"},"scope":{"type":"string","minLength":1},"expires_at":{"$ref":"#/$defs/timestamp"},"signature":{"type":"string","minLength":1}}}
+  }
+}
