@@ -141,5 +141,6 @@
       "public_claim": "Commercial-policy template only; no operational SLA or staffed support commitment is created by the repository.",
       "qualification_evidence": []
     }
-  ]
+  ],
+  "evidence_binding_rule": "Qualification evidence is structural provenance, not self-authenticating proof. D3/RC qualification requires PASS evidence bound to one exact subject HEAD/TREE. RELEASED additionally requires a release-authorization object bound to that RC-qualified subject and an artifact-set digest. External evidence resolvers remain responsible for authenticating referenced receipts/artifacts."
 }
