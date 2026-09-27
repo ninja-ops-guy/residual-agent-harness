@@ -73,8 +73,9 @@ def test_sync_tracks_all_sources_without_double_counting_pull_shadow(tmp_path):
     # Source wording is preserved as a relation hint but cannot itself close
     # or supersede another program item.
     assert old["state"] == "VERIFYING"
-    assert old["superseded_by"] == ["GH-PR-0010"]
-    assert new["supersedes"] == ["GH-PR-0009"]
+    assert old["superseded_by"] == []
+    assert new["supersedes"] == []
+    assert new["source_relation_hints"] == [{"kind": "supersedes", "target": "GH-PR-0009"}]
     relation = next(r for r in snapshot["relations"] if r["from"] == "GH-PR-0010")
     assert relation["authority"] == "source_hint"
 
