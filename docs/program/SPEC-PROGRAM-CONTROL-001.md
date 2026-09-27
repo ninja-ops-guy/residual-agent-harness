@@ -15,7 +15,7 @@ GitHub remains the source of repository facts (open PRs/issues, PR HEAD/base ide
 2. **GitHub disappearance != CLOSED.** Synchronization MUST NOT fabricate closure solely because a PR/issue no longer appears in the open-source inventory.
 3. **Authority decisions may be revision-bound.** A HEAD-bound RESIDUAL override MUST become stale and surface HUMAN_ACTION_REQUIRED when the source HEAD changes.
 4. **Supersession is explicit.** RESIDUAL may infer supersession only from explicit source wording or a local authority relation. Shared base ancestry alone MUST NOT close or supersede work.
-5. **Historical snapshots are immutable.** Every projected snapshot receives a digest and is retained by digest. Program events form a hash chain.
+5. **Historical snapshots are digest-addressed and application-create-once.** Every projected snapshot receives a digest and Program Control does not overwrite an existing snapshot path. This is not a claim of immutable storage, authenticated authorship, or non-repudiation. Program events form a hash chain that provides tamper-evident linkage under the same storage assumptions.
 6. **Research does not become v1 implicitly.** Research/post-v1 classification does not confer admission; v1 required/supporting states remain explicit program dispositions.
 7. **Owner action is first class.** Items requiring a human ruling/authorization are surfaced independently from ordinary active work.
 
@@ -68,7 +68,7 @@ Manual authority overrides are persisted separately from GitHub facts and surviv
 Program data lives under the configured Program Control data root.
 
 - current.json — latest projected snapshot
-- snapshots/<snapshot_sha256>.json — immutable historical projections
+- snapshots/<snapshot_sha256>.json — digest-addressed historical projections; create-once by Program Control, not immutable-storage proof
 - overrides.json — RESIDUAL-local authority decisions and manual items
 - events.jsonl — hash-chained program-control events
 
