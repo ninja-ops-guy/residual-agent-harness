@@ -2,6 +2,8 @@
 
 Your local agent workshop: Markdown missions, parallel runners, LDD events, review gates, and Ollama in one retro interface.
 
+> **v1 support boundary:** launchers/installers may work on a broader set of hosts than the admitted release surface. v1 admits Windows x64 and Linux x64 native, Linux Docker Engine, Docker Desktop on Windows, and the reviewed NVIDIA Compose overlay. Native macOS, Docker Desktop on macOS, and Linux ARM64 remain implemented/experimental paths outside v1 support unless a later release explicitly admits and qualifies them.
+
 ## Fastest start: complete Docker runtime
 
 1. Install and start [Docker Desktop](https://www.docker.com/products/docker-desktop/), or Docker Engine with Compose on Linux.
@@ -61,4 +63,4 @@ For architecture, command-execution limits, distributed runners, and testing evi
 
 Stop the old station, extract this bundle, and run the platform launcher. Reuse the same data directory (native default or Docker volume) to retain missions and settings. The new observation tables are added on startup; existing LDD task history stays authoritative. Keep a backup of the data directory when upgrading an active installation.
 
-Open Model Workshop to select OpenAI, an OpenAI-compatible endpoint, Anthropic, Gemini, Azure, Bedrock, or Ollama. Save the provider's credentials and optional fallback order, then run a connection test. Open Diagnostics → Observation console to inspect a trace or download JSONL. No new pip dependency is required. See [the modular integration guide](docs/station/MODULAR-LAYERS.md) for setup, environment variables, provider capabilities and migration details.
+Open Model Workshop to select implemented adapters such as OpenAI, an OpenAI-compatible endpoint, Anthropic, Gemini, Azure, Bedrock, or Ollama. Adapter availability and a successful connection test are capability observations, not a v1 support matrix. Hosted-provider v1 qualification requires the explicitly selected provider/model/deployment to complete the exact-RC inference → candidate → verifier → receipt chain without disguised fallback. Open Diagnostics → Observation console to inspect a trace or download JSONL. No new pip dependency is required. See [the modular integration guide](docs/station/MODULAR-LAYERS.md) for protocol capabilities and setup.
