@@ -1,0 +1,74 @@
+name: M6-SPEC-007N active evidence query
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  m6-spec-007n:
+    if: github.head_ref == 'experiment/m6-spec-007n-active-evidence-query'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      OLLAMA_HOST: 127.0.0.1:11456
+      OLLAMA_NO_CLOUD: "1"
+      OLLAMA_MODEL: qwen2.5:7b
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install RESIDUAL
+        run: python -m pip install -e '.[factory]'
+      - name: Syntax-check experiment
+        run: python -m py_compile scripts/m6_spec_007n.py
+      - name: Preflight identity and enriched evidence
+        run: |
+          python - <<'PY'
+          import ast, importlib.util
+          from pathlib import Path
+          path=Path("scripts/m6_spec_007n.py")
+          tree=ast.parse(path.read_text())
+          values=[n.value for n in ast.walk(tree) if isinstance(n,ast.Constant) and n.value=="m6-discover-007n"]
+          assert len(values)==1
+          spec=importlib.util.spec_from_file_location("m6_007n",path)
+          mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+          metrics=mod.aggregate_metrics()
+          assert metrics["context_bytes_non_success_max"]==32652
+          assert metrics["context_bytes_non_success_mean"]==31629.0
+          PY
+      - name: Install Ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+      - name: Start dedicated Ollama endpoint
+        run: |
+          nohup ollama serve > /tmp/ollama-m6-spec-007n.log 2>&1 &
+          echo $! > /tmp/ollama-m6-spec-007n.pid
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:11456/api/tags >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ollama-m6-spec-007n.log
+          exit 1
+      - name: Pull analysis model
+        run: ollama pull "$OLLAMA_MODEL"
+      - name: Record runtime identity
+        run: |
+          ollama --version
+          ollama list | tee /tmp/ollama-models-m6-spec-007n.txt
+          sha256sum scripts/m6_spec_007n.py | tee /tmp/m6-spec-007n-script-sha256.txt
+      - name: Execute authoritative active-query trial
+        run: python scripts/m6_spec_007n.py --model "$OLLAMA_MODEL" --base-url http://127.0.0.1:11456 --output runs/m6-spec-007n/evidence.json
+      - name: Retain evidence
+        if: always()
+        run: |
+          test ! -f runs/m6-spec-007n/evidence.json || cat runs/m6-spec-007n/evidence.json
+          tail -300 /tmp/ollama-m6-spec-007n.log || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m6-spec-007n-active-evidence-query
+          path: |
+            runs/m6-spec-007n
+            /tmp/ollama-m6-spec-007n.log
+            /tmp/ollama-m6-spec-007n.pid
+            /tmp/ollama-models-m6-spec-007n.txt
+            /tmp/m6-spec-007n-script-sha256.txt
