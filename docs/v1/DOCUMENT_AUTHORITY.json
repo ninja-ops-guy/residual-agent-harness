@@ -1,0 +1,24 @@
+{
+  "schema_version": "residual.v1-document-authority.v1",
+  "base_main": "59f3ac7d1dfb9444060bd884ee9d67b8d758514d",
+  "authority_classes": [
+    "CURRENT_NORMATIVE",
+    "CURRENT_DESCRIPTIVE",
+    "HISTORICAL_EVIDENCE",
+    "PROPOSAL",
+    "REFERENCE_TEMPLATE",
+    "ROADMAP"
+  ],
+  "documents": [
+    {"path":"README.md","authority_class":"CURRENT_DESCRIPTIVE","applies_to":["public_onboarding"],"release_evidence_eligible":false},
+    {"path":"START-HERE.md","authority_class":"CURRENT_DESCRIPTIVE","applies_to":["public_onboarding"],"release_evidence_eligible":false},
+    {"path":"docs/testing/QUALIFICATION_V1.md","authority_class":"CURRENT_NORMATIVE","applies_to":["qualification"],"release_evidence_eligible":true},
+    {"path":"docs/CURRENT_STATUS.md","authority_class":"HISTORICAL_EVIDENCE","applies_to":["historical_status"],"release_evidence_eligible":false},
+    {"path":"docs/enterprise/governance/security-review-package.md","authority_class":"REFERENCE_TEMPLATE","applies_to":["enterprise_security_review"],"release_evidence_eligible":false},
+    {"path":"docs/enterprise/governance/architecture-review-package.md","authority_class":"REFERENCE_TEMPLATE","applies_to":["enterprise_architecture_review"],"release_evidence_eligible":false},
+    {"path":"docs/enterprise/commercial/licensing.md","authority_class":"REFERENCE_TEMPLATE","applies_to":["commercial_policy"],"release_evidence_eligible":false},
+    {"path":"docs/enterprise/commercial/support-tiers.md","authority_class":"REFERENCE_TEMPLATE","applies_to":["commercial_support_policy"],"release_evidence_eligible":false},
+    {"path":"docs/enterprise/supplychain/vulnerability-disclosure-policy.md","authority_class":"REFERENCE_TEMPLATE","applies_to":["enterprise_security_policy"],"release_evidence_eligible":false},
+    {"path":"docs/demo-cloud-gateway.md","authority_class":"REFERENCE_TEMPLATE","applies_to":["legacy_demo_gateway"],"release_evidence_eligible":false}
+  ]
+}
