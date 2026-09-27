@@ -5,7 +5,7 @@ import unittest
 from unittest.mock import patch
 
 from residual.core import ContractError
-from residual.station.service import DEMO_FILES, Station, demo_spec
+from residual.station.service import DEMO_FILES, REVIEW_SYSTEM, Station, demo_spec
 
 
 class ReviewerContractTests(unittest.TestCase):
@@ -23,6 +23,28 @@ class ReviewerContractTests(unittest.TestCase):
         self.s.finish(work, {"files": DEMO_FILES["OPS-101"]})
         self.assertEqual(self.s.store.task(pid, "OPS-101")["state"], "review_ready")
         return pid
+
+    def test_reviewer_contract_preserves_pre_activation_human_gate_semantics(self):
+        self.assertIn("CURRENT mission phase", REVIEW_SYSTEM)
+        self.assertIn("HOLD", REVIEW_SYSTEM)
+        self.assertIn("human approval", REVIEW_SYSTEM)
+        self.assertIn("future phase", REVIEW_SYSTEM)
+
+    def test_review_packet_includes_task_title_for_target_resolution(self):
+        pid = self._live_review_ready()
+        captured = {}
+
+        def verdict(store, project_id, role, packet, system, schema, placement, tid, *, extensions=None):
+            captured["packet"] = packet
+            captured["system"] = system
+            return {"approved": True, "findings": []}
+
+        with patch("residual.station.service.model_call", side_effect=verdict):
+            self.s.review(pid, "OPS-101")
+
+        self.assertEqual(captured["packet"]["task"]["title"], "Restore the health beacon")
+        self.assertEqual(captured["packet"]["goal"], self.s.store.project(pid)["goal"])
+        self.assertIn("resolve aliases", captured["system"])
 
     def test_reviewer_cannot_approve_with_blocking_finding(self):
         pid = self._live_review_ready()
