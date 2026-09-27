@@ -73,6 +73,8 @@ def demo_spec():
 class Station:
     def __init__(self, root, *, extension_factory=None):
         self.store = Store(root)
+        from .mesh_state import MeshState
+        self.mesh = MeshState(self.store)
         self.store.settings(DEFAULTS, defaults=True)
         self.store.recover(startup=True)
         self.ollama = Ollama(self.store)
@@ -180,10 +182,11 @@ class Station:
                     self.store.transition(pid, task["id"], "blocked", fields={"findings": [str(e)]})
             return {"message": "Triage complete. Failing baseline acceptance checks are expected for unimplemented specs."}
 
-    def prepare(self, pid, owner, tid=None):
+    def prepare(self, pid, owner, tid=None, routes=None, capabilities=None, reserve_budget=False):
         with self.project_lock(pid):
             self.store.recover()
-            t = self.store.claim(pid, owner, tid)
+            t = self.store.claim(pid, owner, tid, routes=routes, capabilities=capabilities,
+                                 reserve_budget=reserve_budget)
             if not t:
                 return None
             p = self.store.project(pid)
@@ -210,8 +213,13 @@ class Station:
                         hashes = {name: sha(value) for name, value in sorted(prior_candidate_files.items())}
                         self.store.event(pid, "task.finding", {"message": "Repair context bound to prior candidate", "file_hashes": hashes}, t["id"])
             self.store.update_task(pid, t["id"], base_commit=base, candidate_dir=str(folder), head_commit=None)
+            from .contracts import task_execution_policy
             packet = {"project_goal": p["goal"], "task_id": t["id"], "instruction": t["instruction"],
                       "writable_files": t["files"], "files": files, "checks": t["checks"],
+                      "generation": int(p.get("generation", 1)),
+                      "fencing_token": t.get("fencing_token", 0),
+                      "required_capabilities": t.get("capabilities", []),
+                      "execution_policy": task_execution_policy(t),
                       "repair_findings": t["findings"], "prior_candidate_files": prior_candidate_files,
                       "spec_hash": p["spec_hash"], "base_commit": base,
                       "parent_receipts": parent_receipts}
@@ -222,7 +230,7 @@ class Station:
         with self.project_lock(pid):
             current = self.store.task(pid, t["id"])
             # Validate lease before touching files; stale remote results never mutate candidates.
-            self.store.heartbeat(pid, t["id"], lease)
+            self.store.heartbeat(pid, t["id"], lease, t.get("fencing_token"), renew=False)
             p = self.store.project(pid); folder = current["candidate_dir"]
             try:
                 if not isinstance(response, dict) or set(response) != {"files"}:
@@ -247,16 +255,16 @@ class Station:
                     if repeated_failed_patch:
                         fields["findings"].append("Candidate exactly repeated a previously failed patch; make a materially different correction that addresses the recorded check failure.")
                         self.store.event(pid, "task.finding", {"message": "Repeated failed candidate detected", "patch_sha256": patch["sha256"]}, t["id"])
-                    self.store.transition(pid, t["id"], "repair_required", lease=lease, fields=fields)
+                    self.store.transition(pid, t["id"], "repair_required", lease=lease, fencing_token=t.get("fencing_token"), fields=fields)
                 else:
-                    self.store.transition(pid, t["id"], "local_verified", lease=lease, fields=fields)
+                    self.store.transition(pid, t["id"], "local_verified", lease=lease, fencing_token=t.get("fencing_token"), fields=fields)
                     self.store.transition(pid, t["id"], "review_ready")
                 if usage:
                     self.store.event(pid, "usage.recorded", usage, t["id"], actor=t["owner"])
                 return {"task_id": t["id"], "state": self.store.task(pid, t["id"])["state"]}
             except Exception as e:
                 if self.store.task(pid, t["id"])["state"] == "running":
-                    self.store.transition(pid, t["id"], "repair_required", lease=lease, fields={"findings": [str(e)[:500] if isinstance(e, ContractError) else "Runner failed before verification"]})
+                    self.store.transition(pid, t["id"], "repair_required", lease=lease, fencing_token=t.get("fencing_token"), fields={"findings": [str(e)[:500] if isinstance(e, ContractError) else "Runner failed before verification"]})
                 raise
 
     def run_one(self, pid, tid=None, owner="local-runner"):

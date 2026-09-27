@@ -24,6 +24,7 @@ DEFAULTS = {
     "cloud": {"kind": "openai_compatible", "model": "", "base_url": "", "placement": "remote", "output_token_field": "max_completion_tokens"},
     "review_placement": "local", "workers": 2, "max_output_tokens": 4096,
     "cloud_fallbacks": [], "local_failover": [], "observations_enabled": True,
+    "mesh_allowed_capabilities": ["model.local", "model.remote", "files.propose", "evidence.submit", "comms.read", "comms.write"],
     "batch_max_passes": 30, "batch_token_budget": 200000, "batch_wall_clock_s": 3600,
 }
 CATALOG = [
