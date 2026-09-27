@@ -200,7 +200,11 @@ class Handler(BaseHTTPRequestHandler):
             patch = data.get("patch")
             if not isinstance(patch, dict):
                 raise ContractError("Program item patch must be an object")
-            bind_head = "current" if data.get("bind_current_head") is True else None
+            bind_head = None
+            if data.get("bind_current_head") is True:
+                current_item = s.program.item(item_id)
+                if current_item.get("source", {}).get("head"):
+                    bind_head = "current"
             s.program.set_item(item_id, patch, bind_head=bind_head)
             return {"item": s.program.item(item_id)}
         if path == "/api/program/link":
