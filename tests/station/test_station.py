@@ -3,6 +3,7 @@ from __future__ import annotations
 import concurrent.futures
 import io
 import json
+import os
 import tempfile
 import threading
 import time
@@ -300,6 +301,21 @@ class StationTests(unittest.TestCase):
         checks = [{"kind": "command", "argv": ["{python}", "-c", "print('ok')"]}]
         result = ws.run_checks(self.temp.name, checks, False)
         self.assertFalse(result[0]["passed"])
+
+    def test_run_checks_preserves_systemdrive_in_subprocess_env(self):
+        # Regression (QD-1): the check-subprocess env whitelist stripped SystemDrive,
+        # so on Windows a child Python expanded %SystemDrive% literally and wrote
+        # cache .db files into the candidate tree (dirty-tree ContractError).
+        fake = {k: os.environ[k] for k in ("PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP") if k in os.environ}
+        fake["SystemDrive"] = "C:\\"  # mixed-case spelling must still be preserved
+        probe = ("import os; ok = 'SYSTEMDRIVE' in {k.upper() for k in os.environ}; "
+                 "p = os.path.expandvars('%SystemDrive%\\\\probe'); "
+                 "print('PRESENT' if ok and not p.startswith('%') else 'ABSENT:' + p)")
+        checks = [{"kind": "command", "argv": ["{python}", "-c", probe]}]
+        with patch.dict(os.environ, fake, clear=True):
+            result = ws.run_checks(self.temp.name, checks, True)
+        self.assertTrue(result[0]["passed"], result[0]["detail"])
+        self.assertIn("PRESENT", result[0]["detail"])
 
     def test_artifact_tampering_is_rejected(self):
         a = self.s.store.add_artifact(self.pid, "receipt", "original")

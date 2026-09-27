@@ -119,7 +119,7 @@ def run_checks(root, checks, commands=False):
                 if not commands:
                     raise ContractError("Project test commands are disabled; enable them for this trusted project at import")
                 argv = [sys.executable if x == "{python}" else x for x in check["argv"]]
-                env = {k: v for k, v in os.environ.items() if k in {"PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "LANG"}}
+                env = {k: v for k, v in os.environ.items() if k.upper() in {"PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "LANG", "SYSTEMDRIVE"}}
                 # Isolated HOME and stripped API keys; this is process isolation, not an OS sandbox.
                 with tempfile.TemporaryDirectory(prefix="residual-check-") as home:
                     env.update(HOME=home, USERPROFILE=home, PYTHONDONTWRITEBYTECODE="1", PYTHONUNBUFFERED="1")
