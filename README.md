@@ -10,7 +10,7 @@ For exact current claims, start with [`docs/CURRENT_STATUS.md`](docs/CURRENT_STA
 
 ## Licensing and editions
 
-RESIDUAL is being structured as an **open-core** project. The candidate Apache-2.0 component is a deliberately small **verification and research kernel**, not the complete runtime or enterprise platform. This development repository contains reserved product code, so GitHub visibility is not itself a license grant.
+RESIDUAL is an **open-core** project. The Apache-2.0 component is a deliberately small **verification and research kernel**, not the complete runtime or enterprise platform. This development repository contains reserved product code, so GitHub visibility is not itself a license grant.
 
 See [LICENSING.md](LICENSING.md) and the exact-revision [Open Source Manifest](docs/open-source/OPEN_SOURCE_MANIFEST.md) before relying on license scope.
 
