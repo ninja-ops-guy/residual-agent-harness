@@ -85,10 +85,14 @@ def test_github_sync_never_infers_closed_from_source_absence(tmp_path):
     control.sync("owner/repo", fetcher=first)
     assert control.item("GH-PR-0010")["state"] == "READY"
 
-    # A later GitHub inventory no longer contains the PR. The new snapshot does
-    # not fabricate a CLOSED item; closure is an explicit RESIDUAL program act.
+    # A later GitHub inventory no longer contains the PR. RESIDUAL carries the
+    # program item forward for owner reconciliation instead of fabricating CLOSED.
     control.sync("owner/repo", fetcher=FakeGitHub([], []))
-    assert control.current()["summary"]["total"] == 0
+    item = control.item("GH-PR-0010")
+    assert item["source_open"] is False
+    assert item["state"] == "HUMAN_ACTION_REQUIRED"
+    assert item["owner_action_required"] is True
+    assert control.current()["summary"]["total"] == 1
 
 
 def test_head_bound_override_fails_closed_on_new_pr_head(tmp_path):
