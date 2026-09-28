@@ -20,15 +20,24 @@ The v2 program must not expand the v1 release surface. Until v1 release, this br
    - Replace repeated large-context injection with CAS-backed stable handles and explicit recall.
    - Measure token/cache economics without weakening evidence availability.
 
-3. **CMPE-004 — Compaction as ledger event**
+3. **OBSH-AGENT-001 — Swarm Runtime Observability & Stall Intelligence**
+   - Distinguish seat liveness from process, lease, work, and progress state.
+   - Add evidence-backed WorkProgressReceipt and StallDiagnosisReceipt contracts.
+   - Classify healthy waits, observer stalls, target failures, and verified stalls without inventing causes.
+   - Correlate WorkID/MissionID/LeaseID/Factory execution/provider/tool/evidence/receipt identities in Command Station.
+   - Gate autonomous checkpoint/fence/reassign/recovery through existing authority and generation-fencing rules.
+   - Qualify observability, stall classification, and autonomous recovery as separate claims before SELFHOST-R0 unattended-operation claims.
+   - Spec: [SPEC-OBSH-AGENT-001](SPEC-OBSH-AGENT-001.md).
+
+4. **CMPE-004 — Compaction as ledger event**
    - Make context compaction explicit, reconstructable, and economically gated.
    - Preserve lossless references separately from lossy summaries.
 
-4. **ENVB-002 — Environment Bank**
+5. **ENVB-002 — Environment Bank**
    - Convert v1 D2, WebVM, swarm, CI repair, qualification, and review history into replayable environments.
    - Freeze benchmark generations and enforce screening/validation isolation.
 
-5. **M6 v2 research loop**
+6. **M6 v2 research loop**
    - Use the Environment Bank to screen proposed improvements.
    - Require held-out validation, fixed capability floors, evidence receipts, and human authorization before protected changes.
 
