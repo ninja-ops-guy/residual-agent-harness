@@ -122,6 +122,19 @@ single-host evidenced v1 baseline -> least-privilege enterprise profile -> multi
 Reuse the Environment Bank by retaining PR #448 Windows first-failure evidence, exact-head artifacts, sensitivity mutations and accepted scope boundaries as replayable v2 qualification inputs.
 
 
+
+## Operability / continuity track — Governed Host Lifecycle Supervisor
+
+**Spec:** [`SPEC-HOST-LIFECYCLE-SUPERVISOR-V2.md`](SPEC-HOST-LIFECYCLE-SUPERVISOR-V2.md)
+
+Harvested from the 2026-09-28 v1 dogfood incident where a safe gateway auth-snapshot refresh required a full desktop lifecycle restart but the active agent correctly returned `OWNER_PHYSICAL_ACTION_REQUIRED` rather than improvising process termination or UI actuation.
+
+The v2 Host Lifecycle Supervisor (HLS) is a separately governed, restart-surviving control component for narrowly allowlisted lifecycle capabilities. It binds DF-AUTH-001 dispatch/authority epochs, immutable prestate receipts, process/service identity transitions, restart-loop protection, post-restart Mission Board/ledger/seat/checkpoint reconciliation, provider-readiness revalidation, stale-generation fencing, and explicit `OWNER_PHYSICAL_ACTION_REQUIRED` fallback.
+
+HLS is not a general shell or ambient root daemon. Its first qualification campaigns cover Kimi/OpenClaw coordinator restart, RESIDUAL Station restart, provider-runtime restart, authority-rescission races, and later host cold-start reconstruction. It composes with BL-006/007/008/009 lessons, SC-MESH continuity, EVPR/OBSH/CMPE/ENVB, HarnessBench adversarial restart campaigns, and enterprise least-privilege/threat/HA work.
+
+Like all v2 work, HLS is PARKED / POST-v1 and carries no implementation authority before the explicit v2 kickoff gate.
+
 ## Harness-neutral evaluation track — HarnessBench
 
 **Spec:** [`SPEC-HARNESSBENCH-V2.md`](SPEC-HARNESSBENCH-V2.md)
