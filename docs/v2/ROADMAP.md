@@ -63,6 +63,55 @@ Retention does **not** authorize v2 implementation during v1 convergence.
 The target is not uncontrolled recursive self-modification. RESIDUAL v1 remains the authority-constrained builder and verifier; v2 changes advance only through explicit evidence and approval gates.
 
 
+
+## Hierarchical swarm coordination track — HCOR
+
+**Master spec:** [`HCOR-000 — Hierarchical Coordination & Delegation Plane`](SPEC-HCOR-000-HIERARCHICAL-COORDINATION-V2.md)
+
+HCOR turns the coordination philosophy harvested from v1 dogfooding into a durable distributed control plane: RESIDUAL owns mission truth, authority, leases, evidence, dependencies and convergence; coordinators are replaceable leased roles that decompose intent; workers execute; independent verifiers adjudicate; Station controls authoritative transitions.
+
+The hierarchy is mission-based rather than host-based. Adding a qualified machine widens schedulable capacity without changing mission topology. Child authority is always a subset of parent authority, controlling artifacts remain directly digest-addressable at every level, ownership is lease/fencing based, and owner gates park work without making the owner coordination infrastructure.
+
+### HCOR work packages
+
+1. [`HCOR-001 — Mission & Delegation Kernel`](SPEC-HCOR-001-MISSION-DELEGATION-KERNEL-V2.md)
+   - Durable mission/submission/assignment objects, recursive delegation, acceptance contracts, authority attenuation, leases/fencing, first-failure preservation.
+
+2. [`HCOR-002 — Event-Driven DAG Coordinator`](SPEC-HCOR-002-EVENT-DAG-COORDINATOR-V2.md)
+   - Deterministic event reducer, runnable-set computation, dependency progression, backpressure, checkpoint/replay, no polling-as-control-plane.
+
+3. [`HCOR-003 — Resource / Capability Scheduler`](SPEC-HCOR-003-RESOURCE-CAPABILITY-SCHEDULER-V2.md)
+   - Evidence-backed runner/provider/model inventory, resource admission, placement, budgets, verifier-independence constraints, scale-out by adding qualified machines.
+
+4. [`HCOR-004 — Hierarchical Coordinator Runtime`](SPEC-HCOR-004-HIERARCHICAL-COORDINATOR-RUNTIME-V2.md)
+   - Coordinators as leased/fenced replaceable roles, recursive mission decomposition, coordinator budgets, replacement without duplicate accepted work.
+
+5. [`HCOR-005 — Independent Verification & Challenge Plane`](SPEC-HCOR-005-VERIFICATION-CHALLENGE-PLANE-V2.md)
+   - Byte-authoritative candidate admission, independent verifier scheduling, challenge coordination, no verifier patching/self-close.
+
+6. [`HCOR-006 — Coordinator Survivability & Recovery`](SPEC-HCOR-006-COORDINATOR-SURVIVABILITY-V2.md)
+   - Worker/provider/coordinator/Station/host failure recovery, exactly-once authority, stale fencing, checkpoint reconciliation, HLS/provider-continuity integration.
+
+7. [`HCOR-007 — Convergence, Scope & Backlog Admission`](SPEC-HCOR-007-CONVERGENCE-BACKLOG-ADMISSION-V2.md)
+   - P0-P3 admission, WIP limits, freeze/reopen doctrine, owner-interrupt discipline, operator-return receipts, anti-thrashing.
+
+8. [`HCOR-008 — Qualification Campaigns & Scale-Out Program`](SPEC-HCOR-008-QUALIFICATION-SCALEOUT-V2.md)
+   - Single coordinator -> replacement -> two-level hierarchy -> heterogeneous cluster -> failure/independence/convergence -> 10/25/50-agent scale campaigns.
+
+### HCOR delivery sequence
+
+`HCOR-001 + HCOR-002 -> HCOR-003 + HCOR-005 -> HCOR-004 -> HCOR-006 + HCOR-007 -> HCOR-008`
+
+Early dogfood target: one coordinator, three workers and one independent verifier. The first major milestone is coordinator replacement without lost/duplicate accepted work. Hierarchical and multi-host claims follow only after authority attenuation, scheduling, independent verification and survivability qualify.
+
+### HCOR north-star metric
+
+Primary operational metric: `owner_interventions / completed_missions`.
+
+The target is that adding machines/agents increases throughput while this ratio falls or remains bounded. The owner supplies intent and protected decisions; RESIDUAL handles routine decomposition, scheduling, evidence, verification, recovery and convergence.
+
+HCOR is PARKED / POST-v1. The specs are intentionally partitioned so independent cloud swarm sessions can later take HCOR-001..008 as bounded work packages. No HCOR implementation is authorized before the common v2 kickoff gates above.
+
 ## Enterprise hardening track — harvested from v1 closure
 
 The v1 PR #448 native Windows C01/C02 campaign established a precise single-host ownership boundary and exposed several intentionally unclaimed enterprise guarantees. Preserve them as v2 requirements rather than expanding the frozen v1 release surface.
