@@ -112,6 +112,8 @@ The target is that adding machines/agents increases throughput while this ratio 
 
 HCOR is PARKED / POST-v1. The specs are intentionally partitioned so independent cloud swarm sessions can later take HCOR-001..008 as bounded work packages. No HCOR implementation is authorized before the common v2 kickoff gates above.
 
+**Delegation guide:** [`HCOR Cloud Swarm Delegation Pack`](HCOR-CLOUD-SWARM-DELEGATION.md) — standard work-package outputs, dependency graph, integration gates, branch isolation, and a reusable cloud-session prompt.
+
 ## Enterprise hardening track — harvested from v1 closure
 
 The v1 PR #448 native Windows C01/C02 campaign established a precise single-host ownership boundary and exposed several intentionally unclaimed enterprise guarantees. Preserve them as v2 requirements rather than expanding the frozen v1 release surface.
