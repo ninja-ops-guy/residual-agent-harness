@@ -43,10 +43,11 @@ def scan(paths: list[Path]) -> list[str]:
             continue
         if b"\0" in data[:8192]:
             continue
-        if ALLOW_MARKER in data:
-            continue
+        scan_data = b"\n".join(
+            line for line in data.splitlines() if ALLOW_MARKER not in line
+        )
         for name, pattern in PATTERNS.items():
-            if pattern.search(data):
+            if pattern.search(scan_data):
                 findings.append(f"{path}: matched {name}")
     return findings
 
