@@ -3,7 +3,7 @@ import json, os, secrets, sqlite3, threading, time, urllib.parse, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-DB_PATH = Path(os.getenv('RESIDUAL_DEMO_DB', '/tmp/residual-demo-gateway.sqlite3'))
+DB_PATH = Path(os.getenv('RESIDUAL_DEMO_DB', '/state/gateway.sqlite3'))
 ORIGIN = os.getenv('RESIDUAL_DEMO_ORIGIN', 'https://ninja-ops-guy.github.io')
 TTL = int(os.getenv('RESIDUAL_DEMO_TTL_SECONDS', '900'))
 MAX_REQUESTS = int(os.getenv('RESIDUAL_DEMO_MAX_REQUESTS', '8'))
@@ -13,7 +13,25 @@ MAX_BODY_BYTES = int(os.getenv('RESIDUAL_DEMO_MAX_BODY_BYTES', '262144'))
 MAX_UPSTREAM_BYTES = int(os.getenv('RESIDUAL_DEMO_MAX_UPSTREAM_BYTES', '2097152'))
 MAX_ACTIVE_SESSIONS = int(os.getenv('RESIDUAL_DEMO_MAX_ACTIVE_SESSIONS', '32'))
 MAX_SESSIONS_PER_HOUR = int(os.getenv('RESIDUAL_DEMO_MAX_SESSIONS_PER_HOUR', '64'))
-FREELLM = os.environ.get('FREELLMAPI_BASE_URL', '').rstrip('/')
+def _safe_base_url(raw):
+    raw = (raw or '').strip()
+    if not raw:
+        return ''
+    try:
+        parsed = urllib.parse.urlsplit(raw)
+        loopback = parsed.hostname in {'localhost', '127.0.0.1', '::1'}
+        if (parsed.scheme != 'https' and not (parsed.scheme == 'http' and loopback)) or not parsed.hostname:
+            raise ValueError
+        if parsed.username or parsed.password or parsed.query or parsed.fragment:
+            raise ValueError
+        if any(ord(ch) < 33 for ch in raw):
+            raise ValueError
+    except (ValueError, TypeError, AttributeError):
+        raise RuntimeError('FREELLMAPI_BASE_URL must be HTTPS or loopback HTTP without credentials/query/fragment') from None
+    return raw.rstrip('/')
+
+
+FREELLM = _safe_base_url(os.environ.get('FREELLMAPI_BASE_URL', ''))
 FREELLM_EMAIL = os.environ.get('FREELLMAPI_ADMIN_EMAIL', '')
 FREELLM_PASSWORD = os.environ.get('FREELLMAPI_ADMIN_PASSWORD', '')
 TS_CLIENT_ID = os.environ.get('TAILSCALE_OAUTH_CLIENT_ID', '')
@@ -30,6 +48,17 @@ class DemoCapacityError(RuntimeError):
 
 class RequestTooLarge(ValueError):
     pass
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise RuntimeError(f'upstream redirect refused ({code})')
+
+
+def _opener():
+    # Admin credentials and ephemeral auth material must never follow ambient
+    # proxy settings or redirects to a different origin.
+    return urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
 
 
 def _diag(stage, exc):
@@ -61,7 +90,7 @@ def _json(url, method='GET', body=None, headers=None, timeout=20):
     if body is not None: hdr['Content-Type'] = 'application/json'
     if headers: hdr.update(headers)
     req = urllib.request.Request(url, data=data, headers=hdr, method=method)
-    with urllib.request.urlopen(req, timeout=timeout) as r:
+    with _opener().open(req, timeout=timeout) as r:
         raw = r.read(MAX_UPSTREAM_BYTES + 1)
         if len(raw) > MAX_UPSTREAM_BYTES:
             raise RuntimeError('upstream response exceeds configured limit')
@@ -73,7 +102,7 @@ def _form(url, body, headers=None, timeout=20):
     hdr = {'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json'}
     if headers: hdr.update(headers)
     req = urllib.request.Request(url, data=data, headers=hdr, method='POST')
-    with urllib.request.urlopen(req, timeout=timeout) as r:
+    with _opener().open(req, timeout=timeout) as r:
         raw = r.read(MAX_UPSTREAM_BYTES + 1)
         if len(raw) > MAX_UPSTREAM_BYTES:
             raise RuntimeError('upstream response exceeds configured limit')
