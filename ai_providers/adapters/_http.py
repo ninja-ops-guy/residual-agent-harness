@@ -65,7 +65,13 @@ def map_http_error(provider, status, body='', headers=None):
                           'quota_exhausted': 'quota_exhausted',
                           'credit_exhausted': 'credit_exhausted'}.get(code)
         if classification:
-            return ProviderError(provider=provider, code=classification, status=status)
+            failure = ProviderError(provider=provider, code=classification, status=status)
+            # Explicit, validated upstream usage is evidence; absence stays unknown.
+            try:
+                failure.usage = extract_usage(decode(body))
+            except (ValueError, TypeError, AttributeError):
+                failure.usage = {}
+            return failure
     if status == 429:
         retry = None
         hint = (headers or {}).get('Retry-After')

@@ -26,7 +26,7 @@ def validate_probe(response):
 
 def configured_profiles(settings):
     return [normalize_profile(p, 'remote') for p in
-            [settings['cloud']] + settings.get('cloud_fallbacks', [])]
+            ([settings['cloud']] if settings.get('cloud', {}).get('model') else []) + settings.get('cloud_fallbacks', [])]
 
 
 def main(argv=None):

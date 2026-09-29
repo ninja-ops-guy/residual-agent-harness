@@ -35,7 +35,6 @@ def normalize_profile(profile,placement):
     region=profile.get('region') or 'us-east-1'
     base=profile.get('base_url') or PROVIDERS[kind]['base_url']
     if kind=='bedrock' and not base:
-        import re
         if not re.fullmatch(r'[a-z]{2}(?:-[a-z]+)+-\d',region): raise ContractError('Enter a valid AWS region')
         base=f'https://bedrock-runtime.{region}.amazonaws.com'
     try: base=validate_url(base,kind,local=placement=='local')
@@ -50,7 +49,7 @@ def normalize_profile(profile,placement):
 def make_adapter(profile,credentials=None):
     p=profile; kind=p['kind']; c=credentials or {}
     key=c.get('api_key') or (None if p.get('credential_ref',kind)!=kind else os.environ.get('RESIDUAL_LOCAL_API_KEY') if p.get('placement')=='local' else os.environ.get(ENV_KEYS.get(kind,'')))
-    if kind=='google': key=key or os.environ.get('GOOGLE_API_KEY')
+    if kind=='google' and p.get('credential_ref',kind)==kind: key=key or os.environ.get('GOOGLE_API_KEY')
     if kind in {'openai','openai_compatible'}:
         from ai_providers.adapters.openai_adapter import OpenAIAdapter,OpenAICompatibleAdapter
         return (OpenAIAdapter if kind=='openai' else OpenAICompatibleAdapter)(key,p['base_url'],output_token_field=p['output_token_field'])
@@ -67,9 +66,10 @@ def make_adapter(profile,credentials=None):
         from ai_providers.adapters.azure_adapter import AzureAdapter
         return AzureAdapter(key,p['base_url'],p['api_version'],output_token_field=p['output_token_field'])
     if kind=='bedrock':
+        env = os.environ if p.get('credential_ref',kind)==kind else {}
         from ai_providers.adapters.bedrock_adapter import BedrockAdapter
-        return BedrockAdapter(c.get('access_key') or os.environ.get('AWS_ACCESS_KEY_ID'),c.get('secret_key') or os.environ.get('AWS_SECRET_ACCESS_KEY'),
-                              p['region'],c.get('session_token') or os.environ.get('AWS_SESSION_TOKEN'),base_url=p['base_url'])
+        return BedrockAdapter(c.get('access_key') or env.get('AWS_ACCESS_KEY_ID'),c.get('secret_key') or env.get('AWS_SECRET_ACCESS_KEY'),
+                              p['region'],c.get('session_token') or env.get('AWS_SESSION_TOKEN'),base_url=p['base_url'])
     raise ContractError('Unknown provider')
 
 

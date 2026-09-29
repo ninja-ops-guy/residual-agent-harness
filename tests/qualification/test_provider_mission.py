@@ -62,3 +62,16 @@ def test_full_provider_mission_qualifier_exercises_implementation_review_and_rel
     assert report["metrics"]["calls"] == 2
     assert report["release"]["size"] > 0
     assert len(report["verification_receipt_hash"]) == 64
+
+
+def test_continuity_fixture_runs_through_verification_and_integration(tmp_path):
+    from scripts.qualification_provider_mission import run_continuity_mission
+    report = run_continuity_mission(root=tmp_path / 'continuity')
+    assert report['result'] == 'PASS', report
+    assert report['fixture_calls'] == {'primary_probe': 1, 'freellmapi_probe': 1,
+                                        'primary_call': 1, 'freellmapi_call': 2}
+    assert report['run_control']['outcome'] == 'success'
+    assert report['continuity']['last_decision']['selected_route'] == 'freellmapi'
+    assert report['continuity']['last_decision']['classification'] == 'quota_exhausted'
+    assert report['provider_side_exactly_once'] is False
+    assert len(report['verification_receipt_hash']) == 64

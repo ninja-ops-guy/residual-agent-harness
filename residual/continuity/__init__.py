@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import time
 import uuid
+from datetime import datetime
 from dataclasses import asdict, replace
 
 from ai_providers import ChatResponse, ProviderError
@@ -17,20 +18,33 @@ READINESS = frozenset({'NOT_CONFIGURED', 'CONFIGURED_NOT_VERIFIED', 'READY', 'DE
 SCHEMA = '''
 CREATE TABLE IF NOT EXISTS provider_invocations(id TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS provider_readiness(route TEXT PRIMARY KEY, value TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS provider_readiness_receipts(digest TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS provider_breakers(route TEXT PRIMARY KEY, value TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS provider_breaker_events(seq INTEGER PRIMARY KEY AUTOINCREMENT,
+    route TEXT NOT NULL, value TEXT NOT NULL, digest TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS provider_decisions(seq INTEGER PRIMARY KEY AUTOINCREMENT,
     invocation TEXT NOT NULL, value TEXT NOT NULL, digest TEXT NOT NULL);
 '''
 
 
 def identity(profile):
-    return {k: profile[k] for k in ('route_id', 'kind', 'model', 'base_url', 'placement')}
+    return dict(profile)
 
 
 def classification(error):
     # Raw adapter code is retained separately; retryable is never policy authority.
     return {'connection': 'provider_unavailable', 'timeout': 'provider_unavailable',
             'server_error': 'provider_unavailable'}.get(error.code, error.code)
+
+
+
+def denial_class(error):
+    message = str(error)
+    if message in {'authority_rescinded', 'dispatch_expired', 'admission_failure', 'user_cancelled'}:
+        return message
+    if 'budget' in message or message == 'usage_unknown_or_invalid':
+        return 'budget_exhaustion'
+    return 'policy_denial'
 
 
 def unpack(value):
@@ -53,6 +67,13 @@ class Continuity:
     def _put(c, table, key, value):
         c.execute(f'INSERT OR REPLACE INTO {table} VALUES (?,?)', (key, canonical(value)))
 
+    def _breaker(self, c, route, value):
+        prior = self._get(c, 'provider_breakers', route, {'state': 'CLOSED'})
+        self._put(c, 'provider_breakers', route, value)
+        event = {'route_id': route, 'from': prior['state'], **value}
+        c.execute('INSERT INTO provider_breaker_events(route,value,digest) VALUES (?,?,?)',
+                  (route, canonical(event), digest(event)))
+
     def _save(self, c, record, event):
         self._put(c, 'provider_invocations', record['invocation_id'], record)
         # Deliberate allowlist: response bodies, prompts, URLs, credentials and
@@ -70,7 +91,7 @@ class Continuity:
     def readiness(self, profile):
         with self.store.connect() as c:
             row = self._get(c, 'provider_readiness', profile['route_id'])
-        if not row or row['identity'] != identity(profile):
+        if not row or row['identity'] != identity(profile) or row['receipt_digest'] != digest({k: v for k, v in row.items() if k != 'receipt_digest'}):
             return {'readiness_state': 'CONFIGURED_NOT_VERIFIED', 'receipt_digest': None}
         if row['readiness_state'] == 'READY' and time.time() > row['expires_at']:
             return {**row, 'readiness_state': 'DEGRADED'}
@@ -82,15 +103,26 @@ class Continuity:
         TCP/HTTP success alone is insufficient. Context is operator-supplied
         BL-006 manifest/telemetry, with actual collection time preserved.
         """
-        admitted = admission.consume(self.store, profile, context, 'readiness:' + profile['route_id'])
-        response = adapter.chat(replace(request, model=profile['model']))
-        if not isinstance(response, ChatResponse):
-            raise ContractError('malformed_response')
-        validate(response)
+        try:
+            admitted = admission.consume(self.store, profile, context, 'readiness:' + profile['route_id'], request)
+            response = adapter.chat(replace(request, model=profile['model']))
+            if not isinstance(response, ChatResponse):
+                raise ContractError('malformed_response')
+            validate(response)
+        except Exception as error:
+            row = {'identity': identity(profile), 'provider_kind': profile['kind'],
+                   'readiness_state': 'UNAVAILABLE' if isinstance(error, ProviderError) else 'DEGRADED',
+                   'verified_at': None, 'expires_at': time.time(), 'receipt_id': uuid.uuid4().hex,
+                   'classification': classification(error) if isinstance(error, ProviderError) else 'admission_or_probe_failure'}
+            row['receipt_digest'] = digest(row)
+            with self.store.transaction() as c:
+                self._put(c, 'provider_readiness', profile['route_id'], row)
+                c.execute('INSERT INTO provider_readiness_receipts VALUES (?,?)', (row['receipt_digest'], canonical(row)))
+            raise
         verified = time.time()
         row = {'identity': identity(profile), 'provider_kind': profile['kind'],
                'readiness_state': 'READY', 'verified_at': verified,
-               'expires_at': min(verified + 60, __import__('datetime').datetime.fromisoformat(
+               'expires_at': min(verified + 60, datetime.fromisoformat(
                    context['telemetry']['collected_at'].replace('Z', '+00:00')).timestamp() + 60),
                'admission_receipt': admitted, 'context': context,
                'probe_digest': digest({'model': response.model, 'content': response.content,
@@ -99,6 +131,7 @@ class Continuity:
         row['receipt_digest'] = digest(row)
         with self.store.transaction() as c:
             self._put(c, 'provider_readiness', profile['route_id'], row)
+            c.execute('INSERT INTO provider_readiness_receipts VALUES (?,?)', (row['receipt_digest'], canonical(row)))
         return {k: v for k, v in row.items() if k != 'context'}
 
     def breaker(self, route):
@@ -115,7 +148,7 @@ class Continuity:
             old = self._get(c, 'provider_breakers', profile['route_id'])
             if not old or old['state'] != 'OPEN':
                 raise ContractError('breaker_not_open')
-            self._put(c, 'provider_breakers', profile['route_id'],
+            self._breaker(c, profile['route_id'],
                       {**old, 'state': 'HALF_OPEN', 'probe': None,
                        'readiness_receipt': ready['receipt_digest'], 'changed_at': time.time()})
 
@@ -171,6 +204,8 @@ class Continuity:
                 raise ContractError('INDETERMINATE_PROVIDER_OUTCOME')
             if state in {'PROVIDER_RESULT_RECORDED', 'ACCEPTANCE_PENDING', 'ACCEPTED'}:
                 authority()
+                if digest(record['response']) != record['result_digest']:
+                    raise ContractError('recorded_result_integrity_failure')
                 response = unpack(record['response'])
                 if state == 'ACCEPTED':
                     return response
@@ -220,21 +255,26 @@ class Continuity:
                 raise ContractError('fallback_not_ready' if index else 'primary_not_ready')
             try:
                 authority()
-                admitted = admission.consume(self.store, profile, ready['context'], invocation_id)
+                admitted = admission.consume(self.store, profile, ready['context'], invocation_id, request)
                 authority()
-            except Exception:
-                self._reject(invocation_id, 'authority_or_admission_failure')
+            except Exception as error:
+                self._reject(invocation_id, denial_class(error))
                 raise
             with self.store.transaction() as c:
                 current = self._get(c, 'provider_invocations', invocation_id)
                 if current['state'] != 'PLANNED' or current['index'] != index:
+                    continue
+                current_ready = self._get(c, 'provider_readiness', profile['route_id'])
+                if current_ready != ready or time.time() > ready['expires_at']:
+                    current.update(state='REJECTED', terminal_outcome='readiness_changed')
+                    self._save(c, current, 'rejected')
                     continue
                 latest = self._get(c, 'provider_breakers', profile['route_id'], breaker)
                 if latest['state'] == 'OPEN' or (latest['state'] == 'HALF_OPEN' and latest['probe']):
                     continue
                 if latest['state'] == 'HALF_OPEN':
                     latest['probe'] = invocation_id
-                    self._put(c, 'provider_breakers', profile['route_id'], latest)
+                    self._breaker(c, profile['route_id'], latest)
                 current.update(state='INVOCATION_STARTED', selected_route=profile['route_id'],
                                attempt_id=f'{invocation_id}:{index + 1}',
                                breaker_state=latest['state'], readiness_receipt=ready['receipt_digest'],
@@ -255,13 +295,13 @@ class Continuity:
                                    state='PLANNED' if failure in ELIGIBLE else 'REJECTED',
                                    index=index + 1, terminal_outcome=None if failure in ELIGIBLE else failure)
                     if failure in ELIGIBLE or latest['state'] == 'HALF_OPEN':
-                        self._put(c, 'provider_breakers', profile['route_id'],
+                        self._breaker(c, profile['route_id'],
                                   {'state': 'OPEN', 'classification': failure, 'probe': None,
                                    'changed_at': time.time(), 'invocation_id': invocation_id})
                     self._save(c, current, 'attempt_failed')
                 continue
-            except Exception:
-                self._reject(invocation_id, 'authority_policy_or_budget_failure')
+            except Exception as error:
+                self._reject(invocation_id, denial_class(error))
                 raise
             hook('before_result_persistence')
             # Exclude raw/metadata: those can include upstream credential material.
@@ -272,7 +312,7 @@ class Continuity:
                                model_observed=response.model, provider_observed=profile['kind'],
                                result_digest=digest(result), terminal_outcome=None)
                 self._save(c, current, 'provider_result_recorded')
-                self._put(c, 'provider_breakers', profile['route_id'],
+                self._breaker(c, profile['route_id'],
                           {'state': 'CLOSED', 'classification': None, 'probe': None,
                            'changed_at': time.time(), 'invocation_id': invocation_id})
             hook('provider_result_recorded')

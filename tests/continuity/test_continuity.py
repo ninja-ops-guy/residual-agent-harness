@@ -24,7 +24,7 @@ def context(model):
     return {'manifest': asdict(bl006.create_manifest(model, 'test', 'fixture/1', 'fixture',
             100, 1, 8192, 10, footprint_class='MEASURED', kv_class='MEASURED')),
             'telemetry': asdict(bl006.create_telemetry(1000000, None, 0, 4)),
-            'host_identity': 'fixture', 'requested_context_tokens': 128, 'requested_max_tokens': 64}
+            'host_identity': 'fixture', 'requested_context_tokens': 8192, 'requested_max_tokens': 4096}
 
 
 def profiles():
@@ -208,9 +208,9 @@ def test_ready_does_not_replace_admission(harness):
     journal, args, calls = harness
     failing(args, calls, 'credit_exhausted')
     real = admission.consume
-    def deny(store, profile, context, assignment):
+    def deny(store, profile, context, assignment, request=None):
         if profile['route_id'] == 'freellmapi': raise ContractError('admission_failure')
-        return real(store, profile, context, assignment)
+        return real(store, profile, context, assignment, request)
     with patch.object(admission, 'consume', side_effect=deny), pytest.raises(ContractError):
         journal.run(**args)
     assert calls == {'primary-cloud': 1}
@@ -250,3 +250,100 @@ def test_quota_mapping_requires_explicit_code():
     assert map_http_error('openai_compatible', 402, b'{"error":{"code":"credit_exhausted"}}').code == 'credit_exhausted'
     assert map_http_error('openai_compatible', 429, b'{"error":"quota_exhausted secret"}').code == 'rate_limit'
     assert map_http_error('openai_compatible', 401, b'{"error":{"code":"insufficient_quota"}}').code == 'authentication'
+
+
+def test_half_open_has_one_probe_and_closes_on_recorded_success(harness):
+    journal, args, calls = harness
+    with journal.store.transaction() as c:
+        journal._put(c, 'provider_breakers', 'primary-cloud',
+                     {'state': 'OPEN', 'classification': 'provider_unavailable', 'probe': None})
+    journal.half_open(args['profiles'][0])
+    journal.run(**args)
+    assert calls == {'primary-cloud': 1}
+    assert journal.breaker('primary-cloud')['state'] == 'CLOSED'
+    assert any(r['breaker_state'] == 'HALF_OPEN' for r in receipts(journal))
+
+
+def test_concurrent_resume_cannot_repeat_external_call(harness):
+    from concurrent.futures import ThreadPoolExecutor
+    import threading
+    journal, args, calls = harness
+    entered, release = threading.Event(), threading.Event()
+    original = args['invoke']
+    def slow(profile, request):
+        response = original(profile, request)
+        entered.set()
+        assert release.wait(5)
+        return response
+    args['invoke'] = slow
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        first = pool.submit(journal.run, **args)
+        assert entered.wait(5)
+        try:
+            with pytest.raises(ContractError, match='INDETERMINATE_PROVIDER_OUTCOME'):
+                Continuity(Store(journal.store.root)).run(**args)
+        finally:
+            release.set()
+        assert first.result().content == '{"ok":true}'
+    assert calls == {'primary-cloud': 1}
+    assert sum(r['event'] == 'accepted' for r in receipts(journal)) == 1
+
+
+def test_route_identity_credentials_are_isolated(tmp_path):
+    from residual.station.models import save_settings, credentials_for, public_settings
+    from residual.modular import make_adapter
+    from ai_providers import Registry, Router
+    store = Store(tmp_path)
+    a, b = profiles()
+    raw = lambda p: {k: v for k, v in p.items() if k != 'placement'}
+    save_settings(store, {'cloud': raw(a), 'cloud_fallbacks': [raw(b)],
+        'provider_credentials': {'primary-cloud': {'api_key': 'PRIMARY-SECRET'},
+                                 'freellmapi': {'api_key': 'FALLBACK-SECRET'}}})
+    settings = store.settings()
+    registry = Registry()
+    for p in (a, b):
+        credentials = credentials_for(settings, p['kind'], credential_ref=p['credential_ref'])
+        assert credentials['api_key'] == ('PRIMARY-SECRET' if p is a else 'FALLBACK-SECRET')
+        adapter = make_adapter(p, credentials)
+        registry.register_route(p['route_id'], p['kind'], lambda adapter=adapter: adapter)
+    assert registry.get('primary-cloud') is not registry.get('freellmapi')
+    assert 'SECRET' not in json.dumps(public_settings(store))
+    with patch.dict('os.environ', {'LLM_API_KEY': 'AMBIENT-SECRET'}):
+        assert 'Authorization' not in make_adapter(b, {})._headers()
+    assert Router(registry, default_provider='primary-cloud').default_provider == 'primary-cloud'
+
+
+def test_admission_warn_reject_and_route_context_mismatch_stop(harness):
+    journal, args, calls = harness
+    p = args['profiles'][1]
+    for mutation in ['model', 'negative', 'warn', 'headroom', 'output']:
+        ctx = context(p['model'])
+        if mutation == 'model': ctx['manifest']['model_identity'] = 'different'
+        if mutation == 'negative': ctx['manifest']['footprint_bytes'] = -100
+        if mutation == 'warn': ctx['manifest']['footprint_class'] = 'CLAIMED'
+        if mutation == 'headroom': ctx['telemetry']['available_ram_bytes'] = 0
+        if mutation == 'output': ctx['requested_max_tokens'] = 1
+        with pytest.raises(ContractError, match='admission_failure'):
+            admission.consume(journal.store, p, ctx, 'assignment', args['request'])
+    assert not calls
+
+
+def test_result_reuse_bypasses_expired_readiness_and_admission_but_not_authority(harness):
+    journal, args, calls = harness
+    def crash(stage):
+        if stage == 'provider_result_recorded': raise Crash()
+    with pytest.raises(Crash): journal.run(**args, hook=crash)
+    with journal.store.transaction() as c: c.execute('DELETE FROM provider_readiness')
+    with patch.object(admission, 'consume', side_effect=AssertionError('must not readmit')):
+        journal.run(**args)
+    assert calls == {'primary-cloud': 1}
+
+
+def test_failed_requalification_revokes_previous_ready(harness):
+    journal, args, _ = harness
+    class Down:
+        def chat(self, req): raise ProviderError(code='provider_unavailable')
+    route = args['profiles'][1]
+    with pytest.raises(ProviderError):
+        journal.qualify(route, context(route['model']), Down(), args['request'], lambda _: None)
+    assert journal.readiness(route)['readiness_state'] != 'READY'

@@ -97,6 +97,10 @@ def model_call(store, pid, role, packet, system, schema=None, placement="local",
     # Re-evaluate the original dispatch authority and policy for every attempt.
     initial_task = store.task(pid, tid) if pid and tid else None
     def authority():
+        current_settings = store.settings()
+        if any(current_settings.get(k) != settings.get(k) for k in
+               ("cloud", "cloud_fallbacks", "fallback_mode", "provider_credentials", "local", "local_credentials")):
+            raise ContractError("authority_rescinded")
         if authority_check is not None:
             authority_check()
         if pid:
@@ -132,7 +136,7 @@ def model_call(store, pid, role, packet, system, schema=None, placement="local",
             raise ContractError("Provider call blocked by sharing or extension policy")
         return quarantine.release(action, lambda _: router.chat(profile["route_id"] + ":" + profile["model"], routed), raise_errors=True).result
     continuity_enabled = placement == "cloud" and (
-        "fallback_mode" in settings or any(p["route_id"] != p["kind"] for p in profiles))
+        settings.get("fallback_mode", "OFF") != "OFF" or any(p["route_id"] != p["kind"] for p in profiles))
     if continuity_enabled:
         from residual.continuity import Continuity
         invocation_id = invocation_id or (digest({"project": pid, "task": tid, "role": role,
@@ -230,7 +234,15 @@ def save_settings(store, incoming):
         clean["local_credentials"]=secret
     clean["provider_credentials"]=secrets
     clean["cloud_key"]=""  # legacy values are migrated into provider-scoped credentials
-    store.settings(clean)
+    if edits or "local_credentials" in incoming:
+        from residual.continuity import Continuity
+        Continuity(store)
+    with store.transaction() as c:
+        for key, value in clean.items():
+            c.execute("INSERT OR REPLACE INTO settings VALUES (?,?)", (key, canonical(value)))
+        for profile in profiles:
+            if profile.get("credential_ref", profile.get("route_id", profile["kind"])) in edits:
+                c.execute("DELETE FROM provider_readiness WHERE route=?", (profile.get("route_id", profile["kind"]),))
 
 
 def public_settings(store):

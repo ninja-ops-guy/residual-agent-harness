@@ -1,5 +1,5 @@
 {
-  "git_base": "8369f0dc",
+  "git_base": "8369f0dc2a93d8dcb194220b85b9aaf87d1d6df2",
   "bound_bundle": {
     "status": "BYTE_VERIFIED",
     "manifest_sha256": "1bc5fdf9b18a9f99ab144070a71319ac503e6f8c5c3f4416fceeec0db9750c65",
@@ -122,6 +122,9 @@
   "first_failure": {
     "test_log_sha256": "bf9699a3fe35735ce5b310539b06a79272e57f74852dba6294b091aaef54263d",
     "result": "7 passed, 31 errors",
-    "cause": "function-local re import shadows module import in normalize_profile"
-  }
+    "cause": "function-local re import shadows module import in normalize_profile",
+    "candidate_head": "207ac800a8f7afeb616d43cb1c7facdd5b0dfa3c",
+    "candidate_tree": "f8a8704a40511b65afcb9df185089e1668093915"
+  },
+  "git_base_tree": "7cd0d32be6fd61948f2fce753b122e5b6f0c6500"
 }
