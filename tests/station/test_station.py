@@ -187,7 +187,7 @@ class StationTests(unittest.TestCase):
             {"files": {"answer.py": "def answer():\n    return 42\n"}},
         ])
         with patch("residual.station.service.model_call") as call:
-            def reply(store, project_id, role, packet, system, schema, placement, tid, *, extensions=None):
+            def reply(store, project_id, role, packet, system, schema, placement, tid, *, extensions=None, authority_check=None):
                 if role == "runner":
                     return next(runner_responses)
                 return {"approved": True, "findings": []}
@@ -318,7 +318,7 @@ class StationTests(unittest.TestCase):
         self.s.store.project_update(self.pid, mode="live", allow_cloud=True)
         self.s.store.settings({"cloud": {"model": "configured"}})
         with patch("residual.station.service.model_call") as call, patch.object(self.s, "cloud_report", return_value={"id": "report"}) as report:
-            def reply(store, pid, role, packet, system, schema, placement, tid, *, extensions=None):
+            def reply(store, pid, role, packet, system, schema, placement, tid, *, extensions=None, authority_check=None):
                 self.assertIsNotNone(extensions)
                 return {"files": DEMO_FILES[tid]} if role == "runner" else {"approved": True, "findings": []}
             call.side_effect = reply

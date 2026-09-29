@@ -67,6 +67,15 @@ class StationRoutingTests(unittest.TestCase):
     def tearDown(self):self.temp.cleanup()
     def configure(self,one,two=None):
         save_settings(self.s.store,{'cloud':{'kind':'openai','model':'primary','base_url':one},'cloud_fallbacks':[{'kind':'anthropic','model':'backup','base_url':two}] if two else [],'provider_credentials':{'openai':{'api_key':'OPENAI-SECRET'},'anthropic':{'api_key':'ANTHROPIC-SECRET'}}})
+        if two:
+            from residual.continuity import Continuity
+            from residual.modular import normalize_profile
+            from tests.continuity.test_continuity import context, Probe
+            save_settings(self.s.store, {'fallback_mode': 'AUTOMATIC_ELIGIBLE'})
+            settings = self.s.store.settings()
+            for raw in [settings['cloud']] + settings['cloud_fallbacks']:
+                p = normalize_profile(raw, 'remote')
+                Continuity(self.s.store).qualify(p, context(p['model']), Probe(), REQ, lambda _: None)
 
     def test_every_fallback_attempt_is_budgeted_and_counted_with_real_bytes(self):
         with endpoint(lambda _:(503,{'error':'OPENAI-SECRET'},{})) as (one,requests1),endpoint(lambda _:(200,ANTHROPIC,{})) as (two,requests2):

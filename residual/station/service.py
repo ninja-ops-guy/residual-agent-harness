@@ -259,7 +259,7 @@ class Station:
                     self.store.transition(pid, t["id"], "repair_required", lease=lease, fields={"findings": [str(e)[:500] if isinstance(e, ContractError) else "Runner failed before verification"]})
                 raise
 
-    def run_one(self, pid, tid=None, owner="local-runner"):
+    def run_one(self, pid, tid=None, owner="local-runner", *, provider_authority=None):
         work = self.prepare(pid, owner, tid)
         if not work:
             return None
@@ -269,7 +269,7 @@ class Station:
                 response = {"files": DEMO_FILES[t["id"]]}
             else:
                 response = model_call(self.store, pid, "runner", work["packet"], RUNNER_SYSTEM, FILES_SCHEMA,
-                                      "cloud" if t["route"] == "cloud" else "local", t["id"], extensions=self.extensions(pid))
+                                      "cloud" if t["route"] == "cloud" else "local", t["id"], extensions=self.extensions(pid), authority_check=provider_authority)
             return self.finish(work, response)
         except Exception as e:
             if self.store.task(pid, t["id"])["state"] == "running":
@@ -297,7 +297,7 @@ class Station:
         artifact = self.store.add_artifact(pid, f"{tid}-refreshed-checks.json", canonical(receipt), "checks")
         self.store.update_task(pid, tid, base_commit=current, head_commit=head, checks_result=checks, checks_hash=sha(receipt), artifacts=t["artifacts"] + [artifact])
 
-    def review(self, pid, tid):
+    def review(self, pid, tid, *, provider_authority=None):
         with self.project_lock(pid):
             t = self.store.task(pid, tid)
             if t["state"] != "review_ready":
@@ -310,7 +310,7 @@ class Station:
                       "files": ws.context_files(t["candidate_dir"], t), "diff": ws.git(t["candidate_dir"], "diff", t["base_commit"], t["head_commit"]),
                       "checks": [{"id": c["id"], "passed": c["passed"], "kind": c["kind"]} for c in t["checks_result"]]}
             placement = self.store.settings().get("review_placement", "local")
-            result = {"approved": True, "findings": []} if p["mode"] == "demo" else model_call(self.store, pid, "reviewer", packet, REVIEW_SYSTEM, REVIEW_SCHEMA, placement, tid, extensions=self.extensions(pid))
+            result = {"approved": True, "findings": []} if p["mode"] == "demo" else model_call(self.store, pid, "reviewer", packet, REVIEW_SYSTEM, REVIEW_SCHEMA, placement, tid, extensions=self.extensions(pid), authority_check=provider_authority)
             findings = result.get("findings") if isinstance(result, dict) else None
             valid_findings = (
                 isinstance(findings, list) and len(findings) <= 8

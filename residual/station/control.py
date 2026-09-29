@@ -130,13 +130,18 @@ class MissionPass:
             actor="coordinator",
         )
 
+    def _provider_authority(self):
+        reason = self._gate.denial_reason()
+        if reason is not None:
+            raise ContractError(reason)
+
     def _run_admitted(self, task, owner):
         reason, reservation = self._gate.admit()
         if reason is not None:
             self._denied(reason, "pre-dispatch", task["id"])
             return {"task_id": task["id"], "state": "admission_denied", "reason": reason}
         try:
-            return self.station.run_one(self.pid, task["id"], owner)
+            return self.station.run_one(self.pid, task["id"], owner, provider_authority=self._provider_authority)
         finally:
             self._gate.release(reservation)
 
@@ -208,7 +213,7 @@ class MissionPass:
                         return self._result(cursor)
                     try:
                         progress(f"Reviewing {task['id']}", None)
-                        station.review(pid, task["id"])
+                        station.review(pid, task["id"], provider_authority=self._provider_authority)
                     finally:
                         self._gate.release(reservation)
                     blocked = self._stop_authority_effects(cursor, "post-review")

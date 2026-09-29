@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import tarfile
 import time
+import uuid
 import urllib.error
 import urllib.request
 import zipfile
@@ -23,7 +24,7 @@ DEFAULTS = {
     "local": {"kind": "ollama", "model": "qwen2.5-coder:7b", "base_url": "http://127.0.0.1:11434", "placement": "local", "output_token_field": "max_tokens"},
     "cloud": {"kind": "openai_compatible", "model": "", "base_url": "", "placement": "remote", "output_token_field": "max_completion_tokens"},
     "review_placement": "local", "workers": 2, "max_output_tokens": 4096,
-    "cloud_fallbacks": [], "local_failover": [], "observations_enabled": True,
+    "fallback_mode": "OFF", "cloud_fallbacks": [], "local_failover": [], "observations_enabled": True,
     "batch_max_passes": 30, "batch_token_budget": 200000, "batch_wall_clock_s": 3600,
 }
 CATALOG = [
@@ -39,8 +40,10 @@ from ai_providers import Router, Registry, ChatRequest, Message, Role, ProviderE
 StationProvider = ModularProvider
 
 
-def credentials_for(settings, kind, placement="cloud"):
+def credentials_for(settings, kind, placement="cloud", credential_ref=None):
     if placement == "local": return dict(settings.get("local_credentials", {}))
+    if credential_ref and credential_ref != kind:
+        return dict(settings.get("provider_credentials", {}).get(credential_ref, {}))
     values = dict(settings.get("provider_credentials", {}).get(kind, {}))
     if placement == "cloud" and kind == settings.get("cloud", {}).get("kind") and not values.get("api_key"):
         key = settings.get("cloud_key") or os.environ.get("RESIDUAL_CLOUD_API_KEY")
@@ -48,7 +51,7 @@ def credentials_for(settings, kind, placement="cloud"):
     return values
 
 
-def model_call(store, pid, role, packet, system, schema=None, placement="local", tid=None, *, extensions=None):
+def model_call(store, pid, role, packet, system, schema=None, placement="local", tid=None, *, extensions=None, invocation_id=None, authority_check=None):
     if placement not in {"local", "cloud"}: raise ContractError("Invalid model placement")
     settings = store.settings()
     primary = normalize_profile(settings.get(placement, DEFAULTS[placement]), "remote" if placement == "cloud" else "local")
@@ -57,10 +60,10 @@ def model_call(store, pid, role, packet, system, schema=None, placement="local",
         profiles += [normalize_profile(p, "remote") for p in settings.get("cloud_fallbacks", [])]
     reg = Registry()
     for profile in profiles:
-        adapter = make_adapter(profile, credentials_for(settings, profile["kind"], placement))
-        reg.register(profile["kind"], lambda a=adapter: a)
-    candidates = [p["kind"] + ":" + p["model"] for p in profiles]
-    if placement == "local": candidates += [primary["kind"] + ":" + m for m in settings.get("local_failover", [])]
+        adapter = make_adapter(profile, credentials_for(settings, profile["kind"], placement, profile["credential_ref"]))
+        reg.register_route(profile["route_id"], profile["kind"], lambda a=adapter: a)
+    candidates = [p["route_id"] + ":" + p["model"] for p in profiles]
+    if placement == "local": candidates += [primary["route_id"] + ":" + m for m in settings.get("local_failover", [])]
     cap = settings.get("max_output_tokens", 4096)
     req = ChatRequest(primary["model"], (Message(Role.SYSTEM, system), Message(Role.USER, canonical(packet))), max_tokens=cap, response_schema=schema)
     def reserve(provider, request, meta):
@@ -71,7 +74,7 @@ def model_call(store, pid, role, packet, system, schema=None, placement="local",
             store.event(pid, "usage.recorded", {"role":role, "placement":placement, "model":value["model"], "provider":value["provider"],
                 **asdict(usage), "request_bytes":value["request_bytes"], "elapsed_ms":value["elapsed_ms"], "status":value["status"],
                 "request_id":value["request_id"], "provider_attempt":value["attempt"], "error":value["error"]}, tid)
-    router = Router(registry=reg, default_provider=primary["kind"], observation_bus=store.observation_bus(pid, role=role, placement=placement, task=tid or ""),
+    router = Router(registry=reg, default_provider=primary["route_id"], observation_bus=store.observation_bus(pid, role=role, placement=placement, task=tid or ""),
                     before_attempt=reserve, after_attempt=receipt)
     start = time.monotonic()
     from residual.quarantine import ProposedAction, QuarantineStore, PolicyDecision
@@ -91,7 +94,67 @@ def model_call(store, pid, role, packet, system, schema=None, placement="local",
         if sharing_policy(held.action) is not None:
             raise ContractError("Cloud sharing is disabled for this project")
         raise ContractError("Provider call blocked by sharing or extension policy")
-    reply = quarantine.release(held, lambda _: router.chat(candidates[0], req, failover=candidates[1:]), raise_errors=True).result
+    # Re-evaluate the original dispatch authority and policy for every attempt.
+    initial_task = store.task(pid, tid) if pid and tid else None
+    def authority():
+        current_settings = store.settings()
+        if any(current_settings.get(k) != settings.get(k) for k in
+               ("cloud", "cloud_fallbacks", "fallback_mode", "provider_credentials", "local", "local_credentials")):
+            raise ContractError("authority_rescinded")
+        if authority_check is not None:
+            authority_check()
+        if pid:
+            project = store.project(pid)
+            if project.get("paused"):
+                raise ContractError("authority_rescinded")
+            if placement == "cloud" and not project["allow_cloud"]:
+                raise ContractError("Cloud sharing is disabled for this project")
+        if initial_task:
+            current = store.task(pid, tid)
+            if current["attempt"] != initial_task["attempt"] or current["state"] != initial_task["state"]:
+                raise ContractError("authority_rescinded")
+            if current["state"] == "running" and (current.get("lease") != initial_task.get("lease") or current["lease_until"] < time.time()):
+                raise ContractError("dispatch_expired")
+            if role == "runner" and current["state"] != "running":
+                raise ContractError("authority_rescinded")
+            if role == "reviewer" and current["state"] != "review_ready":
+                raise ContractError("authority_rescinded")
+    def validate(response):
+        if response.finish_reason == "content_filter":
+            raise ContractError("content_filter")
+        if response.finish_reason in {"error", "unknown"}:
+            raise ContractError("malformed_provider_response")
+        if schema:
+            if response.finish_reason != "stop" or response.tool_calls:
+                raise ContractError("structured_output_failure")
+            try:
+                strict_json(response.content)
+            except (ValueError, TypeError):
+                raise ContractError("malformed_provider_response") from None
+    def invoke(profile, routed):
+        authority()
+        action = quarantine.hold(ProposedAction("provider_call", profile["route_id"],
+            {"packet_sha256": digest(packet), "max_output_tokens": cap, "payload": packet}, agent_id=role))
+        if quarantine.evaluate(action, policies) == PolicyDecision.DENY:
+            quarantine.deny(action, "provider_policy_denied", "provider_policies")
+            raise ContractError("Provider call blocked by sharing or extension policy")
+        return quarantine.release(action, lambda _: router.chat(profile["route_id"] + ":" + profile["model"], routed), raise_errors=True).result
+    continuity_enabled = placement == "cloud" and (
+        settings.get("fallback_mode", "OFF") != "OFF" or any(p["route_id"] != p["kind"] for p in profiles))
+    if continuity_enabled:
+        from residual.continuity import Continuity
+        invocation_id = invocation_id or (digest({"project": pid, "task": tid, "role": role,
+            "attempt": initial_task["attempt"], "packet": packet, "system": system, "schema": schema})
+            if initial_task else uuid.uuid4().hex)
+        reply = Continuity(store).run(invocation_id=invocation_id, project_id=pid, task_id=tid,
+            role=role, profiles=profiles, mode=settings.get("fallback_mode", "OFF"), request=req,
+            invoke=invoke, authority=authority, validate=validate)
+    else:
+        authority()
+        # Legacy local failover retains its explicit contract. Cloud fallback
+        # requires the readiness/admission-gated continuity path above.
+        reply = quarantine.release(held, lambda _: router.chat(candidates[0], req,
+            failover=candidates[1:] if placement == "local" else []), raise_errors=True).result
     if schema:
         if reply.finish_reason == "length": raise ContractError("Model output was truncated. Narrow the task or increase the output limit.")
         if reply.finish_reason in {"content_filter", "error", "unknown"} or reply.tool_calls: raise ContractError("Model did not complete a usable structured response")
@@ -102,14 +165,15 @@ def model_call(store, pid, role, packet, system, schema=None, placement="local",
 
 def save_settings(store, incoming):
     allowed = {"local", "cloud", "cloud_key", "clear_cloud_key", "review_placement", "workers", "max_output_tokens",
-               "provider_credentials", "local_credentials", "cloud_fallbacks", "local_failover", "observations_enabled",
+               "provider_credentials", "local_credentials", "fallback_mode", "cloud_fallbacks", "local_failover", "observations_enabled",
                "batch_max_passes", "batch_token_budget", "batch_wall_clock_s"}
     if not isinstance(incoming, dict) or set(incoming) - allowed: raise ContractError("Unsupported setting")
     current = store.settings(); clean = {}; secrets = dict(current.get("provider_credentials", {}))
     # Bind a legacy key to its original provider before a route is changed.
-    oldkind = current.get("cloud", DEFAULTS["cloud"])["kind"]
+    oldprofile = current.get("cloud", DEFAULTS["cloud"])
+    oldkind = oldprofile.get("credential_ref", oldprofile.get("route_id", oldprofile["kind"]))
     if current.get("cloud_key"): secrets[oldkind] = {**secrets.get(oldkind, {}), "api_key":current["cloud_key"]}
-    fields = {"kind", "model", "base_url", "output_token_field", "region", "api_version"}
+    fields = {"route_id", "credential_ref", "provider_kind", "kind", "model", "base_url", "output_token_field", "region", "api_version"}
     for placement in ("local", "cloud"):
         if placement not in incoming: continue
         p = incoming[placement]
@@ -123,8 +187,12 @@ def save_settings(store, incoming):
         clean["cloud_fallbacks"]=[normalize_profile(p,"remote") for p in fallbacks]
     combined = {**current, **clean}
     profiles = [combined.get("cloud",DEFAULTS["cloud"])] + combined.get("cloud_fallbacks",[])
-    kinds = [p["kind"] for p in profiles]
-    if len(kinds)!=len(set(kinds)): raise ContractError("Use one profile per cloud provider; fallback providers must be distinct")
+    kinds = [p.get("route_id", p["kind"]) for p in profiles]
+    if len(kinds)!=len(set(kinds)): raise ContractError("Cloud route IDs must be distinct")
+    if "fallback_mode" in incoming:
+        from residual.continuity import MODES
+        if incoming["fallback_mode"] not in MODES: raise ContractError("Invalid fallback mode")
+        clean["fallback_mode"] = incoming["fallback_mode"]
     if "local_failover" in incoming:
         models=incoming["local_failover"]
         if not isinstance(models,list) or len(models)>3 or len(set(models))!=len(models): raise ContractError("Use at most three distinct local fallback model IDs")
@@ -145,13 +213,14 @@ def save_settings(store, incoming):
         if incoming["review_placement"] not in {"local","cloud"}: raise ContractError("Review placement must be local or cloud")
         clean["review_placement"]=incoming["review_placement"]
     edits=incoming.get("provider_credentials",{})
-    if not isinstance(edits,dict) or set(edits)-set(PROVIDERS): raise ContractError("Unknown credential provider")
+    if not isinstance(edits,dict) or set(edits)-(set(PROVIDERS) | {p.get("credential_ref", p.get("route_id", p["kind"])) for p in profiles}): raise ContractError("Unknown credential provider")
     edits={k:dict(v) if isinstance(v,dict) else v for k,v in edits.items()}
-    kind=combined.get("cloud",DEFAULTS["cloud"])["kind"]
+    active=combined.get("cloud",DEFAULTS["cloud"])
+    kind=active.get("credential_ref", active.get("route_id", active["kind"]))
     if incoming.get("clear_cloud_key"): edits.setdefault(kind,{})["clear"]=True
     elif incoming.get("cloud_key"): edits.setdefault(kind,{})["api_key"]=incoming["cloud_key"]
     for kind,values in edits.items():
-        permitted={"access_key","secret_key","session_token","clear"} if kind=="bedrock" else {"api_key","clear"}
+        permitted={"access_key","secret_key","session_token","clear"} if kind=="bedrock" or any(p["kind"]=="bedrock" and p.get("credential_ref")==kind for p in profiles) else {"api_key","clear"}
         if not isinstance(values,dict) or set(values)-permitted: raise ContractError("Unsupported credential field")
         if "clear" in values and type(values["clear"]) is not bool: raise ContractError("Credential removal must be boolean")
         secret={} if values.get("clear") else dict(secrets.get(kind,{}))
@@ -171,7 +240,15 @@ def save_settings(store, incoming):
         clean["local_credentials"]=secret
     clean["provider_credentials"]=secrets
     clean["cloud_key"]=""  # legacy values are migrated into provider-scoped credentials
-    store.settings(clean)
+    if edits or "local_credentials" in incoming:
+        from residual.continuity import Continuity
+        Continuity(store)
+    with store.transaction() as c:
+        for key, value in clean.items():
+            c.execute("INSERT OR REPLACE INTO settings VALUES (?,?)", (key, canonical(value)))
+        for profile in profiles:
+            if profile.get("credential_ref", profile.get("route_id", profile["kind"])) in edits:
+                c.execute("DELETE FROM provider_readiness WHERE route=?", (profile.get("route_id", profile["kind"]),))
 
 
 def public_settings(store):
