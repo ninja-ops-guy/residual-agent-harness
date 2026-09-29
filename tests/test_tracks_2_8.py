@@ -273,7 +273,7 @@ class TestNetOps(unittest.TestCase):
 class TestSecOps(unittest.TestCase):
     def _mod(self):
         return SecOpsModule(
-            prohibited_patterns=[r"BEGIN PRIVATE KEY", r"api_secret\s*="],
+            prohibited_patterns=[r"BEGIN PRIVATE KEY", r"api_secret\s*="],  # residual-secret-scan: allow — synthetic security fixture
             allowed_licenses=["MIT", "Apache-2.0"],
         )
 
@@ -282,7 +282,7 @@ class TestSecOps(unittest.TestCase):
         from residual.quarantine import ProposedAction
         policy = mod.quarantine_policies()[0]
         action = ProposedAction(action_type="file_write", name="config",
-                                arguments={"content": "-----BEGIN PRIVATE KEY-----"})
+                                arguments={"content": "-----BEGIN PRIVATE KEY-----"})  # residual-secret-scan: allow — synthetic security fixture
         self.assertIsNotNone(policy(action))
 
     def test_secret_exfiltration_nested(self):
@@ -312,7 +312,7 @@ class TestSecOps(unittest.TestCase):
     def test_sast_scan_detects_key(self):
         mod = self._mod()
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-            f.write("-----BEGIN PRIVATE KEY-----\nMII...\n")
+            f.write("-----BEGIN PRIVATE KEY-----\nMII...\n")  # residual-secret-scan: allow — synthetic security fixture
             path = f.name
         try:
             result, reason = mod.verifiers()["sast_scan"][1]({"modified_files": [path]}, {})
@@ -371,14 +371,14 @@ class TestSecOps(unittest.TestCase):
 
     def test_secret_exposure_brake(self):
         import re
-        brake = SecretExposureBrake([re.compile(r"BEGIN PRIVATE KEY")])
-        trip = brake.update({"payload": {"output": "found: BEGIN PRIVATE KEY"}})
+        brake = SecretExposureBrake([re.compile(r"BEGIN PRIVATE KEY")])  # residual-secret-scan: allow — synthetic security fixture
+        trip = brake.update({"payload": {"output": "found: BEGIN PRIVATE KEY"}})  # residual-secret-scan: allow — synthetic security fixture
         self.assertIsNotNone(trip)
         self.assertEqual(trip.recommended_action.value, "abort")
 
     def test_secret_exposure_brake_clean(self):
         import re
-        brake = SecretExposureBrake([re.compile(r"BEGIN PRIVATE KEY")])
+        brake = SecretExposureBrake([re.compile(r"BEGIN PRIVATE KEY")])  # residual-secret-scan: allow — synthetic security fixture
         self.assertIsNone(brake.update({"payload": {"output": "clean"}}))
 
 
