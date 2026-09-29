@@ -73,6 +73,20 @@ The target is not uncontrolled recursive self-modification. RESIDUAL v1 remains 
 
 
 
+## v1 closure prerequisite staged on this branch — SC-CONTROL-001
+
+**Spec:** [`SC-CONTROL-001 — Shared Comms Control-Plane Integration`](SPEC-SC-CONTROL-001-SHARED-COMMS-CONTROL-PLANE-V1.md)
+
+SC-CONTROL-001 is intentionally documented on this parked specification branch but is **not deferred v2 scope**. It is a v1 release requirement: Shared Comms becomes the observable/actionable coordination projection of RESIDUAL while RESIDUAL remains the sole authoritative mission/control plane.
+
+The v1 requirement closes the gap between durable Station/Mission Board state and the practical Kimi/OpenClaw swarm interface. Terminal receipts must become scheduling events; Q0/Q1/Q2/VERIFICATION/PARKED state must be visible; successor dispatch must occur without owner routing messages; inbound ACK/result traffic must be correlated to durable dispatch/generation/authority identities; BL-016 governs artifact-byte admissibility; and planned restart/cold-start recovery must reconstruct queue/assignment state without relying on chat memory.
+
+Qualification requires real Shared Comms dogfood, including at least three consecutive automatic scheduling transitions with zero owner routing messages, an artifact-bearing mission through the byte-verification boundary, provider-continuity visibility, negative stale/duplicate/wrong-seat/bypass cases, and a cold-start reconciliation campaign.
+
+Terminal state: `SHARED_COMMS_CONTROL_PLANE_QUALIFIED`.
+
+v2 HCOR consumes this as substrate for hierarchical coordination, recursive delegation, coordinator replacement, and scale-out. HCOR does not replace the v1 requirement.
+
 ## Hierarchical swarm coordination track — HCOR
 
 **Master spec:** [`HCOR-000 — Hierarchical Coordination & Delegation Plane`](SPEC-HCOR-000-HIERARCHICAL-COORDINATION-V2.md)
