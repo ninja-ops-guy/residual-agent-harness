@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "residual://health/observation/v1",
+  "title": "RESIDUAL HealthObservation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","observation_id","observed_at","source","evidence_class","kind","subject","correlation","freshness","payload","evidence_refs"],
+  "properties": {
+    "schema_version": {"const":"residual.health.observation.v1"},
+    "observation_id": {"type":"string","minLength":1},
+    "observed_at": {"type":"string","format":"date-time"},
+    "source": {"type":"string","minLength":1},
+    "evidence_class": {"enum":["OBSERVATION","EVIDENCE","AUTHORITY_EVENT"]},
+    "kind": {"type":"string","minLength":1},
+    "subject": {"type":"string","minLength":1},
+    "correlation": {
+      "type":"object",
+      "additionalProperties":false,
+      "properties": {
+        "cluster_id":{"type":["string","null"]},"station_id":{"type":["string","null"]},"station_epoch":{"type":["integer","null"],"minimum":0},
+        "runner_id":{"type":["string","null"]},"coordinator_id":{"type":["string","null"]},"seat_id":{"type":["string","null"]},"generation":{"type":["integer","null"],"minimum":0},
+        "mission_id":{"type":["string","null"]},"task_id":{"type":["string","null"]},"assignment_id":{"type":["string","null"]},"dispatch_id":{"type":["string","null"]},
+        "decomposition_id":{"type":["string","null"]},"subtask_id":{"type":["string","null"]},"attempt_id":{"type":["string","null"]},
+        "provider_route_id":{"type":["string","null"]},"invocation_id":{"type":["string","null"]},"source_event_id":{"type":["string","null"]},
+        "trace_id":{"type":["string","null"]},"span_id":{"type":["string","null"]}
+      }
+    },
+    "freshness": {
+      "type":"object","additionalProperties":false,"required":["state","basis"],
+      "properties":{"state":{"enum":["CURRENT","STALE","UNKNOWN"]},"basis":{"type":"string","minLength":1},"max_age_seconds":{"type":["number","null"],"exclusiveMinimum":0}}
+    },
+    "payload":{"type":"object"},
+    "evidence_refs":{"type":"array","items":{"type":"object","required":["kind","identity"],"additionalProperties":false,"properties":{"kind":{"type":"string"},"identity":{"type":"string"}}}}
+  }
+}
