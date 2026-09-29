@@ -70,6 +70,28 @@ class DemoGatewayTests(unittest.TestCase):
                 self.g._new_session()
         self.assertEqual(create.call_count, 1)
 
+    def test_freellm_base_url_rejects_credential_or_insecure_remote_urls(self):
+        self.assertEqual(self.g._safe_base_url('https://freellm.example/v1'), 'https://freellm.example/v1')
+        self.assertEqual(self.g._safe_base_url('http://127.0.0.1:3001'), 'http://127.0.0.1:3001')
+        for value in (
+            'http://freellm.example',
+            'https://user:pass@freellm.example',
+            'https://freellm.example/path?token=x',
+            'https://freellm.example/path#fragment',
+        ):
+            with self.assertRaises(RuntimeError):
+                self.g._safe_base_url(value)
+
+    def test_upstream_http_disables_ambient_proxies_and_redirects(self):
+        opener = self.g._opener()
+        proxy_handlers = [h for h in opener.handlers if isinstance(h, self.g.urllib.request.ProxyHandler)]
+        self.assertEqual(len(proxy_handlers), 1)
+        self.assertEqual(proxy_handlers[0].proxies, {})
+        redirect_handlers = [h for h in opener.handlers if isinstance(h, self.g.NoRedirect)]
+        self.assertEqual(len(redirect_handlers), 1)
+        with self.assertRaises(RuntimeError):
+            redirect_handlers[0].redirect_request(None, None, 302, 'moved', {}, 'https://evil.invalid')
+
     def test_gateway_database_is_private(self):
         conn = self.g._db(); conn.close()
         self.assertEqual(os.stat(self.g.DB_PATH).st_mode & 0o077, 0)
