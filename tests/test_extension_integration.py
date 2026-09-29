@@ -180,7 +180,7 @@ class StationFoundationTests(unittest.TestCase):
         target=Path(self.station.store.task(self.pid,'OPS-101')['candidate_dir'],'station/health.py')
         before=target.read_text()
         with self.assertRaisesRegex(ContractError,'extension policy'):
-            self.station.finish(work,{'files':{'station/health.py':'-----BEGIN PRIVATE KEY-----'}})
+            self.station.finish(work,{'files':{'station/health.py':'-----BEGIN PRIVATE KEY-----'}})  # residual-secret-scan: allow — synthetic security fixture
         self.assertEqual(target.read_text(),before)
         self.assertEqual(self.station.store.task(self.pid,'OPS-101')['state'],'repair_required')
 
