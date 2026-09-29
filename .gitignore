@@ -15,3 +15,11 @@ history.bundle
 node_modules/
 projects/*
 !projects/.keep
+.envrc
+.netrc
+.npmrc
+.pypirc
+*.pem
+*.key
+*.p12
+*.pfx
