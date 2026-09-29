@@ -24,9 +24,9 @@ class TrackedSecretGuardTests(unittest.TestCase):
     def test_rejects_private_key_blocks(self):
         with tempfile.TemporaryDirectory() as td:
             path = Path(td) / "fixture.txt"
-            path.write_text("-----BEGIN PRIVATE KEY-----\nnot-real\n", encoding="utf-8")
+            private_key_block = "-----BEGIN " + "PRIVATE KEY-----\nnot-real\n"\n            path.write_text(private_key_block, encoding="utf-8")
             findings = scan([path])
-        self.assertTrue(any("private_key" in item for item in findings))
+        self.assertTrue(any("private_key" in item for item in findings))\n\n    def test_guard_test_file_does_not_self_match(self):\n        self.assertEqual(scan([Path(__file__)]), [])
 
     def test_rejects_tracked_env_file_by_name(self):
         with tempfile.TemporaryDirectory() as td:
