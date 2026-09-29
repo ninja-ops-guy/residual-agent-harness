@@ -205,7 +205,7 @@ class Handler(BaseHTTPRequestHandler):
             if placement not in {"local", "cloud"}: raise ContractError("Invalid model placement")
             settings=s.store.settings()
             profile=normalize_profile(settings[placement], "remote" if placement=="cloud" else "local")
-            return s.launch("discover-models", lambda progress: {"models":make_adapter(profile,credentials_for(settings,profile["kind"],placement)).list_models(), "placement":placement})
+            return s.launch("discover-models", lambda progress: {"models":make_adapter(profile,credentials_for(settings,profile["kind"],placement,profile["credential_ref"])).list_models(), "placement":placement})
         if path == "/api/models/test":
             placement = data.get("placement", "local")
             if placement not in {"local", "cloud"}:

@@ -105,11 +105,17 @@ def test_negative_matrix(harness, code):
 
 @pytest.mark.parametrize('historical', ['AUTH_EXPIRY', 'RATE_LIMIT_EXHAUSTED', 'PROVIDER_TIMEOUT',
                                        'PROVIDER_5XX', 'INVALID_REQUEST', 'VERIFIER_REJECTION'])
-def test_historical_classes_are_not_policy_authority(historical):
-    from residual.continuity import ELIGIBLE
-    class Historical:
-        code = historical
-    assert classification(Historical()) not in ELIGIBLE
+def test_historical_classes_are_not_policy_authority(harness, historical):
+    journal, args, calls = harness
+    def invoke(profile, request):
+        calls[profile['route_id']] += 1
+        error = ProviderError(code='invalid_response')
+        error.code = historical
+        raise error
+    args['invoke'] = invoke
+    with pytest.raises(ContractError): journal.run(**args)
+    assert calls == {'primary-cloud': 1}
+    assert receipts(journal)[-1]['classification'] == historical
 
 
 @pytest.mark.parametrize('mode', ['OFF', 'ASK'])
@@ -167,15 +173,17 @@ def test_f1_recorded_result_restart_and_duplicate_acceptance(harness, fallback):
     assert sum(r['event'] == 'accepted' for r in receipts(journal)) == 1
 
 
-def test_indeterminate_external_call_escape_never_replays(harness):
+@pytest.mark.parametrize('fallback', [False, True])
+def test_indeterminate_external_call_escape_never_replays(harness, fallback):
     journal, args, calls = harness
+    if fallback: failing(args, calls, 'quota_exhausted')
     def crash(stage):
         if stage == 'before_result_persistence': raise Crash()
     with pytest.raises(Crash): journal.run(**args, hook=crash)
     restarted = Continuity(Store(journal.store.root))
     with pytest.raises(ContractError, match='INDETERMINATE_PROVIDER_OUTCOME'):
         restarted.run(**args)
-    assert calls == {'primary-cloud': 1}
+    assert calls == ({'primary-cloud': 1, 'freellmapi': 1} if fallback else {'primary-cloud': 1})
     assert receipts(journal)[-1]['terminal_outcome'] == 'INDETERMINATE_PROVIDER_OUTCOME'
 
 

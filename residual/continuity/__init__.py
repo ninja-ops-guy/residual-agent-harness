@@ -217,8 +217,9 @@ class Continuity:
                 try:
                     validate(response)
                     authority()
-                except Exception:
-                    self._reject(invocation_id, 'validation_failure')
+                except Exception as error:
+                    reason = str(error) if str(error) in {'content_filter', 'structured_output_failure', 'malformed_provider_response', 'authority_rescinded', 'dispatch_expired'} else 'validation_failure'
+                    self._reject(invocation_id, reason)
                     raise
                 with self.store.transaction() as c:
                     current = self._get(c, 'provider_invocations', invocation_id)

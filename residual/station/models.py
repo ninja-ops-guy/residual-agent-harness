@@ -63,7 +63,7 @@ def model_call(store, pid, role, packet, system, schema=None, placement="local",
         adapter = make_adapter(profile, credentials_for(settings, profile["kind"], placement, profile["credential_ref"]))
         reg.register_route(profile["route_id"], profile["kind"], lambda a=adapter: a)
     candidates = [p["route_id"] + ":" + p["model"] for p in profiles]
-    if placement == "local": candidates += [primary["kind"] + ":" + m for m in settings.get("local_failover", [])]
+    if placement == "local": candidates += [primary["route_id"] + ":" + m for m in settings.get("local_failover", [])]
     cap = settings.get("max_output_tokens", 4096)
     req = ChatRequest(primary["model"], (Message(Role.SYSTEM, system), Message(Role.USER, canonical(packet))), max_tokens=cap, response_schema=schema)
     def reserve(provider, request, meta):
@@ -120,13 +120,17 @@ def model_call(store, pid, role, packet, system, schema=None, placement="local",
             if role == "reviewer" and current["state"] != "review_ready":
                 raise ContractError("authority_rescinded")
     def validate(response):
+        if response.finish_reason == "content_filter":
+            raise ContractError("content_filter")
+        if response.finish_reason in {"error", "unknown"}:
+            raise ContractError("malformed_provider_response")
         if schema:
             if response.finish_reason != "stop" or response.tool_calls:
-                raise ContractError("Model did not complete a usable structured response")
+                raise ContractError("structured_output_failure")
             try:
                 strict_json(response.content)
             except (ValueError, TypeError):
-                raise ContractError("Model did not return valid JSON; choose a model with structured-output support") from None
+                raise ContractError("malformed_provider_response") from None
     def invoke(profile, routed):
         authority()
         action = quarantine.hold(ProposedAction("provider_call", profile["route_id"],
@@ -166,7 +170,8 @@ def save_settings(store, incoming):
     if not isinstance(incoming, dict) or set(incoming) - allowed: raise ContractError("Unsupported setting")
     current = store.settings(); clean = {}; secrets = dict(current.get("provider_credentials", {}))
     # Bind a legacy key to its original provider before a route is changed.
-    oldkind = current.get("cloud", DEFAULTS["cloud"])["kind"]
+    oldprofile = current.get("cloud", DEFAULTS["cloud"])
+    oldkind = oldprofile.get("credential_ref", oldprofile.get("route_id", oldprofile["kind"]))
     if current.get("cloud_key"): secrets[oldkind] = {**secrets.get(oldkind, {}), "api_key":current["cloud_key"]}
     fields = {"route_id", "credential_ref", "provider_kind", "kind", "model", "base_url", "output_token_field", "region", "api_version"}
     for placement in ("local", "cloud"):
@@ -210,7 +215,8 @@ def save_settings(store, incoming):
     edits=incoming.get("provider_credentials",{})
     if not isinstance(edits,dict) or set(edits)-(set(PROVIDERS) | {p.get("credential_ref", p.get("route_id", p["kind"])) for p in profiles}): raise ContractError("Unknown credential provider")
     edits={k:dict(v) if isinstance(v,dict) else v for k,v in edits.items()}
-    kind=combined.get("cloud",DEFAULTS["cloud"])["kind"]
+    active=combined.get("cloud",DEFAULTS["cloud"])
+    kind=active.get("credential_ref", active.get("route_id", active["kind"]))
     if incoming.get("clear_cloud_key"): edits.setdefault(kind,{})["clear"]=True
     elif incoming.get("cloud_key"): edits.setdefault(kind,{})["api_key"]=incoming["cloud_key"]
     for kind,values in edits.items():
