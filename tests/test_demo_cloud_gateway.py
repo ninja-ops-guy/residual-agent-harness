@@ -83,14 +83,15 @@ class DemoGatewayTests(unittest.TestCase):
                 self.g._safe_base_url(value)
 
     def test_upstream_http_disables_ambient_proxies_and_redirects(self):
-        opener = self.g._opener()
-        proxy_handlers = [h for h in opener.handlers if isinstance(h, self.g.urllib.request.ProxyHandler)]
-        self.assertEqual(len(proxy_handlers), 1)
-        self.assertEqual(proxy_handlers[0].proxies, {})
-        redirect_handlers = [h for h in opener.handlers if isinstance(h, self.g.NoRedirect)]
-        self.assertEqual(len(redirect_handlers), 1)
+        sentinel = object()
+        with mock.patch.object(self.g.urllib.request, 'build_opener', return_value=sentinel) as build:
+            self.assertIs(self.g._opener(), sentinel)
+        proxy, redirect = build.call_args.args
+        self.assertIsInstance(proxy, self.g.urllib.request.ProxyHandler)
+        self.assertEqual(proxy.proxies, {})
+        self.assertIsInstance(redirect, self.g.NoRedirect)
         with self.assertRaises(RuntimeError):
-            redirect_handlers[0].redirect_request(None, None, 302, 'moved', {}, 'https://evil.invalid')
+            redirect.redirect_request(None, None, 302, 'moved', {}, 'https://evil.invalid')
 
     def test_gateway_database_is_private(self):
         conn = self.g._db(); conn.close()
