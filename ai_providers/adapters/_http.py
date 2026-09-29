@@ -53,6 +53,19 @@ def map_http_error(provider, status, body='', headers=None):
     if status in (401, 403):
         return AuthenticationError(provider=provider, code='authentication', status=status)
     if status == 404: return ModelNotFoundError(provider=provider, code='model_not_found', status=status)
+    # Only explicit structured codes establish exhausted quota/credit. Bare 429
+    # remains rate_limit; arbitrary upstream messages never enter evidence.
+    if status in (402, 429):
+        try:
+            error = decode(body).get('error', {})
+            code = error.get('code') if isinstance(error, dict) else None
+        except (ValueError, TypeError, UnicodeError):
+            code = None
+        classification = {'insufficient_quota': 'quota_exhausted',
+                          'quota_exhausted': 'quota_exhausted',
+                          'credit_exhausted': 'credit_exhausted'}.get(code)
+        if classification:
+            return ProviderError(provider=provider, code=classification, status=status)
     if status == 429:
         retry = None
         hint = (headers or {}).get('Retry-After')
@@ -146,8 +159,12 @@ class HTTPAdapter:
             with opener.open(request, timeout=self.timeout) as response:
                 yield response, start
         except urllib.error.HTTPError as exc:
-            exc.close()
-            raise map_http_error(self.name, exc.code, headers=exc.headers) from None
+            try:
+                body = exc.read(8193)
+                if len(body) > 8192: body = b''
+            finally:
+                exc.close()
+            raise map_http_error(self.name, exc.code, body, headers=exc.headers) from None
         except ProviderError: raise
         except (TimeoutError, socket.timeout):
             raise ProviderError(provider=self.name, code='timeout', retryable=True) from None

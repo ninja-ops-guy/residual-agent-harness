@@ -28,6 +28,9 @@ class ProviderName(str, Enum):
 class ErrorCode(str, Enum):
     AUTHENTICATION = "authentication"
     RATE_LIMIT = "rate_limit"
+    QUOTA_EXHAUSTED = "quota_exhausted"
+    CREDIT_EXHAUSTED = "credit_exhausted"
+    PROVIDER_UNAVAILABLE = "provider_unavailable"
     MODEL_NOT_FOUND = "model_not_found"
     SERVER_ERROR = "server_error"
     HTTP_ERROR = "http_error"

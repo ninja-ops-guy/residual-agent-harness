@@ -1,0 +1,127 @@
+{
+  "git_base": "8369f0dc",
+  "bound_bundle": {
+    "status": "BYTE_VERIFIED",
+    "manifest_sha256": "1bc5fdf9b18a9f99ab144070a71319ac503e6f8c5c3f4416fceeec0db9750c65",
+    "transport_id": "BL009-BOUND-CANDIDATE-2026-09-28",
+    "files": [
+      {
+        "filename": "failure_taxonomy.py",
+        "sha256": "f7a717a3931f5c46416aadfb07b3242b0c0cf29e80566dc058ef09f45e7b7b14",
+        "byte_count": 2122
+      },
+      {
+        "filename": "epoch.py",
+        "sha256": "ca96289896e587a5889fde86a67f8fc89bf3b85351c6766ade6b593b30c8ae90",
+        "byte_count": 1868
+      },
+      {
+        "filename": "receipts.py",
+        "sha256": "fedbb2c98fe0b57b9c2e9c0cb4462accba8c146f2b1196b712feeb4d88d8a9e1",
+        "byte_count": 5949
+      },
+      {
+        "filename": "circuit_breaker.py",
+        "sha256": "604b2e3c8bc91ef7ef3a94841cac5bb9f2e3a535a96ed577b5b1e629ed4b8568",
+        "byte_count": 4556
+      },
+      {
+        "filename": "policy.py",
+        "sha256": "2a3b8b49f15498faae64a4b7d03a3fe7f416b4684b8b871aa91bd5623e255821",
+        "byte_count": 4422
+      },
+      {
+        "filename": "admission_client.py",
+        "sha256": "203465686b82fbf484c86a7e529821c9959cad78e7ec6e3907de8030421eb315",
+        "byte_count": 6122
+      },
+      {
+        "filename": "continuity.py",
+        "sha256": "7ec38b63860e39a4374becb08e02996823fc2495bd4f5f95245c9cdc7861dd53",
+        "byte_count": 19517
+      },
+      {
+        "filename": "qualified_binding.py",
+        "sha256": "66a48ebd77b69bde4001238c8e50232faa831a656fcdc7aff434eecced725fef",
+        "byte_count": 7243
+      },
+      {
+        "filename": "readiness.py",
+        "sha256": "ac2d86a06eeda296791a7aa12fdb9ccc6e52a8f9272cb23542f9de1e89379f8d",
+        "byte_count": 4141
+      },
+      {
+        "filename": "checkpoint.py",
+        "sha256": "268dcb96daa59bed4905d03c69ed40c470ba6a0f2aa04aa87a97822f148361dd",
+        "byte_count": 1884
+      },
+      {
+        "filename": "adapters_synthetic.py",
+        "sha256": "13a731bf1909a8d8e4871edf8c7073b0b0fc21365ab9b431e30f7f48c8554fa9",
+        "byte_count": 1474
+      },
+      {
+        "filename": "test_doubles.py",
+        "sha256": "ecb3029e94a1bb7edbff7284ecfce82254c21489af570a3bb0f7ed800a394de6",
+        "byte_count": 791
+      },
+      {
+        "filename": "test_step1.py",
+        "sha256": "6e6af3dd256783b4e37f6866610ec728c05bbad426e32bf228f6f60dbea28e85",
+        "byte_count": 6612
+      },
+      {
+        "filename": "test_step2.py",
+        "sha256": "1b05f9c90451b5e5d4797a0f1ee9b39edcc60c66e74c888b6867e412a04dc90d",
+        "byte_count": 5530
+      },
+      {
+        "filename": "test_step3_5.py",
+        "sha256": "ddeb116cce887149db2c7cd1e8dbb55931de0b5d6304bd8f3ae39adcbaaff6f6",
+        "byte_count": 14686
+      },
+      {
+        "filename": "test_network_isolation.py",
+        "sha256": "63c5ba8852388e6629892b06e50ddfe0b62f2d751dee5dd5366e16c24b1babf3",
+        "byte_count": 1275
+      },
+      {
+        "filename": "test_step6_guard_resume.py",
+        "sha256": "4057253abf02dd12531a612366ee914c407e913cef25722bec43d626ca29bad3",
+        "byte_count": 8435
+      },
+      {
+        "filename": "bl006_qualified/admission.py",
+        "sha256": "33f92efe8f2fac50f3038ba2d566abaaf97bebed163d0d14345461d47e3b2f8c",
+        "byte_count": 22766
+      },
+      {
+        "filename": "bl006_qualified/test_admission.py",
+        "sha256": "ba7ac6a2d98f413452a892922fb6282ab8e038ecb8b35b69417f853bc1c12bb3",
+        "byte_count": 20727
+      },
+      {
+        "filename": "bl006_qualified/BL-006_CANDIDATE_B_RECEIPT.md",
+        "sha256": "c68852bdb2edafb6e698bd61b479cf5dd20367df5dad02201511319dc11b5171",
+        "byte_count": 3388
+      },
+      {
+        "filename": "bl006_qualified/_recipient_verification.json",
+        "sha256": "1f3955352bd51c60f776ee8f1a6f462f4407d64dd300bad833b8ceb95c0a3d60",
+        "byte_count": 1292
+      }
+    ]
+  },
+  "later_f1_generation": {
+    "manifest_identity_cited": "2fa430b6\u2026034e",
+    "file_count": 22,
+    "status": "CITE_ONLY / NOT_AVAILABLE_TO_CODEX",
+    "source": "owner clarification; exact bytes not found in local residual and Downloads candidates"
+  },
+  "new_generation": "Independent Station integration; not the historical F-1 repair",
+  "first_failure": {
+    "test_log_sha256": "bf9699a3fe35735ce5b310539b06a79272e57f74852dba6294b091aaef54263d",
+    "result": "7 passed, 31 errors",
+    "cause": "function-local re import shadows module import in normalize_profile"
+  }
+}

@@ -13,11 +13,11 @@ class ModelRef:
     provider: str
     model: str
     @staticmethod
-    def parse(s):
+    def parse(s, routes=()):
         if not isinstance(s,str) or not s or len(s)>600: raise ProviderError(code='invalid_request')
         if ':' in s:
             p,m=s.split(':',1)
-            if p not in {v.value for v in ProviderName} or not m: raise ProviderError(code='unknown_provider')
+            if p not in ({v.value for v in ProviderName} | set(routes)) or not m: raise ProviderError(code='unknown_provider')
             return ModelRef(p,m)
         return ModelRef('default',s)
 
@@ -25,7 +25,7 @@ class ModelRef:
 class Router:
     def __init__(self,registry=None,default_provider='openai',observation_bus=None,before_attempt=None,after_attempt=None):
         self.registry=registry if registry is not None else DEFAULT_REGISTRY
-        self.default_provider=ProviderName(default_provider).value
+        self.default_provider=default_provider if default_provider in self.registry.names() else ProviderName(default_provider).value
         self.bus=observation_bus
         # Accounting/policy callbacks are authoritative and deliberately NOT swallowed.
         self.before_attempt,self.after_attempt=before_attempt,after_attempt
@@ -44,7 +44,7 @@ class Router:
         return candidates
 
     def _begin(self,candidate,req,request_id,index,stream=False):
-        ref=ModelRef.parse(candidate)
+        ref=ModelRef.parse(candidate, self.registry.names())
         name=self.default_provider if ref.provider=='default' else ref.provider
         try: provider=self.registry.get(name)
         except ProviderError as error:
