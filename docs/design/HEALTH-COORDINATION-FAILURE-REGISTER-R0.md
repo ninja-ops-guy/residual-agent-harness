@@ -34,6 +34,17 @@ Status: observed-failure corpus; detector implementation is separate.
 | HC-028 | PROJECTION_ATTEMPT_IDENTITY_CONFLICT | PROJECTION | Retry identity mutates cursor-referenced projection identity. |
 | HC-029 | FOREIGN_KEY_ENFORCEMENT_DISABLED | EVIDENCE | Schema depends on FK but connection does not enforce it. |
 | HC-030 | RUNNER_REGISTRATION_INCOMPLETE | ENROLLMENT | Enrollment exists but execution/heartbeat/binding/native qualification incomplete. |
+| HC-031 | KERNEL_TIMER_STALL_UNDETECTED | WAKEUP | Kernel process may remain alive while its deadline-consumer/timer thread stops making progress; require internal heartbeat plus process-level health complement. |
+| HC-032 | DELIVERY_VISIBILITY_GAP | TRANSPORT | Sender-side delivery record may exist while the intended room/coordinator/recipient never observes the message or attachment; direction and missing hop must be explicit. |
+| HC-033 | ARTIFACT_ARRIVAL_NO_CONSUMER_WAKE | WAKEUP | Artifact bytes may land in shared/download storage without waking the assigned seat; artifact arrival is not equivalent to consumer activation. |
+| HC-034 | SCHEDULED_JOB_CONSUMER_TIMEOUT | EXECUTION | Scheduled job may start successfully but fail inside the consumer/model phase; distinguish scheduler/wake success from execution timeout. |
+
+## Recent evidence refinements
+
+- **HC-031** is derived from the SC-E review amendment: SC-E-I01/I02 pass structurally, but timer-thread liveness is itself unobserved unless a supervisor heartbeat and external process-health complement exist.
+- **HC-032** covers both observed transport directions: seat→room delivery not surfacing to the coordinator, and room→host attachment visibility lag. It is not the same as byte corruption; the failure is visibility/delivery at a hop.
+- **HC-033** captures the BL-009/Piston stall pattern: the 7/7 bundle was already present in shared downloads, but a sleeping seat was not activated by passive file arrival. The later stall check, not the artifact landing, caused consumption.
+- **HC-034** captures cron/scheduled jobs that do wake and begin execution but then fail or time out during the consumer/model-call phase. It remains distinct from HC-001 (no scheduler), HC-002 (fired but no consumer action), and HC-021 (context overflow specifically).
 
 Lifecycle: `OBSERVED -> CORRELATED -> REPRODUCED -> DETECTOR_DESIGNED -> DETECTOR_IMPLEMENTED -> INDEPENDENTLY_QUALIFIED -> PRODUCTION_DIAGNOSTIC`.
 
