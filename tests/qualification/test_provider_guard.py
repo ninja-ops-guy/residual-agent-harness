@@ -27,6 +27,12 @@ class ProviderDestinationGuardTests(unittest.TestCase):
             require_allowed_credential_destination(
                 "openai_compatible", "http://gateway.example/v1", allowlist=allowed
             )
+        self.assertEqual(
+            require_allowed_credential_destination(
+                "openai_compatible", "http://127.0.0.1:8080/v1", allowlist=""
+            ),
+            "http://127.0.0.1:8080/v1",
+        )
 
     def test_credentials_in_custom_url_are_rejected_even_when_host_is_allowlisted(self):
         with self.assertRaises(ValueError):
