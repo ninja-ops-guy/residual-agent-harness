@@ -45,6 +45,7 @@ jobs:
         continue-on-error: true
         env:
           RESIDUAL_QUALIFICATION_LLM_API_KEY: ${{ secrets.RESIDUAL_QUALIFICATION_LLM_API_KEY }}
+          RESIDUAL_QUALIFICATION_ALLOWED_BASE_URLS: ${{ vars.RESIDUAL_QUALIFICATION_ALLOWED_BASE_URLS }}
           QUAL_PROVIDER: ${{ inputs.provider }}
           QUAL_MODEL: ${{ inputs.model }}
           QUAL_BASE_URL: ${{ inputs.base_url }}
