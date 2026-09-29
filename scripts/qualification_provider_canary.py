@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 
 from ai_providers.core import ChatRequest, Message, Role
+from scripts.qualification_provider_guard import require_allowed_credential_destination
 
 CANARY = "RESIDUAL_CANARY_OK"
 
@@ -86,6 +87,7 @@ def main(argv=None) -> int:
 
     started = time.perf_counter()
     try:
+        args.base_url = require_allowed_credential_destination(args.provider, args.base_url)
         client = adapter(args.provider, key, args.base_url)
         request = ChatRequest(
             model=args.model,

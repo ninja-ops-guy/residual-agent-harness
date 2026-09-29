@@ -10,7 +10,7 @@ The browser does receive a one-off Tailscale auth key because WebVM needs it to 
 
 ## Required gateway secrets
 
-Set these only on the gateway host:
+Set these only on the gateway host. `FREELLMAPI_BASE_URL` must be HTTPS (loopback HTTP is permitted for a same-host development service); embedded credentials, query strings, and fragments are rejected:
 
 - `FREELLMAPI_BASE_URL`
 - `FREELLMAPI_ADMIN_EMAIL`
@@ -68,6 +68,8 @@ docker run --rm -p 8080:8080 \
   -e RESIDUAL_DEMO_DB=/state/gateway.sqlite3 \
   residual-demo-gateway
 ```
+
+The gateway container runs as an unprivileged UID and stores its SQLite session database under `/state` by default. Outbound credential-bearing calls ignore ambient HTTP(S) proxy variables and refuse redirects, preventing admin/profile/OAuth credentials from being forwarded to a different origin.
 
 Expose it only over HTTPS. Then set repository variable `RESIDUAL_DEMO_GATEWAY_URL` to that HTTPS origin and redeploy Pages.
 

@@ -13,6 +13,7 @@ from residual.core import canonical
 from residual.station.control import run_controlled_batch
 from residual.station.models import PROVIDERS, save_settings
 from residual.station.service import Station
+from scripts.qualification_provider_guard import require_allowed_credential_destination
 
 SPEC = """# Live provider qualification mission
 
@@ -66,6 +67,18 @@ def run_mission(*, provider: str, model: str, base_url: str | None, root: Path) 
             "model": model,
             "reason": "RESIDUAL_CLOUD_API_KEY is absent",
             "non_claim": "No fixture result is substituted for missing live-provider credentials.",
+        }
+
+    try:
+        base_url = require_allowed_credential_destination(provider, base_url)
+    except ValueError as exc:
+        return {
+            "schema": "residual.qualification.provider-mission.v1",
+            "result": "FAIL",
+            "provider": provider,
+            "model": model,
+            "reason": str(exc),
+            "non_claim": "Credential-bearing qualification refuses unapproved custom destinations before provider construction.",
         }
 
     started = time.monotonic()
