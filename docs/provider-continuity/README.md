@@ -196,3 +196,17 @@ Repository checks use compileall and unittest/pytest; no Python linter or type
 checker is configured. Whitespace in byte-preserved BL-006 is intentional and
 excluded from the authored-code diff check. No release, tag, merge, scheduler,
 Shared Comms, OpenClaw or unrelated UI change belongs to this candidate.
+
+Final source qualification (`evidence/candidate-receipt.json`): 155 affected tests
+and 47 subtests passed. Broader regression coverage after documented exclusions:
+1,884 passed, 2 failed, 12 skipped, 398 subtests passed. Both remaining isolation
+failures reproduce on untouched main; baseline logs are retained. The full suite
+is not claimed green. `fixture-mission.json` records the passing controlled
+continuity mission. No live provider qualification was performed. The final
+receipt commit adds documentation/evidence only; source digests bind the tested
+implementation independently of that final documentation commit identity.
+
+Model/provider observations are adapter evidence, not independent upstream
+attestation. In particular a compatible adapter may normalize an omitted model
+field to the requested model; that does not prove which concealed upstream
+model performed inference.
