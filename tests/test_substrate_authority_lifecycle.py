@@ -304,6 +304,19 @@ class KeyRotationTests(unittest.TestCase):
                 transitions=(bad,),
             ).active_issuer_keys(210)
 
+    def test_multiple_successors_from_one_predecessor_are_rejected(self):
+        old = Ed25519PrivateKey.generate()
+        first = Ed25519PrivateKey.generate()
+        second = Ed25519PrivateKey.generate()
+        t1 = StationKeySuccessor.issue(
+            old, first, activates_at_ns=200, predecessor_retire_at_ns=240,
+        )
+        t2 = StationKeySuccessor.issue(
+            old, second, activates_at_ns=210, predecessor_retire_at_ns=240,
+        )
+        with self.assertRaisesRegex(ContractError, "ambiguous Station-key successor"):
+            StationTrustStore((raw_public(old),), transitions=(t1, t2))
+
     def test_unrooted_successor_chain_is_rejected(self):
         unrelated = Ed25519PrivateKey.generate()
         old = Ed25519PrivateKey.generate()
