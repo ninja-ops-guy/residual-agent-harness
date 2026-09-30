@@ -86,16 +86,12 @@ def build_execution_request(
         raise ContractError("launch inference_route_ref must match compiled policy")
 
     request_seed = {
-        "mission_id": launch.mission_id,
-        "task_id": task.task_id,
-        "attempt_id": launch.attempt_id,
         "task_spec_digest": digest(task_payload),
         "context_digest": digest(context_payload),
-        "authority_ref": launch.authority_ref,
         "engine_name": engine_name,
         "engine_version": engine_version,
-        "policy_digest": policy.policy_digest,
-        "image_digest": launch.image_digest,
+        "launch": launch.payload(),
+        "requested_policy_digest": policy.policy_digest,
     }
     request_id = "osr-" + digest(request_seed)[:32]
 
