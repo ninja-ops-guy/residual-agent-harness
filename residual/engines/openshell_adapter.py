@@ -345,6 +345,8 @@ class OpenShellExecutionEngine:
             mismatches.append("driver")
         if self.expected_platform_class is None or expected.platform_class != self.expected_platform_class:
             mismatches.append("platform_class")
+        if self.expected_environment_digest is None or expected.environment_digest != self.expected_environment_digest:
+            mismatches.append("environment_digest")
         if expected.agent_profile != request.agent_profile:
             mismatches.append("agent_profile")
         if expected.agent_identity != self.expected_agent_identity:
@@ -466,6 +468,7 @@ class OpenShellExecutionEngine:
                 sandbox_generation=inspected.generation,
                 compute_driver=inspected.compute_driver,
                 platform_class=inspected.platform_class,
+                environment_digest=inspected.environment_digest,
                 image_digest=inspected.image_digest,
                 agent_identity=inspected.agent_identity,
                 requested_policy_digest=policy.policy_digest,
