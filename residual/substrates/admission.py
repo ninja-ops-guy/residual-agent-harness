@@ -305,3 +305,88 @@ class AdmittedQualificationRegistry:
                 ),
             })
         return tuple(rows)
+
+
+
+@dataclass(frozen=True)
+class QualificationAdmissionBundle:
+    """Content-addressed set of Station admissions, separate from evidence ledger."""
+
+    admissions: tuple[QualificationAdmission, ...]
+    schema_version: str = "residual.substrate-qualification-admission-bundle.v1"
+
+    def __post_init__(self) -> None:
+        if self.schema_version != "residual.substrate-qualification-admission-bundle.v1":
+            raise ContractError("unsupported qualification admission bundle schema")
+        if any(not isinstance(item, QualificationAdmission) for item in self.admissions):
+            raise ContractError("admission bundle contains invalid entry")
+        record_digests = [item.record_digest for item in self.admissions]
+        if len(record_digests) != len(set(record_digests)):
+            raise ContractError("admission bundle contains duplicate record admission")
+
+    def payload(self) -> dict[str, Any]:
+        rows = sorted(
+            (item.payload() for item in self.admissions),
+            key=lambda row: row["record_digest"],
+        )
+        return {
+            "schema_version": self.schema_version,
+            "admissions": rows,
+        }
+
+    @property
+    def bundle_digest(self) -> str:
+        return digest(self.payload())
+
+    @classmethod
+    def from_payload(
+        cls,
+        value: dict[str, Any],
+    ) -> "QualificationAdmissionBundle":
+        if not isinstance(value, dict):
+            raise ContractError("qualification admission bundle must be an object")
+        data = strict_json(canonical(value))
+        if set(data) != {"schema_version", "admissions"}:
+            raise ContractError("qualification admission bundle keys do not match schema")
+        if data["schema_version"] != "residual.substrate-qualification-admission-bundle.v1":
+            raise ContractError("unsupported qualification admission bundle schema")
+        if not isinstance(data["admissions"], list):
+            raise ContractError("qualification admission bundle admissions must be a list")
+        return cls(
+            tuple(QualificationAdmission.from_payload(row) for row in data["admissions"]),
+            schema_version=data["schema_version"],
+        )
+
+    def admitted_registry(
+        self,
+        evidence_registry: SubstrateQualificationRegistry,
+        *,
+        trusted_public_keys: dict[str, bytes],
+    ) -> AdmittedQualificationRegistry:
+        if not isinstance(evidence_registry, SubstrateQualificationRegistry):
+            raise ContractError("admission bundle requires evidence registry")
+        if not isinstance(trusted_public_keys, dict):
+            raise ContractError("trusted_public_keys must map key ids to raw public keys")
+
+        records = {
+            record.record_digest: record
+            for record in evidence_registry.records()
+        }
+        admitted = AdmittedQualificationRegistry(evidence_registry)
+        for admission in self.admissions:
+            record = records.get(admission.record_digest)
+            if record is None:
+                raise ContractError(
+                    "admission references record absent from evidence ledger"
+                )
+            public_key = trusted_public_keys.get(admission.station_key_id)
+            if public_key is None:
+                raise ContractError(
+                    "admission signer is not in trusted Station key set"
+                )
+            admitted.admit(
+                record,
+                admission,
+                station_public_key=public_key,
+            )
+        return admitted
