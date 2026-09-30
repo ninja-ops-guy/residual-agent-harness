@@ -91,20 +91,23 @@ class MeshClawRunner:
         if not work:
             return False
         self.current = work
-        packet_bytes = len(canonical(work["packet"]).encode("utf-8"))
-        # Bound includes wrapper/system text and implementation variance; admission
-        # is intentionally conservative rather than using an optimistic estimate.
-        request_bound = packet_bytes + 64_000
-        if request_bound > self.max_request_bytes:
-            raise ContractError("Mesh assignment exceeds the configured request-byte bound")
-        plan = provider_plan(work, self.provider_routes, request_bound)
-        self.client.execution_admit(work, plan)
-        assignment_id = (
-            f"{work['project_id']}:{work['task_id']}:{work['attempt']}:"
-            f"{work['fencing_token']}:{uuid.uuid4().hex[:12]}"
-        )
-        self.current_assignment_id = assignment_id
+        assignment_id = None
         try:
+            packet_bytes = len(canonical(work["packet"]).encode("utf-8"))
+            # Bound includes wrapper/system text and implementation variance; admission
+            # is intentionally conservative rather than using an optimistic estimate.
+            request_bound = packet_bytes + 64_000
+            if request_bound > self.max_request_bytes:
+                raise ContractError("Mesh assignment exceeds the configured request-byte bound")
+            plan = provider_plan(work, self.provider_routes, request_bound)
+            admission = self.client.execution_admit(work, plan)
+            if not isinstance(admission, dict) or admission.get("admitted") is not True:
+                raise ContractError("Station did not grant execution admission")
+            assignment_id = (
+                f"{work['project_id']}:{work['task_id']}:{work['attempt']}:"
+                f"{work['fencing_token']}:{uuid.uuid4().hex[:12]}"
+            )
+            self.current_assignment_id = assignment_id
             execution = self.adapter.execute({
                 "assignment_id": assignment_id,
                 "packet": work["packet"],
@@ -131,10 +134,11 @@ class MeshClawRunner:
         except Exception:
             # No blind replay after execution begins. Authority expires naturally or
             # an operator/Station stop path cancels and reconciles the attempt.
-            try:
-                self.adapter.cancel(assignment_id)
-            except Exception:
-                pass
+            if assignment_id is not None:
+                try:
+                    self.adapter.cancel(assignment_id)
+                except Exception:
+                    pass
             raise
         finally:
             self.current = None

@@ -7,15 +7,62 @@ keeps application acknowledgement distinct from transport acknowledgement.
 from __future__ import annotations
 
 import json
+import re
 import urllib.error
 import urllib.parse
 import urllib.request
 
 from residual.core import ContractError, canonical, strict_json
 from residual.providers import NoRedirect
+from .contracts import ExecutionAdmissionError
 from .mesh import new_envelope
 from .mesh_outbox import MeshOutbox
 
+
+
+class MeshAdmissionRejected(ContractError):
+    """Safe receipt boundary: no raw HTTP body, URL, lease or authorization token."""
+
+    def __init__(self, status, reason_code, correlation):
+        self.http_status = status
+        self.reason_code = reason_code
+        self.message = ExecutionAdmissionError.messages.get(
+            reason_code, "Station rejected execution admission")
+        self.correlation = correlation
+        super().__init__(self.message)
+
+    def to_dict(self):
+        return {"status": "BLOCKED", "code": ExecutionAdmissionError.code,
+                "reason_code": self.reason_code, "message": self.message,
+                "http_status": self.http_status,
+                "http_status_class": f"{self.http_status // 100}xx",
+                **self.correlation}
+
+
+def _admission_rejection(error, data, worker_id):
+    reason = "STATION_HTTP_ERROR"
+    try:
+        raw = error.read(8193)
+        value = strict_json(raw.decode("utf-8")) if len(raw) <= 8192 else None
+        detail = value.get("execution_error") if isinstance(value, dict) else None
+        if (isinstance(detail, dict) and detail.get("code") == ExecutionAdmissionError.code
+                and detail.get("reason_code") in ExecutionAdmissionError.messages):
+            reason = detail["reason_code"]
+    except (ValueError, UnicodeError, OSError, TypeError, RecursionError, ContractError):
+        pass
+    finally:
+        error.close()
+    # Correlate with our request, never arbitrary response fields. Lease IDs are
+    # credentials and are deliberately absent, as are response-supplied messages.
+    correlation = {}
+    for key, value in {"worker_id": worker_id, **{k: data.get(k) for k in (
+            "project_id", "task_id", "attempt", "fencing_token", "generation")}}.items():
+        if key in {"attempt", "fencing_token", "generation"}:
+            if type(value) is int and 0 <= value <= 2**63 - 1:
+                correlation[key] = value
+        elif isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}", value):
+            correlation[key] = value
+    return MeshAdmissionRejected(error.code, reason, correlation)
 
 class MeshWorkerClient:
     def __init__(self, station, token, *, worker_id, outbox_path=None):
@@ -47,11 +94,17 @@ class MeshWorkerClient:
             data=canonical(data).encode("utf-8"),
             headers=self._headers(body=True),
         )
-        with self.opener.open(req, timeout=600) as response:
-            raw = response.read(500_001)
-            if len(raw) > 500_000:
-                raise ContractError("Mesh response exceeds 500 KB")
-            return strict_json(raw.decode("utf-8"))
+        try:
+            with self.opener.open(req, timeout=600) as response:
+                raw = response.read(500_001)
+                if len(raw) > 500_000:
+                    raise ContractError("Mesh response exceeds 500 KB")
+                return strict_json(raw.decode("utf-8"))
+        except urllib.error.HTTPError as error:
+            # Keep unrelated message/outbox transport semantics unchanged.
+            if route != "execution-admit":
+                raise
+            raise _admission_rejection(error, data, self.worker_id) from None
 
     def fetch(self, route, params):
         suffix = "?" + urllib.parse.urlencode(params)
@@ -162,6 +215,7 @@ class MeshWorkerClient:
     def execution_admit(self, work, attempts):
         return self.request("execution-admit", {
             "project_id": work["project_id"],
+            "attempt": work["attempt"],
             "generation": work["generation"],
             "task_id": work["task_id"],
             "lease_id": work["lease_id"],

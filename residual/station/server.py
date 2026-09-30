@@ -14,7 +14,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from residual.core import ContractError, canonical, strict_json
-from .contracts import bounded, parse_spec
+from .contracts import ExecutionAdmissionError, bounded, parse_spec
 from .models import model_call, public_settings, save_settings, credentials_for
 from residual.modular import normalize_profile, make_adapter
 from ai_providers import ProviderError as ModularError
@@ -201,6 +201,8 @@ class Handler(BaseHTTPRequestHandler):
             self.respond(result if result is not None else {"ok": True})
         except PermissionError as e:
             self.respond({"error": str(e)}, 403)
+        except ExecutionAdmissionError as e:
+            self.respond({"error": str(e), "execution_error": e.to_dict()}, 400)
         except ModularError as e:
             self.respond({"error":str(e), "provider_error":e.to_dict()}, 400)
         except (ContractError, ValueError, KeyError, TypeError) as e:
@@ -308,21 +310,21 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/mesh/worker/execution-admit":
             current, project = s.mesh.authorize(mesh_worker, data["project_id"])
             if data.get("generation") != int(project.get("generation", 1)):
-                raise ContractError("Execution generation is stale")
+                raise ExecutionAdmissionError("STALE_GENERATION")
             attempts = data.get("attempts")
             if not isinstance(attempts, list):
-                raise ContractError("attempts must be a list")
+                raise ExecutionAdmissionError("INVALID_EXECUTION_PLAN")
             for attempt in attempts:
                 if not isinstance(attempt, dict):
-                    raise ContractError("Invalid execution attempt plan")
+                    raise ExecutionAdmissionError("INVALID_EXECUTION_PLAN")
                 placement = attempt.get("placement")
                 if placement == "local" and "model.local" not in current["capabilities"]:
-                    raise ContractError("Worker capability policy does not permit local model attempts")
+                    raise ExecutionAdmissionError("WORKER_CAPABILITY_DENIED")
                 if placement == "remote" and "model.remote" not in current["capabilities"]:
-                    raise ContractError("Worker capability policy does not permit remote model attempts")
+                    raise ExecutionAdmissionError("WORKER_CAPABILITY_DENIED")
             budget = s.store.reserve_mesh_execution(
                 data["project_id"], data["task_id"], data["lease_id"], data["fencing_token"],
-                data["generation"], attempts)
+                data["generation"], attempts, attempt=data.get("attempt"))
             return {"admitted": True, "generation": int(project.get("generation", 1)), "budget": budget}
         if path == "/api/mesh/worker/admit":
             current, project = s.mesh.authorize(mesh_worker, data["project_id"])
@@ -345,7 +347,9 @@ class Handler(BaseHTTPRequestHandler):
             current, project = s.mesh.authorize(mesh_worker, pid)
             if data.get("generation") != int(project.get("generation", 1)):
                 raise ContractError("Result generation is stale")
-            s.store.validate_lease(pid, tid, data["lease_id"], data["fencing_token"])
+            task = s.store.validate_lease(pid, tid, data["lease_id"], data["fencing_token"])
+            if type(data.get("attempt")) is not int or data["attempt"] != task["attempt"]:
+                raise ContractError("Result attempt is stale")
             provider_attempts = data.get("provider_attempts")
             reconciliation = None
             if s.store.task(pid, tid).get("mesh_execution_budget") is not None:
