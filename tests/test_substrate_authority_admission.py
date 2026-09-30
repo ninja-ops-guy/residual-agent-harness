@@ -11,6 +11,7 @@ from residual.core import ContractError
 from residual.substrates.admission import (
     AdmittedQualificationRegistry,
     QualificationAdmission,
+    QualificationAdmissionBundle,
     SIGNATURE_DOMAIN,
 )
 from residual.substrates.qualification import (
@@ -150,6 +151,33 @@ class QualificationAdmissionTests(unittest.TestCase):
         private = Ed25519PrivateKey.generate()
         with self.assertRaisesRegex(ContractError, "only PASS"):
             QualificationAdmission.issue(failed, private, issued_at_ns=1)
+
+    def test_admission_bundle_rebuilds_authority_from_pinned_station_key(self):
+        record = make_record()
+        evidence = SubstrateQualificationRegistry()
+        evidence.add(record)
+        private = Ed25519PrivateKey.generate()
+        public = public_bytes(private)
+        admission = QualificationAdmission.issue(record, private, issued_at_ns=1)
+        bundle = QualificationAdmissionBundle((admission,))
+
+        replayed = QualificationAdmissionBundle.from_payload(bundle.payload())
+        self.assertEqual(replayed.bundle_digest, bundle.bundle_digest)
+        admitted = replayed.admitted_registry(
+            evidence,
+            trusted_public_keys={admission.station_key_id: public},
+        )
+        self.assertEqual(
+            admitted.require(
+                record.qualification_tuple,
+                "sandboxed_execution",
+                record_digest=record.record_digest,
+            ).record_digest,
+            record.record_digest,
+        )
+
+        with self.assertRaisesRegex(ContractError, "not in trusted Station key set"):
+            replayed.admitted_registry(evidence, trusted_public_keys={})
 
     def test_admission_serialization_is_tamper_evident(self):
         record = make_record()
