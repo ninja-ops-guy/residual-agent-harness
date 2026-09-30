@@ -1,0 +1,381 @@
+{
+  "accepted_main": {
+    "head": "8369f0dc2a93d8dcb194220b85b9aaf87d1d6df2",
+    "tree": "7cd0d32be6fd61948f2fce753b122e5b6f0c6500"
+  },
+  "baseline_failure_controls": {
+    "accepted_main": {
+      "failed": 37,
+      "logs": [
+        "base-main-failures-r1.log.gz",
+        "base-main-additional-r1.log.gz"
+      ]
+    },
+    "exact_failed_node_sets_match": true,
+    "repair_base": {
+      "failed": 37,
+      "logs": [
+        "base-scmesh-failures-r1.log.gz",
+        "base-scmesh-additional-r1.log.gz"
+      ]
+    }
+  },
+  "disposition": "MESH_EXECUTION_BUDGET_REPAIR_READY_FOR_INDEPENDENT_REVIEW",
+  "environment": {
+    "dependencies": "isolated venv: project factory+qualification extras; pytest9.1.1, PyYAML6.0.3, hypothesis6.168.0, coverage7.16.1, cryptography50.0.1",
+    "node": "v24.19.0",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+    "python": "3.12.14"
+  },
+  "failure_classification": [
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/enterprise/test_supplychain.py::TestSandbox::test_benign_module_runs"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/enterprise/test_supplychain.py::TestSandbox::test_filesystem_allowlist_permitted"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/enterprise/test_supplychain.py::TestSandbox::test_filesystem_outside_allowlist_denied"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/enterprise/test_supplychain.py::TestSandbox::test_network_egress_denied_by_kernel"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/enterprise/test_supplychain.py::TestSandbox::test_path_traversal_denied"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/enterprise/test_supplychain.py::TestSandbox::test_spawned_process_cannot_write_host_filesystem"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/enterprise/test_supplychain.py::TestSandbox::test_thread_inflated_host_containment_and_pid_budget"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/enterprise/test_supplychain.py::TestSandbox::test_write_denied"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/redteam/test_worker_attacks.py::TestMaliciousWorkerOutput::test_forged_receipt_in_worker_output"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/redteam/test_worker_attacks.py::TestMaliciousWorkerOutput::test_oversized_output_capped"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/redteam/test_worker_attacks.py::TestMaliciousWorkerOutput::test_terminal_escape_output_is_inert_data"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_factory_m4_fs_redteam.py::FilesystemRedTeamTests::test_unix_socket_rejected_by_snapshot"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_candidate_exit_125_is_fail_not_sandbox_error"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_child_surviving_timeout_is_killed"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_external_filesystem_write_attempt_fails"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_fork_descendants_do_not_escape"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_host_paths_not_visible"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_infinite_loop_hits_deterministic_timeout"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_infinite_output_is_bounded_and_killed"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_ipc_namespace_hides_sysv_shm_from_host"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_memory_limit_fails_runaway_allocation"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_missing_executable_is_launch_failed_not_sandbox_error"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_network_attempt_fails"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_pass_and_fail_and_hashes"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_posix_mqueue_namespace_isolated"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_tmpfs_scratch_is_bounded"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_verifier_crash_is_fail_not_error"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_factory_m4_sandbox.py::IsolatedRunnerTests::test_worktree_readable_but_read_only"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_factory_m4_tree_binding.py::IsolatedTreeBindingTests::test_isolated_verification_issues_receipt_bound_to_verified_tree"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_sandbox_containment.py::test_fork_bomb_defused"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_sandbox_containment.py::test_fs_allowlist_read_write"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_sandbox_containment.py::test_memory_cap_enforced"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_sandbox_containment.py::test_nonzero_exit_captured"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_sandbox_containment.py::test_success_path"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_sandbox_containment.py::test_timeout_kills"
+    },
+    {
+      "cause": "ENVIRONMENT_FAILURE: restricted host sandbox/socket capabilities",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_sandbox_timing_determinism.py::IsolatedTimeoutTypingTests::test_timeout_is_distinct_typed_outcome"
+    },
+    {
+      "cause": "TEST_DEFECT: legacy Node flag incompatible with Node v24.19.0",
+      "classification": "PRE_EXISTING_MAIN_FAILURE",
+      "node": "tests/test_webvm_diagnostics.py::WebVMDiagnosticsTests::test_javascript_diagnostic_contracts"
+    }
+  ],
+  "historical_failure": "ADMIT_REJECTED__STALE_MESH_EXECUTION_BUDGET",
+  "historical_qualification": "unchanged failed/blocked; no live DELL qualification in this task",
+  "independent_review": {
+    "blocking_findings": 0,
+    "focused_tests_passed": 58,
+    "reviewed_production_diff_sha256": "5d5e33963cf3e232fdcbb4b2a9d9bbe387f88938d350f85be1a13cc03cf39722"
+  },
+  "known_limitations": [
+    "Requires unmerged #404 prerequisite; stacked draft, not main repair",
+    "Legacy HTTP bodies retain status but generic safe reason until Station also upgraded",
+    "Admission/provider I/O and reconciliation/result acceptance are not atomic; unknown usage stays consumed",
+    "No provider-side exactly-once claim",
+    "Only Python3.12 Linux fixture qualification here; live DELL new QUAL-001 generation and external independent review pending",
+    "Original first negative log bytes unavailable after cloud workspace replacement; separately retained baseline rerun before production edits",
+    "Full suite not green:37 failures reproduced on both untouched baselines"
+  ],
+  "logs": {
+    "affected-final-r2.log.gz": {
+      "compressed_sha256": "6a11b35faad0939123efc087487939f0665469a4f2cb0d17400478fbb789dc5d",
+      "uncompressed_sha256": "b9b51b4c6975c5d1ea389d697db803f5c5ed5982e9640f9472c7599064905cae"
+    },
+    "affected-final.log.gz": {
+      "compressed_sha256": "9e49a68ca7747626f09e958ecb349c2679cb2f91dd0d71104e63516e66df8aae",
+      "uncompressed_sha256": "e0a21bb3dc680aad6c9aa1a56c264e2fd2030246ab293dfe5fb6d933415a8675"
+    },
+    "base-main-additional-r1.log.gz": {
+      "compressed_sha256": "fc1af3277d01618a0ed70076b665e39056d77326e69928124509982cc967fb19",
+      "uncompressed_sha256": "be2de2c3fc30d36e72d4d6827219501037796bdca2bb62c487d382ec0e75cca3"
+    },
+    "base-main-failures-r1.log.gz": {
+      "compressed_sha256": "d192b19f7f82c865f665460a95862d03a6ccc099b4e20b66219e8deba7069b0c",
+      "uncompressed_sha256": "f238953e5cf41e479b409fe44653cde56a10d21ad4f14a690a1cc0e8d3adcc3a"
+    },
+    "base-scmesh-additional-r1.log.gz": {
+      "compressed_sha256": "40abbcb7f3bf9389e8f27e01936671421b6c7e0ef238f57146e6d1033ad6a136",
+      "uncompressed_sha256": "f987d0bbacbe3333b4d7ae49e3ef1115bfa82c8abde08a9c4ff90d2cfa293be8"
+    },
+    "base-scmesh-failures-r1.log.gz": {
+      "compressed_sha256": "bdd45558f2cb02df65be49b88538d1cdb5a2848810b98a9323a37a0c5c37ab5d",
+      "uncompressed_sha256": "c53ce41a56c06e2c0a589558c816d41685c4fb4005d675b9121ff20d37657800"
+    },
+    "broader-complete-r1.log.gz": {
+      "compressed_sha256": "ff7d9fecf181ce1725c4e581e6208aa53898cf705d41a091b7e55911a53ca2fc",
+      "uncompressed_sha256": "c1d46909991c678161e76cab4abe5de41dddeea49766c55efeb0928db4ed614c"
+    },
+    "broader-r1.log.gz": {
+      "compressed_sha256": "c7e041eba183f4a96b6ebf850c66ad0205e6e0057ba2326c406b714523da57f8",
+      "uncompressed_sha256": "d8fbda138f7fe8ebe8c603ff98f536e190801d19af50f68eae5237cded656171"
+    },
+    "build-final.log.gz": {
+      "compressed_sha256": "f9b0fbb4fc015abda50593751a8a039cdec664d9eaa7d2503fcd369fce6bac18",
+      "uncompressed_sha256": "2a02859c09ca93a2266438aab93d255c253f1536f57b9688338cf300e24f9649"
+    },
+    "focused-final.log.gz": {
+      "compressed_sha256": "6571ba556025781a7a61738d2cd7ed0bc40a1f61a8c18962112cecbecd63a828",
+      "uncompressed_sha256": "74429352216c3af80df1b6ffb713d7b87ab3cdaf1a622636cf7110ac6caea5ad"
+    },
+    "focused-r1.log.gz": {
+      "compressed_sha256": "84f3d75d03b2c84f6e441378e045eb0f57bec0f3cc884ce5c5ec505654af1152",
+      "uncompressed_sha256": "1942278106f6554c8bd3ec2c36bcb1b9c3c87b87cd7bc3c1a90fae3c07bd3db6"
+    },
+    "focused-r2.log.gz": {
+      "compressed_sha256": "4fb179b67c19aacb3bfa43e88f64b0046124d79bd4319d84cab391bfd2753da9",
+      "uncompressed_sha256": "228c3581e1ed89025cdbe82e2890b7c18d71c69702ac624740ff07b619c0c2f3"
+    },
+    "full-final.log.gz": {
+      "compressed_sha256": "634b309be73008eb01194e24b5381bb98557a88fa613cc7058b7e3cec14201ed",
+      "uncompressed_sha256": "f1ebf83d354cc0026affc0a5d330f52d9fdf3d9aaee1afbf5f9b8ba99f12c405"
+    },
+    "mesh-r1.log.gz": {
+      "compressed_sha256": "3863020ed5cdf1441a8054952da8bdfd0e7f0d2cab0765307874938982205787",
+      "uncompressed_sha256": "8abf6d2236e5d71f0e34177441c46e738b1f76a562619195e2df71caa3345813"
+    },
+    "negative-reproduction-r2.log.gz": {
+      "compressed_sha256": "9a00e1e141b53714c4b214a7f3eecbe2034fcfa3548954c39617e94907877cc7",
+      "uncompressed_sha256": "cd44ac46d2373df614ad5a1085e7eeba1e05627e516cdafa837e25d22b071e42"
+    },
+    "qualification-r1.log.gz": {
+      "compressed_sha256": "614dd4a155b6769175fefa9ebf71db0ade30d53a4f1dba49853b5e8c9b74cea5",
+      "uncompressed_sha256": "111d7409e92c2e68a9cd9927d4b37325018e8451ed76bada3050ef2a337b4eb6"
+    },
+    "station-r1.log.gz": {
+      "compressed_sha256": "89c2172649435c849cbfdc52810b36ba3e4b57b23e26209895c1bbf330a76447",
+      "uncompressed_sha256": "8451ebb6505a9c2b6c02a633ee7ba0892e2d98f46d51d7679dde5e1dacdeb60c"
+    }
+  },
+  "negative_reproduction": {
+    "command": "python -m unittest tests.station.test_mesh_attempt_lifecycle -v",
+    "errors": 1,
+    "exact_error": "residual.core.ContractError: Execution budget was already admitted for this task attempt",
+    "exit_code": 1,
+    "original_log_bytes_available": false,
+    "original_log_reported_sha256": "80efbd43d5480931818ed34cd0c45c6283af313da805d66d484ddf963c569892",
+    "retained_log": "negative-reproduction-r2.log.gz",
+    "retained_run_is_new_baseline_rerun": true,
+    "source_production_unmodified": true,
+    "test_sha256": "b71f2ed12e9317aa02709cd413f1367e88229bd9a9ec0981710a94cc39697f27"
+  },
+  "production_diff_sha256": "5d5e33963cf3e232fdcbb4b2a9d9bbe387f88938d350f85be1a13cc03cf39722",
+  "repair_base": {
+    "authorization": "User approved alternate-base stacked draft repair after main-source mismatch was disclosed",
+    "branch": "sc-mesh-001-v0.1",
+    "head": "7783081c858ad9ddf98b2e64e740e1104ae5d08b",
+    "pr": 404,
+    "tree": "5c33861f37d1689fecfe0da7cab0b745eace3ac2"
+  },
+  "schema": "residual.mesh.attempt-repair-evidence/1",
+  "source_sha256": {
+    "residual/station/contracts.py": "e5e8898bf8fa3e2129523f978668e9a2d66b0b585580e7a9e69f0293ea0ef40c",
+    "residual/station/mesh_cli.py": "08b1afd018a5049874160c267a27303733b6d9eedd4d047e79fa547a3fb54e56",
+    "residual/station/mesh_runner.py": "e6a97dd1d5b628cba260b0607b2e35629aed757d2846a8c87acaf4edfa240de3",
+    "residual/station/mesh_worker.py": "b006993d535077fb24ed799a813142febebc48f6e8a24bf15c2b39ff1700124b",
+    "residual/station/server.py": "5292374d8fe81af0913e76a41795bfd74f03aff76bc04f3cf7a69ee6a31ce2dd",
+    "residual/station/store.py": "8401f56fdf227fa3cb23a4f67125831913eec3ffb56030ef5bd1821dcccf7c02",
+    "tests/station/test_mesh_attempt_lifecycle.py": "b71f2ed12e9317aa02709cd413f1367e88229bd9a9ec0981710a94cc39697f27",
+    "tests/station/test_mesh_budget_boundaries.py": "21b3b0ff87fafcbb1ec224d63adaea74ede1f37da9fea7a269232f50ebb8cb7a"
+  },
+  "tests": {
+    "affected_final": {
+      "command": "python -m pytest tests/station tests/qualification -q",
+      "log": "affected-final-r2.log.gz",
+      "passed": 210,
+      "subtests_passed": 26
+    },
+    "broader_without_station_qualification": {
+      "command": "python -m pytest tests --ignore=tests/station --ignore=tests/qualification -q",
+      "failed": 37,
+      "log": "broader-complete-r1.log.gz",
+      "passed": 1799,
+      "subtests_passed": 387
+    },
+    "compileall": "PASS",
+    "diff_whitespace": "PASS",
+    "focused": {
+      "command": "python -m pytest tests/station/test_mesh_attempt_lifecycle.py tests/station/test_mesh_budget_boundaries.py -q",
+      "log": "focused-final.log.gz",
+      "passed": 22,
+      "subtests_passed": 22
+    },
+    "full_final": {
+      "all_green": false,
+      "command": "python -m pytest tests -q",
+      "failed": 37,
+      "log": "full-final.log.gz",
+      "passed": 2009,
+      "subtests_passed": 413
+    },
+    "mesh": {
+      "command": "python -m pytest tests/station/test_sc_mesh_001.py tests/station/test_sc_mesh_runner.py tests/station/test_sc_mesh_continuity.py tests/station/test_sc_mesh_openclaw.py -q",
+      "included_in_station": true,
+      "log": "mesh-r1.log.gz",
+      "passed": 36
+    },
+    "qualification": {
+      "log": "affected-final-r2.log.gz",
+      "passed": 119
+    },
+    "station": {
+      "includes_focused": true,
+      "log": "affected-final-r2.log.gz",
+      "passed": 91
+    },
+    "wheel_build": "PASS"
+  }
+}

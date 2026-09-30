@@ -27,8 +27,36 @@ EVENT_TYPES = {"project.created", "project.paused", "project.resumed", "task.tra
                "worker.joined", "worker.expired", "project.note",
                "mesh.worker.enrolled", "mesh.worker.revoked", "mesh.message",
                "mesh.generation.advanced", "mesh.stop.requested", "mesh.stop.observed",
-               "mesh.result.submitted"}
+               "mesh.result.submitted", "mesh.execution.admitted",
+               "mesh.execution.reconciled", "mesh.execution.fenced"}
 LDD_BASE = json.loads((Path(__file__).parent / "schemas" / "ldd-base.json").read_text())
+
+
+class ExecutionAdmissionError(ContractError):
+    """Stable, safe execution-admission diagnostics; never interpolate worker input."""
+
+    code = "EXECUTION_ADMISSION_REJECTED"
+    messages = {
+        "EXECUTION_BUDGET_ALREADY_ADMITTED": "Execution budget was already admitted for this task attempt",
+        "STALE_GENERATION": "Execution generation is stale",
+        "STALE_TASK_LEASE": "Stale task lease",
+        "STALE_FENCING_TOKEN": "Stale task fencing token",
+        "STALE_TASK_ATTEMPT": "Execution task attempt is stale",
+        "INVALID_EXECUTION_PLAN": "Invalid execution attempt plan",
+        "EXECUTION_POLICY_DENIED": "Provider attempt plan is outside task approval",
+        "WORKER_CAPABILITY_DENIED": "Worker capability policy does not permit the execution plan",
+        "CLOUD_SHARING_DISABLED": "Cloud sharing is disabled for this project",
+        "PROJECT_CALL_BUDGET_EXHAUSTED": "Project model-call budget is exhausted",
+        "PROJECT_CLOUD_BUDGET_EXHAUSTED": "Project cloud model-call budget is exhausted",
+        "PROJECT_BYTE_BUDGET_EXHAUSTED": "Project request-byte budget is exhausted",
+    }
+
+    def __init__(self, reason_code):
+        self.reason_code = reason_code
+        super().__init__(self.messages[reason_code])
+
+    def to_dict(self):
+        return {"code": self.code, "reason_code": self.reason_code, "message": str(self)}
 
 
 def bounded(value, name, maximum=4000, empty=False):

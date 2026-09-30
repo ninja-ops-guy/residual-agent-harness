@@ -14,7 +14,7 @@ import uuid
 from pathlib import Path
 
 from residual.core import ContractError, canonical
-from .contracts import TRANSITIONS, event_validate, sha
+from .contracts import ExecutionAdmissionError, TRANSITIONS, event_validate, sha
 from .observability import ObservationStore
 
 
@@ -268,56 +268,68 @@ class Store(ObservationStore):
                     if t["route"] == "cloud":
                         p["mesh_cloud_assignments_reserved"] = int(p.get("mesh_cloud_assignments_reserved", 0)) + 1
                     c.execute("UPDATE projects SET value=? WHERE id=?", (canonical(p), pid))
+                # Only a legitimate new claim creates fresh execution authority.
+                # Preserve even legacy unbound reservations before replacing the
+                # active projection. Unreconciled counters remain consumed.
+                previous_budget = t.get("mesh_execution_budget")
+                if previous_budget is not None:
+                    self._event(c, p, "mesh.execution.fenced", owner, t, {
+                        "fencing_token": t.get("fencing_token", 0),
+                        "budget": previous_budget,
+                        "reason": "successor_attempt_claimed",
+                    })
                 t.update(state="running", owner=owner, attempt=t["attempt"] + 1,
                          lease=secrets.token_urlsafe(24), lease_until=time.time() + 900,
                          fencing_token=t.get("fencing_token", 0) + 1,
-                         mesh_budget_reserved=bool(reserve_budget))
+                         mesh_budget_reserved=bool(reserve_budget), mesh_execution_budget=None)
                 self._write_task(c, pid, t)
                 self._event(c, p, "task.claimed", owner, t,
                             {"route": t["route"], "lease_seconds": 900, "fencing_token": t["fencing_token"]})
                 return t
             return None
 
-    def reserve_mesh_execution(self, pid, tid, lease, fencing_token, generation, attempts):
+    def reserve_mesh_execution(self, pid, tid, lease, fencing_token, generation, attempts, *, attempt=None):
         """Reserve the complete bounded provider-attempt plan before opaque claw execution."""
         from .contracts import task_execution_policy
         if not isinstance(attempts, list) or not 1 <= len(attempts) <= 5:
-            raise ContractError("Execution admission requires one to five provider attempts")
+            raise ExecutionAdmissionError("INVALID_EXECUTION_PLAN")
         normalized = []
         for item in attempts:
             if not isinstance(item, dict) or set(item) != {"placement", "model", "request_bytes"}:
-                raise ContractError("Provider attempt plan fields are invalid")
+                raise ExecutionAdmissionError("INVALID_EXECUTION_PLAN")
             placement, model, size = item["placement"], item["model"], item["request_bytes"]
             if placement not in {"local", "remote"}:
-                raise ContractError("Invalid provider placement")
+                raise ExecutionAdmissionError("INVALID_EXECUTION_PLAN")
             if not isinstance(model, str) or not model or len(model) > 200 or any(ord(ch) < 33 for ch in model):
-                raise ContractError("Invalid provider model ID")
+                raise ExecutionAdmissionError("INVALID_EXECUTION_PLAN")
             if type(size) is not int or size < 0:
-                raise ContractError("Invalid provider request size")
+                raise ExecutionAdmissionError("INVALID_EXECUTION_PLAN")
             normalized.append({"placement": placement, "model": model, "request_bytes": size})
         with self.transaction() as c:
             p = self._project(c, pid)
             t = self._task(c, pid, tid)
             if int(p.get("generation", 1)) != generation:
-                raise ContractError("Execution generation is stale")
+                raise ExecutionAdmissionError("STALE_GENERATION")
             if t["state"] != "running" or t["lease_until"] < time.time() or not secrets.compare_digest(t.get("lease") or "", lease or ""):
-                raise ContractError("Stale task lease")
+                raise ExecutionAdmissionError("STALE_TASK_LEASE")
             if t.get("fencing_token", 0) != fencing_token:
-                raise ContractError("Stale task fencing token")
+                raise ExecutionAdmissionError("STALE_FENCING_TOKEN")
+            if attempt is not None and (type(attempt) is not int or attempt != t["attempt"]):
+                raise ExecutionAdmissionError("STALE_TASK_ATTEMPT")
             if t.get("mesh_execution_budget") is not None:
-                raise ContractError("Execution budget was already admitted for this task attempt")
+                raise ExecutionAdmissionError("EXECUTION_BUDGET_ALREADY_ADMITTED")
             policy = task_execution_policy(t)
             if len(normalized) > policy["max_provider_attempts"]:
-                raise ContractError("Provider attempt plan exceeds task approval")
+                raise ExecutionAdmissionError("EXECUTION_POLICY_DENIED")
             placements = [x["placement"] for x in normalized]
             if any(x not in policy["placements"] for x in placements):
-                raise ContractError("Provider attempt placement is outside task approval")
+                raise ExecutionAdmissionError("EXECUTION_POLICY_DENIED")
             if len(set(placements)) > 1 and not policy["cross_placement"]:
-                raise ContractError("Cross-placement fallback is not approved for this task")
+                raise ExecutionAdmissionError("EXECUTION_POLICY_DENIED")
             if any(x == "remote" for x in placements) and not p["allow_cloud"]:
-                raise ContractError("Cloud sharing is disabled for this project")
+                raise ExecutionAdmissionError("CLOUD_SHARING_DISABLED")
             if policy["models"] and any(x["model"] not in policy["models"] for x in normalized):
-                raise ContractError("Provider model is outside task approval")
+                raise ExecutionAdmissionError("EXECUTION_POLICY_DENIED")
             count = len(normalized)
             cloud_count = sum(x["placement"] == "remote" for x in normalized)
             byte_count = sum(x["request_bytes"] for x in normalized)
@@ -331,11 +343,11 @@ class Store(ObservationStore):
             outstanding = int(p.get("mesh_assignments_reserved", 0)) - held
             cloud_outstanding = int(p.get("mesh_cloud_assignments_reserved", 0)) - held_cloud
             if calls_after + outstanding > int(p["call_limit"]):
-                raise ContractError("Project model-call budget is exhausted")
+                raise ExecutionAdmissionError("PROJECT_CALL_BUDGET_EXHAUSTED")
             if cloud_after + cloud_outstanding > int(p["cloud_call_limit"]):
-                raise ContractError("Project cloud model-call budget is exhausted")
+                raise ExecutionAdmissionError("PROJECT_CLOUD_BUDGET_EXHAUSTED")
             if bytes_after > int(p["request_byte_limit"]):
-                raise ContractError("Project request-byte budget is exhausted")
+                raise ExecutionAdmissionError("PROJECT_BYTE_BUDGET_EXHAUSTED")
             if held:
                 self._release_mesh_assignment(c, pid, t, p)
                 p = self._project(c, pid)
@@ -343,30 +355,40 @@ class Store(ObservationStore):
             p["cloud_calls_reserved"] = int(p.get("cloud_calls_reserved", 0)) + cloud_count
             p["request_bytes_reserved"] = int(p.get("request_bytes_reserved", 0)) + byte_count
             t["mesh_execution_budget"] = {
+                "attempt": t["attempt"], "fencing_token": t["fencing_token"],
+                "generation": generation,
                 "attempts": normalized, "reserved_calls": count,
                 "reserved_cloud_calls": cloud_count, "reserved_bytes": byte_count,
                 "reconciled": False,
             }
             c.execute("UPDATE projects SET value=? WHERE id=?", (canonical(p), pid))
             self._write_task(c, pid, t)
+            self._event(c, p, "mesh.execution.admitted", t["owner"], t,
+                        {"budget": t["mesh_execution_budget"]})
             return dict(t["mesh_execution_budget"])
 
     def reconcile_mesh_execution(self, pid, tid, lease, fencing_token, provider_attempts):
         """Release only demonstrably unused conservative reservations."""
-        if provider_attempts is None:
-            return {"reconciled": False, "reason": "provider_attempts_unknown"}
-        if not isinstance(provider_attempts, list) or len(provider_attempts) > 5:
+        if provider_attempts is not None and (not isinstance(provider_attempts, list) or len(provider_attempts) > 5):
             raise ContractError("Invalid provider attempt evidence")
         with self.transaction() as c:
             p = self._project(c, pid)
             t = self._task(c, pid, tid)
-            if t["state"] != "running" or not secrets.compare_digest(t.get("lease") or "", lease or ""):
+            if t["state"] != "running" or t["lease_until"] < time.time() or not secrets.compare_digest(t.get("lease") or "", lease or ""):
                 raise ContractError("Stale task lease")
             if t.get("fencing_token", 0) != fencing_token:
                 raise ContractError("Stale task fencing token")
             budget = t.get("mesh_execution_budget")
             if not isinstance(budget, dict) or budget.get("reconciled"):
                 raise ContractError("No unreconciled execution budget exists")
+            # Legacy budgets without bindings remain consumed and fail closed;
+            # only a new Station claim may replace them after preserving evidence.
+            if (budget.get("attempt") != t["attempt"]
+                    or budget.get("fencing_token") != t["fencing_token"]
+                    or budget.get("generation") != int(p.get("generation", 1))):
+                raise ContractError("Execution budget authority is stale or unbound")
+            if provider_attempts is None:
+                return {"reconciled": False, "reason": "provider_attempts_unknown"}
             planned = budget["attempts"]
             if len(provider_attempts) > len(planned):
                 raise ContractError("Observed provider attempts exceed the admitted plan")
@@ -401,6 +423,7 @@ class Store(ObservationStore):
             t["mesh_execution_budget"] = budget
             c.execute("UPDATE projects SET value=? WHERE id=?", (canonical(p), pid))
             self._write_task(c, pid, t)
+            self._event(c, p, "mesh.execution.reconciled", t["owner"], t, {"budget": budget})
             return {"reconciled": True, "uncertain_usage": budget["uncertain_usage"],
                     "calls_reserved": p["calls_reserved"], "request_bytes_reserved": p["request_bytes_reserved"]}
 

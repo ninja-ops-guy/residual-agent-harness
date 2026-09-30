@@ -12,7 +12,7 @@ import time
 from residual.core import ContractError, strict_json
 from .claw_adapter import OpenClawExecAdapter
 from .mesh_runner import MeshClawRunner
-from .mesh_worker import MeshWorkerClient
+from .mesh_worker import MeshAdmissionRejected, MeshWorkerClient
 
 
 def _token():
@@ -71,8 +71,8 @@ def worker_main(argv=None):
             expected_version=adapter_cfg["expected_version"] or None,
             timeout_s=adapter_cfg["timeout_s"],
         )
-        discovery = adapter.connect()
         if args.preflight:
+            discovery = adapter.connect()
             print(json.dumps({"status": "PREFLIGHT_PASS", "adapter": discovery,
                               "project_id": cfg["project_id"], "worker_id": cfg["worker_id"]},
                              sort_keys=True))
@@ -102,6 +102,10 @@ def worker_main(argv=None):
                 if result:
                     print(json.dumps({"status": "RESULT_SUBMITTED",
                                       "project_id": cfg["project_id"]}, sort_keys=True), flush=True)
+            except MeshAdmissionRejected as exc:
+                print(json.dumps(exc.to_dict(), sort_keys=True), file=sys.stderr, flush=True)
+                if args.once:
+                    return 3
             except ContractError as exc:
                 print(json.dumps({"status": "BLOCKED", "reason": str(exc)[:300]}, sort_keys=True),
                       file=sys.stderr, flush=True)
