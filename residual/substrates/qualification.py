@@ -264,6 +264,13 @@ class SubstrateQualificationRegistry:
             raise ContractError(f"capability is not qualified: {capability}")
         return record
 
+    def records(self) -> tuple[SubstrateQualificationRecord, ...]:
+        rows: list[SubstrateQualificationRecord] = []
+        for tuple_digest in sorted(self._records):
+            for record_digest in sorted(self._records[tuple_digest]):
+                rows.append(self._records[tuple_digest][record_digest])
+        return tuple(rows)
+
     def snapshot(self) -> tuple[dict[str, Any], ...]:
         rows = []
         for tuple_digest in sorted(self._records):
@@ -301,3 +308,49 @@ def provider_set_digest(
 
 def inference_route_digest(inference_route_ref: str | None) -> str:
     return digest({"inference_route_ref": inference_route_ref})
+
+
+def qualification_tuple_from_payload(payload: Mapping[str, Any]) -> SubstrateQualificationTuple:
+    allowed = {
+        "schema_version", "substrate_name", "substrate_version",
+        "substrate_source_identity", "driver", "platform_class",
+        "environment_digest", "agent_profile", "agent_identity", "image_digest",
+        "requested_policy_digest", "provider_set_digest", "inference_route_digest",
+    }
+    if set(payload) != allowed:
+        raise ContractError("substrate qualification tuple keys do not match schema")
+    return SubstrateQualificationTuple(**dict(payload))
+
+
+def qualification_gate_from_payload(payload: Mapping[str, Any]) -> QualificationGate:
+    allowed = {"gate_id", "status", "evidence_digest", "attempt", "required", "detail_code"}
+    if set(payload) != allowed:
+        raise ContractError("qualification gate keys do not match schema")
+    return QualificationGate(**dict(payload))
+
+
+def qualification_record_from_payload(
+    payload: Mapping[str, Any],
+) -> SubstrateQualificationRecord:
+    allowed = {
+        "schema_version", "tuple", "tuple_digest", "gates", "overall",
+        "capabilities", "limitations", "evidence_root_digest", "metadata",
+    }
+    if set(payload) != allowed:
+        raise ContractError("qualification record keys do not match schema")
+    qtuple = qualification_tuple_from_payload(payload["tuple"])
+    if payload["tuple_digest"] != qtuple.tuple_digest:
+        raise ContractError("qualification tuple digest mismatch")
+    gates = tuple(qualification_gate_from_payload(row) for row in payload["gates"])
+    record = SubstrateQualificationRecord(
+        qualification_tuple=qtuple,
+        gates=gates,
+        capabilities=tuple(payload["capabilities"]),
+        limitations=tuple(payload["limitations"]),
+        evidence_root_digest=payload["evidence_root_digest"],
+        schema_version=payload["schema_version"],
+        metadata=dict(payload["metadata"]),
+    )
+    if payload["overall"] != record.overall:
+        raise ContractError("qualification overall verdict is not derivable from gates")
+    return record
