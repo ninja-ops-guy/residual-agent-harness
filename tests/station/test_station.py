@@ -328,6 +328,35 @@ class StationTests(unittest.TestCase):
             report.assert_called_once()
 
 
+    def test_project_budget_extension_preserves_reservations_and_reports_dimension(self):
+        self.s.store.project_update(self.pid, calls_reserved=44, cloud_calls_reserved=30,
+                                    request_bytes_reserved=213854)
+        budget = self.s.store.project_budget(self.pid)
+        self.assertEqual(budget["calls"], {"used": 44, "limit": 100, "remaining": 56, "exhausted": False})
+        self.assertEqual(budget["cloud_calls"], {"used": 30, "limit": 30, "remaining": 0, "exhausted": True})
+        with self.assertRaisesRegex(ContractError, r"Project cloud model-call budget exhausted \(30/30\)"):
+            self.s.store.reserve_call(self.pid, "planner", "remote", 100)
+
+        extended = self.s.store.extend_project_budget(
+            self.pid, call_limit=1000, cloud_call_limit=300, request_byte_limit=5_000_000)
+        self.assertEqual(extended["calls"]["used"], 44)
+        self.assertEqual(extended["calls"]["limit"], 1000)
+        self.assertEqual(extended["cloud_calls"]["used"], 30)
+        self.assertEqual(extended["cloud_calls"]["limit"], 300)
+        self.assertEqual(extended["request_bytes"]["used"], 213854)
+        project = self.s.store.project(self.pid)
+        self.assertEqual(project["calls_reserved"], 44)
+        self.assertEqual(project["cloud_calls_reserved"], 30)
+        self.assertEqual(project["request_bytes_reserved"], 213854)
+        notes = [e for e in self.s.store.events(self.pid, 0, 100000)
+                 if e["event_type"] == "project.note" and "budget_after" in e["data"]]
+        self.assertEqual(len(notes), 1)
+        self.assertEqual(notes[0]["data"]["budget_before"]["cloud_call_limit"], 30)
+        self.assertEqual(notes[0]["data"]["budget_after"]["cloud_call_limit"], 300)
+        with self.assertRaisesRegex(ContractError, "may only increase"):
+            self.s.store.extend_project_budget(self.pid, cloud_call_limit=29)
+
+
 class HTTPTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -371,6 +400,20 @@ class HTTPTests(unittest.TestCase):
             self.request("/api/worker/result", {**data, "response": {"files": {}}}, headers)
         with self.assertRaises(urllib.error.HTTPError):
             self.request(f"/api/projects/{pid}/task", {"task_id": "OPS-101", "action": "integrate"}, {**headers, "X-Station-Token": ""})
+
+
+    def test_project_budget_endpoint_extends_limits_without_resetting_usage(self):
+        pid = self.s.create(demo_spec(), demo=True)["project_id"]
+        self.s.store.project_update(pid, calls_reserved=44, cloud_calls_reserved=30,
+                                    request_bytes_reserved=213854)
+        result = self.request(f"/api/projects/{pid}/budget", {
+            "call_limit": 1000, "cloud_call_limit": 300, "request_byte_limit": 5_000_000})
+        self.assertEqual(result["budget"]["calls"]["used"], 44)
+        self.assertEqual(result["budget"]["calls"]["limit"], 1000)
+        self.assertEqual(result["budget"]["cloud_calls"]["used"], 30)
+        self.assertEqual(result["budget"]["cloud_calls"]["limit"], 300)
+        project = self.request(f"/api/projects/{pid}")
+        self.assertEqual(project["budget"], result["budget"])
 
 
 class ProviderHTTPTests(unittest.TestCase):
