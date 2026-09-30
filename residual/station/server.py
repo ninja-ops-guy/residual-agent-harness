@@ -137,7 +137,8 @@ class Handler(BaseHTTPRequestHandler):
                 if len(parts) >= 3 and parts[:2] == ["api", "projects"]:
                     pid = parts[2]
                     if len(parts) == 3:
-                        return self.respond({"project": self.station.store.project(pid), "metrics": self.station.metrics(pid)})
+                        return self.respond({"project": self.station.store.project(pid), "metrics": self.station.metrics(pid),
+                                             "budget": self.station.store.project_budget(pid)})
                     if parts[3] == "events":
                         return self.respond({"events": self.station.store.events(pid, max(0, int(query.get("after", ["0"])[0])), 500)})
                     if parts[3] == "report":
@@ -299,6 +300,13 @@ class Handler(BaseHTTPRequestHandler):
                     return {"ok": True}
             if action == "cloud-report":
                 return s.launch("cloud-report", lambda progress: s.cloud_report(pid, progress), pid)
+            if action == "budget":
+                return {"budget": s.store.extend_project_budget(
+                    pid,
+                    call_limit=data.get("call_limit"),
+                    cloud_call_limit=data.get("cloud_call_limit"),
+                    request_byte_limit=data.get("request_byte_limit"),
+                )}
             if action == "export":
                 return s.launch("release", lambda progress: s.export(pid), pid)
             if action == "note":
