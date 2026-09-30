@@ -7,6 +7,7 @@ merge by itself.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import Any, Mapping
 
@@ -177,8 +178,8 @@ class SelfBuildCompletionEvidence:
             "independent_verifier_digest", "deterministic_integration_receipt_digest",
         ):
             value = getattr(self, name)
-            if not isinstance(value, str) or len(value) != 64:
-                raise ContractError(f"{name} must be a sha256 digest")
+            if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value):
+                raise ContractError(f"{name} must be a lowercase sha256 digest")
         _text(self.disposable_target_id, "disposable_target_id")
         if self.merge_performed or self.accepted_state_mutated or self.repository_write_by_agent:
             raise ContractError(
