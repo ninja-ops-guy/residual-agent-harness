@@ -33,6 +33,7 @@ class SubstrateCliTests(unittest.TestCase):
             agent_identity="hermes@fixture",
             image_digest="1" * 64,
             requested_policy_digest="2" * 64,
+            enforcement_state_digest="5" * 64,
             provider_set_digest=provider_set_digest({"provider-a": "b" * 64}),
             inference_route_digest=inference_route_digest("route-a"),
         )
