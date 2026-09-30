@@ -171,6 +171,7 @@ def _validate_bound_state(
     expected_openshell_identity: str,
     expected_nemoclaw_identity: str | None,
     expected_agent_identity: str,
+    expected_environment_digest: str | None,
 ) -> None:
     mismatches: list[str] = []
     if state.residual_policy_digest != policy.policy_digest:
@@ -187,6 +188,8 @@ def _validate_bound_state(
         mismatches.append("nemoclaw_identity")
     if state.agent_identity != expected_agent_identity:
         mismatches.append("agent_identity")
+    if expected_environment_digest is not None and state.environment_digest != expected_environment_digest:
+        mismatches.append("environment_digest")
     if tuple(sorted(state.provider_attachment_refs)) != tuple(sorted(request.provider_refs)):
         mismatches.append("provider_attachment_refs")
     if state.inference_route_ref != request.inference_route_ref:
