@@ -151,6 +151,50 @@ class Store(ObservationStore):
             p.update(fields)
             c.execute("UPDATE projects SET value=? WHERE id=?", (canonical(p), pid))
 
+    def project_budget(self, pid):
+        with self.connect() as c:
+            p = self._project(c, pid)
+        def item(used_key, limit_key):
+            used, limit = int(p.get(used_key, 0)), int(p[limit_key])
+            return {"used": used, "limit": limit, "remaining": max(0, limit - used), "exhausted": used >= limit}
+        return {
+            "calls": item("calls_reserved", "call_limit"),
+            "cloud_calls": item("cloud_calls_reserved", "cloud_call_limit"),
+            "request_bytes": item("request_bytes_reserved", "request_byte_limit"),
+        }
+
+    def extend_project_budget(self, pid, *, call_limit=None, cloud_call_limit=None, request_byte_limit=None):
+        requested = {"call_limit": call_limit, "cloud_call_limit": cloud_call_limit, "request_byte_limit": request_byte_limit}
+        bounds = {"call_limit": (1, 100_000), "cloud_call_limit": (0, 100_000),
+                  "request_byte_limit": (1, 10_000_000_000)}
+        supplied = {k: v for k, v in requested.items() if v is not None}
+        if not supplied:
+            raise ContractError("Provide at least one project budget limit")
+        with self.transaction() as c:
+            p = self._project(c, pid)
+            before = {k: p[k] for k in bounds}
+            after = dict(before)
+            changed = False
+            for key, value in supplied.items():
+                low, high = bounds[key]
+                if type(value) is not int or not low <= value <= high:
+                    raise ContractError(f"{key} must be an integer from {low} to {high}")
+                if value < p[key]:
+                    raise ContractError("Project budget limits may only increase; historical reservations are retained")
+                after[key] = value
+                changed = changed or value > p[key]
+            if after["cloud_call_limit"] > after["call_limit"]:
+                raise ContractError("Cloud call limit cannot exceed the total model-call limit")
+            if not changed:
+                return self.project_budget(pid)
+            p.update(after)
+            c.execute("UPDATE projects SET value=? WHERE id=?", (canonical(p), pid))
+            self._event(c, p, "project.note", "operator", data={
+                "message": "Project inference budget extended; historical reservations retained.",
+                "budget_before": before, "budget_after": after,
+            })
+        return self.project_budget(pid)
+
     def pause(self, pid, paused):
         with self.transaction() as c:
             p = self._project(c, pid)
@@ -288,8 +332,12 @@ class Store(ObservationStore):
             calls = p.setdefault("calls_reserved", 0)
             cloud = p.setdefault("cloud_calls_reserved", 0)
             sent = p.setdefault("request_bytes_reserved", 0)
-            if calls >= p["call_limit"] or (placement == "remote" and cloud >= p["cloud_call_limit"]) or sent + request_bytes > p["request_byte_limit"]:
-                raise ContractError("Project model-call budget is exhausted")
+            if calls >= p["call_limit"]:
+                raise ContractError(f"Project total model-call budget exhausted ({calls}/{p['call_limit']})")
+            if placement == "remote" and cloud >= p["cloud_call_limit"]:
+                raise ContractError(f"Project cloud model-call budget exhausted ({cloud}/{p['cloud_call_limit']})")
+            if sent + request_bytes > p["request_byte_limit"]:
+                raise ContractError(f"Project request-byte budget exhausted ({sent} used + {request_bytes} requested > {p['request_byte_limit']})")
             if placement == "remote" and not p["allow_cloud"]:
                 raise ContractError("Cloud sharing is disabled for this project")
             p.update(calls_reserved=calls + 1, cloud_calls_reserved=cloud + int(placement == "remote"), request_bytes_reserved=sent + request_bytes)
