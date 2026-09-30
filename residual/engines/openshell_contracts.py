@@ -90,6 +90,7 @@ class OpenShellLaunchConfig:
     compute_driver_requirement: str
     sandbox_profile: str
     provider_refs: tuple[str, ...] = ()
+    provider_profile_digests: Mapping[str, str] = field(default_factory=dict)
     inference_route_ref: str | None = None
     resource_budget: Mapping[str, int] = field(default_factory=dict)
     timeout_s: int = 300
@@ -109,6 +110,13 @@ class OpenShellLaunchConfig:
         _hex_digest(self.output_contract_digest, "output_contract_digest")
         _string_tuple(self.agent_command_argv, "agent_command_argv", allow_empty=False)
         _string_tuple(self.provider_refs, "provider_refs")
+        if not isinstance(self.provider_profile_digests, Mapping):
+            raise ContractError("provider_profile_digests must be a mapping")
+        for provider_id, profile_digest in self.provider_profile_digests.items():
+            _required_text(provider_id, "provider_profile_digests key")
+            _hex_digest(profile_digest, "provider_profile_digest")
+        if self.provider_profile_digests and set(self.provider_profile_digests) != set(self.provider_refs):
+            raise ContractError("provider_profile_digests keys must match provider_refs")
         _string_tuple(self.expected_outputs, "expected_outputs")
         if self.inference_route_ref is not None:
             _required_text(self.inference_route_ref, "inference_route_ref")
@@ -139,6 +147,10 @@ class OpenShellLaunchConfig:
             "compute_driver_requirement": self.compute_driver_requirement,
             "sandbox_profile": self.sandbox_profile,
             "provider_refs": list(self.provider_refs),
+            "provider_profile_digests": {
+                key: self.provider_profile_digests[key]
+                for key in sorted(self.provider_profile_digests)
+            },
             "inference_route_ref": self.inference_route_ref,
             "resource_budget": dict(self.resource_budget),
             "timeout_s": self.timeout_s,
@@ -169,6 +181,7 @@ class OpenShellExecutionRequest:
     sandbox_profile: str
     requested_policy_digest: str
     provider_refs: tuple[str, ...]
+    provider_profile_digests: Mapping[str, str]
     inference_route_ref: str | None
     resource_budget: Mapping[str, int]
     timeout_s: int
@@ -193,6 +206,13 @@ class OpenShellExecutionRequest:
             _hex_digest(getattr(self, name), name)
         _string_tuple(self.agent_command_argv, "agent_command_argv", allow_empty=False)
         _string_tuple(self.provider_refs, "provider_refs")
+        if not isinstance(self.provider_profile_digests, Mapping):
+            raise ContractError("provider_profile_digests must be a mapping")
+        for provider_id, profile_digest in self.provider_profile_digests.items():
+            _required_text(provider_id, "provider_profile_digests key")
+            _hex_digest(profile_digest, "provider_profile_digest")
+        if self.provider_profile_digests and set(self.provider_profile_digests) != set(self.provider_refs):
+            raise ContractError("provider_profile_digests keys must match provider_refs")
         _string_tuple(self.expected_outputs, "expected_outputs")
         if self.inference_route_ref is not None:
             _required_text(self.inference_route_ref, "inference_route_ref")
@@ -222,6 +242,10 @@ class OpenShellExecutionRequest:
             "sandbox_profile": self.sandbox_profile,
             "requested_policy_digest": self.requested_policy_digest,
             "provider_refs": list(self.provider_refs),
+            "provider_profile_digests": {
+                key: self.provider_profile_digests[key]
+                for key in sorted(self.provider_profile_digests)
+            },
             "inference_route_ref": self.inference_route_ref,
             "resource_budget": dict(self.resource_budget),
             "timeout_s": self.timeout_s,
