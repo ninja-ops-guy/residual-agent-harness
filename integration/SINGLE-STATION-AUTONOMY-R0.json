@@ -79,7 +79,7 @@
         "tree": "06da1cbfdc4f9966fdb73b9cd29159a16a8f3dd2"
       },
       "live_gate": "live FreeLLMAPI continuity qualification",
-      "integration_gap": "authorized readiness maintenance + real OpenClaw execution-path wiring",
+      "integration_gap": "readiness-maintenance implementation + real OpenClaw execution-path wiring + live canary/continuity qualification",
       "state_evidence": "REPORTED_REVIEW_ORIGINAL_RECEIPT_BYTES_NOT_LOCALLY_VERIFIED",
       "review": {
         "reviewer": "Scout",
@@ -103,6 +103,62 @@
         "report_source_member": "Bounded Backlog Ledger 001.json",
         "report_source_member_sha256": "627a661b15c9b487d2843489dac4e6292594f28a9f023319bbafef87e563f872",
         "limitation": "Reported exact-candidate independent PASS preserved; original review and amendment bytes/full digests must be obtained and bound before new integration admission; no new review or live qualification claim"
+      },
+      "readiness_maintenance": {
+        "design": {
+          "filename": "PROVIDER_READINESS_MAINTENANCE_DESIGN_WRENCH_2026-09-30.md",
+          "sha256": "452c20480c0dce314a5edf4e107831b02f455696ed5260e15b146300f84af47a",
+          "byte_length": 15640,
+          "author": "Wrench",
+          "state": "DESIGN_SEALED"
+        },
+        "review": {
+          "qualification": "SSA06_READINESS_MAINTENANCE_REVIEW_PASS",
+          "reviewer": "Scout/DBOX",
+          "receipt_filename": "SSA06_READINESS_MAINT_REVIEW_2026-09-30.json",
+          "receipt_digest_citation": "bc61c986…d88f62",
+          "points_proven": "12/12",
+          "hard_pass": "10/12",
+          "deltas": [
+            {
+              "id": "D1",
+              "finding": "receipt schema has no explicit policy_version field",
+              "disposition": "NON_BLOCKING_IMPLEMENTATION_DELTA",
+              "rationale": "effective TTL values are individually bound in-digest via next-due fields; add policy_version during implementation for auditability"
+            },
+            {
+              "id": "D2",
+              "finding": "maintenance-probe total budget accounting remains proposal-level",
+              "disposition": "NON_BLOCKING_IMPLEMENTATION_DELTA",
+              "rationale": "one-in-flight dedup and staggering are normative; total accounting must be defined before unattended implementation"
+            }
+          ],
+          "policy_defaults": {
+            "l1_liveness": "30m proposed",
+            "l2_capability": "6h proposed",
+            "l3_config": "24h proposed",
+            "l4_authority": "no TTL; recheck per use",
+            "requirement": "effective values configurable and receipt-bound"
+          },
+          "constraints": [
+            "timestamp extension impossible by construction",
+            "accepted attempts renew readiness by zero seconds",
+            "scheduler tick without consumption is durable first failure",
+            "ceiling exhaustion is budget/policy, not provider degradation",
+            "fallback readiness does not auto-promote route",
+            "credentials presence-only",
+            "no shadow scheduler before SC-E",
+            "successor readiness receipts require fresh revalidation"
+          ]
+        },
+        "next_gate": "IMPLEMENTATION_CANDIDATE_REQUIRED",
+        "implementation_requirements": [
+          "add explicit policy_version or equivalent auditable policy identity to receipt schema",
+          "define bounded maintenance-probe budget accounting",
+          "do not introduce scheduler outside SC-E",
+          "wire fresh-evidence revalidation into SC-E scheduler/consumer path",
+          "live canary before profile-by-profile expansion"
+        ]
       }
     },
     {
