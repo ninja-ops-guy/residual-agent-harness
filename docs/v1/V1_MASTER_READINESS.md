@@ -1,18 +1,43 @@
 # RESIDUAL v1 master remaining-work list
 
-**Current review-only view: 2026-09-26. Single master PR: #427. No release authority.**
+**Current review-only view: 2026-09-30. Single master PR: #427. No release authority.**
 
 This is the current entry point for v1 convergence, replacing the stale #416-era summary in this file. Historical observations are preserved at [the immutable preceding snapshot](https://github.com/ninja-ops-guy/residual-agent-harness/blob/fb63b4b4fd1dedb1db72f14183f558833ab027b3/docs/v1/V1_MASTER_READINESS.md) and in the unchanged `V1_MASTER_READINESS_DELTA*.md` files. This refresh changes planning/read-model state, not frozen experimental evidence, an evaluator, acceptance criteria, or execution authority.
 
 ## Baseline and status rules
 
-- Accepted main: `d796f36b75e730a0bab71bdba564206174393719`.
+- Accepted main: `8369f0dc2a93d8dcb194220b85b9aaf87d1d6df2`.
 - Master predecessor read immediately before this update: `fb63b4b4fd1dedb1db72f14183f558833ab027b3`.
 - Frozen R4.1 candidate: `8701367db6d3202f24b3eb9f4696b0cadf657985`; tree `79bfe6ed1743907065ed44aeb9c460c47527e0c6`. Reference only. Historical 17/17 READY_FOR_CANARY is not v1 production qualification or canary authorization.
 - Seal v2, authoritative `runtime-20260924T025450Z`, original failed evidence, frozen research and live hosts/services are unchanged and unavailable as execution targets in this task.
 - Status vocabulary: `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VERIFIED`, `READY_FOR_REVIEW`, `MERGED_AND_REQUALIFIED`. Each row's status applies only to its stated acceptance criterion. A reviewable implementation does not complete its parent operational gate.
 - Sources marked **retained** below are previous exact-head records, not newly executed or independently requalified in this pass. Author reports, submitted reviews, owner decisions, hosted tests and private operational evidence remain distinct.
 - No percentage substitutes for satisfied applicable gates. No row is promoted to MERGED_AND_REQUALIFIED here.
+
+
+## Current convergence overlay — 2026-09-30
+
+This overlay is the current read-model for release-critical successors discovered after the historical body below. It does not rewrite retained evidence or grant merge, canary, physical-test, provider, deployment, tag, or release authority. Exact-head evidence is not inherited across changed heads.
+
+### PRE-CANARY / PRE-PRODUCTION current successors
+
+| ID | Acceptance criterion | Source / exact head | Classification | Dependencies | Owner | Implementation | Test/evidence | Status | Required human action |
+|---|---|---|---|---|---|---|---|---|---|
+| V1-PC-SEC-487-A | The tracked-secret guard test fixture must itself scan clean without weakening the production detector | #491 `e20c4990ca2bc6ccada551ac8602c93511c9e6a8`, based exactly on #487 `b0c04f546810ca8cf30a86538cec8b257a12b695` | observed finding / repair successor | #487 selected security candidate | security/release reviewer | #491 | Tracked-secret guard plus Qualification-v1, Command Station, controller/provider, clean install, Factory ownership, Control Plane and measured binding PASS on exact #491 head; zero submitted reviews | READY_FOR_REVIEW | Move #491 out of Draft, independently review exact bytes, then deliberately integrate into #487 or a reviewed current-main successor; do not transfer PASS backward to #487 |
+| V1-PC-SEC-487-B | Credential-bearing custom destinations must match one explicit approved trust-boundary policy, with code/tests/prose agreeing on loopback HTTP versus HTTPS+allowlist behavior | #487 `b0c04f546810ca8cf30a86538cec8b257a12b695` | scope decision | approved deployment/trust boundary | owner + security reviewer | #487 or reviewed successor | Current candidate permits a same-host loopback-HTTP exception while PR prose states stricter HTTPS+allowlist language | BLOCKED | Record the intended policy and require matching negative/positive tests before release integration |
+| V1-PC-AUD1-353 | Complete Closure-owned AUD-1 ordering without another writer mutating or superseding that lane | issue #353; current software successor #416 `d41a9428e8667963f85526f44a9616be19ca9d7f` | missing evidence | Closure single-writer lane | RESIDUAL v1 Closure owner | #416 and its owned successors/helpers only | Hosted software evidence exists on the current successor; physical F6-A/F6-B, independent Mason re-audit, exact final successor disposition, merge and new-main qualification remain separate gates | IN_PROGRESS | Existing Closure owner continues the gate order; this master task must not edit/rebase/retarget/duplicate the lane |
+| V1-PC-SAFETY-423-426 | Preserve PR-G26/topology/SLO/RPO/RTO and receipt/recovery findings until repaired or enforcement-proven out of scope | #423 `324a8421205c664cb4cfbfda9582a6e79d43ee64`; #426 `494dac7c0702a285c33ceddd3f0237f63ceea425` | reported finding / scope decision / missing evidence | owner-approved supported topology and D4 disposition | release/security/comms/recovery owners | none selected here | #426 reports synthetic false-ACK, pre-POST recovery digest gap, and concurrent recoverer duplicate POST; these are retained observations, not independently reproduced by this update | BLOCKED | Decide INCLUDE+repair versus enforcement-proven EXCLUDE; independently qualify any selected repair/exclusion before canary or release |
+
+### R5 / POST-V1 current successors
+
+| ID | Acceptance criterion | Source / exact head | Classification | Dependencies | Owner | Implementation | Test/evidence | Status | Required human action |
+|---|---|---|---|---|---|---|---|---|---|
+| V1-R5-MESH-493 | Attempt-scoped mesh execution budget repair is reviewed and later qualified on its actual unmerged mesh lineage | #493 `b53fb74c992830fe6d8912b62019c88bbf973f84`, stacked on #404 `7783081c858ad9ddf98b2e64e740e1104ae5d08b` | optional hardening / post-v1 integration | unmerged SC-MESH lineage | R5 mesh owner | #493 | Exact-head repository technical workflows passed on the retained head; live DELL qualification remains separately gated | READY_FOR_REVIEW | Review as stacked R5 work; do not promote into v1 or infer live qualification |
+| V1-R5-OPENSHELL-494 | OpenShell R0 authority/adapter design is reviewed without becoming a v1 gate | #494 `c98b42055c0240d1201b5341355e7337f613e78a` | optional hardening / design | post-v1 program | R5 integration owner | #494 | Docs/design exact-head repository workflows passed; zero submitted reviews | READY_FOR_REVIEW | Review design separately from v1 |
+| V1-R5-SSA-495 | Single-Station autonomy program contract remains a planning/integration ledger until its native mechanisms and bounded live campaign exist | #495 `c2cdb829178851f7befc5dbda31fa5982e93155e`, based on current main | optional hardening / program design | #493/#489/#488/#490 and controlling contracts | R5 integration owner | #495 | Qualification-v1, Command Station, controller/provider, clean install, Factory ownership, Control Plane and measured binding PASS; maintainer human gate and PR-Agent advisory remain separate; zero reviews | READY_FOR_REVIEW | Review as post-v1 integration planning only; no campaign/deployment authority |
+| V1-R5-OPENSHELL-496 | Fail-closed OpenShell core is independently reviewed on one frozen exact head before stacking further work | #496 branch `feat/openshell-adapter-contracts-r0`; head was observed changing from `77a12cc969df26953148e4219be97c3ab6d5ba4d` to `1bcc212f29115a7cd7914f9e34630088fd894c8a` and then `7d7c29f35f537da3bc238d719a8cabbe9c6865ec` during this run | optional hardening / active implementation | #494 | R5 OpenShell owner | #496 | Earlier-head green CI is not authority for the moving head; no exact-head workflow set was available yet for `7d7c29f...` when observed | IN_PROGRESS | Freeze/select one review head, then qualify that exact head; do not inherit prior-head PASS |
+| V1-R5-OPENSHELL-497 | Python SDK binding is reviewed only after its parent stack is deliberately reconciled to the selected #496 head | #497 `985478113a962892c4253c72c61bd8a939344760`, currently based on #496 predecessor `77a12cc969df26953148e4219be97c3ab6d5ba4d` | optional hardening / stacked integration | selected/frozen #496 head | R5 OpenShell owner | #497 | Several repository workflows passed on #497 exact head while Qualification-v1 was still queued at observation time; the parent #496 branch moved afterward | BLOCKED | Reconcile/rebase only through the owning lane after #496 head selection, then rerun exact-head CI; no bulk rebase by this task |
+
 - The main ruleset `23436488` was read: strict tests/qualify/python 3.11-3.13, browser, docker, factory-ownership and maintainer-approval contexts remain required. Repository review-count settings do not waive the separately required human/security review process. No rule or protected pin was changed.
 
 ## Exact source registry
