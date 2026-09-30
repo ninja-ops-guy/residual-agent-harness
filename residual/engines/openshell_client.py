@@ -24,6 +24,8 @@ class OpenShellSandboxState:
     platform_class: str
     agent_identity: str
     image_digest: str
+    residual_policy_digest: str
+    base_policy_digest: str | None
     effective_policy_digest: str | None
     policy_revision: str | None
     provider_attachment_refs: tuple[str, ...] = ()
@@ -33,6 +35,7 @@ class OpenShellSandboxState:
         for name in (
             "sandbox_id", "generation", "openshell_identity", "compute_driver",
             "platform_class", "agent_identity", "image_digest",
+            "residual_policy_digest",
         ):
             value = getattr(self, name)
             if not isinstance(value, str) or not value.strip():
