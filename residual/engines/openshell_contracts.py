@@ -320,6 +320,7 @@ class OpenShellExecutionEvidence:
     sandbox_generation: str
     compute_driver: str
     platform_class: str
+    environment_digest: str | None
     image_digest: str
     agent_identity: str
     requested_policy_digest: str
@@ -359,6 +360,8 @@ class OpenShellExecutionEvidence:
             "engine_result_digest",
         ):
             _hex_digest(getattr(self, name), name)
+        if self.environment_digest is not None:
+            _hex_digest(self.environment_digest, "environment_digest")
         if self.base_policy_digest is not None:
             _hex_digest(self.base_policy_digest, "base_policy_digest")
         if self.effective_policy_digest is not None:
@@ -389,6 +392,7 @@ class OpenShellExecutionEvidence:
             "sandbox_generation": self.sandbox_generation,
             "compute_driver": self.compute_driver,
             "platform_class": self.platform_class,
+            "environment_digest": self.environment_digest,
             "image_digest": self.image_digest,
             "agent_identity": self.agent_identity,
             "requested_policy_digest": self.requested_policy_digest,
