@@ -194,7 +194,11 @@ def _validate_bound_state(
         mismatches.append("environment_digest")
     if tuple(sorted(state.provider_attachment_refs)) != tuple(sorted(request.provider_refs)):
         mismatches.append("provider_attachment_refs")
-    if request.provider_refs:
+    # Provider profile identity is mandatory for exact-qualified production
+    # requests, but the pure/legacy fixture path intentionally omits profile
+    # digests. _require_exact_qualification() rejects incomplete production
+    # provider identity before sandbox creation.
+    if request.provider_profile_digests:
         if state.provider_profile_digests is None:
             mismatches.append("provider_profile_digests_unavailable")
         elif dict(state.provider_profile_digests) != dict(request.provider_profile_digests):
