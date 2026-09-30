@@ -5,6 +5,14 @@ from .admission import (
     QualificationAdmission,
     QualificationAdmissionBundle,
 )
+from .authority_lifecycle import (
+    QualificationAuthorityLifecycleBundle,
+    QualificationAuthorityPolicy,
+    QualificationRevocation,
+    StationKeySuccessor,
+    StationTrustStore,
+    build_lifecycle_admitted_registry,
+)
 from .protocol import ExecutionSubstrate, SubstrateHealth, SubstrateRuntimeIdentity
 from .qualification import (
     QualificationGate,
@@ -18,6 +26,12 @@ __all__ = [
     "AdmittedQualificationRegistry",
     "QualificationAdmission",
     "QualificationAdmissionBundle",
+    "QualificationAuthorityLifecycleBundle",
+    "QualificationAuthorityPolicy",
+    "QualificationRevocation",
+    "StationKeySuccessor",
+    "StationTrustStore",
+    "build_lifecycle_admitted_registry",
     "ExecutionSubstrate",
     "SubstrateHealth",
     "SubstrateRuntimeIdentity",
