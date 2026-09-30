@@ -130,6 +130,20 @@ def _manifest(
     request: OpenShellExecutionRequest,
 ) -> tuple[OpenShellArtifact, ...]:
     artifacts = raw.artifacts or {}
+    actual = set(artifacts)
+    expected = set(request.expected_outputs)
+    undeclared = sorted(actual - expected)
+    missing = sorted(expected - actual)
+    if undeclared or missing:
+        details = []
+        if undeclared:
+            details.append("undeclared=" + ",".join(undeclared))
+        if missing:
+            details.append("missing=" + ",".join(missing))
+        raise OpenShellExecutionError(
+            "UNKNOWN",
+            "artifact set does not match frozen output contract: " + ";".join(details),
+        )
     rows = []
     for index, path in enumerate(sorted(artifacts), 1):
         rows.append(OpenShellArtifact.from_bytes(
@@ -255,6 +269,11 @@ class OpenShellExecutionEngine:
         try:
             state = self.client.create_sandbox(request, policy)
             inspected = self.client.inspect_sandbox(state.sandbox_id)
+            if inspected.sandbox_id != state.sandbox_id:
+                raise OpenShellExecutionError(
+                    "UNKNOWN",
+                    "sandbox inspection identity differs from created sandbox",
+                )
             _validate_bound_state(
                 inspected,
                 request,
