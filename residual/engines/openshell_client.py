@@ -28,6 +28,7 @@ class OpenShellSandboxState:
     base_policy_digest: str | None
     effective_policy_digest: str | None
     policy_revision: str | None
+    environment_digest: str | None = None
     provider_attachment_refs: tuple[str, ...] = ()
     inference_route_ref: str | None = None
 
