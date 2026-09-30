@@ -7,8 +7,9 @@ live OpenShell qualification. A live client is a separate post-v1 lane.
 from __future__ import annotations
 
 import hashlib
+import time
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any, Callable, ClassVar
 
 from ..core import ContractError, digest
 from .openshell_client import OpenShellClient, OpenShellRunResult, OpenShellSandboxState
@@ -187,9 +188,9 @@ class OpenShellExecutionEngine:
     version: str = "r0"
     qualified_capabilities: tuple[str, ...] = ("sandboxed_execution",)
 
-    name: str = "openshell"
-    capability_class: str = "sandbox_execution"
-    locality: str = "local"
+    name: ClassVar[str] = "openshell"
+    capability_class: ClassVar[str] = "sandbox_execution"
+    locality: ClassVar[str] = "local"
 
     def __post_init__(self) -> None:
         for name in (
@@ -262,7 +263,9 @@ class OpenShellExecutionEngine:
                 expected_nemoclaw_identity=self.expected_nemoclaw_identity,
                 expected_agent_identity=self.expected_agent_identity,
             )
+            run_started = time.monotonic()
             raw = self.client.run(inspected.sandbox_id, request)
+            run_wall_clock_ms = int((time.monotonic() - run_started) * 1000)
 
             manifest = _manifest(raw, request)
             manifest_payload = [item.payload() for item in manifest]
@@ -328,7 +331,7 @@ class OpenShellExecutionEngine:
             else:
                 result = EngineResult(
                     candidate=raw.candidate,
-                    wall_clock_ms=0,
+                    wall_clock_ms=run_wall_clock_ms,
                     engine_trace=tuple(dict(row) for row in raw.lifecycle_events),
                     raw_metadata={
                         "adapter": self.name,
