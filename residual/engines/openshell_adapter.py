@@ -324,7 +324,6 @@ class OpenShellExecutionEngine:
                 image_digest=inspected.image_digest,
                 agent_identity=inspected.agent_identity,
                 requested_policy_digest=policy.policy_digest,
-                requested_policy_digest=policy.policy_digest,
                 base_policy_digest=inspected.base_policy_digest,
                 effective_policy_digest=inspected.effective_policy_digest,
                 policy_revision=inspected.policy_revision,
