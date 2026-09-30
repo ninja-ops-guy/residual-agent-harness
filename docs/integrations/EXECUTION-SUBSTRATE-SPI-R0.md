@@ -78,6 +78,7 @@ A substrate qualification is bound to:
     agent identity
     image digest
     requested policy digest
+    observed enforcement-state digest
     provider profile/config set digest
     inference route digest
 
@@ -173,6 +174,12 @@ Therefore RESIDUAL exact qualification binds a digest of provider profile/config
 identity. An execution request using the same provider name but a different
 profile/config does not inherit the previous PASS.
 
+Before agent execution, RESIDUAL also recomputes an observed enforcement-state
+digest over the OpenShell base/effective policy state, policy revision, runtime
+environment and observed provider-profile digests. A request may therefore pass
+its pre-creation tuple check yet still be stopped before agent execution if the
+sandbox's live enforcement state has drifted since qualification.
+
 ## Base versus effective policy
 
 OpenShell currently distinguishes base policy from effective policy. Attached
@@ -186,7 +193,9 @@ RESIDUAL therefore records three separate facts:
 
 They are not required to be byte-identical. Qualification proves the
 translation/composition relationship and runs negative probes against the
-effective enforcement.
+effective enforcement. The resulting observed enforcement-state digest is part
+of the exact qualification tuple, preventing a later provider/global-policy or
+effective-policy change from silently inheriting an earlier PASS.
 
 ## OCSF evidence
 
