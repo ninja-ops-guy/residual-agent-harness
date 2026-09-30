@@ -7,25 +7,203 @@
   },
   "status": "INTEGRATION_PROGRAM",
   "capabilities": [
-    {"id":"SSA-01","name":"onboarding_mapping","state":"SPECIFIED","source":{"contract_digest":"c615700a6ee8363caa17dd9f2d8d0cf7f60be82259e82497e7e4feb93efa15fe"}},
-    {"id":"SSA-02","name":"native_runner_execution","state":"IMPLEMENTED_ISOLATED","source":{"pr":493,"head":"b53fb74c992830fe6d8912b62019c88bbf973f84","tree":"a4efc2b3ef702965c1b1070f692fa032382654a8","base_pr":404,"base_head":"7783081c858ad9ddf98b2e64e740e1104ae5d08b"},"live_gate":"DELL_RESIDUAL_RUNNER_QUALIFIED"},
-    {"id":"SSA-03","name":"native_scheduler_deadlines","state":"SPECIFIED","source":{"plan_v1_1_digest":"700b71744bd011db6cbd57f1100f4ebdc9195f245905119629e2481561e17697","delta_review_digest":"ae7d7488fa013bd2bd3172ede8867060eae8b7d0b1f17dce445fba2e7a7146c8"},"blocker":"SC-E implementation authorization prerequisites"},
-    {"id":"SSA-04","name":"artifact_transport_admission","state":"SPECIFIED","source":{"bl016_v1_digest":"ca063e2b5fadd1b7fa03af56957d7c0770bc32a2f00f2ccf185f90aebeb3697e","bl016_v1_filename":"BL-016_Design_Spec_v1.md","bl016_v1_byte_length":14083,"bl016_v1_1_filename":"BL-016_Design_Spec_v1_1.md","bl016_v1_1_digest":"5d7bbe879845bad06c583515dc40f032db10f76e04941ac854c4ac695bf523d9","bl016_v1_1_byte_length":17915,"recovery_packet_filename":"BL016_Source_Recovery_and_Gap_Packet_2026-09-30.zip","recovery_packet_byte_length":55223,"recovery_packet_sha256":"ea829fea4ecf69b0bb968cb9ada79aee2cbc750c6d61956d51e953541db450b6"},"blocker":"BL016_V11_BLOCKED_ON_REVIEW_PROVENANCE_AND_CONFLICTING_SUCCESSOR_SEMANTICS","remaining_evidence":["full Piston review cited as ef63bb15…","focused A1-A5 confirmation bound to recovered v1.1","controlling reconciliation of separate Tester packet mismatch/dedup/sender-commitment semantics"],"limitation":"Evidence-only source recovery; physical Q2 deposit, independent acceptance and SC-E implementation authorization remain separate gates"},
-    {"id":"SSA-05","name":"local_multi_claw_coordination","state":"SPECIFIED","source":{"contract_c_digest":"54371c1d3d2d8397b7996b2bbcf0cf223b27900128fd26561e0184ec01b74a41"}},
-    {"id":"SSA-06","name":"provider_continuity_freellmapi","state":"INDEPENDENTLY_REVIEWED","source":{"pr":489,"head":"0472f46af1f137d1f808bf7b03cf12b4afa1f1ca","tree":"06da1cbfdc4f9966fdb73b9cd29159a16a8f3dd2"},"live_gate":"live FreeLLMAPI continuity qualification","integration_gap":"authorized readiness maintenance + real OpenClaw execution-path wiring","state_evidence":"REPORTED_REVIEW_ORIGINAL_RECEIPT_BYTES_NOT_LOCALLY_VERIFIED","review":{"reviewer":"Scout","reported_head_prefix":"0472f46a","reported_tree_prefix":"06da1cbf","receipts":[{"filename":"PR489_INDEPENDENT_REVIEW_2026-09-30.json","digest_citation":"1fd9abca…bc87d","sha256":null},{"filename":"PR489_REVIEW_AMENDMENT_N1_2026-09-30.json","digest_citation":"154d36e8…6310c","sha256":null}],"receipt_availability":"HOST_BOUND_CITED","report_source_archive":"RESIDUAL Overnight Run 2026-09-30.zip","report_source_archive_sha256":"e96146a7c7adb692e6c1cdf80226c051cc7324c3bfdb34a4d5770a7c7b3b8a64","report_source_member":"Bounded Backlog Ledger 001.json","report_source_member_sha256":"627a661b15c9b487d2843489dac4e6292594f28a9f023319bbafef87e563f872","limitation":"Reported exact-candidate independent PASS preserved; original review and amendment bytes/full digests must be obtained and bound before new integration admission; no new review or live qualification claim"}},
-    {"id":"SSA-07","name":"health_doctor","state":"SPECIFIED","source":{"pr":488,"head":"25b77dd7e9acea833d502215ecc72b7487b47284"},"blocker":"runtime wiring + executable detectors"},
-    {"id":"SSA-08","name":"shared_comms_projection","state":"SPECIFIED","source":{"sc_a_digest":"c40de44b7ea7c1c185ff2a10156b5bf719ecefd3e8de32f167160c10afd8314a","sc_d_v1_1_digest":"7b994a3c427ec224960a7bda0283af06c9180e7fdd962c33eb735067785b02db"}},
-    {"id":"SSA-09","name":"recovery","state":"SPECIFIED"},
-    {"id":"SSA-10","name":"durable_owner_gates","state":"SPECIFIED"}
+    {
+      "id": "SSA-01",
+      "name": "onboarding_mapping",
+      "state": "SPECIFIED",
+      "source": {
+        "contract_digest": "c615700a6ee8363caa17dd9f2d8d0cf7f60be82259e82497e7e4feb93efa15fe"
+      }
+    },
+    {
+      "id": "SSA-02",
+      "name": "native_runner_execution",
+      "state": "IMPLEMENTED_ISOLATED",
+      "source": {
+        "pr": 493,
+        "head": "b53fb74c992830fe6d8912b62019c88bbf973f84",
+        "tree": "a4efc2b3ef702965c1b1070f692fa032382654a8",
+        "base_pr": 404,
+        "base_head": "7783081c858ad9ddf98b2e64e740e1104ae5d08b"
+      },
+      "live_gate": "DELL_RESIDUAL_RUNNER_QUALIFIED"
+    },
+    {
+      "id": "SSA-03",
+      "name": "native_scheduler_deadlines",
+      "state": "SPECIFIED",
+      "source": {
+        "plan_v1_1_digest": "700b71744bd011db6cbd57f1100f4ebdc9195f245905119629e2481561e17697",
+        "delta_review_digest": "ae7d7488fa013bd2bd3172ede8867060eae8b7d0b1f17dce445fba2e7a7146c8"
+      },
+      "blocker": "SC-E implementation authorization prerequisites"
+    },
+    {
+      "id": "SSA-04",
+      "name": "artifact_transport_admission",
+      "state": "SPECIFIED",
+      "source": {
+        "bl016_v1_digest": "ca063e2b5fadd1b7fa03af56957d7c0770bc32a2f00f2ccf185f90aebeb3697e",
+        "bl016_v1_filename": "BL-016_Design_Spec_v1.md",
+        "bl016_v1_byte_length": 14083,
+        "bl016_v1_1_filename": "BL-016_Design_Spec_v1_1.md",
+        "bl016_v1_1_digest": "5d7bbe879845bad06c583515dc40f032db10f76e04941ac854c4ac695bf523d9",
+        "bl016_v1_1_byte_length": 17915,
+        "recovery_packet_filename": "BL016_Source_Recovery_and_Gap_Packet_2026-09-30.zip",
+        "recovery_packet_byte_length": 55223,
+        "recovery_packet_sha256": "ea829fea4ecf69b0bb968cb9ada79aee2cbc750c6d61956d51e953541db450b6"
+      },
+      "blocker": "BL016_V11_BLOCKED_ON_REVIEW_PROVENANCE_AND_CONFLICTING_SUCCESSOR_SEMANTICS",
+      "remaining_evidence": [
+        "full Piston review cited as ef63bb15…",
+        "focused A1-A5 confirmation bound to recovered v1.1",
+        "controlling reconciliation of separate Tester packet mismatch/dedup/sender-commitment semantics"
+      ],
+      "limitation": "Evidence-only source recovery; physical Q2 deposit, independent acceptance and SC-E implementation authorization remain separate gates"
+    },
+    {
+      "id": "SSA-05",
+      "name": "local_multi_claw_coordination",
+      "state": "SPECIFIED",
+      "source": {
+        "contract_c_digest": "54371c1d3d2d8397b7996b2bbcf0cf223b27900128fd26561e0184ec01b74a41"
+      }
+    },
+    {
+      "id": "SSA-06",
+      "name": "provider_continuity_freellmapi",
+      "state": "INDEPENDENTLY_REVIEWED",
+      "source": {
+        "pr": 489,
+        "head": "0472f46af1f137d1f808bf7b03cf12b4afa1f1ca",
+        "tree": "06da1cbfdc4f9966fdb73b9cd29159a16a8f3dd2"
+      },
+      "live_gate": "live FreeLLMAPI continuity qualification",
+      "integration_gap": "authorized readiness maintenance + real OpenClaw execution-path wiring",
+      "state_evidence": "REPORTED_REVIEW_ORIGINAL_RECEIPT_BYTES_NOT_LOCALLY_VERIFIED",
+      "review": {
+        "reviewer": "Scout",
+        "reported_head_prefix": "0472f46a",
+        "reported_tree_prefix": "06da1cbf",
+        "receipts": [
+          {
+            "filename": "PR489_INDEPENDENT_REVIEW_2026-09-30.json",
+            "digest_citation": "1fd9abca…bc87d",
+            "sha256": null
+          },
+          {
+            "filename": "PR489_REVIEW_AMENDMENT_N1_2026-09-30.json",
+            "digest_citation": "154d36e8…6310c",
+            "sha256": null
+          }
+        ],
+        "receipt_availability": "HOST_BOUND_CITED",
+        "report_source_archive": "RESIDUAL Overnight Run 2026-09-30.zip",
+        "report_source_archive_sha256": "e96146a7c7adb692e6c1cdf80226c051cc7324c3bfdb34a4d5770a7c7b3b8a64",
+        "report_source_member": "Bounded Backlog Ledger 001.json",
+        "report_source_member_sha256": "627a661b15c9b487d2843489dac4e6292594f28a9f023319bbafef87e563f872",
+        "limitation": "Reported exact-candidate independent PASS preserved; original review and amendment bytes/full digests must be obtained and bound before new integration admission; no new review or live qualification claim"
+      }
+    },
+    {
+      "id": "SSA-07",
+      "name": "health_doctor",
+      "state": "SPECIFIED",
+      "source": {
+        "pr": 488,
+        "head": "25b77dd7e9acea833d502215ecc72b7487b47284"
+      },
+      "blocker": "runtime wiring + scheduler evidence-boundary integration; HC-037 dedicated REGISTER_REF fixture is a non-blocking follow-up",
+      "external_verification_leg": "COMPLETE",
+      "corpus": {
+        "qualification": "DOCTOR_CORPUS_INDEPENDENT_VERIFY_PASS",
+        "verifier": "Scout/DBOX",
+        "transport": {
+          "manifest_files": "46/46 byte-exact",
+          "tree_digest_citation": "5b8a8cd9…deda51",
+          "tree_file_count": 27,
+          "exclusions": [
+            "evidence/",
+            "__pycache__/",
+            ".git/"
+          ]
+        },
+        "execution": {
+          "checks": "57/57",
+          "run_receipt_digest_citation": "fe93c695…cdab7",
+          "deterministic_runs": 2,
+          "identical_stdout_hashes": true,
+          "logical_clock": true,
+          "wall_clock_used": false
+        },
+        "mutation_probe": {
+          "result": "56/57",
+          "target": "F16 generic-collapse forbidden OPAQUE_WORKER_FAILURE",
+          "flipped_check": "forbidden_absent",
+          "state_classification_first_divergence_safe_continuation_unchanged": true
+        },
+        "bindings": {
+          "HC-035": "bound and sibling rejection semantics independently verified",
+          "HC-036": "bound to flush-path specimen",
+          "HC-037": "structured-class control material present in F16; no dedicated REGISTER_REF fixture"
+        },
+        "hygiene": {
+          "network_access": false,
+          "subprocess_access": false,
+          "environment_access": false,
+          "unknown_retention_verified": true
+        },
+        "verification_receipt": {
+          "filename": "DOCTOR_CORPUS_VERIFY_2026-09-30.json",
+          "digest_citation": "0374394d…c456ad",
+          "availability": "HOST_BOUND_REPORTED"
+        },
+        "limitation": "External corpus-verification leg complete; this does not establish Doctor runtime wiring, scheduler consumption, deployed behavior, or LIVE_QUALIFIED state."
+      }
+    },
+    {
+      "id": "SSA-08",
+      "name": "shared_comms_projection",
+      "state": "SPECIFIED",
+      "source": {
+        "sc_a_digest": "c40de44b7ea7c1c185ff2a10156b5bf719ecefd3e8de32f167160c10afd8314a",
+        "sc_d_v1_1_digest": "7b994a3c427ec224960a7bda0283af06c9180e7fdd962c33eb735067785b02db"
+      }
+    },
+    {
+      "id": "SSA-09",
+      "name": "recovery",
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "SSA-10",
+      "name": "durable_owner_gates",
+      "state": "SPECIFIED"
+    }
   ],
   "qualification": {
     "campaign_pr": 490,
     "campaign_head": "d5e6267efc0cbb2f93ff15011d201c7ed34cacf3",
     "campaign_packet_digest": "00038034c7723d5fc6f13a1f3f6a6c505c6258f46e98e2cd38fe36da9bdf853a",
-    "chain": ["C0","A1","A2","COMMS1","FAIL1","REC1","DOCTOR1"],
+    "chain": [
+      "C0",
+      "A1",
+      "A2",
+      "COMMS1",
+      "FAIL1",
+      "REC1",
+      "DOCTOR1"
+    ],
     "terminal": "SINGLE_STATION_AUTONOMY_QUALIFIED"
   },
-  "readiness_states": ["SPECIFIED","IMPLEMENTED_ISOLATED","INDEPENDENTLY_REVIEWED","INTEGRATED","DEPLOYED_BOUNDED","LIVE_QUALIFIED"],
+  "readiness_states": [
+    "SPECIFIED",
+    "IMPLEMENTED_ISOLATED",
+    "INDEPENDENTLY_REVIEWED",
+    "INTEGRATED",
+    "DEPLOYED_BOUNDED",
+    "LIVE_QUALIFIED"
+  ],
   "owner_absence_target": {
     "name": "OWNER_ABSENT_8H",
     "manual_intervention_count": 0,
