@@ -12,7 +12,19 @@ from dataclasses import dataclass
 from typing import Any, Callable, ClassVar
 
 from ..core import ContractError, digest
-from .openshell_client import OpenShellClient, OpenShellRunResult, OpenShellSandboxState
+from ..substrates.protocol import SubstrateHealth, SubstrateRuntimeIdentity
+from ..substrates.qualification import (
+    SubstrateQualificationRegistry,
+    SubstrateQualificationTuple,
+    inference_route_digest,
+    provider_set_digest,
+)
+from .openshell_client import (
+    OpenShellClient,
+    OpenShellRunResult,
+    OpenShellSandboxState,
+    openshell_enforcement_state_digest,
+)
 from .openshell_contracts import (
     OpenShellArtifact,
     OpenShellExecutionEvidence,
@@ -79,16 +91,12 @@ def build_execution_request(
         raise ContractError("launch inference_route_ref must match compiled policy")
 
     request_seed = {
-        "mission_id": launch.mission_id,
-        "task_id": task.task_id,
-        "attempt_id": launch.attempt_id,
         "task_spec_digest": digest(task_payload),
         "context_digest": digest(context_payload),
-        "authority_ref": launch.authority_ref,
         "engine_name": engine_name,
         "engine_version": engine_version,
-        "policy_digest": policy.policy_digest,
-        "image_digest": launch.image_digest,
+        "launch": launch.payload(),
+        "requested_policy_digest": policy.policy_digest,
     }
     request_id = "osr-" + digest(request_seed)[:32]
 
@@ -111,6 +119,7 @@ def build_execution_request(
         sandbox_profile=launch.sandbox_profile,
         requested_policy_digest=policy.policy_digest,
         provider_refs=launch.provider_refs,
+        provider_profile_digests=dict(launch.provider_profile_digests),
         inference_route_ref=launch.inference_route_ref,
         resource_budget=dict(launch.resource_budget),
         timeout_s=launch.timeout_s,
@@ -163,6 +172,8 @@ def _validate_bound_state(
     expected_openshell_identity: str,
     expected_nemoclaw_identity: str | None,
     expected_agent_identity: str,
+    expected_environment_digest: str | None,
+    expected_enforcement_state_digest: str | None,
 ) -> None:
     mismatches: list[str] = []
     if state.residual_policy_digest != policy.policy_digest:
@@ -179,8 +190,26 @@ def _validate_bound_state(
         mismatches.append("nemoclaw_identity")
     if state.agent_identity != expected_agent_identity:
         mismatches.append("agent_identity")
+    if expected_environment_digest is not None and state.environment_digest != expected_environment_digest:
+        mismatches.append("environment_digest")
     if tuple(sorted(state.provider_attachment_refs)) != tuple(sorted(request.provider_refs)):
         mismatches.append("provider_attachment_refs")
+    # Provider profile identity is mandatory for exact-qualified production
+    # requests, but the pure/legacy fixture path intentionally omits profile
+    # digests. _require_exact_qualification() rejects incomplete production
+    # provider identity before sandbox creation.
+    if request.provider_profile_digests:
+        if state.provider_profile_digests is None:
+            mismatches.append("provider_profile_digests_unavailable")
+        elif dict(state.provider_profile_digests) != dict(request.provider_profile_digests):
+            mismatches.append("provider_profile_digests")
+    elif state.provider_profile_digests:
+        mismatches.append("unexpected_provider_profile_digests")
+    if (
+        expected_enforcement_state_digest is not None
+        and openshell_enforcement_state_digest(state) != expected_enforcement_state_digest
+    ):
+        mismatches.append("enforcement_state_digest")
     if state.inference_route_ref != request.inference_route_ref:
         mismatches.append("inference_route_ref")
     if mismatches:
@@ -203,6 +232,14 @@ class OpenShellExecutionEngine:
     expected_nemoclaw_identity: str | None = None
     version: str = "r0"
     qualified_capabilities: tuple[str, ...] = ("sandboxed_execution",)
+    qualification_registry: SubstrateQualificationRegistry | None = None
+    qualification_tuple: SubstrateQualificationTuple | None = None
+    qualification_record_digest: str | None = None
+    openshell_version: str | None = None
+    expected_driver: str | None = None
+    expected_platform_class: str | None = None
+    expected_environment_digest: str | None = None
+    expected_enforcement_state_digest: str | None = None
 
     name: ClassVar[str] = "openshell"
     capability_class: ClassVar[str] = "sandbox_execution"
@@ -225,8 +262,47 @@ class OpenShellExecutionEngine:
             raise ContractError("expected_nemoclaw_identity must be non-empty")
         if len(self.qualified_capabilities) != len(set(self.qualified_capabilities)):
             raise ContractError("qualified_capabilities contains duplicates")
+        qualification_fields = (
+            self.qualification_registry,
+            self.qualification_tuple,
+            self.qualification_record_digest,
+        )
+        if any(value is not None for value in qualification_fields) and not all(
+            value is not None for value in qualification_fields
+        ):
+            raise ContractError(
+                "qualification_registry, qualification_tuple, and "
+                "qualification_record_digest must be supplied together"
+            )
+        if self.qualification_tuple is not None:
+            if self.openshell_version is None:
+                self.openshell_version = self.qualification_tuple.substrate_version
+            if self.expected_driver is None:
+                self.expected_driver = self.qualification_tuple.driver
+            if self.expected_platform_class is None:
+                self.expected_platform_class = self.qualification_tuple.platform_class
+            if self.expected_environment_digest is None:
+                self.expected_environment_digest = self.qualification_tuple.environment_digest
+            if self.expected_enforcement_state_digest is None:
+                self.expected_enforcement_state_digest = (
+                    self.qualification_tuple.enforcement_state_digest
+                )
+            if self.qualification_tuple.substrate_name != self.name:
+                raise ContractError("qualification tuple substrate_name mismatch")
+            if self.qualification_tuple.substrate_source_identity != self.expected_openshell_identity:
+                raise ContractError("qualification tuple OpenShell identity mismatch")
 
     def supports(self, capability: str) -> bool:
+        if (
+            self.qualification_registry is not None
+            and self.qualification_tuple is not None
+            and self.qualification_record_digest is not None
+        ):
+            return capability in self.qualification_registry.qualified_capabilities(
+                self.qualification_tuple,
+                record_digest=self.qualification_record_digest,
+            )
+        # Explicit capabilities remain only as a fixture/backward-compatible path.
         return capability in self.qualified_capabilities
 
     def health(self) -> EngineHealth:
@@ -234,6 +310,98 @@ class OpenShellExecutionEngine:
             return EngineHealth.HEALTHY if self.client.health() else EngineHealth.UNAVAILABLE
         except Exception:
             return EngineHealth.UNAVAILABLE
+
+    def substrate_identity(self) -> SubstrateRuntimeIdentity:
+        if not self.openshell_version or not self.expected_driver or not self.expected_platform_class:
+            raise ContractError(
+                "substrate identity requires openshell_version, expected_driver, "
+                "and expected_platform_class"
+            )
+        return SubstrateRuntimeIdentity(
+            name=self.name,
+            version=self.openshell_version,
+            source_identity=self.expected_openshell_identity,
+            driver=self.expected_driver,
+            platform_class=self.expected_platform_class,
+            environment_digest=(
+                self.expected_environment_digest
+                if self.expected_environment_digest is not None
+                else digest({"environment": "unqualified"})
+            ),
+            locality=self.locality,
+        )
+
+    def substrate_health(self) -> SubstrateHealth:
+        health = self.health()
+        if health == EngineHealth.HEALTHY:
+            return SubstrateHealth.HEALTHY
+        if health == EngineHealth.DEGRADED:
+            return SubstrateHealth.DEGRADED
+        return SubstrateHealth.UNAVAILABLE
+
+    def _require_exact_qualification(
+        self,
+        task: TaskSpec,
+        request: OpenShellExecutionRequest,
+    ) -> str | None:
+        if (
+            self.qualification_registry is None
+            or self.qualification_tuple is None
+            or self.qualification_record_digest is None
+        ):
+            if not self.supports(task.capability):
+                raise OpenShellExecutionError(
+                    "ADAPTER_FAILED",
+                    f"capability is not enabled for fixture adapter: {task.capability}",
+                )
+            return None
+
+        expected = self.qualification_tuple
+        mismatches: list[str] = []
+        if expected.substrate_name != self.name:
+            mismatches.append("substrate_name")
+        if expected.substrate_source_identity != self.expected_openshell_identity:
+            mismatches.append("substrate_source_identity")
+        if self.openshell_version is None or expected.substrate_version != self.openshell_version:
+            mismatches.append("substrate_version")
+        if expected.driver != request.compute_driver_requirement:
+            mismatches.append("driver")
+        if self.expected_platform_class is None or expected.platform_class != self.expected_platform_class:
+            mismatches.append("platform_class")
+        if self.expected_environment_digest is None or expected.environment_digest != self.expected_environment_digest:
+            mismatches.append("environment_digest")
+        if expected.agent_profile != request.agent_profile:
+            mismatches.append("agent_profile")
+        if expected.agent_identity != self.expected_agent_identity:
+            mismatches.append("agent_identity")
+        if expected.image_digest != request.image_digest:
+            mismatches.append("image_digest")
+        if expected.requested_policy_digest != request.requested_policy_digest:
+            mismatches.append("requested_policy_digest")
+        if request.provider_refs and set(request.provider_profile_digests) != set(request.provider_refs):
+            mismatches.append("provider_profile_digests_incomplete")
+        elif expected.provider_set_digest != provider_set_digest(request.provider_profile_digests):
+            mismatches.append("provider_set_digest")
+        if expected.inference_route_digest != inference_route_digest(request.inference_route_ref):
+            mismatches.append("inference_route_digest")
+        if mismatches:
+            raise OpenShellExecutionError(
+                "ADAPTER_FAILED",
+                "execution request differs from qualified tuple: " + ",".join(mismatches),
+            )
+
+        try:
+            record = self.qualification_registry.require(
+                expected,
+                task.capability,
+                record_digest=self.qualification_record_digest,
+            )
+        except ContractError as exc:
+            raise OpenShellExecutionError(
+                "ADAPTER_FAILED",
+                f"exact substrate qualification rejected dispatch: {exc}",
+            ) from exc
+        return record.record_digest
 
     def normalize(self, raw_output: Any) -> EngineResult:
         if not isinstance(raw_output, OpenShellRunResult):
@@ -262,6 +430,7 @@ class OpenShellExecutionEngine:
             engine_name=self.name,
             engine_version=self.version,
         )
+        qualification_record_digest = self._require_exact_qualification(task, request)
 
         state: OpenShellSandboxState | None = None
         evidence: OpenShellExecutionEvidence | None = None
@@ -283,6 +452,8 @@ class OpenShellExecutionEngine:
                 expected_openshell_identity=self.expected_openshell_identity,
                 expected_nemoclaw_identity=self.expected_nemoclaw_identity,
                 expected_agent_identity=self.expected_agent_identity,
+                expected_environment_digest=self.expected_environment_digest,
+                expected_enforcement_state_digest=self.expected_enforcement_state_digest,
             )
             run_started = time.monotonic()
             raw = self.client.run(inspected.sandbox_id, request)
@@ -321,6 +492,8 @@ class OpenShellExecutionEngine:
                 sandbox_generation=inspected.generation,
                 compute_driver=inspected.compute_driver,
                 platform_class=inspected.platform_class,
+                environment_digest=inspected.environment_digest,
+                enforcement_state_digest=openshell_enforcement_state_digest(inspected),
                 image_digest=inspected.image_digest,
                 agent_identity=inspected.agent_identity,
                 requested_policy_digest=policy.policy_digest,
@@ -328,6 +501,7 @@ class OpenShellExecutionEngine:
                 effective_policy_digest=inspected.effective_policy_digest,
                 policy_revision=inspected.policy_revision,
                 provider_attachment_refs=inspected.provider_attachment_refs,
+                provider_profile_digests=inspected.provider_profile_digests,
                 inference_route_ref=inspected.inference_route_ref,
                 started_at=raw.started_at,
                 ended_at=raw.ended_at,
@@ -363,6 +537,11 @@ class OpenShellExecutionEngine:
                         "openshell_evidence": evidence.payload(),
                         "artifact_manifest": manifest_payload,
                         "normalized_outcome": raw.normalized_outcome,
+                        "substrate_qualification_tuple_digest":
+                            None if self.qualification_tuple is None
+                            else self.qualification_tuple.tuple_digest,
+                        "substrate_qualification_record_digest":
+                            qualification_record_digest,
                         "residual_policy_authoritative": True,
                         "candidate_state": "unverified",
                         "merge_performed": False,

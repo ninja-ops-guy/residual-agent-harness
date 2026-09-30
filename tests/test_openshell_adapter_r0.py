@@ -184,6 +184,29 @@ class OpenShellContractTests(unittest.TestCase):
         self.assertEqual(first.request_id, second.request_id)
         self.assertEqual(first.requested_policy_digest, policy.policy_digest)
 
+    def test_request_id_binds_provider_profile_identity(self):
+        task = make_task()
+        context = ContextAssembly(values={})
+        policy = compile_policy(make_policy())
+        first = build_execution_request(
+            task,
+            context,
+            make_launch(provider_profile_digests={"provider-test": "a" * 64}),
+            policy,
+            engine_name="openshell",
+            engine_version="r0",
+        )
+        second = build_execution_request(
+            task,
+            context,
+            make_launch(provider_profile_digests={"provider-test": "b" * 64}),
+            policy,
+            engine_name="openshell",
+            engine_version="r0",
+        )
+        self.assertNotEqual(first.request_id, second.request_id)
+        self.assertNotEqual(first.request_digest, second.request_digest)
+
     def test_inline_api_key_is_rejected_before_request_creation(self):
         task = make_task({"api_key": "do-not-forward"})
         with self.assertRaisesRegex(ContractError, "inline secret"):

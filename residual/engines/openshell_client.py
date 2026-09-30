@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping, Protocol, runtime_checkable
 
-from ..core import ContractError
+from ..core import ContractError, digest
 from .openshell_contracts import OpenShellExecutionRequest
 from .openshell_policy import CompiledOpenShellPolicy
 
@@ -28,6 +28,8 @@ class OpenShellSandboxState:
     base_policy_digest: str | None
     effective_policy_digest: str | None
     policy_revision: str | None
+    environment_digest: str | None = None
+    provider_profile_digests: Mapping[str, str] | None = None
     provider_attachment_refs: tuple[str, ...] = ()
     inference_route_ref: str | None = None
 
@@ -40,6 +42,27 @@ class OpenShellSandboxState:
             value = getattr(self, name)
             if not isinstance(value, str) or not value.strip():
                 raise ContractError(f"{name} is required")
+
+
+def openshell_enforcement_state_digest(state: OpenShellSandboxState) -> str:
+    """Bind the observed OpenShell enforcement state for exact qualification.
+
+    The digest is intentionally based on observable identity/effective-state
+    evidence rather than the requested RESIDUAL policy alone.  A live client
+    must populate provider profile digests for provider-backed qualification.
+    """
+    if not isinstance(state, OpenShellSandboxState):
+        raise ContractError("enforcement digest requires OpenShellSandboxState")
+    return digest({
+        "base_policy_digest": state.base_policy_digest,
+        "effective_policy_digest": state.effective_policy_digest,
+        "policy_revision": state.policy_revision,
+        "environment_digest": state.environment_digest,
+        "provider_profile_digests": None if state.provider_profile_digests is None else {
+            key: state.provider_profile_digests[key]
+            for key in sorted(state.provider_profile_digests)
+        },
+    })
 
 
 @dataclass(frozen=True)
