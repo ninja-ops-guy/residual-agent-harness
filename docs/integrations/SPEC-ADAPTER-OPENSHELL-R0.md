@@ -693,3 +693,21 @@ Recommended order after v1 convergence:
 9. only then consider credentialed repository-write or broader fleet deployment capabilities.
 
 This sequence MAY be parallelized where it does not change v1 closure or accepted release criteria.
+
+
+---
+
+## 22. Upstream reference set used for R0
+
+These URLs are informative references only. Qualification MUST re-check the exact upstream release being tested.
+
+- OpenShell sandbox policy overview: https://docs.nvidia.com/openshell/dev/how-it-works/policies/overview
+- OpenShell provider/credential model: https://docs.nvidia.com/openshell/sandboxes/manage-providers
+- OpenShell compute-driver reference: https://docs.nvidia.com/openshell/dev/reference/sandbox-compute-drivers
+- OpenShell supported agents: https://docs.nvidia.com/openshell/about/supported-agents
+- OpenShell project: https://github.com/NVIDIA/OpenShell
+- NemoClaw Hermes platform support: https://docs.nvidia.com/nemoclaw/user-guide/hermes/reference/platform-support
+- NemoClaw/OpenShell CLI selection and ownership guidance: https://docs.nvidia.com/nemoclaw/user-guide/hermes/reference/cli-selection-guide
+- NemoClaw project: https://github.com/NVIDIA/NemoClaw
+
+When a reference path moves or disappears, that is not evidence that the old behavior still applies. Q0 MUST resolve the current documentation/API surface and record the replacement reference.
