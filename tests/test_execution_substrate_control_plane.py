@@ -323,6 +323,7 @@ class FakeOpenShellClient:
         self.state = state
         self.result = result
         self.created = 0
+        self.run_calls = 0
         self.destroyed = 0
 
     def health(self):
@@ -336,6 +337,7 @@ class FakeOpenShellClient:
         return self.state
 
     def run(self, sandbox_id, request):
+        self.run_calls += 1
         return self.result
 
     def destroy_sandbox(self, sandbox_id):
@@ -511,6 +513,7 @@ class OpenShellQualificationBindingTests(unittest.TestCase):
         self.assertEqual(caught.exception.outcome, "UNKNOWN")
         self.assertIn("enforcement_state_digest", caught.exception.reason)
         self.assertEqual(client.created, 1)
+        self.assertEqual(client.run_calls, 0)
 
     def test_request_drift_from_qualified_image_blocks_before_sandbox_creation(self):
         engine, client, _item = self.make_fixture(
