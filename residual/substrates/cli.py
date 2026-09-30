@@ -7,12 +7,14 @@ authority.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
 from pathlib import Path
 
 from ..core import ContractError
+from .admission import QualificationAdmissionBundle
 from .ledger import SubstrateQualificationLedger
 
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
@@ -97,6 +99,53 @@ def cmd_status(args) -> int:
     return 0
 
 
+def cmd_verify_authority(args) -> int:
+    ledger = _load(args.ledger)
+    admissions = QualificationAdmissionBundle.load(args.admissions)
+
+    if args.expected_ledger_digest is not None:
+        if not _HEX64.fullmatch(args.expected_ledger_digest):
+            raise ContractError("expected ledger digest must be lowercase sha256")
+        if ledger.ledger_digest != args.expected_ledger_digest:
+            raise ContractError("qualification ledger digest does not match expected digest")
+    if args.expected_admission_digest is not None:
+        if not _HEX64.fullmatch(args.expected_admission_digest):
+            raise ContractError("expected admission digest must be lowercase sha256")
+        if admissions.bundle_digest != args.expected_admission_digest:
+            raise ContractError("qualification admission digest does not match expected digest")
+
+    trusted: dict[str, bytes] = {}
+    for value in args.station_public_key_hex or ():
+        if not isinstance(value, str) or not re.fullmatch(r"[0-9a-fA-F]{64}", value):
+            raise ContractError("Station public key must be 32-byte hex")
+        raw = bytes.fromhex(value)
+        trusted[hashlib.sha256(raw).hexdigest()] = raw
+    if not trusted:
+        raise ContractError("at least one trusted Station public key is required")
+
+    admitted = admissions.admitted_registry(
+        ledger.registry(),
+        trusted_public_keys=trusted,
+    )
+    snapshot = admitted.snapshot()
+    admitted_rows = [row for row in snapshot if row["station_admitted"]]
+    payload = {
+        "status": "AUTHORIZED",
+        "ledger_digest": ledger.ledger_digest,
+        "admission_bundle_digest": admissions.bundle_digest,
+        "trusted_station_keys": sorted(trusted),
+        "admitted_records": admitted_rows,
+    }
+    return _emit(
+        payload,
+        as_json=args.json,
+        human=(
+            f"qualification authority VALID: {len(admitted_rows)} admitted record(s), "
+            f"ledger={ledger.ledger_digest}, admissions={admissions.bundle_digest}"
+        ),
+    )
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(
         prog="residual substrate",
@@ -112,6 +161,22 @@ def main(argv=None) -> int:
     verify.add_argument("--expected-digest")
     verify.add_argument("--json", action="store_true")
 
+    authority = sub.add_parser(
+        "verify-authority",
+        help="Verify Station admissions against pinned trusted public keys",
+    )
+    authority.add_argument("ledger")
+    authority.add_argument("admissions")
+    authority.add_argument(
+        "--station-public-key-hex",
+        action="append",
+        required=True,
+        help="Trusted raw Ed25519 public key as 64 hex characters (repeatable)",
+    )
+    authority.add_argument("--expected-ledger-digest")
+    authority.add_argument("--expected-admission-digest")
+    authority.add_argument("--json", action="store_true")
+
     status = sub.add_parser(
         "status",
         help="Show qualification records and evidence-backed capabilities",
@@ -124,6 +189,8 @@ def main(argv=None) -> int:
     try:
         if args.command == "verify-ledger":
             return cmd_verify(args)
+        if args.command == "verify-authority":
+            return cmd_verify_authority(args)
         return cmd_status(args)
     except (ContractError, OSError, ValueError, TypeError, KeyError) as exc:
         print(
