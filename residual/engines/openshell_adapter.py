@@ -165,8 +165,10 @@ def _validate_bound_state(
     expected_agent_identity: str,
 ) -> None:
     mismatches: list[str] = []
-    if state.effective_policy_digest != policy.policy_digest:
-        mismatches.append("effective_policy_digest")
+    if state.residual_policy_digest != policy.policy_digest:
+        mismatches.append("residual_policy_digest")
+    if state.effective_policy_digest is None:
+        mismatches.append("effective_policy_digest_unavailable")
     if state.image_digest != request.image_digest:
         mismatches.append("image_digest")
     if state.compute_driver != request.compute_driver_requirement:
@@ -321,7 +323,8 @@ class OpenShellExecutionEngine:
                 platform_class=inspected.platform_class,
                 image_digest=inspected.image_digest,
                 agent_identity=inspected.agent_identity,
-                base_policy_digest=policy.policy_digest,
+                requested_policy_digest=policy.policy_digest,
+                base_policy_digest=inspected.base_policy_digest,
                 effective_policy_digest=inspected.effective_policy_digest,
                 policy_revision=inspected.policy_revision,
                 provider_attachment_refs=inspected.provider_attachment_refs,
