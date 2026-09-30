@@ -387,6 +387,14 @@ class StationTrustStore:
             raise ContractError("at least one Station trust root is required")
         self._roots = roots
         self._transitions = tuple(transitions)
+        if any(not isinstance(item, StationKeySuccessor) for item in self._transitions):
+            raise ContractError("invalid Station-key successor transition")
+        predecessors = [item.predecessor_key_id for item in self._transitions]
+        successors = [item.successor_key_id for item in self._transitions]
+        if len(predecessors) != len(set(predecessors)):
+            raise ContractError("ambiguous Station-key successor for predecessor")
+        if len(successors) != len(set(successors)):
+            raise ContractError("successor Station key appears in multiple transitions")
         self._distrusted = frozenset(
             _require_hash(value, "distrusted_key_id")
             for value in distrusted_key_ids
@@ -411,12 +419,14 @@ class StationTrustStore:
                     continue
                 if transition.predecessor_key_id in self._distrusted:
                     raise ContractError("Station-key transition descends from distrusted key")
+                if transition.activates_at_ns < activates.get(transition.predecessor_key_id, 0):
+                    raise ContractError("successor activates before predecessor is trusted")
                 if not transition.verify(predecessor):
                     raise ContractError("Station-key successor signature is invalid")
                 existing = known.get(transition.successor_key_id)
                 successor = bytes.fromhex(transition.successor_public_key_hex)
-                if existing is not None and existing != successor:
-                    raise ContractError("Station-key successor id collision")
+                if existing is not None:
+                    raise ContractError("successor Station key is already in trust graph")
                 known[transition.successor_key_id] = successor
                 activates[transition.successor_key_id] = transition.activates_at_ns
                 current_retire = retires.get(transition.predecessor_key_id)
