@@ -1,0 +1,31 @@
+{
+  "schema_version": "residual.dogfood.campaign.v1",
+  "campaign_id": "DELL-SWARM-DOGFOOD-001",
+  "status": "PREREGISTERED",
+  "execution_gate": "DELL_RESIDUAL_RUNNER_QUALIFIED",
+  "historical_packet": {
+    "sha256": "144c0216bdc88f537e8dfe7807de2e58a0fbd081f87e82294a16c4a0510d5bc9"
+  },
+  "generations": [
+    {"id":"C0","role":"RUNNER_PATH_CONFORMANCE_CONTROL","depends_on":["DELL_RESIDUAL_RUNNER_QUALIFIED"],"historical_candidate":"C","expected_exact_text":"SHARED_COMMS_OLLAMA_OK"},
+    {"id":"A1","role":"KNOWN_GOOD_STATION_MISSION_CONTROL","depends_on":["C0"],"historical_candidate":"A","required_content":"PREPARED_FOR_ACTIVATION"},
+    {"id":"A2","role":"LOCAL_COORDINATOR","depends_on":["A1"],"min_mapped_claws":2,"decomposition":"PREREGISTERED_DIGEST_BOUND"},
+    {"id":"COMMS1","role":"SHARED_COMMS_PROJECTION","depends_on":["A2"],"authority":"PROJECTION_ONLY"},
+    {"id":"FAIL1","role":"GRACEFUL_PROVIDER_DEGRADATION","depends_on":["COMMS1","PROVIDER_CONTINUITY_INDEPENDENTLY_VERIFIED"],"live_provider_gate":"OWNER_AUTHORIZED"},
+    {"id":"REC1","role":"RESTART_RECOVERY","depends_on":["FAIL1"],"failure_injection":"PREREGISTERED_SINGLE_PROCESS_BOUNDARY"},
+    {"id":"DOCTOR1","role":"HEALTH_CAUSAL_OBSERVABILITY","depends_on":["REC1"]}
+  ],
+  "negative_specimen": {"historical_candidate":"B","disposition":"PRESERVE_UNCHANGED_FOR_RESEARCH"},
+  "terminal_predicates": [
+    "DELL_RESIDUAL_RUNNER_QUALIFIED",
+    "C0_RUNNER_PATH_CONFORMANCE_PASS",
+    "A1_KNOWN_GOOD_MISSION_PASS",
+    "A2_LOCAL_COORDINATOR_PASS",
+    "COMMS1_PROJECTION_PASS",
+    "FAIL1_GRACEFUL_DEGRADATION_PASS",
+    "REC1_RESTART_RECOVERY_PASS",
+    "DOCTOR1_OBSERVABILITY_PASS",
+    "ZERO_MANUAL_KIMI_ROUTING_AFTER_PARENT_DISPATCH"
+  ],
+  "on_first_failure": "STOP_FREEZE_CLASSIFY_NO_RETRY_UNTIL_GREEN"
+}
