@@ -424,8 +424,10 @@ class OpenShellQualificationBindingTests(unittest.TestCase):
     def test_unqualified_capability_blocks_before_sandbox_creation(self):
         engine, client, _item = self.make_fixture()
         task = TaskSpec("task-1", "gpu_execution", {"work": "fixture"})
-        with self.assertRaises(ContractError):
+        with self.assertRaises(OpenShellExecutionError) as caught:
             engine.execute(task, ContextAssembly(values={}))
+        self.assertEqual(caught.exception.outcome, "ADAPTER_FAILED")
+        self.assertIn("not qualified", caught.exception.reason)
         self.assertEqual(client.created, 0)
 
 
