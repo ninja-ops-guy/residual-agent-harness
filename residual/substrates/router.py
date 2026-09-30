@@ -73,6 +73,8 @@ class QualifiedSubstrateRouter:
             mismatches.append("driver")
         if identity.platform_class != expected.platform_class:
             mismatches.append("platform_class")
+        if identity.environment_digest != expected.environment_digest:
+            mismatches.append("environment_digest")
         if mismatches:
             raise SubstrateRoutingError(
                 "runtime identity does not match qualified tuple: " + ",".join(mismatches)
