@@ -351,11 +351,17 @@ class OpenShellExecutionEngine:
                 "execution request differs from qualified tuple: " + ",".join(mismatches),
             )
 
-        record = self.qualification_registry.require(
-            expected,
-            task.capability,
-            record_digest=self.qualification_record_digest,
-        )
+        try:
+            record = self.qualification_registry.require(
+                expected,
+                task.capability,
+                record_digest=self.qualification_record_digest,
+            )
+        except ContractError as exc:
+            raise OpenShellExecutionError(
+                "ADAPTER_FAILED",
+                f"exact substrate qualification rejected dispatch: {exc}",
+            ) from exc
         return record.record_digest
 
     def normalize(self, raw_output: Any) -> EngineResult:
