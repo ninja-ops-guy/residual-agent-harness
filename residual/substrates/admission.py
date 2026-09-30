@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from ..core import ContractError, canonical, digest, strict_json
@@ -337,6 +338,16 @@ class QualificationAdmissionBundle:
     @property
     def bundle_digest(self) -> str:
         return digest(self.payload())
+
+    def write(self, path: str | Path) -> None:
+        target = Path(path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(canonical(self.payload()) + "\n", encoding="utf-8")
+
+    @classmethod
+    def load(cls, path: str | Path) -> "QualificationAdmissionBundle":
+        value = strict_json(Path(path).read_text(encoding="utf-8"))
+        return cls.from_payload(value)
 
     @classmethod
     def from_payload(
