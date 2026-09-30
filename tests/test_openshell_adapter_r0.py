@@ -182,7 +182,7 @@ class OpenShellContractTests(unittest.TestCase):
         )
         self.assertEqual(first.request_digest, second.request_digest)
         self.assertEqual(first.request_id, second.request_id)
-        self.assertEqual(first.base_policy_digest, policy.policy_digest)
+        self.assertEqual(first.requested_policy_digest, policy.policy_digest)
 
     def test_inline_api_key_is_rejected_before_request_creation(self):
         task = make_task({"api_key": "do-not-forward"})
