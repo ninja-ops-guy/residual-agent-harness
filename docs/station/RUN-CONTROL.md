@@ -21,6 +21,8 @@ Because the controller's brakes only engage between passes, Station mirrors the 
 
 Automatic cloud assessment runs after an eligible non-aborted live batch. Its calls have separate receipts and count against the project-wide reservations; they are outside the implementation batch's run receipt. Aborted batches do not automatically invoke the cloud assessment.
 
+Project inference ceilings are explicit project authority, not provider health. The Station exposes total-call, cloud-call, and request-byte reservations separately, reports the exact exhausted dimension, and permits an authenticated operator to increase a ceiling without resetting historical reservations. Lowering a ceiling through this surface is rejected.
+
 ## Verification order and decisions
 
 | Check | Station evidence | Inference added by control check |

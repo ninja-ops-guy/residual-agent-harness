@@ -33,6 +33,12 @@ async function main(){
   const download=page.waitForEvent('download');await page.getByRole('button',{name:'Export verified release',exact:true}).click();const release=await download;assert(release.suggestedFilename().endsWith('.zip'));checks.push('Verified release downloads from UI');
   await page.locator('[data-view="comms"]').click();await page.locator('#note-message').fill('<img src=x onerror=alert(1)> operator note');await page.getByRole('button',{name:'Post ↗',exact:true}).click();await page.getByText('<img src=x onerror=alert(1)> operator note',{exact:true}).waitFor();assert.equal(await page.locator('.message img').count(),0);checks.push('Operator notes are escaped, not executable HTML');
   await page.screenshot({path:path.join(out,'05-shared-comms.png'),fullPage:true});
+  await page.getByRole('button',{name:'Extend project budget',exact:true}).click();
+  await page.locator('#budget-calls').fill('1000');await page.locator('#budget-cloud').fill('300');
+  await page.getByRole('button',{name:'Extend limits',exact:true}).click();
+  await page.locator('.toast').filter({hasText:'historical usage retained'}).waitFor();
+  assert((await page.getByRole('heading',{name:'Project inference budget',exact:true}).locator('..').locator('..').innerText()).includes('300'));
+  checks.push('Project inference budget can be extended without resetting reservations');
   await page.locator('[data-view="models"]').click();await page.getByRole('heading',{name:'Your model workshop.'}).waitFor();await page.waitForTimeout(900);
   await page.locator('#local-model').fill('fixture-model:latest');await page.getByRole('button',{name:'Save model routes',exact:true}).click();await page.locator('.toast').filter({hasText:'Model routes saved'}).waitFor();await page.reload();await page.locator('#local-model').waitFor();assert.equal(await page.locator('#local-model').inputValue(),'fixture-model:latest');checks.push('Model route settings persist after reload');
   await page.locator('.route-details summary').filter({hasText:'Mission loop limits'}).click();
