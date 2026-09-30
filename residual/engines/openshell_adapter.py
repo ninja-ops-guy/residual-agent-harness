@@ -19,7 +19,12 @@ from ..substrates.qualification import (
     inference_route_digest,
     provider_set_digest,
 )
-from .openshell_client import OpenShellClient, OpenShellRunResult, OpenShellSandboxState
+from .openshell_client import (
+    OpenShellClient,
+    OpenShellRunResult,
+    OpenShellSandboxState,
+    openshell_enforcement_state_digest,
+)
 from .openshell_contracts import (
     OpenShellArtifact,
     OpenShellExecutionEvidence,
@@ -168,6 +173,7 @@ def _validate_bound_state(
     expected_nemoclaw_identity: str | None,
     expected_agent_identity: str,
     expected_environment_digest: str | None,
+    expected_enforcement_state_digest: str | None,
 ) -> None:
     mismatches: list[str] = []
     if state.residual_policy_digest != policy.policy_digest:
@@ -188,6 +194,18 @@ def _validate_bound_state(
         mismatches.append("environment_digest")
     if tuple(sorted(state.provider_attachment_refs)) != tuple(sorted(request.provider_refs)):
         mismatches.append("provider_attachment_refs")
+    if request.provider_refs:
+        if state.provider_profile_digests is None:
+            mismatches.append("provider_profile_digests_unavailable")
+        elif dict(state.provider_profile_digests) != dict(request.provider_profile_digests):
+            mismatches.append("provider_profile_digests")
+    elif state.provider_profile_digests:
+        mismatches.append("unexpected_provider_profile_digests")
+    if (
+        expected_enforcement_state_digest is not None
+        and openshell_enforcement_state_digest(state) != expected_enforcement_state_digest
+    ):
+        mismatches.append("enforcement_state_digest")
     if state.inference_route_ref != request.inference_route_ref:
         mismatches.append("inference_route_ref")
     if mismatches:
@@ -217,6 +235,7 @@ class OpenShellExecutionEngine:
     expected_driver: str | None = None
     expected_platform_class: str | None = None
     expected_environment_digest: str | None = None
+    expected_enforcement_state_digest: str | None = None
 
     name: ClassVar[str] = "openshell"
     capability_class: ClassVar[str] = "sandbox_execution"
@@ -260,6 +279,10 @@ class OpenShellExecutionEngine:
                 self.expected_platform_class = self.qualification_tuple.platform_class
             if self.expected_environment_digest is None:
                 self.expected_environment_digest = self.qualification_tuple.environment_digest
+            if self.expected_enforcement_state_digest is None:
+                self.expected_enforcement_state_digest = (
+                    self.qualification_tuple.enforcement_state_digest
+                )
             if self.qualification_tuple.substrate_name != self.name:
                 raise ContractError("qualification tuple substrate_name mismatch")
             if self.qualification_tuple.substrate_source_identity != self.expected_openshell_identity:
@@ -426,6 +449,7 @@ class OpenShellExecutionEngine:
                 expected_nemoclaw_identity=self.expected_nemoclaw_identity,
                 expected_agent_identity=self.expected_agent_identity,
                 expected_environment_digest=self.expected_environment_digest,
+                expected_enforcement_state_digest=self.expected_enforcement_state_digest,
             )
             run_started = time.monotonic()
             raw = self.client.run(inspected.sandbox_id, request)
@@ -465,6 +489,7 @@ class OpenShellExecutionEngine:
                 compute_driver=inspected.compute_driver,
                 platform_class=inspected.platform_class,
                 environment_digest=inspected.environment_digest,
+                enforcement_state_digest=openshell_enforcement_state_digest(inspected),
                 image_digest=inspected.image_digest,
                 agent_identity=inspected.agent_identity,
                 requested_policy_digest=policy.policy_digest,
@@ -472,6 +497,7 @@ class OpenShellExecutionEngine:
                 effective_policy_digest=inspected.effective_policy_digest,
                 policy_revision=inspected.policy_revision,
                 provider_attachment_refs=inspected.provider_attachment_refs,
+                provider_profile_digests=inspected.provider_profile_digests,
                 inference_route_ref=inspected.inference_route_ref,
                 started_at=raw.started_at,
                 ended_at=raw.ended_at,
