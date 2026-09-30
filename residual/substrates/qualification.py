@@ -46,6 +46,7 @@ class SubstrateQualificationTuple:
     agent_identity: str
     image_digest: str
     requested_policy_digest: str
+    enforcement_state_digest: str
     provider_set_digest: str
     inference_route_digest: str
     schema_version: str = "residual.substrate-tuple.v1"
@@ -60,7 +61,7 @@ class SubstrateQualificationTuple:
             _text(getattr(self, name), name)
         for name in (
             "environment_digest", "image_digest", "requested_policy_digest",
-            "provider_set_digest", "inference_route_digest",
+            "enforcement_state_digest", "provider_set_digest", "inference_route_digest",
         ):
             _sha256(getattr(self, name), name)
 
@@ -77,6 +78,7 @@ class SubstrateQualificationTuple:
             "agent_identity": self.agent_identity,
             "image_digest": self.image_digest,
             "requested_policy_digest": self.requested_policy_digest,
+            "enforcement_state_digest": self.enforcement_state_digest,
             "provider_set_digest": self.provider_set_digest,
             "inference_route_digest": self.inference_route_digest,
         }
@@ -315,7 +317,8 @@ def qualification_tuple_from_payload(payload: Mapping[str, Any]) -> SubstrateQua
         "schema_version", "substrate_name", "substrate_version",
         "substrate_source_identity", "driver", "platform_class",
         "environment_digest", "agent_profile", "agent_identity", "image_digest",
-        "requested_policy_digest", "provider_set_digest", "inference_route_digest",
+        "requested_policy_digest", "enforcement_state_digest", "provider_set_digest",
+        "inference_route_digest",
     }
     if set(payload) != allowed:
         raise ContractError("substrate qualification tuple keys do not match schema")
