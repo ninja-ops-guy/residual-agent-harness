@@ -321,6 +321,7 @@ class OpenShellExecutionEvidence:
     compute_driver: str
     platform_class: str
     environment_digest: str | None
+    enforcement_state_digest: str | None
     image_digest: str
     agent_identity: str
     requested_policy_digest: str
@@ -328,6 +329,7 @@ class OpenShellExecutionEvidence:
     effective_policy_digest: str | None
     policy_revision: str | None
     provider_attachment_refs: tuple[str, ...]
+    provider_profile_digests: Mapping[str, str] | None
     inference_route_ref: str | None
     started_at: str
     ended_at: str
@@ -362,6 +364,8 @@ class OpenShellExecutionEvidence:
             _hex_digest(getattr(self, name), name)
         if self.environment_digest is not None:
             _hex_digest(self.environment_digest, "environment_digest")
+        if self.enforcement_state_digest is not None:
+            _hex_digest(self.enforcement_state_digest, "enforcement_state_digest")
         if self.base_policy_digest is not None:
             _hex_digest(self.base_policy_digest, "base_policy_digest")
         if self.effective_policy_digest is not None:
@@ -373,6 +377,12 @@ class OpenShellExecutionEvidence:
         if self.inference_route_ref is not None:
             _required_text(self.inference_route_ref, "inference_route_ref")
         _string_tuple(self.provider_attachment_refs, "provider_attachment_refs")
+        if self.provider_profile_digests is not None:
+            if not isinstance(self.provider_profile_digests, Mapping):
+                raise ContractError("provider_profile_digests must be a mapping or None")
+            for provider_id, profile_digest in self.provider_profile_digests.items():
+                _required_text(provider_id, "provider_profile_digests key")
+                _hex_digest(profile_digest, "provider_profile_digest")
         if self.exit_code is not None and type(self.exit_code) is not int:
             raise ContractError("exit_code must be an integer or None")
         if self.evidence_completeness not in {"complete", "partial", "unknown"}:
@@ -393,6 +403,7 @@ class OpenShellExecutionEvidence:
             "compute_driver": self.compute_driver,
             "platform_class": self.platform_class,
             "environment_digest": self.environment_digest,
+            "enforcement_state_digest": self.enforcement_state_digest,
             "image_digest": self.image_digest,
             "agent_identity": self.agent_identity,
             "requested_policy_digest": self.requested_policy_digest,
@@ -400,6 +411,12 @@ class OpenShellExecutionEvidence:
             "effective_policy_digest": self.effective_policy_digest,
             "policy_revision": self.policy_revision,
             "provider_attachment_refs": list(self.provider_attachment_refs),
+            "provider_profile_digests": (
+                None if self.provider_profile_digests is None else {
+                    key: self.provider_profile_digests[key]
+                    for key in sorted(self.provider_profile_digests)
+                }
+            ),
             "inference_route_ref": self.inference_route_ref,
             "started_at": self.started_at,
             "ended_at": self.ended_at,
