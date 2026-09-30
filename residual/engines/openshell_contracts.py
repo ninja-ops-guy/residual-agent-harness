@@ -14,10 +14,15 @@ from typing import Any, Mapping, Sequence
 from ..core import ContractError, canonical, digest
 
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
-_SECRET_KEY = re.compile(
-    r"(?:^|[_-])(api[_-]?key|secret|password|passwd|private[_-]?key|"
-    r"access[_-]?key|credential|token)(?:$|[_-])",
-    re.IGNORECASE,
+_SECRET_EXACT = {
+    "api_key", "apikey", "secret", "password", "passwd", "private_key",
+    "access_key", "credential", "credentials", "token", "access_token",
+    "refresh_token", "bearer_token",
+}
+_SECRET_SUFFIXES = (
+    "_api_key", "_secret", "_password", "_passwd", "_private_key",
+    "_access_key", "_credential", "_credentials", "_access_token",
+    "_refresh_token", "_bearer_token",
 )
 _REFERENCE_SUFFIXES = (
     "_ref", "_refs", "_id", "_ids", "_name", "_names",
@@ -61,7 +66,9 @@ def assert_no_inline_secrets(value: Any, *, path: str = "root") -> None:
         for raw_key, child in value.items():
             key = str(raw_key)
             lower = key.lower()
-            if _SECRET_KEY.search(lower) and not lower.endswith(_REFERENCE_SUFFIXES):
+            normalized = lower.replace("-", "_")
+            suspicious = normalized in _SECRET_EXACT or normalized.endswith(_SECRET_SUFFIXES)
+            if suspicious and not normalized.endswith(_REFERENCE_SUFFIXES):
                 raise ContractError(f"inline secret field is not allowed at {path}.{key}")
             assert_no_inline_secrets(child, path=f"{path}.{key}")
     elif isinstance(value, (list, tuple)):
