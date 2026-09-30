@@ -12,11 +12,8 @@ from dataclasses import dataclass, field
 from typing import Any, Mapping
 
 from ..core import ContractError, canonical, digest
-from .qualification import (
-    SubstrateQualificationRecord,
-    SubstrateQualificationRegistry,
-    SubstrateQualificationTuple,
-)
+from .admission import AdmittedQualificationRegistry
+from .qualification import SubstrateQualificationTuple
 
 
 def _text(value: Any, name: str) -> str:
@@ -127,7 +124,7 @@ class SelfBuildAdmission:
 def admit_self_build(
     contract: SelfBuildContract,
     qualification_tuple: SubstrateQualificationTuple,
-    registry: SubstrateQualificationRegistry,
+    registry: AdmittedQualificationRegistry,
     *,
     record_digest: str,
 ) -> SelfBuildAdmission:
