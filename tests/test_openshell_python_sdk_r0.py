@@ -146,7 +146,9 @@ def make_binding():
             platform_class="linux-x86_64-fixture",
             agent_identity="fixture-agent@1",
             image_digest=request.image_digest,
-            effective_policy_digest=policy.policy_digest,
+            residual_policy_digest=policy.policy_digest,
+            base_policy_digest="5" * 64,
+            effective_policy_digest="6" * 64,
             policy_revision="1",
             provider_attachment_refs=request.provider_refs,
             inference_route_ref=request.inference_route_ref,
@@ -203,7 +205,9 @@ class PythonSDKBindingTests(unittest.TestCase):
         self.assertTrue(client.health())
         state = client.create_sandbox(request, policy)
         self.assertEqual(state.sandbox_id, sdk.sandbox_id)
-        self.assertEqual(state.effective_policy_digest, policy.policy_digest)
+        self.assertEqual(state.residual_policy_digest, policy.policy_digest)
+        self.assertEqual(state.base_policy_digest, "5" * 64)
+        self.assertEqual(state.effective_policy_digest, "6" * 64)
         self.assertEqual(state.openshell_identity, SOURCE_ID)
 
         inspected = client.inspect_sandbox(state.sandbox_id)
