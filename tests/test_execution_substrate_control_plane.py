@@ -9,6 +9,7 @@ from residual.engines.openshell_client import OpenShellRunResult, OpenShellSandb
 from residual.engines.openshell_contracts import OpenShellLaunchConfig
 from residual.engines.openshell_policy import OpenShellPolicyEnvelope, compile_policy
 from residual.engines.protocol import ContextAssembly, TaskSpec
+from residual.substrates.ledger import SubstrateQualificationLedger
 from residual.substrates.protocol import (
     ExecutionSubstrate,
     SubstrateHealth,
@@ -151,6 +152,26 @@ class QualificationTests(unittest.TestCase):
         registry.add(item)
         with self.assertRaisesRegex(ContractError, "not qualified"):
             registry.require(qt, "gpu_execution", record_digest=item.record_digest)
+
+    def test_ledger_round_trip_is_content_addressed_and_tamper_evident(self):
+        registry = SubstrateQualificationRegistry()
+        item = record()
+        registry.add(item)
+        ledger = SubstrateQualificationLedger.from_registry(registry)
+        rebuilt = SubstrateQualificationLedger.from_payload(ledger.payload())
+        self.assertEqual(rebuilt.ledger_digest, ledger.ledger_digest)
+        self.assertEqual(
+            rebuilt.registry().get(
+                item.qualification_tuple,
+                record_digest=item.record_digest,
+            ).record_digest,
+            item.record_digest,
+        )
+
+        tampered = ledger.payload()
+        tampered["records"][0]["record"]["overall"] = "FAIL"
+        with self.assertRaisesRegex(ContractError, "not derivable"):
+            SubstrateQualificationLedger.from_payload(tampered)
 
     def test_tuple_digest_changes_with_driver_policy_provider_or_route(self):
         baseline = qtuple()
@@ -415,6 +436,40 @@ class OpenShellQualificationBindingTests(unittest.TestCase):
             result.raw_metadata["substrate_qualification_tuple_digest"],
             item.qualification_tuple.tuple_digest,
         )
+
+    def test_missing_provider_profile_identity_blocks_exact_qualification(self):
+        engine, client, _item = self.make_fixture()
+        original = engine.launch_factory
+        launch = original(
+            TaskSpec("seed", "sandboxed_execution", {}),
+            ContextAssembly(values={}),
+        )
+        incomplete = OpenShellLaunchConfig(
+            mission_id=launch.mission_id,
+            attempt_id=launch.attempt_id,
+            authority_ref=launch.authority_ref,
+            agent_profile=launch.agent_profile,
+            agent_command_argv=launch.agent_command_argv,
+            image_ref=launch.image_ref,
+            image_digest=launch.image_digest,
+            compute_driver_requirement=launch.compute_driver_requirement,
+            sandbox_profile=launch.sandbox_profile,
+            provider_refs=launch.provider_refs,
+            provider_profile_digests={},
+            inference_route_ref=launch.inference_route_ref,
+            resource_budget=launch.resource_budget,
+            timeout_s=launch.timeout_s,
+            expected_outputs=launch.expected_outputs,
+            output_contract_digest=launch.output_contract_digest,
+            created_at=launch.created_at,
+        )
+        engine.launch_factory = lambda _task, _ctx: incomplete
+        task = TaskSpec("task-1", "sandboxed_execution", {"work": "fixture"})
+        with self.assertRaises(OpenShellExecutionError) as caught:
+            engine.execute(task, ContextAssembly(values={}))
+        self.assertEqual(caught.exception.outcome, "ADAPTER_FAILED")
+        self.assertIn("provider_profile_digests_incomplete", caught.exception.reason)
+        self.assertEqual(client.created, 0)
 
     def test_request_drift_from_qualified_image_blocks_before_sandbox_creation(self):
         engine, client, _item = self.make_fixture(
