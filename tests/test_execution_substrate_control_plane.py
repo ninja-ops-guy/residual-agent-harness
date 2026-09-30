@@ -39,6 +39,16 @@ OPENSHELL_SOURCE = "openshell:v0.1.1@fixture"
 OPENSHELL_VERSION = "0.1.1"
 ENVIRONMENT = "a" * 64
 PROVIDER_PROFILE = "b" * 64
+BASE_POLICY = "7" * 64
+EFFECTIVE_POLICY = "8" * 64
+POLICY_REVISION = "rev-1"
+ENFORCEMENT = digest({
+    "base_policy_digest": BASE_POLICY,
+    "effective_policy_digest": EFFECTIVE_POLICY,
+    "policy_revision": POLICY_REVISION,
+    "environment_digest": ENVIRONMENT,
+    "provider_profile_digests": {"provider-a": PROVIDER_PROFILE},
+})
 
 
 def qtuple(**overrides):
@@ -53,6 +63,7 @@ def qtuple(**overrides):
         "agent_identity": "hermes@fixture",
         "image_digest": IMAGE,
         "requested_policy_digest": POLICY,
+        "enforcement_state_digest": ENFORCEMENT,
         "provider_set_digest": provider_set_digest({"provider-a": PROVIDER_PROFILE}),
         "inference_route_digest": inference_route_digest("route-a"),
     }
@@ -178,6 +189,7 @@ class QualificationTests(unittest.TestCase):
         variants = (
             qtuple(driver="podman"),
             qtuple(requested_policy_digest="7" * 64),
+            qtuple(enforcement_state_digest="8" * 64),
             qtuple(provider_set_digest=provider_set_digest(("provider-b",))),
             qtuple(inference_route_digest=inference_route_digest("route-b")),
         )
@@ -387,10 +399,11 @@ class OpenShellQualificationBindingTests(unittest.TestCase):
             agent_identity="hermes@fixture",
             image_digest=launch_image,
             residual_policy_digest=policy.policy_digest,
-            base_policy_digest="7" * 64,
-            effective_policy_digest="8" * 64,
-            policy_revision="rev-1",
+            base_policy_digest=BASE_POLICY,
+            effective_policy_digest=EFFECTIVE_POLICY,
+            policy_revision=POLICY_REVISION,
             environment_digest=ENVIRONMENT,
+            provider_profile_digests={"provider-a": PROVIDER_PROFILE},
             provider_attachment_refs=("provider-a",),
             inference_route_ref="route-a",
         )
@@ -419,6 +432,7 @@ class OpenShellQualificationBindingTests(unittest.TestCase):
             expected_driver="docker",
             expected_platform_class="linux-x86_64",
             expected_environment_digest=ENVIRONMENT,
+            expected_enforcement_state_digest=ENFORCEMENT,
             qualified_capabilities=(),
         )
         return engine, client, item
@@ -470,6 +484,33 @@ class OpenShellQualificationBindingTests(unittest.TestCase):
         self.assertEqual(caught.exception.outcome, "ADAPTER_FAILED")
         self.assertIn("provider_profile_digests_incomplete", caught.exception.reason)
         self.assertEqual(client.created, 0)
+
+    def test_observed_enforcement_drift_blocks_before_agent_run(self):
+        engine, client, _item = self.make_fixture()
+        client.state = OpenShellSandboxState(
+            sandbox_id=client.state.sandbox_id,
+            generation=client.state.generation,
+            openshell_identity=client.state.openshell_identity,
+            nemoclaw_identity=client.state.nemoclaw_identity,
+            compute_driver=client.state.compute_driver,
+            platform_class=client.state.platform_class,
+            agent_identity=client.state.agent_identity,
+            image_digest=client.state.image_digest,
+            residual_policy_digest=client.state.residual_policy_digest,
+            base_policy_digest=client.state.base_policy_digest,
+            effective_policy_digest="9" * 64,
+            policy_revision=client.state.policy_revision,
+            environment_digest=client.state.environment_digest,
+            provider_profile_digests=client.state.provider_profile_digests,
+            provider_attachment_refs=client.state.provider_attachment_refs,
+            inference_route_ref=client.state.inference_route_ref,
+        )
+        task = TaskSpec("task-1", "sandboxed_execution", {"work": "fixture"})
+        with self.assertRaises(OpenShellExecutionError) as caught:
+            engine.execute(task, ContextAssembly(values={}))
+        self.assertEqual(caught.exception.outcome, "UNKNOWN")
+        self.assertIn("enforcement_state_digest", caught.exception.reason)
+        self.assertEqual(client.created, 1)
 
     def test_request_drift_from_qualified_image_blocks_before_sandbox_creation(self):
         engine, client, _item = self.make_fixture(
