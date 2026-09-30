@@ -118,6 +118,7 @@ def build_execution_request(
         sandbox_profile=launch.sandbox_profile,
         requested_policy_digest=policy.policy_digest,
         provider_refs=launch.provider_refs,
+        provider_profile_digests=dict(launch.provider_profile_digests),
         inference_route_ref=launch.inference_route_ref,
         resource_budget=dict(launch.resource_budget),
         timeout_s=launch.timeout_s,
@@ -216,6 +217,7 @@ class OpenShellExecutionEngine:
     openshell_version: str | None = None
     expected_driver: str | None = None
     expected_platform_class: str | None = None
+    expected_environment_digest: str | None = None
 
     name: ClassVar[str] = "openshell"
     capability_class: ClassVar[str] = "sandbox_execution"
@@ -257,6 +259,8 @@ class OpenShellExecutionEngine:
                 self.expected_driver = self.qualification_tuple.driver
             if self.expected_platform_class is None:
                 self.expected_platform_class = self.qualification_tuple.platform_class
+            if self.expected_environment_digest is None:
+                self.expected_environment_digest = self.qualification_tuple.environment_digest
             if self.qualification_tuple.substrate_name != self.name:
                 raise ContractError("qualification tuple substrate_name mismatch")
             if self.qualification_tuple.substrate_source_identity != self.expected_openshell_identity:
@@ -293,6 +297,11 @@ class OpenShellExecutionEngine:
             source_identity=self.expected_openshell_identity,
             driver=self.expected_driver,
             platform_class=self.expected_platform_class,
+            environment_digest=(
+                self.expected_environment_digest
+                if self.expected_environment_digest is not None
+                else digest({"environment": "unqualified"})
+            ),
             locality=self.locality,
         )
 
@@ -341,7 +350,9 @@ class OpenShellExecutionEngine:
             mismatches.append("image_digest")
         if expected.requested_policy_digest != request.requested_policy_digest:
             mismatches.append("requested_policy_digest")
-        if expected.provider_set_digest != provider_set_digest(request.provider_refs):
+        if request.provider_refs and set(request.provider_profile_digests) != set(request.provider_refs):
+            mismatches.append("provider_profile_digests_incomplete")
+        elif expected.provider_set_digest != provider_set_digest(request.provider_profile_digests):
             mismatches.append("provider_set_digest")
         if expected.inference_route_digest != inference_route_digest(request.inference_route_ref):
             mismatches.append("inference_route_digest")
@@ -413,6 +424,7 @@ class OpenShellExecutionEngine:
                 expected_openshell_identity=self.expected_openshell_identity,
                 expected_nemoclaw_identity=self.expected_nemoclaw_identity,
                 expected_agent_identity=self.expected_agent_identity,
+                expected_environment_digest=self.expected_environment_digest,
             )
             run_started = time.monotonic()
             raw = self.client.run(inspected.sandbox_id, request)
