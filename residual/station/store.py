@@ -186,7 +186,7 @@ class Store(ObservationStore):
             if after["cloud_call_limit"] > after["call_limit"]:
                 raise ContractError("Cloud call limit cannot exceed the total model-call limit")
             if not changed:
-                return self.project_budget(pid)
+                raise ContractError("Increase at least one project budget limit")
             p.update(after)
             c.execute("UPDATE projects SET value=? WHERE id=?", (canonical(p), pid))
             self._event(c, p, "project.note", "operator", data={
