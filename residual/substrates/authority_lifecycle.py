@@ -563,18 +563,26 @@ def build_lifecycle_admitted_registry(
     # More than one trusted Station key may re-admit the same immutable PASS
     # during a rotation overlap. Resolve to exactly one effective admission per
     # record so the R0 admitted registry stays unambiguous.
+    known_signers = trust.verification_keys()
     candidates: dict[str, list[tuple[QualificationAdmission, bytes]]] = {}
     for admission in admissions.admissions:
         record = evidence.get(admission.record_digest)
         if record is None:
             raise ContractError("admission references absent qualification record")
+        known_signer = known_signers.get(admission.station_key_id)
+        if known_signer is None:
+            raise ContractError("qualification admission signer is not trusted")
+        if not admission.verify(record, known_signer):
+            raise ContractError("qualification admission signature is invalid")
         if admission.admission_hash in valid_revocations:
             continue
         if not policy.allows(admission):
             continue
         issuer_keys = trust.active_issuer_keys(admission.issued_at_ns)
         signer = issuer_keys.get(admission.station_key_id)
-        if signer is None or not admission.verify(record, signer):
+        if signer is None:
+            # The key is trusted for historical verification but was not active
+            # as an issuer at the admission timestamp (for example post-retire).
             continue
         candidates.setdefault(admission.record_digest, []).append((admission, signer))
 
