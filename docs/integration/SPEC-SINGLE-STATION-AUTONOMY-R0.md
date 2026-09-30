@@ -77,7 +77,15 @@ Required distinctions:
 - semantically valid != independently verified;
 - verified != authorized.
 
-BL-016 v1.1 is currently **BLOCKED_ON_CONTROLLING_BYTES**. No successor contract may be reconstructed from summaries.
+Original BL-016 v1.0 and the existing v1.1 have been recovered unchanged from the uploaded `OVERNIGHT_CONVERGENCE_2026-09-28.zip` (`03_QUALIFICATION/BL017/`):
+- `BL-016_Design_Spec_v1.md`: 14,083 bytes, SHA-256 `ca063e2b5fadd1b7fa03af56957d7c0770bc32a2f00f2ccf185f90aebeb3697e`;
+- `BL-016_Design_Spec_v1_1.md`: 17,915 bytes, SHA-256 `5d7bbe879845bad06c583515dc40f032db10f76e04941ac854c4ac695bf523d9`.
+
+Current blocker: **BL016_V11_BLOCKED_ON_REVIEW_PROVENANCE_AND_CONFLICTING_SUCCESSOR_SEMANTICS**.
+
+The full Piston review cited as `ef63bb15…`, focused A1–A5 confirmation bound to the recovered v1.1, and authoritative reconciliation of the separate Tester transport-hardening packet remain unresolved. In particular, reconcile container-digest mismatch handling, context-bound receipt replay/dedup, and content identity versus authenticated sender commitment. Do not invent another v1.1 or reconstruct review text from summaries.
+
+Evidence-only handoff delivered to the owner: `BL016_Source_Recovery_and_Gap_Packet_2026-09-30.zip`, 55,223 bytes, SHA-256 `ea829fea4ecf69b0bb968cb9ada79aee2cbc750c6d61956d51e953541db450b6`. It preserves both originals and includes the provenance findings, gap analysis and admission-boundary matrix. Byte recovery does not establish implementation qualification, physical Q2 deposit, independent acceptance, or SC-E implementation authorization.
 
 ### SSA-05 Local multi-claw coordination
 
@@ -96,7 +104,14 @@ Required:
 ### SSA-06 Provider continuity / FreeLLMAPI
 
 Current source candidate: PR #489, HEAD
-`0472f46af1f137d1f808bf7b03cf12b4afa1f1ca`.
+`0472f46af1f137d1f808bf7b03cf12b4afa1f1ca`, TREE
+`06da1cbfdc4f9966fdb73b9cd29159a16a8f3dd2`.
+
+The uploaded `RESIDUAL Overnight Run 2026-09-30.zip` ledger reports Scout's independent PASS on this candidate (HEAD `0472f46a`, TREE `06da1cbf`) and owner advancement to `PROVIDER_CONTINUITY_CANDIDATE_INDEPENDENTLY_VERIFIED` with `LIVE_PROVIDER_QUALIFICATION_PENDING`. The cited originals are:
+- `PR489_INDEPENDENT_REVIEW_2026-09-30.json`, digest citation `1fd9abca…bc87d`;
+- `PR489_REVIEW_AMENDMENT_N1_2026-09-30.json`, digest citation `154d36e8…6310c`.
+
+The archive manifest marks both receipts host-bound; their full bytes and full digests have not been locally verified. SSA-06's `INDEPENDENTLY_REVIEWED` state records that reported history, with this evidence limitation, and is not a new receipt-verification claim. Obtain and bind both original receipts before relying on them for a new integration admission. Absence of GitHub review submissions does not establish absence of independent review. The separate Piston historical BL-009 F-1 receipt is not a review of PR #489.
 
 Required:
 - route identity distinct from provider kind;

@@ -15,7 +15,7 @@ Never report a contract/script/PR as operational completion.
 ## Scheduling priority
 
 1. Close the DELL runner path on exact #493 successor evidence.
-2. Recover BL-016 controlling lineage; do not reconstruct.
+2. Use the recovered BL-016 originals; resolve remaining review provenance and conflicting successor semantics.
 3. Prepare/implement Contract E on a non-author seat.
 4. Build Doctor executable fixtures/wiring.
 5. Finish FreeLLMAPI profile canary + reviewed fleet automation.
@@ -52,13 +52,17 @@ Only durable `DELL_RESIDUAL_RUNNER_QUALIFIED` advances SSA-02 to LIVE_QUALIFIED.
 ## BL-016
 
 Current state:
-`BL016_V11_BLOCKED_ON_CONTROLLING_BYTES`.
+`BL016_V11_BLOCKED_ON_REVIEW_PROVENANCE_AND_CONFLICTING_SUCCESSOR_SEMANTICS`.
 
-Perform lineage recovery from known holders and durable artifact stores. No broad filesystem search and no reconstruction from summaries.
+Original v1.0 (14,083 bytes, SHA-256 `ca063e2b5fadd1b7fa03af56957d7c0770bc32a2f00f2ccf185f90aebeb3697e`) and existing v1.1 (17,915 bytes, SHA-256 `5d7bbe879845bad06c583515dc40f032db10f76e04941ac854c4ac695bf523d9`) are recovered unchanged. Use the evidence-only `BL016_Source_Recovery_and_Gap_Packet_2026-09-30.zip` identified in the specification; do not recreate either source.
+
+Obtain the full Piston review (`ef63bb15…` citation) and focused A1–A5 confirmation bound to the recovered v1.1. Resolve the separate Tester packet's container-mismatch, context-bound dedup/replay, and sender-commitment semantics through controlling evidence. No broad filesystem search or reconstruction from summaries. Recovery grants no implementation authority and closes neither physical Q2 deposit nor independent acceptance.
 
 Resolve the Q2 naming collision explicitly before using any Q2 result as authority.
 
 ## FreeLLMAPI
+
+Preserve the reported Scout PASS for exact PR #489 HEAD `0472f46af1f137d1f808bf7b03cf12b4afa1f1ca` / TREE `06da1cbfdc4f9966fdb73b9cd29159a16a8f3dd2`. The cited `PR489_INDEPENDENT_REVIEW_2026-09-30.json` (`1fd9abca…bc87d`) and `PR489_REVIEW_AMENDMENT_N1_2026-09-30.json` (`154d36e8…6310c`) remain host-bound references whose original bytes/full digests have not been locally verified. Obtain both originals for new integration admission; do not infer that no review occurred from an empty GitHub review list or substitute the historical BL-009 review.
 
 Do not treat setup-script completion as fleet qualification.
 
