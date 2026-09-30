@@ -41,6 +41,7 @@ class SubstrateQualificationTuple:
     substrate_source_identity: str
     driver: str
     platform_class: str
+    environment_digest: str
     agent_profile: str
     agent_identity: str
     image_digest: str
@@ -58,8 +59,8 @@ class SubstrateQualificationTuple:
         ):
             _text(getattr(self, name), name)
         for name in (
-            "image_digest", "requested_policy_digest", "provider_set_digest",
-            "inference_route_digest",
+            "environment_digest", "image_digest", "requested_policy_digest",
+            "provider_set_digest", "inference_route_digest",
         ):
             _sha256(getattr(self, name), name)
 
@@ -71,6 +72,7 @@ class SubstrateQualificationTuple:
             "substrate_source_identity": self.substrate_source_identity,
             "driver": self.driver,
             "platform_class": self.platform_class,
+            "environment_digest": self.environment_digest,
             "agent_profile": self.agent_profile,
             "agent_identity": self.agent_identity,
             "image_digest": self.image_digest,
@@ -277,8 +279,24 @@ class SubstrateQualificationRegistry:
         return tuple(rows)
 
 
-def provider_set_digest(provider_refs: Iterable[str]) -> str:
-    return digest({"providers": sorted(_unique(provider_refs, "provider_refs"))})
+def provider_set_digest(
+    providers: Mapping[str, str] | Iterable[str],
+) -> str:
+    """Digest provider identity.
+
+    Production qualification SHOULD pass a mapping of provider instance/profile
+    identifiers to immutable profile/config digests. Iterable names remain
+    supported for fixtures and legacy evidence, but exact OpenShell dispatch
+    requires the mapping form.
+    """
+    if isinstance(providers, Mapping):
+        normalized: dict[str, str] = {}
+        for provider_id, profile_digest in providers.items():
+            _text(provider_id, "provider_id")
+            _sha256(profile_digest, "provider_profile_digest")
+            normalized[provider_id] = profile_digest
+        return digest({"providers": {key: normalized[key] for key in sorted(normalized)}})
+    return digest({"providers": sorted(_unique(providers, "provider_refs"))})
 
 
 def inference_route_digest(inference_route_ref: str | None) -> str:
