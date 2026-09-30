@@ -122,6 +122,25 @@ class FreshnessTests(unittest.TestCase):
             future.get(record.qualification_tuple, record_digest=record.record_digest)
         )
 
+    def test_known_signer_with_tampered_signature_fails_verification(self):
+        record = make_record()
+        key = Ed25519PrivateKey.generate()
+        admission = QualificationAdmission.issue(record, key, issued_at_ns=100)
+        payload = admission.payload()
+        payload["station_signature"] = "00" * 64
+        tampered = QualificationAdmission.from_payload(payload)
+        with self.assertRaisesRegex(ContractError, "signature is invalid"):
+            build_lifecycle_admitted_registry(
+                evidence_registry(record),
+                QualificationAdmissionBundle((tampered,)),
+                QualificationAuthorityLifecycleBundle(),
+                root_public_keys=(raw_public(key),),
+                policy=QualificationAuthorityPolicy(
+                    now_ns=150,
+                    max_admission_age_ns=1000,
+                ),
+            )
+
     def test_minimum_issue_time_fences_old_generation(self):
         record = make_record()
         key = Ed25519PrivateKey.generate()
