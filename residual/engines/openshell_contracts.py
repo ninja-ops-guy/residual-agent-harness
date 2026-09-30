@@ -298,7 +298,8 @@ class OpenShellExecutionEvidence:
     platform_class: str
     image_digest: str
     agent_identity: str
-    base_policy_digest: str
+    requested_policy_digest: str
+    base_policy_digest: str | None
     effective_policy_digest: str | None
     policy_revision: str | None
     provider_attachment_refs: tuple[str, ...]
@@ -328,12 +329,14 @@ class OpenShellExecutionEvidence:
         ):
             _required_text(getattr(self, name), name)
         for name in (
-            "request_digest", "image_digest", "base_policy_digest",
+            "request_digest", "image_digest", "requested_policy_digest",
             "stdout_digest", "stderr_digest", "security_log_digest",
             "lifecycle_log_digest", "artifact_manifest_digest",
             "engine_result_digest",
         ):
             _hex_digest(getattr(self, name), name)
+        if self.base_policy_digest is not None:
+            _hex_digest(self.base_policy_digest, "base_policy_digest")
         if self.effective_policy_digest is not None:
             _hex_digest(self.effective_policy_digest, "effective_policy_digest")
         if self.nemoclaw_identity is not None:
@@ -364,6 +367,7 @@ class OpenShellExecutionEvidence:
             "platform_class": self.platform_class,
             "image_digest": self.image_digest,
             "agent_identity": self.agent_identity,
+            "requested_policy_digest": self.requested_policy_digest,
             "base_policy_digest": self.base_policy_digest,
             "effective_policy_digest": self.effective_policy_digest,
             "policy_revision": self.policy_revision,
