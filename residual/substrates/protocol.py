@@ -29,11 +29,13 @@ class SubstrateRuntimeIdentity:
     source_identity: str
     driver: str
     platform_class: str
+    environment_digest: str
     locality: str = "local"
 
     def __post_init__(self) -> None:
         for field_name in (
-            "name", "version", "source_identity", "driver", "platform_class", "locality",
+            "name", "version", "source_identity", "driver", "platform_class",
+            "environment_digest", "locality",
         ):
             value = getattr(self, field_name)
             if not isinstance(value, str) or not value.strip():
