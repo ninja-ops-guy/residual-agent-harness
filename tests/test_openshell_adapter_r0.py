@@ -308,6 +308,45 @@ class OpenShellAdapterTests(unittest.TestCase):
         self.assertIn("compute_driver", caught.exception.reason)
         self.assertEqual(client.run_calls, 0)
 
+    def test_undeclared_artifact_fails_closed(self):
+        policy = compile_policy(make_policy())
+        raw = make_success(artifacts={
+            "/workspace/output/result.txt": b"exact artifact bytes",
+            "/workspace/output/surprise.txt": b"undeclared",
+        })
+        client = FakeClient(make_state(policy.policy_digest), raw)
+        engine = make_engine(client)
+        with self.assertRaises(OpenShellExecutionError) as caught:
+            engine.execute(make_task(), ContextAssembly(values={}))
+        self.assertEqual(caught.exception.outcome, "UNKNOWN")
+        self.assertIn("undeclared=", caught.exception.reason)
+
+    def test_missing_expected_artifact_fails_closed(self):
+        policy = compile_policy(make_policy())
+        client = FakeClient(make_state(policy.policy_digest), make_success(artifacts={}))
+        engine = make_engine(client)
+        with self.assertRaises(OpenShellExecutionError) as caught:
+            engine.execute(make_task(), ContextAssembly(values={}))
+        self.assertEqual(caught.exception.outcome, "UNKNOWN")
+        self.assertIn("missing=", caught.exception.reason)
+
+    def test_inspected_sandbox_identity_must_match_created_identity(self):
+        policy = compile_policy(make_policy())
+
+        class IdentityDriftClient(FakeClient):
+            def inspect_sandbox(self, sandbox_id):
+                self.inspected_id = sandbox_id
+                return make_state(policy.policy_digest, sandbox_id="sandbox-other")
+
+        client = IdentityDriftClient(make_state(policy.policy_digest), make_success())
+        engine = make_engine(client)
+        with self.assertRaises(OpenShellExecutionError) as caught:
+            engine.execute(make_task(), ContextAssembly(values={}))
+        self.assertEqual(caught.exception.outcome, "UNKNOWN")
+        self.assertIn("inspection identity", caught.exception.reason)
+        self.assertEqual(client.run_calls, 0)
+        self.assertEqual(client.destroyed, ["sandbox-1"])
+
     def test_policy_denial_preserves_first_failure_evidence(self):
         policy = compile_policy(make_policy())
         raw = make_success(
