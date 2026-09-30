@@ -167,7 +167,7 @@ class OpenShellExecutionRequest:
     image_digest: str
     compute_driver_requirement: str
     sandbox_profile: str
-    base_policy_digest: str
+    requested_policy_digest: str
     provider_refs: tuple[str, ...]
     inference_route_ref: str | None
     resource_budget: Mapping[str, int]
@@ -188,7 +188,7 @@ class OpenShellExecutionRequest:
             _required_text(getattr(self, name), name)
         for name in (
             "task_spec_digest", "context_digest", "image_digest",
-            "base_policy_digest", "output_contract_digest",
+            "requested_policy_digest", "output_contract_digest",
         ):
             _hex_digest(getattr(self, name), name)
         _string_tuple(self.agent_command_argv, "agent_command_argv", allow_empty=False)
@@ -220,7 +220,7 @@ class OpenShellExecutionRequest:
             "image_digest": self.image_digest,
             "compute_driver_requirement": self.compute_driver_requirement,
             "sandbox_profile": self.sandbox_profile,
-            "base_policy_digest": self.base_policy_digest,
+            "requested_policy_digest": self.requested_policy_digest,
             "provider_refs": list(self.provider_refs),
             "inference_route_ref": self.inference_route_ref,
             "resource_budget": dict(self.resource_budget),
