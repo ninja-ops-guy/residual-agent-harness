@@ -11,10 +11,16 @@ import hashlib
 import json
 import re
 import sys
+import time
 from pathlib import Path
 
 from ..core import ContractError
 from .admission import QualificationAdmissionBundle
+from .authority_lifecycle import (
+    QualificationAuthorityLifecycleBundle,
+    QualificationAuthorityPolicy,
+    build_lifecycle_admitted_registry,
+)
 from .ledger import SubstrateQualificationLedger
 
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
@@ -55,6 +61,72 @@ def cmd_verify(args) -> int:
         human=(
             f"qualification ledger VALID: {actual} "
             f"({payload['records']} record(s), {payload['pass_records']} PASS)"
+        ),
+    )
+
+
+def _trusted_keys(values) -> tuple[bytes, ...]:
+    keys = []
+    for value in values or ():
+        if not isinstance(value, str) or not re.fullmatch(r"[0-9a-fA-F]{64}", value):
+            raise ContractError("Station public key must be 32-byte hex")
+        keys.append(bytes.fromhex(value))
+    if not keys:
+        raise ContractError("at least one trusted Station public key is required")
+    return tuple(keys)
+
+
+def cmd_verify_lifecycle(args) -> int:
+    ledger = _load(args.ledger)
+    admissions = QualificationAdmissionBundle.load(args.admissions)
+    lifecycle = QualificationAuthorityLifecycleBundle.load(args.lifecycle)
+
+    for actual, expected, label in (
+        (ledger.ledger_digest, args.expected_ledger_digest, "ledger"),
+        (admissions.bundle_digest, args.expected_admission_digest, "admission"),
+        (lifecycle.bundle_digest, args.expected_lifecycle_digest, "lifecycle"),
+    ):
+        if expected is not None:
+            if not _HEX64.fullmatch(expected):
+                raise ContractError(f"expected {label} digest must be lowercase sha256")
+            if actual != expected:
+                raise ContractError(f"{label} digest does not match expected digest")
+
+    now_ns = time.time_ns() if args.at_ns is None else args.at_ns
+    if type(now_ns) is not int or now_ns <= 0:
+        raise ContractError("authority evaluation time must be positive")
+
+    roots = _trusted_keys(args.station_public_key_hex)
+    admitted = build_lifecycle_admitted_registry(
+        ledger.registry(),
+        admissions,
+        lifecycle,
+        root_public_keys=roots,
+        policy=QualificationAuthorityPolicy(
+            now_ns=now_ns,
+            max_admission_age_ns=args.max_admission_age_seconds * 1_000_000_000,
+            max_future_skew_ns=args.max_future_skew_seconds * 1_000_000_000,
+            min_issued_at_ns=args.min_issued_at_ns,
+        ),
+        distrusted_key_ids=tuple(args.distrust_key_id or ()),
+    )
+    snapshot = admitted.snapshot()
+    admitted_rows = [row for row in snapshot if row["station_admitted"]]
+    payload = {
+        "status": "AUTHORITY_LIFECYCLE_VALID",
+        "evaluated_at_ns": now_ns,
+        "ledger_digest": ledger.ledger_digest,
+        "admission_bundle_digest": admissions.bundle_digest,
+        "lifecycle_bundle_digest": lifecycle.bundle_digest,
+        "admitted_records": admitted_rows,
+        "admitted_record_count": len(admitted_rows),
+    }
+    return _emit(
+        payload,
+        as_json=args.json,
+        human=(
+            f"qualification authority lifecycle VALID: {len(admitted_rows)} "
+            f"effective record(s) at {now_ns}"
         ),
     )
 
@@ -177,6 +249,33 @@ def main(argv=None) -> int:
     authority.add_argument("--expected-admission-digest")
     authority.add_argument("--json", action="store_true")
 
+    lifecycle = sub.add_parser(
+        "verify-authority-lifecycle",
+        help="Apply Station key rotation, revocation, and admission freshness",
+    )
+    lifecycle.add_argument("ledger")
+    lifecycle.add_argument("admissions")
+    lifecycle.add_argument("lifecycle")
+    lifecycle.add_argument(
+        "--station-public-key-hex",
+        action="append",
+        required=True,
+        help="Pinned root Ed25519 public key as 64 hex characters (repeatable)",
+    )
+    lifecycle.add_argument(
+        "--max-admission-age-seconds",
+        type=int,
+        required=True,
+    )
+    lifecycle.add_argument("--max-future-skew-seconds", type=int, default=0)
+    lifecycle.add_argument("--min-issued-at-ns", type=int, default=0)
+    lifecycle.add_argument("--at-ns", type=int)
+    lifecycle.add_argument("--distrust-key-id", action="append")
+    lifecycle.add_argument("--expected-ledger-digest")
+    lifecycle.add_argument("--expected-admission-digest")
+    lifecycle.add_argument("--expected-lifecycle-digest")
+    lifecycle.add_argument("--json", action="store_true")
+
     status = sub.add_parser(
         "status",
         help="Show qualification records and evidence-backed capabilities",
@@ -191,6 +290,8 @@ def main(argv=None) -> int:
             return cmd_verify(args)
         if args.command == "verify-authority":
             return cmd_verify_authority(args)
+        if args.command == "verify-authority-lifecycle":
+            return cmd_verify_lifecycle(args)
         return cmd_status(args)
     except (ContractError, OSError, ValueError, TypeError, KeyError) as exc:
         print(
