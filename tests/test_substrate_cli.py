@@ -8,7 +8,11 @@ import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
 from residual.core import digest
+from residual.substrates.admission import QualificationAdmission, QualificationAdmissionBundle
 from residual.substrates.cli import main
 from residual.substrates.ledger import SubstrateQualificationLedger
 from residual.substrates.qualification import (
@@ -88,6 +92,61 @@ class SubstrateCliTests(unittest.TestCase):
             self.assertEqual(code, 1)
             self.assertIn("qualification evidence could not be validated", err.getvalue())
             self.assertNotIn("provider-a", err.getvalue())
+
+    def test_verify_authority_requires_valid_station_signature_and_pinned_key(self):
+        ledger, record = self.make_ledger()
+        private = Ed25519PrivateKey.generate()
+        public = private.public_key().public_bytes(
+            serialization.Encoding.Raw,
+            serialization.PublicFormat.Raw,
+        )
+        admission = QualificationAdmission.issue(record, private, issued_at_ns=1)
+        bundle = QualificationAdmissionBundle((admission,))
+
+        with tempfile.TemporaryDirectory() as tmp:
+            ledger_path = Path(tmp) / "qualification.json"
+            admission_path = Path(tmp) / "admissions.json"
+            ledger.write(ledger_path)
+            bundle.write(admission_path)
+
+            out = io.StringIO()
+            with redirect_stdout(out):
+                code = main([
+                    "verify-authority",
+                    str(ledger_path),
+                    str(admission_path),
+                    "--station-public-key-hex",
+                    public.hex(),
+                    "--expected-ledger-digest",
+                    ledger.ledger_digest,
+                    "--expected-admission-digest",
+                    bundle.bundle_digest,
+                    "--json",
+                ])
+            self.assertEqual(code, 0)
+            payload = json.loads(out.getvalue())
+            self.assertEqual(payload["status"], "AUTHORIZED")
+            self.assertEqual(len(payload["admitted_records"]), 1)
+            self.assertEqual(
+                payload["admitted_records"][0]["record_digest"],
+                record.record_digest,
+            )
+
+            wrong = Ed25519PrivateKey.generate().public_key().public_bytes(
+                serialization.Encoding.Raw,
+                serialization.PublicFormat.Raw,
+            )
+            err = io.StringIO()
+            with redirect_stderr(err):
+                code = main([
+                    "verify-authority",
+                    str(ledger_path),
+                    str(admission_path),
+                    "--station-public-key-hex",
+                    wrong.hex(),
+                ])
+            self.assertEqual(code, 1)
+            self.assertIn("qualification evidence could not be validated", err.getvalue())
 
     def test_status_exposes_only_evidence_backed_capabilities(self):
         ledger, record = self.make_ledger()

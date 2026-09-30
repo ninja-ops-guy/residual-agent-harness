@@ -12,9 +12,9 @@ from dataclasses import dataclass
 from typing import Any, Callable, ClassVar
 
 from ..core import ContractError, digest
+from ..substrates.admission import AdmittedQualificationRegistry
 from ..substrates.protocol import SubstrateHealth, SubstrateRuntimeIdentity
 from ..substrates.qualification import (
-    SubstrateQualificationRegistry,
     SubstrateQualificationTuple,
     inference_route_digest,
     provider_set_digest,
@@ -232,7 +232,7 @@ class OpenShellExecutionEngine:
     expected_nemoclaw_identity: str | None = None
     version: str = "r0"
     qualified_capabilities: tuple[str, ...] = ("sandboxed_execution",)
-    qualification_registry: SubstrateQualificationRegistry | None = None
+    qualification_registry: AdmittedQualificationRegistry | None = None
     qualification_tuple: SubstrateQualificationTuple | None = None
     qualification_record_digest: str | None = None
     openshell_version: str | None = None
@@ -273,6 +273,12 @@ class OpenShellExecutionEngine:
             raise ContractError(
                 "qualification_registry, qualification_tuple, and "
                 "qualification_record_digest must be supplied together"
+            )
+        if self.qualification_registry is not None and not isinstance(
+            self.qualification_registry, AdmittedQualificationRegistry
+        ):
+            raise ContractError(
+                "production OpenShell qualification requires AdmittedQualificationRegistry"
             )
         if self.qualification_tuple is not None:
             if self.openshell_version is None:

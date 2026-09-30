@@ -3,12 +3,19 @@ from __future__ import annotations
 
 import unittest
 
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
 from residual.core import ContractError, digest
 from residual.engines.openshell_adapter import OpenShellExecutionEngine, OpenShellExecutionError
 from residual.engines.openshell_client import OpenShellRunResult, OpenShellSandboxState
 from residual.engines.openshell_contracts import OpenShellLaunchConfig
 from residual.engines.openshell_policy import OpenShellPolicyEnvelope, compile_policy
 from residual.engines.protocol import ContextAssembly, TaskSpec
+from residual.substrates.admission import (
+    AdmittedQualificationRegistry,
+    QualificationAdmission,
+)
 from residual.substrates.ledger import SubstrateQualificationLedger
 from residual.substrates.protocol import (
     ExecutionSubstrate,
@@ -99,6 +106,18 @@ def record(
         evidence_root_digest=ROOT,
         limitations=("gpu_execution:not_qualified",),
     )
+
+
+def admitted_registry(item):
+    private = Ed25519PrivateKey.generate()
+    public = private.public_key().public_bytes(
+        serialization.Encoding.Raw,
+        serialization.PublicFormat.Raw,
+    )
+    admission = QualificationAdmission.issue(item, private, issued_at_ns=1)
+    registry = AdmittedQualificationRegistry()
+    registry.admit(item, admission, station_public_key=public)
+    return registry
 
 
 class FakeSubstrate:
@@ -201,11 +220,14 @@ class RouterTests(unittest.TestCase):
     def test_router_implements_execution_substrate_protocol(self):
         self.assertIsInstance(FakeSubstrate(), ExecutionSubstrate)
 
+    def test_evidence_only_registry_cannot_drive_routing(self):
+        with self.assertRaisesRegex(ContractError, "AdmittedQualificationRegistry"):
+            QualifiedSubstrateRouter(SubstrateQualificationRegistry())
+
     def test_router_requires_pinned_pass_and_runtime_identity_match(self):
         qt = qtuple()
-        registry = SubstrateQualificationRegistry()
         item = record(qt)
-        registry.add(item)
+        registry = admitted_registry(item)
 
         router = QualifiedSubstrateRouter(registry)
         router.register(FakeSubstrate(), qt, record_digest=item.record_digest)
@@ -222,9 +244,8 @@ class RouterTests(unittest.TestCase):
 
     def test_router_rejects_unhealthy_or_missing_capabilities(self):
         qt = qtuple()
-        registry = SubstrateQualificationRegistry()
         item = record(qt, capabilities=("sandboxed_execution",))
-        registry.add(item)
+        registry = admitted_registry(item)
         router = QualifiedSubstrateRouter(registry)
         router.register(
             FakeSubstrate(health=SubstrateHealth.UNAVAILABLE),
@@ -266,12 +287,11 @@ class SelfBuildTests(unittest.TestCase):
 
     def test_self_build_requires_exact_qualified_capabilities(self):
         qt = qtuple()
-        registry = SubstrateQualificationRegistry()
         insufficient = record(
             qt,
             capabilities=("sandboxed_execution", "filesystem_policy"),
         )
-        registry.add(insufficient)
+        registry = admitted_registry(insufficient)
         with self.assertRaisesRegex(ContractError, "artifact_manifest"):
             admit_self_build(
                 self.make_contract(),
@@ -280,9 +300,8 @@ class SelfBuildTests(unittest.TestCase):
                 record_digest=insufficient.record_digest,
             )
 
-        registry = SubstrateQualificationRegistry()
         sufficient = record(qt)
-        registry.add(sufficient)
+        registry = admitted_registry(sufficient)
         admission = admit_self_build(
             self.make_contract(),
             qt,
@@ -388,9 +407,8 @@ class OpenShellQualificationBindingTests(unittest.TestCase):
             requested_policy_digest=policy.policy_digest,
             image_digest=qualified_image,
         )
-        registry = SubstrateQualificationRegistry()
         item = record(qt)
-        registry.add(item)
+        registry = admitted_registry(item)
         state = OpenShellSandboxState(
             sandbox_id="sandbox-1",
             generation="g1",

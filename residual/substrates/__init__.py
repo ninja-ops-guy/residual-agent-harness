@@ -1,5 +1,10 @@
 """Execution-substrate qualification, routing, and bounded self-build contracts."""
 
+from .admission import (
+    AdmittedQualificationRegistry,
+    QualificationAdmission,
+    QualificationAdmissionBundle,
+)
 from .protocol import ExecutionSubstrate, SubstrateHealth, SubstrateRuntimeIdentity
 from .qualification import (
     QualificationGate,
@@ -10,6 +15,9 @@ from .qualification import (
 from .router import QualifiedSubstrateRouter, SubstrateRoutingError
 
 __all__ = [
+    "AdmittedQualificationRegistry",
+    "QualificationAdmission",
+    "QualificationAdmissionBundle",
     "ExecutionSubstrate",
     "SubstrateHealth",
     "SubstrateRuntimeIdentity",

@@ -6,11 +6,8 @@ from typing import Iterable
 
 from ..core import ContractError
 from .protocol import ExecutionSubstrate, SubstrateHealth
-from .qualification import (
-    SubstrateQualificationRecord,
-    SubstrateQualificationRegistry,
-    SubstrateQualificationTuple,
-)
+from .admission import AdmittedQualificationRegistry
+from .qualification import SubstrateQualificationTuple
 
 
 class SubstrateRoutingError(LookupError):
@@ -38,9 +35,9 @@ class QualifiedSubstrateRouter:
 
     _LOCALITY_ORDER = {"local": 0, "cluster": 1, "cloud": 2}
 
-    def __init__(self, registry: SubstrateQualificationRegistry):
-        if not isinstance(registry, SubstrateQualificationRegistry):
-            raise ContractError("router requires SubstrateQualificationRegistry")
+    def __init__(self, registry: AdmittedQualificationRegistry):
+        if not isinstance(registry, AdmittedQualificationRegistry):
+            raise ContractError("router requires AdmittedQualificationRegistry")
         self._registry = registry
         self._entries: dict[str, RegisteredSubstrate] = {}
 
