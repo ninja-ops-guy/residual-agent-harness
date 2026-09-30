@@ -1,0 +1,109 @@
+{
+  "schema_version": "residual.openshell-upstream-binding-manifest.v1",
+  "binding_id": "openshell-python-v0.1.1",
+  "status": "SOURCE_ANALYZED_NOT_QUALIFIED",
+  "observed_at": "2026-09-30",
+  "release_effect": "post-v1-only",
+  "upstream": {
+    "project": "NVIDIA/OpenShell",
+    "release_tag": "v0.1.1",
+    "release_commit": "4ce767fc0cadad773c398e15109c0286f4b7aa30",
+    "release_date": "2026-09-26",
+    "python_package": "openshell",
+    "python_requires": ">=3.11",
+    "source_analysis_followup_commit": "5acaaba19281cb6b30171afeb8602ce83edd9e45"
+  },
+  "public_python_sdk_surface": {
+    "client": "openshell.SandboxClient",
+    "required_methods": [
+      "health",
+      "create",
+      "wait_ready",
+      "get",
+      "exec",
+      "delete",
+      "wait_deleted"
+    ],
+    "version_observation": "health().version",
+    "workspace_explicit": true,
+    "command_form": "argv",
+    "supports_no_login_shell": true
+  },
+  "release_binding_contract": {
+    "residual_class": "PythonSDKReleaseBinding",
+    "must_supply": [
+      "spec_factory",
+      "state_resolver",
+      "artifact_collector",
+      "observation_collector",
+      "candidate_parser"
+    ],
+    "residual_core_imports_openshell_private_proto": false,
+    "auth_constructed_inside_residual_binding": false,
+    "gateway_and_sdk_version_must_match": true,
+    "source_identity_must_be_exact": true
+  },
+  "policy_semantics_to_verify": {
+    "schema_version": 1,
+    "startup_or_static_fields": [
+      "filesystem_policy",
+      "landlock",
+      "process"
+    ],
+    "live_or_dynamic_fields": [
+      "network_policies",
+      "network_middlewares"
+    ],
+    "effective_policy_must_be_observed_not_assumed": true,
+    "provider_rules_may_change_effective_policy": true,
+    "broad_permissions_default": "reject_in_residual_ir"
+  },
+  "sandbox_identity_requirements": {
+    "request_digest_label": true,
+    "attempt_id_label": true,
+    "create_id_equals_inspect_id": true,
+    "delete_id_equals_created_id": true,
+    "request_reuse_across_attempts": false
+  },
+  "artifact_requirements": {
+    "exact_expected_output_set": true,
+    "sha256_each_artifact": true,
+    "byte_length_each_artifact": true,
+    "one_byte_mutation_negative_test": true,
+    "byte_exact_admission_separate_from_sandbox_success": true
+  },
+  "first_qualification_target": {
+    "profile": "openshell/direct",
+    "compute_driver": "docker",
+    "release": "v0.1.1",
+    "live_gateway_required": true,
+    "provider_credentials_required_for_initial_no_network_fixture": false,
+    "accepted_main_write_authority": false
+  },
+  "not_claimed": [
+    "live OpenShell PASS",
+    "Docker driver PASS",
+    "provider credential custody PASS",
+    "Hermes PASS",
+    "OpenClaw PASS",
+    "GPU PASS",
+    "Kubernetes PASS",
+    "Podman PASS",
+    "MicroVM PASS",
+    "autonomous merge authority"
+  ],
+  "next_artifacts": [
+    "v0.1.1 SandboxSpec/effective-state translator candidate",
+    "QD-1 Docker direct qualification runner",
+    "machine-readable qualification receipt",
+    "bounded self-build fixture after QD-1"
+  ],
+  "upstream_references": [
+    "https://github.com/NVIDIA/OpenShell/releases/tag/v0.1.1",
+    "https://docs.nvidia.com/openshell/latest/sdk/python",
+    "https://docs.nvidia.com/openshell/latest/how-it-works/policies/schema",
+    "https://docs.nvidia.com/openshell/latest/how-it-works/policies/default-policy",
+    "https://github.com/NVIDIA/OpenShell/tree/v0.1.1/python/openshell",
+    "https://github.com/NVIDIA/OpenShell/tree/v0.1.1/proto"
+  ]
+}
