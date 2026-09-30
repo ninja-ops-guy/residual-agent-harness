@@ -7,6 +7,7 @@ becoming an authority source and lets RESIDUAL qualify multiple substrates.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from enum import Enum
 from typing import Protocol, runtime_checkable
@@ -40,6 +41,8 @@ class SubstrateRuntimeIdentity:
             value = getattr(self, field_name)
             if not isinstance(value, str) or not value.strip():
                 raise ContractError(f"{field_name} is required")
+        if not re.fullmatch(r"[0-9a-f]{64}", self.environment_digest):
+            raise ContractError("environment_digest must be a lowercase sha256 digest")
         if self.locality not in {"local", "cluster", "cloud"}:
             raise ContractError("substrate locality must be local, cluster, or cloud")
 
