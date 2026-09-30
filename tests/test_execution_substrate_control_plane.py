@@ -36,6 +36,8 @@ EVIDENCE = "3" * 64
 ROOT = "4" * 64
 OPENSHELL_SOURCE = "openshell:v0.1.1@fixture"
 OPENSHELL_VERSION = "0.1.1"
+ENVIRONMENT = "a" * 64
+PROVIDER_PROFILE = "b" * 64
 
 
 def qtuple(**overrides):
@@ -45,11 +47,12 @@ def qtuple(**overrides):
         "substrate_source_identity": OPENSHELL_SOURCE,
         "driver": "docker",
         "platform_class": "linux-x86_64",
+        "environment_digest": ENVIRONMENT,
         "agent_profile": "openshell/direct",
         "agent_identity": "hermes@fixture",
         "image_digest": IMAGE,
         "requested_policy_digest": POLICY,
-        "provider_set_digest": provider_set_digest(("provider-a",)),
+        "provider_set_digest": provider_set_digest({"provider-a": PROVIDER_PROFILE}),
         "inference_route_digest": inference_route_digest("route-a"),
     }
     values.update(overrides)
@@ -102,6 +105,7 @@ class FakeSubstrate:
             source_identity=OPENSHELL_SOURCE,
             driver=self._driver,
             platform_class="linux-x86_64",
+            environment_digest=ENVIRONMENT,
             locality=self.locality,
         )
 
@@ -329,6 +333,7 @@ def openshell_launch(policy_digest, **overrides):
         "compute_driver_requirement": "docker",
         "sandbox_profile": "r0",
         "provider_refs": ("provider-a",),
+        "provider_profile_digests": {"provider-a": PROVIDER_PROFILE},
         "inference_route_ref": "route-a",
         "resource_budget": {"memory_mb": 512},
         "timeout_s": 30,
@@ -364,6 +369,7 @@ class OpenShellQualificationBindingTests(unittest.TestCase):
             base_policy_digest="7" * 64,
             effective_policy_digest="8" * 64,
             policy_revision="rev-1",
+            environment_digest=ENVIRONMENT,
             provider_attachment_refs=("provider-a",),
             inference_route_ref="route-a",
         )
@@ -391,6 +397,7 @@ class OpenShellQualificationBindingTests(unittest.TestCase):
             openshell_version=OPENSHELL_VERSION,
             expected_driver="docker",
             expected_platform_class="linux-x86_64",
+            expected_environment_digest=ENVIRONMENT,
             qualified_capabilities=(),
         )
         return engine, client, item
