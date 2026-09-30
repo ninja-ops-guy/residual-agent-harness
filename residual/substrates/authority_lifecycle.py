@@ -550,7 +550,10 @@ def build_lifecycle_admitted_registry(
             raise ContractError("qualification revocation is not signed by active trusted key")
         valid_revocations.add(revocation.admission_hash)
 
-    admitted = AdmittedQualificationRegistry(evidence_registry)
+    # More than one trusted Station key may re-admit the same immutable PASS
+    # during a rotation overlap. Resolve to exactly one effective admission per
+    # record so the R0 admitted registry stays unambiguous.
+    candidates: dict[str, list[tuple[QualificationAdmission, bytes]]] = {}
     for admission in admissions.admissions:
         record = evidence.get(admission.record_digest)
         if record is None:
@@ -561,8 +564,17 @@ def build_lifecycle_admitted_registry(
             continue
         issuer_keys = trust.active_issuer_keys(admission.issued_at_ns)
         signer = issuer_keys.get(admission.station_key_id)
-        if signer is None:
+        if signer is None or not admission.verify(record, signer):
             continue
+        candidates.setdefault(admission.record_digest, []).append((admission, signer))
+
+    admitted = AdmittedQualificationRegistry(evidence_registry)
+    for record_digest in sorted(candidates):
+        record = evidence[record_digest]
+        admission, signer = max(
+            candidates[record_digest],
+            key=lambda item: (item[0].issued_at_ns, item[0].admission_hash),
+        )
         admitted.admit(
             record,
             admission,
