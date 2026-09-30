@@ -123,7 +123,9 @@ def make_state(policy_digest, **overrides):
         "platform_class": "linux-x86_64-fixture",
         "agent_identity": AGENT_ID,
         "image_digest": IMAGE_DIGEST,
-        "effective_policy_digest": policy_digest,
+        "residual_policy_digest": policy_digest,
+        "base_policy_digest": "5" * 64,
+        "effective_policy_digest": "6" * 64,
         "policy_revision": "policy-rev-1",
         "provider_attachment_refs": ("provider-test",),
         "inference_route_ref": "route-test",
@@ -268,7 +270,9 @@ class OpenShellAdapterTests(unittest.TestCase):
         self.assertTrue(metadata["residual_policy_authoritative"])
 
         evidence = metadata["openshell_evidence"]
-        self.assertEqual(evidence["effective_policy_digest"], policy.policy_digest)
+        self.assertEqual(evidence["requested_policy_digest"], policy.policy_digest)
+        self.assertEqual(evidence["base_policy_digest"], "5" * 64)
+        self.assertEqual(evidence["effective_policy_digest"], "6" * 64)
         self.assertEqual(evidence["openshell_identity"], OPENSHELL_ID)
         self.assertEqual(evidence["agent_identity"], AGENT_ID)
         manifest = metadata["artifact_manifest"]
@@ -282,19 +286,46 @@ class OpenShellAdapterTests(unittest.TestCase):
             digest(manifest),
         )
 
-    def test_effective_policy_mismatch_fails_before_agent_run(self):
+    def test_policy_translation_mismatch_fails_before_agent_run(self):
         policy = compile_policy(make_policy())
         client = FakeClient(
-            make_state("f" * 64),
+            make_state(policy.policy_digest, residual_policy_digest="f" * 64),
             make_success(),
         )
         engine = make_engine(client)
         with self.assertRaises(OpenShellExecutionError) as caught:
             engine.execute(make_task(), ContextAssembly(values={}))
         self.assertEqual(caught.exception.outcome, "UNKNOWN")
-        self.assertIn("effective_policy_digest", caught.exception.reason)
+        self.assertIn("residual_policy_digest", caught.exception.reason)
         self.assertEqual(client.run_calls, 0)
         self.assertEqual(client.destroyed, ["sandbox-1"])
+
+    def test_provider_enriched_effective_policy_may_differ_from_requested_policy(self):
+        policy = compile_policy(make_policy())
+        state = make_state(
+            policy.policy_digest,
+            base_policy_digest="7" * 64,
+            effective_policy_digest="8" * 64,
+        )
+        client = FakeClient(state, make_success())
+        result = make_engine(client).execute(make_task(), ContextAssembly(values={}))
+        evidence = result.raw_metadata["openshell_evidence"]
+        self.assertEqual(evidence["requested_policy_digest"], policy.policy_digest)
+        self.assertEqual(evidence["base_policy_digest"], "7" * 64)
+        self.assertEqual(evidence["effective_policy_digest"], "8" * 64)
+
+    def test_missing_effective_policy_evidence_fails_before_agent_run(self):
+        policy = compile_policy(make_policy())
+        client = FakeClient(
+            make_state(policy.policy_digest, effective_policy_digest=None),
+            make_success(),
+        )
+        engine = make_engine(client)
+        with self.assertRaises(OpenShellExecutionError) as caught:
+            engine.execute(make_task(), ContextAssembly(values={}))
+        self.assertEqual(caught.exception.outcome, "UNKNOWN")
+        self.assertIn("effective_policy_digest_unavailable", caught.exception.reason)
+        self.assertEqual(client.run_calls, 0)
 
     def test_driver_identity_mismatch_fails_closed(self):
         policy = compile_policy(make_policy())
