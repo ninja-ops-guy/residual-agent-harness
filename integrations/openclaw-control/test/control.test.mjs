@@ -56,6 +56,24 @@ test('no lease and expired lease both deny new work',async t=>{
 test('clock rollback fences new work even when wall-clock lease looks current',async t=>{
   const f=fixture(t);await f.lease();f.advance(-1);await assert.rejects(f.send('dispatch.submit',f.task()),isCode('CLOCK_ROLLBACK'));assert.equal(f.calls,0);
 });
+
+test('detected wall-clock rollback fences a pending result before completion',async t=>{
+  const d=deferred();const f=fixture(t);await f.lease();
+  f.host.dispatch=async p=>{const decision=f.plane.beforeAgent({prompt:p.prompt},{agentId:f.config.agentId,sessionKey:p.sessionKey});
+    assert.equal(decision?.outcome,'pass');p.onRun('run-'+p.operationId);await d.promise;return {text:'result',provider:p.provider,model:p.model};};
+  const r=await f.send('dispatch.submit',f.task());f.advanceWall(-1);d.resolve();await f.plane.settle();
+  const status=f.plane.status(r.operation_id);assert.equal(status.state,'INDETERMINATE');assert.equal(status.reason,'OUTCOME_AFTER_FENCE');
+  assert.equal(status.output_sha256,undefined);assert.equal(status.acceptance,'NOT_EVALUATED');
+});
+test('monotonic budget expiry fences a result even when wall clock remains inside deadline',async t=>{
+  const d=deferred();const f=fixture(t);await f.lease();
+  f.host.dispatch=async p=>{const decision=f.plane.beforeAgent({prompt:p.prompt},{agentId:f.config.agentId,sessionKey:p.sessionKey});
+    assert.equal(decision?.outcome,'pass');p.onRun('run-'+p.operationId);await d.promise;return {text:'result',provider:p.provider,model:p.model};};
+  const r=await f.send('dispatch.submit',f.task({timeout_ms:100}));f.advanceMono(150);d.resolve();await f.plane.settle();
+  const status=f.plane.status(r.operation_id);assert.equal(status.state,'INDETERMINATE');assert.equal(status.reason,'OUTCOME_AFTER_FENCE');
+  assert.equal(status.output_sha256,undefined);assert.equal(status.acceptance,'NOT_EVALUATED');
+});
+
 test('unknown version and default observe-only cannot authorize mutation',async t=>{
   const f=fixture(t,{config:{controlEnabled:false}});assert.equal(f.plane.identity().compatibility,'OBSERVE_ONLY');
   await assert.rejects(f.lease(),isCode('OBSERVE_ONLY'));f.config.controlEnabled=true;f.host.version='2026.unknown';
@@ -103,24 +121,28 @@ test('native completion without admission evidence remains indeterminate',async 
   const r=await f.send('dispatch.submit',f.task());await f.plane.settle();const status=f.plane.status(r.operation_id);
   assert.equal(status.state,'INDETERMINATE');assert.equal(status.reason,'NATIVE_ADMISSION_UNPROVEN');assert.equal(status.acceptance,'NOT_EVALUATED');
 });
-test('provider probe checks nonce response and actual route without issuing QUALIFIED',async t=>{
+test('provider probe checks nonce response and actual route through native admission without issuing QUALIFIED',async t=>{
   const f=fixture(t);await f.lease();const r=await f.send('provider.probe',{provider:'test',model:'model',timeout_ms:1000});await f.plane.settle();
-  const status=f.plane.status(r.operation_id);assert.equal(status.probe_observation,'CHALLENGE_MATCHED');assert.equal(status.qualification,'NOT_ESTABLISHED');
+  const status=f.plane.status(r.operation_id);assert.equal(status.probe_observation,'CHALLENGE_MATCHED');assert.equal(status.start_admitted,true);
+  assert.equal(status.qualification,'NOT_ESTABLISHED');
 });
 test('provider route substitution fails the observation',async t=>{
-  const f=fixture(t,{host:{probe:async()=>({text:'wrong',provider:'other',model:'other'})}});await f.lease();
+  const f=fixture(t);f.host.dispatch=async p=>{
+    const decision=f.plane.beforeAgent({prompt:p.prompt},{agentId:f.config.agentId,sessionKey:p.sessionKey});
+    assert.equal(decision?.outcome,'pass');p.onRun('run-'+p.operationId);return {text:'wrong',provider:'other',model:'other'};
+  };await f.lease();
   const r=await f.send('provider.probe',{provider:'test',model:'model',timeout_ms:1000});await f.plane.settle();
   assert.equal(f.plane.status(r.operation_id).state,'FAILED');assert.equal(f.plane.status(r.operation_id).route_matched,false);
 });
 test('ambiguous provider failure is durable and never automatically replayed',async t=>{
-  let calls=0;const f=fixture(t,{host:{probe:async()=>{calls++;throw new Error('SECRET_PROVIDER_ERROR');}}});await f.lease();
+  let calls=0;const f=fixture(t,{host:{dispatch:async()=>{calls++;throw new Error('SECRET_PROVIDER_ERROR');}}});await f.lease();
   const e=f.envelope('provider.probe',{provider:'test',model:'model',timeout_ms:1000});const r=await f.plane.command(e);await f.plane.settle();
   assert.equal(f.plane.status(r.operation_id).state,'INDETERMINATE');await f.plane.command(e);assert.equal(calls,1);
   assert(!JSON.stringify(f.plane.journal.events(0,100)).includes('SECRET_PROVIDER_ERROR'));
   await assert.rejects(f.send('dispatch.submit',f.task()),isCode('RUNTIME_NOT_IDLE'));
 });
 test('revoke rejects late result but does not falsely claim native stop',async t=>{
-  const d=deferred();const f=fixture(t,{host:{probe:async()=>d.promise}});await f.lease();
+  const d=deferred();const f=fixture(t,{host:{dispatch:async()=>d.promise}});await f.lease();
   const r=await f.send('provider.probe',{provider:'test',model:'model',timeout_ms:1000});
   await f.send('dispatch.revoke',{operation_id:r.operation_id});d.resolve({text:'late',provider:'test',model:'model'});await f.plane.settle();
   assert.equal(f.plane.status(r.operation_id).state,'REVOKED');assert.equal(f.plane.status(r.operation_id).output_sha256,undefined);
@@ -128,7 +150,7 @@ test('revoke rejects late result but does not falsely claim native stop',async t
   assert.equal(evidence.find(row=>row.type==='dispatch.revoked').payload.native_stop_verified,false);
 });
 test('a replacement process fences the old instance and preserves unknown outcome',async t=>{
-  const d=deferred();const f=fixture(t,{host:{probe:async()=>d.promise}});await f.lease();const old=f.plane;
+  const d=deferred();const f=fixture(t,{host:{dispatch:async()=>d.promise}});await f.lease();const old=f.plane;
   const r=await f.send('provider.probe',{provider:'test',model:'model',timeout_ms:1000});const e=f.envelope('runtime.inspect',{});
   f.open();assert.throws(()=>old.identity(),isCode('STALE_INSTANCE'));
   await assert.rejects(f.plane.command(e),isCode('STALE_INSTANCE'));

@@ -10,11 +10,11 @@ import { ControllerClient } from '../client.mjs';
 import { verifyEvidence,MAX_WIRE_BYTES } from '../protocol.mjs';
 
 // This is a native-API-shape fixture, NOT an installed OpenClaw gateway.
-async function setup(t,{version='2026.6.1',badOutput=false}={}) {
+async function setup(t,{version='2026.6.1',badOutput=false,registrationMode='full'}={}) {
   const stateDir=mkdtempSync(join(tmpdir(),'oc-plugin-'));
   const keys=generateKeyPairSync('ed25519');const hooks={};let service,route,active,calls=0;
   const token='fixture-only-not-a-real-token';
-  const api={registrationMode:'full',pluginConfig:{runtimeId:'fixture-runtime',agentId:'residual-worker',
+  const api={registrationMode,pluginConfig:{runtimeId:'fixture-runtime',agentId:'residual-worker',
     controllerKeys:{owner:keys.publicKey.export({type:'spki',format:'pem'})},controlEnabled:true,hostVersions:['2026.6.1']},
     config:{agents:{list:[{id:'residual-worker',model:'test/model'}]}},
     on(name,handler){hooks[name]=handler;},registerService(value){service=value;},registerHttpRoute(value){route=value;},runtime:{version}};
@@ -25,7 +25,6 @@ async function setup(t,{version='2026.6.1',badOutput=false}={}) {
     assert.equal(hooks.before_tool_call({toolName:'exec'},ctx).block,true);
     active={runId:'native-fixture-run',p,ctx};return {runId:active.runId};},
     waitForRun:async()=>{hooks.llm_output({runId:badOutput?'wrong-run':active.runId,provider:'test',model:'model',assistantTexts:['fixture response']},active.ctx);return {status:'ok'};}};
-  api.runtime.llm={complete:async p=>({text:p.messages[0].content.split(': ').at(-1),provider:'test',model:'model'})};
   plugin.register(api);assert(!existsSync(join(stateDir,'residual-control')),'registration must not write state');
   const beforeStart=hooks.before_agent_run({prompt:'unsigned'},{agentId:'residual-worker'});assert.equal(beforeStart.outcome,'block');
   await service.start({stateDir,config:api.config,logger:console});
@@ -62,6 +61,10 @@ test('native output with another run ID cannot become a completed result',async 
   const f=await setup(t,{badOutput:true});await f.client.command('lease.renew',{});
   const r=await f.client.command('dispatch.submit',{provider:'test',model:'model',timeout_ms:1000,prompt:'fixture task'});
   const result=await finish(f.client,r.operation_id);assert.equal(result.state,'INDETERMINATE');assert.equal(result.reason,'OUTPUT_PROVENANCE_MISSING');
+});
+test('native hook policy that is not full stays observation-only',async t=>{
+  const f=await setup(t,{registrationMode:'external'});assert.equal((await f.client.inspect()).compatibility,'OBSERVE_ONLY');
+  await assert.rejects(f.client.command('lease.renew',{}));assert.equal(f.calls,0);
 });
 test('unknown native runtime stays observation-only over real HTTP',async t=>{
   const f=await setup(t,{version:'unsupported'});assert.equal((await f.client.inspect()).compatibility,'OBSERVE_ONLY');

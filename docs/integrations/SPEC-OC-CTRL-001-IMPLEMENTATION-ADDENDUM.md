@@ -1,12 +1,12 @@
-# SPEC-OC-CTRL-001 — implementation addendum R0
+# SPEC-OC-CTRL-001 — implementation addendum R2
 
 **Priority: owner-selected P1 / v1. Status: SOFTWARE CANDIDATE; RELEASE HOLD.**
 
-This addendum preserves the original ten v1 gates. It records what the 0.1.0 implementation actually supplies and the work still needed. It does not replace unresolved requirements with weaker fixture success.
+This addendum preserves the original ten v1 gates. It records what the current 0.2.x implementation actually supplies and the work still needed. It does not replace unresolved requirements with weaker fixture success.
 
 ## Source and integration boundary
 
-Inspected accepted main: HEAD `8369f0dc2a93d8dcb194220b85b9aaf87d1d6df2`, TREE `7cd0d32be6fd61948f2fce753b122e5b6f0c6500`. This candidate is addition-only under `integrations/openclaw-control`, with separate documentation and software CI. No existing kernel, Station store, scheduler, mesh, provider-continuity implementation, release checklist or required check is edited.
+Inspected accepted main: HEAD `8369f0dc2a93d8dcb194220b85b9aaf87d1d6df2`, TREE `7cd0d32be6fd61948f2fce753b122e5b6f0c6500`. The current successor is no longer addition-only: it adds the OpenClaw package plus a bounded external Station worker/lifecycle contract and minimal Station contract/service/server changes. It still does not grant acceptance authority to OpenClaw; Station remains authoritative. Release qualification must therefore evaluate the composed Station + OpenClaw tree, not inherit the earlier addition-only evidence.
 
 Existing OpenClaw/mesh/continuity work is distributed across separate candidates, including #10, #340, #400, #404, #489 and #493. No implementation from these branches is silently imported. #495's single-Station plan remains an integration plan, not proof this package is wired into Station. Accepted main's `residual/engines/protocol.py` provides a runtime-neutral `ExecutionEngine`; the successor adapter must use that existing boundary rather than introducing OpenClaw branches in the kernel.
 
@@ -15,8 +15,9 @@ Existing OpenClaw/mesh/continuity work is distributed across separate candidates
 1. An in-process plugin cannot supervise its own death and independently prove process replacement. A trusted external, narrowly scoped supervisor must implement restart/cancel and independent lifecycle observation. PID alone is insufficient; bind boot identity, start evidence, gateway identity and exact configuration/source tuple.
 2. Cryptographic digest equality is byte integrity, not sender authenticity, truthful evidence or authority. Signed external commands and gateway transport authentication are separate from runtime-reported event digests. All local events retain `RUNTIME_REPORTED` and `NOT_EVALUATED` acceptance.
 3. Qualification is not a single state ladder ending in authority. Enrollment, capabilities, configuration, provider observations, qualification receipts, command authorization, native execution, verification and Station acceptance are independent dimensions.
-4. Supported hooks are exact-version contracts. This package uses the source-inspected native `before_agent_run` block/pass contract and `before_tool_call` block contract. A test double cannot establish that a real host invokes or enforces either hook on every relevant path.
+4. Supported hooks are exact-version contracts. R2 fails closed unless the runtime reports the full hook-registration policy expected by the adapter; the selected execution harness is the native `subagent` path. A test double still cannot establish that a real host invokes or enforces either hook on every relevant path.
 5. Native session completion, a successful nonce response, a command timeout, and revocation each have narrower semantics than accepted work, qualified providers, terminated execution or completed cancellation.
+6. Orpheus R1 review at `c6669737e10d69657ba7ede2098e61bbfae64489` found a result-admission clock rollback defect and a qualification-collector coverage defect. R2 fixes both with sticky clock-fault checks, monotonic in-process budget enforcement, complete TAP coverage accounting, and regression tests. The same review's native-policy findings remain release blockers until exact-build canary evidence closes them.
 
 ## Required remaining implementation lanes
 

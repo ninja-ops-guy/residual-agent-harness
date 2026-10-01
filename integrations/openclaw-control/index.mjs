@@ -51,14 +51,14 @@ export function register(api) {
     requireThat(!plane,'ALREADY_STARTED');
     const rt=api.runtime;
     const current=()=>typeof rt.config?.current==='function' ? rt.config.current() : api.config;
-    const host={version:rt.version,config:current,guardsAvailable:true,
+    const host={version:rt.version,config:current,harness:'subagent',guardsAvailable:api.registrationMode==='full',
       async dispatch(p){
         requireThat(typeof rt.subagent?.run==='function' && typeof rt.subagent?.waitForRun==='function','SDK_UNSUPPORTED');
         outputs.delete(p.sessionKey);
         try {
           requireThat(!p.signal.aborted,'AUTHORITY_EXPIRED');
           const {runId}=await rt.subagent.run({sessionKey:p.sessionKey,message:p.prompt,
-            provider:p.provider,model:p.model,deliver:false,idempotencyKey:p.operationId,lightContext:true});
+            deliver:false,idempotencyKey:p.operationId,lightContext:true});
           p.onRun(runId);
           const result=await rt.subagent.waitForRun({runId,timeoutMs:p.timeoutMs});
           requireThat(result.status==='ok','HOST_OUTCOME_UNKNOWN');
@@ -68,10 +68,6 @@ export function register(api) {
         } finally { outputs.delete(p.sessionKey); }
       }
     };
-    if(typeof rt.llm?.complete==='function') host.probe=async p=>rt.llm.complete({
-      agentId:p.agentId,model:`${p.provider}/${p.model}`,maxTokens:64,temperature:0,
-      signal:p.signal,purpose:'RESIDUAL explicit provider probe',messages:[{role:'user',content:p.prompt}]
-    });
     plane=new ControlPlane({directory:join(ctx.stateDir,'residual-control'),config:pc,host});
   },async stop(){
     if(!plane)return;

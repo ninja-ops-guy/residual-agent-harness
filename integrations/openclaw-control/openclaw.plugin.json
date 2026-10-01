@@ -1,18 +1,47 @@
 {
   "id": "residual-control",
   "name": "RESIDUAL Control",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Signed text-only execution with durable evidence and external Station bridge. Candidate, not live-qualified.",
-  "activation": {"onStartup": true},
+  "activation": {
+    "onStartup": true
+  },
   "configSchema": {
-    "type": "object", "additionalProperties": false,
-    "required": ["runtimeId", "agentId", "controllerKeys"],
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "runtimeId",
+      "agentId",
+      "controllerKeys"
+    ],
     "properties": {
-      "runtimeId": {"type":"string", "pattern":"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"},
-      "agentId": {"type":"string", "pattern":"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"},
-      "controllerKeys": {"type":"object", "minProperties":1, "additionalProperties":{"type":"string"}},
-      "controlEnabled": {"type":"boolean", "default":false},
-      "hostVersions": {"type":"array", "items":{"type":"string"}, "uniqueItems":true, "default":[]}
+      "runtimeId": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+      },
+      "agentId": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+      },
+      "controllerKeys": {
+        "type": "object",
+        "minProperties": 1,
+        "additionalProperties": {
+          "type": "string"
+        }
+      },
+      "controlEnabled": {
+        "type": "boolean",
+        "default": false
+      },
+      "hostVersions": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "uniqueItems": true,
+        "default": []
+      }
     }
   }
 }

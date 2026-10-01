@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { Journal } from './journal.mjs';
 import { PROTOCOL, canonical, sha256, requireThat, exactKeys, identifier, boundedText, publicKey, verifyCommand, ControlError } from './protocol.mjs';
-export const VERSION = '0.2.0';
+export const VERSION = '0.2.1';
 const TERMINAL = new Set(['COMPLETED','FAILED','INDETERMINATE','REVOKED']);
 const MUTATIONS = new Set(['lease.renew','dispatch.submit','provider.probe','dispatch.revoke']);
 const ordered = (a,b) => a < b ? -1 : a > b ? 1 : 0;
@@ -24,12 +24,13 @@ export function configProjection(cfg) {
   };
 }
 export class ControlPlane {
-  constructor({directory, config, host, now = Date.now, maxEvents = 100000}) {
+  constructor({directory, config, host, now = Date.now, monotonicNow = () => Number(process.hrtime.bigint()/1000000n), maxEvents = 100000}) {
     exactKeys(config, ['runtimeId','agentId','controllerKeys'], ['controlEnabled','hostVersions']);
     this.runtimeId = identifier(config.runtimeId); this.agentId = identifier(config.agentId);
+    requireThat(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(this.agentId), 'AGENT_ID_NONCANONICAL');
     requireThat(config.controllerKeys && typeof config.controllerKeys === 'object' && !Array.isArray(config.controllerKeys) && Object.keys(config.controllerKeys).length > 0, 'KEYS_REQUIRED');
     this.keys = Object.fromEntries(Object.entries(config.controllerKeys).map(([id,pem])=>[identifier(id),publicKey(pem)]));
-    this.config = config; this.host = host; this.lastClock=now();this.clockFault=false;
+    this.config = config; this.host = host; this.monotonicNow = monotonicNow; this.lastClock=now();this.clockFault=false;
     this.now = ()=>{const t=now();if(t<this.lastClock)this.clockFault=true;this.lastClock=Math.max(t,this.lastClock);return t;};
     this.leaseUntil = 0; this.jobs = new Map(); this.startTickets=new Map();
     this.journal = new Journal(directory, this.runtimeId, this.now, maxEvents);
@@ -49,13 +50,13 @@ export class ControlPlane {
       compatibility:this.compatible() ? 'DECLARED_CANDIDATE' : 'OBSERVE_ONLY',
       qualification:'NOT_ESTABLISHED', control_connected:this.leaseUntil > this.now(),
       evidence_head:this.journal.head(),
-      capabilities:{observe:true,signed_dispatch:this.compatible(),provider_probe:typeof this.host.probe === 'function' && this.compatible(),
+      capabilities:{observe:true,signed_dispatch:this.compatible(),provider_probe:this.compatible(),
         revoke:true,native_cancel:false,gateway_restart:false,tool_execution:false,sc_mesh:false,acceptance:false}};
   }
   compatible() {
     return this.config.controlEnabled === true && Array.isArray(this.config.hostVersions) &&
       this.config.hostVersions.includes(this.host.version) && this.host.guardsAvailable === true &&
-      typeof this.host.dispatch === 'function';
+      this.host.harness === 'subagent' && typeof this.host.dispatch === 'function';
   }
   gate() {
     this.now();this.journal.fence(); requireThat(!this.clockFault,'CLOCK_ROLLBACK');requireThat(!this.stopping, 'STOPPING');
@@ -117,9 +118,12 @@ export class ControlPlane {
     requireThat(/^[A-Za-z0-9][A-Za-z0-9_./:-]{0,255}$/.test(c.body.model),'INVALID_MODEL');
     requireThat(Number.isSafeInteger(c.body.timeout_ms) && c.body.timeout_ms >= 100 && c.body.timeout_ms <= 60000, 'TIMEOUT_OUT_OF_RANGE');
     if (!probe) boundedText(c.body.prompt, 220000);
-    if (probe) requireThat(typeof this.host.probe === 'function','UNSUPPORTED_CAPABILITY');
+    const managedAgent=projection.agents.find(a=>a.id===this.agentId);
+    requireThat(managedAgent?.model===`${c.body.provider}/${c.body.model}`,'ROUTE_NOT_CONFIGURED');
     requireThat(this.jobs.size === 0 && !this.journal.all().some(x=>['INDETERMINATE','REVOKED'].includes(x.state) && !x.resolved), 'RUNTIME_NOT_IDLE');
     const sessionKey = `agent:${this.agentId}:residual:${c.operation_id}`;
+    const startedMono=this.monotonicNow();
+    const deadlineMono=startedMono+c.body.timeout_ms;
     const record = {operation_id:c.operation_id,action:c.action,instance_id:this.journal.instance,input_sha256:digest,
       config_digest:this.initialConfigDigest,session_key:sessionKey,provider:c.body.provider,model:c.body.model,
       state:'INVOCATION_STARTED',started_at_ms:this.now(),deadline_ms:this.now()+c.body.timeout_ms,
@@ -130,22 +134,23 @@ export class ControlPlane {
       this.journal.event('invocation.started',{operation_id:c.operation_id,action:c.action,input_sha256:digest,provider:c.body.provider,model:c.body.model});
     });
     const abort = new AbortController();
-    const job = {abort,done:null}; this.jobs.set(c.operation_id,job);
-    job.done = this.execute(c,record,abort).finally(()=>this.jobs.delete(c.operation_id));
+    const job = {abort,done:null,deadlineMono}; this.jobs.set(c.operation_id,job);
+    job.done = this.execute(c,record,abort,deadlineMono).finally(()=>this.jobs.delete(c.operation_id));
     return this.status(c.operation_id);
   }
-  async execute(command,record,abort) {
+  async execute(command,record,abort,deadlineMono) {
     const probe = command.action === 'provider.probe';
     const challenge = `RESIDUAL_PROBE_${randomUUID()}`;
     const timer = setTimeout(()=>abort.abort(),command.body.timeout_ms); timer.unref?.();
     try {
       // Revalidate after durable intent and immediately before crossing into the native runtime.
       this.gate();
-      if(!probe)this.startTickets.set(record.session_key,sha256(Buffer.from(command.body.prompt)));
-      const result = await this.host[probe ? 'probe' : 'dispatch']({
+      const executionPrompt=probe ? `Reply with exactly this string and no other text: ${challenge}` : command.body.prompt;
+      this.startTickets.set(record.session_key,sha256(Buffer.from(executionPrompt)));
+      const result = await this.host.dispatch({
         operationId:record.operation_id,sessionKey:record.session_key,agentId:this.agentId,
         provider:record.provider,model:record.model,timeoutMs:command.body.timeout_ms,
-        prompt:probe ? `Reply with exactly this string and no other text: ${challenge}` : command.body.prompt,
+        prompt:executionPrompt,
         signal:abort.signal,onRun:runId=>{
           identifier(runId);
           this.journal.transaction(()=>{
@@ -158,15 +163,17 @@ export class ControlPlane {
       });
       this.journal.fence();
       const live = this.status(record.operation_id,true);
-      requireThat(!this.stopping && !abort.signal.aborted && !live.revoked && this.now() <= live.deadline_ms, 'OUTCOME_AFTER_FENCE');
+      const finishedWall=this.now();const finishedMono=this.monotonicNow();
+      requireThat(!this.clockFault && !this.stopping && !abort.signal.aborted && !live.revoked &&
+        finishedWall <= live.deadline_ms && finishedMono <= deadlineMono, 'OUTCOME_AFTER_FENCE');
       requireThat(this.configDigest() === record.config_digest, 'CONFIG_DRIFT');
-      if(!probe)requireThat(live.start_admitted===true,'NATIVE_ADMISSION_UNPROVEN');
+      requireThat(live.start_admitted===true,'NATIVE_ADMISSION_UNPROVEN');
       boundedText(result.text,262144);
       for(const k of ['provider','model'])if(result[k]!==undefined)boundedText(result[k],256);
       const routeMatched = result.provider === record.provider && result.model === record.model;
       const state = routeMatched && (!probe || result.text.trim() === challenge) ? 'COMPLETED' : 'FAILED';
       this.journal.transaction(()=>{
-        this.journal.put(record.operation_id,{...live,state,finished_at_ms:this.now(),output_text:result.text,
+        this.journal.put(record.operation_id,{...live,state,finished_at_ms:finishedWall,output_text:result.text,
           output_sha256:sha256(Buffer.from(result.text)),observed_provider:typeof result.provider==='string'?result.provider:'UNKNOWN',
           observed_model:typeof result.model==='string'?result.model:'UNKNOWN',
           route_matched:routeMatched,probe_observation:probe ? (state === 'COMPLETED' ? 'CHALLENGE_MATCHED' : 'CHALLENGE_OR_ROUTE_FAILED') : 'NOT_APPLICABLE',
@@ -198,7 +205,7 @@ export class ControlPlane {
       const ticket=this.startTickets.get(context.sessionKey);
       requireThat(ticket && sha256(Buffer.from(event.prompt))===ticket,'UNAUTHORIZED_NATIVE_RUN');
       const record=this.journal.all().find(x=>x.session_key===context.sessionKey);
-      requireThat(record && record.action==='dispatch.submit' && !record.revoked && !record.start_admitted &&
+      requireThat(record && ['dispatch.submit','provider.probe'].includes(record.action) && !record.revoked && !record.start_admitted &&
         ['INVOCATION_STARTED','RUNNING'].includes(record.state) && record.deadline_ms>=this.now(),'UNAUTHORIZED_NATIVE_RUN');
       this.journal.transaction(()=>{
         record.start_admitted=true;this.journal.put(record.operation_id,record);
