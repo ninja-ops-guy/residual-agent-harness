@@ -25,11 +25,11 @@ for(const file of Object.keys(before).filter(name=>name.endsWith('.mjs'))){
   syntax.push({file,exit_code:r.status});
 }
 // Reporter selection is a wire-format contract, not a runtime-dependent default.
-const run=spawnSync(process.execPath,['--test','--test-reporter=tap','test/control.test.mjs','test/plugin.test.mjs','test/station-worker.test.mjs'],{cwd:root,encoding:'utf8',timeout:120000,maxBuffer:4*1024*1024});
+const run=spawnSync(process.execPath,['--test','--test-reporter=tap','test/control.test.mjs','test/plugin.test.mjs','test/station-worker.test.mjs','test/lifecycle-contract.test.mjs'],{cwd:root,encoding:'utf8',timeout:120000,maxBuffer:4*1024*1024});
 const log=(run.stdout||'')+(run.stderr||'');writeFileSync(join(out,'tests.tap'),log,{mode:0o600});
 const after=sources();
 const counts=Object.fromEntries(['tests','pass','fail','skipped','cancelled'].map(key=>[key,Number(log.match(new RegExp('^# '+key+' (\\d+)','m'))?.[1]??-1)]));
-const pass=run.status===0 && counts.tests>=50 && counts.fail===0 && counts.cancelled===0 &&
+const pass=run.status===0 && counts.tests>=56 && counts.fail===0 && counts.cancelled===0 &&
   syntax.every(row=>row.exit_code===0) && canonical(before)===canonical(after);
 const receipt={schema:'residual.openclaw.software-qualification.v1',
   result:pass?'SOFTWARE_COMPONENT_PASS':'SOFTWARE_COMPONENT_FAIL',
