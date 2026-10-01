@@ -48,6 +48,7 @@ export class ControlPlane {
       control_enabled:this.config.controlEnabled === true,
       compatibility:this.compatible() ? 'DECLARED_CANDIDATE' : 'OBSERVE_ONLY',
       qualification:'NOT_ESTABLISHED', control_connected:this.leaseUntil > this.now(),
+      evidence_head:this.journal.head(),
       capabilities:{observe:true,signed_dispatch:this.compatible(),provider_probe:typeof this.host.probe === 'function' && this.compatible(),
         revoke:true,native_cancel:false,gateway_restart:false,tool_execution:false,sc_mesh:false,acceptance:false}};
   }
@@ -115,7 +116,7 @@ export class ControlPlane {
     identifier(c.body.provider); boundedText(c.body.model,256);
     requireThat(/^[A-Za-z0-9][A-Za-z0-9_./:-]{0,255}$/.test(c.body.model),'INVALID_MODEL');
     requireThat(Number.isSafeInteger(c.body.timeout_ms) && c.body.timeout_ms >= 100 && c.body.timeout_ms <= 60000, 'TIMEOUT_OUT_OF_RANGE');
-    if (!probe) boundedText(c.body.prompt, 16000);
+    if (!probe) boundedText(c.body.prompt, 220000);
     if (probe) requireThat(typeof this.host.probe === 'function','UNSUPPORTED_CAPABILITY');
     requireThat(this.jobs.size === 0 && !this.journal.all().some(x=>['INDETERMINATE','REVOKED'].includes(x.state) && !x.resolved), 'RUNTIME_NOT_IDLE');
     const sessionKey = `agent:${this.agentId}:residual:${c.operation_id}`;
@@ -160,7 +161,7 @@ export class ControlPlane {
       requireThat(!this.stopping && !abort.signal.aborted && !live.revoked && this.now() <= live.deadline_ms, 'OUTCOME_AFTER_FENCE');
       requireThat(this.configDigest() === record.config_digest, 'CONFIG_DRIFT');
       if(!probe)requireThat(live.start_admitted===true,'NATIVE_ADMISSION_UNPROVEN');
-      boundedText(result.text,32768);
+      boundedText(result.text,262144);
       for(const k of ['provider','model'])if(result[k]!==undefined)boundedText(result[k],256);
       const routeMatched = result.provider === record.provider && result.model === record.model;
       const state = routeMatched && (!probe || result.text.trim() === challenge) ? 'COMPLETED' : 'FAILED';
