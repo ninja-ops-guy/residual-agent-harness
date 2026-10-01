@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { Journal } from './journal.mjs';
 import { PROTOCOL, canonical, sha256, requireThat, exactKeys, identifier, boundedText, publicKey, verifyCommand, ControlError } from './protocol.mjs';
-export const VERSION = '0.1.0';
+export const VERSION = '0.2.0';
 const TERMINAL = new Set(['COMPLETED','FAILED','INDETERMINATE','REVOKED']);
 const MUTATIONS = new Set(['lease.renew','dispatch.submit','provider.probe','dispatch.revoke']);
 const ordered = (a,b) => a < b ? -1 : a > b ? 1 : 0;
