@@ -81,7 +81,7 @@ def _validate_remote_execution_evidence(value, *, packet_sha256, project_id, tas
         raise ContractError("Remote execution evidence trust class is invalid")
     if value["project_id"] != project_id or value["task_id"] != task_id or value["attempt"] != attempt:
         raise ContractError("Remote execution evidence does not match the claimed Station attempt")
-    if value["station_packet_sha256"] != sha(packet):
+    if value["station_packet_sha256"] != packet_sha256:
         raise ContractError("Remote execution evidence does not match the Station packet")
     if value["station_response_sha256"] != sha(response):
         raise ContractError("Remote execution evidence does not match the submitted candidate")
