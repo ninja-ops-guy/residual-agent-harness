@@ -15,7 +15,7 @@
     "test"
   ],
   "scripts": {
-    "test": "node --test --test-reporter=tap test/control.test.mjs test/plugin.test.mjs test/station-worker.test.mjs",
+    "test": "node --test --test-reporter=tap test/control.test.mjs test/plugin.test.mjs test/station-worker.test.mjs test/lifecycle-contract.test.mjs",
     "qualify": "node qualify.mjs"
   },
   "openclaw": {
