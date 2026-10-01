@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import plugin,{ROUTE,sourceDigest} from '../index.mjs';
 import { ControllerClient } from '../client.mjs';
-import { verifyEvidence } from '../protocol.mjs';
+import { verifyEvidence,MAX_WIRE_BYTES } from '../protocol.mjs';
 
 // This is a native-API-shape fixture, NOT an installed OpenClaw gateway.
 async function setup(t,{version='2026.6.1',badOutput=false}={}) {
@@ -77,7 +77,7 @@ test('gateway-auth, unsigned requests, browser Origin and query variants are ref
 });
 test('HTTP request size and content type are bounded',async t=>{
   const f=await setup(t);const auth={Authorization:`Bearer ${f.token}`};
-  const huge=await fetch(f.endpoint+ROUTE,{method:'POST',headers:{...auth,'Content-Type':'application/json'},body:' '.repeat(100000)});
+  const huge=await fetch(f.endpoint+ROUTE,{method:'POST',headers:{...auth,'Content-Type':'application/json'},body:' '.repeat(MAX_WIRE_BYTES+1)});
   assert.equal(huge.status,400);assert.equal((await huge.json()).error.code,'REQUEST_TOO_LARGE');
   assert.equal((await fetch(f.endpoint+ROUTE,{method:'POST',headers:{...auth,'Content-Type':'text/plain'},body:'{}'})).status,400);
 });
