@@ -1,6 +1,6 @@
-# RESIDUAL OpenClaw Control — 0.1.0 candidate
+# RESIDUAL OpenClaw Control — 0.2.0 candidate
 
-**P1 v1 target; software-component candidate, NOT v1-qualified.** This addition-only package implements a native OpenClaw plugin and an external signing client. It does not change accepted main, Station databases, existing agents, credentials, or release rules. Do not deploy to an existing seat merely because package tests pass.
+**P1 v1 target; software-component candidate, NOT v1-qualified.** This candidate implements a native OpenClaw plugin, an external signing client, lifecycle-contract helpers, and a bounded Station remote-worker bridge. It remains unmerged and does not change accepted main, existing agents, credentials, or release rules. The Station-side candidate code does not make OpenClaw evidence authoritative or release-qualified. Do not deploy to an existing seat merely because package or Station fixture tests pass.
 
 ## What is implemented
 
@@ -26,7 +26,7 @@ node qualify.mjs --output /absolute/path/to/new-evidence-directory
 npm pack --ignore-scripts
 ```
 
-`qualify.mjs` writes exact input hashes, syntax checks, test counts, a raw TAP log and a receipt. Existing output directories are refused so earlier evidence is not overwritten. `--require-release` returns exit **3** even after software tests pass: native/live/Station/restart/cancel/independent-review gates are not complete. Exit 0 without that flag means software component only. A CI receipt covers its checked-out bytes, not automatically a PR head or a later merge tree.
+`qualify.mjs` writes exact input hashes, syntax checks, test counts, a raw TAP log and a receipt. Existing output directories are refused so earlier evidence is not overwritten. `--require-release` returns exit **3** even after software tests pass: native/live/restart/cancel/independent-review gates remain incomplete, and the Station software bridge still requires a real native end-to-end Station dispatch plus existing independent acceptance. Exit 0 without that flag means software component only. A CI receipt covers its checked-out bytes, not automatically a PR head or a later merge tree.
 
 ## Native configuration — stage only
 
@@ -79,4 +79,4 @@ The configured agent must exist. Configured fallback arrays are refused in this 
 
 Checksummed local journals detect accidental alteration; a runtime able to rewrite all records and digests can forge them. Controllers must anchor observed evidence tips externally. Persistent-state anti-rollback against a hostile filesystem, secure boot, independent attestation, encrypted result storage, and filesystem ACL isolation are not supplied by this plugin.
 
-Station's existing task admission, project/attempt/generation fences, qualification and independent verification must remain authoritative. This package does **not** add a second scheduler or automatically issue Station receipts. Native SC-MESH, rolling upgrades, fleet orchestration, fallback continuity and self-building remain outside this candidate. The original P1 gates and remaining lanes are in `docs/integrations/SPEC-OC-CTRL-001-IMPLEMENTATION-ADDENDUM.md` and `OC-CONTROL-P1-GATES.json` in the repository.
+Station's existing task admission, project/attempt/generation fences, qualification and independent verification remain authoritative. The 0.2.0 candidate includes Station-side remote execution/evidence validation that binds returned evidence to the Station packet, project/task/attempt/operation identity, and response digest, but that evidence remains non-authoritative until existing Station verification accepts it. The candidate does **not** add a second scheduler or automatically turn plugin evidence into Station acceptance. Native SC-MESH, rolling upgrades, fleet orchestration, fallback continuity and self-building remain outside this candidate. The original P1 gates and remaining lanes are in `docs/integrations/SPEC-OC-CTRL-001-IMPLEMENTATION-ADDENDUM.md` and `OC-CONTROL-P1-GATES.json` in the repository.
