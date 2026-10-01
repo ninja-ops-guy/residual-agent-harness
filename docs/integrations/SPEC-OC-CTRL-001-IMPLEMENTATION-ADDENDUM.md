@@ -1,14 +1,14 @@
-# SPEC-OC-CTRL-001 — implementation addendum R0
+# SPEC-OC-CTRL-001 — implementation addendum R1
 
 **Priority: owner-selected P1 / v1. Status: SOFTWARE CANDIDATE; RELEASE HOLD.**
 
-This addendum preserves the original ten v1 gates. It records what the 0.1.0 implementation actually supplies and the work still needed. It does not replace unresolved requirements with weaker fixture success.
+This addendum preserves the original ten v1 gates. It records what the 0.2.0 software candidate actually supplies and the work still needed. The preceding 0.1.0/addition-only description is superseded for the current #501 generation; no release gate is promoted by this documentation correction. It does not replace unresolved requirements with weaker fixture success.
 
 ## Source and integration boundary
 
-Inspected accepted main: HEAD `8369f0dc2a93d8dcb194220b85b9aaf87d1d6df2`, TREE `7cd0d32be6fd61948f2fce753b122e5b6f0c6500`. This candidate is addition-only under `integrations/openclaw-control`, with separate documentation and software CI. No existing kernel, Station store, scheduler, mesh, provider-continuity implementation, release checklist or required check is edited.
+Inspected accepted main: HEAD `8369f0dc2a93d8dcb194220b85b9aaf87d1d6df2`, TREE `7cd0d32be6fd61948f2fce753b122e5b6f0c6500`. The current #501 software predecessor is HEAD `eebf3f0c0e2877531076e8ebc3123ecb4e2abb19`; package metadata is version `0.2.0`. Unlike the earlier 0.1.0 generation, the current candidate is not addition-only: it changes `integrations/openclaw-control` and adds bounded Station-side remote-worker contracts/service/server integration plus Station regressions. It does not modify accepted `main`; the changes remain unmerged candidate bytes. It does not edit the kernel, mesh, provider-continuity implementation, release checklist, or required-check policy.
 
-Existing OpenClaw/mesh/continuity work is distributed across separate candidates, including #10, #340, #400, #404, #489 and #493. No implementation from these branches is silently imported. #495's single-Station plan remains an integration plan, not proof this package is wired into Station. Accepted main's `residual/engines/protocol.py` provides a runtime-neutral `ExecutionEngine`; the successor adapter must use that existing boundary rather than introducing OpenClaw branches in the kernel.
+Existing OpenClaw/mesh/continuity work is distributed across separate candidates, including #10, #340, #400, #404, #489 and #493. No implementation from these branches is silently imported. #495's single-Station plan remains an integration plan rather than release evidence. The current candidate now contains a Station remote-worker bridge and regression coverage, but that software path is not native/live qualification and does not by itself establish Station acceptance. Accepted main's `residual/engines/protocol.py` remains the runtime-neutral execution boundary; OpenClaw-specific authority must not move into the kernel.
 
 ## Corrections to the original design
 
@@ -23,7 +23,7 @@ Existing OpenClaw/mesh/continuity work is distributed across separate candidates
 | Lane | Concrete deliverable | Exit condition |
 |---|---|---|
 | OC-NATIVE | Load exact package on one dedicated exact-build OpenClaw canary; exercise normal and bypass entry paths; prove event/session/run correlation and config reload behavior. | Native loader/auth/hook enforcement receipt with source bytes and failure controls. |
-| OC-STATION | Runtime-neutral adapter and controller authority issuer using existing Station admission, task/attempt/project fences, budget/deadline authority and result verification; expose read-only Station projection. | A real Station parent dispatch produces a result through this plugin and existing independent verification alone determines acceptance. |
+| OC-STATION | Current 0.2.0 candidate includes a bounded Station remote-worker bridge that binds remote evidence to project/task/attempt/operation and Station packet/response digests while leaving remote evidence non-authoritative. Complete any remaining controller authority/adapter wiring through existing Station admission, budget/deadline and verification boundaries. | A real Station parent dispatch produces a result through the native plugin and existing independent verification alone determines acceptance; fixture/software PASS is insufficient. |
 | OC-LIFECYCLE | External allowlisted gateway supervisor; authenticated native cancellation; old/new process and listener/config identity proof; durable post-restart reconciliation. | Verified stop/cancel and restart postconditions; no in-process self-attestation, arbitrary shell or ambiguous replay. |
 | OC-LIVE | Owner-authorized provider/model canary using existing credential custody, real readiness, meaningful task, negative provider case, drift/disconnect/revocation cases. | Exact-tuple live receipts, retained first failure and restoration proof. |
 | OC-RELEASE | Independent review and clean reproduction; combine only explicitly selected candidates; rerun changed integration/full release gates on exact final tree. | All original gates PASS, exact-head maintainer acceptance and truthful release claim. |
@@ -44,4 +44,4 @@ The software qualifier records exact source-file SHA-256 values before and after
 
 This feature remains P1 and **not release-admissible** until all ten gates, native cancel, existing Station acceptance and independent exact-tree qualification are complete. Native UI, native SC-MESH, sophisticated failover, fleet management and self-hosting remain successors and must not expand the bounded v1 release surface automatically.
 
-Permitted current claim: “A tested software candidate implements signed, durable, text-only OpenClaw control primitives with an external controller client.” Prohibited current claim: “RESIDUAL v1 has a qualified OpenClaw control plane.”
+Permitted current claim: “A tested software candidate implements signed, durable, text-only OpenClaw control primitives with an external controller client and a bounded Station remote-worker bridge; native/live release qualification remains incomplete.” Prohibited current claim: “RESIDUAL v1 has a qualified OpenClaw control plane.”
