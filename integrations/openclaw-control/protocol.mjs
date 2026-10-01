@@ -1,7 +1,7 @@
 // RESIDUAL OpenClaw control protocol. Only the external controller holds signing keys.
 import { createHash, createPublicKey, sign, verify } from 'node:crypto';
 export const PROTOCOL = 'residual.openclaw.control.v1';
-export const MAX_WIRE_BYTES = 96 * 1024;
+export const MAX_WIRE_BYTES = 384 * 1024;
 export class ControlError extends Error {
   constructor(code) { super(code); this.name = 'ControlError'; this.code = code; }
 }
@@ -46,7 +46,7 @@ export function signCommand(command, privateKey, id) {
 export function verifyCommand(envelope, keys, identity, now) {
   exactKeys(envelope, ['key_id', 'body', 'signature']);
   requireThat(typeof envelope.key_id === 'string' && Object.hasOwn(keys, envelope.key_id), 'AUTHORITY_DENIED');
-  const bytes = decode64(envelope.body, 64 * 1024);
+  const bytes = decode64(envelope.body, 256 * 1024);
   const signature = decode64(envelope.signature, 64);
   requireThat(signature.length === 64 && verify(null, bytes, keys[envelope.key_id], signature), 'AUTHORITY_DENIED');
   let cmd;
