@@ -1,0 +1,34 @@
+{
+  "schema": "residual.clef.offline-result.v1",
+  "status": "PASS_SCOPED_OFFLINE",
+  "date": "2026-10-01",
+  "base_commit": "8369f0dc2a93d8dcb194220b85b9aaf87d1d6df2",
+  "tracker": 503,
+  "python": "3.13.5",
+  "platform": "Linux",
+  "test_count": 44,
+  "command": "python -m unittest discover -s tests/decision_models -v",
+  "scope": "New-module isolated-source contract tests only; original residual package import graph not loaded.",
+  "checks": {
+    "unit_tests": "44 PASS",
+    "py_compile": "PASS",
+    "offline_demo_clef": "PASS",
+    "offline_demo_clef_flash": "PASS",
+    "live_without_egress_ack": "BLOCKED_AS_EXPECTED"
+  },
+  "full_repository_regression": "NOT_RUN",
+  "live_provider_qualification": "NOT_RUN",
+  "independent_review": "PENDING",
+  "release_effect": "NONE",
+  "source_sha256": {
+    "residual/decision_models.py": "afd464a803495789cd0ac7cf878d2334aa49bfa778b5abb57fa72fa6a551d456",
+    "tests/decision_models/test_clef.py": "59be06c5a0b7e53d872c678063eb75af35a3569a5ef922120579dd5f7844cda6",
+    "examples/clef_decision_demo.py": "64ef58ca02486bb845560eee43387dfcfa251295898bf769f8a09b089bcf86dc",
+    "docs/roadmap/v2/DECISION-MODELS.md": "6daef6875410bd2db6d9bd5b1815532672788af815a459be4c8f608d1954543c"
+  },
+  "limitations": [
+    "Full git clone unavailable: github.com DNS resolution failed in test runtime.",
+    "Only synthetic fixtures and mocked HTTP transport tested.",
+    "No actual inference, live latency, calibration, model-weight identity, or v1/v2 release claim."
+  ]
+}

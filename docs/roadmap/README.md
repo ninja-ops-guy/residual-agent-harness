@@ -79,3 +79,13 @@ Research branches remain outside accepted production capability unless explicitl
 A merge onto main establishes that accepted bytes are part of the repository. It does not automatically establish every release claim associated with them.
 
 Any claim touching ownership baselines, qualification anchors, protected Factory/M4 bytes, verifier authority, evidence schemas, physical-device reliability, live-provider success, recovery or soak must remain scoped to retained evidence. Historical `FAIL`, `UNKNOWN`, and `BLOCKED` results remain visible even when later revisions pass.
+
+## v2 review queue
+
+**V2-DM-001 — Decision Model Evidence Adapter (Clef/Clef-flash):**
+[implementation and review gates](v2/DECISION-MODELS.md), tracked in
+[#503](https://github.com/ninja-ops-guy/residual-agent-harness/issues/503).
+Status: **V2_REVIEW_PENDING / EXPERIMENTAL**, disabled by default. Initial offline
+contract tests are scoped evidence only. No live qualification, authority grant,
+merge approval, or v1 release dependency is implied. The historical status text
+above is retained, not requalified by this addition.
