@@ -11,6 +11,15 @@ function endpoint(value) {
   catch { return {invalid:true}; }
 }
 function strings(value) { return Array.isArray(value) ? value.filter(v => typeof v === 'string').sort() : []; }
+export function nativeConversationAccess(cfg) {
+  const entries=cfg?.plugins?.entries;
+  // The native loader trims entry IDs before merging their hook policies, while
+  // api.config retains raw keys. Reject ambiguous spellings instead of attempting
+  // to reproduce that merge and accidentally granting the wrong effective policy.
+  return Boolean(entries && typeof entries==='object' && !Array.isArray(entries) &&
+    Object.keys(entries).every(key=>key==='residual-control' || key.trim()!=='residual-control') &&
+    entries['residual-control']?.hooks?.allowConversationAccess===true);
+}
 export function configProjection(cfg) {
   // This deliberately does not serialize whole configuration or hash secret values.
   return {
@@ -21,6 +30,7 @@ export function configProjection(cfg) {
       fallbacks:strings(cfg.agents?.defaults?.model?.fallbacks)},
     providers:Object.entries(cfg.models?.providers || {}).map(([id,p])=>({id,endpoint:endpoint(p.baseUrl),api:typeof p.api==='string'?p.api:null,models:(p.models || []).map(m=>m.id).filter(x=>typeof x === 'string').sort()})).sort((a,b)=>ordered(a.id,b.id)),
     toolPolicy:{allow:strings(cfg.tools?.allow),deny:strings(cfg.tools?.deny)},
+    controlHookPolicy:{allowConversationAccess:nativeConversationAccess(cfg)},
   };
 }
 export class ControlPlane {
@@ -163,9 +173,13 @@ export class ControlPlane {
       });
       this.journal.fence();
       const live = this.status(record.operation_id,true);
-      const finishedWall=this.now();const finishedMono=this.monotonicNow();
-      requireThat(!this.clockFault && !this.stopping && !abort.signal.aborted && !live.revoked &&
-        finishedWall <= live.deadline_ms && finishedMono <= deadlineMono, 'OUTCOME_AFTER_FENCE');
+      const validateOutcome = () => {
+        const wall=this.now();const mono=this.monotonicNow();
+        requireThat(!this.clockFault && !this.stopping && !abort.signal.aborted && !live.revoked &&
+          wall <= live.deadline_ms && mono <= deadlineMono, 'OUTCOME_AFTER_FENCE');
+        return wall;
+      };
+      const finishedWall=validateOutcome();
       requireThat(this.configDigest() === record.config_digest, 'CONFIG_DRIFT');
       requireThat(live.start_admitted===true,'NATIVE_ADMISSION_UNPROVEN');
       boundedText(result.text,262144);
@@ -180,6 +194,10 @@ export class ControlPlane {
           qualification:'NOT_ESTABLISHED'});
         this.journal.event('execution.result',{operation_id:record.operation_id,state,route_matched:routeMatched,
           output_sha256:sha256(Buffer.from(result.text)),qualification:'NOT_ESTABLISHED'});
+        // journal.event samples the wall clock again. Recheck after every result
+        // write and immediately before COMMIT so a late clock fault or deadline
+        // expiry rolls back the result record and its evidence atomically.
+        validateOutcome();
       });
     } catch(error) {
       try {

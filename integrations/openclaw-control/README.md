@@ -46,6 +46,20 @@ Example plugin config (replace the public-key placeholder before loading):
 }
 ```
 
+Native control also requires full registration and an explicit host-level
+`plugins.entries.residual-control.hooks.allowConversationAccess: true` opt-in.
+This setting belongs in OpenClaw's host config, not inside this plugin's config.
+Without it, non-bundled conversation hooks can be silently omitted even during
+full registration, so the plugin remains observe-only and rejects dispatch and
+provider probes before native invocation. An opt-in added after registration
+requires a fresh plugin registration; it does not restore omitted handlers in a
+running instance. Removing the current opt-in disables control and changes the
+bound config digest, including for result admission. These checks establish a
+necessary policy prerequisite only, not proof that native hooks execute. Use only
+the exact `residual-control` entry key: whitespace variants that normalize to the
+same ID are rejected even when both entries opt in, rather than trusting a raw
+value that may differ from OpenClaw's merged effective hook policy.
+
 Select the package through OpenClaw's documented native plugin installation mechanism and allowlist only the intended plugin. No install/activation command is executed by this package. The native service places its private journal in `stateDir/residual-control`. POSIX state directory/file mode checks are enforced. Windows ACL qualification is outstanding. State corruption, saturation, or indeterminate executions require operator diagnosis; do not delete the database to replay work.
 
 ## External controller

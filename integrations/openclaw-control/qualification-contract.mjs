@@ -1,4 +1,4 @@
-export const REQUIRED_TESTS=64;
+export const REQUIRED_TESTS=103;
 const SUMMARY_FIELDS=['tests','pass','fail','skipped','cancelled','todo'];
 export function parseTapSummary(log){
   return Object.fromEntries(SUMMARY_FIELDS.map(key=>[key,Number(log.match(new RegExp('^# '+key+' (\\d+)','m'))?.[1]??-1)]));

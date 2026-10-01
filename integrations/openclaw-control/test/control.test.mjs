@@ -74,6 +74,56 @@ test('monotonic budget expiry fences a result even when wall clock remains insid
   assert.equal(status.output_sha256,undefined);assert.equal(status.acceptance,'NOT_EVALUATED');
 });
 
+for(const action of ['dispatch.submit','provider.probe'])for(const [label,wallChange,monoChange] of [
+  ['rollback',-1,0],['wall deadline expiry',1001,0],['monotonic deadline expiry',0,1001],
+])for(const sample of [2,3]) {
+  test(`${action} rejects ${label} at ${sample===2?'journal event':'final admission'} clock sample`,async t=>{
+    let wall=1700000000000,mono=1000,armed=false,samples=0;
+    const f=fixture(t,{now:()=>{
+      if(armed && ++samples===sample){wall+=wallChange;mono+=monoChange;}
+      return wall;
+    },monotonicNow:()=>mono});
+    await f.lease();
+    f.host.dispatch=async p=>{
+      assert.equal(f.plane.beforeAgent({prompt:p.prompt},{agentId:f.config.agentId,sessionKey:p.sessionKey}).outcome,'pass');
+      p.onRun('run-'+p.operationId);armed=true;
+      return {text:action==='provider.probe'?p.prompt.slice('Reply with exactly this string and no other text: '.length):'result',provider:p.provider,model:p.model};
+    };
+    const body=action==='provider.probe'?{provider:'test',model:'model',timeout_ms:1000}:f.task();
+    const r=await f.send(action,body);await f.plane.settle();
+    const status=f.plane.status(r.operation_id,true);
+    assert.equal(status.state,'INDETERMINATE');assert.equal(status.reason,'OUTCOME_AFTER_FENCE');
+    assert.equal(status.output_text,undefined);assert.equal(status.output_sha256,undefined);
+    assert.equal(status.acceptance,'NOT_EVALUATED');
+    if(label==='rollback')assert.equal(f.plane.clockFault,true);
+    const events=f.plane.journal.events(0,100).map(row=>verifyEvidence(row));
+    assert.equal(events.filter(event=>event.type==='execution.result').length,0,'result record and event must roll back together');
+    assert.equal(events.filter(event=>event.type==='execution.indeterminate').length,1);
+    f.plane.journal.verifyStored();
+    f.plane.close();f.open();
+    assert.equal(f.plane.status(r.operation_id,true).state,'INDETERMINATE');
+    assert.equal(f.plane.status(r.operation_id,true).output_text,undefined);
+  });
+}
+for(const action of ['dispatch.submit','provider.probe']) {
+  test(`${action} still completes at the exact final admission deadline`,async t=>{
+    let wall=1700000000000,mono=1000,armed=false,samples=0;
+    const f=fixture(t,{now:()=>{if(armed && ++samples===3){wall+=1000;mono+=1000;}return wall;},monotonicNow:()=>mono});
+    await f.lease();
+    f.host.dispatch=async p=>{
+      assert.equal(f.plane.beforeAgent({prompt:p.prompt},{agentId:f.config.agentId,sessionKey:p.sessionKey}).outcome,'pass');
+      p.onRun('run-'+p.operationId);armed=true;
+      return {text:action==='provider.probe'?p.prompt.slice('Reply with exactly this string and no other text: '.length):'result',provider:p.provider,model:p.model};
+    };
+    const r=await f.send(action,action==='provider.probe'?{provider:'test',model:'model',timeout_ms:1000}:f.task());
+    await f.plane.settle();assert.equal(samples,3);
+    const status=f.plane.status(r.operation_id,true);assert.equal(status.state,'COMPLETED');
+    assert.equal(typeof status.output_text,'string');if(action==='dispatch.submit')assert.equal(status.output_text,'result');
+    assert.equal(status.acceptance,'NOT_EVALUATED');assert.equal(f.plane.clockFault,false);
+    if(action==='provider.probe')assert.equal(status.probe_observation,'CHALLENGE_MATCHED');
+  });
+}
+
 test('unknown version and default observe-only cannot authorize mutation',async t=>{
   const f=fixture(t,{config:{controlEnabled:false}});assert.equal(f.plane.identity().compatibility,'OBSERVE_ONLY');
   await assert.rejects(f.lease(),isCode('OBSERVE_ONLY'));f.config.controlEnabled=true;f.host.version='2026.unknown';
