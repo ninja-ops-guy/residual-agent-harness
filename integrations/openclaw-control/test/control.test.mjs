@@ -56,6 +56,24 @@ test('no lease and expired lease both deny new work',async t=>{
 test('clock rollback fences new work even when wall-clock lease looks current',async t=>{
   const f=fixture(t);await f.lease();f.advance(-1);await assert.rejects(f.send('dispatch.submit',f.task()),isCode('CLOCK_ROLLBACK'));assert.equal(f.calls,0);
 });
+
+test('detected wall-clock rollback fences a pending result before completion',async t=>{
+  const d=deferred();const f=fixture(t);await f.lease();
+  f.host.dispatch=async p=>{const decision=f.plane.beforeAgent({prompt:p.prompt},{agentId:f.config.agentId,sessionKey:p.sessionKey});
+    assert.equal(decision?.outcome,'pass');p.onRun('run-'+p.operationId);await d.promise;return {text:'result',provider:p.provider,model:p.model};};
+  const r=await f.send('dispatch.submit',f.task());f.advanceWall(-1);d.resolve();await f.plane.settle();
+  const status=f.plane.status(r.operation_id);assert.equal(status.state,'INDETERMINATE');assert.equal(status.reason,'OUTCOME_AFTER_FENCE');
+  assert.equal(status.output_sha256,undefined);assert.equal(status.acceptance,'NOT_EVALUATED');
+});
+test('monotonic budget expiry fences a result even when wall clock remains inside deadline',async t=>{
+  const d=deferred();const f=fixture(t);await f.lease();
+  f.host.dispatch=async p=>{const decision=f.plane.beforeAgent({prompt:p.prompt},{agentId:f.config.agentId,sessionKey:p.sessionKey});
+    assert.equal(decision?.outcome,'pass');p.onRun('run-'+p.operationId);await d.promise;return {text:'result',provider:p.provider,model:p.model};};
+  const r=await f.send('dispatch.submit',f.task({timeout_ms:100}));f.advanceMono(150);d.resolve();await f.plane.settle();
+  const status=f.plane.status(r.operation_id);assert.equal(status.state,'INDETERMINATE');assert.equal(status.reason,'OUTCOME_AFTER_FENCE');
+  assert.equal(status.output_sha256,undefined);assert.equal(status.acceptance,'NOT_EVALUATED');
+});
+
 test('unknown version and default observe-only cannot authorize mutation',async t=>{
   const f=fixture(t,{config:{controlEnabled:false}});assert.equal(f.plane.identity().compatibility,'OBSERVE_ONLY');
   await assert.rejects(f.lease(),isCode('OBSERVE_ONLY'));f.config.controlEnabled=true;f.host.version='2026.unknown';
