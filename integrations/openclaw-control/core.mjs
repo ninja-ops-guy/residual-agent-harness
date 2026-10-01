@@ -167,7 +167,7 @@ export class ControlPlane {
       requireThat(!this.clockFault && !this.stopping && !abort.signal.aborted && !live.revoked &&
         finishedWall <= live.deadline_ms && finishedMono <= deadlineMono, 'OUTCOME_AFTER_FENCE');
       requireThat(this.configDigest() === record.config_digest, 'CONFIG_DRIFT');
-      if(!probe)requireThat(live.start_admitted===true,'NATIVE_ADMISSION_UNPROVEN');
+      requireThat(live.start_admitted===true,'NATIVE_ADMISSION_UNPROVEN');
       boundedText(result.text,262144);
       for(const k of ['provider','model'])if(result[k]!==undefined)boundedText(result[k],256);
       const routeMatched = result.provider === record.provider && result.model === record.model;
