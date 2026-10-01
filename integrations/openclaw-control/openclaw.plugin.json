@@ -1,0 +1,18 @@
+{
+  "id": "residual-control",
+  "name": "RESIDUAL Control",
+  "version": "0.1.0",
+  "description": "Explicitly authorized text-only execution with durable evidence. Candidate, not live-qualified.",
+  "activation": {"onStartup": true},
+  "configSchema": {
+    "type": "object", "additionalProperties": false,
+    "required": ["runtimeId", "agentId", "controllerKeys"],
+    "properties": {
+      "runtimeId": {"type":"string", "pattern":"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"},
+      "agentId": {"type":"string", "pattern":"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"},
+      "controllerKeys": {"type":"object", "minProperties":1, "additionalProperties":{"type":"string"}},
+      "controlEnabled": {"type":"boolean", "default":false},
+      "hostVersions": {"type":"array", "items":{"type":"string"}, "uniqueItems":true, "default":[]}
+    }
+  }
+}
