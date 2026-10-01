@@ -24,7 +24,8 @@ for(const file of Object.keys(before).filter(name=>name.endsWith('.mjs'))){
   const r=spawnSync(process.execPath,['--check',file],{cwd:root,encoding:'utf8',timeout:20000});
   syntax.push({file,exit_code:r.status});
 }
-const run=spawnSync(process.execPath,['--test','test/control.test.mjs','test/plugin.test.mjs'],{cwd:root,encoding:'utf8',timeout:120000,maxBuffer:4*1024*1024});
+// Reporter selection is a wire-format contract, not a runtime-dependent default.
+const run=spawnSync(process.execPath,['--test','--test-reporter=tap','test/control.test.mjs','test/plugin.test.mjs'],{cwd:root,encoding:'utf8',timeout:120000,maxBuffer:4*1024*1024});
 const log=(run.stdout||'')+(run.stderr||'');writeFileSync(join(out,'tests.tap'),log,{mode:0o600});
 const after=sources();
 const counts=Object.fromEntries(['tests','pass','fail','skipped','cancelled'].map(key=>[key,Number(log.match(new RegExp('^# '+key+' (\\d+)','m'))?.[1]??-1)]));
@@ -37,7 +38,8 @@ const receipt={schema:'residual.openclaw.software-qualification.v1',
   scope:'Addition-only isolated package; not the RESIDUAL full suite or installed OpenClaw',
   source_files:before,source_set_sha256:sha256(Buffer.from(canonical(before))),syntax,
   tests:{...counts,exit_code:run.status,log_sha256:sha256(Buffer.from(log))},
-  first_failure:pass?null:syntax.find(row=>row.exit_code!==0)?.file || 'TEST_OR_SOURCE_STABILITY_FAILURE',
+  first_failure:pass?null:syntax.find(row=>row.exit_code!==0)?.file ||
+    (Object.values(counts).some(n=>n<0)?'TEST_REPORT_FORMAT_INVALID':'TEST_OR_SOURCE_STABILITY_FAILURE'),
   native_openclaw:'NOT_EXECUTED',live_provider:'NOT_EXECUTED',station_integration:'NOT_IMPLEMENTED',
   external_restart:'NOT_IMPLEMENTED',native_cancel:'NOT_IMPLEMENTED',independent_review:'NOT_OBTAINED',
   release_admissible:false,release_result:'BLOCKED',promotion_authority:false};
