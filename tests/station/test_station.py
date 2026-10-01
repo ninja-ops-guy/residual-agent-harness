@@ -408,7 +408,12 @@ class HTTPTests(unittest.TestCase):
             "submission_id": "openclaw-evidence-1", "response": response,
             "execution_evidence": evidence,
         }
-        result = self.request("/api/worker/result", submission, headers)
+        try:
+            result = self.request("/api/worker/result", submission, headers)
+        except urllib.error.HTTPError as error:
+            task_debug = self.s.store.task(pid, "OPS-101")
+            events_debug = [event["event_type"] for event in self.s.store.events(pid)]
+            self.fail(f"remote execution evidence submission failed HTTP {error.code}; state={task_debug['state']}; findings={task_debug.get('findings')}; artifact_kinds={[a.get('kind') for a in task_debug.get('artifacts', [])]}; events={events_debug}")
         self.assertEqual(result["state"], "review_ready")
         task = self.s.store.task(pid, "OPS-101")
         execution_artifacts = [item for item in task["artifacts"] if item["kind"] == "execution"]
