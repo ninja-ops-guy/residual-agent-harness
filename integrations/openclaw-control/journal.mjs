@@ -98,5 +98,12 @@ export class Journal {
     requireThat(Number.isSafeInteger(after) && after >= 0 && Number.isSafeInteger(limit) && limit >= 1 && limit <= 100, 'SCHEMA_INVALID');
     return this.db.prepare('SELECT seq AS sequence,body,digest AS sha256,previous AS previous_sha256 FROM events WHERE seq>? ORDER BY seq LIMIT ?').all(after, limit).map(r => ({...r}));
   }
+  head() {
+    this.fence();
+    return {
+      sequence: Number(this.getMeta('event_sequence') || '0'),
+      sha256: this.getMeta('event_tip') || '0'.repeat(64),
+    };
+  }
   close() { this.db.close(); }
 }
