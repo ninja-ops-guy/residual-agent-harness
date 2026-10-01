@@ -138,7 +138,7 @@ function makeState(work){
 function evidenceEnvelope(state,identity,status,response,tip){
   const work=state.work;
   return {schema:REMOTE_EVIDENCE_SCHEMA,engine_name:'openclaw-control',engine_version:identity.plugin_version,
-    host_version:identity.host_version,runtime_id:identity.runtime_id,instance_id:identity.instance_id,
+    host_version:identity.host_version,runtime_id:identity.runtime_id,instance_id:status.instance_id??identity.instance_id,
     operation_id:state.operation_id,project_id:work.project_id,task_id:work.task_id,attempt:work.attempt,
     station_packet_sha256:sha256(Buffer.from(canonical(work.packet))),command_input_sha256:status.input_sha256,
     station_response_sha256:sha256(Buffer.from(canonical(response))),runtime_output_sha256:status.output_sha256??null,
