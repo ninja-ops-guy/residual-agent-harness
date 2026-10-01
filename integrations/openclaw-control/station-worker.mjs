@@ -112,7 +112,7 @@ export function normalizeCandidate(text,writable){
   return {files:value.files};
 }
 async function sleep(ms){await new Promise(resolve=>setTimeout(resolve,ms));}
-async function evidenceDelta(controller,startHead,endHead){
+export async function evidenceDelta(controller,startHead,endHead){
   requireThat(startHead&&Number.isSafeInteger(startHead.sequence)&&typeof startHead.sha256==='string','EVIDENCE_HEAD_INVALID');
   requireThat(endHead&&Number.isSafeInteger(endHead.sequence)&&typeof endHead.sha256==='string','EVIDENCE_HEAD_INVALID');
   requireThat(endHead.sequence>=startHead.sequence,'EVIDENCE_ROLLBACK');
