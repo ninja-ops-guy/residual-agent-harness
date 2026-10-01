@@ -42,7 +42,7 @@ export function register(api) {
       if(!managed(ctx)) return;
       if(name==='llm_output' && plane && plane.journal.all().some(r=>r.session_key===ctx?.sessionKey && ['INVOCATION_STARTED','RUNNING'].includes(r.state)) && typeof ctx?.sessionKey==='string' && Array.isArray(event.assistantTexts)) {
         const text=event.assistantTexts.filter(x=>typeof x==='string').join('\n');
-        if(Buffer.byteLength(text)<=32768 && outputs.size<100) outputs.set(ctx.sessionKey,{text,provider:event.provider,model:event.model,runId:event.runId});
+        if(Buffer.byteLength(text)<=262144 && outputs.size<100) outputs.set(ctx.sessionKey,{text,provider:event.provider,model:event.model,runId:event.runId});
       }
       plane?.observe(`openclaw.${name}`,event,ctx);
     });
