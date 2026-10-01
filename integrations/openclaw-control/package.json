@@ -1,6 +1,6 @@
 {
   "name": "@residual/openclaw-control",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "type": "module",
   "description": "RESIDUAL OpenClaw signed control-plane candidate; live qualification required",
@@ -15,7 +15,7 @@
     "test"
   ],
   "scripts": {
-    "test": "node --test --test-reporter=tap test/control.test.mjs test/plugin.test.mjs test/station-worker.test.mjs test/lifecycle-contract.test.mjs",
+    "test": "node --test --test-reporter=tap test/control.test.mjs test/plugin.test.mjs test/station-worker.test.mjs test/lifecycle-contract.test.mjs test/qualification-contract.test.mjs",
     "qualify": "node qualify.mjs"
   },
   "openclaw": {
