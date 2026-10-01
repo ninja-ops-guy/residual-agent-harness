@@ -35,13 +35,13 @@ const receipt={schema:'residual.openclaw.software-qualification.v1',
   result:pass?'SOFTWARE_COMPONENT_PASS':'SOFTWARE_COMPONENT_FAIL',
   observed_at:new Date().toISOString(),environment:{node:process.version,platform:process.platform,arch:process.arch},
   base:{head:'8369f0dc2a93d8dcb194220b85b9aaf87d1d6df2',tree:'7cd0d32be6fd61948f2fce753b122e5b6f0c6500'},
-  scope:'Addition-only isolated package; not the RESIDUAL full suite or installed OpenClaw',
+  scope:'OpenClaw control plus Station-bridge software candidate; not installed OpenClaw, live-provider, or physical lifecycle qualification',
   source_files:before,source_set_sha256:sha256(Buffer.from(canonical(before))),syntax,
   tests:{...counts,required_floor:REQUIRED_TESTS,exit_code:run.status,log_sha256:sha256(Buffer.from(log))},
   first_failure:pass?null:syntax.find(row=>row.exit_code!==0)?.file ||
     (Object.values(counts).some(n=>n<0)?'TEST_REPORT_FORMAT_INVALID':
       (counts.skipped!==0||counts.todo!==0||counts.pass!==counts.tests||counts.tests<REQUIRED_TESTS?'MANDATORY_TEST_COVERAGE_INCOMPLETE':'TEST_OR_SOURCE_STABILITY_FAILURE')),
-  native_openclaw:'NOT_EXECUTED',live_provider:'NOT_EXECUTED',station_integration:'NOT_IMPLEMENTED',
+  native_openclaw:'NOT_EXECUTED',live_provider:'NOT_EXECUTED',station_integration:'SOFTWARE_IMPLEMENTED_NOT_NATIVE_QUALIFIED',
   external_restart:'NOT_IMPLEMENTED',native_cancel:'NOT_IMPLEMENTED',independent_review:'NOT_OBTAINED',
   release_admissible:false,release_result:'BLOCKED',promotion_authority:false};
 writeFileSync(join(out,'receipt.json'),JSON.stringify(receipt,null,2)+'\n',{mode:0o600});
