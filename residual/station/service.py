@@ -40,7 +40,7 @@ _REMOTE_EXECUTION_EVIDENCE_SCHEMA = "residual.remote_execution_evidence.v1"
 _REMOTE_EXECUTION_STATES = {"COMPLETED", "FAILED", "INDETERMINATE", "REVOKED", "CANCELLED"}
 
 
-def _validate_remote_execution_evidence(value, *, packet, project_id, task_id, attempt, response):
+def _validate_remote_execution_evidence(value, *, packet_sha256, project_id, task_id, attempt, response):
     """Validate worker runtime evidence without granting it authority.
 
     The record is provenance only. Station checks, review, receipts and
@@ -269,6 +269,7 @@ class Station:
                       "repair_findings": t["findings"], "prior_candidate_files": prior_candidate_files,
                       "spec_hash": p["spec_hash"], "base_commit": base,
                       "parent_receipts": parent_receipts}
+            self.store.update_task(pid, t["id"], packet_sha256=sha(packet))
             return {"task": t, "packet": packet, "lease": t["lease"], "project_id": pid}
 
     def finish(self, work, response, usage=None, execution_evidence=None):
@@ -284,7 +285,7 @@ class Station:
                     raise ContractError("Runner response must contain exactly the files object")
                 if execution_evidence is not None:
                     evidence = _validate_remote_execution_evidence(
-                        execution_evidence, packet=work["packet"], project_id=pid,
+                        execution_evidence, packet_sha256=current.get("packet_sha256"), project_id=pid,
                         task_id=t["id"], attempt=t["attempt"], response=response,
                     )
                     evidence_artifact = self.store.add_artifact(
