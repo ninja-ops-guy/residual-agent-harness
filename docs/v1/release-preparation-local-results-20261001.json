@@ -1,0 +1,63 @@
+{
+  "schema": "residual.release-preparation.local-evidence.v1",
+  "observed_at_utc": "2026-10-01T11:54:22.587278+00:00",
+  "parent_pr": 486,
+  "parent_head": "9a247e313015a7daeee8aba089221b54debcf395",
+  "accepted_main": "8369f0dc2a93d8dcb194220b85b9aaf87d1d6df2",
+  "python": "3.13.5",
+  "environment": "Linux x86_64 ephemeral tool workspace",
+  "scope": "Exact three connector-fetched baseline files, independently blob-hash checked; not a full repository clone",
+  "baseline_blobs": {
+    "scripts/validate_release_receipt.py": "c38dcbd56235432b8c2f42c3cf6c162231b40513",
+    "tests/test_release_receipt_binding.py": "b0868cc025a31b1e3c43c7cc83f45bd082708332",
+    "V1_RELEASE_GATES.json": "5a1420639ce99375b756c4d9ae9da71b717a3b0a"
+  },
+  "tested_blobs": {
+    "scripts/validate_release_receipt.py": "1646fc70c5153af0207ef2e7f429e4c7c4792c69",
+    "tests/test_release_receipt_preclosure.py": "65ae0080fdcf6f55b59e8b7549387a1b8fcfbf56"
+  },
+  "cli_differential": {
+    "baseline": {
+      "mismatched_expected_rc_source": {
+        "returncode": 0,
+        "stdout": "PASS: release receipt RC/artifact-set/final-tag binding verified\n",
+        "stderr": ""
+      },
+      "duplicate_go_no_go_key": {
+        "returncode": 0,
+        "stdout": "PASS: release receipt RC/artifact-set/final-tag binding verified\n",
+        "stderr": ""
+      }
+    },
+    "work": {
+      "mismatched_expected_rc_source": {
+        "returncode": 1,
+        "stdout": "FAIL: receipt RC source does not equal externally selected RC source\n",
+        "stderr": ""
+      },
+      "duplicate_go_no_go_key": {
+        "returncode": 1,
+        "stdout": "FAIL: duplicate JSON object key\n",
+        "stderr": ""
+      }
+    }
+  },
+  "log_sha256": {
+    "baseline-existing-tests.log": "aa149d78ac0a56b2bee350fdacebadc37029ef394aac44203186aa54606ff494",
+    "final-corpus-original-source.log": "6c46fd26912dec9b5783cb5785dac33e6f9813c100f37b8cebd2a00797892ddd",
+    "final-local-34-tests.log": "880497b6c91ebeffc0e401e6a65e15f5397f5f78b3ce8725003c22fd13c7c90b",
+    "first-failure-preclosure.log": "f25d7f918b09ca4cebf5b5da9470e63728935b9ed5f54b61560a992ef30f666c",
+    "repaired-expanded-tests.log": "0b1d1e76f76df4e3208148ebcc636b1c139bbb662ca45187e5ef69fde0cb89da",
+    "repaired-tests.log": "8d115d797cfb6106ef6438b5411ce1497ba6fd514cd56e847eb9bf887fafd9bc"
+  },
+  "synthetic_only": true,
+  "full_repository_local_qualification": false,
+  "release_authority": false,
+  "physical_tests_executed": false,
+  "tests": {
+    "baseline_existing": {"tests": 18, "outcome": "PASS"},
+    "first_new_corpus": {"tests": 14, "failure_entries_including_subtests": 29, "error_entries": 3, "outcome": "FAIL"},
+    "final_new_corpus_on_original_source": {"tests": 16, "failure_entries_including_subtests": 31, "error_entries": 3, "outcome": "FAIL"},
+    "final_repaired": {"tests": 34, "failures": 0, "errors": 0, "skips": 0, "outcome": "PASS"}
+  }
+}

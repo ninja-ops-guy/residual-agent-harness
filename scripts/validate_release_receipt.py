@@ -9,7 +9,10 @@ perform Git signature verification, artifact hashing from external files, or
 human authorization. For V1_CLOSED it requires trusted expected RC source/tree
 and the complete expected artifact-name -> SHA-256 mapping from the caller so
 internally consistent self-reported identities cannot substitute for the
-selected release identity or silently add/drop release artifacts.
+selected release identity or silently add/drop release artifacts. Any explicitly
+supplied expected identity is enforced in EVERY phase, including PRE_CLOSURE and
+ROLLED_BACK. Omitting expectations before closure checks internal consistency
+only. The CLI rejects ambiguous/non-finite/oversized JSON before validation.
 """
 
 from __future__ import annotations
@@ -17,6 +20,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import re
 from pathlib import Path
 from typing import Any
@@ -30,6 +34,8 @@ RC_TAG = re.compile(r"^v1\.0\.0-rc\.[1-9][0-9]*$")
 FINAL_TAG = "v1.0.0"
 CLOSURE_STATES = {"PRE_CLOSURE", "V1_CLOSED", "ROLLED_BACK"}
 REQUIRED_GATES = {f"V1-G{i:02d}" for i in range(1, 11)}
+MAX_RECEIPT_BYTES = 4 * 1024 * 1024
+MAX_INTEGER_DIGITS = 4096
 
 
 class ReceiptBindingError(ValueError):
@@ -115,6 +121,40 @@ def _validate_artifact_binding(doc: dict[str, Any], artifact_map: dict[str, str]
     return bound
 
 
+def _validate_expected_binding(
+    rc_source: str,
+    rc_tree: str,
+    artifacts: dict[str, str],
+    expected_rc_source: str | None,
+    expected_rc_tree: str | None,
+    expected_artifacts: dict[str, str] | None,
+) -> None:
+    """Honor each explicit caller constraint before any phase-specific return.
+
+    These inputs must come from separately trusted selection/qualification data.
+    Comparing self-reported values does not authenticate a release.
+    """
+    if expected_rc_source is not None:
+        expected_rc_source = _hex(expected_rc_source, "expected_rc_source", HEX40)
+        if rc_source != expected_rc_source:
+            raise ReceiptBindingError("receipt RC source does not equal externally selected RC source")
+    if expected_rc_tree is not None:
+        expected_rc_tree = _hex(expected_rc_tree, "expected_rc_tree", HEX40)
+        if rc_tree != expected_rc_tree:
+            raise ReceiptBindingError("receipt RC tree does not equal externally selected RC tree")
+    if expected_artifacts is not None:
+        expected = _mapping(expected_artifacts, "expected_artifacts")
+        if not expected:
+            raise ReceiptBindingError("expected_artifacts must contain the selected artifact set")
+        normalized: dict[str, str] = {}
+        for name, digest in expected.items():
+            if not isinstance(name, str) or not name.strip():
+                raise ReceiptBindingError("expected artifact name must be non-empty")
+            normalized[name] = _hex(digest, f"expected artifact {name}", HEX64)
+        if artifacts != normalized:
+            raise ReceiptBindingError("receipt artifact set does not equal externally selected qualified artifact set")
+
+
 def _closed_prerequisites(doc: dict[str, Any]) -> None:
     decisions = doc.get("decisions")
     if not isinstance(decisions, list):
@@ -123,10 +163,10 @@ def _closed_prerequisites(doc: dict[str, Any]) -> None:
     for entry in decisions:
         gate = _mapping(entry, "decision").get("gate_id")
         state = entry.get("state")
-        if gate in seen:
-            raise ReceiptBindingError(f"duplicate release gate decision: {gate}")
         if not isinstance(gate, str):
             raise ReceiptBindingError("release gate decision missing gate_id")
+        if gate in seen:
+            raise ReceiptBindingError(f"duplicate release gate decision: {gate}")
         seen[gate] = state
     if set(seen) != REQUIRED_GATES:
         missing = sorted(REQUIRED_GATES - set(seen))
@@ -159,6 +199,7 @@ def validate_binding(
     expected_rc_tree: str | None = None,
     expected_artifacts: dict[str, str] | None = None,
 ) -> None:
+    doc = _mapping(doc, "receipt root")
     if doc.get("schema_version") != "residual.release-receipt.v1":
         raise ReceiptBindingError("unsupported schema_version")
     if doc.get("release") != "v1.0.0":
@@ -197,8 +238,13 @@ def validate_binding(
 
     closure = _mapping(doc.get("closure"), "closure")
     closure_state = closure.get("state")
-    if closure_state not in CLOSURE_STATES:
+    if not isinstance(closure_state, str) or closure_state not in CLOSURE_STATES:
         raise ReceiptBindingError("closure.state is invalid")
+
+    _validate_expected_binding(
+        rc_source_commit, rc_source_tree, bound_artifacts,
+        expected_rc_source, expected_rc_tree, expected_artifacts,
+    )
 
     final_tag = doc.get("final_tag")
     if final_tag is None:
@@ -226,23 +272,6 @@ def validate_binding(
         _closed_prerequisites(doc)
         if expected_rc_source is None or expected_rc_tree is None or expected_artifacts is None:
             raise ReceiptBindingError("V1_CLOSED requires trusted expected RC source/tree/artifact-set inputs")
-        expected_rc_source = _hex(expected_rc_source, "expected_rc_source", HEX40)
-        expected_rc_tree = _hex(expected_rc_tree, "expected_rc_tree", HEX40)
-        if rc_source_commit != expected_rc_source:
-            raise ReceiptBindingError("receipt RC source does not equal externally selected RC source")
-        if rc_source_tree != expected_rc_tree:
-            raise ReceiptBindingError("receipt RC tree does not equal externally selected RC tree")
-
-        normalized_expected: dict[str, str] = {}
-        for name, digest in expected_artifacts.items():
-            if not isinstance(name, str) or not name:
-                raise ReceiptBindingError("expected artifact name must be non-empty")
-            if name in normalized_expected:
-                raise ReceiptBindingError(f"duplicate expected artifact name: {name}")
-            normalized_expected[name] = _hex(digest, f"expected artifact {name}", HEX64)
-
-        if bound_artifacts != normalized_expected:
-            raise ReceiptBindingError("receipt artifact set does not equal externally selected qualified artifact set")
 
 
 def _parse_expected_artifacts(values: list[str]) -> dict[str, str]:
@@ -257,6 +286,56 @@ def _parse_expected_artifacts(values: list[str]) -> dict[str, str]:
     return result
 
 
+def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    obj: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in obj:
+            # Do not echo arbitrary input keys or values into operator logs.
+            raise ReceiptBindingError("duplicate JSON object key")
+        obj[key] = value
+    return obj
+
+
+def _reject_constant(_value: str) -> Any:
+    raise ReceiptBindingError("non-finite JSON number")
+
+
+def _bounded_integer(value: str) -> int:
+    if len(value.lstrip("-")) > MAX_INTEGER_DIGITS:
+        raise ReceiptBindingError("receipt JSON integer exceeds digit limit")
+    return int(value)
+
+
+def _finite_float(value: str) -> float:
+    parsed = float(value)
+    if not math.isfinite(parsed):
+        raise ReceiptBindingError("non-finite JSON number")
+    return parsed
+
+
+def load_receipt(path: Path) -> dict[str, Any]:
+    """Bound input before allocation by the parser; reject ambiguous JSON."""
+    with path.open("rb") as stream:
+        raw = stream.read(MAX_RECEIPT_BYTES + 1)
+    if len(raw) > MAX_RECEIPT_BYTES:
+        raise ReceiptBindingError(f"receipt exceeds {MAX_RECEIPT_BYTES} bytes")
+    try:
+        doc = json.loads(
+            raw.decode("utf-8"), object_pairs_hook=_unique_object,
+            parse_constant=_reject_constant, parse_float=_finite_float,
+            parse_int=_bounded_integer,
+        )
+    except (ReceiptBindingError, json.JSONDecodeError):
+        raise
+    except UnicodeError as exc:
+        raise ReceiptBindingError("receipt must be UTF-8") from exc
+    except RecursionError as exc:
+        raise ReceiptBindingError("receipt nesting exceeds parser limit") from exc
+    except ValueError as exc:
+        raise ReceiptBindingError("receipt contains an invalid JSON value") from exc
+    return _mapping(doc, "receipt root")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("receipt", type=Path)
@@ -265,9 +344,7 @@ def main() -> int:
     parser.add_argument("--expected-artifact", action="append", default=[], metavar="NAME=SHA256")
     args = parser.parse_args()
     try:
-        doc = json.loads(args.receipt.read_text(encoding="utf-8"))
-        if not isinstance(doc, dict):
-            raise ReceiptBindingError("receipt root must be an object")
+        doc = load_receipt(args.receipt)
         expected_artifacts = _parse_expected_artifacts(args.expected_artifact) if args.expected_artifact else None
         validate_binding(
             doc,
@@ -278,7 +355,8 @@ def main() -> int:
     except (OSError, json.JSONDecodeError, ReceiptBindingError) as exc:
         print(f"FAIL: {exc}")
         return 1
-    print("PASS: release receipt RC/artifact-set/final-tag binding verified")
+    print("PASS: release receipt RC/artifact-set/final-tag binding verified; "
+          "structural binding only, not release authorization")
     return 0
 
 
