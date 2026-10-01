@@ -116,17 +116,17 @@ export async function evidenceDelta(controller,startHead,endHead){
   requireThat(startHead&&Number.isSafeInteger(startHead.sequence)&&typeof startHead.sha256==='string','EVIDENCE_HEAD_INVALID');
   requireThat(endHead&&Number.isSafeInteger(endHead.sequence)&&typeof endHead.sha256==='string','EVIDENCE_HEAD_INVALID');
   requireThat(endHead.sequence>=startHead.sequence,'EVIDENCE_ROLLBACK');
-  let previous={sequence:startHead.sequence,sha256:startHead.sha256};let after=startHead.sequence;let total=0;
+  let previous={sequence:startHead.sequence,sha256:startHead.sha256};let after=startHead.sequence;let total=0;const observations=[];
   while(after<endHead.sequence){
     const page=await controller.command('evidence.read',{after,limit:100});
     requireThat(page&&Array.isArray(page.events)&&page.events.length>0,'EVIDENCE_GAP');
     for(const row of page.events){
-      verifyEvidence(row,previous);previous=row;after=row.sequence;total++;
+      const body=verifyEvidence(row,previous);observations.push({type:body.type,instance_id:body.instance_id});previous=row;after=row.sequence;total++;
       requireThat(total<=10000&&after<=endHead.sequence,'EVIDENCE_RANGE_INVALID');
     }
   }
   requireThat(previous.sequence===endHead.sequence&&previous.sha256===endHead.sha256,'EVIDENCE_TIP_MISMATCH');
-  return {sequence:previous.sequence,sha256:previous.sha256,count:total};
+  return {sequence:previous.sequence,sha256:previous.sha256,count:total,observations};
 }
 function makeState(work){
   requireThat(work&&typeof work==='object'&&!Array.isArray(work),'WORK_INVALID');
