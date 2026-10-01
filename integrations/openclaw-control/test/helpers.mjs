@@ -15,7 +15,7 @@ export function fixture(t,options={}) {
       if(decision?.outcome!=='pass')throw new Error('gate rejected');
       p.onRun('run-'+p.operationId);const probePrefix='Reply with exactly this string and no other text: ';
       return {text:p.prompt.startsWith(probePrefix)?p.prompt.slice(probePrefix.length):'result',provider:p.provider,model:p.model};},...options.host};
-  function open(){plane=new ControlPlane({directory,config,host,now:()=>time,monotonicNow:()=>mono,maxEvents:options.maxEvents??100000});return plane;}
+  function open(){plane=new ControlPlane({directory,config,host,now:options.now??(()=>time),monotonicNow:options.monotonicNow??(()=>mono),maxEvents:options.maxEvents??100000});return plane;}
   open();t.after(async()=>{try{plane.close();}finally{rmSync(directory,{recursive:true,force:true});}});
   const command=(action,body={},overrides={})=>({protocol:PROTOCOL,operation_id:randomUUID(),runtime_id:plane.runtimeId,
     instance_id:plane.identity().instance_id,config_digest:plane.identity().config_digest,

@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { ControlPlane } from './core.mjs';
+import { ControlPlane,nativeConversationAccess } from './core.mjs';
 import { canonical, sha256, requireThat, ControlError, MAX_WIRE_BYTES } from './protocol.mjs';
 import { ROUTE } from './route.mjs';
 export { ROUTE };
@@ -26,6 +26,10 @@ export function register(api) {
   let plane = null;
   const outputs = new Map();
   const pc = api.pluginConfig || {};
+  // api.on() returns void and full registration can still filter conversation hooks.
+  // Capture the host policy used at registration; a later opt-in cannot restore
+  // handlers that were never registered. This is a prerequisite, not qualification.
+  const guardsRegistered = api.id === 'residual-control' && api.registrationMode === 'full' && nativeConversationAccess(api.config);
   const managed = ctx => ctx?.agentId === pc.agentId ||
     (typeof ctx?.sessionKey === 'string' && ctx.sessionKey.startsWith(`agent:${pc.agentId}:`));
   requireThat(typeof api.registerService==='function' && typeof api.registerHttpRoute==='function' && typeof api.on==='function','SDK_UNSUPPORTED');
@@ -51,7 +55,8 @@ export function register(api) {
     requireThat(!plane,'ALREADY_STARTED');
     const rt=api.runtime;
     const current=()=>typeof rt.config?.current==='function' ? rt.config.current() : api.config;
-    const host={version:rt.version,config:current,harness:'subagent',guardsAvailable:api.registrationMode==='full',
+    const host={version:rt.version,config:current,harness:'subagent',
+      get guardsAvailable(){return guardsRegistered && nativeConversationAccess(current());},
       async dispatch(p){
         requireThat(typeof rt.subagent?.run==='function' && typeof rt.subagent?.waitForRun==='function','SDK_UNSUPPORTED');
         outputs.delete(p.sessionKey);

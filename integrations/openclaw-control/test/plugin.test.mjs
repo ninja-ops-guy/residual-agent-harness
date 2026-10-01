@@ -10,23 +10,44 @@ import { ControllerClient } from '../client.mjs';
 import { verifyEvidence,MAX_WIRE_BYTES } from '../protocol.mjs';
 
 // This is a native-API-shape fixture, NOT an installed OpenClaw gateway.
-async function setup(t,{version='2026.6.1',badOutput=false,registrationMode='full'}={}) {
+async function setup(t,{version='2026.6.1',badOutput=false,registrationMode='full',
+  plugins={entries:{'residual-control':{hooks:{allowConversationAccess:true}}}},beforeOutput}={}) {
   const stateDir=mkdtempSync(join(tmpdir(),'oc-plugin-'));
-  const keys=generateKeyPairSync('ed25519');const hooks={};let service,route,active,calls=0;
+  const keys=generateKeyPairSync('ed25519');const hooks={},errors=[];let service,route,active,calls=0;
   const token='fixture-only-not-a-real-token';
-  const api={registrationMode,pluginConfig:{runtimeId:'fixture-runtime',agentId:'residual-worker',
+  const api={id:'residual-control',registrationMode,pluginConfig:{runtimeId:'fixture-runtime',agentId:'residual-worker',
     controllerKeys:{owner:keys.publicKey.export({type:'spki',format:'pem'})},controlEnabled:true,hostVersions:['2026.6.1']},
-    config:{agents:{list:[{id:'residual-worker',model:'test/model'}]}},
-    on(name,handler){hooks[name]=handler;},registerService(value){service=value;},registerHttpRoute(value){route=value;},runtime:{version}};
+    config:{agents:{list:[{id:'residual-worker',model:'test/model'}]},plugins},
+    // Mirrors the external-plugin conversation policy in OpenClaw v2026.6.1
+    // src/plugins/registry.ts. api.on returns no registration acknowledgement.
+    on(name,handler){
+      if(['before_agent_run','llm_input','llm_output','agent_end'].includes(name) &&
+        !effectiveConversationAccess)return;
+      hooks[name]=handler;
+    },registerService(value){service=value;},registerHttpRoute(value){route=value;},runtime:{version}};
+  // The host passes raw api.config but normalized entry.hooks to its registrar.
+  // Model v2026.6.1's relevant rules: trim unknown IDs, merge duplicate entries,
+  // and replace the previous hooks object when a later boolean policy is present.
+  const normalizedEntries={};
+  for(const [key,entry] of Object.entries(api.config.plugins?.entries??{})){
+    const id=key.trim();if(!id)continue;
+    if(!entry || typeof entry!=='object' || Array.isArray(entry)){normalizedEntries[id]={};continue;}
+    const hooks=entry.hooks;
+    const normalizedHooks=hooks && typeof hooks==='object' && !Array.isArray(hooks)
+      ? Object.fromEntries(['allowConversationAccess','allowPromptInjection'].filter(k=>typeof hooks[k]==='boolean').map(k=>[k,hooks[k]])) : {};
+    normalizedEntries[id]={hooks:Object.keys(normalizedHooks).length?normalizedHooks:normalizedEntries[id]?.hooks};
+  }
+  const effectiveConversationAccess=normalizedEntries[api.id]?.hooks?.allowConversationAccess===true;
   api.runtime.config={current:()=>api.config};
   api.runtime.subagent={run:async p=>{
     calls++;const ctx={agentId:'residual-worker',sessionKey:p.sessionKey};
-    assert.equal(p.deliver,false);assert.equal(hooks.before_agent_run({prompt:p.message},ctx).outcome,'pass');
+    assert.equal(p.deliver,false);
+    if(hooks.before_agent_run)assert.equal(hooks.before_agent_run({prompt:p.message},ctx).outcome,'pass');
     assert.equal(hooks.before_tool_call({toolName:'exec'},ctx).block,true);
     active={runId:'native-fixture-run',p,ctx};return {runId:active.runId};},
-    waitForRun:async()=>{hooks.llm_output({runId:badOutput?'wrong-run':active.runId,provider:'test',model:'model',assistantTexts:['fixture response']},active.ctx);return {status:'ok'};}};
+    waitForRun:async()=>{await beforeOutput?.(api);hooks.llm_output?.({runId:badOutput?'wrong-run':active.runId,provider:'test',model:'model',assistantTexts:['fixture response']},active.ctx);return {status:'ok'};}};
   plugin.register(api);assert(!existsSync(join(stateDir,'residual-control')),'registration must not write state');
-  const beforeStart=hooks.before_agent_run({prompt:'unsigned'},{agentId:'residual-worker'});assert.equal(beforeStart.outcome,'block');
+  if(hooks.before_agent_run){const beforeStart=hooks.before_agent_run({prompt:'unsigned'},{agentId:'residual-worker'});assert.equal(beforeStart.outcome,'block');}
   await service.start({stateDir,config:api.config,logger:console});
   assert.equal(route.auth,'gateway');assert.equal(route.match,'exact');
   const server=createServer((req,res)=>{
@@ -37,8 +58,12 @@ async function setup(t,{version='2026.6.1',badOutput=false,registrationMode='ful
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const endpoint=`http://127.0.0.1:${server.address().port}`;
   t.after(async()=>{await service.stop();await new Promise(resolve=>server.close(resolve));rmSync(stateDir,{recursive:true,force:true});});
-  const client=new ControllerClient({endpoint,token,privateKey:keys.privateKey,keyId:'owner'});
-  return {api,hooks,route,service,client,endpoint,token,get calls(){return calls;}};
+  const client=new ControllerClient({endpoint,token,privateKey:keys.privateKey,keyId:'owner',fetchImpl:async(...args)=>{
+    const response=await fetch(...args);
+    if(response.status!==200)errors.push((await response.clone().json()).error?.code);
+    return response;
+  }});
+  return {api,hooks,errors,route,service,client,endpoint,token,get calls(){return calls;}};
 }
 async function finish(client,id){
   for(let i=0;i<30;i++){
@@ -65,6 +90,82 @@ test('native output with another run ID cannot become a completed result',async 
 test('native hook policy that is not full stays observation-only',async t=>{
   const f=await setup(t,{registrationMode:'external'});assert.equal((await f.client.inspect()).compatibility,'OBSERVE_ONLY');
   await assert.rejects(f.client.command('lease.renew',{}));assert.equal(f.calls,0);
+});
+const deniedHookPolicies=[
+  ['missing plugins',undefined],
+  ['missing own entry',{entries:{}}],
+  ['missing hooks',{entries:{'residual-control':{}}}],
+  ['omitted opt-in',{entries:{'residual-control':{hooks:{}}}}],
+  ['explicit false',{entries:{'residual-control':{hooks:{allowConversationAccess:false}}}}],
+  ['truthy string',{entries:{'residual-control':{hooks:{allowConversationAccess:'true'}}}}],
+  ['another plugin opt-in',{entries:{other:{hooks:{allowConversationAccess:true}}}}],
+];
+for(const [label,plugins] of deniedHookPolicies)for(const action of ['dispatch.submit','provider.probe']) {
+  test(`full registration with ${label} rejects ${action} before native invocation`,async t=>{
+    // null also represents the absent optional plugins object without setup's default.
+    const f=await setup(t,{plugins:plugins??null});
+    assert.equal(f.hooks.before_agent_run,undefined);assert.equal(f.hooks.llm_output,undefined);
+    const lease=await f.client.command('lease.renew',{}).catch(error=>error);
+    const body={provider:'test',model:'model',timeout_ms:1000,...(action==='dispatch.submit'?{prompt:'fixture task'}:{})};
+    const result=await f.client.command(action,body).catch(error=>error);
+    assert.equal(f.calls,0,'No native run may start when its conversation admission hook was filtered out');
+    assert.equal(lease.code,'CONTROL_REQUEST_FAILED');assert.equal(result.code,'CONTROL_REQUEST_FAILED');
+    assert.deepEqual(f.errors,['OBSERVE_ONLY','OBSERVE_ONLY']);
+    const identity=await f.client.inspect();assert.equal(identity.compatibility,'OBSERVE_ONLY');
+    assert.equal(identity.capabilities.signed_dispatch,false);assert.equal(identity.capabilities.provider_probe,false);
+  });
+}
+for(const [label,entries] of [
+  ['later trimmed-key denial',{'residual-control':{hooks:{allowConversationAccess:true}},' residual-control ':{hooks:{allowConversationAccess:false}}}],
+  ['later trimmed-key hook replacement',{'residual-control':{hooks:{allowConversationAccess:true}},' residual-control ':{hooks:{allowPromptInjection:false}}}],
+  ['later trimmed-key malformed entry',{'residual-control':{hooks:{allowConversationAccess:true}},' residual-control ':null}],
+])for(const action of ['dispatch.submit','provider.probe']){
+  test(`${label} blocks ${action} before native invocation`,async t=>{
+    const f=await setup(t,{plugins:{entries}});
+    assert.equal(f.hooks.before_agent_run,undefined);assert.equal(f.hooks.llm_output,undefined);
+    await f.client.command('lease.renew',{}).catch(()=>{});
+    await f.client.command(action,action==='provider.probe'?{provider:'test',model:'model',timeout_ms:1000}:{provider:'test',model:'model',timeout_ms:1000,prompt:'fixture task'}).catch(()=>{});
+    assert.equal(f.calls,0,'Raw opt-in cannot override the native normalized hook denial');
+    assert.deepEqual(f.errors,['OBSERVE_ONLY','OBSERVE_ONLY']);
+  });
+}
+test('ambiguous equivalent entry names remain denied even when both opt in',async t=>{
+  const f=await setup(t,{plugins:{entries:{' residual-control ':{hooks:{allowConversationAccess:true}},'residual-control':{hooks:{allowConversationAccess:true}}}}});
+  assert.equal((await f.client.inspect()).compatibility,'OBSERVE_ONLY');
+  await assert.rejects(f.client.command('lease.renew',{}));assert.equal(f.calls,0);
+});
+test('adding a normalized-key collision fences current and in-flight authority',async t=>{
+  const f=await setup(t,{beforeOutput:api=>{api.config.plugins.entries[' residual-control ']={hooks:{allowConversationAccess:false}};}});
+  await f.client.command('lease.renew',{});
+  const r=await f.client.command('dispatch.submit',{provider:'test',model:'model',timeout_ms:1000,prompt:'fixture task'});
+  const result=await finish(f.client,r.operation_id);assert.equal(result.state,'INDETERMINATE');assert.equal(result.reason,'CONFIG_DRIFT');
+  const identity=await f.client.inspect();assert.equal(identity.compatibility,'OBSERVE_ONLY');assert.equal(identity.config_state,'DRIFT_DETECTED');
+});
+test('later opt-in cannot enable hooks omitted at registration',async t=>{
+  const f=await setup(t,{plugins:{entries:{}}});
+  f.api.config.plugins.entries['residual-control']={hooks:{allowConversationAccess:true}};
+  assert.equal((await f.client.inspect()).compatibility,'OBSERVE_ONLY');
+  await assert.rejects(f.client.command('lease.renew',{}),error=>error.code==='CONTROL_REQUEST_FAILED');
+  assert.deepEqual(f.errors,['OBSERVE_ONLY']);assert.equal(f.calls,0);
+});
+test('current hook-policy revocation fences both dispatch and provider probe',async t=>{
+  const f=await setup(t);await f.client.command('lease.renew',{});
+  f.api.config.plugins.entries['residual-control'].hooks.allowConversationAccess=false;
+  const identity=await f.client.inspect();assert.equal(identity.compatibility,'OBSERVE_ONLY');
+  assert.equal(identity.config_state,'DRIFT_DETECTED');
+  for(const action of ['dispatch.submit','provider.probe']){
+    const body={provider:'test',model:'model',timeout_ms:1000,...(action==='dispatch.submit'?{prompt:'fixture task'}:{})};
+    await assert.rejects(f.client.command(action,body),error=>error.code==='CONTROL_REQUEST_FAILED');
+  }
+  assert.deepEqual(f.errors,['OBSERVE_ONLY','OBSERVE_ONLY']);assert.equal(f.calls,0);
+});
+test('hook-policy revocation while running prevents result admission',async t=>{
+  const f=await setup(t,{beforeOutput:api=>{api.config.plugins.entries['residual-control'].hooks.allowConversationAccess=false;}});
+  await f.client.command('lease.renew',{});
+  const r=await f.client.command('dispatch.submit',{provider:'test',model:'model',timeout_ms:1000,prompt:'fixture task'});
+  const result=await finish(f.client,r.operation_id);
+  assert.equal(f.calls,1);assert.equal(result.state,'INDETERMINATE');assert.equal(result.reason,'CONFIG_DRIFT');
+  assert.equal(result.output_sha256,undefined);
 });
 test('unknown native runtime stays observation-only over real HTTP',async t=>{
   const f=await setup(t,{version:'unsupported'});assert.equal((await f.client.inspect()).compatibility,'OBSERVE_ONLY');
