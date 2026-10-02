@@ -1,6 +1,6 @@
-# RESIDUAL OpenClaw Control — 0.1.0 candidate
+# RESIDUAL OpenClaw Control — 0.2.1 candidate
 
-**P1 v1 target; software-component candidate, NOT v1-qualified.** This addition-only package implements a native OpenClaw plugin and an external signing client. It does not change accepted main, Station databases, existing agents, credentials, or release rules. Do not deploy to an existing seat merely because package tests pass.
+**P1 v1 target; composed software candidate, NOT v1-qualified.** This 0.2.1 successor includes the native OpenClaw plugin and external signing client plus the bounded Station remote-worker/lifecycle integration inherited from the #501 → #507 stack. It does not change accepted main, existing agents, credentials, or release rules, and OpenClaw does not gain Station acceptance authority. Release qualification must evaluate the composed Station + OpenClaw tree; do not deploy to an existing seat merely because package tests pass.
 
 ## What is implemented
 
