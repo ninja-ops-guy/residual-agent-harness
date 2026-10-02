@@ -1,5 +1,6 @@
-// Pure lifecycle action-plan and verification contracts.
+// Pure lifecycle action-plan and capture-consistency contracts.
 // This module never starts/stops processes. Execution belongs to an authorized external operator/supervisor.
+// Caller-supplied CLI/runtime captures are not independent physical proof. There is no VERIFIED path.
 import { canonical,sha256,requireThat,boundedText,ControlError } from './protocol.mjs';
 
 function exactObject(value,required,optional=[]){
@@ -8,7 +9,7 @@ function exactObject(value,required,optional=[]){
     Object.keys(value).every(k=>required.includes(k)||optional.includes(k)),'CAPTURE_INVALID');
 }
 function wsUrl(value){
-  const u=new URL(value);
+  let u;try{u=new URL(value);}catch{throw new ControlError('GATEWAY_URL_DENIED');}
   requireThat(['ws:','wss:'].includes(u.protocol)&&['127.0.0.1','[::1]','::1','localhost'].includes(u.hostname)&&
     !u.username&&!u.password&&!u.search&&!u.hash,'GATEWAY_URL_DENIED');
   return u.href.replace(/\/$/,'');
@@ -33,6 +34,18 @@ function identity(value){
     typeof value.evidence_head.sha256==='string'&&/^[a-f0-9]{64}$/.test(value.evidence_head.sha256),'IDENTITY_INVALID');
   return value;
 }
+function sameRuntime(b,a,code){
+  requireThat(['runtime_id','host_version','config_digest','plugin_source_sha256'].every(k=>b[k]===a[k]),code);
+  requireThat(a.evidence_head.sequence>=b.evidence_head.sequence&&
+    (a.evidence_head.sequence!==b.evidence_head.sequence||a.evidence_head.sha256===b.evidence_head.sha256),'EVIDENCE_HEAD_CONFLICT');
+}
+function unverified(action,reason){
+  return {schema:'residual.openclaw.lifecycle_receipt.v2',action,
+    result:action==='cancel'?'NATIVE_CANCEL_UNVERIFIED':'RESTART_UNVERIFIED',
+    capture_validation:'CONSISTENT',physical_outcome_verified:false,reason,
+    trust:'CALLER_SUPPLIED_CONTROL_CAPTURES',acceptance:'NOT_EVALUATED',qualification:'NOT_ESTABLISHED',
+    release_admissible:false,promotion_authority:false};
+}
 export function buildCancelPlan(status,gateway){
   requireThat(status&&['INVOCATION_STARTED','RUNNING'].includes(status.state),'CANCEL_TARGET_NOT_RUNNING');
   boundedText(status.operation_id,128);boundedText(status.session_key,512);boundedText(status.run_id,256);
@@ -49,19 +62,26 @@ export function buildCancelPlan(status,gateway){
     params_sha256:sha256(Buffer.from(params)),
   };
 }
-export function verifyCancel({plan,beforeIdentity,afterIdentity,beforeStatus,firstAbort,firstCli,revokedStatus,secondAbort,secondCli}){
+export function verifyCancel(input){
+  // Unknown proof/attestation flags cannot silently turn self-reports into trusted evidence.
+  exactObject(input,['plan','beforeIdentity','afterIdentity','beforeStatus','firstAbort','firstCli','revokedStatus','secondAbort','secondCli']);
+  const {plan,beforeIdentity,afterIdentity,beforeStatus,firstAbort,firstCli,revokedStatus,secondAbort,secondCli}=input;
   requireThat(plan?.schema==='residual.openclaw.lifecycle_plan.v1'&&plan.action==='cancel','PLAN_INVALID');
   const b=identity(beforeIdentity),a=identity(afterIdentity);
   requireThat(b.runtime_id===a.runtime_id&&b.instance_id===a.instance_id,'INSTANCE_CHANGED_DURING_CANCEL');
-  requireThat(beforeStatus.operation_id===plan.operation_id&&beforeStatus.run_id&&beforeStatus.session_key,'CANCEL_CAPTURE_MISMATCH');
+  sameRuntime(b,a,'CANCEL_IDENTITY_MISMATCH');
+  // Rebuild rather than trust the supplied digest: both abort commands must name this run/session.
+  const expectedPlan=buildCancelPlan(beforeStatus,plan.steps?.[0]?.argv?.[4]);
+  requireThat(canonical(plan)===canonical(expectedPlan),'CANCEL_CAPTURE_MISMATCH');
   const first=abortCapture(firstAbort),second=abortCapture(secondAbort);cliCapture(firstCli);cliCapture(secondCli);
   requireThat(first.aborted===true&&first.runIds.includes(beforeStatus.run_id),'NATIVE_CANCEL_NOT_OBSERVED');
-  requireThat(revokedStatus.operation_id===plan.operation_id&&revokedStatus.revoked===true&&revokedStatus.state==='REVOKED','REVOCATION_NOT_BOUND');
+  requireThat(revokedStatus?.operation_id===plan.operation_id&&revokedStatus.revoked===true&&revokedStatus.state==='REVOKED','REVOCATION_NOT_BOUND');
   requireThat(second.aborted===false&&!second.runIds.includes(beforeStatus.run_id),'NATIVE_CANCEL_NOT_SETTLED');
-  return {schema:'residual.openclaw.lifecycle_receipt.v1',action:'cancel',result:'NATIVE_CANCEL_VERIFIED',
+  // An abort ACK followed by absence may mean deregistration; it does not establish cessation.
+  return {...unverified('cancel','INDEPENDENT_NATIVE_CESSATION_PROOF_UNAVAILABLE'),
     operation_id:plan.operation_id,runtime_id:a.runtime_id,instance_id:a.instance_id,run_id:beforeStatus.run_id,
     session_key_sha256:sha256(Buffer.from(beforeStatus.session_key)),params_sha256:plan.params_sha256,
-    acceptance:'NOT_EVALUATED',qualification:'NOT_ESTABLISHED'};
+    plan_sha256:sha256(Buffer.from(canonical(plan)))};
 }
 export function buildRestartPlan(identityBefore,{wait='30s'}={}){
   identity(identityBefore);
@@ -72,25 +92,30 @@ export function buildRestartPlan(identityBefore,{wait='30s'}={}){
     argv:['gateway','restart','--safe','--wait',wait,'--json'],
     before:{runtime_id:identityBefore.runtime_id,instance_id:identityBefore.instance_id,
       config_digest:identityBefore.config_digest,plugin_source_sha256:identityBefore.plugin_source_sha256,
-      evidence_head:identityBefore.evidence_head}};
+      evidence_head:{...identityBefore.evidence_head}}};
 }
-export function verifyRestart({plan,beforeIdentity,afterIdentity,cli,evidenceDelta}){
+export function verifyRestart(input){
+  exactObject(input,['plan','beforeIdentity','afterIdentity','cli','evidenceDelta']);
+  const {plan,beforeIdentity,afterIdentity,cli,evidenceDelta}=input;
   requireThat(plan?.schema==='residual.openclaw.lifecycle_plan.v1'&&plan.action==='restart','PLAN_INVALID');
   const b=identity(beforeIdentity),a=identity(afterIdentity);cliCapture(cli);
-  requireThat(plan.before.runtime_id===b.runtime_id&&plan.before.instance_id===b.instance_id,'PLAN_STALE');
+  const expectedPlan=buildRestartPlan(b,{wait:plan.argv?.[4]});
+  requireThat(canonical(plan)===canonical(expectedPlan),'PLAN_STALE');
   requireThat(a.instance_id!==b.instance_id,'RESTART_REPLACEMENT_NOT_OBSERVED');
-  requireThat(a.runtime_id===b.runtime_id&&a.host_version===b.host_version&&
-    a.config_digest===b.config_digest&&a.plugin_source_sha256===b.plugin_source_sha256,'RESTART_IDENTITY_MISMATCH');
+  sameRuntime(b,a,'RESTART_IDENTITY_MISMATCH');
   requireThat(a.control_connected===false,'STALE_AUTHORITY_SURVIVED_RESTART');
   requireThat(Number.isSafeInteger(a.observed_process_start_ms)&&Number.isSafeInteger(b.observed_process_start_ms)&&
-    a.observed_process_start_ms>=b.observed_process_start_ms,'RESTART_PROCESS_TIME_INVALID');
+    b.observed_process_start_ms>=0&&a.observed_process_start_ms>=b.observed_process_start_ms,'RESTART_PROCESS_TIME_INVALID');
   requireThat(evidenceDelta&&evidenceDelta.sequence===a.evidence_head.sequence&&evidenceDelta.sha256===a.evidence_head.sha256&&
     Array.isArray(evidenceDelta.observations),'RESTART_EVIDENCE_INVALID');
-  requireThat(evidenceDelta.observations.some(row=>row.type==='runtime.started'&&row.instance_id===a.instance_id),'RESTART_EVENT_MISSING');
-  return {schema:'residual.openclaw.lifecycle_receipt.v1',action:'restart',result:'RESTART_VERIFIED',
+  requireThat(a.evidence_head.sequence>b.evidence_head.sequence,'RESTART_EVIDENCE_NOT_ADVANCED');
+  requireThat(evidenceDelta.observations.some(row=>row?.type==='runtime.started'&&row.instance_id===a.instance_id),'RESTART_EVENT_MISSING');
+  // PID alone is reusable, plugin instance is not process identity, and this timestamp is runtime-reported.
+  // Even a changed PID/start time is not authenticated supervisor observation of process replacement.
+  return {...unverified('restart','INDEPENDENT_PROCESS_REPLACEMENT_PROOF_UNAVAILABLE'),
     runtime_id:a.runtime_id,before_instance_id:b.instance_id,after_instance_id:a.instance_id,
     before_process_start_ms:b.observed_process_start_ms,after_process_start_ms:a.observed_process_start_ms,
     config_digest:a.config_digest,plugin_source_sha256:a.plugin_source_sha256,
     evidence_tip_sha256:a.evidence_head.sha256,evidence_sequence:a.evidence_head.sequence,
-    acceptance:'NOT_EVALUATED',qualification:'NOT_ESTABLISHED'};
+    plan_sha256:sha256(Buffer.from(canonical(plan)))};
 }

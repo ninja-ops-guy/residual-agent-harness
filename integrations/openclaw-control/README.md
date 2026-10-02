@@ -93,4 +93,32 @@ The configured agent must exist. Configured fallback arrays are refused in this 
 
 Checksummed local journals detect accidental alteration; a runtime able to rewrite all records and digests can forge them. Controllers must anchor observed evidence tips externally. Persistent-state anti-rollback against a hostile filesystem, secure boot, independent attestation, encrypted result storage, and filesystem ACL isolation are not supplied by this plugin.
 
+### Lifecycle capture contract
+
+`lifecycle-contract.mjs` builds plans and checks the consistency of supplied control
+captures only. Its v2 receipts always return `NATIVE_CANCEL_UNVERIFIED` or
+`RESTART_UNVERIFIED`, with `physical_outcome_verified: false`,
+`release_admissible: false` and `promotion_authority: false`. The exported
+`verifyCancel` / `verifyRestart` names are retained for callers, but a returned
+object, `capture_validation: CONSISTENT`, or an absence of exceptions is **not**
+physical success. Invalid or conflicting captures still throw. There is no
+physical-VERIFIED branch and no supported caller-supplied proof/approval flag.
+
+An abort ACK, admission revocation and a later absent run do not prove native
+cessation. A changed plugin instance, `runtime.started` event or process-start
+timestamp does not prove gateway process replacement. PID can be reused; plugin
+instance and native run identity are distinct from process identity. Actual
+independent proof requires a separately protected observer/supervisor and a
+defined trust/verification path, binding the exact operation/session/native run
+and process generation (including PID, start ticks, boot identity and supervisor
+provenance), observation order/freshness, old execution cessation and authority
+reset. This package does not implement that architecture. Self-reported values,
+hashes or `verified: true` cannot supply it.
+
+The lifecycle tests use fabricated JSON fixtures only. Their positive cases mean
+that capture bindings are consistent while the physical outcome stays UNVERIFIED;
+they do not run native cancellation/restart or qualify OC-V1 gates. This repairs
+the earlier overstrong receipt labels without completing the required lifecycle
+implementation. **RELEASE_HOLD remains unchanged.**
+
 Station's existing task admission, project/attempt/generation fences, qualification and independent verification must remain authoritative. This package does **not** add a second scheduler or automatically issue Station receipts. Native SC-MESH, rolling upgrades, fleet orchestration, fallback continuity and self-building remain outside this candidate. The original P1 gates and remaining lanes are in `docs/integrations/SPEC-OC-CTRL-001-IMPLEMENTATION-ADDENDUM.md` and `OC-CONTROL-P1-GATES.json` in the repository.
