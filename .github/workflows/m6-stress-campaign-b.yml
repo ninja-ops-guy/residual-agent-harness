@@ -1,0 +1,91 @@
+name: M6 Stress Campaign B
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+
+jobs:
+  deterministic-control:
+    if: github.head_ref == 'experiment/m6-stress-campaign-b'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install RESIDUAL
+        run: python -m pip install -e '.[factory]'
+      - name: Run deterministic control-plane probes
+        run: python scripts/m6_stress_deterministic.py --output runs/m6-stress-deterministic/evidence.json
+      - name: Show evidence
+        if: always()
+        run: test ! -f runs/m6-stress-deterministic/evidence.json || cat runs/m6-stress-deterministic/evidence.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m6-stress-deterministic-evidence
+          path: runs/m6-stress-deterministic
+
+  corrected-repair-pressure:
+    if: github.head_ref == 'experiment/m6-stress-campaign-b'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      OLLAMA_HOST: 127.0.0.1:11434
+      OLLAMA_MODEL: qwen2.5-coder:1.5b
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install RESIDUAL
+        run: python -m pip install -e '.[factory]'
+      - name: Install Ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+      - name: Start normal Ollama
+        run: |
+          pkill -f "ollama serve" || true
+          sleep 1
+          nohup ollama serve > /tmp/ollama-repair-b.log 2>&1 &
+          for i in {1..45}; do
+            curl -fsS http://127.0.0.1:11434/api/tags >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/ollama-repair-b.log
+          exit 1
+      - name: Pull model
+        run: ollama pull "$OLLAMA_MODEL"
+      - name: Verify model inventory
+        run: ollama list | tee /tmp/ollama-repair-b-models.txt
+      - name: Start fault proxy on 11436
+        run: |
+          nohup python scripts/m6_repair_fault_proxy.py --port 11436 --upstream http://127.0.0.1:11434 --model "$OLLAMA_MODEL" --faults 2 --events /tmp/residual-repair-b-events.jsonl > /tmp/repair-b-proxy.log 2>&1 &
+          for i in {1..30}; do
+            curl -fsS http://127.0.0.1:11436/api/tags >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/repair-b-proxy.log
+          exit 1
+      - name: Run corrected repair pressure
+        run: python scripts/m6_stress_repair.py --model "$OLLAMA_MODEL" --base-url http://127.0.0.1:11436 --proxy-events /tmp/residual-repair-b-events.jsonl --output runs/m6-stress-repair-b/evidence.json
+      - name: Show evidence
+        if: always()
+        run: |
+          test ! -f runs/m6-stress-repair-b/evidence.json || cat runs/m6-stress-repair-b/evidence.json
+          cat /tmp/residual-repair-b-events.jsonl || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m6-stress-repair-b-evidence
+          path: |
+            runs/m6-stress-repair-b
+            /tmp/residual-repair-b-events.jsonl
+            /tmp/repair-b-proxy.log
+            /tmp/ollama-repair-b.log
+            /tmp/ollama-repair-b-models.txt
