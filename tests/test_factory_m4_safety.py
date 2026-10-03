@@ -165,6 +165,26 @@ class VerificationInputTests(unittest.TestCase):
         with self.assertRaises(m4.M4IntegrationError):
             m4.ProjectVerificationPolicy((command,), trusted_fixture_mode='false')
 
+    def test_fixture_mode_requires_operator_authority_and_warning_acknowledgement(self):
+        commands = (
+            m4.VerificationCommand('tests', 'full_test_suite', ('python',)),
+            m4.VerificationCommand('types', 'type_check', ('python',)),
+            m4.VerificationCommand('contracts', 'contract_validation', ('python',)),
+        )
+        with self.assertRaisesRegex(m4.M4IntegrationError, 'operator authorization'):
+            m4.ProjectVerificationPolicy(commands, trusted_fixture_mode=True)
+        with self.assertRaisesRegex(m4.M4IntegrationError, 'warning acknowledgement'):
+            m4.ProjectVerificationPolicy(
+                commands, trusted_fixture_mode=True,
+                trusted_fixture_authorized_by='operator',
+            )
+        policy = m4.ProjectVerificationPolicy(
+            commands, trusted_fixture_mode=True,
+            trusted_fixture_authorized_by='operator',
+            trusted_fixture_warning_acknowledged=True,
+        )
+        self.assertTrue(policy.trusted_fixture_mode)
+
 
 class M4AcceptanceSafetyTests(unittest.TestCase):
     def setUp(self):
