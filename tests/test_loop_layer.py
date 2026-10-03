@@ -126,6 +126,29 @@ class TestVerifier(unittest.TestCase):
         self.assertEqual(len(events), 3)
         self.assertTrue(all(k == "check_evaluated" for k, _ in events))
 
+    def test_emit_exception_fails_closed_without_escaping(self):
+        seen = []
+
+        def broken_emit(kind, payload):
+            seen.append((kind, payload["check_name"]))
+            if payload["check_name"] == "struct1":
+                raise RuntimeError("observer unavailable")
+
+        v = Verifier(self.evaluators)
+        report = v.verify({}, make_spec(), emit=broken_emit)
+        self.assertFalse(report.overall_pass)
+        self.assertEqual(report.primary_failure, "struct1")
+        self.assertEqual(len(report.results), 3)
+        structural = [r for r in report.results if r.name == "struct1"][0]
+        self.assertEqual(structural.result, CheckResult.FAIL)
+        self.assertEqual(structural.reason, "observation_emit_error")
+        judge = [r for r in report.results if r.name == "judge1"][0]
+        self.assertEqual(judge.result, CheckResult.SKIPPED)
+        self.assertEqual(seen[:2], [
+            ("check_evaluated", "mech1"),
+            ("check_evaluated", "struct1"),
+        ])
+
 
 class TestBrakes(unittest.TestCase):
     def test_max_iteration_trips(self):
