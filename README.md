@@ -4,6 +4,12 @@
 
 RESIDUAL is an evidence-first reliability and control plane for AI-assisted engineering. Workers propose bounded work; the harness owns acceptance. Execution is observed, evidence is retained, candidate outputs are checked, and only accepted state is allowed across controlled integration boundaries.
 
+> **RESIDUAL treats machine-executed organizational intent as a typed authority system. Authority-changing conversions are explicit, evidence-bearing, and fail closed.**
+>
+> **RESIDUAL v1 does not attempt to eliminate ambiguity from human intent. It prevents unresolved ambiguity from silently acquiring machine authority.**
+>
+The bounded v1 authority invariant family and its adversarial qualification contract are defined in [`docs/station/AUTHORITY-TYPE-SYSTEM.md`](docs/station/AUTHORITY-TYPE-SYSTEM.md). The release claim is earned only by six exact-candidate child qualifications; `INV-AUTH-000` is derived rather than counted as a seventh test.
+
 > **AI reliability does not necessarily require making each individual model reliable. Reliability can emerge from constraining, observing, verifying, and deterministically integrating unreliable computation.**
 
 For exact current claims, start with [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md).
