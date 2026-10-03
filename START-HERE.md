@@ -1,5 +1,14 @@
 # RESIDUAL Command Station
 
+> **Development/runtime evaluation guide.** Command Station is outside the
+> proposed Open Core kernel. Use this guide with an appropriately authorized
+> checkout or distribution; public source visibility does not expand the license.
+> New evaluators should begin with the [first-run guide](docs/adoption/README.md).
+> Platform instructions below describe implementation paths, not the supported v1
+> matrix. The [v1 master (#427)](https://github.com/ninja-ops-guy/residual-agent-harness/pull/427)
+> records Windows/Linux/local Docker direction; native macOS and Docker Desktop
+> macOS are deferred to v2. Each shipped platform still requires qualification.
+
 Your local agent workshop: Markdown missions, parallel runners, LDD events, review gates, and Ollama in one retro interface.
 
 ## Fastest start: complete Docker runtime

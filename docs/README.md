@@ -4,6 +4,9 @@ This directory documents three related surfaces of the same project: the origina
 
 If you are new to the repository, read the documents in the order below rather than treating every spec as equally mature.
 
+For a hands-on introduction, use the [first-run guide](adoption/README.md).
+Maintainers preparing external evaluation can use the [pilot protocol](adoption/PILOT.md).
+
 ## 1. Understand the thesis
 
 Start with [`research.md`](research.md). RESIDUAL's working hypothesis is that useful system-level reliability can emerge from **constraining, observing, verifying, and deterministically integrating** computation that is itself stochastic and imperfect.
