@@ -98,10 +98,24 @@ class ProjectVerificationPolicy:
     commands: tuple[VerificationCommand, ...]
     secops_active: bool = False
     trusted_fixture_mode: bool = False
+    trusted_fixture_authorized_by: str | None = None
+    trusted_fixture_warning_acknowledged: bool = False
 
     def __post_init__(self) -> None:
         if type(self.trusted_fixture_mode) is not bool or type(self.secops_active) is not bool:
             raise M4IntegrationError("verification mode flags must be boolean")
+        if type(self.trusted_fixture_warning_acknowledged) is not bool:
+            raise M4IntegrationError("trusted fixture warning acknowledgement must be boolean")
+        if self.trusted_fixture_mode:
+            if self.trusted_fixture_authorized_by != "operator":
+                raise M4IntegrationError(
+                    "trusted fixture mode requires explicit operator authorization"
+                )
+            if not self.trusted_fixture_warning_acknowledged:
+                raise M4IntegrationError(
+                    "trusted fixture mode is unsandboxed development-only; "
+                    "explicit warning acknowledgement required"
+                )
         if not isinstance(self.commands, tuple) or not all(isinstance(c, VerificationCommand) for c in self.commands):
             raise M4IntegrationError("immutable verification commands required")
         if not self.commands:
