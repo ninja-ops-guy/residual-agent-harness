@@ -677,9 +677,42 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  authority:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install AUTH qualification dependencies
+        run: python -m pip install '.[factory,qualification]'
+      - name: Six-invariant typed-authority adversarial qualification
+        run: |
+          mkdir -p runs/qualification-v1/authority
+          python scripts/qualification_v1.py run \
+            --gate-id authority-type-system \
+            --output runs/qualification-v1/authority.evidence.json \
+            --log runs/qualification-v1/authority.log \
+            --evidence-path runs/qualification-v1/authority/authority-qualification-report.json \
+            --zero-skips \
+            -- python scripts/qualification_authority_type_system.py \
+               --output-dir runs/qualification-v1/authority
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-v1-authority-${{ github.sha }}
+          path: runs/qualification-v1
+          if-no-files-found: error
+          retention-days: 90
+
   aggregate:
     if: always()
-    needs: [deterministic, discovery, m4, artifacts, browser, concurrency, protocol-fuzz, toxic-provider, active-workload, active-http-soak, browser-adversarial, redteam, windows-lifecycle, macos-lifecycle, fault-injection, webvm-protocol-fuzz, qualification-selftests]
+    needs: [deterministic, discovery, m4, artifacts, browser, concurrency, protocol-fuzz, toxic-provider, active-workload, active-http-soak, browser-adversarial, redteam, windows-lifecycle, macos-lifecycle, fault-injection, webvm-protocol-fuzz, qualification-selftests, authority]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

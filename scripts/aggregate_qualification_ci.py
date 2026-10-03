@@ -49,6 +49,7 @@ REQUIRED_GATES = (
     "qualification-selftests",
     "active-http-soak",
     "macos-lifecycle",
+    "authority-type-system",
 )
 
 
