@@ -1,5 +1,12 @@
 # RESIDUAL current status
 
+> **Historical snapshot, not current release status.** This document retains
+> observations at the revision/date below, including later-superseded defect
+> descriptions. Read the [v1 master proposal (#427)](https://github.com/ninja-ops-guy/residual-agent-harness/pull/427)
+> and latest delta for convergence, and [#477](https://github.com/ninja-ops-guy/residual-agent-harness/pull/477)
+> for claim reconciliation. No historical PASS or FAIL automatically describes a
+> later revision. The body is preserved pending its owning lane's reconciliation.
+
 _Current-state check: 2026-09-18 UTC against `main@4608afabf5de4c87d77aaf149dfc12538d364f43`._
 
 This document is a human-readable status summary. Exact code at the named revision, exact-head workflow results, retained machine-readable evidence, explicit issues/PRs, and applicable maintainer/protected-byte governance are more authoritative than prose. Historical evidence remains bound to the revision and environment that produced it.
