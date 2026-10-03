@@ -506,7 +506,8 @@ class IntegratorTimeoutTypingTests(unittest.TestCase):
                                     max_output_bytes=1024),
                 VerificationCommand('contracts', 'contract_validation', ('/usr/bin/true',),
                                     timeout_s=5, max_output_bytes=1024),
-            ), trusted_fixture_mode=True)
+            ), trusted_fixture_mode=True, trusted_fixture_authorized_by="operator",
+               trusted_fixture_warning_acknowledged=True)
             results = integrator._run_verification(repo, policy)
         self.assertEqual(len(results), 1)  # stops at the first non-pass
         timed = results[0]
