@@ -1,6 +1,8 @@
 # RESIDUAL v1 master remaining-work list
 
-**Current review-only view: 2026-10-02. Single master PR: #427. No release authority.**
+**Current review-only view: 2026-10-03. Single master PR: #427. No release authority.**
+
+Latest append-only evidence delta: [`V1_MASTER_READINESS_DELTA_20261003T0605ET.md`](./V1_MASTER_READINESS_DELTA_20261003T0605ET.md), recording #516 exact-head status, the fresh WebVM reliability recurrence, and unchanged pre-canary/production blockers. The delta is authoritative for those newer observations; historical rows below are preserved.
 
 This is the current entry point for v1 convergence, replacing the stale #416-era summary in this file. Historical observations are preserved at [the immutable preceding snapshot](https://github.com/ninja-ops-guy/residual-agent-harness/blob/fb63b4b4fd1dedb1db72f14183f558833ab027b3/docs/v1/V1_MASTER_READINESS.md) and in the unchanged `V1_MASTER_READINESS_DELTA*.md` files. This refresh changes planning/read-model state, not frozen experimental evidence, an evaluator, acceptance criteria, or execution authority.
 
