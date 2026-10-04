@@ -23,6 +23,24 @@ def _q(value: str | Path) -> str:
     return shlex.quote(str(value))
 
 
+def guard_worker_exit(command: str, *, poison_file: str | Path) -> str:
+    """Fence an abnormal interpreter exit, including failures before imports finish.
+
+    Run inside the existing guest shell, not another CheerpX run. The Python
+    worker remains the PID/argv authority; the shell job only observes its exit.
+    Never retry in a guest whose interpreter has failed.
+    """
+    return (
+        f"( {command}; residual_worker_status=$?; "
+        'if [ "$residual_worker_status" -ne 0 ]; then '
+        '( set -C; umask 077; '
+        'printf \'worker_exit:%s\\n\' "$residual_worker_status" '
+        f"> {_q(poison_file)} ) 2>/dev/null; "
+        "printf 'RESIDUAL_WORKER_%s\\n' POISONED; fi; "
+        'exit "$residual_worker_status" ) & residual_worker_job=$!'
+    )
+
+
 def build_recovery_command(
     *,
     pid_file: str | Path,

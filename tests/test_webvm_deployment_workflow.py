@@ -87,6 +87,14 @@ class DeploymentWorkflowTests(unittest.TestCase):
         self.assertNotIn('pages: write', build)
         self.assertNotIn('id-token: write', build)
 
+    def test_pr_artifact_and_browser_proof_bind_the_checked_out_head(self):
+        revision = '${{ github.event.pull_request.head.sha || github.sha }}'
+        self.assertIn('ref: ' + revision, step('Checkout RESIDUAL'))
+        self.assertIn('RESIDUAL_BUILD_SHA: ' + revision, WORKFLOW)
+        self.assertIn('--commit "$RESIDUAL_BUILD_SHA"', WORKFLOW)
+        proof = step('Prove actual generated artifact in desktop and narrow browsers')
+        self.assertEqual(proof.count('--expected-sha "$RESIDUAL_BUILD_SHA"'), 2)
+
     def test_settings_preflight_precedes_publication(self):
         self.assertIn('--pages-config pages-config.json', step('Require GitHub Actions publishing source'))
         self.assertLess(WORKFLOW.index('name: Require GitHub Actions publishing source'), WORKFLOW.index('      - name: Deploy\n'))

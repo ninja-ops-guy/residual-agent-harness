@@ -6,6 +6,7 @@ state/UX behavior, not paid inference or real Puter model availability.
 from __future__ import annotations
 
 import re
+import shlex
 
 FAILURE_SDK = r'''
 window.__providerFixture = {signedIn:false, calls:0, gesture:false};
@@ -114,26 +115,50 @@ async def provider_failure_acceptance(page, context, args, report, command_proof
     await page.screenshot(path=str(args.output / 'mission-provider-failure-explained.png'))
     await stage('provider_failure_is_blocked_explained_and_not_previewed')
 
-    # Reproduce the production screenshot boundary without weakening the worker:
-    # stop the healthy persistent worker, leave a durable poison fence, and emit
-    # the same marker that the host observes after a fatal/startup-poison event.
-    # The only permitted recovery is a full guest restart onto a new writable
-    # overlay namespace; the old poisoned guest is never unpoisoned in place.
+    # Fail at the retained sqlite3 import boundary, before worker main()/serve().
+    # The shell must fence this crash immediately; the 60s startup timeout is not
+    # recovery. The fixture exists only in this disposable writable overlay.
     await page.locator('#mc-terminal').click()
+    import_failure = "raise TypeError(\"__init__() should return None, not 'code'\")\n"
     await command_proof(
         'read -r residual_worker_pid < /tmp/residual-workbench.pid && '
         '( set -C; umask 077; printf "shutdown\\n" > /tmp/residual-workbench.control ) && '
-        'wait "$residual_worker_pid" && '
+        'wait "$residual_worker_job" && '
         'test ! -e /tmp/residual-workbench.pid && test ! -e /tmp/residual-workbench.control && '
-        '( set -C; umask 077; printf "fixture-poison\\n" > /tmp/residual-workbench.poison ) && '
-        'printf "RESIDUAL_WORKER_%s\\n" POISONED'
+        'mkdir -p /home/residual/worker-import-failure && '
+        "printf %s " + shlex.quote(import_failure) + ' > /home/residual/worker-import-failure/sqlite3.py && '
+        'mkdir -p /home/residual/.local/lib/python3.11/site-packages && '
+        "printf '%s\\n' " + shlex.quote("import sys; sys.path.insert(0, '/home/residual/worker-import-failure')")
+        + ' > /home/residual/.local/lib/python3.11/site-packages/usercustomize.py'
+    )
+    await page.reload(wait_until='domcontentloaded')
+    await page.wait_for_function(
+        "() => document.body.innerText.replace(/\\s/g,'').includes('residual@demo:~/residual-agent-harness$')",
+        timeout=120000,
     )
     await page.locator('#mc-mission').click()
+    await page.get_by_text('Run controls', exact=True).click()
+    await page.locator('#mc-mode').select_option('audit')
+    await page.locator('#mc-prompt').fill('Import failure must require a fresh guest')
+    await page.locator('#mc-files').fill('residual/cli.py')
+    await page.locator('#mc-run').click()
     await page.wait_for_function(
         "() => document.querySelector('#mc-runtime').textContent.includes('RESTART REQUIRED') && !document.querySelector('#mc-restart').hidden",
         timeout=20000,
     )
     assert await page.locator('#mc-run').is_disabled()
+    assert not (await page.locator('#mc-verdict').inner_text()).startswith('PASSED')
+    await page.locator('#mc-terminal').click()
+    await command_proof(
+        'test "$(cat /tmp/residual-workbench.poison)" = "worker_exit:1" && '
+        'test ! -e /tmp/residual-workbench.pid && '
+        'test ! -e /tmp/residual-workbench.control && '
+        'test ! -e /tmp/residual-workbench.busy && '
+        'test ! -e /opt/residual/runs/missions/.active'
+    )
+    report['workbench_import_failure'] = 'PASS_DURABLE_POISON_BEFORE_STARTUP_TIMEOUT_NO_MISSION_ADMITTED'
+    await stage('worker_import_failure_fenced_before_startup_timeout')
+    await page.locator('#mc-mission').click()
     before = await page.evaluate("sessionStorage.getItem('residual.guest.generation.v1')")
     async with page.expect_navigation(wait_until='domcontentloaded'):
         await page.locator('#mc-restart').click()
@@ -146,6 +171,7 @@ async def provider_failure_acceptance(page, context, args, report, command_proof
     assert after != before
     await page.locator('#mc-terminal').click()
     await command_proof(
+        'test ! -e /home/residual/worker-import-failure/sqlite3.py && '
         'test ! -e /tmp/residual-workbench.poison && '
         'test ! -e /tmp/residual-workbench.pid && '
         'test ! -e /tmp/residual-workbench.control && '

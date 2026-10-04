@@ -103,7 +103,7 @@ class AuthoritativeContentTests(unittest.TestCase):
         self.assertIn('$GITHUB_RUN_ATTEMPT', WORKFLOW)
 
     def test_generated_browser_proof_retained(self):
-        self.assertIn('browser_smoke.py --url "$URL" --expected-sha "$GITHUB_SHA" --output browser-evidence/desktop', WORKFLOW)
+        self.assertIn('browser_smoke.py --url "$URL" --expected-sha "$RESIDUAL_BUILD_SHA" --output browser-evidence/desktop', WORKFLOW)
         self.assertIn('--output browser-evidence/narrow --mobile', WORKFLOW)
 
     def test_deploy_gated_to_main_and_proof_job(self):
@@ -121,8 +121,11 @@ class AuthoritativeContentTests(unittest.TestCase):
         self.assertIn('if: always()', WORKFLOW)
 
     def test_exact_revision_identity_binding(self):
-        # Both pre-deploy and post-deploy proofs bind the exact merged SHA.
-        self.assertGreaterEqual(WORKFLOW.count('--expected-sha "$GITHUB_SHA"'), 3)
+        # Main still binds the merged SHA before and after deployment; PR proof
+        # binds its checked-out head rather than GitHub's synthetic merge SHA.
+        self.assertIn('RESIDUAL_BUILD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}', WORKFLOW)
+        self.assertEqual(WORKFLOW.count('--expected-sha "$RESIDUAL_BUILD_SHA"'), 2)
+        self.assertEqual(WORKFLOW.count('--expected-sha "$GITHUB_SHA"'), 2)
 
 
 class ActivationCleanupTests(unittest.TestCase):

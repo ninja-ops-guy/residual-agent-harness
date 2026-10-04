@@ -80,6 +80,27 @@ class Verifier:
             ct0 = time.monotonic()
             result, reason = self._evaluate_one(criterion, candidate, prior_failed)
             duration_ms = (time.monotonic() - ct0) * 1000
+            if emit:
+                try:
+                    emit("check_evaluated", {
+                        "goal_id": spec.goal_id,
+                        "check_name": criterion.name,
+                        "check_type": criterion.check_type.value,
+                        "result": result.value,
+                        "reason": reason,
+                        "duration_ms": round(duration_ms, 3),
+                    })
+                except Exception:
+                    # Observation is part of the verification evidence path.
+                    # A broken observer must never turn verified work into an
+                    # ambiguous exception or silently preserve PASS authority.
+                    prior_reason = reason
+                    result = CheckResult.FAIL
+                    reason = (
+                        "observation_emit_error"
+                        if not prior_reason
+                        else (prior_reason + ";observation_emit_error")[:1000]
+                    )
             results.append(CriterionResult(
                 name=criterion.name,
                 check_type=criterion.check_type,
@@ -87,15 +108,6 @@ class Verifier:
                 reason=reason,
                 duration_ms=round(duration_ms, 3),
             ))
-            if emit:
-                emit("check_evaluated", {
-                    "goal_id": spec.goal_id,
-                    "check_name": criterion.name,
-                    "check_type": criterion.check_type.value,
-                    "result": result.value,
-                    "reason": reason,
-                    "duration_ms": round(duration_ms, 3),
-                })
             if result != CheckResult.PASS and primary_failure is None:
                 primary_failure = criterion.name
             if result != CheckResult.PASS:

@@ -41,7 +41,7 @@ class WebVMPoisonRestartContractTests(unittest.TestCase):
         self.assertIn("$('run').disabled=!ready||!!active||running", self.mission)
 
     def test_real_browser_acceptance_reproduces_poison_then_runs_real_audit(self):
-        self.assertIn("printf \"RESIDUAL_WORKER_%s\\\\n\" POISONED", self.smoke)
+        self.assertIn('worker_import_failure_fenced_before_startup_timeout', self.smoke)
         self.assertIn("test ! -e /tmp/residual-workbench.poison", self.smoke)
         self.assertIn("sessionStorage.getItem('residual.guest.generation.v1')", self.smoke)
         self.assertIn('PASS_FRESH_OVERLAY_AND_REAL_AUDIT_AFTER_EXPLICIT_RESTART', self.smoke)
