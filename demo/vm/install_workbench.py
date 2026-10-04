@@ -8,7 +8,7 @@ from qualify_webvm import replace_once
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
-from residual.workbench.host_recovery import build_recovery_command
+from residual.workbench.host_recovery import build_recovery_command, guard_worker_exit
 
 
 def _javascript_shell_template(command: str) -> str:
@@ -27,6 +27,10 @@ def patch(text):
         marker='__RESIDUAL_RECOVERY_MARKER__',
     )
     recovery_js = _javascript_shell_template(recovery)
+    launch_js = _javascript_shell_template(guard_worker_exit(
+        'python3 -m residual.workbench.browser_worker --control-file /tmp/residual-workbench.control --pid-file /tmp/residual-workbench.pid --busy-file /tmp/residual-workbench.busy --poison-file /tmp/residual-workbench.poison --mailbox /data --root /opt/residual --output-root /opt/residual/runs/missions',
+        poison_file="/tmp/residual-workbench.poison",
+    ))
 
     text = replace_once(text, "<script>\n", "<script>\n\timport { mountMissionControl } from './mission-control-diagnostics.js';\n")
     text = replace_once(text, 'var residualBridgeBuffer = "";',
@@ -174,7 +178,9 @@ def patch(text):
             // of work, so reuse fails closed rather than replaying/overlapping it.
             // The shell input deliberately composes READY so terminal echo cannot
             // satisfy readiness before the identity checks/new worker succeed.
-            const command = `if [ -e /tmp/residual-workbench.poison ] || [ -L /tmp/residual-workbench.poison ] || [ -e /tmp/residual-workbench.busy ] || [ -L /tmp/residual-workbench.busy ] || [ -e /tmp/residual-workbench.control ] || [ -L /tmp/residual-workbench.control ]; then printf 'RESIDUAL_WORKER_%s\\n' POISONED; elif [ -f /tmp/residual-workbench.pid ] && [ ! -L /tmp/residual-workbench.pid ] && [ -O /tmp/residual-workbench.pid ] && read -r residual_worker_pid < /tmp/residual-workbench.pid && [[ "$residual_worker_pid" =~ ^[0-9]+$ ]] && kill -0 "$residual_worker_pid" 2>/dev/null && mapfile -d '' residual_worker_argv < "/proc/$residual_worker_pid/cmdline" && [ "\${residual_worker_argv[1]-}" = "-m" ] && [ "\${residual_worker_argv[2]-}" = "residual.workbench.browser_worker" ]; then printf 'RESIDUAL_WORKER_%s\\n' READY; else python3 -m residual.workbench.browser_worker --control-file /tmp/residual-workbench.control --pid-file /tmp/residual-workbench.pid --busy-file /tmp/residual-workbench.busy --poison-file /tmp/residual-workbench.poison --mailbox /data --root /opt/residual --output-root /opt/residual/runs/missions & fi`;
+            // The shell fences import-time crashes before Python can emit READY
+            // or write poison. A clean shutdown remains reusable.
+            const command = `if [ -e /tmp/residual-workbench.poison ] || [ -L /tmp/residual-workbench.poison ] || [ -e /tmp/residual-workbench.busy ] || [ -L /tmp/residual-workbench.busy ] || [ -e /tmp/residual-workbench.control ] || [ -L /tmp/residual-workbench.control ]; then printf 'RESIDUAL_WORKER_%s\\n' POISONED; elif [ -f /tmp/residual-workbench.pid ] && [ ! -L /tmp/residual-workbench.pid ] && [ -O /tmp/residual-workbench.pid ] && read -r residual_worker_pid < /tmp/residual-workbench.pid && [[ "$residual_worker_pid" =~ ^[0-9]+$ ]] && kill -0 "$residual_worker_pid" 2>/dev/null && mapfile -d '' residual_worker_argv < "/proc/$residual_worker_pid/cmdline" && [ "\${residual_worker_argv[1]-}" = "-m" ] && [ "\${residual_worker_argv[2]-}" = "residual.workbench.browser_worker" ]; then printf 'RESIDUAL_WORKER_%s\\n' READY; else __WORKER_LAUNCH__; fi`;
             readData(command + "\\r");
             return await promise;
         }
@@ -232,7 +238,7 @@ def patch(text):
                     readData(controlCommand + "\\r");
                 });
             }
-        });""".replace('__RECOVERY_COMMAND__', recovery_js)
+        });""".replace('__RECOVERY_COMMAND__', recovery_js).replace('__WORKER_LAUNCH__', launch_js)
     text = replace_once(text, 'term.onData(readData);', wiring)
     start = text.index('\tasync function enableResidualCloud()')
     end = text.index('\n\tfunction writeData(', start)

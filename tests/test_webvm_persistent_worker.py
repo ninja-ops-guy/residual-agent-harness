@@ -3,6 +3,9 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+import shlex
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest import mock
@@ -10,6 +13,60 @@ from unittest import mock
 from residual.core import ContractError
 from residual.workbench import browser_worker, conversation_build, runner
 from residual.workbench.browser_mailbox import BrowserMailboxProvider
+from residual.workbench.host_recovery import guard_worker_exit
+
+
+class WorkerImportFailureTests(unittest.TestCase):
+    def launch(self, *, broken_import=False, poison_kind=None):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            poison = root / 'worker.poison'
+            target = root / 'untouched'
+            target.write_text('retained evidence')
+            if poison_kind == 'symlink':
+                poison.symlink_to(target)
+            elif poison_kind == 'existing':
+                poison.write_text('original fence')
+            if broken_import:
+                # Reproduce the retained traceback at the real worker's sqlite3
+                # import boundary, before main() or serve() can fence the guest.
+                (root / 'sqlite3.py').write_text(
+                    "raise TypeError(\"__init__() should return None, not 'code'\")\n"
+                )
+            env = dict(os.environ, PYTHONPATH=os.pathsep.join([
+                str(root), str(Path(__file__).resolve().parents[1]),
+            ]))
+            command = guard_worker_exit(
+                f'{shlex.quote(sys.executable)} -m residual.workbench.browser_worker --help',
+                poison_file=poison,
+            )
+            result = subprocess.run(
+                ['bash', '-c', command + '; wait "$residual_worker_job"'],
+                env=env, cwd=root, text=True, capture_output=True, timeout=10,
+            )
+            return result, poison.read_text() if poison.exists() else None, target.read_text()
+
+    def test_import_crash_is_durably_fenced_without_startup_timeout(self):
+        result, poison, _ = self.launch(broken_import=True)
+        self.assertEqual(result.returncode, 1, result.stderr)
+        self.assertIn("__init__() should return None, not 'code'", result.stderr)
+        self.assertEqual(result.stdout.strip(), 'RESIDUAL_WORKER_POISONED')
+        self.assertEqual(poison, 'worker_exit:1\n')
+
+    def test_clean_interpreter_exit_does_not_poison_guest(self):
+        result, poison, _ = self.launch()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn('RESIDUAL_WORKER_POISONED', result.stdout)
+        self.assertIsNone(poison)
+
+    def test_import_crash_preserves_existing_fence_and_symlink_target(self):
+        for kind, expected in [('existing', 'original fence'), ('symlink', 'retained evidence')]:
+            with self.subTest(kind=kind):
+                result, poison, target = self.launch(broken_import=True, poison_kind=kind)
+                self.assertEqual(result.returncode, 1)
+                self.assertEqual(result.stdout.strip(), 'RESIDUAL_WORKER_POISONED')
+                self.assertEqual(poison, expected)
+                self.assertEqual(target, 'retained evidence')
 
 
 class PersistentBrowserWorkerTests(unittest.TestCase):
@@ -254,7 +311,8 @@ class PersistentWorkerHostWiringTests(unittest.TestCase):
         source = self.source()
         self.assertNotIn('echo RESIDUAL_WORKER_READY', source)
         self.assertIn("printf 'RESIDUAL_WORKER_%s", source)
-        self.assertIn("READY; else python3 -m residual.workbench.browser_worker", source)
+        self.assertIn("READY; else __WORKER_LAUNCH__", source)
+        self.assertIn("guard_worker_exit(", source)
 
     def test_per_mission_dispatch_uses_owner_private_regular_control_record(self):
         source = self.source()
