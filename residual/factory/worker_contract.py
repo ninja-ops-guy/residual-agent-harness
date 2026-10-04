@@ -295,10 +295,23 @@ class AttemptGuard:
             self._emit("WorkerAttemptStarted")
             self._state = "RUNNING"
 
+    # Track A2 emission: (boundary, field) -> (failure code, fail-closed state)
+    # for violations that cross an AUTH coercion boundary. Resource/lease
+    # violations are not authority coercions and stay untyped.
+    _AUTH_VIOLATION_CODES = {
+        ("tool", "allowed_tools"): ("UNRESOLVED_AUTHORITY", "NO_AUTHORITY_CHANGE"),
+        ("filesystem", "allowed_outputs"): ("UNRESOLVED_AUTHORITY", "NO_AUTHORITY_CHANGE"),
+        ("filesystem", "inputs"): ("UNRESOLVED_AUTHORITY", "NO_AUTHORITY_CHANGE"),
+    }
+
     def _violate(self, boundary: str, field: str, action: Any) -> None:
         self._state = "VIOLATED"
         event = self._event("ContractViolation", reason="contract_violation",
                             boundary=boundary, field=field, action=action)
+        auth = self._AUTH_VIOLATION_CODES.get((boundary, field))
+        if auth is not None:
+            # IDN-002: the worker acted outside its issued authority.
+            event["code"], event["fail_closed_state"] = auth
         # Stop first even when the observation sink has failed. Never claim an OS
         # process is dead merely because the contract's state is now terminal.
         try:

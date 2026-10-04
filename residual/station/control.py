@@ -13,6 +13,23 @@ from . import workspace as ws
 from .store import MAX_TASK_ATTEMPTS
 
 
+# Track A2 emission: admission-denial reason -> (failure code, fail-closed state).
+_DENIAL_AUTH_CODES = {
+    # EVD-001: the admission gate requires receipted usage evidence;
+    # unknown usage is treated as absent evidence (conservative deny).
+    "usage_unknown_or_invalid": ("UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION"),
+    # AUT-006: BudgetAdmission is the approval authority for dispatch;
+    # exhausted budget/deadline is approval refused.
+    "wall_clock_budget_exhausted": ("UNAPPROVED_ACTION", "NO_EXECUTION"),
+    "token_budget_exhausted": ("UNAPPROVED_ACTION", "NO_EXECUTION"),
+}
+
+
+def _denial_auth(reason):
+    """Typed authority code for an admission-denial reason (Track A2)."""
+    return _DENIAL_AUTH_CODES.get(reason, (None, None))
+
+
 def _checks(candidate, parameters):
     okay = bool(candidate["tasks"]) and all(t["checks_result"] and all(c.get("passed") is True for c in t["checks_result"]) for t in candidate["tasks"])
     return (CheckResult.PASS if okay else CheckResult.FAIL, "acceptance_receipts_verified" if okay else "acceptance_checks_incomplete")
@@ -123,10 +140,12 @@ class MissionPass:
         self._gate = BudgetAdmission(station, pid, before[-1]["seq"] if before else 0)
 
     def _denied(self, reason, stage, tid=None):
+        code, state = _denial_auth(reason)
         self.station.store.event(
             self.pid, "project.note",
             {"message": "Run budget/deadline admission denied an authority-bearing Station effect",
-             "reason": reason, "stage": stage, **({"task_id": tid} if tid else {})},
+             "reason": reason, "stage": stage, **({"task_id": tid} if tid else {}),
+             "code": code, "fail_closed_state": state},
             actor="coordinator",
         )
 
@@ -134,7 +153,9 @@ class MissionPass:
         reason, reservation = self._gate.admit()
         if reason is not None:
             self._denied(reason, "pre-dispatch", task["id"])
-            return {"task_id": task["id"], "state": "admission_denied", "reason": reason}
+            code, state = _denial_auth(reason)
+            return {"task_id": task["id"], "state": "admission_denied", "reason": reason,
+                    "code": code, "fail_closed_state": state}
         try:
             return self.station.run_one(self.pid, task["id"], owner)
         finally:
