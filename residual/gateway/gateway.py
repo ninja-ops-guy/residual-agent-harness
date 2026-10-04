@@ -53,6 +53,9 @@ class GatewayResult:
     error: Optional[str] = None
     denial_reason: Optional[str] = None
     hold_id: Optional[str] = None
+    # Typed authority-coercion emission (Track A2); set on denials.
+    denial_code: Optional[str] = None
+    denial_fail_closed_state: Optional[str] = None
 
 
 class SideEffectGateway:
@@ -144,7 +147,9 @@ class SideEffectGateway:
                 policy_name="side_effect_gateway",
             )
             return GatewayResult(intent=intent, status="denied",
-                                 denial_reason=denied.reason, hold_id=held.hold_id)
+                                 denial_reason=denied.reason, hold_id=held.hold_id,
+                                 denial_code=denied.code,
+                                 denial_fail_closed_state=denied.fail_closed_state)
         executed = self._quarantine.release(
             held, lambda _action: executor(intent), raise_errors=raise_errors)
         return GatewayResult(intent=intent, status="executed", result=executed.result,
