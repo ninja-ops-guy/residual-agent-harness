@@ -10,12 +10,22 @@ import hashlib
 
 import pytest
 
+from residual.authority import AuthorityCoercionRejected
 from residual.core import ContractError, digest
 from residual.receipts import (ReceiptReference, StationReceipt,
                                validate_receipt_graph)
 from residual.verifier import CheckResult
 
 from .attacks import ATTACK_REVISION, ATTACK_VERIFIER, attack_receipt
+
+
+def _assert_typed_rejection(fn, code, state, invariant_id):
+    """Assert fn raises a typed authority-coercion rejection (Track A2)."""
+    with pytest.raises(AuthorityCoercionRejected) as exc_info:
+        fn()
+    assert exc_info.value.code == code
+    assert exc_info.value.fail_closed_state == state
+    assert exc_info.value.invariant_id == invariant_id
 
 
 def _genuine_receipt(task_id: str = "task-a", value=("ok",)) -> StationReceipt:
@@ -26,6 +36,7 @@ def _genuine_receipt(task_id: str = "task-a", value=("ok",)) -> StationReceipt:
         verifier_name="mechanical:unit",
         verifier_revision=hashlib.sha256(b"rev1").hexdigest(),
         verdict=CheckResult.PASS,
+        kernel_revision="0" * 64,
         engine_name="redteam", engine_version="0.1",
     )
 
@@ -38,8 +49,9 @@ class TestReceiptForgery:
         envelope["payload"]["verdict"] = "pass"
         # attacker recomputes nothing — hash now mismatches
         envelope["payload"]["task_id"] = "task-b"
-        with pytest.raises(ContractError):
-            StationReceipt.from_dict(envelope)
+        _assert_typed_rejection(
+            lambda: StationReceipt.from_dict(envelope),
+            "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001")
         record = attack_receipt("atk-forgery-1", "tampered receipt payload")
         assert record.verdict is CheckResult.FAIL
 
@@ -56,8 +68,9 @@ class TestReceiptForgery:
             (envelope["schema_version"] + "\n"
              + json.dumps(payload, sort_keys=True, separators=(",", ":"))
              ).encode()).hexdigest()
-        with pytest.raises(ContractError):
-            StationReceipt.from_dict(envelope)
+        _assert_typed_rejection(
+            lambda: StationReceipt.from_dict(envelope),
+            "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001")
         assert attack_receipt("atk-forgery-2", "self-dependent receipt").verdict is CheckResult.FAIL
 
     def test_duplicate_json_key_rejected(self):
@@ -68,16 +81,18 @@ class TestReceiptForgery:
         raw = json.dumps(text)
         forged = raw.replace('"task_id": "task-a"',
                              '"task_id": "task-b", "task_id": "task-a"', 1)
-        with pytest.raises(ContractError):
-            StationReceipt.from_json(forged)
+        _assert_typed_rejection(
+            lambda: StationReceipt.from_json(forged),
+            "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001")
         assert attack_receipt("atk-forgery-3", "duplicate JSON key").verdict is CheckResult.FAIL
 
     def test_extra_envelope_field_rejected(self):
         receipt = _genuine_receipt()
         envelope = receipt.to_dict()
         envelope["signature"] = "trust-me"
-        with pytest.raises(ContractError):
-            StationReceipt.from_dict(envelope)
+        _assert_typed_rejection(
+            lambda: StationReceipt.from_dict(envelope),
+            "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001")
         assert attack_receipt("atk-forgery-4", "extra envelope field").verdict is CheckResult.FAIL
 
 
@@ -133,23 +148,28 @@ class TestDependencyPoisoning:
             verifier_name="mechanical:unit",
             verifier_revision=a.verifier_revision,
             verdict=CheckResult.PASS,
+            kernel_revision="0" * 64,
             parent_receipts=(ReceiptReference("task-poison", poisoned.receipt_hash),),
         )
-        with pytest.raises(ContractError):
-            validate_receipt_graph(
+        _assert_typed_rejection(
+            lambda: validate_receipt_graph(
                 {"task-a": a, "task-b": b},
-                {"task-a": (), "task-b": ("task-a",)})
+                {"task-a": (), "task-b": ("task-a",)}),
+            "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001")
         assert attack_receipt("atk-poison-1", "swapped prerequisite receipt").verdict is CheckResult.FAIL
 
     def test_cycle_rejected(self):
         """Attack: cyclic prerequisites to launder provenance."""
-        with pytest.raises(ContractError):
-            StationReceipt(
+        def _build_cycle():
+            return StationReceipt(
                 task_id="task-a", cache_key=hashlib.sha256(b"c").hexdigest(),
                 value_hash=digest(1), verifier_name="mechanical:unit",
                 verifier_revision=hashlib.sha256(b"r").hexdigest(),
-                verdict=CheckResult.PASS,
+                verdict=CheckResult.PASS, kernel_revision="0" * 64,
                 parent_receipts=(ReceiptReference("task-a", hashlib.sha256(b"h").hexdigest()),))
+        _assert_typed_rejection(
+            _build_cycle,
+            "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001")
         assert attack_receipt("atk-poison-2", "self-cycle receipt").verdict is CheckResult.FAIL
 
     def test_poisoned_artifact_digest_mismatch(self):

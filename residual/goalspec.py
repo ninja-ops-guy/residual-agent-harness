@@ -16,6 +16,7 @@ from enum import Enum
 from typing import Any, Optional, Protocol
 
 from .core import ContractError, canonical, identifier, positive_int
+from .authority import AuthorityCoercionRejected
 from observation_layer.core import freeze
 
 
@@ -106,7 +107,10 @@ class GoalSpec:
             raise ContractError("schema_version must use major.minor.patch")
         positive_int(self.amendment_count, "amendment_count", allow_zero=True)
         if self.amendment_count > self.amendment_rule.max_amendments:
-            raise ContractError("maximum amendments exceeded")
+            raise AuthorityCoercionRejected(
+                code="UNAUTHORIZED_CONTRACT_REINTERPRETATION",
+                fail_closed_state="NO_AUTHORITY_CHANGE",
+                reason="maximum amendments exceeded")
         if self.amendment_count:
             if not isinstance(self.parent_hash, str) or not re.fullmatch(r"[a-f0-9]{64}", self.parent_hash):
                 raise ContractError("amended spec requires its parent hash")
@@ -166,7 +170,10 @@ class GoalSpec:
         if amended_by not in self.amendment_rule.authorized_roles:
             raise ContractError(f"role '{amended_by}' is not authorized to amend this spec")
         if self.amendment_count >= self.amendment_rule.max_amendments:
-            raise ContractError("maximum amendments exceeded")
+            raise AuthorityCoercionRejected(
+                code="UNAUTHORIZED_CONTRACT_REINTERPRETATION",
+                fail_closed_state="NO_AUTHORITY_CHANGE",
+                reason="maximum amendments exceeded")
         major, minor, patch = (int(x) for x in self.schema_version.split("."))
         new_spec = GoalSpec(
             goal_id=self.goal_id,

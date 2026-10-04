@@ -4,6 +4,8 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
+from residual.authority import AuthorityCoercionRejected
+from residual.authority_kernel import revision as _kernel_revision
 from residual.core import ContractError, canonical, digest
 from residual.extensions import StationExtensionRegistry, VerifierDescriptor, VerifierRevision
 from residual.goalspec import CheckType
@@ -83,7 +85,9 @@ def _binding(project, task, revision, parents):
 def validate_task_receipt(station, project, task):
     stored = task.get("verification_receipt")
     if not isinstance(stored, dict) or set(stored) != {"receipt", "value"}:
-        raise ContractError("Task requires a current station receipt; re-run its verification")
+        raise AuthorityCoercionRejected(
+            code="UNBOUND_EVIDENCE_SOURCE", fail_closed_state="UNPROVEN",
+            reason="Task requires a current station receipt; re-run its verification")
     receipt = StationReceipt.from_dict(stored["receipt"])
     value = stored["value"]
     by_id = {t["id"]: t for t in project["tasks"]}
@@ -95,7 +99,9 @@ def validate_task_receipt(station, project, task):
             or value.get("review_hash") != digest(task["review"])
             or not receipt.matches(value=value, cache_key=_binding(project, task, revision, parents),
                 verifier_name="station:integration", verifier_revision=revision, parents=parents)):
-        raise ContractError("Station receipt is stale or does not match the task evidence")
+        raise AuthorityCoercionRejected(
+            code="UNBOUND_EVIDENCE_SOURCE", fail_closed_state="UNPROVEN",
+            reason="Station receipt is stale or does not match the task evidence")
     return receipt, value
 
 
@@ -107,5 +113,5 @@ def issue_task_receipt(station, project, task, integration_checks):
     value = {"head_commit": task["head_commit"], "checks_hash": task["checks_hash"],
              "review_hash": digest(task["review"]), "integration_checks_hash": digest(integration_checks)}
     receipt = StationReceipt(task["id"], _binding(project, task, revision, parents), digest(value),
-        "station:integration", revision, CheckResult.PASS, parents)
+        "station:integration", revision, CheckResult.PASS, _kernel_revision(), parents)
     return {"receipt": receipt.to_dict(), "value": value}
