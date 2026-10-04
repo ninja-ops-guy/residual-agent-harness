@@ -68,7 +68,7 @@ KERNEL_MODULES: tuple[str, ...] = (
     "scripts/check_maintainer_approval.py",
 )
 
-#: Spec filename; resolved against the workspace layout, never invented.
+#: Spec filename, committed at the candidate repository root.
 SPEC_FILENAME = "AUTH_INVARIANTS.md"
 
 
