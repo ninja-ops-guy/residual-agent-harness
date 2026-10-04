@@ -29,6 +29,10 @@ class BrakeTrip:
     trip_reason: str
     triggering_obs_hash: str
     recommended_action: BrakeAction
+    # Typed authority-coercion emission (Track A2). None when the trip is not
+    # mapped to an AUTH invariant.
+    code: Optional[str] = None
+    fail_closed_state: Optional[str] = None
 
 
 class Brake(Protocol):
@@ -83,22 +87,33 @@ class BudgetBrake:
         if event.get("kind") == "llm.response":
             tokens = usage.get("total_tokens") if isinstance(usage, dict) else None
             if type(tokens) is not int or tokens < 0:
-                return BrakeTrip(self.name, "usage_unknown_or_invalid", _obs_hash(event), BrakeAction.ABORT)
+                # EVD-001: dispatch/admission on unreceipted usage; unknown
+                # usage is treated as absent evidence (conservative deny).
+                return BrakeTrip(self.name, "usage_unknown_or_invalid", _obs_hash(event),
+                                 BrakeAction.ABORT, code="UNBOUND_EVIDENCE_SOURCE",
+                                 fail_closed_state="NO_EXECUTION")
             self._tokens_used += tokens
             if self._tokens_used >= self._spec.token_budget:
+                # AUT-006: the run's execution authority ends at the budget;
+                # further passes are unapproved.
                 return BrakeTrip(
                     brake_name=self.name,
                     trip_reason=f"tokens {self._tokens_used} >= budget {self._spec.token_budget}",
                     triggering_obs_hash=_obs_hash(event),
                     recommended_action=BrakeAction.ABORT,
+                    code="UNAPPROVED_ACTION",
+                    fail_closed_state="NO_EXECUTION",
                 )
         elapsed_s = (time.monotonic_ns() - self._start_ns) / 1e9
         if elapsed_s >= self._spec.wall_clock_budget_s:
+            # AUT-006: the run's execution authority ends at the deadline.
             return BrakeTrip(
                 brake_name=self.name,
                 trip_reason=f"elapsed {elapsed_s:.1f}s >= budget {self._spec.wall_clock_budget_s}s",
                 triggering_obs_hash=_obs_hash(event),
                 recommended_action=BrakeAction.ABORT,
+                code="UNAPPROVED_ACTION",
+                fail_closed_state="NO_EXECUTION",
             )
         return None
 

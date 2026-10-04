@@ -308,6 +308,8 @@ def run_consensus_authority_experiment() -> dict[str, Any]:
         denials = evaluated.get("denials") or []
         denial_reason = denials[0]["reason"] if denials else None
         denial_policy = denials[0]["policy"] if denials else None
+        denial_code = denials[0].get("code") if denials else None
+        denial_state = denials[0].get("fail_closed_state") if denials else None
         executor_invoked = False
         if decision == PolicyDecision.DENY:
             gate.deny(
@@ -337,6 +339,8 @@ def run_consensus_authority_experiment() -> dict[str, Any]:
                 "decision": decision.value,
                 "denial_reason": denial_reason,
                 "policy": denial_policy,
+                "denial_code": denial_code,
+                "denial_fail_closed_state": denial_state,
             },
             "worker_contract": contract_probe,
             "contract_hash_before": contract.contract_hash,

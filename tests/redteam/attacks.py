@@ -23,4 +23,5 @@ def attack_receipt(attack_id: str, description: str) -> StationReceipt:
         verifier_name=ATTACK_VERIFIER,
         verifier_revision=ATTACK_REVISION,
         verdict=CheckResult.FAIL,
+        kernel_revision="0" * 64,
     )

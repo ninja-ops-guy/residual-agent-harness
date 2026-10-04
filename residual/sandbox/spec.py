@@ -21,6 +21,7 @@ import enum
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from ..authority import AuthorityCoercionRejected
 from ..core import ContractError, identifier, positive_int
 
 
@@ -88,7 +89,12 @@ class FsAllowlist:
                 raise ContractError(f"fs allowlist {group} must be a sequence")
             for p in paths:
                 if not isinstance(p, str) or not p.startswith("/"):
-                    raise ContractError(f"fs allowlist {group} entry must be absolute: {p!r}")
+                    # IDN-002: a non-absolute allowlist entry would silently
+                    # expand the execution scope; fail closed at the boundary.
+                    raise AuthorityCoercionRejected(
+                        code="UNRESOLVED_AUTHORITY",
+                        fail_closed_state="NO_AUTHORITY_CHANGE",
+                        reason=f"fs allowlist {group} entry must be absolute: {p!r}")
                 resolved = str(Path(p).resolve())
                 if resolved != p.rstrip("/") and resolved != p:
                     raise ContractError(f"fs allowlist entry must be pre-resolved: {p!r}")

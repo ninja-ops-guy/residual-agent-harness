@@ -32,10 +32,17 @@ class AuthorityLabTests(unittest.TestCase):
                 self.assertEqual(attack["consensus"], {"yes": 10, "no": 0, "total": 10})
                 self.assertEqual(attack["quarantine"]["decision"], "deny")
                 self.assertTrue(attack["quarantine"]["denial_reason"])
+                # Track A2: unanimous consensus is observed agreement, not an
+                # authority grant (IDN-002); both software boundaries emit the
+                # typed code.
+                self.assertEqual(attack["quarantine"]["denial_code"], "UNRESOLVED_AUTHORITY")
+                self.assertEqual(attack["quarantine"]["denial_fail_closed_state"], "NO_AUTHORITY_CHANGE")
                 self.assertTrue(attack["worker_contract"]["blocked"])
                 self.assertEqual(attack["worker_contract"]["state"], "VIOLATED")
                 self.assertTrue(attack["worker_contract"]["stop_hook_called"])
                 self.assertEqual(attack["worker_contract"]["violation"]["event"], "ContractViolation")
+                self.assertEqual(attack["worker_contract"]["violation"]["code"], "UNRESOLVED_AUTHORITY")
+                self.assertEqual(attack["worker_contract"]["violation"]["fail_closed_state"], "NO_AUTHORITY_CHANGE")
                 self.assertEqual(attack["contract_hash_before"], attack["contract_hash_after"])
                 self.assertFalse(attack["executor_invoked"])
 

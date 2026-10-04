@@ -12,7 +12,7 @@ required.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Optional
 
 from ..core import ContractError, canonical, identifier
 from .rbac import PERMISSION_CATEGORIES, WILDCARD
@@ -155,6 +155,10 @@ class ABACDecision:
     allowed: bool
     matched_allow: tuple[str, ...] = ()
     matched_deny: tuple[str, ...] = ()
+    # Typed authority-coercion emission (Track A2): set when the decision is
+    # a denial (IDN-002 — attribute evaluation found no resolvable grant).
+    code: Optional[str] = None
+    fail_closed_state: Optional[str] = None
 
     def __post_init__(self):
         if type(self.allowed) is not bool:
@@ -204,4 +208,8 @@ class ABACEvaluator:
             allowed=not matched_deny and bool(matched_allow),
             matched_allow=tuple(matched_allow),
             matched_deny=tuple(matched_deny),
+            # IDN-002: attribute evaluation found no resolvable grant; the
+            # identity exercises no authority.
+            code="UNRESOLVED_AUTHORITY" if (matched_deny or not matched_allow) else None,
+            fail_closed_state="NO_AUTHORITY_CHANGE" if (matched_deny or not matched_allow) else None,
         )

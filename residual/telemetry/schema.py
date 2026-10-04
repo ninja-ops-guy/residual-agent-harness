@@ -94,24 +94,40 @@ REQUIRED_FIELDS = {
 TRACKED_OPTIONAL_FIELDS = ("task_class", "reason", "correct")
 
 
+from ..authority import AuthorityCoercionRejected
+
+
 class EvidenceError(ValueError):
     """Raised when raw evidence is incomplete or corrupt (OBS-R4)."""
+
+
+class ObservationCoercionRejected(AuthorityCoercionRejected, EvidenceError):
+    """Typed authority-coercion rejection; still catchable as EvidenceError."""
+
+
+def _reject(reason: str) -> ObservationCoercionRejected:
+    """EVD-001 emission: an unbound observation cannot enter the evidence pipeline."""
+    return ObservationCoercionRejected(
+        code="UNBOUND_EVIDENCE_SOURCE",
+        fail_closed_state="NO_EXECUTION",
+        reason=reason,
+    )
 
 
 def validate_observation(obs) -> dict:
     """Validate a raw observation; raise EvidenceError if incomplete/corrupt."""
     if not isinstance(obs, dict):
-        raise EvidenceError(f"observation is not a mapping: {type(obs).__name__}")
+        raise _reject(f"observation is not a mapping: {type(obs).__name__}")
     kind = obs.get("kind")
     if kind not in ALL_KINDS:
-        raise EvidenceError(f"unknown observation kind: {kind!r}")
+        raise _reject(f"unknown observation kind: {kind!r}")
     if obs.get("schema_version") != OBSERVATION_SCHEMA_VERSION:
-        raise EvidenceError(
+        raise _reject(
             f"observation schema_version mismatch: {obs.get('schema_version')!r}"
         )
     for field in REQUIRED_FIELDS[kind]:
         if field not in obs:
-            raise EvidenceError(f"observation kind={kind} missing field {field!r}")
+            raise _reject(f"observation kind={kind} missing field {field!r}")
     # Type checks for numeric fields: reject bools (bool is a subclass of
     # int) and non-finite floats (NaN/inf poison aggregates and canonical
     # JSON). Fail closed; no coercion.
@@ -120,15 +136,15 @@ def validate_observation(obs) -> dict:
         if num_field in obs:
             value = obs[num_field]
             if isinstance(value, bool) or not isinstance(value, (int, float)):
-                raise EvidenceError(f"field {num_field!r} must be numeric in kind={kind}")
+                raise _reject(f"field {num_field!r} must be numeric in kind={kind}")
             if isinstance(value, float) and not math.isfinite(value):
-                raise EvidenceError(
+                raise _reject(
                     f"field {num_field!r} must be finite in kind={kind}: {value!r}")
     if kind == KIND_RETRY and (isinstance(obs["attempt"], bool)
                                or not isinstance(obs["attempt"], int)):
-        raise EvidenceError("retry attempt must be an integer")
+        raise _reject("retry attempt must be an integer")
     if kind == KIND_ORCHESTRATION_TIMING and obs["phase"] not in ALL_PHASES:
-        raise EvidenceError(f"unknown orchestration phase: {obs['phase']!r}")
+        raise _reject(f"unknown orchestration phase: {obs['phase']!r}")
     return obs
 
 
@@ -144,7 +160,7 @@ def canonical_json(obj) -> str:
         return json.dumps(obj, sort_keys=True, separators=(",", ":"),
                           ensure_ascii=True, allow_nan=False)
     except ValueError as exc:
-        raise EvidenceError(
+        raise _reject(
             f"canonical_json refusing to serialize non-finite float: {exc}"
         ) from exc
 
