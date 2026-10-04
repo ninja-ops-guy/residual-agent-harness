@@ -9,6 +9,7 @@ import time
 import uuid
 from pathlib import Path
 
+from residual.authority import AuthorityCoercionRejected
 from residual.core import ContractError, canonical
 from .contracts import bounded, parse_spec, sha
 from ai_providers import ProviderError as ModularError
@@ -325,10 +326,14 @@ class Station:
             )
             if (not isinstance(result, dict) or set(result) != {"approved", "findings"}
                     or type(result.get("approved")) is not bool or not valid_findings):
-                raise ContractError("Reviewer returned an invalid verdict")
+                raise AuthorityCoercionRejected(
+                    code="UNBOUND_EVIDENCE_SOURCE", fail_closed_state="NO_EXECUTION",
+                    reason="Reviewer returned an invalid verdict")
             blocking = [item for item in findings if item["severity"] == "blocking"]
             if result["approved"] and blocking:
-                raise ContractError("Reviewer returned a contradictory verdict: approval cannot contain blocking findings")
+                raise AuthorityCoercionRejected(
+                    code="UNPROVEN_ACCEPTANCE", fail_closed_state="UNPROVEN",
+                    reason="Reviewer returned a contradictory verdict: approval cannot contain blocking findings")
             if not result["approved"] and not blocking:
                 raise ContractError("Reviewer rejection requires at least one blocking finding")
             receipt = {**result, "base_commit": t["base_commit"], "head_commit": t["head_commit"], "spec_hash": p["spec_hash"],
@@ -421,21 +426,32 @@ class Station:
         with self.project_lock(pid):
             p = self.store.project(pid)
             if not all(t["state"] == "integrated" for t in p["tasks"]):
-                raise ContractError("Integrate every specification before creating a release bundle")
+                raise AuthorityCoercionRejected(
+                    code="UNPROVEN_ACCEPTANCE", fail_closed_state="UNPROVEN",
+                    reason="Integrate every specification before creating a release bundle")
             from .extensions import validate_task_receipt
             for task in p["tasks"]:
                 validate_task_receipt(self, p, task)
             head = ws.git(p["repo"], "rev-parse", "HEAD")
             last_run = p.get("last_run") or {}
-            if (last_run.get("outcome") != "success"
-                    or last_run.get("project_head") != head
+            if last_run.get("outcome") != "success":
+                raise AuthorityCoercionRejected(
+                    code="UNPROVEN_ACCEPTANCE", fail_closed_state="UNPROVEN",
+                    reason="Release export requires a successful run-control result")
+            if (last_run.get("project_head") != head
                     or last_run.get("project_spec_hash") != p["spec_hash"]):
-                raise ContractError("Release export requires a successful run-control result bound to the current integrated revision")
+                raise AuthorityCoercionRejected(
+                    code="UNBOUND_EVIDENCE_SOURCE", fail_closed_state="UNPROVEN",
+                    reason="Release export requires a successful run-control result bound to the current integrated revision")
             if ws.git(p["repo"], "status", "--porcelain", "--untracked-files=all"):
-                raise ContractError("Managed project changed after integration. Release export requires a clean revision.")
+                raise AuthorityCoercionRejected(
+                    code="UNBOUND_EVIDENCE_SOURCE", fail_closed_state="UNPROVEN",
+                    reason="Managed project changed after integration. Release export requires a clean revision.")
             integrations = [ev for ev in self.store.events(pid, 0, 100000) if ev["event_type"] == "integration.completed"]
             if not integrations or integrations[-1]["data"]["head_commit"] != head:
-                raise ContractError("Current revision is not the last accepted integration")
+                raise AuthorityCoercionRejected(
+                    code="STALE_CONTRACT", fail_closed_state="STALE_CONTRACT",
+                    reason="Current revision is not the last accepted integration")
             artifact = self.store.add_artifact(pid, "release-" + pid + ".zip", ws.export_zip(p["repo"], head), "release")
             self.store.event(pid, "release.exported", {"head_commit": head, "evidence": artifact["id"]}, actor="operator")
             return artifact
