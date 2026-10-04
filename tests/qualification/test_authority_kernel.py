@@ -52,14 +52,14 @@ def test_missing_spec_raises(tmp_path):
         ak.revision(spec=tmp_path / "nope.md")
 
 
-def test_spec_path_env_override(tmp_path, monkeypatch):
+def test_spec_path_is_bound_to_candidate_tree(tmp_path, monkeypatch):
     spec = tmp_path / "custom.md"
     spec.write_text("custom spec")
-    monkeypatch.setenv(ak.SPEC_ENV_VAR, str(spec))
-    assert ak.spec_path() == spec
-    # And revision() honors it.
-    r = ak.revision()
-    assert len(r) == 64
+    monkeypatch.setenv("RESIDUAL_AUTH_SPEC", str(spec))
+    expected = ak.REPO_ROOT / ak.SPEC_FILENAME
+    assert ak.spec_path() == expected
+    # Environment overrides cannot make one candidate resolve different normative bytes.
+    assert ak.revision() == ak.revision()
 
 
 def test_receipt_carries_kernel_revision():
