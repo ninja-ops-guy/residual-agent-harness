@@ -57,9 +57,10 @@ def test_spec_path_is_bound_to_candidate_tree(tmp_path, monkeypatch):
     spec.write_text("custom spec")
     monkeypatch.setenv("RESIDUAL_AUTH_SPEC", str(spec))
     expected = ak.REPO_ROOT / ak.SPEC_FILENAME
+    baseline_revision = ak.revision()
     assert ak.spec_path() == expected
     # Environment overrides cannot make one candidate resolve different normative bytes.
-    assert ak.revision() == ak.revision()
+    assert ak.revision() == baseline_revision
 
 
 def test_receipt_carries_kernel_revision():
