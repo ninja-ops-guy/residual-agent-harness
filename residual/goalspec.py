@@ -15,8 +15,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Optional, Protocol
 
-from .core import ContractError, canonical, identifier, positive_int
-from .authority import AuthorityCoercionRejected
+from .core import AuthorityCoercionRejected, ContractError, canonical, identifier, positive_int
 from observation_layer.core import freeze
 
 
