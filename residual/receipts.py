@@ -6,8 +6,7 @@ import re
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-from .authority import AuthorityCoercionRejected
-from .core import ContractError, canonical, digest, identifier, strict_json
+from .core import AuthorityCoercionRejected, ContractError, canonical, digest, identifier, strict_json
 from .verifier import CheckResult
 
 
