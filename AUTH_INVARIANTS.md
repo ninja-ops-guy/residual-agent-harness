@@ -516,8 +516,8 @@ Each result backed by an adversarial-test receipt.
 ```
 
 **Implementation reconciliation note (frozen scope).** Where this
-specification names failure codes, actors, or conversion steps, rename
-the specification to match what v1 actually emits where the semantics
-already exist. Do not introduce new normative names the implementation
-does not yet support — under frozen scope, this document hardens the
-existing contract path; it must not become six new features.
+specification names failure codes, actors, or conversion steps, rename the
+specification to match what v1 actually emits where the semantics already
+exist. Do not introduce new normative names the implementation does not yet
+support — under frozen scope, this document hardens the existing contract
+path; it must not become six new features.
