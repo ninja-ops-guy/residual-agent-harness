@@ -9,7 +9,7 @@ import time
 import uuid
 from pathlib import Path
 
-from residual.authority import AuthorityCoercionRejected
+from residual.core import AuthorityCoercionRejected
 from residual.core import ContractError, canonical
 from .contracts import bounded, parse_spec, sha
 from ai_providers import ProviderError as ModularError
