@@ -41,7 +41,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 from pathlib import Path
 
 
@@ -69,33 +68,18 @@ KERNEL_MODULES: tuple[str, ...] = (
     "scripts/check_maintainer_approval.py",
 )
 
-#: Environment variable overriding the normative spec location.
-SPEC_ENV_VAR = "RESIDUAL_AUTH_SPEC"
-
 #: Spec filename; resolved against the workspace layout, never invented.
 SPEC_FILENAME = "AUTH_INVARIANTS.md"
 
 
 def spec_path() -> Path:
-    """Locate the normative AUTH_INVARIANTS.md. Raises if unresolvable."""
-    override = os.environ.get(SPEC_ENV_VAR)
-    if override:
-        path = Path(override)
-        if path.is_file():
-            return path
-        raise FileNotFoundError(
-            f"{SPEC_ENV_VAR} points at an unreadable spec: {override}")
-    candidates = (
-        REPO_ROOT.parent / "auth-invariant-family" / SPEC_FILENAME,
-        Path.home() / "workspace" / "auth-invariant-family" / SPEC_FILENAME,
-    )
-    for candidate in candidates:
-        if candidate.is_file():
-            return candidate
+    """Return the normative spec committed with this exact candidate tree."""
+    candidate = REPO_ROOT / SPEC_FILENAME
+    if candidate.is_file():
+        return candidate
     raise FileNotFoundError(
-        f"normative spec {SPEC_FILENAME} not found; set {SPEC_ENV_VAR}. "
-        "A kernel that cannot be measured against its spec cannot be qualified.")
-
+        f"normative spec {SPEC_FILENAME} missing from candidate tree; "
+        "a kernel that cannot be measured against its spec cannot be qualified.")
 
 def _sha256_file(path: Path, *, what: str) -> str:
     try:
