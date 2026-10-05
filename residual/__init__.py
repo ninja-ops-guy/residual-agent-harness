@@ -31,4 +31,6 @@ __all__ = [
     "QuarantinedProvider", "default_policies",
     "StationReceipt", "ReceiptReference", "validate_receipt_graph",
     "StationExtensionRegistry", "StationModule", "VerifierDescriptor", "VerifierRevision",
+    "AttestationError", "CoreGateDecision", "CoreUnreachableError", "GateFiredError",
+    "LedgerWriteError", "LiveCoreResidualBackend",
 ]
