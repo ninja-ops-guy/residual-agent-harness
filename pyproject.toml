@@ -23,7 +23,8 @@ qualification = [
 
 [project.scripts]
 residual = "residual.cli:main"
-residual-station = "residual.station.server:main"
+residual-station = "residual.station.mission_server:main"
+residual-mission-sync = "residual.station.mission_client:main"
 residual-worker = "residual.station.worker:main"
 residual-module = "residual.marketplace.cli:main"
 

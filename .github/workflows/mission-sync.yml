@@ -1,0 +1,38 @@
+name: Mission sync component and Station integration
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  mission-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Exact checkout identity
+        run: |
+          git rev-parse HEAD
+          git rev-parse HEAD^{tree}
+      - name: Install repository test dependencies
+        run: python -m pip install -e '.[factory,test]'
+      - name: Component, transport and native-hook-shape tests
+        run: python -W error::ResourceWarning -m unittest discover -s tests/mission_sync -v
+      - name: Actual Station integration
+        run: python -m pytest tests/test_station_mission_sync.py -q
+      - name: Build wheel with Mission Control assets
+        run: python -m pip wheel . --no-deps -w dist
