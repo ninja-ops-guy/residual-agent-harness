@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Optional, Protocol
 
-from .core import ContractError, canonical, identifier, positive_int
+from .core import AuthorityCoercionRejected, ContractError, canonical, identifier, positive_int
 from observation_layer.core import freeze
 
 
@@ -43,16 +43,25 @@ class ProposedAction:
         try:
             object.__setattr__(self, "action_type", ActionType(self.action_type))
         except (ValueError, TypeError):
-            raise ContractError("unknown action type") from None
+            raise AuthorityCoercionRejected(
+                code="AMBIGUOUS_ACCEPTANCE_CONDITION",
+                fail_closed_state="NO_IMPLICIT_DEFAULT",
+                reason="unknown action type") from None
         identifier(self.agent_id)
         if not isinstance(self.name, str) or not self.name:
-            raise ContractError("action requires a name")
+            raise AuthorityCoercionRejected(
+                code="AMBIGUOUS_ACCEPTANCE_CONDITION",
+                fail_closed_state="NO_IMPLICIT_DEFAULT",
+                reason="action requires a name")
         try:
             if not isinstance(self.arguments, dict):
                 raise ValueError()
             object.__setattr__(self, "arguments", freeze(self.arguments))
         except Exception:
-            raise ContractError("action arguments must be canonicalizable")
+            raise AuthorityCoercionRejected(
+                code="AMBIGUOUS_ACCEPTANCE_CONDITION",
+                fail_closed_state="NO_IMPLICIT_DEFAULT",
+                reason="action arguments must be canonicalizable")
 
     @property
     def fingerprint(self) -> str:
@@ -92,11 +101,29 @@ class DeniedAction:
     denied_at_ns: int
     reason: str
     policy_name: str
+    # Typed authority-coercion emission (Track A2). None when the denying
+    # policy is not mapped to an AUTH invariant (e.g. resource budgets).
+    code: Optional[str] = None
+    fail_closed_state: Optional[str] = None
 
 
 # Policy: (ProposedAction) -> Optional[str]
 # Returns None to allow, or a denial reason string.
 Policy = Callable[[ProposedAction], Optional[str]]
+
+
+# Track A2 emission: built-in policy name -> (failure code, fail-closed state).
+# Policies absent from this registry (host-supplied policies, resource
+# budgets) deny without a typed authority code; their denials still stand.
+POLICY_AUTH_CODES: dict[str, tuple[str, str]] = {
+    "denylist_policy": ("UNAPPROVED_ACTION", "NO_EXECUTION"),
+    "path_traversal_policy": ("UNAPPROVED_ACTION", "NO_EXECUTION"),
+    "worker_contract_authority_policy": ("UNRESOLVED_AUTHORITY", "NO_AUTHORITY_CHANGE"),
+    "registration_policy": ("UNAPPROVED_ACTION", "NO_EXECUTION"),
+    "approval_policy": ("UNAPPROVED_ACTION", "NO_EXECUTION"),
+}
+# A policy that returns a malformed result or raises has not approved.
+_SYNTHETIC_DENIAL_AUTH = ("UNAPPROVED_ACTION", "NO_EXECUTION")
 
 
 class QuarantineStore:
@@ -126,7 +153,9 @@ class QuarantineStore:
     def _entry(self, held: HeldAction) -> dict:
         entry = self._holds.get(held.hold_id)
         if entry is None or entry["held"] is not held:
-            raise ContractError("foreign or forged quarantine hold")
+            raise AuthorityCoercionRejected(
+                code="UNBOUND_EVIDENCE_SOURCE", fail_closed_state="NO_EXECUTION",
+                reason="foreign or forged quarantine hold")
         return entry
 
     def evaluate(self, held: HeldAction, policies: tuple[Policy, ...]) -> PolicyDecision:
@@ -142,6 +171,7 @@ class QuarantineStore:
                 return entry["decision"]
             denials = []
             for policy in policies:
+                policy_name = getattr(policy, "__name__", "anonymous_policy")
                 try:
                     reason = policy(held.action)
                     if reason is not None and (not isinstance(reason, str) or not reason.strip()):
@@ -149,9 +179,15 @@ class QuarantineStore:
                 except Exception:
                     reason = "policy_error"
                 if reason is not None:
-                    denials.append({"policy": getattr(policy, "__name__", "anonymous_policy"), "reason": reason[:1000]})
+                    if reason in ("invalid_policy_result", "policy_error"):
+                        code, state = _SYNTHETIC_DENIAL_AUTH
+                    else:
+                        mapped = POLICY_AUTH_CODES.get(policy_name)
+                        code, state = mapped if mapped else (None, None)
+                    denials.append({"policy": policy_name, "reason": reason[:1000],
+                                    "code": code, "fail_closed_state": state})
             decision = PolicyDecision.DENY if denials else PolicyDecision.ALLOW
-            entry.update(state="evaluated", decision=decision)
+            entry.update(state="evaluated", decision=decision, denials=denials)
             self._log.append({"event": "evaluated", "hold_id": held.hold_id,
                 "fingerprint": held.fingerprint, "decision": decision.value, "denials": denials})
             return decision
@@ -161,7 +197,9 @@ class QuarantineStore:
         with self._lock:
             entry = self._entry(held)
             if entry["state"] != "evaluated" or entry["decision"] != PolicyDecision.ALLOW:
-                raise ContractError("release requires an unconsumed, allowed evaluation")
+                raise AuthorityCoercionRejected(
+                    code="UNAPPROVED_ACTION", fail_closed_state="NO_EXECUTION",
+                    reason="release requires an unconsumed, allowed evaluation")
             # Consume before invoking host code, including concurrent or reentrant release.
             entry["state"] = "executing"
         caught = None
@@ -195,7 +233,9 @@ class QuarantineStore:
             raise caught
         return executed
 
-    def deny(self, held: HeldAction, reason: str, policy_name: str) -> DeniedAction:
+    def deny(self, held: HeldAction, reason: str, policy_name: str, *,
+             code: Optional[str] = None,
+             fail_closed_state: Optional[str] = None) -> DeniedAction:
         """SPEC-004-R3/R4: deny silently to agent, observe fully."""
         if not isinstance(reason, str) or not reason.strip():
             raise ContractError("denial requires a reason")
@@ -203,17 +243,28 @@ class QuarantineStore:
             entry = self._entry(held)
             if entry["state"] != "evaluated" or entry["decision"] != PolicyDecision.DENY:
                 raise ContractError("deny requires an unconsumed denied evaluation")
+            if code is None:
+                # Derive the typed code from the evaluation's recorded denials:
+                # the first denial carrying a mapped authority code wins.
+                for denial in entry.get("denials") or ():
+                    if denial.get("code") is not None:
+                        code = denial["code"]
+                        fail_closed_state = denial.get("fail_closed_state")
+                        break
             entry["state"] = "denied"
         denied = DeniedAction(
             held=held,
             denied_at_ns=time.time_ns(),
             reason=reason,
             policy_name=policy_name,
+            code=code,
+            fail_closed_state=fail_closed_state,
         )
         with self._lock:
             self._log.append({"event": "denied", "hold_id": held.hold_id,
                 "fingerprint": held.fingerprint, "denied_at_ns": denied.denied_at_ns,
-                "reason": reason, "policy_name": policy_name})
+                "reason": reason, "policy_name": policy_name,
+                "code": code, "fail_closed_state": fail_closed_state})
         if self._emit:
             self._emit("action_denied", {
                 "hold_id": held.hold_id,
@@ -222,6 +273,8 @@ class QuarantineStore:
                 "name": held.action.name,
                 "reason": reason,
                 "policy_name": policy_name,
+                "code": code,
+                "fail_closed_state": fail_closed_state,
             })
         return denied
 

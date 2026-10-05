@@ -11,7 +11,9 @@ from .schema import (
     ALL_KINDS,
     ALL_PHASES,
     EvidenceError,
+    ObservationCoercionRejected,
     REPORT_SCHEMA_VERSION,
+    _reject,
     hash_object,
     hash_observations,
     validate_observation,
@@ -40,7 +42,7 @@ def build_reliability_report(observations, *, experiment_id: str = "fixture",
     Deterministic: identical inputs produce identical report_hash (Gate C).
     """
     if not isinstance(observations, (list, tuple)) or not observations:
-        raise EvidenceError("observation set must be a non-empty sequence")
+        raise _reject("observation set must be a non-empty sequence")
     validated = [validate_observation(o) for o in observations]
 
     # Evidence accounting (OBS-R6): per kind, complete vs missing-field counts.

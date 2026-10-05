@@ -14,6 +14,7 @@ import time
 import unittest
 from unittest.mock import patch
 
+from residual.authority import AuthorityCoercionRejected
 from residual.core import ContractError
 from residual.station.models import save_settings
 from residual.station.service import Station, demo_spec
@@ -122,6 +123,11 @@ class BudgetAuthorityTests(unittest.TestCase):
         self._assert_no_authority_effects(pid, result)
         self.assertTrue(any(e["data"].get("reason") == "token_budget_exhausted" and e["data"].get("stage") == "pre-dispatch"
                             for e in self._events(pid, "project.note")))
+        # Track A2: exhausted budget is approval refused (AUT-006), typed.
+        self.assertTrue(any(e["data"].get("code") == "UNAPPROVED_ACTION"
+                            and e["data"].get("fail_closed_state") == "NO_EXECUTION"
+                            and e["data"].get("reason") == "token_budget_exhausted"
+                            for e in self._events(pid, "project.note")))
 
     def test_unknown_usage_conservative_policy_blocks_dispatch_and_effects(self):
         pid = self.station.create(TWO_TASK_SPEC, commands=True)["project_id"]
@@ -137,6 +143,11 @@ class BudgetAuthorityTests(unittest.TestCase):
         self.assertIsNone(result["control"]["tokens"])
         self.assertTrue(any(e["data"].get("reason") == "usage_unknown_or_invalid"
                             for e in self._events(pid, "project.note")))
+        # Track A2: unknown usage is absent evidence (EVD-001), typed.
+        self.assertTrue(any(e["data"].get("code") == "UNBOUND_EVIDENCE_SOURCE"
+                            and e["data"].get("fail_closed_state") == "NO_EXECUTION"
+                            and e["data"].get("reason") == "usage_unknown_or_invalid"
+                            for e in self._events(pid, "project.note")))
 
     def test_wall_clock_trip_racing_in_flight_dispatch_blocks_effects(self):
         pid = self.station.create(TWO_TASK_SPEC, commands=True)["project_id"]
@@ -151,6 +162,11 @@ class BudgetAuthorityTests(unittest.TestCase):
         self.assertEqual(tasks, {"CTRL-001": "review_ready", "CTRL-002": "ready"})
         self._assert_no_authority_effects(pid, result)
         self.assertTrue(any(e["data"].get("reason") == "wall_clock_budget_exhausted"
+                            for e in self._events(pid, "project.note")))
+        # Track A2: expired deadline is approval refused (AUT-006), typed.
+        self.assertTrue(any(e["data"].get("code") == "UNAPPROVED_ACTION"
+                            and e["data"].get("fail_closed_state") == "NO_EXECUTION"
+                            and e["data"].get("reason") == "wall_clock_budget_exhausted"
                             for e in self._events(pid, "project.note")))
 
     def test_parallel_dispatch_first_consumes_budget_no_authority_effects(self):
@@ -178,15 +194,25 @@ class BudgetAuthorityTests(unittest.TestCase):
         # Even with every check/review receipt intact, an aborted run-control
         # result must not release the exact same integrated head.
         self.station.store.project_update(pid, last_run={**last_run, "outcome": "aborted"})
-        with self.assertRaises(ContractError):
+        with self.assertRaises(AuthorityCoercionRejected) as cm:
             self.station.export(pid)
+        # Track A2: an aborted run is unproven acceptance (ACC-003).
+        self.assertEqual(cm.exception.code, "UNPROVEN_ACCEPTANCE")
+        self.assertEqual(cm.exception.fail_closed_state, "UNPROVEN")
+        self.assertEqual(cm.exception.invariant_id, "INV-AUTH-ACC-003")
         # The run-control receipt must also bind the exact current head and spec.
         self.station.store.project_update(pid, last_run={**last_run, "project_head": "0" * 40})
-        with self.assertRaises(ContractError):
+        with self.assertRaises(AuthorityCoercionRejected) as cm:
             self.station.export(pid)
+        # Track A2: a mismatched head voids the evidence binding (EVD-001).
+        self.assertEqual(cm.exception.code, "UNBOUND_EVIDENCE_SOURCE")
+        self.assertEqual(cm.exception.fail_closed_state, "UNPROVEN")
+        self.assertEqual(cm.exception.invariant_id, "INV-AUTH-EVD-001")
         self.station.store.project_update(pid, last_run={**last_run, "project_spec_hash": "0" * 64})
-        with self.assertRaises(ContractError):
+        with self.assertRaises(AuthorityCoercionRejected) as cm:
             self.station.export(pid)
+        self.assertEqual(cm.exception.code, "UNBOUND_EVIDENCE_SOURCE")
+        self.assertEqual(cm.exception.fail_closed_state, "UNPROVEN")
         # Restoring the exact binding releases again.
         self.station.store.project_update(pid, last_run=last_run)
         self.station.export(pid)

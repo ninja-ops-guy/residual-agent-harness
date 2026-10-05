@@ -194,7 +194,11 @@ class JITManager:
             source_ip,
             "deny",
             details={"kind": "jit_denied", "approver": approver_id,
-                     "category": request.category, "scope": request.scope},
+                     "category": request.category, "scope": request.scope,
+                     # AUT-006: the request (suggestion) was presented to the
+                     # approval authority and refused.
+                     "code": "UNAPPROVED_ACTION",
+                     "fail_closed_state": "NO_EXECUTION"},
         )
 
     def is_elevated(self, subject_id: str, category: str, scope: str = WILDCARD) -> bool:

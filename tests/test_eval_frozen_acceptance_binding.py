@@ -11,6 +11,7 @@ from __future__ import annotations
 import copy
 from dataclasses import replace
 from types import SimpleNamespace
+import contextlib
 
 import pytest
 
@@ -18,6 +19,7 @@ from residual.eval_frozen.acceptance_binding import (
     ACCEPTANCE_SCHEMA,
     CHAIN_SCHEMA,
     AcceptanceBindingError,
+    AcceptanceCoercionRejected,
     FreshRunRegistry,
     MeasuredRunEvidence,
     SchedulerObservation,
@@ -50,6 +52,23 @@ CLEAN_INSTALL = {"status": "PASS", "commit": COMMIT, "tree": "f" * 40}
 # cross-checks both against verifier/v3/factory_ownership_baseline.json.
 OWNERSHIP = {"passed": True, "pinned_at": "0" * 40, "protected_files": 32}
 BASELINE = {"pinned_at": "0" * 40, "files": {f"path/{i}": str(i).zfill(40)[:40] for i in range(32)}}
+
+
+@contextlib.contextmanager
+def _expect_typed(match, code, fail_closed_state, invariant_id):
+    """Assert a typed authority-coercion rejection (Track A2 emission).
+
+    Still matches the human-readable reason via ``match``; additionally
+    asserts the emitted failure code, fail-closed state, and invariant.
+    """
+    ctx = pytest.raises(AcceptanceCoercionRejected) if match is None \
+        else pytest.raises(AcceptanceCoercionRejected, match=match)
+    with ctx as exc_info:
+        yield
+    assert exc_info.value.code == code
+    assert exc_info.value.fail_closed_state == fail_closed_state
+    assert exc_info.value.invariant_id == invariant_id
+    assert exc_info.value.triggered_codes == (code,)
 
 
 def make_receipt(identity: StationIdentity, task_id: str, attempt: str,
@@ -182,7 +201,7 @@ def test_replay_of_run_id_is_rejected():
     registry = FreshRunRegistry(identity)
     workload = development_workload()
     begin(registry, workload)
-    with pytest.raises(AcceptanceBindingError, match="replay"):
+    with _expect_typed("replay", "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001"):
         begin(registry, workload)
 
 
@@ -192,7 +211,7 @@ def test_resumed_run_evidence_is_never_fresh():
     workload = development_workload()
     begin(registry, workload)
     registry.resume_run("run-1")
-    with pytest.raises(AcceptanceBindingError, match="non-fresh"):
+    with _expect_typed("non-fresh", "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001"):
         issue(identity, registry, workload,
               make_evidence(identity, registry, workload, "run-1"))
 
@@ -201,7 +220,7 @@ def test_unknown_run_identity_fails_closed():
     identity = StationIdentity.generate()
     registry = FreshRunRegistry(identity)
     workload = development_workload()
-    with pytest.raises(AcceptanceBindingError, match="no fresh execution identity"):
+    with _expect_typed("no fresh execution identity", "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001"):
         issue(identity, registry, workload,
               make_evidence(identity, registry, workload, "run-1"))
 
@@ -213,7 +232,7 @@ def test_forged_identity_chain_record_is_rejected():
     record = begin(registry, workload)
     forged = replace(record, run_id="run-2")  # invalidates signature + chain
     registry._records.append(forged)
-    with pytest.raises(AcceptanceBindingError):
+    with _expect_typed(None, "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001"):
         registry.verify_chain()
 
 
@@ -226,12 +245,12 @@ def test_exported_chain_verifies_out_of_process_and_detects_tampering():
     records = verify_run_identity_chain(chain, identity.public_bytes())
     assert len(records) == 1 and records[0].run_id == "run-1"
     # Wrong key fails closed.
-    with pytest.raises(AcceptanceBindingError, match="signature"):
+    with _expect_typed("signature", "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001"):
         verify_run_identity_chain(chain, StationIdentity.generate().public_bytes())
     # Tampered record content fails closed (hash and/or signature mismatch).
     tampered = copy.deepcopy(chain)
     tampered["records"][0]["run_id"] = "run-evil"
-    with pytest.raises(AcceptanceBindingError):
+    with _expect_typed(None, "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001"):
         verify_run_identity_chain(tampered, identity.public_bytes())
     # Reordered/relinked chain fails closed.
     registry.begin_run("run-2", workload_sha256=workload.sha256,
@@ -239,7 +258,7 @@ def test_exported_chain_verifies_out_of_process_and_detects_tampering():
     two = registry.export_chain()
     broken = copy.deepcopy(two)
     broken["records"] = list(reversed(broken["records"]))
-    with pytest.raises(AcceptanceBindingError):
+    with _expect_typed(None, "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001"):
         verify_run_identity_chain(broken, identity.public_bytes())
 
 
@@ -252,7 +271,7 @@ def test_resumed_run_fails_freshness_in_exported_chain():
     chain = registry.export_chain()
     records = verify_run_identity_chain(chain, identity.public_bytes())
     from residual.eval_frozen.acceptance_binding import chain_fresh_record
-    with pytest.raises(AcceptanceBindingError, match="non-fresh"):
+    with _expect_typed("non-fresh", "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001"):
         chain_fresh_record(records, "run-1")
 
 
@@ -265,16 +284,16 @@ def test_unauthenticated_topology_is_rejected():
     workload = development_workload()
     begin(registry, workload)
     topology = make_topology(other)  # signed by a foreign Station
-    with pytest.raises(AcceptanceBindingError, match="not authenticated"):
+    with _expect_typed("not authenticated", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         issue(identity, registry, workload,
               make_evidence(identity, registry, workload, "run-1", topology=topology))
 
 
 def test_partial_interval_topology_is_rejected():
     identity = StationIdentity.generate()
-    with pytest.raises(AcceptanceBindingError, match="span the run interval"):
+    with _expect_typed("span the run interval", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         make_topology(identity, observations=(START + 100, END - 100))
-    with pytest.raises(AcceptanceBindingError, match="span the run interval"):
+    with _expect_typed("span the run interval", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         make_topology(identity, observations=(START + 100,))
 
 
@@ -282,10 +301,10 @@ def test_endpoint_only_interval_is_rejected():
     """Adversarial seam: observations exactly at both endpoints but ZERO
     observations inside the run must NOT satisfy interval coverage."""
     identity = StationIdentity.generate()
-    with pytest.raises(AcceptanceBindingError, match="strictly inside"):
+    with _expect_typed("strictly inside", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         make_topology(identity, observations=(START, END))
     # Also rejected with duplicate boundary-only observations.
-    with pytest.raises(AcceptanceBindingError, match="strictly inside"):
+    with _expect_typed("strictly inside", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         make_topology(identity, observations=(START, START, END, END))
     # One interior observation satisfies the floor.
     make_topology(identity, observations=(START, START + 1, END))
@@ -298,7 +317,7 @@ def test_topology_interval_must_match_the_run():
     begin(registry, workload)
     topology = make_topology(identity, start=START, end=END + 1,
                              observations=(START, MID, END + 1))
-    with pytest.raises(AcceptanceBindingError, match="interval does not match"):
+    with _expect_typed("interval does not match", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         issue(identity, registry, workload,
               make_evidence(identity, registry, workload, "run-1", topology=topology))
 
@@ -309,7 +328,7 @@ def test_topology_from_another_execution_plan_is_rejected():
     workload = development_workload()
     begin(registry, workload)
     topology = make_topology(identity, plan="8" * 64)
-    with pytest.raises(AcceptanceBindingError, match="another ExecutionPlan"):
+    with _expect_typed("another ExecutionPlan", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         issue(identity, registry, workload,
               make_evidence(identity, registry, workload, "run-1", topology=topology))
 
@@ -324,14 +343,14 @@ def test_divergent_task_population_is_rejected():
     evidence = make_evidence(identity, registry, workload, "run-1")
     # Extra unmapped task in the measured population.
     receipts = evidence.receipts + (make_receipt(identity, "factory-rogue", "attempt-x"),)
-    with pytest.raises(AcceptanceBindingError, match="population diverges"):
+    with _expect_typed("population diverges", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         issue(identity, registry, workload, replace(evidence, receipts=receipts))
     # Missing mapped task.
-    with pytest.raises(AcceptanceBindingError, match="population diverges"):
+    with _expect_typed("population diverges", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         issue(identity, registry, workload,
               replace(evidence, receipts=evidence.receipts[:-1]))
     # Duplicate task.
-    with pytest.raises(AcceptanceBindingError, match="duplicate"):
+    with _expect_typed("duplicate", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         issue(identity, registry, workload,
               replace(evidence, receipts=evidence.receipts + evidence.receipts[:1]))
 
@@ -340,11 +359,11 @@ def test_incomplete_mapping_is_rejected_at_construction():
     workload = development_workload()
     tasks = workload.slice_tasks("evaluation")
     partial = {t.task_id: f"factory-{t.task_id}" for t in tasks[:-1]}
-    with pytest.raises(AcceptanceBindingError, match="does not cover"):
+    with _expect_typed("does not cover", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         WorkloadTaskMapping.for_workload(workload, partial)
     rogue = {t.task_id: f"factory-{t.task_id}" for t in tasks}
     rogue["not-a-task"] = "factory-x"
-    with pytest.raises(AcceptanceBindingError, match="does not cover"):
+    with _expect_typed("does not cover", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         WorkloadTaskMapping.for_workload(workload, rogue)
 
 
@@ -358,20 +377,20 @@ def test_unknown_verifier_outcome_rejects_and_never_attributes():
     evidence = make_evidence(identity, registry, workload, "run-1")
     unknown = make_acceptance(identity, evidence.receipts, status="unknown",
                               reason="isolation_unavailable:probe", returncode=None)
-    with pytest.raises(AcceptanceBindingError, match="fails closed"):
+    with _expect_typed("fails closed", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         issue(identity, registry, workload,
               replace(evidence, final_acceptance=unknown))
 
 
 def test_unqualified_verifier_probe_fails_closed():
     identity = StationIdentity.generate()
-    with pytest.raises(AcceptanceBindingError, match="fail closed"):
+    with _expect_typed("fail closed", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         VerifierQualification.issue(
             identity, run_id="run-1", probe_status="unknown",
             probe_reason="isolation_unavailable:platform_not_linux",
             probe_returncode=-1, probe_stdout_sha256="3" * 64,
             probe_stderr_sha256="4" * 64, probed_at_ns=MID)
-    with pytest.raises(AcceptanceBindingError, match="verifier boundary"):
+    with _expect_typed("verifier boundary", "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001"):
         VerifierQualification.issue(
             identity, run_id="run-1", boundary="trusted_fixture_unsandboxed",
             probe_status="pass", probe_reason="exit",
@@ -381,7 +400,7 @@ def test_unqualified_verifier_probe_fails_closed():
 
 def test_directly_constructed_qualification_is_blocked():
     """Adversarial seam: fabricated, directly constructed qualifications."""
-    with pytest.raises(AcceptanceBindingError, match="issuance path"):
+    with _expect_typed("issuance path", "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001"):
         VerifierQualification(
             boundary=SANDBOX_PROFILE, probe_status="pass", probe_reason="exit",
             probe_returncode=0, probe_stdout_sha256="3" * 64,
@@ -398,7 +417,7 @@ def test_forged_unsigned_qualification_is_rejected_by_the_binding():
     workload = development_workload()
     begin(registry, workload)
     forged = make_verifier(forger, "run-1")  # signed by a foreign Station
-    with pytest.raises(AcceptanceBindingError, match="not authenticated"):
+    with _expect_typed("not authenticated", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         issue(identity, registry, workload,
               make_evidence(identity, registry, workload, "run-1", verifier=forged))
     # Token-bypassed, self-signed-by-nobody fabrication also fails.
@@ -420,12 +439,12 @@ def test_qualification_must_bind_this_run_and_run_interval():
     begin(registry, workload)
     # Bound to another run id.
     other_run = make_verifier(identity, "run-2")
-    with pytest.raises(AcceptanceBindingError, match="another run id"):
+    with _expect_typed("another run id", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         issue(identity, registry, workload,
               make_evidence(identity, registry, workload, "run-1", verifier=other_run))
     # Probed outside the run interval.
     late = make_verifier(identity, "run-1", probed_at_ns=END + 1)
-    with pytest.raises(AcceptanceBindingError, match="outside the run interval"):
+    with _expect_typed("outside the run interval", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         issue(identity, registry, workload,
               make_evidence(identity, registry, workload, "run-1", verifier=late))
 
@@ -441,7 +460,7 @@ def test_from_isolated_result_requires_typed_pass_probe():
     bad = SimpleNamespace(status="unknown", reason="isolation_unavailable:probe",
                           returncode=None, stdout_sha256="3" * 64,
                           stderr_sha256="4" * 64, execution_boundary=SANDBOX_PROFILE)
-    with pytest.raises(AcceptanceBindingError, match="failing closed"):
+    with _expect_typed("failing closed", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         VerifierQualification.from_isolated_result(identity, bad, run_id="run-1",
                                                    probed_at_ns=MID)
 
@@ -455,7 +474,7 @@ def test_development_fixture_acceptance_cannot_be_relabelled():
     fixture = make_acceptance(identity, evidence.receipts,
                               level="development_fixture",
                               boundary="trusted_fixture_unsandboxed")
-    with pytest.raises(AcceptanceBindingError, match="development_fixture"):
+    with _expect_typed("development_fixture", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         issue(identity, registry, workload,
               replace(evidence, final_acceptance=fixture))
 
@@ -468,7 +487,7 @@ def test_acceptance_must_bind_exact_receipt_set():
     evidence = make_evidence(identity, registry, workload, "run-1")
     wrong = make_acceptance(identity, evidence.receipts,
                             receipt_hashes=("0" * 64,) * len(evidence.receipts))
-    with pytest.raises(AcceptanceBindingError, match="exact measured M3 receipt set"):
+    with _expect_typed("exact measured M3 receipt set", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         issue(identity, registry, workload,
               replace(evidence, final_acceptance=wrong))
 
@@ -476,16 +495,16 @@ def test_acceptance_must_bind_exact_receipt_set():
 # --- prerequisites ----------------------------------------------------------
 
 def test_prerequisite_gates_fail_closed():
-    with pytest.raises(AcceptanceBindingError, match="clean-install"):
+    with _expect_typed("clean-install", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         validate_prerequisites(None, OWNERSHIP, required_commit=COMMIT,
                                ownership_baseline=BASELINE)
-    with pytest.raises(AcceptanceBindingError, match="clean-install"):
+    with _expect_typed("clean-install", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         validate_prerequisites({"status": "FAIL"}, OWNERSHIP, required_commit=COMMIT,
                                ownership_baseline=BASELINE)
-    with pytest.raises(AcceptanceBindingError, match="ownership"):
+    with _expect_typed("ownership", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         validate_prerequisites(CLEAN_INSTALL, None, required_commit=COMMIT,
                                ownership_baseline=BASELINE)
-    with pytest.raises(AcceptanceBindingError, match="ownership"):
+    with _expect_typed("ownership", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         validate_prerequisites(CLEAN_INSTALL, {"passed": False}, required_commit=COMMIT,
                                ownership_baseline=BASELINE)
     with pytest.raises(AcceptanceBindingError, match="another commit"):
@@ -497,11 +516,11 @@ def test_mismatched_ownership_pin_fails_closed():
     """Adversarial seam: an ownership report pinned somewhere other than the
     current #95 baseline must fail, not merely be non-None."""
     stale = {"passed": True, "pinned_at": "1" * 40, "protected_files": 32}
-    with pytest.raises(AcceptanceBindingError, match="baseline pin"):
+    with _expect_typed("baseline pin", "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001"):
         validate_prerequisites(CLEAN_INSTALL, stale, required_commit=COMMIT,
                                ownership_baseline=BASELINE)
     no_pin = {"passed": True, "pinned_at": None, "protected_files": 32}
-    with pytest.raises(AcceptanceBindingError, match="no valid pin"):
+    with _expect_typed("no valid pin", "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001"):
         validate_prerequisites(CLEAN_INSTALL, no_pin, required_commit=COMMIT,
                                ownership_baseline=BASELINE)
 
@@ -510,11 +529,11 @@ def test_weaker_ownership_pin_fails_closed():
     """Adversarial seam: a report covering FEWER protected paths than the
     baseline must fail even with the correct pin."""
     weaker = {"passed": True, "pinned_at": "0" * 40, "protected_files": 10}
-    with pytest.raises(AcceptanceBindingError, match="weaker"):
+    with _expect_typed("weaker", "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001"):
         validate_prerequisites(CLEAN_INSTALL, weaker, required_commit=COMMIT,
                                ownership_baseline=BASELINE)
     mismatched_count = {"passed": True, "pinned_at": "0" * 40, "protected_files": 33}
-    with pytest.raises(AcceptanceBindingError, match="weaker"):
+    with _expect_typed("weaker", "UNBOUND_EVIDENCE_SOURCE", "NO_EXECUTION", "INV-AUTH-EVD-001"):
         validate_prerequisites(CLEAN_INSTALL, mismatched_count, required_commit=COMMIT,
                                ownership_baseline=BASELINE)
 
@@ -538,7 +557,7 @@ def test_absent_prerequisites_reject_the_binding():
     begin(registry, workload)
     evidence = make_evidence(identity, registry, workload, "run-1",
                              clean_install_report={}, ownership_report={})
-    with pytest.raises(AcceptanceBindingError, match="clean-install"):
+    with _expect_typed("clean-install", "UNPROVEN_ACCEPTANCE", "UNPROVEN", "INV-AUTH-ACC-003"):
         issue(identity, registry, workload, evidence)
 
 

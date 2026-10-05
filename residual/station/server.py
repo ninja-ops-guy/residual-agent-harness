@@ -268,7 +268,7 @@ class Handler(BaseHTTPRequestHandler):
                     if not isinstance(usage, dict) or set(usage) - allowed or any(usage.get(k) is not None and (type(usage[k]) is not int or not 0 <= usage[k] <= 100_000_000) for k in ("input_tokens", "output_tokens", "cached_input_tokens", "cache_write_input_tokens", "request_bytes")):
                         raise ContractError("Invalid remote usage receipt")
                     usage = {**usage, "source": "worker_reported", "role": "remote_runner", "model": bounded(usage.get("model", "unknown"), "Model", 200)}
-                result = s.finish(work, data["response"], usage)
+                result = s.finish(work, data["response"], usage, data.get("execution_evidence"))
                 with s.store.transaction() as c:
                     c.execute("INSERT INTO submissions VALUES(?,?)", (sid, canonical({"fingerprint": fingerprint, "result": result})))
                 return result

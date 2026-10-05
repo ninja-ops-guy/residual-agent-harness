@@ -8,6 +8,7 @@ import hashlib
 import json
 import pytest
 
+from residual.authority import AuthorityCoercionRejected
 from residual.core import ContractError, digest
 from residual.receipts import StationReceipt
 from residual.sandbox import (Enforcement, FsAllowlist, SandboxLimits,
@@ -96,8 +97,13 @@ class TestScopeViolations:
         assert attack_receipt("atk-scope-2", "path traversal probe").verdict is CheckResult.FAIL
 
     def test_relative_allowlist_entry_rejected(self):
-        with pytest.raises(ContractError):
+        with pytest.raises(AuthorityCoercionRejected) as exc_info:
             FsAllowlist(read=("../outside",))
+        # Track A2: a non-absolute allowlist entry would silently expand the
+        # execution scope (IDN-002); fail closed at the boundary.
+        assert exc_info.value.code == "UNRESOLVED_AUTHORITY"
+        assert exc_info.value.fail_closed_state == "NO_AUTHORITY_CHANGE"
+        assert exc_info.value.invariant_id == "INV-AUTH-IDN-002"
 
 
 class TestMaliciousWorkerOutput:
@@ -108,14 +114,18 @@ class TestMaliciousWorkerOutput:
             task_id="task-z", cache_key=hashlib.sha256(b"c").hexdigest(),
             value_hash=digest("vetted"), verifier_name="mechanical:unit",
             verifier_revision=hashlib.sha256(b"r").hexdigest(),
-            verdict=CheckResult.PASS)
+            verdict=CheckResult.PASS, kernel_revision="0" * 64)
         forged = genuine.to_dict()
         forged["payload"]["value_hash"] = hashlib.sha256(b"malicious").hexdigest()
         payload = json.dumps(forged)
         result = backend.exec(["/bin/bash", "-c", 'printf "%s\\n" "$1"', "emit", payload])
         assert result.ok  # output captured as data, never executed
-        with pytest.raises(ContractError):
+        with pytest.raises(AuthorityCoercionRejected) as exc_info:
             StationReceipt.from_json(result.stdout.strip())
+        # Track A2: the forged receipt has no issuance provenance (EVD-001).
+        assert exc_info.value.code == "UNBOUND_EVIDENCE_SOURCE"
+        assert exc_info.value.fail_closed_state == "NO_EXECUTION"
+        assert exc_info.value.invariant_id == "INV-AUTH-EVD-001"
         assert attack_receipt("atk-output-1", "forged receipt on stdout").verdict is CheckResult.FAIL
         backend.stop()
 

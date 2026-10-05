@@ -1,0 +1,2 @@
+include AUTH_INVARIANTS.md
+include scripts/check_maintainer_approval.py

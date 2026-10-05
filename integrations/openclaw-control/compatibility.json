@@ -1,0 +1,24 @@
+{
+  "schema": "residual.openclaw.compatibility.v1",
+  "plugin": "0.1.0",
+  "protocol": "residual.openclaw.control.v1",
+  "source_inspected_target": {
+    "repository": "openclaw/openclaw",
+    "ref": "v2026.6.1",
+    "status": "SOURCE_INSPECTED_NOT_NATIVE_QUALIFIED",
+    "git_blobs": {
+      "src/plugins/types.ts": "ce9cd9d1bb03210c77132851b9ae16d45f8b1b08",
+      "src/plugins/runtime/types.ts": "8c94d5200e97fe89c96eba32e9480454b1ebc36d",
+      "src/plugins/runtime/types-core.ts": "8b1a0a0cd3d91919444dd17237c820580b56344e",
+      "src/plugins/hook-types.ts": "3efab1de4ba4cbe99208723b4f46743af7c55f51",
+      "src/plugins/hook-decision-types.ts": "08a5fda7d4fb593212b76e69f235b98801f472cd"
+    }
+  },
+  "native_qualified": [],
+  "live_qualified": [],
+  "software_test_environment": "See source-bound qualification receipt; no inherited platform support",
+  "required_native_surfaces": ["registerService", "registerHttpRoute", "on(before_agent_run)", "on(before_tool_call)", "on(llm_output)", "runtime.subagent.run", "runtime.subagent.waitForRun", "runtime.config.current"],
+  "optional_native_surfaces": ["runtime.llm.complete"],
+  "unsupported": ["native cancellation", "gateway restart", "arbitrary tools", "Station authority issuance", "Station acceptance", "native SC-MESH", "secret rotation observation"],
+  "default_mode": "OBSERVE_ONLY"
+}

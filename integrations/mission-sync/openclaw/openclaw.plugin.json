@@ -1,0 +1,1 @@
+{"id":"residual-mission-sync","name":"RESIDUAL Mission Sync","version":"0.1.0","description":"Explicitly bound Station task context and durable conversation observations; no execution authority","configSchema":{"type":"object","properties":{},"additionalProperties":false}}

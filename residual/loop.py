@@ -124,7 +124,8 @@ class LoopController:
                 trips.append(trip)
                 self._emit("state.transition", {"from_state": "brake_armed", "to_state": "brake_tripped",
                     "brake_name": trip.brake_name, "action": trip.recommended_action.value,
-                    "trip_reason": trip.trip_reason, "triggering_obs_hash": trip.triggering_obs_hash, "run_id": run_id})
+                    "trip_reason": trip.trip_reason, "triggering_obs_hash": trip.triggering_obs_hash, "run_id": run_id,
+                    "code": trip.code, "fail_closed_state": trip.fail_closed_state})
 
         def feed(event):
             for brake in self.brakes:
@@ -133,7 +134,15 @@ class LoopController:
                     record(trip)
 
         def force(name, reason, action, event):
-            record(BrakeTrip(name, reason, digest(event), action))
+            # Track A2 emission: budget-brake trips end the run's execution
+            # authority; further passes are unapproved (AUT-006).
+            auth = {
+                ("budget", "wall_clock_budget_exhausted"): ("UNAPPROVED_ACTION", "NO_EXECUTION"),
+                ("budget", "token_budget_exhausted"): ("UNAPPROVED_ACTION", "NO_EXECUTION"),
+                ("budget", "usage_unknown_or_invalid"): ("UNAPPROVED_ACTION", "NO_EXECUTION"),
+            }.get((name, reason), (None, None))
+            record(BrakeTrip(name, reason, digest(event), action,
+                             code=auth[0], fail_closed_state=auth[1]))
 
         failures = self.extensions.on_run_opened(spec) if self.extensions is not None else ()
         if failures or self._extension_failure:
@@ -168,6 +177,10 @@ class LoopController:
             if not isinstance(observations, (list, tuple)) or len(observations) > 10000 or any(not isinstance(o, dict) for o in observations):
                 raise ContractError("harness observations must be a bounded list of objects")
             # Never feed worker lifecycle/usage/verification claims as control facts.
+            # EVD-001 (structural): worker-asserted claims are unreceipted
+            # observations; the control loop treats them as absent by
+            # construction. There is no rejection event here to type — the
+            # fail-closed behavior IS the filtering.
             for obs in observations:
                 if obs.get("kind") == "tool.invoked":
                     feed(obs)

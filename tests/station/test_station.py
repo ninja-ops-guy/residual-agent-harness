@@ -372,6 +372,75 @@ class HTTPTests(unittest.TestCase):
         with self.assertRaises(urllib.error.HTTPError):
             self.request(f"/api/projects/{pid}/task", {"task_id": "OPS-101", "action": "integrate"}, {**headers, "X-Station-Token": ""})
 
+    def test_remote_execution_evidence_is_attempt_bound_and_non_authoritative(self):
+        pid = self.s.create(demo_spec(), demo=True)["project_id"]
+        self.s.triage(pid)
+        self.s.store.settings({"remote_workers_enabled": True})
+        headers = {"Authorization": "Bearer " + self.s.store.settings()["worker_token"]}
+        work = self.request("/api/worker/claim", {"project_id": pid, "task_id": "OPS-101", "name": "openclaw-bridge"}, headers)["work"]
+        response = {"files": DEMO_FILES["OPS-101"]}
+        evidence = {
+            "schema": "residual.remote_execution_evidence.v1",
+            "engine_name": "openclaw-control",
+            "engine_version": "0.2.0",
+            "host_version": "2026.6.1",
+            "runtime_id": "oc-canary",
+            "instance_id": "instance-1",
+            "operation_id": "operation-1",
+            "project_id": pid,
+            "task_id": "OPS-101",
+            "attempt": work["attempt"],
+            "station_packet_sha256": sha(work["packet"]),
+            "command_input_sha256": "1" * 64,
+            "station_response_sha256": sha(response),
+            "runtime_output_sha256": "2" * 64,
+            "plugin_source_sha256": "3" * 64,
+            "config_digest": "4" * 64,
+            "evidence_tip_sha256": "5" * 64,
+            "evidence_sequence": 7,
+            "state": "COMPLETED",
+            "acceptance": "NOT_EVALUATED",
+            "qualification": "NOT_ESTABLISHED",
+            "trust": "CONTROLLER_OBSERVED_RUNTIME_REPORTED",
+        }
+        submission = {
+            "project_id": pid, "task_id": "OPS-101", "lease": work["lease"],
+            "submission_id": "openclaw-evidence-1", "response": response,
+            "execution_evidence": evidence,
+        }
+        try:
+            result = self.request("/api/worker/result", submission, headers)
+        except urllib.error.HTTPError as error:
+            task_debug = self.s.store.task(pid, "OPS-101")
+            events_debug = [event["event_type"] for event in self.s.store.events(pid)]
+            self.fail(f"remote execution evidence submission failed HTTP {error.code}; state={task_debug['state']}; findings={task_debug.get('findings')}; artifact_kinds={[a.get('kind') for a in task_debug.get('artifacts', [])]}; events={events_debug}")
+        self.assertEqual(result["state"], "review_ready")
+        task = self.s.store.task(pid, "OPS-101")
+        execution_artifacts = [item for item in task["artifacts"] if item["kind"] == "execution"]
+        self.assertEqual(len(execution_artifacts), 1)
+        _, stored = self.s.store.artifact(execution_artifacts[0]["id"])
+        self.assertEqual(json.loads(stored), evidence)
+        events = [event for event in self.s.store.events(pid) if event["event_type"] == "worker.execution"]
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["data"]["acceptance"], "NOT_EVALUATED")
+
+        # A worker cannot turn runtime self-report into Station acceptance.
+        pid2 = self.s.create(demo_spec(), demo=True)["project_id"]
+        self.s.triage(pid2)
+        work2 = self.request("/api/worker/claim", {"project_id": pid2, "task_id": "OPS-101", "name": "openclaw-bridge"}, headers)["work"]
+        bad = {**evidence, "project_id": pid2, "attempt": work2["attempt"],
+               "station_packet_sha256": sha(work2["packet"]), "acceptance": "ACCEPTED"}
+        bad_submission = {
+            "project_id": pid2, "task_id": "OPS-101", "lease": work2["lease"],
+            "submission_id": "openclaw-evidence-bad", "response": response,
+            "execution_evidence": bad,
+        }
+        with self.assertRaises(urllib.error.HTTPError) as error:
+            self.request("/api/worker/result", bad_submission, headers)
+        self.assertEqual(error.exception.code, 400)
+        self.assertEqual(self.s.store.task(pid2, "OPS-101")["state"], "repair_required")
+        self.assertFalse(any(event["event_type"] == "worker.execution" for event in self.s.store.events(pid2)))
+
 
 class ProviderHTTPTests(unittest.TestCase):
     def test_station_uses_actual_ollama_http_framing_and_reported_usage(self):

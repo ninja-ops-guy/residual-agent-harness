@@ -7,6 +7,7 @@ from scripts.check_maintainer_approval import (
     candidate_logins,
     current_head_approvers,
     evaluate,
+    evaluate_typed,
 )
 
 HEAD = "abc123"
@@ -51,14 +52,32 @@ class MaintainerApprovalGateTests(unittest.TestCase):
             ),
             [],
         )
+        # Track A2: observed identities without the maintainer grant cannot
+        # exercise approval authority (IDN-002).
+        decision = evaluate_typed(
+            HEAD, comments, {"triager": "triage", "reader": "read"})
+        self.assertFalse(decision.approved)
+        self.assertEqual(decision.code, "UNRESOLVED_AUTHORITY")
+        self.assertEqual(decision.fail_closed_state, "NO_AUTHORITY_CHANGE")
 
     def test_bot_does_not_qualify(self):
         comments = [comment(10, "residual-bot[bot]", f"{APPROVE_PREFIX} {HEAD}", "Bot")]
         self.assertEqual(current_head_approvers(HEAD, comments, {"residual-bot[bot]": "write"}), [])
+        # Track A2: a bot's approval is an observed identity without the grant.
+        decision = evaluate_typed(HEAD, comments, {"residual-bot[bot]": "write"})
+        self.assertFalse(decision.approved)
+        self.assertEqual(decision.code, "UNRESOLVED_AUTHORITY")
+        self.assertEqual(decision.fail_closed_state, "NO_AUTHORITY_CHANGE")
 
     def test_stale_head_does_not_qualify(self):
         comments = [comment(10, "solo", f"{APPROVE_PREFIX} oldsha")]
         self.assertEqual(current_head_approvers(HEAD, comments, {"solo": "write"}), [])
+        # Track A2: an approval bound to a superseded head does not transfer
+        # (CTR-004).
+        decision = evaluate_typed(HEAD, comments, {"solo": "write"})
+        self.assertFalse(decision.approved)
+        self.assertEqual(decision.code, "STALE_CONTRACT")
+        self.assertEqual(decision.fail_closed_state, "STALE_CONTRACT")
 
     def test_later_revoke_wins_for_same_head(self):
         comments = [
