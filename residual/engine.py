@@ -211,8 +211,14 @@ class Harness:
                 return False, None
             receipt = StationReceipt.from_dict(entry["receipt"])
             name, revision, _ = self._identity(node_id)
-            okay = receipt.task_id == node_id and receipt.matches(value=entry["value"], cache_key=self._cache_key(node_id),
-                verifier_name=name, verifier_revision=revision, parents=self._parents(node_id))
+            # Cache acceptance is authority-bearing: require the receipt to bind
+            # the exact current authority-kernel revision. Legacy v1/v2 receipts
+            # deserialize for inspection/migration, but carry no kernel binding
+            # and therefore cannot authorize a cache hit.
+            okay = receipt.task_id == node_id and receipt.matches(
+                value=entry["value"], cache_key=self._cache_key(node_id),
+                verifier_name=name, verifier_revision=revision,
+                parents=self._parents(node_id), kernel_revision=_kernel_revision())
             return okay, entry["value"] if okay else None
         except (ValueError, TypeError, KeyError):
             return False, None
