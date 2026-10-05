@@ -89,3 +89,28 @@ This ownership gate is change control, not runtime containment. It does not by
 itself prove an OS sandbox, identify a historical process killer, establish
 statistical determinism, or replace full test, packaging, M4/EVAL, or production
 qualification. CI and the applicable evidence matrix must be green before merge.
+
+
+## PR #530 transition — AUTH worker-contract failure typing
+
+PR #530 is the owner-directed review vehicle for the sole protected mismatch
+remaining on the Mission/AUTH/OpenClaw v1 composition after #529.
+
+The protected byte change is exactly:
+
+- `residual/factory/worker_contract.py`
+- prior blob `39b47df9c1bccee9f8269bee4df53dc994c5dd25`
+- reviewed blob `de992173576b03ee0882d8fb713ea06f02a66d80`
+- source lineage AUTH #519 `b16482bf589566197d970a30053fd3fea6b628ff`
+
+The change does not grant new tools, paths, budgets, leases, acceptance criteria,
+or Station authority. It annotates existing denied tool/filesystem violations
+with the AUTH result `UNRESOLVED_AUTHORITY / NO_AUTHORITY_CHANGE`. Stop-first
+termination and the terminal `VIOLATED` state remain unchanged. Resource and
+lease violations are not retyped.
+
+PR #530 adds adversarial tests outside the protected baseline to keep that
+boundary explicit. The manifest advance authorizes only the exact blob above;
+it does not weaken `CORE_PROTECTED`, transfer qualification evidence, or lift
+`V1_RELEASE_HOLD`. Fresh exact-head qualification and independent review remain
+required before any convergence or release decision.
