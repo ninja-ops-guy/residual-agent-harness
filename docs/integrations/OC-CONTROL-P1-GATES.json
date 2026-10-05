@@ -1,0 +1,86 @@
+{
+  "schema": "residual.openclaw.release-gates.v1",
+  "priority": "P1",
+  "target": "v1",
+  "original_spec": "SPEC-OC-CTRL-001",
+  "status": "RELEASE_HOLD",
+  "release_admissible": false,
+  "gates": [
+    {
+      "id": "OC-V1-01",
+      "name": "Enrollment",
+      "software_coverage": "PARTIAL_FIXTURE_COVERAGE",
+      "release_result": "BLOCKED",
+      "required": "External identity/source/enrollment qualification"
+    },
+    {
+      "id": "OC-V1-02",
+      "name": "Runtime evidence",
+      "software_coverage": "PARTIAL_FIXTURE_COVERAGE",
+      "release_result": "BLOCKED",
+      "required": "Actual native hooks/event delivery"
+    },
+    {
+      "id": "OC-V1-03",
+      "name": "Station-governed dispatch",
+      "software_coverage": "PARTIAL_FIXTURE_COVERAGE",
+      "release_result": "BLOCKED",
+      "required": "Station authority/attempt fencing and existing acceptance wiring"
+    },
+    {
+      "id": "OC-V1-04",
+      "name": "Real provider qualification",
+      "software_coverage": "PARTIAL_FIXTURE_COVERAGE",
+      "release_result": "BLOCKED",
+      "required": "Real provider/model path and scoped qualification receipt"
+    },
+    {
+      "id": "OC-V1-05",
+      "name": "Negative provider",
+      "software_coverage": "PARTIAL_FIXTURE_COVERAGE",
+      "release_result": "BLOCKED",
+      "required": "Live negative control with measured absence of admissible work"
+    },
+    {
+      "id": "OC-V1-06",
+      "name": "Verified gateway restart",
+      "software_coverage": "NOT_IMPLEMENTED",
+      "release_result": "BLOCKED",
+      "required": "External supervisor and independently verified restart"
+    },
+    {
+      "id": "OC-V1-07",
+      "name": "Configuration drift",
+      "software_coverage": "PARTIAL_FIXTURE_COVERAGE",
+      "release_result": "BLOCKED",
+      "required": "Native reload/effective registry coverage; secret rotation remains untracked"
+    },
+    {
+      "id": "OC-V1-08",
+      "name": "Authority denial",
+      "software_coverage": "PARTIAL_FIXTURE_COVERAGE",
+      "release_result": "BLOCKED",
+      "required": "Native bypass tests and independent zero-side-effect observation"
+    },
+    {
+      "id": "OC-V1-09",
+      "name": "False completion defense",
+      "software_coverage": "PARTIAL_FIXTURE_COVERAGE",
+      "release_result": "BLOCKED",
+      "required": "Real Station verifier rejects missing or false acceptance evidence"
+    },
+    {
+      "id": "OC-V1-10",
+      "name": "Control-plane loss/reconciliation",
+      "software_coverage": "PARTIAL_FIXTURE_COVERAGE",
+      "release_result": "BLOCKED",
+      "required": "Native/controller loss and durable Station reconciliation"
+    }
+  ],
+  "additional_mandatory_gaps": [
+    "Native cancellation with stop proof",
+    "Independent exact-tree review",
+    "Full RESIDUAL regression and release qualification"
+  ],
+  "no_authority_granted": true
+}
