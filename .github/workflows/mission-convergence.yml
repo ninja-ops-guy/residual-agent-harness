@@ -9,6 +9,8 @@ on:
       - '.github/workflows/mission-convergence.yml'
       - 'pyproject.toml'
       - 'setup.py'
+      - 'MANIFEST.in'
+      - 'tests/qualification/test_authority_wheel_inputs.py'
       - 'AUTH_INVARIANTS.md'
 permissions:
   contents: read
@@ -51,7 +53,7 @@ jobs:
       - name: Real Station HTTP Python and Node composition tests
         run: |
           set -o pipefail
-          python -m pytest tests/test_mission_composed_authority.py -v --junitxml="$RUNNER_TEMP/mc-proof/source-tests.xml" 2>&1 | tee "$RUNNER_TEMP/mc-proof/source-tests.log"
+          python -m pytest tests/test_mission_composed_authority.py tests/qualification/test_authority_kernel.py tests/qualification/test_authority_wheel_inputs.py -v --junitxml="$RUNNER_TEMP/mc-proof/source-tests.xml" 2>&1 | tee "$RUNNER_TEMP/mc-proof/source-tests.log"
       - name: Installed wheel outside checkout with poisoned cwd
         if: ${{ always() && !cancelled() }}
         run: python scripts/prove_mission_wheel.py --output "$RUNNER_TEMP/mc-proof/wheel"

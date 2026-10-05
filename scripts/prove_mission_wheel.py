@@ -35,6 +35,10 @@ def main():
               "source_tree": subprocess.check_output(["git", "rev-parse", "HEAD^{tree}"], cwd=source, text=True).strip(),
               "installed_native_proven": False, "independent_install_proven": False,
               "release_authorized": False}
+    source_kernel = run([sys.executable, "-c", "from residual.authority_kernel import revision; print(revision())"], cwd=source)
+    if source_kernel.returncode:
+        raise RuntimeError("source kernel is not measurable")
+    report["source_kernel_revision"] = source_kernel.stdout.strip()
     failures = []
     try:
         with tempfile.TemporaryDirectory(prefix="mission-wheel-") as temp:
@@ -94,12 +98,28 @@ entrypoints = {e.name:e.value for e in importlib.metadata.distribution('residual
 assert entrypoints['residual-station'] == 'residual.station.mission_server:main'
 assert entrypoints['residual-mission-sync'] == 'residual.station.mission_client:main'
 print(json.dumps({'installed_origin':str(root),'matched_files':len(manifest),'entrypoints':entrypoints}), flush=True)
-print(json.dumps({'kernel_revision':authority_kernel.revision()}), flush=True)
+revision = authority_kernel.revision()
+assert revision == sys.argv[2], 'installed/source kernel identity mismatch'
+# Missing a bundled input cannot be hidden by the poisoned working directory.
+spec = authority_kernel.spec_path()
+raw = spec.read_bytes()
+try:
+    spec.unlink()
+    try:
+        authority_kernel.revision()
+    except FileNotFoundError:
+        pass
+    else:
+        raise AssertionError('missing packaged spec did not fail closed')
+finally:
+    spec.write_bytes(raw)
+assert authority_kernel.revision() == revision
+print(json.dumps({'kernel_revision':revision,'missing_input_rejected':True}), flush=True)
 ''')
             env = {k: v for k, v in os.environ.items() if k not in {"PYTHONPATH", "PYTHONHOME", "RESIDUAL_MISSION_CONFIG"}}
             env["MISSION_NODE_ADAPTER"] = str(adapter)
             for name, command in (
-                ("installed-origin-kernel", [python, "-I", probe, manifest_path]),
+                ("installed-origin-kernel", [python, "-I", probe, manifest_path, report["source_kernel_revision"]]),
                 ("installed-station-help", [scripts / "residual-station", "--help"]),
                 ("installed-mission-help", [scripts / "residual-mission-sync", "--help"]),
                 ("installed-mission-tests", [python, "-I", test]),

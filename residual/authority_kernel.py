@@ -72,9 +72,63 @@ KERNEL_MODULES: tuple[str, ...] = (
 SPEC_FILENAME = "AUTH_INVARIANTS.md"
 
 
+_PACKAGED_INPUT_NAMES = {
+    SPEC_FILENAME: SPEC_FILENAME,
+    "scripts/check_maintainer_approval.py": "check_maintainer_approval.py",
+}
+
+
+def _packaged_inputs() -> dict[str, Path]:
+    """Resolve only the inert supplemental inputs bundled by this wheel.
+
+    Presence selects packaged mode: incomplete/tampered resources never fall
+    back to checkout, cwd, HOME, environment, or neighboring distribution files.
+    The manifest is an integrity check, not an external trust root. Actual
+    runtime modules are always read from REPO_ROOT, never from this bundle.
+    """
+    folder = REPO_ROOT / "residual" / "_authority_inputs"
+    if not folder.exists() and not folder.is_symlink():
+        return {}  # Source/editable installation; require its own root inputs.
+    if folder.is_symlink() or not folder.is_dir():
+        raise FileNotFoundError("packaged AUTH inputs must be a real directory")
+    manifest_path = folder / "manifest.json"
+    if manifest_path.is_symlink() or not manifest_path.is_file():
+        raise FileNotFoundError("packaged AUTH input manifest missing or invalid")
+    try:
+        raw = manifest_path.read_bytes()
+        if len(raw) > 4096:
+            raise ValueError("oversized manifest")
+        def unique(pairs):
+            value = {}
+            for key, item in pairs:
+                if key in value:
+                    raise ValueError("duplicate manifest key")
+                value[key] = item
+            return value
+        manifest = json.loads(raw, object_pairs_hook=unique)
+        if (not isinstance(manifest, dict) or set(manifest) != {"schema", "sha256"}
+                or manifest["schema"] != "residual.authority-inputs.v1"
+                or not isinstance(manifest["sha256"], dict)
+                or set(manifest["sha256"]) != set(_PACKAGED_INPUT_NAMES)):
+            raise ValueError("invalid manifest shape")
+        result = {}
+        for relative, name in _PACKAGED_INPUT_NAMES.items():
+            path = folder / name
+            expected = manifest["sha256"][relative]
+            if (not isinstance(expected, str) or len(expected) != 64
+                    or any(c not in "0123456789abcdef" for c in expected)
+                    or path.is_symlink() or not path.is_file()
+                    or _sha256_file(path, what="packaged input") != expected):
+                raise ValueError("missing or mismatched packaged AUTH input: " + relative)
+            result[relative] = path
+        return result
+    except (OSError, ValueError, TypeError, KeyError) as exc:
+        raise FileNotFoundError("packaged AUTH inputs cannot be measured") from exc
+
+
 def spec_path() -> Path:
-    """Return the normative spec committed with this exact candidate tree."""
-    candidate = REPO_ROOT / SPEC_FILENAME
+    """Return the normative spec belonging to this source tree or built wheel."""
+    candidate = _packaged_inputs().get(SPEC_FILENAME, REPO_ROOT / SPEC_FILENAME)
     if candidate.is_file():
         return candidate
     raise FileNotFoundError(
@@ -100,9 +154,10 @@ def revision(*, spec: Path | str | None = None) -> str:
     Raises FileNotFoundError if any kernel module or the spec cannot be
     read -- a kernel that cannot be measured cannot be qualified.
     """
+    inputs = _packaged_inputs()
     entries = []
     for rel in KERNEL_MODULES:
-        full = REPO_ROOT / rel
+        full = inputs.get(rel, REPO_ROOT / rel)
         if not full.is_file():
             raise FileNotFoundError(
                 f"authority kernel module missing: {rel}. "
