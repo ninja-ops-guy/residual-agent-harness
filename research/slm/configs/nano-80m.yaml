@@ -1,0 +1,22 @@
+# nano-80m.yaml — Residual-Nano architecture config (UNTRAINED; see ../SECURITY-BOUNDARY.md)
+# Architecture only — no training has been or may be run before the SLM-00 freeze.
+#
+# Estimated parameter count: 77,523,072 (~77.52M), tied input/output embeddings.
+# Arithmetic (vocab=32000, max_seq=2048, d_model=704, n_layers=9, ffn_mult=4):
+#   token embedding      = 32000 * 704                = 22,528,000
+#   positional embedding = 2048 * 704                 = 1,441,792
+#   per layer            = attn 4*d^2 + ffn 8*d^2 + 2 LayerNorms 4*d
+#                        = 12*704^2 + 4*704           = 5,950,208
+#   9 layers             = 9 * 5,950,208              = 53,551,872
+#   final LayerNorm      = 2*704                      = 1,408
+#   lm_head              = tied to token embedding    = 0
+#   total                = 77,523,072
+model:
+  d_model: 704
+  n_layers: 9
+  n_heads: 11   # head_dim = 64
+  vocab_size: 32000
+  max_seq: 2048
+  ffn_mult: 4
+  dropout: 0.0
+  tie_embeddings: true
