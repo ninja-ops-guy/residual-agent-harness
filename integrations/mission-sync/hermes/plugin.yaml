@@ -1,0 +1,6 @@
+name: residual-mission-sync
+version: 0.1.0
+description: Explicitly bound Station mission context and durable conversation observations
+provides_hooks:
+  - pre_llm_call
+  - post_llm_call
