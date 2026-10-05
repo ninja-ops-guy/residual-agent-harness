@@ -6,7 +6,13 @@ RESIDUAL is an evidence-first reliability and control plane for AI-assisted engi
 
 > **AI reliability does not necessarily require making each individual model reliable. Reliability can emerge from constraining, observing, verifying, and deterministically integrating unreliable computation.**
 
-For exact current claims, start with [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md).
+**New here?** Start with the [first-run and adoption guide](docs/adoption/README.md).
+It distinguishes the Open Core kernel from the development/runtime evaluation path.
+
+[`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md) is a dated evidence snapshot,
+not a live release ledger. For v1 convergence, consult the existing
+[master readiness proposal (#427)](https://github.com/ninja-ops-guy/residual-agent-harness/pull/427)
+and its latest source-bound delta. An open proposal is not an accepted release.
 
 ## Licensing and editions
 
@@ -34,9 +40,13 @@ RESIDUAL spans a connected platform rather than a single agent loop:
 
 `FAIL`, `UNKNOWN`, `BLOCKED`, malformed output, verifier exceptions, provider failures and abstention do not silently become `PASS`.
 
-## Current main
+## Historical main snapshot — 2026-09-18
 
-Current `main` is **`4608afabf5de4c87d77aaf149dfc12538d364f43`**.
+The following status and research discussion was recorded against
+**`4608afabf5de4c87d77aaf149dfc12538d364f43`**. Its present-tense statements
+describe that historical snapshot; they must not be used as current defect or
+release status. Current dispositions belong to the convergence and claim-control
+lanes, including [#477](https://github.com/ninja-ops-guy/residual-agent-harness/pull/477).
 
 Two accepted changes landed since the previous documented snapshot:
 
@@ -82,6 +92,10 @@ Describe that as **maintainer-reviewed with automated qualification**. It is not
 
 ## Quick start
 
+These are development-checkout/runtime instructions. They do not establish an
+installable Apache-2.0 distribution or grant rights to reserved components.
+Read the [first-run guide](docs/adoption/README.md) to choose the appropriate path.
+
 ### Command Station
 
 Windows: **Start-Station.cmd**  
@@ -108,7 +122,7 @@ python3 -m residual verify-trace runs/latest/trace.jsonl --result runs/latest/re
 python3 -m residual benchmark --output runs/benchmark.json
 ```
 
-## Current priority gates
+## Historical priority gates — 2026-09-18 snapshot
 
 1. Repair and requalify the stress-campaign governance-ordering defects before making stronger fail-closed budget/release claims.
 2. Retain a fresh real-account Puter candidate→verifier→receipt success on the accepted deployed revision, or keep live-provider success `UNKNOWN`.

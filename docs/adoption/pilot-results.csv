@@ -1,0 +1,6 @@
+participant_id,status,artifact_sha256,source_commit,docs_commit,edition,host,provider_model,started_at_utc,onboarding_minutes,unaided,onboarding_pass,useful_task_id,useful_task_pass,manual_interventions,known_cost_usd,usage_complete,baseline_workflow,baseline_task_minutes,residual_task_minutes,failure_understood,safe_recovery_or_stop,followup_due_utc,return_status,voluntary_second_task,evidence_reference,blocker_reference,notes
+P01,NOT_STARTED,,,,,,,,,,,,,,,,,,,,,,NOT_DUE,,,,
+P02,NOT_STARTED,,,,,,,,,,,,,,,,,,,,,,NOT_DUE,,,,
+P03,NOT_STARTED,,,,,,,,,,,,,,,,,,,,,,NOT_DUE,,,,
+P04,NOT_STARTED,,,,,,,,,,,,,,,,,,,,,,NOT_DUE,,,,
+P05,NOT_STARTED,,,,,,,,,,,,,,,,,,,,,,NOT_DUE,,,,
