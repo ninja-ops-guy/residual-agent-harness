@@ -112,6 +112,7 @@ jobs:
                 tests/qualification/test_evidence_manifest.py \
                 tests/qualification/test_trust_boundary_canaries.py \
                 tests/qualification/test_paired_stats.py \
+                tests/qualification/test_auth_runner.py \
                 tests/test_factory_worker_contract.py \
                 tests/test_factory_runtime.py && \
               coverage json -o runs/qualification-v1/coverage.json && \
