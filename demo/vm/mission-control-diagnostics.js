@@ -1,4 +1,5 @@
 import {mountMissionControl as mountWorld} from './mission-control-world.js';
+import {mountTimeTravelDebug} from './mission-control-timetravel.js';
 
 export const DIAGNOSTIC_PROTOCOL = 'residual.diagnostic.v1';
 export const DIAGNOSTIC_SCHEMA_VERSION = '1.0';
@@ -241,7 +242,7 @@ export function getDemoDiagnostics(){if(!singleton)singleton=new DemoDiagnostics
 export function mountMissionControl(host){
   const diagnostics=getDemoDiagnostics();
   const base=mountWorld(diagnostics.wrapHost(host));
-  try{const root=document.querySelector('#mission-control');if(root){diagnostics.attachDownload(root);diagnostics.observeUi(root);}}
+  try{const root=document.querySelector('#mission-control');if(root){diagnostics.attachDownload(root);diagnostics.observeUi(root);mountTimeTravelDebug(root,diagnostics);}}
   catch{}
   try{globalThis.__residualDiagnostics=diagnostics}catch{}
   return {onOutput(text){try{diagnostics.consumeOutput(text)}catch{}return base.onOutput(text)},connectProvider:base.connectProvider,destroy(){try{diagnostics.emit('session.ui_destroyed',{status:'destroyed'})}catch{}return base.destroy()}};

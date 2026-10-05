@@ -41,7 +41,7 @@ export function mountMissionControl(host) {
   const $ = id => element.querySelector('#mc-' + id);
   let active = null, result = null, events = [], carry = '', completed = false, running = false, currentAssistant = null;
   const provider = new ProviderSession((status, message) => { $('provider-state').textContent = message; $('provider-guide-state').textContent = message; $('connect').textContent = status === 'connected' ? 'Provider connected ✓' : 'Connect Puter'; if(status === 'connected') $('provider-guide').hidden = true; });
-  const panels = ['chat','activity','evidence','files'];
+  const panels = ['chat','activity','evidence','files','timetravel'];
   function selectTab(name) {
     const terminal = name === 'terminal'; element.dataset.view = terminal ? 'terminal' : name;
     for (const key of panels) $(`${key}-panel`).hidden = terminal || key !== name;
