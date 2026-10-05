@@ -36,3 +36,49 @@ jobs:
         run: python -m pytest tests/test_station_mission_sync.py -q
       - name: Build wheel with Mission Control assets
         run: python -m pip wheel . --no-deps -w dist
+      - name: Install exact wheel in a clean venv and verify Mission Control package surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          WHEEL="$(ls dist/residual_agent_harness-*.whl)"
+          sha256sum "$WHEEL"
+          VENV="$RUNNER_TEMP/mission-wheel-${{ matrix.python }}"
+          EMPTY="$RUNNER_TEMP/mission-wheel-empty-${{ matrix.python }}"
+          python -m venv "$VENV"
+          "$VENV/bin/python" -m pip install --no-deps "$WHEEL"
+          mkdir -p "$EMPTY"
+          cd "$EMPTY"
+          "$VENV/bin/python" - <<'PY'
+          import importlib.metadata as md
+          import sys
+          from pathlib import Path
+
+          dist = md.distribution("residual-agent-harness")
+          files = {str(p) for p in (dist.files or [])}
+          required = {
+              "residual/station/mission_client.py",
+              "residual/station/mission_routes.py",
+              "residual/station/mission_server.py",
+              "residual/station/mission_sync.py",
+              "residual/station/static/missions.html",
+              "residual/station/static/missions.js",
+              "residual/station/static/missions.css",
+          }
+          missing = sorted(required - files)
+          if missing:
+              raise SystemExit(f"missing installed Mission Control files: {missing}")
+
+          scripts = {ep.name: ep.value for ep in dist.entry_points if ep.group == "console_scripts"}
+          expected = {
+              "residual-station": "residual.station.mission_server:main",
+              "residual-mission-sync": "residual.station.mission_client:main",
+          }
+          for name, target in expected.items():
+              if scripts.get(name) != target:
+                  raise SystemExit(f"bad console entry point {name}: {scripts.get(name)!r}")
+              wrapper = Path(sys.executable).parent / name
+              if not wrapper.is_file():
+                  raise SystemExit(f"missing installed console wrapper: {wrapper}")
+
+          print("MISSION_WHEEL_SURFACE_OK")
+          PY
