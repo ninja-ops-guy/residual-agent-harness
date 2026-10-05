@@ -1,5 +1,6 @@
 """Contract, integrity, and real station integration regressions for Track 1."""
 import dataclasses
+import hashlib
 import json
 import tempfile
 import threading
@@ -10,7 +11,7 @@ from residual import (AmendmentRule, BrakeAction, BrakeTrip, CheckResult, CheckT
     GoalSpec, LoopController, ReceiptReference, RunOutcome, StationExtensionRegistry,
     StationReceipt, SuccessCriterion, Verifier, VerifierDescriptor, VerifierRevision,
     validate_receipt_graph, ProposedAction, QuarantineStore, PolicyDecision)
-from residual.core import Artifact, ContractError, Obligation, Registry, Task, Verdict, digest, register_builtins
+from residual.core import Artifact, ContractError, Obligation, Registry, Task, Verdict, canonical, digest, register_builtins
 from residual.engine import Harness
 from residual.storage import Cache
 from residual.modules.adapters import LifecycleModule, HITLModule, MeshModule
@@ -302,6 +303,34 @@ class EngineReceiptTests(unittest.TestCase):
                 entry=json.loads(raw);entry['receipt']['payload']['verifier_revision']='f'*64
                 cache.put(key,entry)
             self.assertEqual(h.run(task)['metrics']['cache_hits'],0)
+        finally:cache.close()
+
+    def test_legacy_v2_receipt_cannot_authorize_cache_hit(self):
+        r=Registry();register_builtins(r)
+        task=Task('project','Run single obligation',{'a':Artifact('a','true')},(
+            Obligation('root','Read','json_value',('a',),
+                       parameters={'artifact':'a'},solver='json_value'),))
+        cache=Cache()
+        try:
+            h=Harness(r,None,None,cache=cache);h.run(task)
+            rows=cache.db.execute('SELECT key,value FROM results').fetchall()
+            self.assertEqual(len(rows),1)
+            key,raw=rows[0]
+            entry=json.loads(raw)
+            envelope=entry['receipt']
+            self.assertEqual(envelope['schema_version'],'residual.station.receipt.v3')
+            envelope['schema_version']='residual.station.receipt.v2'
+            envelope['payload'].pop('kernel_revision')
+            envelope['receipt_hash']=hashlib.sha256(
+                ('residual.station.receipt.v2\n'+canonical(envelope['payload'])).encode('utf-8')
+            ).hexdigest()
+            cache.put(key,entry)
+
+            result=h.run(task)
+            self.assertEqual(result['metrics']['cache_hits'],0)
+            self.assertEqual(
+                result['station_receipts']['root']['payload']['kernel_revision'],
+                __import__('residual.authority_kernel',fromlist=['revision']).revision())
         finally:cache.close()
 
 
