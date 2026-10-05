@@ -25,6 +25,9 @@ def main(argv=None):
     if argv and argv[0] == "factory":
         from .factory.cli import main as factory
         return factory(argv[1:])
+    if argv and argv[0] == "ops":
+        from .control_plane.accelerator_cli import main as ops
+        return ops(argv[1:])
     if argv and argv[0] == "evaluate":
         from .eval.cli import main as evaluate
         return evaluate(argv[1:])
@@ -46,6 +49,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="RESIDUAL — hybrid agents with verifiable task boundaries")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("factory", help="Plan and approve headless multi-swarm Factory Mode work")
+    sub.add_parser("ops", help="Derive release/research readiness and owner actions (ops --help)")
     sub.add_parser("evaluate", help="Run SPEC-EVAL-001 comparative evidence (evaluate --help)")
     sub.add_parser("serve", help="Open the local web command station (serve --help for options)")
     sub.add_parser("worker", help="Connect a distributed inference runner")
