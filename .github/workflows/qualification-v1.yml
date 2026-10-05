@@ -39,9 +39,14 @@ jobs:
             --output runs/qualification-v1/deterministic.evidence.json \
             --log runs/qualification-v1/deterministic.log \
             --junit runs/qualification-v1/deterministic.xml \
-            --non-claim 'General regression capability skips are retained; security boundaries have separate zero-skip gates.' \
-            -- python -m pytest tests --ignore=tests/qualification -q \
-               --junitxml=runs/qualification-v1/deterministic.xml
+            --non-claim 'General regression capability skips are retained; security boundaries have separate zero-skip gates. Versioned INJ Class C batteries are executed in isolated subprocesses before the generic sweep to prevent cross-version Python module collisions.' \
+            -- bash -lc 'set -euo pipefail; \
+              python -m unittest discover -s tests/inj-class-c-battery/v0.2.0/general -p "test_*.py" -v; \
+              RESIDUAL_REPO="$GITHUB_WORKSPACE" python -m unittest discover -s tests/inj-class-c-battery/v0.2.0/harness/tests -p "test_*.py" -v; \
+              python -m unittest discover -s tests/inj-class-c-battery/v0.2.1/general -p "test_*.py" -v; \
+              RESIDUAL_REPO="$GITHUB_WORKSPACE" python -m unittest discover -s tests/inj-class-c-battery/v0.2.1/harness/tests -p "test_*.py" -v; \
+              python -m pytest tests --ignore=tests/qualification --ignore=tests/inj-class-c-battery -q \
+                --junitxml=runs/qualification-v1/deterministic.xml'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -107,6 +112,7 @@ jobs:
                 tests/qualification/test_evidence_manifest.py \
                 tests/qualification/test_trust_boundary_canaries.py \
                 tests/qualification/test_paired_stats.py \
+                tests/qualification/test_auth_runner.py \
                 tests/test_factory_worker_contract.py \
                 tests/test_factory_runtime.py && \
               coverage json -o runs/qualification-v1/coverage.json && \

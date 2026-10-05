@@ -11,6 +11,7 @@ import pytest
 from residual.authority import AuthorityCoercionRejected
 from residual.core import ContractError, digest
 from residual.receipts import StationReceipt
+from residual.factory.worker_contract import AttemptGuard, ContractViolation, WorkerContract
 from residual.sandbox import (Enforcement, FsAllowlist, SandboxLimits,
                               SandboxSpec, select_backend)
 from residual.verifier import CheckResult
@@ -104,6 +105,72 @@ class TestScopeViolations:
         assert exc_info.value.code == "UNRESOLVED_AUTHORITY"
         assert exc_info.value.fail_closed_state == "NO_AUTHORITY_CHANGE"
         assert exc_info.value.invariant_id == "INV-AUTH-IDN-002"
+
+
+class TestWorkerContractAuthorityTyping:
+    @staticmethod
+    def _contract():
+        return WorkerContract(
+            task_id="task-1", worker_id="worker-1", swarm_id="backend",
+            execution_plan_hash="a" * 64, attempt_id="attempt-1",
+            lease_id="lease-1", lease_generation=1, input_commit="b" * 40,
+            workspace_root="/tmp/residual/attempt-1",
+            inputs=("src/",), allowed_outputs=("src/",),
+            forbidden=("src/secrets/",), requirements=("REQ-1",),
+            acceptance=("unit",), dependencies=(),
+            allowed_tools=("read_file",), forbidden_tools=("shell",),
+            token_budget=100, wall_clock_budget_s=10,
+            max_tool_calls=2, max_file_writes=2, memory_limit_mb=16,
+        )
+
+    def _guard(self):
+        events = []
+        stopped = []
+        guard = AttemptGuard(
+            self._contract(), observe=events.append,
+            terminate=lambda: stopped.append(True), clock=lambda: 1.0)
+        guard.start()
+        return guard, events, stopped
+
+    def test_forbidden_tool_remains_denied_and_is_typed_no_authority_change(self):
+        guard, events, stopped = self._guard()
+        with pytest.raises(ContractViolation) as exc_info:
+            guard.authorize_tool("shell")
+        observation = exc_info.value.observation
+        assert observation["boundary"] == "tool"
+        assert observation["field"] == "allowed_tools"
+        assert observation["code"] == "UNRESOLVED_AUTHORITY"
+        assert observation["fail_closed_state"] == "NO_AUTHORITY_CHANGE"
+        assert guard.state == "VIOLATED"
+        assert stopped == [True]
+        assert events[-1] == observation
+
+    def test_out_of_scope_write_remains_denied_and_is_typed_no_authority_change(self):
+        guard, events, stopped = self._guard()
+        with pytest.raises(ContractViolation) as exc_info:
+            guard.authorize_path("outside/file.txt", write=True)
+        observation = exc_info.value.observation
+        assert observation["boundary"] == "filesystem"
+        assert observation["field"] == "allowed_outputs"
+        assert observation["code"] == "UNRESOLVED_AUTHORITY"
+        assert observation["fail_closed_state"] == "NO_AUTHORITY_CHANGE"
+        assert guard.state == "VIOLATED"
+        assert stopped == [True]
+        assert events[-1] == observation
+
+    def test_resource_violation_is_not_retyped_as_authority_coercion(self):
+        guard, events, stopped = self._guard()
+        guard.reserve_tokens(100)
+        with pytest.raises(ContractViolation) as exc_info:
+            guard.reserve_tokens(1)
+        observation = exc_info.value.observation
+        assert observation["boundary"] == "resource"
+        assert observation["field"] == "token_budget"
+        assert "code" not in observation
+        assert "fail_closed_state" not in observation
+        assert guard.state == "VIOLATED"
+        assert stopped == [True]
+        assert events[-1] == observation
 
 
 class TestMaliciousWorkerOutput:
