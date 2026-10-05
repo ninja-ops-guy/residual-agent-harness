@@ -12,8 +12,9 @@ from dataclasses import dataclass
 from ..core import ContractError, canonical, digest, identifier
 
 #: Factors held constant across all R0-R5 ablations (EVAL-R3). The fixture
-#: pins a scripted deterministic engine; live runs must relabel these fields
-#: and set evidence_level="live_model".
+#: pins a scripted deterministic engine. This configuration is fixture-only;
+#: genuine live execution uses the provider-backed evaluation paths and MUST
+#: NOT reuse these constants under a live evidence label.
 CONTROLLED_CONSTANTS: dict[str, object] = {
     "model": {
         "provider": "scripted-fixture",

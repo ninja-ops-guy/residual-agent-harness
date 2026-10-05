@@ -313,11 +313,9 @@ def test_r10_fixture_labeled_development(report, records):
     assert all(r.evidence_level == "development_fixture" for r in records)
 
 
-def test_r10_live_runs_separately_labeled(workload):
-    live_records = run_study(workload, repeats=3, evidence_level="live_model")
-    assert all(r.evidence_level == "live_model" for r in live_records)
-    live_report = build_report(workload, live_records, evidence_level="live_model")
-    assert live_report["evidence_level"] == "live_model"
+def test_r10_scripted_runner_cannot_claim_live_model_evidence(workload):
+    with pytest.raises(ContractError, match="cannot emit live-model evidence"):
+        run_study(workload, repeats=3, evidence_level="live_model")
 
 
 def test_r10_invalid_evidence_level_rejected(workload):
