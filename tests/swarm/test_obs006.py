@@ -7,6 +7,7 @@ paper-facing metrics from observations alone.
 """
 from __future__ import annotations
 
+import contextlib
 import json
 
 import pytest
@@ -16,6 +17,7 @@ from residual.telemetry import (
     ALL_PHASES,
     FIXTURE_ID,
     EvidenceError,
+    ObservationCoercionRejected,
     LabelCardinalityError,
     LabelSanitizer,
     TelemetryCollector,
@@ -57,6 +59,17 @@ def report(collector):
 # OBS-R1: metric families for execution, acceptance, rejection, verification,
 # integration, conflicts, retries, resource consumption, orchestration timing.
 # --------------------------------------------------------------------------
+
+
+@contextlib.contextmanager
+def _expect_evidence_rejection():
+    """Assert a typed EVD-001 rejection (Track A2 emission)."""
+    with pytest.raises(ObservationCoercionRejected) as exc_info:
+        yield
+    assert exc_info.value.code == "UNBOUND_EVIDENCE_SOURCE"
+    assert exc_info.value.fail_closed_state == "NO_EXECUTION"
+    assert exc_info.value.invariant_id == "INV-AUTH-EVD-001"
+
 
 def test_registry_defines_all_metric_families():
     reg = build_telemetry_registry()
@@ -216,41 +229,41 @@ def test_report_rejects_corrupt_observation_missing_field():
     bad = build_fixture_observations() + [
         {"kind": "execution", "schema_version": OBSERVATION_SCHEMA_VERSION,
          "task_class": "code"}]  # missing outcome/worker_seconds
-    with pytest.raises(EvidenceError):
+    with _expect_evidence_rejection():
         build_reliability_report(bad)
 
 
 def test_report_rejects_non_mapping_observation():
-    with pytest.raises(EvidenceError):
+    with _expect_evidence_rejection():
         build_reliability_report(["not-a-dict"])
 
 
 def test_report_rejects_wrong_schema_version():
     bad = build_fixture_observations()
     bad[0] = dict(bad[0], schema_version="obs006.observation.v999")
-    with pytest.raises(EvidenceError):
+    with _expect_evidence_rejection():
         build_reliability_report(bad)
 
 
 def test_report_rejects_unknown_kind_and_bad_phase():
-    with pytest.raises(EvidenceError):
+    with _expect_evidence_rejection():
         build_reliability_report([{"kind": "mystery"}])
     bad = build_fixture_observations() + [
         {"kind": "orchestration_timing",
          "schema_version": OBSERVATION_SCHEMA_VERSION,
          "phase": "tea_break", "seconds": 1.0}]
-    with pytest.raises(EvidenceError):
+    with _expect_evidence_rejection():
         build_reliability_report(bad)
 
 
 def test_report_rejects_empty_observation_set():
-    with pytest.raises(EvidenceError):
+    with _expect_evidence_rejection():
         build_reliability_report([])
 
 
 def test_ingest_rejects_corrupt_observation_before_recording():
     c = TelemetryCollector()
-    with pytest.raises(EvidenceError):
+    with _expect_evidence_rejection():
         c.ingest({"kind": "acceptance"})  # missing schema_version/task_class
     assert c.observations == []
 
@@ -443,13 +456,13 @@ def _resource_obs(amount):
 
 @pytest.mark.parametrize("bad", [float("nan"), float("inf"), float("-inf")])
 def test_non_finite_numeric_fields_rejected(bad):
-    with pytest.raises(EvidenceError):
+    with _expect_evidence_rejection():
         validate_observation(_resource_obs(bad))
-    with pytest.raises(EvidenceError):
+    with _expect_evidence_rejection():
         validate_observation({
             "kind": "execution", "schema_version": OBSERVATION_SCHEMA_VERSION,
             "task_class": "code", "outcome": "pass", "worker_seconds": bad})
-    with pytest.raises(EvidenceError):
+    with _expect_evidence_rejection():
         validate_observation({
             "kind": "orchestration_timing",
             "schema_version": OBSERVATION_SCHEMA_VERSION,
@@ -459,13 +472,13 @@ def test_non_finite_numeric_fields_rejected(bad):
 @pytest.mark.parametrize("bad", [True, False])
 def test_bool_numeric_fields_rejected(bad):
     # bool is a subclass of int; must not pass the numeric check.
-    with pytest.raises(EvidenceError):
+    with _expect_evidence_rejection():
         validate_observation(_resource_obs(bad))
-    with pytest.raises(EvidenceError):
+    with _expect_evidence_rejection():
         validate_observation({
             "kind": "execution", "schema_version": OBSERVATION_SCHEMA_VERSION,
             "task_class": "code", "outcome": "pass", "worker_seconds": bad})
-    with pytest.raises(EvidenceError):
+    with _expect_evidence_rejection():
         validate_observation({
             "kind": "retry", "schema_version": OBSERVATION_SCHEMA_VERSION,
             "task_class": "analysis", "attempt": bad})
@@ -485,9 +498,9 @@ def test_valid_numeric_observation_still_accepted():
 def test_canonical_json_refuses_non_finite_floats(bad):
     # Defense in depth: even a payload that never went through
     # validate_observation cannot be serialized to invalid strict JSON.
-    with pytest.raises(EvidenceError):
+    with _expect_evidence_rejection():
         canonical_json({"amount": bad})
-    with pytest.raises(EvidenceError):
+    with _expect_evidence_rejection():
         canonical_json({"nested": {"list": [1.0, bad]}})
 
 

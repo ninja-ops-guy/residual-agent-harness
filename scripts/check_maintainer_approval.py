@@ -16,6 +16,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from collections.abc import Iterable
+from dataclasses import dataclass
 from typing import Any
 
 APPROVE_PREFIX = "RESIDUAL-MAINTAINER-APPROVAL:"
@@ -23,6 +24,84 @@ REVOKE_PREFIX = "RESIDUAL-MAINTAINER-REVOKE:"
 WRITE_PERMISSIONS = {"admin", "maintain", "write"}
 COMMENTS_PER_PAGE = 100
 MAX_COMMENT_PAGES = 100
+
+
+@dataclass(frozen=True)
+class ApprovalDecision:
+    """Typed maintainer-approval gate outcome (Track A2 emission)."""
+    approved: bool
+    reason: str
+    # Set when the gate fails closed on an AUTH coercion boundary:
+    # IDN-002 (UNRESOLVED_AUTHORITY) for non-qualifying identities,
+    # CTR-004 (STALE_CONTRACT) for superseded-head approvals.
+    code: str | None = None
+    fail_closed_state: str | None = None
+
+
+def _record_exclusion(excluded: dict[str, tuple[int, str, str]], login: str,
+                      comment_id: int, code: str, state: str) -> None:
+    previous = excluded.get(login)
+    if previous is None or comment_id >= previous[0]:
+        excluded[login] = (comment_id, code, state)
+
+
+def _assess(head_sha: str, comments: Iterable[dict[str, Any]],
+            permissions: dict[str, str]
+            ) -> tuple[list[str], dict[str, tuple[str, str]]]:
+    """Return (approvers, exclusions).
+
+    exclusions maps each login whose latest exact-head command failed to
+    qualify to its (failure code, fail-closed state).
+    """
+    latest: dict[str, tuple[int, str]] = {}
+    excluded: dict[str, tuple[int, str, str]] = {}
+    for comment in comments:
+        user = comment.get("user") or {}
+        login = str(user.get("login") or "")
+        if not login:
+            continue
+        parsed = _command(str(comment.get("body") or ""))
+        if parsed is None:
+            continue
+        action, sha = parsed
+        comment_id = int(comment.get("id") or 0)
+        if str(user.get("type") or "User").lower() == "bot" or login.endswith("[bot]"):
+            # IDN-002: an observed identity (bot) without the approval grant
+            # cannot exercise approval authority; the approval is absent.
+            _record_exclusion(excluded, login, comment_id,
+                              "UNRESOLVED_AUTHORITY", "NO_AUTHORITY_CHANGE")
+            continue
+        if sha != head_sha:
+            # CTR-004: the approval was bound to a superseded contract
+            # identity; it does not transfer to the current head.
+            _record_exclusion(excluded, login, comment_id,
+                              "STALE_CONTRACT", "STALE_CONTRACT")
+            continue
+        if str(permissions.get(login) or "none").lower() not in WRITE_PERMISSIONS:
+            # IDN-002: observed identity without the maintainer role.
+            _record_exclusion(excluded, login, comment_id,
+                              "UNRESOLVED_AUTHORITY", "NO_AUTHORITY_CHANGE")
+            continue
+        previous = latest.get(login)
+        if previous is None or comment_id >= previous[0]:
+            latest[login] = (comment_id, action)
+    approvers = sorted(login for login, (_, action) in latest.items()
+                       if action == "approve")
+    live_exclusions = {login: (code, state)
+                       for login, (_, code, state) in excluded.items()
+                       if login not in approvers}
+    return approvers, live_exclusions
+
+
+def _primary_exclusion(exclusions: dict[str, tuple[str, str]]
+                       ) -> tuple[str | None, str | None]:
+    """Compound precedence (AUTH_INVARIANTS.md): CTR-004 before IDN-002."""
+    codes = {code for code, _ in exclusions.values()}
+    if "STALE_CONTRACT" in codes:
+        return "STALE_CONTRACT", "STALE_CONTRACT"
+    if "UNRESOLVED_AUTHORITY" in codes:
+        return "UNRESOLVED_AUTHORITY", "NO_AUTHORITY_CHANGE"
+    return None, None
 
 
 def _command(body: str) -> tuple[str, str] | None:
@@ -41,27 +120,29 @@ def current_head_approvers(
     permissions: dict[str, str],
 ) -> list[str]:
     """Return write-capable humans whose latest exact-head command is approval."""
-    latest: dict[str, tuple[int, str]] = {}
-    for comment in comments:
-        user = comment.get("user") or {}
-        login = str(user.get("login") or "")
-        if not login:
-            continue
-        if str(user.get("type") or "User").lower() == "bot" or login.endswith("[bot]"):
-            continue
-        parsed = _command(str(comment.get("body") or ""))
-        if parsed is None:
-            continue
-        action, sha = parsed
-        if sha != head_sha:
-            continue
-        if str(permissions.get(login) or "none").lower() not in WRITE_PERMISSIONS:
-            continue
-        comment_id = int(comment.get("id") or 0)
-        previous = latest.get(login)
-        if previous is None or comment_id >= previous[0]:
-            latest[login] = (comment_id, action)
-    return sorted(login for login, (_, action) in latest.items() if action == "approve")
+    approvers, _ = _assess(head_sha, comments, permissions)
+    return approvers
+
+
+def evaluate_typed(
+    head_sha: str,
+    comments: list[dict[str, Any]],
+    permissions: dict[str, str],
+) -> ApprovalDecision:
+    """Typed maintainer-approval gate outcome (Track A2 emission)."""
+    if not head_sha:
+        return ApprovalDecision(False, "missing pull-request current head SHA")
+    approvers, exclusions = _assess(head_sha, comments, permissions)
+    if not approvers:
+        code, state = _primary_exclusion(exclusions)
+        return ApprovalDecision(
+            False,
+            ("no exact-head maintainer attestation from a write-capable human; "
+             f"add a PR comment exactly: {APPROVE_PREFIX} {head_sha}"),
+            code=code, fail_closed_state=state,
+        )
+    return ApprovalDecision(
+        True, f"exact-head maintainer approval: {', '.join(approvers)}")
 
 
 def evaluate(
@@ -69,15 +150,8 @@ def evaluate(
     comments: list[dict[str, Any]],
     permissions: dict[str, str],
 ) -> tuple[bool, str]:
-    if not head_sha:
-        return False, "missing pull-request current head SHA"
-    approvers = current_head_approvers(head_sha, comments, permissions)
-    if not approvers:
-        return False, (
-            "no exact-head maintainer attestation from a write-capable human; "
-            f"add a PR comment exactly: {APPROVE_PREFIX} {head_sha}"
-        )
-    return True, f"exact-head maintainer approval: {', '.join(approvers)}"
+    decision = evaluate_typed(head_sha, comments, permissions)
+    return decision.approved, decision.reason
 
 
 STATUS_CONTEXT = "maintainer-approval"

@@ -99,6 +99,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Mapping, Sequence
 
+from ..authority import AuthorityCoercionRejected
 from ..core import ContractError, digest
 from ..factory.evidence_receipts import SIGNATURE_DOMAIN, StationIdentity, WorkerReceipt, _sha256
 from ..factory.m4_evidence import ReadyDagSnapshot
@@ -176,6 +177,28 @@ NON_CLAIMS = (
 
 class AcceptanceBindingError(ContractError):
     """Measured-run evidence failed the acceptance binding. Fails closed."""
+
+
+class AcceptanceCoercionRejected(AuthorityCoercionRejected, AcceptanceBindingError):
+    """Typed authority-coercion rejection; still catchable as AcceptanceBindingError."""
+
+
+def _reject_evidence(reason: str) -> AcceptanceCoercionRejected:
+    """EVD-001 emission: provenance binding voided; the evidence is treated as absent."""
+    return AcceptanceCoercionRejected(
+        code="UNBOUND_EVIDENCE_SOURCE",
+        fail_closed_state="NO_EXECUTION",
+        reason=reason,
+    )
+
+
+def _reject_unproven(reason: str) -> AcceptanceCoercionRejected:
+    """ACC-003 emission: the admission contract is incomplete; acceptance stays unproven."""
+    return AcceptanceCoercionRejected(
+        code="UNPROVEN_ACCEPTANCE",
+        fail_closed_state="UNPROVEN",
+        reason=reason,
+    )
 
 
 def _require_hash(value: object, name: str) -> str:
@@ -269,7 +292,7 @@ class RunIdentityRecord:
             schema_version=str(value.get("schema_version", RUN_IDENTITY_SCHEMA)),
         )
         if record.record_hash != value.get("record_hash"):
-            raise AcceptanceBindingError("run-identity record hash mismatch")
+            raise _reject_evidence("run-identity record hash mismatch")
         return record
 
     def verify_signature(self, public_key: bytes) -> bool:
@@ -343,7 +366,7 @@ class FreshRunRegistry:
         if any(r.run_id == run_id for r in self._records):
             # Anti-replay: a run id is fresh exactly once. A second begin is a
             # replay attempt and is rejected, never silently deduplicated.
-            raise AcceptanceBindingError(
+            raise _reject_evidence(
                 f"run id already executed: {run_id!r}; replay is not fresh evidence")
         return self._issue(run_id=run_id, workload_sha256=workload_sha256,
                            report_sha256=report_sha256,
@@ -371,9 +394,9 @@ class FreshRunRegistry:
         self.verify_chain()
         fresh = [r for r in self._records if r.run_id == run_id and r.fresh]
         if not fresh:
-            raise AcceptanceBindingError(f"no fresh execution identity for run {run_id!r}")
+            raise _reject_evidence(f"no fresh execution identity for run {run_id!r}")
         if any(r.run_id == run_id and not r.fresh for r in self._records):
-            raise AcceptanceBindingError(
+            raise _reject_evidence(
                 f"run {run_id!r} was resumed; its evidence is non-fresh and cannot "
                 "support measured acceptance")
         return fresh[0]
@@ -382,9 +405,9 @@ class FreshRunRegistry:
         prev = "0" * 64
         for record in self._records:
             if record.prev_record_hash != prev:
-                raise AcceptanceBindingError("run-identity chain is broken")
+                raise _reject_evidence("run-identity chain is broken")
             if not record.verify_signature(self._identity.public_bytes()):
-                raise AcceptanceBindingError("run-identity record signature invalid")
+                raise _reject_evidence("run-identity record signature invalid")
             prev = record.record_hash
 
     def export_chain(self) -> dict[str, object]:
@@ -416,33 +439,33 @@ def verify_run_identity_chain(chain: Mapping[str, object],
     whose records were reordered, dropped, or extended.
     """
     if not isinstance(chain, Mapping):
-        raise AcceptanceBindingError("run-identity chain absent or malformed")
+        raise _reject_evidence("run-identity chain absent or malformed")
     if chain.get("schema_version") != CHAIN_SCHEMA:
-        raise AcceptanceBindingError("run-identity chain schema mismatch")
+        raise _reject_evidence("run-identity chain schema mismatch")
     raw_records = chain.get("records")
     if not isinstance(raw_records, Sequence) or isinstance(raw_records, (str, bytes)):
-        raise AcceptanceBindingError("run-identity chain records malformed")
+        raise _reject_evidence("run-identity chain records malformed")
     records = tuple(RunIdentityRecord.from_dict(r) for r in raw_records)
     payload = {"schema_version": CHAIN_SCHEMA,
                "station_key_id": chain.get("station_key_id"),
                "records": [r.to_dict() for r in records]}
     if digest(payload) != chain.get("chain_hash"):
-        raise AcceptanceBindingError("run-identity chain export was tampered with")
+        raise _reject_evidence("run-identity chain export was tampered with")
     if not _verify_payload_signature(str(chain.get("chain_hash")),
                                      str(chain.get("station_key_id")),
                                      str(chain.get("station_signature")),
                                      station_public_key):
-        raise AcceptanceBindingError("run-identity chain export signature invalid")
+        raise _reject_evidence("run-identity chain export signature invalid")
     prev = "0" * 64
     seen: set[str] = set()
     for record in records:
         if record.prev_record_hash != prev:
-            raise AcceptanceBindingError("run-identity chain is broken")
+            raise _reject_evidence("run-identity chain is broken")
         if not record.verify_signature(station_public_key):
-            raise AcceptanceBindingError("run-identity record signature invalid")
+            raise _reject_evidence("run-identity record signature invalid")
         if record.fresh:
             if record.run_id in seen:
-                raise AcceptanceBindingError("run-identity chain contains a replayed run id")
+                raise _reject_evidence("run-identity chain contains a replayed run id")
             seen.add(record.run_id)
         prev = record.record_hash
     return records
@@ -453,9 +476,9 @@ def chain_fresh_record(records: Sequence[RunIdentityRecord],
     """Fresh-record rule over an already-verified chain (fail closed)."""
     fresh = [r for r in records if r.run_id == run_id and r.fresh]
     if not fresh:
-        raise AcceptanceBindingError(f"no fresh execution identity for run {run_id!r}")
+        raise _reject_evidence(f"no fresh execution identity for run {run_id!r}")
     if any(r.run_id == run_id and not r.fresh for r in records):
-        raise AcceptanceBindingError(
+        raise _reject_evidence(
             f"run {run_id!r} was resumed; its evidence is non-fresh and cannot "
             "support measured acceptance")
     return fresh[0]
@@ -516,39 +539,39 @@ class SchedulerTopologyEvidence:
         _require_ns(self.run_started_ns, "run start")
         _require_ns(self.run_ended_ns, "run end")
         if self.run_ended_ns < self.run_started_ns:
-            raise AcceptanceBindingError("run interval is inverted")
+            raise _reject_unproven("run interval is inverted")
         snapshots = tuple(self.snapshots)
         observations = tuple(self.observations)
         actions = tuple(self.actions)
         if not snapshots or not observations:
-            raise AcceptanceBindingError("scheduler snapshots and observations required")
+            raise _reject_unproven("scheduler snapshots and observations required")
         if any(not isinstance(s, ReadyDagSnapshot) for s in snapshots):
-            raise AcceptanceBindingError("typed ReadyDagSnapshot evidence required")
+            raise _reject_unproven("typed ReadyDagSnapshot evidence required")
         if any(not isinstance(o, SchedulerObservation) for o in observations):
-            raise AcceptanceBindingError("typed SchedulerObservation evidence required")
+            raise _reject_unproven("typed SchedulerObservation evidence required")
         if any(not isinstance(a, SchedulerAction) for a in actions):
-            raise AcceptanceBindingError("typed SchedulerAction evidence required")
+            raise _reject_unproven("typed SchedulerAction evidence required")
         if any(s.plan_hash != self.execution_plan_hash for s in snapshots):
-            raise AcceptanceBindingError("scheduler snapshot belongs to another ExecutionPlan")
+            raise _reject_unproven("scheduler snapshot belongs to another ExecutionPlan")
         snapshot_hashes = {s.snapshot_hash for s in snapshots}
         if any(o.measurement.ready_dag_hash not in snapshot_hashes for o in observations):
-            raise AcceptanceBindingError(
+            raise _reject_unproven(
                 "scheduler measurement not bound to supplied Ready-DAG evidence")
         measurement_hashes = {o.measurement.measurement_hash for o in observations}
         if any(a.measurement_hash not in measurement_hashes for a in actions):
-            raise AcceptanceBindingError(
+            raise _reject_unproven(
                 "scheduler action not bound to supplied measurement evidence")
         times = sorted(o.observed_at_ns for o in observations)
         if times[0] > self.run_started_ns or times[-1] < self.run_ended_ns:
             # Partial-interval evidence cannot authenticate the topology of the
             # whole run; fail closed.
-            raise AcceptanceBindingError(
+            raise _reject_unproven(
                 "scheduler evidence does not span the run interval")
         if not any(self.run_started_ns < t < self.run_ended_ns for t in times):
             # Endpoint-only coverage: every observation sits on the boundary
             # (or outside) and NOTHING was observed while the run executed.
             # That cannot evidence in-run topology; fail closed.
-            raise AcceptanceBindingError(
+            raise _reject_unproven(
                 "scheduler evidence has no observation strictly inside the run "
                 "interval; endpoint-only coverage does not demonstrate in-run "
                 "topology observation")
@@ -624,15 +647,15 @@ class WorkloadTaskMapping:
         _require_hash(self.workload_sha256, "workload hash")
         entries = tuple(self.entries)
         if not entries:
-            raise AcceptanceBindingError("task mapping cannot be empty")
+            raise _reject_unproven("task mapping cannot be empty")
         frozen_ids = [a for a, _ in entries]
         factory_ids = [b for _, b in entries]
         if any(not isinstance(a, str) or not a.strip() for a in frozen_ids):
-            raise AcceptanceBindingError("invalid frozen task id in mapping")
+            raise _reject_unproven("invalid frozen task id in mapping")
         if any(not isinstance(b, str) or not b.strip() for b in factory_ids):
-            raise AcceptanceBindingError("invalid Factory task id in mapping")
+            raise _reject_unproven("invalid Factory task id in mapping")
         if len(set(frozen_ids)) != len(frozen_ids) or len(set(factory_ids)) != len(factory_ids):
-            raise AcceptanceBindingError("task mapping must be injective in both directions")
+            raise _reject_unproven("task mapping must be injective in both directions")
         object.__setattr__(self, "entries",
                            tuple(sorted((a.strip(), b.strip()) for a, b in entries)))
 
@@ -641,13 +664,13 @@ class WorkloadTaskMapping:
                      mapping: Mapping[str, str]) -> "WorkloadTaskMapping":
         """Build a mapping enforced to cover the whole evaluation slice."""
         if not isinstance(workload, FrozenWorkload):
-            raise AcceptanceBindingError("FrozenWorkload required")
+            raise _reject_unproven("FrozenWorkload required")
         required = {t.task_id for t in workload.slice_tasks("evaluation")}
         supplied = {str(k).strip() for k in mapping}
         missing = sorted(required - supplied)
         extra = sorted(supplied - {t.task_id for t in workload.tasks})
         if missing or extra:
-            raise AcceptanceBindingError(
+            raise _reject_unproven(
                 f"task mapping does not cover the frozen workload exactly: "
                 f"missing={missing}, unknown={extra}")
         return cls(entries=tuple((str(k), str(v)) for k, v in mapping.items()),
@@ -671,12 +694,12 @@ class WorkloadTaskMapping:
         """
         observed = [r.task_id for r in receipts]
         if len(observed) != len(set(observed)):
-            raise AcceptanceBindingError("duplicate Factory task in measured population")
+            raise _reject_unproven("duplicate Factory task in measured population")
         expected = self.factory_task_ids
         missing = sorted(expected - set(observed))
         extra = sorted(set(observed) - expected)
         if missing or extra:
-            raise AcceptanceBindingError(
+            raise _reject_unproven(
                 f"measured task population diverges from the enforced mapping: "
                 f"missing={missing}, extra={extra}")
 
@@ -724,16 +747,16 @@ class VerifierQualification:
 
     def __post_init__(self) -> None:
         if self._token is not _ISSUANCE_TOKEN:
-            raise AcceptanceBindingError(
+            raise _reject_evidence(
                 "VerifierQualification is constructible only via the signed "
                 "issuance path (VerifierQualification.issue / from_isolated_result)")
         if self.boundary != SANDBOX_PROFILE:
-            raise AcceptanceBindingError(
+            raise _reject_evidence(
                 f"verifier boundary must be {SANDBOX_PROFILE!r}, got {self.boundary!r}")
         if self.probe_status != "pass" or self.probe_reason != "exit" \
                 or type(self.probe_returncode) is not int or self.probe_returncode != 0:
             # UNKNOWN/ERROR/timeout/isolation_unavailable: fail closed here.
-            raise AcceptanceBindingError(
+            raise _reject_unproven(
                 "isolated verifier boundary probe did not PASS "
                 f"(status={self.probe_status!r}, reason={self.probe_reason!r}); "
                 "UNKNOWN/ERROR verifier outcomes fail closed and are not attributable")
@@ -741,7 +764,7 @@ class VerifierQualification:
         _require_hash(self.probe_stderr_sha256, "probe stderr hash")
         _require_ns(self.probed_at_ns, "probe timestamp")
         if not isinstance(self.run_id, str) or not self.run_id.strip():
-            raise AcceptanceBindingError("probe receipt must bind a run id")
+            raise _reject_evidence("probe receipt must bind a run id")
 
     def unsigned_payload(self) -> dict[str, object]:
         return {
@@ -773,7 +796,7 @@ class VerifierQualification:
               probed_at_ns: int) -> "VerifierQualification":
         """Signed issuance path: the Station attests this probe for this run."""
         if not isinstance(identity, StationIdentity):
-            raise AcceptanceBindingError("StationIdentity required")
+            raise _reject_evidence("StationIdentity required")
         unsigned = cls(
             boundary=boundary, probe_status=probe_status, probe_reason=probe_reason,
             probe_returncode=probe_returncode,
@@ -805,7 +828,7 @@ class VerifierQualification:
         values are attested by the Station signature on the issued receipt.
         """
         if getattr(result, "status", None) != "pass":
-            raise AcceptanceBindingError(
+            raise _reject_unproven(
                 "isolated verifier probe unavailable or failing "
                 f"(status={getattr(result, 'status', None)!r}, "
                 f"reason={getattr(result, 'reason', None)!r}); failing closed")
@@ -869,14 +892,14 @@ def validate_prerequisites(clean_install_report: Mapping[str, object] | None,
       artifact derives solely from the Station signature over their digests.
     """
     if not isinstance(clean_install_report, Mapping):
-        raise AcceptanceBindingError("clean-install qualification report absent")
+        raise _reject_unproven("clean-install qualification report absent")
     if clean_install_report.get("status") != "PASS":
-        raise AcceptanceBindingError(
+        raise _reject_unproven(
             "clean-install qualification (#100) absent or failing; measured binding fails closed")
     if not isinstance(ownership_report, Mapping):
-        raise AcceptanceBindingError("Factory ownership gate report absent")
+        raise _reject_unproven("Factory ownership gate report absent")
     if ownership_report.get("passed") is not True:
-        raise AcceptanceBindingError(
+        raise _reject_unproven(
             "Factory ownership gate (#95) absent or failing; measured binding fails closed")
 
     baseline = _load_ownership_baseline(ownership_baseline)
@@ -884,9 +907,9 @@ def validate_prerequisites(clean_install_report: Mapping[str, object] | None,
     baseline_files = baseline.get("files")
     if not isinstance(baseline_pin, str) or len(baseline_pin) != 40 \
             or any(c not in _HEX for c in baseline_pin):
-        raise AcceptanceBindingError("ownership baseline carries no valid pin")
+        raise _reject_evidence("ownership baseline carries no valid pin")
     if not isinstance(baseline_files, Mapping) or not baseline_files:
-        raise AcceptanceBindingError("ownership baseline carries no protected-file set")
+        raise _reject_evidence("ownership baseline carries no protected-file set")
 
     # Ownership rule: the report's pin must BE the current baseline pin, and
     # the reported protection breadth must equal the baseline's (a weaker pin
@@ -894,16 +917,16 @@ def validate_prerequisites(clean_install_report: Mapping[str, object] | None,
     report_pin = ownership_report.get("pinned_at")
     if not isinstance(report_pin, str) or len(report_pin) != 40 \
             or any(c not in _HEX for c in report_pin):
-        raise AcceptanceBindingError("ownership gate report carries no valid pin")
+        raise _reject_evidence("ownership gate report carries no valid pin")
     if report_pin != baseline_pin:
-        raise AcceptanceBindingError(
+        raise _reject_evidence(
             "ownership gate report pin does not match the current #95 baseline pin; "
             "the baseline legitimately predates the evaluated commit, but the pin "
             "itself must be the pinned baseline's")
     protected = ownership_report.get("protected_files")
     if type(protected) is not int or protected < MIN_PROTECTED_FILES \
             or protected != len(baseline_files):
-        raise AcceptanceBindingError(
+        raise _reject_evidence(
             "ownership gate report protects fewer paths than the #95 baseline; "
             "a weaker ownership pin fails closed")
 
@@ -991,14 +1014,14 @@ def validate_and_issue_acceptance(evidence: MeasuredRunEvidence,
     workload_sha = evidence.workload.sha256
     _require_hash(evidence.report_sha256, "report hash")
     if evidence.mapping.workload_sha256 != workload_sha:
-        raise AcceptanceBindingError("task mapping targets another frozen workload")
+        raise _reject_unproven("task mapping targets another frozen workload")
 
     # (b) Fresh run identity with anti-replay (requirement 1).
     record = registry.fresh_record(evidence.run_id)
     if record.workload_sha256 != workload_sha:
-        raise AcceptanceBindingError("run identity binds another workload")
+        raise _reject_unproven("run identity binds another workload")
     if record.report_sha256 != evidence.report_sha256:
-        raise AcceptanceBindingError("run identity binds another evaluation report")
+        raise _reject_unproven("run identity binds another evaluation report")
     execution_plan_hash = record.execution_plan_hash
 
     # Measured M3 receipts: signed, unique attempts, same ExecutionPlan.
@@ -1006,12 +1029,12 @@ def validate_and_issue_acceptance(evidence: MeasuredRunEvidence,
     if not receipts or any(not isinstance(r, WorkerReceipt) for r in receipts):
         raise AcceptanceBindingError("signed M3 WorkerReceipts required")
     if any(not StationIdentity.verify(r, public_key) for r in receipts):
-        raise AcceptanceBindingError("M3 receipt Station signature invalid")
+        raise _reject_unproven("M3 receipt Station signature invalid")
     if any(r.execution_plan_hash != execution_plan_hash for r in receipts):
-        raise AcceptanceBindingError("M3 receipt belongs to another ExecutionPlan")
+        raise _reject_unproven("M3 receipt belongs to another ExecutionPlan")
     attempts = [r.attempt_id for r in receipts]
     if len(attempts) != len(set(attempts)):
-        raise AcceptanceBindingError("duplicate attempt in measured receipts")
+        raise _reject_unproven("duplicate attempt in measured receipts")
 
     # (c) Enforced workload -> task mapping (requirement 3).
     evidence.mapping.assert_population(receipts)
@@ -1021,27 +1044,27 @@ def validate_and_issue_acceptance(evidence: MeasuredRunEvidence,
     if not isinstance(topology, SchedulerTopologyEvidence):
         raise AcceptanceBindingError("authenticated scheduler topology required")
     if not topology.verify_signature(public_key):
-        raise AcceptanceBindingError(
+        raise _reject_unproven(
             "scheduler/topology evidence is not authenticated by the Station")
     if topology.execution_plan_hash != execution_plan_hash:
-        raise AcceptanceBindingError("scheduler topology belongs to another ExecutionPlan")
+        raise _reject_unproven("scheduler topology belongs to another ExecutionPlan")
     if topology.run_started_ns != evidence.run_started_ns \
             or topology.run_ended_ns != evidence.run_ended_ns:
-        raise AcceptanceBindingError("scheduler evidence interval does not match the run")
+        raise _reject_unproven("scheduler evidence interval does not match the run")
 
     # (e) Station-qualified verifier boundary; UNKNOWN fails closed (req. 4).
     verifier = evidence.verifier
     if not isinstance(verifier, VerifierQualification):
         raise AcceptanceBindingError("Station-signed verifier probe receipt required")
     if not verifier.verify_signature(public_key):
-        raise AcceptanceBindingError(
+        raise _reject_unproven(
             "verifier probe receipt is not authenticated by the Station; "
             "fabricated or unsigned qualifications fail closed")
     if verifier.run_id != evidence.run_id:
-        raise AcceptanceBindingError(
+        raise _reject_unproven(
             "verifier probe receipt is bound to another run id")
     if not (evidence.run_started_ns <= verifier.probed_at_ns <= evidence.run_ended_ns):
-        raise AcceptanceBindingError(
+        raise _reject_unproven(
             "verifier probe timestamp lies outside the run interval; the probe "
             "must occur within the run it qualifies")
 
@@ -1049,28 +1072,28 @@ def validate_and_issue_acceptance(evidence: MeasuredRunEvidence,
     if not isinstance(acceptance, IntegrationReceipt):
         raise AcceptanceBindingError("M4 IntegrationReceipt required")
     if not acceptance.verify_signature(public_key):
-        raise AcceptanceBindingError("M4 final-acceptance signature invalid")
+        raise _reject_unproven("M4 final-acceptance signature invalid")
     if acceptance.execution_plan_hash != execution_plan_hash:
-        raise AcceptanceBindingError("M4 final acceptance belongs to another ExecutionPlan")
+        raise _reject_unproven("M4 final acceptance belongs to another ExecutionPlan")
     if acceptance.evidence_level != MEASURED_EVIDENCE_LEVEL:
-        raise AcceptanceBindingError(
+        raise _reject_unproven(
             f"M4 acceptance must carry evidence_level={MEASURED_EVIDENCE_LEVEL!r}; "
             "development_fixture evidence cannot be relabelled as measured")
     if tuple(acceptance.input_receipt_hashes) != tuple(r.receipt_hash for r in receipts):
-        raise AcceptanceBindingError(
+        raise _reject_unproven(
             "M4 final acceptance does not bind the exact measured M3 receipt set")
     if not acceptance.verification_results:
-        raise AcceptanceBindingError("M4 acceptance has no verification results")
+        raise _reject_unproven("M4 acceptance has no verification results")
     for result in acceptance.verification_results:
         if (result.status != "pass" or result.termination_reason != "exit"
                 or result.returncode != 0):
             # UNKNOWN/ERROR/timeout/resource-limited verification fails closed
             # and is never attributed to a task.
-            raise AcceptanceBindingError(
+            raise _reject_unproven(
                 f"verifier outcome {result.status!r}/{result.termination_reason!r} "
                 "fails closed; no attribution is possible")
         if result.execution_boundary != SANDBOX_PROFILE:
-            raise AcceptanceBindingError(
+            raise _reject_unproven(
                 "verification executed outside the qualified isolated boundary")
 
     chain_records = registry.records

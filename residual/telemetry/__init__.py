@@ -10,6 +10,7 @@ from .schema import (
     OBSERVATION_SCHEMA_VERSION,
     REPORT_SCHEMA_VERSION,
     EvidenceError,
+    ObservationCoercionRejected,
     hash_observations,
     validate_observation,
 )
@@ -21,7 +22,8 @@ from .fixtures import FIXTURE_ID, build_fixture_observations
 
 __all__ = [
     "ALL_KINDS", "ALL_PHASES", "OBSERVATION_SCHEMA_VERSION",
-    "REPORT_SCHEMA_VERSION", "EvidenceError", "hash_observations",
+    "REPORT_SCHEMA_VERSION", "EvidenceError", "ObservationCoercionRejected",
+    "hash_observations",
     "validate_observation", "LabelCardinalityError", "LabelSanitizer",
     "TelemetryCollector", "build_telemetry_registry",
     "build_reliability_report", "render_telemetry_prometheus",

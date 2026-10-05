@@ -8,6 +8,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends python3 git zst
     && chown -R station:station /data /app /projects
 WORKDIR /app
 COPY --chown=station:station residual /app/residual
+COPY --chown=station:station AUTH_INVARIANTS.md /app/AUTH_INVARIANTS.md
+COPY --chown=station:station scripts/check_maintainer_approval.py /app/scripts/check_maintainer_approval.py
 COPY --chown=station:station ai_providers /app/ai_providers
 COPY --chown=station:station observation_layer /app/observation_layer
 COPY --chown=station:station vendor /app/vendor

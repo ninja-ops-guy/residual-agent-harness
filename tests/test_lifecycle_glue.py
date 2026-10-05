@@ -25,7 +25,8 @@ def receipt_for(value, *, verdict=CheckResult.PASS, rev=None, task_id="task-1"):
     return StationReceipt(
         task_id=task_id, cache_key=digest("context"), value_hash=digest(value),
         verifier_name="sample:check", verifier_revision=rev.effective_revision,
-        verdict=verdict, engine_name="test-engine", engine_version="1.0",
+        verdict=verdict, kernel_revision="0" * 64,
+        engine_name="test-engine", engine_version="1.0",
     )
 
 

@@ -9,6 +9,7 @@ from residual import (AmendmentRule, BrakeAction, CheckResult, CheckType, GoalSp
     LoopController, PolicyDecision, ProposedAction, QuarantineStore, RunOutcome,
     SuccessCriterion, Verifier, budget_policy, denylist_policy, path_traversal_policy,
     QuarantinedProvider)
+from residual.authority import AuthorityCoercionRejected
 from residual.core import ContractError
 from residual.providers import ProviderError
 from residual.station.service import Station, demo_spec
@@ -61,8 +62,13 @@ class GoalIntegrityTests(unittest.TestCase):
         self.assertEqual(amended.parent_hash, original.content_hash)
         self.assertEqual(amended.amendment_count, 1)
         self.assertEqual(amended.amendment_reason, "Broaden scope")
-        with self.assertRaises(ContractError):
+        with self.assertRaises(AuthorityCoercionRejected) as cm:
             amended.amend(max_passes=5, amended_by="operator", amendment_reason="Again")
+        # Track A2: exceeding the amendment rule is an unauthorized
+        # reinterpretation attempt (CTR-004), not a generic contract error.
+        self.assertEqual(cm.exception.code, "UNAUTHORIZED_CONTRACT_REINTERPRETATION")
+        self.assertEqual(cm.exception.fail_closed_state, "NO_AUTHORITY_CHANGE")
+        self.assertEqual(cm.exception.invariant_id, "INV-AUTH-CTR-004")
 
     def test_invalid_budgets_and_vocabularies_fail_early(self):
         for invalid in (True, float('nan'), float('inf'), 0, -1):
@@ -70,8 +76,13 @@ class GoalIntegrityTests(unittest.TestCase):
                 spec(wall_clock_budget_s=invalid)
         with self.assertRaises(ContractError):
             SuccessCriterion("a", "model_decides", "desc", "host")
-        with self.assertRaises(ContractError):
+        with self.assertRaises(AuthorityCoercionRejected) as cm:
             ProposedAction("shell", "command")
+        # Track A2: an indeterminate action class is ambiguity, not a generic
+        # contract error (AMB-005); the system refuses to guess.
+        self.assertEqual(cm.exception.code, "AMBIGUOUS_ACCEPTANCE_CONDITION")
+        self.assertEqual(cm.exception.fail_closed_state, "NO_IMPLICIT_DEFAULT")
+        self.assertEqual(cm.exception.invariant_id, "INV-AUTH-AMB-005")
 
     def test_string_or_malformed_evaluator_output_cannot_pass(self):
         for value in (("pass", "text"), (CheckResult.PASS, {}), (CheckResult.SKIPPED, "skip")):
@@ -109,18 +120,37 @@ class LoopIntegrityTests(unittest.TestCase):
     def test_budget_abort_wins_over_success_and_skips_verification(self):
         controller = loop(Harness({"candidate": True, "tokens_used": 50}))
         controller.verifier = Verifier({"host": lambda c, p: self.fail("No evaluator after budget abort")})
+        events = []
+        controller._emit = lambda kind, payload: events.append((kind, payload))
         result = controller.run()
         self.assertEqual(result.outcome, RunOutcome.ABORTED)
         self.assertIsNone(result.final_verification)
+        # Track A2: the budget trip ends run authority (AUT-006), typed.
+        trips = [p for k, p in events
+                 if k == "state.transition" and p.get("to_state") == "brake_tripped"
+                 and p.get("brake_name") == "budget"]
+        self.assertTrue(trips)
+        self.assertEqual(trips[0]["code"], "UNAPPROVED_ACTION")
+        self.assertEqual(trips[0]["fail_closed_state"], "NO_EXECUTION")
 
     def test_missing_negative_or_boolean_usage_is_unknown(self):
         for value in (None, -2, True, "2"):
             with self.subTest(value=value):
                 harness = Harness({"candidate": True, "tokens_used": value})
-                result = loop(harness).run()
+                events = []
+                controller = loop(harness)
+                controller._emit = lambda kind, payload: events.append((kind, payload))
+                result = controller.run()
                 self.assertEqual(result.outcome, RunOutcome.ABORTED)
                 self.assertIsNone(result.total_tokens)
                 self.assertEqual(harness.calls, 1)
+                # Track A2: unknown usage aborts the run's authority (AUT-006).
+                trips = [p for k, p in events
+                         if k == "state.transition" and p.get("to_state") == "brake_tripped"
+                         and p.get("trip_reason") == "usage_unknown_or_invalid"]
+                self.assertTrue(trips)
+                self.assertEqual(trips[0]["code"], "UNAPPROVED_ACTION")
+                self.assertEqual(trips[0]["fail_closed_state"], "NO_EXECUTION")
 
     def test_deadline_stops_before_second_pass(self):
         # Ordering assertion only (calls == 1, ABORTED): the budget must be
@@ -130,9 +160,19 @@ class LoopIntegrityTests(unittest.TestCase):
                 time.sleep(.2)
                 return super().run_pass(goal, number)
         harness = Slow()
-        result = loop(harness, spec(wall_clock_budget_s=.05)).run()
+        events = []
+        controller = loop(harness, spec(wall_clock_budget_s=.05))
+        controller._emit = lambda kind, payload: events.append((kind, payload))
+        result = controller.run()
         self.assertEqual(harness.calls, 1)
         self.assertEqual(result.outcome, RunOutcome.ABORTED)
+        # Track A2: the deadline trip ends run authority (AUT-006), typed.
+        trips = [p for k, p in events
+                 if k == "state.transition" and p.get("to_state") == "brake_tripped"
+                 and p.get("brake_name") == "budget"]
+        self.assertTrue(trips)
+        self.assertEqual(trips[0]["code"], "UNAPPROVED_ACTION")
+        self.assertEqual(trips[0]["fail_closed_state"], "NO_EXECUTION")
 
     def test_success_on_final_allowed_pass_and_controller_reuse(self):
         class Eventually(Harness):
@@ -154,18 +194,28 @@ class QuarantineIntegrityTests(unittest.TestCase):
     def test_release_without_evaluation_or_after_denial_never_executes(self):
         store = QuarantineStore()
         held = store.hold(ProposedAction("tool_call", "forbidden"))
-        with self.assertRaises(ContractError):
+        with self.assertRaises(AuthorityCoercionRejected) as cm:
             store.release(held, lambda a: self.fail("unreviewed execution"))
+        self.assertEqual(cm.exception.code, "UNAPPROVED_ACTION")
+        self.assertEqual(cm.exception.fail_closed_state, "NO_EXECUTION")
+        self.assertEqual(cm.exception.invariant_id, "INV-AUTH-AUT-006")
         store.evaluate(held, (denylist_policy("forbidden"),))
-        with self.assertRaises(ContractError):
+        with self.assertRaises(AuthorityCoercionRejected) as cm:
             store.release(held, lambda a: self.fail("denied execution"))
+        self.assertEqual(cm.exception.code, "UNAPPROVED_ACTION")
+        self.assertEqual(cm.exception.fail_closed_state, "NO_EXECUTION")
 
     def test_foreign_and_forged_holds_fail(self):
         store = QuarantineStore()
         held = store.hold(ProposedAction("tool_call", "x"))
         for other_store, other_held in ((QuarantineStore(), held), (store, dataclasses.replace(held))):
-            with self.assertRaises(ContractError):
+            with self.assertRaises(AuthorityCoercionRejected) as cm:
                 other_store.evaluate(other_held, ())
+            # Track A2: a hold not issued by this store is an observation
+            # without provenance (EVD-001).
+            self.assertEqual(cm.exception.code, "UNBOUND_EVIDENCE_SOURCE")
+            self.assertEqual(cm.exception.fail_closed_state, "NO_EXECUTION")
+            self.assertEqual(cm.exception.invariant_id, "INV-AUTH-EVD-001")
 
     def test_release_is_once_only_under_race(self):
         store = QuarantineStore()
@@ -191,6 +241,14 @@ class QuarantineIntegrityTests(unittest.TestCase):
         third = store.hold(ProposedAction("tool_call", "z"))
         self.assertEqual(store.evaluate(third, (broken,)), PolicyDecision.DENY)
         self.assertNotIn("secret", str(store.log()))
+        # Track A2: a policy that errors has not approved (AUT-006); the
+        # resource-budget denial is UNMAPPED and stays untyped.
+        denials = [d for e in store.log() if e.get("event") == "evaluated"
+                   for d in e["denials"]]
+        by_policy = {d["policy"]: d for d in denials}
+        self.assertEqual(by_policy["broken"]["code"], "UNAPPROVED_ACTION")
+        self.assertEqual(by_policy["broken"]["fail_closed_state"], "NO_EXECUTION")
+        self.assertIsNone(by_policy["budget_policy"]["code"])
 
     def test_audit_snapshots_cannot_be_mutated(self):
         store = QuarantineStore()
@@ -203,6 +261,14 @@ class QuarantineIntegrityTests(unittest.TestCase):
         for path in ("C:\\Windows\\x", "\\\\host\\share", "", "/etc/passwd", "../x"):
             with self.subTest(path=path):
                 self.assertIsNotNone(path_traversal_policy(ProposedAction("file_write", "write", {"path": path})))
+        # Track A2: the same refusal through the quarantine gate carries the
+        # typed authority code (AUT-006).
+        store = QuarantineStore()
+        held = store.hold(ProposedAction("file_write", "write", {"path": "../x"}))
+        self.assertEqual(store.evaluate(held, (path_traversal_policy,)), PolicyDecision.DENY)
+        denials = [e for e in store.log() if e.get("event") == "evaluated"][-1]["denials"]
+        self.assertEqual(denials[0]["code"], "UNAPPROVED_ACTION")
+        self.assertEqual(denials[0]["fail_closed_state"], "NO_EXECUTION")
 
     def test_provider_error_is_preserved_instead_of_returning_none(self):
         class Failing:

@@ -47,14 +47,15 @@ class ReceiptTests(unittest.TestCase):
     def receipt(self, tid='child', parents=(), **kw):
         values = dict(task_id=tid, cache_key=digest('context'), value_hash=digest(True),
                       verifier_name='sample:check', verifier_revision=identity().effective_revision,
-                      verdict=CheckResult.PASS, parent_receipts=parents)
+                      verdict=CheckResult.PASS, kernel_revision='0' * 64, parent_receipts=parents)
         return StationReceipt(**{**values, **kw})
 
-    def test_round_trip_all_nine_fields_and_domains(self):
+    def test_round_trip_all_ten_fields_and_domains(self):
         receipt = self.receipt(engine_name='langgraph', engine_version='0.3.1')
-        self.assertEqual(len(receipt.payload()), 9)
+        self.assertEqual(len(receipt.payload()), 10)
         self.assertEqual(receipt.payload()['engine_name'], 'langgraph')
         self.assertEqual(receipt.payload()['engine_version'], '0.3.1')
+        self.assertEqual(receipt.payload()['kernel_revision'], '0' * 64)
         self.assertEqual(StationReceipt.from_json(json.dumps(receipt.to_dict())), receipt)
         self.assertNotEqual(receipt.receipt_hash, digest(receipt.payload()))
         self.assertNotEqual(receipt.receipt_hash, self.receipt(verdict=CheckResult.UNKNOWN,
