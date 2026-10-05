@@ -58,7 +58,24 @@ if [ -z "$PY" ]; then
 fi
 
 info "Using $PY ($("$PY" --version 2>&1))"
-mkdir -p "$(dirname -- "$VENV_DIR")" "$DATA_DIR"
+mkdir -p "$(dirname -- "$VENV_DIR")"
+
+if [ -t 0 ] && [ -z "${RESIDUAL_DATA:-}" ]; then
+  echo ""
+  printf 'RESIDUAL data directory [%s]: ' "$DATA_DIR"
+  read -r data_reply
+  if [ -n "$data_reply" ]; then
+    DATA_DIR="${data_reply/#\~/$HOME}"
+  fi
+fi
+mkdir -p "$DATA_DIR"
+if [ ! -w "$DATA_DIR" ]; then
+  error "RESIDUAL data directory is not writable: $DATA_DIR"
+  exit 1
+fi
+set_setting data_dir "$DATA_DIR"
+set_setting host "$HOST"
+set_setting port "$PORT"
 
 if [ -d "$VENV_DIR" ]; then
   if [ ! -x "$VENV_DIR/bin/python" ] || ! "$VENV_DIR/bin/python" -c 'import sys' >/dev/null 2>&1; then
@@ -88,7 +105,7 @@ case "$MACRO_ENABLED" in
   true|false) ;;
   "")
     echo ""
-    info "Optional: typing residual with no arguments can start Command Station."
+    info "Optional: create a convenient residual start launcher for Command Station."
     echo "  Default bind: $HOST:$PORT"
     printf 'Enable the serve macro? [y/N] '
     if [ -t 0 ]; then
@@ -118,7 +135,7 @@ MACRO_BLOCK="$MACRO_BEGIN
 residual() {
   if [ \$# -eq 0 ]; then
     echo \"Starting RESIDUAL Command Station on $HOST:$PORT\"
-    command residual serve --host \"$HOST\" --port \"$PORT\" --data \"$DATA_DIR\"
+    command residual start
   else
     command residual \"\$@\"
   fi
@@ -216,12 +233,13 @@ export PATH="$VENV_DIR/bin:$PATH"
 echo ""
 info "Setup complete."
 echo "  CLI:      residual --help"
+echo "  Start:    residual start"
 echo "  Serve:    residual serve --host $HOST --port $PORT --data $DATA_DIR"
 echo "  Link:     http://$HOST:$PORT"
 echo "  Venv:     $VENV_DIR"
 echo "  Settings: $SETTINGS_FILE"
 if [ "$MACRO_ENABLED" = true ]; then
-  echo "  Macro:    residual (no arguments)"
+  echo "  Macro:    residual start"
 else
   echo "  Macro:    disabled (opt in with serve_macro=true)"
 fi
