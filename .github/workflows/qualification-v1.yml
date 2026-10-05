@@ -603,6 +603,7 @@ jobs:
                tests/qualification/test_schedule_campaign.py \
                tests/qualification/test_provider_canary.py \
                tests/qualification/test_provider_mission.py \
+               tests/qualification/test_native_mission_sync_evidence.py \
                tests/qualification/test_platform_imports.py \
                --junitxml=runs/qualification-v1/selftests.xml
       - uses: actions/upload-artifact@v4
