@@ -1,0 +1,71 @@
+name: Independent first-install gate mechanics
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repository-self-check:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build immutable handoff inputs
+        run: |
+          set -euo pipefail
+          mkdir -p dist/deps runs/independent-install
+          python -m pip wheel . --no-deps -w dist
+          python -m pip download --only-binary=:all: --dest dist/deps 'defusedxml>=0.7.1,<1'
+          WHEEL="$(find dist -maxdepth 1 -name 'residual_agent_harness-*.whl' -print -quit)"
+          DEP="$(find dist/deps -maxdepth 1 -name 'defusedxml-*.whl' -print -quit)"
+          test -n "$WHEEL" && test -n "$DEP"
+          python tools/independent_install_gate.py prepare \
+            --source-root "$GITHUB_WORKSPACE" \
+            --wheel "$WHEEL" \
+            --dependency-wheel "$DEP" \
+            --terms docs/adoption/INDEPENDENT-INSTALL.md \
+            --output runs/independent-install/handoff
+      - name: Exercise handoff from outside the checkout
+        run: |
+          set -euo pipefail
+          HANDOFF="$RUNNER_TEMP/residual-independent-handoff"
+          cp -a runs/independent-install/handoff "$HANDOFF"
+          python "$HANDOFF/evaluate.py" evaluate \
+            --handoff "$HANDOFF" \
+            --receipt "$GITHUB_WORKSPACE/runs/independent-install/repository-ci-receipt.json" \
+            --evidence-dir "$GITHUB_WORKSPACE/runs/independent-install/repository-ci-evidence" \
+            --evaluator-id "github-actions:${GITHUB_RUN_ID}:${GITHUB_RUN_ATTEMPT}" \
+            --evaluator-class repository_ci
+      - name: Require technical PASS but independent UNVERIFIED
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          receipt = json.loads(Path('runs/independent-install/repository-ci-receipt.json').read_text())
+          assert receipt['technical_status'] == 'PASS', receipt
+          assert receipt['status'] == 'INDEPENDENT_INSTALL_UNVERIFIED', receipt
+          assert receipt['evaluator']['class'] == 'repository_ci', receipt
+          assert receipt['release_authority'] is False, receipt
+          assert receipt['technical']['negative_control']['result'].startswith('PASS'), receipt
+          PY
+      - name: Unit-test fail-closed gate logic
+        run: python -m unittest tests.test_independent_install_gate -v
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: independent-install-gate-${{ github.sha }}
+          path: runs/independent-install
+          if-no-files-found: error
+          retention-days: 30
