@@ -93,6 +93,12 @@ def main() -> None:
         if args.commit:
             if not args.webvm_commit or not args.disk:
                 parser.error("identity requires --webvm-commit and --disk")
+            # Publish notices before hashing the final entry: no post-proof mutation.
+            try:
+                from .publish_legal import publish_legal
+            except ImportError:
+                from publish_legal import publish_legal
+            publish_legal(args.demo_dir.parent, commit=args.commit)
             identity = {"commit": args.commit, "webvm_commit": args.webvm_commit,
                         "disk_sha256": sha256(args.disk),
                         "files": {name: sha256(args.demo_dir / name) for name in ("index.html", "serviceWorker.js")}}
