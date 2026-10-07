@@ -5,6 +5,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      rerun_probe:
+        description: 'Opt-in active-http partial-rerun probe; attempt 1 remains normal'
+        type: choice
+        default: none
+        options: [none, fail-before-upload, pause-for-cancellation]
 
 permissions:
   contents: read
@@ -612,6 +618,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      - name: Controlled partial-rerun probe before evidence production
+        if: github.event_name == 'workflow_dispatch' && github.run_attempt != '1' && inputs.rerun_probe != 'none'
+        env:
+          RERUN_PROBE: ${{ inputs.rerun_probe }}
+        run: |
+          case "$RERUN_PROBE" in
+            fail-before-upload) echo 'Intentional rerun failure before evidence upload'; exit 1 ;;
+            pause-for-cancellation) echo 'Cancellation probe: cancel this run before evidence production'; sleep 300; exit 1 ;;
+            *) echo 'Unknown rerun probe'; exit 1 ;;
+          esac
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}

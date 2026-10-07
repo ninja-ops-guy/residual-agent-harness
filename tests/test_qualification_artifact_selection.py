@@ -212,6 +212,16 @@ class QualificationArtifactSelectionTests(unittest.TestCase):
         self.assertIn('--producer-results "$PRODUCER_RESULTS"', aggregate)
         self.assertIn("--root selected", aggregate)
 
+    def test_controlled_rerun_probes_are_opt_in_and_cannot_produce_pass(self):
+        workflow = (ROOT / ".github/workflows/qualification-v1.yml").read_text()
+        self.assertIn("default: none", workflow)
+        probe = workflow.split("  active-http-soak:\n")[1].split("      - uses: actions/checkout@v4")[0]
+        self.assertIn("github.event_name == 'workflow_dispatch'", probe)
+        self.assertIn("github.run_attempt != '1'", probe)
+        self.assertIn("inputs.rerun_probe != 'none'", probe)
+        self.assertIn("sleep 300; exit 1", probe)
+        self.assertIn("Intentional rerun failure before evidence upload'; exit 1", probe)
+
 
 if __name__ == "__main__":
     unittest.main()
