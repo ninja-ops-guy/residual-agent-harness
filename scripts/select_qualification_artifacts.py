@@ -41,6 +41,40 @@ EXPECTED_PRODUCERS = (
 )
 
 
+PRODUCER_JOBS = {
+    producer: ({
+        "windows": "windows-lifecycle",
+        "macos": "macos-lifecycle",
+        "selftests": "qualification-selftests",
+        "active-http": "active-http-soak",
+    }.get(producer, "browser" if producer in (
+        "browser-chromium", "browser-firefox", "browser-webkit"
+    ) else producer))
+    for producer in EXPECTED_PRODUCERS
+}
+
+
+def validate_producer_results(results: dict[str, str]) -> None:
+    """Require direct dependency results, including jobs with no uploaded artifact.
+
+    GitHub retains untouched dependencies' successful results on partial reruns.
+    Any failed/cancelled/skipped rerun invalidates aggregation even if an older
+    PASS artifact survives. Browser's direct matrix result covers all children.
+    """
+    if not isinstance(results, dict):
+        raise ValueError("producer results must be an object")
+    expected = set(PRODUCER_JOBS.values())
+    if set(results) != expected:
+        raise ValueError(
+            "producer result keys mismatch: missing="
+            + repr(sorted(expected - set(results)))
+            + "; unexpected=" + repr(sorted(set(results) - expected))
+        )
+    unsuccessful = {job: result for job, result in results.items() if result != "success"}
+    if unsuccessful:
+        raise ValueError("unsuccessful qualification producers: " + repr(unsuccessful))
+
+
 @dataclass(frozen=True)
 class ArtifactCandidate:
     producer: str
@@ -127,7 +161,10 @@ def discover_candidates(
     return candidates
 
 
-def select_candidates(candidates: list[ArtifactCandidate]) -> dict[str, ArtifactCandidate]:
+def select_candidates(
+    candidates: list[ArtifactCandidate], producer_results: dict[str, str]
+) -> dict[str, ArtifactCandidate]:
+    validate_producer_results(producer_results)
     by_producer: dict[str, list[ArtifactCandidate]] = {}
     for candidate in candidates:
         by_producer.setdefault(candidate.producer, []).append(candidate)
@@ -155,7 +192,8 @@ def select_candidates(candidates: list[ArtifactCandidate]) -> dict[str, Artifact
 
 
 def materialize_selection(
-    selected: dict[str, ArtifactCandidate], output: Path, record: Path
+    selected: dict[str, ArtifactCandidate], output: Path, record: Path,
+    *, context: dict | None = None
 ) -> None:
     if output.exists() and any(output.iterdir()):
         raise ValueError(f"selection output must be empty: {output}")
@@ -177,7 +215,7 @@ def materialize_selection(
 
     record.parent.mkdir(parents=True, exist_ok=True)
     record.write_text(
-        json.dumps({"selected": rows}, indent=2, sort_keys=True) + "\n",
+        json.dumps({**(context or {}), "selected": rows}, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
 
@@ -191,15 +229,30 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--selection-record", type=Path, required=True)
     parser.add_argument("--source-commit", required=True)
     parser.add_argument("--current-attempt", type=int, required=True)
+    parser.add_argument("--producer-results", required=True,
+                        help="JSON object of exact direct-job results (not artifact-derived)")
     args = parser.parse_args(argv)
 
     try:
+        results = json.loads(args.producer_results)
+        validate_producer_results(results)
         candidates = discover_candidates(
             args.root, args.source_commit, args.current_attempt
         )
-        selected = select_candidates(candidates)
-        materialize_selection(selected, args.output, args.selection_record)
+        selected = select_candidates(candidates, results)
+        materialize_selection(selected, args.output, args.selection_record, context={
+            "source_commit": args.source_commit,
+            "current_attempt": args.current_attempt,
+            "producer_results": results,
+        })
     except Exception as exc:
+        args.selection_record.parent.mkdir(parents=True, exist_ok=True)
+        args.selection_record.write_text(json.dumps({
+            "source_commit": args.source_commit,
+            "current_attempt": args.current_attempt,
+            "selection_failed": True,
+            "error": f"{type(exc).__name__}: {exc}",
+        }, indent=2) + "\n", encoding="utf-8")
         parser.exit(
             1,
             f"qualification artifact selection failed: {type(exc).__name__}: {exc}\n",

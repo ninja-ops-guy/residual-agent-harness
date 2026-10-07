@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
+import subprocess
 from pathlib import Path
 import sys
 import tempfile
@@ -20,6 +22,7 @@ sys.modules[SPEC.name] = selector
 SPEC.loader.exec_module(selector)
 
 SOURCE = "a" * 40
+RESULTS = {job: "success" for job in selector.PRODUCER_JOBS.values()}
 
 
 def write_candidate(root: Path, producer: str, attempt: int, *, commit: str = SOURCE,
@@ -50,7 +53,7 @@ class QualificationArtifactSelectionTests(unittest.TestCase):
             write_candidate(root, "active-http", 2)
 
             candidates = selector.discover_candidates(root, SOURCE, 2)
-            selected = selector.select_candidates(candidates)
+            selected = selector.select_candidates(candidates, RESULTS)
 
             self.assertEqual(selected["active-http"].attempt, 2)
             self.assertEqual(selected["deterministic"].attempt, 1)
@@ -84,7 +87,7 @@ class QualificationArtifactSelectionTests(unittest.TestCase):
             target.rmdir()
             candidates = selector.discover_candidates(root, SOURCE, 1)
             with self.assertRaisesRegex(ValueError, "missing qualification producers: macos"):
-                selector.select_candidates(candidates)
+                selector.select_candidates(candidates, RESULTS)
 
     def test_ambiguous_newest_attempt_fails_closed(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -98,7 +101,7 @@ class QualificationArtifactSelectionTests(unittest.TestCase):
                 evidence_count=1,
             ))
             with self.assertRaisesRegex(ValueError, "ambiguous qualification producer active-http"):
-                selector.select_candidates(candidates)
+                selector.select_candidates(candidates, RESULTS)
 
     def test_evidence_attempt_mismatch_fails_closed(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -119,7 +122,7 @@ class QualificationArtifactSelectionTests(unittest.TestCase):
             write_full_attempt(root, 1)
             write_candidate(root, "active-http", 2)
             selected = selector.select_candidates(
-                selector.discover_candidates(root, SOURCE, 2)
+                selector.discover_candidates(root, SOURCE, 2), RESULTS
             )
             output = Path(directory) / "selected"
             record = Path(directory) / "selection.json"
@@ -132,6 +135,82 @@ class QualificationArtifactSelectionTests(unittest.TestCase):
             attempts = {row["producer"]: row["attempt"] for row in rows}
             self.assertEqual(attempts["active-http"], 2)
             self.assertEqual(attempts["deterministic"], 1)
+
+
+    def test_failed_cancelled_skipped_or_unknown_producer_cannot_reuse_old_pass(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            write_full_attempt(root, 1)
+            candidates = selector.discover_candidates(root, SOURCE, 2)
+            for result in ("failure", "cancelled", "skipped", "", None, "neutral", "SUCCESS"):
+                with self.subTest(result=result):
+                    results = {**RESULTS, "active-http-soak": result}
+                    with self.assertRaisesRegex(ValueError, "unsuccessful qualification producers"):
+                        selector.select_candidates(candidates, results)
+
+    def test_failed_producer_with_new_artifact_still_fails_closed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            write_full_attempt(root, 1)
+            write_candidate(root, "active-http", 2)
+            with self.assertRaisesRegex(ValueError, "unsuccessful qualification producers"):
+                selector.select_candidates(selector.discover_candidates(root, SOURCE, 2),
+                                           {**RESULTS, "active-http-soak": "failure"})
+
+    def test_complete_exact_result_map_is_required(self):
+        for results in ({}, {k: v for k, v in RESULTS.items() if k != "browser"},
+                        {**RESULTS, "aggregate": "success"}, [], None):
+            with self.subTest(results=results):
+                with self.assertRaises(ValueError):
+                    selector.select_candidates([], results)
+
+    def test_aggregate_only_rerun_keeps_last_successful_producer_attempt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            write_full_attempt(root, 1)
+            write_candidate(root, "active-http", 2)
+            selected = selector.select_candidates(selector.discover_candidates(root, SOURCE, 3), RESULTS)
+            self.assertEqual(selected["active-http"].attempt, 2)
+            self.assertEqual(selected["deterministic"].attempt, 1)
+
+    def test_failed_browser_child_blocks_all_matrix_evidence(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            write_full_attempt(root, 1)
+            with self.assertRaisesRegex(ValueError, "unsuccessful qualification producers"):
+                selector.select_candidates(selector.discover_candidates(root, SOURCE, 2),
+                                           {**RESULTS, "browser": "failure"})
+
+
+    def test_cli_failure_leaves_no_selected_old_pass_and_records_rejection(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "artifacts"
+            root.mkdir()
+            write_full_attempt(root, 1)
+            output, record = Path(directory) / "selected", Path(directory) / "selection.json"
+            result = subprocess.run([
+                sys.executable, str(ROOT / "scripts/select_qualification_artifacts.py"),
+                "--root", str(root), "--output", str(output),
+                "--selection-record", str(record), "--source-commit", SOURCE,
+                "--current-attempt", "2", "--producer-results",
+                json.dumps({**RESULTS, "active-http-soak": "cancelled"}),
+            ], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 1)
+            self.assertFalse(output.exists())
+            self.assertTrue(json.loads(record.read_text())["selection_failed"])
+
+    def test_workflow_feeds_exact_direct_results_and_source_attempt(self):
+        workflow = (ROOT / ".github/workflows/qualification-v1.yml").read_text()
+        aggregate = workflow.split("\n  aggregate:\n")[1]
+        dependencies = re.search(r"needs: \[(.*?)\]", aggregate).group(1).split(", ")
+        pairs = re.findall(r'"([\w-]+)": "\$\{\{ needs\[\'([\w-]+)\'\].result \}\}"', aggregate)
+        self.assertCountEqual(pairs, [(job, job) for job in RESULTS])
+        self.assertCountEqual(dependencies, RESULTS)
+        self.assertIn("merge-multiple: false", aggregate)
+        self.assertIn('--source-commit "$(git rev-parse HEAD)"', aggregate)
+        self.assertIn('--current-attempt "$GITHUB_RUN_ATTEMPT"', aggregate)
+        self.assertIn('--producer-results "$PRODUCER_RESULTS"', aggregate)
+        self.assertIn("--root selected", aggregate)
 
 
 if __name__ == "__main__":

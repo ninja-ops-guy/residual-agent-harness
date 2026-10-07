@@ -70,16 +70,17 @@ class QualificationArtifactIsolationTests(unittest.TestCase):
     def test_every_producer_remains_selectable_across_partial_reruns(self):
         self.assertEqual(len(self.producers), 17)
         self.assertCountEqual(self.producers, [
-            (job, "qualification-v1-" + suffix + "-${{ github.sha }}")
+            (job, "qualification-v1-" + suffix + "-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}")
             for job, suffix in EXPECTED_PRODUCERS.items()
         ])
         expanded = []
         for job, template in self.producers:
-            # Stable producer names allow the downloader to reuse prior jobs.
-            self.assertNotIn("github.run_attempt", template)
+            # Attempt-separated producer artifacts retain prior jobs without overwrite.
+            self.assertIn("github.run_attempt", template)
             browsers = ("chromium", "firefox", "webkit") if job == "browser" else (None,)
             for browser in browsers:
-                name = (template.replace("${{ github.sha }}", "a" * 40)
+                name = (template.replace("${{ github.event.pull_request.head.sha || github.sha }}", "a" * 40)
+                        .replace("${{ github.run_attempt }}", "2")
                         .replace("${{ github.run_id }}", "100"))
                 if browser is not None:
                     name = name.replace("${{ matrix.browser }}", browser)

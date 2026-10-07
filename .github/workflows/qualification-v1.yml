@@ -45,7 +45,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qualification-v1-deterministic-${{ github.sha }}
+          name: qualification-v1-deterministic-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
           path: runs/qualification-v1
           if-no-files-found: error
           retention-days: 30
@@ -114,7 +114,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qualification-v1-discovery-${{ github.sha }}
+          name: qualification-v1-discovery-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
           path: runs/qualification-v1
           if-no-files-found: error
           retention-days: 30
@@ -160,7 +160,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qualification-v1-m4-${{ github.sha }}
+          name: qualification-v1-m4-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
           path: runs/qualification-v1
           if-no-files-found: error
           retention-days: 30
@@ -217,7 +217,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qualification-v1-artifacts-${{ github.sha }}
+          name: qualification-v1-artifacts-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
           path: |
             runs/qualification-v1
             dist/*.whl
@@ -265,7 +265,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qualification-v1-browser-${{ matrix.browser }}-${{ github.sha }}
+          name: qualification-v1-browser-${{ matrix.browser }}-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
           path: runs/qualification-v1
           if-no-files-found: error
           retention-days: 30
@@ -298,7 +298,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qualification-v1-concurrency-${{ github.sha }}
+          name: qualification-v1-concurrency-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
           path: runs/qualification-v1
           if-no-files-found: error
           retention-days: 30
@@ -330,7 +330,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qualification-v1-protocol-fuzz-${{ github.sha }}
+          name: qualification-v1-protocol-fuzz-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
           path: runs/qualification-v1
           if-no-files-found: error
           retention-days: 30
@@ -363,7 +363,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qualification-v1-toxic-provider-${{ github.sha }}
+          name: qualification-v1-toxic-provider-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
           path: runs/qualification-v1
           if-no-files-found: error
           retention-days: 30
@@ -394,7 +394,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qualification-v1-active-workload-${{ github.sha }}
+          name: qualification-v1-active-workload-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
           path: runs/qualification-v1
           if-no-files-found: error
           retention-days: 30
@@ -434,7 +434,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qualification-v1-browser-adversarial-${{ github.sha }}
+          name: qualification-v1-browser-adversarial-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
           path: runs/qualification-v1
           if-no-files-found: error
           retention-days: 30
@@ -467,7 +467,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qualification-v1-redteam-${{ github.sha }}
+          name: qualification-v1-redteam-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
           path: runs/qualification-v1
           if-no-files-found: error
           retention-days: 30
@@ -493,7 +493,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qualification-v1-windows-${{ github.sha }}
+          name: qualification-v1-windows-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
           path: runs/qualification-v1
           if-no-files-found: error
           retention-days: 30
@@ -526,7 +526,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qualification-v1-fault-injection-${{ github.sha }}
+          name: qualification-v1-fault-injection-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
           path: runs/qualification-v1
           if-no-files-found: error
           retention-days: 30
@@ -559,7 +559,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qualification-v1-webvm-protocol-fuzz-${{ github.sha }}
+          name: qualification-v1-webvm-protocol-fuzz-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
           path: runs/qualification-v1
           if-no-files-found: error
           retention-days: 30
@@ -602,7 +602,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qualification-v1-selftests-${{ github.sha }}
+          name: qualification-v1-selftests-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
           path: runs/qualification-v1
           if-no-files-found: error
           retention-days: 30
@@ -636,7 +636,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qualification-v1-active-http-${{ github.sha }}
+          name: qualification-v1-active-http-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
           path: runs/qualification-v1
           if-no-files-found: error
           retention-days: 30
@@ -672,7 +672,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qualification-v1-macos-${{ github.sha }}
+          name: qualification-v1-macos-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
           path: runs/qualification-v1
           if-no-files-found: error
           retention-days: 30
@@ -695,14 +695,26 @@ jobs:
         with:
           pattern: qualification-v1-*
           path: collected
-          merge-multiple: true
+          merge-multiple: false
+      - name: Select source-bound freshest producer evidence
+        env:
+          PRODUCER_RESULTS: >-
+            {"deterministic": "${{ needs['deterministic'].result }}", "discovery": "${{ needs['discovery'].result }}", "m4": "${{ needs['m4'].result }}", "artifacts": "${{ needs['artifacts'].result }}", "browser": "${{ needs['browser'].result }}", "concurrency": "${{ needs['concurrency'].result }}", "protocol-fuzz": "${{ needs['protocol-fuzz'].result }}", "toxic-provider": "${{ needs['toxic-provider'].result }}", "active-workload": "${{ needs['active-workload'].result }}", "active-http-soak": "${{ needs['active-http-soak'].result }}", "browser-adversarial": "${{ needs['browser-adversarial'].result }}", "redteam": "${{ needs['redteam'].result }}", "windows-lifecycle": "${{ needs['windows-lifecycle'].result }}", "macos-lifecycle": "${{ needs['macos-lifecycle'].result }}", "fault-injection": "${{ needs['fault-injection'].result }}", "webvm-protocol-fuzz": "${{ needs['webvm-protocol-fuzz'].result }}", "qualification-selftests": "${{ needs['qualification-selftests'].result }}"}
+        run: |
+          python scripts/select_qualification_artifacts.py \
+            --root collected \
+            --output selected \
+            --selection-record runs/qualification-v1/final/selection.json \
+            --source-commit "$(git rev-parse HEAD)" \
+            --current-attempt "$GITHUB_RUN_ATTEMPT" \
+            --producer-results "$PRODUCER_RESULTS"
       - name: Build one fail-closed release qualification manifest
         run: |
           mkdir -p runs/qualification-v1/final
           python scripts/aggregate_qualification_ci.py \
-            --root collected \
+            --root selected \
             --output runs/qualification-v1/final/qualification-manifest.json
-          find collected -type f -print0 | sort -z | xargs -0 sha256sum > runs/qualification-v1/final/evidence-sha256.txt
+          find selected -type f -print0 | sort -z | xargs -0 sha256sum > runs/qualification-v1/final/evidence-sha256.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
