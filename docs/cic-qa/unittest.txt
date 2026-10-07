@@ -1,0 +1,39 @@
+/workspace/scratch/e97c83b42b4a/residual-cic/vendor/user-modules/test_observation_original.py:236: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpu49klyti/t.jsonl' mode='a' encoding='UTF-8'>
+  p = self._make_events(tmp_path)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/scratch/e97c83b42b4a/residual-cic/vendor/user-modules/test_observation_original.py:243: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpllr78eu4/t.jsonl' mode='a' encoding='UTF-8'>
+  p = self._make_events(tmp_path)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/scratch/e97c83b42b4a/residual-cic/vendor/user-modules/test_observation_original.py:251: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmplrxdoetd/t.jsonl' mode='a' encoding='UTF-8'>
+  p = self._make_events(tmp_path)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/scratch/e97c83b42b4a/residual-cic/vendor/user-modules/test_observation_original.py:229: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpx_ok_2vn/t.jsonl' mode='a' encoding='UTF-8'>
+  p = self._make_events(tmp_path)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/scratch/e97c83b42b4a/residual-cic/tests/modular/test_observations.py:31: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmptv59ryrm/trace.jsonl' mode='a' encoding='UTF-8'>
+  fn(Path(d)) if 'tmp_path' in inspect.signature(fn).parameters else fn()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+[residual-demo] stage=session_create status=ok
+[residual-demo] stage=session_create status=ok
+[residual-demo] stage=session_create status=ok
+{
+  "status": "draft",
+  "graph_hash": "ea82b205ec7effff839a3c25ef936588fb770a5ab5e3446bff9b507285cb2d6f",
+  "output": "/tmp/tmpedhh9nv9/plan.json"
+}
+{
+  "status": "approved",
+  "graph_hash": "ea82b205ec7effff839a3c25ef936588fb770a5ab5e3446bff9b507285cb2d6f",
+  "output": "/tmp/tmpedhh9nv9/approval.json"
+}
+{
+  "status": "valid",
+  "graph_hash": "ea82b205ec7effff839a3c25ef936588fb770a5ab5e3446bff9b507285cb2d6f"
+}
+=== Residual Command Station | Run: — | Status: IDLE ===
+Pass: 0 | Tokens: 0/∞ | FP Hits: 0/3 | Quarantine: 0
+NetOps: NOT CONFIGURED | SecOps: NOT OBSERVED
+============================================================----------------------------------------------------------------------
+Ran 646 tests in 18.251s
+
+OK (skipped=1)

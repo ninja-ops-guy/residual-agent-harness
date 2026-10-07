@@ -1,0 +1,41 @@
+{
+  "id": "weak-composition",
+  "goal": "Choose distinct values for a and b.",
+  "artifacts": [
+    {
+      "id": "requirements",
+      "text": "{\"choices\": {\"a\": [1, 2], \"b\": [1]}, \"different\": [[\"a\", \"b\"]]}",
+      "cloud": true
+    }
+  ],
+  "obligations": [
+    {
+      "id": "a",
+      "instruction": "Return an integer from a's domain; the final assignment must allow b to be distinct.",
+      "check": "study_choice",
+      "evidence": [
+        "requirements"
+      ],
+      "parameters": {
+        "choices": [
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "id": "b",
+      "instruction": "Return an integer from b's domain; it must differ from a.",
+      "check": "study_choice",
+      "evidence": [
+        "requirements"
+      ],
+      "depends_on": [],
+      "parameters": {
+        "choices": [
+          1
+        ]
+      }
+    }
+  ]
+}

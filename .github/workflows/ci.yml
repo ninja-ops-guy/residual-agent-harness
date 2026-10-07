@@ -1,0 +1,70 @@
+name: Controller and provider contracts
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: controller-provider-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.ref }}
+  # Superseded PR-head runs are disposable. Main qualification is never
+  # cancelled by a newer push.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install test dependencies
+        run: python -m pip install '.[factory,qualification]' pytest
+      - name: Compile and test without model credentials
+        run: |
+          python -m compileall -q residual
+          python scripts/qualification_unittest.py discover -s tests -v
+      - name: Exercise packaged CLI
+        run: |
+          residual demo --output runs/ci-demo
+          residual verify-trace runs/ci-demo/trace.jsonl --result runs/ci-demo/result.json
+          residual run examples/incident/task.json --config examples/demo.toml --output runs/ci-task
+      - name: Controller ablations
+        run: python -m residual benchmark --cases 4 --output runs/ci-benchmark.json
+      - name: Frozen adaptive assurance evaluation
+        run: python scripts/assurance_eval.py --output runs/ci-assurance-evidence.json
+      - name: Frozen independent evaluation (scripted fixtures)
+        run: |
+          residual study freeze --suite examples/study/suite.json --config examples/study-fixture.toml --repeats 2 --output runs/ci-study.lock.json
+          residual study run --lock runs/ci-study.lock.json --output runs/ci-study
+          residual study report runs/ci-study
+      - name: Preserve controlled-study evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: controlled-study-python-${{ matrix.python }}
+          path: |
+            runs/ci-study/
+            runs/ci-assurance-evidence.json
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: CIC grouping and feasibility comparison (scripted fixtures)
+        run: |
+          residual study freeze --suite examples/cic/suite.json --config examples/study-fixture.toml --modes residual structural cic --repeats 2 --output runs/ci-cic.lock.json
+          residual study run --lock runs/ci-cic.lock.json --output runs/ci-cic
+          residual study report runs/ci-cic
+      - name: Preserve CIC comparison evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: cic-study-python-${{ matrix.python }}
+          path: runs/ci-cic/
+          if-no-files-found: ignore
+          retention-days: 14

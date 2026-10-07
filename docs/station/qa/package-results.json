@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "version": "0.3.0",
+  "isolated_wheel_install": true,
+  "cli_demo": true,
+  "cli_trace_verification": true,
+  "station_goal_loop": "success",
+  "integrated_tasks": 3,
+  "observation_chain": "verified",
+  "static_assets": true,
+  "runtime_dependencies": [],
+  "live_model_calls": false
+}

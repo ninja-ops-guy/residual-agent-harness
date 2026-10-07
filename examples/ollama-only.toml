@@ -1,0 +1,24 @@
+# Both tiers run on your machine. This has no remote inference calls.
+[local]
+kind = "ollama"
+model = "YOUR_SMALLER_INSTALLED_MODEL"
+base_url = "http://localhost:11434"
+placement = "local"
+timeout_seconds = 120
+
+[expert]
+kind = "ollama"
+model = "YOUR_LARGER_INSTALLED_MODEL"
+base_url = "http://localhost:11434"
+placement = "local"
+timeout_seconds = 180
+
+[limits]
+local_rounds = 1
+expert_rounds = 4
+max_expert_calls = 8
+max_output_tokens = 2048
+
+[cache]
+enabled = true
+path = ".residual/cache.sqlite"

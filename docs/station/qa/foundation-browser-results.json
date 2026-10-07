@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "checks": [
+    "Empty state and onboarding render",
+    "Training mission implements and integrates all tasks",
+    "Mission board opens the goal contract and verified run receipt",
+    "Task drawer exposes the station receipt and prerequisite binding",
+    "Task drawer shows checks and revision evidence",
+    "Verified release downloads from UI",
+    "Operator notes are escaped, not executable HTML",
+    "Model route settings persist after reload",
+    "Batch pass and token limits persist through the model workshop",
+    "Setup checklist remains accessible",
+    "Provider defaults, fallback order, and credential redaction survive reload",
+    "Bedrock reveals only its AWS credential controls",
+    "Markdown template validates from UI",
+    "Invalid Markdown produces actionable feedback",
+    "390px mobile mission switching, navigation and board have no horizontal overflow",
+    "Mobile task receipt wraps without overflow",
+    "Diagnostics inspect live runtime",
+    "Mobile trace verification, filtering, evidence, export and pause/resume work",
+    "No unexpected browser console errors"
+  ],
+  "errors": [],
+  "output": "docs/station/qa"
+}

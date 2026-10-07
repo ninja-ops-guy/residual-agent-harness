@@ -1,0 +1,14 @@
+# Scripted demonstration providers: no model calls, no network, no cost.
+[local]
+kind = "demo"
+role = "local"
+
+[expert]
+kind = "demo"
+role = "expert"
+
+[limits]
+local_rounds = 1
+
+[cache]
+enabled = false

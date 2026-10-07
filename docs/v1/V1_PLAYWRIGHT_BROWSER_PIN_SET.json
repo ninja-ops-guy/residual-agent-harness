@@ -1,0 +1,45 @@
+{
+  "schema": "residual.v1.playwright-browser-pin-set.v1",
+  "purpose": "Bind the exact Playwright browser revisions used by the v1 qualification lanes. Playwright resolves browser binaries through the browsers.json driver manifest shipped INSIDE each pinned playwright/playwright-core package; pinning the package version therefore pins the browser revision. The runtime download URL is revision-numbered (e.g. .../chromium/1208/...), so a pinned revision's archive is content-stable. Do not claim an arbitrary installed Chromium qualifies v1: verify the installed package's browsers.json matches this pin set.",
+  "sources": {
+    "npm": {
+      "package": "playwright / playwright-core",
+      "version": "1.58.0",
+      "pin_mechanism": "package-lock.json (committed at repo root); integrity sha512-2SVA0sbPktiIY/MCOPX8e86ehA/e+tDNq+e5Y8qjKYti2Z/JG7xnronT/TXTIkKbYGWlCbuucZ6dziEgkoEjQQ==",
+      "consumed_by": [
+        ".github/workflows/qualification-v1.yml (browser matrix: chromium/firefox/webkit via npx playwright install --with-deps)",
+        ".github/workflows/qualification-v1.yml (browser-adversarial: chromium)",
+        ".github/workflows/station.yml",
+        "tests/browser.cjs",
+        "tests/qualification/adversarial-browser.cjs"
+      ]
+    },
+    "python": {
+      "package": "playwright",
+      "version": "1.55.0",
+      "pin_mechanism": "exact == pin in .github/workflows/pages.yml (pip install playwright==1.55.0)",
+      "consumed_by": [
+        ".github/workflows/pages.yml (browser_smoke.py against the published Pages demo, chromium only)"
+      ]
+    }
+  },
+  "browser_revisions": {
+    "playwright-core-1.58.0": {
+      "chromium": "1208",
+      "chromium-headless-shell": "1208",
+      "firefox": "1509",
+      "webkit": "2248",
+      "ffmpeg": "1011"
+    },
+    "playwright-python-1.55.0": {
+      "chromium": "1187",
+      "chromium-headless-shell": "1187",
+      "ffmpeg": "1011"
+    }
+  },
+  "verification": {
+    "command": "python scripts/validate_playwright_browser_pins.py",
+    "method": "Read the browsers.json driver manifest from the INSTALLED playwright-core (node_modules/playwright-core/browsers.json) and, when the python playwright package is installed, from its driver package; assert every revision recorded here matches. Exits non-zero on mismatch or missing install.",
+    "note": "Tip-of-tree browser entries (chromium-tip-of-tree, firefox-beta) exist in browsers.json but are not used by any v1 lane and are not part of this pin set."
+  }
+}

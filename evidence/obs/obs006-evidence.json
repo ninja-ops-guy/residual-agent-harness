@@ -1,0 +1,548 @@
+{
+  "fixture_id": "obs006-fixture-v1",
+  "identity": {
+    "branch": "swarm/obs-006-observability",
+    "commit": "058e25b3ca73de4528648b72b1901b2c319fe643",
+    "tree": "8457fe71ff6767e2ddc6f488fbc81781a076058b"
+  },
+  "observation_hash": "0589de8fed4438a9ceeb019b145e7ebfd24b7ea753fe0de41d7195bcaa93b536",
+  "prometheus_export": [
+    "# TYPE residual_tokens_total counter",
+    "# TYPE residual_tokens_saved counter",
+    "# TYPE residual_brake_trips_total counter",
+    "# TYPE residual_verification_duration_seconds histogram",
+    "# TYPE residual_quarantine_denials_total counter",
+    "# TYPE residual_hitl_challenges_pending gauge",
+    "# TYPE residual_receipts_issued_total counter",
+    "# TYPE residual_engine_executions_total counter",
+    "# TYPE residual_obs_executions_total counter",
+    "residual_obs_executions_total{task_class=\"analysis\",outcome=\"fail\"} 1.0",
+    "residual_obs_executions_total{task_class=\"code\",outcome=\"pass\"} 2.0",
+    "# TYPE residual_obs_acceptances_total counter",
+    "residual_obs_acceptances_total{task_class=\"code\"} 2.0",
+    "# TYPE residual_obs_rejections_total counter",
+    "residual_obs_rejections_total{task_class=\"analysis\",reason=\"verification\"} 1.0",
+    "# TYPE residual_obs_verifications_total counter",
+    "residual_obs_verifications_total{task_class=\"analysis\",verdict=\"fail\"} 1.0",
+    "residual_obs_verifications_total{task_class=\"code\",verdict=\"pass\"} 2.0",
+    "# TYPE residual_obs_verification_seconds histogram",
+    "residual_obs_verification_seconds_bucket{task_class=\"analysis\",le=\"0.001\"} 0",
+    "residual_obs_verification_seconds_bucket{task_class=\"analysis\",le=\"0.005\"} 0",
+    "residual_obs_verification_seconds_bucket{task_class=\"analysis\",le=\"0.01\"} 0",
+    "residual_obs_verification_seconds_bucket{task_class=\"analysis\",le=\"0.05\"} 0",
+    "residual_obs_verification_seconds_bucket{task_class=\"analysis\",le=\"0.1\"} 1",
+    "residual_obs_verification_seconds_bucket{task_class=\"analysis\",le=\"0.5\"} 1",
+    "residual_obs_verification_seconds_bucket{task_class=\"analysis\",le=\"1.0\"} 1",
+    "residual_obs_verification_seconds_bucket{task_class=\"analysis\",le=\"5.0\"} 1",
+    "residual_obs_verification_seconds_bucket{task_class=\"analysis\",le=\"30.0\"} 1",
+    "residual_obs_verification_seconds_bucket{task_class=\"analysis\",le=\"120.0\"} 1",
+    "residual_obs_verification_seconds_bucket{task_class=\"analysis\",le=\"+Inf\"} 1",
+    "residual_obs_verification_seconds_sum{task_class=\"analysis\"} 0.1",
+    "residual_obs_verification_seconds_count{task_class=\"analysis\"} 1",
+    "residual_obs_verification_seconds_bucket{task_class=\"code\",le=\"0.001\"} 0",
+    "residual_obs_verification_seconds_bucket{task_class=\"code\",le=\"0.005\"} 0",
+    "residual_obs_verification_seconds_bucket{task_class=\"code\",le=\"0.01\"} 0",
+    "residual_obs_verification_seconds_bucket{task_class=\"code\",le=\"0.05\"} 0",
+    "residual_obs_verification_seconds_bucket{task_class=\"code\",le=\"0.1\"} 0",
+    "residual_obs_verification_seconds_bucket{task_class=\"code\",le=\"0.5\"} 2",
+    "residual_obs_verification_seconds_bucket{task_class=\"code\",le=\"1.0\"} 2",
+    "residual_obs_verification_seconds_bucket{task_class=\"code\",le=\"5.0\"} 2",
+    "residual_obs_verification_seconds_bucket{task_class=\"code\",le=\"30.0\"} 2",
+    "residual_obs_verification_seconds_bucket{task_class=\"code\",le=\"120.0\"} 2",
+    "residual_obs_verification_seconds_bucket{task_class=\"code\",le=\"+Inf\"} 2",
+    "residual_obs_verification_seconds_sum{task_class=\"code\"} 0.5",
+    "residual_obs_verification_seconds_count{task_class=\"code\"} 2",
+    "# TYPE residual_obs_integrations_total counter",
+    "residual_obs_integrations_total{result=\"conflicted\"} 1.0",
+    "residual_obs_integrations_total{result=\"integrated\"} 1.0",
+    "# TYPE residual_obs_conflicts_total counter",
+    "residual_obs_conflicts_total{conflict_kind=\"write_write\"} 1.0",
+    "# TYPE residual_obs_retries_total counter",
+    "residual_obs_retries_total{task_class=\"analysis\"} 1.0",
+    "# TYPE residual_obs_resource_units_total counter",
+    "residual_obs_resource_units_total{resource=\"cpu_seconds\"} 3.5",
+    "residual_obs_resource_units_total{resource=\"tokens_input\"} 810.0",
+    "residual_obs_resource_units_total{resource=\"tokens_output\"} 210.0",
+    "# TYPE residual_obs_phase_seconds histogram",
+    "residual_obs_phase_seconds_bucket{phase=\"context_packaging\",le=\"0.001\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"context_packaging\",le=\"0.005\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"context_packaging\",le=\"0.01\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"context_packaging\",le=\"0.05\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"context_packaging\",le=\"0.1\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"context_packaging\",le=\"0.5\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"context_packaging\",le=\"1.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"context_packaging\",le=\"5.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"context_packaging\",le=\"30.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"context_packaging\",le=\"120.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"context_packaging\",le=\"+Inf\"} 1",
+    "residual_obs_phase_seconds_sum{phase=\"context_packaging\"} 0.15",
+    "residual_obs_phase_seconds_count{phase=\"context_packaging\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"dispatch\",le=\"0.001\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"dispatch\",le=\"0.005\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"dispatch\",le=\"0.01\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"dispatch\",le=\"0.05\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"dispatch\",le=\"0.1\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"dispatch\",le=\"0.5\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"dispatch\",le=\"1.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"dispatch\",le=\"5.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"dispatch\",le=\"30.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"dispatch\",le=\"120.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"dispatch\",le=\"+Inf\"} 1",
+    "residual_obs_phase_seconds_sum{phase=\"dispatch\"} 0.02",
+    "residual_obs_phase_seconds_count{phase=\"dispatch\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"integration\",le=\"0.001\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"integration\",le=\"0.005\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"integration\",le=\"0.01\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"integration\",le=\"0.05\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"integration\",le=\"0.1\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"integration\",le=\"0.5\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"integration\",le=\"1.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"integration\",le=\"5.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"integration\",le=\"30.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"integration\",le=\"120.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"integration\",le=\"+Inf\"} 1",
+    "residual_obs_phase_seconds_sum{phase=\"integration\"} 0.13",
+    "residual_obs_phase_seconds_count{phase=\"integration\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"planning\",le=\"0.001\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"planning\",le=\"0.005\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"planning\",le=\"0.01\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"planning\",le=\"0.05\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"planning\",le=\"0.1\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"planning\",le=\"0.5\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"planning\",le=\"1.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"planning\",le=\"5.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"planning\",le=\"30.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"planning\",le=\"120.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"planning\",le=\"+Inf\"} 1",
+    "residual_obs_phase_seconds_sum{phase=\"planning\"} 0.1",
+    "residual_obs_phase_seconds_count{phase=\"planning\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"verification\",le=\"0.001\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"verification\",le=\"0.005\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"verification\",le=\"0.01\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"verification\",le=\"0.05\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"verification\",le=\"0.1\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"verification\",le=\"0.5\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"verification\",le=\"1.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"verification\",le=\"5.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"verification\",le=\"30.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"verification\",le=\"120.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"verification\",le=\"+Inf\"} 1",
+    "residual_obs_phase_seconds_sum{phase=\"verification\"} 0.6",
+    "residual_obs_phase_seconds_count{phase=\"verification\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"worker_runtime\",le=\"0.001\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"worker_runtime\",le=\"0.005\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"worker_runtime\",le=\"0.01\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"worker_runtime\",le=\"0.05\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"worker_runtime\",le=\"0.1\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"worker_runtime\",le=\"0.5\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"worker_runtime\",le=\"1.0\"} 0",
+    "residual_obs_phase_seconds_bucket{phase=\"worker_runtime\",le=\"5.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"worker_runtime\",le=\"30.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"worker_runtime\",le=\"120.0\"} 1",
+    "residual_obs_phase_seconds_bucket{phase=\"worker_runtime\",le=\"+Inf\"} 1",
+    "residual_obs_phase_seconds_sum{phase=\"worker_runtime\"} 4.5",
+    "residual_obs_phase_seconds_count{phase=\"worker_runtime\"} 1",
+    "# TYPE residual_obs_observations_complete_total gauge",
+    "residual_obs_observations_complete_total{kind=\"acceptance\"} 2.0",
+    "residual_obs_observations_complete_total{kind=\"conflict\"} 1.0",
+    "residual_obs_observations_complete_total{kind=\"execution\"} 3.0",
+    "residual_obs_observations_complete_total{kind=\"integration\"} 2.0",
+    "residual_obs_observations_complete_total{kind=\"orchestration_timing\"} 6.0",
+    "residual_obs_observations_complete_total{kind=\"rejection\"} 1.0",
+    "residual_obs_observations_complete_total{kind=\"resource\"} 3.0",
+    "residual_obs_observations_complete_total{kind=\"retry\"} 1.0",
+    "residual_obs_observations_complete_total{kind=\"verification\"} 3.0",
+    "# TYPE residual_obs_observations_missing_fields_total gauge",
+    "residual_obs_observations_missing_fields_total{kind=\"execution\"} 2.0",
+    "residual_obs_observations_missing_fields_total{kind=\"integration\"} 1.0",
+    "residual_obs_observations_missing_fields_total{kind=\"verification\"} 1.0"
+  ],
+  "raw_observations": [
+    {
+      "correct": true,
+      "kind": "execution",
+      "outcome": "pass",
+      "schema_version": "obs006.observation.v1",
+      "task_class": "code",
+      "tokens_input": 400,
+      "tokens_output": 120,
+      "worker_seconds": 1.25
+    },
+    {
+      "correct": true,
+      "kind": "execution",
+      "outcome": "pass",
+      "schema_version": "obs006.observation.v1",
+      "task_class": "code",
+      "tokens_input": 410,
+      "tokens_output": 90,
+      "worker_seconds": 2.5
+    },
+    {
+      "correct": false,
+      "kind": "execution",
+      "outcome": "fail",
+      "schema_version": "obs006.observation.v1",
+      "task_class": "analysis",
+      "worker_seconds": 0.75
+    },
+    {
+      "correct": true,
+      "kind": "acceptance",
+      "schema_version": "obs006.observation.v1",
+      "task_class": "code"
+    },
+    {
+      "correct": false,
+      "kind": "acceptance",
+      "schema_version": "obs006.observation.v1",
+      "task_class": "code"
+    },
+    {
+      "kind": "rejection",
+      "reason": "verification",
+      "schema_version": "obs006.observation.v1",
+      "task_class": "analysis"
+    },
+    {
+      "kind": "verification",
+      "schema_version": "obs006.observation.v1",
+      "task_class": "code",
+      "verdict": "pass",
+      "verification_seconds": 0.2,
+      "verifier_identity": "verifier-a"
+    },
+    {
+      "kind": "verification",
+      "schema_version": "obs006.observation.v1",
+      "task_class": "code",
+      "verdict": "pass",
+      "verification_seconds": 0.3
+    },
+    {
+      "kind": "verification",
+      "schema_version": "obs006.observation.v1",
+      "task_class": "analysis",
+      "verdict": "fail",
+      "verification_seconds": 0.1,
+      "verifier_identity": "verifier-a"
+    },
+    {
+      "integration_seconds": 0.05,
+      "kind": "integration",
+      "result": "integrated",
+      "schema_version": "obs006.observation.v1",
+      "strategy": "fast_forward"
+    },
+    {
+      "integration_seconds": 0.08,
+      "kind": "integration",
+      "result": "conflicted",
+      "schema_version": "obs006.observation.v1"
+    },
+    {
+      "conflict_kind": "write_write",
+      "kind": "conflict",
+      "resolution": "retry",
+      "schema_version": "obs006.observation.v1"
+    },
+    {
+      "attempt": 2,
+      "cause": "conflict",
+      "kind": "retry",
+      "schema_version": "obs006.observation.v1",
+      "task_class": "analysis"
+    },
+    {
+      "amount": 810,
+      "kind": "resource",
+      "resource": "tokens_input",
+      "schema_version": "obs006.observation.v1"
+    },
+    {
+      "amount": 210,
+      "kind": "resource",
+      "resource": "tokens_output",
+      "schema_version": "obs006.observation.v1"
+    },
+    {
+      "amount": 3.5,
+      "kind": "resource",
+      "resource": "cpu_seconds",
+      "schema_version": "obs006.observation.v1"
+    },
+    {
+      "kind": "orchestration_timing",
+      "phase": "planning",
+      "schema_version": "obs006.observation.v1",
+      "seconds": 0.1
+    },
+    {
+      "kind": "orchestration_timing",
+      "phase": "dispatch",
+      "schema_version": "obs006.observation.v1",
+      "seconds": 0.02
+    },
+    {
+      "kind": "orchestration_timing",
+      "phase": "context_packaging",
+      "schema_version": "obs006.observation.v1",
+      "seconds": 0.15
+    },
+    {
+      "kind": "orchestration_timing",
+      "phase": "worker_runtime",
+      "schema_version": "obs006.observation.v1",
+      "seconds": 4.5
+    },
+    {
+      "kind": "orchestration_timing",
+      "phase": "verification",
+      "schema_version": "obs006.observation.v1",
+      "seconds": 0.6
+    },
+    {
+      "kind": "orchestration_timing",
+      "phase": "integration",
+      "schema_version": "obs006.observation.v1",
+      "seconds": 0.13
+    }
+  ],
+  "report": {
+    "report": {
+      "aggregates": {
+        "acceptance": {
+          "evidence": {
+            "complete_observations": 2,
+            "completeness": 1.0,
+            "observations_with_missing_fields": 0
+          },
+          "value": {
+            "acceptance_rate": 0.6666666666666666,
+            "accepted": 2,
+            "decisions": 3,
+            "rejected": 1,
+            "rejection_rate": 0.3333333333333333
+          }
+        },
+        "conflicts": {
+          "evidence": {
+            "complete_observations": 1,
+            "completeness": 1.0,
+            "observations_with_missing_fields": 0
+          },
+          "value": {
+            "by_kind": {
+              "write_write": 1
+            },
+            "total": 1
+          }
+        },
+        "correctness": {
+          "evidence": {
+            "complete_observations": 2,
+            "completeness": 0.6666666666666666,
+            "observations_with_missing_fields": 1
+          },
+          "value": {
+            "correct": 3,
+            "labeled": 5,
+            "p_x": 0.6,
+            "p_x_given_acceptance": 0.5
+          }
+        },
+        "execution": {
+          "evidence": {
+            "complete_observations": 2,
+            "completeness": 0.6666666666666666,
+            "observations_with_missing_fields": 1
+          },
+          "value": {
+            "by_outcome": {
+              "fail": 1,
+              "pass": 2
+            },
+            "total": 3
+          }
+        },
+        "integration": {
+          "evidence": {
+            "complete_observations": 1,
+            "completeness": 0.5,
+            "observations_with_missing_fields": 1
+          },
+          "value": {
+            "by_result": {
+              "conflicted": 1,
+              "integrated": 1
+            },
+            "total": 2
+          }
+        },
+        "orchestration_timing": {
+          "evidence": {
+            "completeness": 1.0,
+            "phases_missing": 0,
+            "phases_observed": 6
+          },
+          "phases": {
+            "context_packaging": {
+              "count": 1,
+              "max_seconds": 0.15,
+              "mean_seconds": 0.15,
+              "total_seconds": 0.15
+            },
+            "dispatch": {
+              "count": 1,
+              "max_seconds": 0.02,
+              "mean_seconds": 0.02,
+              "total_seconds": 0.02
+            },
+            "integration": {
+              "count": 1,
+              "max_seconds": 0.13,
+              "mean_seconds": 0.13,
+              "total_seconds": 0.13
+            },
+            "planning": {
+              "count": 1,
+              "max_seconds": 0.1,
+              "mean_seconds": 0.1,
+              "total_seconds": 0.1
+            },
+            "verification": {
+              "count": 1,
+              "max_seconds": 0.6,
+              "mean_seconds": 0.6,
+              "total_seconds": 0.6
+            },
+            "worker_runtime": {
+              "count": 1,
+              "max_seconds": 4.5,
+              "mean_seconds": 4.5,
+              "total_seconds": 4.5
+            }
+          }
+        },
+        "rejection": {
+          "evidence": {
+            "complete_observations": 1,
+            "completeness": 1.0,
+            "observations_with_missing_fields": 0
+          },
+          "value": {
+            "by_reason": {
+              "verification": 1
+            },
+            "total": 1
+          }
+        },
+        "resource_consumption": {
+          "evidence": {
+            "complete_observations": 3,
+            "completeness": 1.0,
+            "observations_with_missing_fields": 0
+          },
+          "value": {
+            "totals": {
+              "cpu_seconds": 3.5,
+              "tokens_input": 810.0,
+              "tokens_output": 210.0
+            }
+          }
+        },
+        "retries": {
+          "evidence": {
+            "complete_observations": 1,
+            "completeness": 1.0,
+            "observations_with_missing_fields": 0
+          },
+          "value": {
+            "total": 1,
+            "total_attempts": 2
+          }
+        },
+        "verification": {
+          "evidence": {
+            "complete_observations": 2,
+            "completeness": 0.6666666666666666,
+            "observations_with_missing_fields": 1
+          },
+          "value": {
+            "by_verdict": {
+              "fail": 1,
+              "pass": 2
+            },
+            "total": 3
+          }
+        }
+      },
+      "evidence_completeness": {
+        "by_kind": {
+          "acceptance": {
+            "complete": 2,
+            "missing": 0
+          },
+          "conflict": {
+            "complete": 1,
+            "missing": 0
+          },
+          "execution": {
+            "complete": 2,
+            "missing": 1
+          },
+          "integration": {
+            "complete": 1,
+            "missing": 1
+          },
+          "orchestration_timing": {
+            "complete": 6,
+            "missing": 0
+          },
+          "rejection": {
+            "complete": 1,
+            "missing": 0
+          },
+          "resource": {
+            "complete": 3,
+            "missing": 0
+          },
+          "retry": {
+            "complete": 1,
+            "missing": 0
+          },
+          "verification": {
+            "complete": 2,
+            "missing": 1
+          }
+        },
+        "complete_observations": 19,
+        "missing_data_counts": {
+          "observations": 3,
+          "timing_phases": 0
+        },
+        "observations_with_missing_fields": 3
+      },
+      "experiment_id": "obs006-fixture-v1",
+      "observation_count": 22,
+      "observation_hash": "0589de8fed4438a9ceeb019b145e7ebfd24b7ea753fe0de41d7195bcaa93b536",
+      "source_identity": {
+        "branch": "swarm/obs-006-observability",
+        "commit": "058e25b3ca73de4528648b72b1901b2c319fe643",
+        "tree": "8457fe71ff6767e2ddc6f488fbc81781a076058b"
+      }
+    },
+    "report_hash": "7f65e577821e03cf62d2cd4585a59635131c462018d6a75a5b63c580b0c492a6",
+    "schema_version": "obs006.report.v1"
+  },
+  "reproduction": {
+    "first_report_hash": "7f65e577821e03cf62d2cd4585a59635131c462018d6a75a5b63c580b0c492a6",
+    "identical_hash": true,
+    "second_report_hash": "7f65e577821e03cf62d2cd4585a59635131c462018d6a75a5b63c580b0c492a6"
+  },
+  "runtime": {
+    "platform": "Linux-5.10.134-18.0.12.lifsea8.x86_64-x86_64-with-glibc2.36",
+    "python": "3.12.12"
+  },
+  "spec": "SPEC-SWARM-OBS-006"
+}

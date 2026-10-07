@@ -1,0 +1,22 @@
+{
+  "id": "maintenance-plan",
+  "goal": "Propose a service maintenance plan satisfying every precondition and avoiding forbidden states. This is a simulation; no real service is changed.",
+  "artifacts": [{"id": "model", "path": "state-model.json", "cloud": true}],
+  "obligations": [
+    {
+      "id": "plan",
+      "instruction": "Return a JSON array of action IDs. Simulate the actions from initial to goal, obey requires, avoid forbidden states, and stay within max_steps. Read the complete state model if the visible excerpt is insufficient.",
+      "check": "transition_plan",
+      "evidence": ["model"],
+      "parameters": {"artifact": "model"}
+    },
+    {
+      "id": "step_count",
+      "instruction": "Return the integer number of actions in the accepted plan.",
+      "check": "dependency_count",
+      "depends_on": ["plan"],
+      "parameters": {"dependency": "plan"},
+      "solver": "dependency_count"
+    }
+  ]
+}

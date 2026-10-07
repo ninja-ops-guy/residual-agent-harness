@@ -1,0 +1,65 @@
+{
+  "schema_version": "residual.cic-validation.v1",
+  "base_commit": "800ea736308e3b0c091b81bf9cdb18c9786b9ac4",
+  "research_commit": "005c7ad4ef44eaade2c0c7e9d686e78429322d",
+  "python": "3.12.14",
+  "cic_tests": {
+    "passed": 32
+  },
+  "unittest": {
+    "run": 646,
+    "skipped": 1,
+    "failures": 0,
+    "errors": 0
+  },
+  "pytest": {
+    "passed": 1085,
+    "failed": 10,
+    "skipped": 32,
+    "subtests_passed": 179
+  },
+  "baseline_pytest": {
+    "passed": 1053,
+    "failed": 10,
+    "skipped": 32,
+    "subtests_passed": 166
+  },
+  "new_pytest_failures": [],
+  "inherited_pytest_failures": [
+    "tests/redteam/test_worker_attacks.py::TestMaliciousWorkerOutput::test_forged_receipt_in_worker_output\nFAILED",
+    "tests/redteam/test_worker_attacks.py::TestMaliciousWorkerOutput::test_oversized_output_capped\nFAILED",
+    "tests/test_sandbox_containment.py::test_fork_bomb_defused",
+    "tests/test_sandbox_containment.py::test_fs_allowlist_read_write",
+    "tests/test_sandbox_containment.py::test_memory_cap_enforced",
+    "tests/test_sandbox_containment.py::test_nonzero_exit_captured",
+    "tests/test_sandbox_containment.py::test_timeout_kills",
+    "tests/test_traceability.py::test_checker_script_is_executable"
+  ],
+  "inherited_failure_causes": [
+    "9 tests cannot create bubblewrap namespaces in this environment",
+    "scripts/status_check.py is mode 100644 on baseline, but its test requires 100755"
+  ],
+  "comparison": {
+    "runs": 54,
+    "complete": true,
+    "simulation": true,
+    "protocol_sha256": "f953464ee7176a1e31280fe31d5a3f76a6382b0e8e4f31ca6486c19280f80760"
+  },
+  "installed_wheel": {
+    "study_runs": 18,
+    "complete": true,
+    "wheel_sha256": "fa2eb4f5e49a8fd844f232aca69c66f1cf26e606e9bd9040d4e1b0b78fdc45a6"
+  },
+  "compileall": "passed",
+  "diff_check": "passed",
+  "live_models_tested": false,
+  "retained_files_sha256": {
+    "baseline-pytest.txt": "4407fadd1923c36a37d9810503139112d6fcdfd2c0505c9afbd4440f4919f4c8",
+    "protocol.json": "92c2aa403f768f0fc9affc34737da3d140244abfa8d7c86bed03db7771f5275e",
+    "pytest.txt": "f50933ac7100953986e0d9a4dfb05b53ee99c0291c7393aeb1a1bbfd127789b6",
+    "report.json": "2411f85ef0e89a9025d2ccaad2c1555dc1d1889840b26154993cbd6db3ea47f0",
+    "report.md": "8ff3959a0cfe9e4f69dfaf7d9f183687d5131a95ccf51f4de1c337b2a7c69216",
+    "study-evidence.tar.gz": "4d9bd2ae818b7673312e0d92ce22b93e1658a87d6ae72bf31924f03e8d68c822",
+    "unittest.txt": "735146f3b8901791402edd886b64ebf417af8290a808e4d1c20708f7e39672e2"
+  }
+}

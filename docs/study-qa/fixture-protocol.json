@@ -1,0 +1,138 @@
+{
+  "schema_version": "residual.study-protocol.v1",
+  "suite_name": "public-contract-stress-v1",
+  "suite_sha256": "0306d5dedb3cb655f1f7dcbf64ab36f034b3173817d9e9cd90f2d5be18a2e40c",
+  "evidence_level": "development_fixture",
+  "split": "evaluation",
+  "config": {
+    "cache": {
+      "enabled": false
+    },
+    "expert": {
+      "kind": "study_fixture",
+      "role": "expert"
+    },
+    "limits": {
+      "expert_rounds": 3,
+      "local_rounds": 1,
+      "max_calls": 12,
+      "max_expert_calls": 8,
+      "max_output_tokens": 1024,
+      "max_remote_input_bytes": 200000,
+      "max_request_bytes": 50000
+    },
+    "local": {
+      "kind": "study_fixture",
+      "role": "local"
+    },
+    "plugins": [
+      "residual.study_tasks:register"
+    ]
+  },
+  "source_hashes": {
+    "residual/__init__.py": "30833f7beb4fd017e5fed9e4193b898ee3f5d625b468bfc312ea1c92e7cfa1d6",
+    "residual/__main__.py": "9c7c331028f54ff84a932c0ccdb35c8bfbe62226c411145cc6e2718824108491",
+    "residual/brakes.py": "4b014b12eb3a72ba2a12f4a68afc720415a7759c397e0b9f0690e99ca7cf0186",
+    "residual/cli.py": "e19dfe82d2174000c2b7281c57db3cb9a63f420cd3846d3c4ed1f7a7a603b0ee",
+    "residual/config.py": "818b729ec9741bc3cc906470d1008d495c8f3b932c35e5ccc3bd77b5af473a40",
+    "residual/core.py": "b0708fb20aa5e55f7672f1fa979270ecd18fb85c5c18164e7f2fe1c81e03bd2c",
+    "residual/demo.py": "d657279e0ba6317b37472f12d419f774622d710d95af1982219d16a82d5b1fac",
+    "residual/engine.py": "0d4277bed8009d7ac0cd1329a59ef6ee695bae5ee920e26505168d68ca3bf328",
+    "residual/evaluation.py": "8822db53093c84e9f5115db2ae29c1e13dc44d322a6424b54d077fad9ee2efef",
+    "residual/goalspec.py": "be330240b2b1695095bdc9c61690b6e06d7270d43fe75fab09892e1c11e73d36",
+    "residual/integration.py": "965cad1b7a8e5b2b739588313da8e324de3e5f2d8a35b2dbb62c7da22468d9d2",
+    "residual/loop.py": "656e02b8812172513575486b96a41abe7ff3e10536d052b1d97feb67048a27eb",
+    "residual/modular.py": "a91cb5872119995722efcc5fc2279db44fa8e3c493cbcea90e8b49eb8fb38a31",
+    "residual/providers.py": "ac978c27a83e66ce0c6e2b7fb10af388018f49854e30066827fa2161e82c2ad4",
+    "residual/quarantine.py": "a6b040e4318f304371916b55fabaab66dd53d554bf271d238d65e94e72ae5a93",
+    "residual/station/__init__.py": "cc9540a04cb4e8fdbc274598c0b5f42d501d021880629b9aee61637f15a3c508",
+    "residual/station/contracts.py": "ed69f55c94851127d58b4d9e5f42fc89b42f43f9371931181e3fc9ddccd02b0f",
+    "residual/station/control.py": "166c1a270391dfb0173c357b51b6543fae6bc2f83990cff0a7a94fb9b43da729",
+    "residual/station/models.py": "1f4b06212c192b01c6cc3acd11baecd31d9a58b4fdfdc47861ff15242370bb16",
+    "residual/station/observability.py": "4369a9bc73d3917265bec34c98a3aa4b01c7080a236d8eca15c890ff53929b92",
+    "residual/station/server.py": "6c63f49bf8b3526ce0bae50c27b5973b531248ee782d22de71d97b04dde64f96",
+    "residual/station/service.py": "4024cba4c3b3a678860b45ed11704bb0af01f88c6f59c5f33b08a1d26639ea28",
+    "residual/station/store.py": "ddb1a6395ae9507dea610a63593ef8d68e06ebfa3375c4336fb2a4264213f28e",
+    "residual/station/worker.py": "051c3ae945a7eda0884b710558a4cf15420ff4b6226bc01f1e3a6a39f81a4316",
+    "residual/station/workspace.py": "fc4b8413c6efde6a4e0ce9661eaebf05d2da203714da9898a8a16a24d8059365",
+    "residual/storage.py": "c917fa22ae5f4d26dc6ce969a294ecc394643d4511c085ba1c9b0b9010104227",
+    "residual/study.py": "46e66985baaeeb419818424ccc8f62c50879bb7e7b8205a2205c2f3e84c67a02",
+    "residual/study_tasks.py": "d94fb5f79afdb7a5259f65e8445595629c8bb9187afb91c250dac71384642b08",
+    "residual/verifier.py": "9c41c307950305332728e450a44385c5307a20cefc3a22d214d5225898b2dcb9",
+    "ai_providers/__init__.py": "e771400ecf647c8ba6c3d79b28a408b64548a6932c760ed72c9ba8b9153bc2e7",
+    "ai_providers/adapters/__init__.py": "62c00d081b651dde847a62ca0b837bb1970f427cac94a987a54f3d6f582dda3e",
+    "ai_providers/adapters/_http.py": "edb7f816ee39356fee471d493c2f0c1cd2dc2fc5ae2cd2a588898c8c348138d4",
+    "ai_providers/adapters/anthropic_adapter.py": "b469dbbca3cf4ff3ad9b637ad1a01f510a4012cc3b8690109d4d1fbacc52587c",
+    "ai_providers/adapters/azure_adapter.py": "6026573d930e056658712aa78f55685119550c86e821004567b6cfd40a773b86",
+    "ai_providers/adapters/bedrock_adapter.py": "e2a1576e6ab5b47ed825c3d93b5472c59d527f8676e51091a2721bddde7c2cc5",
+    "ai_providers/adapters/google_adapter.py": "a8a76b64ee42acc379d43ed5b29cc1758ba272e8b131c6927a373502f5601220",
+    "ai_providers/adapters/ollama_adapter.py": "9c5ffd8a9697604c8b84457dcb14a0bc50bfea0a5bad60e028fd0ed1dbea2b83",
+    "ai_providers/adapters/openai_adapter.py": "ee45376a42a32b15166edef4065286b5603a070837416d0d2a595e1ff9f8b421",
+    "ai_providers/core.py": "ef5fe8f00e727909d557bc680f7eab519179c33c542d6b28283c3ca3e960a557",
+    "ai_providers/registry.py": "6771bbaba6cdc2efda3e2cd3cbf4b96408fe880ac428dd0f3f3624b883b1e73c",
+    "ai_providers/router.py": "19b7ab0a3013f8708f39837355d0e082e392dba69d7f83188b13c9fc76e60df0",
+    "observation_layer/__init__.py": "68ffb04c01065a81aec7caf29d9e79ca5af656e5e7d5d583e6c23fa60bc605fa",
+    "observation_layer/bus.py": "8ab4d48019ccce5f76f9cbae45d60a0208bed307b494c7f0c42ccb60ae7cc5ad",
+    "observation_layer/core.py": "92bf2a1cd8324573eb4dc7fce06361ec523352fa163bf05ae5ef1be85d798aee",
+    "observation_layer/filters.py": "f972df060df39438a0345fa5ac6d2c09b43117bf8a7acdcd4ad2cddd53595290",
+    "observation_layer/hooks.py": "fe446fa34b063a05884346b5ea59d1f96f410c9bc56b816ab58c518cec8d0fb1",
+    "observation_layer/query.py": "1f301c75e4782eef9d3544a918781e2ead201c39c6e7c1ee59fee8decfcc8c19",
+    "observation_layer/sinks.py": "f4c53142ebcc63228718c35b3326eccdaadeb45b09be9d9823305729735edbb1"
+  },
+  "cases": [
+    {
+      "id": "quadratic",
+      "family": "polynomial",
+      "task_sha256": "b688f078f57d8a6bef724ab6a9d49e2406b9ed3ae3d9eba22f22480484e96745",
+      "grader_sha256": "e71158340659d06abb31c7ffe410288d87f040c2b6746dd53d4f5beb1a4b8a2e"
+    },
+    {
+      "id": "floor",
+      "family": "integer-division",
+      "task_sha256": "afd89a62cdef6453ce92aaca6f0879d896fecbac6dbdfc96a9610aa65a5b8d97",
+      "grader_sha256": "f22f8069600aa853df99ce00a32119718c010917cd16cd9025a7bc194ac02804"
+    },
+    {
+      "id": "modulo",
+      "family": "remainder",
+      "task_sha256": "24b3af33df2a84bcf4fe19761417e29d09a3b0b781ab75df11f7b27b26679939",
+      "grader_sha256": "891befaa005356e105dfd0da046b32e659f8719ad0355611c31194a15b833fbc"
+    },
+    {
+      "id": "joint-choice",
+      "family": "joint-search",
+      "task_sha256": "3aba09a2a37fdb4cef34526b2729732ee044c9f1ef5c6e34bb556d06180d60ed",
+      "grader_sha256": "aee8e59cb9ab1544bc818e44d4ca06805799d299084c35bf65f2936cbded8715"
+    },
+    {
+      "id": "weak-composition",
+      "family": "incomplete-contract",
+      "task_sha256": "17cd283116c9e2febd28be628fe145a0d1bbbb2422103f5ca63df7eec0e3cbdf",
+      "grader_sha256": "426ab9a3194743065dcae075c67e93e5d173501bbf9f404c38baa8bccbb4bfd1"
+    },
+    {
+      "id": "frozen-dead-end",
+      "family": "backtracking",
+      "task_sha256": "0d1ca7e006ea8536678db184e33d60930bae466597c66bf45903753639ecd2e0",
+      "grader_sha256": "426ab9a3194743065dcae075c67e93e5d173501bbf9f404c38baa8bccbb4bfd1"
+    }
+  ],
+  "modes": [
+    "local_only",
+    "full_cloud",
+    "cascade",
+    "residual_fixed",
+    "residual",
+    "no_pull",
+    "no_feedback",
+    "no_solvers"
+  ],
+  "repeats": 3,
+  "seed": 42,
+  "max_total_calls": 2000,
+  "max_total_remote_bytes": 20000000,
+  "local_cost_per_hour_usd": null,
+  "cache_policy": "disabled",
+  "cost_scope": "Configured inference prices plus optional modeled local host occupancy; excludes engineering effort and unreported upstream charges.",
+  "sha256": "1aa38acaf13d64516a21aa18594c4ab13c320a99c0f6f815c7f579c8b09c5f14"
+}

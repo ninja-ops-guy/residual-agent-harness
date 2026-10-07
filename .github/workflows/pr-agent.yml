@@ -1,0 +1,78 @@
+name: PR Agent advisory review
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  # Keep superseded runs within the same trigger/sender class cancellable, but
+  # never let unrelated bot issue comments (for example Vercel status comments)
+  # cancel a human-triggered advisory review for the same PR.
+  group: pr-agent-${{ github.event.pull_request.number || github.event.issue.number || github.run_id }}-${{ github.event_name }}-${{ github.event.sender.type }}
+  cancel-in-progress: true
+
+jobs:
+  pr-agent:
+    if: >-
+      github.event.sender.type != 'Bot' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository) &&
+      (github.event_name != 'issue_comment' ||
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
+                github.event.comment.author_association))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Require configured OpenAI secret
+        shell: bash
+        env:
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY || secrets.OPENAI_API_KEY }}
+        run: |
+          if [[ -z "${OPENAI_KEY:-}" ]]; then
+            echo "::error::Repository Actions secret OPENAI_KEY or OPENAI_API_KEY is missing or empty."
+            exit 1
+          fi
+
+      - name: Run advisory PR review
+        # Directly pin the immutable multi-platform image digest for PR-Agent v0.45.0-github_action.
+        # This removes the mutable Dockerfile indirection behind the upstream GitHub Action wrapper.
+        uses: docker://pragent/pr-agent@sha256:548b760b81ab4b3f729182428695ccc1194bbf87528c2b1e2b2b07e5223af7b6
+        env:
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY || secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTION_CONFIG.AUTO_REVIEW: "true"
+          GITHUB_ACTION_CONFIG.HANDLE_PUSH_TRIGGER: "true"
+          GITHUB_ACTION_CONFIG.PUSH_COMMANDS: '["/review"]'
+          GITHUB_ACTION_CONFIG.AUTO_DESCRIBE: "false"
+          GITHUB_ACTION_CONFIG.AUTO_IMPROVE: "false"
+          CONFIG.MODEL: "gpt-4o"
+          CONFIG.FALLBACK_MODELS: '["gpt-4o-mini"]'
+          CONFIG.PROPAGATE_TOOL_ERRORS: "true"
+          # GitHub Actions' GITHUB_TOKEN cannot safely prove the bot identity
+          # required to mutate PR-Agent's persistent finding state on later pushes.
+          # Publish a fresh, append-only full review for each exact head instead.
+          # The gate below already binds acceptance to a bot comment from this run.
+          PR_REVIEWER.PERSISTENT_COMMENT: "false"
+
+      - name: Verify substantive advisory review was published
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+        run: |
+          run_started_at="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --jq .run_started_at)"
+          published="$(
+            gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --paginate \
+              --jq "[.[] | select(.user.login == \"github-actions[bot]\") | select(.updated_at >= \"$run_started_at\") | select((.body // \"\") | contains(\"<!-- pr-agent:review:full -->\"))] | length"
+          )"
+          if [[ "$published" -lt 1 ]]; then
+            echo "::error::PR Agent returned without publishing a substantive advisory review marker; failure/status comments do not satisfy this gate."
+            exit 1
+          fi

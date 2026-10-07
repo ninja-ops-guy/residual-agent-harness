@@ -1,0 +1,63 @@
+{
+  "archive": "CFNetworkDownload_b4tF9O.zip",
+  "sha256": "690c697caa6f463bd96ac3da7f50fb1c88962ae455a3c2c0b58fd5d6060ccc59",
+  "imported_files": [
+    {
+      "path": "residual/hitl/gateway.py",
+      "sha256": "b0240293341ea0b2cb76605fc10e99a427f29e23125c3fa1f456e820d69fff61"
+    },
+    {
+      "path": "residual/hitl/__init__.py",
+      "sha256": "d3e73605e037fe6ff7d5fcaa97e88b352225197bdbd70aa80d3ceafda755d8b0"
+    },
+    {
+      "path": "residual/memory/store.py",
+      "sha256": "6170a6ee594678503fc8159e4705ee73bb85c1bab20c3bd127745c954ca72c71"
+    },
+    {
+      "path": "residual/memory/__init__.py",
+      "sha256": "e1be5ae1e2e838b1993f561d66f52c2a671ce6ec03aae094580d807ed92c0160"
+    },
+    {
+      "path": "residual/mesh/__init__.py",
+      "sha256": "7962e96e780456f32a0cacc4a3eb4d9ce6080f81237673aa88b2016c5f5243d0"
+    },
+    {
+      "path": "residual/mesh/node.py",
+      "sha256": "46b97a7e708ed8d9eb81b127d6ce677dd97a30b94c952f9c9af39a731ddd1581"
+    },
+    {
+      "path": "residual/modules/netops.py",
+      "sha256": "acc412b97ce09610782195ab27539af557643cb066754575e0321521d1330f39"
+    },
+    {
+      "path": "residual/modules/secops.py",
+      "sha256": "eef529d1fbc6955c0f2a083c52381988c601033ef98801c434ada0ad873841bd"
+    },
+    {
+      "path": "residual/modules/__init__.py",
+      "sha256": "7d5fe7010cd0414544b25e85cc892e92a73d6b9b8156b210539a31ed73f5cee0"
+    },
+    {
+      "path": "residual/trajectory/recorder.py",
+      "sha256": "abba5c177bb1ef9d63acea879c92388ebb141483e20ac27b1064eb8f11b32781"
+    },
+    {
+      "path": "residual/trajectory/__init__.py",
+      "sha256": "fd14528aa1292b88dcc9e608dc69109f3a2bcb0280573b8efb99d0f0666d8c6d"
+    },
+    {
+      "path": "residual/tui/dashboard.py",
+      "sha256": "237cd490e54c7e19dd928e94d66f34346277029dfaf60f7de586bf07d0e1c741"
+    },
+    {
+      "path": "residual/tui/__init__.py",
+      "sha256": "023d2389ab79543ad38aba87b6f4643826e92064236b000b8fbe33aff6f4805f"
+    },
+    {
+      "path": "tests/test_tracks_2_8.py",
+      "sha256": "223889b264099f70801e3f8248b917a5b36484a4dbe68d187e4010a60a7d8fb3"
+    }
+  ],
+  "note": "Only new modules and tests imported. Core and provider code preserve the integrated baseline. Hashes describe originals before integration fixes."
+}

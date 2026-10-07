@@ -1,0 +1,41 @@
+{
+  "simulation": true,
+  "rows": [
+    {
+      "noise_lines": 4,
+      "cascade_bytes": 27392,
+      "residual_bytes": 18372,
+      "fixed_window_bytes": 35460,
+      "cascade_successes": 8,
+      "residual_successes": 8,
+      "request_byte_reduction_pct": 32.929322429906534
+    },
+    {
+      "noise_lines": 32,
+      "cascade_bytes": 53502,
+      "residual_bytes": 27962,
+      "fixed_window_bytes": 37336,
+      "cascade_successes": 8,
+      "residual_successes": 8,
+      "request_byte_reduction_pct": 47.73653321371164
+    },
+    {
+      "noise_lines": 256,
+      "cascade_bytes": 262188,
+      "residual_bytes": 37368,
+      "fixed_window_bytes": 37368,
+      "cascade_successes": 8,
+      "residual_successes": 8,
+      "request_byte_reduction_pct": 85.74763147054784
+    },
+    {
+      "noise_lines": 1024,
+      "cascade_bytes": 977622,
+      "residual_bytes": 37404,
+      "fixed_window_bytes": 37404,
+      "cascade_successes": 8,
+      "residual_successes": 8,
+      "request_byte_reduction_pct": 96.17398135475675
+    }
+  ]
+}

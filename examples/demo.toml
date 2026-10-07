@@ -1,0 +1,13 @@
+[local]
+kind = "demo"
+role = "local"
+
+[expert]
+kind = "demo"
+role = "expert"
+
+[limits]
+local_rounds = 1
+
+[cache]
+enabled = false

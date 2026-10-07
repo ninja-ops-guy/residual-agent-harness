@@ -1,0 +1,63 @@
+{
+  "id": "incident-0",
+  "goal": "Count error records, diagnose the failed connection, and select the approved corrective action.",
+  "artifacts": [
+    {
+      "id": "telemetry",
+      "path": "telemetry.log",
+      "cloud": true
+    },
+    {
+      "id": "probe",
+      "path": "probe.log",
+      "cloud": true
+    },
+    {
+      "id": "actions",
+      "path": "actions.json",
+      "cloud": true
+    }
+  ],
+  "obligations": [
+    {
+      "id": "error_count",
+      "instruction": "Return an integer count of telemetry records containing level=ERROR.",
+      "check": "incident_count",
+      "evidence": [
+        "telemetry"
+      ],
+      "depends_on": [],
+      "parameters": {},
+      "solver": "incident_count",
+      "cloud": true
+    },
+    {
+      "id": "cause",
+      "instruction": "Return one cause string: dns, certificate, firewall, or application. Use the diagnostic PROBE record.",
+      "check": "incident_cause",
+      "evidence": [
+        "probe"
+      ],
+      "depends_on": [
+        "error_count"
+      ],
+      "parameters": {},
+      "solver": null,
+      "cloud": true
+    },
+    {
+      "id": "action",
+      "instruction": "Return the exact policy action string for the accepted cause.",
+      "check": "incident_action",
+      "evidence": [
+        "actions"
+      ],
+      "depends_on": [
+        "cause"
+      ],
+      "parameters": {},
+      "solver": "incident_action",
+      "cloud": true
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": "modulo",
+  "goal": "Return x modulo 3 using Python integer semantics.",
+  "artifacts": [
+    {
+      "id": "requirements",
+      "text": "{\"examples\": [[4, 1], [5, 2]]}",
+      "cloud": true
+    }
+  ],
+  "obligations": [
+    {
+      "id": "expression",
+      "instruction": "Return x modulo 3 using Python integer semantics. Return a string expression using x, integer constants, +, -, *, //, %, and parentheses. Calls and other syntax are forbidden.",
+      "check": "study_expression",
+      "evidence": [
+        "requirements"
+      ],
+      "parameters": {
+        "artifact": "requirements"
+      }
+    }
+  ]
+}

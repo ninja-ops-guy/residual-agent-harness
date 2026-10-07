@@ -1,0 +1,21 @@
+{
+  "kind": "assignment",
+  "obligation": "assignment",
+  "constraints": {
+    "domains": {
+      "a": [
+        1,
+        2
+      ],
+      "b": [
+        1
+      ]
+    },
+    "different": [
+      [
+        "a",
+        "b"
+      ]
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": "residual.study-suite.v1",
+  "name": "public-contract-stress-v1",
+  "evidence_level": "development_fixture",
+  "cases": [
+    {
+      "id": "affine-dev",
+      "family": "affine",
+      "split": "development",
+      "task": "affine-dev/task.json",
+      "grader": "affine-dev/grader.json"
+    },
+    {
+      "id": "quadratic",
+      "family": "polynomial",
+      "split": "evaluation",
+      "task": "quadratic/task.json",
+      "grader": "quadratic/grader.json"
+    },
+    {
+      "id": "floor",
+      "family": "integer-division",
+      "split": "evaluation",
+      "task": "floor/task.json",
+      "grader": "floor/grader.json"
+    },
+    {
+      "id": "modulo",
+      "family": "remainder",
+      "split": "evaluation",
+      "task": "modulo/task.json",
+      "grader": "modulo/grader.json"
+    },
+    {
+      "id": "joint-choice",
+      "family": "joint-search",
+      "split": "evaluation",
+      "task": "joint-choice/task.json",
+      "grader": "joint-choice/grader.json"
+    },
+    {
+      "id": "weak-composition",
+      "family": "incomplete-contract",
+      "split": "evaluation",
+      "task": "weak-composition/task.json",
+      "grader": "weak-composition/grader.json"
+    },
+    {
+      "id": "frozen-dead-end",
+      "family": "backtracking",
+      "split": "evaluation",
+      "task": "frozen-dead-end/task.json",
+      "grader": "frozen-dead-end/grader.json"
+    }
+  ]
+}

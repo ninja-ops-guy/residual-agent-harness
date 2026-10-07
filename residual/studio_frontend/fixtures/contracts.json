@@ -1,0 +1,62 @@
+[
+  {
+    "task_id": "task-req-1",
+    "inputs": ["src/service/app.py", "src/service/middleware/"],
+    "allowed_outputs": ["src/service/middleware/ratelimit.py", "tests/test_ratelimit.py"],
+    "requirements": ["REQ-1"],
+    "acceptance": ["429 after budget exhaustion", "Retry-After header present"],
+    "dependencies": [],
+    "forbidden": ["src/service/auth/", "deploy/"],
+    "engine_hint": "qwen2.5:7b",
+    "token_budget": 40000,
+    "wall_clock_budget_s": 900.0
+  },
+  {
+    "task_id": "task-req-2",
+    "inputs": ["docs/audit.md"],
+    "allowed_outputs": ["schemas/audit.v1.json", "src/service/audit.py"],
+    "requirements": ["REQ-2"],
+    "acceptance": ["schema validates against audit.v1.json", "events hash-chained"],
+    "dependencies": [],
+    "forbidden": ["src/service/middleware/"],
+    "engine_hint": null,
+    "token_budget": 60000,
+    "wall_clock_budget_s": 1200.0
+  },
+  {
+    "task_id": "task-req-3",
+    "inputs": ["src/service/middleware/ratelimit.py"],
+    "allowed_outputs": ["tests/test_ratelimit_boundary.py"],
+    "requirements": ["REQ-3"],
+    "acceptance": ["tests green in CI", "no shared state between cases"],
+    "dependencies": ["task-req-1"],
+    "forbidden": ["src/"],
+    "engine_hint": "qwen2.5:7b",
+    "token_budget": 20000,
+    "wall_clock_budget_s": 600.0
+  },
+  {
+    "task_id": "task-req-4",
+    "inputs": ["src/service/app.py"],
+    "allowed_outputs": ["src/service/health.py"],
+    "requirements": ["REQ-4"],
+    "acceptance": ["responds < 50ms", "includes version"],
+    "dependencies": [],
+    "forbidden": ["deploy/"],
+    "engine_hint": null,
+    "token_budget": 15000,
+    "wall_clock_budget_s": 300.0
+  },
+  {
+    "task_id": "task-req-5",
+    "inputs": ["src/service/audit.py", "schemas/audit.v1.json"],
+    "allowed_outputs": ["src/service/audit_api.py", "tests/test_audit_api.py"],
+    "requirements": ["REQ-5"],
+    "acceptance": ["pagination stable", "rejects malformed ranges"],
+    "dependencies": ["task-req-2"],
+    "forbidden": ["src/service/auth/"],
+    "engine_hint": "qwen2.5:7b",
+    "token_budget": 45000,
+    "wall_clock_budget_s": 900.0
+  }
+]

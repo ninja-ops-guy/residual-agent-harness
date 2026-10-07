@@ -1,0 +1,1 @@
+{"application":"Restart the failed application service and verify health.","certificate":"Renew the service certificate and retest TLS validation.","dns":"Restore the approved DNS configuration and retest name resolution.","firewall":"Restore the approved firewall rule and retest the connection."}

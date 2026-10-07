@@ -1,0 +1,24 @@
+{
+  "id": "joint-choice",
+  "goal": "Choose distinct values for a and b satisfying all domains.",
+  "artifacts": [
+    {
+      "id": "requirements",
+      "text": "{\"domains\": {\"a\": [1, 2], \"b\": [1]}, \"different\": [[\"a\", \"b\"]]}",
+      "cloud": true
+    }
+  ],
+  "obligations": [
+    {
+      "id": "assignment",
+      "instruction": "Return one object containing a and b satisfying every constraint.",
+      "check": "study_assignment",
+      "evidence": [
+        "requirements"
+      ],
+      "parameters": {
+        "artifact": "requirements"
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "version": "0.4.0",
+  "installed_wheel": true,
+  "static_resources": true,
+  "integrated_tasks": 3,
+  "receipt_graph_verified": true,
+  "release_exported": true,
+  "extension_diagnostics": [],
+  "modules": {
+    "secops": "1.0.0",
+    "station": "1.0.0",
+    "dashboard": "1.0.0",
+    "trajectory": "1.0.0",
+    "memory": "1.0.0"
+  },
+  "real_model_calls": 0
+}

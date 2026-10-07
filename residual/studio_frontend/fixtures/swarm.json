@@ -1,0 +1,59 @@
+{
+  "run_id": "run-2026-09-14-0900",
+  "mode": "factory",
+  "state": "completed",
+  "swarms": [
+    {
+      "id": "swarm-alpha",
+      "state": "completed",
+      "workers": [
+        {"id": "alpha-w1", "task_id": "task-req-1", "state": "accepted", "node_id": "node-local-01"},
+        {"id": "alpha-w2", "task_id": "task-req-2", "state": "accepted", "node_id": "node-local-02"}
+      ],
+      "ready_tasks": [],
+      "blocked_tasks": []
+    },
+    {
+      "id": "swarm-beta",
+      "state": "completed",
+      "workers": [
+        {"id": "beta-w1", "task_id": "task-req-4", "state": "accepted", "node_id": "node-local-01"},
+        {"id": "beta-w2", "task_id": "task-req-5", "state": "accepted", "node_id": "node-local-02"}
+      ],
+      "ready_tasks": [],
+      "blocked_tasks": []
+    }
+  ],
+  "metrics": {
+    "effective_speedup": 2.0,
+    "serial_estimate_minutes": 96,
+    "actual_elapsed_minutes": 48,
+    "coordination_overhead_minutes": 6.5,
+    "overhead_methodology": "studio-metrics/1",
+    "rework_rate": 0.2,
+    "verifier_rejection_rate": 0.167,
+    "verification_attempts": 6,
+    "verifier_rejections": 1
+  },
+  "critical_path": ["REQ-2", "REQ-5"],
+  "nodes": [
+    {
+      "node_id": "node-local-01",
+      "engines": ["qwen2.5:7b"],
+      "accelerators": ["gpu-0"],
+      "memory_gb": 32,
+      "queue_depth": 0,
+      "health": "ok",
+      "assignment": "idle"
+    },
+    {
+      "node_id": "node-local-02",
+      "engines": ["qwen2.5:7b"],
+      "accelerators": [],
+      "memory_gb": 16,
+      "queue_depth": 0,
+      "health": "ok",
+      "assignment": "idle"
+    }
+  ]
+}

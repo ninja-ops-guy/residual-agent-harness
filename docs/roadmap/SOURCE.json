@@ -1,0 +1,16 @@
+{
+  "source_archive": "CFNetworkDownload_w5N7Q5.zip",
+  "archive_sha256": "207f237bfdbd42e03a4a5d616189d7745fabbdd3555a2aa6206f1c41973c8d6b",
+  "documents": {
+    "DESIGN.md": "37f97004a68c7219eb86fa3dc1d8f5ab45d53738a066f31df2d37455446d77af",
+    "GAP_ANALYSIS.md": "3a135669e70be7bf6d461db03fc006e3a7aeef01a761aecd49d023f732643a8c",
+    "MESH_SPECS.md": "6bacbe3479f76dba1b366ff2398332505f1f5f1ee5b71d19df21ef46f2439d26",
+    "NETOPS_SECOPS_SPECS.md": "89f95c5e5a39f1b0ede80edd37b21316377a2d39c1a5794b4a691a4a8a58380a",
+    "RESILIENCE_SPECS.md": "19309abecedc160512cf07c602ecc32e183de600b89f36bcbf6ac2f79b3a20f1",
+    "SPECS.md": "92b2933356a67edd3f0d9a96ccb108ca50ec15844e617417abfaacb3a1c34d91",
+    "WORLD_CLASS_SPECS.md": "21ab7a80ce4c8fc401f54fadd14fe1cb6b945906c7d77a42d0612961cc942d37"
+  },
+  "tested_source_commit": "3d80e3ff7ad4ec9c2c406f33824259a6ce27ca49",
+  "github_baseline_commit": "ff563f4c8fdd59b3f604a215b1d0c2b66f393f92",
+  "baseline_tree": "b5d15fa6cf738c2ecfb2e2843ecc3287a8b79b19"
+}

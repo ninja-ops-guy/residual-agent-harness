@@ -1,0 +1,14 @@
+{
+  "kind": "expression",
+  "obligation": "expression",
+  "examples": [
+    [
+      -3,
+      9
+    ],
+    [
+      7,
+      49
+    ]
+  ]
+}

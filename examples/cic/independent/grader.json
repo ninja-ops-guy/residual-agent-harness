@@ -1,0 +1,14 @@
+{
+  "kind": "assignment",
+  "obligation": null,
+  "constraints": {
+    "domains": {
+      "a": [
+        1
+      ],
+      "b": [
+        2
+      ]
+    }
+  }
+}

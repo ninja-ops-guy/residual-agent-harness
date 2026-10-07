@@ -1,0 +1,30 @@
+{
+  "kind": "assignment",
+  "obligation": null,
+  "constraints": {
+    "domains": {
+      "a": [
+        0,
+        1
+      ],
+      "b": [
+        0,
+        1
+      ],
+      "c": [
+        0,
+        1
+      ]
+    },
+    "sums": [
+      {
+        "keys": [
+          "a",
+          "b",
+          "c"
+        ],
+        "equals": 2
+      }
+    ]
+  }
+}
