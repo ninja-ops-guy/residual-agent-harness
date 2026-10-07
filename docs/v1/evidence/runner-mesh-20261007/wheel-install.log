@@ -1,0 +1,23 @@
+Processing ./dist/residual_agent_harness-0.5.0-py3-none-any.whl (from residual-agent-harness==0.5.0)
+Collecting defusedxml<1,>=0.7.1 (from residual-agent-harness==0.5.0->residual-agent-harness==0.5.0)
+  Downloading defusedxml-0.7.1-py2.py3-none-any.whl.metadata (32 kB)
+Collecting cryptography>=43 (from residual-agent-harness==0.5.0->residual-agent-harness==0.5.0)
+  Downloading cryptography-50.0.2-cp311-abi3-manylinux_2_34_x86_64.whl.metadata (4.4 kB)
+Collecting PyYAML>=6 (from residual-agent-harness==0.5.0->residual-agent-harness==0.5.0)
+  Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+Collecting cffi>=2.0.0 (from cryptography>=43->residual-agent-harness==0.5.0->residual-agent-harness==0.5.0)
+  Downloading cffi-2.1.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.5 kB)
+Collecting pycparser (from cffi>=2.0.0->cryptography>=43->residual-agent-harness==0.5.0->residual-agent-harness==0.5.0)
+  Downloading pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
+Downloading cryptography-50.0.2-cp311-abi3-manylinux_2_34_x86_64.whl (4.8 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.8/4.8 MB 7.4 MB/s eta 0:00:00
+Downloading defusedxml-0.7.1-py2.py3-none-any.whl (25 kB)
+Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (807 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 807.9/807.9 kB 4.6 MB/s eta 0:00:00
+Downloading cffi-2.1.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (221 kB)
+Downloading pycparser-3.0-py3-none-any.whl (48 kB)
+Installing collected packages: PyYAML, pycparser, defusedxml, residual-agent-harness, cffi, cryptography
+Successfully installed PyYAML-6.0.3 cffi-2.1.1 cryptography-50.0.2 defusedxml-0.7.1 pycparser-3.0 residual-agent-harness-0.5.0
+
+[notice] A new release of pip is available: 25.0.1 -> 26.2.1
+[notice] To update, run: /tmp/mission-wheel-_rlqr72u/venv/bin/python -m pip install --upgrade pip

@@ -1,0 +1,13 @@
+Processing /workspace/scratch/acd40d19a85d/residual
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: residual-agent-harness
+  Building wheel for residual-agent-harness (pyproject.toml): started
+  Building wheel for residual-agent-harness (pyproject.toml): finished with status 'done'
+  Created wheel for residual-agent-harness: filename=residual_agent_harness-0.5.0-py3-none-any.whl size=764790 sha256=052be4cbebec8b8c6af81aef6bf19b6c82af57ac02d8c57b0bba366b61bde312
+  Stored in directory: /tmp/pip-ephem-wheel-cache-g58177uy/wheels/96/f2/54/fbdcedfcf8eab68adcee74f886d6e4b79d0825e484e89f1923
+Successfully built residual-agent-harness

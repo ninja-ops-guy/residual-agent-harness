@@ -1,0 +1,9 @@
+usage: residual-mission-sync [-h] {sync,context,report}
+
+RESIDUAL scoped mission-sync client
+
+positional arguments:
+  {sync,context,report}
+
+options:
+  -h, --help            show this help message and exit

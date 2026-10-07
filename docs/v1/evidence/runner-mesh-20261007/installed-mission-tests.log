@@ -1,0 +1,10 @@
+test_both_clients_follow_real_station_but_cannot_accept (__main__.ComposedMissionAuthority.test_both_clients_follow_real_station_but_cannot_accept) ... ok
+test_existing_routes_and_mission_assets_are_served (__main__.ComposedMissionAuthority.test_existing_routes_and_mission_assets_are_served) ... ok
+test_message_sharing_requires_both_bindings_to_consent (__main__.ComposedMissionAuthority.test_message_sharing_requires_both_bindings_to_consent) ... ok
+test_retry_invalidates_previous_attempt_binding (__main__.ComposedMissionAuthority.test_retry_invalidates_previous_attempt_binding) ... ok
+test_scoped_capability_cannot_cross_operator_or_worker_boundary (__main__.ComposedMissionAuthority.test_scoped_capability_cannot_cross_operator_or_worker_boundary) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 3.684s
+
+OK

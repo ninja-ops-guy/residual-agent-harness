@@ -1,0 +1,12 @@
+usage: residual-station [-h] [--host HOST] [--port PORT] [--data DATA]
+                        [--open] [--start-ollama]
+
+RESIDUAL Command Station
+
+options:
+  -h, --help      show this help message and exit
+  --host HOST
+  --port PORT
+  --data DATA
+  --open
+  --start-ollama
