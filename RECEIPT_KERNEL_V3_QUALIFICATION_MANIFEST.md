@@ -13,7 +13,7 @@
 ```
 5e417c7648b173369bcf2e008d630bd21b3006e6cd1acaa4a89aa28717a06c16  residual/receipts.py
 9b6d9e781a7871d675a88918a92b1b59edb793c693ec9ab3477b4e74c1e6aba2  residual/station/extensions.py
-754042e062533806f4791f76eb1fa74fee5b2cec0764cecf7a0e65544315826e  tests/station/test_station.py
+46fe6c5fc175e491ff51c3084fd3127af54e0a95a9774f1c6b1500c41c4e40ee  tests/station/test_station.py
 ```
 
 ## Implementation receipt
@@ -25,25 +25,25 @@
 ## Full tree digest
 
 ```
-d1d0b5fdf4566a1b7c9f9ae478ad1f00afb7caa7d7a901e67df0d2517552d6c0
+5c63bb1489cf8adfde3ac0389463213022759580
 ```
 
-**File count:** 962
+**File count:** 963
 
 ## Exact parent HEAD/commit built against
 
 - **Base tree:** #476 (05e01731208957e85cf72cf02a925b0660fca144)
 - **Incorporated:** #509 (fa06cc13d61be4978e8dac5e5b123e1e7c171fa0) integrations/openclaw-control surface
 - **Provisional integration target digest:** `3d83316c04efe903c57e60deae20f46b31ba6d2dcc92d33e82a087cc8c1f220e` (per PROVISIONAL_NOT_COMPOSITION.md)
-- **Current tree digest after V3 changes:** `d1d0b5fdf4566a1b7c9f9ae478ad1f00afb7caa7d7a901e67df0d2517552d6c0`
+- **Current tree digest after V3 changes + test repair + defect locator:** `5c63bb1489cf8adfde3ac0389463213022759580`
 
 ## Test evidence
 
 ```
-34 passed, 1 failed, 1 warning in 15.89s
+36 passed, 0 failed, 1 warning in 15.94s
 ```
 
-Single failure: `test_failure_path_preserves_evidence_references` — pre-existing, verified present before V3 changes.
+All tests pass. `test_failure_path_preserves_evidence_references` repaired by ORPHEUS test-only proposal (blob 97f9978a, applied with exact hash verification). New control: `test_mismatched_response_hash_rejected_before_evidence_recording`.
 
 ## Non-claims
 
