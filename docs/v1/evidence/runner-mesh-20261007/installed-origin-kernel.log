@@ -1,0 +1,2 @@
+{"installed_origin": "/tmp/mission-wheel-_rlqr72u/venv/lib/python3.12/site-packages", "matched_files": 360, "entrypoints": {"residual": "residual.cli:main", "residual-mission-sync": "residual.station.mission_client:main", "residual-module": "residual.marketplace.cli:main", "residual-station": "residual.station.mission_server:main", "residual-worker": "residual.station.worker:main"}}
+{"kernel_revision": "0f372759da7286c6703d0e246483a3fa84bef7ad459152a7342ef863a4ec88d8", "missing_input_rejected": true}

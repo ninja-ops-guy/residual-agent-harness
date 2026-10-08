@@ -1,0 +1,1125 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> @residual/openclaw-control@0.2.1 test
+> node --test --test-reporter=tap test/control.test.mjs test/plugin.test.mjs test/station-worker.test.mjs test/lifecycle-contract.test.mjs test/qualification-contract.test.mjs
+
+TAP version 13
+# Subtest: canonical encoding is stable; invalid numbers and values are rejected
+ok 1 - canonical encoding is stable; invalid numbers and values are rejected
+  ---
+  duration_ms: 9.533924
+  type: 'test'
+  ...
+# Subtest: valid signed work completes without becoming accepted or qualified
+ok 2 - valid signed work completes without becoming accepted or qualified
+  ---
+  duration_ms: 26.53038
+  type: 'test'
+  ...
+# Subtest: authorization rejects wrong runtime before host invocation
+ok 3 - authorization rejects wrong runtime before host invocation
+  ---
+  duration_ms: 4.182909
+  type: 'test'
+  ...
+# Subtest: authorization rejects old instance before host invocation
+ok 4 - authorization rejects old instance before host invocation
+  ---
+  duration_ms: 3.406592
+  type: 'test'
+  ...
+# Subtest: authorization rejects wrong configuration before host invocation
+ok 5 - authorization rejects wrong configuration before host invocation
+  ---
+  duration_ms: 3.31039
+  type: 'test'
+  ...
+# Subtest: authorization rejects wrong protocol before host invocation
+ok 6 - authorization rejects wrong protocol before host invocation
+  ---
+  duration_ms: 5.57175
+  type: 'test'
+  ...
+# Subtest: authorization rejects expired before host invocation
+ok 7 - authorization rejects expired before host invocation
+  ---
+  duration_ms: 2.825194
+  type: 'test'
+  ...
+# Subtest: authorization rejects future before host invocation
+ok 8 - authorization rejects future before host invocation
+  ---
+  duration_ms: 2.787849
+  type: 'test'
+  ...
+# Subtest: authorization rejects excessive lifetime before host invocation
+ok 9 - authorization rejects excessive lifetime before host invocation
+  ---
+  duration_ms: 2.731275
+  type: 'test'
+  ...
+# Subtest: authorization rejects extra authority field before host invocation
+ok 10 - authorization rejects extra authority field before host invocation
+  ---
+  duration_ms: 3.28349
+  type: 'test'
+  ...
+# Subtest: authorization rejects unsafe identifier before host invocation
+ok 11 - authorization rejects unsafe identifier before host invocation
+  ---
+  duration_ms: 2.803902
+  type: 'test'
+  ...
+# Subtest: untrusted signer and signed-body tampering are rejected
+ok 12 - untrusted signer and signed-body tampering are rejected
+  ---
+  duration_ms: 3.406972
+  type: 'test'
+  ...
+# Subtest: signed duplicate JSON keys are rejected rather than ambiguously interpreted
+ok 13 - signed duplicate JSON keys are rejected rather than ambiguously interpreted
+  ---
+  duration_ms: 2.5048
+  type: 'test'
+  ...
+# Subtest: duplicate concurrent signed commands execute once; conflicting IDs fail
+ok 14 - duplicate concurrent signed commands execute once; conflicting IDs fail
+  ---
+  duration_ms: 7.851148
+  type: 'test'
+  ...
+# Subtest: no lease and expired lease both deny new work
+ok 15 - no lease and expired lease both deny new work
+  ---
+  duration_ms: 5.189627
+  type: 'test'
+  ...
+# Subtest: clock rollback fences new work even when wall-clock lease looks current
+ok 16 - clock rollback fences new work even when wall-clock lease looks current
+  ---
+  duration_ms: 3.52639
+  type: 'test'
+  ...
+# Subtest: detected wall-clock rollback fences a pending result before completion
+ok 17 - detected wall-clock rollback fences a pending result before completion
+  ---
+  duration_ms: 6.12613
+  type: 'test'
+  ...
+# Subtest: monotonic budget expiry fences a result even when wall clock remains inside deadline
+ok 18 - monotonic budget expiry fences a result even when wall clock remains inside deadline
+  ---
+  duration_ms: 6.249582
+  type: 'test'
+  ...
+# Subtest: dispatch.submit rejects rollback at journal event clock sample
+ok 19 - dispatch.submit rejects rollback at journal event clock sample
+  ---
+  duration_ms: 10.282379
+  type: 'test'
+  ...
+# Subtest: dispatch.submit rejects rollback at final admission clock sample
+ok 20 - dispatch.submit rejects rollback at final admission clock sample
+  ---
+  duration_ms: 7.954431
+  type: 'test'
+  ...
+# Subtest: dispatch.submit rejects wall deadline expiry at journal event clock sample
+ok 21 - dispatch.submit rejects wall deadline expiry at journal event clock sample
+  ---
+  duration_ms: 8.493447
+  type: 'test'
+  ...
+# Subtest: dispatch.submit rejects wall deadline expiry at final admission clock sample
+ok 22 - dispatch.submit rejects wall deadline expiry at final admission clock sample
+  ---
+  duration_ms: 8.247543
+  type: 'test'
+  ...
+# Subtest: dispatch.submit rejects monotonic deadline expiry at journal event clock sample
+ok 23 - dispatch.submit rejects monotonic deadline expiry at journal event clock sample
+  ---
+  duration_ms: 7.89973
+  type: 'test'
+  ...
+# Subtest: dispatch.submit rejects monotonic deadline expiry at final admission clock sample
+ok 24 - dispatch.submit rejects monotonic deadline expiry at final admission clock sample
+  ---
+  duration_ms: 9.101295
+  type: 'test'
+  ...
+# Subtest: provider.probe rejects rollback at journal event clock sample
+ok 25 - provider.probe rejects rollback at journal event clock sample
+  ---
+  duration_ms: 7.819371
+  type: 'test'
+  ...
+# Subtest: provider.probe rejects rollback at final admission clock sample
+ok 26 - provider.probe rejects rollback at final admission clock sample
+  ---
+  duration_ms: 7.092417
+  type: 'test'
+  ...
+# Subtest: provider.probe rejects wall deadline expiry at journal event clock sample
+ok 27 - provider.probe rejects wall deadline expiry at journal event clock sample
+  ---
+  duration_ms: 8.130381
+  type: 'test'
+  ...
+# Subtest: provider.probe rejects wall deadline expiry at final admission clock sample
+ok 28 - provider.probe rejects wall deadline expiry at final admission clock sample
+  ---
+  duration_ms: 7.242349
+  type: 'test'
+  ...
+# Subtest: provider.probe rejects monotonic deadline expiry at journal event clock sample
+ok 29 - provider.probe rejects monotonic deadline expiry at journal event clock sample
+  ---
+  duration_ms: 8.606463
+  type: 'test'
+  ...
+# Subtest: provider.probe rejects monotonic deadline expiry at final admission clock sample
+ok 30 - provider.probe rejects monotonic deadline expiry at final admission clock sample
+  ---
+  duration_ms: 7.004477
+  type: 'test'
+  ...
+# Subtest: dispatch.submit still completes at the exact final admission deadline
+ok 31 - dispatch.submit still completes at the exact final admission deadline
+  ---
+  duration_ms: 5.42909
+  type: 'test'
+  ...
+# Subtest: provider.probe still completes at the exact final admission deadline
+ok 32 - provider.probe still completes at the exact final admission deadline
+  ---
+  duration_ms: 4.92088
+  type: 'test'
+  ...
+# Subtest: unknown version and default observe-only cannot authorize mutation
+ok 33 - unknown version and default observe-only cannot authorize mutation
+  ---
+  duration_ms: 3.60823
+  type: 'test'
+  ...
+# Subtest: provider endpoint drift blocks dispatch and does not leak embedded credentials
+ok 34 - provider endpoint drift blocks dispatch and does not leak embedded credentials
+  ---
+  duration_ms: 4.644441
+  type: 'test'
+  ...
+# Subtest: credential values are outside config projection, with coverage explicitly false
+ok 35 - credential values are outside config projection, with coverage explicitly false
+  ---
+  duration_ms: 2.009518
+  type: 'test'
+  ...
+# Subtest: configured fallback route cannot silently broaden the candidate profile
+ok 36 - configured fallback route cannot silently broaden the candidate profile
+  ---
+  duration_ms: 4.484785
+  type: 'test'
+  ...
+# Subtest: native cancellation, restart, shell and acceptance are unsupported, not simulated successes
+ok 37 - native cancellation, restart, shell and acceptance are unsupported, not simulated successes
+  ---
+  duration_ms: 4.540728
+  type: 'test'
+  ...
+# Subtest: native gate blocks unsigned entry, prompt substitution, repeated admission and missing identity
+ok 38 - native gate blocks unsigned entry, prompt substitution, repeated admission and missing identity
+  ---
+  duration_ms: 5.464502
+  type: 'test'
+  ...
+# Subtest: all managed tools are blocked; identified unmanaged agent is untouched
+ok 39 - all managed tools are blocked; identified unmanaged agent is untouched
+  ---
+  duration_ms: 2.323272
+  type: 'test'
+  ...
+# Subtest: native completion without admission evidence remains indeterminate
+ok 40 - native completion without admission evidence remains indeterminate
+  ---
+  duration_ms: 6.116165
+  type: 'test'
+  ...
+# Subtest: provider probe checks nonce response and actual route through native admission without issuing QUALIFIED
+ok 41 - provider probe checks nonce response and actual route through native admission without issuing QUALIFIED
+  ---
+  duration_ms: 5.586282
+  type: 'test'
+  ...
+# Subtest: provider route substitution fails the observation
+ok 42 - provider route substitution fails the observation
+  ---
+  duration_ms: 5.167713
+  type: 'test'
+  ...
+# Subtest: ambiguous provider failure is durable and never automatically replayed
+ok 43 - ambiguous provider failure is durable and never automatically replayed
+  ---
+  duration_ms: 6.409869
+  type: 'test'
+  ...
+# Subtest: revoke rejects late result but does not falsely claim native stop
+ok 44 - revoke rejects late result but does not falsely claim native stop
+  ---
+  duration_ms: 6.050728
+  type: 'test'
+  ...
+# Subtest: a replacement process fences the old instance and preserves unknown outcome
+ok 45 - a replacement process fences the old instance and preserves unknown outcome
+  ---
+  duration_ms: 6.541964
+  type: 'test'
+  ...
+# Subtest: real child-process exit after committed intent is recovered as indeterminate
+ok 46 - real child-process exit after committed intent is recovered as indeterminate
+  ---
+  duration_ms: 78.669707
+  type: 'test'
+  ...
+# Subtest: event chain is byte-verified and tampering/gaps fail
+ok 47 - event chain is byte-verified and tampering/gaps fail
+  ---
+  duration_ms: 3.61506
+  type: 'test'
+  ...
+# Subtest: durable event corruption prevents startup
+ok 48 - durable event corruption prevents startup
+  ---
+  duration_ms: 3.83157
+  type: 'test'
+  ...
+# Subtest: durable tail truncation prevents startup
+ok 49 - durable tail truncation prevents startup
+  ---
+  duration_ms: 4.300458
+  type: 'test'
+  ...
+# Subtest: durable operation corruption prevents startup
+ok 50 - durable operation corruption prevents startup
+  ---
+  duration_ms: 2.684916
+  type: 'test'
+  ...
+# Subtest: evidence storage saturation fails atomically before native I/O
+ok 51 - evidence storage saturation fails atomically before native I/O
+  ---
+  duration_ms: 8.846158
+  type: 'test'
+  ...
+# Subtest: prompt and native error strings never enter ordinary evidence
+ok 52 - prompt and native error strings never enter ordinary evidence
+  ---
+  duration_ms: 4.089721
+  type: 'test'
+  ...
+# Subtest: unsafe state permissions reject startup on POSIX
+ok 53 - unsafe state permissions reject startup on POSIX
+  ---
+  duration_ms: 0.478567
+  type: 'test'
+  ...
+# Subtest: cancel plan exposes no token and fixes exact target twice
+ok 54 - cancel plan exposes no token and fixes exact target twice
+  ---
+  duration_ms: 6.53894
+  type: 'test'
+  ...
+# Subtest: cancel ACK, revocation and absence remain unverified control observations
+ok 55 - cancel ACK, revocation and absence remain unverified control observations
+  ---
+  duration_ms: 1.221324
+  type: 'test'
+  ...
+# Subtest: cancel never verifies revoke-only evidence
+ok 56 - cancel never verifies revoke-only evidence
+  ---
+  duration_ms: 0.621338
+  type: 'test'
+  ...
+# Subtest: restart plan is safe-only and carries no credential argument
+ok 57 - restart plan is safe-only and carries no credential argument
+  ---
+  duration_ms: 0.484075
+  type: 'test'
+  ...
+# Subtest: restart instance change, continuity and authority reset remain unverified observations
+ok 58 - restart instance change, continuity and authority reset remain unverified observations
+  ---
+  duration_ms: 0.485016
+  type: 'test'
+  ...
+# Subtest: restart rejects the same plugin instance or missing runtime.started
+ok 59 - restart rejects the same plugin instance or missing runtime.started
+  ---
+  duration_ms: 1.107596
+  type: 'test'
+  ...
+# Subtest: cancel rejects missing/null input
+ok 60 - cancel rejects missing/null input
+  ---
+  duration_ms: 0.177522
+  type: 'test'
+  ...
+# Subtest: cancel rejects missing plan
+ok 61 - cancel rejects missing plan
+  ---
+  duration_ms: 0.241036
+  type: 'test'
+  ...
+# Subtest: cancel rejects missing beforeStatus
+ok 62 - cancel rejects missing beforeStatus
+  ---
+  duration_ms: 0.14898
+  type: 'test'
+  ...
+# Subtest: cancel rejects missing beforeIdentity
+ok 63 - cancel rejects missing beforeIdentity
+  ---
+  duration_ms: 0.294766
+  type: 'test'
+  ...
+# Subtest: cancel rejects missing afterIdentity
+ok 64 - cancel rejects missing afterIdentity
+  ---
+  duration_ms: 0.165455
+  type: 'test'
+  ...
+# Subtest: cancel rejects missing firstAbort
+ok 65 - cancel rejects missing firstAbort
+  ---
+  duration_ms: 0.389605
+  type: 'test'
+  ...
+# Subtest: cancel rejects missing firstCli
+ok 66 - cancel rejects missing firstCli
+  ---
+  duration_ms: 0.186115
+  type: 'test'
+  ...
+# Subtest: cancel rejects missing revokedStatus
+ok 67 - cancel rejects missing revokedStatus
+  ---
+  duration_ms: 0.140318
+  type: 'test'
+  ...
+# Subtest: cancel rejects missing secondAbort
+ok 68 - cancel rejects missing secondAbort
+  ---
+  duration_ms: 0.327344
+  type: 'test'
+  ...
+# Subtest: cancel rejects missing secondCli
+ok 69 - cancel rejects missing secondCli
+  ---
+  duration_ms: 0.145835
+  type: 'test'
+  ...
+# Subtest: cancel rejects unsupported self-asserted proof null
+ok 70 - cancel rejects unsupported self-asserted proof null
+  ---
+  duration_ms: 0.725401
+  type: 'test'
+  ...
+# Subtest: cancel rejects unsupported self-asserted proof true
+ok 71 - cancel rejects unsupported self-asserted proof true
+  ---
+  duration_ms: 0.157723
+  type: 'test'
+  ...
+# Subtest: cancel rejects unsupported self-asserted proof {"verified":true}
+ok 72 - cancel rejects unsupported self-asserted proof {"verified":true}
+  ---
+  duration_ms: 0.164643
+  type: 'test'
+  ...
+# Subtest: cancel rejects unsupported self-asserted proof {"trusted":true,"sha256":"000000000000000000000000000000000000000000000000000000000000000a"}
+ok 73 - cancel rejects unsupported self-asserted proof {"trusted":true,"sha256":"000000000000000000000000000000000000000000000000000000000000000a"}
+  ---
+  duration_ms: 0.141199
+  type: 'test'
+  ...
+# Subtest: cancel rejects unsupported self-asserted proof {"run_id":"foreign","operation_id":"op1","cessation":true}
+ok 74 - cancel rejects unsupported self-asserted proof {"run_id":"foreign","operation_id":"op1","cessation":true}
+  ---
+  duration_ms: 0.261216
+  type: 'test'
+  ...
+# Subtest: cancel rejects unsupported self-asserted proof {"runtime_id":"r1","instance_id":"old","observed_at_ms":0,"verified":true}
+ok 75 - cancel rejects unsupported self-asserted proof {"runtime_id":"r1","instance_id":"old","observed_at_ms":0,"verified":true}
+  ---
+  duration_ms: 0.614919
+  type: 'test'
+  ...
+# Subtest: cancel rejects unsupported self-asserted proof {"pid":123,"start_ticks":"100","boot_id":"boot-fixture","supervisor_id":"self-reported","replaced":true}
+ok 76 - cancel rejects unsupported self-asserted proof {"pid":123,"start_ticks":"100","boot_id":"boot-fixture","supervisor_id":"self-reported","replaced":true}
+  ---
+  duration_ms: 0.339391
+  type: 'test'
+  ...
+# Subtest: cancel rejects caller verified flag
+ok 77 - cancel rejects caller verified flag
+  ---
+  duration_ms: 0.236689
+  type: 'test'
+  ...
+# Subtest: cancel rejects caller physical_outcome_verified flag
+ok 78 - cancel rejects caller physical_outcome_verified flag
+  ---
+  duration_ms: 0.234917
+  type: 'test'
+  ...
+# Subtest: cancel rejects caller trusted flag
+ok 79 - cancel rejects caller trusted flag
+  ---
+  duration_ms: 1.092754
+  type: 'test'
+  ...
+# Subtest: cancel rejects caller supervisorVerified flag
+ok 80 - cancel rejects caller supervisorVerified flag
+  ---
+  duration_ms: 3.832762
+  type: 'test'
+  ...
+# Subtest: cancel rejects changed host_version
+ok 81 - cancel rejects changed host_version
+  ---
+  duration_ms: 0.216339
+  type: 'test'
+  ...
+# Subtest: cancel rejects changed config_digest
+ok 82 - cancel rejects changed config_digest
+  ---
+  duration_ms: 0.091225
+  type: 'test'
+  ...
+# Subtest: cancel rejects changed plugin_source_sha256
+ok 83 - cancel rejects changed plugin_source_sha256
+  ---
+  duration_ms: 0.161669
+  type: 'test'
+  ...
+# Subtest: cancel rejects stale evidence head
+ok 84 - cancel rejects stale evidence head
+  ---
+  duration_ms: 0.20295
+  type: 'test'
+  ...
+# Subtest: cancel rejects conflicting evidence at same sequence
+ok 85 - cancel rejects conflicting evidence at same sequence
+  ---
+  duration_ms: 0.232113
+  type: 'test'
+  ...
+# Subtest: restart rejects missing/null input
+ok 86 - restart rejects missing/null input
+  ---
+  duration_ms: 0.140347
+  type: 'test'
+  ...
+# Subtest: restart rejects missing plan
+ok 87 - restart rejects missing plan
+  ---
+  duration_ms: 0.129331
+  type: 'test'
+  ...
+# Subtest: restart rejects missing beforeIdentity
+ok 88 - restart rejects missing beforeIdentity
+  ---
+  duration_ms: 0.103403
+  type: 'test'
+  ...
+# Subtest: restart rejects missing afterIdentity
+ok 89 - restart rejects missing afterIdentity
+  ---
+  duration_ms: 0.082282
+  type: 'test'
+  ...
+# Subtest: restart rejects missing cli
+ok 90 - restart rejects missing cli
+  ---
+  duration_ms: 0.298731
+  type: 'test'
+  ...
+# Subtest: restart rejects missing evidenceDelta
+ok 91 - restart rejects missing evidenceDelta
+  ---
+  duration_ms: 0.063023
+  type: 'test'
+  ...
+# Subtest: restart rejects unsupported self-asserted proof null
+ok 92 - restart rejects unsupported self-asserted proof null
+  ---
+  duration_ms: 0.239794
+  type: 'test'
+  ...
+# Subtest: restart rejects unsupported self-asserted proof true
+ok 93 - restart rejects unsupported self-asserted proof true
+  ---
+  duration_ms: 0.160628
+  type: 'test'
+  ...
+# Subtest: restart rejects unsupported self-asserted proof {"verified":true}
+ok 94 - restart rejects unsupported self-asserted proof {"verified":true}
+  ---
+  duration_ms: 0.14242
+  type: 'test'
+  ...
+# Subtest: restart rejects unsupported self-asserted proof {"trusted":true,"sha256":"000000000000000000000000000000000000000000000000000000000000000a"}
+ok 95 - restart rejects unsupported self-asserted proof {"trusted":true,"sha256":"000000000000000000000000000000000000000000000000000000000000000a"}
+  ---
+  duration_ms: 0.086578
+  type: 'test'
+  ...
+# Subtest: restart rejects unsupported self-asserted proof {"run_id":"foreign","operation_id":"op1","cessation":true}
+ok 96 - restart rejects unsupported self-asserted proof {"run_id":"foreign","operation_id":"op1","cessation":true}
+  ---
+  duration_ms: 0.080719
+  type: 'test'
+  ...
+# Subtest: restart rejects unsupported self-asserted proof {"runtime_id":"r1","instance_id":"old","observed_at_ms":0,"verified":true}
+ok 97 - restart rejects unsupported self-asserted proof {"runtime_id":"r1","instance_id":"old","observed_at_ms":0,"verified":true}
+  ---
+  duration_ms: 0.056163
+  type: 'test'
+  ...
+# Subtest: restart rejects unsupported self-asserted proof {"pid":123,"start_ticks":"100","boot_id":"boot-fixture","supervisor_id":"self-reported","replaced":true}
+ok 98 - restart rejects unsupported self-asserted proof {"pid":123,"start_ticks":"100","boot_id":"boot-fixture","supervisor_id":"self-reported","replaced":true}
+  ---
+  duration_ms: 0.0411
+  type: 'test'
+  ...
+# Subtest: restart rejects caller verified flag
+ok 99 - restart rejects caller verified flag
+  ---
+  duration_ms: 0.044346
+  type: 'test'
+  ...
+# Subtest: restart rejects caller physical_outcome_verified flag
+ok 100 - restart rejects caller physical_outcome_verified flag
+  ---
+  duration_ms: 0.041832
+  type: 'test'
+  ...
+# Subtest: restart rejects caller trusted flag
+ok 101 - restart rejects caller trusted flag
+  ---
+  duration_ms: 0.082972
+  type: 'test'
+  ...
+# Subtest: restart rejects caller supervisorVerified flag
+ok 102 - restart rejects caller supervisorVerified flag
+  ---
+  duration_ms: 0.050104
+  type: 'test'
+  ...
+# Subtest: restart rejects changed host_version
+ok 103 - restart rejects changed host_version
+  ---
+  duration_ms: 0.073158
+  type: 'test'
+  ...
+# Subtest: restart rejects changed config_digest
+ok 104 - restart rejects changed config_digest
+  ---
+  duration_ms: 0.071325
+  type: 'test'
+  ...
+# Subtest: restart rejects changed plugin_source_sha256
+ok 105 - restart rejects changed plugin_source_sha256
+  ---
+  duration_ms: 0.096522
+  type: 'test'
+  ...
+# Subtest: restart rejects stale evidence head
+ok 106 - restart rejects stale evidence head
+  ---
+  duration_ms: 0.12182
+  type: 'test'
+  ...
+# Subtest: restart rejects conflicting evidence at same sequence
+ok 107 - restart rejects conflicting evidence at same sequence
+  ---
+  duration_ms: 0.073539
+  type: 'test'
+  ...
+# Subtest: cancel rejects foreign run_id even with matching abort ACKs
+ok 108 - cancel rejects foreign run_id even with matching abort ACKs
+  ---
+  duration_ms: 0.224142
+  type: 'test'
+  ...
+# Subtest: cancel rejects foreign session_key even with matching abort ACKs
+ok 109 - cancel rejects foreign session_key even with matching abort ACKs
+  ---
+  duration_ms: 0.134949
+  type: 'test'
+  ...
+# Subtest: cancel rejects foreign operation_id even with matching abort ACKs
+ok 110 - cancel rejects foreign operation_id even with matching abort ACKs
+  ---
+  duration_ms: 0.172685
+  type: 'test'
+  ...
+# Subtest: cancel rejects altered plan digest
+ok 111 - cancel rejects altered plan digest
+  ---
+  duration_ms: 0.263639
+  type: 'test'
+  ...
+# Subtest: cancel rejects altered plan second abort target
+ok 112 - cancel rejects altered plan second abort target
+  ---
+  duration_ms: 0.16237
+  type: 'test'
+  ...
+# Subtest: cancel rejects altered plan revoke operation
+ok 113 - cancel rejects altered plan revoke operation
+  ---
+  duration_ms: 0.147357
+  type: 'test'
+  ...
+# Subtest: cancel rejects altered plan abort executor
+ok 114 - cancel rejects altered plan abort executor
+  ---
+  duration_ms: 1.111322
+  type: 'test'
+  ...
+# Subtest: cancel rejects altered plan abort verb
+ok 115 - cancel rejects altered plan abort verb
+  ---
+  duration_ms: 0.217722
+  type: 'test'
+  ...
+# Subtest: cancel rejects altered plan extra step
+ok 116 - cancel rejects altered plan extra step
+  ---
+  duration_ms: 0.317069
+  type: 'test'
+  ...
+# Subtest: cancel rejects altered plan gateway
+ok 117 - cancel rejects altered plan gateway
+  ---
+  duration_ms: 0.436655
+  type: 'test'
+  ...
+# Subtest: cancel rejects missing native target and non-running status
+ok 118 - cancel rejects missing native target and non-running status
+  ---
+  duration_ms: 0.444747
+  type: 'test'
+  ...
+# Subtest: cancel retained synthetic ACK/absence counterexample never proves cessation
+ok 119 - cancel retained synthetic ACK/absence counterexample never proves cessation
+  ---
+  duration_ms: 0.221126
+  type: 'test'
+  ...
+# Subtest: restart rejects stale plan config_digest
+ok 120 - restart rejects stale plan config_digest
+  ---
+  duration_ms: 0.199585
+  type: 'test'
+  ...
+# Subtest: restart rejects stale plan plugin_source_sha256
+ok 121 - restart rejects stale plan plugin_source_sha256
+  ---
+  duration_ms: 0.12854
+  type: 'test'
+  ...
+# Subtest: restart rejects stale plan runtime_id
+ok 122 - restart rejects stale plan runtime_id
+  ---
+  duration_ms: 0.139967
+  type: 'test'
+  ...
+# Subtest: restart rejects stale plan instance_id
+ok 123 - restart rejects stale plan instance_id
+  ---
+  duration_ms: 0.127328
+  type: 'test'
+  ...
+# Subtest: restart plan copies its evidence head rather than sharing mutable capture state
+ok 124 - restart plan copies its evidence head rather than sharing mutable capture state
+  ---
+  duration_ms: 0.227967
+  type: 'test'
+  ...
+# Subtest: restart rejects stale plan evidence hash
+ok 125 - restart rejects stale plan evidence hash
+  ---
+  duration_ms: 0.2031
+  type: 'test'
+  ...
+# Subtest: restart rejects altered command and unsupported plan fields
+ok 126 - restart rejects altered command and unsupported plan fields
+  ---
+  duration_ms: 0.421623
+  type: 'test'
+  ...
+# Subtest: restart rejects invalid/lower process time undefined
+ok 127 - restart rejects invalid/lower process time undefined
+  ---
+  duration_ms: 0.276078
+  type: 'test'
+  ...
+# Subtest: restart rejects invalid/lower process time null
+ok 128 - restart rejects invalid/lower process time null
+  ---
+  duration_ms: 0.177562
+  type: 'test'
+  ...
+# Subtest: restart rejects invalid/lower process time NaN
+ok 129 - restart rejects invalid/lower process time NaN
+  ---
+  duration_ms: 0.215068
+  type: 'test'
+  ...
+# Subtest: restart rejects invalid/lower process time Infinity
+ok 130 - restart rejects invalid/lower process time Infinity
+  ---
+  duration_ms: 0.430977
+  type: 'test'
+  ...
+# Subtest: restart rejects invalid/lower process time -1
+ok 131 - restart rejects invalid/lower process time -1
+  ---
+  duration_ms: 0.287514
+  type: 'test'
+  ...
+# Subtest: restart rejects invalid/lower process time 999
+ok 132 - restart rejects invalid/lower process time 999
+  ---
+  duration_ms: 0.316578
+  type: 'test'
+  ...
+# Subtest: restart rejects invalid/lower process time 2000
+ok 133 - restart rejects invalid/lower process time 2000
+  ---
+  duration_ms: 0.294675
+  type: 'test'
+  ...
+# Subtest: restart rejects non-advanced evidence despite a claimed runtime.started event
+ok 134 - restart rejects non-advanced evidence despite a claimed runtime.started event
+  ---
+  duration_ms: 0.338711
+  type: 'test'
+  ...
+# Subtest: restart rejects foreign/null runtime.started observations
+ok 135 - restart rejects foreign/null runtime.started observations
+  ---
+  duration_ms: 0.441862
+  type: 'test'
+  ...
+# Subtest: restart rejects conflicting evidence digest and surviving authority
+ok 136 - restart rejects conflicting evidence digest and surviving authority
+  ---
+  duration_ms: 0.316758
+  type: 'test'
+  ...
+# Subtest: restart same PID/start ticks/boot with plugin reload cannot manufacture independent proof
+ok 137 - restart same PID/start ticks/boot with plugin reload cannot manufacture independent proof
+  ---
+  duration_ms: 0.242819
+  type: 'test'
+  ...
+# Subtest: restart changed PID only cannot manufacture independent proof
+ok 138 - restart changed PID only cannot manufacture independent proof
+  ---
+  duration_ms: 0.283659
+  type: 'test'
+  ...
+# Subtest: restart PID reused with claimed newer start ticks cannot manufacture independent proof
+ok 139 - restart PID reused with claimed newer start ticks cannot manufacture independent proof
+  ---
+  duration_ms: 0.239103
+  type: 'test'
+  ...
+# Subtest: restart claimed supervisor-bound process replacement cannot manufacture independent proof
+ok 140 - restart claimed supervisor-bound process replacement cannot manufacture independent proof
+  ---
+  duration_ms: 0.218322
+  type: 'test'
+  ...
+# Subtest: restart retained same-start-time plugin reload counterexample remains UNVERIFIED
+ok 141 - restart retained same-start-time plugin reload counterexample remains UNVERIFIED
+  ---
+  duration_ms: 0.22326
+  type: 'test'
+  ...
+# Subtest: registered plugin + authenticated loopback HTTP + external signing client round-trip
+ok 142 - registered plugin + authenticated loopback HTTP + external signing client round-trip
+  ---
+  duration_ms: 104.594608
+  type: 'test'
+  ...
+# Subtest: native output with another run ID cannot become a completed result
+ok 143 - native output with another run ID cannot become a completed result
+  ---
+  duration_ms: 33.727979
+  type: 'test'
+  ...
+# Subtest: native hook policy that is not full stays observation-only
+ok 144 - native hook policy that is not full stays observation-only
+  ---
+  duration_ms: 10.923786
+  type: 'test'
+  ...
+# Subtest: full registration with missing plugins rejects dispatch.submit before native invocation
+ok 145 - full registration with missing plugins rejects dispatch.submit before native invocation
+  ---
+  duration_ms: 17.433303
+  type: 'test'
+  ...
+# Subtest: full registration with missing plugins rejects provider.probe before native invocation
+ok 146 - full registration with missing plugins rejects provider.probe before native invocation
+  ---
+  duration_ms: 22.56939
+  type: 'test'
+  ...
+# Subtest: full registration with missing own entry rejects dispatch.submit before native invocation
+ok 147 - full registration with missing own entry rejects dispatch.submit before native invocation
+  ---
+  duration_ms: 17.294123
+  type: 'test'
+  ...
+# Subtest: full registration with missing own entry rejects provider.probe before native invocation
+ok 148 - full registration with missing own entry rejects provider.probe before native invocation
+  ---
+  duration_ms: 14.174263
+  type: 'test'
+  ...
+# Subtest: full registration with missing hooks rejects dispatch.submit before native invocation
+ok 149 - full registration with missing hooks rejects dispatch.submit before native invocation
+  ---
+  duration_ms: 12.026766
+  type: 'test'
+  ...
+# Subtest: full registration with missing hooks rejects provider.probe before native invocation
+ok 150 - full registration with missing hooks rejects provider.probe before native invocation
+  ---
+  duration_ms: 20.842579
+  type: 'test'
+  ...
+# Subtest: full registration with omitted opt-in rejects dispatch.submit before native invocation
+ok 151 - full registration with omitted opt-in rejects dispatch.submit before native invocation
+  ---
+  duration_ms: 15.065715
+  type: 'test'
+  ...
+# Subtest: full registration with omitted opt-in rejects provider.probe before native invocation
+ok 152 - full registration with omitted opt-in rejects provider.probe before native invocation
+  ---
+  duration_ms: 14.000722
+  type: 'test'
+  ...
+# Subtest: full registration with explicit false rejects dispatch.submit before native invocation
+ok 153 - full registration with explicit false rejects dispatch.submit before native invocation
+  ---
+  duration_ms: 18.40603
+  type: 'test'
+  ...
+# Subtest: full registration with explicit false rejects provider.probe before native invocation
+ok 154 - full registration with explicit false rejects provider.probe before native invocation
+  ---
+  duration_ms: 13.89165
+  type: 'test'
+  ...
+# Subtest: full registration with truthy string rejects dispatch.submit before native invocation
+ok 155 - full registration with truthy string rejects dispatch.submit before native invocation
+  ---
+  duration_ms: 16.887416
+  type: 'test'
+  ...
+# Subtest: full registration with truthy string rejects provider.probe before native invocation
+ok 156 - full registration with truthy string rejects provider.probe before native invocation
+  ---
+  duration_ms: 16.828846
+  type: 'test'
+  ...
+# Subtest: full registration with another plugin opt-in rejects dispatch.submit before native invocation
+ok 157 - full registration with another plugin opt-in rejects dispatch.submit before native invocation
+  ---
+  duration_ms: 20.114743
+  type: 'test'
+  ...
+# Subtest: full registration with another plugin opt-in rejects provider.probe before native invocation
+ok 158 - full registration with another plugin opt-in rejects provider.probe before native invocation
+  ---
+  duration_ms: 14.166056
+  type: 'test'
+  ...
+# Subtest: later trimmed-key denial blocks dispatch.submit before native invocation
+ok 159 - later trimmed-key denial blocks dispatch.submit before native invocation
+  ---
+  duration_ms: 12.350484
+  type: 'test'
+  ...
+# Subtest: later trimmed-key denial blocks provider.probe before native invocation
+ok 160 - later trimmed-key denial blocks provider.probe before native invocation
+  ---
+  duration_ms: 12.792878
+  type: 'test'
+  ...
+# Subtest: later trimmed-key hook replacement blocks dispatch.submit before native invocation
+ok 161 - later trimmed-key hook replacement blocks dispatch.submit before native invocation
+  ---
+  duration_ms: 11.502712
+  type: 'test'
+  ...
+# Subtest: later trimmed-key hook replacement blocks provider.probe before native invocation
+ok 162 - later trimmed-key hook replacement blocks provider.probe before native invocation
+  ---
+  duration_ms: 11.158524
+  type: 'test'
+  ...
+# Subtest: later trimmed-key malformed entry blocks dispatch.submit before native invocation
+ok 163 - later trimmed-key malformed entry blocks dispatch.submit before native invocation
+  ---
+  duration_ms: 9.276874
+  type: 'test'
+  ...
+# Subtest: later trimmed-key malformed entry blocks provider.probe before native invocation
+ok 164 - later trimmed-key malformed entry blocks provider.probe before native invocation
+  ---
+  duration_ms: 11.157251
+  type: 'test'
+  ...
+# Subtest: ambiguous equivalent entry names remain denied even when both opt in
+ok 165 - ambiguous equivalent entry names remain denied even when both opt in
+  ---
+  duration_ms: 7.425804
+  type: 'test'
+  ...
+# Subtest: adding a normalized-key collision fences current and in-flight authority
+ok 166 - adding a normalized-key collision fences current and in-flight authority
+  ---
+  duration_ms: 29.186289
+  type: 'test'
+  ...
+# Subtest: later opt-in cannot enable hooks omitted at registration
+ok 167 - later opt-in cannot enable hooks omitted at registration
+  ---
+  duration_ms: 8.012626
+  type: 'test'
+  ...
+# Subtest: current hook-policy revocation fences both dispatch and provider probe
+ok 168 - current hook-policy revocation fences both dispatch and provider probe
+  ---
+  duration_ms: 19.823694
+  type: 'test'
+  ...
+# Subtest: hook-policy revocation while running prevents result admission
+ok 169 - hook-policy revocation while running prevents result admission
+  ---
+  duration_ms: 18.361674
+  type: 'test'
+  ...
+# Subtest: unknown native runtime stays observation-only over real HTTP
+ok 170 - unknown native runtime stays observation-only over real HTTP
+  ---
+  duration_ms: 10.055298
+  type: 'test'
+  ...
+# Subtest: gateway-auth, unsigned requests, browser Origin and query variants are refused
+ok 171 - gateway-auth, unsigned requests, browser Origin and query variants are refused
+  ---
+  duration_ms: 14.820844
+  type: 'test'
+  ...
+# Subtest: HTTP request size and content type are bounded
+ok 172 - HTTP request size and content type are bounded
+  ---
+  duration_ms: 14.88934
+  type: 'test'
+  ...
+# Subtest: client denies non-loopback/credential-bearing endpoints and redirects
+ok 173 - client denies non-loopback/credential-bearing endpoints and redirects
+  ---
+  duration_ms: 1.258019
+  type: 'test'
+  ...
+# Subtest: client rejects oversized response bodies
+ok 174 - client rejects oversized response bodies
+  ---
+  duration_ms: 2.023579
+  type: 'test'
+  ...
+# Subtest: manifest and package keep default mutations off and accidental publishing disabled
+ok 175 - manifest and package keep default mutations off and accidental publishing disabled
+  ---
+  duration_ms: 0.396285
+  type: 'test'
+  ...
+# Subtest: complete TAP summary is parsed and exact mandatory coverage is accepted
+ok 176 - complete TAP summary is parsed and exact mandatory coverage is accepted
+  ---
+  duration_ms: 2.596686
+  type: 'test'
+  ...
+# Subtest: missing TAP summary fields fail closed
+ok 177 - missing TAP summary fields fail closed
+  ---
+  duration_ms: 0.641778
+  type: 'test'
+  ...
+# Subtest: skipped mandatory coverage cannot pass
+ok 178 - skipped mandatory coverage cannot pass
+  ---
+  duration_ms: 0.219464
+  type: 'test'
+  ...
+# Subtest: TODO mandatory coverage cannot pass
+ok 179 - TODO mandatory coverage cannot pass
+  ---
+  duration_ms: 0.170872
+  type: 'test'
+  ...
+# Subtest: pass count mismatch or reduced test floor cannot pass
+ok 180 - pass count mismatch or reduced test floor cannot pass
+  ---
+  duration_ms: 0.41315
+  type: 'test'
+  ...
+# Subtest: bridge returns only candidate + non-authoritative evidence to Station
+ok 181 - bridge returns only candidate + non-authoritative evidence to Station
+  ---
+  duration_ms: 9.872544
+  type: 'test'
+  ...
+# Subtest: cloud execution is denied before OpenClaw dispatch when Station disallows it
+ok 182 - cloud execution is denied before OpenClaw dispatch when Station disallows it
+  ---
+  duration_ms: 2.00366
+  type: 'test'
+  ...
+# Subtest: candidate paths outside Station writable_files fail closed to an empty proposal
+ok 183 - candidate paths outside Station writable_files fail closed to an empty proposal
+  ---
+  duration_ms: 4.013298
+  type: 'test'
+  ...
+# Subtest: evidence-chain discontinuity prevents Station submission
+ok 184 - evidence-chain discontinuity prevents Station submission
+  ---
+  duration_ms: 3.261258
+  type: 'test'
+  ...
+# Subtest: candidate normalizer rejects extra root fields and non-string content
+ok 185 - candidate normalizer rejects extra root fields and non-string content
+  ---
+  duration_ms: 0.327053
+  type: 'test'
+  ...
+1..185
+# tests 185
+# suites 0
+# pass 185
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1257.102407
