@@ -675,10 +675,7 @@ class HTTPTests(unittest.TestCase):
         with self.assertRaises(urllib.error.HTTPError) as error:
             self.request("/api/worker/claim", {"project_id": pid_b, "task_id": "OPS-101", "name": "machine-a"}, headers)
         self.assertEqual(error.exception.code, 403)
-    def test_failure_path_preserves_evidence_references(self):
-        """#509 failure-path evidence references preserved: when finish() raises
-        after evidence was recorded, the external_artifacts must survive into
-        the failure_fields so the evidence chain is not lost."""
+    def _remote_execution_submission(self):
         pid = self.s.create(demo_spec(), demo=True)["project_id"]
         self.s.triage(pid)
         # Use a fresh credential (previous tests may have rotated)
@@ -711,20 +708,75 @@ class HTTPTests(unittest.TestCase):
             "qualification": "NOT_ESTABLISHED",
             "trust": "CONTROLLER_OBSERVED_RUNTIME_REPORTED",
         }
-        # Submit with valid evidence but response that will fail checks
-        # (writable file with a syntax error to trigger check failure)
-        bad_response = {"files": {"station/health.py": "def status(services:\n    pass"}}
-        bad_submission = {
+        submission = {
             "project_id": pid, "task_id": "OPS-101", "lease": work["lease"],
-            "submission_id": "openclaw-evidence-fail", "response": bad_response,
+            "submission_id": "openclaw-evidence-fail", "response": response,
             "execution_evidence": evidence,
         }
-        with self.assertRaises(urllib.error.HTTPError):
-            self.request("/api/worker/result", bad_submission, headers)
+        return pid, headers, submission
+
+    def test_failure_path_preserves_evidence_references(self):
+        """Evidence recorded before a finish() exception survives without acceptance."""
+        pid, headers, submission = self._remote_execution_submission()
+        before = self.s.store.task(pid, "OPS-101")
+        evidence = submission["execution_evidence"]
+        failure = "Injected failure after execution evidence was recorded"
+        # _guard_files runs after artifact/event recording, before candidate writes.
+        with patch.object(self.s, "_guard_files", side_effect=ContractError(failure)) as guard:
+            with self.assertRaises(urllib.error.HTTPError) as error:
+                self.request("/api/worker/result", submission, headers)
+        guard.assert_called_once_with(pid, before, submission["response"]["files"])
+        self.assertEqual(error.exception.code, 400)
+        self.assertEqual(json.loads(error.exception.read()), {"error": failure})
+
         task = self.s.store.task(pid, "OPS-101")
-        # Evidence artifact must be preserved in failure fields
-        artifact_kinds = [a.get("kind") for a in task.get("artifacts", [])]
-        self.assertIn("execution", artifact_kinds)
+        expected_artifact = {
+            "id": pid + ":" + sha(evidence), "sha256": sha(evidence),
+            "name": f"OPS-101-attempt-{evidence['attempt']}-execution.json",
+            "size": len(canonical(evidence).encode()), "kind": "execution",
+        }
+        self.assertEqual(task["artifacts"], before["artifacts"] + [expected_artifact])
+        _, stored = self.s.store.artifact(expected_artifact["id"])
+        self.assertEqual(stored, canonical(evidence).encode())
+        events = self.s.store.events(pid)
+        execution = [event for event in events if event["event_type"] == "worker.execution"]
+        self.assertEqual(len(execution), 1)
+        self.assertEqual(execution[0]["data"]["artifact"], expected_artifact["id"])
+        self.assertEqual(execution[0]["data"]["acceptance"], "NOT_EVALUATED")
+        self.assertEqual(task["state"], "repair_required")
+        self.assertEqual(task["findings"], [failure])
+        self.assertIsNone(task["head_commit"])
+        self.assertEqual(task["checks_result"], [])
+        self.assertNotIn("review", task)
+        self.assertNotIn("verification_receipt", task)
+        self.assertFalse(any(
+            event["event_type"] == "task.transition"
+            and event["data"]["to"] in {"local_verified", "review_ready", "approved", "integrated"}
+            for event in events
+        ))
+
+    def test_mismatched_response_hash_rejected_before_evidence_recording(self):
+        pid, headers, submission = self._remote_execution_submission()
+        before = self.s.store.task(pid, "OPS-101")
+        submission["response"] = {"files": {"station/health.py": "def status(services:\n    pass"}}
+        with patch.object(self.s, "_guard_files") as guard:
+            with self.assertRaises(urllib.error.HTTPError) as error:
+                self.request("/api/worker/result", submission, headers)
+        guard.assert_not_called()
+        self.assertEqual(error.exception.code, 400)
+        self.assertEqual(json.loads(error.exception.read()), {
+            "error": "Remote execution evidence does not match the submitted candidate",
+        })
+        task = self.s.store.task(pid, "OPS-101")
+        self.assertEqual(task["state"], "repair_required")
+        self.assertEqual(task["artifacts"], before["artifacts"])
+        with self.s.store.connect() as connection:
+            self.assertEqual(connection.execute(
+                "SELECT COUNT(*) FROM artifacts WHERE project=? AND kind='execution'", (pid,),
+            ).fetchone()[0], 0)
+        self.assertFalse(any(
+            event["event_type"] == "worker.execution" for event in self.s.store.events(pid)
+        ))
 
 
 class ProviderHTTPTests(unittest.TestCase):

@@ -28,7 +28,7 @@
 d1d0b5fdf4566a1b7c9f9ae478ad1f00afb7caa7d7a901e67df0d2517552d6c0
 ```
 
-**File count:** 982
+**File count:** 962
 
 ## Exact parent HEAD/commit built against
 
