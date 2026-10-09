@@ -21,3 +21,9 @@ The feature consumes the existing `DemoDiagnostics` bounded buffer. That buffer 
 ## Non-goals
 
 Execution replay, filesystem rollback, reissuing provider requests, reproducing side effects, and branching a historical mission are deliberately out of scope for this first integration. Those features would require a separate replay contract that binds frozen inputs, environment identity, tool/provider budgets, and side-effect suppression to a new derived run rather than pretending the old run changed.
+
+## Terminal console presentation
+
+The console follows the supplied green phosphor/pixel-art direction with a clock backdrop, bordered snapshot and diff panels, a selectable event log, and trace binding beside event details. Removed and added values use separate red/green rows. Layouts stack on narrow screens, and keyboard focus remains visible.
+
+The car is the existing embedded sprite, not the higher-detail illustration from the design reference. Timeline labels explicitly describe retained history. Fork Here is disabled because no branching execution contract exists; no execution-resume or live-stream capability is implied.
