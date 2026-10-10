@@ -73,3 +73,8 @@ test('rejection evidence is a failure target without granting acceptance authori
   assert.equal(isFailure(event('evidence.projected',1,{evidence_kind:'obligation_accepted'})),false);
   assert.equal(reconstructState([event('evidence.projected',1,{evidence_kind:'obligation_accepted'})]).mission.status,'unknown');
 });
+
+test('uncorrelated historical provider observations cannot contaminate another run',()=>{
+  const events=[event('provider.mailbox_write_completed',1,{}, {run_id:null,mission_id:null}),event('runtime.health_changed',2,{health:'ready'},{run_id:null,mission_id:null}),event('mission.submitted',3,{mode:'audit'},{run_id:'run_b'})];
+  const state=reconstructState(events);assert.equal(state.provider.status,'unknown');assert.equal(state.runtime.health,'ready');
+});

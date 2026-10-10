@@ -37,6 +37,7 @@ export function reconstructState(events, index=events.length-1){
     // Global runtime events apply across runs, mission/provider state never does.
     if(event.run_id && event.run_id!==selectedRun)continue;
     if(!selectedRun && event.run_id)continue;
+    if(selectedRun&&!event.run_id&&!/^(runtime|environment|session|browser)\./.test(type))continue;
     if(event.run_id)state.run_id=event.run_id;
     if(event.mission_id)state.mission_id=event.mission_id;
     if(event.release&&typeof event.release==='object')state.release={...state.release,...event.release};

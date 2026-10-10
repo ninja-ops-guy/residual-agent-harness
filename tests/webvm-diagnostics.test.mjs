@@ -135,3 +135,11 @@ test('restored session retains run correlation and does not invent a new run',()
     assert.equal(restored.buffer.snapshot().at(-1).run_id,run);
   }finally{if(saved===undefined)delete globalThis.sessionStorage;else globalThis.sessionStorage=saved}
 });
+
+test('mailbox lifecycle is bound to its mission without exposing payloads',async()=>{
+  const diag=diagnostics(),run=diag.startRun(mid,'audit');
+  const host=diag.wrapHost({ready:()=>true,mailbox:async()=>true});assert.equal(host.health(),'ready');
+  await host.mailbox(`/${mid}-${rid}.json`,'private response');
+  const writes=diag.buffer.snapshot().filter(e=>e.event_type.startsWith('provider.mailbox'));
+  assert.equal(writes.length,2);assert(writes.every(e=>e.run_id===run&&e.mission_id===mid));assert(!JSON.stringify(writes).includes('private response'));
+});
