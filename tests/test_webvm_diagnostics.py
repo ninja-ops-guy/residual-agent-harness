@@ -31,7 +31,7 @@ class WebVMDiagnosticsTests(unittest.TestCase):
     @unittest.skipUnless(shutil.which('node'), 'Node.js not installed')
     def test_javascript_diagnostic_contracts(self):
         completed = subprocess.run(
-            ['node', '--experimental-default-type=module', '--test', 'tests/webvm-diagnostics.test.mjs'],
+            ['node', '--test', 'tests/webvm-diagnostics.test.mjs'],
             cwd=self.root,
             text=True,
             stdout=subprocess.PIPE,

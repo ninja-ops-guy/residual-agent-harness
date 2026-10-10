@@ -1,0 +1,92 @@
+{
+  "recorded_at": "2026-10-10T00:16:25.465124+00:00",
+  "scope": "Browser/WebVM Mission Control historical inspector; local Chromium plus real native Python Harness execution, not WASM execution",
+  "base_main": "8369f0dc2a93d8dcb194220b85b9aaf87d1d6df2",
+  "source_sha256": {
+    "demo/vm/mission-control-timetravel.js": "8265921bf9d9c342d5426eed613dc96d9807007d9a47b9a471162925a496a01d",
+    "demo/vm/mission-control-diagnostics.js": "a1880de41e72030bda943adf4152e2f0296239f87bb82e62d2e54d7bba7dd2b7",
+    "demo/vm/mission-control.js": "0940101fb9d9c89a3ac2816809c08209e17adf3900e5404573e4490ab337f44c",
+    "demo/vm/install_workbench.py": "6943707540acc0099d8ea5840c2cc288e4cfb2d6c774631f8b61af630f0ebc15",
+    "demo/vm/time-travel-hero.webp": "e841a583bcfec98ae925cf02dbfc8d23a4d37038a42175ab3fb756af4623ec63",
+    "tests/webvm-timetravel-browser.cjs": "f79f909b02cb0f39c349f50a0916b2b947b16c436ddd9ebb7b20c5c14a4e701f",
+    "tests/webvm-timetravel.test.mjs": "5a054ab7cc9142aa2c66d708184407480336243bd523621a81ef6d83361fb67a",
+    "tests/webvm-diagnostics.test.mjs": "49273340861cae9cbe3f1ce93505c752cd0579f8c531205aafd837f61eecc891",
+    "tests/test_webvm_diagnostics.py": "5cccd6e957641e270f11bc1f508aebd8322b38083e9c53c9dd4cd99b80eef0fe",
+    "package.json": "ba86a63cd839baf493b506943da96b4711216fd636ba6d7e3ee002afddf1d717",
+    "demo/vm/browser_smoke.py": "8bad9bc543c2463971d3ca2850df4b5541740bdd0193b4d5b08d89bf6266d643",
+    "demo/vm/mission_smoke.py": "4f1fba7d5cabb0c18ec5958a929f544fafe4f3691454f48ea099a7ff5d570aea",
+    "tests/test_webvm_timetravel_proof.py": "eb3ed46bc7565208406aa4f0ee40e36872269eefc967c04f9644e48fe717dfb6"
+  },
+  "time_travel_browser": {
+    "passed": true,
+    "browser": "153.0.8010.0",
+    "checks": [
+      "Real Python Harness audit: bound result, zero provider calls, chunked output projected into Mission Control and debugger",
+      "First/last/step, keyboard scrubber, evidence jump and event log select real recorded events",
+      "Inspection and refresh preserve retained diagnostics and cause zero execution/mailbox/restart side effects",
+      "Real rejected source request produces inspectable failed host run without false completion",
+      "Explicit negative fixture: counterexample jump and independent run/session scope isolation",
+      "All Mission Control tabs remain symmetric with debugger navigation",
+      "Desktop/tablet/mobile render without horizontal overflow",
+      "Untrusted event text stays inert and disallowed prompt content never reaches the view",
+      "Bounded 5000-event history renders; eviction recovers selection without out-of-range state",
+      "Empty/evicted history can recover and full Mission Control teardown removes debugger",
+      "Actual Pages readiness predicates tolerate document replacement and still require proof text"
+    ],
+    "errors": [],
+    "external": [],
+    "scope": "native local Harness + browser; no WASM runtime or paid provider qualification"
+  },
+  "station_browser": {
+    "passed": true,
+    "checks": [
+      "Empty state and onboarding render",
+      "Training mission implements and integrates all tasks",
+      "Mission board opens the goal contract and verified run receipt",
+      "Task drawer exposes the station receipt and prerequisite binding",
+      "Task drawer shows checks and revision evidence",
+      "Verified release downloads from UI",
+      "Operator notes are escaped, not executable HTML",
+      "Model route settings persist after reload",
+      "Batch pass and token limits persist through the model workshop",
+      "Setup checklist remains accessible",
+      "Provider defaults, fallback order, and credential redaction survive reload",
+      "Bedrock reveals only its AWS credential controls",
+      "Markdown template validates from UI",
+      "Invalid Markdown produces actionable feedback",
+      "390px mobile mission switching, navigation and board have no horizontal overflow",
+      "Mobile task receipt wraps without overflow",
+      "Diagnostics inspect live runtime",
+      "Mobile trace verification, filtering, evidence, export and pause/resume work",
+      "Completed generated draft stays visible and opens from the job tray",
+      "No unexpected browser console errors"
+    ],
+    "errors": []
+  },
+  "unit_results": {
+    "javascript_webvm": {
+      "passed": 63
+    },
+    "python_focused": {
+      "passed": 56
+    }
+  },
+  "remaining_gates": [
+    "Hosted exact-head checks",
+    "Built WebVM/WASM proof",
+    "Independent review and release authorization"
+  ],
+  "release_authorized": false,
+  "resolved_hosted_findings": [
+    {
+      "run_id": 38007757481,
+      "finding": "Pages proof dereferenced document.body during service-worker reload",
+      "repair": "Null-safe readiness predicates and capture; actual predicates verified with body removed and restored. All proof/identity assertions retained."
+    },
+    {
+      "run_id": 38008039326,
+      "finding": "Snapshot equality rejected asynchronous health/UI observations appended after the real guest audit",
+      "repair": "Every preexisting event must remain byte-equivalent by unique event ID; only health/UI records may append; new execution/provider/evidence/recovery records remain forbidden. Six regression tests cover positive and negative cases."
+    }
+  ]
+}

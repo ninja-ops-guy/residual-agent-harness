@@ -1,4 +1,5 @@
 import {mountMissionControl as mountWorld} from './mission-control-world.js';
+import {mountTimeTravelDebug} from './mission-control-timetravel.js';
 
 export const DIAGNOSTIC_PROTOCOL = 'residual.diagnostic.v1';
 export const DIAGNOSTIC_SCHEMA_VERSION = '1.0';
@@ -126,7 +127,12 @@ export class DemoDiagnostics {
     try{
       const value=JSON.parse(storage.getItem(BUFFER_KEY)||'null');
       if(!value||value.session_id!==this.sessionId||!Array.isArray(value.events))return;
-      for(const event of value.events.slice(-MAX_EVENTS)) if(event&&event.schema_version===DIAGNOSTIC_SCHEMA_VERSION)this.buffer.push(event);
+      for(const event of value.events.slice(-MAX_EVENTS)) if(event&&event.schema_version===DIAGNOSTIC_SCHEMA_VERSION){
+        this.buffer.push(event);
+        if(MISSION_ID.test(event.mission_id||'')&&/^run_[a-f0-9]+$/.test(event.run_id||'')){
+          this.runByMission.set(event.mission_id,event.run_id);this.latestRunId=event.run_id;
+        }
+      }
     }catch{}
   }
   persist(){
@@ -179,10 +185,10 @@ export class DemoDiagnostics {
     const diagnostics=this;
     return {...host,
       ready(){try{return host.ready()}catch(error){diagnostics.emit('runtime.ready_probe_failed',{error_name:error?.name||'Error',error_message:error?.message||'ready probe failed'},{severity:'error',failure_class:classifyFailure(error)});throw error}},
-      health(){const value=host.health();if(value!==diagnostics.lastHealth){diagnostics.emit('runtime.health_changed',{from:diagnostics.lastHealth||'unknown',to:value,health:value},{severity:value==='poisoned'?'error':'info',failure_class:value==='poisoned'?'RuntimeCorruption':null});diagnostics.lastHealth=value;}return value;},
+      health(){const value=typeof host.health==='function'?host.health():(host.ready()?'ready':'starting');if(value!==diagnostics.lastHealth){diagnostics.emit('runtime.health_changed',{from:diagnostics.lastHealth||'unknown',to:value,health:value},{severity:value==='poisoned'?'error':'info',failure_class:value==='poisoned'?'RuntimeCorruption':null});diagnostics.lastHealth=value;}return value;},
       restart(){diagnostics.emit('recovery.guest_restart_requested',{status:'requested'});try{return host.restart()}catch(error){diagnostics.emit('recovery.guest_restart_failed',{error_name:error?.name||'Error',error_message:error?.message||'restart failed'},{severity:'error',failure_class:classifyFailure(error)});throw error}},
       focus(){return host.focus()},
-      async mailbox(path,text){const messageKind=String(path).endsWith('-cancel.json')?'cancel':'provider_response';diagnostics.emit('provider.mailbox_write_started',{message_kind:messageKind});try{const value=await host.mailbox(path,text);diagnostics.emit('provider.mailbox_write_completed',{message_kind:messageKind});return value}catch(error){diagnostics.emit('provider.mailbox_write_failed',{message_kind:messageKind,error_name:error?.name||'Error',error_message:error?.message||'mailbox write failed'},{severity:'error',failure_class:'ProviderUnavailable'});throw error}},
+      async mailbox(path,text){const missionId=String(path).match(/^\/(m-[a-f0-9]{32})-/)?.[1]||null;const messageKind=String(path).endsWith('-cancel.json')?'cancel':'provider_response';diagnostics.emit('provider.mailbox_write_started',{message_kind:messageKind},{mission_id:missionId});try{const value=await host.mailbox(path,text);diagnostics.emit('provider.mailbox_write_completed',{message_kind:messageKind},{mission_id:missionId});return value}catch(error){diagnostics.emit('provider.mailbox_write_failed',{message_kind:messageKind,error_name:error?.name||'Error',error_message:error?.message||'mailbox write failed'},{mission_id:missionId,severity:'error',failure_class:'ProviderUnavailable'});throw error}},
       async run(request){const runId=diagnostics.startRun(request?.id,request?.mode);const started=mono();diagnostics.emit('mission.host_run_started',{mode:request?.mode},{mission_id:request?.id,run_id:runId});try{const value=await host.run(request);diagnostics.emit('mission.host_run_completed',{duration_ms:Math.max(0,mono()-started),run_status:String(value?.status??'unknown')},{mission_id:request?.id,run_id:runId});return value}catch(error){diagnostics.emit('mission.host_run_failed',{duration_ms:Math.max(0,mono()-started),error_name:error?.name||'Error',error_message:error?.message||'host run failed'},{mission_id:request?.id,run_id:runId,severity:'error',failure_class:classifyFailure(error)});throw error}}
     };
   }
@@ -199,11 +205,16 @@ export class DemoDiagnostics {
     }catch{}
   }
   consumeOutput(text){
-    const prefix='\x1b]777;RESIDUAL;';let cursor=0;
-    while(typeof text==='string'){
-      const start=text.indexOf(prefix,cursor);if(start<0)return;const end=text.indexOf('\x07',start+prefix.length);if(end<0)return;
-      try{const raw=text.slice(start+prefix.length,end).replace(/-/g,'+').replace(/_/g,'/');const bin=atob(raw);this.consumeFrame(JSON.parse(new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)))));}catch{}
-      cursor=end+1;
+    if(typeof text!=='string')return;
+    const prefix='\x1b]777;RESIDUAL;';this.outputCarry=(this.outputCarry||'')+text;
+    while(true){
+      const start=this.outputCarry.indexOf(prefix);
+      if(start<0){this.outputCarry=this.outputCarry.slice(-prefix.length);return;}
+      if(start)this.outputCarry=this.outputCarry.slice(start);
+      const end=this.outputCarry.indexOf('\x07',prefix.length);
+      if(end<0){if(this.outputCarry.length>400000)this.outputCarry='';return;}
+      try{const raw=this.outputCarry.slice(prefix.length,end).replace(/-/g,'+').replace(/_/g,'/');const bin=atob(raw);this.consumeFrame(JSON.parse(new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)))));}catch{}
+      this.outputCarry=this.outputCarry.slice(end+1);
     }
   }
   uiCode(id,text){
@@ -241,8 +252,9 @@ export function getDemoDiagnostics(){if(!singleton)singleton=new DemoDiagnostics
 export function mountMissionControl(host){
   const diagnostics=getDemoDiagnostics();
   const base=mountWorld(diagnostics.wrapHost(host));
-  try{const root=document.querySelector('#mission-control');if(root){diagnostics.attachDownload(root);diagnostics.observeUi(root);}}
+  let debuggerView=null;
+  try{const root=document.querySelector('#mission-control');if(root){diagnostics.attachDownload(root);diagnostics.observeUi(root);debuggerView=mountTimeTravelDebug(root,diagnostics);}}
   catch{}
   try{globalThis.__residualDiagnostics=diagnostics}catch{}
-  return {onOutput(text){try{diagnostics.consumeOutput(text)}catch{}return base.onOutput(text)},connectProvider:base.connectProvider,destroy(){try{diagnostics.emit('session.ui_destroyed',{status:'destroyed'})}catch{}return base.destroy()}};
+  return {onOutput(text){try{diagnostics.consumeOutput(text)}catch{}return base.onOutput(text)},connectProvider:base.connectProvider,destroy(){debuggerView?.destroy();try{diagnostics.emit('session.ui_destroyed',{status:'destroyed'})}catch{}return base.destroy()}};
 }
