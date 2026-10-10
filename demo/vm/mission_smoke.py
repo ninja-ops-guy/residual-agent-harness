@@ -62,6 +62,7 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     assert int(await page.locator('#mc-count').inner_text()) > 0
     assert 'main' in await page.locator('#mc-answer').inner_text()
     assert 'Inspect these actual repository sources' in await page.locator('#mc-chat').inner_text()
+    await time_travel_acceptance(page, args, report, stage)
     report['workbench_audit'] = 'PASS'
     report['workbench_chat_ui'] = 'PASS_WITH_BACKGROUND_TABS'
     await stage('workbench_real_repository_audit_passed')
@@ -236,3 +237,29 @@ async def workbench_acceptance(page, context, args, report, command_proof, stage
     assert await page.locator('#mc-restored-preview-frame').count() == 1
     report['workbench_conversation_reload'] = 'PASS_SANITIZED_BROWSER_CACHE_WITH_AUTHORITY_LABEL'
     await stage('workbench_saved_conversation_survives_reload')
+
+
+async def time_travel_acceptance(page, args, report, stage):
+    """Inspect the real guest audit just completed; never substitute trace data."""
+    await page.wait_for_function("() => window.__residualDiagnostics.buffer.snapshot().some(event => event.run_id === window.__residualDiagnostics.latestRunId && event.event_type === 'mission.host_run_completed')", timeout=120000)
+    await page.locator('#mc-timetravel').click()
+    run_id = await page.evaluate('window.__residualDiagnostics.latestRunId')
+    assert run_id, 'real guest audit has no diagnostic run binding'
+    await page.get_by_label('Time travel scope').select_option(run_id)
+    snapshot = page.locator('.tt-side .tt-card').first
+    assert 'passed' in await snapshot.inner_text(), 'historical audit terminal result missing'
+    retained = await page.evaluate('JSON.stringify(window.__residualDiagnostics.buffer.snapshot())')
+    await page.get_by_role('button', name='|◀ FIRST', exact=True).click()
+    assert 'submitted' in await snapshot.inner_text(), 'first historical event leaks terminal state'
+    await page.get_by_role('button', name='◆ JUMP TO EVIDENCE', exact=True).click()
+    assert 'evidence.projected' in await snapshot.inner_text()
+    await page.get_by_role('button', name='LAST ▶|', exact=True).click()
+    assert 'passed' in await snapshot.inner_text()
+    assert await page.get_by_role('button', name='FORK HERE · UNAVAILABLE', exact=True).is_disabled()
+    assert await page.locator('.tt-hero img').evaluate('(image) => image.complete && image.naturalWidth > 0'), 'bundled hero failed to load'
+    assert retained == await page.evaluate('JSON.stringify(window.__residualDiagnostics.buffer.snapshot())'), 'inspection changed diagnostic history'
+    assert await page.locator('#mc-timetravel-panel').evaluate('(el) => el.scrollWidth <= el.clientWidth'), 'debugger horizontal overflow'
+    await page.screenshot(path=str(args.output / 'time-travel-real-guest.png'))
+    report['time_travel_real_guest'] = 'PASS_READ_ONLY_HISTORICAL_INSPECTION'
+    await stage('time_travel_real_guest_audit_inspection_passed')
+    await page.locator('#mc-mission').click()

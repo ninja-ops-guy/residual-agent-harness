@@ -26,6 +26,8 @@ Run `npm run test:timetravel`. It runs model/diagnostics regressions and a real 
 
 The existing `npm run test:ui` now includes this qualification, so the Command Station browser CI job retains screenshots and JSON results under `runs/browser/time-travel/` alongside the existing Station evidence. `CHROMIUM_PATH` can select an installed Chromium binary; default uses Playwright's managed Chromium.
 
+The built Pages desktop/narrow smoke suite also checks Time Travel immediately after its real WASM guest repository audit, including bundled artwork, first/evidence/last navigation, immutable diagnostic history and disabled forking. This assertion must pass in hosted proof before claiming WASM qualification. Readiness polling tolerates a temporarily absent body during service-worker reload while retaining all boot/proof requirements.
+
 Local qualification and source hashes are recorded in `docs/testing/time-travel-local-qualification.json`. This does not substitute for hosted exact-head CI, built WebVM/WASM execution proof, independent review, or final release authorization. No merge/tag/deployment is performed by this change.
 
 ## Artwork provenance

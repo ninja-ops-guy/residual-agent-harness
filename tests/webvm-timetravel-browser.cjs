@@ -73,6 +73,12 @@ async function main(){
   await page.evaluate(()=>{diag.buffer.events=[]});await page.getByRole('button',{name:'REFRESH HISTORY',exact:true}).click();await page.getByLabel('Time travel scope').selectOption('');assert(await page.getByLabel('Historical event position').isDisabled());assert.match(await page.locator('.tt-empty').innerText(),/No sanitized/);
   await page.evaluate(()=>diag.startRun('m-'+'c'.repeat(32),'audit'));await page.getByRole('button',{name:'REFRESH HISTORY',exact:true}).click();assert.match(await position.innerText(),/EVENT 1 \/ 1/);
   await page.evaluate(()=>app.destroy());assert.equal(await page.locator('#mission-control').count(),0);checks.push('Empty/evicted history can recover and full Mission Control teardown removes debugger');
+  const predicates=JSON.parse(spawnSync(process.env.PYTHON||'python3',['-c',`import ast,json
+t=ast.parse(open('demo/vm/browser_smoke.py').read())
+print(json.dumps([n.args[0].value for n in ast.walk(t) if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and n.func.attr=='wait_for_function' and n.args and isinstance(n.args[0],ast.Constant)]))`],{cwd:root,encoding:'utf8'}).stdout);
+  assert.equal(predicates.length,2);
+  for(const source of predicates){assert.equal(await page.evaluate(source=>{const body=document.body;body.remove();try{return (0,eval)(source)('proof')}finally{document.documentElement.append(body)}},source),false);await page.evaluate(()=>document.body.textContent='proof');assert.equal(await page.evaluate(source=>(0,eval)(source)('proof'),source),true)}
+  checks.push('Actual Pages readiness predicates tolerate document replacement and still require proof text');
   assert.deepEqual(errors,[]);assert.deepEqual(external,[]);assert.equal(calls.run,2);
   fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({passed:true,browser:await browser.version(),checks,errors,external,scope:'native local Harness + browser; no WASM runtime or paid provider qualification'},null,2));console.log(JSON.stringify({passed:true,checks},null,2));
 }

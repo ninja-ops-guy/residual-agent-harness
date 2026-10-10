@@ -60,7 +60,7 @@ async def main() -> int:
             print(f"WEBVM_STAGE: {name}", flush=True)
 
         async def wait_text(text: str, timeout: int = 120000) -> None:
-            await page.wait_for_function("text => document.body.innerText.replace(/\\s/g,'').includes(text.replace(/\\s/g,''))", arg=text, timeout=timeout)
+            await page.wait_for_function("text => (document.body?.innerText || '').replace(/\\s/g,'').includes(text.replace(/\\s/g,''))", arg=text, timeout=timeout)
 
         async def wait_guest() -> None:
             await wait_text(BOOT, timeout=args.boot_timeout * 1000)
@@ -74,7 +74,7 @@ async def main() -> int:
             await page.keyboard.press("Control+u")
             await page.keyboard.type(wire, delay=1)
             await page.keyboard.press("Enter")
-            await page.wait_for_function("pattern => new RegExp(pattern).test(document.body.innerText.replace(/\\s/g,''))", arg=proof_pattern(prefix).pattern, timeout=180000)
+            await page.wait_for_function("pattern => new RegExp(pattern).test((document.body?.innerText || '').replace(/\\s/g,''))", arg=proof_pattern(prefix).pattern, timeout=180000)
             marker, code = parse_exit_marker(await page.locator("body").inner_text(), prefix)
             report.setdefault("guest_proofs", []).append({"command": command, "observed_exit_marker": marker, "exit_status": code})
             assert code == 0, f"Guest command failed with exit {code}: {command}"
@@ -119,7 +119,7 @@ async def main() -> int:
             report["failure"] = f"{type(error).__name__}: {error}"
         finally:
             try:
-                report["page_state"] = await page.evaluate("({url:location.pathname, isolated:window.crossOriginIsolated, controlled:!!navigator.serviceWorker.controller, title:document.title, body:document.body.innerText.slice(-20000)})")
+                report["page_state"] = await page.evaluate("({url:location.pathname, isolated:window.crossOriginIsolated, controlled:!!navigator.serviceWorker.controller, title:document.title, body:(document.body?.innerText || '').slice(-20000)})")
             except Exception as error:
                 report["capture_error"] = str(error)
             try:
