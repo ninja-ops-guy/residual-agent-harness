@@ -1,5 +1,5 @@
 {
-  "recorded_at": "2026-10-10T00:12:07.254785+00:00",
+  "recorded_at": "2026-10-10T00:16:25.465124+00:00",
   "scope": "Browser/WebVM Mission Control historical inspector; local Chromium plus real native Python Harness execution, not WASM execution",
   "base_main": "8369f0dc2a93d8dcb194220b85b9aaf87d1d6df2",
   "source_sha256": {
@@ -14,7 +14,8 @@
     "tests/test_webvm_diagnostics.py": "5cccd6e957641e270f11bc1f508aebd8322b38083e9c53c9dd4cd99b80eef0fe",
     "package.json": "ba86a63cd839baf493b506943da96b4711216fd636ba6d7e3ee002afddf1d717",
     "demo/vm/browser_smoke.py": "8bad9bc543c2463971d3ca2850df4b5541740bdd0193b4d5b08d89bf6266d643",
-    "demo/vm/mission_smoke.py": "fd6b8a5b122f92c96f2e374620962d71a950a9df2c09973709480cfe7e6b08ad"
+    "demo/vm/mission_smoke.py": "4f1fba7d5cabb0c18ec5958a929f544fafe4f3691454f48ea099a7ff5d570aea",
+    "tests/test_webvm_timetravel_proof.py": "eb3ed46bc7565208406aa4f0ee40e36872269eefc967c04f9644e48fe717dfb6"
   },
   "time_travel_browser": {
     "passed": true,
@@ -67,7 +68,7 @@
       "passed": 63
     },
     "python_focused": {
-      "passed": 50
+      "passed": 56
     }
   },
   "remaining_gates": [
@@ -81,6 +82,11 @@
       "run_id": 38007757481,
       "finding": "Pages proof dereferenced document.body during service-worker reload",
       "repair": "Null-safe readiness predicates and capture; actual predicates verified with body removed and restored. All proof/identity assertions retained."
+    },
+    {
+      "run_id": 38008039326,
+      "finding": "Snapshot equality rejected asynchronous health/UI observations appended after the real guest audit",
+      "repair": "Every preexisting event must remain byte-equivalent by unique event ID; only health/UI records may append; new execution/provider/evidence/recovery records remain forbidden. Six regression tests cover positive and negative cases."
     }
   ]
 }

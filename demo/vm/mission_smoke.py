@@ -248,7 +248,7 @@ async def time_travel_acceptance(page, args, report, stage):
     await page.get_by_label('Time travel scope').select_option(run_id)
     snapshot = page.locator('.tt-side .tt-card').first
     assert 'passed' in await snapshot.inner_text(), 'historical audit terminal result missing'
-    retained = await page.evaluate('JSON.stringify(window.__residualDiagnostics.buffer.snapshot())')
+    retained = await page.evaluate('window.__residualDiagnostics.buffer.snapshot()')
     await page.get_by_role('button', name='|◀ FIRST', exact=True).click()
     assert 'submitted' in await snapshot.inner_text(), 'first historical event leaks terminal state'
     await page.get_by_role('button', name='◆ JUMP TO EVIDENCE', exact=True).click()
@@ -257,9 +257,21 @@ async def time_travel_acceptance(page, args, report, stage):
     assert 'passed' in await snapshot.inner_text()
     assert await page.get_by_role('button', name='FORK HERE · UNAVAILABLE', exact=True).is_disabled()
     assert await page.locator('.tt-hero img').evaluate('(image) => image.complete && image.naturalWidth > 0'), 'bundled hero failed to load'
-    assert retained == await page.evaluate('JSON.stringify(window.__residualDiagnostics.buffer.snapshot())'), 'inspection changed diagnostic history'
+    appended = verify_inspection_history(retained, await page.evaluate('window.__residualDiagnostics.buffer.snapshot()'))
+    report['time_travel_background_observations'] = appended
     assert await page.locator('#mc-timetravel-panel').evaluate('(el) => el.scrollWidth <= el.clientWidth'), 'debugger horizontal overflow'
     await page.screenshot(path=str(args.output / 'time-travel-real-guest.png'))
     report['time_travel_real_guest'] = 'PASS_READ_ONLY_HISTORICAL_INSPECTION'
     await stage('time_travel_real_guest_audit_inspection_passed')
     await page.locator('#mc-mission').click()
+
+
+def verify_inspection_history(before, after):
+    """Existing records stay immutable; background health/UI observation can append."""
+    by_id = {event['event_id']: event for event in after}
+    assert len(by_id) == len(after), 'duplicate diagnostic event identity'
+    assert all(by_id.get(event['event_id']) == event for event in before), 'inspection changed or deleted retained diagnostic history'
+    before_ids = {event['event_id'] for event in before}
+    appended = [event['event_type'] for event in after if event['event_id'] not in before_ids]
+    assert all(kind in {'runtime.health_changed', 'ui.state_changed'} for kind in appended), 'inspection produced new execution or unexpected diagnostic activity'
+    return appended
