@@ -108,3 +108,30 @@ test('telemetry emitter rejects invalid event names instead of creating arbitrar
   assert.equal(diag.emit('not valid', {status:'bad'}), null);
   assert.equal(diag.buffer.snapshot().length, 0);
 });
+
+test('streamed guest frames survive every possible two-chunk boundary',()=>{
+  const frame='\x1b]777;RESIDUAL;'+Buffer.from(JSON.stringify({mission_id:mid,kind:'mission_started',data:{}})).toString('base64')+'\x07';
+  for(let split=1;split<frame.length;split++){
+    const diag=diagnostics();diag.consumeOutput(frame.slice(0,split));diag.consumeOutput(frame.slice(split));
+    assert.equal(diag.buffer.snapshot().filter(e=>e.event_type==='mission.started').length,1,`split ${split}`);
+  }
+});
+
+test('malformed and oversized streaming frames recover without retaining payloads',()=>{
+  const diag=diagnostics();diag.consumeOutput('\x1b]777;RESIDUAL;'+'x'.repeat(400001));assert.equal(diag.outputCarry,'');
+  diag.consumeOutput('\x1b]777;RESIDUAL;INVALID\x07');
+  diag.consumeOutput('\x1b]777;RESIDUAL;'+Buffer.from(JSON.stringify({mission_id:mid,kind:'mission_started',data:{}})).toString('base64')+'\x07');
+  assert.equal(diag.buffer.snapshot().filter(e=>e.event_type==='mission.started').length,1);
+});
+
+test('restored session retains run correlation and does not invent a new run',()=>{
+  const storage=new Map(),saved=globalThis.sessionStorage;
+  globalThis.sessionStorage={getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)};
+  try{
+    const original=diagnostics(),run=original.startRun(mid,'audit');
+    const restored=new DemoDiagnostics();assert.equal(restored.latestRunId,run);
+    restored.consumeFrame({mission_id:mid,kind:'mission_started',data:{}});
+    assert.equal(restored.buffer.snapshot().filter(e=>e.event_type==='mission.submitted').length,1);
+    assert.equal(restored.buffer.snapshot().at(-1).run_id,run);
+  }finally{if(saved===undefined)delete globalThis.sessionStorage;else globalThis.sessionStorage=saved}
+});

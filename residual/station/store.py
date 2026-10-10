@@ -52,10 +52,22 @@ class Store(ObservationStore):
             self.init_observations(c)
         self.settings({"session_token": secrets.token_urlsafe(32), "worker_token": secrets.token_urlsafe(32)}, defaults=True)
 
+    @contextlib.contextmanager
     def connect(self):
+        """Yield one SQLite connection and always close the OS handle.
+
+        sqlite3.Connection.__exit__ commits/rolls back but deliberately does not
+        close the connection. Relying on CPython refcount cleanup made Station
+        data appear leak-free on POSIX while keeping station.sqlite3 locked on
+        Windows. Every Store connection is scoped, so make that lifetime explicit.
+        """
         c = sqlite3.connect(self.db, timeout=15)
         c.row_factory = sqlite3.Row
-        return c
+        try:
+            with c:
+                yield c
+        finally:
+            c.close()
 
     @contextlib.contextmanager
     def transaction(self):

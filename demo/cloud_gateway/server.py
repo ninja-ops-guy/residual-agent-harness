@@ -9,6 +9,10 @@ TTL = int(os.getenv('RESIDUAL_DEMO_TTL_SECONDS', '900'))
 MAX_REQUESTS = int(os.getenv('RESIDUAL_DEMO_MAX_REQUESTS', '8'))
 MAX_TOKENS = int(os.getenv('RESIDUAL_DEMO_MAX_TOKENS', '4096'))
 MAX_OUTPUT = int(os.getenv('RESIDUAL_DEMO_MAX_OUTPUT_TOKENS', '512'))
+MAX_BODY_BYTES = int(os.getenv('RESIDUAL_DEMO_MAX_BODY_BYTES', '262144'))
+MAX_UPSTREAM_BYTES = int(os.getenv('RESIDUAL_DEMO_MAX_UPSTREAM_BYTES', '2097152'))
+MAX_ACTIVE_SESSIONS = int(os.getenv('RESIDUAL_DEMO_MAX_ACTIVE_SESSIONS', '32'))
+MAX_SESSIONS_PER_HOUR = int(os.getenv('RESIDUAL_DEMO_MAX_SESSIONS_PER_HOUR', '64'))
 FREELLM = os.environ.get('FREELLMAPI_BASE_URL', '').rstrip('/')
 FREELLM_EMAIL = os.environ.get('FREELLMAPI_ADMIN_EMAIL', '')
 FREELLM_PASSWORD = os.environ.get('FREELLMAPI_ADMIN_PASSWORD', '')
@@ -20,13 +24,27 @@ ALLOWED_MODELS = {'auto', 'auto:fast', 'auto:smart'}
 _lock = threading.Lock()
 
 
+class DemoCapacityError(RuntimeError):
+    pass
+
+
+class RequestTooLarge(ValueError):
+    pass
+
+
 def _diag(stage, exc):
     msg = str(exc).replace('\n', ' ')[:240]
     print(f'[residual-demo] stage={stage} error={type(exc).__name__} detail={msg}', flush=True)
 
 
 def _db():
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH, timeout=10)
+    try:
+        os.chmod(DB_PATH, 0o600)
+    except OSError:
+        conn.close()
+        raise
     conn.row_factory = sqlite3.Row
     conn.execute('PRAGMA journal_mode=WAL')
     conn.execute('''CREATE TABLE IF NOT EXISTS sessions(
@@ -44,7 +62,9 @@ def _json(url, method='GET', body=None, headers=None, timeout=20):
     if headers: hdr.update(headers)
     req = urllib.request.Request(url, data=data, headers=hdr, method=method)
     with urllib.request.urlopen(req, timeout=timeout) as r:
-        raw = r.read()
+        raw = r.read(MAX_UPSTREAM_BYTES + 1)
+        if len(raw) > MAX_UPSTREAM_BYTES:
+            raise RuntimeError('upstream response exceeds configured limit')
         return r.status, dict(r.headers), json.loads(raw or b'{}')
 
 
@@ -54,7 +74,10 @@ def _form(url, body, headers=None, timeout=20):
     if headers: hdr.update(headers)
     req = urllib.request.Request(url, data=data, headers=hdr, method='POST')
     with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read() or b'{}')
+        raw = r.read(MAX_UPSTREAM_BYTES + 1)
+        if len(raw) > MAX_UPSTREAM_BYTES:
+            raise RuntimeError('upstream response exceeds configured limit')
+        return json.loads(raw or b'{}')
 
 
 def _freellm_admin_token():
@@ -102,28 +125,46 @@ def _new_session():
     if not all([FREELLM, FREELLM_EMAIL, FREELLM_PASSWORD, TS_CLIENT_ID, TS_CLIENT_SECRET]):
         raise RuntimeError('gateway is not fully configured')
     _cleanup_expired()
-    token = 'rdemo_' + secrets.token_urlsafe(32)
-    try:
-        profile_id, profile_key = _freellm_create_profile('residual-demo-' + token[-8:])
-    except Exception as e:
-        _diag('freellm_profile_create', e)
-        raise
-    try:
-        ts_key = _tailscale_auth_key()
-    except Exception as e:
-        _diag('tailscale_auth_key', e)
-        _freellm_delete_profile(profile_id)
-        raise
     now = int(time.time())
-    try:
-        with _lock:
-            conn = _db(); conn.execute(
+    # Session creation is the public resource-allocation boundary. Serialize
+    # issuance so concurrent callers cannot race around the global caps.
+    with _lock:
+        conn = _db()
+        active = conn.execute(
+            'SELECT COUNT(*) FROM sessions WHERE revoked=0 AND expires>?',
+            (now,),
+        ).fetchone()[0]
+        recent = conn.execute(
+            'SELECT COUNT(*) FROM sessions WHERE created>=?',
+            (now - 3600,),
+        ).fetchone()[0]
+        conn.close()
+        if active >= MAX_ACTIVE_SESSIONS or recent >= MAX_SESSIONS_PER_HOUR:
+            raise DemoCapacityError('demo session capacity reached; retry later')
+
+        token = 'rdemo_' + secrets.token_urlsafe(32)
+        try:
+            profile_id, profile_key = _freellm_create_profile('residual-demo-' + token[-8:])
+        except Exception as e:
+            _diag('freellm_profile_create', e)
+            raise
+        try:
+            ts_key = _tailscale_auth_key()
+        except Exception as e:
+            _diag('tailscale_auth_key', e)
+            _freellm_delete_profile(profile_id)
+            raise
+        try:
+            conn = _db()
+            conn.execute(
                 'INSERT INTO sessions(token,created,expires,requests_left,tokens_left,profile_id,profile_key) VALUES(?,?,?,?,?,?,?)',
-                (token, now, now + TTL, MAX_REQUESTS, MAX_TOKENS, profile_id, profile_key)); conn.commit(); conn.close()
-    except Exception as e:
-        _diag('session_store', e)
-        _freellm_delete_profile(profile_id)
-        raise
+                (token, now, now + TTL, MAX_REQUESTS, MAX_TOKENS, profile_id, profile_key),
+            )
+            conn.commit(); conn.close()
+        except Exception as e:
+            _diag('session_store', e)
+            _freellm_delete_profile(profile_id)
+            raise
     print('[residual-demo] stage=session_create status=ok', flush=True)
     return {'token': token, 'expiresAt': now + TTL, 'requests': MAX_REQUESTS, 'tokenBudget': MAX_TOKENS, 'tailscaleAuthKey': ts_key, 'model': 'auto:fast'}
 
@@ -171,6 +212,7 @@ def _route(method, path, headers, body):
                 return 200, out
             return 404, {'error': 'not found'}
         except PermissionError as e: return 401, {'error': {'message': str(e)}}
+        except DemoCapacityError as e: return 429, {'error': {'message': str(e)}}
         except Exception as e:
             _diag('request', e)
             return 503, {'error': {'message': 'demo cloud unavailable', 'detail': type(e).__name__}}
@@ -186,16 +228,30 @@ class ASGIApp:
     async def __call__(self, scope, receive, send):
         if scope.get('type') != 'http': return
         chunks = []
+        total = 0
+        too_large = False
         while True:
             event = await receive()
             if event['type'] != 'http.request': continue
-            chunks.append(event.get('body', b''))
+            chunk = event.get('body', b'')
+            total += len(chunk)
+            if total > MAX_BODY_BYTES:
+                too_large = True
+            elif not too_large:
+                chunks.append(chunk)
             if not event.get('more_body'): break
         headers = {k.decode().lower(): v.decode() for k, v in scope.get('headers', [])}
         path = scope.get('path') or '/'
-        code, obj = _route(scope.get('method', 'GET').upper(), path, headers, b''.join(chunks))
+        if too_large:
+            code, obj = 413, {'error': {'message': 'request body too large'}}
+        else:
+            code, obj = _route(scope.get('method', 'GET').upper(), path, headers, b''.join(chunks))
         origin = headers.get('origin')
         out_headers = [(b'content-type', b'application/json'), (b'cache-control', b'no-store'),
+                       (b'x-content-type-options', b'nosniff'),
+                       (b'referrer-policy', b'no-referrer'),
+                       (b'content-security-policy', b"default-src 'none'; frame-ancestors 'none'"),
+                       (b'x-frame-options', b'DENY'),
                        (b'access-control-allow-headers', b'Authorization, Content-Type'),
                        (b'access-control-allow-methods', b'GET, POST, DELETE, OPTIONS')]
         if origin == ORIGIN:
@@ -217,13 +273,27 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Headers', 'Authorization, Content-Type')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
         self.send_header('Cache-Control', 'no-store')
+        self.send_header('X-Content-Type-Options', 'nosniff')
+        self.send_header('Referrer-Policy', 'no-referrer')
+        self.send_header('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'")
+        self.send_header('X-Frame-Options', 'DENY')
     def _send(self, code, obj):
         raw = b'' if obj is None else json.dumps(obj, separators=(',', ':')).encode(); self.send_response(code); self._cors(); self.send_header('Content-Type','application/json'); self.send_header('Content-Length',str(len(raw))); self.end_headers(); self.wfile.write(raw)
     def _body(self):
-        n = int(self.headers.get('Content-Length','0')); return self.rfile.read(n)
+        try:
+            n = int(self.headers.get('Content-Length','0'))
+        except ValueError as exc:
+            raise RequestTooLarge('invalid content length') from exc
+        if n < 0 or n > MAX_BODY_BYTES:
+            raise RequestTooLarge('request body too large')
+        return self.rfile.read(n)
     def _dispatch(self, method):
         headers = {k.lower(): v for k, v in self.headers.items()}
-        code, obj = _route(method, urllib.parse.urlsplit(self.path).path, headers, self._body() if method == 'POST' else b'')
+        try:
+            body = self._body() if method == 'POST' else b''
+            code, obj = _route(method, urllib.parse.urlsplit(self.path).path, headers, body)
+        except RequestTooLarge as e:
+            code, obj = 413, {'error': {'message': str(e)}}
         self._send(code, obj)
     def do_OPTIONS(self): self._dispatch('OPTIONS')
     def do_GET(self): self._dispatch('GET')

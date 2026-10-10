@@ -16,6 +16,8 @@ jobs:
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Inspect Pages source and deployed entry point
         env:
           GH_TOKEN: ${{ github.token }}

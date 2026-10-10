@@ -68,9 +68,18 @@ class RuntimeJournal:
                 raise JournalError("journal must be a private regular file")
         finally:
             os.close(descriptor)
-        with self._connect(write=True) as db:
-            db.execute("PRAGMA journal_mode=WAL")
-            db.executescript('''
+        # Schema/metadata initialization is idempotent (CREATE ... IF NOT
+        # EXISTS, INSERT OR IGNORE), so admission may be retried under the
+        # same bounded budget as writer transactions when concurrent
+        # openers/readers hold the lock. Non-contention errors and an
+        # exhausted deadline remain fail-closed; nothing is weakened.
+        init_deadline = time.monotonic() + self.WRITE_TRANSACTION_TIMEOUT_S
+        init_delay = 0.01
+        while True:
+            try:
+                with self._connect(write=True, deadline=init_deadline) as db:
+                    db.execute("PRAGMA journal_mode=WAL")
+                    db.executescript('''
                 CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);
                 CREATE TABLE IF NOT EXISTS events (
                     sequence INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -91,12 +100,21 @@ class RuntimeJournal:
                 CREATE TRIGGER IF NOT EXISTS immutable_event_delete BEFORE DELETE ON events
                     BEGIN SELECT RAISE(ABORT, 'append-only events'); END;
             ''')
-            db.execute("BEGIN IMMEDIATE")
-            saved = db.execute("SELECT value FROM metadata WHERE key='trace_id'").fetchone()
-            if saved is not None and saved[0] != trace_id:
-                raise JournalError("journal belongs to another run")
-            db.execute("INSERT OR IGNORE INTO metadata VALUES ('trace_id',?)", (trace_id,))
-            db.execute("COMMIT")
+                    db.execute("BEGIN IMMEDIATE")
+                    saved = db.execute("SELECT value FROM metadata WHERE key='trace_id'").fetchone()
+                    if saved is not None and saved[0] != trace_id:
+                        raise JournalError("journal belongs to another run")
+                    db.execute("INSERT OR IGNORE INTO metadata VALUES ('trace_id',?)", (trace_id,))
+                    db.execute("COMMIT")
+                break
+            except sqlite3.OperationalError as exc:
+                if not self._is_lock_contention(exc):
+                    raise
+                remaining = init_deadline - time.monotonic()
+                if remaining <= 0:
+                    raise
+                time.sleep(min(init_delay, remaining))
+                init_delay = min(init_delay * 2, 0.1)
         self.observations()  # refuse a corrupt persisted chain on restart
 
     # Readers get a longer bounded budget than individual writer connection

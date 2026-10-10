@@ -40,7 +40,7 @@ import sys
 import tempfile
 import time
 
-from ._isolated_child import SANDBOX_ERROR_EXIT, SANDBOX_ERROR_PREFIX, SANDBOX_TIMEOUT_EXIT
+from .m4_protocol import SANDBOX_ERROR_EXIT, SANDBOX_ERROR_PREFIX, SANDBOX_TIMEOUT_EXIT
 from .worker_contract import WorkerContractError
 
 

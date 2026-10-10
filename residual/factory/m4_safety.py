@@ -20,7 +20,7 @@ import time
 import uuid
 
 from .worker_contract import WorkerContractError
-from ._isolated_child import SANDBOX_TIMEOUT_EXIT
+from .m4_protocol import SANDBOX_TIMEOUT_EXIT
 
 
 class M4SafetyError(WorkerContractError):

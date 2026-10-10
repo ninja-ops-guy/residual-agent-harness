@@ -122,6 +122,19 @@ class TestBwrapArgv:
         assert "--ro-bind /etc /etc" in joined
         assert f"--bind {tmp_path} {tmp_path}" in joined
 
+    def test_synthetic_root_is_locked_after_explicit_mounts(self, tmp_path):
+        backend = BwrapBackend()
+        backend.start(SandboxSpec(
+            name="t",
+            fs=FsAllowlist(write=(str(tmp_path),)),
+        ))
+        argv = backend._wrap(["/bin/true"])
+        root_lock = argv.index("--remount-ro")
+        assert argv[root_lock + 1] == "/"
+        assert argv.index("--tmpfs") < root_lock
+        assert argv.index("--bind") < root_lock
+        assert root_lock < argv.index("--chdir")
+
     def test_classify(self):
         assert _classify(0, False) == (0, None, Violation.NONE)
         assert _classify(3, False)[2] is Violation.EXIT_NONZERO

@@ -1,0 +1,214 @@
+name: RESIDUAL Qualification discovery
+
+on:
+  schedule:
+    - cron: '17 5 * * *'
+    - cron: '41 4 * * 0'
+  workflow_dispatch:
+    inputs:
+      weekly_depth:
+        description: Run the one-hour weekly process soak
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  nightly-discovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install qualification dependencies
+        run: python -m pip install '.[factory,qualification]'
+      - name: Stateful lifecycle search
+        run: |
+          mkdir -p runs/qualification-nightly
+          python scripts/qualification_v1.py run \
+            --gate-id nightly-stateful-runtime-journal \
+            --output runs/qualification-nightly/stateful.evidence.json \
+            --log runs/qualification-nightly/stateful.log \
+            --junit runs/qualification-nightly/stateful.xml \
+            --zero-skips \
+            -- python -m pytest tests/qualification/test_stateful_runtime_journal.py -q \
+               --junitxml=runs/qualification-nightly/stateful.xml
+      - name: Extended deterministic schedule exploration
+        run: |
+          python scripts/qualification_v1.py history \
+            --gate-id nightly-distributed-history \
+            --start-seed 20270000 --seeds 250 --steps 200 --lanes 4 \
+            --output runs/qualification-nightly/history.evidence.json \
+            --report runs/qualification-nightly/history-report.json
+      - name: Deterministic 30-virtual-day stress campaign
+        run: |
+          python scripts/qualification_v1.py run \
+            --gate-id nightly-virtual-soak \
+            --output runs/qualification-nightly/virtual-soak.evidence.json \
+            --log runs/qualification-nightly/virtual-soak.log \
+            --evidence-path runs/qualification-nightly/virtual-soak-report.json \
+            --evidence-path runs/qualification-nightly/virtual-soak-state.json \
+            --non-claim 'Virtual-day soak is deterministic fixture evidence, not wall-clock production evidence.' \
+            -- python scripts/qualification_simulated_soak.py \
+               --days 30 --tasks-per-day 1000 \
+               --state runs/qualification-nightly/virtual-soak-state.json \
+               --output runs/qualification-nightly/virtual-soak-report.json
+      - name: Ten-minute live Station process soak
+        run: |
+          python scripts/qualification_v1.py run \
+            --gate-id nightly-process-soak \
+            --output runs/qualification-nightly/process-soak.evidence.json \
+            --log runs/qualification-nightly/process-soak-gate.log \
+            --evidence-path runs/qualification-nightly/process-soak.json \
+            --evidence-path runs/qualification-nightly/process-soak.process.log \
+            -- python scripts/qualification_process_soak.py \
+               --duration-seconds 600 --interval-seconds 5 --startup-seconds 3 \
+               --probe-url http://127.0.0.1:8899/ \
+               --min-slope-window-seconds 300 \
+               --max-rss-growth-mib-per-hour 32 --max-fd-growth-per-hour 8 \
+               --output runs/qualification-nightly/process-soak.json \
+               -- python -m residual.station.server --port 8899 \
+                  --data runs/qualification-nightly/station-data
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-nightly-${{ github.sha }}-${{ github.run_id }}
+          path: runs/qualification-nightly
+          if-no-files-found: error
+          retention-days: 30
+
+
+  nightly-active-workload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: Forty-cycle active lifecycle stress
+        run: |
+          mkdir -p runs/qualification-nightly-active
+          python scripts/qualification_v1.py run \
+            --gate-id nightly-active-workload \
+            --output runs/qualification-nightly-active/active.evidence.json \
+            --log runs/qualification-nightly-active/active.log \
+            --evidence-path runs/qualification-nightly-active/active-report.json \
+            -- python scripts/qualification_active_workload.py \
+               --cycles 40 --output runs/qualification-nightly-active/active-report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-nightly-active-${{ github.sha }}-${{ github.run_id }}
+          path: runs/qualification-nightly-active
+          if-no-files-found: error
+          retention-days: 45
+
+  nightly-race-stress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: Repeat real race campaign under fresh scheduler timings
+        run: |
+          mkdir -p runs/qualification-nightly-race
+          python scripts/qualification_v1.py run \
+            --gate-id nightly-real-concurrency \
+            --output runs/qualification-nightly-race/race.evidence.json \
+            --log runs/qualification-nightly-race/race.log \
+            -- bash -lc 'for i in 1 2 3 4 5; do python -m pytest tests/qualification/test_concurrency_lab.py -q || exit 1; done'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-nightly-race-${{ github.sha }}-${{ github.run_id }}
+          path: runs/qualification-nightly-race
+          if-no-files-found: error
+          retention-days: 45
+
+
+  nightly-active-http:
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: Thirty-cycle active HTTP/server stress
+        run: |
+          mkdir -p runs/qualification-nightly-http
+          python scripts/qualification_v1.py run \
+            --gate-id nightly-active-http-soak \
+            --output runs/qualification-nightly-http/active-http.evidence.json \
+            --log runs/qualification-nightly-http/active-http-gate.log \
+            --evidence-path runs/qualification-nightly-http/active-http-report.json \
+            -- python scripts/qualification_active_http_soak.py \
+               --cycles 30 --port 8894 \
+               --root runs/qualification-nightly-http/state \
+               --output runs/qualification-nightly-http/active-http-report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-nightly-http-${{ github.sha }}-${{ github.run_id }}
+          path: runs/qualification-nightly-http
+          if-no-files-found: error
+          retention-days: 45
+
+  weekly-process-soak:
+    if: github.event.schedule == '41 4 * * 0' || inputs.weekly_depth == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[factory,qualification]'
+      - name: One-hour live Station process soak
+        run: |
+          mkdir -p runs/qualification-weekly
+          python scripts/qualification_v1.py run \
+            --gate-id weekly-process-soak \
+            --output runs/qualification-weekly/process-soak.evidence.json \
+            --log runs/qualification-weekly/process-soak-gate.log \
+            --evidence-path runs/qualification-weekly/process-soak.json \
+            --evidence-path runs/qualification-weekly/process-soak.process.log \
+            -- python scripts/qualification_process_soak.py \
+               --duration-seconds 3600 --interval-seconds 10 --startup-seconds 3 \
+               --probe-url http://127.0.0.1:8900/ \
+               --min-slope-window-seconds 900 \
+               --max-rss-growth-mib-per-hour 24 --max-fd-growth-per-hour 6 \
+               --output runs/qualification-weekly/process-soak.json \
+               -- python -m residual.station.server --port 8900 \
+                  --data runs/qualification-weekly/station-data
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-weekly-${{ github.sha }}-${{ github.run_id }}
+          path: runs/qualification-weekly
+          if-no-files-found: error
+          retention-days: 45

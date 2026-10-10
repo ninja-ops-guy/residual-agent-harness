@@ -118,6 +118,22 @@ class TestSAML(unittest.TestCase):
         with self.assertRaises(ContractError):
             saml.parse_saml_response("<not-xml", self.settings, now=NOW)
 
+    def test_dtd_and_entity_xml_rejected_before_saml_processing(self):
+        xml = """<!DOCTYPE samlp:Response [
+<!ENTITY xxe SYSTEM "file:///etc/passwd">
+]>
+<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol">
+&xxe;
+</samlp:Response>"""
+        with self.assertRaises(ContractError):
+            saml.parse_saml_response(xml, self.settings, now=NOW)
+
+    def test_oversized_saml_response_rejected(self):
+        with self.assertRaises(ContractError):
+            saml.parse_saml_response(" " + ("x" * (saml.MAX_SAML_XML_BYTES + 1)),
+                                     self.settings, now=NOW)
+
+
     def test_all_providers_have_presets_without_custom_config(self):
         for name in ("okta", "azure_ad", "ping", "auth0", "onelogin"):
             self.assertIn(name, saml.SAML_PROVIDERS)

@@ -45,7 +45,8 @@ def _scenario_crash_between_write_and_ack(root):
         crashed = True
     # caller never saw an ack, so it retries with the same event_id
     retry = store.submit(_terminal_event("e1", "task-1", "running"))
-    assert retry["disposition"] == "duplicate"
+    if retry["disposition"] != "duplicate":
+        raise RuntimeError("recovery retry was accepted twice")
     # full process restart + replay from the retained journal
     recovered = DistributedStateStore.recover(root)
     proof = _prove_no_duplicate_accepted(recovered)
@@ -70,7 +71,8 @@ def _scenario_restart_mid_stream(root):
 
     recovered = DistributedStateStore.recover(root)
     caught_up = [r["seq"] for r in recovered.journal.replay(-1)]
-    assert caught_up == list(range(cursor_before + 1))
+    if caught_up != list(range(cursor_before + 1)):
+        raise RuntimeError("recovery replay did not cover the retained journal")
     # duplicates of both pre-crash events after restart must not re-accept
     d1 = recovered.submit(_terminal_event("e1", "task-1", "running"))
     d2 = recovered.submit(_terminal_event("e2", "task-2", "running"))

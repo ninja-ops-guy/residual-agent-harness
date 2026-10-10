@@ -37,6 +37,7 @@ Core implementation surface (enforced in `CORE_PROTECTED`):
 - `residual/factory/m4_evidence.py`
 - `residual/factory/m4_git_evidence.py`
 - `residual/factory/m4_integrator.py`
+- `residual/factory/m4_protocol.py`
 - `residual/factory/m4_safety.py`
 - `residual/factory/m4_sandbox.py`
 - `residual/factory/m4_scheduler.py`

@@ -43,3 +43,33 @@ test('time travel dashboard exposes the interactive 16-bit controls',()=>{
   assert.match(source,/radial-gradient\(#9dffb2/);
   assert.match(source,/READ-ONLY RECONSTRUCTION/);
 });
+
+test('full session never blends independent run mission/provider/evidence state',()=>{
+  const events=[event('mission.finished',1,{status:'failed',failure_code:'old-failure'}),event('provider.request_requested',2,{model:'old-model'}),event('evidence.projected',3,{sequence:9,evidence_kind:'verification'}),event('mission.submitted',4,{mode:'audit'},{run_id:'run_b',mission_id:'m-'+'b'.repeat(32)})];
+  const state=reconstructState(events,3);
+  assert.equal(state.run_id,'run_b');assert.equal(state.mission.status,'submitted');assert.equal(state.mission.failure_code,null);assert.equal(state.provider.model,null);assert.equal(state.evidence.count,0);
+});
+
+test('ordering survives monotonic clock restart and retains stable ties',()=>{
+  const before=event('mission.started',500,{}, {timestamp:'2026-10-09T00:00:00Z'}),after=event('mission.finished',1,{}, {timestamp:'2026-10-09T00:01:00Z'});
+  assert.deepEqual(deriveTimeline([after,before]).map(x=>x.event_type),['mission.started','mission.finished']);
+  assert.deepEqual(deriveTimeline([{...before,event_id:'a'},{...before,event_id:'b'}]).map(x=>x.event_id),['a','b']);
+});
+
+test('transport completion cannot overwrite a verified terminal result',()=>{
+  const state=reconstructState([event('mission.finished',1,{status:'passed'}),event('mission.host_run_completed',2,{run_status:'unknown'})]);
+  assert.equal(state.mission.status,'passed');
+});
+
+test('empty, invalid and out-of-range history is safe; returned events are isolated',()=>{
+  assert.deepEqual(deriveTimeline(null),[]);assert.equal(reconstructState([],99).event_index,-1);
+  const source=[null,event('mission.submitted',1,{mode:'audit'})];const timeline=deriveTimeline(source);timeline[0].context.mode='changed';assert.equal(source[1].context.mode,'audit');
+  assert.equal(reconstructState(timeline,900).event_index,0);
+});
+
+test('rejection evidence is a failure target without granting acceptance authority',async()=>{
+  const {isFailure}=await import('../demo/vm/mission-control-timetravel.js');
+  assert.equal(isFailure(event('evidence.projected',1,{evidence_kind:'counterexample'})),true);
+  assert.equal(isFailure(event('evidence.projected',1,{evidence_kind:'obligation_accepted'})),false);
+  assert.equal(reconstructState([event('evidence.projected',1,{evidence_kind:'obligation_accepted'})]).mission.status,'unknown');
+});

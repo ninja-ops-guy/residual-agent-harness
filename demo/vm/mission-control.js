@@ -44,7 +44,7 @@ export function mountMissionControl(host) {
   const panels = ['chat','activity','evidence','files','timetravel'];
   function selectTab(name) {
     const terminal = name === 'terminal'; element.dataset.view = terminal ? 'terminal' : name;
-    for (const key of panels) $(`${key}-panel`).hidden = terminal || key !== name;
+    for (const key of panels) { const panel=$(`${key}-panel`); if(panel)panel.hidden = terminal || key !== name; }
     element.querySelectorAll('[data-tab]').forEach(button => button.setAttribute('aria-selected', String(button.dataset.tab === name)));
     if (terminal) host.focus();
   }

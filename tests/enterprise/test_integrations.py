@@ -327,6 +327,35 @@ def test_receipt_carries_observations():
         "payload_hash": receipt.payload_hash})
 
 
+def test_connector_rejects_absolute_endpoint_override_before_transport():
+    """Untrusted endpoint input cannot pivot a credentialed connector to another host."""
+    conn, transport = make(ServiceNowConnector)
+    for endpoint in (
+        "https://169.254.169.254/latest/meta-data",
+        "http://127.0.0.1/admin",
+        "//attacker.invalid/steal",
+        "/ok\\..\\escape",
+    ):
+        with pytest.raises(ContractError):
+            conn.call("GET", endpoint)
+    assert transport.calls == []
+
+
+@pytest.mark.parametrize(
+    "base_url",
+    [
+        "file:///etc/passwd",
+        "https://user:pass@example.invalid/api",
+        "https://example.invalid/api?next=http://127.0.0.1",
+        "https://example.invalid/api#fragment",
+        "https://example.invalid/\nHost: attacker.invalid",
+    ],
+)
+def test_connector_rejects_unsafe_base_url(base_url):
+    with pytest.raises(ContractError):
+        IntegrationConnector(base_url)
+
+
 def test_urllib_transport_satisfies_protocol():
     """ENT6-R7: real HTTP lives behind the same transport interface."""
     conn = IntegrationConnector("https://example.invalid")

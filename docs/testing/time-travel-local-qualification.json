@@ -1,0 +1,76 @@
+{
+  "recorded_at": "2026-10-10T00:07:50.928167+00:00",
+  "scope": "Browser/WebVM Mission Control historical inspector; local Chromium plus real native Python Harness execution, not WASM execution",
+  "base_main": "8369f0dc2a93d8dcb194220b85b9aaf87d1d6df2",
+  "source_sha256": {
+    "demo/vm/mission-control-timetravel.js": "b47002d348df49255ece67e2f03c3376de1a0a547d87e43da7a5caf9a364b719",
+    "demo/vm/mission-control-diagnostics.js": "eff224645a77eaffbf760bdef56975a7e2672844b78dd62f21c9093da9d5aedb",
+    "demo/vm/mission-control.js": "0940101fb9d9c89a3ac2816809c08209e17adf3900e5404573e4490ab337f44c",
+    "demo/vm/install_workbench.py": "6943707540acc0099d8ea5840c2cc288e4cfb2d6c774631f8b61af630f0ebc15",
+    "demo/vm/time-travel-hero.webp": "e841a583bcfec98ae925cf02dbfc8d23a4d37038a42175ab3fb756af4623ec63",
+    "tests/webvm-timetravel-browser.cjs": "1179d5297f9af79d5d2562658888d602f2514e78b1592419ce81f98876f7a183",
+    "tests/webvm-timetravel.test.mjs": "8233f9480e9599a1d0c23f3dac4b662a17b3648bec91a417c9674d58c032da84",
+    "tests/webvm-diagnostics.test.mjs": "2b8aaddde67e2065088d3c57cde1859a996471d25d1e42ec3d9d3a8d8fbaab22",
+    "tests/test_webvm_diagnostics.py": "5cccd6e957641e270f11bc1f508aebd8322b38083e9c53c9dd4cd99b80eef0fe",
+    "package.json": "ba86a63cd839baf493b506943da96b4711216fd636ba6d7e3ee002afddf1d717"
+  },
+  "time_travel_browser": {
+    "passed": true,
+    "browser": "153.0.8010.0",
+    "checks": [
+      "Real Python Harness audit: bound result, zero provider calls, chunked output projected into Mission Control and debugger",
+      "First/last/step, keyboard scrubber, evidence jump and event log select real recorded events",
+      "Inspection and refresh preserve retained diagnostics and cause zero execution/mailbox/restart side effects",
+      "Real rejected source request produces inspectable failed host run without false completion",
+      "Explicit negative fixture: counterexample jump and independent run/session scope isolation",
+      "All Mission Control tabs remain symmetric with debugger navigation",
+      "Desktop/tablet/mobile render without horizontal overflow",
+      "Untrusted event text stays inert and disallowed prompt content never reaches the view",
+      "Bounded 5000-event history renders; eviction recovers selection without out-of-range state",
+      "Empty/evicted history can recover and full Mission Control teardown removes debugger"
+    ],
+    "errors": [],
+    "external": [],
+    "scope": "native local Harness + browser; no WASM runtime or paid provider qualification"
+  },
+  "station_browser": {
+    "passed": true,
+    "checks": [
+      "Empty state and onboarding render",
+      "Training mission implements and integrates all tasks",
+      "Mission board opens the goal contract and verified run receipt",
+      "Task drawer exposes the station receipt and prerequisite binding",
+      "Task drawer shows checks and revision evidence",
+      "Verified release downloads from UI",
+      "Operator notes are escaped, not executable HTML",
+      "Model route settings persist after reload",
+      "Batch pass and token limits persist through the model workshop",
+      "Setup checklist remains accessible",
+      "Provider defaults, fallback order, and credential redaction survive reload",
+      "Bedrock reveals only its AWS credential controls",
+      "Markdown template validates from UI",
+      "Invalid Markdown produces actionable feedback",
+      "390px mobile mission switching, navigation and board have no horizontal overflow",
+      "Mobile task receipt wraps without overflow",
+      "Diagnostics inspect live runtime",
+      "Mobile trace verification, filtering, evidence, export and pause/resume work",
+      "Completed generated draft stays visible and opens from the job tray",
+      "No unexpected browser console errors"
+    ],
+    "errors": []
+  },
+  "unit_results": {
+    "javascript_webvm": {
+      "passed": 61
+    },
+    "python_focused": {
+      "passed": 40
+    }
+  },
+  "remaining_gates": [
+    "Hosted exact-head checks",
+    "Built WebVM/WASM proof",
+    "Independent review and release authorization"
+  ],
+  "release_authorized": false
+}

@@ -127,7 +127,12 @@ export class DemoDiagnostics {
     try{
       const value=JSON.parse(storage.getItem(BUFFER_KEY)||'null');
       if(!value||value.session_id!==this.sessionId||!Array.isArray(value.events))return;
-      for(const event of value.events.slice(-MAX_EVENTS)) if(event&&event.schema_version===DIAGNOSTIC_SCHEMA_VERSION)this.buffer.push(event);
+      for(const event of value.events.slice(-MAX_EVENTS)) if(event&&event.schema_version===DIAGNOSTIC_SCHEMA_VERSION){
+        this.buffer.push(event);
+        if(MISSION_ID.test(event.mission_id||'')&&/^run_[a-f0-9]+$/.test(event.run_id||'')){
+          this.runByMission.set(event.mission_id,event.run_id);this.latestRunId=event.run_id;
+        }
+      }
     }catch{}
   }
   persist(){
@@ -200,11 +205,16 @@ export class DemoDiagnostics {
     }catch{}
   }
   consumeOutput(text){
-    const prefix='\x1b]777;RESIDUAL;';let cursor=0;
-    while(typeof text==='string'){
-      const start=text.indexOf(prefix,cursor);if(start<0)return;const end=text.indexOf('\x07',start+prefix.length);if(end<0)return;
-      try{const raw=text.slice(start+prefix.length,end).replace(/-/g,'+').replace(/_/g,'/');const bin=atob(raw);this.consumeFrame(JSON.parse(new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)))));}catch{}
-      cursor=end+1;
+    if(typeof text!=='string')return;
+    const prefix='\x1b]777;RESIDUAL;';this.outputCarry=(this.outputCarry||'')+text;
+    while(true){
+      const start=this.outputCarry.indexOf(prefix);
+      if(start<0){this.outputCarry=this.outputCarry.slice(-prefix.length);return;}
+      if(start)this.outputCarry=this.outputCarry.slice(start);
+      const end=this.outputCarry.indexOf('\x07',prefix.length);
+      if(end<0){if(this.outputCarry.length>400000)this.outputCarry='';return;}
+      try{const raw=this.outputCarry.slice(prefix.length,end).replace(/-/g,'+').replace(/_/g,'/');const bin=atob(raw);this.consumeFrame(JSON.parse(new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)))));}catch{}
+      this.outputCarry=this.outputCarry.slice(end+1);
     }
   }
   uiCode(id,text){
@@ -242,8 +252,9 @@ export function getDemoDiagnostics(){if(!singleton)singleton=new DemoDiagnostics
 export function mountMissionControl(host){
   const diagnostics=getDemoDiagnostics();
   const base=mountWorld(diagnostics.wrapHost(host));
-  try{const root=document.querySelector('#mission-control');if(root){diagnostics.attachDownload(root);diagnostics.observeUi(root);mountTimeTravelDebug(root,diagnostics);}}
+  let debuggerView=null;
+  try{const root=document.querySelector('#mission-control');if(root){diagnostics.attachDownload(root);diagnostics.observeUi(root);debuggerView=mountTimeTravelDebug(root,diagnostics);}}
   catch{}
   try{globalThis.__residualDiagnostics=diagnostics}catch{}
-  return {onOutput(text){try{diagnostics.consumeOutput(text)}catch{}return base.onOutput(text)},connectProvider:base.connectProvider,destroy(){try{diagnostics.emit('session.ui_destroyed',{status:'destroyed'})}catch{}return base.destroy()}};
+  return {onOutput(text){try{diagnostics.consumeOutput(text)}catch{}return base.onOutput(text)},connectProvider:base.connectProvider,destroy(){debuggerView?.destroy();try{diagnostics.emit('session.ui_destroyed',{status:'destroyed'})}catch{}return base.destroy()}};
 }
