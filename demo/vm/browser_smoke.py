@@ -2,16 +2,15 @@
 """Real WebVM acceptance. Cloud failure tests never authenticate or spend money."""
 from __future__ import annotations
 
-import argparse
 import asyncio
 import hashlib
 import json
 import secrets
 import time
-from pathlib import Path
 from urllib.parse import urlsplit
 
 from playwright.async_api import async_playwright
+from browser_smoke_cli import parse_args
 from pages_contract import validate_entry_html
 from mission_smoke import workbench_acceptance
 from provider_failure_smoke import provider_failure_acceptance
@@ -27,14 +26,7 @@ def safe_url(url: str) -> str:
 
 
 async def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--url", required=True)
-    parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--browser", choices=("chromium", "webkit"), default="chromium")
-    parser.add_argument("--mobile", action="store_true")
-    parser.add_argument("--boot-timeout", type=int, default=120)
-    parser.add_argument("--expected-sha", required=True)
-    args = parser.parse_args()
+    args = parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     report = {"url": safe_url(args.url), "browser": args.browser,
               "viewport": "mobile" if args.mobile else "desktop",
