@@ -19,8 +19,12 @@ from scripts import qualification_disposable_process as adapter
 from scripts import qualification_rc_bridge as bridge
 from scripts import qualification_rc_soak as soak
 from scripts import qualification_rc_supervision as sup
-from test_rc_bridge import FixtureJournal
-from test_rc_soak import write_selected_fixture, policy
+if __package__:
+    from .test_rc_bridge import FixtureJournal
+    from .test_rc_soak import write_selected_fixture, policy
+else:
+    from test_rc_bridge import FixtureJournal
+    from test_rc_soak import write_selected_fixture, policy
 
 
 @unittest.skipUnless(os.environ.get('RESIDUAL_RUN_DISPOSABLE_PROCESS_TESTS') == '1',

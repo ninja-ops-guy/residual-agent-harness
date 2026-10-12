@@ -13,8 +13,12 @@ import zipfile
 from scripts import qualification_rc_bridge as bridge
 from scripts import qualification_rc_soak as soak
 from scripts import qualification_rc_supervision as sup
-from test_rc_soak import write_selected_fixture, policy
-from test_rc_supervision import Clock, Process, Driver, PAYLOAD, DIGEST
+if __package__:
+    from .test_rc_soak import write_selected_fixture, policy
+    from .test_rc_supervision import Clock, Process, Driver, PAYLOAD, DIGEST
+else:
+    from test_rc_soak import write_selected_fixture, policy
+    from test_rc_supervision import Clock, Process, Driver, PAYLOAD, DIGEST
 
 
 class FixtureJournal:
