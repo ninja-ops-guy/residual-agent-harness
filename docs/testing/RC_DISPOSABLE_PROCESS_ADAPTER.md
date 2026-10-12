@@ -124,3 +124,103 @@ unverified in the general runtime sense. rc_qualified is always false. No 24-hou
 acceptance, seal capability, durable journal guarantee or native/Station/provider
 qualification was enabled or claimed. No socket/network call, installation,
 credential/security change, WSL use or remote publication was performed.
+
+## Current candidate-only reproduction (8295cdcf)
+
+This section is a local documentation proposal, not a new test result. The historical
+v8/v9 runner commands above require helpers that were not committed. The following
+candidate-only command uses committed source and installed Python 3.11+ with no
+third-party test dependency. Run only in an authorized writable checkout with
+permission to create short-lived Python children. It does not run a live soak.
+
+From the checkout root, paste this PowerShell command. Use `tests` for the package
+discovery layout. In a separate invocation replace the final argument with
+`tests/qualification` for the direct-directory layout. Each invocation creates a
+fresh fixture directory beneath the checkout and retains it for inspection.
+
+```powershell
+@'
+import os
+from pathlib import Path
+import sys
+import tempfile
+import unittest
+from unittest.mock import patch
+
+root = Path.cwd().resolve()
+layout = sys.argv[1]
+if layout not in ("tests", "tests/qualification"):
+    raise SystemExit("choose tests or tests/qualification")
+modules = (
+    "test_rc_soak",
+    "test_rc_supervision",
+    "test_rc_bridge",
+    "test_disposable_process_adapter",
+    "test_owned_process_initialization",
+    "test_process_bridge_integration",
+)
+for name in modules:
+    if not (root / "tests/qualification" / (name + ".py")).is_file():
+        raise SystemExit("run from the reviewed checkout root")
+fixture = Path(tempfile.mkdtemp(prefix="rc-candidate-review-", dir=root))
+tempfile.tempdir = str(fixture)
+os.environ["TMP"] = str(fixture)
+os.environ["TEMP"] = str(fixture)
+os.environ["RESIDUAL_RUN_DISPOSABLE_PROCESS_TESTS"] = "1"
+os.environ["RESIDUAL_DISPOSABLE_WORKSPACE"] = str(root)
+os.environ["RESIDUAL_DISPOSABLE_FIXTURES"] = str(fixture)
+print("python=" + sys.version)
+print("executable=" + sys.executable)
+print("fixtures=" + str(fixture))
+loader = unittest.TestLoader()
+suite = unittest.TestSuite()
+with patch.object(os, "link", side_effect=AssertionError(
+        "DENIED_PRIMITIVE_MUST_NOT_BE_RETRIED")) as forbidden:
+    for name in modules:
+        suite.addTests(loader.discover(layout, pattern=name + ".py"))
+    if loader.errors:
+        raise SystemExit("\n".join(loader.errors))
+    if suite.countTestCases() != 94:
+        raise SystemExit("unexpected candidate test count")
+    result = unittest.TextTestRunner(verbosity=2, failfast=True).run(suite)
+    print("actual_os_link_calls=" + str(forbidden.call_count))
+    forbidden.assert_not_called()
+raise SystemExit(not result.wasSuccessful())
+'@ | python -B - tests
+```
+
+The explicit six-module allowlist excludes baseline qualification tests and their
+pytest dependency. Discovery of every test beneath tests/qualification is not
+equivalent to candidate-only validation in a complete checkout. Both empty package
+markers already committed at tests/__init__.py and tests/qualification/__init__.py
+must remain present; do not remove them to make imports pass.
+
+The historical corrected local overlay collected 94 tests per layout: 92 PASS and
+two unconditional actual-sealing SKIP. Those counts are an expectation to check,
+not a result for the command proposed here. Without the opt-in before import, six
+process-adapter, three constructor-ownership and three integration tests skip:
+12 additional skips, yielding 80 PASS / 14 SKIP for this candidate set if all other
+tests pass. The hosted broad-suite 36 skips include these 12 tests plus other
+baseline/platform skips; hosted success does not show disposable-process execution.
+
+The fixture root is created before import, is inside the declared workspace, and
+is also selected for tempfile, TMP and TEMP. The committed child helper is
+tests/fixtures/rc_disposable_child.py; no external runner or Library file supplies
+code to this command. The tests retain ownership/cleanup receipts under the printed
+fixture path. They operate on owned subprocesses only. Keep evidence directories
+out of commits. Do not rerun an operation after an access denial or replace the
+sealing primitive to get a passing result.
+
+This remains bounded synthetic fixture validation, not admitted-artifact execution
+attribution, an independent watchdog, durable journal/crash proof, real sealing or
+uninterrupted 24-hour qualification. rc_qualified and elapsed_soak_satisfied remain
+false. The two sealing skips and the os.link guard must remain unchanged.
+
+
+Wrapper setup validation (Python 3.13.5, Windows): syntax compilation and five
+setup-only checks passed for package/direct discovery, failure-exit propagation,
+invalid layout and wrong checkout root. Each valid layout collected exactly 94
+candidate tests with only the two sealing skip decorators. The test runner was
+replaced by an inspecting stub; TestCase.run, child launch and the real os.link
+were forbidden. No established test bodies ran and no new 92-pass result is
+claimed. A deliberately failing non-candidate module remained unimported.
