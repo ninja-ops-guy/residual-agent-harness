@@ -1,6 +1,6 @@
 # RESIDUAL v1 master remaining-work list
 
-**Current review-only view: 2026-10-08. Canonical review-only branch: `docs/v1-master-readiness-current-r1`. No release authority.**
+**Current review-only view: 2026-10-13. Canonical review-only branch: `docs/v1-master-readiness-current-r1`. No release authority.**
 
 Historical append-only evidence delta: [`V1_MASTER_READINESS_DELTA_20261003T0605ET.md`](./V1_MASTER_READINESS_DELTA_20261003T0605ET.md). The current overlay below now supersedes that delta where later exact-head #516/WebVM evidence is recorded; the delta remains retained chronology rather than current authority.
 
@@ -19,7 +19,7 @@ This is the current entry point for v1 convergence, replacing the stale #416-era
 - No percentage substitutes for satisfied applicable gates. No row is promoted to MERGED_AND_REQUALIFIED here.
 
 
-## Current convergence overlay — 2026-10-08
+## Current convergence overlay — 2026-10-13
 
 This overlay is the current read-model for release-critical successors discovered after the historical body below. It does not rewrite retained evidence or grant merge, canary, physical-test, provider, deployment, tag, or release authority. Exact-head evidence is not inherited across changed heads.
 
@@ -318,3 +318,12 @@ This overlay records later exact-head safety evidence without transferring accep
 
 
 No status above authorizes canary, physical/native execution, ownership-pin advancement, merge, deployment, tag, or release. Historical R4.1 READY_FOR_CANARY remains historical only; #423/#426 and issue #353 remain separate controlling gates.
+
+
+### 2026-10-13 PR #534 exact-head review and gate reconciliation
+
+This dated metadata note supersedes only the stale **current-view** dates above; historical evidence and the dated 2026-10-05 overlays remain unchanged. At the preceding #534 head `f80482eeb4e41630d9c3a0fac84e70a81a9ea9d2`, based on accepted `main@8369f0dc2a93d8dcb194220b85b9aaf87d1d6df2`, Qualification-v1 (`38439584843`), Command Station (`38439584809`), controller/provider (`38439584905`), Factory ownership (`38439584826`), Control Plane (`38439584802`), clean install (`38439584744`), and measured acceptance (`38439584950`) completed successfully. These qualify that documentation candidate, not the independently unmerged successors, a selected final composition, native proof, canary, F6, or release.
+
+The original exact-head maintainer workflow `38439584779` failed *before* the October 13 owner attestation because it found no eligible exact-head approval; its 22 unit tests passed. Owner's later exact-head comment `6155878077` binds `f80482e...`; the newer published `maintainer-approval` commit status was successful (target run `38473125721`). The initial failed run is historical and is not rewritten as PASS. Advisory review run `38439584998` failed with HTTP 401 `invalid_api_key` for its configured model credentials (both attempted model choices); it published no substantive advisory review. This is a review-infrastructure/authentication failure, not a finding against the ledger's content. No submitted independent GitHub PR review was recorded at that head.
+
+This documentation correction itself creates a **new candidate head**. None of the seven CI successes or the owner comment for `f80482e...` automatically qualifies or approves the new commit; collect a new exact-head gate result, distinct owner attestation and independent reviewer disposition before any merge decision. PR #534 remains REVIEW-ONLY and `V1_RELEASE_HOLD` remains in force. No selected release tree, protected pin change, physical/native test, canary, deployment or release is authorized here.
