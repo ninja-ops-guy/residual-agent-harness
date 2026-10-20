@@ -1,0 +1,75 @@
+name: Simple mission experiment
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  dag-real-model-mission:
+    if: github.head_ref == 'experiment/simple-spec-mission-smoke'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      OLLAMA_HOST: 127.0.0.1:11435
+      RUNNER_MODEL: qwen2.5-coder:3b
+      REVIEWER_MODEL: llama3.2:1b
+      ROLE_PROXY_EVENTS: /tmp/residual-role-proxy-events.jsonl
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install RESIDUAL
+        run: python -m pip install -e '.[factory]'
+      - name: Install Ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+      - name: Start upstream Ollama
+        run: |
+          nohup ollama serve > /tmp/ollama-dag.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:11435/api/tags >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/ollama-dag.log
+          exit 1
+      - name: Pull heterogeneous models
+        run: |
+          ollama pull "$RUNNER_MODEL"
+          ollama pull "$REVIEWER_MODEL"
+      - name: Start role router and deterministic one-shot fault injector
+        run: |
+          nohup python scripts/ollama_role_proxy.py --port 11436 --upstream http://127.0.0.1:11435 --runner-model "$RUNNER_MODEL" --reviewer-model "$REVIEWER_MODEL" --events "$ROLE_PROXY_EVENTS" > /tmp/role-proxy.log 2>&1 &
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:11436/api/tags >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/role-proxy.log
+          exit 1
+      - name: Execute heterogeneous DAG mission
+        run: |
+          python scripts/dag_real_model_mission.py --base-url http://127.0.0.1:11436 --runner-model "$RUNNER_MODEL" --reviewer-model "$REVIEWER_MODEL" --proxy-events "$ROLE_PROXY_EVENTS" --output runs/dag-real-model-mission/evidence.json
+      - name: Show retained DAG evidence
+        if: always()
+        run: |
+          if [ -f runs/dag-real-model-mission/evidence.json ]; then
+            cat runs/dag-real-model-mission/evidence.json
+          fi
+          echo "--- role proxy events ---"
+          cat "$ROLE_PROXY_EVENTS" || true
+          echo "--- role proxy log ---"
+          tail -200 /tmp/role-proxy.log || true
+          echo "--- ollama log ---"
+          tail -200 /tmp/ollama-dag.log || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dag-real-model-mission-evidence
+          path: |
+            runs/dag-real-model-mission
+            /tmp/residual-role-proxy-events.jsonl
+            /tmp/role-proxy.log
+            /tmp/ollama-dag.log
