@@ -1,0 +1,60 @@
+name: M6-SPEC-007F evidence-aware typed discovery
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  m6-spec-007f:
+    if: github.head_ref == 'experiment/m6-spec-007f-evidence-aware-schema'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      OLLAMA_HOST: 127.0.0.1:11448
+      OLLAMA_NO_CLOUD: "1"
+      OLLAMA_MODEL: qwen2.5-coder:7b
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install RESIDUAL
+        run: python -m pip install -e '.[factory]'
+      - name: Syntax-check experiment
+        run: python -m py_compile scripts/m6_spec_007f.py
+      - name: Install Ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+      - name: Start dedicated Ollama endpoint
+        run: |
+          nohup ollama serve > /tmp/ollama-m6-spec-007f.log 2>&1 &
+          echo $! > /tmp/ollama-m6-spec-007f.pid
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:11448/api/tags >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ollama-m6-spec-007f.log
+          exit 1
+      - name: Pull analysis model
+        run: ollama pull "$OLLAMA_MODEL"
+      - name: Record runtime identity
+        run: |
+          ollama --version
+          ollama list | tee /tmp/ollama-models-m6-spec-007f.txt
+          sha256sum scripts/m6_spec_007f.py | tee /tmp/m6-spec-007f-script-sha256.txt
+      - name: Execute authoritative evidence-aware discovery trial
+        run: python scripts/m6_spec_007f.py --model "$OLLAMA_MODEL" --base-url http://127.0.0.1:11448 --output runs/m6-spec-007f/evidence.json
+      - name: Retain evidence
+        if: always()
+        run: |
+          test ! -f runs/m6-spec-007f/evidence.json || cat runs/m6-spec-007f/evidence.json
+          tail -300 /tmp/ollama-m6-spec-007f.log || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m6-spec-007f-evidence-aware-discovery
+          path: |
+            runs/m6-spec-007f
+            /tmp/ollama-m6-spec-007f.log
+            /tmp/ollama-m6-spec-007f.pid
+            /tmp/ollama-models-m6-spec-007f.txt
+            /tmp/m6-spec-007f-script-sha256.txt
