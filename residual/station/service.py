@@ -52,6 +52,23 @@ def _repair_detail(detail: str, limit: int = _REPAIR_DETAIL_LIMIT) -> str:
     head = max(1, limit - tail - len(marker))
     return text[:head] + marker + text[-tail:]
 
+
+_REPAIR_DETAIL_LIMIT = 500
+_REPAIR_TRUNCATION_MARKER = "\n...[middle omitted; failure tail retained]...\n"
+
+
+def _repair_detail(detail: str, limit: int = _REPAIR_DETAIL_LIMIT) -> str:
+    """Bound repair feedback while retaining the terminal exception/reason."""
+    text = str(detail or "")
+    if len(text) <= limit:
+        return text
+    marker = _REPAIR_TRUNCATION_MARKER
+    # Tracebacks and compiler diagnostics usually put the root cause at the end.
+    # Keep both context and the terminal reason without increasing the historic bound.
+    tail = min(300, max(1, limit // 2))
+    head = max(1, limit - tail - len(marker))
+    return text[:head] + marker + text[-tail:]
+
 DEMO_FILES = {
     "OPS-101": {"station/health.py": 'def status(services):\n    """A station is ready only when every required service is online."""\n    return "ready" if services and all(services.values()) else "degraded"\n'},
     "OPS-102": {"station/retry.py": 'def delay(attempt):\n    """Bounded exponential retry delay in seconds."""\n    if not isinstance(attempt, int) or isinstance(attempt, bool) or attempt < 0:\n        raise ValueError("attempt must be a nonnegative integer")\n    return min(2 ** min(attempt, 6), 60)\n'},
