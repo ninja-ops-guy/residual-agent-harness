@@ -1,0 +1,102 @@
+# Import Linter contracts for the proposed MS-00..08 seam DAG (G0).
+# See docs/architecture/SEAM-DAG.md for the DAG and rationale.
+#
+# Adoption steps (maintainer):
+#   1. Add dev dependency: pip install import-linter
+#   2. Run: lint-imports --config .importlinter
+#   3. Wire into CI as a required check (token used for this PR lacks
+#      workflow scope, so no .github/workflows change is included here).
+#
+# Equivalent stdlib-only offline check (no dependency): 
+#   python3 scripts/check_seam_layers.py
+#
+# NOTE: current main @ 3cff6bcd has ONE known violation
+# (residual.factory.runtime_journal imports residual.factory.worker_contract,
+# MS-00 -> MS-01). Adopt CI gating only after that is resolved or an
+# explicit owner-approved exemption is recorded.
+
+[importlinter]
+root_packages =
+    residual
+    ai_providers
+
+[importlinter:contract:ms00-below-ms08]
+name = MS-00 ledger core is below MS-08 admission/fencing
+type = layers
+layers =
+    residual.dsm.evidence
+    residual.dsm.recovery
+    residual.dsm.store
+    residual.dsm.delivery
+    residual.dsm.faults
+    residual.dsm.lease
+    residual.dsm.ownership
+    residual.dsm.journal
+
+[importlinter:contract:ms02-is-leaf]
+name = MS-02 resolution/registry imports no orchestration, admission, or ledger module
+type = forbidden
+source_modules =
+    ai_providers
+    ai_providers.router
+    ai_providers.registry
+    residual.extensions
+forbidden_modules =
+    residual.station
+    residual.dsm
+    residual.factory
+
+[importlinter:contract:ms00-is-foundation]
+name = MS-00 ledger core imports no upper seam layer
+type = forbidden
+source_modules =
+    residual.factory.runtime_journal
+    residual.dsm.journal
+forbidden_modules =
+    residual.station
+    residual.dsm.store
+    residual.dsm.lease
+    residual.dsm.ownership
+    ai_providers
+    residual.factory.runtime
+    residual.factory.worker_contract
+
+[importlinter:contract:ms08-not-above-ms01]
+name = MS-08 admission/fencing imports no orchestration or resolution layer
+type = forbidden
+source_modules =
+    residual.dsm
+forbidden_modules =
+    residual.station
+    residual.factory.runtime
+    residual.factory.worker_contract
+    ai_providers
+    residual.extensions
+ignore_imports =
+    # FINDING (SEAM-GAP-REPORT.md section 3.4): residual.core lazily imports
+    # residual.extensions (VerifierRevision) at core.py:240 and :271 — a
+    # kernel -> MS-02 upward edge, deferred inside function bodies. Exempted
+    # here pending owner decision; flagged by scripts/check_seam_layers.py.
+    residual.core -> residual.extensions
+
+[importlinter:contract:protected-not-imported-by-seams]
+name = Factory/M4 and verifier authority are never imported by seam layers
+type = forbidden
+source_modules =
+    residual.factory.runtime_journal
+    residual.dsm
+    residual.station
+    ai_providers
+    residual.extensions
+forbidden_modules =
+    residual.factory.m4_evidence
+    residual.factory.m4_git_evidence
+    residual.factory.m4_integrator
+    residual.factory.m4_qualification_prereq
+    residual.factory.m4_safety
+    residual.factory.m4_sandbox
+    residual.factory.m4_scheduler
+# Note: residual.extensions -> residual.verifier and residual.station.extensions ->
+# residual.verifier exist on main and are tracked as findings (SEAM-GAP-REPORT.md
+# section 3), not gated here; consumption-as-is of verifier authority is permitted
+# by the exclusion boundary.
