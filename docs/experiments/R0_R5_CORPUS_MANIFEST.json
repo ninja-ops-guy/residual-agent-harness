@@ -1,0 +1,81 @@
+{
+  "schema_version": "residual.r0-r5.corpus-manifest.v1",
+  "prepared": "2026-09-15",
+  "reconciles": {
+    "pr90_head": "058da769359583b29d1923dacb87a42ba3aa12f7",
+    "pr91_head": "d07ef173c4c7f1748740d6601e0b3c8126ac13ed",
+    "main": "eefee6ac005c93278f483e002e38a768920f0fae"
+  },
+  "promotion_rule": "development_fixture and adversarial_engineering tiers never enter confirmatory denominators or research claims",
+  "tiers": {
+    "T1_development_fixture": {
+      "name": "FrozenWorkload-v1",
+      "source": "PR #90 docs/evaluation/r0-r5.fixture-workload.json",
+      "path": "docs/evaluation/r0-r5.fixture-workload.json",
+      "sha256": "3fa35842fe13da56201b21fc7b26080e40708fda6deba28e3e6050c1397ed4fe",
+      "manifest_hash": "39b30aa126185aff598739e930f49c91537751b0ab113b4bd8c460c2f12533a0",
+      "seed": 20260914,
+      "task_count": 16,
+      "task_ids": ["fw1-000", "fw1-001", "fw1-002", "fw1-003", "fw1-004", "fw1-005", "fw1-006", "fw1-007", "fw1-008", "fw1-009", "fw1-010", "fw1-011", "fw1-012", "fw1-013", "fw1-014", "fw1-015"],
+      "task_hashes": [
+        "4aa4997cf6c4580b7a6cdcef6202822d167f53d1e41555c39ea649dc6973cf26",
+        "84b40a441b72817a0e0ae647955397d5c18ba4598c27eb09ca8b98b5f632757d",
+        "1e76014b333c5d370c8896f64404e204356380dfe8c59e55e18938f3ee97f656",
+        "8907f8430165713ead7bc9dae548dd6e94503df1be9742d4553262405d150ab0",
+        "3fd4333b8b221c855e1cecb026da9549717331f192657085eedc98b41d640c41",
+        "50cafee04ddd0aec859b45d6050e46814f412b27ee4b2d8c472a72e925f0ff9d",
+        "541406f138110ed414e0de82ef3fe798cac7c6b96d336091d3430d1cdecbb137",
+        "d9159e77b2879bf0f298298770dd98d2d2b03afcb566bdc0ea2968f328eeb159",
+        "08a446bb218902661a258aa1ad04cbd4a001312f616362528c98526488343281",
+        "74ddbdfc69ed67067f7f48906ffb8a737febdb952fe2f742c43a14403475ade4",
+        "8332189754947f6cd3bac944da6a025be15c06be68d9bde8e22559c4b3b72981",
+        "4f8d4838bb577b7c9de6c1f22417c344f5f394549ddea98cee300b0c8de05e94",
+        "59c8ccaa15f03dd01d4997099632ca50d73d884a286b045ffc0155a0a6f1fb2c",
+        "a95badcdfdcbab087689b2a8fd76e0b48e6d404e2d2917837f9dc7d489c92815",
+        "9a2feb68c7fd56ecf78ecd2c9d7808305cf430f69530c5231d9700dd1c32bf90",
+        "ea68cf6dcc4c23cf424bce51a431612de550471ee66e1495180f17e80cff8273"
+      ],
+      "evidence_level": "development_fixture",
+      "permitted_use": ["adapter smoke", "integration tests", "NOT_RUN schedule generation"],
+      "confirmatory_eligible": false
+    },
+    "T2_adversarial_verifier_corpus": {
+      "name": "adversarial-preflight-v1",
+      "source": "PR #91 experiments/preflight/adversarial/",
+      "path": "experiments/preflight/adversarial/manifest.json",
+      "manifest_sha256": "ee94c35c2fa823386b195c778b5540c98ca710fe4a4ac33e4b5f38c17aa36756",
+      "gold_labels_sha256": "72ab4faf51ae2e7e061ea62a5c28f8b14777d27237540f206b2d5cb67b2f3cc3",
+      "fault_matrix_sha256": "e61622b817c8de0e44afbf22b0a1768b2e2f478a2e7b133ed378139aa53bf671",
+      "case_count": 16,
+      "defects": 8,
+      "controls": 8,
+      "evidence_level": "adversarial_engineering",
+      "permitted_use": ["verifier quality evaluation (C07)", "fault-design reference"],
+      "confirmatory_eligible": false,
+      "note": "public repository; no secrecy against a verifier that can browse it; labels never exposed to the verifier under evaluation"
+    },
+    "T3_confirmatory_workload": {
+      "name": "R0R5-Confirmatory-v1",
+      "status": "BLOCKED-UNTIL-GENERATED",
+      "path": "BLOCKED-UNTIL-GENERATED",
+      "sha256": "BLOCKED-UNTIL-GENERATED",
+      "manifest_hash": "BLOCKED-UNTIL-GENERATED",
+      "family_count_F": "BLOCKED-UNTIL-GENERATED: selected by the frozen power calculation (smallest multiple of 10 in [30,200] meeting the rule in R0_R5_ANALYSIS_PLAN.md)",
+      "tasks_per_family": 3,
+      "repetitions": 10,
+      "task_hashes": "BLOCKED-UNTIL-GENERATED",
+      "grader_map": "BLOCKED-UNTIL-GENERATED: per-task independent grader identity and revision",
+      "task_to_plan_map": "BLOCKED-UNTIL-GENERATED: approved Factory plan per task",
+      "generation_procedure": {
+        "step_1": "Author independent task families disjoint from T1, T2, all development inputs, and all smoke inputs; record author identities and contamination limits.",
+        "step_2": "Freeze each task's prompt bytes, starting artifact tree SHA, expected interface, and independent grader (identity + revision + SHA-256) before any model sees any task.",
+        "step_3": "Balance the design: equal tasks per family (3), 10 repetitions per task, schedule seeds 20260914..20260923.",
+        "step_4": "Compute per-task SHA-256, workload byte SHA-256, and manifest hash over the canonical FrozenWorkload schema (residual.eval_frozen.workload).",
+        "step_5": "Fill every BLOCKED-UNTIL-GENERATED slot in this manifest in a single commit; retain the manifest SHA-256 through the external commitment channel before outcome access.",
+        "step_6": "Any correction after generation requires a new corpus version and preserves v1 artifacts; never edit based on observed verifier or model behavior."
+      },
+      "evidence_level": "confirmatory",
+      "confirmatory_eligible": true
+    }
+  }
+}
