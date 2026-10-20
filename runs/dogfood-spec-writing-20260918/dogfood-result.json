@@ -1,0 +1,41 @@
+{
+  "attempt_a": {
+    "elapsed_s": 0.068,
+    "label": "real local model route, no provider configured",
+    "run_returned": {
+      "state": "repair_required",
+      "task_id": "SPEC-1"
+    },
+    "task_state": "repair_required"
+  },
+  "attempt_b": {
+    "elapsed_s": 0.222,
+    "final_state": "integrated",
+    "integrated_head": "5af5675aec3700190eace07e1dda778c58158d1d",
+    "label": "scripted local openai-compatible provider; real triage/claim/verify/review/integrate/export",
+    "metrics": {
+      "calls": 3,
+      "cloud_input": 0,
+      "cloud_output": 0,
+      "events": 17,
+      "local_input": 20,
+      "local_output": 20,
+      "report_bytes": 2560,
+      "reported_tokens": 40,
+      "request_bytes": 24057,
+      "unreported_calls": 1
+    },
+    "observation_export_sha256": "efc88f0735b07310f083dfe3d0d9f40dada165612a2bb32589fd2ceec39f6481",
+    "release_id": "p-c6b815ac1ab8:4adf010791fa548d8c6c2069cfaf333d6b061f06e4989530d3329f93d12e191d",
+    "release_sha256": "4adf010791fa548d8c6c2069cfaf333d6b061f06e4989530d3329f93d12e191d",
+    "release_size": 3904,
+    "review": {
+      "approved": true,
+      "findings": []
+    },
+    "review_state": "approved",
+    "run_returned_state": "review_ready",
+    "verification_receipt_hash": "dc5ffb9ce3ee4296c562d57cde3f114969b96a8c37fec4518c15dc45d30a9ded"
+  },
+  "head": "4608afabf5de4c87d77aaf149dfc12538d364f43"
+}
