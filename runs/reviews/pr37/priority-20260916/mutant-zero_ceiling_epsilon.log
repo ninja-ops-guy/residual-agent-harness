@@ -1,0 +1,10 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/test_external_budget.py::ExternalBudgetTests::test_zero_budget_cannot_use_epsilon_to_buy_a_call -q --tb=short
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____ ExternalBudgetTests.test_zero_budget_cannot_use_epsilon_to_buy_a_call _____
+tests/test_external_budget.py:93: in test_zero_budget_cannot_use_epsilon_to_buy_a_call
+    self.assertEqual(CountingProvider.calls, 0)
+E   AssertionError: 2 != 0
+=========================== short test summary info ============================
+FAILED tests/test_external_budget.py::ExternalBudgetTests::test_zero_budget_cannot_use_epsilon_to_buy_a_call
+1 failed in 0.14s

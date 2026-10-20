@@ -112,6 +112,7 @@ def main(argv=None):
         suite,
         load_engines(args.engines),
         trials=manifest.trials,
+        maximum_budget_usd=manifest.maximum_budget_usd,
     ).run()
     bundle = build_evidence_bundle(
         manifest=manifest,

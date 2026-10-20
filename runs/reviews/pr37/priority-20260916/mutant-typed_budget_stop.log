@@ -1,0 +1,11 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/test_external_budget.py::ExternalBudgetTests::test_engine_budget_stop_is_not_relabelled_as_candidate_failure -q --tb=short
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_ ExternalBudgetTests.test_engine_budget_stop_is_not_relabelled_as_candidate_failure _
+tests/test_external_budget.py:118: in test_engine_budget_stop_is_not_relabelled_as_candidate_failure
+    with self.assertRaises(EvidenceBudgetExceeded):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: EvidenceBudgetExceeded not raised
+=========================== short test summary info ============================
+FAILED tests/test_external_budget.py::ExternalBudgetTests::test_engine_budget_stop_is_not_relabelled_as_candidate_failure
+1 failed in 0.14s

@@ -1,0 +1,11 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/test_external_budget.py::ExternalBudgetTests::test_budget_blocks_before_first_provider_dispatch -q --tb=short
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____ ExternalBudgetTests.test_budget_blocks_before_first_provider_dispatch _____
+tests/test_external_budget.py:61: in test_budget_blocks_before_first_provider_dispatch
+    with self.assertRaises(EvidenceBudgetExceeded):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: EvidenceBudgetExceeded not raised
+=========================== short test summary info ============================
+FAILED tests/test_external_budget.py::ExternalBudgetTests::test_budget_blocks_before_first_provider_dispatch
+1 failed in 0.14s

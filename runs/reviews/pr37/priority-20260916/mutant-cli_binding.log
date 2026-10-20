@@ -1,0 +1,175 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/test_external_budget.py::ExternalBudgetTests::test_cli_forwards_frozen_ceiling_to_actual_dispatch -q --tb=short
+F                                                                        [100%]
+=================================== FAILURES ===================================
+___ ExternalBudgetTests.test_cli_forwards_frozen_ceiling_to_actual_dispatch ____
+tests/test_external_budget.py:142: in test_cli_forwards_frozen_ceiling_to_actual_dispatch
+    with self.assertRaises(EvidenceBudgetExceeded):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: EvidenceBudgetExceeded not raised
+----------------------------- Captured stdout call -----------------------------
+{
+  "engine_config_sha256": "6fb280872b4d9fc006fc6b026cc7c2ba725298409006282ebec921f2a08c02ad",
+  "preregistration": {
+    "engine_config_sha256": "6fb280872b4d9fc006fc6b026cc7c2ba725298409006282ebec921f2a08c02ad",
+    "hypotheses": [
+      "budget remains bounded"
+    ],
+    "maximum_budget_usd": 0.04,
+    "notes": "",
+    "primary_metric": "market_success_rate",
+    "registered_at": "2026-09-16T00:00:00Z",
+    "runner_revision": "test-only",
+    "schema_version": "residual.external-preregistration.v2",
+    "secondary_metrics": [],
+    "stopping_rule": {
+      "kind": "fixed_evaluation_cases",
+      "value": 1
+    },
+    "study_id": "dispatch-boundary",
+    "suite_sha256": "6cb9663d7a5ae32549762d1d04ee66402d188279665026675978d9a3ed699702",
+    "trials": 2
+  },
+  "preregistration_sha256": "601c1cffcdbeb9b6191718c22a3d49ebe1c3f61031ce0346c8a690bcc8748079",
+  "projected_declared_cost_usd": 0.04,
+  "projected_provider_calls": 8,
+  "report": {
+    "baselines": {
+      "cheapest_eligible": {
+        "declared_cost_usd": 0.02,
+        "evaluation_successes": 0,
+        "evaluation_total": 2,
+        "market_success_delta": 0.0,
+        "success_ci95": {
+          "confidence": 0.95,
+          "lower": 0.0,
+          "upper": 0.6576280471103807
+        },
+        "success_rate": 0.0
+      },
+      "fixed_engine": {
+        "provider:ollama:m2@provider-bridge-v1": {
+          "declared_cost_usd": 0.04,
+          "success_ci95": {
+            "confidence": 0.95,
+            "lower": 0.0,
+            "upper": 0.6576280471103807
+          },
+          "success_rate": 0.0
+        },
+        "provider:openai:m1@provider-bridge-v1": {
+          "declared_cost_usd": 0.02,
+          "success_ci95": {
+            "confidence": 0.95,
+            "lower": 0.0,
+            "upper": 0.6576280471103807
+          },
+          "success_rate": 0.0
+        }
+      }
+    },
+    "budget": {
+      "accounting": "declared_per_task_not_provider_billing",
+      "maximum_budget_usd": null,
+      "reserved_declared_cost_usd": 0.12
+    },
+    "claim_scope": "Repeated live externally-authored workload evidence; conclusions remain scoped to the supplied suite, trial count, engines, models, declared prices, and execution environment.",
+    "engine_count": 2,
+    "evaluation_attempts": 2,
+    "evaluation_cases_per_trial": 1,
+    "evaluation_rows": [
+      {
+        "case_id": "eval-1",
+        "cheapest_engine_id": "provider:openai:m1@provider-bridge-v1",
+        "cheapest_passed": false,
+        "engine_id": "provider:openai:m1@provider-bridge-v1",
+        "latency_ms": 0,
+        "market_reason": "best_available_below_constraint",
+        "passed": false,
+        "token_usage": 1,
+        "trial": 1
+      },
+      {
+        "case_id": "eval-1",
+        "cheapest_engine_id": "provider:openai:m1@provider-bridge-v1",
+        "cheapest_passed": false,
+        "engine_id": "provider:openai:m1@provider-bridge-v1",
+        "latency_ms": 0,
+        "market_reason": "best_available_below_constraint",
+        "passed": false,
+        "token_usage": 1,
+        "trial": 2
+      }
+    ],
+    "market": {
+      "declared_cost_usd": 0.02,
+      "evaluation_successes": 0,
+      "evaluation_total": 2,
+      "oracle_gap": 0.0,
+      "oracle_success_ci95": {
+        "confidence": 0.95,
+        "lower": 0.0,
+        "upper": 0.6576280471103807
+      },
+      "oracle_success_rate": 0.0,
+      "oracle_successes": 0,
+      "success_ci95": {
+        "confidence": 0.95,
+        "lower": 0.0,
+        "upper": 0.6576280471103807
+      },
+      "success_rate": 0.0
+    },
+    "per_engine": {
+      "provider:ollama:m2@provider-bridge-v1": {
+        "cost_per_task": 0.02,
+        "evaluation_declared_cost_usd": 0.04,
+        "evaluation_success_ci95": {
+          "confidence": 0.95,
+          "lower": 0.0,
+          "upper": 0.6576280471103807
+        },
+        "evaluation_success_rate": 0.0,
+        "evaluation_successes": 0,
+        "evaluation_total": 2,
+        "model": "m2",
+        "provider": "ollama",
+        "train_successes": 0,
+        "train_total": 2
+      },
+      "provider:openai:m1@provider-bridge-v1": {
+        "cost_per_task": 0.01,
+        "evaluation_declared_cost_usd": 0.02,
+        "evaluation_success_ci95": {
+          "confidence": 0.95,
+          "lower": 0.0,
+          "upper": 0.6576280471103807
+        },
+        "evaluation_success_rate": 0.0,
+        "evaluation_successes": 0,
+        "evaluation_total": 2,
+        "model": "m1",
+        "provider": "openai",
+        "train_successes": 0,
+        "train_total": 2
+      }
+    },
+    "provenance": {
+      "author": "independent-evaluator",
+      "authored_at": "2026-09-14T00:00:00Z",
+      "source_uri": "https://example.invalid/frozen"
+    },
+    "schema_version": "residual.external-evidence.v2",
+    "sha256": "bbaff87fbf95b607e6dac075000e904b9e775c6ac9bd09506664d7643fca597c",
+    "suite_name": "public-mini",
+    "suite_sha256": "6cb9663d7a5ae32549762d1d04ee66402d188279665026675978d9a3ed699702",
+    "trials": 2
+  },
+  "schema_version": "residual.external-evidence-bundle.v2",
+  "sha256": "6a3f55a9ca1d1a7d14a5c2e9f6a0a73da8c43b7ad7fdbfd62ee3d74a645f07b3",
+  "study_id": "dispatch-boundary",
+  "suite_sha256": "6cb9663d7a5ae32549762d1d04ee66402d188279665026675978d9a3ed699702",
+  "trials": 2
+}
+=========================== short test summary info ============================
+FAILED tests/test_external_budget.py::ExternalBudgetTests::test_cli_forwards_frozen_ceiling_to_actual_dispatch
+1 failed in 0.15s
