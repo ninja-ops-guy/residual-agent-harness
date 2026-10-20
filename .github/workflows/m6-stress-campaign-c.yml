@@ -1,0 +1,30 @@
+name: M6 Stress Campaign C
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  deterministic-failure-matrix:
+    if: github.head_ref == 'experiment/m6-stress-campaign-c'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install RESIDUAL
+        run: python -m pip install -e '.[factory]'
+      - name: Run deterministic failure matrix
+        run: python scripts/m6_stress_failure_matrix.py --output runs/m6-stress-failure-matrix/evidence.json
+      - name: Show evidence
+        if: always()
+        run: test ! -f runs/m6-stress-failure-matrix/evidence.json || cat runs/m6-stress-failure-matrix/evidence.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m6-stress-failure-matrix-evidence
+          path: runs/m6-stress-failure-matrix
