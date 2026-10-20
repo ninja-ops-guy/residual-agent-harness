@@ -1,0 +1,60 @@
+name: M6-SHIP-002 ImprovementSpec diagnostic repair
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  m6-ship-002:
+    if: github.head_ref == 'experiment/m6-roadmap-ship-improvementspec-002'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      OLLAMA_HOST: 127.0.0.1:11440
+      OLLAMA_NO_CLOUD: "1"
+      OLLAMA_MODEL: qwen2.5-coder:7b
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install RESIDUAL
+        run: python -m pip install -e '.[factory]'
+      - name: Confirm checkout cleanliness
+        run: test -z "$(git status --porcelain)"
+      - name: Install Ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+      - name: Start dedicated Ollama endpoint
+        run: |
+          nohup ollama serve > /tmp/ollama-m6-ship-002.log 2>&1 &
+          echo $! > /tmp/ollama-m6-ship-002.pid
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:11440/api/tags >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ollama-m6-ship-002.log
+          exit 1
+      - name: Pull coding model
+        run: ollama pull "$OLLAMA_MODEL"
+      - name: Record runtime identity
+        run: |
+          git rev-parse HEAD | tee /tmp/m6-ship-002-source-head.txt
+          ollama --version
+          ollama list | tee /tmp/ollama-models-m6-ship-002.txt
+      - name: Execute authoritative shipping trial
+        run: python scripts/m6_ship_improvementspec.py --model "$OLLAMA_MODEL" --base-url http://127.0.0.1:11440 --output runs/m6-roadmap-ship-002/improvementspec-evidence.json
+      - name: Retain evidence
+        if: always()
+        run: |
+          test ! -f runs/m6-roadmap-ship-002/improvementspec-evidence.json || cat runs/m6-roadmap-ship-002/improvementspec-evidence.json
+          tail -300 /tmp/ollama-m6-ship-002.log || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m6-ship-002-improvementspec-evidence
+          path: |
+            runs/m6-roadmap-ship-002
+            /tmp/ollama-m6-ship-002.log
+            /tmp/ollama-m6-ship-002.pid
+            /tmp/ollama-models-m6-ship-002.txt
+            /tmp/m6-ship-002-source-head.txt
