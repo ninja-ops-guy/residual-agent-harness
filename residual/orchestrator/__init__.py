@@ -4,14 +4,8 @@ Pipeline: Intent -> RequirementCompiler -> RequirementGraph ->
 AmbiguityDetector -> WorkPartitioner -> RiskEstimator -> Plan ->
 ApprovalGate (HITL-gated).
 
-Requirement IDs (RFC 2119 language lives in each module docstring):
-ORCH-I-R1..R3   intent schema (intent.py)
-ORCH-I-R4..R6   requirement DAG (requirements.py)
-ORCH-I-R7..R8   requirement compiler (compiler.py)
-ORCH-I-R9..R10  ambiguity detector (ambiguity.py)
-ORCH-I-R11..R13 work partitioner (partition.py)
-ORCH-I-R14..R15 risk estimation (risk.py)
-ORCH-I-R16..R18 plan hash and approval (plan.py)
+The additive flow layer compiles an existing Plan into a staged execution view;
+it does not replace plan authority or the Factory/M4 trust boundary.
 """
 from .intent import Intent
 from .requirements import Requirement, RequirementGraph
@@ -23,6 +17,19 @@ from .risk import (RiskEstimator, RiskReport, DEFAULT_PROTECTED_PREFIXES,
                    FAN_OUT_WEIGHT, PROTECTED_WEIGHT, EXTERNAL_IO_WEIGHT)
 from .plan import (Plan, PlanApproval, ApprovalGate, InMemoryApprovalGate,
                    HITLApprovalGate, DECISION_APPROVED, DECISION_DENIED)
+from .flow import (
+    CapabilityGrant,
+    ExecutionProfile,
+    FlowCompiler,
+    FlowStage,
+    ResidualFlow,
+    ResumeDecision,
+    StageBudget,
+    StageCheckpoint,
+    StageDoor,
+    StageKind,
+    validate_resume,
+)
 from .pipeline import Orchestrator
 
 __all__ = [
@@ -36,5 +43,8 @@ __all__ = [
     "FAN_OUT_WEIGHT", "PROTECTED_WEIGHT", "EXTERNAL_IO_WEIGHT",
     "Plan", "PlanApproval", "ApprovalGate", "InMemoryApprovalGate",
     "HITLApprovalGate", "DECISION_APPROVED", "DECISION_DENIED",
+    "CapabilityGrant", "ExecutionProfile", "FlowCompiler", "FlowStage",
+    "ResidualFlow", "ResumeDecision", "StageBudget", "StageCheckpoint",
+    "StageDoor", "StageKind", "validate_resume",
     "Orchestrator",
 ]
