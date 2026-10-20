@@ -1,0 +1,13 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/swarm/test_cancellation_ownership.py::test_foreign_proc_namespace_uses_process_api -q --tb=short
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________________ test_foreign_proc_namespace_uses_process_api _________________
+tests/swarm/test_cancellation_ownership.py:84: in test_foreign_proc_namespace_uses_process_api
+    scan.assert_not_called()
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py:910: in assert_not_called
+    raise AssertionError(msg)
+E   AssertionError: Expected 'iterdir' to not have been called. Called 1 times.
+E   Calls: [call(), call().__iter__()].
+=========================== short test summary info ============================
+FAILED tests/swarm/test_cancellation_ownership.py::test_foreign_proc_namespace_uses_process_api
+1 failed in 0.11s

@@ -1,0 +1,3 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/swarm/test_cancellation_ownership.py tests/swarm/test_runtime_distributed_closure.py tests/swarm/test_runtime005.py tests/swarm/test_dsm.py -q --tb=short
+........................................................................ [100%]
+72 passed in 1.85s

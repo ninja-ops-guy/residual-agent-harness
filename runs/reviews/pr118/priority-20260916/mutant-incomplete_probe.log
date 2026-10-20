@@ -1,0 +1,12 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/swarm/test_cancellation_ownership.py::test_unreadable_proc_cannot_prove_empty_group -q --tb=short
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________________ test_unreadable_proc_cannot_prove_empty_group _________________
+tests/swarm/test_cancellation_ownership.py:74: in test_unreadable_proc_cannot_prove_empty_group
+    assert CancellationController._group_has_live_members(999)
+E   assert False
+E    +  where False = <function CancellationController._group_has_live_members at 0x7fb3a6fdede0>(999)
+E    +    where <function CancellationController._group_has_live_members at 0x7fb3a6fdede0> = CancellationController._group_has_live_members
+=========================== short test summary info ============================
+FAILED tests/swarm/test_cancellation_ownership.py::test_unreadable_proc_cannot_prove_empty_group
+1 failed in 0.09s

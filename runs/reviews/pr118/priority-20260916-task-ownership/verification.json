@@ -1,0 +1,108 @@
+{
+  "schema": "residual.priority-repair.validation.v1",
+  "lane": "118",
+  "recorded_commit": "8cdd7c53d27f777c827fc64c2c122068702bd5b7",
+  "tracked_changes": [],
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "command": [
+    "tests/swarm/test_cancellation_ownership.py",
+    "tests/swarm/test_runtime_distributed_closure.py",
+    "tests/swarm/test_runtime005.py",
+    "tests/swarm/test_dsm.py"
+  ],
+  "positive_exit_code": 0,
+  "restored_exit_code": 0,
+  "mutations": [
+    {
+      "name": "exited_leader",
+      "path": "residual/runtime/cancellation.py",
+      "selector": "tests/swarm/test_cancellation_ownership.py::test_exited_leader_does_not_hide_live_descendant",
+      "before": "return (getattr(process, \"returncode\", None) is None or\n                (pgid is not None and os.name == \"posix\" and\n                 self._group_has_live_members(pgid)))",
+      "after": "return getattr(process, \"returncode\", None) is None",
+      "source_sha256": "bf662e5a5459bcd8643de50366f78fa20ed5fff8cc155b42ee728ef613f3a035",
+      "mutant_sha256": "c3429cd7e8a1f5d3c3b1d613afd59e9234f81922e31c3bd2359894a58f185675",
+      "exit_code": 1,
+      "log": "mutant-exited_leader.log"
+    },
+    {
+      "name": "incomplete_probe",
+      "path": "residual/runtime/cancellation.py",
+      "selector": "tests/swarm/test_cancellation_ownership.py::test_unreadable_proc_cannot_prove_empty_group",
+      "before": "if not incomplete:",
+      "after": "if True:",
+      "source_sha256": "bf662e5a5459bcd8643de50366f78fa20ed5fff8cc155b42ee728ef613f3a035",
+      "mutant_sha256": "9a12adec1c5d4bc1fdf7ac7f0257ba1736dfd8c193cedf48ed4f2e5bdf45ef27",
+      "exit_code": 1,
+      "log": "mutant-incomplete_probe.log"
+    },
+    {
+      "name": "foreign_namespace",
+      "path": "residual/runtime/cancellation.py",
+      "selector": "tests/swarm/test_cancellation_ownership.py::test_foreign_proc_namespace_uses_process_api",
+      "before": "if (int(own_stat.split(\" \", 1)[0]) != os.getpid() or",
+      "after": "if False and (int(own_stat.split(\" \", 1)[0]) != os.getpid() or",
+      "source_sha256": "bf662e5a5459bcd8643de50366f78fa20ed5fff8cc155b42ee728ef613f3a035",
+      "mutant_sha256": "a748a69036f998fee70ab45450c707d64e4aa55e2ed09a532c624ef86789fa38",
+      "exit_code": 1,
+      "log": "mutant-foreign_namespace.log"
+    },
+    {
+      "name": "finite_budget",
+      "path": "residual/runtime/cancellation.py",
+      "selector": "tests/swarm/test_cancellation_ownership.py::test_cancellation_requires_finite_deadline",
+      "before": "not math.isfinite(self.budget_s) or ",
+      "after": "",
+      "source_sha256": "bf662e5a5459bcd8643de50366f78fa20ed5fff8cc155b42ee728ef613f3a035",
+      "mutant_sha256": "49b9d19319335f11d4e87b70eade4eb3d50168333f4a314e3521c9b143993fd0",
+      "exit_code": 1,
+      "log": "mutant-finite_budget.log"
+    },
+    {
+      "name": "ownership_name",
+      "path": "residual/runtime/cancellation.py",
+      "selector": "tests/swarm/test_cancellation_ownership.py::test_process_name_cannot_replace_an_owned_process",
+      "before": "if name in self._processes and self._processes[name] != (process, process_group_id):",
+      "after": "if False:",
+      "source_sha256": "bf662e5a5459bcd8643de50366f78fa20ed5fff8cc155b42ee728ef613f3a035",
+      "mutant_sha256": "4b83adfaf2019c8f6b8ac5161f19d0c94f2fa09af33ba8599f54e3055f7854b6",
+      "exit_code": 1,
+      "log": "mutant-ownership_name.log"
+    },
+    {
+      "name": "task_name",
+      "path": "residual/runtime/cancellation.py",
+      "selector": "tests/swarm/test_cancellation_ownership.py::test_task_name_cannot_replace_an_active_operation",
+      "before": "if existing is not None and existing is not task and not existing.done():",
+      "after": "if False:",
+      "source_sha256": "bf662e5a5459bcd8643de50366f78fa20ed5fff8cc155b42ee728ef613f3a035",
+      "mutant_sha256": "636b66e96a3e00f21d7d5e9f67626fb10cead48267106c8d23968b84e2cc5f7a",
+      "exit_code": 1,
+      "log": "mutant-task_name.log"
+    },
+    {
+      "name": "stale_callback",
+      "path": "residual/runtime/cancellation.py",
+      "selector": "tests/swarm/test_cancellation_ownership.py::test_old_task_callback_cannot_erase_its_replacement",
+      "before": "if self._tasks.get(key) is completed:",
+      "after": "if True:",
+      "source_sha256": "bf662e5a5459bcd8643de50366f78fa20ed5fff8cc155b42ee728ef613f3a035",
+      "mutant_sha256": "5c0ca204fc2f0d5d03df815bb49403a70144f427968e5b7a7e243a496b973f82",
+      "exit_code": 1,
+      "log": "mutant-stale_callback.log"
+    }
+  ],
+  "independent_review": false,
+  "claim_scope": "implementer regression evidence; no production, elapsed-soak or independent acceptance claim",
+  "files_sha256": {
+    "mutant-exited_leader.log": "4cc35a5b28d93cfd401e69d9c8647521584b487bcee23602eaf6140785914d67",
+    "mutant-finite_budget.log": "17e3c41d2af4cb4f60c41471460e995ef11b4407438502476475c7b1dc372f86",
+    "mutant-foreign_namespace.log": "bb4f1f35a993be7f9aa2382478bc3e54f9e361dc76aa22b43a0dc87b779897bf",
+    "mutant-incomplete_probe.log": "f9df92d9c8aa04e5afa8dbe060e471615c2de549a2d9b088a55379ad4d3cc668",
+    "mutant-ownership_name.log": "a1863ef4c31b63344856fc657e91ebed1c63061b92b0b99024d0584f8df1e5d6",
+    "mutant-stale_callback.log": "c8ef559f84b634eee71fd8d3bdcc007b1d72a17a8ae2d0713bd97d9f18b61ab6",
+    "mutant-task_name.log": "05ccecd7251fbaddf1f6d1df71dbcdb988edd470f9ee8d0f241c00e0c83d4e0b",
+    "positive.log": "1881e7f0f7744555ba71a5abfb1983ab96885debbc877a4044f72ac4863c4c3c",
+    "restored-positive.log": "808b0db75a1ff5bad40603dd43c3ce0e80da640196b4a1ac68f2a7503d1ff1c3"
+  }
+}

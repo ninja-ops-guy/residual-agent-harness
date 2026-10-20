@@ -1,0 +1,17 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/swarm/test_cancellation_ownership.py::test_cancellation_requires_finite_deadline -q --tb=short
+FF.                                                                      [100%]
+=================================== FAILURES ===================================
+_______________ test_cancellation_requires_finite_deadline[nan] ________________
+tests/swarm/test_cancellation_ownership.py:90: in test_cancellation_requires_finite_deadline
+    with pytest.raises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+_______________ test_cancellation_requires_finite_deadline[inf] ________________
+tests/swarm/test_cancellation_ownership.py:90: in test_cancellation_requires_finite_deadline
+    with pytest.raises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+=========================== short test summary info ============================
+FAILED tests/swarm/test_cancellation_ownership.py::test_cancellation_requires_finite_deadline[nan]
+FAILED tests/swarm/test_cancellation_ownership.py::test_cancellation_requires_finite_deadline[inf]
+2 failed, 1 passed in 0.08s
