@@ -1,0 +1,13 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/swarm/test_economics_integrity.py::test_generator_refuses_unrelated_tree_and_dirty_source -q --tb=short
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____________ test_generator_refuses_unrelated_tree_and_dirty_source ____________
+tests/swarm/test_economics_integrity.py:62: in test_generator_refuses_unrelated_tree_and_dirty_source
+    with pytest.raises(ValueError, match='tree differs'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+----------------------------- Captured stdout call -----------------------------
+{"evidence_sha256": "d6ec9e6e325fe40344239ed26a17544e531d5f375bad73004c90671cefaebc60", "output": "/tmp/pytest-of-root/pytest-75/test_generator_refuses_unrelat0/output", "report_sha256": "44619956cba44785345dee5d1756b1c46899b9c2dbc5e7174d875665ca5d56f4"}
+=========================== short test summary info ============================
+FAILED tests/swarm/test_economics_integrity.py::test_generator_refuses_unrelated_tree_and_dirty_source
+1 failed in 0.21s

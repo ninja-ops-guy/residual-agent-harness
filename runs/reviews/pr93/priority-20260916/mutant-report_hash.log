@@ -1,0 +1,11 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest tests/swarm/test_economics_integrity.py::test_pareto_refuses_report_changed_after_hashing -q --tb=short
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________ test_pareto_refuses_report_changed_after_hashing _______________
+tests/swarm/test_economics_integrity.py:34: in test_pareto_refuses_report_changed_after_hashing
+    with pytest.raises(ContractError, match='hash'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ContractError
+=========================== short test summary info ============================
+FAILED tests/swarm/test_economics_integrity.py::test_pareto_refuses_report_changed_after_hashing
+1 failed in 0.18s

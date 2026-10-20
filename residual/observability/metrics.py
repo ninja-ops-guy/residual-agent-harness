@@ -47,6 +47,17 @@ class MetricsRegistry:
             "residual_loop_accepted_tree_changes_total":(Counter(),("mode",)),
             "residual_loop_repeated_failure_total":(Counter(),("mode",)),
             "residual_loop_churn_total":(Counter(),("mode",)),
+            # Reliability telemetry is a bounded projection.  Task IDs,
+            # prompts, commit hashes and evidence hashes are intentionally not
+            # labels (OBS-R2/R3).
+            "residual_reliability_runs_total":(Counter(),("task_class","topology","state")),
+            "residual_reliability_acceptance_total":(Counter(),("task_class","topology","accepted")),
+            "residual_reliability_verifier_rejections_total":(Counter(),("verifier_family","topology")),
+            "residual_reliability_integration_conflicts_total":(Counter(),("task_class","topology")),
+            "residual_reliability_retries_total":(Counter(),("task_class","topology")),
+            "residual_reliability_phase_seconds":(Histogram(),("phase","topology")),
+            "residual_reliability_cost_usd_total":(Counter(),("topology","kind")),
+            "residual_reliability_evidence_total":(Counter(),("task_class","complete")),
         }
     def __getitem__(self,name): return self.metrics[name][0]
     def label_names(self,name): return self.metrics[name][1]
