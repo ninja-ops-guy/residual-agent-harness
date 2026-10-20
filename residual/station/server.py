@@ -147,7 +147,7 @@ class Handler(BaseHTTPRequestHandler):
                 raise ContractError("Unknown endpoint")
             if path in {"/", "/index.html"}:
                 return self.respond((STATIC / "index.html").read_bytes(), content_type="text/html; charset=utf-8")
-            assets = {"/app.js": "text/javascript; charset=utf-8", "/style.css": "text/css; charset=utf-8", "/scene.svg": "image/svg+xml", "/favicon.svg": "image/svg+xml"}
+            assets = {"/app.js": "text/javascript; charset=utf-8", "/onboarding.js": "text/javascript; charset=utf-8", "/style.css": "text/css; charset=utf-8", "/website-theme.css": "text/css; charset=utf-8", "/scene.svg": "image/svg+xml", "/favicon.svg": "image/svg+xml"}
             if path in assets:
                 return self.respond((STATIC / path[1:]).read_bytes(), content_type=assets[path])
             self.respond({"error": "Page not found"}, 404)
