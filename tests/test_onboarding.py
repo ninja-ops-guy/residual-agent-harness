@@ -1,9 +1,11 @@
 """Track O (Swarm 8): executable onboarding docs.
 
-The quickstart commands in ``docs/quickstart.md`` MUST execute successfully
-end-to-end; the one-command demo script MUST exit 0; the module-author
-tutorial validation script MUST pass. These tests run the documented commands
-in subprocesses inside a temporary workspace so the repository stays clean.
+The offline quickstart commands in ``docs/quickstart.md`` MUST execute
+successfully end-to-end; the optional managed FreeLLMAPI section is a real
+interactive/networked setup path and is qualified separately.  The one-command
+demo script MUST exit 0; the module-author tutorial validation script MUST pass.
+These tests run the documented offline commands in subprocesses inside a
+temporary workspace so the repository stays clean.
 """
 from __future__ import annotations
 
@@ -20,10 +22,23 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[1]
 QUICKSTART = REPO_ROOT / "docs" / "quickstart.md"
 ONBOARDING = REPO_ROOT / "examples" / "onboarding"
+OPTIONAL_LIVE_HEADING = "## 7. Managed FreeLLMAPI for real inference"
 
 
 def _bash_blocks(text: str) -> list[str]:
     return re.findall(r"```bash\n(.*?)```", text, flags=re.DOTALL)
+
+
+def _offline_quickstart(text: str) -> str:
+    """Return only the explicitly offline quickstart contract.
+
+    Section 7 starts real Docker/network/provider onboarding and is exercised by
+    the dedicated onboarding/service qualification instead of this offline docs
+    execution test.
+    """
+    offline, separator, _live = text.partition(OPTIONAL_LIVE_HEADING)
+    assert separator, "quickstart must preserve the optional live-setup boundary"
+    return offline
 
 
 @pytest.fixture()
@@ -42,8 +57,8 @@ def _run(cmd: str, cwd: Path, env: dict) -> subprocess.CompletedProcess:
 def test_quickstart_commands_execute(workspace):
     tmp_path, env = workspace
     text = QUICKSTART.read_text()
-    blocks = [b for b in _bash_blocks(text) if "pip install" not in b]
-    assert len(blocks) >= 3, "quickstart must contain runnable command blocks"
+    blocks = [b for b in _bash_blocks(_offline_quickstart(text)) if "pip install" not in b]
+    assert len(blocks) >= 3, "offline quickstart must contain runnable command blocks"
     for block in blocks:
         proc = _run(block, tmp_path, env)
         assert proc.returncode == 0, (
@@ -54,6 +69,14 @@ def test_quickstart_commands_execute(workspace):
     assert trace.is_file() and result.is_file()
     outcome = json.loads(result.read_text())
     assert outcome["success"] is True
+
+
+def test_live_onboarding_is_not_part_of_offline_quickstart_execution():
+    text = QUICKSTART.read_text()
+    offline = _offline_quickstart(text)
+    _before, _separator, live = text.partition(OPTIONAL_LIVE_HEADING)
+    assert "residual setup" not in offline
+    assert "residual setup" in live
 
 
 def test_demo_script_exits_zero(workspace):
