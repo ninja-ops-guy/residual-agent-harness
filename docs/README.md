@@ -10,6 +10,8 @@ Start with [`research.md`](research.md). RESIDUAL's working hypothesis is that u
 
 The longer IEEE-style manuscript is [`papers/reliability-from-unreliable-computation.md`](papers/reliability-from-unreliable-computation.md). It is a working research paper, not a claim that the hypothesis has already been experimentally established.
 
+The protected recursive-maintenance/self-hosting study is [`papers/evidence-bounded-recursive-maintenance.md`](papers/evidence-bounded-recursive-maintenance.md). It reports the bounded self-maintenance mechanism experiments and the protected self-hosting trial that produced draft PR #132 while keeping merge authority external. Read its claim boundaries carefully: the repeated 100/1,000/200 campaigns are deterministic controller/policy stress experiments, not repeated live-model autonomous self-modification.
+
 ## 2. Understand the verification kernel
 
 Read [`architecture.md`](architecture.md) for the original obligation-level architecture: ready frontiers, verifier-owned acceptance, evidence negotiation, residual packet compilation, privacy propagation, receipt-bound caching, budgets, and audit limits.
