@@ -43,6 +43,9 @@ class ErrorCode(str, Enum):
     EXHAUSTED = "exhausted"
     STREAM_INCOMPLETE = "stream_incomplete"
     CONTENT_FILTER = "content_filter"
+    QUOTA_EXHAUSTED = "quota_exhausted"
+    AUTH_REJECTED = "auth_rejected"
+    POLICY_DENIED = "policy_denied"
 
 
 class Role(str, Enum):
@@ -144,16 +147,19 @@ class ProviderError(Exception):
     """Base for all provider errors. Structured, never a bare string."""
 
     def __init__(self, message: str = "", *, provider: str = "router", code: Optional[str] = None,
-                 retryable: bool = False, status: Optional[int] = None):
+                 retryable: bool = False, status: Optional[int] = None,
+                 failover_allowed: Optional[bool] = None):
         # Never retain upstream error bodies, URL queries or credentials in errors.
         try: self.provider = ProviderName(provider).value
         except ValueError: self.provider = "router"
         self.code = ErrorCode(code or "invalid_response").value
         self.retryable, self.status = bool(retryable), status
+        self.failover_allowed = bool(retryable) if failover_allowed is None else bool(failover_allowed)
         super().__init__(f"{self.provider}: {self.code}")
 
     def to_dict(self):
         return {"provider": self.provider, "code": self.code, "retryable": self.retryable,
+                "failover_allowed": self.failover_allowed,
                 "status": self.status, "retry_after": getattr(self, "retry_after", None)}
 
 

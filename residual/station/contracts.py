@@ -19,12 +19,44 @@ TRANSITIONS = {
     "approved": {"integrated", "repair_required", "blocked"}, "integrated": set(),
 }
 ID = re.compile(r"^[A-Za-z][A-Za-z0-9_-]{0,63}$")
+TOKEN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,95}$")
 SHA = re.compile(r"^[a-f0-9]{40,64}$")
 EVENT_TYPES = {"project.created", "project.paused", "project.resumed", "task.transition",
                "task.claimed", "task.finding", "checks.completed", "review.completed",
                "integration.completed", "usage.recorded", "report.generated", "release.exported",
-               "worker.joined", "worker.expired", "project.note"}
+               "worker.joined", "worker.expired", "project.note",
+               "mesh.worker.enrolled", "mesh.worker.revoked", "mesh.message",
+               "mesh.generation.advanced", "mesh.stop.requested", "mesh.stop.observed",
+               "mesh.result.submitted", "mesh.execution.admitted",
+               "mesh.execution.reconciled", "mesh.execution.fenced"}
 LDD_BASE = json.loads((Path(__file__).parent / "schemas" / "ldd-base.json").read_text())
+
+
+class ExecutionAdmissionError(ContractError):
+    """Stable, safe execution-admission diagnostics; never interpolate worker input."""
+
+    code = "EXECUTION_ADMISSION_REJECTED"
+    messages = {
+        "EXECUTION_BUDGET_ALREADY_ADMITTED": "Execution budget was already admitted for this task attempt",
+        "STALE_GENERATION": "Execution generation is stale",
+        "STALE_TASK_LEASE": "Stale task lease",
+        "STALE_FENCING_TOKEN": "Stale task fencing token",
+        "STALE_TASK_ATTEMPT": "Execution task attempt is stale",
+        "INVALID_EXECUTION_PLAN": "Invalid execution attempt plan",
+        "EXECUTION_POLICY_DENIED": "Provider attempt plan is outside task approval",
+        "WORKER_CAPABILITY_DENIED": "Worker capability policy does not permit the execution plan",
+        "CLOUD_SHARING_DISABLED": "Cloud sharing is disabled for this project",
+        "PROJECT_CALL_BUDGET_EXHAUSTED": "Project model-call budget is exhausted",
+        "PROJECT_CLOUD_BUDGET_EXHAUSTED": "Project cloud model-call budget is exhausted",
+        "PROJECT_BYTE_BUDGET_EXHAUSTED": "Project request-byte budget is exhausted",
+    }
+
+    def __init__(self, reason_code):
+        self.reason_code = reason_code
+        super().__init__(self.messages[reason_code])
+
+    def to_dict(self):
+        return {"code": self.code, "reason_code": self.reason_code, "message": str(self)}
 
 
 def bounded(value, name, maximum=4000, empty=False):
@@ -61,7 +93,7 @@ def parse_spec(markdown):
         raise ContractError("A project needs 1–100 tasks")
     ids = set()
     for task in tasks:
-        if not isinstance(task, dict) or set(task) - {"id", "title", "instruction", "depends_on", "files", "context", "checks", "route"}:
+        if not isinstance(task, dict) or set(task) - {"id", "title", "instruction", "depends_on", "files", "context", "checks", "route", "capabilities", "execution_policy"}:
             raise ContractError("Unknown task fields")
         tid = task.get("id", "")
         if not isinstance(tid, str) or not ID.fullmatch(tid) or tid in ids:
@@ -73,6 +105,11 @@ def parse_spec(markdown):
         if not isinstance(route, str) or route not in {"local", "cloud"}:
             raise ContractError("route must be local or cloud")
         task.setdefault("route", "local")
+        capabilities = task.setdefault("capabilities", [])
+        if (not isinstance(capabilities, list) or len(capabilities) > 20
+                or any(not isinstance(x, str) or not TOKEN.fullmatch(x) for x in capabilities)
+                or len(set(capabilities)) != len(capabilities)):
+            raise ContractError("capabilities must contain at most 20 unique capability tokens")
         for key in ("files", "context"):
             value = task.setdefault(key, [])
             if (not isinstance(value, list) or len(value) > 30
@@ -123,6 +160,42 @@ def parse_spec(markdown):
     for tid in ids:
         visit(tid)
     return manifest
+
+
+def task_execution_policy(task):
+    """Validate/normalize the task-approved provider continuity boundary."""
+    route = task.get("route", "local")
+    expected = "local" if route == "local" else "remote"
+    raw = task.get("execution_policy")
+    if raw is None:
+        return {"placements": [expected], "models": [], "max_provider_attempts": 1,
+                "cross_placement": False}
+    allowed = {"placements", "models", "max_provider_attempts", "cross_placement"}
+    if not isinstance(raw, dict) or set(raw) != allowed:
+        raise ContractError("execution_policy requires placements, models, max_provider_attempts and cross_placement")
+    placements = raw["placements"]
+    if (not isinstance(placements, list) or not 1 <= len(placements) <= 2
+            or len(set(placements)) != len(placements)
+            or any(x not in {"local", "remote"} for x in placements)
+            or expected not in placements):
+        raise ContractError("execution_policy placements must include the task route")
+    models = raw["models"]
+    if (not isinstance(models, list) or len(models) > 5 or len(set(models)) != len(models)
+            or any(not isinstance(x, str) or not x or len(x) > 200
+                   or any(ord(ch) < 33 for ch in x) for x in models)):
+        raise ContractError("execution_policy models must be unique bounded model IDs")
+    maximum = raw["max_provider_attempts"]
+    if type(maximum) is not int or not 1 <= maximum <= 5:
+        raise ContractError("execution_policy max_provider_attempts must be 1-5")
+    cross = raw["cross_placement"]
+    if type(cross) is not bool:
+        raise ContractError("execution_policy cross_placement must be boolean")
+    if not cross and (len(placements) != 1 or placements[0] != expected):
+        raise ContractError("Multiple placements require explicit cross_placement approval")
+    if models and maximum > len(models):
+        raise ContractError("Provider attempt budget cannot exceed the approved model list")
+    return {"placements": list(placements), "models": list(models),
+            "max_provider_attempts": maximum, "cross_placement": cross}
 
 
 def event_validate(event):

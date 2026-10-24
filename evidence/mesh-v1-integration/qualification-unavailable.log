@@ -1,0 +1,205 @@
+EEE......E.......E......sEE
+======================================================================
+ERROR: tests.qualification.test_concurrency_lab (unittest.loader._FailedTest.tests.qualification.test_concurrency_lab)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: tests.qualification.test_concurrency_lab
+Traceback (most recent call last):
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/workspace/scratch/a0c5d7c6d2e3/residual/tests/qualification/test_concurrency_lab.py", line 8, in <module>
+    import pytest
+ModuleNotFoundError: No module named 'pytest'
+
+
+======================================================================
+ERROR: tests.qualification.test_evidence_manifest (unittest.loader._FailedTest.tests.qualification.test_evidence_manifest)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: tests.qualification.test_evidence_manifest
+Traceback (most recent call last):
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/workspace/scratch/a0c5d7c6d2e3/residual/tests/qualification/test_evidence_manifest.py", line 6, in <module>
+    import pytest
+ModuleNotFoundError: No module named 'pytest'
+
+
+======================================================================
+ERROR: tests.qualification.test_fault_injection (unittest.loader._FailedTest.tests.qualification.test_fault_injection)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: tests.qualification.test_fault_injection
+Traceback (most recent call last):
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/workspace/scratch/a0c5d7c6d2e3/residual/tests/qualification/test_fault_injection.py", line 10, in <module>
+    import pytest
+ModuleNotFoundError: No module named 'pytest'
+
+
+======================================================================
+ERROR: tests.qualification.test_paired_stats (unittest.loader._FailedTest.tests.qualification.test_paired_stats)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: tests.qualification.test_paired_stats
+Traceback (most recent call last):
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/workspace/scratch/a0c5d7c6d2e3/residual/tests/qualification/test_paired_stats.py", line 5, in <module>
+    import pytest
+ModuleNotFoundError: No module named 'pytest'
+
+
+======================================================================
+ERROR: tests.qualification.test_protocol_fuzz (unittest.loader._FailedTest.tests.qualification.test_protocol_fuzz)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: tests.qualification.test_protocol_fuzz
+Traceback (most recent call last):
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/workspace/scratch/a0c5d7c6d2e3/residual/tests/qualification/test_protocol_fuzz.py", line 6, in <module>
+    import pytest
+ModuleNotFoundError: No module named 'pytest'
+
+
+======================================================================
+ERROR: tests.qualification.test_toxic_provider_matrix (unittest.loader._FailedTest.tests.qualification.test_toxic_provider_matrix)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: tests.qualification.test_toxic_provider_matrix
+Traceback (most recent call last):
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/workspace/scratch/a0c5d7c6d2e3/residual/tests/qualification/test_toxic_provider_matrix.py", line 9, in <module>
+    import pytest
+ModuleNotFoundError: No module named 'pytest'
+
+
+======================================================================
+ERROR: tests.qualification.test_trust_boundary_canaries (unittest.loader._FailedTest.tests.qualification.test_trust_boundary_canaries)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: tests.qualification.test_trust_boundary_canaries
+Traceback (most recent call last):
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/workspace/scratch/a0c5d7c6d2e3/residual/tests/qualification/test_trust_boundary_canaries.py", line 5, in <module>
+    import pytest
+ModuleNotFoundError: No module named 'pytest'
+
+
+----------------------------------------------------------------------
+Ran 27 tests in 0.074s
+
+FAILED (errors=7, skipped=1)
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-c",
+    "pass"
+  ],
+  "environment": {
+    "ci": {},
+    "machine": "x86_64",
+    "platform": "Linux-6.18.55-x86_64-with-glibc2.39",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]"
+  },
+  "evidence": {
+    "/tmp/tmptq704h4g/gate.log": "0da33e5b6db89f3ce0c36a9128681359c990851c5465aae915936e7cf5a10e97"
+  },
+  "finished_at": "2026-10-24T03:37:28.176483Z",
+  "gate_id": "test-gate",
+  "non_claims": [],
+  "notes": [
+    "required evidence missing or not a regular file: /tmp/tmptq704h4g/missing-report.json"
+  ],
+  "result": "FAIL",
+  "schema": "residual.qualification.evidence.v1",
+  "skip_count": 0,
+  "source": {
+    "commit": "b50d4c87c69969b91c77d7d2c84d4270aac1e899",
+    "tracked_source_dirty": false,
+    "tree": "85c9b5cc53bcb8d2e87a77b818030353a8777215"
+  },
+  "started_at": "2026-10-24T03:37:28.162037Z",
+  "unknown_count": 0
+}
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-c",
+    "pass"
+  ],
+  "environment": {
+    "ci": {},
+    "machine": "x86_64",
+    "platform": "Linux-6.18.55-x86_64-with-glibc2.39",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]"
+  },
+  "evidence": {
+    "/tmp/tmpkpfhoo6c/gate.log": "0da33e5b6db89f3ce0c36a9128681359c990851c5465aae915936e7cf5a10e97"
+  },
+  "finished_at": "2026-10-24T03:37:28.199092Z",
+  "gate_id": "test-gate",
+  "non_claims": [],
+  "notes": [
+    "required evidence missing or not a regular file: /tmp/tmpkpfhoo6c/missing.xml"
+  ],
+  "result": "FAIL",
+  "schema": "residual.qualification.evidence.v1",
+  "skip_count": 0,
+  "source": {
+    "commit": "b50d4c87c69969b91c77d7d2c84d4270aac1e899",
+    "tracked_source_dirty": false,
+    "tree": "85c9b5cc53bcb8d2e87a77b818030353a8777215"
+  },
+  "started_at": "2026-10-24T03:37:28.188850Z",
+  "unknown_count": 0
+}
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-c",
+    "from pathlib import Path; Path('/tmp/tmpuz2wlwdi/report.json').write_text('ok', encoding='utf-8')"
+  ],
+  "environment": {
+    "ci": {},
+    "machine": "x86_64",
+    "platform": "Linux-6.18.55-x86_64-with-glibc2.39",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]"
+  },
+  "evidence": {
+    "/tmp/tmpuz2wlwdi/gate.log": "61850690bcab830d6fecce680aa552718dbb59b05ec7a7b8f13ef23b0fae8918",
+    "/tmp/tmpuz2wlwdi/report.json": "2689367b205c16ce32ed4200942b8b8b1e262dfc70d9bc9fbc77c49699a4f1df"
+  },
+  "finished_at": "2026-10-24T03:37:28.225268Z",
+  "gate_id": "test-gate",
+  "non_claims": [],
+  "notes": [],
+  "result": "PASS",
+  "schema": "residual.qualification.evidence.v1",
+  "skip_count": 0,
+  "source": {
+    "commit": "b50d4c87c69969b91c77d7d2c84d4270aac1e899",
+    "tracked_source_dirty": false,
+    "tree": "85c9b5cc53bcb8d2e87a77b818030353a8777215"
+  },
+  "started_at": "2026-10-24T03:37:28.206036Z",
+  "unknown_count": 0
+}
