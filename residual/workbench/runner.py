@@ -305,7 +305,9 @@ def execute(request: dict, *, root: Path, output_root: Path, mailbox: Path | Non
                 if mailbox is None or request.get('cloud_consent') is not True:
                     raise ContractError('live browser missions require explicit cloud consent and a provider mailbox')
                 provider = mailbox_provider_type(model, task.id, mailbox, emit, cancelled)
-            harness = ObservedHarness(registry, provider, None, limits=limits)
+            # Browser/workbench missions retain worker-visible content in the trace
+            # so Mission Control evidence shows what the model was asked and returned.
+            harness = ObservedHarness(registry, provider, None, limits=limits, retain_content=True)
         harness.projected, harness.emit = 0, emit
         # Provider dispatch events already exist in the ledger; flush them before I/O.
         if isinstance(harness.local, MailboxProvider):
