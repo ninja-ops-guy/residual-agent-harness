@@ -6,6 +6,7 @@ Harness default stays hash-only.
 """
 import json
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
 
@@ -50,6 +51,44 @@ class CoreRetentionTests(unittest.TestCase):
             path = Path(tmp) / "trace.jsonl"
             harness.ledger.write(path)
             self.assertEqual(verify_ledger(path, result["trace_root"])["root"], result["trace_root"])
+
+
+class BrowserChainVerificationTests(unittest.TestCase):
+    def test_shipped_browser_verifier_matches_ledger_and_rejects_tamper(self):
+        harness, result = _run(True)
+        mid = "m-" + "e" * 32
+        frames = [canonical({"data": event, "kind": "evidence", "mission_id": mid})
+                  for event in harness.ledger.events]
+        script = """
+import fs from 'node:fs';
+let source = fs.readFileSync('demo/vm/mission-control.js', 'utf8');
+source = source.replace(/^import .*;\\n/gm, '');
+const moduleUrl = 'data:text/javascript;base64,' + Buffer.from(source).toString('base64');
+const verifier = await import(moduleUrl);
+const frames = JSON.parse(process.argv[1]);
+const missionId = process.argv[2];
+const traceRoot = process.argv[3];
+const good = await verifier.verifyEvidenceChain(frames, missionId, traceRoot);
+const tampered = [...frames];
+const outer = JSON.parse(tampered[0]);
+outer.data.data.task_id = 'tampered';
+tampered[0] = JSON.stringify(outer);
+const bad = await verifier.verifyEvidenceChain(tampered, missionId, traceRoot);
+console.log(JSON.stringify({good, bad}));
+"""
+        completed = subprocess.run(
+            ["node", "--input-type=module", "-e", script, json.dumps(frames), mid, result["trace_root"]],
+            cwd=Path(__file__).resolve().parents[1],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr or completed.stdout)
+        proof = json.loads(completed.stdout)
+        self.assertTrue(proof["good"]["ok"], proof)
+        self.assertEqual(proof["good"]["head"], result["trace_root"])
+        self.assertFalse(proof["bad"]["ok"], proof)
+        self.assertIn("digest mismatch", proof["bad"]["reason"])
 
 
 class WorkbenchRetentionTests(unittest.TestCase):
