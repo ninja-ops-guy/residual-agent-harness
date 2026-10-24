@@ -27,7 +27,17 @@ export async function verifyEvidenceChain(rawFrames, missionId, traceRoot) {
     try { event = JSON.parse(canon); } catch { return { ok: false, reason: 'unparseable event bytes' }; }
     if (!/^[0-9a-f]{64}$/.test(event.sha256 || '')) return { ok: false, reason: `event ${count} is missing its digest` };
     if (event.previous !== head) return { ok: false, reason: `chain link broken at event ${event.seq}` };
-    if (await sha256Hex(canon) !== event.sha256) return { ok: false, reason: `digest mismatch at event ${event.seq}` };
+    // Ledger.add commits the canonical event before appending its top-level
+    // sha256 field. Remove that exact canonical field without re-serializing
+    // numbers or nested payloads, then recompute the authoritative digest.
+    const digestField = `,"sha256":"${event.sha256}"`;
+    const digestAt = canon.lastIndexOf(digestField);
+    if (digestAt < 0 || canon.indexOf(digestField) !== digestAt ||
+        !canon.slice(digestAt + digestField.length).startsWith(',"time_ns":')) {
+      return { ok: false, reason: `event ${event.seq} has a non-canonical digest field` };
+    }
+    const committed = canon.slice(0, digestAt) + canon.slice(digestAt + digestField.length);
+    if (await sha256Hex(committed) !== event.sha256) return { ok: false, reason: `digest mismatch at event ${event.seq}` };
     head = event.sha256; count++;
   }
   if (!count) return { ok: false, reason: 'no evidence events' };
