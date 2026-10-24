@@ -1,0 +1,10 @@
+test_continuity_callback_fences_fallback_after_lease_expiry (tests.station.test_mesh_v1_integration.MeshV1IntegrationTests.test_continuity_callback_fences_fallback_after_lease_expiry) ... ok
+test_generation_change_rejects_result_without_reconciliation (tests.station.test_mesh_v1_integration.MeshV1IntegrationTests.test_generation_change_rejects_result_without_reconciliation) ... ok
+test_restart_successor_binds_budget_and_result_evidence (tests.station.test_mesh_v1_integration.MeshV1IntegrationTests.test_restart_successor_binds_budget_and_result_evidence) ... ok
+test_revocation_after_admission_prevents_result_and_refund (tests.station.test_mesh_v1_integration.MeshV1IntegrationTests.test_revocation_after_admission_prevents_result_and_refund) ... ok
+test_worker_capability_rejection_does_not_consume_assignment (tests.station.test_mesh_v1_integration.MeshV1IntegrationTests.test_worker_capability_rejection_does_not_consume_assignment) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.908s
+
+OK

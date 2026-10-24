@@ -91,9 +91,9 @@ MUTATIONS = (
         "residual/station/store.py",
         "residual.station.store",
         "    def claim(",
-        """if p["paused"]:
+        """if p["paused"] or p.get("stopped", False):
                 return None""",
-        """if False and p["paused"]:
+        """if False and (p["paused"] or p.get("stopped", False)):
                 return None""",
         ("tests/station/test_station.py::StationTests::test_pause_prevents_claim_and_cloud_disabled_prevents_transport",),
     ),
