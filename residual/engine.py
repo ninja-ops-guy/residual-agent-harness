@@ -40,7 +40,8 @@ MODES = {"residual", "residual_fixed", "cascade", "full_cloud", "local_only", "n
 
 class Harness:
     def __init__(self, registry: Registry, local: Provider | None, expert: Provider | None,
-                 limits: Limits | None = None, cache: Cache | None = None, mode="residual"):
+                 limits: Limits | None = None, cache: Cache | None = None, mode="residual",
+                 retain_content: bool = False):
         if mode not in MODES:
             raise ContractError("unknown routing mode")
         for provider in (local, expert):
@@ -50,6 +51,12 @@ class Harness:
         self.source_registry = registry
         self.structural = None
         self.limits, self.cache, self.mode = limits or Limits(), cache, mode
+        # Content retention binds worker-visible payloads (goal, dispatched
+        # packet, model response, accepted value) into the hash-chained ledger so
+        # evidence shows what the worker actually did, not only that something
+        # happened. Off by default: hashes alone prove integrity, and retained
+        # content stays inside the local trace. Demo/workbench surfaces opt in.
+        self.retain_content = bool(retain_content)
 
     def run(self, task: Task) -> dict:
         start = time.monotonic()
@@ -80,8 +87,11 @@ class Harness:
         for o in task.obligations:
             if o.check not in self.registry.checks or (o.solver and o.solver not in self.registry.solvers):
                 raise ContractError("unregistered verifier or solver")
-        self.ledger.add("run_started", run_id=str(uuid.uuid4()), task_id=task.id, mode=self.mode,
-                        limits=asdict(self.limits), artifact_hashes={k: a.sha256 for k, a in task.artifacts.items()})
+        started_event = {"run_id": str(uuid.uuid4()), "task_id": task.id, "mode": self.mode,
+                         "limits": asdict(self.limits), "artifact_hashes": {k: a.sha256 for k, a in task.artifacts.items()}}
+        if self.retain_content:
+            started_event["goal"] = task.goal
+        self.ledger.add("run_started", **started_event)
         attempted = set(structural["blocked"]) if structural else set()
         if structural:
             self.failures.update(structural["blocked"])
@@ -234,7 +244,10 @@ class Harness:
             verdict = Verdict("unknown", "verifier_error", "The host verifier could not establish this obligation.")
         finally:
             self.verification_ms += (time.monotonic() - started) * 1000
-        self.ledger.add("verification", obligation_id=node_id, source=source, status=verdict.status, code=verdict.code)
+        check_event = {"obligation_id": node_id, "source": source, "status": verdict.status, "code": verdict.code}
+        if self.retain_content and verdict.message:
+            check_event["message"] = verdict.message
+        self.ledger.add("verification", **check_event)
         if verdict.status != "pass":
             self._failure(node_id, verdict.code, verdict.message)
             return False
@@ -255,7 +268,10 @@ class Harness:
         if self.cache and source != "cache":
             self.cache.put(self._cache_key(node_id), {"schema_version": "residual.station.cache.entry.v1",
                 "value": value, "receipt": modern.to_dict()} if modern else value)
-        self.ledger.add("obligation_accepted", obligation_id=node_id, source=source, receipt=receipt)
+        accepted_event = {"obligation_id": node_id, "source": source, "receipt": receipt}
+        if self.retain_content:
+            accepted_event["value"] = value
+        self.ledger.add("obligation_accepted", **accepted_event)
         if modern:
             self.ledger.add("station_receipt_issued", obligation_id=node_id, receipt=modern.to_dict())
         return True
@@ -376,8 +392,13 @@ class Harness:
                       "cost_usd": None, "elapsed_ms": None, "error": None}
             # Reserve before I/O. Failed requests may still have incurred charges.
             self.calls.append(record)
-            self.ledger.add("call_reserved", role=role, provider=provider.name, request_bytes=size,
-                            packet_sha256=digest(packet), obligation_ids=ids)
+            reserved_event = {"role": role, "provider": provider.name, "request_bytes": size,
+                              "packet_sha256": digest(packet), "obligation_ids": ids}
+            if self.retain_content:
+                # The exact bounded packet as dispatched. Remote packets already
+                # exclude non-consented/private evidence.
+                reserved_event["packet"] = packet
+            self.ledger.add("call_reserved", **reserved_event)
             started = time.monotonic()
             try:
                 reply = provider.generate(packet, self.limits.max_output_tokens)
@@ -396,8 +417,11 @@ class Harness:
                 continue
             record["usage"], record["elapsed_ms"] = asdict(reply.usage), reply.elapsed_ms
             record["cost_usd"] = provider.prices.cost(reply.usage) if provider.prices else None
-            self.ledger.add("call_completed", role=role, usage=record["usage"], elapsed_ms=reply.elapsed_ms,
-                            response_sha256=digest(reply.text), finish_reason=reply.finish_reason)
+            completed_event = {"role": role, "usage": record["usage"], "elapsed_ms": reply.elapsed_ms,
+                               "response_sha256": digest(reply.text), "finish_reason": reply.finish_reason}
+            if self.retain_content:
+                completed_event["response_text"] = reply.text
+            self.ledger.add("call_completed", **completed_event)
             try:
                 if reply.finish_reason in {"length", "max_tokens"}:
                     raise ContractError("truncated response")

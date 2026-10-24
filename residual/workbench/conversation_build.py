@@ -262,9 +262,11 @@ def execute(request: dict, *, root: Path, output_root: Path, mailbox: Path | Non
             if mailbox is None or request.get("cloud_consent") is not True:
                 raise ContractError("browser build missions require explicit cloud consent and a provider mailbox")
             registry = Registry(); register_build(registry)
+            # Browser build missions retain worker-visible content in the trace so
+            # Mission Control evidence shows what the model was asked and returned.
             harness = ObservedHarness(
                 registry, mailbox_provider_type(model, task.id, mailbox, emit, cancelled),
-                None, limits=limits,
+                None, limits=limits, retain_content=True,
             )
         harness.projected, harness.emit = 0, emit
         if isinstance(harness.local, MailboxProvider):
