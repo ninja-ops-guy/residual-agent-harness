@@ -49,34 +49,30 @@ def validate_url(url, provider, local=False):
 
 
 def map_http_error(provider, status, body='', headers=None):
-    # Body may be JSON, HTML, a string error, or contain secrets. Never echo it.
-    # Only structured JSON error codes can classify quota exhaustion. Arbitrary
-    # text is not authority to widen routing.
-    if status == 401:
-        return AuthenticationError(provider=provider, code='auth_rejected', status=status,
-                                   failover_allowed=True)
-    if status == 403:
-        # Preserve the public authentication-error type expected by existing
-        # adapters while keeping policy denial fail-closed for continuity.
-        return AuthenticationError(provider=provider, code='policy_denied', status=status,
-                                   retryable=False, failover_allowed=False)
-    if status == 404:
-        return ModelNotFoundError(provider=provider, code='model_not_found', status=status)
-    if status == 429:
-        structured = None
+    # Body may be JSON, HTML, a string error, or contain secrets. Do not echo it.
+    if status in (401, 403):
+        return AuthenticationError(provider=provider, code='authentication', status=status, failover_allowed=False)
+    if status == 404: return ModelNotFoundError(provider=provider, code='model_not_found', status=status)
+    # Only explicit structured codes establish exhausted quota/credit. Bare 429
+    # remains rate_limit; arbitrary upstream messages never enter evidence.
+    if status in (402, 429):
         try:
-            raw = body.decode('utf-8') if isinstance(body, (bytes, bytearray)) else str(body or '')
-            parsed = decode(raw)
-            err = parsed.get('error')
-            if isinstance(err, dict):
-                structured = err.get('code') or err.get('type')
-            elif isinstance(parsed.get('code'), str):
-                structured = parsed.get('code')
-        except (ValueError, TypeError, UnicodeError):
-            structured = None
-        if structured in {'insufficient_quota', 'quota_exhausted'}:
-            return ProviderError(provider=provider, code='quota_exhausted', status=status,
-                                 retryable=False, failover_allowed=True)
+            error = decode(body).get('error', {})
+            code = error.get('code') if isinstance(error, dict) else None
+        except (ValueError, TypeError, UnicodeError, AttributeError):
+            code = None
+        classification = {'insufficient_quota': 'quota_exhausted',
+                          'quota_exhausted': 'quota_exhausted',
+                          'credit_exhausted': 'credit_exhausted'}.get(code) if isinstance(code, str) else None
+        if classification:
+            failure = ProviderError(provider=provider, code=classification, status=status, failover_allowed=True)
+            # Explicit, validated upstream usage is evidence; absence stays unknown.
+            try:
+                failure.usage = extract_usage(decode(body))
+            except (ValueError, TypeError, AttributeError):
+                failure.usage = {}
+            return failure
+    if status == 429:
         retry = None
         hint = (headers or {}).get('Retry-After')
         if hint is not None:
@@ -170,14 +166,13 @@ class HTTPAdapter:
                 yield response, start
         except urllib.error.HTTPError as exc:
             try:
-                body = exc.read(MAX_RESPONSE + 1)
-                if len(body) > MAX_RESPONSE:
-                    body = b''
+                body = exc.read(8193)
+                if len(body) > 8192: body = b''
             except Exception:
                 body = b''
             finally:
                 exc.close()
-            raise map_http_error(self.name, exc.code, body=body, headers=exc.headers) from None
+            raise map_http_error(self.name, exc.code, body, headers=exc.headers) from None
         except ProviderError: raise
         except (TimeoutError, socket.timeout):
             raise ProviderError(provider=self.name, code='timeout', retryable=True) from None

@@ -66,7 +66,7 @@ RUNNER_FILES = {
 
 def fake_model(calls, *, delay=0, usage=120, barrier=None, unknown_usage=False):
     """Deterministic provider stand-in that records durable usage receipts."""
-    def invoke(store, pid, role, packet, system, schema, placement, tid, *, extensions=None):
+    def invoke(store, pid, role, packet, system, schema, placement, tid, *, extensions=None, authority_check=None):
         calls.append(role)
         if role == "runner":
             if barrier is not None:

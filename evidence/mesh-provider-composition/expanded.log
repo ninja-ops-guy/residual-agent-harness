@@ -1,0 +1,21 @@
+........................................................................ [ 29%]
+.................................................. [ 49%]
+................................................................................................. [ 89%]
+.........................F.                                              [100%]
+=================================== FAILURES ===================================
+______ test_toxic_provider_truncation_fails_closed_for_structured_output _______
+
+    def test_toxic_provider_truncation_fails_closed_for_structured_output():
+        with toxic_provider("truncated") as url:
+            temp, station, pid = station_with_provider(url)
+            try:
+>               with pytest.raises(ContractError, match="truncated"):
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AssertionError: Regex pattern did not match.
+E                 Expected regex: 'truncated'
+E                 Actual message: 'authority_rescinded'
+
+tests/qualification/test_toxic_provider_matrix.py:117: AssertionError
+=========================== short test summary info ============================
+FAILED tests/qualification/test_toxic_provider_matrix.py::test_toxic_provider_truncation_fails_closed_for_structured_output
+1 failed, 245 passed, 69 subtests passed in 53.03s

@@ -5,6 +5,7 @@ import urllib.parse
 
 from ai_providers import ProviderError
 from residual.core import ContractError
+from residual.continuity import ELIGIBLE, classification
 
 
 def _endpoint(provider):
@@ -84,8 +85,10 @@ class ContinuityProvider:
                 last = error
                 if after_attempt is not None:
                     after_attempt(provider, attempt, None, error)
-                if not error.failover_allowed:
+                if classification(error) not in ELIGIBLE:
                     raise
+                if attempt < len(candidates) and any(_placement(p) == "remote" for p in candidates):
+                    raise ContractError("Remote fallback requires durable readiness and admission") from None
                 continue
             if after_attempt is not None:
                 after_attempt(provider, attempt, reply, None)
