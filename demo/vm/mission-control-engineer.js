@@ -194,5 +194,5 @@ export function mountMissionControl(host){
       else finishPipeline(true,'Result trace-bound','The mission finalized with a retained result/trace binding.');
     }
   }
-  return {onOutput(text){core.onOutput(text);parseFrames(text,handleFrame)},connectProvider:core.connectProvider,destroy(){stopPipelineTimer();core.destroy()}};
+  return {onOutput(text){core.onOutput(text);parseFrames(text,handleFrame)},connectProvider:core.connectProvider,clearEvidence:core.clearEvidence,destroy(){stopPipelineTimer();core.destroy()}};
 }
