@@ -1,6 +1,7 @@
 """Bridge the uploaded provider contract into RESIDUAL's bounded runner interface."""
 from __future__ import annotations
 import os
+import re
 import time
 from ai_providers import ChatRequest, Message, Role, ProviderName, ProviderError, Router, Registry
 from ai_providers.adapters._http import validate_url
@@ -20,14 +21,20 @@ ENV_KEYS={'openai':'OPENAI_API_KEY','openai_compatible':'LLM_API_KEY','anthropic
 
 
 def normalize_profile(profile,placement):
+    if isinstance(profile,dict) and 'kind' not in profile: profile={**profile,'kind':profile.get('provider_kind')}
     if not isinstance(profile,dict) or profile.get('kind') not in PROVIDERS: raise ContractError('Choose a supported provider')
     kind=profile['kind']; model=profile.get('model','')
+    if profile.get('provider_kind',kind)!=kind: raise ContractError('Conflicting provider kind')
+    route_id=profile.get('route_id',kind)
+    if not isinstance(route_id,str) or not re.fullmatch(r'[a-z][a-z0-9_-]{0,63}',route_id): raise ContractError('Invalid route ID')
+    credential_ref=profile.get('credential_ref',route_id)
+    if not isinstance(credential_ref,str) or not re.fullmatch(r'[a-z][a-z0-9_-]{0,63}',credential_ref): raise ContractError('Invalid credential reference')
+    if route_id=='freellmapi' and (placement!='remote' or kind!='openai_compatible'): raise ContractError('FreeLLMAPI requires a remote OpenAI-compatible route')
     if not isinstance(model,str) or not model or len(model)>500 or any(ord(c)<32 for c in model): raise ContractError('Enter a model or deployment ID')
     if placement=='local' and kind not in {'ollama','openai_compatible'}: raise ContractError('Local routes require Ollama or a compatible loopback server')
     region=profile.get('region') or 'us-east-1'
     base=profile.get('base_url') or PROVIDERS[kind]['base_url']
     if kind=='bedrock' and not base:
-        import re
         if not re.fullmatch(r'[a-z]{2}(?:-[a-z]+)+-\d',region): raise ContractError('Enter a valid AWS region')
         base=f'https://bedrock-runtime.{region}.amazonaws.com'
     try: base=validate_url(base,kind,local=placement=='local')
@@ -35,14 +42,14 @@ def normalize_profile(profile,placement):
     if placement=='local' and kind=='ollama' and (model.endswith(('-cloud',':cloud')) or ':cloud-' in model): raise ContractError('Ollama cloud models belong in a cloud route')
     cap=profile.get('output_token_field','max_completion_tokens')
     if cap not in {'max_tokens','max_completion_tokens'}: raise ContractError('Invalid output-limit field')
-    return {'kind':kind,'model':model,'base_url':base,'placement':placement,'output_token_field':cap,
+    return {'route_id':route_id,'credential_ref':credential_ref,'provider_kind':kind,'kind':kind,'model':model,'base_url':base,'placement':placement,'output_token_field':cap,
             'region':region,'api_version':profile.get('api_version') or '2024-10-21'}
 
 
 def make_adapter(profile,credentials=None):
     p=profile; kind=p['kind']; c=credentials or {}
-    key=c.get('api_key') or (os.environ.get('RESIDUAL_LOCAL_API_KEY') if p.get('placement')=='local' else os.environ.get(ENV_KEYS.get(kind,'')))
-    if kind=='google': key=key or os.environ.get('GOOGLE_API_KEY')
+    key=c.get('api_key') or (None if p.get('credential_ref',kind)!=kind else os.environ.get('RESIDUAL_LOCAL_API_KEY') if p.get('placement')=='local' else os.environ.get(ENV_KEYS.get(kind,'')))
+    if kind=='google' and p.get('credential_ref',kind)==kind: key=key or os.environ.get('GOOGLE_API_KEY')
     if kind in {'openai','openai_compatible'}:
         from ai_providers.adapters.openai_adapter import OpenAIAdapter,OpenAICompatibleAdapter
         return (OpenAIAdapter if kind=='openai' else OpenAICompatibleAdapter)(key,p['base_url'],output_token_field=p['output_token_field'])
@@ -59,9 +66,10 @@ def make_adapter(profile,credentials=None):
         from ai_providers.adapters.azure_adapter import AzureAdapter
         return AzureAdapter(key,p['base_url'],p['api_version'],output_token_field=p['output_token_field'])
     if kind=='bedrock':
+        env = os.environ if p.get('credential_ref',kind)==kind else {}
         from ai_providers.adapters.bedrock_adapter import BedrockAdapter
-        return BedrockAdapter(c.get('access_key') or os.environ.get('AWS_ACCESS_KEY_ID'),c.get('secret_key') or os.environ.get('AWS_SECRET_ACCESS_KEY'),
-                              p['region'],c.get('session_token') or os.environ.get('AWS_SESSION_TOKEN'),base_url=p['base_url'])
+        return BedrockAdapter(c.get('access_key') or env.get('AWS_ACCESS_KEY_ID'),c.get('secret_key') or env.get('AWS_SECRET_ACCESS_KEY'),
+                              p['region'],c.get('session_token') or env.get('AWS_SESSION_TOKEN'),base_url=p['base_url'])
     raise ContractError('Unknown provider')
 
 

@@ -1,0 +1,72 @@
+{
+  "affected_tests": {
+    "failed": 0,
+    "passed": 155,
+    "subtests_passed": 47
+  },
+  "broad_tests": {
+    "base_control": "Both reproduced on untouched 8369f0dc; logs retained",
+    "excluded": [
+      "tests/qualification",
+      "tests/redteam",
+      "tests/test_factory_m4_sandbox.py"
+    ],
+    "failed": 2,
+    "passed": 1884,
+    "remaining_failures": [
+      "tests/test_factory_m4_tree_binding.py::IsolatedTreeBindingTests::test_isolated_verification_issues_receipt_bound_to_verified_tree",
+      "tests/test_sandbox_timing_determinism.py::IsolatedTimeoutTypingTests::test_timeout_is_distinct_typed_outcome"
+    ],
+    "skipped": 12,
+    "subtests_passed": 398
+  },
+  "checks": {
+    "authored_diff_whitespace": "PASS",
+    "compileall": "PASS",
+    "configured_python_linter_or_type_checker": null,
+    "credential_pattern_scan": {
+      "files_scanned": 33,
+      "findings": 0
+    },
+    "vendor_whitespace": "PRESERVED_BYTE_IDENTITY_EXCEPTION"
+  },
+  "fixture_qualification": "PASS",
+  "fixture_receipt_sha256": "cffd563d7ef413bb3930c8f6a105f2696f2fd2977f04963c412c62af5be602da",
+  "live_qualification": "NOT_RUN; explicit endpoint/model/credentials/current measured BL-006 inputs required",
+  "log_sha256": {
+    "affected-final": "c5246068194e2f4a19261d6938cdcf8cd5a07a34c2364d3127135902c145961d",
+    "base-remaining": "cffd7cf6a0abc4a2bd986b96f4fa5f28d11e398cd8d9c462c48c16e40b66d98d",
+    "base-sandbox": "6326f79a72fba37cb1aed3a83268e145e17b7c137145bbe743fd8b3fe2528d17",
+    "broad-r3": "3521a0882db0c94d39596710586881b226dfd67e16f4f00463600694cdb5fff2"
+  },
+  "provider_side_exactly_once": false,
+  "schema": "residual.provider-continuity.candidate.v1",
+  "source_digests": {
+    ".github/workflows/ci.yml": "e2dfce008c3c581e51451e16aa2cdc62e1c7c39356763eee1def0ce69cd8fd36",
+    "ai_providers/adapters/_http.py": "b8e37d020f02aa46d89a1d733077bdd2679b3b5cf2e30ef227178c7ca5b5ef0a",
+    "ai_providers/core.py": "a40973f8857ea00268bc2e36fc671d8ee7ca964c008a867f5dc438aca5925b37",
+    "ai_providers/registry.py": "152254342fdd4080c7d9639c4e64fe3a9bd8d53c1b67b57e4ed3535b8278117c",
+    "ai_providers/router.py": "a07711973b36505e2e21f6ba1c4012956d36fd24c5bbcb518247c7173e01a250",
+    "residual/continuity/__init__.py": "e79caab349b6bfd2ff6481f99f6cea82f3d8b4a50b5ff6133019d91914af4c52",
+    "residual/continuity/__main__.py": "e4bb6c8519c245785d97954e7f257dd9c1ba5540b7236f4a90c2158796a1bc32",
+    "residual/continuity/admission.py": "2e3044bc10344b8681864aca1512496f8eadc7274cf76e4796ec866c7df70c08",
+    "residual/continuity/vendor/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "residual/continuity/vendor/bl006.py": "33f92efe8f2fac50f3038ba2d566abaaf97bebed163d0d14345461d47e3b2f8c",
+    "residual/modular.py": "97922574b7297a59de53a6b1ff157ff6a701a2f1693a5179dfefef5ef8233287",
+    "residual/station/control.py": "8781f51c1ab1b9b2ee8f31e1683e776cdcc63d20e06a8a4b073a865ede66a571",
+    "residual/station/models.py": "250b98a74acc167c7fd4e9de1b098df9b4d37dc0134eca7b6c160b22c1b0859c",
+    "residual/station/server.py": "b8dc4fb4345454e530d5b427776ed26f9e2b3eb4f57daaada39b8a3b5109202e",
+    "residual/station/service.py": "8707ce50a7c7d058c4ddb1ad24c5abac76a563ba26414f5672166f8fa0b13eb0",
+    "scripts/qualification_provider_mission.py": "1ca666a8d47d1627e726fa503fc45085d6e2ef9ef58e6d7074049199088fd3af",
+    "tests/continuity/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/continuity/test_continuity.py": "21266d60e719f242889e4712593f4977006b751812eee83f7347e658a4b35b65",
+    "tests/continuity/test_station_continuity.py": "7ff3ca31b332ed86986f8476435b5e256b95eac27112f26dec051f92a19ecc4b",
+    "tests/modular/test_routing.py": "5a28f47a5e4e412daac6ef19f923f26e923556d9a8cb8c46e4760ccc6e8438c3",
+    "tests/qualification/test_provider_mission.py": "82ce2e8db9664ab7d6550e23a89f04bd678cb705ae26d03edb51aba2f320dc0c",
+    "tests/station/test_budget_authority.py": "482bbbeab1c8667d6ce0d1982fa604fe9b1880e5cb67536155692d10ad1ebf94",
+    "tests/station/test_station.py": "3ff21cc612d77c2232b0499ad7c82a189a6c1c68f5b4c06c4694e91b9f60099e"
+  },
+  "terminal_target": "PROVIDER_CONTINUITY_CANDIDATE_READY_FOR_INDEPENDENT_REVIEW",
+  "tested_head": "b7ec9108f222f27a678834ae7e27525785a320c8",
+  "tested_tree": "e522da986769a9950f4badc8ecc4b7b559b9a3a5"
+}

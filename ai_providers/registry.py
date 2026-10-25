@@ -24,6 +24,7 @@ class Registry:
     def __init__(self):
         self._lock = threading.RLock()
         self._factories: dict[str, callable] = {}
+        self._kinds: dict[str, str] = {}
         self._instances: dict[str, Provider] = {}
 
     def register(self, name: str, factory: callable) -> None:
@@ -33,6 +34,17 @@ class Registry:
             self._factories[name] = factory
             self._instances.pop(name, None)
 
+    def register_route(self, route_id: str, provider_kind: str, factory: callable) -> None:
+        """Bind a stable route name to a separately validated implementation kind."""
+        import re
+        if not isinstance(route_id, str) or not re.fullmatch(r"[a-z][a-z0-9_-]{0,63}", route_id):
+            raise ValueError("Invalid route ID")
+        kind = ProviderName(provider_kind).value
+        with self._lock:
+            self._kinds[route_id] = kind
+            self._factories[route_id] = factory
+            self._instances.pop(route_id, None)
+
     def get(self, name: str) -> Provider:
         with self._lock:
             if name not in self._factories:
@@ -40,7 +52,7 @@ class Registry:
             if name not in self._instances:
                 try:
                     instance = self._factories[name]()
-                    if instance.name != name: raise ValueError("Factory name mismatch")
+                    if instance.name != self._kinds.get(name, name): raise ValueError("Factory name mismatch")
                     self._instances[name] = instance
                 except ProviderError: raise
                 except Exception: raise ProviderError(provider=name, code="config") from None

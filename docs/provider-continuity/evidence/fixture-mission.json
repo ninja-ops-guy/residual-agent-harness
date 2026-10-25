@@ -1,0 +1,181 @@
+{
+  "authority_path": "run_controlled_batch",
+  "continuity": {
+    "fallback_mode": "AUTOMATIC_ELIGIBLE",
+    "fallback_routes": [
+      "freellmapi"
+    ],
+    "last_decision": {
+      "admission_receipt": {
+        "admission_id": "5ce35a5e-a05d-4f5d-a3ad-693c8b4c0e38",
+        "consume_receipt_digest": "cd41bede2825a473ccce2431e708a8c98262e24f1c626cb41651284e09074e38",
+        "expires_at": "2026-09-30T00:06:10Z",
+        "manifest_digest": "a1060f4ea10147bf781d5e2da6d3fa337cb9d35a878607afe548664ac98fa515",
+        "receipt_digest": "155679de88ba9c183874c31011237fdeb75dbea02ea04c2454cf645a0ab7f26f",
+        "requested_context_tokens": 8192,
+        "requested_max_tokens": 4096,
+        "route_binding": "4bae46922d74d653892b8f2a0b9999741dcd13b378178a79465d6acd124a2d44",
+        "verdict": "PASS"
+      },
+      "attempt_id": "981ef3407bc401d985b1d991840a9d89e358a6cc2446fdc843b2630c1ddbae9f:2",
+      "breaker_state": "CLOSED",
+      "classification": "quota_exhausted",
+      "created_at": 1790725870.2219977,
+      "event": "accepted",
+      "fallback_eligible": true,
+      "fallback_mode": "AUTOMATIC_ELIGIBLE",
+      "invocation_id": "981ef3407bc401d985b1d991840a9d89e358a6cc2446fdc843b2630c1ddbae9f",
+      "mission_id": "p-9d7271cfb213",
+      "model_observed": "fixture-fallback",
+      "model_requested": "fixture-fallback",
+      "placement": "remote",
+      "project_id": "p-9d7271cfb213",
+      "provider_observed": "openai_compatible",
+      "provider_side_exactly_once": false,
+      "raw_error_code": null,
+      "readiness_receipt": "cdf73bdfdec31516631aab5fdc29562c1b824225af9ce51ce4a0ee389506c4be",
+      "receipt_digest": "452c8efd7c60b778a0a0e869e307039b4b9f82e6dceaca254a5503d7cf03dfac",
+      "requested_route": "primary-cloud",
+      "result_digest": "f196def2410a3e2ebd4614e19232cbb72b881998f84ea496ccbe4f8eeb8a64d3",
+      "role": "reviewer",
+      "selected_route": "freellmapi",
+      "state": "ACCEPTED",
+      "task_id": "LIVE-1",
+      "terminal_outcome": "accepted_evidence",
+      "timestamp": 1790725870.2674549
+    },
+    "primary_route": "primary-cloud",
+    "routes": {
+      "freellmapi": {
+        "breaker": {
+          "changed_at": 1790725870.2584848,
+          "classification": null,
+          "invocation_id": "981ef3407bc401d985b1d991840a9d89e358a6cc2446fdc843b2630c1ddbae9f",
+          "probe": null,
+          "state": "CLOSED"
+        },
+        "readiness": {
+          "admission_receipt": {
+            "admission_id": "abe65abb-a276-4cb5-aadb-0c6ed6b94cf3",
+            "consume_receipt_digest": "62de233393e6846182bdab83a51746243d04dff7b69b85c17ba3250280422225",
+            "expires_at": "2026-09-30T00:06:09Z",
+            "manifest_digest": "a1060f4ea10147bf781d5e2da6d3fa337cb9d35a878607afe548664ac98fa515",
+            "receipt_digest": "e667384a73ec0c438ca643ab1f3b6eb18ce0deaff6490ebba2364c6ea1b3159d",
+            "requested_context_tokens": 8192,
+            "requested_max_tokens": 32,
+            "route_binding": "e6931134095cd5ee7b3aa6ffd801fe30863dfc8219c49029bfa88821dd71ac48",
+            "verdict": "PASS"
+          },
+          "expires_at": 1790725929.0,
+          "identity": {
+            "api_version": "2024-10-21",
+            "base_url": "http://127.0.0.1:35911/fallback/v1",
+            "credential_ref": "freellmapi",
+            "kind": "openai_compatible",
+            "model": "fixture-fallback",
+            "output_token_field": "max_completion_tokens",
+            "placement": "remote",
+            "provider_kind": "openai_compatible",
+            "region": "us-east-1",
+            "route_id": "freellmapi"
+          },
+          "probe_digest": "2a1dcf8c0e2dbb1b7cb3168d0da74287ef7f0f83a087f0e4c8682e50dd96b716",
+          "provider_kind": "openai_compatible",
+          "readiness_state": "READY",
+          "receipt_digest": "cdf73bdfdec31516631aab5fdc29562c1b824225af9ce51ce4a0ee389506c4be",
+          "receipt_id": "3384abac5a554bb9aae9a4df0aa75316",
+          "verified_at": 1790725869.6662998
+        }
+      },
+      "primary-cloud": {
+        "breaker": {
+          "changed_at": 1790725870.0873134,
+          "classification": "quota_exhausted",
+          "invocation_id": "39b4f8815e9af5c8276cdb840fbe8fc383b95d2d9758c19f8ee0b8d4f9163acd",
+          "probe": null,
+          "state": "OPEN"
+        },
+        "readiness": {
+          "admission_receipt": {
+            "admission_id": "8531b808-18bd-4ad2-b892-7c607c9bda72",
+            "consume_receipt_digest": "167d4037449e1235462701d8010ae9843688fadc703d05d2cabc98e251ef188f",
+            "expires_at": "2026-09-30T00:06:09Z",
+            "manifest_digest": "f806c3c024a86d036697139bb67bad740696b0f7d45f2c6bd9b6d442d538df96",
+            "receipt_digest": "dbe4c35678893f1adad6efb17190c440c961a57fff43f830ef560319b933b144",
+            "requested_context_tokens": 8192,
+            "requested_max_tokens": 32,
+            "route_binding": "c9c77e3ef630c918aa0c2d6c751c6851e7c13afdfaadbfa2ad6541e68a8fd719",
+            "verdict": "PASS"
+          },
+          "expires_at": 1790725929.0,
+          "identity": {
+            "api_version": "2024-10-21",
+            "base_url": "http://127.0.0.1:35911/primary/v1",
+            "credential_ref": "primary-cloud",
+            "kind": "openai_compatible",
+            "model": "fixture-primary",
+            "output_token_field": "max_completion_tokens",
+            "placement": "remote",
+            "provider_kind": "openai_compatible",
+            "region": "us-east-1",
+            "route_id": "primary-cloud"
+          },
+          "probe_digest": "601c58e6b4d758535c53a2ca2f058c7e33a9af781a4df53221b12c093989f1f0",
+          "provider_kind": "openai_compatible",
+          "readiness_state": "READY",
+          "receipt_digest": "838ef727f83c41b6475ef4fbdcc6677631832d5f3ed9c1ada5f6968dfc56e956",
+          "receipt_id": "faa9ed2a10e94dd282539d33899c9482",
+          "verified_at": 1790725869.656807
+        }
+      }
+    }
+  },
+  "crash_semantics": {
+    "INVOCATION_STARTED": "INDETERMINATE_PROVIDER_OUTCOME; no automatic replay",
+    "PLANNED": "normal gates then invoke",
+    "PROVIDER_RESULT_RECORDED": "reuse durable result; no provider call"
+  },
+  "elapsed_ms": 909.275,
+  "fixture_calls": {
+    "freellmapi_call": 2,
+    "freellmapi_probe": 1,
+    "primary_call": 1,
+    "primary_probe": 1
+  },
+  "integrated_head": "533ba7c63fb8e6f170b04f4defc747ff954d0c43",
+  "metrics": {
+    "calls": 3,
+    "cloud_input": 20,
+    "cloud_output": 20,
+    "events": 19,
+    "local_input": 0,
+    "local_output": 0,
+    "report_bytes": 3470,
+    "reported_tokens": 40,
+    "request_bytes": 7226,
+    "unreported_calls": 0
+  },
+  "model_requested": "fixture-primary",
+  "non_claim": "PASS establishes one exact-revision end-to-end provider mission; it does not establish general model quality or long-run provider reliability.",
+  "project_id": "p-9d7271cfb213",
+  "provider": "openai_compatible",
+  "provider_side_exactly_once": false,
+  "qualification_kind": "DETERMINISTIC_FIXTURE",
+  "release": {
+    "id": "p-9d7271cfb213:83335646ca17496bb761930d9ce556380fc2da50af5e0c7f9cf10167280ec0fa",
+    "name": "release-p-9d7271cfb213.zip",
+    "sha256": "83335646ca17496bb761930d9ce556380fc2da50af5e0c7f9cf10167280ec0fa",
+    "size": 258
+  },
+  "result": "PASS",
+  "run_control": {
+    "evidence": "p-9d7271cfb213:0d441dfce35b673bd5791a4e9a04bcccf9412d17bfaa56db6d3da47e30d4e296",
+    "outcome": "success",
+    "project_head": "533ba7c63fb8e6f170b04f4defc747ff954d0c43",
+    "project_spec_hash": "68e7d297335bf3483d7dd005a2791b45ba1dfd7ff8abe107eb962e80a1b63d8d"
+  },
+  "schema": "residual.qualification.provider-continuity.v1",
+  "terminal_target": "PROVIDER_CONTINUITY_CANDIDATE_READY_FOR_INDEPENDENT_REVIEW",
+  "trust_boundary": "FreeLLMAPI is remote evidence; READY and independent BL-006 PASS required",
+  "verification_receipt_hash": "a05acc63c6b2372e491d36ec053f1a47e6d4109a72a90ad47ce565327284aec9"
+}

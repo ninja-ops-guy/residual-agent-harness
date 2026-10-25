@@ -31,6 +31,7 @@ jobs:
         run: |
           python -m compileall -q residual
           python scripts/qualification_unittest.py discover -s tests -v
+          python -m pytest tests/continuity tests/qualification/test_provider_mission.py -q
       - name: Exercise packaged CLI
         run: |
           residual demo --output runs/ci-demo

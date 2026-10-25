@@ -36,10 +36,10 @@ class ContinuityTests(unittest.TestCase):
         self.assertTrue(quota.failover_allowed)
         self.assertFalse(quota.retryable)
         auth = map_http_error("openai", 401, b'{}', {})
-        self.assertEqual(auth.code, "auth_rejected")
-        self.assertTrue(auth.failover_allowed)
+        self.assertEqual(auth.code, "authentication")
+        self.assertFalse(auth.failover_allowed)
         policy = map_http_error("openai", 403, b'{"error":{"code":"quota_exhausted"}}', {})
-        self.assertEqual(policy.code, "policy_denied")
+        self.assertEqual(policy.code, "authentication")
         self.assertFalse(policy.failover_allowed)
 
     def test_arbitrary_text_cannot_authorize_quota(self):
@@ -56,9 +56,9 @@ class ContinuityTests(unittest.TestCase):
         with self.assertRaises(ProviderError):
             ContinuityProvider([remote, local]).generate({}, 100, "cloud")
         remote.results = [ProviderError(provider="openai", code="quota_exhausted", failover_allowed=True)]
-        chosen, reply = ContinuityProvider([remote, local], cross_placement=True).generate({}, 100, "cloud")
-        self.assertIs(chosen, local)
-        self.assertIs(reply, expected)
+        with self.assertRaisesRegex(ContractError, "durable readiness"):
+            ContinuityProvider([remote, local], cross_placement=True).generate({}, 100, "cloud")
+        self.assertEqual(local.calls, 0)
 
     def test_policy_denial_blocks_fallback(self):
         local = FakeProvider("ollama", "local", "http://127.0.0.1:11434",
