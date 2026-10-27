@@ -8,6 +8,18 @@ RESIDUAL is an evidence-first reliability and control plane for AI-assisted engi
 
 For exact current claims, start with [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md).
 
+## Platform ecosystem
+
+This repository is the core implementation. The surrounding platform lives in dedicated repositories:
+
+| Repository | Role |
+|---|---|
+| [`residual-spec`](https://github.com/ninja-ops-guy/residual-spec) | Durable normative specification: module specs MS-00..MS-08, qualification plan G0–G7, versioning, governance, conformance suite |
+| [`residual-sdk`](https://github.com/ninja-ops-guy/residual-sdk) | Framework-agnostic Python SDK for RESIDUAL run attestation |
+| [`residual-langchain`](https://github.com/ninja-ops-guy/residual-langchain) | LangChain callback adapter for run attestation |
+| [`residual-crewai`](https://github.com/ninja-ops-guy/residual-crewai) | CrewAI event-listener adapter for run attestation |
+| [`residual-case-studies`](https://github.com/ninja-ops-guy/residual-case-studies) | Public corpus of failures missed by behavioral evals and caught by RESIDUAL-style run-state verification |
+
 ## Licensing and editions
 
 RESIDUAL is being structured as an **open-core** project. The candidate Apache-2.0 component is a deliberately small **verification and research kernel**, not the complete runtime or enterprise platform. This development repository contains reserved product code, so GitHub visibility is not itself a license grant.
