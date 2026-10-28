@@ -66,11 +66,28 @@ def _admission_rejection(error, data, worker_id):
 
 class MeshWorkerClient:
     def __init__(self, station, token, *, worker_id, outbox_path=None):
-        url = urllib.parse.urlsplit(station)
-        if url.scheme != "https" and not (url.scheme == "http" and url.hostname in {"localhost", "127.0.0.1", "::1"}):
-            raise ContractError("Use HTTPS for remote stations or a loopback SSH tunnel")
-        if url.username or url.password or url.query or url.fragment:
+        # Validate before urllib can silently strip controls or defer port errors.
+        invalid = "Invalid Station URL"
+        if (not isinstance(station, str) or not station
+                or any(c.isspace() or ord(c) < 32 or ord(c) == 127 for c in station)
+                or "\\" in station):
+            raise ContractError(invalid)
+        try:
+            url = urllib.parse.urlsplit(station)
+            host, port = url.hostname, url.port
+        except ValueError:
+            raise ContractError(invalid) from None
+        if not host or (port is not None and port == 0):
+            raise ContractError(invalid)
+        if url.username is not None or url.password is not None or "?" in station or "#" in station:
             raise ContractError("Station URL must not contain credentials, query, or fragment")
+        if url.scheme != "https" and not (url.scheme == "http" and host in {"localhost", "127.0.0.1", "::1"}):
+            raise ContractError("Use HTTPS for remote stations or a loopback SSH tunnel")
+        if url.scheme == "http" and host == "localhost":
+            # Do not let resolver configuration move plaintext off loopback.
+            # IPv6-only tunnels should use the explicit [::1] spelling.
+            url = url._replace(netloc="127.0.0.1" + (f":{port}" if port is not None else ""))
+        station = urllib.parse.urlunsplit(url)
         if not token:
             raise ContractError("A mesh enrollment token is required")
         if not worker_id:

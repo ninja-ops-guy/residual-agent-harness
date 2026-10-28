@@ -14,6 +14,12 @@ import uuid
 
 from residual.core import ContractError, canonical
 
+class MeshIntegrityError(ContractError):
+    """Payload material disagrees with its declared digest; no payload in error."""
+
+    code = "MESH_PAYLOAD_DIGEST_MISMATCH"
+
+
 MESH_SCHEMA = "residual.sc.mesh/1"
 ENROLLMENT_SCHEMA = "residual.sc.mesh.enrollment/1"
 STATUS_SCHEMA = "residual.sc.mesh.status/1"
@@ -190,7 +196,7 @@ class MeshEnvelope:
             raise ContractError("payload_digest must be lowercase SHA-256")
         material = payload if payload is not None else {"artifact_ref": artifact_ref}
         if payload_digest(material) != supplied_digest:
-            raise ContractError("payload_digest does not match the payload")
+            raise MeshIntegrityError("payload_digest does not match the payload")
 
         task_values = {
             "task_id": value.get("task_id"),
