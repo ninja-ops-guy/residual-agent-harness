@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import secrets
 import time
 from dataclasses import asdict
@@ -15,6 +16,7 @@ from residual.core import ContractError, canonical
 from .mesh import (
     EnrollmentRequest,
     MeshEnvelope,
+    MeshIntegrityError,
     MAX_PAGE,
     MAX_REPLAY_AGE_S,
     MAX_PROJECT_MESSAGES,
@@ -303,6 +305,16 @@ class MeshState:
         safe_digest = hashlib.sha256(canonical(value).encode("utf-8")).hexdigest()
         try:
             envelope = MeshEnvelope.parse(value)
+        except MeshIntegrityError as exc:
+            # Never persist attacker-selected identifiers or payload material here.
+            self.dead_letter(worker_id=None, project_id=None,
+                             operation="message.integrity", reason=exc.code)
+            logging.getLogger(__name__).warning(
+                "mesh_integrity_failure",
+                extra={"event_code": exc.code, "operation": "message.validation",
+                       "outcome": "rejected"},
+            )
+            raise
         except ContractError as exc:
             self.dead_letter(worker_id=worker.get("worker_id"), project_id=value.get("project_id") if isinstance(value, dict) else None,
                              operation="message.validation", reason=str(exc), digest=safe_digest)
