@@ -111,7 +111,7 @@ def build(root, seed=510):
             packet = root/'operator'/f'packet-{block+1}'
             packet.mkdir(parents=True, exist_ok=True)
             page = '<!doctype html><meta charset="utf-8"><title>Evidence review</title><h1>Evidence review</h1><p>Record ACCEPT, REJECT or HOLD; probability acceptance is warranted (0–100); active seconds; burden (1–7).</p><pre>' + html.escape(json.dumps(view, indent=2)) + '</pre>'
-            (packet/f'{position+1:02d}.html').write_text(page, encoding='utf-8')
+            (packet/f'{position+1:02d}.html').write_bytes(page.encode('utf-8'))
             row = dict(participant_id=f'SYN-{block+1:03d}', presentation_id=token,
                        case_id=case['case_id'], case_hash=case['case_hash'], condition=arm,
                        presentation_hash=hashlib.sha256(page.encode()).hexdigest(), order=position+1)
@@ -134,8 +134,46 @@ def finite_number(value, lower, upper):
     return type(value) in (int, float) and math.isfinite(value) and lower <= value <= upper
 
 
-def analyze(responses, schedule, truth):
+def verify_presentations(root, schedule):
+    """Rehash assigned files; return no truth, case, or condition information.
+
+    Paths follow build's fixed participant/position mapping. This verifies a
+    local snapshot, not historical delivery or browser rendering.
+    """
+    root = Path(root).resolve(strict=True)
+    verified, paths, tokens = [], set(), set()
+    for row in schedule:
+        participant, order = row['participant_id'], row['order']
+        token = row['presentation_id']
+        if (not isinstance(participant, str)
+                or not re.fullmatch(r'SYN-00[1-4]', participant)
+                or type(order) is not int or not 1 <= order <= 14
+                or not isinstance(token, str)
+                or not re.fullmatch(r'[0-9a-f]{20}', token)):
+            raise ValueError('invalid presentation assignment')
+        relative = f"operator/packet-{int(participant[4:])}/{order:02d}.html"
+        if relative in paths or token in tokens:
+            raise ValueError('duplicate presentation assignment')
+        paths.add(relative)
+        tokens.add(token)
+        path = root / relative
+        # Reject symlink indirection, including packet/operator directories.
+        if any(p.is_symlink() for p in (path, path.parent, path.parent.parent)):
+            raise ValueError('presentation symlink forbidden')
+        try:
+            actual = hashlib.sha256(path.read_bytes()).hexdigest()
+        except OSError as exc:
+            raise ValueError(f'presentation unavailable: {relative}') from exc
+        if actual != row['presentation_hash']:
+            raise ValueError(f'presentation bytes mismatch: {relative}')
+        verified.append(dict(presentation_id=token, path=relative, sha256=actual))
+    return dict(scope='local files at analysis time; not delivery evidence',
+                assignment_sha256=digest(schedule), presentations=verified)
+
+
+def analyze(responses, schedule, truth, *, presentation_root):
     """Hard-limited to synthetic fixtures; G4 human unblinding is not implemented."""
+    verification = verify_presentations(presentation_root, schedule)
     expected = {(s['participant_id'], s['presentation_id']): s for s in schedule}
     if len(expected) != len(schedule): raise ValueError('duplicate assignment')
     seen, joined = set(), []
@@ -182,6 +220,7 @@ def analyze(responses, schedule, truth):
         x,y = arms[a]['incorrect_acceptance_rate'], arms[b]['incorrect_acceptance_rate']
         contrasts[a+'-'+b] = None if x is None or y is None else x-y
     return dict(label='SYNTHETIC SOFTWARE CHECK — NOT PARTICIPANT RESULTS',
+                presentation_verification=verification,
                 arms=arms, risk_differences=contrasts,
                 by_fault={f:{a:summarize([x for x in joined if x[2]['fault']==f and x[1]['condition']==a],sum(s['condition']==a and truth[s['case_id']]['fault']==f for s in schedule)) for a in CONDITIONS} for f in sorted({t['fault'] for t in truth.values()})},
                 uncertainty='Not estimated for constructed fixtures. Human inference requires approved analysis extension.',
@@ -201,7 +240,7 @@ def main():
         truth, schedule = read('custodian/truth.json'), read('custodian/assignment.json')
         if digest(truth)!=manifest['truth_sha256'] or digest(schedule)!=manifest['assignment_sha256']:
             raise ValueError('custodian manifest mismatch')
-        result = analyze(read('fixtures/responses.json'), schedule, truth)
+        result = analyze(read('fixtures/responses.json'), schedule, truth, presentation_root=root)
         target = root/'synthetic-analysis.json'
         if target.exists(): raise FileExistsError('retain prior analysis; use a fresh run')
         write(target,result)

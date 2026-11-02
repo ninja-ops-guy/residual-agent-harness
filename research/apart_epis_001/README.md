@@ -25,10 +25,37 @@ The analyzer deliberately refuses non-synthetic responses. A separately reviewed
 This owner-requested draft fills interfaces without reassigning or declaring completion of Scout, Tester, Hermes, Wrench, Piston, STAR, or Challenger lanes. Existing lane ACK/capacity and unpublished work remain unknown. Reconcile their artifacts by exact revision before freeze. No swarm messages or dispatches were sent, no v1 owner reassigned, and no runtime/workflow/gate changed.
 
 - `pilot.py`: matched constructed worlds, allowlisted A–D renderer, counterbalanced schedule, fixture generator, strict synthetic response validator and analysis.
-- `test_pilot.py`: eight tests including hand-computed null, ideal-oracle software check, wrong verifiers, missing/aborted records, schema/hash rejection, rendering segregation and byte reproduction.
+- `test_pilot.py`: thirteen tests including hand-computed null, ideal-oracle software check, wrong verifiers, missing/aborted records, schema/hash rejection, rendering segregation and byte reproduction.
 - `protocol.md`: proposed design, estimands, limits, sample/stopping rule and owner gates.
 - `response.schema.json`: de-identified draft response contract (synthetic-only).
 - `inventory.json`: observed source identities and inspection limitations.
 - `RESULTS.md`: software findings only, negatives and unresolved review items.
 
 No live RESIDUAL execution is represented by the constructed receipts. The fixture uses SHA-256 identifiers for synthetic sources/artifacts, not fabricated Git commits or signed receipts.
+
+## Presentation-byte correction (PR #555 / finding #556)
+
+`analyze(..., presentation_root=run_root)` now requires the generated HTML tree
+and rehashes **all assigned presentations**, including missing/aborted responses,
+before scoring. The CLI uses its run directory. The fixed mapping from
+`SYN-00N` and assignment `order` to `operator/packet-N/XX.html` is checked;
+missing files, symlink indirection, duplicate paths/tokens and byte mismatches
+fail closed. Build writes UTF-8 bytes directly to avoid platform newline drift.
+Response hashes must still equal the assignment hashes verified against bytes.
+
+The analysis retains `presentation_verification`: scope, assignment digest,
+and opaque presentation IDs, relative paths and actual SHA-256 digests. This
+receipt adds no condition, case, fault or ground-truth fields to operator pages.
+The overall analysis remains custodian-only. Verification reads files once;
+keep the verified tree immutable and archive it with the receipt and source
+revision. A local snapshot does not attest to historical browser delivery,
+prevent subsequent changes, authenticate a maliciously rewritten manifest,
+or prove semantic truth. Approved human delivery/capture must bind its own
+served bytes and response receipts; human analysis remains disabled.
+
+The original retained `synthetic_fixture` is historical evidence and omits HTML;
+it must not be analyzed as if its bytes were available. Rebuild into a fresh
+run directory using the commands above. Historical verification/results remain
+unchanged; `integrity-verification.json` records the correction checks.
+This reuses `RES-UP-RESEARCH-TEST-SUBJECT-PROVENANCE-001`. P2 / POST-V1 /
+NONBLOCKING; G1–G5 owner approvals and v1 release state are unchanged.
