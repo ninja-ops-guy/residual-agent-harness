@@ -1,0 +1,24 @@
+{
+  "scope": "Local exact-file projection; no full repository checkout or hosted CI qualification",
+  "python": "3.12.14",
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.39",
+  "tests": {
+    "command": "python -m unittest discover -s research/apart_epis_001 -v",
+    "methods_passed": 8,
+    "skipped": 0
+  },
+  "cli": [
+    "python research/apart_epis_001/pilot.py build <fresh-directory>",
+    "python research/apart_epis_001/pilot.py analyze <fresh-directory>"
+  ],
+  "human_results": false,
+  "source_sha256": {
+    "README.md": "32a157df3ecf58c4e699ec724a2ee48002299183fb1d7bca0e1e6d82a12982c3",
+    "RESULTS.md": "a83750466ac71bd8b9ba1d0298221d968e9c6c2b6a4f6cdcf27b3165d5aee746",
+    "inventory.json": "e293f3007cc7d74cdd48de99d9fa1e73be1a6da5d105fe69a09d2b365526bd49",
+    "pilot.py": "b3f1235db2762641731ce8aa677e44a839c629c1eca44da74df00c3e79e4a7b5",
+    "protocol.md": "fb8f6ba3f8c861459778a67f7cd219737de060be0db1b442fe19b65898438fba",
+    "response.schema.json": "7aa15ccb3cb8bfe232c49f34ee0182be950326cb2caa9c2f49a881a2d596b04c",
+    "test_pilot.py": "003a8a3ae97b921c5f0c93a2c484cf6f894ef9eeaa940e2fab8faa9c4d88aa4e"
+  }
+}

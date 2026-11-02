@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "APART-EPIS-001 draft synthetic response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "participant_id",
+    "presentation_id",
+    "presentation_hash",
+    "synthetic",
+    "decision",
+    "acceptance_probability",
+    "active_seconds",
+    "burden",
+    "status"
+  ],
+  "properties": {
+    "participant_id": {
+      "type": "string",
+      "pattern": "^SYN-[0-9]{3}$"
+    },
+    "presentation_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{20}$"
+    },
+    "presentation_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "synthetic": {
+      "const": true
+    },
+    "decision": {
+      "enum": [
+        "ACCEPT",
+        "REJECT",
+        "HOLD",
+        null
+      ]
+    },
+    "acceptance_probability": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "active_seconds": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 86400
+    },
+    "burden": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1,
+      "maximum": 7
+    },
+    "status": {
+      "enum": [
+        "complete",
+        "aborted"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "aborted"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "decision": {
+            "type": "null"
+          },
+          "acceptance_probability": {
+            "type": "null"
+          },
+          "active_seconds": {
+            "type": "null"
+          },
+          "burden": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "decision": {
+            "enum": [
+              "ACCEPT",
+              "REJECT",
+              "HOLD"
+            ]
+          },
+          "acceptance_probability": {
+            "type": "number"
+          },
+          "active_seconds": {
+            "type": "number"
+          },
+          "burden": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  ]
+}

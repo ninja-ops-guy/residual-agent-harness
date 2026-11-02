@@ -1,0 +1,142 @@
+{
+  "base_commit": "ddba6c3fe83093172925e3a5822a1fbeaa3e0c1c",
+  "scope": "local full checkout, targeted stdlib synthetic software checks; not hosted CI or human outcomes",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.39",
+  "source_sha256": {
+    "research/apart_epis_001/pilot.py": "f240da7252ecec0d0620b54fcc850109998a33b07165518cb78bf04eb4203594",
+    "research/apart_epis_001/test_pilot.py": "2e381901e0c26a817ec0c932639812bdc71612526a304f56cbf5366eede0d5a5"
+  },
+  "baseline_negative": "Original source accepted altered HTML with unchanged metadata in local reproduction; no real tampering alleged.",
+  "corrected_negative": "13 tests passed, including modified/swapped HTML rejected through API and CLI; missing/symlinked HTML rejected; no output written on CLI failure.",
+  "reproducibility": "Two fresh generated and analyzed trees byte-identical",
+  "output_sha256": {
+    "custodian/assignment.json": "a80997cd4442ca3946c73a133eb402dd98f1b94acdd85841496008b1a445979c",
+    "custodian/cases.json": "e6cff557ed2325ab3048b04e1fc1c1105807bb3abed8f67d67615e3c6194a0e7",
+    "custodian/truth.json": "fef68b9bdc001d328372bfb3df81ff9113d3b17f203231f2d342b8815145918b",
+    "fixtures/responses.json": "68961408141d933bcfbdf0fede62cb676032cc5e9687cedd2fb78367f3c67058",
+    "manifest.json": "193dc273041c887242aa5a8c688da6eb4084afe2937a9be47dc781d8d7232297",
+    "operator/packet-1/01.html": "fc94166cb849128f7fc838914c8204988bde523963f3bb5eb0c928054d5596a8",
+    "operator/packet-1/02.html": "e0d39c0bb8fbe43cdaa21f98d163b1a10e3ea43826f902925cf993198db948ee",
+    "operator/packet-1/03.html": "3223282853b24700b49015d50cfbabb471c3b66c0d2f2a24e680c385747eee9a",
+    "operator/packet-1/04.html": "8d7ddf36b6789fc369f3d1e29fa6e615e7e520b5fee3e03bd0c44e792ac42fc0",
+    "operator/packet-1/05.html": "9c765275f8272702cd3553002aa7e486b8d274c1d8c1750e0edcce062f43fa84",
+    "operator/packet-1/06.html": "33648becea3b9d8b7e2c2ce67d47c562b88c63cebd14e5dbaab94118a89c02ad",
+    "operator/packet-1/07.html": "b08781783678bdb262c3aeef9c595d5fddc06cb3482b7a516ea463a57c34c456",
+    "operator/packet-1/08.html": "f3c580c797c054fcb5a0b3916b438c79563fedf6dc8fefced98451ef11e4cd2b",
+    "operator/packet-1/09.html": "1b2bf93193dc2b43746742bc7bd772b2c8bf8e3008a23ce4f89afa3fbc9a05be",
+    "operator/packet-1/10.html": "ff82446c7e664e22f0cba383e679adc2118144bf316633f78555c7c7893c2d58",
+    "operator/packet-1/11.html": "7d300016246aef951c4ad35a1ff4e532f3e88a7e4322584b9f5c908caeee1251",
+    "operator/packet-1/12.html": "cf8c6f1055572fa1b5bc7f30f9bc9cf8dc9612418885c5ed2d8a92f72ae54000",
+    "operator/packet-1/13.html": "5a96aeafa838ab0ae07944dd1b8cb949cfe9696d6b5162f5101f1ed041ec3ef8",
+    "operator/packet-1/14.html": "a119a90f52f262e263650b59b2b9ce1b317bb597e50bd9890b761cf06ad3dff5",
+    "operator/packet-2/01.html": "2cdd4e8283528bbf1e2bcd9047a7ab5fd0bdbcfb5c46ef6a7acbd559e7ba6794",
+    "operator/packet-2/02.html": "7aef7e2f84c1fd6b08e80ea700cd97aac66a0cec0d9f83c34eabb375285111dd",
+    "operator/packet-2/03.html": "2d9c2080793cde66ff7d562b97d70d6f61170a1011f3f4642b32f017d4a8753c",
+    "operator/packet-2/04.html": "9bf9b71142b47d47fdd89325c8d72395dc1261b51c54847e292aea44098f5a95",
+    "operator/packet-2/05.html": "4d05522bf9918894c24d3ef0f138daf18257f943ef12e4f00c010ee056096e39",
+    "operator/packet-2/06.html": "ead465174a09d458e964131e9708f4911c56c932501a7a2b80a3c6c9a6e95d63",
+    "operator/packet-2/07.html": "a77b831b22c09cb17eff9da45f904177f5eabfb9a17a4b1679901cb6cba672c8",
+    "operator/packet-2/08.html": "fc9d0e3e7b7aa7282bb56698321458343d124f228a220eb54f406ded59cd3ab1",
+    "operator/packet-2/09.html": "c64da38e97889381fc656e0b173d331793c96e09aa7cca054d8a5e2e592e5dcb",
+    "operator/packet-2/10.html": "8b6baf253279a9c1810e40be54e52b0275d52cd54dead85e7cb7468fd355c542",
+    "operator/packet-2/11.html": "ee5d9132d5c257f0808253c36ec6b81eea15196c530cdd7009a27555fcc41d9c",
+    "operator/packet-2/12.html": "db8993438e9379c63aa1565ab1111cc51b9c30b39a74a569a96e9a12502457e0",
+    "operator/packet-2/13.html": "32beb682a9b2ca5b5b8b47484d2c190817016592586cd6d58749101c2a1069c2",
+    "operator/packet-2/14.html": "c95219f7decdc8a6f0d81dbb83a5d6313fec7449480ba56003768f1488396a69",
+    "operator/packet-3/01.html": "c48268c019851ef5baa863378c8c07c0d5c94536e977668bfea8fe5b6a231e53",
+    "operator/packet-3/02.html": "92d5546bd461171518718bcef3fa53922da66624981568e9bad054007eda05e2",
+    "operator/packet-3/03.html": "10bc7b9192e7ca3cb28c74b12e60419123b59545dbeecec5c1c4cdd3d796ebd8",
+    "operator/packet-3/04.html": "d3ba8273c8b2d8606ec8f68464ab9cd203c3919fe8fd8247d1f4fc92e27f3602",
+    "operator/packet-3/05.html": "e9ef65ca0bfcfa1a3e7a56577640350bb638aeb6a162b4580735aa5a2af78b36",
+    "operator/packet-3/06.html": "ad9b9b49c4dcc749dc2d41161b5daf65db4da7cf2aa1b348a422049786b75620",
+    "operator/packet-3/07.html": "d03734e190707221d32111d99e64d4a06de28b88f8fbb5bd0ff5a4a888199c44",
+    "operator/packet-3/08.html": "018f39b52fd07e54eb51f18e627b71bc125a38c04c4cf13d94d415022cfb124d",
+    "operator/packet-3/09.html": "b7371fd58cea670f624078d6eecf9349b935868103e1d8763de35d19bcb9314f",
+    "operator/packet-3/10.html": "631fcc67cb965128f7d63e5ef313c9cc2a91ae8c8a5fba81c787c86fb1a6366b",
+    "operator/packet-3/11.html": "a1e9a722008665d812aa81d41882df139ec2d8c9a686e3460392eef4b9c6f715",
+    "operator/packet-3/12.html": "6201b3985c154daa67b4f9119d517e67faaf95520e99c2e26b302ba542420bb3",
+    "operator/packet-3/13.html": "7eb6e98802c31ea3d781127a5b2f0216efa594377e52284e2db3eb3db642998d",
+    "operator/packet-3/14.html": "b5c8f14af15bbd6cae6e2455f31e8fca49dc5188ceb13acf29c8214bd9512186",
+    "operator/packet-4/01.html": "4419c9e65a65b43657c8ab441a72bff74f04e308370b9892d855faa8f9cab0dd",
+    "operator/packet-4/02.html": "bfeb1164911a3f407c88271f898102ab39cf7941a1634810abe58c688efb6738",
+    "operator/packet-4/03.html": "d8b3e211c88ddea5d95fbe6f588800ddc00cf2625d7e60d737e9872382b396a7",
+    "operator/packet-4/04.html": "5574567217ebf77de83931d911a6985abdee9c48fd55224aace030af119b1fb2",
+    "operator/packet-4/05.html": "df6571392c55bae556801e83f6d498e272ca245012f1f8965d9e87e587068242",
+    "operator/packet-4/06.html": "b084b6cba2ffd54fa78647434d0dcc6c5c096ff402ae4f2acd23354e7dd46c94",
+    "operator/packet-4/07.html": "8d9891d0255f246a8951aa40f17a2073c7843081f233d7fa10672580e87f2cde",
+    "operator/packet-4/08.html": "2ad80495806516e25c3b03227eb977c30448f05fe3a34e72c8092d1c01757308",
+    "operator/packet-4/09.html": "5de9c813d3a17faf26f4c11181b067281a055ab165ffbdf392d62d8bee4c3a51",
+    "operator/packet-4/10.html": "6836b9704735948a0b7ae6c647df5c7b5fe3e773c90af8a5874f31bea1461c77",
+    "operator/packet-4/11.html": "376444c56e884f8d1c9a6f658edd6d82c48a8e8fda26f675ff330a4e03facba4",
+    "operator/packet-4/12.html": "e99a939cfc976c29659386efae9bbbb0e769b3c18b6490bc7a3fad422436dc50",
+    "operator/packet-4/13.html": "c78b7e3c6f3b1dc74c08023ae29c4ef38a0ed46de9fc2f64bb5e0f7001dab0f4",
+    "operator/packet-4/14.html": "38a0b0a3b4808449847c6d51c1cae5deb85c841c3c3f2f4bf2565d9f8d3a19f7",
+    "synthetic-analysis.json": "189bf8837958420fb83f9a4f34628b354577fe55f1931bc098b4ed211002e947"
+  },
+  "commands": [
+    {
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "research/apart_epis_001",
+        "-v"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "test_all_faults_and_four_matched_views (test_pilot.PilotTests.test_all_faults_and_four_matched_views) ... ok\ntest_cli_rejects_altered_and_swapped_html (test_pilot.PilotTests.test_cli_rejects_altered_and_swapped_html) ... ok\ntest_hand_computed_null_fixture (test_pilot.PilotTests.test_hand_computed_null_fixture) ... ok\ntest_invalid_inputs_fail_closed (test_pilot.PilotTests.test_invalid_inputs_fail_closed) ... ok\ntest_missing_and_aborted_remain_visible (test_pilot.PilotTests.test_missing_and_aborted_remain_visible) ... ok\ntest_missing_and_symlinked_html_rejected (test_pilot.PilotTests.test_missing_and_symlinked_html_rejected) ... ok\ntest_modified_html_rejected_even_without_responses (test_pilot.PilotTests.test_modified_html_rejected_even_without_responses) ... ok\ntest_participant_allowlist_and_html_escape (test_pilot.PilotTests.test_participant_allowlist_and_html_escape) ... ok\ntest_perfect_oracle_software_fixture (test_pilot.PilotTests.test_perfect_oracle_software_fixture) ... ok\ntest_reproduction_and_no_overwrite (test_pilot.PilotTests.test_reproduction_and_no_overwrite) ... ok\ntest_swapped_html_rejected (test_pilot.PilotTests.test_swapped_html_rejected) ... ok\ntest_verified_receipt_and_response_binding (test_pilot.PilotTests.test_verified_receipt_and_response_binding) ... ok\ntest_wrong_verifier_is_not_truth (test_pilot.PilotTests.test_wrong_verifier_is_not_truth) ... ok\n\n----------------------------------------------------------------------\nRan 13 tests in 0.257s\n\nOK\n"
+    },
+    {
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "research/apart_epis_001/pilot.py",
+        "build",
+        "/workspace/scratch/2b12c938a59b/evidence/corrected-a"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "research/apart_epis_001/pilot.py",
+        "analyze",
+        "/workspace/scratch/2b12c938a59b/evidence/corrected-a"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"A\": {\n    \"assigned\": 14,\n    \"completed\": 14,\n    \"aborted\": 0,\n    \"missing\": 0,\n    \"incorrect_acceptance_count\": 11,\n    \"nonacceptable_denominator\": 11,\n    \"incorrect_acceptance_rate\": 1.0,\n    \"appropriate_hold_rate\": 0.0,\n    \"hold_denominator\": 8,\n    \"false_rejection_rate\": 0.0,\n    \"brier\": 0.5114285714285715,\n    \"median_active_seconds\": 30.0,\n    \"mean_burden\": 4.0\n  },\n  \"B\": {\n    \"assigned\": 14,\n    \"completed\": 14,\n    \"aborted\": 0,\n    \"missing\": 0,\n    \"incorrect_acceptance_count\": 11,\n    \"nonacceptable_denominator\": 11,\n    \"incorrect_acceptance_rate\": 1.0,\n    \"appropriate_hold_rate\": 0.0,\n    \"hold_denominator\": 8,\n    \"false_rejection_rate\": 0.0,\n    \"brier\": 0.5114285714285715,\n    \"median_active_seconds\": 30.0,\n    \"mean_burden\": 4.0\n  },\n  \"C\": {\n    \"assigned\": 14,\n    \"completed\": 14,\n    \"aborted\": 0,\n    \"missing\": 0,\n    \"incorrect_acceptance_count\": 11,\n    \"nonacceptable_denominator\": 11,\n    \"incorrect_acceptance_rate\": 1.0,\n    \"appropriate_hold_rate\": 0.0,\n    \"hold_denominator\": 8,\n    \"false_rejection_rate\": 0.0,\n    \"brier\": 0.5114285714285715,\n    \"median_active_seconds\": 30.0,\n    \"mean_burden\": 4.0\n  },\n  \"D\": {\n    \"assigned\": 14,\n    \"completed\": 14,\n    \"aborted\": 0,\n    \"missing\": 0,\n    \"incorrect_acceptance_count\": 11,\n    \"nonacceptable_denominator\": 11,\n    \"incorrect_acceptance_rate\": 1.0,\n    \"appropriate_hold_rate\": 0.0,\n    \"hold_denominator\": 8,\n    \"false_rejection_rate\": 0.0,\n    \"brier\": 0.5114285714285715,\n    \"median_active_seconds\": 30.0,\n    \"mean_burden\": 4.0\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "research/apart_epis_001/pilot.py",
+        "build",
+        "/workspace/scratch/2b12c938a59b/evidence/corrected-b"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "research/apart_epis_001/pilot.py",
+        "analyze",
+        "/workspace/scratch/2b12c938a59b/evidence/corrected-b"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"A\": {\n    \"assigned\": 14,\n    \"completed\": 14,\n    \"aborted\": 0,\n    \"missing\": 0,\n    \"incorrect_acceptance_count\": 11,\n    \"nonacceptable_denominator\": 11,\n    \"incorrect_acceptance_rate\": 1.0,\n    \"appropriate_hold_rate\": 0.0,\n    \"hold_denominator\": 8,\n    \"false_rejection_rate\": 0.0,\n    \"brier\": 0.5114285714285715,\n    \"median_active_seconds\": 30.0,\n    \"mean_burden\": 4.0\n  },\n  \"B\": {\n    \"assigned\": 14,\n    \"completed\": 14,\n    \"aborted\": 0,\n    \"missing\": 0,\n    \"incorrect_acceptance_count\": 11,\n    \"nonacceptable_denominator\": 11,\n    \"incorrect_acceptance_rate\": 1.0,\n    \"appropriate_hold_rate\": 0.0,\n    \"hold_denominator\": 8,\n    \"false_rejection_rate\": 0.0,\n    \"brier\": 0.5114285714285715,\n    \"median_active_seconds\": 30.0,\n    \"mean_burden\": 4.0\n  },\n  \"C\": {\n    \"assigned\": 14,\n    \"completed\": 14,\n    \"aborted\": 0,\n    \"missing\": 0,\n    \"incorrect_acceptance_count\": 11,\n    \"nonacceptable_denominator\": 11,\n    \"incorrect_acceptance_rate\": 1.0,\n    \"appropriate_hold_rate\": 0.0,\n    \"hold_denominator\": 8,\n    \"false_rejection_rate\": 0.0,\n    \"brier\": 0.5114285714285715,\n    \"median_active_seconds\": 30.0,\n    \"mean_burden\": 4.0\n  },\n  \"D\": {\n    \"assigned\": 14,\n    \"completed\": 14,\n    \"aborted\": 0,\n    \"missing\": 0,\n    \"incorrect_acceptance_count\": 11,\n    \"nonacceptable_denominator\": 11,\n    \"incorrect_acceptance_rate\": 1.0,\n    \"appropriate_hold_rate\": 0.0,\n    \"hold_denominator\": 8,\n    \"false_rejection_rate\": 0.0,\n    \"brier\": 0.5114285714285715,\n    \"median_active_seconds\": 30.0,\n    \"mean_burden\": 4.0\n  }\n}\n",
+      "stderr": ""
+    }
+  ],
+  "limitations": [
+    "Verification at analysis time is not proof of delivery",
+    "Synthetic fixtures are not human results",
+    "G1-G5 remain owner-controlled; post-v1 nonblocking"
+  ]
+}

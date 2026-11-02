@@ -1,0 +1,60 @@
+{
+  "inspection_date": "2026-11-01 America/New_York",
+  "repository": "ninja-ops-guy/residual-agent-harness",
+  "base_commit": "8369f0dc2a93d8dcb194220b85b9aaf87d1d6df2",
+  "base_tree": "7cd0d32be6fd61948f2fce753b122e5b6f0c6500",
+  "issue": 510,
+  "issue_comments": 0,
+  "scope": "Main recursive tree (not truncated), exact issue/comments, APART/Apart PR search, apart branch search, latest 100 open PRs, selected related research PRs. Not exhaustive all-branch content search.",
+  "sources": [
+    {
+      "path": "docs/station/AUTHORITY-LAB.md",
+      "blob_sha": "764fed3a34b5dbd6bece4fda73e86d41f126d5e3",
+      "reuse": "Semantic inventory only; no runtime import or modification."
+    },
+    {
+      "path": "docs/testing/QUALIFICATION_V1.md",
+      "blob_sha": "98ae17b30fa57ac036c4ae054aa163929e641307",
+      "reuse": "Semantic inventory only; no runtime import or modification."
+    },
+    {
+      "path": "residual/study.py",
+      "blob_sha": "d0e762b2511bc59f536acf84586a8c199ba3380c",
+      "reuse": "Semantic inventory only; no runtime import or modification."
+    },
+    {
+      "path": "residual/authority_lab.py",
+      "blob_sha": "68c104175c1b14c2e04475a27047489f5e42331f",
+      "reuse": "Semantic inventory only; no runtime import or modification."
+    }
+  ],
+  "related_prs": [
+    {
+      "number": 323,
+      "head": "9b27b4edcb0984096145f0a55561c45092c1e281",
+      "reuse": "Research Workbench: versioned definitions; not adopted because runtime integration would expand scope."
+    },
+    {
+      "number": 514,
+      "head": "81d687afabec8a0c10143c9f731250b43f694d2a",
+      "reuse": "AWQ is authority containment, not human calibration; no duplicate execution."
+    },
+    {
+      "number": 552,
+      "head": "7c9a16432d69ae8ad39df6ef97c82415c4d76c0b",
+      "reuse": "Retain secondary-source negative provenance observation."
+    },
+    {
+      "number": 554,
+      "head": "f2927b19fb3ce1c09a5c0a9d05eaf470d6f7225b",
+      "reuse": "Historical AWQ fixture receipt correction; not human study results."
+    }
+  ],
+  "limitations": [
+    "Private Shared Comms and local swarm outputs unavailable through exposed tools.",
+    "No APART-specific PR/branch discovered by bounded search; unpublished work may exist.",
+    "No AGENTS.md path in accepted main recursive tree.",
+    "Existing swarm lanes remain assigned; ACK/capacity unknown.",
+    "Registration not inspected or modified."
+  ]
+}
