@@ -4,12 +4,16 @@ import {mountTimeTravelDebug} from './mission-control-timetravel.js';
 export const DIAGNOSTIC_PROTOCOL = 'residual.diagnostic.v1';
 export const DIAGNOSTIC_SCHEMA_VERSION = '1.0';
 export const MAX_EVENTS = 5000;
+// Historical name: persistence is bounded by JavaScript UTF-16 code units, not encoded bytes.
 export const MAX_PERSIST_BYTES = 1024 * 1024;
 const SESSION_KEY = 'residual.demo.diagnostic.session.v1';
 const BUFFER_KEY = 'residual.demo.diagnostic.buffer.v1';
 const EVENT_TYPE = /^[a-z][a-z0-9_]*\.[a-z0-9_]+$/;
 const MISSION_ID = /^m-[a-f0-9]{32}$/;
 const REQUEST_ID = /^[a-f0-9]{32}$/;
+const SESSION_ID = /^ses_[a-f0-9]{1,64}$/;
+const RUN_ID = /^run_[a-f0-9]{1,64}$/;
+const EVENT_ID = /^evt_[a-f0-9]{1,64}$/;
 const SAFE_CONTEXT_KEYS = new Set([
   'attempt','browser','cross_origin_isolated','duration_ms','error_message','error_name',
   'evidence_count','evidence_kind','execution','failure_code','from','health','http_status',
@@ -72,6 +76,42 @@ export function sanitizeContext(input){
   }
   return out;
 }
+function record(value){return value!==null&&typeof value==='object'&&!Array.isArray(value);}
+function sanitizeRelease(value){
+  return {commit:typeof value?.commit==='string'?cleanString(value.commit,64):null,
+    webvm_commit:typeof value?.webvm_commit==='string'?cleanString(value.webvm_commit,64):null};
+}
+function sanitizeEnvironment(value){
+  return {browser:typeof value?.browser==='string'?cleanString(value.browser,180):'unknown',
+    platform:typeof value?.platform==='string'?cleanString(value.platform,80):'unknown',
+    online:typeof value?.online==='boolean'?value.online:null,
+    visibility:typeof value?.visibility==='string'?cleanString(value.visibility,120):'unknown',
+    cross_origin_isolated:value?.cross_origin_isolated===true};
+}
+function normalizeEvent(value,sessionId){
+  // Stored diagnostics are untrusted observations, never execution authority.
+  try{
+    if(!record(value)||!SESSION_ID.test(sessionId||'')||value.session_id!==sessionId||value.schema_version!==DIAGNOSTIC_SCHEMA_VERSION)return null;
+    if(typeof value.event_id!=='string'||!EVENT_ID.test(value.event_id))return null;
+    if(typeof value.event_type!=='string'||value.event_type.length>120||!EVENT_TYPE.test(value.event_type))return null;
+    if(value.run_id!==null&&(typeof value.run_id!=='string'||!RUN_ID.test(value.run_id)))return null;
+    if(value.mission_id!==null&&(typeof value.mission_id!=='string'||!MISSION_ID.test(value.mission_id)))return null;
+    if(value.parent_event_id!==null&&(typeof value.parent_event_id!=='string'||!EVENT_ID.test(value.parent_event_id)))return null;
+    if(typeof value.timestamp!=='string'||value.timestamp.length>64||!Number.isFinite(Date.parse(value.timestamp)))return null;
+    if(typeof value.monotonic_ms!=='number'||!Number.isFinite(value.monotonic_ms)||value.monotonic_ms<0)return null;
+    if(!['debug','info','warn','error'].includes(value.severity))return null;
+    const event={schema_version:DIAGNOSTIC_SCHEMA_VERSION,event_id:value.event_id,
+      trace_id:value.run_id||sessionId,parent_event_id:value.parent_event_id,
+      session_id:sessionId,run_id:value.run_id,mission_id:value.mission_id,
+      timestamp:value.timestamp,monotonic_ms:value.monotonic_ms,component:componentFor(value.event_type),
+      event_type:value.event_type,severity:value.severity,release:sanitizeRelease(value.release),context:sanitizeContext(value.context)};
+    if(record(value.diagnostic))event.diagnostic={
+      failure_class:[...FAILURE_MAP.values(),'UnknownFailure'].includes(value.diagnostic.failure_class)?value.diagnostic.failure_class:'UnknownFailure',
+      recoverable:value.diagnostic.recoverable===true};
+    return event;
+  }catch{return null}
+}
+function normalizedEvents(events,sessionId){return events.slice(-MAX_EVENTS).map(event=>normalizeEvent(event,sessionId)).filter(Boolean);}
 export function classifyFailure(value){
   const code=typeof value==='string'?value:(value?.code||value?.error||value?.name||'');
   if(FAILURE_MAP.has(code)) return FAILURE_MAP.get(code);
@@ -109,7 +149,7 @@ export class DemoDiagnostics {
     const storage=safeStorage('session');
     let sessionId=null;
     try{sessionId=storage?.getItem(SESSION_KEY)}catch{}
-    this.sessionId=/^ses_[a-f0-9]+$/.test(sessionId||'')?sessionId:randomId('ses');
+    this.sessionId=SESSION_ID.test(sessionId||'')?sessionId:randomId('ses');
     try{storage?.setItem(SESSION_KEY,this.sessionId)}catch{}
     this.restore();
     this.environment=this.captureEnvironment();
@@ -127,9 +167,9 @@ export class DemoDiagnostics {
     try{
       const value=JSON.parse(storage.getItem(BUFFER_KEY)||'null');
       if(!value||value.session_id!==this.sessionId||!Array.isArray(value.events))return;
-      for(const event of value.events.slice(-MAX_EVENTS)) if(event&&event.schema_version===DIAGNOSTIC_SCHEMA_VERSION){
+      for(const event of normalizedEvents(value.events,this.sessionId)){
         this.buffer.push(event);
-        if(MISSION_ID.test(event.mission_id||'')&&/^run_[a-f0-9]+$/.test(event.run_id||'')){
+        if(event.mission_id&&event.run_id){
           this.runByMission.set(event.mission_id,event.run_id);this.latestRunId=event.run_id;
         }
       }
@@ -138,7 +178,7 @@ export class DemoDiagnostics {
   persist(){
     const storage=safeStorage('session'); if(!storage)return;
     try{
-      let events=this.buffer.snapshot(); let text=JSON.stringify({session_id:this.sessionId,events});
+      let events=normalizedEvents(this.buffer.snapshot(),this.sessionId); let text=JSON.stringify({session_id:this.sessionId,events});
       while(text.length>MAX_PERSIST_BYTES && events.length>1){events=events.slice(Math.max(1,Math.floor(events.length/8)));text=JSON.stringify({session_id:this.sessionId,events});}
       storage.setItem(BUFFER_KEY,text);
     }catch{}
@@ -239,11 +279,13 @@ export class DemoDiagnostics {
     }catch{}
   }
   bundle(runId=null){
-    const events=this.buffer.snapshot().filter(event=>!runId||event.run_id===runId||event.run_id===null);
-    return {manifest:{schema_version:DIAGNOSTIC_SCHEMA_VERSION,generated_at:nowIso(),session_id:this.sessionId,run_id:runId,release:{...this.release},authoritative_execution_evidence:false,privacy:'sanitized-local-diagnostic-only'},environment:{...this.environment},events};
+    const sessionId=SESSION_ID.test(this.sessionId||'')?this.sessionId:null;
+    const validScope=runId===null||(typeof runId==='string'&&RUN_ID.test(runId));
+    const events=validScope?normalizedEvents(this.buffer.snapshot(),sessionId).filter(event=>runId===null||event.run_id===runId||event.run_id===null):[];
+    return {manifest:{schema_version:DIAGNOSTIC_SCHEMA_VERSION,generated_at:nowIso(),session_id:sessionId,run_id:validScope?runId:null,release:sanitizeRelease(this.release),authoritative_execution_evidence:false,privacy:'sanitized-local-diagnostic-only'},environment:sanitizeEnvironment(this.environment),events};
   }
   download(runId=null){
-    try{const bundle=this.bundle(runId),blob=new Blob([JSON.stringify(bundle,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`residual-diagnostic-${runId||this.sessionId}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);this.emit('diagnostic.bundle_downloaded',{status:'complete'});return true}catch{return false}
+    try{const bundle=this.bundle(runId),blob=new Blob([JSON.stringify(bundle,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`residual-diagnostic-${bundle.manifest.run_id||bundle.manifest.session_id}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);this.emit('diagnostic.bundle_downloaded',{status:'complete'});return true}catch{return false}
   }
 }
 
