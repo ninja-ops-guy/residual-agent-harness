@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+  <title>Agent preparation - synthetic standalone fixture</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../../residual/station/static/agent-preparation.css">
+</head>
+<body>
+  <aside aria-label="Synthetic fixture controls">
+    <p>Test fixture only. No Station connection, enrollment or native execution.</p>
+    <button type="button" data-fixture="reported">Load reported snapshot</button>
+    <button type="button" data-fixture="preflight-only">Load local preflight only</button>
+    <button type="button" data-fixture="expired">Load expired snapshot</button>
+    <button type="button" data-fixture="wrong-project">Load other project</button>
+    <button type="button" data-fixture="wrong-host">Load other host</button>
+    <button type="button" data-fixture="revoked">Load revoked snapshot</button>
+    <button type="button" data-fixture="uncertain">Load uncertain snapshot</button>
+    <button type="button" data-fixture="unsupported">Load unsupported adapter</button>
+    <button type="button" data-fixture="hostile">Load hostile declaration</button>
+    <button type="button" data-fixture="credential-extra">Load invalid credential field</button>
+  </aside>
+  <main id="preparation"></main>
+  <script type="module" src="./agent-preparation-fixture.mjs"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+name: Isolated agent preparation checks
+on:
+  pull_request:
+    paths:
+      - 'residual/station/static/agent-preparation*'
+      - 'tests/agent-preparation*'
+      - 'tests/fixtures/agent-preparation*'
+      - 'docs/station/AGENT_PREPARATION_COMPONENT.md'
+      - '.github/workflows/agent-preparation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare retained output
+        run: mkdir -p runs/agent-preparation
+      - name: Pure stage boundaries
+        shell: bash
+        run: node --test tests/agent-preparation.test.mjs | tee runs/agent-preparation/unit.log
+      - name: Unchanged protected pins
+        shell: bash
+        run: python verifier/v3/check_factory_ownership.py | tee runs/agent-preparation/factory.log
+      - name: Install existing pinned browser tooling
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Normal-click standalone acceptance
+        shell: bash
+        run: node tests/agent-preparation-browser.cjs | tee runs/agent-preparation/browser.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agent-preparation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: runs/agent-preparation
+          if-no-files-found: error
