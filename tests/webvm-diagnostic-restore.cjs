@@ -5,11 +5,16 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const source=path.resolve(process.env.DIAGNOSTIC_SOURCE_ROOT||path.join(__dirname,'..'));
 const out=path.resolve(process.env.DIAGNOSTIC_QA_DIR||path.join(source,'runs/browser/time-travel/diagnostic-restore'));
 fs.mkdirSync(out,{recursive:true});
-const checks=[],errors=[],external=[],downloads=[];let browser,page;
+const checks=[],errors=[],external=[],downloads=[],screenshots=[];let browser,page;
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 function check(name,fn){try{fn();checks.push({name,passed:true});}catch(error){checks.push({name,passed:false,error:error.message});}}
 // A local DOM-event run qualifies data paths only; default CI retains normal click checks.
 async function inspectClick(locator){if(process.env.DIAGNOSTIC_DOM_EVENTS==='1')await locator.dispatchEvent('click');else await locator.click();}
+async function captureRendered(name){
+  if(process.env.DIAGNOSTIC_DOM_EVENTS==='1')return;
+  const file=name+'.png';await page.screenshot({path:path.join(out,file),fullPage:true,timeout:15000});
+  const bytes=fs.readFileSync(path.join(out,file));screenshots.push({file,bytes:bytes.length,sha256:hash(bytes)});
+}
 const html=`<!doctype html><html><body><script type="module">
 import {mountMissionControl,getDemoDiagnostics} from '/demo/vm/mission-control-diagnostics.js';
 window.effects={run:0,mailbox:0,restart:0};
@@ -37,6 +42,7 @@ async function seedReload(page,sessionId,envelope){
   await page.reload();await ready(page);
 }
 async function main(){
+  if(process.env.DIAGNOSTIC_REQUIRE_RENDERED==='1')assert.notEqual(process.env.DIAGNOSTIC_DOM_EVENTS,'1','Rendered acceptance cannot use DOM-dispatched events');
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const origin=`http://127.0.0.1:${server.address().port}`;
   browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),args:['--disable-dev-shm-usage','--disable-gpu']});
   page=await browser.newPage({acceptDownloads:true,viewport:{width:1200,height:900}});
@@ -82,6 +88,7 @@ async function main(){
   await inspectClick(page.locator('#mc-timetravel'));await inspectClick(page.getByRole('button',{name:'REFRESH HISTORY',exact:true}));
   const panelText=await page.locator('#mc-timetravel-panel').innerText();
   check('actual browser details remain sanitized',()=>assert(!panelText.includes('EXCLUDED_')));
+  await captureRendered('restored-history');
   await page.evaluate(()=>{
     const row=diag.buffer.events.find(e=>e.event_type==='evidence.projected');
     row.context.prompt='EXCLUDED_MEMORY';row.private='EXCLUDED_MEMORY_TOP';
@@ -111,6 +118,8 @@ async function main(){
     assert(!switched.raw.includes(fixture.valid.event_id));assert(!switched.raw.includes('EXCLUDED_'));
     assert(switched.json.events.every(e=>e.session_id==='ses_cccccccc'));
   });
+  await captureRendered('new-session');
+  if(process.env.DIAGNOSTIC_REQUIRE_RENDERED==='1')check('normal-click screenshots retained',()=>assert.equal(screenshots.length,2));
   const effects=await page.evaluate(()=>effects);
   check('inspection performs no execution/mailbox/restart operations',()=>assert.deepEqual(effects,{run:0,mailbox:0,restart:0}));
   check('no page errors or external network requests',()=>{assert.deepEqual(errors,[]);assert.deepEqual(external,[]);});
@@ -119,7 +128,7 @@ async function main(){
     interaction:process.env.DIAGNOSTIC_DOM_EVENTS==='1'?'DOM-dispatched inspection events; no rendered-click or screenshot qualification':'normal browser clicks',
     fixture_sha256:hash(fs.readFileSync(path.join(out,'synthetic-storage-fixture.json'))),
     source_hashes:Object.fromEntries(sourceFiles.map(file=>[file,hash(fs.readFileSync(path.join(source,file)))])),
-    test_sha256:hash(fs.readFileSync(__filename)),checks,bounds,downloads,errors,external,effects,
+    test_sha256:hash(fs.readFileSync(__filename)),checks,bounds,downloads,screenshots,errors,external,effects,
     scope:'Real Chromium with synthetic local storage and actual download bytes; no live user profile, provider, native or execution-authority qualification'};
   fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(report,null,2));
   console.log(JSON.stringify(report));assert(report.passed,'diagnostic restore/export browser regression failed');
