@@ -47,7 +47,12 @@ containment, mission eligibility and mission acceptance.
 DECLARED means unverified owner input. REPORTED means only that a supported
 local/snapshot shape was supplied and its available labels agree. It is never
 PASS, accepted, current authority or readiness. Reports may be stale. Preflight
-has no timestamp, host/workspace/source/wheel binding. Health status exposes
+can corroborate only a declared openclaw-exec adapter: the existing
+mesh_cli.load_worker_config contract rejects all other adapter kinds before
+constructing OpenClawExecAdapter. A different declared name is MISMATCH; an
+absent name is UNKNOWN, including when no mesh snapshot is supplied. This
+producer-contract comparison does not authenticate the copied report.
+Preflight has no timestamp, host/workspace/source/wheel binding. Health status exposes
 project_count, not selected project IDs. READY, counters, foreign cursors and
 transport ACK cannot supply selected membership, communications qualification
 or mission acceptance. Unavailable seat/process/profile/workspace/package

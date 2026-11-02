@@ -20,6 +20,7 @@ export function fixture(name = 'reported') {
       qualification: 'health_only_not_mesh_qualification'},
   };
   if (name === 'empty') return {};
+  if (name === 'preflight-only') delete input.meshStatus;
   if (name === 'expired') input.meshStatus.workers[0].expires_at = DISPLAY_TIME;
   if (name === 'wrong-project') input.preflight.project_id = 'foreign-project';
   if (name === 'wrong-host') input.meshStatus.workers[0].host_id = 'foreign-host';

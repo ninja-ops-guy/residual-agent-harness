@@ -36,6 +36,36 @@ test('preflight without mesh status cannot supply enrollment or connectivity', (
   assert.equal(stage(output, 'enrollment').state, 'UNKNOWN');
   authorityUnknown(output);
 });
+test('preflight-only report cannot corroborate a different declared adapter', () => {
+  for (const adapter of ['hermes', 'openclaw', 'unknown-adapter']) {
+    const input = fixture(); delete input.meshStatus; input.intended.adapter = adapter;
+    const output = reduce(input);
+    assert.equal(stage(output, 'preflight').state, 'MISMATCH');
+    assert.equal(stage(output, 'enrollment').state, 'UNKNOWN');
+    authorityUnknown(output);
+  }
+});
+test('preflight-only report with missing or empty adapter declaration remains unknown', () => {
+  for (const adapter of [undefined, '']) {
+    const input = fixture(); delete input.meshStatus;
+    if (adapter === undefined) delete input.intended.adapter;
+    else input.intended.adapter = adapter;
+    const output = reduce(input);
+    assert.equal(stage(output, 'preflight').state, 'UNKNOWN');
+    assert.equal(stage(output, 'enrollment').state, 'UNKNOWN');
+    authorityUnknown(output);
+  }
+});
+test('correcting adapter declaration permits only the existing OpenClaw local report', () => {
+  const input = fixture(); delete input.meshStatus; input.intended.adapter = 'hermes';
+  assert.equal(stage(reduce(input), 'preflight').state, 'MISMATCH');
+  input.intended.adapter = 'openclaw-exec';
+  const output = reduce(input);
+  assert.equal(stage(output, 'preflight').state, 'REPORTED');
+  assert.equal(stage(output, 'enrollment').state, 'UNKNOWN');
+  assert.equal(stage(output, 'containment').state, 'UNKNOWN');
+  authorityUnknown(output);
+});
 for (const [name, id, state] of [
   ['expired', 'enrollment', 'EXPIRED'], ['wrong-host', 'enrollment', 'MISMATCH'],
   ['wrong-project', 'preflight', 'MISMATCH'], ['revoked', 'enrollment', 'BLOCKED'],

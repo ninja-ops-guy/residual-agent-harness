@@ -110,10 +110,13 @@ export function reducePreparation(input = {}, nowSeconds) {
   if (input.preflight != null) {
     if (!preflightValid(input.preflight)) return invalid();
     const report = input.preflight;
-    if (!intended.worker_id || !intended.project_id) {
-      set('preflight', 'UNKNOWN', 'Select a declared worker and project before comparing the local report.');
+    // mesh_cli.load_worker_config accepts only openclaw-exec for this report contract.
+    if (!intended.worker_id || !intended.project_id || !intended.adapter) {
+      set('preflight', 'UNKNOWN', 'Select a declared worker, project and adapter before comparing the local report.');
     } else if (report.worker_id !== intended.worker_id || report.project_id !== intended.project_id) {
       set('preflight', 'MISMATCH', 'Local report names a different worker or project; it does not describe this preparation.');
+    } else if (intended.adapter !== 'openclaw-exec') {
+      set('preflight', 'MISMATCH', 'This local preflight contract is OpenClaw-only; the declared adapter differs.');
     } else if (intended.adapter_version && report.adapter.version !== intended.adapter_version) {
       set('preflight', 'MISMATCH', 'Reported adapter version differs from the declaration.');
     } else {

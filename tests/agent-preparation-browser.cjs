@@ -93,6 +93,34 @@ async function main() {
     assert.equal(await state('preflight'), 'MISMATCH');
     await unknownAuthority();
   });
+  await check('different adapter cannot corroborate local preflight without a mesh snapshot', async () => {
+    await page.getByRole('button', {name: 'Load local preflight only', exact: true}).click();
+    assert.equal(await state('enrollment'), 'UNKNOWN');
+    await page.getByLabel('Adapter', {exact: true}).fill('hermes');
+    await page.getByRole('button', {name: 'Review declarations', exact: true}).click();
+    assert.equal(await state('preflight'), 'MISMATCH');
+    assert.equal(await state('enrollment'), 'UNKNOWN');
+    assert.match(await page.locator('[data-stage="preflight"]').innerText(), /OpenClaw-only/);
+    await unknownAuthority();
+    await page.screenshot({path: path.join(out, 'adapter-mismatch.png'), fullPage: true});
+  });
+  await check('missing adapter keeps local preflight unknown without a mesh snapshot', async () => {
+    await page.getByLabel('Adapter', {exact: true}).fill('');
+    await page.getByRole('button', {name: 'Review declarations', exact: true}).click();
+    assert.equal(await state('preflight'), 'UNKNOWN');
+    assert.equal(await state('enrollment'), 'UNKNOWN');
+    await unknownAuthority();
+    await page.screenshot({path: path.join(out, 'adapter-missing.png'), fullPage: true});
+  });
+  await check('corrected adapter reports only local preflight without granting authority', async () => {
+    await page.getByLabel('Adapter', {exact: true}).fill('openclaw-exec');
+    await page.getByRole('button', {name: 'Review declarations', exact: true}).click();
+    assert.equal(await state('preflight'), 'REPORTED');
+    assert.equal(await state('enrollment'), 'UNKNOWN');
+    assert.equal(await state('containment'), 'UNKNOWN');
+    await unknownAuthority();
+    await page.screenshot({path: path.join(out, 'adapter-corrected.png'), fullPage: true});
+  });
   for (const [button, id, expected] of [
     ['Load expired snapshot', 'enrollment', 'EXPIRED'],
     ['Load other project', 'preflight', 'MISMATCH'],
@@ -143,7 +171,7 @@ async function main() {
     assert.deepEqual(await context.cookies(), []);
     assert.deepEqual(await page.evaluate(() => [localStorage.length, sessionStorage.length]), [0, 0]);
   });
-  assert.equal(checks.length, 14);
+  assert.equal(checks.length, 17);
 }
 main().catch(async error => {
   failure = String(error.stack || error);
@@ -157,7 +185,7 @@ main().catch(async error => {
     node: process.version, platform: process.platform, browser: browser ? browser.version() : null,
     interaction: 'normal Playwright click/fill; no force, DOM-dispatch or input injection',
     scope: 'synthetic standalone; not integrated; not native-qualified',
-    checks, observations, passed: !failure && checks.length === 14, failure: failure || null, requests, violations, pageErrors,
+    checks, observations, passed: !failure && checks.length === 17, failure: failure || null, requests, violations, pageErrors,
     source_hashes: Object.fromEntries([...files, 'tests/agent-preparation.test.mjs', 'tests/agent-preparation-browser.cjs'].map(file => [file, hash(fs.readFileSync(path.join(root, file)))])),
     artifacts: Object.fromEntries(fs.readdirSync(out).filter(file => file.endsWith('.png')).map(file => [file, hash(fs.readFileSync(path.join(out, file)))])),
   };
