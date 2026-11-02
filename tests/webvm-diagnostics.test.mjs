@@ -6,6 +6,8 @@ import {
   DiagnosticBuffer,
   classifyFailure,
   sanitizeContext,
+  MAX_EVENTS,
+  MAX_PERSIST_BYTES,
 } from '../demo/vm/mission-control-diagnostics.js';
 
 const mid = 'm-' + 'a'.repeat(32);
@@ -142,4 +144,78 @@ test('mailbox lifecycle is bound to its mission without exposing payloads',async
   await host.mailbox(`/${mid}-${rid}.json`,'private response');
   const writes=diag.buffer.snapshot().filter(e=>e.event_type.startsWith('provider.mailbox'));
   assert.equal(writes.length,2);assert(writes.every(e=>e.run_id===run&&e.mission_id===mid));assert(!JSON.stringify(writes).includes('private response'));
+});
+
+function withStoredEvents(change,check){
+  const saved=globalThis.sessionStorage,values=new Map();
+  globalThis.sessionStorage={getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value)};
+  try{
+    const initial=diagnostics(),run=initial.startRun(mid,'audit');
+    const event=initial.emit('evidence.projected',{sequence:1,evidence_kind:'verification'},{mission_id:mid,run_id:run});
+    const key='residual.demo.diagnostic.buffer.v1';
+    const events=change(structuredClone(event),initial,run);
+    values.set(key,JSON.stringify({session_id:initial.sessionId,events}));
+    check(new DemoDiagnostics(),event,values,run);
+  }finally{if(saved===undefined)delete globalThis.sessionStorage;else globalThis.sessionStorage=saved;}
+}
+
+test('restored historical records preserve valid IDs without execution grants and sanitize every envelope field',()=>{
+  withStoredEvents(event=>[Object.assign(event,{
+    prompt:'EXCLUDED_PROMPT',trace_id:'EXCLUDED_TRACE',component:'EXCLUDED_COMPONENT',
+    release:{commit:'a'.repeat(40),webvm_commit:null,private:'EXCLUDED_RELEASE'},
+    context:{sequence:1,evidence_kind:'verification',prompt:'EXCLUDED_PROMPT',authorization:'EXCLUDED_AUTH',error_message:'Bearer EXCLUDED_CREDENTIAL'},
+    diagnostic:{failure_class:'EXCLUDED_DIAGNOSTIC',recoverable:'yes',private:'EXCLUDED_DIAGNOSTIC'},
+  })],(diag,event,values,run)=>{
+    const restored=diag.bundle(run).events.find(row=>row.event_id===event.event_id);
+    assert(restored); assert.equal(restored.timestamp,event.timestamp);
+    assert.equal(restored.run_id,run); assert.equal(restored.mission_id,mid);
+    assert.equal(restored.trace_id,run); assert.equal(restored.component,'evidence');
+    assert.deepEqual(restored.diagnostic,{failure_class:'UnknownFailure',recoverable:false});
+    assert.equal(diag.latestRunId,run);
+    assert.equal(diag.bundle(run).manifest.authoritative_execution_evidence,false);
+    assert(!JSON.stringify(diag.bundle()).includes('EXCLUDED_'));
+    assert(!values.get('residual.demo.diagnostic.buffer.v1').includes('EXCLUDED_'));
+  });
+});
+
+test('restoration rejects foreign inner sessions and malformed envelopes before rebuilding correlation',()=>{
+  for(const patch of [
+    {session_id:'ses_deadbeef'}, {schema_version:'99'}, {event_id:'bad id'},
+    {run_id:'bad run'}, {mission_id:'bad mission'}, {parent_event_id:'bad parent'},
+    {event_type:'invalid type'}, {timestamp:'invalid date'}, {monotonic_ms:'1'},
+    {monotonic_ms:-1}, {severity:'unrecognized'}, {run_id:'run_'+'a'.repeat(65)},
+  ])withStoredEvents(event=>[Object.assign(event,patch)],(diag,event)=>{
+    assert(!diag.buffer.snapshot().some(row=>row.event_id===event.event_id),JSON.stringify(patch));
+    assert.equal(diag.latestRunId,null); assert.equal(diag.runByMission.size,0);
+  });
+});
+
+test('restored values and persistence use existing character bounds, including multibyte text',()=>{
+  withStoredEvents(event=>[Object.assign(event,{context:{error_message:'漢'.repeat(2000),model:'漢'.repeat(1000)}})],(diag,event,values)=>{
+    const row=diag.bundle().events.find(item=>item.event_id===event.event_id);
+    assert.equal(row.context.error_message.length,240);assert.equal(row.context.model.length,120);
+    const keys=['browser','error_name','execution','failure_code','from','health','message_kind','mode','model','platform','run_status','stage','status','to','visibility'];
+    const context=Object.fromEntries(keys.map(key=>[key,'漢'.repeat(120)]));context.error_message='漢'.repeat(240);
+    diag.buffer.events=Array.from({length:600},(_,i)=>({...row,event_id:'evt_'+i.toString(16),context}));
+    diag.persist();
+    const raw=values.get('residual.demo.diagnostic.buffer.v1');
+    assert(raw.length<=MAX_PERSIST_BYTES);assert(Buffer.byteLength(raw,'utf8')>raw.length);
+    assert(JSON.parse(raw).events.length<600);
+  });
+});
+
+test('bundle defensively strips mutated raw fields and fails closed for invalid run scopes',()=>{
+  withStoredEvents(event=>[event],(diag,event,values,run)=>{
+    const raw=diag.buffer.events.find(row=>row.event_id===event.event_id);
+    raw.context.prompt='EXCLUDED_PROMPT';raw.extra='EXCLUDED_ENVELOPE';
+    raw.release.private='EXCLUDED_RELEASE';
+    diag.environment.private='EXCLUDED_ENV';diag.release.private='EXCLUDED_MANIFEST';
+    const bundle=diag.bundle(run);assert(!JSON.stringify(bundle).includes('EXCLUDED_'));
+    assert.equal(bundle.events.find(row=>row.event_id===event.event_id).context.sequence,1);
+    assert.equal(raw.context.prompt,'EXCLUDED_PROMPT','export must not mutate retained input');
+    const invalid=diag.bundle('EXCLUDED_SCOPE');assert.deepEqual(invalid.events,[]);
+    assert.equal(invalid.manifest.run_id,null);assert(!JSON.stringify(invalid).includes('EXCLUDED_'));
+    diag.buffer.events=Array.from({length:MAX_EVENTS+5},(_,i)=>({...raw,event_id:'evt_'+i.toString(16)}));
+    assert.equal(diag.bundle().events.length,MAX_EVENTS);
+  });
 });

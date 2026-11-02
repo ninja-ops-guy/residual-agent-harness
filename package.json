@@ -6,7 +6,7 @@
   "scripts": {
     "test:ui": "node tests/browser.cjs && npm run test:timetravel",
     "check:ui": "node --check residual/station/static/app.js",
-    "test:timetravel": "node --test tests/webvm-timetravel.test.mjs tests/webvm-diagnostics.test.mjs && node tests/webvm-timetravel-browser.cjs"
+    "test:timetravel": "node --test tests/webvm-timetravel.test.mjs tests/webvm-diagnostics.test.mjs && node tests/webvm-timetravel-browser.cjs && node tests/webvm-diagnostic-restore.cjs"
   },
   "devDependencies": {
     "playwright": "1.58.0"
