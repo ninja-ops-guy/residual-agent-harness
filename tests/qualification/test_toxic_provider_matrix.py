@@ -114,11 +114,17 @@ def test_toxic_provider_truncation_fails_closed_for_structured_output():
     with toxic_provider("truncated") as url:
         temp, station, pid = station_with_provider(url)
         try:
+            station.triage(pid)
+            prepared = station.prepare(pid, "toxic-provider-review", "OPS-101")
+            station.store.validate_lease(
+                pid, "OPS-101", prepared["lease"], prepared["task"]["fencing_token"])
             with pytest.raises(ContractError, match="truncated"):
                 model_call(
-                    station.store, pid, "runner", {"task": "x"}, "Return JSON.",
+                    station.store, pid, "runner", prepared["packet"], "Return JSON.",
                     schema={"type": "object"}, placement="local", tid="OPS-101",
                 )
+            assert len(ToxicHandler.seen) == 1
+            assert station.store.task(pid, "OPS-101")["state"] == "running"
             assert "length" in station.store.observation_export(pid)
         finally:
             temp.cleanup()

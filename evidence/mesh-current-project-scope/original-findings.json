@@ -1,0 +1,192 @@
+{
+  "candidate": {
+    "head": "489299d0884e22b26c1c02aae852d2e65eb09864",
+    "tree": "5d9597f894568d02a0b603b6cbb2288c6e50bd76",
+    "parents": [
+      "2a3e4ff9feb7bcdba01ea2f385f63103d103f223"
+    ],
+    "mesh_state_present": true,
+    "authorize_ast_sha256": "474ed6303746b4eb0ba0affd5272c040861145bf5f860bce10f667747750e340",
+    "mesh_state_blob": "92b4c5eadc97199c5df31626590d40c38269089c"
+  },
+  "parent": {
+    "head": "2a3e4ff9feb7bcdba01ea2f385f63103d103f223",
+    "tree": "461ee5e5935e97bba6c8c44ca2c80ccaff2d740b",
+    "parents": [
+      "77db333ce75361a26db0167162b8238741cc4e47",
+      "0472f46af1f137d1f808bf7b03cf12b4afa1f1ca"
+    ],
+    "mesh_state_present": true,
+    "authorize_ast_sha256": "474ed6303746b4eb0ba0affd5272c040861145bf5f860bce10f667747750e340",
+    "mesh_state_blob": "99b6e494f38d8a90fc4415f32b12866aa6c0066c"
+  },
+  "run_counts": {
+    "baseline": {
+      "tests": 34,
+      "passed": 33,
+      "failed": 1
+    },
+    "independent": {
+      "tests": 79,
+      "passed": 59,
+      "failed": 20
+    },
+    "corrected-authority": {
+      "tests": 24,
+      "passed": 24,
+      "failed": 0
+    },
+    "minimal-candidate": {
+      "tests": 1,
+      "passed": 0,
+      "failed": 1
+    },
+    "minimal-parent": {
+      "tests": 1,
+      "passed": 0,
+      "failed": 1
+    }
+  },
+  "resolved_distinct_review_cases": {
+    "total": 79,
+    "passed": 75,
+    "failed": 4,
+    "meaning": "Case-by-case disposition combining initial run with affected-fixture correction; not a new all-green run"
+  },
+  "negative_cases": [
+    {
+      "test": "evidence/mesh-review-551/test_replay_review.py::test_current_authority_change_blocks_persisted_result[project-scope-removed-False-accepted]",
+      "raw_observation": "15f36d4b3d85f68c33ec.json",
+      "current_project_ids": [],
+      "outcome": {
+        "rejected": false,
+        "returned": {
+          "ok": true,
+          "selected": "primary-cloud",
+          "sequence": 1
+        }
+      },
+      "journal_state_before": "ACCEPTED",
+      "journal_state_after": "ACCEPTED",
+      "provider_calls_before": {
+        "primary-cloud": 1
+      },
+      "provider_calls_after": {
+        "primary-cloud": 1
+      },
+      "budget_unchanged": true
+    },
+    {
+      "test": "evidence/mesh-review-551/test_replay_review.py::test_current_authority_change_blocks_persisted_result[project-scope-removed-True-accepted]",
+      "raw_observation": "19cbc6dc2cfce1f556d3.json",
+      "current_project_ids": [],
+      "outcome": {
+        "rejected": false,
+        "returned": {
+          "ok": true,
+          "selected": "freellmapi",
+          "sequence": 1
+        }
+      },
+      "journal_state_before": "ACCEPTED",
+      "journal_state_after": "ACCEPTED",
+      "provider_calls_before": {
+        "primary-cloud": 1,
+        "freellmapi": 1
+      },
+      "provider_calls_after": {
+        "primary-cloud": 1,
+        "freellmapi": 1
+      },
+      "budget_unchanged": true
+    },
+    {
+      "test": "evidence/mesh-review-551/test_replay_review.py::test_current_authority_change_blocks_persisted_result[project-scope-removed-False-recorded]",
+      "raw_observation": "28440f32db7cc0ba86c6.json",
+      "current_project_ids": [],
+      "outcome": {
+        "rejected": false,
+        "returned": {
+          "ok": true,
+          "selected": "primary-cloud",
+          "sequence": 1
+        }
+      },
+      "journal_state_before": "PROVIDER_RESULT_RECORDED",
+      "journal_state_after": "ACCEPTED",
+      "provider_calls_before": {
+        "primary-cloud": 1
+      },
+      "provider_calls_after": {
+        "primary-cloud": 1
+      },
+      "budget_unchanged": true
+    },
+    {
+      "test": "evidence/mesh-review-551/test_replay_review.py::test_current_authority_change_blocks_persisted_result[project-scope-removed-True-recorded]",
+      "raw_observation": "690da3d26e2c3f2f463c.json",
+      "current_project_ids": [],
+      "outcome": {
+        "rejected": false,
+        "returned": {
+          "ok": true,
+          "selected": "freellmapi",
+          "sequence": 1
+        }
+      },
+      "journal_state_before": "PROVIDER_RESULT_RECORDED",
+      "journal_state_after": "ACCEPTED",
+      "provider_calls_before": {
+        "primary-cloud": 1,
+        "freellmapi": 1
+      },
+      "provider_calls_after": {
+        "primary-cloud": 1,
+        "freellmapi": 1
+      },
+      "budget_unchanged": true
+    }
+  ],
+  "minimal_candidate": {
+    "stale": {
+      "rejected": false,
+      "current_project_ids": []
+    },
+    "fresh": {
+      "rejected": true,
+      "error": "Worker is not authorized for this project"
+    }
+  },
+  "minimal_parent": {
+    "stale": {
+      "rejected": false,
+      "current_project_ids": []
+    },
+    "fresh": {
+      "rejected": true,
+      "error": "Worker is not authorized for this project"
+    }
+  },
+  "test_hashes": {
+    "test_replay_review.first.py": "b756f9d999e8d5d928fda1122f070e466de4f58c9738a7d1a86a6cecaa8e4034",
+    "test_replay_review.py": "b1b90b47f30244ca7f823aa01e945aa26d2bb6e82f0f444093ba999ddc56196f",
+    "test_scope_recheck_minimal.py": "0f3740da001731270322365bfc2e03398c3003e0b503861676412ee2b0dffed4",
+    "run_review.py": "7f799799944c5cae0758f336672f9433a77f43574a9fca21ced01a9e1908b5d6"
+  },
+  "impact_limit": "Reproduction explicitly simulates persisted scope narrowing inside disposable SQLite state. No public scope-edit route or live remote exploitation established. The trusted in-process caller holds an earlier authenticated worker object.",
+  "source_review_result_sha256": "7d7ba83f5809327ad76e600dba3d66bf0e67630040097bc9220b7c4d5f782f8a",
+  "raw_evidence_archive": {
+    "file": "original-evidence.zip",
+    "sha256": "3b71d7393d5ae766f5fb6a1043c650e3f957b7cc91b4dccc3dd8211f5892effa",
+    "entries": {
+      "15f36d4b3d85f68c33ec.json": "0d61af0dc70a51a4bc94dabcaf46c53672759ad0594bd65b104f4ea9eae1b6b6",
+      "19cbc6dc2cfce1f556d3.json": "840462c233d6f612bc339bfbadd53240204aaceabbea06cf6f4651a6a0bab8cd",
+      "28440f32db7cc0ba86c6.json": "0d83f4d1793860e98624b0d9dc3a6b800bfb2a7dcf8ed5679c29c604c2366824",
+      "690da3d26e2c3f2f463c.json": "81f2056830a359b61e442bbb1f41f44f4ff142cf79b26d773de41e43e57e4562",
+      "original-minimal-candidate.log": "d24ec0df0ad8fb01554fee0869ddfb9d93aec54eff555b2840ac8b4cadb3478f",
+      "original-minimal-parent.log": "3182a9bfa4b5278816f8753917d24d8e3ecd97eee39556c059584c87c33aaa3c",
+      "original-toxic-provider.log": "5ae4c1e8f8f95434ff21f3bbfcc6ac60bc62155e8af56c6a18e00846caa12d83",
+      "composition.json": "077c097e4bd8131a7a8f82941b7bb60316a66107b03eb89f00d370e0ea96b545"
+    }
+  }
+}

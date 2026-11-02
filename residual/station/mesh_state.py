@@ -180,6 +180,9 @@ class MeshState:
             raise ContractError("Worker is not authorized for this project")
         with self.store.connect() as c:
             current = self._load_worker(c, worker["worker_id"])
+            # Cached authenticated handles cannot retain removed project scope.
+            if project_id not in current["project_ids"]:
+                raise ContractError("Worker is not authorized for this project")
             project = self.store._project(c, project_id)
         if current["state"] == "REVOKED" or current["expires_at"] <= time.time():
             raise ContractError("Mesh enrollment is revoked or expired")
