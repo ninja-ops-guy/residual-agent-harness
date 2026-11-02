@@ -59,3 +59,13 @@ run directory using the commands above. Historical verification/results remain
 unchanged; `integrity-verification.json` records the correction checks.
 This reuses `RES-UP-RESEARCH-TEST-SUBJECT-PROVENANCE-001`. P2 / POST-V1 /
 NONBLOCKING; G1–G5 owner approvals and v1 release state are unchanged.
+
+## Missingness and cluster extension
+
+See [analysis-extension.md](analysis-extension.md). `uncertainty.py` adds sharp
+assigned-trial missing/aborted bounds and packet-stratified participant bootstrap
+kernels (seed 510, 10,000 draws, 95% percentile intervals) for four bounded
+outcomes and contrasts. The original singleton-per-packet fixture correctly
+withholds intervals. `test_uncertainty.py` supplies separate dependent synthetic
+multi-participant fixtures. No human ingestion/unblinding is enabled, no research
+gate is approved, and no v1 release blocker is added.

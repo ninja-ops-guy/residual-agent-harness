@@ -9,6 +9,7 @@ from pathlib import Path
 import random
 import re
 import statistics
+import uncertainty
 
 VERSION = 'apart-epis-001-draft-1'
 CONDITIONS = 'ABCD'
@@ -200,6 +201,27 @@ def analyze(responses, schedule, truth, *, presentation_root):
               or type(r['burden']) is not int or not 1 <= r['burden'] <= 7):
             raise ValueError('invalid response values')
         joined.append((r,s,t))
+    # Include assignments without responses; never drop fully missing participants.
+    response_map = {(r['participant_id'],r['presentation_id']):r for r in responses}
+    clusters = {}
+    for s in schedule:
+        t = truth[s['case_id']]
+        if s['case_hash'] != t['case_hash']:
+            raise ValueError('identity mismatch')
+        participant = s['participant_id']
+        c = clusters.setdefault(participant, dict(id=participant, packet=int(participant[4:]),
+            synthetic=True, outcomes={a:{m:[] for m in uncertainty.METRICS} for a in CONDITIONS}))
+        r = response_map.get((participant,s['presentation_id']))
+        complete = r is not None and r['status'] == 'complete'
+        outcomes = c['outcomes'][s['condition']]
+        for metric, eligible, decision in (
+                ('incorrect_acceptance',not t['acceptance_warranted'],'ACCEPT'),
+                ('appropriate_hold',t['decision']=='HOLD','HOLD'),
+                ('false_rejection',t['acceptance_warranted'],'REJECT')):
+            if eligible:
+                outcomes[metric].append(int(r['decision']==decision) if complete else None)
+        outcomes['brier'].append((r['acceptance_probability']-int(t['acceptance_warranted']))**2 if complete else None)
+    statistical_checks = uncertainty.summarize(list(clusters.values()))
     def summarize(rows, assigned):
         complete = [(r,s,t) for r,s,t in rows if r['status']=='complete']
         n = len(complete)
@@ -223,7 +245,7 @@ def analyze(responses, schedule, truth, *, presentation_root):
                 presentation_verification=verification,
                 arms=arms, risk_differences=contrasts,
                 by_fault={f:{a:summarize([x for x in joined if x[2]['fault']==f and x[1]['condition']==a],sum(s['condition']==a and truth[s['case_id']]['fault']==f for s in schedule)) for a in CONDITIONS} for f in sorted({t['fault'] for t in truth.values()})},
-                uncertainty='Not estimated for constructed fixtures. Human inference requires approved analysis extension.',
+                uncertainty=statistical_checks,
                 input_hashes=dict(responses=digest(responses), assignment=digest(schedule), truth=digest(truth)))
 
 

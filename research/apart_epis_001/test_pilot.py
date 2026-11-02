@@ -66,6 +66,25 @@ class PilotTests(unittest.TestCase):
         empty=pilot.analyze([],self.schedule,self.truth,presentation_root=self.root)['arms']
         self.assertTrue(all(x['brier'] is None for x in empty.values()))
 
+    def test_sensitivity_adapter_missing_aborted_and_absent_participant(self):
+        rs=copy.deepcopy(self.responses)
+        unknown_keys={s['presentation_id'] for s in self.schedule if s['participant_id']=='SYN-001'}
+        rs=[r for r in rs if r['presentation_id'] not in unknown_keys]
+        rs[0]['status']='aborted'
+        for k in ('decision','acceptance_probability','active_seconds','burden'): rs[0][k]=None
+        unknown_keys.add(rs[0]['presentation_id'])
+        result=pilot.analyze(rs,self.schedule,self.truth,presentation_root=self.root)['uncertainty']
+        self.assertEqual(result['participant_counts'],dict.fromkeys('1234',1))
+        self.assertIsNone(result['intervals'])
+        for a in 'ABCD':
+            eligible=[s for s in self.schedule if s['condition']==a and not self.truth[s['case_id']]['acceptance_warranted']]
+            missing=sum(s['presentation_id'] in unknown_keys for s in eligible)
+            bound=result['sensitivity'][a]['incorrect_acceptance']
+            self.assertEqual(bound['assigned_eligible'],11)
+            self.assertEqual(bound['unknown'],missing)
+            self.assertEqual(bound['lower'],(11-missing)/11)
+            self.assertEqual(bound['upper'],1)
+
     def test_invalid_inputs_fail_closed(self):
         for field,value in [('synthetic',False),('acceptance_probability',float('nan')),
                             ('acceptance_probability',True),('active_seconds',-1),('burden',8),
