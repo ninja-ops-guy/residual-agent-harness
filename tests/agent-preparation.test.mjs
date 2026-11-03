@@ -200,3 +200,18 @@ test('pure reducer is deterministic, does not mutate input or reuse old project 
   for (const item of next.stages.filter(item => item.id !== 'identity')) assert.equal(item.state, 'UNKNOWN');
   assert(!JSON.stringify(next).includes('synthetic-worker'));
 });
+
+test('adverse observation matrix never yields authenticated enrollment or mission authority', () => {
+  for (const name of ['empty', 'expired', 'wrong-host', 'wrong-project', 'unsupported', 'future', 'revoked']) {
+    const output = reduce(fixture(name));
+    assert.equal(output.stages.length, 8);
+    assert(!['PASS', 'ACCEPTED', 'ELIGIBLE', 'ENROLLED'].includes(stage(output, 'enrollment').state));
+    authorityUnknown(output);
+  }
+});
+test('missing observations after a reported snapshot cannot retain enrollment', () => {
+  reduce(fixture());
+  const output = reduce({intended: fixture().intended});
+  assert.equal(stage(output, 'enrollment').state, 'UNKNOWN');
+  authorityUnknown(output);
+});
