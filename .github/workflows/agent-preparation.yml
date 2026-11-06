@@ -1,11 +1,14 @@
-name: Isolated agent preparation checks
+name: Agent preparation component and Station checks
 on:
   pull_request:
     paths:
-      - 'residual/station/static/agent-preparation*'
+      - 'residual/station/**'
       - 'tests/agent-preparation*'
       - 'tests/fixtures/agent-preparation*'
-      - 'docs/station/AGENT_PREPARATION_COMPONENT.md'
+      - 'tests/station/test_agent_preparation_assets.py'
+      - 'docs/station/AGENT_PREPARATION*.md'
+      - 'package.json'
+      - 'pyproject.toml'
       - '.github/workflows/agent-preparation.yml'
   workflow_dispatch:
 permissions:
@@ -44,4 +47,39 @@ jobs:
         with:
           name: agent-preparation-${{ github.run_id }}-${{ github.run_attempt }}
           path: runs/agent-preparation
+          if-no-files-found: error
+
+  station-browser:
+    # Separate producer: standalone success must not stand in for router evidence.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare retained Station output
+        run: mkdir -p runs/agent-preparation-station
+      - name: Install project dependencies
+        run: python -m pip install -e .
+      - name: Install existing pinned browser tooling
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Station static asset regression
+        shell: bash
+        run: python -m unittest discover -s tests/station -p test_agent_preparation_assets.py 2>&1 | tee runs/agent-preparation-station/assets.log
+      - name: Normal-click real Station acceptance
+        shell: bash
+        run: node tests/agent-preparation-station-browser.cjs 2>&1 | tee runs/agent-preparation-station/browser.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agent-preparation-station-${{ github.run_id }}-${{ github.run_attempt }}
+          path: runs/agent-preparation-station
           if-no-files-found: error
