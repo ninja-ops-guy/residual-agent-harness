@@ -16,7 +16,12 @@ A maintainer may seek open-source or research support for the manifest-listed ve
 4. the application discloses material unresolved technical, adoption and provenance limitations; and
 5. accepting the applicable terms would not expand the license boundary, transfer reserved IP or authorize work outside the maintainer's rights.
 
-The reviewer-facing application brief is `docs/open-source/OPENAI_APPLICATION_READINESS.md`.
+Application materials:
+
+- reviewer-facing project brief: `docs/open-source/OPENAI_APPLICATION_READINESS.md`;
+- public-safe, field-by-field form draft: `docs/open-source/OPENAI_APPLICATION_FORM_DRAFT.md`.
+
+Private account fields must be entered directly by the maintainer in the official form and must not be committed to the public repository.
 
 ## Technical boundary gates
 
