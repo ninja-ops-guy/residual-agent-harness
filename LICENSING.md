@@ -1,14 +1,23 @@
 # RESIDUAL licensing
 
-RESIDUAL is being structured as an open-core project. This repository is a mixed-scope development monorepo.
+RESIDUAL uses an open-core structure. This repository is a mixed-scope development monorepo containing a narrowly manifest-scoped candidate Open Core alongside reserved product implementation.
 
-## Candidate open-source grant
+## Authoritative candidate scope
 
-The intended Apache-2.0 component is a deliberately small **verification and research kernel**, not the complete RESIDUAL runtime or enterprise product.
+For open-source funding, review and export preparation, the authoritative candidate boundary is defined by:
 
-Only paths explicitly listed in [docs/open-source/OPEN_SOURCE_MANIFEST.md](docs/open-source/OPEN_SOURCE_MANIFEST.md) are intended to receive the Apache License 2.0 grant at the corresponding accepted revision. The license text is stored at [LICENSES/Apache-2.0.txt](LICENSES/Apache-2.0.txt).
+- `docs/open-source/open-source-manifest.json` for machine-readable selection; and
+- `docs/open-source/OPEN_SOURCE_MANIFEST.md` for the human-readable scope and boundary rules.
 
-Files outside the manifest are not intended to become Apache-2.0 merely because they are visible in this repository.
+The designated license identifier for that candidate verification and research kernel is **Apache-2.0**. The license text is stored at `LICENSES/Apache-2.0.txt`.
+
+A particular source archive or funding package is not release-certified merely because the manifest exists. It must be bound to an exact Git revision, pass the repository's boundary/import/export/smoke qualification, and receive explicit maintainer acceptance. Files outside the manifest do not become Apache-2.0 merely because they are visible in this public repository.
+
+## Funding and application disclosure
+
+A funding application may describe RESIDUAL Open Core as the manifest-listed **open verification and research kernel**. It must not describe the complete RESIDUAL runtime, Factory, Studio, enterprise product or hosted service as Apache-2.0.
+
+Submitting an application, receiving credits or support, or updating documentation does not expand the open-source boundary and does not assign reserved product IP. Any different license scope requires an explicit manifest change and human maintainer authorization.
 
 ## Reserved product scope
 
@@ -18,6 +27,6 @@ Factory execution, engine/runtime orchestration, sandbox execution, lifecycle/pr
 
 Apache-2.0 does not grant rights to RESIDUAL names, logos, marks, product names or branding beyond the license's trademark clause and applicable law.
 
-## Important status
+## Legal and provenance status
 
-This file describes the project's intended licensing structure; it is not a legal opinion or a claim that all historical public licensing questions have been resolved. Before material commercialization, contributor/ownership provenance, employment invention-assignment obligations, historical public license activity, and the final distribution structure should receive qualified legal review.
+This file records the repository's intended scope and qualification process; it is not a legal opinion or an independent ownership audit. Before material commercialization or a formal packaged release, contributor/ownership provenance, employment and invention-assignment obligations, historical public-license activity, transitive dependency licensing and the final distribution structure should receive appropriate review.
