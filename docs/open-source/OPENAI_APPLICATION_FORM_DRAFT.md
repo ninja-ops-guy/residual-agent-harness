@@ -1,7 +1,7 @@
 # OpenAI application form draft
 
 **Status:** Public-safe draft only — not submitted and not an acceptance of program terms  
-**Verified against official forms:** 2026-11-13  
+**Verified against official forms:** 2026-11-22 (public field text and terms; browser-enforced limits not independently inspected)  
 **Maintainer:** Mike Olivares (`ninja-ops-guy`)
 
 This file maps public-safe application answers to the current OpenAI Codex Open Source Fund and Codex for Open Source forms. Private account information must be entered directly by the maintainer and must not be committed to this repository.
@@ -46,21 +46,21 @@ RESIDUAL Open Core
 
 ### Brief description of the project
 
-RESIDUAL Open Core is an evidence-first verification and research kernel for AI-assisted engineering. It separates model or worker proposals from maintainer-controlled acceptance, retains evidence and receipts, and checks bounded outputs against explicit verifier contracts before integration. The manifest-scoped candidate Apache-2.0 layer exposes provider abstraction, observation, verification, evidence and policy primitives. Factory, runtime orchestration, Studio, enterprise, control-plane and hosted-service implementation remain reserved.
+RESIDUAL is an early-stage evidence-first verification and research project for AI-assisted engineering. Its proposed Open Core is a narrowly scoped kernel. It separates model or worker proposals from maintainer-controlled acceptance, retains evidence and receipts, and checks bounded outputs against explicit verifier contracts before integration. The manifest-scoped candidate Apache-2.0 layer exposes provider abstraction, observation, verification, evidence and policy primitives. Factory, runtime orchestration, Studio, enterprise, control-plane and hosted-service implementation remain reserved.
 
 ### Other people working on the project and their roles
 
-Mike Olivares — creator, primary maintainer, research lead and final release/integration authority. No other human collaborator is represented as an applicant or funding recipient in this submission.
+Mike Olivares — creator, primary maintainer, research lead and final release/integration authority. Other human contributors and their roles must be confirmed before submission. Automated agents are tooling, not human collaborators or benefit recipients.
 
 This answer must be updated if another person will actually perform grant-funded work or receive a program benefit.
 
 ### How would you use API credits for your project?
 
-Use credits for open maintainer automation, reproducible model comparisons, regression and fault-injection runs, malformed-output testing, verifier/receipt/evidence-integrity checks, exact-revision export qualification, documentation and published research artifacts for the manifest-listed Open Core. Credits would not be represented as funding reserved Factory, Studio, enterprise, control-plane, hosted-service or other proprietary implementation.
+Use OpenAI API credits with Codex and OpenAI models for issue and pull-request review assistance, documentation, regression and malformed-output testing, and reproducible evaluations of the manifest-listed Open Core. Publish revision-bound evaluation methods, positive and negative results, and maintenance improvements. Keep separate usage records and a spending cap. Credits would not pay other providers, hardware, salaries, or reserved Factory, runtime, Studio, enterprise, control-plane or hosted-service implementation. Broader model-comparison research would proceed only within the approved award scope; this request does not assume every research workload is eligible.
 
 ### Is there anything else you would like OpenAI to know?
 
-I am the creator and primary maintainer. RESIDUAL is early-stage and is not presented as widely adopted, independently certified or universally reliable. This application covers only the public manifest-listed Open Core and openly documented research. The candidate package uses a fail-closed boundary, deterministic source selection, static import-closure checking and isolated archive smoke tests. Application materials intentionally exclude confidential employer, customer and third-party information.
+I am the creator and primary maintainer. RESIDUAL is early-stage; broad adoption and independent assurance are not established. The repository is mixed-scope, and the manifest-listed Apache-2.0 Open Core remains a candidate pending maintainer acceptance. At commit 71ef7b7, Open Core Boundary run #169 passed its export, boundary, static import and isolated smoke gates; other workflows failed and maintainer approval is pending. This does not establish production fitness, ownership clearance or program eligibility. No confidential employer, customer or third-party material is included.
 
 ## Codex for Open Source
 
@@ -74,30 +74,30 @@ I created RESIDUAL and serve as its primary maintainer, research lead and final 
 
 ### Why does this repository qualify? — maximum 500 characters
 
-RESIDUAL is an actively maintained public Open Core for evidence-bound AI-assisted engineering. Its manifest-scoped Apache-2.0 kernel provides reusable verification, observation, receipt, evidence and policy primitives, plus reproducible fault-injection and evaluation tooling. It is early-stage and not presented as widely adopted; its ecosystem value is helping maintainers distinguish model claims from inspectable acceptance evidence.
+RESIDUAL is an early-stage verification and research project for AI-assisted engineering. Its proposed Open Core contains manifest-scoped provider, observation, evidence and verification primitives. Potential ecosystem value is reproducible checks of model-generated work; broad adoption and independent assurance are not established. The public monorepo also contains reserved implementation, and the candidate Apache-2.0 scope requires maintainer acceptance.
 
-**Character count:** 439
+**Character count:** 460
 
 ### Benefits of interest
 
-Select, subject to current terms and maintainer approval:
+Proposed only; no selection has been made:
 
 - **API credits for my project**
-- **Codex Security**
+- **Codex Security** — defer until the exact scan scope and any reserved-code access are approved.
 
 Codex Security use must remain limited to repositories, systems and code the maintainer owns, maintains or is authorized to review.
 
 ### How will you use API credits? — maximum 500 characters
 
-Use credits for maintainer automation, model comparisons, regression and fault-injection runs, malformed-output testing, verifier/receipt/evidence-integrity checks, exact-revision export qualification, documentation and published reproducibility artifacts for the manifest-listed Open Core. Credits would not fund reserved Factory, Studio, enterprise, control-plane, hosted-service or other proprietary implementation.
+Use OpenAI API credits with Codex and OpenAI models for issue/PR review assistance, regression and malformed-output tests, documentation, and reproducible evaluations of the manifest-listed Open Core. Publish revision-bound methods and positive and negative results. Track usage separately from reserved product development; do not spend these credits on proprietary implementation or other providers. Broader research use remains subject to award terms.
 
-**Character count:** 420
+**Character count:** 454
 
 ### Anything else we should know? — maximum 500 characters
 
-I am the creator and primary maintainer with repository admin access. The public repository is mixed-scope: only the manifest-listed verification/research kernel is the candidate Apache-2.0 Open Core. The exact application branch passed boundary, static import-closure, deterministic export and isolated archive-smoke checks. I will not submit confidential material or use Codex Security on systems I do not own or lack permission to review.
+I am RESIDUAL's creator and primary maintainer. At commit 71ef7b7, Open Core Boundary run #169 passed 16 exporter fixtures, boundary validation, static import closure and isolated archive smoke tests. Other workflows failed and maintainer approval is pending. This is a candidate export, not a certified release or ownership audit. Only public, non-confidential material is included; reserved implementation is outside this request.
 
-**Character count:** 442
+**Character count:** 432
 
 ## Terms and submission review
 
@@ -110,7 +110,8 @@ Before submitting, the maintainer should confirm all of the following against th
 - security review is limited to owned or authorized repositories/systems;
 - application materials contain no confidential information;
 - OpenAI assumes no exclusivity and may work with similar or identical projects;
-- program benefits, eligibility and terms may change; and
+- program benefits, eligibility and terms may change; continued participation after a terms update constitutes acceptance;
+- recipients are responsible for applicable taxes, reporting and local requirements; and
 - submission does not expand RESIDUAL's license boundary, assign reserved IP or authorize activity outside the maintainer's rights.
 
 ## Final submission gates
@@ -124,3 +125,43 @@ Before submitting, the maintainer should confirm all of the following against th
 - [ ] A successful submission receipt is retained without implying selection or approval.
 
 No automation may check the maintainer-authorization item or submit the form implicitly.
+
+## Proposed credit-use pilot — owner decision pending
+
+This is a planning proposal, not a request already submitted or permission to spend.
+
+**Recommendation:** prioritize the Codex Open Source Fund. The maintainer program remains a possible ecosystem-exception application; no adoption metrics or independent user outcomes have been established here.
+
+**Proposed pilot:** 30 days after activation, capped at the lesser of $1,000 in awarded API credits or the actual awarded balance. No paid overage and no automatic extension. This is a conservative planning ceiling, not a measured cost forecast or claim of entitlement.
+
+| Allocation | Ceiling | Deliverable |
+| --- | ---: | --- |
+| Open Core issue/PR review and regression assistance | $400 | Reviewed patches with verifier results tied to exact commits |
+| Malformed-output and bounded reliability evaluations | $300 | Public protocol, fixtures, and retained positive/negative results |
+| Documentation and reproducibility assistance | $200 | Kernel examples and reproduction instructions |
+| Reproduction of failed trials and final reporting | $100 | Cost/evidence report and unresolved limitations |
+
+Use only OpenAI API-billed models/tools permitted by the award. Reallocate only after owner approval; unused allocations remain unspent. Each run must identify the manifest revision, public input scope, model, task, token usage, reported API cost, evidence location and outcome. Stop at the ceiling or if scope/authorization is unclear. Do not treat dashboard alerts alone as a guaranteed hard spending limit; enforce a conservative run-level budget before requests and reconcile actual billed usage.
+
+Days 1–7: establish public kernel tasks and baseline usage. Days 8–21: bounded maintenance/evaluation runs. Days 22–30: reproduce failures and publish a revision-bound report. Outcomes are proposed; no success rate or production reliability is promised. Research evaluations proceed only if permitted by the award; otherwise leave that allocation unspent.
+
+Credits do not cover reserved implementation, third-party provider bills, salaries, hardware or unauthorized security work. Local non-model export validation is a separate check, not API consumption. Any evaluation tooling excluded by the manifest requires separate scope review; this plan does not license or fund reserved tooling implicitly.
+
+## Review evidence and decisions — 2026-11-22
+
+The historical boundary PASS above belongs only to commit 71ef7b7677b3b023842db75387b1d11f4ee00686 and run 43557806153. Updated copy must receive its own exact-head qualification; it cannot inherit that PASS.
+
+The reviewed PR-triggered workflow records also show failures in Maintainer approval gate, PR Agent advisory review, Command Station checks, Controller and provider contracts, and RESIDUAL Qualification v1. Some test jobs were cancelled/skipped. These failures are not erased by the scoped boundary PASS; root causes and current release readiness are not certified here.
+
+Before submission, resolve:
+- actual human collaborators and their roles;
+- the effective existing license position and provenance representations, without changing scope implicitly;
+- exact candidate revision and fresh boundary evidence;
+- the proposed credit ceiling, public outputs and any research eligibility conditions;
+- overlapping support or existing subscription benefit treatment, if relevant;
+- whether to request Codex Security and what exact code it may access; do not assume path-limited scanning exists;
+- final complete form contents, current terms and explicit owner submission approval.
+
+Submission of Codex for Open Source itself accepts its program terms. An application must not assert that terms have no possible IP or confidentiality consequences merely because this draft reserves product code. The Fund similarity/non-exclusivity acknowledgment and any subsequent award terms also require personal review.
+
+No private identifiers, submission, terms acceptance, benefit activation or licensing change are authorized by this document.
