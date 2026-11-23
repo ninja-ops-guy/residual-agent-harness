@@ -55,6 +55,21 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          # Pull-request workflows otherwise test GitHub's synthetic merge ref.
+          # Funding/release evidence must bind to the maintainer-reviewable head.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+      - name: Bind qualification to requested revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          if [[ "$actual" != "$EXPECTED_SHA" ]]; then
+            echo "::error::Checked out $actual but qualification requested $EXPECTED_SHA"
+            exit 1
+          fi
+          echo "qualified_commit=$actual"
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
