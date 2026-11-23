@@ -60,7 +60,7 @@ Use OpenAI API credits with Codex and OpenAI models for issue and pull-request r
 
 ### Is there anything else you would like OpenAI to know?
 
-I am the creator and primary maintainer. RESIDUAL is early-stage; broad adoption and independent assurance are not established. The repository is mixed-scope, and the manifest-listed Apache-2.0 Open Core remains a candidate pending maintainer acceptance. At commit 71ef7b7, Open Core Boundary run #169 passed its export, boundary, static import and isolated smoke gates; other workflows failed and maintainer approval is pending. This does not establish production fitness, ownership clearance or program eligibility. No confidential employer, customer or third-party material is included.
+I am the creator and primary maintainer. RESIDUAL is early-stage; broad adoption and independent assurance are not established. The repository is mixed-scope, and the manifest-listed Apache-2.0 Open Core remains a candidate pending maintainer acceptance. At commit c13fc3b9, Open Core Boundary run #170 passed its exporter, boundary, static import and isolated smoke gates; several other workflows failed and maintainer approval is pending. This does not establish production fitness, ownership clearance or program eligibility. The application text is public-safe; repository provenance and rights remain for maintainer/legal review.
 
 ## Codex for Open Source
 
@@ -95,9 +95,9 @@ Use OpenAI API credits with Codex and OpenAI models for issue/PR review assistan
 
 ### Anything else we should know? — maximum 500 characters
 
-I am RESIDUAL's creator and primary maintainer. At commit 71ef7b7, Open Core Boundary run #169 passed 16 exporter fixtures, boundary validation, static import closure and isolated archive smoke tests. Other workflows failed and maintainer approval is pending. This is a candidate export, not a certified release or ownership audit. Only public, non-confidential material is included; reserved implementation is outside this request.
+I am RESIDUAL's creator and primary maintainer. At c13fc3b9, Open Core Boundary run #170 passed 16 exporter fixtures, boundary validation, static import closure and isolated archive smoke tests. Other workflows failed; maintainer acceptance and provenance review are pending. This is a candidate export, not a certified release, ownership audit or broad CI pass. The request covers only the manifest-listed Open Core.
 
-**Character count:** 432
+**Character count:** 417
 
 ## Terms and submission review
 
@@ -116,7 +116,7 @@ Before submitting, the maintainer should confirm all of the following against th
 
 ## Final submission gates
 
-- [ ] The final PR head has passed the exact-head Open Core boundary workflow.
+- [ ] The final PR head has passed the exact-head Open Core boundary workflow. Run #170 passed at `c13fc3b9a7fe85142fcfebece839bb2f290cf6ff`; any subsequent documentation edit requires a new run for the new head.
 - [ ] The maintainer has reviewed the final repository diff and retained evidence.
 - [ ] Private fields have been entered directly in the official form.
 - [ ] Current form fields and terms have been re-verified.
@@ -132,7 +132,7 @@ This is a planning proposal, not a request already submitted or permission to sp
 
 **Recommendation:** prioritize the Codex Open Source Fund. The maintainer program remains a possible ecosystem-exception application; no adoption metrics or independent user outcomes have been established here.
 
-**Proposed pilot:** 30 days after activation, capped at the lesser of $1,000 in awarded API credits or the actual awarded balance. No paid overage and no automatic extension. This is a conservative planning ceiling, not a measured cost forecast or claim of entitlement.
+**Proposed pilot:** 30 days after activation, capped at the lesser of $1,000 in awarded API credits or the actual awarded balance. No paid overage, no auto-recharge and no automatic extension. This is a conservative planning ceiling, not a measured cost forecast or claim of entitlement.
 
 | Allocation | Ceiling | Deliverable |
 | --- | ---: | --- |
@@ -141,22 +141,24 @@ This is a planning proposal, not a request already submitted or permission to sp
 | Documentation and reproducibility assistance | $200 | Kernel examples and reproduction instructions |
 | Reproduction of failed trials and final reporting | $100 | Cost/evidence report and unresolved limitations |
 
-Use only OpenAI API-billed models/tools permitted by the award. Reallocate only after owner approval; unused allocations remain unspent. Each run must identify the manifest revision, public input scope, model, task, token usage, reported API cost, evidence location and outcome. Stop at the ceiling or if scope/authorization is unclear. Do not treat dashboard alerts alone as a guaranteed hard spending limit; enforce a conservative run-level budget before requests and reconcile actual billed usage.
+Use only OpenAI API-billed models/tools permitted by the specific award. Reallocate only after owner approval; unused allocations remain unspent. Each run must identify the manifest revision, public input scope, model, task, token usage, reported API cost, evidence location and outcome. Stop at the ceiling or if scope/authorization is unclear. If available, use a dedicated API project with an enforced hard monthly spend limit below the authorized ceiling, plus a conservative run-level budget and usage reconciliation; hard-limit enforcement can lag slightly and alerts alone do not stop requests.
 
 Days 1–7: establish public kernel tasks and baseline usage. Days 8–21: bounded maintenance/evaluation runs. Days 22–30: reproduce failures and publish a revision-bound report. Outcomes are proposed; no success rate or production reliability is promised. Research evaluations proceed only if permitted by the award; otherwise leave that allocation unspent.
 
-Credits do not cover reserved implementation, third-party provider bills, salaries, hardware or unauthorized security work. Local non-model export validation is a separate check, not API consumption. Any evaluation tooling excluded by the manifest requires separate scope review; this plan does not license or fund reserved tooling implicitly.
+Credits do not cover reserved implementation, third-party provider bills, salaries, hardware or unauthorized security work. Local non-model export validation is a separate check, not API consumption. Any evaluation tooling excluded by the manifest cannot be developed or improved under this Open Core request without an explicit scope/award decision; a pilot task may use only public inputs and included kernel or research material. This plan does not license or fund reserved tooling implicitly.
+
+Awarded Fund API credits, any subscription-linked API credits, ChatGPT/Codex usage entitlements and promotional discounts have separate eligibility, expiration and billing rules. The $1,000 planning ceiling applies only if a Fund award is actually granted for these tasks. Before activation, confirm whether credits can be attributed to this project and how the platform consumes multiple grant balances; do not count subscription benefits or discount value toward the Fund pilot.
 
 ## Review evidence and decisions — 2026-11-22
 
-The historical boundary PASS above belongs only to commit 71ef7b7677b3b023842db75387b1d11f4ee00686 and run 43557806153. Updated copy must receive its own exact-head qualification; it cannot inherit that PASS.
+Open Core Boundary [run #170](https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/45015211388) passed at exact PR head `c13fc3b9a7fe85142fcfebece839bb2f290cf6ff` before this revision: 16/16 exporter fixtures, boundary validation (19 licensed entries, 33 reserved), static import closure (31 Python files), immutable 60-file archive (SHA-256 `a6293b9a51eab31bc9ecd700abbb823a7f14e9444cbefc31c02b538c0b548b0c`), and 10 isolated smoke imports. The earlier run #169 passed at `71ef7b7677b3b023842db75387b1d11f4ee00686`. Neither pass automatically qualifies a later documentation head; recheck the final head after edits.
 
-The reviewed PR-triggered workflow records also show failures in Maintainer approval gate, PR Agent advisory review, Command Station checks, Controller and provider contracts, and RESIDUAL Qualification v1. Some test jobs were cancelled/skipped. These failures are not erased by the scoped boundary PASS; root causes and current release readiness are not certified here.
+At `c13fc3b9`, the same PR-triggered workflow set passed Measured evaluation acceptance binding, Clean install qualification, Control Plane and Factory ownership gate, but failed Maintainer approval gate, PR Agent advisory review, Command Station checks, Controller and provider contracts, and RESIDUAL Qualification v1. Some underlying jobs were cancelled/skipped. These failures are not erased by the scoped boundary PASS; root causes and current release readiness are not certified here.
 
 Before submission, resolve:
 - actual human collaborators and their roles;
 - the effective existing license position and provenance representations, without changing scope implicitly;
-- exact candidate revision and fresh boundary evidence;
+- final candidate revision and a new boundary run if the application documents are revised after `c13fc3b9`;
 - the proposed credit ceiling, public outputs and any research eligibility conditions;
 - overlapping support or existing subscription benefit treatment, if relevant;
 - whether to request Codex Security and what exact code it may access; do not assume path-limited scanning exists;
