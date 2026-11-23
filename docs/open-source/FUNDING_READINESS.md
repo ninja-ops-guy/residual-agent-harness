@@ -1,6 +1,6 @@
 # Open-source funding readiness
 
-**Application package:** PREPARED FOR EXACT-HEAD CI AND MAINTAINER REVIEW — NOT SUBMITTED  
+**Application package:** PREPARED FOR FRESH EXACT-HEAD CI AND MAINTAINER REVIEW — NOT SUBMITTED  
 **Open-core export/release:** CANDIDATE — NOT YET CERTIFIED  
 **Legal/commercial readiness:** REVIEW REQUIRED BEFORE MATERIAL COMMERCIALIZATION OR A FORMAL PACKAGED RELEASE
 
@@ -31,10 +31,12 @@ Private account fields must be entered directly by the maintainer in the officia
 - [x] Export rejects untracked/staged working-tree bytes, unsafe paths, symlinks, submodules, reserved-path leakage and overwrite.
 - [x] Static import-closure CI exists to detect local dependencies crossing outside the proposed license scope.
 - [x] Isolated source-archive smoke qualification exists.
-- [ ] The final application-candidate PR head passes the complete `Open Core Boundary` workflow.
+- [ ] The final application-candidate PR head passes the complete `Open Core Boundary` workflow. Run #170 passed on `c13fc3b9a7fe85142fcfebece839bb2f290cf6ff`; later edits require a new exact-head run.
 - [ ] The maintainer reviews and accepts that exact passing head for the application.
 
 A passing workflow establishes only the checks it runs: adversarial export fixtures, boundary consistency, committed-snapshot selection, static Python import closure, immutable archive construction and isolated archive smoke imports. It does not prove ownership, legal validity, dynamic-import completeness, security, production fitness or downstream adoption.
+
+At `c13fc3b9`, other workflows passed and failed independently of the boundary: Measured evaluation acceptance binding, Clean install qualification, Control Plane and Factory ownership gate passed; Maintainer approval gate, PR Agent advisory review, Command Station checks, Controller and provider contracts, and RESIDUAL Qualification v1 failed. Do not infer full CI or release qualification from the boundary job.
 
 ## Distribution and release gates
 
