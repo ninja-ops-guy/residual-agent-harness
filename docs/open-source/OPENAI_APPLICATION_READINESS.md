@@ -4,7 +4,8 @@
 **Prepared:** 2026-11-13  
 **Maintainer:** Mike Olivares (`ninja-ops-guy`)  
 **Repository:** `ninja-ops-guy/residual-agent-harness`  
-**Candidate base revision:** `8369f0dc2a93d8dcb194220b85b9aaf87d1d6df2`
+**Candidate base revision:** `8369f0dc2a93d8dcb194220b85b9aaf87d1d6df2`  
+**Last validated PR revision:** `c13fc3b9a7fe85142fcfebece839bb2f290cf6ff` — Open Core Boundary [run #170](https://github.com/ninja-ops-guy/residual-agent-harness/actions/runs/45015211388) passed; later document edits require their own exact-head check.
 
 This document prepares a truthful, narrowly scoped package for OpenAI open-source maintainer, funding and defensive-security programs. Program availability, eligibility, benefits and terms must be re-checked on the official OpenAI pages immediately before submission.
 
@@ -84,6 +85,10 @@ A passing run establishes only those named checks at its exact head. It does not
 - Research claims are revision-bound and negative evidence is preserved.
 - Maintainer authority is separated from automated qualification.
 
+## Qualification status at `c13fc3b9`
+
+Open Core Boundary run #170 passed 16 exporter fixtures, boundary validation, static import closure and isolated source-archive smoke imports on that exact head. Measured evaluation acceptance binding, Clean install qualification, Control Plane and Factory ownership gate also passed. Maintainer approval gate, PR Agent advisory review, Command Station checks, Controller and provider contracts, and RESIDUAL Qualification v1 failed; some underlying jobs were cancelled/skipped. The boundary result does not establish an all-CI pass, packaged-release certification, independent assurance or application approval.
+
 ## Material limitations to disclose
 
 - RESIDUAL is early-stage and must not be presented as widely adopted without external evidence.
@@ -101,6 +106,10 @@ A passing run establishes only those named checks at its exact head. It does not
 >
 > The public repository is a mixed-scope monorepo. This request covers only the manifest-listed Apache-2.0 candidate verification/research kernel. Factory execution, runtime orchestration, sandbox infrastructure, Studio, enterprise, control-plane and hosted-service implementations remain reserved. The project is early-stage and does not claim broad adoption, independent security certification, universal correctness or blanket production readiness.
 
+## Program fit and budget boundary
+
+The Codex Open Source Fund form offers rolling review for grants of up to $25,000 in API credits; no award amount is promised. Codex for Open Source considers active maintenance, usage, adoption and ecosystem importance, and may grant six months of ChatGPT Pro, optional API credits and conditional Codex Security access. The documented early-stage project and lack of independent adoption evidence favor a Fund-first request while leaving the maintainer program a candid possible application. The proposed 30-day, up-to-$1,000 Fund-credit pilot in `OPENAI_APPLICATION_FORM_DRAFT.md` is a planning ceiling only; the tasks must remain within the manifest-listed Open Core and any actual award terms. Subscription-linked API credits, ChatGPT/Codex entitlements and promotional credits are not a Fund award.
+
 ## Submission package checklist
 
 - [x] Public repository identified.
@@ -110,7 +119,7 @@ A passing run establishes only those named checks at its exact head. It does not
 - [x] Material technical, adoption and provenance limitations disclosed.
 - [x] No confidential employer, customer or third-party material included.
 - [x] No third-party security target or unauthorized testing proposed.
-- [ ] Final PR head passes the complete `Open Core Boundary` workflow.
+- [ ] Final PR head passes the complete `Open Core Boundary` workflow. The earlier `c13fc3b9` head passed run #170; this document edit makes that evidence historical.
 - [ ] Maintainer reviews the final exact-head diff and CI evidence.
 - [ ] Current official program terms and application fields are re-verified.
 - [ ] Maintainer authorizes submission.
