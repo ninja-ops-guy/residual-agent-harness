@@ -1,0 +1,1 @@
+session_id,pair,variant,arm,checkpoint,actor_role,event_id,event_type,start_monotonic_ms,end_monotonic_ms,utc_start,activity_class,intervention_type,seat_ids,source_or_report_ids,parent_event_id,disposition,notes
