@@ -1,0 +1,1232 @@
+{
+  "version": 1,
+  "units": "logical seconds",
+  "cutoffs": {
+    "cold": 0,
+    "ongoing": 100
+  },
+  "presence_ttl_seconds": 90,
+  "scripted_reply_delay_seconds": 2,
+  "variants": {
+    "Aster": {
+      "initial": [
+        {
+          "seat": "Aster-06",
+          "task": "T106",
+          "state": "blocked",
+          "wait": "T103",
+          "owner_request": "none",
+          "placement": "node-3",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Aster-03",
+          "task": "T103",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-3",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Aster-10",
+          "task": "T110",
+          "state": "blocked",
+          "wait": "T105",
+          "owner_request": "none",
+          "placement": "node-1",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Aster-05",
+          "task": "T105",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-2",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Aster-02",
+          "task": "T102",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-2",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Aster-09",
+          "task": "T109",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-3",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Aster-11",
+          "task": "T111",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-2",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Aster-08",
+          "task": "T108",
+          "state": "blocked",
+          "wait": "owner scope decision",
+          "owner_request": "decide whether to expand the read scope of T108",
+          "placement": "node-2",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Aster-04",
+          "task": "T104",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-1",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Aster-01",
+          "task": "T101",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-1",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Aster-07",
+          "task": "T107",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-1",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        }
+      ],
+      "reports": [
+        {
+          "seat": "Aster-11",
+          "text": "Last assigned task acknowledged.",
+          "id": "Aster-R01",
+          "t": 31
+        },
+        {
+          "seat": "Aster-02",
+          "text": "Last assigned task acknowledged.",
+          "id": "Aster-R02",
+          "t": 32
+        },
+        {
+          "seat": "Aster-08",
+          "text": "Last assigned task acknowledged.",
+          "id": "Aster-R03",
+          "t": 33
+        },
+        {
+          "seat": "Aster-09",
+          "text": "Last assigned task acknowledged.",
+          "id": "Aster-R04",
+          "t": 34
+        },
+        {
+          "seat": "Aster-04",
+          "text": "Last assigned task acknowledged.",
+          "id": "Aster-R05",
+          "t": 35
+        },
+        {
+          "seat": "Aster-05",
+          "text": "Last assigned task acknowledged.",
+          "id": "Aster-R06",
+          "t": 36
+        },
+        {
+          "seat": "Aster-06",
+          "text": "Last assigned task acknowledged.",
+          "id": "Aster-R07",
+          "t": 37
+        },
+        {
+          "seat": "Aster-07",
+          "text": "Last assigned task acknowledged.",
+          "id": "Aster-R08",
+          "t": 38
+        },
+        {
+          "seat": "Aster-10",
+          "text": "Last assigned task acknowledged.",
+          "id": "Aster-R09",
+          "t": 39
+        },
+        {
+          "seat": "Aster-01",
+          "text": "Last assigned task acknowledged.",
+          "id": "Aster-R10",
+          "t": 40
+        },
+        {
+          "seat": "Aster-03",
+          "text": "Last assigned task acknowledged.",
+          "id": "Aster-R11",
+          "t": 41
+        },
+        {
+          "seat": "Aster-05",
+          "text": "Done.",
+          "id": "Aster-R12",
+          "t": 42
+        },
+        {
+          "seat": "Aster-03",
+          "text": "Done.",
+          "id": "Aster-R13",
+          "t": 43
+        },
+        {
+          "seat": "Aster-03",
+          "text": "Done.",
+          "id": "Aster-R14",
+          "t": 44,
+          "duplicate_of": "Aster-R13"
+        },
+        {
+          "seat": "Aster-08",
+          "text": "Owner scope decision still needed.",
+          "id": "Aster-R15",
+          "t": 45
+        }
+      ],
+      "events": [
+        {
+          "id": "Aster-V",
+          "kind": "verifier_receipt",
+          "seat": "Aster-05",
+          "t": 46,
+          "task": "T105",
+          "verdict": "accepted"
+        },
+        {
+          "id": "Aster-F",
+          "kind": "station_task_state",
+          "seat": "Aster-05",
+          "t": 47,
+          "state": "verified complete",
+          "task": "T105"
+        },
+        {
+          "id": "Aster-D",
+          "kind": "station_dependency_state",
+          "seat": "Aster-10",
+          "t": 48,
+          "task": "T110",
+          "state": "ready",
+          "wait": "none",
+          "upstream": "T105"
+        },
+        {
+          "id": "Aster-H1",
+          "kind": "presence_refresh",
+          "seat": "Aster-01",
+          "t": 90,
+          "placement": "node-1"
+        },
+        {
+          "id": "Aster-H10",
+          "kind": "presence_refresh",
+          "seat": "Aster-10",
+          "t": 90,
+          "placement": "node-1"
+        },
+        {
+          "id": "Aster-H11",
+          "kind": "presence_refresh",
+          "seat": "Aster-11",
+          "t": 90,
+          "placement": "node-2"
+        },
+        {
+          "id": "Aster-H2",
+          "kind": "presence_refresh",
+          "seat": "Aster-02",
+          "t": 90,
+          "placement": "node-2"
+        },
+        {
+          "id": "Aster-H3",
+          "kind": "presence_refresh",
+          "seat": "Aster-03",
+          "t": 90,
+          "placement": "node-3"
+        },
+        {
+          "id": "Aster-H4",
+          "kind": "presence_refresh",
+          "seat": "Aster-04",
+          "t": 90,
+          "placement": "node-1"
+        },
+        {
+          "id": "Aster-H5",
+          "kind": "presence_refresh",
+          "seat": "Aster-05",
+          "t": 90,
+          "placement": "node-2"
+        },
+        {
+          "id": "Aster-H6",
+          "kind": "presence_refresh",
+          "seat": "Aster-06",
+          "t": 90,
+          "placement": "node-3"
+        },
+        {
+          "id": "Aster-H8",
+          "kind": "presence_refresh",
+          "seat": "Aster-08",
+          "t": 90,
+          "placement": "node-2"
+        },
+        {
+          "id": "Aster-H9",
+          "kind": "presence_refresh",
+          "seat": "Aster-09",
+          "t": 90,
+          "placement": "node-3"
+        }
+      ]
+    },
+    "Birch": {
+      "initial": [
+        {
+          "seat": "Birch-05",
+          "task": "T105",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-2",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Birch-11",
+          "task": "T111",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-2",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Birch-10",
+          "task": "T110",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-1",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Birch-09",
+          "task": "T109",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-3",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Birch-02",
+          "task": "T102",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-2",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Birch-08",
+          "task": "T108",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-2",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Birch-07",
+          "task": "T107",
+          "state": "blocked",
+          "wait": "T110",
+          "owner_request": "none",
+          "placement": "node-1",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Birch-01",
+          "task": "T101",
+          "state": "blocked",
+          "wait": "owner scope decision",
+          "owner_request": "decide whether to expand the read scope of T101",
+          "placement": "node-1",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Birch-04",
+          "task": "T104",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-1",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Birch-06",
+          "task": "T106",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-3",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Birch-03",
+          "task": "T103",
+          "state": "blocked",
+          "wait": "T102",
+          "owner_request": "none",
+          "placement": "node-3",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        }
+      ],
+      "reports": [
+        {
+          "seat": "Birch-06",
+          "text": "Last assigned task acknowledged.",
+          "id": "Birch-R01",
+          "t": 31
+        },
+        {
+          "seat": "Birch-08",
+          "text": "Last assigned task acknowledged.",
+          "id": "Birch-R02",
+          "t": 32
+        },
+        {
+          "seat": "Birch-04",
+          "text": "Last assigned task acknowledged.",
+          "id": "Birch-R03",
+          "t": 33
+        },
+        {
+          "seat": "Birch-03",
+          "text": "Last assigned task acknowledged.",
+          "id": "Birch-R04",
+          "t": 34
+        },
+        {
+          "seat": "Birch-10",
+          "text": "Last assigned task acknowledged.",
+          "id": "Birch-R05",
+          "t": 35
+        },
+        {
+          "seat": "Birch-05",
+          "text": "Last assigned task acknowledged.",
+          "id": "Birch-R06",
+          "t": 36
+        },
+        {
+          "seat": "Birch-09",
+          "text": "Last assigned task acknowledged.",
+          "id": "Birch-R07",
+          "t": 37
+        },
+        {
+          "seat": "Birch-07",
+          "text": "Last assigned task acknowledged.",
+          "id": "Birch-R08",
+          "t": 38
+        },
+        {
+          "seat": "Birch-01",
+          "text": "Last assigned task acknowledged.",
+          "id": "Birch-R09",
+          "t": 39
+        },
+        {
+          "seat": "Birch-11",
+          "text": "Last assigned task acknowledged.",
+          "id": "Birch-R10",
+          "t": 40
+        },
+        {
+          "seat": "Birch-02",
+          "text": "Last assigned task acknowledged.",
+          "id": "Birch-R11",
+          "t": 41
+        },
+        {
+          "seat": "Birch-02",
+          "text": "Done.",
+          "id": "Birch-R12",
+          "t": 42
+        },
+        {
+          "seat": "Birch-10",
+          "text": "Done.",
+          "id": "Birch-R13",
+          "t": 43
+        },
+        {
+          "seat": "Birch-10",
+          "text": "Done.",
+          "id": "Birch-R14",
+          "t": 44,
+          "duplicate_of": "Birch-R13"
+        },
+        {
+          "seat": "Birch-01",
+          "text": "Owner scope decision still needed.",
+          "id": "Birch-R15",
+          "t": 45
+        }
+      ],
+      "events": [
+        {
+          "id": "Birch-V",
+          "kind": "verifier_receipt",
+          "seat": "Birch-02",
+          "t": 46,
+          "task": "T102",
+          "verdict": "accepted"
+        },
+        {
+          "id": "Birch-F",
+          "kind": "station_task_state",
+          "seat": "Birch-02",
+          "t": 47,
+          "state": "verified complete",
+          "task": "T102"
+        },
+        {
+          "id": "Birch-D",
+          "kind": "station_dependency_state",
+          "seat": "Birch-03",
+          "t": 48,
+          "task": "T103",
+          "state": "ready",
+          "wait": "none",
+          "upstream": "T102"
+        },
+        {
+          "id": "Birch-H1",
+          "kind": "presence_refresh",
+          "seat": "Birch-01",
+          "t": 90,
+          "placement": "node-1"
+        },
+        {
+          "id": "Birch-H10",
+          "kind": "presence_refresh",
+          "seat": "Birch-10",
+          "t": 90,
+          "placement": "node-1"
+        },
+        {
+          "id": "Birch-H11",
+          "kind": "presence_refresh",
+          "seat": "Birch-11",
+          "t": 90,
+          "placement": "node-2"
+        },
+        {
+          "id": "Birch-H2",
+          "kind": "presence_refresh",
+          "seat": "Birch-02",
+          "t": 90,
+          "placement": "node-2"
+        },
+        {
+          "id": "Birch-H3",
+          "kind": "presence_refresh",
+          "seat": "Birch-03",
+          "t": 90,
+          "placement": "node-3"
+        },
+        {
+          "id": "Birch-H4",
+          "kind": "presence_refresh",
+          "seat": "Birch-04",
+          "t": 90,
+          "placement": "node-1"
+        },
+        {
+          "id": "Birch-H5",
+          "kind": "presence_refresh",
+          "seat": "Birch-05",
+          "t": 90,
+          "placement": "node-2"
+        },
+        {
+          "id": "Birch-H6",
+          "kind": "presence_refresh",
+          "seat": "Birch-06",
+          "t": 90,
+          "placement": "node-3"
+        },
+        {
+          "id": "Birch-H7",
+          "kind": "presence_refresh",
+          "seat": "Birch-07",
+          "t": 90,
+          "placement": "node-1"
+        },
+        {
+          "id": "Birch-H9",
+          "kind": "presence_refresh",
+          "seat": "Birch-09",
+          "t": 90,
+          "placement": "node-3"
+        }
+      ]
+    },
+    "Cedar": {
+      "initial": [
+        {
+          "seat": "Cedar-07",
+          "task": "T107",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-1",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Cedar-09",
+          "task": "T109",
+          "state": "blocked",
+          "wait": "owner scope decision",
+          "owner_request": "decide whether to expand the read scope of T109",
+          "placement": "node-3",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Cedar-05",
+          "task": "T105",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-2",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Cedar-02",
+          "task": "T102",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-2",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Cedar-10",
+          "task": "T110",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-1",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Cedar-01",
+          "task": "T101",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-1",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Cedar-08",
+          "task": "T108",
+          "state": "blocked",
+          "wait": "T105",
+          "owner_request": "none",
+          "placement": "node-2",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Cedar-11",
+          "task": "T111",
+          "state": "blocked",
+          "wait": "T104",
+          "owner_request": "none",
+          "placement": "node-2",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Cedar-03",
+          "task": "T103",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-3",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Cedar-06",
+          "task": "T106",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-3",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Cedar-04",
+          "task": "T104",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-1",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        }
+      ],
+      "reports": [
+        {
+          "seat": "Cedar-04",
+          "text": "Last assigned task acknowledged.",
+          "id": "Cedar-R01",
+          "t": 31
+        },
+        {
+          "seat": "Cedar-03",
+          "text": "Last assigned task acknowledged.",
+          "id": "Cedar-R02",
+          "t": 32
+        },
+        {
+          "seat": "Cedar-11",
+          "text": "Last assigned task acknowledged.",
+          "id": "Cedar-R03",
+          "t": 33
+        },
+        {
+          "seat": "Cedar-10",
+          "text": "Last assigned task acknowledged.",
+          "id": "Cedar-R04",
+          "t": 34
+        },
+        {
+          "seat": "Cedar-05",
+          "text": "Last assigned task acknowledged.",
+          "id": "Cedar-R05",
+          "t": 35
+        },
+        {
+          "seat": "Cedar-08",
+          "text": "Last assigned task acknowledged.",
+          "id": "Cedar-R06",
+          "t": 36
+        },
+        {
+          "seat": "Cedar-07",
+          "text": "Last assigned task acknowledged.",
+          "id": "Cedar-R07",
+          "t": 37
+        },
+        {
+          "seat": "Cedar-02",
+          "text": "Last assigned task acknowledged.",
+          "id": "Cedar-R08",
+          "t": 38
+        },
+        {
+          "seat": "Cedar-09",
+          "text": "Last assigned task acknowledged.",
+          "id": "Cedar-R09",
+          "t": 39
+        },
+        {
+          "seat": "Cedar-01",
+          "text": "Last assigned task acknowledged.",
+          "id": "Cedar-R10",
+          "t": 40
+        },
+        {
+          "seat": "Cedar-06",
+          "text": "Last assigned task acknowledged.",
+          "id": "Cedar-R11",
+          "t": 41
+        },
+        {
+          "seat": "Cedar-04",
+          "text": "Done.",
+          "id": "Cedar-R12",
+          "t": 42
+        },
+        {
+          "seat": "Cedar-05",
+          "text": "Done.",
+          "id": "Cedar-R13",
+          "t": 43
+        },
+        {
+          "seat": "Cedar-05",
+          "text": "Done.",
+          "id": "Cedar-R14",
+          "t": 44,
+          "duplicate_of": "Cedar-R13"
+        },
+        {
+          "seat": "Cedar-09",
+          "text": "Owner scope decision still needed.",
+          "id": "Cedar-R15",
+          "t": 45
+        }
+      ],
+      "events": [
+        {
+          "id": "Cedar-V",
+          "kind": "verifier_receipt",
+          "seat": "Cedar-04",
+          "t": 46,
+          "task": "T104",
+          "verdict": "accepted"
+        },
+        {
+          "id": "Cedar-F",
+          "kind": "station_task_state",
+          "seat": "Cedar-04",
+          "t": 47,
+          "state": "verified complete",
+          "task": "T104"
+        },
+        {
+          "id": "Cedar-D",
+          "kind": "station_dependency_state",
+          "seat": "Cedar-11",
+          "t": 48,
+          "task": "T111",
+          "state": "ready",
+          "wait": "none",
+          "upstream": "T104"
+        },
+        {
+          "id": "Cedar-H1",
+          "kind": "presence_refresh",
+          "seat": "Cedar-01",
+          "t": 90,
+          "placement": "node-1"
+        },
+        {
+          "id": "Cedar-H10",
+          "kind": "presence_refresh",
+          "seat": "Cedar-10",
+          "t": 90,
+          "placement": "node-1"
+        },
+        {
+          "id": "Cedar-H11",
+          "kind": "presence_refresh",
+          "seat": "Cedar-11",
+          "t": 90,
+          "placement": "node-2"
+        },
+        {
+          "id": "Cedar-H2",
+          "kind": "presence_refresh",
+          "seat": "Cedar-02",
+          "t": 90,
+          "placement": "node-2"
+        },
+        {
+          "id": "Cedar-H3",
+          "kind": "presence_refresh",
+          "seat": "Cedar-03",
+          "t": 90,
+          "placement": "node-3"
+        },
+        {
+          "id": "Cedar-H4",
+          "kind": "presence_refresh",
+          "seat": "Cedar-04",
+          "t": 90,
+          "placement": "node-1"
+        },
+        {
+          "id": "Cedar-H5",
+          "kind": "presence_refresh",
+          "seat": "Cedar-05",
+          "t": 90,
+          "placement": "node-2"
+        },
+        {
+          "id": "Cedar-H7",
+          "kind": "presence_refresh",
+          "seat": "Cedar-07",
+          "t": 90,
+          "placement": "node-1"
+        },
+        {
+          "id": "Cedar-H8",
+          "kind": "presence_refresh",
+          "seat": "Cedar-08",
+          "t": 90,
+          "placement": "node-2"
+        },
+        {
+          "id": "Cedar-H9",
+          "kind": "presence_refresh",
+          "seat": "Cedar-09",
+          "t": 90,
+          "placement": "node-3"
+        }
+      ]
+    },
+    "Dune": {
+      "initial": [
+        {
+          "seat": "Dune-08",
+          "task": "T108",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-2",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Dune-03",
+          "task": "T103",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-3",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Dune-05",
+          "task": "T105",
+          "state": "blocked",
+          "wait": "owner scope decision",
+          "owner_request": "decide whether to expand the read scope of T105",
+          "placement": "node-2",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Dune-01",
+          "task": "T101",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-1",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Dune-10",
+          "task": "T110",
+          "state": "blocked",
+          "wait": "T111",
+          "owner_request": "none",
+          "placement": "node-1",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Dune-11",
+          "task": "T111",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-2",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Dune-04",
+          "task": "T104",
+          "state": "blocked",
+          "wait": "T107",
+          "owner_request": "none",
+          "placement": "node-1",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Dune-06",
+          "task": "T106",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-3",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Dune-02",
+          "task": "T102",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-2",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Dune-07",
+          "task": "T107",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-1",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        },
+        {
+          "seat": "Dune-09",
+          "task": "T109",
+          "state": "working",
+          "wait": "none",
+          "owner_request": "none",
+          "placement": "node-3",
+          "last_seen": -10,
+          "ttl_seconds": 90
+        }
+      ],
+      "reports": [
+        {
+          "seat": "Dune-11",
+          "text": "Last assigned task acknowledged.",
+          "id": "Dune-R01",
+          "t": 31
+        },
+        {
+          "seat": "Dune-04",
+          "text": "Last assigned task acknowledged.",
+          "id": "Dune-R02",
+          "t": 32
+        },
+        {
+          "seat": "Dune-09",
+          "text": "Last assigned task acknowledged.",
+          "id": "Dune-R03",
+          "t": 33
+        },
+        {
+          "seat": "Dune-01",
+          "text": "Last assigned task acknowledged.",
+          "id": "Dune-R04",
+          "t": 34
+        },
+        {
+          "seat": "Dune-06",
+          "text": "Last assigned task acknowledged.",
+          "id": "Dune-R05",
+          "t": 35
+        },
+        {
+          "seat": "Dune-10",
+          "text": "Last assigned task acknowledged.",
+          "id": "Dune-R06",
+          "t": 36
+        },
+        {
+          "seat": "Dune-07",
+          "text": "Last assigned task acknowledged.",
+          "id": "Dune-R07",
+          "t": 37
+        },
+        {
+          "seat": "Dune-05",
+          "text": "Last assigned task acknowledged.",
+          "id": "Dune-R08",
+          "t": 38
+        },
+        {
+          "seat": "Dune-08",
+          "text": "Last assigned task acknowledged.",
+          "id": "Dune-R09",
+          "t": 39
+        },
+        {
+          "seat": "Dune-03",
+          "text": "Last assigned task acknowledged.",
+          "id": "Dune-R10",
+          "t": 40
+        },
+        {
+          "seat": "Dune-02",
+          "text": "Last assigned task acknowledged.",
+          "id": "Dune-R11",
+          "t": 41
+        },
+        {
+          "seat": "Dune-07",
+          "text": "Done.",
+          "id": "Dune-R12",
+          "t": 42
+        },
+        {
+          "seat": "Dune-11",
+          "text": "Done.",
+          "id": "Dune-R13",
+          "t": 43
+        },
+        {
+          "seat": "Dune-11",
+          "text": "Done.",
+          "id": "Dune-R14",
+          "t": 44,
+          "duplicate_of": "Dune-R13"
+        },
+        {
+          "seat": "Dune-05",
+          "text": "Owner scope decision still needed.",
+          "id": "Dune-R15",
+          "t": 45
+        }
+      ],
+      "events": [
+        {
+          "id": "Dune-V",
+          "kind": "verifier_receipt",
+          "seat": "Dune-07",
+          "t": 46,
+          "task": "T107",
+          "verdict": "accepted"
+        },
+        {
+          "id": "Dune-F",
+          "kind": "station_task_state",
+          "seat": "Dune-07",
+          "t": 47,
+          "state": "verified complete",
+          "task": "T107"
+        },
+        {
+          "id": "Dune-D",
+          "kind": "station_dependency_state",
+          "seat": "Dune-04",
+          "t": 48,
+          "task": "T104",
+          "state": "ready",
+          "wait": "none",
+          "upstream": "T107"
+        },
+        {
+          "id": "Dune-H1",
+          "kind": "presence_refresh",
+          "seat": "Dune-01",
+          "t": 90,
+          "placement": "node-1"
+        },
+        {
+          "id": "Dune-H10",
+          "kind": "presence_refresh",
+          "seat": "Dune-10",
+          "t": 90,
+          "placement": "node-1"
+        },
+        {
+          "id": "Dune-H11",
+          "kind": "presence_refresh",
+          "seat": "Dune-11",
+          "t": 90,
+          "placement": "node-2"
+        },
+        {
+          "id": "Dune-H3",
+          "kind": "presence_refresh",
+          "seat": "Dune-03",
+          "t": 90,
+          "placement": "node-3"
+        },
+        {
+          "id": "Dune-H4",
+          "kind": "presence_refresh",
+          "seat": "Dune-04",
+          "t": 90,
+          "placement": "node-1"
+        },
+        {
+          "id": "Dune-H5",
+          "kind": "presence_refresh",
+          "seat": "Dune-05",
+          "t": 90,
+          "placement": "node-2"
+        },
+        {
+          "id": "Dune-H6",
+          "kind": "presence_refresh",
+          "seat": "Dune-06",
+          "t": 90,
+          "placement": "node-3"
+        },
+        {
+          "id": "Dune-H7",
+          "kind": "presence_refresh",
+          "seat": "Dune-07",
+          "t": 90,
+          "placement": "node-1"
+        },
+        {
+          "id": "Dune-H8",
+          "kind": "presence_refresh",
+          "seat": "Dune-08",
+          "t": 90,
+          "placement": "node-2"
+        },
+        {
+          "id": "Dune-H9",
+          "kind": "presence_refresh",
+          "seat": "Dune-09",
+          "t": 90,
+          "placement": "node-3"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,756 @@
+{
+  "version": 1,
+  "columns": [
+    "task",
+    "state",
+    "current reported placement",
+    "wait",
+    "owner request"
+  ],
+  "variants": {
+    "Aster": {
+      "rows": {
+        "Aster-05": {
+          "cold": [
+            "T105",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T105",
+            "verified complete",
+            "node-2",
+            "none",
+            "none"
+          ]
+        },
+        "Aster-10": {
+          "cold": [
+            "T110",
+            "blocked",
+            "node-1",
+            "T105",
+            "none"
+          ],
+          "ongoing": [
+            "T110",
+            "ready",
+            "node-1",
+            "none",
+            "none"
+          ]
+        },
+        "Aster-03": {
+          "cold": [
+            "T103",
+            "working",
+            "node-3",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T103",
+            "working",
+            "node-3",
+            "none",
+            "none"
+          ]
+        },
+        "Aster-06": {
+          "cold": [
+            "T106",
+            "blocked",
+            "node-3",
+            "T103",
+            "none"
+          ],
+          "ongoing": [
+            "T106",
+            "blocked",
+            "node-3",
+            "T103",
+            "none"
+          ]
+        },
+        "Aster-08": {
+          "cold": [
+            "T108",
+            "blocked",
+            "node-2",
+            "owner scope decision",
+            "decide whether to expand the read scope of T108"
+          ],
+          "ongoing": [
+            "T108",
+            "blocked",
+            "node-2",
+            "owner scope decision",
+            "decide whether to expand the read scope of T108"
+          ]
+        },
+        "Aster-07": {
+          "cold": [
+            "T107",
+            "working",
+            "node-1",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T107",
+            "working",
+            "unknown",
+            "none",
+            "none"
+          ]
+        },
+        "Aster-04": {
+          "cold": [
+            "T104",
+            "working",
+            "node-1",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T104",
+            "working",
+            "node-1",
+            "none",
+            "none"
+          ]
+        },
+        "Aster-01": {
+          "cold": [
+            "T101",
+            "working",
+            "node-1",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T101",
+            "working",
+            "node-1",
+            "none",
+            "none"
+          ]
+        },
+        "Aster-11": {
+          "cold": [
+            "T111",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T111",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ]
+        },
+        "Aster-09": {
+          "cold": [
+            "T109",
+            "working",
+            "node-3",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T109",
+            "working",
+            "node-3",
+            "none",
+            "none"
+          ]
+        },
+        "Aster-02": {
+          "cold": [
+            "T102",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T102",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ]
+        }
+      },
+      "verified": "Aster-05",
+      "released": "Aster-10",
+      "unverified": "Aster-03",
+      "still_blocked": "Aster-06",
+      "owner_gate": "Aster-08",
+      "expired": "Aster-07"
+    },
+    "Birch": {
+      "rows": {
+        "Birch-02": {
+          "cold": [
+            "T102",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T102",
+            "verified complete",
+            "node-2",
+            "none",
+            "none"
+          ]
+        },
+        "Birch-03": {
+          "cold": [
+            "T103",
+            "blocked",
+            "node-3",
+            "T102",
+            "none"
+          ],
+          "ongoing": [
+            "T103",
+            "ready",
+            "node-3",
+            "none",
+            "none"
+          ]
+        },
+        "Birch-10": {
+          "cold": [
+            "T110",
+            "working",
+            "node-1",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T110",
+            "working",
+            "node-1",
+            "none",
+            "none"
+          ]
+        },
+        "Birch-07": {
+          "cold": [
+            "T107",
+            "blocked",
+            "node-1",
+            "T110",
+            "none"
+          ],
+          "ongoing": [
+            "T107",
+            "blocked",
+            "node-1",
+            "T110",
+            "none"
+          ]
+        },
+        "Birch-01": {
+          "cold": [
+            "T101",
+            "blocked",
+            "node-1",
+            "owner scope decision",
+            "decide whether to expand the read scope of T101"
+          ],
+          "ongoing": [
+            "T101",
+            "blocked",
+            "node-1",
+            "owner scope decision",
+            "decide whether to expand the read scope of T101"
+          ]
+        },
+        "Birch-08": {
+          "cold": [
+            "T108",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T108",
+            "working",
+            "unknown",
+            "none",
+            "none"
+          ]
+        },
+        "Birch-11": {
+          "cold": [
+            "T111",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T111",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ]
+        },
+        "Birch-06": {
+          "cold": [
+            "T106",
+            "working",
+            "node-3",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T106",
+            "working",
+            "node-3",
+            "none",
+            "none"
+          ]
+        },
+        "Birch-04": {
+          "cold": [
+            "T104",
+            "working",
+            "node-1",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T104",
+            "working",
+            "node-1",
+            "none",
+            "none"
+          ]
+        },
+        "Birch-05": {
+          "cold": [
+            "T105",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T105",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ]
+        },
+        "Birch-09": {
+          "cold": [
+            "T109",
+            "working",
+            "node-3",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T109",
+            "working",
+            "node-3",
+            "none",
+            "none"
+          ]
+        }
+      },
+      "verified": "Birch-02",
+      "released": "Birch-03",
+      "unverified": "Birch-10",
+      "still_blocked": "Birch-07",
+      "owner_gate": "Birch-01",
+      "expired": "Birch-08"
+    },
+    "Cedar": {
+      "rows": {
+        "Cedar-04": {
+          "cold": [
+            "T104",
+            "working",
+            "node-1",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T104",
+            "verified complete",
+            "node-1",
+            "none",
+            "none"
+          ]
+        },
+        "Cedar-11": {
+          "cold": [
+            "T111",
+            "blocked",
+            "node-2",
+            "T104",
+            "none"
+          ],
+          "ongoing": [
+            "T111",
+            "ready",
+            "node-2",
+            "none",
+            "none"
+          ]
+        },
+        "Cedar-05": {
+          "cold": [
+            "T105",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T105",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ]
+        },
+        "Cedar-08": {
+          "cold": [
+            "T108",
+            "blocked",
+            "node-2",
+            "T105",
+            "none"
+          ],
+          "ongoing": [
+            "T108",
+            "blocked",
+            "node-2",
+            "T105",
+            "none"
+          ]
+        },
+        "Cedar-09": {
+          "cold": [
+            "T109",
+            "blocked",
+            "node-3",
+            "owner scope decision",
+            "decide whether to expand the read scope of T109"
+          ],
+          "ongoing": [
+            "T109",
+            "blocked",
+            "node-3",
+            "owner scope decision",
+            "decide whether to expand the read scope of T109"
+          ]
+        },
+        "Cedar-06": {
+          "cold": [
+            "T106",
+            "working",
+            "node-3",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T106",
+            "working",
+            "unknown",
+            "none",
+            "none"
+          ]
+        },
+        "Cedar-03": {
+          "cold": [
+            "T103",
+            "working",
+            "node-3",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T103",
+            "working",
+            "node-3",
+            "none",
+            "none"
+          ]
+        },
+        "Cedar-07": {
+          "cold": [
+            "T107",
+            "working",
+            "node-1",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T107",
+            "working",
+            "node-1",
+            "none",
+            "none"
+          ]
+        },
+        "Cedar-01": {
+          "cold": [
+            "T101",
+            "working",
+            "node-1",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T101",
+            "working",
+            "node-1",
+            "none",
+            "none"
+          ]
+        },
+        "Cedar-02": {
+          "cold": [
+            "T102",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T102",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ]
+        },
+        "Cedar-10": {
+          "cold": [
+            "T110",
+            "working",
+            "node-1",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T110",
+            "working",
+            "node-1",
+            "none",
+            "none"
+          ]
+        }
+      },
+      "verified": "Cedar-04",
+      "released": "Cedar-11",
+      "unverified": "Cedar-05",
+      "still_blocked": "Cedar-08",
+      "owner_gate": "Cedar-09",
+      "expired": "Cedar-06"
+    },
+    "Dune": {
+      "rows": {
+        "Dune-07": {
+          "cold": [
+            "T107",
+            "working",
+            "node-1",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T107",
+            "verified complete",
+            "node-1",
+            "none",
+            "none"
+          ]
+        },
+        "Dune-04": {
+          "cold": [
+            "T104",
+            "blocked",
+            "node-1",
+            "T107",
+            "none"
+          ],
+          "ongoing": [
+            "T104",
+            "ready",
+            "node-1",
+            "none",
+            "none"
+          ]
+        },
+        "Dune-11": {
+          "cold": [
+            "T111",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T111",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ]
+        },
+        "Dune-10": {
+          "cold": [
+            "T110",
+            "blocked",
+            "node-1",
+            "T111",
+            "none"
+          ],
+          "ongoing": [
+            "T110",
+            "blocked",
+            "node-1",
+            "T111",
+            "none"
+          ]
+        },
+        "Dune-05": {
+          "cold": [
+            "T105",
+            "blocked",
+            "node-2",
+            "owner scope decision",
+            "decide whether to expand the read scope of T105"
+          ],
+          "ongoing": [
+            "T105",
+            "blocked",
+            "node-2",
+            "owner scope decision",
+            "decide whether to expand the read scope of T105"
+          ]
+        },
+        "Dune-02": {
+          "cold": [
+            "T102",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T102",
+            "working",
+            "unknown",
+            "none",
+            "none"
+          ]
+        },
+        "Dune-06": {
+          "cold": [
+            "T106",
+            "working",
+            "node-3",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T106",
+            "working",
+            "node-3",
+            "none",
+            "none"
+          ]
+        },
+        "Dune-08": {
+          "cold": [
+            "T108",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T108",
+            "working",
+            "node-2",
+            "none",
+            "none"
+          ]
+        },
+        "Dune-03": {
+          "cold": [
+            "T103",
+            "working",
+            "node-3",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T103",
+            "working",
+            "node-3",
+            "none",
+            "none"
+          ]
+        },
+        "Dune-01": {
+          "cold": [
+            "T101",
+            "working",
+            "node-1",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T101",
+            "working",
+            "node-1",
+            "none",
+            "none"
+          ]
+        },
+        "Dune-09": {
+          "cold": [
+            "T109",
+            "working",
+            "node-3",
+            "none",
+            "none"
+          ],
+          "ongoing": [
+            "T109",
+            "working",
+            "node-3",
+            "none",
+            "none"
+          ]
+        }
+      },
+      "verified": "Dune-07",
+      "released": "Dune-04",
+      "unverified": "Dune-11",
+      "still_blocked": "Dune-10",
+      "owner_gate": "Dune-05",
+      "expired": "Dune-02"
+    }
+  }
+}
