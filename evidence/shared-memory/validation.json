@@ -1,0 +1,58 @@
+{
+  "schema": "residual.station.shared-memory-validation/1",
+  "baseline_sha": "8369f0dc2a93d8dcb194220b85b9aaf87d1d6df2",
+  "branch": "feat/stigmergic-evidence-context-20261125",
+  "validation_scope": "local isolated Linux scratch checkout only",
+  "python": "3.12.14",
+  "checks": [
+    {
+      "command": "python -m unittest discover -s tests/station -v",
+      "result": "PASS",
+      "tests": 68,
+      "new_shared_memory_tests": 31,
+      "log": "evidence/shared-memory/station-tests.log"
+    },
+    {
+      "command": "python scripts/demo_shared_memory_recovery.py --output evidence/shared-memory/recovery-demo.json",
+      "result": "PASS",
+      "provider_calls": 0
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "source_sha256": {
+    "residual/station/memory.py": "78ea9b8fcd29a2ff467ae7e51ed63aedda0cb55238d3117ab3da0b8815194a2b",
+    "residual/station/store.py": "f14a98ab1fc881d391e57d50ecd7c5bd8340db47a37822c9f2e508ec3b834b4b",
+    "residual/station/service.py": "a4c876f0456f4e0647db74b32685b9c696ce868f0d750507970618b2399ae92c",
+    "residual/station/server.py": "9e8e75cacc50f96ec5d01352dd1b9e9ad35377c073aa72e4d98781ebf8b6bf07",
+    "tests/station/test_shared_memory.py": "315e7374b860460628a5c8391b847a6d7f05f3cefb6f0d524d9a841158367be3",
+    "scripts/demo_shared_memory_recovery.py": "aabc78d2ff304bb9d5541bc8e0eb680a20996d486fff960d75dd153e5151f0b1",
+    "docs/station/SHARED_MEMORY.md": "04db578c9d7b859882c32dca328a5782fef71e703282149952ddbd94c7a8a28b",
+    "docs/station/DISTRIBUTED.md": "469b0da123f5c93c95b9d7dd205a4c850a55db44f9d0cd5fca58240dac39eaec"
+  },
+  "evidence_sha256": {
+    "evidence/shared-memory/station-tests.log": "4816f7d85fa16e890a562a0ebe5cffa25a06148d96bdff4209f767709be4e7c6",
+    "evidence/shared-memory/recovery-demo.json": "7787e0672647d4657c28fae2562d8aedaa673929de5dd6dcdaced70c87993324",
+    "evidence/shared-memory/independent-review.json": "af709aac476f11341437bdfc524ea4d79d984731bd7007e2e82f80254866112a",
+    "evidence/shared-memory/independent-tests.log": "656eba8ea1e621a9eb9890a95ef2cac31ed859f31c0adda58fb1365cde6e6c4b"
+  },
+  "not_claimed": [
+    "DBOX qualification",
+    "LEGION or Windows qualification",
+    "SC-MESH stack composition",
+    "live provider execution",
+    "P5 operator-effort improvement",
+    "full repository qualification",
+    "production release approval"
+  ],
+  "execution_note": "pytest was unavailable in the installed runtime; the actual unittest-based Station suites ran with their native standard-library runner.",
+  "independent_agent_review": {
+    "result": "PASS",
+    "new_tests": 31,
+    "source": "root independent execution, not independent human review",
+    "receipt": "evidence/shared-memory/independent-review.json",
+    "log": "evidence/shared-memory/independent-tests.log"
+  }
+}

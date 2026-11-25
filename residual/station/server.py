@@ -142,6 +142,13 @@ class Handler(BaseHTTPRequestHandler):
                         return self.respond({"events": self.station.store.events(pid, max(0, int(query.get("after", ["0"])[0])), 500)})
                     if parts[3] == "report":
                         return self.respond(self.station.store.report(pid))
+                    if len(parts) == 4 and parts[3] == "memory":
+                        return self.respond(self.station.store.memory(pid, query.get("task_id", [""])[0],
+                            revision=query.get("revision", [None])[0],
+                            after=int(query.get("after", ["0"])[0]),
+                            limit=int(query.get("limit", ["20"])[0]),
+                            max_age_seconds=int(query["max_age_seconds"][0]) if "max_age_seconds" in query else None,
+                            snapshot_root=query.get("snapshot_root", [None])[0]))
                     if parts[3] == "markdown":
                         return self.respond(self.station.store.markdown(pid), content_type="text/markdown; charset=utf-8", filename="PROJECT.md")
                 raise ContractError("Unknown endpoint")

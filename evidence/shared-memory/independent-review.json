@@ -1,0 +1,13 @@
+{
+  "kind": "residual",
+  "exit_code": 0,
+  "source_stable": true,
+  "source_sha256": {
+    "residual/station/memory.py": "78ea9b8fcd29a2ff467ae7e51ed63aedda0cb55238d3117ab3da0b8815194a2b",
+    "residual/station/service.py": "a4c876f0456f4e0647db74b32685b9c696ce868f0d750507970618b2399ae92c",
+    "residual/station/store.py": "f14a98ab1fc881d391e57d50ecd7c5bd8340db47a37822c9f2e508ec3b834b4b",
+    "residual/station/server.py": "9e8e75cacc50f96ec5d01352dd1b9e9ad35377c073aa72e4d98781ebf8b6bf07",
+    "tests/station/test_shared_memory.py": "315e7374b860460628a5c8391b847a6d7f05f3cefb6f0d524d9a841158367be3"
+  },
+  "output": "\ntest_oversized_artifact_is_rejected_before_loading (test_shared_memory.SharedMemoryTests.test_oversized_artifact_is_rejected_before_loading) ... ok\ntest_pagination_covers_history_and_rejects_mutated_snapshot (test_shared_memory.SharedMemoryTests.test_pagination_covers_history_and_rejects_mutated_snapshot) ... ok\ntest_projection_never_mutates_ledger_task_or_cursor (test_shared_memory.SharedMemoryTests.test_projection_never_mutates_ledger_task_or_cursor) ... ok\ntest_recovers_source_bound_failure_after_store_and_process_disappear (test_shared_memory.SharedMemoryTests.test_recovers_source_bound_failure_after_store_and_process_disappear) ... ok\ntest_replayed_bytes_do_not_refresh_original_attempt_or_age (test_shared_memory.SharedMemoryTests.test_replayed_bytes_do_not_refresh_original_attempt_or_age) ... ok\ntest_response_and_scan_bounds_are_explicit (test_shared_memory.SharedMemoryTests.test_response_and_scan_bounds_are_explicit) ... ok\ntest_review_rejection_requires_a_blocking_finding (test_shared_memory.SharedMemoryTests.test_review_rejection_requires_a_blocking_finding) ... ok\ntest_scope_is_target_and_declared_ancestors_only (test_shared_memory.SharedMemoryTests.test_scope_is_target_and_declared_ancestors_only) ... ok\ntest_spec_change_is_not_current_evidence (test_shared_memory.SharedMemoryTests.test_spec_change_is_not_current_evidence) ... ok\ntest_valid_hashes_do_not_hide_event_artifact_disagreement (test_shared_memory.SharedMemoryTests.test_valid_hashes_do_not_hide_event_artifact_disagreement) ... ok\ntest_verified_artifact_is_read_once_per_query_despite_repetition (test_shared_memory.SharedMemoryTests.test_verified_artifact_is_read_once_per_query_despite_repetition) ... ok\n\n----------------------------------------------------------------------\nRan 31 tests in 2.206s\n\nOK\n"
+}

@@ -242,6 +242,11 @@ class Store(ObservationStore):
             rows = c.execute("SELECT * FROM events WHERE project=? AND seq>? ORDER BY seq LIMIT ?", (pid, after, limit))
             return [{**json.loads(r["value"]), "seq": r["seq"], "hash": r["hash"], "prev_hash": r["prev_hash"]} for r in rows]
 
+    def memory(self, pid, tid, **query):
+        """Read a scoped projection of retained evidence; never grants authority."""
+        from .memory import evidence_context
+        return evidence_context(self.root, pid, tid, **query)
+
     def add_artifact(self, pid, name, content, kind="text"):
         if isinstance(content, str):
             content = content.encode()
