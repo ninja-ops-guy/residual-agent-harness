@@ -29,6 +29,11 @@ For a trusted TLS reverse proxy, configure `RESIDUAL_ALLOWED_HOSTS=station.examp
 
 Transport retries reuse the same submission ID and exact proposal. A different payload with the same ID is rejected. Workers cannot approve/integrate tasks. The operator's **Run mission** processes review-ready submissions and subsequent dependent work.
 
+Claim packets include bounded [retained shared evidence](SHARED_MEMORY.md) for the
+task and its declared dependencies. A replacement worker can inspect earlier
+failed attempts and original sources after a restart. Historical context does
+not renew an old lease, grant approval, or replace current acceptance checks.
+
 Polling is plain HTTP with no inference, defaulting to 10 seconds. `--once` supports an external scheduler. Worker keys allow access to live project scopes on the station; per-project worker identities and multi-tenant isolation are not implemented. Disable/rotate keys in the UI.
 
 Central budgets cover station-issued calls. Independently operated workers must enforce their own provider spending limits. Their usage receipts are labeled worker-reported and excluded from direct provider-reported totals.

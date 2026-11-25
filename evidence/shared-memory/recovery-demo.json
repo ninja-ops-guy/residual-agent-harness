@@ -1,0 +1,75 @@
+{
+  "schema": "residual.station.shared-memory-demo/1",
+  "result": "PASS",
+  "environment": {
+    "os": "Linux",
+    "python": "3.12.14",
+    "qualification_host": "scratch_only_not_DBOX_or_LEGION"
+  },
+  "scenario": "failed worker -> cold process -> replacement worker -> fresh checks/review/integration",
+  "project_id": "p-a6ddca5b7ead",
+  "task_id": "OPS-101",
+  "source_worker": "worker-before-loss",
+  "replacement_worker": "worker-after-loss",
+  "failed_evidence": {
+    "task_id": "OPS-101",
+    "kind": "checks.completed",
+    "attempt": 1,
+    "spec_hash": "f9ea633aa4780f1844d89f4df1021fd6479098fef72c22978f507b42de375c41",
+    "base_commit": "b7aae6c04129862426dd3dc7e6c2d92a76bd28b3",
+    "head_commit": "9375b6f29568ac257a1cb77f01d9da264ef030a6",
+    "source": {
+      "event_id": "ec3b437bfbf34dd092e4237e19091c9c",
+      "event_hash": "65a7dc2498f6b7ead69402311e0962bf8a35a8b5c20b62b85a7a62b40f2be851",
+      "seq": 9,
+      "actor": "coordinator",
+      "timestamp": "2026-11-25T05:26:41.269694+00:00",
+      "host_id": null,
+      "host_provenance": "not_recorded_by_source",
+      "artifact_id": "p-a6ddca5b7ead:81b7fa886127a938cd0ba9cf1956ccc4b84414eda426ce0985f691aa43fedbce",
+      "artifact_sha256": "81b7fa886127a938cd0ba9cf1956ccc4b84414eda426ce0985f691aa43fedbce",
+      "worker_id": "worker-before-loss"
+    },
+    "duplicate_events": 0,
+    "authority": "context_only",
+    "truth_status": "not_established_by_memory",
+    "outcome_digest": "eb03ee6e845109a32c2df48a0f541cd921859fcc5d0bfb261c2e02bc8097baf7",
+    "negative": true,
+    "facts": {
+      "passed": 1,
+      "total": 2,
+      "failures": [
+        {
+          "check_id": "check-2",
+          "detail": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nAssertionError\n"
+        }
+      ]
+    },
+    "id": "70d12bca4e242da0e669385ca2c1137096e3893360c6379a262d8281ef7d4df9",
+    "age_seconds": 0.007,
+    "applicability": "current_revision",
+    "limitations": [],
+    "superseded_for_current_work_by": null,
+    "conflict_count": 0,
+    "conflicts": [],
+    "independent_corroboration": 0
+  },
+  "cold_process_recovered_original_trace": true,
+  "replacement_inherited_original_trace": true,
+  "stale_lease_rejected": true,
+  "negative_history_retained_after_success": true,
+  "new_acceptance_state": "integrated",
+  "provider_calls": 0,
+  "limits": [
+    "synthetic demonstration, not P5 operator-effort evidence",
+    "single local Station, not remote SC-MESH or multi-host qualification",
+    "retained bytes are required; complete storage loss is not recovered",
+    "no production host, activation, deployment or release"
+  ],
+  "source_sha256": {
+    "residual/station/memory.py": "78ea9b8fcd29a2ff467ae7e51ed63aedda0cb55238d3117ab3da0b8815194a2b",
+    "residual/station/store.py": "f14a98ab1fc881d391e57d50ecd7c5bd8340db47a37822c9f2e508ec3b834b4b",
+    "residual/station/service.py": "a4c876f0456f4e0647db74b32685b9c696ce868f0d750507970618b2399ae92c",
+    "residual/station/server.py": "9e8e75cacc50f96ec5d01352dd1b9e9ad35377c073aa72e4d98781ebf8b6bf07"
+  }
+}
